@@ -120,21 +120,53 @@ public function prosesClosing(Request $request)
         DB::beginTransaction();
         try {
             $id_transaksi = $request->id_transaksi;
-            $uangDiterimaSekarang = str_replace('.', '', $request->jumlah_bayar) ?: 0;
-            $diskon = str_replace('.', '', $request->diskon ?? 0);
+            $uangDiterimaSekarang = (float) (str_replace('.', '', $request->jumlah_bayar) ?: 0);
+            $diskon = (float) str_replace('.', '', $request->diskon ?? 0);
             $metode = $request->metode_pembayaran;
 
-            // 1. Update Detail Barang
+            if ($uangDiterimaSekarang < 0) {
+                throw new \Exception("Jumlah bayar tidak boleh negatif.");
+            }
+            if ($diskon < 0) {
+                throw new \Exception("Diskon tidak boleh negatif.");
+            }
+
+            // 1. Update Detail Barang. Kasir memang sengaja diberi wewenang untuk
+            // menyesuaikan harga di sini (lihat label "Penyesuaian Harga" di form) -
+            // itu TIDAK dihapus. Yang dijaga hanya batas wajarnya: harga tidak boleh
+            // negatif, dan qty dipakai dari data transaksi_detail yang tersimpan
+            // (bukan dari field tersembunyi di request) supaya tidak bisa dikalikan
+            // dengan qty palsu untuk memperbesar/memperkecil subtotal di luar
+            // penyesuaian harga yang sesungguhnya dimaksud.
             if ($request->items) {
                 foreach ($request->items as $id_detail => $data) {
-                    $harga_bersih = str_replace('.', '', $data['harga']);
+                    $detailRow = DB::table('transaksi_detail')
+                        ->where('id_detail', $id_detail)
+                        ->where('id_transaksi', $id_transaksi)
+                        ->first();
+
+                    if (!$detailRow) {
+                        continue;
+                    }
+
+                    $harga_bersih = (float) str_replace('.', '', $data['harga'] ?? 0);
+
+                    if ($harga_bersih < 0) {
+                        throw new \Exception("Harga unit tidak boleh negatif.");
+                    }
+
                     DB::table('transaksi_detail')->where('id_detail', $id_detail)->update([
-                        'subtotal' => $harga_bersih * $data['qty_hidden']
+                        'subtotal' => $harga_bersih * $detailRow->qty
                     ]);
                 }
             }
 
             $totalNotaBaru = DB::table('transaksi_detail')->where('id_transaksi', $id_transaksi)->sum('subtotal');
+
+            if ($diskon > $totalNotaBaru) {
+                throw new \Exception("Diskon tidak boleh lebih besar dari total nota.");
+            }
+
             $grandTotalFinal = $totalNotaBaru - $diskon;
 
             // 2. Catat Pembayaran (Hanya jika uang > 0)

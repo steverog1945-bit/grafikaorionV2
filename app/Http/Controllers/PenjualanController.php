@@ -60,11 +60,83 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         ], 400);
     }
 
+    if (!$request->id_golongan) {
+        return response()->json([
+            'status' => 'error',
+            'msg' => 'Golongan konsumen wajib diisi'
+        ], 400);
+    }
+
+    // Harga & subtotal TIDAK PERNAH dipercaya dari client (lihat catatan audit:
+    // harga sebelumnya dikirim mentah-mentah dari browser tanpa verifikasi ulang,
+    // sehingga siapa pun yang mengubah request bisa menetapkan harga sembarang).
+    // Di sini setiap item dihitung ULANG dari data master (produk + setting_harga)
+    // menggunakan hanya input mentah yang tidak bisa "dipalsukan" jadi lebih murah
+    // (p, l, qty) - harga per unit dan subtotal akhir murni hasil hitungan server.
+    $itemsTervalidasi = [];
+
+    foreach ($request->items as $index => $item) {
+        $produk = DB::table('produk')->where('id_produk', $item['id_produk'] ?? null)->first();
+
+        if (!$produk) {
+            return response()->json(['status' => 'error', 'msg' => 'Produk pada baris ' . ($index + 1) . ' tidak ditemukan.'], 422);
+        }
+
+        $p = (float) ($item['p'] ?? 0);
+        $l = (float) ($item['l'] ?? 0);
+        $qtyInput = (float) ($item['qty_input'] ?? 0);
+
+        if ($qtyInput <= 0) {
+            return response()->json(['status' => 'error', 'msg' => 'Qty pada baris ' . ($index + 1) . ' tidak valid.'], 422);
+        }
+
+        // Rumus qty-untuk-harga HARUS sama persis dengan hitungSubtotal() di
+        // penjualan/create.blade.php, supaya harga yang ditagih konsisten
+        // dengan yang ditampilkan ke operator sebelum disimpan.
+        $qtyHitung = $produk->metode_hitung === 'ukuran'
+            ? ($p * $l / 10000) * $qtyInput
+            : $qtyInput;
+
+        if ($qtyHitung <= 0) {
+            return response()->json(['status' => 'error', 'msg' => 'Ukuran/qty pada baris ' . ($index + 1) . ' tidak valid.'], 422);
+        }
+
+        $hargaRow = DB::table('setting_harga')
+            ->where('id_produk', $produk->id_produk)
+            ->where('id_golongan', $request->id_golongan)
+            ->where('range_min', '<=', $qtyHitung)
+            ->orderBy('range_min', 'desc')
+            ->first();
+
+        $hargaSatuan = $hargaRow ? (float) $hargaRow->harga_jual : 0;
+
+        if ($hargaSatuan <= 0) {
+            return response()->json([
+                'status' => 'error',
+                'msg' => 'Harga untuk "' . $produk->nama_produk . '" belum diatur di Price List untuk golongan konsumen ini.',
+            ], 422);
+        }
+
+        // biaya_desain memang input manual operator (tidak ada tabel acuannya),
+        // hanya dipastikan tidak negatif supaya tidak bisa dipakai mengurangi total.
+        $biayaDesain = max(0, (float) ($item['biaya_desain'] ?? 0));
+
+        $itemsTervalidasi[] = [
+            'id_produk' => $produk->id_produk,
+            'nama_file' => $item['nama_file'] ?? '-',
+            'p' => $p,
+            'l' => $l,
+            'qty_input' => $qtyInput,
+            'qty_hitung' => $qtyHitung,
+            'subtotal' => ($hargaSatuan * $qtyHitung) + $biayaDesain,
+        ];
+    }
+
     DB::beginTransaction();
 
     try {
 
-        $grand_total = collect($request->items)->sum('subtotal');
+        $grand_total = collect($itemsTervalidasi)->sum('subtotal');
 
         $id_transaksi = DB::table('transaksi')->insertGetId([
             'nomor_nota'        => $request->no_nota,
@@ -75,16 +147,16 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             'status_pembayaran' => 'Belum Bayar',
         ]);
 
-        foreach ($request->items as $item) {
+        foreach ($itemsTervalidasi as $item) {
 
-            $jumlah_order = $item['qty_input'] ?? 1;
+            $jumlah_order = $item['qty_input'];
 
             DB::table('transaksi_detail')->insert([
                 'id_transaksi' => $id_transaksi,
                 'id_produk'    => $item['id_produk'],
-                'nama_file'    => $item['nama_file'] ?? '-',
-                'p_ukuran'     => $item['p'] ?? 0,
-                'l_ukuran'     => $item['l'] ?? 0,
+                'nama_file'    => $item['nama_file'],
+                'p_ukuran'     => $item['p'],
+                'l_ukuran'     => $item['l'],
                 'qty'          => $jumlah_order,
                 'subtotal'     => $item['subtotal'],
                 'status_spk'   => 'Antre',
