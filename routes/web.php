@@ -25,6 +25,8 @@ use App\Http\Controllers\{
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\Api\PenjualanApiController;
 use App\Http\Controllers\Kasir\KasirController;
+use App\Http\Controllers\SpkController;
+use App\Http\Controllers\ProduksiController;
 
 
 
@@ -299,6 +301,23 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         ->name('bahan.destroy');
 
     Route::get('/produk/{id}', [ProdukController::class, 'show']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | SPK & PRODUKSI
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/spk', [SpkController::class, 'index'])->name('spk.index');
+    Route::patch('/spk/{id}/urgent', [SpkController::class, 'toggleUrgent'])->name('spk.toggle-urgent');
+    Route::post('/spk/bulk-urgent', [SpkController::class, 'bulkUrgent'])->name('spk.bulk-urgent');
+
+    Route::get('/produksi', [ProduksiController::class, 'index'])->name('produksi.index');
+    Route::patch('/produksi/{id}/simpan-qty', [ProduksiController::class, 'simpanQty'])->name('produksi.simpan-qty');
+    Route::patch('/produksi/{id}/selesai', [ProduksiController::class, 'selesai'])->name('produksi.selesai');
+    Route::patch('/produksi/{id}/cancel', [ProduksiController::class, 'cancel'])->name('produksi.cancel');
+
+
 
     /*
     |--------------------------------------------------------------------------
