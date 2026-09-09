@@ -197,6 +197,15 @@
     </a>
     @endif
 
+    @if($cekAkses(24))
+    <a href="{{ route('collecting.index') }}" class="{{ $menuClass }} {{ request()->routeIs('collecting.*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('collecting.*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span class="text-sm font-medium">Collecting</span>
+    </a>
+    @endif
+
     @if($cekAkses(15))
     <a href="{{ route('kategori.index') }}" class="{{ $menuClass }} {{ request()->routeIs('kategori.*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('kategori.*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">

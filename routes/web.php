@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\PenjualanApiController;
 use App\Http\Controllers\Kasir\KasirController;
 use App\Http\Controllers\SpkController;
 use App\Http\Controllers\ProduksiController;
+use App\Http\Controllers\CollectingController;
 
 
 
@@ -316,6 +317,8 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::patch('/produksi/{id}/simpan-qty', [ProduksiController::class, 'simpanQty'])->name('produksi.simpan-qty');
     Route::patch('/produksi/{id}/selesai', [ProduksiController::class, 'selesai'])->name('produksi.selesai');
     Route::patch('/produksi/{id}/cancel', [ProduksiController::class, 'cancel'])->name('produksi.cancel');
+
+    Route::get('/collecting', [CollectingController::class, 'index'])->name('collecting.index');
 
 
 
