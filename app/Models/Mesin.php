@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Mesin extends Model
+{
+    protected $table = 'mesin';
+    protected $primaryKey = 'id_mesin';
+    public $timestamps = false;
+
+    protected $fillable = ['nama_mesin', 'tipe_mesin', 'biaya_per_meter'];
+}

@@ -1,0 +1,224 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+    
+    {{-- HEADER --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800 tracking-tight uppercase">
+                Manajemen <span class="text-indigo-600">Satuan</span>
+            </h1>
+            <p class="text-slate-400 font-medium mt-1 text-xs uppercase tracking-wider">
+                Konfigurasi unit ukur & standarisasi konversi stok
+            </p>
+        </div>
+
+        <button onclick="openTambahModal()"
+           class="inline-flex items-center justify-center px-6 py-3 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg gap-3 active:scale-95">
+            <i class="fas fa-plus-circle text-indigo-400"></i>
+            Tambah Satuan
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {{-- INFO PANEL (Kiri) --}}
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-indigo-100">
+                        <i class="fas fa-exchange-alt text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-slate-800 mb-2 tracking-tight">Pusat Konversi</h4>
+                    <p class="text-slate-500 text-[11px] leading-relaxed ">
+                        Sistem menggunakan satuan terkecil sebagai <span class="text-indigo-600 font-bold">Base Unit (1.00)</span>.
+                    </p>
+                    
+                    <div class="mt-8 space-y-4">
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-colors">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] mb-2">Logika Kertas</p>
+                            <p class="text-xs text-slate-600 font-semibold ">1 Rim <span class="text-indigo-500 mx-1">→</span> 500 Lembar</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-colors">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] mb-2">Logika Panjang</p>
+                            <p class="text-xs text-slate-600 font-semibold ">1 Meter <span class="text-indigo-500 mx-1">→</span> 100 CM</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- TABLE DATA (Kanan) --}}
+        <div class="lg:col-span-3">
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
+                                <th class="px-8 py-5 text-left">Nama Satuan</th>
+                                <th class="px-6 py-5 text-center">Status Unit</th>
+                                <th class="px-6 py-5 text-center">Kapasitas (Konversi)</th>
+                                <th class="px-8 py-5 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @forelse($satuan as $s)
+                            <tr class="group hover:bg-slate-50/30 transition-all">
+                                <td class="px-8 py-5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 font-bold text-[10px] group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                                            {{ substr($s->nama_satuan, 0, 1) }}
+                                        </div>
+                                        <span class="text-sm font-bold text-slate-700 uppercase tracking-tight group-hover:text-indigo-600 transition-colors">
+                                            {{ $s->nama_satuan }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5 text-center">
+                                    @if($s->nilai_konversi == 1)
+                                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2"></span> Base Unit
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100">
+                                            Converter
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-5 text-center">
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <span class="text-[11px]  font-bold text-indigo-600">x{{ number_format($s->nilai_konversi, 0) }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-5 text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <button onclick="openEditModal({{ $s->id_satuan }}, '{{ $s->nama_satuan }}', {{ $s->nilai_konversi }})" 
+                                                class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all">
+                                            <i class="fas fa-edit text-sm"></i>
+                                        </button>
+                                        <form action="{{ route('satuan.destroy', $s->id_satuan) }}" method="POST" class="delete-form inline">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
+                                                <i class="fas fa-trash-alt text-sm"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="4" class="px-8 py-20 text-center text-slate-300  text-sm">Belum ada data satuan.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL (Unified) --}}
+<div id="modalSatuan" class="fixed inset-0 z-[100] hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-6 text-center">
+        <div class="relative w-full max-w-[500px] transform overflow-hidden rounded-[3rem] bg-white text-center shadow-[0_20px_50px_rgba(0,0,0,0.15)] transition-all border border-slate-100">
+            
+            {{-- Dynamic Header Color --}}
+            <div id="modalHeader" class="px-10 py-8 bg-indigo-600 flex justify-between items-center text-white text-left transition-colors duration-500">
+                <div class="flex items-center gap-3">
+                    <i id="modalIcon" class="fas fa-plus-circle"></i>
+                    <h3 id="modalTitle" class="text-xl font-bold tracking-tight uppercase">Satuan Baru</h3>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+
+            <form id="formSatuan" method="POST" class="py-12 space-y-8">
+                @csrf
+                <div id="methodField"></div>
+                
+                <div class="space-y-6">
+                    <div class="max-w-[85%] mx-auto text-left">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Label Satuan (Besar/Kecil)</label>
+                        <input type="text" name="nama_satuan" id="input_nama" placeholder="CONTOH: RIM, PACK, LEMBAR" required
+                            class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center uppercase tracking-widest">
+                    </div>
+
+                    <div class="max-w-[85%] mx-auto text-left">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Isi Konversi (Terhadap Satuan Terkecil)</label>
+                        <div class="relative">
+                            <input type="number" step="0.01" name="nilai_konversi" id="input_nilai" placeholder="1.00" required
+                                class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center">
+                            <div class="absolute right-5 top-1/2 -translate-y-1/2 text-[9px] font-black text-indigo-300 uppercase">Multiplier</div>
+                        </div>
+                        <p class="mt-4 px-2 text-[10px] text-slate-400 leading-relaxed  text-center">
+                            *Jika ini satuan dasar, isi <b>1</b>. Jika 1 Pack = 12 Pcs, masukkan <b>12</b>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center gap-3 pt-4 max-w-[70%] mx-auto">
+                    <button id="btnSubmit" type="submit" 
+                        class="w-full py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">
+                        Simpan Satuan
+                    </button>
+                    <button type="button" onclick="closeModal()" 
+                        class="w-full py-4 bg-transparent text-slate-400 rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:text-slate-600">
+                        Batalkan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('modalSatuan');
+    const form = document.getElementById('formSatuan');
+    const modalHeader = document.getElementById('modalHeader');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const modalIcon = document.getElementById('modalIcon');
+
+    function openTambahModal() {
+        document.getElementById('modalTitle').innerText = "Buat Satuan Baru";
+        modalHeader.classList.replace('bg-amber-500', 'bg-indigo-600');
+        btnSubmit.classList.replace('bg-amber-500', 'bg-indigo-600');
+        btnSubmit.classList.replace('hover:bg-amber-600', 'hover:bg-indigo-700');
+        modalIcon.className = "fas fa-plus-circle";
+        
+        form.action = "{{ route('satuan.store') }}";
+        document.getElementById('methodField').innerHTML = '';
+        form.reset();
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function openEditModal(id, nama, nilai) {
+        document.getElementById('modalTitle').innerText = "Edit Data Satuan";
+        modalHeader.classList.replace('bg-indigo-600', 'bg-amber-500');
+        btnSubmit.classList.replace('bg-indigo-600', 'bg-amber-500');
+        btnSubmit.classList.replace('hover:bg-indigo-700', 'hover:bg-amber-600');
+        modalIcon.className = "fas fa-edit";
+
+        form.action = `/satuan/${id}`;
+        document.getElementById('methodField').innerHTML = '@method("PUT")';
+        document.getElementById('input_nama').value = nama;
+        document.getElementById('input_nilai').value = nilai;
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    document.querySelectorAll('.delete-form').forEach(f => {
+        f.addEventListener('submit', function(e){
+            if(!confirm('Hapus satuan ini? Perhitungan konversi stok yang menggunakan satuan ini mungkin akan kacau.')) e.preventDefault();
+        });
+    });
+</script>
+@endsection

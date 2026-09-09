@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Karyawan extends Model
+{
+    protected $table = 'karyawan';
+    
+    // INI KUNCINYA: Laravel harus tahu primary key-nya bukan 'id'
+    protected $primaryKey = 'id_karyawan'; 
+
+    // Jika id_karyawan bukan angka auto_increment (tapi di SQL Anda iya, jadi ini opsional)
+    public $incrementing = true;
+
+    protected $fillable = [
+        'nama_karyawan', 
+        'bagian', 
+        'telepon', 
+        'status_aktif'
+    ];
+
+    // Relasi ke User (untuk proteksi saat hapus)
+    public function user()
+    {
+        return $this->hasOne(User::class, 'id_karyawan');
+    }
+}

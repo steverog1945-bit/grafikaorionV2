@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   DESIGN SYSTEM - ERP PERCETAKAN
+   ==========================================================================
+   Sebelumnya rule-rule di bawah ini tersebar di 2 blok <style> inline di
+   resources/views/layouts/app.blade.php, dengan beberapa class (.modern-table,
+   .modern-table-wrapper, main, body) DIDEFINISIKAN DUA KALI dengan aturan yang
+   saling bentrok. Sekarang digabung jadi satu sumber kebenaran di sini.
+
+   File ini juga satu-satunya tempat yang bisa memakai @apply (Tailwind hanya
+   memprosesnya lewat file CSS yang di-build via Vite, bukan dari <style>
+   inline di Blade) - beberapa rule pagination sebelumnya memakai @apply di
+   dalam <style> Blade dan karena itu TIDAK PERNAH benar-benar aktif.
+   ========================================================================== */
+
+/* --- CARD --- */
+.card {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+/* --- TABLE SYSTEM --- */
+.modern-table-wrapper {
+    width: 100%;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid #eef1f4;
+    position: relative;
+}
+
+.modern-table {
+    min-width: 1000px; /* menjaga kolom tetap presisi saat discroll horizontal */
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.modern-table thead {
+    background: #f9fafb;
+}
+
+.modern-table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    font-weight: 600;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eef1f4;
+}
+
+.modern-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #f1f3f6;
+    font-size: 14px;
+    color: #2d3436;
+}
+
+.modern-table tbody tr {
+    transition: all 0.15s ease;
+}
+
+.modern-table tbody tr:hover {
+    background: #fafbfc;
+}
+
+/* --- STATUS / BADGE (chip) ---
+   Set lengkap sesuai Design System Proposal: success/warning/danger/info.
+   danger & info baru ditambahkan di sini (belum dipakai halaman manapun
+   sampai saat ini, jadi aman, tidak mengubah tampilan apa pun yang sudah
+   ada) supaya siap dipakai saat standardisasi badge status per modul. */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.chip-success {
+    background: #e7f6ec;
+    color: #1e7e34;
+}
+
+.chip-warning {
+    background: #fff4e5;
+    color: #b26a00;
+}
+
+.chip-danger {
+    background: #fdecec;
+    color: #c0392b;
+}
+
+.chip-info {
+    background: #e8f1fd;
+    color: #1f6fd1;
+}
+
+/* --- EMPTY STATE --- */
+.empty-state {
+    text-align: center;
+    padding: 60px;
+    color: #adb5bd;
+    font-size: 14px;
+}
+
+/* --- PAGINATION (Laravel default ->links() markup) ---
+   Sebelumnya rule ini memakai @apply di dalam <style> inline Blade sehingga
+   TIDAK PERNAH aktif (menyisakan angka-angka pagination bawaan Bootstrap
+   tampil apa adanya). Di sini @apply benar-benar diproses Tailwind. */
+.modern-nav .pagination {
+    @apply flex items-center gap-6 m-0;
+}
+
+.modern-nav .page-item:not(:first-child):not(:last-child) {
+    display: none !important;
+}
+
+.modern-nav .page-link {
+    @apply border-none bg-transparent text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 hover:text-indigo-600 transition-all;
+}
+
+.modern-nav .page-item.disabled .page-link {
+    @apply text-slate-200;
+}
+
+.modern-nav .page-link span {
+    display: inline-block;
+}
+
+/* --- MISC --- */
+.container-fluid {
+    max-width: 1280px;
+    margin: auto;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Inter', sans-serif;
+    color: #0f172a; /* slate-900 - sebelumnya "color: #white" (bukan hex
+                        valid) sehingga rule ini tidak pernah benar-benar
+                        berlaku; nilai ini menyamai warna yang memang sudah
+                        efektif tampil selama ini lewat class Tailwind di
+                        <body>, jadi tidak ada perubahan visual. */
+}
