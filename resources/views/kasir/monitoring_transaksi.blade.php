@@ -95,8 +95,8 @@
                                 🖨️
                             </button>
                             <div class="hidden group-hover:block absolute right-0 mt-2 w-40 bg-white border border-slate-100 shadow-xl rounded-xl z-50 overflow-hidden">
-                                <a href="#" class="block px-4 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50 border-b border-slate-50">NOT THERMAL (58mm)</a>
-                                <a href="#" class="block px-4 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50">INVOICE (A4/A5)</a>
+                                <a href="{{ url('/kasir/print-opsi/'.$t->id_transaksi) }}?format=thermal" target="_blank" class="block px-4 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50 border-b border-slate-50">NOTA THERMAL (58mm)</a>
+                                <a href="{{ url('/kasir/print-opsi/'.$t->id_transaksi) }}?format=a4" target="_blank" class="block px-4 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50">INVOICE (A4/A5)</a>
                             </div>
                         </div>
 
@@ -112,13 +112,53 @@
 </div>
 
 <script>
-    function showHistory(id) {
-        Swal.fire({
-            title: 'History Proses Pesanan',
-            html: '<div class="text-left text-sm">Lacak pengerjaan nota ini...</div>',
-            icon: 'info',
-            customClass: { popup: 'rounded-[2rem]' }
-        });
+    async function showHistory(id) {
+        Swal.fire({ title: 'Memuat...', didOpen: () => Swal.showLoading() });
+
+        try {
+            const res = await fetch(`{{ url('/kasir/history') }}/${id}`);
+            const data = await res.json();
+
+            if (data.status !== 'success') {
+                return Swal.fire('Gagal', data.msg || 'Data tidak ditemukan.', 'error');
+            }
+
+            const itemRows = data.items.map(it =>
+                `<tr>
+                    <td class="py-1 pr-2">${it.nama_file}</td>
+                    <td class="py-1 pr-2 text-center">${it.qty}${it.qty_cetak !== null ? ' / ' + it.qty_cetak : ''}</td>
+                    <td class="py-1 text-right font-bold">${it.status_spk}</td>
+                </tr>`
+            ).join('');
+
+            const bayarRows = data.pembayaran.length
+                ? data.pembayaran.map(p =>
+                    `<tr>
+                        <td class="py-1 pr-2">${new Date(p.tgl_bayar).toLocaleString('id-ID')}</td>
+                        <td class="py-1 pr-2">${p.metode}</td>
+                        <td class="py-1 text-right font-bold">Rp ${new Intl.NumberFormat('id-ID').format(p.nominal)}</td>
+                    </tr>`
+                  ).join('')
+                : '<tr><td colspan="3" class="py-2 text-slate-400 italic">Belum ada pembayaran tercatat.</td></tr>';
+
+            Swal.fire({
+                title: 'Nota ' + data.nomor_nota,
+                width: 480,
+                html: `
+                    <div class="text-left text-xs">
+                        <p class="text-slate-500 mb-3">Order: ${new Date(data.tgl_order).toLocaleString('id-ID')} &middot; Status: <b>${data.status_pembayaran}</b></p>
+                        <p class="font-bold uppercase text-[10px] text-slate-400 mb-1">Item &amp; Status SPK (qty order / qty cetak)</p>
+                        <table class="w-full mb-4">${itemRows}</table>
+                        <p class="font-bold uppercase text-[10px] text-slate-400 mb-1">Riwayat Pembayaran</p>
+                        <table class="w-full">${bayarRows}</table>
+                    </div>
+                `,
+                icon: undefined,
+                customClass: { popup: 'rounded-[2rem]' }
+            });
+        } catch (e) {
+            Swal.fire('Error', 'Gagal memuat history.', 'error');
+        }
     }
 </script>
 @endsection

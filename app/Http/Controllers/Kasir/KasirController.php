@@ -43,42 +43,51 @@ class KasirController extends Controller
 
         return view('kasir.monitoring_transaksi', compact('transaksi', 'waitingCount'));
     }
-public function prosesClosing(Request $request)
-{
-    DB::beginTransaction();
-    try {
-        $id_kas = $request->id_kas;
-        $saldo_fisik = str_replace('.', '', $request->saldo_fisik);
-        
-        // 1. Ambil data kas yang sedang aktif
-        $kas = DB::table('kas_harian')->where('id_kas', $id_kas)->first();
-        
-        if (!$kas || $kas->status_lock == 'closed') {
-            throw new \Exception("Sesi kas sudah ditutup atau tidak ditemukan.");
+
+    /**
+     * Closing cepat lewat modal di Kelola Kas (beda dari alur preview di
+     * closing-preview -> simpanClosing, yang menampilkan rincian dulu sebelum
+     * dikunci). Dipakai oleh tombol "Closing Kas Sekarang" di kelola_kas.blade.php.
+     * Kedua alur ini sengaja dipertahankan berdampingan karena sama-sama nyata
+     * dipakai di UI - bukan disatukan di sini tanpa sepengetahuan pemilik aplikasi.
+     */
+    public function prosesClosing(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $id_kas = $request->id_kas;
+            $saldo_fisik = (float) str_replace('.', '', $request->saldo_fisik ?? 0);
+
+            if ($saldo_fisik < 0) {
+                throw new \Exception('Saldo fisik tidak boleh negatif.');
+            }
+
+            $kas = DB::table('kas_harian')->where('id_kas', $id_kas)->lockForUpdate()->first();
+
+            if (!$kas || $kas->status_lock === 'closed') {
+                throw new \Exception('Sesi kas sudah ditutup atau tidak ditemukan.');
+            }
+
+            $selisih = $saldo_fisik - $kas->saldo_akhir;
+
+            DB::table('kas_harian')->where('id_kas', $id_kas)->update([
+                'saldo_fisik' => $saldo_fisik,
+                'selisih' => $selisih,
+                'status_lock' => 'closed',
+                'waktu_tutup' => now(),
+                'keterangan_closing' => $request->keterangan,
+                'updated_at' => now()
+            ]);
+
+            DB::commit();
+            return redirect()->route('kasir.kelola')->with('success', 'Kas Berhasil Ditutup. Selisih: Rp ' . number_format($selisih, 0, ',', '.'));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal Closing: ' . $e->getMessage());
         }
-
-        // 2. Hitung Selisih
-        // Selisih = Saldo Fisik di Tangan - Saldo Akhir di Sistem
-        $selisih = $saldo_fisik - $kas->saldo_akhir;
-
-        // 3. Update data kas dan LOCK (Closing)
-        DB::table('kas_harian')->where('id_kas', $id_kas)->update([
-            'saldo_fisik' => $saldo_fisik,
-            'selisih' => $selisih,
-            'status_lock' => 'closed',
-            'waktu_tutup' => now(), // Jika Anda punya kolom ini
-            'keterangan_closing' => $request->keterangan,
-            'updated_at' => now()
-        ]);
-
-        DB::commit();
-        return redirect()->route('kasir.kelola')->with('success', 'Kas Berhasil Ditutup. Selisih: Rp ' . number_format($selisih, 0, ',', '.'));
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Gagal Closing: ' . $e->getMessage());
     }
-}
+
     public function waitingList()
     {
         // Pastikan hanya mengambil status 'Belum Bayar'
@@ -309,26 +318,155 @@ public function previewClosing()
 public function simpanClosing(Request $request)
 {
     $id_kas = $request->id_kas;
-    $saldo_fisik = str_replace('.', '', $request->saldo_fisik);
+    $saldo_fisik = (float) str_replace('.', '', $request->saldo_fisik ?? 0);
 
-    $kas = DB::table('kas_harian')->where('id_kas', $id_kas)->first();
-    
-    // Hitung selisih antara fisik di laci dengan hitungan sistem
-    $selisih = $saldo_fisik - $request->saldo_sistem;
+    if ($saldo_fisik < 0) {
+        return back()->with('error', 'Saldo fisik tidak boleh negatif.');
+    }
 
-    DB::table('kas_harian')->where('id_kas', $id_kas)->update([
-        'total_tunai_masuk' => $request->tunai_masuk,
-        'total_transfer_masuk' => $request->transfer_masuk,
-        'total_tunai_keluar' => $request->tunai_keluar,
-        'saldo_akhir' => $request->saldo_sistem, // Saldo akhir sistem
-        'saldo_fisik' => $saldo_fisik,
-        'selisih' => $selisih,
-        'status_lock' => 'closed',
-        'waktu_tutup' => now(),
-        'updated_at' => now()
+    DB::beginTransaction();
+    try {
+        // Lock row supaya dua klik "Verifikasi & Kunci Kasir" yang hampir
+        // bersamaan tidak sama-sama lolos menutup kas yang sama.
+        $kas = DB::table('kas_harian')->where('id_kas', $id_kas)->lockForUpdate()->first();
+
+        if (!$kas) {
+            throw new \Exception('Sesi kas tidak ditemukan.');
+        }
+        if ($kas->status_lock === 'closed') {
+            throw new \Exception('Sesi kas ini sudah ditutup sebelumnya.');
+        }
+
+        // Total pemasukan DIHITUNG ULANG dari pembayaran_riwayat di server
+        // (bukan dipercaya dari hidden field), sama seperti previewClosing() -
+        // supaya laporan yang tersimpan permanen tidak bisa diselipi angka
+        // yang tidak sesuai riwayat pembayaran sesungguhnya.
+        $pemasukan = DB::table('pembayaran_riwayat')
+            ->whereDate('tgl_bayar', $kas->tgl_kas)
+            ->select(
+                DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
+                DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk")
+            )->first();
+
+        $tunaiMasuk = (float) ($pemasukan->tunai_masuk ?? 0);
+        $transferMasuk = (float) ($pemasukan->transfer_masuk ?? 0);
+        $tunaiKeluar = 0; // Belum ada fitur Kas Keluar - lihat catatan di previewClosing().
+        $saldoAkhirSistem = $kas->saldo_awal + $tunaiMasuk - $tunaiKeluar;
+        $selisih = $saldo_fisik - $saldoAkhirSistem;
+
+        DB::table('kas_harian')->where('id_kas', $id_kas)->update([
+            'total_tunai_masuk' => $tunaiMasuk,
+            'total_transfer_masuk' => $transferMasuk,
+            'total_tunai_keluar' => $tunaiKeluar,
+            'saldo_akhir' => $saldoAkhirSistem,
+            'saldo_fisik' => $saldo_fisik,
+            'selisih' => $selisih,
+            'status_lock' => 'closed',
+            'waktu_tutup' => now(),
+            'updated_at' => now()
+        ]);
+
+        DB::commit();
+        return redirect()->route('kasir.kelola')->with('success', 'Kas Berhasil Ditutup dan Dikunci. Selisih: Rp ' . number_format($selisih, 0, ',', '.'));
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', $e->getMessage());
+    }
+}
+
+/**
+ * Cetak nota transaksi. Format ditentukan lewat query string (?format=thermal
+ * untuk struk 58mm, default 'a4' untuk invoice biasa) - satu view yang sama,
+ * cuma CSS lebar kertasnya beda, supaya tidak perlu 2 template terpisah.
+ */
+public function printOpsi(Request $request, $id)
+{
+    $transaksi = DB::table('transaksi')
+        ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+        ->leftJoin('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
+        ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
+        ->where('transaksi.id_transaksi', $id)
+        ->select(
+            'transaksi.*',
+            'konsumen.nama_konsumen',
+            'konsumen.alamat',
+            'konsumen.telepon',
+            DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama_kasir')
+        )
+        ->first();
+
+    if (!$transaksi) {
+        abort(404, 'Transaksi tidak ditemukan.');
+    }
+
+    $items = DB::table('transaksi_detail')
+        ->where('id_transaksi', $id)
+        ->select('nama_file', 'qty', 'subtotal')
+        ->get();
+
+    $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
+    $format = $request->query('format', 'a4') === 'thermal' ? 'thermal' : 'a4';
+
+    return view('kasir.print_nota', compact('transaksi', 'items', 'totalTerbayar', 'format'));
+}
+
+/**
+ * Cetak laporan closing kasir yang SUDAH ditutup (butuh saldo_fisik/selisih,
+ * jadi hanya bisa dicetak untuk sesi yang status_lock-nya 'closed').
+ */
+public function printReport($id, $format)
+{
+    $kas = DB::table('kas_harian')
+        ->leftJoin('users', 'kas_harian.id_user', '=', 'users.id_user')
+        ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
+        ->where('kas_harian.id_kas', $id)
+        ->select('kas_harian.*', DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama_kasir'))
+        ->first();
+
+    if (!$kas) {
+        abort(404, 'Sesi kas tidak ditemukan.');
+    }
+
+    $format = $format === 'thermal' ? 'thermal' : 'a4';
+
+    return view('kasir.print_closing', compact('kas', 'format'));
+}
+
+/**
+ * Riwayat proses sebuah nota - dari data yang benar-benar ada (kapan order
+ * dibuat, riwayat pembayaran, status SPK tiap item saat ini). transaksi_detail
+ * tidak punya kolom timestamp sama sekali, jadi "kapan status SPK berubah"
+ * tidak bisa direkonstruksi - yang ditampilkan adalah status TERKINI per item,
+ * bukan linimasa perubahan status (jangan berpura-pura tahu yang tidak diketahui).
+ */
+public function getHistory($id)
+{
+    $transaksi = DB::table('transaksi')->where('id_transaksi', $id)->first();
+
+    if (!$transaksi) {
+        return response()->json(['status' => 'error', 'msg' => 'Transaksi tidak ditemukan.'], 404);
+    }
+
+    $items = DB::table('transaksi_detail')
+        ->where('id_transaksi', $id)
+        ->select('nama_file', 'status_spk', 'qty', 'qty_cetak')
+        ->get();
+
+    $pembayaran = DB::table('pembayaran_riwayat')
+        ->where('id_transaksi', $id)
+        ->orderBy('tgl_bayar')
+        ->select('nominal', 'metode', 'tgl_bayar', 'keterangan')
+        ->get();
+
+    return response()->json([
+        'status' => 'success',
+        'nomor_nota' => $transaksi->nomor_nota,
+        'tgl_order' => $transaksi->tgl_order,
+        'status_pembayaran' => $transaksi->status_pembayaran,
+        'items' => $items,
+        'pembayaran' => $pembayaran,
     ]);
-
-    return redirect()->route('kasir.kelola')->with('success', 'Kas Berhasil Ditutup dan Dikunci.');
 }
     public function checkNewTransaction()
     {

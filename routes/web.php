@@ -174,7 +174,7 @@ Route::middleware(['auth'])->group(function () {
             [KasirController::class, 'printReport'])->name('print-closing');
 
         Route::get('/history/{id}',
-            [KasirController::class, 'getHistory']);
+            [KasirController::class, 'getHistory'])->name('history');
     });
 
         /*
