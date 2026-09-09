@@ -76,7 +76,7 @@
                 </td>
                 <td class="px-8 py-5 text-center">
                     <div class="flex items-center justify-center gap-2">
-                        <x-button type="button" size="icon" variant="ghost" onclick='openEditPromo(@json($p))' class="hover:text-amber-500 hover:bg-amber-50" title="Edit">
+                        <x-button type="button" size="icon" variant="ghost" onclick="openEditPromo({{ json_encode($p) }})" class="hover:text-amber-500 hover:bg-amber-50" title="Edit">
                             <i class="far fa-edit text-sm"></i>
                         </x-button>
 

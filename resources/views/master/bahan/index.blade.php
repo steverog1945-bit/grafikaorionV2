@@ -180,18 +180,6 @@
                                    class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Satuan</label>
-                            <select name="satuan_stok" id="input_satuan_stok" class="select2-satuan" required style="width: 100%">
-                                <option value="">Pilih Satuan</option>
-                                @foreach($satuan as $s)
-                                    <option value="{{ $s->nama_satuan }}">{{ $s->nama_satuan }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Mesin Alokasi</label>
                             <select name="id_mesin" id="input_id_mesin" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
                                 @foreach($mesin as $m)
@@ -199,13 +187,58 @@
                                 @endforeach
                             </select>
                         </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Kategori</label>
+                        <select name="id_kategori" id="input_id_kategori" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                            @foreach($kategori as $k)
+                                <option value="{{ $k->id_kategori }}">{{ $k->nama_kategori }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-50">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4 mb-3">Konversi Satuan &amp; Stok</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Kategori</label>
-                            <select name="id_kategori" id="input_id_kategori" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
-                                @foreach($kategori as $k)
-                                    <option value="{{ $k->id_kategori }}">{{ $k->nama_kategori }}</option>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Satuan Stok (Beli)</label>
+                            <select name="id_satuan_stok" id="input_id_satuan_stok" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                                <option value="">Pilih Satuan</option>
+                                @foreach($satuan as $s)
+                                    <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Satuan Hitung (Pakai)</label>
+                            <select name="id_satuan_hitung" id="input_id_satuan_hitung" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                                <option value="">Pilih Satuan</option>
+                                @foreach($satuan as $s)
+                                    <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Nilai Konversi (1 Satuan Stok = berapa Satuan Hitung)</label>
+                        <input type="number" step="0.001" name="nilai_konversi" id="input_nilai_konversi" required value="1"
+                               class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Stok Awal</label>
+                            <input type="number" step="0.001" name="stok" id="input_stok" required value="0"
+                                   class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Stok Minimal</label>
+                            <input type="number" step="0.001" name="stok_minimal" id="input_stok_minimal" required value="0"
+                                   class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                         </div>
                     </div>
                 </div>
@@ -225,40 +258,30 @@
 @endsection
 
 @push('scripts')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <script>
-    $(document).ready(function() {
-        $('.select2-satuan').select2({
-            dropdownParent: $('#modalBahan'),
-            placeholder: "Cari satuan...",
-            allowClear: true
-        });
-    });
-
     function openTambahModal() {
         document.getElementById('modalTitle').innerText = "Registrasi Material Baru";
         document.getElementById('formBahan').action = "{{ route('bahan.store') }}";
         document.getElementById('methodField').innerHTML = '';
         document.getElementById('formBahan').reset();
-        $('.select2-satuan').val(null).trigger('change'); // Reset Select2
         document.getElementById('modalBahan').classList.remove('hidden');
     }
 
     function editBahan(data) {
         document.getElementById('modalTitle').innerText = "Update Spesifikasi Material";
         const form = document.getElementById('formBahan');
-        form.action = `/bahan/${data.id_bahan}`; 
+        form.action = `/bahan-baku/${data.id_bahan}`;
         document.getElementById('methodField').innerHTML = '@method("PUT")';
 
         document.getElementById('input_nama_bahan').value = data.nama_bahan;
         document.getElementById('input_kode_bahan').value = data.kode_bahan;
         document.getElementById('input_id_mesin').value = data.id_mesin;
         document.getElementById('input_id_kategori').value = data.id_kategori;
-        
-        // Update Select2 value
-        $('.select2-satuan').val(data.satuan_stok).trigger('change');
+        document.getElementById('input_id_satuan_stok').value = data.id_satuan_stok;
+        document.getElementById('input_id_satuan_hitung').value = data.id_satuan_hitung;
+        document.getElementById('input_nilai_konversi').value = data.nilai_konversi;
+        document.getElementById('input_stok').value = data.stok;
+        document.getElementById('input_stok_minimal').value = data.stok_minimal;
 
         document.getElementById('modalBahan').classList.remove('hidden');
     }
@@ -286,7 +309,7 @@
             if (result.isConfirmed) {
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = `/bahan/${id}`;
+                form.action = `/bahan-baku/${id}`;
                 form.innerHTML = `@csrf @method('DELETE')`;
                 document.body.appendChild(form);
                 form.submit();
@@ -294,31 +317,4 @@
         });
     }
 </script>
-
-<style>
-    /* Custom Styling Select2 agar menyatu dengan UI */
-    .select2-container--default .select2-selection--single {
-        background-color: #f8fafc !important;
-        border: none !important;
-        border-radius: 0.75rem !important;
-        height: 46px !important;
-        display: flex;
-        align-items: center;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        color: #334155 !important;
-        font-weight: 600 !important;
-        font-size: 0.875rem !important;
-        padding-left: 1rem !important;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 46px !important;
-    }
-    .select2-dropdown {
-        border: 1px solid #f1f5f9 !important;
-        border-radius: 0.75rem !important;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
-        overflow: hidden;
-    }
-</style>
 @endpush
