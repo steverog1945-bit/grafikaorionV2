@@ -126,6 +126,7 @@
                             <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Harga Estimasi</p>
                             <h2 id="display_subtotal" class="text-4xl font-black text-white italic tracking-tighter font-mono">Rp 0</h2>
                             <p id="display_harga" class="text-indigo-400 text-[10px] mt-1">Rp 0 /unit</p>
+                            <span id="badge_promo" hidden class="mt-2 px-3 py-1 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full">🔥 Harga Promo Aktif</span>
                         </div>
                         <div class="flex items-center gap-6">
                             <div class="text-right">
@@ -437,15 +438,16 @@
             const data = await response.json();
             const hargaJual = parseFloat(data.harga_jual) || 0;
             const subtotal = (hargaJual * qtyCari) + biayaDesain;
-            updateDisplay(hargaJual, subtotal);
+            updateDisplay(hargaJual, subtotal, data.is_promo);
             return { harga_satuan: hargaJual, subtotal: subtotal, qty_hitung: qtyCari, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB };
         } catch (error) { return null; }
     }
 
-    function updateDisplay(harga, subtotal) {
+    function updateDisplay(harga, subtotal, isPromo) {
         const fmt = new Intl.NumberFormat('id-ID');
         document.getElementById('display_harga').innerText = `Rp ${fmt.format(harga)} /unit`;
         document.getElementById('display_subtotal').innerText = `Rp ${fmt.format(Math.round(subtotal))}`;
+        document.getElementById('badge_promo').hidden = !isPromo;
     }
 
     // 4. KERANJANG & AKSI

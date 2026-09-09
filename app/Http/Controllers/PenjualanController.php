@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\HargaService;
 use Carbon\Carbon;
 
 class PenjualanController extends Controller
@@ -101,14 +102,11 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             return response()->json(['status' => 'error', 'msg' => 'Ukuran/qty pada baris ' . ($index + 1) . ' tidak valid.'], 422);
         }
 
-        $hargaRow = DB::table('setting_harga')
-            ->where('id_produk', $produk->id_produk)
-            ->where('id_golongan', $request->id_golongan)
-            ->where('range_min', '<=', $qtyHitung)
-            ->orderBy('range_min', 'desc')
-            ->first();
-
-        $hargaSatuan = $hargaRow ? (float) $hargaRow->harga_jual : 0;
+        // Harga promo (kalau sedang aktif) atau price list biasa - HargaService
+        // adalah sumber yang sama persis dipakai layar POS untuk menampilkan
+        // harga saat operator mengetik qty, supaya harga yang tersimpan tidak
+        // pernah berbeda dari yang ditampilkan sebelum disimpan.
+        $hargaSatuan = HargaService::getHargaEfektif($produk->id_produk, (int) $request->id_golongan, $qtyHitung)['harga_jual'];
 
         if ($hargaSatuan <= 0) {
             return response()->json([

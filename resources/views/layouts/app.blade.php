@@ -272,7 +272,15 @@
         <span class="text-sm font-medium">Price List & Level</span>
     </a>
     @endif
-    
+
+    @if($cekAkses(28))
+    <a href="{{ url('/harga-promo') }}" class="{{ $menuClass }} {{ Request::is('harga-promo*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('harga-promo*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5.586a1 1 0 01.707.293l7.414 7.414a1 1 0 010 1.414l-7.586 7.586a1 1 0 01-1.414 0L4.293 12.293A1 1 0 014 11.586V6a3 3 0 013-3z" />
+        </svg>
+        <span class="text-sm font-medium">Harga Promo</span>
+    </a>
+    @endif
 
     @if($cekAkses(9))
     <a href="{{ url('/supplier') }}" class="{{ $menuClass }} {{ Request::is('supplier*') ? $activeClass : $nonActiveClass }}">

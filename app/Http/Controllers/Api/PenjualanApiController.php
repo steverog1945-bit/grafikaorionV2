@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\HargaService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -26,17 +27,9 @@ class PenjualanApiController extends Controller
     public function getHarga($id_produk, $id_golongan, $qty)
     {
         try {
-            $qty = floatval($qty);
-            $harga = DB::table('setting_harga')
-                ->where('id_produk', $id_produk)
-                ->where('id_golongan', $id_golongan)
-                ->where('range_min', '<=', $qty)
-                ->orderBy('range_min', 'desc')
-                ->first();
+            $hasil = HargaService::getHargaEfektif((int) $id_produk, (int) $id_golongan, (float) $qty);
 
-            return response()->json([
-                'harga_jual' => $harga ? $harga->harga_jual : 0
-            ]);
+            return response()->json($hasil);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

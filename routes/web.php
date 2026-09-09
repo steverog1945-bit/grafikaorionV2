@@ -30,6 +30,7 @@ use App\Http\Controllers\ProduksiController;
 use App\Http\Controllers\CollectingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\HargaPromoController;
 
 
 
@@ -322,6 +323,12 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
 
     Route::get('/laporan/order', [LaporanController::class, 'order'])->name('laporan.order');
     Route::get('/laporan/produksi', [LaporanController::class, 'produksi'])->name('laporan.produksi');
+
+    Route::get('/harga-promo', [HargaPromoController::class, 'index'])->name('harga-promo.index');
+    Route::post('/harga-promo', [HargaPromoController::class, 'store'])->name('harga-promo.store');
+    Route::put('/harga-promo/{id}', [HargaPromoController::class, 'update'])->name('harga-promo.update');
+    Route::patch('/harga-promo/{id}/toggle', [HargaPromoController::class, 'toggleStatus'])->name('harga-promo.toggle');
+    Route::delete('/harga-promo/{id}', [HargaPromoController::class, 'destroy'])->name('harga-promo.destroy');
 
 
 
