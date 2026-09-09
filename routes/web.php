@@ -28,6 +28,7 @@ use App\Http\Controllers\Kasir\KasirController;
 use App\Http\Controllers\SpkController;
 use App\Http\Controllers\ProduksiController;
 use App\Http\Controllers\CollectingController;
+use App\Http\Controllers\DashboardController;
 
 
 
@@ -57,9 +58,7 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    });
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 
 
