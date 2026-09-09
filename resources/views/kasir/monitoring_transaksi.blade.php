@@ -90,11 +90,11 @@
                             💰
                         </a>
 
-                        <div class="relative group">
-                            <button class="bg-indigo-500 text-white p-2 rounded-lg hover:bg-indigo-600 transition-all" title="Cetak Nota">
+                        <div class="relative">
+                            <button type="button" onclick="togglePrintMenu(event, {{ $t->id_transaksi }})" class="bg-indigo-500 text-white p-2 rounded-lg hover:bg-indigo-600 transition-all" title="Cetak Nota">
                                 🖨️
                             </button>
-                            <div class="hidden group-hover:block absolute right-0 mt-2 w-40 bg-white border border-slate-100 shadow-xl rounded-xl z-50 overflow-hidden">
+                            <div id="print-menu-{{ $t->id_transaksi }}" class="hidden absolute right-0 mt-2 w-40 bg-white border border-slate-100 shadow-xl rounded-xl z-50 overflow-hidden">
                                 <a href="{{ url('/kasir/print-opsi/'.$t->id_transaksi) }}?format=thermal" target="_blank" class="block px-4 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50 border-b border-slate-50">NOTA THERMAL (58mm)</a>
                                 <a href="{{ url('/kasir/print-opsi/'.$t->id_transaksi) }}?format=a4" target="_blank" class="block px-4 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50">INVOICE (A4/A5)</a>
                             </div>
@@ -112,6 +112,25 @@
 </div>
 
 <script>
+    // Dropdown "Cetak Nota" dipicu lewat klik/tap, bukan :hover CSS - supaya
+    // tetap berfungsi di layar sentuh (kasir sering pakai perangkat touchscreen,
+    // dan dropdown hover-only tidak pernah terbuka lewat tap).
+    function togglePrintMenu(event, id) {
+        event.stopPropagation();
+        const menu = document.getElementById('print-menu-' + id);
+        const isOpen = !menu.classList.contains('hidden');
+
+        document.querySelectorAll('[id^="print-menu-"]').forEach(m => m.classList.add('hidden'));
+
+        if (!isOpen) {
+            menu.classList.remove('hidden');
+        }
+    }
+
+    document.addEventListener('click', function () {
+        document.querySelectorAll('[id^="print-menu-"]').forEach(m => m.classList.add('hidden'));
+    });
+
     async function showHistory(id) {
         Swal.fire({ title: 'Memuat...', didOpen: () => Swal.showLoading() });
 
