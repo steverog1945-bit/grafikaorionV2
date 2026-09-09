@@ -294,7 +294,7 @@
     </a>
     @endif
 
-    @if($cekAkses(4))
+    @if($cekAkses(5))
     <a href="{{ url('/karyawan') }}" class="{{ $menuClass }} {{ Request::is('karyawan*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('karyawan*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
@@ -305,7 +305,7 @@
 
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">System Control</div>
 
-    @if($cekAkses(5))
+    @if($cekAkses(6))
     <a href="{{ url('/users') }}" class="{{ $menuClass }} {{ Request::is('users*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('users*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -314,8 +314,7 @@
     </a>
     @endif
     
-    {{-- Sesuaikan ID akses jika ada (contoh: 19) --}}
-@if($cekAkses(4)) 
+@if($cekAkses(4))
 <a href="{{ url('/setting-akses') }}" 
    class="{{ $menuClass }} {{ Request::is('setting-akses*') ? $activeClass : $nonActiveClass }}">
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('setting-akses*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">

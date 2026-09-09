@@ -93,29 +93,12 @@ public function kedatanganDetail(Request $request)
 
                 $grandTotal += $subtotal;
 
-                $bahan = BahanBaku::find($idBahan);
-
-                $stokAwal = $bahan->stok;
-                $stokBaru = $stokAwal + $qty;
-
-                $bahan->update([
-                    'stok'=>$stokBaru
-                ]);
-
-                DB::table('kartu_stok')->insert([
-
-                    'id_bahan'=>$idBahan,
-                    'tanggal'=>now(),
-                    'tipe'=>'IN',
-                    'qty'=>$qty,
-                    'stok_sebelum'=>$stokAwal,
-                    'stok_sesudah'=>$stokBaru,
-                    'referensi'=>$request->no_faktur,
-                    'keterangan'=>'Pembelian bahan',
-                    'created_by'=>auth()->user()->id_user ?? null
-
-                ]);
-
+                // CATATAN: stok TIDAK ditambah di sini. Barang secara fisik sudah
+                // masuk dan tercatat di kartu_stok saat Kedatangan Bahan divalidasi
+                // (KedatanganBahanController::validateStatus). Pembelian Bahan hanya
+                // dibuat dari kedatangan yang sudah berstatus 'Selesai' (lihat create()
+                // di atas), jadi ini murni faktur/tagihan atas barang yang sama —
+                // menambah stok lagi di sini akan menghitung barang dua kali.
             }
 if ($request->tipe_pembelian == 'Cash') {
         $pembelian->status_pembayaran = 'Lunas';
@@ -168,18 +151,10 @@ public function show($id)
 
             $data = PembelianBahan::findOrFail($id);
 
-            foreach($data->detail as $d){
-
-                $bahan = BahanBaku::find($d->id_bahan);
-
-                $stokBaru = $bahan->stok - $d->qty;
-
-                $bahan->update([
-                    'stok'=>$stokBaru
-                ]);
-
-            }
-
+            // CATATAN: stok TIDAK dikurangi di sini, karena store() di atas tidak
+            // lagi menambah stok (stok sudah ditambahkan saat Kedatangan Bahan
+            // divalidasi). Menghapus faktur pembelian tidak mengubah barang yang
+            // secara fisik sudah ada di gudang.
             $data->delete();
 
             DB::commit();

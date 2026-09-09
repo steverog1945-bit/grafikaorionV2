@@ -22,13 +22,13 @@
 </div>
 
 <script>
-    let lastKnownId = {{ $transaksi->first()->id_transaksi ?? 0 }};
-    
+    let initialWaitingCount = {{ $waitingCount ?? 0 }};
+
     function checkNewTransaction() {
-        fetch("{{ url('/kasir/check-new-id') }}")
+        fetch("{{ url('/kasir/check-pembayaran') }}")
             .then(res => res.json())
             .then(data => {
-                if(data.latest_id > lastKnownId) {
+                if (data.total > initialWaitingCount) {
                     document.getElementById('new-data-alert').classList.remove('hidden');
                 }
             });
@@ -112,20 +112,6 @@
 </div>
 
 <script>
-    // Logika untuk menampilkan tombol "Ada Transaksi Baru"
-    let initialCount = {{ $transaksi->total() }};
-    function checkNew() {
-        fetch("{{ url('/kasir/check-pembayaran') }}")
-            .then(res => res.json())
-            .then(data => {
-                if(data.total > initialCount) {
-                    document.getElementById('btn-refresh').classList.remove('hidden');
-                    document.getElementById('btn-refresh').classList.add('flex');
-                }
-            });
-    }
-    setInterval(checkNew, 15000); // Cek tiap 15 detik
-
     function showHistory(id) {
         Swal.fire({
             title: 'History Proses Pesanan',
@@ -134,16 +120,5 @@
             customClass: { popup: 'rounded-[2rem]' }
         });
     }
-    // Cek transaksi baru setiap 30 detik
-setInterval(function() {
-    fetch('{{ url("/kasir/check-pembayaran") }}')
-        .then(response => response.json())
-        .then(data => {
-            if(data.total > 0) {
-                // Kamu bisa menambahkan notifikasi suara atau refresh halaman
-                // location.reload(); 
-            }
-        });
-}, 30000);
 </script>
 @endsection

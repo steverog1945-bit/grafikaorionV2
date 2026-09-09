@@ -22,7 +22,7 @@ class CheckKasirSession
         // Cek apakah URL saat ini adalah halaman untuk buka kas
         // Pastikan route name atau URL ini sesuai dengan web.php Anda
         if (!$request->is('kasir/kelola-kas*') && !$request->is('kasir/store-kas*')) {
-            return redirect()->route('kasir.kelola-kas')->with('error', 'Wajib melakukan Open Saldo!');
+            return redirect()->route('kasir.kelola')->with('error', 'Wajib melakukan Open Saldo!');
         }
     }
 

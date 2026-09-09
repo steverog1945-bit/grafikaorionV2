@@ -58,7 +58,12 @@ class SatuanController extends Controller
 
     public function destroy($id)
     {
-        $terpakai = DB::table('bahan_baku')->where('satuan_stok', $id)->exists();
+        // Cek berdasarkan kolom FK yang sesungguhnya dipakai BahanBaku
+        // (id_satuan_stok / id_satuan_hitung), bukan kolom lama 'satuan_stok'.
+        $terpakai = DB::table('bahan_baku')
+            ->where('id_satuan_stok', $id)
+            ->orWhere('id_satuan_hitung', $id)
+            ->exists();
         if ($terpakai) {
             return response()->json(['error' => 'Satuan masih digunakan di Bahan Baku'], 422);
         }

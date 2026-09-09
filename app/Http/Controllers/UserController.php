@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Karyawan;
 use App\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -21,7 +22,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_karyawan' => 'required',
+            'id_karyawan' => 'required|unique:users,id_karyawan',
             'username' => 'required|unique:users',
             'password' => 'required|min:5',
             'id_role' => 'required'

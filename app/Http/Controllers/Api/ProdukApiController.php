@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class PenjualanApiController extends Controller
+class ProdukApiController extends Controller
 {
     /**
      * Ambil detail produk untuk menentukan metode hitung (ukuran/jumlah)

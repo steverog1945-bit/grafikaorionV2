@@ -44,9 +44,14 @@ class KonsumenController extends Controller
 public function storeAjax(Request $request)
 {
     // VALIDASI SESI KAS SEBELUM SIMPAN KONSUMEN
-    $sesi = DB::table('kas_sesi')
-        ->where('status', 'open')
-        ->where('user_id', auth()->id())
+    // Menggunakan kas_harian (tabel sesi kas yang sesungguhnya dipakai di seluruh
+    // modul Kasir). Sebelumnya kode ini mengecek tabel kas_sesi, yang tidak pernah
+    // diisi data oleh bagian manapun dari aplikasi, sehingga pengecekan ini selalu
+    // gagal walau kasir sudah membuka sesi kas hari itu.
+    $sesi = DB::table('kas_harian')
+        ->where('tgl_kas', date('Y-m-d'))
+        ->where('status_lock', 'open')
+        ->where('id_user', auth()->id())
         ->first();
 
     if (!$sesi) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Finishing;
 use Illuminate\Http\Request;
 
 class FinishingController extends Controller

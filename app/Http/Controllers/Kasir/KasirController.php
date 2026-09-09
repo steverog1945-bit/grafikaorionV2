@@ -72,7 +72,7 @@ public function prosesClosing(Request $request)
         ]);
 
         DB::commit();
-        return redirect()->route('kasir.kelola-kas')->with('success', 'Kas Berhasil Ditutup. Selisih: Rp ' . number_format($selisih, 0, ',', '.'));
+        return redirect()->route('kasir.kelola')->with('success', 'Kas Berhasil Ditutup. Selisih: Rp ' . number_format($selisih, 0, ',', '.'));
 
     } catch (\Exception $e) {
         DB::rollBack();
@@ -219,6 +219,16 @@ public function prosesClosing(Request $request)
     $request->validate(['jumlah' => 'required']);
     $nominal = str_replace('.', '', $request->jumlah);
 
+    $sudahBuka = DB::table('kas_harian')
+        ->where('tgl_kas', now()->format('Y-m-d'))
+        ->where('id_user', auth()->id())
+        ->where('status_lock', 'open')
+        ->exists();
+
+    if ($sudahBuka) {
+        return redirect()->route('kasir.kelola')->with('error', 'Anda sudah membuka sesi kas hari ini.');
+    }
+
     DB::table('kas_harian')->insert([
         'tgl_kas'     => now()->format('Y-m-d'),
         'id_user'     => auth()->id(),
@@ -243,7 +253,7 @@ public function previewClosing()
 
     // Proteksi: Tidak bisa closing jika tidak ada kas aktif
     if (!$kas) {
-        return redirect()->route('kasir.kelola-kas')->with('error', 'Tidak ada alur kas aktif yang bisa ditutup!');
+        return redirect()->route('kasir.kelola')->with('error', 'Tidak ada alur kas aktif yang bisa ditutup!');
     }
 
     // Hitung Rincian Pemasukan dari Riwayat Pembayaran
@@ -254,12 +264,9 @@ public function previewClosing()
             DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk")
         )->first();
 
-    // Hitung Pengeluaran (Jika Anda punya tabel pengeluaran/kas_keluar)
-    // Sementara kita set 0 jika belum ada tabelnya
-    $pengeluaran_tunai = DB::table('kas_keluar') // Asumsi nama tabel pengeluaran
-        ->whereDate('tgl_keluar', $hari_ini)
-        ->where('metode', 'Tunai')
-        ->sum('nominal') ?? 0;
+    // Belum ada tabel pengeluaran/kas_keluar di database, jadi pengeluaran tunai
+    // sementara selalu 0 sampai fitur "Kas Keluar" benar-benar dibangun.
+    $pengeluaran_tunai = 0;
 
     // Kalkulasi Saldo Akhir Laci (Hanya Tunai)
     $saldo_akhir_sistem = ($kas->saldo_awal + $pemasukan->tunai_masuk) - $pengeluaran_tunai;
@@ -289,7 +296,7 @@ public function simpanClosing(Request $request)
         'updated_at' => now()
     ]);
 
-    return redirect()->route('kasir.kelola-kas')->with('success', 'Kas Berhasil Ditutup dan Dikunci.');
+    return redirect()->route('kasir.kelola')->with('success', 'Kas Berhasil Ditutup dan Dikunci.');
 }
     public function checkNewTransaction()
     {
