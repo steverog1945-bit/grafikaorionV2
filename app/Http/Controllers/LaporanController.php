@@ -1,0 +1,128 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class LaporanController extends Controller
+{
+    /**
+     * Laporan Rekap Transaksi Order - baca langsung dari transaksi, tidak ada
+     * tabel rekap terpisah supaya tidak mungkin selisih dengan data aslinya.
+     */
+    public function order(Request $request)
+    {
+        $query = DB::table('transaksi')
+            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+            ->join('golongan_konsumen', 'konsumen.id_golongan', '=', 'golongan_konsumen.id_golongan')
+            ->select(
+                'transaksi.id_transaksi',
+                'transaksi.nomor_nota',
+                'transaksi.tgl_order',
+                'transaksi.total_bayar',
+                'transaksi.status_pembayaran',
+                'konsumen.nama_konsumen',
+                'golongan_konsumen.nama_golongan'
+            );
+
+        if ($request->filled('tgl_dari')) {
+            $query->whereDate('transaksi.tgl_order', '>=', $request->tgl_dari);
+        }
+        if ($request->filled('tgl_sampai')) {
+            $query->whereDate('transaksi.tgl_order', '<=', $request->tgl_sampai);
+        }
+        if ($request->filled('status_pembayaran')) {
+            $query->where('transaksi.status_pembayaran', $request->status_pembayaran);
+        }
+        if ($request->filled('id_golongan')) {
+            $query->where('konsumen.id_golongan', $request->id_golongan);
+        }
+        if ($request->filled('konsumen')) {
+            $query->where('konsumen.nama_konsumen', 'like', '%' . $request->konsumen . '%');
+        }
+
+        // Resume dihitung dari query YANG SAMA (sebelum pagination) supaya konsisten dengan filter.
+        $resumeQuery = clone $query;
+        $jumlahTransaksi = $resumeQuery->count();
+        $totalTransaksi = (clone $query)->sum('transaksi.total_bayar');
+        $totalPiutang = (clone $query)->where('transaksi.status_pembayaran', '!=', 'Lunas')->sum('transaksi.total_bayar');
+
+        $data = $query->orderByDesc('transaksi.tgl_order')->paginate(20)->withQueryString();
+
+        $golongan = DB::table('golongan_konsumen')->orderBy('nama_golongan')->get();
+
+        return view('laporan.order', compact('data', 'golongan', 'jumlahTransaksi', 'totalTransaksi', 'totalPiutang'));
+    }
+
+    /**
+     * Laporan Produksi - gabungan ringkasan per divisi/produk (sesuai kebutuhan
+     * rekap produk) dan detail per SPK (sesuai kebutuhan laporan produksi),
+     * karena keduanya membaca baris transaksi_detail yang persis sama, hanya
+     * beda cara mengelompokkannya.
+     */
+    public function produksi(Request $request)
+    {
+        $base = DB::table('transaksi_detail')
+            ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
+            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+            ->join('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+            ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
+            ->leftJoin('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
+            ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan');
+
+        if ($request->filled('tgl_dari')) {
+            $base->whereDate('transaksi.tgl_order', '>=', $request->tgl_dari);
+        }
+        if ($request->filled('tgl_sampai')) {
+            $base->whereDate('transaksi.tgl_order', '<=', $request->tgl_sampai);
+        }
+        if ($request->filled('id_mesin')) {
+            $base->where('produk.id_mesin', $request->id_mesin);
+        }
+
+        // --- RINGKASAN PER DIVISI & PRODUK ---
+        $ringkasan = (clone $base)
+            ->select(
+                'mesin.nama_mesin as divisi',
+                'produk.nama_produk',
+                DB::raw('COUNT(DISTINCT transaksi_detail.id_transaksi) as total_transaksi'),
+                DB::raw('SUM(transaksi_detail.qty) as total_order'),
+                DB::raw('SUM(COALESCE(transaksi_detail.qty_cetak, 0)) as total_cetak')
+            )
+            ->groupBy('mesin.nama_mesin', 'produk.nama_produk')
+            ->orderBy('mesin.nama_mesin')
+            ->orderBy('produk.nama_produk')
+            ->get();
+
+        $totalOrderKeseluruhan = $ringkasan->sum('total_order');
+        $totalCetakKeseluruhan = $ringkasan->sum('total_cetak');
+
+        // --- DETAIL PER SPK (bisa difilter status juga) ---
+        $detailQuery = clone $base;
+        if ($request->filled('status_spk')) {
+            $detailQuery->where('transaksi_detail.status_spk', $request->status_spk);
+        }
+
+        $detail = $detailQuery
+            ->select(
+                'transaksi_detail.id_detail',
+                'transaksi_detail.nama_file',
+                'transaksi_detail.qty',
+                'transaksi_detail.qty_cetak',
+                'transaksi_detail.status_spk',
+                'transaksi.nomor_nota',
+                'transaksi.tgl_order',
+                'konsumen.nama_konsumen',
+                'mesin.nama_mesin as divisi',
+                DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as desainer')
+            )
+            ->orderByDesc('transaksi_detail.id_detail')
+            ->paginate(20)
+            ->withQueryString();
+
+        $divisis = DB::table('mesin')->orderBy('nama_mesin')->get();
+
+        return view('laporan.produksi', compact('ringkasan', 'detail', 'divisis', 'totalOrderKeseluruhan', 'totalCetakKeseluruhan'));
+    }
+}
