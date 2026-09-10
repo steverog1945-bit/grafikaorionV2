@@ -21,11 +21,23 @@ class BahanBaku extends Model
     'id_satuan_hitung', 
     'nilai_konversi',
     'satuan_stok',
-    'harga_rata_rata'
+    'harga_rata_rata',
+    'id_merk',
+    'id_jenis_bahan'
 ];
 public function kategori()
 {
     return $this->belongsTo(Kategori::class, 'id_kategori');
+}
+
+public function merk()
+{
+    return $this->belongsTo(Merk::class, 'id_merk');
+}
+
+public function jenisBahan()
+{
+    return $this->belongsTo(JenisBahan::class, 'id_jenis_bahan');
 }
 
 public function mesin()

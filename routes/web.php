@@ -81,6 +81,13 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::resource('produk', ProdukController::class);
     Route::resource('finishing', FinishingController::class)->except(['create', 'edit', 'show']);
 
+    Route::resource('merk', \App\Http\Controllers\MerkController::class)->except(['create', 'edit', 'show']);
+    Route::resource('jenis-bahan', \App\Http\Controllers\JenisBahanController::class)->except(['create', 'edit', 'show']);
+    Route::resource('jasa', \App\Http\Controllers\JasaController::class)->except(['create', 'edit', 'show']);
+    Route::resource('gudang', \App\Http\Controllers\GudangController::class)->except(['create', 'edit', 'show']);
+    Route::get('/konsumen-deposit', [\App\Http\Controllers\KonsumenDepositController::class, 'index'])->name('konsumen-deposit.index');
+    Route::post('/konsumen-deposit', [\App\Http\Controllers\KonsumenDepositController::class, 'store'])->name('konsumen-deposit.store');
+
 
 
     /*

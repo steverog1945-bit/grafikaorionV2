@@ -1,0 +1,184 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+    <x-page-header title="Master Gudang" subtitle="Lokasi penyimpanan bahan baku dan penanggung jawabnya.">
+        <x-slot:actions>
+            <x-button onclick="toggleModal('modalGudang')">
+                <i class="fas fa-warehouse"></i>
+                Tambah Gudang
+            </x-button>
+        </x-slot:actions>
+    </x-page-header>
+
+    {{-- TABLE CONTAINER --}}
+    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-8 py-5 text-left">Nama Gudang</th>
+                        <th class="px-6 py-5 text-left">Alamat</th>
+                        <th class="px-6 py-5 text-left">Penanggung Jawab</th>
+                        <th class="px-6 py-5 text-left">Telepon</th>
+                        <th class="px-8 py-5 text-right">Manajemen</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    @forelse($gudang as $g)
+                    <tr class="group hover:bg-slate-50/30 transition-all">
+                        <td class="px-8 py-5">
+                            <span class="text-sm font-bold text-slate-700 uppercase">{{ $g->nama_gudang }}</span>
+                            <div class="text-[10px] text-slate-400 mt-0.5">ID: #{{ $g->id_gudang }}</div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <p class="text-sm text-slate-500 leading-relaxed truncate max-w-xs">{{ $g->alamat ?? '-' }}</p>
+                        </td>
+                        <td class="px-6 py-5 text-sm text-slate-600 font-medium">{{ $g->penanggung_jawab ?? '-' }}</td>
+                        <td class="px-6 py-5 text-sm text-slate-500">{{ $g->telepon ?? '-' }}</td>
+                        <td class="px-8 py-5 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button onclick="openEditGudang({{ json_encode($g) }})"
+                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
+                                    <i class="far fa-edit text-sm"></i>
+                                </button>
+
+                                <form action="{{ route('gudang.destroy', $g->id_gudang) }}" method="POST" class="inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" onclick="return confirm('Hapus gudang ini?')"
+                                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                                        <i class="far fa-trash-alt text-sm"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="py-20 text-center text-slate-400 font-medium italic">Belum ada gudang yang terdaftar.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL TAMBAH (Indigo) --}}
+<div id="modalGudang" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
+    <div class="flex items-center justify-center min-h-screen p-6">
+        <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-[500px] overflow-hidden transform transition-all">
+
+            <div class="px-10 py-8 bg-indigo-600 flex justify-between items-center text-white">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-plus-circle"></i>
+                    <h3 class="text-xl font-bold tracking-tight">Tambah Gudang</h3>
+                </div>
+                <button onclick="toggleModal('modalGudang')" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+
+            <form action="{{ route('gudang.store') }}" method="POST" class="py-10 space-y-6">
+                @csrf
+                <div class="space-y-5 max-w-[85%] mx-auto">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Nama Gudang</label>
+                        <input type="text" name="nama_gudang" placeholder="Contoh: Gudang Utama" required
+                               class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Alamat</label>
+                        <textarea name="alamat" placeholder="Alamat gudang..."
+                                  class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Penanggung Jawab</label>
+                        <input type="text" name="penanggung_jawab" placeholder="Nama PIC gudang"
+                               class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Telepon</label>
+                        <input type="text" name="telepon" placeholder="08xxxxxxxxxx"
+                               class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center gap-3 pt-4 max-w-[70%] mx-auto">
+                    <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100">Simpan Data</button>
+                    <button type="button" onclick="toggleModal('modalGudang')" class="w-full py-4 bg-transparent text-slate-400 rounded-2xl text-[11px] font-bold uppercase tracking-widest">Batalkan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL EDIT (Amber) --}}
+<div id="modalEditGudang" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
+    <div class="flex items-center justify-center min-h-screen p-6">
+        <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-[500px] overflow-hidden transform transition-all">
+
+            <div class="px-10 py-8 bg-amber-500 flex justify-between items-center text-white">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-edit"></i>
+                    <h3 class="text-xl font-bold tracking-tight">Edit Gudang</h3>
+                </div>
+                <button onclick="toggleModal('modalEditGudang')" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+
+            <form id="formEditGudang" method="POST" class="py-10 space-y-6">
+                @csrf @method('PUT')
+                <div class="space-y-5 max-w-[85%] mx-auto">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Nama Gudang</label>
+                        <input type="text" name="nama_gudang" id="edit_nama_gudang" required
+                               class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Alamat</label>
+                        <textarea name="alamat" id="edit_alamat"
+                                  class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Penanggung Jawab</label>
+                        <input type="text" name="penanggung_jawab" id="edit_penanggung_jawab"
+                               class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Telepon</label>
+                        <input type="text" name="telepon" id="edit_telepon"
+                               class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner">
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center gap-3 pt-4 max-w-[70%] mx-auto">
+                    <button type="submit" class="w-full py-4 bg-amber-500 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-amber-600 shadow-lg shadow-amber-100">Update Data</button>
+                    <button type="button" onclick="toggleModal('modalEditGudang')" class="w-full py-4 bg-transparent text-slate-400 rounded-2xl text-[11px] font-bold uppercase tracking-widest">Kembali</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.toggle('hidden');
+            document.body.style.overflow = modal.classList.contains('hidden') ? 'auto' : 'hidden';
+        }
+    }
+
+    function openEditGudang(data) {
+        const form = document.getElementById('formEditGudang');
+        form.action = `/gudang/${data.id_gudang}`;
+        document.getElementById('edit_nama_gudang').value = data.nama_gudang;
+        document.getElementById('edit_alamat').value = data.alamat || '';
+        document.getElementById('edit_penanggung_jawab').value = data.penanggung_jawab || '';
+        document.getElementById('edit_telepon').value = data.telepon || '';
+        toggleModal('modalEditGudang');
+    }
+</script>
+@endsection

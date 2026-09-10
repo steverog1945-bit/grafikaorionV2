@@ -56,6 +56,12 @@ return [
         'laporan/produksi' => [26],
         'laporan/kas' => [29],
         'harga-promo' => [28],
+
+        'merk' => [30],
+        'jenis-bahan' => [31],
+        'jasa' => [32],
+        'gudang' => [33],
+        'konsumen-deposit' => [34],
     ],
 
     'always_allow' => [
