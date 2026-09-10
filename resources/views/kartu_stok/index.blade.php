@@ -7,6 +7,12 @@
         <x-slot:subtitle>
             Bahan Baku &amp; Logistik <span class="mx-1 text-slate-300">/</span> Riwayat Pergerakan Stok per Bahan
         </x-slot:subtitle>
+        <x-slot:actions>
+            <x-button onclick="openModal('penyesuaian-stok')">
+                <i class="fas fa-sliders-h"></i>
+                Penyesuaian Stok
+            </x-button>
+        </x-slot:actions>
     </x-page-header>
 
     <x-table>
@@ -31,9 +37,14 @@
                     <span class="text-[13px] font-bold text-slate-800">{{ number_format($b->stok, 2) }}</span>
                 </td>
                 <td class="px-8 py-5 text-center">
-                    <x-button href="{{ url('/kartu-stok/'.$b->id_bahan) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat Kartu Stok">
-                        <i class="fas fa-book text-xs"></i>
-                    </x-button>
+                    <div class="flex items-center justify-center gap-2">
+                        <x-button href="{{ url('/kartu-stok/'.$b->id_bahan) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat Kartu Stok">
+                            <i class="fas fa-book text-xs"></i>
+                        </x-button>
+                        <x-button type="button" size="icon" variant="ghost" onclick="openPenyesuaian({{ $b->id_bahan }}, {{ json_encode($b->nama_bahan) }}, {{ $b->stok }})" class="border border-slate-100 hover:text-amber-500" title="Penyesuaian Stok">
+                            <i class="fas fa-sliders-h text-xs"></i>
+                        </x-button>
+                    </div>
                 </td>
             </tr>
             @empty
@@ -46,5 +57,75 @@
         </tbody>
     </x-table>
 
+    {{-- MODAL PENYESUAIAN STOK --}}
+    <x-modal id="penyesuaian-stok" title="Penyesuaian Stok" maxWidth="md">
+        <form id="formPenyesuaian" action="{{ route('kartu-stok.adjustment') }}" method="POST" class="space-y-5">
+            @csrf
+            <x-form.group label="Bahan" name="id_bahan" required>
+                <x-form.select name="id_bahan" id="adj_id_bahan" required>
+                    <option value="">-- Pilih Bahan --</option>
+                    @foreach($bahan as $b)
+                        <option value="{{ $b->id_bahan }}" data-stok="{{ $b->stok }}" data-nama="{{ $b->nama_bahan }}">{{ $b->nama_bahan }} ({{ $b->kode_bahan }})</option>
+                    @endforeach
+                </x-form.select>
+            </x-form.group>
+
+            <p class="text-[11px] text-slate-400 -mt-3 ml-1">Stok saat ini: <span id="adj_stok_display" class="font-bold text-slate-600">-</span></p>
+
+            <x-form.group label="Jenis Penyesuaian" name="tipe" required>
+                <x-form.select name="tipe" id="adj_tipe" onchange="toggleAdjTipe()" required>
+                    <option value="OUT">Barang Keluar (rusak, sample, hilang)</option>
+                    <option value="ADJUSTMENT">Revisi Stok / Hasil Opname Fisik</option>
+                </x-form.select>
+            </x-form.group>
+
+            <div id="adj_wrapper_qty">
+                <x-form.group label="Qty Keluar" name="qty">
+                    <x-form.input type="number" name="qty" id="adj_qty" step="0.01" min="0.01" />
+                </x-form.group>
+            </div>
+
+            <div id="adj_wrapper_stok_baru" class="hidden">
+                <x-form.group label="Stok Sebenarnya (Hasil Hitung Fisik)" name="stok_baru">
+                    <x-form.input type="number" name="stok_baru" id="adj_stok_baru" step="0.01" min="0" />
+                </x-form.group>
+            </div>
+
+            <x-form.group label="Keterangan / Alasan" name="keterangan" required>
+                <textarea name="keterangan" rows="2" required placeholder="Contoh: Rusak saat produksi, hasil stock opname bulanan, dsb."
+                    class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
+            </x-form.group>
+
+            <div class="pt-4 flex gap-3">
+                <x-button type="button" variant="secondary" onclick="closeModal('penyesuaian-stok')" class="flex-1">Batalkan</x-button>
+                <x-button type="submit" variant="warning" class="flex-1">Simpan Penyesuaian</x-button>
+            </div>
+        </form>
+    </x-modal>
+
 </div>
+
+@push('scripts')
+<script>
+    function toggleAdjTipe() {
+        const tipe = document.getElementById('adj_tipe').value;
+        document.getElementById('adj_wrapper_qty').classList.toggle('hidden', tipe !== 'OUT');
+        document.getElementById('adj_wrapper_stok_baru').classList.toggle('hidden', tipe !== 'ADJUSTMENT');
+    }
+
+    document.getElementById('adj_id_bahan').addEventListener('change', function () {
+        const opt = this.options[this.selectedIndex];
+        const stok = opt.getAttribute('data-stok');
+        document.getElementById('adj_stok_display').textContent = stok ? parseFloat(stok).toLocaleString('id-ID', {minimumFractionDigits: 2}) : '-';
+    });
+
+    function openPenyesuaian(idBahan, namaBahan, stok) {
+        document.getElementById('adj_id_bahan').value = idBahan;
+        document.getElementById('adj_stok_display').textContent = parseFloat(stok).toLocaleString('id-ID', {minimumFractionDigits: 2});
+        document.getElementById('adj_tipe').value = 'OUT';
+        toggleAdjTipe();
+        openModal('penyesuaian-stok');
+    }
+</script>
+@endpush
 @endsection

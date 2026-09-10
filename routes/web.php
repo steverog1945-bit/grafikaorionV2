@@ -126,7 +126,10 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     */
 
     Route::get('/kartu-stok',
-        [KartuStokController::class, 'index']);
+        [KartuStokController::class, 'index'])->name('kartu-stok.index');
+
+    Route::post('/kartu-stok/adjustment',
+        [KartuStokController::class, 'storeAdjustment'])->name('kartu-stok.adjustment');
 
     Route::get('/kartu-stok/{id}',
         [KartuStokController::class, 'detail']);
