@@ -1,75 +1,193 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-<div class="container-fluid">
+    <x-page-header title="Finishing Produk" subtitle="Master Produk & BOM / Jenis Pekerjaan Finishing">
+        <x-slot:actions>
+            <x-button onclick="openModal('tambah-finishing')">
+                <i class="fas fa-magic"></i>
+                Finishing Baru
+            </x-button>
+        </x-slot:actions>
+    </x-page-header>
 
-<div class="card shadow-sm">
+    <x-table>
+        <thead>
+            <tr>
+                <th class="px-6 py-5 text-left">Nama Finishing</th>
+                <th class="px-4 py-5 text-left">Mesin/Divisi</th>
+                <th class="px-4 py-5 text-center">Metode Hitung</th>
+                <th class="px-4 py-5 text-right">Harga Default</th>
+                <th class="px-8 py-5 text-right">Aksi</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+            @forelse($data as $d)
+            <tr class="group hover:bg-slate-50/30 transition-all">
+                <td class="px-6 py-5">
+                    <div class="text-[13px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors uppercase">
+                        {{ $d->nama_finishing }}
+                    </div>
+                    @if($d->keterangan)
+                        <div class="text-[10px] text-slate-400 mt-0.5">{{ $d->keterangan }}</div>
+                    @endif
+                </td>
+                <td class="px-4 py-5">
+                    <span class="text-[12px] font-semibold text-slate-600">{{ $d->mesin->nama_mesin ?? '-' }}</span>
+                </td>
+                <td class="px-4 py-5 text-center">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        {{ $d->metode_hitung === 'luas' ? 'Luas (m²)' : 'Satuan (Pcs)' }}
+                    </span>
+                </td>
+                <td class="px-4 py-5 text-right">
+                    <span class="text-[13px] font-bold text-slate-800">Rp {{ number_format($d->harga_default, 0, ',', '.') }}</span>
+                </td>
+                <td class="px-8 py-5 text-right">
+                    <div class="flex justify-end gap-2">
+                        <x-button size="icon" variant="ghost" onclick="openEditFinishing({{ json_encode($d) }})" class="hover:text-amber-500 hover:bg-amber-50">
+                            <i class="far fa-edit text-sm"></i>
+                        </x-button>
 
-<div class="card-header d-flex justify-content-between align-items-center">
+                        <form action="{{ route('finishing.destroy', $d->id_finishing) }}" method="POST" class="inline" id="delete-form-finishing-{{ $d->id_finishing }}">
+                            @csrf @method('DELETE')
+                            <x-button type="button" size="icon" variant="ghost" onclick="confirmDeleteFinishing('{{ $d->id_finishing }}', '{{ $d->nama_finishing }}')" class="hover:text-rose-500 hover:bg-rose-50">
+                                <i class="far fa-trash-alt text-sm"></i>
+                            </x-button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="5">
+                    <x-empty-state title="Belum ada jenis finishing" description="Tambahkan jenis finishing seperti Laminasi, Kisscut, atau Jahit Banner." />
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </x-table>
 
-<h5 class="mb-0">
-<i class="fas fa-magic"></i>
-Finishing
-</h5>
+    {{-- MODAL TAMBAH --}}
+    <x-modal id="tambah-finishing" title="Finishing Baru" maxWidth="md">
+        <form action="{{ route('finishing.store') }}" method="POST" class="space-y-5">
+            @csrf
+            <x-form.group label="Nama Finishing" name="nama_finishing" required>
+                <x-form.input type="text" name="nama_finishing" placeholder="Contoh: Laminasi Doff" required />
+            </x-form.group>
 
-<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalTambah">
-Tambah
-</button>
+            <div class="grid grid-cols-2 gap-4">
+                <x-form.group label="Mesin/Divisi" name="id_mesin">
+                    <x-form.select name="id_mesin">
+                        <option value="">-- Umum --</option>
+                        @foreach($mesin as $m)
+                            <option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>
+                        @endforeach
+                    </x-form.select>
+                </x-form.group>
+                <x-form.group label="Metode Hitung" name="metode_hitung" required>
+                    <x-form.select name="metode_hitung" required>
+                        <option value="luas">Luas (m²)</option>
+                        <option value="quantity">Satuan (Pcs)</option>
+                    </x-form.select>
+                </x-form.group>
+            </div>
+
+            <x-form.group label="Harga Default (Rp)" name="harga_default" required>
+                <x-form.input type="number" name="harga_default" min="0" step="1" required />
+            </x-form.group>
+
+            <x-form.group label="Keterangan" name="keterangan">
+                <textarea name="keterangan" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
+            </x-form.group>
+
+            <div class="pt-4 flex gap-3">
+                <x-button type="button" variant="secondary" onclick="closeModal('tambah-finishing')" class="flex-1">Batalkan</x-button>
+                <x-button type="submit" class="flex-1">Simpan Finishing</x-button>
+            </div>
+        </form>
+    </x-modal>
+
+    {{-- MODAL EDIT --}}
+    <x-modal id="edit-finishing" title="Perbarui Finishing" maxWidth="md">
+        <form id="formEditFinishing" method="POST" class="space-y-5">
+            @csrf @method('PUT')
+            <x-form.group label="Nama Finishing">
+                <x-form.input type="text" name="nama_finishing" id="edit_nama_finishing" required />
+            </x-form.group>
+
+            <div class="grid grid-cols-2 gap-4">
+                <x-form.group label="Mesin/Divisi">
+                    <x-form.select name="id_mesin" id="edit_id_mesin">
+                        <option value="">-- Umum --</option>
+                        @foreach($mesin as $m)
+                            <option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>
+                        @endforeach
+                    </x-form.select>
+                </x-form.group>
+                <x-form.group label="Metode Hitung">
+                    <x-form.select name="metode_hitung" id="edit_metode_hitung" required>
+                        <option value="luas">Luas (m²)</option>
+                        <option value="quantity">Satuan (Pcs)</option>
+                    </x-form.select>
+                </x-form.group>
+            </div>
+
+            <x-form.group label="Harga Default (Rp)">
+                <x-form.input type="number" name="harga_default" id="edit_harga_default" min="0" step="1" required />
+            </x-form.group>
+
+            <x-form.group label="Keterangan">
+                <textarea name="keterangan" id="edit_keterangan" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-amber-500/20 shadow-inner"></textarea>
+            </x-form.group>
+
+            <div class="pt-4 flex gap-3">
+                <x-button type="button" variant="secondary" onclick="closeModal('edit-finishing')" class="flex-1">Batalkan</x-button>
+                <x-button type="submit" variant="warning" class="flex-1">Simpan Perubahan</x-button>
+            </div>
+        </form>
+    </x-modal>
 
 </div>
 
-<div class="card-body p-0">
+@push('scripts')
+<script>
+    function openEditFinishing(data) {
+        const form = document.getElementById('formEditFinishing');
+        form.action = `{{ url('finishing') }}/${data.id_finishing}`;
 
-<table class="table table-hover table-sm mb-0">
+        document.getElementById('edit_nama_finishing').value = data.nama_finishing;
+        document.getElementById('edit_id_mesin').value = data.id_mesin || '';
+        document.getElementById('edit_metode_hitung').value = data.metode_hitung || 'luas';
+        document.getElementById('edit_harga_default').value = data.harga_default || 0;
+        document.getElementById('edit_keterangan').value = data.keterangan || '';
 
-<thead class="table-light">
+        openModal('edit-finishing');
+    }
 
-<tr>
-<th width="50">#</th>
-<th>Finishing</th>
-<th>Harga Default</th>
-<th width="120">Aksi</th>
-</tr>
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str ?? '';
+        return div.innerHTML;
+    }
 
-</thead>
-
-<tbody>
-
-@foreach($data as $d)
-
-<tr>
-
-<td>{{ $loop->iteration }}</td>
-
-<td>{{ $d->nama_finishing }}</td>
-
-<td>Rp {{ number_format($d->harga_default) }}</td>
-
-<td>
-
-<form method="POST" action="{{ route('finishing.destroy',$d->id_finishing) }}">
-@csrf
-@method('DELETE')
-
-<button class="btn btn-danger btn-sm">
-Hapus
-</button>
-
-</form>
-
-</td>
-
-</tr>
-
-@endforeach
-
-</tbody>
-
-</table>
-
-</div>
-</div>
-</div>
-
+    function confirmDeleteFinishing(id, name) {
+        Swal.fire({
+            title: 'Hapus Finishing?',
+            html: `Menghapus <b>${escapeHtml(name)}</b>? Data yang dihapus tidak dapat dikembalikan.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#f1f5f9',
+            cancelButtonText: '<span style="color: #64748b">Batal</span>',
+            confirmButtonText: 'Ya, Hapus!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-form-finishing-' + id).submit();
+            }
+        });
+    }
+</script>
+@endpush
 @endsection

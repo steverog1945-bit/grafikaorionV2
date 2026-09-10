@@ -19,7 +19,8 @@ use App\Http\Controllers\{
     SettingHargaController,
     PembelianBahanController,
     KedatanganBahanController,
-    KartuStokController
+    KartuStokController,
+    FinishingController
 };
 
 use App\Http\Controllers\PenjualanController;
@@ -78,6 +79,7 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::resource('satuan', SatuanController::class);
     Route::resource('mesin', MesinController::class);
     Route::resource('produk', ProdukController::class);
+    Route::resource('finishing', FinishingController::class)->except(['create', 'edit', 'show']);
 
 
 

@@ -12,6 +12,15 @@ class Finishing extends Model
     protected $fillable = [
         'nama_finishing',
         'harga_default',
-        'id_satuan'
+        'id_satuan',
+        'id_kategori',
+        'id_mesin',
+        'metode_hitung',
+        'keterangan',
     ];
+
+    public function mesin()
+    {
+        return $this->belongsTo(Mesin::class, 'id_mesin');
+    }
 }
