@@ -16,44 +16,36 @@ class SatuanController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // Redirect biasa (bukan JSON) - form di master.satuan.index adalah
+        // form POST langsung tanpa AJAX, jadi response JSON sebelumnya bikin
+        // browser menampilkan halaman JSON mentah alih-alih kembali ke
+        // daftar satuan.
+        $request->validate([
             'nama_satuan' => 'required|max:20|unique:satuan,nama_satuan',
             'nilai_konversi' => 'required|numeric|min:0',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $id = DB::table('satuan')->insertGetId([
+        DB::table('satuan')->insert([
             'nama_satuan' => $request->nama_satuan,
             'nilai_konversi' => $request->nilai_konversi,
         ]);
 
-        $data = DB::table('satuan')->where('id_satuan', $id)->first();
-
-        return response()->json(['success' => 'Satuan berhasil ditambahkan', 'satuan' => $data]);
+        return redirect()->route('satuan.index')->with('success', 'Satuan berhasil ditambahkan.');
     }
 
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'nama_satuan' => 'required|max:20|unique:satuan,nama_satuan,'.$id.',id_satuan',
             'nilai_konversi' => 'required|numeric',
         ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
 
         DB::table('satuan')->where('id_satuan', $id)->update([
             'nama_satuan' => $request->nama_satuan,
             'nilai_konversi' => $request->nilai_konversi,
         ]);
 
-        $data = DB::table('satuan')->where('id_satuan', $id)->first();
-
-        return response()->json(['success' => 'Satuan berhasil diperbarui', 'satuan' => $data]);
+        return redirect()->route('satuan.index')->with('success', 'Satuan berhasil diperbarui.');
     }
 
     public function destroy($id)
@@ -65,10 +57,10 @@ class SatuanController extends Controller
             ->orWhere('id_satuan_hitung', $id)
             ->exists();
         if ($terpakai) {
-            return response()->json(['error' => 'Satuan masih digunakan di Bahan Baku'], 422);
+            return redirect()->route('satuan.index')->with('error', 'Satuan masih digunakan di Bahan Baku, tidak bisa dihapus.');
         }
 
         DB::table('satuan')->where('id_satuan', $id)->delete();
-        return response()->json(['success' => 'Satuan berhasil dihapus']);
+        return redirect()->route('satuan.index')->with('success', 'Satuan berhasil dihapus.');
     }
 }

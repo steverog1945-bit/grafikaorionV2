@@ -167,10 +167,16 @@
         openModal('edit-konsumen');
     }
 
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     function confirmDeleteKonsumen(id, name) {
         Swal.fire({
             title: 'Hapus Konsumen?',
-            html: `Menghapus <b>${name}</b>? Data yang dihapus tidak dapat dikembalikan.`,
+            html: `Menghapus <b>${escapeHtml(name)}</b>? Data yang dihapus tidak dapat dikembalikan.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

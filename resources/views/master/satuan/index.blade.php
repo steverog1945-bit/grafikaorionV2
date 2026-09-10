@@ -142,7 +142,7 @@
                 <div class="space-y-6">
                     <div class="max-w-[85%] mx-auto text-left">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Label Satuan (Besar/Kecil)</label>
-                        <input type="text" name="nama_satuan" id="input_nama" placeholder="CONTOH: RIM, PACK, LEMBAR" required
+                        <input type="text" name="nama_satuan" id="input_nama" placeholder="CONTOH: RIM, PACK, LEMBAR" maxlength="20" required
                             class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center uppercase tracking-widest">
                     </div>
 

@@ -126,10 +126,16 @@
         openModal('edit-supplier');
     }
 
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     function confirmDeleteSupplier(id, name) {
         Swal.fire({
             title: 'Hapus Supplier?',
-            html: `Menghapus <b>${name}</b>? Data yang dihapus tidak dapat dikembalikan.`,
+            html: `Menghapus <b>${escapeHtml(name)}</b>? Data yang dihapus tidak dapat dikembalikan.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
