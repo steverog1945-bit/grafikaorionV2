@@ -3,24 +3,18 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 bg-slate-50 min-h-screen max-w-[1600px] mx-auto">
 
-    {{-- HEADER --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-        <div>
-            <h1 class="text-3xl font-black text-slate-800 tracking-tighter uppercase leading-none">
-                Kedatangan <span class="text-indigo-600">Bahan</span>
-            </h1>
-            <p class="text-slate-500 font-medium mt-3 text-[13px] uppercase tracking-[0.2em] flex items-center gap-2">
-                <i class="fas fa-truck-loading text-indigo-400"></i>
-                Logistik <span class="text-slate-300">/</span> Manajemen Surat Jalan
-            </p>
-        </div>
-
-        <a href="{{ route('kedatangan-bahan.create') }}"
-           class="inline-flex items-center justify-center px-8 py-4 bg-slate-900 hover:bg-indigo-600 text-white rounded-[1.5rem] text-[13px] font-black uppercase tracking-[0.15em] transition-all shadow-xl shadow-slate-200 gap-3 active:scale-95">
-            <i class="fas fa-plus-circle text-sm text-indigo-400"></i>
-            Tambah Kedatangan
-        </a>
-    </div>
+    <x-page-header title="Kedatangan Bahan">
+        <x-slot:subtitle>
+            <i class="fas fa-truck-loading text-indigo-400"></i>
+            Logistik <span class="text-slate-300">/</span> Manajemen Surat Jalan
+        </x-slot:subtitle>
+        <x-slot:actions>
+            <x-button href="{{ route('kedatangan-bahan.create') }}">
+                <i class="fas fa-plus-circle"></i>
+                Tambah Kedatangan
+            </x-button>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- FILTER BAR --}}
     <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8 mb-8">
@@ -132,7 +126,7 @@
                                 <div class="flex items-center justify-center gap-3">
                                     @if($k->status == 'Draft')
                                         <button type="button" onclick="confirmApprove('{{ $k->id_kedatangan }}', '{{ $k->no_surat_jalan }}')"
-                                            class="h-10 px-6 bg-indigo-600 text-white hover:bg-black rounded-xl transition-all text-[11px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+                                            class="h-10 px-6 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl transition-all text-[11px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
                                             Validasi
                                         </button>
                                         <a href="{{ route('kedatangan-bahan.edit', $k->id_kedatangan) }}" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-100 text-slate-400 hover:text-indigo-600 rounded-xl transition-all shadow-sm">
