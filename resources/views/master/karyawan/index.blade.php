@@ -109,7 +109,7 @@
                                 <div>
                                     <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Divisi / Bagian</label>
                                     <select name="bagian" class="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-[13px] font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 shadow-inner appearance-none">
-                                        @foreach(['Admin', 'Desain', 'Produksi', 'Kasir'] as $div)
+                                        @foreach(['Admin', 'Desain', 'Produksi', 'Kasir', 'Gudang'] as $div)
                                             <option value="{{ $div }}" {{ $k->bagian == $div ? 'selected' : '' }}>{{ $div }}</option>
                                         @endforeach
                                     </select>
@@ -169,6 +169,7 @@
                     <option value="Desain">Desain</option>
                     <option value="Produksi">Produksi</option>
                     <option value="Kasir">Kasir</option>
+                    <option value="Gudang">Gudang</option>
                 </select>
             </div>
             <div>

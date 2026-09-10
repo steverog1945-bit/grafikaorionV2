@@ -10,5 +10,5 @@ class Mesin extends Model
     protected $primaryKey = 'id_mesin';
     public $timestamps = false;
 
-    protected $fillable = ['nama_mesin', 'tipe_mesin', 'biaya_per_meter'];
+    protected $fillable = ['nama_mesin', 'tipe_mesin'];
 }

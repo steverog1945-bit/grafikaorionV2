@@ -15,14 +15,22 @@ class MesinController extends Controller
 
     public function store(Request $request)
     {
-        Mesin::create($request->all());
+        $data = $request->validate([
+            'nama_mesin' => 'required|string|max:100',
+            'tipe_mesin' => 'required|string|max:50',
+        ]);
+        Mesin::create($data);
         return back()->with('success', 'Mesin berhasil ditambah!');
     }
 
     public function update(Request $request, $id)
     {
+        $data = $request->validate([
+            'nama_mesin' => 'required|string|max:100',
+            'tipe_mesin' => 'required|string|max:50',
+        ]);
         $mesin = Mesin::findOrFail($id);
-        $mesin->update($request->all());
+        $mesin->update($data);
         return back()->with('success', 'Mesin berhasil diubah!');
     }
 

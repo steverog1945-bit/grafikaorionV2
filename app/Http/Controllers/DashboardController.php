@@ -38,12 +38,11 @@ class DashboardController extends Controller
 
         $spkAntre = (int) ($statusSpk['Antre'] ?? 0);
         // Disamakan dengan filter default ProduksiController@index ('progress' =
-        // Antre+Desain+Cetak) supaya angka di tile "Produksi Berjalan" selalu
-        // cocok dengan jumlah baris yang muncul saat tile itu diklik. Sebelumnya
-        // tile hanya menghitung Desain+Cetak (tanpa Antre) sementara link-nya ke
-        // produksi.index() tanpa filter menampilkan ketiganya - jumlah di tile
-        // selalu lebih kecil dari isi halaman yang dituju.
-        $spkProses = (int) (($statusSpk['Antre'] ?? 0) + ($statusSpk['Desain'] ?? 0) + ($statusSpk['Cetak'] ?? 0));
+        // Desain+Cetak, TIDAK termasuk Antre) supaya angka di tile "Produksi
+        // Berjalan" selalu cocok dengan jumlah baris yang muncul saat tile itu
+        // diklik. Antre = belum diambil dari SPK (lihat SpkController::
+        // ambilPekerjaan), jadi belum masuk hitungan "berjalan di produksi".
+        $spkProses = (int) (($statusSpk['Desain'] ?? 0) + ($statusSpk['Cetak'] ?? 0));
         $spkSelesai = (int) ($statusSpk['Selesai'] ?? 0);
         $spkBatal = (int) ($statusSpk['Batal'] ?? 0);
 

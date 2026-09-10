@@ -67,7 +67,12 @@ class ProduksiController extends Controller
             // bucket default (Antre/Desain/Cetak) atau linknya mendarat di
             // halaman kosong walau datanya ada.
         } else {
-            $query->whereIn('transaksi_detail.status_spk', ['Antre', 'Desain', 'Cetak']);
+            // 'Antre' SENGAJA tidak diikutkan di sini: SPK yang masih Antre
+            // berarti belum ada yang mengambil pekerjaannya (lihat
+            // SpkController::ambilPekerjaan) - Produksi hanya menampilkan
+            // item yang sudah eksplisit diambil (Desain) atau sudah dicatat
+            // qty cetaknya (Cetak). Antre tetap terlihat di halaman SPK.
+            $query->whereIn('transaksi_detail.status_spk', ['Desain', 'Cetak']);
         }
 
         $produksi = $query->orderByDesc('transaksi_detail.id_detail')->paginate(15)->withQueryString();
@@ -97,8 +102,11 @@ class ProduksiController extends Controller
                 'qty_cetak' => $request->qty_cetak,
                 'catatan_produksi' => $request->catatan_produksi,
                 // Begitu jumlah cetak diinput, status bergerak maju ke "Cetak"
-                // (kecuali sudah lebih maju dari itu).
-                'status_spk' => $detail->status_spk === 'Antre' ? 'Cetak' : $detail->status_spk,
+                // (kecuali sudah lebih maju dari itu). 'Antre' dipertahankan di
+                // sini untuk jaga-jaga walau sekarang seharusnya sudah 'Desain'
+                // dulu (lihat SpkController::ambilPekerjaan) sebelum item ini
+                // bisa muncul di Produksi sama sekali.
+                'status_spk' => in_array($detail->status_spk, ['Antre', 'Desain']) ? 'Cetak' : $detail->status_spk,
             ]);
         });
 

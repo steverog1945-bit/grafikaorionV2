@@ -122,6 +122,10 @@
                             <i class="fas fa-eye text-xs"></i>
                         </x-button>
 
+                        <x-button href="{{ route('spk.print', ['id' => $item->id_detail, 'format' => 'thermal']) }}" target="_blank" size="icon" variant="ghost" class="border border-slate-100 hover:text-slate-800" title="Cetak SPK (Thermal)">
+                            <i class="fas fa-print text-xs"></i>
+                        </x-button>
+
                         @if(!in_array($item->status_spk, ['Selesai', 'Batal']))
                             <x-button type="button" size="icon" variant="ghost" onclick="selesaiProduksi({{ $item->id_detail }})" class="border border-slate-100 hover:text-emerald-600" title="Tandai Selesai">
                                 <i class="fas fa-check text-xs"></i>

@@ -128,9 +128,19 @@
                         <x-badge :status="$item->status_spk" />
                     </td>
                     <td class="px-8 py-5 text-center">
-                        <x-button href="{{ route('produksi.index', ['id_spk' => $item->id_detail, 'status_produksi' => 'semua']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat di Produksi">
-                            <i class="fas fa-industry text-xs"></i>
-                        </x-button>
+                        <div class="flex items-center justify-center gap-2">
+                            @if($item->status_spk === 'Antre')
+                                <x-button type="button" size="icon" variant="ghost" onclick="ambilPekerjaan({{ $item->id_detail }})" class="border border-slate-100 hover:text-emerald-600" title="Ambil Pekerjaan (pindah ke Produksi)">
+                                    <i class="fas fa-hand-paper text-xs"></i>
+                                </x-button>
+                            @endif
+                            <x-button href="{{ route('spk.print', ['id' => $item->id_detail, 'format' => 'thermal']) }}" target="_blank" size="icon" variant="ghost" class="border border-slate-100 hover:text-slate-800" title="Cetak SPK (Thermal)">
+                                <i class="fas fa-print text-xs"></i>
+                            </x-button>
+                            <x-button href="{{ route('produksi.index', ['id_spk' => $item->id_detail, 'status_produksi' => 'semua']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat di Produksi">
+                                <i class="fas fa-industry text-xs"></i>
+                            </x-button>
+                        </div>
                     </td>
                 </tr>
                 @empty
@@ -189,6 +199,28 @@
         form.innerHTML = `@csrf @method('PATCH')`;
         document.body.appendChild(form);
         form.submit();
+    }
+
+    function ambilPekerjaan(id) {
+        Swal.fire({
+            title: 'Ambil Pekerjaan Ini?',
+            text: 'Item akan pindah dari antrean SPK ke halaman Produksi.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            confirmButtonText: 'Ya, Ambil',
+            cancelButtonText: 'Batal',
+            customClass: { popup: 'rounded-[2rem]' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `{{ url('spk') }}/${id}/ambil`;
+                form.innerHTML = `@csrf @method('PATCH')`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
     }
 </script>
 @endpush

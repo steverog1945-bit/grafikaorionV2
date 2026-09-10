@@ -101,4 +101,64 @@ class SpkController extends Controller
 
         return back()->with('success', count($ids) . ' item ditandai urgent.');
     }
+
+    /**
+     * "Ambil Pekerjaan": memindahkan SPK dari antrean (Antre) ke Produksi
+     * (Desain). Sebelum ini SPK yang baru dibuat langsung ikut muncul di
+     * halaman Produksi walau belum ada yang mengerjakan - sekarang Produksi
+     * hanya menampilkan item yang sudah eksplisit diambil lewat aksi ini
+     * (lihat filter default di ProduksiController@index).
+     */
+    public function ambilPekerjaan($id)
+    {
+        $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
+
+        if (!$detail) {
+            return back()->with('error', 'Item SPK tidak ditemukan.');
+        }
+
+        if ($detail->status_spk !== 'Antre') {
+            return back()->with('error', 'Item ini sudah diambil/diproses sebelumnya (status: ' . $detail->status_spk . ').');
+        }
+
+        DB::table('transaksi_detail')->where('id_detail', $id)->update([
+            'status_spk' => 'Desain',
+        ]);
+
+        return back()->with('success', 'Pekerjaan diambil, item sekarang ada di halaman Produksi.');
+    }
+
+    /**
+     * Cetak SPK (thermal/A4) - dipakai sebagai surat kerja saat produksi
+     * berjalan maupun sebagai bukti selesai setelah status_spk = Selesai.
+     * Satu view melayani kedua kebutuhan karena datanya sama, hanya status
+     * yang beda.
+     */
+    public function printSpk(Request $request, $id, $format = 'a4')
+    {
+        $format = $format === 'thermal' ? 'thermal' : 'a4';
+
+        $detail = DB::table('transaksi_detail')
+            ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
+            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+            ->join('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+            ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
+            ->where('transaksi_detail.id_detail', $id)
+            ->select(
+                'transaksi_detail.*',
+                'transaksi.nomor_nota',
+                'transaksi.tgl_order',
+                'konsumen.nama_konsumen',
+                'produk.nama_produk',
+                'produk.metode_hitung',
+                'mesin.nama_mesin as divisi'
+            )
+            ->first();
+
+        if (!$detail) {
+            abort(404, 'Item SPK tidak ditemukan.');
+        }
+
+        return view('spk.print', compact('detail', 'format'));
+    }
 }
