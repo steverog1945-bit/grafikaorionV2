@@ -103,6 +103,34 @@ class SpkController extends Controller
     }
 
     /**
+     * Versi bulk dari ambilPekerjaan() - hanya menyentuh item yang masih
+     * berstatus 'Antre' (whereIn + where sekaligus, satu query) supaya item
+     * yang sudah diambil/diproses orang lain di antara waktu checkbox
+     * dicentang dan tombol ditekan tidak ikut ter-overwrite.
+     */
+    public function bulkAmbil(Request $request)
+    {
+        $ids = $request->ids;
+
+        if (!$ids) {
+            return back()->with('error', 'Tidak ada data dipilih.');
+        }
+
+        $diambil = DB::table('transaksi_detail')
+            ->whereIn('id_detail', $ids)
+            ->where('status_spk', 'Antre')
+            ->update(['status_spk' => 'Desain']);
+
+        $dilewati = count($ids) - $diambil;
+        $pesan = "{$diambil} pekerjaan diambil, sekarang ada di halaman Produksi.";
+        if ($dilewati > 0) {
+            $pesan .= " {$dilewati} item dilewati karena sudah diambil/diproses sebelumnya.";
+        }
+
+        return back()->with($diambil > 0 ? 'success' : 'error', $pesan);
+    }
+
+    /**
      * "Ambil Pekerjaan": memindahkan SPK dari antrean (Antre) ke Produksi
      * (Desain). Sebelum ini SPK yang baru dibuat langsung ikut muncul di
      * halaman Produksi walau belum ada yang mengerjakan - sekarang Produksi

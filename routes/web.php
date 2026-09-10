@@ -323,6 +323,10 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         [BahanBakuController::class, 'destroy'])
         ->name('bahan.destroy');
 
+    Route::post('/bahan-baku/bulk-delete',
+        [BahanBakuController::class, 'bulkDelete'])
+        ->name('bahan.bulk-delete');
+
     Route::get('/produk/{id}', [ProdukController::class, 'show']);
 
     /*
@@ -334,6 +338,7 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::get('/spk', [SpkController::class, 'index'])->name('spk.index');
     Route::patch('/spk/{id}/urgent', [SpkController::class, 'toggleUrgent'])->name('spk.toggle-urgent');
     Route::post('/spk/bulk-urgent', [SpkController::class, 'bulkUrgent'])->name('spk.bulk-urgent');
+    Route::post('/spk/bulk-ambil', [SpkController::class, 'bulkAmbil'])->name('spk.bulk-ambil');
     Route::patch('/spk/{id}/ambil', [SpkController::class, 'ambilPekerjaan'])->name('spk.ambil');
     Route::get('/spk/{id}/print/{format?}', [SpkController::class, 'printSpk'])->name('spk.print');
 

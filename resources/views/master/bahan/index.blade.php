@@ -52,10 +52,15 @@
 
     {{-- TABLE --}}
     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+        <form id="bulk-delete-form" method="POST" action="{{ route('bahan.bulk-delete') }}">
+            @csrf
         <div class="overflow-x-auto modern-table-wrapper">
             <table class="modern-table">
                 <thead>
                     <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-6 py-5 w-12 text-center">
+                            <input type="checkbox" id="checkAll" class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer">
+                        </th>
                         <th class="px-8 py-5 text-left">Identitas Material</th>
                         <th class="px-6 py-5 text-center">Spesifikasi</th>
                         <th class="px-6 py-5 text-center">Volume Stok</th>
@@ -66,6 +71,9 @@
                 <tbody class="divide-y divide-slate-50">
                     @forelse($bahan as $b)
                     <tr class="group hover:bg-slate-50/30 transition-all">
+                        <td class="px-6 py-5 text-center">
+                            <input type="checkbox" name="ids[]" value="{{ $b->id_bahan }}" class="row-checkbox rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer">
+                        </td>
                         <td class="px-8 py-5">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-bold text-xs">
@@ -118,12 +126,21 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="py-20 text-center text-slate-400 font-medium italic">Data tidak ditemukan.</td>
+                        <td colspan="6" class="py-20 text-center text-slate-400 font-medium italic">Data tidak ditemukan.</td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
+        {{-- BULK ACTIONS FOOTER --}}
+        <div id="bulk-footer" class="px-8 py-5 border-t border-slate-50 flex justify-start opacity-0 pointer-events-none transition-all duration-300 translate-y-2">
+            <button type="button" id="btn-bulk-delete"
+                    class="px-6 py-3 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm">
+                <i class="fas fa-trash-alt"></i> Hapus Terpilih (<span id="count-checked">0</span>)
+            </button>
+        </div>
+        </form>
 
        {{-- PAGINATION --}}
 <div class="px-8 py-6 bg-white border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -405,5 +422,52 @@
             }
         });
     }
+
+    // Bulk Delete
+    const checkAll = document.getElementById('checkAll');
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    const bulkFooter = document.getElementById('bulk-footer');
+    const bulkDeleteBtn = document.getElementById('btn-bulk-delete');
+    const countCheckedSpan = document.getElementById('count-checked');
+
+    function updateBulkUI() {
+        const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+        countCheckedSpan.textContent = checkedCount;
+
+        if (checkedCount > 0) {
+            bulkFooter.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+        } else {
+            bulkFooter.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+        }
+    }
+
+    checkAll?.addEventListener('change', function() {
+        rowCheckboxes.forEach(cb => cb.checked = this.checked);
+        updateBulkUI();
+    });
+
+    rowCheckboxes.forEach(cb => cb.addEventListener('change', updateBulkUI));
+
+    bulkDeleteBtn?.addEventListener('click', function() {
+        const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+        Swal.fire({
+            title: 'Hapus Massal?',
+            text: `${checkedCount} bahan terpilih akan dihapus. Bahan yang masih terikat riwayat transaksi otomatis dilewati.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#f8fafc',
+            confirmButtonText: 'Ya, Hapus Semua',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('bulk-delete-form').submit();
+            }
+        });
+    });
 </script>
 @endpush

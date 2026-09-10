@@ -71,7 +71,7 @@
         </form>
     </x-card>
 
-    <form id="bulk-urgent-form" method="POST" action="{{ route('spk.bulk-urgent') }}">
+    <form id="bulk-action-form" method="POST" action="{{ route('spk.bulk-urgent') }}">
         @csrf
         <x-table>
             <thead>
@@ -153,7 +153,11 @@
             </tbody>
         </x-table>
 
-        <div class="mt-4">
+        <div class="mt-4 flex gap-3">
+            <x-button type="button" id="btn-bulk-ambil" variant="success" class="opacity-0 pointer-events-none" disabled>
+                <i class="fas fa-hand-paper"></i>
+                Ambil Semua Terpilih (<span id="count-checked-ambil">0</span>)
+            </x-button>
             <x-button type="button" id="btn-bulk-urgent" variant="danger" class="opacity-0 pointer-events-none" disabled>
                 <i class="fas fa-fire"></i>
                 Tandai Urgent (<span id="count-checked">0</span>)
@@ -171,7 +175,9 @@
     const checkAll = document.getElementById('checkAll');
     const checkboxes = document.querySelectorAll('.row-checkbox');
     const bulkBtn = document.getElementById('btn-bulk-urgent');
+    const bulkAmbilBtn = document.getElementById('btn-bulk-ambil');
     const countSpan = document.getElementById('count-checked');
+    const countSpanAmbil = document.getElementById('count-checked-ambil');
 
     checkAll?.addEventListener('change', function() {
         checkboxes.forEach(cb => cb.checked = this.checked);
@@ -183,13 +189,50 @@
     function updateBulkButton() {
         const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
         countSpan.textContent = checkedCount;
-        bulkBtn.disabled = checkedCount === 0;
-        bulkBtn.classList.toggle('opacity-0', checkedCount === 0);
-        bulkBtn.classList.toggle('pointer-events-none', checkedCount === 0);
+        countSpanAmbil.textContent = checkedCount;
+        [bulkBtn, bulkAmbilBtn].forEach(btn => {
+            btn.disabled = checkedCount === 0;
+            btn.classList.toggle('opacity-0', checkedCount === 0);
+            btn.classList.toggle('pointer-events-none', checkedCount === 0);
+        });
     }
 
     bulkBtn?.addEventListener('click', function() {
-        document.getElementById('bulk-urgent-form').submit();
+        Swal.fire({
+            title: 'Tandai Urgent Semua Terpilih?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            confirmButtonText: 'Ya, Tandai',
+            cancelButtonText: 'Batal',
+            customClass: { popup: 'rounded-[2rem]' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.getElementById('bulk-action-form');
+                form.action = "{{ route('spk.bulk-urgent') }}";
+                form.submit();
+            }
+        });
+    });
+
+    bulkAmbilBtn?.addEventListener('click', function() {
+        const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+        Swal.fire({
+            title: 'Ambil Semua Pekerjaan Terpilih?',
+            text: `${checkedCount} item akan pindah dari antrean SPK ke halaman Produksi. Item yang sudah diambil sebelumnya otomatis dilewati.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            confirmButtonText: 'Ya, Ambil Semua',
+            cancelButtonText: 'Batal',
+            customClass: { popup: 'rounded-[2rem]' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.getElementById('bulk-action-form');
+                form.action = "{{ route('spk.bulk-ambil') }}";
+                form.submit();
+            }
+        });
     });
 
     function toggleUrgent(id) {

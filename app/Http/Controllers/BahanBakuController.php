@@ -168,4 +168,35 @@ class BahanBakuController extends Controller
             return back()->with('error', 'Gagal hapus! Data masih terikat dengan transaksi.');
         }
     }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->ids;
+
+        if (!$ids) {
+            return back()->with('error', 'Tidak ada data dipilih.');
+        }
+
+        // Setiap bahan dihapus satu per satu (bukan satu transaksi gabungan)
+        // supaya bahan yang masih terikat riwayat transaksi (FK constraint)
+        // tidak ikut menggagalkan penghapusan bahan lain yang sebenarnya aman.
+        $berhasil = 0;
+        $gagal = 0;
+
+        foreach ($ids as $id) {
+            try {
+                BahanBaku::destroy($id);
+                $berhasil++;
+            } catch (\Exception $e) {
+                $gagal++;
+            }
+        }
+
+        $pesan = "{$berhasil} bahan berhasil dihapus.";
+        if ($gagal > 0) {
+            $pesan .= " {$gagal} bahan gagal dihapus karena masih terikat riwayat transaksi.";
+        }
+
+        return back()->with($berhasil > 0 ? 'success' : 'error', $pesan);
+    }
 }
