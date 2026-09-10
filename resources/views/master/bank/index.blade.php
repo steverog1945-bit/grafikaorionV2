@@ -51,7 +51,7 @@
                 </form>
             </div>
         </div>
-        <div class="text-xl font-mono font-bold text-slate-800 mb-1">{{ $b->nomor_rekening }}</div>
+        <div class="text-xl font-bold text-slate-800 mb-1">{{ $b->nomor_rekening }}</div>
         <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold italic">a/n {{ $b->atas_nama }}</div>
     </div>
     @empty

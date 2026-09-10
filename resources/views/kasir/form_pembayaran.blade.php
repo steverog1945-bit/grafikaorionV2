@@ -38,13 +38,13 @@
                     <input type="text" 
                         name="items[{{ $item->id_detail }}][harga]" 
                         value="{{ number_format($hargaSatuan, 0, ',', '.') }}" 
-                        class="input-harga format-ribuan w-full bg-slate-50 border-none rounded-xl text-sm font-mono font-bold focus:ring-2 focus:ring-indigo-500"
+                        class="input-harga format-ribuan w-full bg-slate-50 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500"
                         data-qty="{{ $item->qty }}">
                     <input type="hidden" name="items[{{ $item->id_detail }}][qty_hidden]" value="{{ $item->qty }}">
                 </div>
                 <div class="col-span-4 text-right">
                     <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Subtotal</label>
-                    <span class="subtotal font-mono font-black text-slate-800 text-sm">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                    <span class="subtotal font-black text-slate-800 text-sm">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
                 </div>
             </div>
             @endforeach
@@ -59,7 +59,7 @@
 
                 <div class="flex justify-between items-center mb-4 opacity-70">
                     <span class="text-sm font-bold uppercase tracking-widest">Total Nota</span>
-                    <span id="total-kotor" class="font-mono text-lg text-white">Rp 0</span>
+                    <span id="total-kotor" class="text-lg text-white">Rp 0</span>
                 </div>
 
                 <div class="flex justify-between items-center mb-6">
@@ -67,14 +67,14 @@
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 font-bold text-xs">Rp</span>
                         <input type="text" id="input-diskon" name="diskon" value="0" 
-                            class="format-ribuan w-40 bg-white/10 border-none rounded-xl text-right text-white font-mono font-bold focus:ring-2 focus:ring-indigo-400 pl-10">
+                            class="format-ribuan w-40 bg-white/10 border-none rounded-xl text-right text-white font-bold focus:ring-2 focus:ring-indigo-400 pl-10">
                     </div>
                 </div>
 
                 @if($totalTerbayar > 0)
                 <div class="flex justify-between items-center mb-4 text-emerald-400 border-t border-white/10 pt-4">
                     <span class="text-sm font-bold uppercase tracking-widest">Sudah Dibayar Sebelumnya</span>
-                    <span class="font-mono text-lg">- Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</span>
+                    <span class="text-lg">- Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</span>
                 </div>
                 {{-- Hidden input untuk membantu JS menghitung sisa --}}
                 <input type="hidden" id="total_terbayar_hidden" value="{{ $totalTerbayar }}">
@@ -89,7 +89,7 @@
                         </span>
                     </div>
                     <input type="hidden" id="grand_total_hidden" name="total_akhir" value="0">
-                    <span id="display-grand-total" class="text-4xl font-mono font-black">Rp 0</span>
+                    <span id="display-grand-total" class="text-4xl font-black">Rp 0</span>
                 </div>
             </div>
         </div>
@@ -126,7 +126,7 @@
                         <div class="relative">
                             <span class="absolute left-5 top-1/2 -translate-y-1/2 font-black text-slate-400 text-xl">Rp</span>
                             <input type="text" id="input-bayar-mask" 
-                                   class="format-ribuan w-full h-16 pl-16 rounded-2xl border-2 border-slate-100 bg-white text-2xl font-mono font-black text-indigo-600 focus:border-indigo-500 transition-all" 
+                                   class="format-ribuan w-full h-16 pl-16 rounded-2xl border-2 border-slate-100 bg-white text-2xl font-black text-indigo-600 focus:border-indigo-500 transition-all" 
                                    placeholder="0">
                             <input type="hidden" name="jumlah_bayar" id="input-bayar-asli">
                         </div>
@@ -147,7 +147,7 @@
                         </div>
                         <div class="h-px bg-white/10 w-full mb-6"></div>
                         <span id="label-selisih" class="text-[10px] font-black italic uppercase opacity-70 block mb-1">Kalkulasi</span>
-                        <div id="display-selisih" class="text-4xl font-mono font-black">Rp 0</div>
+                        <div id="display-selisih" class="text-4xl font-black">Rp 0</div>
                     </div>
                 </div>
             </div>

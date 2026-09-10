@@ -84,11 +84,11 @@
                                     {{ $r->metode_bayar }}
                                 </span>
                             @else
-                                <span class="text-[11px] text-indigo-500 font-mono">{{ $r->nomor_nota ?? '-' }}</span>
+                                <span class="text-[11px] text-indigo-500">{{ $r->nomor_nota ?? '-' }}</span>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-sm text-slate-500 italic truncate max-w-xs">{{ $r->keterangan ?? '-' }}</td>
-                        <td class="px-8 py-4 text-center text-[11px] text-slate-400 font-mono">{{ $r->dicatat_oleh ?? '-' }}</td>
+                        <td class="px-8 py-4 text-center text-[11px] text-slate-400">{{ $r->dicatat_oleh ?? '-' }}</td>
                     </tr>
                     @empty
                     <tr>

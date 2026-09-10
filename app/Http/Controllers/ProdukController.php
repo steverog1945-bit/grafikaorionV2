@@ -168,27 +168,6 @@ public function show($id)
             return redirect()->back()->with('success', 'Update Produk & Engineering Berhasil.');
         });
     }
-public function potongStokOtomatis($id_order_detail)
-{
-    $order = DB::table('order_details')->where('id', $id_order_detail)->first();
-    $bom_items = DB::table('bom_detail')->where('id_produk', $order->id_produk)->get();
-
-    foreach ($bom_items as $item) {
-        $P = $order->panjang;
-        $L = $order->lebar;
-        $Q = $order->qty;
-        
-        // Gunakan str_replace yang aman
-        $ekspresi = str_ireplace(['P', 'L', 'Q'], [$P, $L, $Q], $item->cara_hitung_pemakaian);
-        
-        // Perhitungan aman tanpa eval() jika memungkinkan, 
-        // tapi jika rumus dinamis, pastikan input sudah divalidasi.
-        $hasil_per_unit = eval("return $ekspresi;"); 
-        $total_potong = $hasil_per_unit * $Q;
-
-        DB::table('bahan_baku')->where('id_bahan', $item->id_bahan)->decrement('stok', $total_potong);
-    }
-}
     public function destroy($id)
     {
         return DB::transaction(function () use ($id) {

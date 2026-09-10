@@ -35,7 +35,7 @@
                     @forelse($pendapatan as $p)
                     <div class="flex justify-between text-sm">
                         <span class="text-slate-600">{{ $p->nama_akun }}</span>
-                        <span class="font-mono font-medium text-slate-700">{{ number_format($p->jumlah, 0, ',', '.') }}</span>
+                        <span class="font-medium text-slate-700">{{ number_format($p->jumlah, 0, ',', '.') }}</span>
                     </div>
                     @empty
                     <p class="text-xs text-slate-400 italic">Belum ada pendapatan pada periode ini.</p>
@@ -43,7 +43,7 @@
                 </div>
                 <div class="flex justify-between text-sm font-bold border-t border-slate-100 mt-4 pt-3">
                     <span class="text-slate-700">Total Pendapatan</span>
-                    <span class="font-mono text-emerald-700">{{ number_format($totalPendapatan, 0, ',', '.') }}</span>
+                    <span class="text-emerald-700">{{ number_format($totalPendapatan, 0, ',', '.') }}</span>
                 </div>
             </div>
 
@@ -53,7 +53,7 @@
                     @forelse($beban as $b)
                     <div class="flex justify-between text-sm">
                         <span class="text-slate-600">{{ $b->nama_akun }}</span>
-                        <span class="font-mono font-medium text-slate-700">{{ number_format($b->jumlah, 0, ',', '.') }}</span>
+                        <span class="font-medium text-slate-700">{{ number_format($b->jumlah, 0, ',', '.') }}</span>
                     </div>
                     @empty
                     <p class="text-xs text-slate-400 italic">Belum ada beban tercatat pada periode ini.</p>
@@ -61,7 +61,7 @@
                 </div>
                 <div class="flex justify-between text-sm font-bold border-t border-slate-100 mt-4 pt-3">
                     <span class="text-slate-700">Total Beban</span>
-                    <span class="font-mono text-amber-700">{{ number_format($totalBeban, 0, ',', '.') }}</span>
+                    <span class="text-amber-700">{{ number_format($totalBeban, 0, ',', '.') }}</span>
                 </div>
             </div>
 
@@ -70,7 +70,7 @@
                     <span class="text-sm font-bold uppercase tracking-widest {{ $labaBersih >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
                         {{ $labaBersih >= 0 ? 'Laba Bersih' : 'Rugi Bersih' }}
                     </span>
-                    <span class="text-2xl font-black font-mono {{ $labaBersih >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
+                    <span class="text-2xl font-black {{ $labaBersih >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
                         {{ number_format(abs($labaBersih), 0, ',', '.') }}
                     </span>
                 </div>

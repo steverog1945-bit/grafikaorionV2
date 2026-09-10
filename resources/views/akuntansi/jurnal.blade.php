@@ -39,16 +39,16 @@
                     @forelse($rows as $r)
                     <tr class="hover:bg-slate-50/30 transition-all">
                         <td class="px-8 py-3 text-xs text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
-                        <td class="px-6 py-3 text-xs font-mono text-slate-500">{{ $r->no_referensi }}</td>
+                        <td class="px-6 py-3 text-xs text-slate-500">{{ $r->no_referensi }}</td>
                         <td class="px-6 py-3 text-sm text-slate-700">{{ $r->keterangan }}</td>
                         <td class="px-6 py-3 text-xs">
-                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-slate-50 text-slate-600 font-mono font-bold">{{ $r->kode_akun }}</span>
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-slate-50 text-slate-600 font-bold">{{ $r->kode_akun }}</span>
                             <div class="text-[10px] text-slate-400 mt-1">{{ $r->nama_akun }}</div>
                         </td>
-                        <td class="px-6 py-3 text-right text-sm font-mono {{ $r->debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                        <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
                             {{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}
                         </td>
-                        <td class="px-8 py-3 text-right text-sm font-mono {{ $r->kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                        <td class="px-8 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
                             {{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}
                         </td>
                     </tr>
@@ -62,8 +62,8 @@
                 <tfoot>
                     <tr class="bg-slate-50/70 border-t-2 border-slate-100">
                         <td colspan="4" class="px-8 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
-                        <td class="px-6 py-4 text-right text-sm font-mono font-black text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
-                        <td class="px-8 py-4 text-right text-sm font-mono font-black text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
+                        <td class="px-8 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
                     </tr>
                     @if(abs($totalDebet - $totalKredit) < 0.01)
                     <tr>

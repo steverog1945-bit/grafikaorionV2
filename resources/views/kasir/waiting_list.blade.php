@@ -23,7 +23,7 @@
         <div class="p-8">
             <div class="mb-6">
                 <span class="bg-indigo-50 text-indigo-600 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Nota #{{ $w->nomor_nota }}</span>
-                <p class="text-[10px] text-slate-400 mt-2 font-mono uppercase">{{ date('d M Y • H:i', strtotime($w->created_at)) }}</p>
+                <p class="text-[10px] text-slate-400 mt-2 uppercase">{{ date('d M Y • H:i', strtotime($w->created_at)) }}</p>
             </div>
             
             <h3 class="text-xl font-black text-slate-800 uppercase leading-tight mb-2 group-hover:text-indigo-600 transition-colors">{{ $w->nama_konsumen }}</h3>
@@ -35,7 +35,7 @@
             </div>
 
             <div class="mb-8 text-center">
-                <span class="text-3xl font-mono font-black text-slate-800">
+                <span class="text-3xl font-black text-slate-800">
                     <span class="text-sm text-slate-400 font-normal">Rp</span> {{ number_format($w->total_bayar, 0, ',', '.') }}
                 </span>
             </div>

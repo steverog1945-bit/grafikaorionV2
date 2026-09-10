@@ -64,39 +64,6 @@ class KedatanganBahanController extends Controller
 
     return view('kedatangan-bahan.index', compact('kedatangans'));
 }
-public function markAsSelesai($id)
-{
-    DB::transaction(function () use ($id) {
-        $kedatangan = KedatanganBahan::with('detail')->findOrFail($id);
-        
-        if($kedatangan->status == 'Selesai') return; // Cegah double process
-
-        foreach ($kedatangan->detail as $item) {
-            // 1. Update Stok di Master Bahan
-            $bahan = BahanBaku::find($item->id_bahan);
-            $stok_sebelum = $bahan->stok;
-            $bahan->increment('stok', $item->qty);
-
-            // 2. Catat Kartu Stok
-            DB::table('kartu_stok')->insert([
-                'id_bahan' => $item->id_bahan,
-                'tipe' => 'IN',
-                'qty' => $item->qty,
-                'stok_sebelum' => $stok_sebelum,
-                'stok_sesudah' => $stok_sebelum + $item->qty,
-                'referensi' => $kedatangan->no_surat_jalan,
-                'keterangan' => 'Kedatangan Bahan dr SJ',
-                'created_at' => now()
-            ]);
-        }
-
-        // 3. Update Status Kedatangan
-        $kedatangan->update(['status' => 'Selesai']);
-    });
-
-    return redirect()->back()->with('success', 'Status berhasil diselesaikan & stok bertambah!');
-}
-
     public function create()
     {
         $suppliers = Supplier::orderBy('nama_supplier')->get();

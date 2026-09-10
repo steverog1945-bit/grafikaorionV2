@@ -73,7 +73,7 @@
                                 </div>
                                 <div>
                                     <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{{ $b->nama_bahan }}</div>
-                                    <div class="text-[11px] font-mono text-slate-400 mt-0.5">{{ $b->kode_bahan }}</div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5">{{ $b->kode_bahan }}</div>
                                 </div>
                             </div>
                         </td>

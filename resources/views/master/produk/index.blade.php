@@ -169,7 +169,7 @@
                                 </x-form.select>
                             </x-form.group>
                             <x-form.group label="Barcode">
-                                <x-form.input type="text" name="barcode" placeholder="ID-001" class="!bg-white !shadow-sm !font-mono !py-3" />
+                                <x-form.input type="text" name="barcode" placeholder="ID-001" class="!bg-white !shadow-sm !!py-3" />
                             </x-form.group>
                         </div>
 

@@ -34,7 +34,7 @@
     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
         <div class="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
             <div>
-                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 font-mono">{{ $akun->kode_akun }}</span>
+                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $akun->kode_akun }}</span>
                 <span class="ml-2 text-sm font-bold text-slate-700">{{ $akun->nama_akun }}</span>
             </div>
             <span class="text-[10px] font-bold text-slate-400 uppercase">Saldo Normal: {{ $akun->saldo_normal }}</span>
@@ -53,21 +53,21 @@
                 <tbody class="divide-y divide-slate-50">
                     <tr class="bg-slate-50/40">
                         <td colspan="4" class="px-8 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest">Saldo Awal</td>
-                        <td class="px-8 py-3 text-right text-sm font-mono font-bold text-slate-700">{{ number_format($saldoAwal, 0, ',', '.') }}</td>
+                        <td class="px-8 py-3 text-right text-sm font-bold text-slate-700">{{ number_format($saldoAwal, 0, ',', '.') }}</td>
                     </tr>
                     @forelse($rows as $r)
                     <tr class="hover:bg-slate-50/30 transition-all">
                         <td class="px-8 py-3 text-xs text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
                         <td class="px-6 py-3 text-sm text-slate-700">
-                            <span class="font-mono text-xs text-slate-400">{{ $r->no_referensi }}</span> — {{ $r->keterangan }}
+                            <span class="text-xs text-slate-400">{{ $r->no_referensi }}</span> — {{ $r->keterangan }}
                         </td>
-                        <td class="px-6 py-3 text-right text-sm font-mono {{ $r->debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                        <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
                             {{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}
                         </td>
-                        <td class="px-6 py-3 text-right text-sm font-mono {{ $r->kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                        <td class="px-6 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
                             {{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}
                         </td>
-                        <td class="px-8 py-3 text-right text-sm font-mono font-bold text-slate-800">{{ number_format($r->saldo_berjalan, 0, ',', '.') }}</td>
+                        <td class="px-8 py-3 text-right text-sm font-bold text-slate-800">{{ number_format($r->saldo_berjalan, 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
@@ -76,7 +76,7 @@
                     @endforelse
                     <tr class="bg-indigo-50/40 border-t-2 border-indigo-100">
                         <td colspan="4" class="px-8 py-4 text-right text-[11px] font-bold text-indigo-700 uppercase tracking-widest">Saldo Akhir</td>
-                        <td class="px-8 py-4 text-right text-sm font-mono font-black text-indigo-700">{{ number_format($saldoAkhir, 0, ',', '.') }}</td>
+                        <td class="px-8 py-4 text-right text-sm font-black text-indigo-700">{{ number_format($saldoAkhir, 0, ',', '.') }}</td>
                     </tr>
                 </tbody>
             </table>

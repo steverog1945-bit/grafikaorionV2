@@ -81,11 +81,11 @@
             {{-- Badge Ringkasan Cepat --}}
             <div class="px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100 text-right">
                 <span class="block text-[9px] font-black text-emerald-600 uppercase">Total Tunai</span>
-                <span class="font-mono font-bold text-emerald-700">Rp {{ number_format($data_kas->sum('nominal_tunai'), 0, ',', '.') }}</span>
+                <span class="font-bold text-emerald-700">Rp {{ number_format($data_kas->sum('nominal_tunai'), 0, ',', '.') }}</span>
             </div>
             <div class="px-4 py-2 bg-blue-50 rounded-xl border border-blue-100 text-right">
                 <span class="block text-[9px] font-black text-blue-600 uppercase">Total Transfer</span>
-                <span class="font-mono font-bold text-blue-700">Rp {{ number_format($data_kas->sum('nominal_transfer'), 0, ',', '.') }}</span>
+                <span class="font-bold text-blue-700">Rp {{ number_format($data_kas->sum('nominal_transfer'), 0, ',', '.') }}</span>
             </div>
         </div>
     </div>
@@ -104,7 +104,7 @@
         <tbody class="divide-y divide-slate-100">
             @foreach($mutasi as $m)
             <tr class="hover:bg-slate-50/50 transition-all">
-                <td class="p-4 font-mono text-xs text-slate-500">{{ date('H:i', strtotime($m->tgl_bayar)) }}</td>
+                <td class="p-4 text-xs text-slate-500">{{ date('H:i', strtotime($m->tgl_bayar)) }}</td>
                 <td class="p-4">
                     <span class="block font-bold text-slate-700 uppercase text-sm">{{ $m->nama_konsumen }}</span>
                     <span class="text-[10px] text-slate-400 italic">{{ $m->keterangan }}</span>
@@ -120,7 +120,7 @@
                     @endif
                 </td>
                 <td class="p-4 text-right">
-                    <span class="font-mono font-black {{ $m->metode == 'Tunai' ? 'text-emerald-600' : 'text-blue-600' }}">
+                    <span class="font-black {{ $m->metode == 'Tunai' ? 'text-emerald-600' : 'text-blue-600' }}">
                         Rp {{ number_format($m->nominal, 0, ',', '.') }}
                     </span>
                 </td>

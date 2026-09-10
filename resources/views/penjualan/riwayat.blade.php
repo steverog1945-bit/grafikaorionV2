@@ -52,7 +52,7 @@
             @forelse($transaksis as $t)
             <tr class="group hover:bg-slate-50/30 transition-all">
                 <td class="px-8 py-5">
-                    <span class="text-[13px] font-bold text-slate-700 font-mono">{{ $t->nomor_nota }}</span>
+                    <span class="text-[13px] font-bold text-slate-700">{{ $t->nomor_nota }}</span>
                 </td>
                 <td class="px-6 py-5">
                     <span class="text-sm font-semibold text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->format('d M Y') }}</span>

@@ -33,7 +33,7 @@
                 <tbody class="divide-y divide-slate-50">
                     @forelse($rows as $r)
                     <tr class="hover:bg-slate-50/30 transition-all">
-                        <td class="px-8 py-3 text-sm font-mono font-bold text-slate-600">{{ $r->kode_akun }}</td>
+                        <td class="px-8 py-3 text-sm font-bold text-slate-600">{{ $r->kode_akun }}</td>
                         <td class="px-6 py-3 text-sm text-slate-700">
                             {{ $r->nama_akun }}
                             @if($r->saldo_tidak_normal)
@@ -43,10 +43,10 @@
                             @endif
                         </td>
                         <td class="px-6 py-3 text-xs text-slate-400">{{ $r->tipe_akun }}</td>
-                        <td class="px-6 py-3 text-right text-sm font-mono {{ $r->kolom_debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                        <td class="px-6 py-3 text-right text-sm {{ $r->kolom_debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
                             {{ $r->kolom_debet > 0 ? number_format($r->kolom_debet, 0, ',', '.') : '-' }}
                         </td>
-                        <td class="px-8 py-3 text-right text-sm font-mono {{ $r->kolom_kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                        <td class="px-8 py-3 text-right text-sm {{ $r->kolom_kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
                             {{ $r->kolom_kredit > 0 ? number_format($r->kolom_kredit, 0, ',', '.') : '-' }}
                         </td>
                     </tr>
@@ -60,8 +60,8 @@
                 <tfoot>
                     <tr class="bg-slate-50/70 border-t-2 border-slate-100">
                         <td colspan="3" class="px-8 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
-                        <td class="px-6 py-4 text-right text-sm font-mono font-black text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
-                        <td class="px-8 py-4 text-right text-sm font-mono font-black text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
+                        <td class="px-8 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
                     </tr>
                     <tr>
                         <td colspan="5" class="px-8 py-3 text-center text-[10px] font-bold uppercase tracking-widest {{ abs($totalDebet - $totalKredit) < 0.01 ? 'text-emerald-600 bg-emerald-50/50' : 'text-rose-600 bg-rose-50/50' }}">

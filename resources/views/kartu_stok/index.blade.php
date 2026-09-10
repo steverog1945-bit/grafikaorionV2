@@ -28,7 +28,7 @@
             @forelse($bahan as $b)
             <tr class="group hover:bg-slate-50/50 transition-all">
                 <td class="px-6 py-5">
-                    <span class="text-[12px] font-bold text-slate-700 font-mono">{{ $b->kode_bahan }}</span>
+                    <span class="text-[12px] font-bold text-slate-700">{{ $b->kode_bahan }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[13px] font-bold text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $b->nama_bahan }}</span>

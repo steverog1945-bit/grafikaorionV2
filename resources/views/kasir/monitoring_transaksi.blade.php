@@ -78,7 +78,7 @@
                     <div class="text-[10px] text-slate-400 uppercase tracking-tighter">{{ date('d M Y H:i', strtotime($t->tgl_order)) }}</div>
                 </td>
                 <td class="p-6">
-                    <div class="font-mono font-bold text-slate-800">Rp {{ number_format($t->total_bayar) }}</div>
+                    <div class="font-bold text-slate-800">Rp {{ number_format($t->total_bayar) }}</div>
                 </td>
                 <td class="p-6">
                     <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase 

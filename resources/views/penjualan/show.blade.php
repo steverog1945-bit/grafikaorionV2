@@ -26,7 +26,7 @@
                     {{ $transaksi->tipe_order }}
                 </span>
                 @if($transaksi->no_po)
-                    <span class="text-xs font-mono text-slate-500">PO: {{ $transaksi->no_po }}</span>
+                    <span class="text-xs text-slate-500">PO: {{ $transaksi->no_po }}</span>
                 @endif
             </div>
             <p class="text-sm text-slate-600">{{ \Carbon\Carbon::parse($transaksi->tgl_order)->format('d M Y, H:i') }}</p>
@@ -36,7 +36,7 @@
         <x-card>
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Status & Total</p>
             <x-badge :status="$transaksi->status_pembayaran" />
-            <p class="text-2xl font-black text-indigo-600 font-mono mt-2">Rp {{ number_format($transaksi->total_bayar, 0, ',', '.') }}</p>
+            <p class="text-2xl font-black text-indigo-600 mt-2">Rp {{ number_format($transaksi->total_bayar, 0, ',', '.') }}</p>
         </x-card>
     </div>
 
@@ -73,20 +73,20 @@
                         <p class="text-[11px] text-indigo-500 font-bold mt-1">✨ {{ $item->nama_finishing }} ({{ $item->status_finishing ?? 'Standar' }})</p>
                     @endif
                 </td>
-                <td class="px-6 py-4 text-xs text-slate-500 font-mono">
+                <td class="px-6 py-4 text-xs text-slate-500">
                     @if($item->p_ukuran > 0 || $item->l_ukuran > 0)
                         {{ number_format($item->p_ukuran, 0) }} x {{ number_format($item->l_ukuran, 0) }} cm
                     @else
                         -
                     @endif
                 </td>
-                <td class="px-4 py-4 text-center text-sm font-mono font-bold text-slate-700">{{ $item->qty }}</td>
+                <td class="px-4 py-4 text-center text-sm font-bold text-slate-700">{{ $item->qty }}</td>
                 <td class="px-4 py-4 text-center">
                     <x-badge :status="$item->status_urgensi ?? 'Normal'" :variant="($item->status_urgensi ?? 'Normal') === 'Very Urgent' ? 'danger' : (($item->status_urgensi ?? 'Normal') === 'Urgent' ? 'warning' : 'info')" />
                 </td>
-                <td class="px-6 py-4 text-right text-sm font-mono text-slate-600">{{ number_format($item->biaya_cetak ?? 0, 0, ',', '.') }}</td>
-                <td class="px-6 py-4 text-right text-sm font-mono text-slate-600">{{ number_format($item->biaya_finishing ?? 0, 0, ',', '.') }}</td>
-                <td class="px-6 py-4 text-right text-sm font-mono font-bold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                <td class="px-6 py-4 text-right text-sm text-slate-600">{{ number_format($item->biaya_cetak ?? 0, 0, ',', '.') }}</td>
+                <td class="px-6 py-4 text-right text-sm text-slate-600">{{ number_format($item->biaya_finishing ?? 0, 0, ',', '.') }}</td>
+                <td class="px-6 py-4 text-right text-sm font-bold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
                 <td class="px-6 py-4 text-center">
                     <x-badge :status="$item->status_spk" />
                 </td>
@@ -96,7 +96,7 @@
         <tfoot>
             <tr class="bg-slate-50/70 border-t-2 border-slate-100">
                 <td colspan="8" class="px-6 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
-                <td class="px-6 py-4 text-right text-sm font-mono font-black text-slate-800">{{ number_format($transaksi->total_bayar, 0, ',', '.') }}</td>
+                <td class="px-6 py-4 text-right text-sm font-black text-slate-800">{{ number_format($transaksi->total_bayar, 0, ',', '.') }}</td>
                 <td></td>
             </tr>
         </tfoot>

@@ -48,7 +48,7 @@
                         <tbody class="divide-y divide-slate-50">
                             @foreach($grouped[$tipe] as $a)
                             <tr class="group hover:bg-slate-50/30 transition-all {{ !$a->is_active ? 'opacity-50' : '' }}">
-                                <td class="px-8 py-4 text-sm font-mono font-bold text-slate-600">{{ $a->kode_akun }}</td>
+                                <td class="px-8 py-4 text-sm font-bold text-slate-600">{{ $a->kode_akun }}</td>
                                 <td class="px-6 py-4 text-sm font-medium text-slate-700">{{ $a->nama_akun }}</td>
                                 <td class="px-6 py-4 text-xs text-slate-500">{{ $a->saldo_normal }}</td>
                                 <td class="px-6 py-4">

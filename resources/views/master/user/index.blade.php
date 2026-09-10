@@ -25,7 +25,7 @@
             @foreach($users as $u)
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-6 py-5">
-                    <span class="font-mono text-[13px] text-indigo-600 font-bold">{{ '@' . $u->username }}</span>
+                    <span class="text-[13px] text-indigo-600 font-bold">{{ '@' . $u->username }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <div class="text-[13px] font-bold text-slate-700 uppercase">{{ $u->karyawan->nama_karyawan }}</div>

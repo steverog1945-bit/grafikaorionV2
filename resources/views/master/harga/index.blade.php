@@ -24,7 +24,7 @@
             <tr class="hover:bg-indigo-50/30 transition">
                 <td class="p-5">
                     <div class="font-bold text-slate-900">{{ $p->nama_produk }}</div>
-                    <div class="text-[10px] text-slate-400 font-mono">{{ strtoupper($p->metode_hitung) }}</div>
+                    <div class="text-[10px] text-slate-400">{{ strtoupper($p->metode_hitung) }}</div>
                 </td>
                 
                 @foreach($golongan as $g)
@@ -32,7 +32,7 @@
                     @php 
                         $harga = $all_harga->where('id_produk', $p->id_produk)->where('id_golongan', $g->id_golongan)->first();
                     @endphp
-                    <span class="font-mono font-bold text-slate-700">
+                    <span class="font-bold text-slate-700">
                         {{ $harga ? number_format($harga->harga_jual, 0, ',', '.') : '-' }}
                     </span>
                 </td>
