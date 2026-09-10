@@ -38,7 +38,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <x-form.group label="Cari Pelanggan">
                             <div class="flex gap-2">
-                                <div class="flex-1">
+                                <div class="flex-1 min-w-0">
                                     <select id="id_konsumen" name="id_konsumen" class="select2-konsumen">
                                         <option value="">Cari Nama...</option>
                                         @foreach($konsumen as $k)
@@ -51,7 +51,9 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <x-button type="button" onclick="openModal('konsumen-baru')" size="icon" class="!w-12 !h-12 !rounded-xl">+</x-button>
+                                <x-button type="button" onclick="openModal('konsumen-baru')" size="icon" class="!w-12 !h-12 !rounded-xl shrink-0" title="Tambah Konsumen Baru">
+                                    <i class="fas fa-plus text-xs"></i>
+                                </x-button>
                             </div>
                         </x-form.group>
 
@@ -265,23 +267,12 @@
                     </div>
 
                     <div class="flex-grow overflow-y-auto custom-scrollbar p-0">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="sticky top-0 bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                <tr>
-                                    <th class="px-6 py-3">Produk & Deskripsi</th>
-                                    <th class="px-4 py-3 text-center">Qty</th>
-                                    <th class="px-4 py-3 text-right">Subtotal</th>
-                                    <th class="px-6 py-3 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="cart_body" class="divide-y divide-slate-50 text-slate-600">
-                                <tr>
-                                    <td colspan="4" class="py-20 text-center opacity-20">
-                                        <p class="font-bold uppercase text-[9px] tracking-[0.2em]">Belum Ada Pesanan</p>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div id="cart_body" class="divide-y divide-slate-50 text-slate-600">
+                            <div class="py-20 text-center opacity-20">
+                                <i class="fas fa-receipt text-2xl mb-2 block"></i>
+                                <p class="font-bold uppercase text-[9px] tracking-[0.2em]">Belum Ada Pesanan</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mt-auto p-8 bg-slate-900 rounded-b-[2rem]">
@@ -771,7 +762,11 @@
         let total = 0;
 
         if (cart.length === 0) {
-            container.innerHTML = '<tr><td colspan="4" class="py-20 text-center opacity-20"><p class="font-bold uppercase text-[9px] tracking-[0.2em]">Belum Ada Pesanan</p></td></tr>';
+            container.innerHTML = `
+                <div class="py-20 text-center opacity-20">
+                    <i class="fas fa-receipt text-2xl mb-2 block"></i>
+                    <p class="font-bold uppercase text-[9px] tracking-[0.2em]">Belum Ada Pesanan</p>
+                </div>`;
         }
 
         const urgensiColor = { 'Urgent': 'text-amber-500', 'Very Urgent': 'text-red-500' };
@@ -785,37 +780,38 @@
                 item.biaya_finishing ? `Finishing ${Math.round(item.biaya_finishing).toLocaleString('id-ID')}` : null,
             ].filter(Boolean).join(' &bull; ');
 
+            // Kartu, bukan baris tabel - keranjang ini juga tampil di panel
+            // sempit (42% lebar di desktop, full width tapi tetap sempit di
+            // tablet/mobile), tabel 4-kolom di lebar itu selalu perlu discroll
+            // horizontal untuk melihat Aksi. Kartu yang membungkus otomatis
+            // tidak pernah butuh scroll horizontal di lebar berapa pun.
             container.innerHTML += `
-                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50">
-                    <td class="px-6 py-4">
-                        <div class="flex items-start gap-2">
-                            ${item.thumbnail ? `<img src="/storage/${item.thumbnail}" class="w-8 h-8 rounded-md object-cover border border-slate-100 shrink-0">` : ''}
-                            <div>
-                                <p class="text-[11px] font-black text-slate-800 uppercase leading-none">${escapeHtml(item.nama_produk)}</p>
-                                <p class="text-[9px] text-slate-400 mt-1 uppercase font-bold tracking-tight">${escapeHtml(item.nama_file)}</p>
-                                ${item.id_finishing ? `<p class="text-[9px] text-indigo-500 mt-1 uppercase font-bold tracking-tight">✨ ${escapeHtml(item.nama_finishing)} (${escapeHtml(item.status_finishing || 'Standar')})</p>` : ''}
-                                ${urgensi ? `<p class="text-[9px] mt-1 uppercase font-black tracking-tight ${urgensiColor[urgensi]}">⚡ ${urgensi}</p>` : ''}
-                                ${biayaTambahan ? `<p class="text-[8px] text-slate-400 mt-1">${biayaTambahan}</p>` : ''}
+                <div class="group p-4 hover:bg-slate-50/70 transition-colors">
+                    <div class="flex items-start gap-3">
+                        ${item.thumbnail ? `<img src="/storage/${item.thumbnail}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 shrink-0">` : ''}
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[11px] font-black text-slate-800 uppercase leading-tight truncate">${escapeHtml(item.nama_produk)}</p>
+                            <p class="text-[9px] text-slate-400 mt-0.5 uppercase font-bold tracking-tight truncate">${escapeHtml(item.nama_file)}</p>
+                            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1.5">
+                                ${item.id_finishing ? `<span class="text-[9px] text-indigo-500 font-bold tracking-tight">✨ ${escapeHtml(item.nama_finishing)} (${escapeHtml(item.status_finishing || 'Standar')})</span>` : ''}
+                                ${urgensi ? `<span class="text-[9px] font-black tracking-tight ${urgensiColor[urgensi]}">⚡ ${urgensi}</span>` : ''}
                             </div>
+                            ${biayaTambahan ? `<p class="text-[8px] text-slate-400 mt-1">${biayaTambahan}</p>` : ''}
                         </div>
-                    </td>
-                    <td class="px-4 py-4 text-center font-mono text-[10px] font-bold text-slate-700">
-                        ${item.qty_hitung.toFixed(2)}
-                    </td>
-                    <td class="px-4 py-4 text-right">
-                        <p class="text-[11px] font-black text-slate-900 font-mono">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(item.subtotal))}</p>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="flex justify-center gap-3">
-                            <button onclick="editItem(${index})" class="text-amber-500 hover:text-amber-700 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        <div class="flex items-center gap-1 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
+                            <button onclick="editItem(${index})" class="w-7 h-7 flex items-center justify-center rounded-lg text-amber-500 hover:bg-amber-50 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                             </button>
-                            <button onclick="hapusItem(${index})" class="text-red-400 hover:text-red-600 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <button onclick="hapusItem(${index})" class="w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
-                    </td>
-                </tr>`;
+                    </div>
+                    <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
+                        <span class="text-[10px] font-mono font-bold text-slate-400">Qty ${item.qty_hitung.toFixed(2)}</span>
+                        <span class="text-[13px] font-black text-slate-900 font-mono">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(item.subtotal))}</span>
+                    </div>
+                </div>`;
         });
 
         document.getElementById('grand_total').innerText = `Rp ${new Intl.NumberFormat('id-ID').format(Math.round(total))}`;
@@ -838,10 +834,18 @@
 
     function editItem(index) {
         const item = cart[index];
-        editIndex = index;
 
         $('#filter_kategori').val(item.id_kategori || 'all').trigger('change');
         $('#select_produk').val(item.id_produk).trigger('change');
+
+        // editIndex HARUS diset SETELAH kedua trigger('change') di atas,
+        // bukan sebelumnya: filter_kategori's onchange memanggil
+        // filterProduk() -> resetInputProduk(), yang menimpa editIndex balik
+        // ke null secara sinkron. Kalau diset sebelum baris ini, index-nya
+        // langsung hilang lagi sebelum setTimeout ini sempat jalan - tombol
+        // tampil "UPDATE ITEM" tapi klik-nya diam-diam menambah baris baru,
+        // bukan mengganti baris yang sedang diedit.
+        editIndex = index;
 
         setTimeout(() => {
             document.getElementById('nama_file').value = item.nama_file;
