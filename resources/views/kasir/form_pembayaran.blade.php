@@ -98,9 +98,18 @@
                 <div class="space-y-6">
                     <div>
                         <label class="block text-xs font-black text-slate-500 uppercase mb-3">Metode Pembayaran</label>
-                        <select name="metode_pembayaran" class="w-full h-14 rounded-2xl border-slate-200 text-base font-bold focus:ring-4 focus:ring-indigo-100 transition-all">
+                        <select name="metode_pembayaran" id="metode-pembayaran" onchange="toggleBankField()" class="w-full h-14 rounded-2xl border-slate-200 text-base font-bold focus:ring-4 focus:ring-indigo-100 transition-all">
                             <option value="Tunai">💵 TUNAI</option>
                             <option value="Transfer">🏦 TRANSFER</option>
+                        </select>
+                    </div>
+                    <div id="wrapper-bank" class="hidden">
+                        <label class="block text-xs font-black text-slate-500 uppercase mb-3">Rekening Tujuan</label>
+                        <select name="id_bank" id="input-bank" class="w-full h-14 rounded-2xl border-slate-200 text-sm font-bold focus:ring-4 focus:ring-indigo-100 transition-all">
+                            <option value="">-- Pilih Rekening --</option>
+                            @foreach($banks as $b)
+                                <option value="{{ $b->id_bank }}">{{ $b->nama_bank }} - {{ $b->nomor_rekening }} ({{ $b->atas_nama }})</option>
+                            @endforeach
                         </select>
                     </div>
                     <div>
@@ -240,6 +249,14 @@
         calculateInvoice();
     }
 
-    document.addEventListener('DOMContentLoaded', calculateInvoice);
+    function toggleBankField() {
+        const metode = document.getElementById('metode-pembayaran').value;
+        document.getElementById('wrapper-bank').classList.toggle('hidden', metode !== 'Transfer');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        calculateInvoice();
+        toggleBankField();
+    });
 </script>
 @endsection

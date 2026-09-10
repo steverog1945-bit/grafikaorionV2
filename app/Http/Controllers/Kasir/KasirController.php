@@ -149,8 +149,9 @@ class KasirController extends Controller
 
         $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
         $sisaTagihan = $transaksi->total_bayar - $totalTerbayar;
+        $banks = DB::table('bank_perusahaan')->orderBy('nama_bank')->get();
 
-        return view('kasir.form_pembayaran', compact('transaksi', 'items', 'totalTerbayar', 'sisaTagihan'));
+        return view('kasir.form_pembayaran', compact('transaksi', 'items', 'totalTerbayar', 'sisaTagihan', 'banks'));
     }
 
     public function prosesBayar(Request $request)
@@ -167,6 +168,17 @@ class KasirController extends Controller
             }
             if ($diskon < 0) {
                 throw new \Exception("Diskon tidak boleh negatif.");
+            }
+
+            // id_bank hanya relevan untuk Transfer - divalidasi ke tabel
+            // bank_perusahaan supaya id yang dipalsukan dari client tidak
+            // lolos ke foreign key pembayaran_riwayat.id_bank.
+            $idBank = null;
+            if ($metode === 'Transfer' && $request->filled('id_bank')) {
+                $idBank = (int) $request->id_bank;
+                if (!DB::table('bank_perusahaan')->where('id_bank', $idBank)->exists()) {
+                    throw new \Exception("Rekening bank tujuan tidak ditemukan.");
+                }
             }
 
             // 1. Update Detail Barang. Kasir memang sengaja diberi wewenang untuk
@@ -222,6 +234,7 @@ class KasirController extends Controller
                     'id_transaksi' => $id_transaksi,
                     'nominal'      => $uangDiterimaSekarang,
                     'metode'       => $metode,
+                    'id_bank'      => $idBank,
                     'tgl_bayar'    => now(),
                     'keterangan'   => "Pembayaran via Kasir"
                 ]);
