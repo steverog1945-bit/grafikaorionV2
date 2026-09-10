@@ -148,7 +148,7 @@
         <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
             <div class="px-8 py-6 border-b border-slate-50 flex justify-between items-center">
                 <h3 id="modalTitle" class="text-lg font-bold text-slate-800">Registrasi Material</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-rose-500 transition-colors">
+                <button onclick="closeModalBahan()" class="text-slate-400 hover:text-rose-500 transition-colors">
                     <i class="fas fa-times-circle text-xl"></i>
                 </button>
             </div>
@@ -235,7 +235,7 @@
                 </div>
 
                 <div class="pt-8 flex gap-3">
-                    <button type="button" onclick="closeModal()" class="flex-1 py-3.5 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-100 transition-all">
+                    <button type="button" onclick="closeModalBahan()" class="flex-1 py-3.5 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-100 transition-all">
                         Batal
                     </button>
                     <button type="submit" class="flex-1 py-3.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
@@ -277,7 +277,7 @@
         document.getElementById('modalBahan').classList.remove('hidden');
     }
 
-    function closeModal() { 
+    function closeModalBahan() { 
         document.getElementById('modalBahan').classList.add('hidden'); 
     }
 
