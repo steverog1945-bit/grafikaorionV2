@@ -79,7 +79,7 @@
                     <i id="modalIcon" class="fas fa-plus-circle"></i>
                     <h3 id="modalTitle" class="text-xl font-bold tracking-tight uppercase">Tambah Kategori</h3>
                 </div>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                <button onclick="closeModalKategori()" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
                     <i class="fas fa-times text-xs"></i>
                 </button>
             </div>
@@ -106,7 +106,7 @@
                     <button id="btnSubmit" type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">
                         Simpan Data
                     </button>
-                    <button type="button" onclick="closeModal()" class="w-full py-4 bg-transparent text-slate-400 rounded-2xl text-[11px] font-bold uppercase tracking-widest">
+                    <button type="button" onclick="closeModalKategori()" class="w-full py-4 bg-transparent text-slate-400 rounded-2xl text-[11px] font-bold uppercase tracking-widest">
                         Batalkan
                     </button>
                 </div>
@@ -151,7 +151,7 @@
         document.body.style.overflow = 'hidden';
     }
 
-    function closeModal() {
+    function closeModalKategori() {
         modal.classList.add('hidden');
         document.body.style.overflow = 'auto';
     }

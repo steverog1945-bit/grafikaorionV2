@@ -111,7 +111,7 @@
 
 {{-- MODAL (Unified) --}}
 <div id="modalSatuan" class="fixed inset-0 z-[100] hidden overflow-y-auto">
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModalSatuan()"></div>
     <div class="flex min-h-full items-center justify-center p-6 text-center">
         <div class="relative w-full max-w-[500px] transform overflow-hidden rounded-[3rem] bg-white text-center shadow-[0_20px_50px_rgba(0,0,0,0.15)] transition-all border border-slate-100">
             
@@ -121,7 +121,7 @@
                     <i id="modalIcon" class="fas fa-plus-circle"></i>
                     <h3 id="modalTitle" class="text-xl font-bold tracking-tight uppercase">Satuan Baru</h3>
                 </div>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                <button onclick="closeModalSatuan()" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
                     <i class="fas fa-times text-xs"></i>
                 </button>
             </div>
@@ -155,7 +155,7 @@
                         class="w-full py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">
                         Simpan Satuan
                     </button>
-                    <button type="button" onclick="closeModal()" 
+                    <button type="button" onclick="closeModalSatuan()" 
                         class="w-full py-4 bg-transparent text-slate-400 rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:text-slate-600">
                         Batalkan
                     </button>
@@ -201,7 +201,7 @@
         document.body.style.overflow = 'hidden';
     }
 
-    function closeModal() {
+    function closeModalSatuan() {
         modal.classList.add('hidden');
         document.body.style.overflow = 'auto';
     }

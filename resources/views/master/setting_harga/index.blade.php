@@ -115,7 +115,7 @@
 
 {{-- MODAL --}}
 <div id="modalHarga" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" onclick="closeModal()"></div>
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" onclick="closeModalHarga()"></div>
     
     <form action="{{ route('setting-harga.update_bulk') }}" method="POST" id="formHarga" 
           class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh] border border-slate-200">
@@ -127,7 +127,7 @@
                 <h3 id="nama_produk_modal" class="text-base font-black text-slate-800 tracking-tight uppercase">Product Name</h3>
                 <p class="text-indigo-500 text-[9px] font-bold uppercase tracking-widest">Configuration Engine</p>
             </div>
-            <button type="button" onclick="closeModal()" class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors">&times;</button>
+            <button type="button" onclick="closeModalHarga()" class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors">&times;</button>
         </div>
 
         <div class="p-6 overflow-y-auto space-y-6 custom-scrollbar bg-[#fcfdfe]">
@@ -192,7 +192,7 @@
         </div>
 
         <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
-            <button type="button" onclick="closeModal()" class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-700">Cancel</button>
+            <button type="button" onclick="closeModalHarga()" class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-700">Cancel</button>
             <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition-all uppercase text-[10px] shadow-lg shadow-indigo-100">
                 Update Strategy
             </button>
@@ -214,7 +214,7 @@
     let rangeRowCounter = 0;
 
     // FUNGSI UTAMA (Pertahankan & Perbaiki logic copy)
-    function closeModal() {
+    function closeModalHarga() {
         document.getElementById('modalHarga').classList.add('hidden');
         document.body.style.overflow = 'auto';
     }
