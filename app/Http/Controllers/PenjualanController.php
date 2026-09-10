@@ -175,9 +175,38 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                 }
 
                 if ($qty_pakai > 0) {
+                    // Baca stok_sebelum dengan lock supaya aman dari order
+                    // bersamaan, lalu catat ke kartu_stok (tipe OUT) - tanpa
+                    // ini, konsumsi bahan baku per order tidak pernah
+                    // tercatat di kartu_stok sama sekali (hanya kedatangan
+                    // barang yang tercatat sebagai IN), sehingga riwayat
+                    // stok tidak pernah bisa dipakai untuk menjelaskan
+                    // kenapa stok berkurang atau sampai bisa negatif.
+                    $bahan = DB::table('bahan_baku')
+                        ->where('id_bahan', $bom->id_bahan)
+                        ->lockForUpdate()
+                        ->first();
+
+                    $stokSebelum = $bahan->stok ?? 0;
+                    $stokSesudah = $stokSebelum - $qty_pakai;
+
                     DB::table('bahan_baku')
                         ->where('id_bahan', $bom->id_bahan)
-                        ->decrement('stok', $qty_pakai);
+                        ->update(['stok' => $stokSesudah]);
+
+                    DB::table('kartu_stok')->insert([
+                        'id_bahan'      => $bom->id_bahan,
+                        'tanggal'       => now(),
+                        'tipe'          => 'OUT',
+                        'qty'           => $qty_pakai,
+                        'stok_sebelum'  => $stokSebelum,
+                        'stok_sesudah'  => $stokSesudah,
+                        'referensi'     => $request->no_nota,
+                        'keterangan'    => 'Pemakaian produksi order ' . $request->no_nota,
+                        'created_by'    => Auth::id(),
+                        'created_at'    => now(),
+                        'updated_at'    => now(),
+                    ]);
                 }
             }
         }
