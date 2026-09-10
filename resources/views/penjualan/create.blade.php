@@ -136,13 +136,13 @@
                             <input type="number" id="input_qty_ukuran" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-3 text-sm font-black text-center" value="1">
                         </div>
                     </div>
-                    <p id="note_ukuran" class="hidden text-[11px] text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-8 leading-relaxed">
+                    <p id="note_ukuran" class="hidden text-xs font-medium text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-8 leading-relaxed">
                         <i class="fas fa-info-circle mr-1"></i>
                         Ukuran untuk menghitung harga bukan ukuran file asli. Silakan ubah ukuran jika bahan memerlukan penyesuaian.
                     </p>
 
                     <div id="wrapper_qty" class="hidden mb-8">
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-3">Jumlah Unit</label>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-3">Jumlah Unit</label>
                         <input type="number" id="input_qty_biasa" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-4 text-2xl font-black text-center" value="1">
                     </div>
 
@@ -160,10 +160,10 @@
                                 <option value="Custom">Custom</option>
                             </x-form.select>
                         </x-form.group>
-                        <x-form.group label="Thumbnail Gambar">
+                        <x-form.group label="Thumbnail Gambar" required>
                             <div class="flex items-center gap-2">
                                 <input type="file" id="input_thumbnail" accept="image/png,image/jpeg,image/webp" onchange="uploadThumbnail(this)" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-indigo-50 file:text-indigo-600">
-                                <img id="thumbnail_preview" class="hidden w-10 h-10 rounded-lg object-cover border border-slate-200">
+                                <img id="thumbnail_preview" class="hidden w-11 h-11 rounded-lg object-cover border border-slate-200">
                             </div>
                         </x-form.group>
                     </div>
@@ -178,21 +178,21 @@
                     <div id="stok_warning" hidden class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
                         <i class="fas fa-exclamation-triangle text-amber-500 mt-0.5"></i>
                         <div>
-                            <p class="text-[11px] font-black text-amber-700 uppercase tracking-wide">Stok bahan tidak cukup</p>
-                            <p id="stok_warning_detail" class="text-[11px] text-amber-600 mt-1"></p>
+                            <p class="text-xs font-bold text-amber-700 uppercase tracking-wide">Stok bahan tidak cukup</p>
+                            <p id="stok_warning_detail" class="text-xs text-amber-600 mt-1"></p>
                         </div>
                     </div>
 
                     <div class="bg-indigo-900 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl shadow-indigo-100">
                         <div class="text-center md:text-left">
-                            <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Harga Estimasi</p>
+                            <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1">Harga Estimasi</p>
                             <h2 id="display_subtotal" class="text-4xl font-black text-white italic tracking-tighter font-mono">Rp 0</h2>
-                            <p id="display_harga" class="text-indigo-400 text-[10px] mt-1">Rp 0 /unit</p>
-                            <span id="badge_promo" hidden class="mt-2 px-3 py-1 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full">🔥 Harga Promo Aktif</span>
+                            <p id="display_harga" class="text-indigo-400 text-[10px] font-bold mt-1">Rp 0 /unit</p>
+                            <span id="badge_promo" hidden class="mt-2 px-3 py-1 bg-rose-500 text-white text-xs font-bold uppercase tracking-widest rounded-full">🔥 Harga Promo Aktif</span>
                         </div>
                         <div class="flex flex-wrap items-center justify-center gap-6">
                             <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Finishing</p>
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-2">Finishing</p>
                                 <select id="select_finishing" onchange="onFinishingChange()" class="w-36 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none">
                                     <option value="">-- Tanpa Finishing --</option>
                                     @foreach($finishing as $f)
@@ -201,18 +201,18 @@
                                 </select>
                             </div>
                             <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Biaya Cetak</p>
-                                <input type="number" id="input_cetak" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-right focus:outline-none" value="0">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-2">Biaya Cetak</p>
+                                <input type="number" id="input_cetak" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
                             </div>
                             <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Biaya Finishing</p>
-                                <input type="number" id="input_finishing_biaya" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-right focus:outline-none" value="0">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-2">Biaya Finishing</p>
+                                <input type="number" id="input_finishing_biaya" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
                             </div>
                             <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Biaya Desain</p>
-                                <input type="number" id="input_desain" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-right focus:outline-none" value="0">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-2">Biaya Desain</p>
+                                <input type="number" id="input_desain" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
                             </div>
-                            <button onclick="tambahKeKeranjang()" class="bg-emerald-500 hover:bg-emerald-400 text-white h-16 px-10 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
+                            <button onclick="tambahKeKeranjang()" class="bg-emerald-500 hover:bg-emerald-400 text-white h-16 px-10 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all">
                                 Tambah
                             </button>
                         </div>
@@ -251,7 +251,7 @@
                     </x-form.group>
 
                     <div class="flex justify-end">
-                        <button onclick="tambahJasaKeKeranjang()" class="bg-purple-500 hover:bg-purple-400 text-white h-14 px-10 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
+                        <button onclick="tambahJasaKeKeranjang()" class="bg-purple-500 hover:bg-purple-400 text-white h-14 px-10 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all">
                             Tambah Jasa
                         </button>
                     </div>
@@ -262,15 +262,15 @@
             <div class="w-full lg:w-[42%] flex flex-col self-stretch">
                 <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
                     <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-                        <h3 class="font-bold text-slate-800 uppercase text-[11px] tracking-widest">Keranjang Pesanan</h3>
-                        <div id="item_count_badge" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">0 Items</div>
+                        <h3 class="text-lg font-bold text-slate-800">Keranjang Pesanan</h3>
+                        <div id="item_count_badge" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-bold">0 Items</div>
                     </div>
 
                     <div class="flex-grow overflow-y-auto custom-scrollbar p-0">
                         <div id="cart_body" class="divide-y divide-slate-50 text-slate-600">
-                            <div class="py-20 text-center opacity-20">
+                            <div class="py-20 text-center opacity-30">
                                 <i class="fas fa-receipt text-2xl mb-2 block"></i>
-                                <p class="font-bold uppercase text-[9px] tracking-[0.2em]">Belum Ada Pesanan</p>
+                                <p class="text-xs font-bold uppercase tracking-widest">Belum Ada Pesanan</p>
                             </div>
                         </div>
                     </div>
@@ -278,15 +278,15 @@
                     <div class="mt-auto p-8 bg-slate-900 rounded-b-[2rem]">
                         <div class="flex justify-between items-center mb-8">
                             <div>
-                                <p class="text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-1">Total Pembayaran</p>
+                                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Pembayaran</p>
                                 <h2 id="grand_total" class="text-4xl font-black text-white font-mono tracking-tighter leading-none">Rp 0</h2>
                             </div>
                             <button onclick="resetCart()" class="p-3 bg-slate-800 text-slate-500 hover:text-red-400 rounded-xl transition-all">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
-                        <button onclick="simpanTransaksi()" class="w-full py-5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-2xl shadow-indigo-900/40">
-                            SIMPAN & CETAK NOTA
+                        <button onclick="simpanTransaksi()" class="w-full py-5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-2xl font-bold text-xs uppercase tracking-widest transition-all shadow-2xl shadow-indigo-900/40">
+                            Simpan & Cetak Nota
                         </button>
                     </div>
                 </div>
@@ -372,6 +372,57 @@
         document.getElementById('wrapper_no_po').classList.toggle('hidden', tipe !== 'PO');
     }
 
+    // Nama file gambar -> teks deskripsi yang manusiawi: buang ekstensi,
+    // ganti underscore/dash dengan spasi, rapikan spasi ganda. "banner_3x1-
+    // meter_FINAL.jpg" jadi "banner 3x1 meter FINAL", bukan disalin mentah.
+    function namaFileDariGambar(namaAsli) {
+        return namaAsli
+            .replace(/\.[^./]+$/, '')
+            .replace(/[_-]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    // Kompres gambar lewat canvas sebelum diunggah: turunkan resolusi ke
+    // maksimal MAX_DIM di sisi terpanjang (foto HP modern bisa 3000-4000px -
+    // jauh lebih besar dari perlu untuk sekadar acuan visual order) lalu
+    // re-encode sebagai JPEG kualitas sedang. Hasilnya berkali-lipat lebih
+    // kecil dari file asli tapi detailnya masih jelas terbaca. Latar putih
+    // digambar dulu sebelum gambar asli supaya PNG transparan tidak berubah
+    // jadi hitam saat di-flatten ke JPEG (JPEG tidak punya kanal alpha).
+    function compressImage(file, maxDim = 1280, quality = 0.72) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const objectUrl = URL.createObjectURL(file);
+
+            img.onload = () => {
+                URL.revokeObjectURL(objectUrl);
+
+                let { width, height } = img;
+                if (width > maxDim || height > maxDim) {
+                    const scale = maxDim / Math.max(width, height);
+                    width = Math.round(width * scale);
+                    height = Math.round(height * scale);
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, height);
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (!blob) return reject(new Error('Gagal memproses gambar.'));
+                    resolve(blob);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('File bukan gambar yang valid.')); };
+            img.src = objectUrl;
+        });
+    }
+
     // Upload thumbnail segera saat file dipilih (bukan dikirim bareng payload
     // /penjualan/store yang formatnya JSON) - path hasil upload disimpan di
     // currentThumbnail lalu ikut ke item keranjang sebagai string biasa.
@@ -379,10 +430,16 @@
         const file = input.files[0];
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append('thumbnail', file);
+        const originalName = file.name;
+        input.disabled = true;
 
         try {
+            const compressed = await compressImage(file);
+            const compressedFile = new File([compressed], namaFileDariGambar(originalName) + '.jpg', { type: 'image/jpeg' });
+
+            const formData = new FormData();
+            formData.append('thumbnail', compressedFile);
+
             const response = await fetch('{{ route("penjualan.upload-thumbnail") }}', {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
@@ -394,6 +451,19 @@
                 const preview = document.getElementById('thumbnail_preview');
                 preview.src = res.url;
                 preview.classList.remove('hidden');
+
+                // Nama file / deskripsi diambil dari nama file gambar yang
+                // diunggah - hanya kalau kolomnya masih kosong, supaya tidak
+                // menimpa deskripsi yang sudah sengaja ditulis ulang saat
+                // sedang mengedit item keranjang.
+                const namaFileInput = document.getElementById('nama_file');
+                if (!namaFileInput.value.trim()) {
+                    namaFileInput.value = namaFileDariGambar(originalName);
+                }
+
+                Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1800 }).fire({
+                    icon: 'success', title: `Gambar terunggah (${(compressed.size / 1024).toFixed(0)} KB)`
+                });
             } else {
                 Swal.fire('Gagal', 'Upload thumbnail gagal.', 'error');
                 input.value = '';
@@ -401,6 +471,8 @@
         } catch (e) {
             Swal.fire('Error', 'Upload thumbnail gagal, cek koneksi.', 'error');
             input.value = '';
+        } finally {
+            input.disabled = false;
         }
     }
 
@@ -486,8 +558,8 @@
         document.getElementById('wrapper_qty').classList.add('hidden');
 
         const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
-        btn.innerText = "TAMBAH";
-        btn.className = "bg-emerald-500 hover:bg-emerald-400 text-white h-16 px-10 rounded-2xl font-black text-xs uppercase tracking-widest transition-all";
+        btn.innerText = "Tambah";
+        btn.className = "bg-emerald-500 hover:bg-emerald-400 text-white h-16 px-10 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all";
     }
 
     // 2. MODAL FUNCTIONS
@@ -649,12 +721,17 @@
         const namaFile = document.getElementById('nama_file').value.trim();
 
         if (!idKonsumen) return Swal.fire('Opps', 'Pilih pelanggan dulu', 'error');
+        if (!currentProduk) return Swal.fire('Opps!', 'Pilih produk dulu.', 'warning');
+        if (!currentThumbnail) {
+            Swal.fire('Upload Gambar Dulu', 'Unggah gambar/thumbnail acuan order sebelum menambahkannya ke keranjang.', 'warning');
+            document.getElementById('input_thumbnail').focus();
+            return;
+        }
         if (namaFile.length < 3) {
             Swal.fire('Keterangan File', 'Isi deskripsi minimal 3 karakter', 'warning');
             document.getElementById('nama_file').focus();
             return;
         }
-        if (!currentProduk) return Swal.fire('Opps!', 'Pilih produk dulu.', 'warning');
 
         const res = await hitungSubtotal();
         if (!res || res.harga_satuan <= 0) return Swal.fire('Opps!', 'Detail belum lengkap.', 'error');
@@ -763,13 +840,21 @@
 
         if (cart.length === 0) {
             container.innerHTML = `
-                <div class="py-20 text-center opacity-20">
+                <div class="py-20 text-center opacity-30">
                     <i class="fas fa-receipt text-2xl mb-2 block"></i>
-                    <p class="font-bold uppercase text-[9px] tracking-[0.2em]">Belum Ada Pesanan</p>
+                    <p class="text-xs font-bold uppercase tracking-widest">Belum Ada Pesanan</p>
                 </div>`;
         }
 
-        const urgensiColor = { 'Urgent': 'text-amber-500', 'Very Urgent': 'text-red-500' };
+        // Chip mini - satu ukuran (text-xs font-bold) dipakai untuk semua
+        // badge di kartu keranjang (finishing, urgensi), cuma warnanya yang
+        // beda sesuai makna. Sebelumnya tiap badge punya ukuran font sendiri
+        // (9px, 8px, 11px) yang tidak ada alasannya beda-beda - sekarang
+        // "senada" beneran, bukan cuma kebetulan mirip.
+        const urgensiChip = {
+            'Urgent': 'bg-amber-50 text-amber-600',
+            'Very Urgent': 'bg-red-50 text-red-600',
+        };
 
         cart.forEach((item, index) => {
             total += item.subtotal;
@@ -788,15 +873,15 @@
             container.innerHTML += `
                 <div class="group p-4 hover:bg-slate-50/70 transition-colors">
                     <div class="flex items-start gap-3">
-                        ${item.thumbnail ? `<img src="/storage/${item.thumbnail}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 shrink-0">` : ''}
+                        ${item.thumbnail ? `<img src="/storage/${item.thumbnail}" class="w-11 h-11 rounded-lg object-cover border border-slate-100 shrink-0">` : `<div class="w-11 h-11 rounded-lg bg-slate-50 border border-slate-100 shrink-0 flex items-center justify-center text-slate-300"><i class="far fa-image text-sm"></i></div>`}
                         <div class="flex-1 min-w-0">
-                            <p class="text-[11px] font-black text-slate-800 uppercase leading-tight truncate">${escapeHtml(item.nama_produk)}</p>
-                            <p class="text-[9px] text-slate-400 mt-0.5 uppercase font-bold tracking-tight truncate">${escapeHtml(item.nama_file)}</p>
-                            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1.5">
-                                ${item.id_finishing ? `<span class="text-[9px] text-indigo-500 font-bold tracking-tight">✨ ${escapeHtml(item.nama_finishing)} (${escapeHtml(item.status_finishing || 'Standar')})</span>` : ''}
-                                ${urgensi ? `<span class="text-[9px] font-black tracking-tight ${urgensiColor[urgensi]}">⚡ ${urgensi}</span>` : ''}
+                            <p class="text-sm font-bold text-slate-800 leading-tight truncate">${escapeHtml(item.nama_produk)}</p>
+                            <p class="text-xs text-slate-500 mt-0.5 truncate">${escapeHtml(item.nama_file)}</p>
+                            <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                                ${item.id_finishing ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600">${escapeHtml(item.nama_finishing)} &middot; ${escapeHtml(item.status_finishing || 'Standar')}</span>` : ''}
+                                ${urgensi ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${urgensiChip[urgensi]}">${urgensi}</span>` : ''}
                             </div>
-                            ${biayaTambahan ? `<p class="text-[8px] text-slate-400 mt-1">${biayaTambahan}</p>` : ''}
+                            ${biayaTambahan ? `<p class="text-xs text-slate-400 mt-1.5">${biayaTambahan}</p>` : ''}
                         </div>
                         <div class="flex items-center gap-1 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
                             <button onclick="editItem(${index})" class="w-7 h-7 flex items-center justify-center rounded-lg text-amber-500 hover:bg-amber-50 transition-colors">
@@ -808,8 +893,8 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
-                        <span class="text-[10px] font-mono font-bold text-slate-400">Qty ${item.qty_hitung.toFixed(2)}</span>
-                        <span class="text-[13px] font-black text-slate-900 font-mono">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(item.subtotal))}</span>
+                        <span class="text-xs font-bold text-slate-400 font-mono">Qty ${item.qty_hitung.toFixed(2)}</span>
+                        <span class="text-sm font-bold text-slate-900 font-mono">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(item.subtotal))}</span>
                     </div>
                 </div>`;
         });
