@@ -430,10 +430,16 @@
         }
     }
 
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     function confirmDelete(id, name) {
         Swal.fire({
             title: 'Hapus Produk?',
-            html: `Menghapus <b>${name}</b>?`,
+            html: `Menghapus <b>${escapeHtml(name)}</b>?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

@@ -166,10 +166,16 @@
         toggleModal('modalEditUser');
     }
 
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     function confirmDeleteUser(id, username) {
         Swal.fire({
             title: 'Hapus Akun User?',
-            html: `Menghapus akun <b>@${username}</b>? Karyawan terkait tidak akan bisa login lagi sampai dibuatkan akun baru.`,
+            html: `Menghapus akun <b>@${escapeHtml(username)}</b>? Karyawan terkait tidak akan bisa login lagi sampai dibuatkan akun baru.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

@@ -222,11 +222,17 @@
         cb.addEventListener('change', updateBulkUI);
     });
 
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     // Validasi Approval
     function confirmApprove(id, noSj) {
         Swal.fire({
             title: 'Validasi Kedatangan?',
-            html: `Konfirmasi barang <b>${noSj}</b> telah diterima.<br><small class="text-rose-500 font-bold uppercase underline">Stok bertambah otomatis!</small>`,
+            html: `Konfirmasi barang <b>${escapeHtml(noSj)}</b> telah diterima.<br><small class="text-rose-500 font-bold uppercase underline">Stok bertambah otomatis!</small>`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#4f46e5',

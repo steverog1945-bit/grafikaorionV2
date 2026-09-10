@@ -111,6 +111,12 @@
 </div>
 
 <script>
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     // Dropdown "Cetak Nota" dipicu lewat klik/tap, bukan :hover CSS - supaya
     // tetap berfungsi di layar sentuh (kasir sering pakai perangkat touchscreen,
     // dan dropdown hover-only tidak pernah terbuka lewat tap).
@@ -143,7 +149,7 @@
 
             const itemRows = data.items.map(it =>
                 `<tr>
-                    <td class="py-1 pr-2">${it.nama_file}</td>
+                    <td class="py-1 pr-2">${escapeHtml(it.nama_file)}</td>
                     <td class="py-1 pr-2 text-center">${it.qty}${it.qty_cetak !== null ? ' / ' + it.qty_cetak : ''}</td>
                     <td class="py-1 text-right font-bold">${it.status_spk}</td>
                 </tr>`

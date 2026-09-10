@@ -203,10 +203,16 @@
         }
     }
 
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     function confirmDelete(id, name) {
         Swal.fire({
             title: 'Hapus Karyawan?',
-            html: `Anda akan menghapus data <b>${name}</b>.<br><small class="text-slate-400 uppercase font-black tracking-widest">Tindakan ini permanen!</small>`,
+            html: `Anda akan menghapus data <b>${escapeHtml(name)}</b>.<br><small class="text-slate-400 uppercase font-black tracking-widest">Tindakan ini permanen!</small>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
