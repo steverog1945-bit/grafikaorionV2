@@ -163,7 +163,7 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <x-form.group label="Metode Hitung">
-                                <x-form.select name="metode_hitung" class="!bg-white !shadow-sm !py-3">
+                                <x-form.select name="metode_hitung" onchange="toggleMinOrderFields()" class="!bg-white !shadow-sm !py-3">
                                     <option value="ukuran">Ukuran (m²)</option>
                                     <option value="quantity">Satuan (Pcs)</option>
                                 </x-form.select>
@@ -172,6 +172,25 @@
                                 <x-form.input type="text" name="barcode" placeholder="ID-001" class="!bg-white !shadow-sm !font-mono !py-3" />
                             </x-form.group>
                         </div>
+
+                        <div id="field_min_ukuran" class="grid grid-cols-2 gap-4">
+                            <x-form.group label="Min Panjang (cm)">
+                                <x-form.input type="number" name="min_p" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
+                            </x-form.group>
+                            <x-form.group label="Min Lebar (cm)">
+                                <x-form.input type="number" name="min_l" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
+                            </x-form.group>
+                        </div>
+
+                        <div id="field_min_qty">
+                            <x-form.group label="Min Order (Pcs)">
+                                <x-form.input type="number" name="min_order_qty" step="1" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
+                            </x-form.group>
+                        </div>
+
+                        <x-form.group label="Keterangan">
+                            <textarea name="keterangan" rows="2" placeholder="Catatan tambahan produk (opsional)" class="w-full bg-white shadow-sm rounded-xl border-none text-xs font-semibold p-3 focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                        </x-form.group>
                     </div>
                 </div>
 
@@ -257,6 +276,7 @@
         form.action = "{{ route('produk.store') }}";
         document.getElementById('methodField').innerHTML = '';
         form.reset();
+        toggleMinOrderFields();
 
         document.getElementById('bom_table_body').innerHTML = `
             <tr id="empty_state">
@@ -264,6 +284,16 @@
             </tr>`;
 
         openModal('produk');
+    }
+
+    // Tampilkan input Min Order sesuai metode_hitung: Panjang/Lebar (m²) untuk
+    // 'ukuran', atau Qty (Pcs) untuk 'quantity' - keduanya disimpan di kolom
+    // berbeda (min_panjang/min_lebar vs min_order) jadi hanya satu yang relevan
+    // untuk diisi tergantung metode yang dipilih.
+    function toggleMinOrderFields() {
+        const method = document.querySelector('select[name="metode_hitung"]').value;
+        document.getElementById('field_min_ukuran').classList.toggle('hidden', method !== 'ukuran');
+        document.getElementById('field_min_qty').classList.toggle('hidden', method === 'ukuran');
     }
 
     // EDIT PRODUK (AJAX FETCH)
@@ -289,6 +319,11 @@
             document.getElementById('input_id_mesin').value = data.produk.id_mesin || '';
             form.querySelector('select[name="metode_hitung"]').value = data.produk.metode_hitung;
             form.querySelector('input[name="barcode"]').value = data.produk.barcode || '';
+            form.querySelector('input[name="min_p"]').value = data.produk.min_panjang || '';
+            form.querySelector('input[name="min_l"]').value = data.produk.min_lebar || '';
+            form.querySelector('input[name="min_order_qty"]').value = data.produk.metode_hitung === 'quantity' ? (data.produk.min_order || '') : '';
+            form.querySelector('textarea[name="keterangan"]').value = (data.produk.keterangan && data.produk.keterangan !== '-') ? data.produk.keterangan : '';
+            toggleMinOrderFields();
 
             const tbody = document.getElementById('bom_table_body');
             tbody.innerHTML = '';

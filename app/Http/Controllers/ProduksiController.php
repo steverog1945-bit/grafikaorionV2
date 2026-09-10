@@ -60,6 +60,12 @@ class ProduksiController extends Controller
             $query->where('transaksi_detail.status_spk', 'Selesai');
         } elseif ($statusProduksi === 'batal') {
             $query->where('transaksi_detail.status_spk', 'Batal');
+        } elseif ($statusProduksi === 'semua') {
+            // Dipakai oleh quick-link "Lihat di Produksi" (SPK) dan "Lihat progres
+            // di Produksi" (Collecting) - keduanya menuju item/konsumen spesifik
+            // yang statusnya bisa Selesai/Batal, jadi TIDAK boleh disaring oleh
+            // bucket default (Antre/Desain/Cetak) atau linknya mendarat di
+            // halaman kosong walau datanya ada.
         } else {
             $query->whereIn('transaksi_detail.status_spk', ['Antre', 'Desain', 'Cetak']);
         }

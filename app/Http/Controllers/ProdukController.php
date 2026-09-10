@@ -66,8 +66,10 @@ public function index(Request $request)
 
         return DB::transaction(function () use ($request) {
             // Hitung Min Order
-            $minOrderValue = ($request->metode_hitung == 'ukuran') 
-                ? (($request->min_p ?? 0) * ($request->min_l ?? 0)) / 10000 
+            $minPanjang = (float) ($request->min_p ?? 0);
+            $minLebar = (float) ($request->min_l ?? 0);
+            $minOrderValue = ($request->metode_hitung == 'ukuran')
+                ? ($minPanjang * $minLebar) / 10000
                 : ($request->min_order_qty ?? 0);
 
             // 1. Insert Produk
@@ -77,6 +79,8 @@ public function index(Request $request)
                 'metode_hitung' => $request->metode_hitung,
                 'barcode'       => $request->barcode, // Pastikan barcode masuk
                 'min_order'     => $minOrderValue,
+                'min_panjang'   => $minPanjang,
+                'min_lebar'     => $minLebar,
                 'keterangan'    => $request->keterangan ?? '-',
                 'created_at'    => now(),
                 'updated_at'    => now(),
@@ -121,8 +125,10 @@ public function show($id)
     public function update(Request $request, $id)
     {
         return DB::transaction(function () use ($request, $id) {
-            $minOrderValue = ($request->metode_hitung == 'ukuran') 
-                ? (($request->min_p ?? 0) * ($request->min_l ?? 0)) / 10000 
+            $minPanjang = (float) ($request->min_p ?? 0);
+            $minLebar = (float) ($request->min_l ?? 0);
+            $minOrderValue = ($request->metode_hitung == 'ukuran')
+                ? ($minPanjang * $minLebar) / 10000
                 : ($request->min_order_qty ?? $request->min_order ?? 0);
 
             // 1. Update Produk
@@ -132,6 +138,8 @@ public function show($id)
                 'metode_hitung' => $request->metode_hitung,
                 'barcode'       => $request->barcode,
                 'min_order'     => $minOrderValue,
+                'min_panjang'   => $minPanjang,
+                'min_lebar'     => $minLebar,
                 'keterangan'    => $request->keterangan ?? '-',
                 'updated_at'    => now(),
             ]);

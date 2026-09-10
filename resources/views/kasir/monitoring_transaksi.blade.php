@@ -43,7 +43,6 @@
         
         <select name="status_bayar" class="bg-slate-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500">
             <option value="">-- Semua Status Bayar --</option>
-            <option value="Belum Lunas" {{ request('status_bayar') == 'Belum Lunas' ? 'selected' : '' }}>Belum Lunas</option>
             <option value="DP" {{ request('status_bayar') == 'DP' ? 'selected' : '' }}>DP / Panjar</option>
             <option value="Lunas" {{ request('status_bayar') == 'Lunas' ? 'selected' : '' }}>Lunas</option>
         </select>

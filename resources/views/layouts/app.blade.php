@@ -130,8 +130,16 @@
                         ->pluck('id_menu')
                         ->toArray();
 
-        $cekAkses = function($idMenu) use ($userAkses) {
-            return in_array($idMenu, $userAkses);
+        // Administrator selalu lolos di sini juga, sama seperti bypass di
+        // CheckMenuAccess middleware. Tanpa ini, menu sidebar Administrator
+        // bisa ikut hilang kalau grant-nya di role_permissions tidak sengaja
+        // tercabut/kosong (mis. dari halaman Setting Akses) - padahal
+        // rute-rutenya sendiri tetap bisa diakses karena middleware sudah
+        // bypass duluan, jadi menu yang "hilang" itu cuma ilusi UI.
+        $isAdministrator = optional(Auth::user()->role)->nama_role === 'Administrator';
+
+        $cekAkses = function($idMenu) use ($userAkses, $isAdministrator) {
+            return $isAdministrator || in_array($idMenu, $userAkses);
         };
 
         // Helper untuk styling menu agar konsisten

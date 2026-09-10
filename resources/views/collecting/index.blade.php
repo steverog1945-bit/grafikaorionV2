@@ -107,7 +107,7 @@
                     @endif
                 </td>
                 <td class="px-8 py-5 text-center">
-                    <x-button href="{{ route('produksi.index', ['konsumen' => $item->nama_konsumen]) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat progres di Produksi">
+                    <x-button href="{{ route('produksi.index', ['konsumen' => $item->nama_konsumen, 'status_produksi' => 'semua']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat progres di Produksi">
                         <i class="fas fa-eye text-xs"></i>
                     </x-button>
                 </td>

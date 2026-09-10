@@ -93,7 +93,13 @@
     <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
             <h3 class="text-sm font-bold text-slate-800">Order Terbaru</h3>
-            <a href="{{ route('penjualan.riwayat') }}" class="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:underline">Lihat Semua</a>
+            {{-- riwayat() default ke tanggal HARI INI saja kalau from/to tidak
+                 dikirim - "Order Terbaru" di sini menampilkan 5 order TERBARU
+                 tanpa filter tanggal, jadi kalau dikirim tanpa parameter,
+                 "Lihat Semua" bisa mendarat di halaman kosong (mis. dibuka pagi
+                 hari sebelum ada order masuk hari itu). Kirim rentang 30 hari
+                 terakhir supaya selalu mencakup order yang baru terlihat di sini. --}}
+            <a href="{{ route('penjualan.riwayat', ['from' => now()->subDays(30)->format('Y-m-d'), 'to' => now()->format('Y-m-d')]) }}" class="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:underline">Lihat Semua</a>
         </div>
         <div class="divide-y divide-slate-50">
             @forelse($orderTerbaru as $o)

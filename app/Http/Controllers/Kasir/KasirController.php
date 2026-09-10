@@ -39,7 +39,14 @@ class KasirController extends Controller
             $query->where('transaksi.status_pembayaran', $request->status_bayar);
         }
 
-        $transaksi = $query->orderBy('transaksi.updated_at', 'desc')->paginate(10);
+        if ($request->filled('tgl_mulai')) {
+            $query->whereDate('transaksi.tgl_order', '>=', $request->tgl_mulai);
+        }
+        if ($request->filled('tgl_selesai')) {
+            $query->whereDate('transaksi.tgl_order', '<=', $request->tgl_selesai);
+        }
+
+        $transaksi = $query->orderBy('transaksi.updated_at', 'desc')->paginate(10)->withQueryString();
 
         return view('kasir.monitoring_transaksi', compact('transaksi', 'waitingCount'));
     }
@@ -68,9 +75,31 @@ class KasirController extends Controller
                 throw new \Exception('Sesi kas sudah ditutup atau tidak ditemukan.');
             }
 
-            $selisih = $saldo_fisik - $kas->saldo_akhir;
+            // Rincian tunai/transfer DIHITUNG ULANG dari pembayaran_riwayat (sama
+            // seperti simpanClosing()) dan disimpan ke kolom total_tunai_masuk/
+            // total_transfer_masuk/total_tunai_keluar. Sebelumnya kolom-kolom ini
+            // tidak pernah diisi oleh alur closing yang benar-benar terhubung ke
+            // tombol "CLOSING KAS SEKARANG", sehingga nota cetak closing
+            // (print_closing.blade.php) selalu menampilkan Rp 0 untuk semua
+            // rincian pemasukan/pengeluaran walau uang sungguhan sudah masuk.
+            $pemasukan = DB::table('pembayaran_riwayat')
+                ->whereDate('tgl_bayar', $kas->tgl_kas)
+                ->select(
+                    DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
+                    DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk")
+                )->first();
+
+            $tunaiMasuk = (float) ($pemasukan->tunai_masuk ?? 0);
+            $transferMasuk = (float) ($pemasukan->transfer_masuk ?? 0);
+            $tunaiKeluar = 0; // Belum ada fitur Kas Keluar.
+            $saldoAkhirSistem = $kas->saldo_awal + $tunaiMasuk - $tunaiKeluar;
+            $selisih = $saldo_fisik - $saldoAkhirSistem;
 
             DB::table('kas_harian')->where('id_kas', $id_kas)->update([
+                'total_tunai_masuk' => $tunaiMasuk,
+                'total_transfer_masuk' => $transferMasuk,
+                'total_tunai_keluar' => $tunaiKeluar,
+                'saldo_akhir' => $saldoAkhirSistem,
                 'saldo_fisik' => $saldo_fisik,
                 'selisih' => $selisih,
                 'status_lock' => 'closed',

@@ -128,7 +128,7 @@
                         <x-badge :status="$item->status_spk" />
                     </td>
                     <td class="px-8 py-5 text-center">
-                        <x-button href="{{ route('produksi.index', ['id_spk' => $item->id_detail]) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat di Produksi">
+                        <x-button href="{{ route('produksi.index', ['id_spk' => $item->id_detail, 'status_produksi' => 'semua']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat di Produksi">
                             <i class="fas fa-industry text-xs"></i>
                         </x-button>
                     </td>
