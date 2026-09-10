@@ -103,7 +103,6 @@ public function markAsSelesai($id)
         $bahans = BahanBaku::where('status', 'aktif')->orderBy('nama_bahan')->get();
 
         $gudangs = $this->getGudangList();
-        $kedatangans = KedatanganBahan::with('supplier','detail.bahan')->get();
         return view('kedatangan-bahan.create', compact('suppliers', 'bahans', 'gudangs'));
     }
 
