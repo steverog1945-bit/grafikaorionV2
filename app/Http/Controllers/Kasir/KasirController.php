@@ -143,10 +143,21 @@ class KasirController extends Controller
             return redirect()->route('kasir.index')->with('error', 'Transaksi tidak ditemukan!');
         }
 
-        $items = DB::table('transaksi_detail') 
-            ->join('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+        // LEFT JOIN (bukan INNER) - baris Jasa punya id_produk NULL (lihat
+        // migrasi add_jasa_support_to_transaksi_detail). INNER JOIN produk
+        // sebelumnya diam-diam membuang baris Jasa dari halaman ini sama
+        // sekali, termasuk dari TOTAL NOTA - nota jadi tertagih kurang dari
+        // seharusnya tanpa ada tanda apa pun ke kasir.
+        $items = DB::table('transaksi_detail')
+            ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+            ->leftJoin('jasa', 'transaksi_detail.id_jasa', '=', 'jasa.id_jasa')
             ->where('transaksi_detail.id_transaksi', $id)
-            ->select('transaksi_detail.*', 'produk.nama_produk', 'produk.metode_hitung')
+            ->select(
+                'transaksi_detail.*',
+                'produk.nama_produk',
+                'produk.metode_hitung',
+                'jasa.nama_jasa'
+            )
             ->get();
 
         $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;

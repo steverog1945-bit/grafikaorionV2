@@ -152,6 +152,44 @@
                         </div>
                     </div>
                 </x-card>
+
+                {{-- TAMBAH JASA (layanan non-material, harga manual - lihat Master Jasa) --}}
+                <x-card>
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800">Tambah Jasa</h3>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">(Layanan non-material)</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <x-form.group label="Pilih Jasa">
+                            <select id="select_jasa" onchange="onJasaChange()" class="select2-produk w-full">
+                                <option value="">-- Ketik Nama Jasa --</option>
+                                @foreach($jasa as $j)
+                                    <option value="{{ $j->id_jasa }}" data-nama="{{ $j->nama_jasa }}">{{ $j->nama_jasa }}{{ $j->nama_satuan ? ' ('.$j->nama_satuan.')' : '' }}</option>
+                                @endforeach
+                            </select>
+                        </x-form.group>
+                        <x-form.group label="Qty">
+                            <x-form.input type="number" id="input_jasa_qty" value="1" />
+                        </x-form.group>
+                        <x-form.group label="Harga Satuan (Rp)">
+                            <x-form.input type="number" id="input_jasa_harga" placeholder="0" />
+                        </x-form.group>
+                    </div>
+
+                    <x-form.group label="Keterangan" class="mb-6">
+                        <x-form.input type="text" id="jasa_keterangan" placeholder="Contoh: Instalasi banner outdoor" />
+                    </x-form.group>
+
+                    <div class="flex justify-end">
+                        <button onclick="tambahJasaKeKeranjang()" class="bg-purple-500 hover:bg-purple-400 text-white h-14 px-10 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
+                            Tambah Jasa
+                        </button>
+                    </div>
+                </x-card>
             </div>
 
             {{-- KERANJANG --}}
@@ -520,6 +558,57 @@
 
         Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }).fire({
             icon: 'success', title: 'Item berhasil diproses'
+        });
+    }
+
+    function onJasaChange() {
+        const sel = document.getElementById('select_jasa');
+        const namaJasa = sel.value ? sel.options[sel.selectedIndex].dataset.nama : '';
+        const ketInput = document.getElementById('jasa_keterangan');
+        if (namaJasa && !ketInput.value) {
+            ketInput.value = namaJasa;
+        }
+    }
+
+    function tambahJasaKeKeranjang() {
+        const idKonsumen = $('#id_konsumen').val();
+        if (!idKonsumen) return Swal.fire('Opps', 'Pilih pelanggan dulu', 'error');
+
+        const selJasa = document.getElementById('select_jasa');
+        const idJasa = selJasa.value;
+        if (!idJasa) return Swal.fire('Opps!', 'Pilih jasa dulu.', 'warning');
+
+        const namaJasa = selJasa.options[selJasa.selectedIndex].dataset.nama;
+        const qty = parseFloat(document.getElementById('input_jasa_qty').value) || 0;
+        const harga = parseFloat(document.getElementById('input_jasa_harga').value) || 0;
+        const keterangan = document.getElementById('jasa_keterangan').value.trim() || namaJasa;
+
+        if (qty <= 0) return Swal.fire('Opps!', 'Qty jasa harus lebih dari 0.', 'warning');
+        if (harga <= 0) return Swal.fire('Opps!', 'Harga satuan jasa harus diisi.', 'warning');
+
+        cart.push({
+            is_jasa: true,
+            id_jasa: idJasa,
+            nama_produk: '🔧 ' + namaJasa,
+            nama_file: keterangan,
+            qty_input: qty,
+            qty_hitung: qty,
+            harga_satuan: harga,
+            subtotal: qty * harga,
+            id_finishing: null,
+            nama_finishing: null,
+        });
+
+        renderCart();
+
+        // Reset form jasa
+        $('#select_jasa').val(null).trigger('change');
+        document.getElementById('input_jasa_qty').value = 1;
+        document.getElementById('input_jasa_harga').value = '';
+        document.getElementById('jasa_keterangan').value = '';
+
+        Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }).fire({
+            icon: 'success', title: 'Jasa ditambahkan ke keranjang'
         });
     }
 

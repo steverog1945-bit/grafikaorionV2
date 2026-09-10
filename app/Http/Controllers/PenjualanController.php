@@ -26,13 +26,18 @@ class PenjualanController extends Controller
     $golongan = DB::table('golongan_konsumen')->get();
     $konsumen = DB::table('konsumen')->get();
     $finishing = DB::table('finishing')->orderBy('nama_finishing')->get();
+    $jasa = DB::table('jasa')
+        ->leftJoin('satuan', 'jasa.id_satuan', '=', 'satuan.id_satuan')
+        ->select('jasa.*', 'satuan.nama_satuan')
+        ->orderBy('jasa.nama_jasa')
+        ->get();
 
     // Generate No. Nota
     $date = date('Ymd');
     $lastNota = DB::table('transaksi')->whereDate('tgl_order', date('Y-m-d'))->count();
     $no_nota = "INV-" . $date . "-" . str_pad($lastNota + 1, 3, '0', STR_PAD_LEFT);
 
-    return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing'));
+    return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing', 'jasa'));
 }
 
 public function getHarga($id_produk, $id_golongan, $qty) {
@@ -79,6 +84,36 @@ public function getHarga($id_produk, $id_golongan, $qty) {
     $itemsTervalidasi = [];
 
     foreach ($request->items as $index => $item) {
+
+        // Baris Jasa (bukan produk fisik) - tidak punya BOM/stok, harga
+        // ditentukan manual oleh kasir (sama seperti biaya_desain), bukan
+        // dari price list. Divalidasi terpisah lalu lanjut ke baris berikutnya.
+        if (!empty($item['id_jasa'])) {
+            $jasa = DB::table('jasa')->where('id_jasa', $item['id_jasa'])->first();
+            if (!$jasa) {
+                return response()->json(['status' => 'error', 'msg' => 'Jasa pada baris ' . ($index + 1) . ' tidak ditemukan.'], 422);
+            }
+
+            $qtyJasa = (float) ($item['qty_input'] ?? 0);
+            $hargaJasa = max(0, (float) ($item['harga_satuan'] ?? 0));
+
+            if ($qtyJasa <= 0) {
+                return response()->json(['status' => 'error', 'msg' => 'Qty jasa pada baris ' . ($index + 1) . ' tidak valid.'], 422);
+            }
+            if ($hargaJasa <= 0) {
+                return response()->json(['status' => 'error', 'msg' => 'Harga jasa pada baris ' . ($index + 1) . ' harus diisi.'], 422);
+            }
+
+            $itemsTervalidasi[] = [
+                'is_jasa'    => true,
+                'id_jasa'    => $jasa->id_jasa,
+                'nama_file'  => $item['nama_file'] ?? $jasa->nama_jasa,
+                'qty_input'  => $qtyJasa,
+                'subtotal'   => $hargaJasa * $qtyJasa,
+            ];
+            continue;
+        }
+
         $produk = DB::table('produk')->where('id_produk', $item['id_produk'] ?? null)->first();
 
         if (!$produk) {
@@ -133,6 +168,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         $biayaFinishing = max(0, (float) ($item['biaya_finishing'] ?? 0));
 
         $itemsTervalidasi[] = [
+            'is_jasa' => false,
             'id_produk' => $produk->id_produk,
             'nama_file' => $item['nama_file'] ?? '-',
             'p' => $p,
@@ -161,8 +197,35 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         ]);
 
         $totalHppMaterialSemua = 0;
+        $totalJasaSemua = 0;
+        $totalProdukSemua = 0;
 
         foreach ($itemsTervalidasi as $item) {
+
+            // Baris Jasa: tidak ada BOM/stok/SPK produksi untuk dilacak -
+            // langsung selesai (bukan 'Antre', supaya tidak nyasar ke
+            // antrian SPK/Produksi yang isinya seharusnya cuma pekerjaan
+            // cetak fisik).
+            if (!empty($item['is_jasa'])) {
+                DB::table('transaksi_detail')->insert([
+                    'id_transaksi'        => $id_transaksi,
+                    'id_produk'           => null,
+                    'id_jasa'             => $item['id_jasa'],
+                    'nama_file'           => $item['nama_file'],
+                    'p_ukuran'            => 0,
+                    'l_ukuran'            => 0,
+                    'qty'                 => $item['qty_input'],
+                    'subtotal'            => $item['subtotal'],
+                    'status_spk'          => 'Selesai',
+                    'harga_jual_snapshot' => $item['subtotal'],
+                    'hpp_snapshot'        => 0,
+                ]);
+
+                $totalJasaSemua += $item['subtotal'];
+                continue;
+            }
+
+            $totalProdukSemua += $item['subtotal'];
 
             $jumlah_order = $item['qty_input'];
 
@@ -265,7 +328,16 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             $totalHppMaterialSemua += $hppItemIni;
         }
 
-        AccountingService::postPenjualan($request->no_nota, $grand_total, $totalHppMaterialSemua);
+        // Dipisah jadi 2 posting independen (bukan 1 baris gabungan) supaya
+        // postPenjualan() yang sudah teruji untuk order produk-only tidak
+        // perlu diubah sama sekali - order campuran produk+jasa cukup
+        // menjalankan keduanya dalam transaction yang sama.
+        if ($totalProdukSemua > 0) {
+            AccountingService::postPenjualan($request->no_nota, $totalProdukSemua, $totalHppMaterialSemua);
+        }
+        if ($totalJasaSemua > 0) {
+            AccountingService::postPenjualanJasa($request->no_nota, $totalJasaSemua);
+        }
 
         DB::commit();
 

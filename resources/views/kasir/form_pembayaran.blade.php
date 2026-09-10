@@ -25,9 +25,11 @@
             @foreach($items as $item)
             <div class="grid grid-cols-12 gap-4 items-center mb-6 border-b border-slate-50 pb-4">
                 <div class="col-span-5">
-                    <div class="detail-item-text text-slate-700 uppercase">{{ $item->nama_produk }}</div>
+                    <div class="detail-item-text text-slate-700 uppercase">
+                        {{ $item->nama_produk ?? ('🔧 ' . $item->nama_jasa) }}
+                    </div>
                     <div class="detail-sub-text italic">
-                        {{ $item->qty }} {{ $item->metode_hitung == 'ukuran' ? 'm²' : 'Pcs' }}
+                        {{ $item->qty }} {{ $item->metode_hitung == 'ukuran' ? 'm²' : ($item->id_jasa ? 'Jasa' : 'Pcs') }}
                     </div>
                 </div>
                 <div class="col-span-3">
