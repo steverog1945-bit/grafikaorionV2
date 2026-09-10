@@ -80,6 +80,16 @@ class LaporanController extends Controller
         if ($request->filled('id_mesin')) {
             $base->where('produk.id_mesin', $request->id_mesin);
         }
+        if ($request->filled('status_spk')) {
+            // Diterapkan ke $base (sebelum di-clone) supaya ringkasan dan
+            // detail SELALU menghitung dari himpunan baris yang sama persis.
+            // Sebelumnya filter ini hanya ditempel ke $detailQuery di bawah,
+            // jadi kartu "Ringkasan per Divisi & Produk" (termasu total
+            // keseluruhannya) tetap menghitung SEMUA status walau user sudah
+            // memfilter status di halaman yang sama - laporan yang dicetak
+            // jadi tidak sinkron antara ringkasan dan detailnya sendiri.
+            $base->where('transaksi_detail.status_spk', $request->status_spk);
+        }
 
         // --- RINGKASAN PER DIVISI & PRODUK ---
         $ringkasan = (clone $base)
@@ -98,13 +108,8 @@ class LaporanController extends Controller
         $totalOrderKeseluruhan = $ringkasan->sum('total_order');
         $totalCetakKeseluruhan = $ringkasan->sum('total_cetak');
 
-        // --- DETAIL PER SPK (bisa difilter status juga) ---
-        $detailQuery = clone $base;
-        if ($request->filled('status_spk')) {
-            $detailQuery->where('transaksi_detail.status_spk', $request->status_spk);
-        }
-
-        $detail = $detailQuery
+        // --- DETAIL PER SPK (status_spk sudah diterapkan di $base di atas) ---
+        $detail = (clone $base)
             ->select(
                 'transaksi_detail.id_detail',
                 'transaksi_detail.nama_file',

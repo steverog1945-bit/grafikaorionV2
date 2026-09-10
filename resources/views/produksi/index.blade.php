@@ -196,10 +196,22 @@
         });
     }
 
+    // Escape HTML sebelum ditaruh di Swal.fire({html:...}). catatan berasal
+    // dari input bebas operator (alasan pembatalan SPK) yang disimpan apa
+    // adanya ke database - tanpa ini, siapa pun yang bisa membatalkan SPK bisa
+    // menaruh <img onerror=...> atau <script> di alasannya, yang lalu
+    // dieksekusi di browser siapa pun yang membuka popup "Detail / Catatan"
+    // item itu (stored XSS).
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     function showCatatan(id, catatan) {
         Swal.fire({
             title: 'SPK #' + id,
-            html: catatan ? `<div class="text-left text-sm">${catatan}</div>` : '<div class="text-slate-400 italic text-sm">Belum ada catatan produksi.</div>',
+            html: catatan ? `<div class="text-left text-sm">${escapeHtml(catatan)}</div>` : '<div class="text-slate-400 italic text-sm">Belum ada catatan produksi.</div>',
             icon: 'info',
             customClass: { popup: 'rounded-[2rem]' }
         });

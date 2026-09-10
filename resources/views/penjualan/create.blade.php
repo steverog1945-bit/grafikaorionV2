@@ -582,6 +582,14 @@
         document.getElementById('display_harga').innerText = "Rp 0 /unit";
         document.getElementById('display_subtotal').innerText = "Rp 0";
 
+        // editIndex HARUS direset di sini juga. Sebelumnya ini terlewat: kalau
+        // user sedang mengedit item keranjang (editIndex terisi, tombol jadi
+        // "UPDATE ITEM" amber) lalu ganti filter Kategori (yang memanggil
+        // fungsi ini), tombolnya kembali hijau "TAMBAH" secara visual TAPI
+        // editIndex masih menunjuk baris lama - klik Tambah berikutnya diam-diam
+        // MENIMPA baris keranjang yang salah, bukan menambah baris baru.
+        editIndex = null;
+
         const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
         btn.innerText = "TAMBAH";
         btn.classList.replace('bg-amber-500', 'bg-emerald-500');

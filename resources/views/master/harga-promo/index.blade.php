@@ -188,10 +188,16 @@
         openModal('edit-promo');
     }
 
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     function confirmDeletePromo(id, nama) {
         Swal.fire({
             title: 'Hapus Promo?',
-            html: `Menghapus promo untuk <b>${nama}</b>? Harga akan kembali normal seketika.`,
+            html: `Menghapus promo untuk <b>${escapeHtml(nama)}</b>? Harga akan kembali normal seketika.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

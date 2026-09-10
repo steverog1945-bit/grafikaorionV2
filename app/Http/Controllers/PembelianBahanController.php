@@ -59,35 +59,55 @@ public function kedatanganDetail(Request $request)
         $request->validate([
             'id_kedatangan'=>'required',
             'no_faktur'=>'required',
-            'tgl_transaksi'=>'required'
+            'tgl_transaksi'=>'required',
+            'tipe_pembelian'=>'required|in:Cash,Tempo',
+            'id_bahan'=>'required|array|min:1',
+            'qty'=>'required|array|min:1',
+            'harga'=>'required|array|min:1',
+            'qty.*'=>'required|numeric|min:0.01',
+            'harga.*'=>'required|numeric|min:0',
         ]);
 
         DB::beginTransaction();
 
         try{
 
+            $includePajak = $request->boolean('include_pajak');
+
             $pembelian = PembelianBahan::create([
                 'id_kedatangan'=>$request->id_kedatangan,
                 'no_faktur'=>$request->no_faktur,
                 'tgl_transaksi'=>$request->tgl_transaksi,
-                'tipe_pembelian'=>'Biasa',
+                'tipe_pembelian'=>$request->tipe_pembelian,
+                'include_pajak'=>$includePajak,
+                'jatuh_tempo_hari'=>$request->tempo_hari,
                 'grand_total'=>0
             ]);
 
+            // Subtotal, diskon, potongan, dan PPN 11% dihitung ULANG di sini
+            // memakai rumus yang SAMA dengan calculateGrandTotal() di form
+            // (qty*harga - diskon - potongan, lalu *1.11 kalau PPN dicentang).
+            // Sebelumnya field diskon/potongan/include_pajak yang diisi di form
+            // tidak pernah dibaca sama sekali oleh server - grand_total yang
+            // tersimpan bisa berbeda dari yang dilihat operator saat entry.
             $grandTotal = 0;
 
             foreach($request->id_bahan as $i=>$idBahan){
 
-                $qty   = $request->qty[$i];
-                $harga = $request->harga[$i];
+                $qty      = (float) $request->qty[$i];
+                $harga    = (float) $request->harga[$i];
+                $diskon   = (float) ($request->diskon[$i] ?? 0);
+                $potongan = (float) ($request->potongan[$i] ?? 0);
 
-                $subtotal = $qty * $harga;
+                $subtotal = ($qty * $harga) - $diskon - $potongan;
 
                 PembelianBahanDetail::create([
                     'id_pembelian'=>$pembelian->id_pembelian,
                     'id_bahan'=>$idBahan,
                     'qty'=>$qty,
                     'harga'=>$harga,
+                    'diskon'=>$diskon,
+                    'potongan'=>$potongan,
                     'subtotal'=>$subtotal
                 ]);
 
@@ -100,15 +120,20 @@ public function kedatanganDetail(Request $request)
                 // di atas), jadi ini murni faktur/tagihan atas barang yang sama —
                 // menambah stok lagi di sini akan menghitung barang dua kali.
             }
-if ($request->tipe_pembelian == 'Cash') {
-        $pembelian->status_pembayaran = 'Lunas';
-        $pembelian->tgl_pelunasan = $request->tgl_transaksi;
-    } else {
-        $pembelian->status_pembayaran = 'Hutang';
-        $pembelian->jatuh_tempo_tgl = $request->jatuh_tempo_tgl;
-    }
-    
-    $pembelian->save();
+
+            if ($includePajak) {
+                $grandTotal *= 1.11;
+            }
+
+            if ($request->tipe_pembelian == 'Cash') {
+                $pembelian->status_pembayaran = 'Lunas';
+                $pembelian->tgl_pelunasan = $request->tgl_transaksi;
+            } else {
+                $pembelian->status_pembayaran = 'Hutang';
+                $pembelian->jatuh_tempo_tgl = $request->jatuh_tempo_tgl;
+            }
+
+            $pembelian->save();
             $pembelian->update([
                 'grand_total'=>$grandTotal
             ]);
@@ -124,8 +149,35 @@ if ($request->tipe_pembelian == 'Cash') {
             return back()->with('error',$e->getMessage());
 
         }
-        
 
+
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->ids;
+
+        if (!$ids) {
+            return back()->with('error', 'Tidak ada data dipilih');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // CATATAN: sama seperti destroy() tunggal - stok TIDAK disentuh di
+            // sini, karena store() tidak lagi menambah stok (lihat catatan di
+            // atas). Menghapus faktur pembelian secara massal tidak mengubah
+            // barang yang secara fisik sudah ada di gudang.
+            PembelianBahanDetail::whereIn('id_pembelian', $ids)->delete();
+            PembelianBahan::whereIn('id_pembelian', $ids)->delete();
+
+            DB::commit();
+
+            return back()->with('success', count($ids) . ' data pembelian berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
+        }
     }
     public function bahan()
 {

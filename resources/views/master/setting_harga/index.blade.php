@@ -131,7 +131,11 @@
         </div>
 
         <div class="p-6 overflow-y-auto space-y-6 custom-scrollbar bg-[#fcfdfe]">
-            @foreach($golongan as $g)
+            {{-- Alokasi Mesin: satu produk cuma punya SATU mesin, jadi ini di
+                 LUAR loop golongan (sebelumnya duplikat sekali per golongan,
+                 4 elemen dengan id sama - hanya elemen pertama yang keisi nilai
+                 saat edit, dan browser mengirim elemen TERAKHIR saat submit,
+                 jadi mesin yang tersimpan bisa beda dari yang terlihat dipilih). --}}
             <div class="mb-6 p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">
@@ -148,6 +152,8 @@
                     @endforeach
                 </select>
             </div>
+
+            @foreach($golongan as $g)
             <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-50 pb-3">
                     <h4 class="text-[11px] font-black text-slate-700 uppercase tracking-tight flex items-center gap-2">
@@ -195,6 +201,18 @@
 </div>
 
 <script>
+    // Counter unik untuk key array `ranges[idGol][index]`. Sebelumnya index
+    // dibuat dari Date.now()+random(0-99) - ketika addRangeRow dipanggil
+    // berturut-turut sangat cepat (persis yang terjadi di openEditHarga(),
+    // yang memuat semua baris tier lewat forEach dalam satu tick JS),
+    // Date.now() bisa sama antar panggilan, dan cukup sering dua baris
+    // berakhir dengan index yang identik. Baris dengan key array yang sama
+    // saling menimpa field satu sama lain saat form di-submit ke PHP -
+    // hasilnya satu baris harga hilang secara diam-diam setiap kali form
+    // "Update Strategy" disimpan untuk produk dengan tiering harga.
+    // Counter yang naik terus menjamin setiap baris selalu unik.
+    let rangeRowCounter = 0;
+
     // FUNGSI UTAMA (Pertahankan & Perbaiki logic copy)
     function closeModal() {
         document.getElementById('modalHarga').classList.add('hidden');
@@ -219,7 +237,7 @@
     }
 function addRangeRow(idGol, data = null) {
     const container = document.getElementById(`container_${idGol}`);
-    const index = Date.now() + Math.floor(Math.random() * 100);
+    const index = ++rangeRowCounter;
     
     // NORMALISASI DATA: Memastikan semua tipe data konsisten untuk pembandingan
     const d = {
@@ -304,8 +322,15 @@ function openEditHarga(produk, hargaList) {
                 const toggle = document.getElementById('toggle_' + idGol);
                 if(toggle) {
                     toggle.checked = true;
-                    toggleRangeUI(idGol, true);
+                    // Isi baris ASLI dulu, baru toggle tampilan UI ke mode range.
+                    // toggleRangeUI() punya efek samping "kalau container masih
+                    // kosong, tambah 1 baris kosong otomatis" (untuk kasus toggle
+                    // manual di produk baru) - kalau dipanggil SEBELUM baris asli
+                    // dimuat, baris kosong ini ikut tersimpan sebagai baris ke-4
+                    // yang tidak diinginkan. Mengisi dulu membuat container tidak
+                    // pernah kosong di titik ini, jadi baris kosong itu tidak muncul.
                     hargas.forEach(data => addRangeRow(idGol, data));
+                    toggleRangeUI(idGol, true);
                 }
             } else {
                 const inputFlat = document.getElementById('input_flat_' + idGol);

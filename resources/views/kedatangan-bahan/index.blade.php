@@ -170,6 +170,8 @@
             </div>
         </form>
     </div>
+
+    <x-table.pagination :paginator="$kedatangans" />
 </div>
 @endsection
 
