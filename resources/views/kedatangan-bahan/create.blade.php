@@ -201,10 +201,11 @@
 @endsection
 
 @push('scripts')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+{{-- jQuery, Select2 JS/CSS, dan styling Select2 sudah dimuat sekali secara
+     global di layouts/app.blade.php + resources/css/app.css - sebelumnya
+     dimuat ULANG di sini (tag CDN duplikat), yang selain sia-sia juga
+     berisiko membuat instance jQuery kedua menimpa window.$ yang dipakai
+     script global lain di halaman ini. --}}
 <script>
 // Global Variables untuk State Management
 let activeRow = null;

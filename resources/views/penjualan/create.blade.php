@@ -344,43 +344,10 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
 
-    .select2-container--default .select2-selection--single {
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 0.75rem !important;
-        height: 48px !important;
-        display: flex !important;
-        align-items: center !important;
-        background-color: #f8fafc !important;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        font-weight: 600 !important;
-        font-size: 0.875rem !important;
-        color: #1e293b !important;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 46px !important;
-    }
-
-    /* Dropdown hasil pencarian - dibuat senada dengan panel keranjang
-       (radius, shadow, dan scrollbar tipis yang sama), bukan tampilan
-       default Select2 yang kotak/berbayang tebal. */
-    .select2-dropdown {
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 0.75rem !important;
-        box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.08) !important;
-        overflow: hidden;
-    }
-    .select2-container--default .select2-results__option--highlighted[aria-selected] {
-        background-color: #eef2ff !important;
-        color: #4338ca !important;
-    }
-    .select2-results__options {
-        scrollbar-width: thin;
-        scrollbar-color: #e2e8f0 transparent;
-    }
-    .select2-results__options::-webkit-scrollbar { width: 4px; }
-    .select2-results__options::-webkit-scrollbar-track { background: transparent; }
-    .select2-results__options::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    /* Styling Select2 (tinggi, border, font, dropdown, scrollbar hasil
+       pencarian) SUDAH dipindahkan ke resources/css/app.css supaya satu
+       sumber kebenaran dipakai di semua halaman (lihat catatan di sana) -
+       jangan duplikasi override di sini lagi. */
 </style>
 <script>
     // 1. GLOBAL STATE
