@@ -212,8 +212,27 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                         ->lockForUpdate()
                         ->first();
 
+                    // $qty_pakai dihitung dalam satuan HITUNG/pakai (mis. m2
+                    // dari (P*L)/10000, atau lembar untuk metode 'Q'), sedangkan
+                    // bahan_baku.stok & harga_rata_rata dilacak dalam satuan
+                    // STOK/beli (mis. roll, rim) - dua satuan yang berbeda.
+                    // nilai_konversi ("1 satuan stok = berapa satuan hitung",
+                    // mis. 1 rim = 500 lembar) adalah faktor konversi di antara
+                    // keduanya yang SUDAH ADA di skema tapi sebelumnya tidak
+                    // pernah dipakai di sini - qty_pakai (lembar/m2) langsung
+                    // dikurangkan dari stok (rim/roll) tanpa konversi, membuat
+                    // stok terkuras ratusan kali lebih cepat dari seharusnya
+                    // untuk bahan dengan nilai_konversi besar (mis. AC 210gr:
+                    // order 1 lembar salah-salah mengurangi stok 1 RIM penuh),
+                    // dan HPP snapshot ikut salah kali nilai_konversi juga.
+                    $nilaiKonversi = (float) ($bahan->nilai_konversi ?? 1);
+                    if ($nilaiKonversi <= 0) {
+                        $nilaiKonversi = 1;
+                    }
+                    $qtyPakaiSatuanStok = $qty_pakai / $nilaiKonversi;
+
                     $stokSebelum = $bahan->stok ?? 0;
-                    $stokSesudah = $stokSebelum - $qty_pakai;
+                    $stokSesudah = $stokSebelum - $qtyPakaiSatuanStok;
 
                     DB::table('bahan_baku')
                         ->where('id_bahan', $bom->id_bahan)
@@ -223,7 +242,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                         'id_bahan'      => $bom->id_bahan,
                         'tanggal'       => now(),
                         'tipe'          => 'OUT',
-                        'qty'           => $qty_pakai,
+                        'qty'           => $qtyPakaiSatuanStok,
                         'stok_sebelum'  => $stokSebelum,
                         'stok_sesudah'  => $stokSesudah,
                         'referensi'     => $request->no_nota,
@@ -233,7 +252,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                         'updated_at'    => now(),
                     ]);
 
-                    $hppItemIni += $qty_pakai * (float) ($bahan->harga_rata_rata ?? 0);
+                    $hppItemIni += $qtyPakaiSatuanStok * (float) ($bahan->harga_rata_rata ?? 0);
                 }
             }
 
