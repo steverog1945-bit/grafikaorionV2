@@ -23,19 +23,19 @@
             </x-slot:actions>
         </x-page-header>
 
-        <div class="flex flex-col lg:flex-row gap-8 items-start">
+        <div class="flex flex-col lg:flex-row gap-5 items-start">
 
-            <div class="w-full lg:w-[58%] space-y-8">
+            <div class="w-full lg:w-[58%] space-y-5">
                 {{-- DATA PELANGGAN --}}
                 <x-card>
-                    <div class="flex items-center gap-3 mb-8">
+                    <div class="flex items-center gap-3 mb-5">
                         <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         </div>
                         <h3 class="text-lg font-bold text-slate-800">Data Pelanggan</h3>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <x-form.group label="Cari Pelanggan">
                             <div class="flex gap-2">
                                 <div class="flex-1 min-w-0">
@@ -70,13 +70,13 @@
                         </x-form.group>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                         <x-form.group label="Tipe Order">
                             <div class="flex gap-2">
-                                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-bold cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500">
+                                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-2.5 text-xs font-bold cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500">
                                     <input type="radio" name="tipe_order" value="Reguler" checked onchange="onTipeOrderChange()" class="accent-indigo-600"> Reguler
                                 </label>
-                                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-bold cursor-pointer has-[:checked]:bg-amber-50 has-[:checked]:border-amber-300 has-[:checked]:text-amber-600 text-slate-500">
+                                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-2.5 text-xs font-bold cursor-pointer has-[:checked]:bg-amber-50 has-[:checked]:border-amber-300 has-[:checked]:text-amber-600 text-slate-500">
                                     <input type="radio" name="tipe_order" value="PO" onchange="onTipeOrderChange()" class="accent-amber-600"> PO
                                 </label>
                             </div>
@@ -92,14 +92,14 @@
 
                 {{-- DETAIL PESANAN --}}
                 <x-card>
-                    <div class="flex items-center gap-3 mb-8">
+                    <div class="flex items-center gap-3 mb-5">
                         <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                         </div>
                         <h3 class="text-lg font-bold text-slate-800">Detail Pesanan</h3>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <x-form.group label="Kategori">
                             <x-form.select id="filter_kategori" onchange="filterProduk(this.value)">
                                 <option value="all">Semua Kategori</option>
@@ -118,35 +118,35 @@
                         </x-form.group>
                     </div>
 
-                    <x-form.group label="Nama File / Deskripsi" class="mb-8">
+                    <x-form.group label="Nama File / Deskripsi" class="mb-4">
                         <x-form.input type="text" id="nama_file" placeholder="Contoh: Banner Spanduk 3x1m" />
                     </x-form.group>
 
-                    <div id="wrapper_ukuran" class="hidden grid grid-cols-3 gap-6 p-6 bg-slate-50 rounded-2xl border border-slate-100 mb-3">
-                        <div class="space-y-2">
+                    <div id="wrapper_ukuran" class="hidden grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3">
+                        <div class="space-y-1.5">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Panjang (cm)</span>
-                            <input type="number" id="input_p" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-3 text-sm font-black text-center">
+                            <input type="number" id="input_p" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center">
                         </div>
-                        <div class="space-y-2">
+                        <div class="space-y-1.5">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Lebar (cm)</span>
-                            <input type="number" id="input_l" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-3 text-sm font-black text-center">
+                            <input type="number" id="input_l" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center">
                         </div>
-                        <div class="space-y-2">
+                        <div class="space-y-1.5">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Qty</span>
-                            <input type="number" id="input_qty_ukuran" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-3 text-sm font-black text-center" value="1">
+                            <input type="number" id="input_qty_ukuran" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center" value="1">
                         </div>
                     </div>
-                    <p id="note_ukuran" class="hidden text-xs font-medium text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-8 leading-relaxed">
+                    <p id="note_ukuran" class="hidden text-xs font-medium text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5 mb-4 leading-relaxed">
                         <i class="fas fa-info-circle mr-1"></i>
                         Ukuran untuk menghitung harga bukan ukuran file asli. Silakan ubah ukuran jika bahan memerlukan penyesuaian.
                     </p>
 
-                    <div id="wrapper_qty" class="hidden mb-8">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-3">Jumlah Unit</label>
-                        <input type="number" id="input_qty_biasa" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-4 text-2xl font-black text-center" value="1">
+                    <div id="wrapper_qty" class="hidden mb-4">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Jumlah Unit</label>
+                        <input type="number" id="input_qty_biasa" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-3 text-2xl font-black text-center" value="1">
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <x-form.group label="Status Urgensi">
                             <x-form.select id="input_status_urgensi">
                                 <option value="Normal">Normal</option>
@@ -168,14 +168,14 @@
                         </x-form.group>
                     </div>
 
-                    <x-form.group label="Catatan Produksi" class="mb-8">
-                        <textarea id="input_catatan_produksi" rows="2" placeholder="Catatan khusus untuk tim produksi (opsional)" class="w-full rounded-xl border-slate-200 p-3 text-sm"></textarea>
+                    <x-form.group label="Catatan Produksi" class="mb-4">
+                        <textarea id="input_catatan_produksi" rows="2" placeholder="Catatan khusus untuk tim produksi (opsional)" class="w-full rounded-xl border-slate-200 p-2.5 text-sm"></textarea>
                     </x-form.group>
 
                     {{-- Indikator stok BOM - PERINGATAN saja, tidak memblokir order
                          (lihat catatan keputusan: workflow percetakan biasa order
                          dulu, restock belakangan sebelum naik cetak) --}}
-                    <div id="stok_warning" hidden class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
+                    <div id="stok_warning" hidden class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
                         <i class="fas fa-exclamation-triangle text-amber-500 mt-0.5"></i>
                         <div>
                             <p class="text-xs font-bold text-amber-700 uppercase tracking-wide">Stok bahan tidak cukup</p>
@@ -183,17 +183,17 @@
                         </div>
                     </div>
 
-                    <div class="bg-indigo-900 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl shadow-indigo-100">
+                    <div class="bg-indigo-900 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl shadow-indigo-100">
                         <div class="text-center md:text-left">
                             <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1">Harga Estimasi</p>
-                            <h2 id="display_subtotal" class="text-4xl font-black text-white italic tracking-tighter font-mono">Rp 0</h2>
+                            <h2 id="display_subtotal" class="text-3xl font-black text-white italic tracking-tighter font-mono">Rp 0</h2>
                             <p id="display_harga" class="text-indigo-400 text-[10px] font-bold mt-1">Rp 0 /unit</p>
                             <span id="badge_promo" hidden class="mt-2 px-3 py-1 bg-rose-500 text-white text-xs font-bold uppercase tracking-widest rounded-full">🔥 Harga Promo Aktif</span>
                         </div>
-                        <div class="flex flex-wrap items-center justify-center gap-6">
+                        <div class="flex flex-wrap items-center justify-center gap-4">
                             <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-2">Finishing</p>
-                                <select id="select_finishing" onchange="onFinishingChange()" class="w-36 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Finishing</p>
+                                <select id="select_finishing" onchange="onFinishingChange()" class="w-32 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none">
                                     <option value="">-- Tanpa Finishing --</option>
                                     @foreach($finishing as $f)
                                         <option value="{{ $f->id_finishing }}" data-harga="{{ $f->harga_default ?? 0 }}">{{ $f->nama_finishing }}</option>
@@ -201,18 +201,18 @@
                                 </select>
                             </div>
                             <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-2">Biaya Cetak</p>
-                                <input type="number" id="input_cetak" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Cetak</p>
+                                <input type="number" id="input_cetak" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
                             </div>
                             <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-2">Biaya Finishing</p>
-                                <input type="number" id="input_finishing_biaya" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Finishing</p>
+                                <input type="number" id="input_finishing_biaya" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
                             </div>
                             <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-2">Biaya Desain</p>
-                                <input type="number" id="input_desain" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Desain</p>
+                                <input type="number" id="input_desain" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
                             </div>
-                            <button onclick="tambahKeKeranjang()" class="bg-emerald-500 hover:bg-emerald-400 text-white h-16 px-10 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all">
+                            <button onclick="tambahKeKeranjang()" class="bg-emerald-500 hover:bg-emerald-400 text-white h-12 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
                                 Tambah
                             </button>
                         </div>
@@ -221,7 +221,7 @@
 
                 {{-- TAMBAH JASA (layanan non-material, harga manual - lihat Master Jasa) --}}
                 <x-card>
-                    <div class="flex items-center gap-3 mb-8">
+                    <div class="flex items-center gap-3 mb-5">
                         <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
                         </div>
@@ -229,7 +229,7 @@
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">(Layanan non-material)</span>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <x-form.group label="Pilih Jasa">
                             <select id="select_jasa" onchange="onJasaChange()" class="select2-produk w-full">
                                 <option value="">-- Ketik Nama Jasa --</option>
@@ -246,12 +246,12 @@
                         </x-form.group>
                     </div>
 
-                    <x-form.group label="Keterangan" class="mb-6">
+                    <x-form.group label="Keterangan" class="mb-4">
                         <x-form.input type="text" id="jasa_keterangan" placeholder="Contoh: Instalasi banner outdoor" />
                     </x-form.group>
 
                     <div class="flex justify-end">
-                        <button onclick="tambahJasaKeKeranjang()" class="bg-purple-500 hover:bg-purple-400 text-white h-14 px-10 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all">
+                        <button onclick="tambahJasaKeKeranjang()" class="bg-purple-500 hover:bg-purple-400 text-white h-12 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
                             Tambah Jasa
                         </button>
                     </div>
@@ -260,32 +260,32 @@
 
             {{-- KERANJANG --}}
             <div class="w-full lg:w-[42%] flex flex-col self-stretch">
-                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
-                    <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
+                    <div class="p-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
                         <h3 class="text-lg font-bold text-slate-800">Keranjang Pesanan</h3>
                         <div id="item_count_badge" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-bold">0 Items</div>
                     </div>
 
                     <div class="flex-grow overflow-y-auto custom-scrollbar p-0">
                         <div id="cart_body" class="divide-y divide-slate-50 text-slate-600">
-                            <div class="py-20 text-center opacity-30">
+                            <div class="py-16 text-center opacity-30">
                                 <i class="fas fa-receipt text-2xl mb-2 block"></i>
                                 <p class="text-xs font-bold uppercase tracking-widest">Belum Ada Pesanan</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-auto p-8 bg-slate-900 rounded-b-[2rem]">
-                        <div class="flex justify-between items-center mb-8">
+                    <div class="mt-auto p-5 bg-slate-900 rounded-b-2xl">
+                        <div class="flex justify-between items-center mb-5">
                             <div>
                                 <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Pembayaran</p>
-                                <h2 id="grand_total" class="text-4xl font-black text-white font-mono tracking-tighter leading-none">Rp 0</h2>
+                                <h2 id="grand_total" class="text-3xl font-black text-white font-mono tracking-tighter leading-none">Rp 0</h2>
                             </div>
-                            <button onclick="resetCart()" class="p-3 bg-slate-800 text-slate-500 hover:text-red-400 rounded-xl transition-all">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <button onclick="resetCart()" class="p-2.5 bg-slate-800 text-slate-500 hover:text-red-400 rounded-xl transition-all">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
-                        <button onclick="simpanTransaksi()" class="w-full py-5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-2xl font-bold text-xs uppercase tracking-widest transition-all shadow-2xl shadow-indigo-900/40">
+                        <button onclick="simpanTransaksi()" class="w-full py-4 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-2xl shadow-indigo-900/40">
                             Simpan & Cetak Nota
                         </button>
                     </div>
