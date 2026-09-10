@@ -352,6 +352,25 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
 
     /*
     |--------------------------------------------------------------------------
+    | AKUNTANSI
+    |--------------------------------------------------------------------------
+    */
+
+    Route::resource('akun', \App\Http\Controllers\AkunController::class)->except(['create', 'edit', 'show']);
+    Route::patch('/akun/{id}/toggle-active', [\App\Http\Controllers\AkunController::class, 'toggleActive'])->name('akun.toggle-active');
+
+    Route::prefix('akuntansi')->name('akuntansi.')->group(function () {
+        Route::get('/jurnal', [\App\Http\Controllers\AkuntansiController::class, 'jurnal'])->name('jurnal');
+        Route::get('/buku-besar', [\App\Http\Controllers\AkuntansiController::class, 'bukuBesar'])->name('buku-besar');
+        Route::get('/neraca-saldo', [\App\Http\Controllers\AkuntansiController::class, 'neracaSaldo'])->name('neraca-saldo');
+        Route::get('/laba-rugi', [\App\Http\Controllers\AkuntansiController::class, 'labaRugi'])->name('laba-rugi');
+        Route::get('/neraca', [\App\Http\Controllers\AkuntansiController::class, 'neraca'])->name('neraca');
+    });
+
+
+
+    /*
+    |--------------------------------------------------------------------------
     | AKSES
     |--------------------------------------------------------------------------
     */

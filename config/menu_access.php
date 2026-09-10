@@ -62,6 +62,9 @@ return [
         'jasa' => [32],
         'gudang' => [33],
         'konsumen-deposit' => [34],
+
+        'akun' => [35],
+        'akuntansi' => [36],
     ],
 
     'always_allow' => [
