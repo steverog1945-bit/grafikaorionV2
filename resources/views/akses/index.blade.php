@@ -1,10 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-8">
-    <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Pengaturan Hak Akses</h1>
-    <p class="text-slate-500 text-sm">Tentukan menu apa saja yang boleh dibuka oleh setiap Role.</p>
-</div>
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+
+    <x-page-header title="Pengaturan Hak Akses" subtitle="Tentukan menu apa saja yang boleh dibuka oleh setiap Role." />
 
 <form action="{{ route('akses.update') }}" method="POST">
     @csrf
@@ -62,4 +61,6 @@
         </button>
     </div>
 </form>
+
+</div>
 @endsection
