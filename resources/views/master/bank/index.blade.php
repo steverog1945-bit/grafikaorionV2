@@ -68,7 +68,7 @@
             <input type="text" name="atas_nama" id="edit_atas_nama" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500" required>
         </div>
 
-        <button type="submit" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold shadow-lg mt-2 transition active:scale-95">Update Rekening</button>
+        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold shadow-lg mt-2 transition active:scale-95">Update Rekening</button>
     </form>
 </div>
 
