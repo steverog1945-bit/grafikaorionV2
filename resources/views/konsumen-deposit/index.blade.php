@@ -50,7 +50,7 @@
     {{-- RIWAYAT SETORAN --}}
     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
         <div class="px-8 py-5 border-b border-slate-100 bg-slate-50/50">
-            <h3 class="text-sm font-black text-slate-700 uppercase tracking-tight">Riwayat Setoran (50 Terbaru)</h3>
+            <h3 class="text-sm font-black text-slate-700 uppercase tracking-tight">Riwayat Deposit (50 Terbaru)</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full border-collapse">
@@ -58,8 +58,9 @@
                     <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
                         <th class="px-8 py-4 text-left">Tanggal</th>
                         <th class="px-6 py-4 text-left">Konsumen</th>
+                        <th class="px-6 py-4 text-center">Tipe</th>
                         <th class="px-6 py-4 text-right">Nominal</th>
-                        <th class="px-6 py-4 text-center">Metode</th>
+                        <th class="px-6 py-4 text-center">Metode / Nota</th>
                         <th class="px-6 py-4 text-left">Keterangan</th>
                         <th class="px-8 py-4 text-center">Dicatat Oleh</th>
                     </tr>
@@ -69,18 +70,29 @@
                     <tr class="hover:bg-slate-50/30 transition-all">
                         <td class="px-8 py-4 text-sm text-slate-600 font-semibold">{{ \Carbon\Carbon::parse($r->tgl_deposit)->format('d M Y') }}</td>
                         <td class="px-6 py-4 text-sm font-bold text-slate-700 uppercase">{{ $r->nama_konsumen }}</td>
-                        <td class="px-6 py-4 text-right text-sm font-black text-emerald-600">Rp {{ number_format($r->nominal, 0, ',', '.') }}</td>
                         <td class="px-6 py-4 text-center">
-                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase {{ $r->metode_bayar === 'Tunai' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600' }}">
-                                {{ $r->metode_bayar }}
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase {{ $r->tipe === 'Setoran' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }}">
+                                {{ $r->tipe }}
                             </span>
+                        </td>
+                        <td class="px-6 py-4 text-right text-sm font-black {{ $r->tipe === 'Setoran' ? 'text-emerald-600' : 'text-rose-500' }}">
+                            {{ $r->tipe === 'Setoran' ? '+' : '-' }} Rp {{ number_format($r->nominal, 0, ',', '.') }}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            @if($r->tipe === 'Setoran')
+                                <span class="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase {{ $r->metode_bayar === 'Tunai' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600' }}">
+                                    {{ $r->metode_bayar }}
+                                </span>
+                            @else
+                                <span class="text-[11px] text-indigo-500 font-mono">{{ $r->nomor_nota ?? '-' }}</span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-sm text-slate-500 italic truncate max-w-xs">{{ $r->keterangan ?? '-' }}</td>
                         <td class="px-8 py-4 text-center text-[11px] text-slate-400 font-mono">{{ $r->dicatat_oleh ?? '-' }}</td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="py-16 text-center text-slate-400 font-medium italic">Belum ada riwayat setoran.</td>
+                        <td colspan="7" class="py-16 text-center text-slate-400 font-medium italic">Belum ada riwayat deposit.</td>
                     </tr>
                     @endforelse
                 </tbody>

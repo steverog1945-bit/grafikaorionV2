@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Services\AccountingService;
+use App\Http\Controllers\KonsumenDepositController;
 
 class KasirController extends Controller
 {
@@ -151,8 +152,9 @@ class KasirController extends Controller
         $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
         $sisaTagihan = $transaksi->total_bayar - $totalTerbayar;
         $banks = DB::table('bank_perusahaan')->orderBy('nama_bank')->get();
+        $saldoDeposit = KonsumenDepositController::saldoUntuk($transaksi->id_konsumen);
 
-        return view('kasir.form_pembayaran', compact('transaksi', 'items', 'totalTerbayar', 'sisaTagihan', 'banks'));
+        return view('kasir.form_pembayaran', compact('transaksi', 'items', 'totalTerbayar', 'sisaTagihan', 'banks', 'saldoDeposit'));
     }
 
     public function prosesBayar(Request $request)
@@ -231,6 +233,33 @@ class KasirController extends Controller
                     throw new \Exception("Kasir belum dibuka! Silakan buka kas terlebih dahulu.");
                 }
 
+                $transaksiRow = DB::table('transaksi')->where('id_transaksi', $id_transaksi)->first();
+                $nomorNota = $transaksiRow->nomor_nota ?? null;
+
+                if ($metode === 'Deposit') {
+                    // Bukan uang tunai/transfer baru - ini menarik saldo deposit
+                    // yang sudah disetor sebelumnya (lihat KonsumenDepositController).
+                    // Validasi saldo di sini juga (bukan cuma client-side) supaya
+                    // tidak bisa "bayar" dari saldo yang tidak ada.
+                    $saldoDeposit = KonsumenDepositController::saldoUntuk((int) $transaksiRow->id_konsumen);
+                    if ($uangDiterimaSekarang > $saldoDeposit) {
+                        throw new \Exception("Saldo deposit tidak cukup. Tersedia: Rp " . number_format($saldoDeposit, 0, ',', '.'));
+                    }
+
+                    DB::table('konsumen_deposit')->insert([
+                        'id_konsumen'  => $transaksiRow->id_konsumen,
+                        'tipe'         => 'Pemakaian',
+                        'nominal'      => $uangDiterimaSekarang,
+                        'metode_bayar' => 'Deposit',
+                        'keterangan'   => "Pembayaran nota {$nomorNota}",
+                        'tgl_deposit'  => now()->toDateString(),
+                        'id_transaksi' => $id_transaksi,
+                        'id_user'      => Auth::id(),
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ]);
+                }
+
                 DB::table('pembayaran_riwayat')->insert([
                     'id_transaksi' => $id_transaksi,
                     'nominal'      => $uangDiterimaSekarang,
@@ -240,15 +269,19 @@ class KasirController extends Controller
                     'keterangan'   => "Pembayaran via Kasir"
                 ]);
 
-                // Update Saldo Kas
+                // Update Saldo Kas - Deposit TIDAK menambah kas hari ini, karena
+                // uangnya sudah masuk kas saat setoran deposit dulu, bukan hari ini.
                 if ($metode == 'Tunai') {
                     DB::table('kas_harian')->where('id_kas', $kas->id_kas)->increment('saldo_akhir', $uangDiterimaSekarang);
-                } else {
+                } elseif ($metode == 'Transfer') {
                     DB::table('kas_harian')->where('id_kas', $kas->id_kas)->increment('total_transfer', $uangDiterimaSekarang);
                 }
 
-                $nomorNota = DB::table('transaksi')->where('id_transaksi', $id_transaksi)->value('nomor_nota');
-                AccountingService::postPembayaran($nomorNota, $uangDiterimaSekarang, $metode);
+                if ($metode === 'Deposit') {
+                    AccountingService::postPembayaranDeposit($nomorNota, $uangDiterimaSekarang);
+                } else {
+                    AccountingService::postPembayaran($nomorNota, $uangDiterimaSekarang, $metode);
+                }
             }
 
             // 3. Update Status (Paksa pindah dari Belum Bayar ke DP)

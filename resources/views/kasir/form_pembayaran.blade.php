@@ -101,6 +101,7 @@
                         <select name="metode_pembayaran" id="metode-pembayaran" onchange="toggleBankField()" class="w-full h-14 rounded-2xl border-slate-200 text-base font-bold focus:ring-4 focus:ring-indigo-100 transition-all">
                             <option value="Tunai">💵 TUNAI</option>
                             <option value="Transfer">🏦 TRANSFER</option>
+                            <option value="Deposit" {{ $saldoDeposit <= 0 ? 'disabled' : '' }}>👛 DEPOSIT (Saldo: Rp {{ number_format($saldoDeposit, 0, ',', '.') }})</option>
                         </select>
                     </div>
                     <div id="wrapper-bank" class="hidden">
@@ -111,6 +112,12 @@
                                 <option value="{{ $b->id_bank }}">{{ $b->nama_bank }} - {{ $b->nomor_rekening }} ({{ $b->atas_nama }})</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div id="wrapper-deposit-info" class="hidden bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
+                        <p class="text-[11px] font-bold text-indigo-600 uppercase tracking-wide">
+                            Saldo deposit tersedia: Rp {{ number_format($saldoDeposit, 0, ',', '.') }}
+                        </p>
+                        <p class="text-[10px] text-indigo-400 mt-1">Jumlah bayar tidak boleh melebihi saldo ini.</p>
                     </div>
                     <div>
                         <label class="block text-xs font-black text-slate-500 uppercase mb-3">Uang Diterima</label>
@@ -249,10 +256,26 @@
         calculateInvoice();
     }
 
+    const saldoDepositTersedia = {{ (float) $saldoDeposit }};
+
     function toggleBankField() {
         const metode = document.getElementById('metode-pembayaran').value;
         document.getElementById('wrapper-bank').classList.toggle('hidden', metode !== 'Transfer');
+        document.getElementById('wrapper-deposit-info').classList.toggle('hidden', metode !== 'Deposit');
     }
+
+    // Validasi ringan di sisi klien supaya kasir langsung tahu kalau input
+    // melebihi saldo deposit - validasi SEBENARNYA tetap di server
+    // (KasirController::prosesBayar), ini cuma UX, bukan satu-satunya
+    // penjaga.
+    document.getElementById('form-pembayaran').addEventListener('submit', function (e) {
+        const metode = document.getElementById('metode-pembayaran').value;
+        const bayar = cleanRupiah(document.getElementById('input-bayar-mask').value);
+        if (metode === 'Deposit' && bayar > saldoDepositTersedia) {
+            e.preventDefault();
+            alert('Jumlah bayar melebihi saldo deposit yang tersedia (Rp ' + formatRupiah(saldoDepositTersedia) + ').');
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', function () {
         calculateInvoice();

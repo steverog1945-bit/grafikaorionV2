@@ -26,7 +26,9 @@ class AccountingService
     private const AKUN_PIUTANG_USAHA = '1100';
     private const AKUN_PERSEDIAAN_BAHAN = '1200';
     private const AKUN_HUTANG_USAHA = '2000';
+    private const AKUN_HUTANG_DEPOSIT = '2100';
     private const AKUN_PENDAPATAN_PENJUALAN = '4000';
+    private const AKUN_PENDAPATAN_JASA = '4100';
     private const AKUN_HPP = '5000';
 
     /**
@@ -156,6 +158,48 @@ class AccountingService
         self::postJournal(now()->toDateString(), $noFaktur, "Pelunasan hutang {$noFaktur}", [
             ['kode_akun' => self::AKUN_HUTANG_USAHA, 'debet' => $grandTotal],
             ['kode_akun' => self::AKUN_KAS, 'kredit' => $grandTotal],
+        ]);
+    }
+
+    /**
+     * Setoran deposit konsumen diterima (KonsumenDepositController::store).
+     * Uang benar-benar masuk (Kas/Bank), tapi belum jadi pendapatan - masih
+     * kewajiban (Hutang Deposit Konsumen) sampai dipakai bayar nota.
+     */
+    public static function postSetoranDeposit(string $noReferensi, float $nominal, string $metode): void
+    {
+        $akunSumber = $metode === 'Tunai' ? self::AKUN_KAS : self::AKUN_BANK;
+
+        self::postJournal(now()->toDateString(), $noReferensi, "Setoran deposit {$noReferensi}", [
+            ['kode_akun' => $akunSumber, 'debet' => $nominal],
+            ['kode_akun' => self::AKUN_HUTANG_DEPOSIT, 'kredit' => $nominal],
+        ]);
+    }
+
+    /**
+     * Deposit dipakai sebagai pembayaran nota (KasirController::prosesBayar,
+     * metode 'Deposit'). Tidak ada Kas/Bank baru yang masuk di sini - uangnya
+     * sudah masuk saat setoran - jadi ini murni memindahkan saldo dari
+     * kewajiban deposit ke pelunasan piutang.
+     */
+    public static function postPembayaranDeposit(string $noNota, float $nominal): void
+    {
+        self::postJournal(now()->toDateString(), $noNota, "Pembayaran via deposit {$noNota}", [
+            ['kode_akun' => self::AKUN_HUTANG_DEPOSIT, 'debet' => $nominal],
+            ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'kredit' => $nominal],
+        ]);
+    }
+
+    /**
+     * Penjualan Jasa (dipisah dari postPenjualan karena Jasa tidak punya
+     * BOM/HPP bahan baku - langsung Dr Piutang / Cr Pendapatan Jasa, tanpa
+     * baris HPP kedua seperti penjualan produk fisik).
+     */
+    public static function postPenjualanJasa(string $noNota, float $grandTotal): void
+    {
+        self::postJournal(now()->toDateString(), $noNota, "Penjualan jasa {$noNota}", [
+            ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'debet' => $grandTotal],
+            ['kode_akun' => self::AKUN_PENDAPATAN_JASA, 'kredit' => $grandTotal],
         ]);
     }
 }
