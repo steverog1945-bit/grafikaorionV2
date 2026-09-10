@@ -494,6 +494,12 @@
         });
     }
 
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str ?? '';
+        return div.innerHTML;
+    }
+
     function renderCart() {
         const container = document.getElementById('cart_body');
         container.innerHTML = '';
@@ -508,8 +514,8 @@
             container.innerHTML += `
                 <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50">
                     <td class="px-6 py-4">
-                        <p class="text-[11px] font-black text-slate-800 uppercase leading-none">${item.nama_produk}</p>
-                        <p class="text-[9px] text-slate-400 mt-1 uppercase font-bold tracking-tight">${item.nama_file}</p>
+                        <p class="text-[11px] font-black text-slate-800 uppercase leading-none">${escapeHtml(item.nama_produk)}</p>
+                        <p class="text-[9px] text-slate-400 mt-1 uppercase font-bold tracking-tight">${escapeHtml(item.nama_file)}</p>
                     </td>
                     <td class="px-4 py-4 text-center font-mono text-[10px] font-bold text-slate-700">
                         ${item.qty_hitung.toFixed(2)}
