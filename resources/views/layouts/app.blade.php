@@ -170,6 +170,12 @@
         </svg>
         <span class="text-sm font-medium">Bahan Baku</span>
     </a>
+    <a href="{{ url('/kartu-stok') }}" class="{{ $menuClass }} {{ Request::is('kartu-stok*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('kartu-stok*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h4m0 0l-3-3m3 3l-3 3M5 7v10a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2h-4l-2-2H7a2 2 0 00-2 2z" />
+        </svg>
+        <span class="text-sm font-medium">Kartu Stok</span>
+    </a>
     @endif
     @if($cekAkses(20))
     <a href="{{ route('pembelian-bahan.index') }}"
