@@ -143,6 +143,7 @@ class SpkController extends Controller
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->join('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
             ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
+            ->leftJoin('finishing', 'transaksi_detail.id_finishing', '=', 'finishing.id_finishing')
             ->where('transaksi_detail.id_detail', $id)
             ->select(
                 'transaksi_detail.*',
@@ -151,7 +152,8 @@ class SpkController extends Controller
                 'konsumen.nama_konsumen',
                 'produk.nama_produk',
                 'produk.metode_hitung',
-                'mesin.nama_mesin as divisi'
+                'mesin.nama_mesin as divisi',
+                'finishing.nama_finishing'
             )
             ->first();
 

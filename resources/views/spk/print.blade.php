@@ -54,6 +54,9 @@
             @endif
             <tr><td>Qty Order</td><td class="right">{{ $detail->qty }}</td></tr>
             <tr><td>Qty Cetak</td><td class="right">{{ $detail->qty_cetak ?? '-' }}</td></tr>
+            @if($detail->nama_finishing)
+            <tr><td colspan="2" style="font-weight:bold; padding-top:6px;">Finishing: {{ $detail->nama_finishing }}</td></tr>
+            @endif
             @if($detail->status_urgent)
             <tr><td colspan="2" class="right" style="font-weight:bold;">*** URGENT ***</td></tr>
             @endif

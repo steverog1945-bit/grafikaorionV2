@@ -24,13 +24,14 @@ class PenjualanController extends Controller
 
     $golongan = DB::table('golongan_konsumen')->get();
     $konsumen = DB::table('konsumen')->get();
-    
+    $finishing = DB::table('finishing')->orderBy('nama_finishing')->get();
+
     // Generate No. Nota
     $date = date('Ymd');
     $lastNota = DB::table('transaksi')->whereDate('tgl_order', date('Y-m-d'))->count();
     $no_nota = "INV-" . $date . "-" . str_pad($lastNota + 1, 3, '0', STR_PAD_LEFT);
 
-    return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori'));
+    return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing'));
 }
 
 public function getHarga($id_produk, $id_golongan, $qty) {
@@ -119,6 +120,17 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         // hanya dipastikan tidak negatif supaya tidak bisa dipakai mengurangi total.
         $biayaDesain = max(0, (float) ($item['biaya_desain'] ?? 0));
 
+        // id_finishing opsional (produk boleh tanpa finishing). Divalidasi ke
+        // tabel finishing supaya id yang dipalsukan dari client tidak lolos
+        // ke foreign key transaksi_detail.id_finishing. biaya_finishing input
+        // manual operator sama seperti biaya_desain (harga_default di master
+        // Finishing cuma starting point, bukan harga final).
+        $idFinishing = !empty($item['id_finishing']) ? (int) $item['id_finishing'] : null;
+        if ($idFinishing && !DB::table('finishing')->where('id_finishing', $idFinishing)->exists()) {
+            return response()->json(['status' => 'error', 'msg' => 'Finishing pada baris ' . ($index + 1) . ' tidak ditemukan.'], 422);
+        }
+        $biayaFinishing = max(0, (float) ($item['biaya_finishing'] ?? 0));
+
         $itemsTervalidasi[] = [
             'id_produk' => $produk->id_produk,
             'nama_file' => $item['nama_file'] ?? '-',
@@ -126,7 +138,9 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             'l' => $l,
             'qty_input' => $qtyInput,
             'qty_hitung' => $qtyHitung,
-            'subtotal' => ($hargaSatuan * $qtyHitung) + $biayaDesain,
+            'id_finishing' => $idFinishing,
+            'biaya_finishing' => $biayaFinishing,
+            'subtotal' => ($hargaSatuan * $qtyHitung) + $biayaDesain + $biayaFinishing,
         ];
     }
 
@@ -150,14 +164,16 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             $jumlah_order = $item['qty_input'];
 
             DB::table('transaksi_detail')->insert([
-                'id_transaksi' => $id_transaksi,
-                'id_produk'    => $item['id_produk'],
-                'nama_file'    => $item['nama_file'],
-                'p_ukuran'     => $item['p'],
-                'l_ukuran'     => $item['l'],
-                'qty'          => $jumlah_order,
-                'subtotal'     => $item['subtotal'],
-                'status_spk'   => 'Antre',
+                'id_transaksi'     => $id_transaksi,
+                'id_produk'        => $item['id_produk'],
+                'nama_file'        => $item['nama_file'],
+                'p_ukuran'         => $item['p'],
+                'l_ukuran'         => $item['l'],
+                'qty'              => $jumlah_order,
+                'id_finishing'     => $item['id_finishing'],
+                'biaya_finishing'  => $item['biaya_finishing'],
+                'subtotal'         => $item['subtotal'],
+                'status_spk'       => 'Antre',
             ]);
 
             $boms = DB::table('bom_detail')

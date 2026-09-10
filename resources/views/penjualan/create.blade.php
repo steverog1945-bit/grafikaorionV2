@@ -128,10 +128,23 @@
                             <p id="display_harga" class="text-indigo-400 text-[10px] mt-1">Rp 0 /unit</p>
                             <span id="badge_promo" hidden class="mt-2 px-3 py-1 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full">🔥 Harga Promo Aktif</span>
                         </div>
-                        <div class="flex items-center gap-6">
+                        <div class="flex flex-wrap items-center justify-center gap-6">
+                            <div class="text-right">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Finishing</p>
+                                <select id="select_finishing" onchange="onFinishingChange()" class="w-36 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none">
+                                    <option value="">-- Tanpa Finishing --</option>
+                                    @foreach($finishing as $f)
+                                        <option value="{{ $f->id_finishing }}" data-harga="{{ $f->harga_default ?? 0 }}">{{ $f->nama_finishing }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Biaya Finishing</p>
+                                <input type="number" id="input_finishing_biaya" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-right focus:outline-none" value="0">
+                            </div>
                             <div class="text-right">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Biaya Desain</p>
-                                <input type="number" id="input_desain" oninput="hitungSubtotal()" class="w-32 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-right focus:outline-none" value="0">
+                                <input type="number" id="input_desain" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-right focus:outline-none" value="0">
                             </div>
                             <button onclick="tambahKeKeranjang()" class="bg-emerald-500 hover:bg-emerald-400 text-white h-16 px-10 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
                                 Tambah
@@ -420,6 +433,14 @@
         } catch (e) { console.error("Gagal ambil produk:", e); }
     }
 
+    function onFinishingChange() {
+        const sel = document.getElementById('select_finishing');
+        const opt = sel.options[sel.selectedIndex];
+        const harga = opt ? parseFloat(opt.getAttribute('data-harga')) || 0 : 0;
+        document.getElementById('input_finishing_biaya').value = harga;
+        hitungSubtotal();
+    }
+
     async function hitungSubtotal() {
         if (!currentProduk) return null;
         const idGol = document.getElementById('id_golongan').value;
@@ -428,6 +449,7 @@
         const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
         const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
         const biayaDesain = parseFloat(document.getElementById('input_desain').value) || 0;
+        const biayaFinishing = parseFloat(document.getElementById('input_finishing_biaya').value) || 0;
 
         let qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
         if (qtyCari <= 0) { updateDisplay(0, 0); return null; }
@@ -437,7 +459,7 @@
             const response = await fetch(url);
             const data = await response.json();
             const hargaJual = parseFloat(data.harga_jual) || 0;
-            const subtotal = (hargaJual * qtyCari) + biayaDesain;
+            const subtotal = (hargaJual * qtyCari) + biayaDesain + biayaFinishing;
             updateDisplay(hargaJual, subtotal, data.is_promo);
             return { harga_satuan: hargaJual, subtotal: subtotal, qty_hitung: qtyCari, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB };
         } catch (error) { return null; }
@@ -466,6 +488,10 @@
         const res = await hitungSubtotal();
         if (!res || res.harga_satuan <= 0) return Swal.fire('Opps!', 'Detail belum lengkap.', 'error');
 
+        const selFinishing = document.getElementById('select_finishing');
+        const idFinishing = selFinishing.value || null;
+        const namaFinishing = idFinishing ? selFinishing.options[selFinishing.selectedIndex].text : null;
+
         const itemData = {
             id_produk: currentProduk.id_produk,
             nama_produk: currentProduk.nama_produk,
@@ -475,6 +501,9 @@
             qty_hitung: res.qty_hitung,
             harga_satuan: res.harga_satuan,
             biaya_desain: parseFloat(document.getElementById('input_desain').value) || 0,
+            id_finishing: idFinishing,
+            nama_finishing: namaFinishing,
+            biaya_finishing: parseFloat(document.getElementById('input_finishing_biaya').value) || 0,
             subtotal: res.subtotal,
             id_kategori: $('#filter_kategori').val()
         };
@@ -516,6 +545,7 @@
                     <td class="px-6 py-4">
                         <p class="text-[11px] font-black text-slate-800 uppercase leading-none">${escapeHtml(item.nama_produk)}</p>
                         <p class="text-[9px] text-slate-400 mt-1 uppercase font-bold tracking-tight">${escapeHtml(item.nama_file)}</p>
+                        ${item.id_finishing ? `<p class="text-[9px] text-indigo-500 mt-1 uppercase font-bold tracking-tight">✨ ${escapeHtml(item.nama_finishing)}</p>` : ''}
                     </td>
                     <td class="px-4 py-4 text-center font-mono text-[10px] font-bold text-slate-700">
                         ${item.qty_hitung.toFixed(2)}
@@ -568,6 +598,8 @@
             document.getElementById('input_qty_ukuran').value = item.qty_input;
             document.getElementById('input_qty_biasa').value = item.qty_input;
             document.getElementById('input_desain').value = item.biaya_desain;
+            document.getElementById('select_finishing').value = item.id_finishing || '';
+            document.getElementById('input_finishing_biaya').value = item.biaya_finishing || 0;
 
             const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
             btn.innerText = "UPDATE ITEM";
@@ -585,6 +617,8 @@
         document.getElementById('input_qty_ukuran').value = "1";
         document.getElementById('input_qty_biasa').value = "1";
         document.getElementById('input_desain').value = "0";
+        document.getElementById('select_finishing').value = "";
+        document.getElementById('input_finishing_biaya').value = "0";
         document.getElementById('display_harga').innerText = "Rp 0 /unit";
         document.getElementById('display_subtotal').innerText = "Rp 0";
 
