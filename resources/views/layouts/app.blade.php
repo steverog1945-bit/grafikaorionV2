@@ -66,6 +66,25 @@
        dipindahkan ke resources/css/app.css supaya diproses satu jalur oleh
        Tailwind (beberapa rule di sana memakai @apply yang HANYA berfungsi
        lewat pipeline itu, tidak bisa jalan dari <style> inline seperti ini). */
+
+    /* SIDEBAR SCROLL FIX: aside punya tinggi tetap (top:0;bottom:0) dan nav
+       di dalamnya sekarang berisi puluhan menu (SPK, Produksi, Collecting,
+       Laporan, Harga Promo, dst semuanya ditambahkan seiring waktu) - tanpa
+       overflow di sini, menu-menu di bagian bawah (System Control, Laporan,
+       bahkan Logout) terpotong habis oleh viewport dan sama sekali tidak
+       bisa dijangkau, oleh role manapun termasuk Administrator. nav diberi
+       flex:1 supaya mengisi sisa tinggi aside (setelah header & status kas),
+       lalu overflow-y:auto supaya sisanya bisa discroll di dalam sidebar
+       sendiri tanpa menggeser halaman utama. */
+    #mainSidebar nav {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
+    #mainSidebar nav::-webkit-scrollbar { width: 6px; }
+    #mainSidebar nav::-webkit-scrollbar-track { background: transparent; }
+    #mainSidebar nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 999px; }
+    #mainSidebar nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
 </style>
     
 </head>
