@@ -273,7 +273,12 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Stok Awal</label>
                             <input type="number" step="0.001" name="stok" id="input_stok" required value="0"
-                                   class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                                   class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner disabled:opacity-60 disabled:cursor-not-allowed">
+                            <p id="stok_locked_hint" class="hidden mt-2 ml-1 text-[10px] text-slate-400 leading-relaxed">
+                                <i class="fas fa-lock mr-0.5"></i> Sudah ada histori stok. Ubah lewat
+                                <a href="{{ route('kartu-stok.index') }}" class="text-indigo-500 font-bold hover:underline" target="_blank">Kartu Stok &rarr; Penyesuaian</a>
+                                supaya tercatat jejaknya.
+                            </p>
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Stok Minimal</label>
@@ -310,6 +315,13 @@
         document.getElementById('formBahan').action = "{{ route('bahan.store') }}";
         document.getElementById('methodField').innerHTML = '';
         document.getElementById('formBahan').reset();
+
+        // Stok Awal hanya bisa diisi bebas saat REGISTRASI bahan baru (belum
+        // ada histori kartu_stok apa pun) - lihat editBahan() untuk kenapa
+        // ini dikunci saat mode edit.
+        document.getElementById('input_stok').disabled = false;
+        document.getElementById('stok_locked_hint').classList.add('hidden');
+
         document.getElementById('modalBahan').classList.remove('hidden');
     }
 
@@ -326,7 +338,17 @@
         document.getElementById('input_id_satuan_stok').value = data.id_satuan_stok;
         document.getElementById('input_id_satuan_hitung').value = data.id_satuan_hitung;
         document.getElementById('input_nilai_konversi').value = data.nilai_konversi;
+
+        // Stok pada bahan yang SUDAH ada tidak boleh diubah lewat form ini
+        // lagi - dulu field ini biasa saja, jadi mengedit nama/kategori bisa
+        // ikut diam-diam mengubah angka stok tanpa jejak apa pun di
+        // kartu_stok. Field dikunci (disabled -> tidak ikut terkirim saat
+        // submit) dan diarahkan ke Kartu Stok > Penyesuaian, satu-satunya
+        // jalur resmi yang selalu mewajibkan alasan & mencatat histori.
         document.getElementById('input_stok').value = data.stok;
+        document.getElementById('input_stok').disabled = true;
+        document.getElementById('stok_locked_hint').classList.remove('hidden');
+
         document.getElementById('input_stok_minimal').value = data.stok_minimal;
         document.getElementById('input_id_merk').value = data.id_merk || '';
         document.getElementById('input_id_jenis_bahan').value = data.id_jenis_bahan || '';

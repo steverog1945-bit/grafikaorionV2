@@ -219,11 +219,34 @@ public function bulkDelete(Request $request)
 
             if (!$kedatangan) continue;
 
-            // 🔴 Kurangi stok jika selesai
+            // 🔴 Kurangi stok jika selesai - dan CATAT ke kartu_stok. Sebelumnya
+            // baris ini cuma decrement() langsung tanpa insert kartu_stok sama
+            // sekali, jadi begitu kedatangan yang sudah "Selesai" dihapus,
+            // bahan_baku.stok turun tapi kartu_stok tetap menyimpan baris IN
+            // lama seolah stok itu masih berlaku - ledger dan angka live jadi
+            // tidak nyambung, tidak bisa dipertanggungjawabkan lagi.
             if ($kedatangan->status == 'Selesai') {
                 foreach ($kedatangan->detail as $d) {
-                    BahanBaku::where('id_bahan', $d->id_bahan)
-                        ->decrement('stok', $d->qty);
+                    $bahan = BahanBaku::where('id_bahan', $d->id_bahan)->lockForUpdate()->first();
+                    if (!$bahan) continue;
+
+                    $stokSebelum = $bahan->stok;
+                    $stokSesudah = $stokSebelum - $d->qty;
+                    $bahan->update(['stok' => $stokSesudah]);
+
+                    DB::table('kartu_stok')->insert([
+                        'id_bahan'     => $d->id_bahan,
+                        'tanggal'      => now(),
+                        'tipe'         => 'OUT',
+                        'qty'          => $d->qty,
+                        'stok_sebelum' => $stokSebelum,
+                        'stok_sesudah' => $stokSesudah,
+                        'referensi'    => $kedatangan->no_surat_jalan,
+                        'keterangan'   => 'Pembatalan kedatangan bahan (hapus massal) - stok dikembalikan',
+                        'created_by'   => auth()->id(),
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ]);
                 }
             }
 
@@ -255,11 +278,31 @@ public function bulkDelete(Request $request)
 
     DB::transaction(function () use ($request, $kedatangan) {
 
-        // 🔴 1. Jika sebelumnya Selesai → kembalikan stok lama
+        // 🔴 1. Jika sebelumnya Selesai → kembalikan stok lama, DAN catat ke
+        // kartu_stok (sebelumnya cuma decrement() langsung - stok berubah
+        // tapi tidak ada baris ledger yang menjelaskan kenapa).
         if ($kedatangan->status == 'Selesai') {
             foreach ($kedatangan->detail as $old) {
-                BahanBaku::where('id_bahan', $old->id_bahan)
-                    ->decrement('stok', $old->qty);
+                $bahan = BahanBaku::where('id_bahan', $old->id_bahan)->lockForUpdate()->first();
+                if (!$bahan) continue;
+
+                $stokSebelum = $bahan->stok;
+                $stokSesudah = $stokSebelum - $old->qty;
+                $bahan->update(['stok' => $stokSesudah]);
+
+                DB::table('kartu_stok')->insert([
+                    'id_bahan'     => $old->id_bahan,
+                    'tanggal'      => now(),
+                    'tipe'         => 'OUT',
+                    'qty'          => $old->qty,
+                    'stok_sebelum' => $stokSebelum,
+                    'stok_sesudah' => $stokSesudah,
+                    'referensi'    => $kedatangan->no_surat_jalan,
+                    'keterangan'   => 'Edit kedatangan bahan - stok lama dikembalikan sebelum diganti data baru',
+                    'created_by'   => auth()->id(),
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
             }
         }
 
@@ -288,10 +331,29 @@ public function bulkDelete(Request $request)
                 'status'        => 'OK',
             ]);
 
-            // 🟢 5. Tambah stok jika status selesai
+            // 🟢 5. Tambah stok jika status selesai - juga dicatat ke
+            // kartu_stok (sebelumnya cuma increment() langsung).
             if (($request->status ?? 'Draft') == 'Selesai') {
-                BahanBaku::where('id_bahan', $id_bahan)
-                    ->increment('stok', $request->qty[$key]);
+                $bahan = BahanBaku::where('id_bahan', $id_bahan)->lockForUpdate()->first();
+                if ($bahan) {
+                    $stokSebelum = $bahan->stok;
+                    $stokSesudah = $stokSebelum + $request->qty[$key];
+                    $bahan->update(['stok' => $stokSesudah]);
+
+                    DB::table('kartu_stok')->insert([
+                        'id_bahan'     => $id_bahan,
+                        'tanggal'      => now(),
+                        'tipe'         => 'IN',
+                        'qty'          => $request->qty[$key],
+                        'stok_sebelum' => $stokSebelum,
+                        'stok_sesudah' => $stokSesudah,
+                        'referensi'    => $request->no_surat_jalan,
+                        'keterangan'   => 'Edit kedatangan bahan - stok baru ditambahkan',
+                        'created_by'   => auth()->id(),
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ]);
+                }
             }
         }
     });
@@ -319,11 +381,30 @@ public function ajaxBahan(Request $request)
 
     DB::transaction(function() use($kedatangan) {
 
-        // 🔴 Kurangi stok jika sudah selesai
+        // 🔴 Kurangi stok jika sudah selesai - dan catat ke kartu_stok
+        // (sebelumnya cuma decrement() langsung, sama seperti bulkDelete()).
         if ($kedatangan->status == 'Selesai') {
             foreach ($kedatangan->detail as $d) {
-                BahanBaku::where('id_bahan', $d->id_bahan)
-                    ->decrement('stok', $d->qty);
+                $bahan = BahanBaku::where('id_bahan', $d->id_bahan)->lockForUpdate()->first();
+                if (!$bahan) continue;
+
+                $stokSebelum = $bahan->stok;
+                $stokSesudah = $stokSebelum - $d->qty;
+                $bahan->update(['stok' => $stokSesudah]);
+
+                DB::table('kartu_stok')->insert([
+                    'id_bahan'     => $d->id_bahan,
+                    'tanggal'      => now(),
+                    'tipe'         => 'OUT',
+                    'qty'          => $d->qty,
+                    'stok_sebelum' => $stokSebelum,
+                    'stok_sesudah' => $stokSesudah,
+                    'referensi'    => $kedatangan->no_surat_jalan,
+                    'keterangan'   => 'Kedatangan bahan dihapus - stok dikembalikan',
+                    'created_by'   => auth()->id(),
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
             }
         }
 

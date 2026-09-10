@@ -58,7 +58,7 @@ class BahanBakuController extends Controller
             'id_satuan_stok'    => 'required',
             'id_satuan_hitung'  => 'required',
             'nilai_konversi'    => 'required|numeric|min:0.0001',
-            'stok'              => 'required|numeric',
+            'stok'              => 'required|numeric|min:0',
             'stok_minimal'      => 'required|numeric',
             'id_merk'           => 'nullable|exists:merk,id_merk',
             'id_jenis_bahan'    => 'nullable|exists:jenis_bahan,id_jenis_bahan',
@@ -67,32 +67,54 @@ class BahanBakuController extends Controller
         ]);
 
         try {
-            // satuan_stok (kolom string legacy) diturunkan otomatis dari nama
-            // satuan yang dipilih di id_satuan_stok - form ini tidak pernah
-            // mengirim field teks terpisah untuk itu, jadi sebelumnya selalu
-            // tersimpan '-' untuk SEMUA bahan baru (lihat Paper Sublime,
-            // id_bahan 13, yang persis menunjukkan gejala ini).
-            $namaSatuanStok = Satuan::find($request->id_satuan_stok)->nama_satuan ?? '-';
+            return DB::transaction(function () use ($request) {
+                // satuan_stok (kolom string legacy) diturunkan otomatis dari nama
+                // satuan yang dipilih di id_satuan_stok - form ini tidak pernah
+                // mengirim field teks terpisah untuk itu, jadi sebelumnya selalu
+                // tersimpan '-' untuk SEMUA bahan baru (lihat Paper Sublime,
+                // id_bahan 13, yang persis menunjukkan gejala ini).
+                $namaSatuanStok = Satuan::find($request->id_satuan_stok)->nama_satuan ?? '-';
 
-            BahanBaku::create([
-                'nama_bahan'       => $request->nama_bahan,
-                'kode_bahan'       => $request->kode_bahan,
-                'id_mesin'         => $request->id_mesin,
-                'id_kategori'      => $request->id_kategori,
-                'id_satuan_stok'   => $request->id_satuan_stok,
-                'id_satuan_hitung' => $request->id_satuan_hitung,
-                'nilai_konversi'   => $request->nilai_konversi,
-                'lebar_roll'       => $request->lebar_roll ?: null,
-                'panjang_roll'     => $request->panjang_roll ?: null,
-                'stok'             => $request->stok,
-                'stok_minimal'     => $request->stok_minimal,
-                'satuan_stok'      => $namaSatuanStok,
-                'id_merk'          => $request->id_merk ?: null,
-                'id_jenis_bahan'   => $request->id_jenis_bahan ?: null,
-                'status'           => 'aktif'
-            ]);
+                $bahan = BahanBaku::create([
+                    'nama_bahan'       => $request->nama_bahan,
+                    'kode_bahan'       => $request->kode_bahan,
+                    'id_mesin'         => $request->id_mesin,
+                    'id_kategori'      => $request->id_kategori,
+                    'id_satuan_stok'   => $request->id_satuan_stok,
+                    'id_satuan_hitung' => $request->id_satuan_hitung,
+                    'nilai_konversi'   => $request->nilai_konversi,
+                    'lebar_roll'       => $request->lebar_roll ?: null,
+                    'panjang_roll'     => $request->panjang_roll ?: null,
+                    'stok'             => $request->stok,
+                    'stok_minimal'     => $request->stok_minimal,
+                    'satuan_stok'      => $namaSatuanStok,
+                    'id_merk'          => $request->id_merk ?: null,
+                    'id_jenis_bahan'   => $request->id_jenis_bahan ?: null,
+                    'status'           => 'aktif'
+                ]);
 
-            return back()->with('success', 'Bahan baku dengan logika konversi berhasil disimpan!');
+                // Stok awal saat bahan baru didaftarkan tetap harus tercatat
+                // di kartu_stok - kalau tidak, angka stok pertama bahan ini
+                // muncul begitu saja tanpa jejak (audit trail bolong sejak
+                // hari pertama bahan itu ada).
+                if ((float) $request->stok > 0) {
+                    DB::table('kartu_stok')->insert([
+                        'id_bahan'     => $bahan->id_bahan,
+                        'tanggal'      => now(),
+                        'tipe'         => 'IN',
+                        'qty'          => $request->stok,
+                        'stok_sebelum' => 0,
+                        'stok_sesudah' => $request->stok,
+                        'referensi'    => 'STOK-AWAL',
+                        'keterangan'   => 'Stok awal saat pendaftaran bahan baru',
+                        'created_by'   => auth()->id(),
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ]);
+                }
+
+                return back()->with('success', 'Bahan baku dengan logika konversi berhasil disimpan!');
+            });
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
         }
@@ -106,7 +128,6 @@ class BahanBakuController extends Controller
             'id_satuan_stok'    => 'required',
             'id_satuan_hitung'  => 'required',
             'nilai_konversi'    => 'required|numeric|min:0.0001',
-            'stok'              => 'required|numeric',
             'stok_minimal'      => 'required|numeric',
             'id_merk'           => 'nullable|exists:merk,id_merk',
             'id_jenis_bahan'    => 'nullable|exists:jenis_bahan,id_jenis_bahan',
@@ -116,8 +137,15 @@ class BahanBakuController extends Controller
 
         $bahan = BahanBaku::findOrFail($id_bahan);
 
+        // 'stok' SENGAJA tidak lagi diterima di sini (sebelumnya ada di
+        // validasi & fillable, jadi form edit bahan biasa - buat perbaiki
+        // nama/kategori/dll - bisa diam-diam mengubah angka stok tanpa
+        // jejak apa pun di kartu_stok. Field "Stok Awal" di modal sekarang
+        // dikunci saat mode edit (lihat editBahan() di view); satu-satunya
+        // jalur resmi mengubah stok bahan yang SUDAH ada adalah Kartu Stok
+        // > Penyesuaian, yang mewajibkan alasan dan selalu mencatat kartu_stok.
         $data = $request->only([
-            'nama_bahan', 'kode_bahan', 'id_mesin', 'id_kategori', 'stok',
+            'nama_bahan', 'kode_bahan', 'id_mesin', 'id_kategori',
             'stok_minimal', 'id_satuan_stok', 'id_satuan_hitung', 'nilai_konversi',
         ]);
         $data['id_merk'] = $request->id_merk ?: null;
