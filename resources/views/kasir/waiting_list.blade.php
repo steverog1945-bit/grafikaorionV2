@@ -1,15 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <div>
-        <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight uppercase">📢 Antrean Pesanan Baru</h2>
-        <p class="text-slate-500 text-sm italic font-medium">Daftar transaksi yang belum diproses pembayarannya oleh kasir.</p>
-    </div>
-    <a href="{{ route('kasir.index') }}" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-2xl font-bold text-xs transition-all uppercase tracking-widest flex items-center gap-2">
-        ⬅️ Kembali ke Monitoring
-    </a>
-</div>
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+
+    <x-page-header title="Antrean Pesanan Baru" subtitle="Daftar transaksi yang belum diproses pembayarannya oleh kasir.">
+        <x-slot:actions>
+            <x-button href="{{ route('kasir.index') }}" variant="secondary">
+                <i class="fas fa-arrow-left"></i>
+                Kembali ke Monitoring
+            </x-button>
+        </x-slot:actions>
+    </x-page-header>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     @forelse($waiting as $w)
@@ -40,7 +41,7 @@
             </div>
 
             <div class="flex flex-col gap-2">
-                <a href="{{ url('/kasir/bayar-form/'.$w->id_transaksi) }}" class="w-full bg-slate-900 hover:bg-indigo-600 text-white text-center py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-slate-200 hover:shadow-indigo-200">
+                <a href="{{ url('/kasir/bayar-form/'.$w->id_transaksi) }}" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-center py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-100">
                     Buka Transaksi 💰
                 </a>
             </div>
@@ -55,6 +56,8 @@
         <p class="text-slate-400 text-sm italic">Santai sejenak, semua pesanan sudah masuk ke sistem pembayaran.</p>
     </div>
     @endforelse
+</div>
+
 </div>
 
 <style>
