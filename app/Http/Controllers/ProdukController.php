@@ -50,7 +50,8 @@ public function index(Request $request)
     $mesin = DB::table('mesin')->get();
     $bahan_baku = DB::table('bahan_baku')
         ->leftJoin('kategori', 'bahan_baku.id_kategori', '=', 'kategori.id_kategori')
-        ->select('bahan_baku.*', 'kategori.nama_kategori') 
+        ->where('bahan_baku.status', 'aktif')
+        ->select('bahan_baku.*', 'kategori.nama_kategori')
         ->get();
 
     return view('master.produk.index', compact('produk', 'bahan_baku', 'mesin'));

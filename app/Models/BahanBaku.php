@@ -25,7 +25,8 @@ class BahanBaku extends Model
     'satuan_stok',
     'harga_rata_rata',
     'id_merk',
-    'id_jenis_bahan'
+    'id_jenis_bahan',
+    'status'
 ];
 public function kategori()
 {

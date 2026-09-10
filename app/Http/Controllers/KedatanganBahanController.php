@@ -332,10 +332,17 @@ public function ajaxBahan(Request $request)
 {
     $search = $request->search;
 
+    // status='aktif' konsisten dengan 2 tempat lain di controller ini
+    // (create/edit) yang sudah memfilternya - endpoint search ini yang
+    // sebelumnya kelewatan, jadi bahan nonaktif masih bisa dipilih lewat
+    // pencarian meski tidak muncul di daftar awal.
     $bahans = BahanBaku::query()
+        ->where('status', 'aktif')
         ->when($search, function ($q) use ($search) {
-            $q->where('nama_bahan', 'like', "%{$search}%")
-              ->orWhere('kode_bahan', 'like', "%{$search}%");
+            $q->where(function ($qq) use ($search) {
+                $qq->where('nama_bahan', 'like', "%{$search}%")
+                   ->orWhere('kode_bahan', 'like', "%{$search}%");
+            });
         })
         ->orderBy('nama_bahan')
         ->paginate(10);

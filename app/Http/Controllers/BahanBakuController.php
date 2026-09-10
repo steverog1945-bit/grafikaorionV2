@@ -29,7 +29,16 @@ class BahanBakuController extends Controller
             $query->where('id_kategori', $request->kategori);
         }
 
-        $sortBy = $request->get('sort', 'created_at'); 
+        // Default cuma tampilkan yang aktif - bahan nonaktif (varian lama
+        // yang sudah berhenti dipakai) tetap ada di DB & riwayatnya utuh,
+        // cuma disembunyikan dari daftar kerja sehari-hari kecuali diminta
+        // eksplisit lewat filter.
+        $statusFilter = $request->get('status', 'aktif');
+        if ($statusFilter !== 'semua') {
+            $query->where('status', $statusFilter);
+        }
+
+        $sortBy = $request->get('sort', 'created_at');
         if ($sortBy == 'stok') {
             $query->orderBy('stok', 'asc');
         } elseif ($sortBy == 'nama_bahan') {
@@ -170,6 +179,27 @@ class BahanBakuController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal hapus! Data masih terikat dengan transaksi.');
         }
+    }
+
+    /**
+     * Alternatif untuk hapus permanen: bahan yang sudah punya riwayat
+     * transaksi tidak pernah bisa dihapus (FK RESTRICT, sengaja begitu -
+     * lihat migrasi 310000). Nonaktifkan menyembunyikan bahan dari
+     * dropdown pemilihan di transaksi baru (Kedatangan Bahan, BOM Produk)
+     * tanpa kehilangan histori kartu_stok/BOM yang sudah ada - berguna
+     * untuk varian lebar roll yang berhenti dipakai tapi tetap perlu
+     * muncul di laporan lama.
+     */
+    public function toggleStatus($id)
+    {
+        $bahan = BahanBaku::findOrFail($id);
+        $bahan->update([
+            'status' => $bahan->status === 'aktif' ? 'nonaktif' : 'aktif',
+        ]);
+
+        return back()->with('success', $bahan->status === 'aktif'
+            ? 'Bahan diaktifkan kembali.'
+            : 'Bahan dinonaktifkan - tidak akan muncul lagi di pilihan transaksi baru.');
     }
 
     public function bulkDelete(Request $request)

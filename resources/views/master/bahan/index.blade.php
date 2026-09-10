@@ -34,6 +34,15 @@
                 </select>
             </div>
 
+            <div class="w-full md:w-40">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
+                <select name="status" class="select2-filter w-full">
+                    <option value="aktif" {{ request('status', 'aktif') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                    <option value="semua" {{ request('status') == 'semua' ? 'selected' : '' }}>Semua</option>
+                </select>
+            </div>
+
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Urutan</label>
                 <select name="sort" onchange="this.form.submit()"
@@ -70,7 +79,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     @forelse($bahan as $b)
-                    <tr class="group hover:bg-slate-50/30 transition-all">
+                    <tr class="group hover:bg-slate-50/30 transition-all {{ $b->status === 'nonaktif' ? 'opacity-50' : '' }}">
                         <td class="px-6 py-5 text-center">
                             <input type="checkbox" name="ids[]" value="{{ $b->id_bahan }}" class="row-checkbox rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer">
                         </td>
@@ -80,7 +89,12 @@
                                     {{ substr($b->nama_bahan, 0, 1) }}
                                 </div>
                                 <div>
-                                    <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{{ $b->nama_bahan }}</div>
+                                    <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
+                                        {{ $b->nama_bahan }}
+                                        @if($b->status === 'nonaktif')
+                                            <span class="ml-1 text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded uppercase align-middle">Nonaktif</span>
+                                        @endif
+                                    </div>
                                     <div class="text-[11px] text-slate-400 mt-0.5">{{ $b->kode_bahan }}</div>
                                 </div>
                             </div>
@@ -99,7 +113,7 @@
                             </div>
                         </td>
                         <td class="px-6 py-5 text-center">
-                            <span class="text-base font-bold {{ $b->stok <= 10 ? 'text-rose-500' : 'text-slate-700' }}">
+                            <span class="text-base font-bold {{ $b->stok <= $b->stok_minimal ? 'text-rose-500' : 'text-slate-700' }}" title="Stok minimal: {{ number_format($b->stok_minimal, 2, ',', '.') }}">
                                 {{ number_format($b->stok, 0, ',', '.') }}
                             </span>
                             @if($b->satuanStok && strtolower($b->satuanStok->nama_satuan) === 'roll' && $b->nilai_konversi > 1 && $b->satuanHitung)
@@ -117,6 +131,11 @@
                             <div class="flex justify-end gap-2">
                                 <button type="button" onclick='editBahan(@json($b))' class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
                                     <i class="far fa-edit text-sm"></i>
+                                </button>
+                                <button type="button" onclick="toggleStatus('{{ $b->id_bahan }}', '{{ $b->status }}', {{ json_encode($b->nama_bahan) }})"
+                                        class="w-9 h-9 flex items-center justify-center text-slate-400 {{ $b->status === 'aktif' ? 'hover:text-slate-600 hover:bg-slate-100' : 'hover:text-emerald-500 hover:bg-emerald-50' }} rounded-lg transition-all"
+                                        title="{{ $b->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan kembali' }}">
+                                    <i class="far {{ $b->status === 'aktif' ? 'fa-eye-slash' : 'fa-eye' }} text-sm"></i>
                                 </button>
                                 <button type="button" onclick="singleDelete('{{ $b->id_bahan }}')" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
                                     <i class="far fa-trash-alt text-sm"></i>
@@ -421,6 +440,41 @@
                 form.submit();
             }
         });
+    }
+
+    function toggleStatus(id, currentStatus, namaBahan) {
+        const mauNonaktifkan = currentStatus === 'aktif';
+        Swal.fire({
+            title: mauNonaktifkan ? 'Nonaktifkan bahan ini?' : 'Aktifkan kembali bahan ini?',
+            html: mauNonaktifkan
+                ? `<b>${escapeHtml(namaBahan)}</b> tidak akan muncul lagi di pilihan Kedatangan Bahan & BOM Produk baru.<br><small class="text-slate-400">Riwayat & stok tidak berubah, dan bisa diaktifkan lagi kapan saja.</small>`
+                : `<b>${escapeHtml(namaBahan)}</b> akan muncul lagi di pilihan transaksi baru.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: mauNonaktifkan ? '#64748b' : '#10b981',
+            cancelButtonColor: '#f8fafc',
+            confirmButtonText: mauNonaktifkan ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/bahan-baku/${id}/toggle-status`;
+                form.innerHTML = `@csrf @method('PATCH')`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 
     // Bulk Delete
