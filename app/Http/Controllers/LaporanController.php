@@ -130,4 +130,48 @@ class LaporanController extends Controller
 
         return view('laporan.produksi', compact('ringkasan', 'detail', 'divisis', 'totalOrderKeseluruhan', 'totalCetakKeseluruhan'));
     }
+
+    /**
+     * Laporan Kas - rekap sesi kas_harian lintas tanggal. Sebelumnya kas
+     * hanya bisa dilihat satu sesi per satu sesi (cetak closing per sesi
+     * atau halaman Kelola Kas yang cuma menampilkan hari ini) - tidak ada
+     * cara melihat tren/rekap kas lintas periode. Murni baca dari
+     * kas_harian yang sudah lengkap, tidak ada tabel/kolom baru.
+     */
+    public function kas(Request $request)
+    {
+        $query = DB::table('kas_harian')
+            ->leftJoin('users', 'kas_harian.id_user', '=', 'users.id_user')
+            ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
+            ->select(
+                'kas_harian.*',
+                DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama_kasir')
+            );
+
+        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->startOfMonth()->format('Y-m-d');
+        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+
+        $query->whereDate('kas_harian.tgl_kas', '>=', $tglDari)
+              ->whereDate('kas_harian.tgl_kas', '<=', $tglSampai);
+
+        if ($request->filled('status_lock')) {
+            $query->where('kas_harian.status_lock', $request->status_lock);
+        }
+
+        // Ringkasan dihitung dari query YANG SAMA (sebelum pagination) supaya
+        // konsisten dengan filter - pola yang sama dipakai laporan Order.
+        $ringkasanQuery = clone $query;
+        $totalTunaiMasuk = (clone $ringkasanQuery)->sum('kas_harian.total_tunai_masuk');
+        $totalTransferMasuk = (clone $ringkasanQuery)->sum('kas_harian.total_transfer_masuk');
+        $totalKeluar = (clone $ringkasanQuery)->sum('kas_harian.total_tunai_keluar');
+        $totalSelisih = (clone $ringkasanQuery)->sum('kas_harian.selisih');
+        $jumlahSesi = (clone $ringkasanQuery)->count();
+
+        $data = $query->orderByDesc('kas_harian.tgl_kas')->paginate(20)->withQueryString();
+
+        return view('laporan.kas', compact(
+            'data', 'tglDari', 'tglSampai',
+            'totalTunaiMasuk', 'totalTransferMasuk', 'totalKeluar', 'totalSelisih', 'jumlahSesi'
+        ));
+    }
 }

@@ -402,6 +402,15 @@
     </a>
     @endif
 
+    @if($cekAkses(29))
+    <a href="{{ route('laporan.kas') }}" class="{{ $menuClass }} {{ request()->routeIs('laporan.kas') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.kas') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Kas</span>
+    </a>
+    @endif
+
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">System Control</div>
 
     @if($cekAkses(6))

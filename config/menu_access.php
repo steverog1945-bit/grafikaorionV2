@@ -54,6 +54,7 @@ return [
         'collecting' => [24],
         'laporan/order' => [25],
         'laporan/produksi' => [26],
+        'laporan/kas' => [29],
         'harga-promo' => [28],
     ],
 
