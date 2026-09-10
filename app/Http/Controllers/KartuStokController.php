@@ -20,7 +20,10 @@ class KartuStokController extends Controller
     public function detail($id)
     {
         $bahan = DB::table('bahan_baku')
-            ->where('id_bahan', $id)
+            ->leftJoin('satuan as satuan_stok_ref', 'satuan_stok_ref.id_satuan', '=', 'bahan_baku.id_satuan_stok')
+            ->leftJoin('satuan as satuan_hitung_ref', 'satuan_hitung_ref.id_satuan', '=', 'bahan_baku.id_satuan_hitung')
+            ->where('bahan_baku.id_bahan', $id)
+            ->select('bahan_baku.*', 'satuan_stok_ref.nama_satuan as nama_satuan_stok', 'satuan_hitung_ref.nama_satuan as nama_satuan_hitung')
             ->first();
 
         $kartu = DB::table('kartu_stok')

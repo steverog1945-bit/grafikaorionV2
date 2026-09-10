@@ -15,17 +15,33 @@
         </x-slot:actions>
     </x-page-header>
 
-    <x-card class="mb-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Stok Saat Ini</p>
-                <h3 class="text-3xl font-black text-slate-900 mt-1">{{ number_format($bahan->stok, 2) }}</h3>
+    <div class="grid {{ strtolower($bahan->nama_satuan_stok ?? '') === 'roll' && $bahan->nilai_konversi > 1 ? 'grid-cols-2' : 'grid-cols-1' }} gap-4 mb-6">
+        <x-card>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Stok Saat Ini</p>
+                    <h3 class="text-3xl font-black text-slate-900 mt-1">{{ number_format($bahan->stok, 2) }} <span class="text-base font-bold text-slate-400">{{ $bahan->nama_satuan_stok ?? $bahan->satuan_stok }}</span></h3>
+                </div>
+                <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl">
+                    <i class="fas fa-box"></i>
+                </div>
             </div>
-            <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl">
-                <i class="fas fa-box"></i>
+        </x-card>
+        @if(strtolower($bahan->nama_satuan_stok ?? '') === 'roll' && $bahan->nilai_konversi > 1 && $bahan->nama_satuan_hitung)
+        <x-card>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estimasi Luas Tersisa</p>
+                    <h3 class="text-3xl font-black text-slate-900 mt-1">≈ {{ number_format($bahan->stok * $bahan->nilai_konversi, 0, ',', '.') }} <span class="text-base font-bold text-slate-400">{{ $bahan->nama_satuan_hitung }}</span></h3>
+                    <p class="text-[10px] text-slate-400 mt-1">Dihitung dari {{ number_format($bahan->stok, 2) }} roll × {{ number_format($bahan->nilai_konversi, 0, ',', '.') }} {{ $bahan->nama_satuan_hitung }}/roll</p>
+                </div>
+                <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl">
+                    <i class="fas fa-ruler-combined"></i>
+                </div>
             </div>
-        </div>
-    </x-card>
+        </x-card>
+        @endif
+    </div>
 
     <x-table>
         <thead>

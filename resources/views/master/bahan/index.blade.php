@@ -94,6 +94,11 @@
                             <span class="text-base font-bold {{ $b->stok <= 10 ? 'text-rose-500' : 'text-slate-700' }}">
                                 {{ number_format($b->stok, 0, ',', '.') }}
                             </span>
+                            @if($b->satuanStok && strtolower($b->satuanStok->nama_satuan) === 'roll' && $b->nilai_konversi > 1 && $b->satuanHitung)
+                                <div class="text-[10px] text-slate-400 font-semibold mt-1">
+                                    ≈ {{ number_format($b->stok * $b->nilai_konversi, 0, ',', '.') }} {{ $b->satuanHitung->nama_satuan }}
+                                </div>
+                            @endif
                         </td>
                         <td class="px-6 py-5 text-center">
                             <span class="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-3 py-1.5 rounded-lg uppercase">
