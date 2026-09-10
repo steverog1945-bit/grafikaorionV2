@@ -193,7 +193,7 @@
 
         <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
             <button type="button" onclick="closeModal()" class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-700">Cancel</button>
-            <button type="submit" class="bg-slate-900 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-600 transition-all uppercase text-[10px] shadow-lg shadow-slate-200">
+            <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition-all uppercase text-[10px] shadow-lg shadow-indigo-100">
                 Update Strategy
             </button>
         </div>

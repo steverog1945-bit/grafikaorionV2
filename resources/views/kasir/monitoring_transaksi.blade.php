@@ -52,7 +52,7 @@
             <input type="date" name="tgl_selesai" value="{{ request('tgl_selesai') }}" class="bg-slate-50 border-none rounded-xl text-sm w-full">
         </div>
 
-        <button type="submit" class="bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-indigo-600 transition-all">Filter Data</button>
+        <button type="submit" class="bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all">Filter Data</button>
     </form>
 </div>
 

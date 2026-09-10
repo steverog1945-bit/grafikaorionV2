@@ -48,8 +48,8 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <button type="submit" class="h-[60px] px-8 bg-slate-900 text-white rounded-2xl hover:bg-indigo-600 transition-all shadow-lg shadow-slate-100 flex items-center gap-3">
-                    <i class="fas fa-filter text-xs text-indigo-400"></i>
+                <button type="submit" class="h-[60px] px-8 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center gap-3">
+                    <i class="fas fa-filter text-xs text-indigo-200"></i>
                     <span class="text-[12px] font-black uppercase tracking-widest">Filter</span>
                 </button>
                 @if(request()->anyFilled(['search', 'from', 'to']))

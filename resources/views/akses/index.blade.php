@@ -57,7 +57,7 @@
     </div>
 
     <div class="mt-8 flex justify-end">
-        <button type="submit" class="bg-slate-900 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-slate-200 transition-all flex items-center gap-2 group active:scale-95">
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-indigo-100 transition-all flex items-center gap-2 group active:scale-95">
             <span>💾</span> Simpan Seluruh Perubahan Akses
         </button>
     </div>
