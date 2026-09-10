@@ -3,7 +3,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Riwayat Nota" subtitle="Daftar transaksi penjualan &bull; default hari ini">
+    <x-page-header title="Riwayat Nota" subtitle="Daftar transaksi penjualan • default hari ini">
         <x-slot:actions>
             <x-button href="{{ route('penjualan.create') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali ke Kasir
