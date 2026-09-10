@@ -8,6 +8,7 @@ use App\Models\PembelianBahanDetail;
 use App\Models\KedatanganBahan;
 use App\Models\BahanBaku;
 use Illuminate\Support\Facades\DB;
+use App\Services\AccountingService;
 
 class PembelianBahanController extends Controller
 {
@@ -140,6 +141,30 @@ public function kedatanganDetail(Request $request)
                 // dibuat dari kedatangan yang sudah berstatus 'Selesai' (lihat create()
                 // di atas), jadi ini murni faktur/tagihan atas barang yang sama —
                 // menambah stok lagi di sini akan menghitung barang dua kali.
+
+                // Perbarui harga_rata_rata (moving average cost) bahan ini supaya
+                // HPP snapshot di transaksi_detail (PenjualanController::store)
+                // mencerminkan biaya beli terkini. Stok saat ini SUDAH termasuk
+                // batch qty ini (ditambahkan saat validasi kedatangan), jadi
+                // stok-sebelum-batch-ini = stok sekarang - qty batch ini.
+                $bahanUntukAvg = DB::table('bahan_baku')->where('id_bahan', $idBahan)->lockForUpdate()->first();
+
+                if ($bahanUntukAvg) {
+                    $stokSebelumBatch = (float) $bahanUntukAvg->stok - $qty;
+                    $avgLama = (float) $bahanUntukAvg->harga_rata_rata;
+
+                    if ($stokSebelumBatch > 0 && $avgLama > 0) {
+                        $avgBaru = (($avgLama * $stokSebelumBatch) + ($qty * $harga)) / ($stokSebelumBatch + $qty);
+                    } else {
+                        // Belum ada histori biaya (avg lama 0) atau stok sebelum
+                        // batch ini tidak valid - pakai harga batch ini apa adanya.
+                        $avgBaru = $harga;
+                    }
+
+                    DB::table('bahan_baku')->where('id_bahan', $idBahan)->update([
+                        'harga_rata_rata' => round($avgBaru, 2),
+                    ]);
+                }
             }
 
             if ($includePajak) {
@@ -158,6 +183,8 @@ public function kedatanganDetail(Request $request)
             $pembelian->update([
                 'grand_total'=>$grandTotal
             ]);
+
+            AccountingService::postPembelianBahan($request->no_faktur, $grandTotal, $request->tipe_pembelian);
 
             DB::commit();
 
@@ -274,13 +301,26 @@ public function pelunasan(Request $request, $id)
         return redirect()->back()->with('error', 'Data pembelian dengan ID ' . $id . ' tidak ditemukan.');
     }
 
-    DB::table('pembelian_bahan')->where('id_pembelian', $id)->update([
-        'status_pembayaran' => 'Lunas',
-        'tgl_pelunasan'     => now(),
-        'updated_at'        => now()
-    ]);
+    if ($pembelian->status_pembayaran === 'Lunas') {
+        return redirect()->back()->with('error', 'Faktur ini sudah lunas.');
+    }
 
-    return redirect()->back()->with('success', 'Pembayaran berhasil dilunaskan!');
+    DB::beginTransaction();
+    try {
+        DB::table('pembelian_bahan')->where('id_pembelian', $id)->update([
+            'status_pembayaran' => 'Lunas',
+            'tgl_pelunasan'     => now(),
+            'updated_at'        => now()
+        ]);
+
+        AccountingService::postPelunasanHutang($pembelian->no_faktur, (float) $pembelian->grand_total);
+
+        DB::commit();
+        return redirect()->back()->with('success', 'Pembayaran berhasil dilunaskan!');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Gagal melunaskan: ' . $e->getMessage());
+    }
 }
 public function getKedatanganDetail(Request $request)
 {

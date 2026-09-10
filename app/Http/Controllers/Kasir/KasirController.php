@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\AccountingService;
 
 class KasirController extends Controller
 {
@@ -245,6 +246,9 @@ class KasirController extends Controller
                 } else {
                     DB::table('kas_harian')->where('id_kas', $kas->id_kas)->increment('total_transfer', $uangDiterimaSekarang);
                 }
+
+                $nomorNota = DB::table('transaksi')->where('id_transaksi', $id_transaksi)->value('nomor_nota');
+                AccountingService::postPembayaran($nomorNota, $uangDiterimaSekarang, $metode);
             }
 
             // 3. Update Status (Paksa pindah dari Belum Bayar ke DP)

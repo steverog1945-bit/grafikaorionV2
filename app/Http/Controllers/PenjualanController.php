@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Services\HargaService;
+use App\Services\AccountingService;
 use Carbon\Carbon;
 
 class PenjualanController extends Controller
@@ -159,11 +160,13 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             'status_pembayaran' => 'Belum Bayar',
         ]);
 
+        $totalHppMaterialSemua = 0;
+
         foreach ($itemsTervalidasi as $item) {
 
             $jumlah_order = $item['qty_input'];
 
-            DB::table('transaksi_detail')->insert([
+            $id_detail = DB::table('transaksi_detail')->insertGetId([
                 'id_transaksi'     => $id_transaksi,
                 'id_produk'        => $item['id_produk'],
                 'nama_file'        => $item['nama_file'],
@@ -174,11 +177,17 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                 'biaya_finishing'  => $item['biaya_finishing'],
                 'subtotal'         => $item['subtotal'],
                 'status_spk'       => 'Antre',
+                // harga_jual_snapshot dulu diisi = subtotal (harga jual final
+                // baris ini). hpp_snapshot diisi setelah loop BOM di bawah,
+                // karena baru diketahui setelah menjumlah biaya tiap bahan.
+                'harga_jual_snapshot' => $item['subtotal'],
             ]);
 
             $boms = DB::table('bom_detail')
                 ->where('id_produk', $item['id_produk'])
                 ->get();
+
+            $hppItemIni = 0;
 
             foreach ($boms as $bom) {
 
@@ -223,9 +232,21 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                         'created_at'    => now(),
                         'updated_at'    => now(),
                     ]);
+
+                    $hppItemIni += $qty_pakai * (float) ($bahan->harga_rata_rata ?? 0);
                 }
             }
+
+            if ($hppItemIni > 0) {
+                DB::table('transaksi_detail')->where('id_detail', $id_detail)->update([
+                    'hpp_snapshot' => $hppItemIni,
+                ]);
+            }
+
+            $totalHppMaterialSemua += $hppItemIni;
         }
+
+        AccountingService::postPenjualan($request->no_nota, $grand_total, $totalHppMaterialSemua);
 
         DB::commit();
 
