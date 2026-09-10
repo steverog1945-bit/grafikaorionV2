@@ -20,9 +20,7 @@ class KaryawanController extends Controller
             'bagian' => 'required',
             'telepon' => 'required'
         ]);
-        $data = $request->all();
-        Karyawan::create($request->all());
-        $data['status_aktif'] = 1;
+        Karyawan::create($request->only(['nama_karyawan', 'bagian', 'telepon']));
         return back()->with('success', 'Data karyawan berhasil ditambahkan!');
     }
    public function update(Request $request, $id)

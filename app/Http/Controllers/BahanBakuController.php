@@ -92,7 +92,10 @@ class BahanBakuController extends Controller
         ]);
 
         $bahan = BahanBaku::findOrFail($id_bahan);
-        $bahan->update($request->all());
+        $bahan->update($request->only([
+            'nama_bahan', 'kode_bahan', 'id_mesin', 'id_kategori', 'stok',
+            'stok_minimal', 'id_satuan_stok', 'id_satuan_hitung', 'nilai_konversi',
+        ]));
 
         return redirect()->route('bahan.index')->with('success', 'Data bahan & logika konversi diperbarui!');
     }
