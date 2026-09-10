@@ -8,7 +8,7 @@
     <div>
         <h1 class="text-xl font-black text-slate-800 tracking-tighter uppercase flex items-center gap-2">
             <i class="fas fa-tags text-indigo-600"></i>
-            Price <span class="text-indigo-600">Engineering</span>
+            Price Engineering
         </h1>
         <p class="text-slate-400 text-[10px] uppercase tracking-widest mt-0.5">Automated Pricing & Tiering Management</p>
     </div>
