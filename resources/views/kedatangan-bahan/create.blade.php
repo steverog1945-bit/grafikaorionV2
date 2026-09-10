@@ -384,7 +384,7 @@ function loadBahan() {
                         <td class="px-6 py-4 text-center">
                             <button type="button"
                                 onclick="selectBahan(${item.id_bahan}, '${safeNama}', '${item.satuan_stok}')"
-                                class="px-4 py-2 bg-indigo-600 hover:bg-black text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition">
+                                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition">
                                 Pilih
                             </button>
                         </td>
