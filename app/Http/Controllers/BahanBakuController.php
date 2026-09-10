@@ -57,11 +57,13 @@ class BahanBakuController extends Controller
             'id_kategori'       => 'required',
             'id_satuan_stok'    => 'required',
             'id_satuan_hitung'  => 'required',
-            'nilai_konversi'    => 'required|numeric',
+            'nilai_konversi'    => 'required|numeric|min:0.0001',
             'stok'              => 'required|numeric',
             'stok_minimal'      => 'required|numeric',
             'id_merk'           => 'nullable|exists:merk,id_merk',
             'id_jenis_bahan'    => 'nullable|exists:jenis_bahan,id_jenis_bahan',
+            'lebar_roll'        => 'nullable|numeric|min:0',
+            'panjang_roll'      => 'nullable|numeric|min:0',
         ]);
 
         try {
@@ -80,6 +82,8 @@ class BahanBakuController extends Controller
                 'id_satuan_stok'   => $request->id_satuan_stok,
                 'id_satuan_hitung' => $request->id_satuan_hitung,
                 'nilai_konversi'   => $request->nilai_konversi,
+                'lebar_roll'       => $request->lebar_roll ?: null,
+                'panjang_roll'     => $request->panjang_roll ?: null,
                 'stok'             => $request->stok,
                 'stok_minimal'     => $request->stok_minimal,
                 'satuan_stok'      => $namaSatuanStok,
@@ -101,11 +105,13 @@ class BahanBakuController extends Controller
             'kode_bahan'        => 'required|unique:bahan_baku,kode_bahan,'.$id_bahan.',id_bahan',
             'id_satuan_stok'    => 'required',
             'id_satuan_hitung'  => 'required',
-            'nilai_konversi'    => 'required|numeric',
+            'nilai_konversi'    => 'required|numeric|min:0.0001',
             'stok'              => 'required|numeric',
             'stok_minimal'      => 'required|numeric',
             'id_merk'           => 'nullable|exists:merk,id_merk',
             'id_jenis_bahan'    => 'nullable|exists:jenis_bahan,id_jenis_bahan',
+            'lebar_roll'        => 'nullable|numeric|min:0',
+            'panjang_roll'      => 'nullable|numeric|min:0',
         ]);
 
         $bahan = BahanBaku::findOrFail($id_bahan);
@@ -116,6 +122,8 @@ class BahanBakuController extends Controller
         ]);
         $data['id_merk'] = $request->id_merk ?: null;
         $data['id_jenis_bahan'] = $request->id_jenis_bahan ?: null;
+        $data['lebar_roll'] = $request->lebar_roll ?: null;
+        $data['panjang_roll'] = $request->panjang_roll ?: null;
         $data['satuan_stok'] = Satuan::find($request->id_satuan_stok)->nama_satuan ?? $bahan->satuan_stok;
 
         $bahan->update($data);

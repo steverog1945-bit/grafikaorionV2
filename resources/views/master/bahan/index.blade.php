@@ -240,10 +240,34 @@
                         </div>
                     </div>
 
+                    <div id="wrapper_dimensi_roll" class="p-4 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-3">
+                        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">
+                            <i class="fas fa-ruler-combined mr-1"></i> Kalkulator Dimensi Roll (Opsional - khusus bahan Roll/m²)
+                        </p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Lebar Roll (meter)</label>
+                                <input type="number" step="0.01" name="lebar_roll" id="input_lebar_roll" oninput="hitungNilaiKonversiRoll()" placeholder="Contoh: 1.5"
+                                       class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Panjang Roll (meter)</label>
+                                <input type="number" step="0.01" name="panjang_roll" id="input_panjang_roll" oninput="hitungNilaiKonversiRoll()" placeholder="Contoh: 50"
+                                       class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-indigo-400 leading-relaxed">
+                            Isi kalau Satuan Hitung = m² (mis. bahan roll untuk banner/vinyl). Lebar × Panjang otomatis mengisi Nilai Konversi di bawah, supaya HPP &amp; pengurangan stok akurat berdasarkan luas roll sesungguhnya - bukan angka tebakan.
+                        </p>
+                    </div>
+
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Nilai Konversi (1 Satuan Stok = berapa Satuan Hitung)</label>
                         <input type="number" step="0.001" name="nilai_konversi" id="input_nilai_konversi" required value="1"
                                class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                        <p class="mt-2 ml-1 text-[10px] text-slate-400">
+                            Contoh: 1 Rim = 500 Lembar → isi <b>500</b>. Kalau bahan roll, isi Lebar × Panjang Roll di atas dan ini terisi otomatis.
+                        </p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -301,12 +325,26 @@
         document.getElementById('input_stok_minimal').value = data.stok_minimal;
         document.getElementById('input_id_merk').value = data.id_merk || '';
         document.getElementById('input_id_jenis_bahan').value = data.id_jenis_bahan || '';
+        document.getElementById('input_lebar_roll').value = data.lebar_roll || '';
+        document.getElementById('input_panjang_roll').value = data.panjang_roll || '';
 
         document.getElementById('modalBahan').classList.remove('hidden');
     }
 
-    function closeModalBahan() { 
-        document.getElementById('modalBahan').classList.add('hidden'); 
+    function closeModalBahan() {
+        document.getElementById('modalBahan').classList.add('hidden');
+    }
+
+    // Lebar x Panjang roll (meter) = total m2 per roll = Nilai Konversi
+    // untuk bahan yang Satuan Hitung-nya m2. Sama prinsipnya dengan
+    // (P*L)/10000 di form order - "hitungan panjang x lebar" diterapkan ke
+    // dimensi ROLL bahan baku, bukan cuma ke ukuran cetak pesanan.
+    function hitungNilaiKonversiRoll() {
+        const lebar = parseFloat(document.getElementById('input_lebar_roll').value) || 0;
+        const panjang = parseFloat(document.getElementById('input_panjang_roll').value) || 0;
+        if (lebar > 0 && panjang > 0) {
+            document.getElementById('input_nilai_konversi').value = (lebar * panjang).toFixed(3);
+        }
     }
 
     // Fungsi Delete tetap sama dengan perbaikan visual sedikit

@@ -20,6 +20,8 @@ class BahanBaku extends Model
     'id_satuan_stok', 
     'id_satuan_hitung', 
     'nilai_konversi',
+    'lebar_roll',
+    'panjang_roll',
     'satuan_stok',
     'harga_rata_rata',
     'id_merk',
