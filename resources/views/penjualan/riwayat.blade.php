@@ -40,9 +40,12 @@
                 <th class="px-8 py-5 text-left">No. Nota</th>
                 <th class="px-6 py-5 text-left">Tanggal & Jam</th>
                 <th class="px-6 py-5 text-left">Pelanggan</th>
+                <th class="px-6 py-5 text-left">Golongan</th>
+                <th class="px-6 py-5 text-left">Tipe Order</th>
                 <th class="px-6 py-5 text-left">Kasir</th>
                 <th class="px-6 py-5 text-center">Status</th>
-                <th class="px-8 py-5 text-right">Total</th>
+                <th class="px-6 py-5 text-right">Total</th>
+                <th class="px-8 py-5 text-right">Aksi</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
@@ -59,18 +62,31 @@
                     <span class="text-sm font-bold text-slate-700">{{ $t->nama_konsumen }}</span>
                 </td>
                 <td class="px-6 py-5">
+                    <span class="text-xs text-slate-500">{{ $t->nama_golongan ?? '-' }}</span>
+                </td>
+                <td class="px-6 py-5">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold {{ ($t->tipe_order ?? 'Reguler') === 'PO' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-100' }}">
+                        {{ $t->tipe_order ?? 'Reguler' }}
+                    </span>
+                </td>
+                <td class="px-6 py-5">
                     <span class="text-sm text-slate-500">{{ $t->nama_kasir ?? '-' }}</span>
                 </td>
                 <td class="px-6 py-5 text-center">
                     <x-badge :status="$t->status_pembayaran" />
                 </td>
-                <td class="px-8 py-5 text-right">
+                <td class="px-6 py-5 text-right">
                     <span class="text-[14px] font-bold text-indigo-600">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>
+                </td>
+                <td class="px-8 py-5 text-right">
+                    <a href="{{ route('penjualan.show', $t->id_transaksi) }}" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-indigo-600 hover:bg-indigo-50 transition-all">
+                        <i class="far fa-eye"></i> Lihat
+                    </a>
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="6">
+                <td colspan="9">
                     <x-empty-state title="Belum ada nota pada rentang tanggal ini" />
                 </td>
             </tr>

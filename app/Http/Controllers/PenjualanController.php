@@ -75,6 +75,27 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         ], 400);
     }
 
+    $tipeOrder = in_array($request->tipe_order, ['Reguler', 'PO']) ? $request->tipe_order : 'Reguler';
+    $noPo = $tipeOrder === 'PO' ? trim((string) $request->no_po) : null;
+    if ($tipeOrder === 'PO' && !$noPo) {
+        return response()->json(['status' => 'error', 'msg' => 'No. PO wajib diisi untuk tipe order PO.'], 400);
+    }
+
+    // Tanggal order boleh diubah kasir (mis. mencatat PO yang sebenarnya
+    // masuk kemarin) tapi tidak boleh di masa depan - itu bukan tanggal
+    // order, itu penjadwalan, yang bukan konsep yang didukung di sini.
+    $tglOrder = now();
+    if ($request->filled('tgl_order')) {
+        try {
+            $tglInput = Carbon::parse($request->tgl_order);
+            if (!$tglInput->isFuture()) {
+                $tglOrder = $tglInput->setTimeFrom(now());
+            }
+        } catch (\Exception $e) {
+            // format tanggal tidak valid - abaikan, pakai now() seperti biasa
+        }
+    }
+
     // Harga & subtotal TIDAK PERNAH dipercaya dari client (lihat catatan audit:
     // harga sebelumnya dikirim mentah-mentah dari browser tanpa verifikasi ulang,
     // sehingga siapa pun yang mengubah request bisa menetapkan harga sembarang).
@@ -152,9 +173,12 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             ], 422);
         }
 
-        // biaya_desain memang input manual operator (tidak ada tabel acuannya),
-        // hanya dipastikan tidak negatif supaya tidak bisa dipakai mengurangi total.
+        // biaya_desain & biaya_cetak memang input manual operator (tidak ada
+        // tabel acuannya - biaya cetak riil tergantung mesin/ongkos produksi
+        // saat itu), hanya dipastikan tidak negatif supaya tidak bisa dipakai
+        // mengurangi total.
         $biayaDesain = max(0, (float) ($item['biaya_desain'] ?? 0));
+        $biayaCetak = max(0, (float) ($item['biaya_cetak'] ?? 0));
 
         // id_finishing opsional (produk boleh tanpa finishing). Divalidasi ke
         // tabel finishing supaya id yang dipalsukan dari client tidak lolos
@@ -167,17 +191,40 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         }
         $biayaFinishing = max(0, (float) ($item['biaya_finishing'] ?? 0));
 
+        $statusUrgensi = in_array($item['status_urgensi'] ?? null, ['Normal', 'Urgent', 'Very Urgent'])
+            ? $item['status_urgensi'] : 'Normal';
+        $statusFinishing = in_array($item['status_finishing'] ?? null, ['Standar', 'Custom'])
+            ? $item['status_finishing'] : 'Standar';
+
+        // thumbnail sudah diunggah sebelumnya lewat endpoint upload-thumbnail
+        // terpisah (lihat uploadThumbnail()) - baris ini cuma membawa path
+        // string yang dikembalikan endpoint itu, bukan file binary (payload
+        // /penjualan/store tetap JSON seperti sebelumnya, tidak diubah jadi
+        // multipart). Path divalidasi berada di dalam folder upload yang
+        // benar supaya client tidak bisa menyelipkan path sembarang.
+        $thumbnail = null;
+        if (!empty($item['thumbnail']) && str_starts_with($item['thumbnail'], 'order_thumbnails/')) {
+            $thumbnail = $item['thumbnail'];
+        }
+
+        $catatanProduksi = trim((string) ($item['catatan_produksi'] ?? ''));
+
         $itemsTervalidasi[] = [
             'is_jasa' => false,
             'id_produk' => $produk->id_produk,
             'nama_file' => $item['nama_file'] ?? '-',
+            'thumbnail' => $thumbnail,
+            'catatan_produksi' => $catatanProduksi !== '' ? $catatanProduksi : null,
             'p' => $p,
             'l' => $l,
             'qty_input' => $qtyInput,
             'qty_hitung' => $qtyHitung,
             'id_finishing' => $idFinishing,
             'biaya_finishing' => $biayaFinishing,
-            'subtotal' => ($hargaSatuan * $qtyHitung) + $biayaDesain + $biayaFinishing,
+            'biaya_cetak' => $biayaCetak,
+            'status_urgensi' => $statusUrgensi,
+            'status_finishing' => $statusFinishing,
+            'subtotal' => ($hargaSatuan * $qtyHitung) + $biayaDesain + $biayaFinishing + $biayaCetak,
         ];
     }
 
@@ -189,9 +236,11 @@ public function getHarga($id_produk, $id_golongan, $qty) {
 
         $id_transaksi = DB::table('transaksi')->insertGetId([
             'nomor_nota'        => $request->no_nota,
+            'tipe_order'        => $tipeOrder,
+            'no_po'             => $noPo,
             'id_konsumen'       => $request->id_konsumen,
             'id_user_kasir'     => Auth::id() ?? 1,
-            'tgl_order'         => now(),
+            'tgl_order'         => $tglOrder,
             'total_bayar'       => $grand_total,
             'status_pembayaran' => 'Belum Bayar',
         ]);
@@ -233,11 +282,22 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                 'id_transaksi'     => $id_transaksi,
                 'id_produk'        => $item['id_produk'],
                 'nama_file'        => $item['nama_file'],
+                'thumbnail'        => $item['thumbnail'],
+                'catatan_produksi' => $item['catatan_produksi'],
                 'p_ukuran'         => $item['p'],
                 'l_ukuran'         => $item['l'],
                 'qty'              => $jumlah_order,
                 'id_finishing'     => $item['id_finishing'],
                 'biaya_finishing'  => $item['biaya_finishing'],
+                'biaya_cetak'      => $item['biaya_cetak'],
+                'status_urgensi'   => $item['status_urgensi'],
+                // status_urgent (kolom lama, tinyint) tetap diisi supaya
+                // layar SPK yang sudah ada (toggleUrgent/bulkUrgent, sorting
+                // urgent di spk/index) tetap jalan tanpa perubahan - Urgent
+                // & Very Urgent dari kasir keduanya dianggap "urgent" di
+                // sana, bedanya cuma tampil di status_urgensi.
+                'status_urgent'    => $item['status_urgensi'] !== 'Normal' ? 1 : 0,
+                'status_finishing' => $item['status_finishing'],
                 'subtotal'         => $item['subtotal'],
                 'status_spk'       => 'Antre',
                 // harga_jual_snapshot dulu diisi = subtotal (harga jual final
@@ -359,6 +419,28 @@ public function getHarga($id_produk, $id_golongan, $qty) {
 }
 
 /**
+ * Upload thumbnail gambar order (dipanggil terpisah dari /penjualan/store
+ * begitu operator memilih file - payload store tetap JSON seperti semula,
+ * bukan multipart, jadi cuma path hasil upload ini yang ikut terbawa di
+ * item keranjang). Disimpan di storage/app/public/order_thumbnails, publik
+ * lewat symlink public/storage.
+ */
+public function uploadThumbnail(Request $request)
+{
+    $request->validate([
+        'thumbnail' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+    ]);
+
+    $path = $request->file('thumbnail')->store('order_thumbnails', 'public');
+
+    return response()->json([
+        'status' => 'success',
+        'path' => $path,
+        'url' => asset('storage/' . $path),
+    ]);
+}
+
+/**
  * Riwayat Nota - daftar transaksi penjualan dengan filter range tanggal.
  * Default: hanya menampilkan transaksi HARI INI jika tidak ada filter
  * tanggal yang dikirim. Murni query baca, tidak mengubah data apa pun.
@@ -370,6 +452,7 @@ public function riwayat(Request $request)
 
     $transaksis = DB::table('transaksi')
         ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+        ->leftJoin('golongan_konsumen', 'konsumen.id_golongan', '=', 'golongan_konsumen.id_golongan')
         ->leftJoin('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
         ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
         ->whereDate('tgl_order', '>=', $from)
@@ -377,11 +460,58 @@ public function riwayat(Request $request)
         ->select(
             'transaksi.*',
             'konsumen.nama_konsumen',
+            'golongan_konsumen.nama_golongan',
             'karyawan.nama_karyawan as nama_kasir'
         )
         ->orderByDesc('tgl_order')
         ->paginate(15);
 
     return view('penjualan.riwayat', compact('transaksis', 'from', 'to'));
+}
+
+/**
+ * Lihat Data - detail satu transaksi (read-only). Transaksi yang sudah
+ * tersimpan SENGAJA tidak punya alur edit: stok bahan baku sudah dikurangi
+ * dan jurnal akuntansi sudah diposting saat store(), jadi "edit" yang benar
+ * butuh alur pembalikan stok + jurnal dulu (retur/void) - bukan sekadar
+ * update baris seperti form biasa. Belum ada alur retur di aplikasi ini,
+ * jadi daripada membangun edit yang setengah jadi dan berisiko merusak
+ * integritas stok/jurnal, halaman ini murni tampilan.
+ */
+public function show($id)
+{
+    $transaksi = DB::table('transaksi')
+        ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+        ->leftJoin('golongan_konsumen', 'konsumen.id_golongan', '=', 'golongan_konsumen.id_golongan')
+        ->leftJoin('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
+        ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
+        ->where('transaksi.id_transaksi', $id)
+        ->select(
+            'transaksi.*',
+            'konsumen.nama_konsumen',
+            'konsumen.telepon',
+            'golongan_konsumen.nama_golongan',
+            'karyawan.nama_karyawan as nama_kasir'
+        )
+        ->first();
+
+    if (!$transaksi) {
+        abort(404);
+    }
+
+    $items = DB::table('transaksi_detail')
+        ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+        ->leftJoin('jasa', 'transaksi_detail.id_jasa', '=', 'jasa.id_jasa')
+        ->leftJoin('finishing', 'transaksi_detail.id_finishing', '=', 'finishing.id_finishing')
+        ->where('id_transaksi', $id)
+        ->select(
+            'transaksi_detail.*',
+            'produk.nama_produk',
+            'jasa.nama_jasa',
+            'finishing.nama_finishing'
+        )
+        ->get();
+
+    return view('penjualan.show', compact('transaksi', 'items'));
 }
 }

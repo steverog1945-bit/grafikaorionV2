@@ -105,6 +105,12 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::get('/penjualan/riwayat', [PenjualanController::class, 'riwayat'])
         ->name('penjualan.riwayat');
 
+    Route::get('/penjualan/{id}', [PenjualanController::class, 'show'])
+        ->name('penjualan.show');
+
+    Route::post('/penjualan/upload-thumbnail', [PenjualanController::class, 'uploadThumbnail'])
+        ->name('penjualan.upload-thumbnail');
+
     Route::post('/konsumen/store-ajax', [KonsumenController::class, 'storeAjax']);
 
 

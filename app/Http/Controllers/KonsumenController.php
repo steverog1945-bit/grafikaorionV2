@@ -63,7 +63,8 @@ public function storeAjax(Request $request)
     // 1. Validasi ketat di sisi Server
     $request->validate([
         'nama_konsumen' => 'required|string|max:255',
-        'id_golongan'   => 'required'
+        'id_golongan'   => 'required',
+        'tipe_konsumen' => 'nullable|in:permanent,temporary',
     ]);
 
     try {
@@ -72,7 +73,7 @@ public function storeAjax(Request $request)
             'nama_konsumen' => $request->nama_konsumen,
             'telepon'       => $request->telepon ?? '-',
             'id_golongan'   => $request->id_golongan,
-            'tipe_konsumen' => 'temporary',
+            'tipe_konsumen' => $request->tipe_konsumen ?? 'temporary',
             'tgl_registrasi'=> now(),
             'nama_konsumen_manual' => $request->nama_konsumen // Seringkali kolom ini NOT NULL di DB
         ]);

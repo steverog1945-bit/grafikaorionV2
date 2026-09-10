@@ -67,6 +67,25 @@
                             </x-form.select>
                         </x-form.group>
                     </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                        <x-form.group label="Tipe Order">
+                            <div class="flex gap-2">
+                                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-bold cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500">
+                                    <input type="radio" name="tipe_order" value="Reguler" checked onchange="onTipeOrderChange()" class="accent-indigo-600"> Reguler
+                                </label>
+                                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-bold cursor-pointer has-[:checked]:bg-amber-50 has-[:checked]:border-amber-300 has-[:checked]:text-amber-600 text-slate-500">
+                                    <input type="radio" name="tipe_order" value="PO" onchange="onTipeOrderChange()" class="accent-amber-600"> PO
+                                </label>
+                            </div>
+                        </x-form.group>
+                        <x-form.group label="No. PO" id="wrapper_no_po" class="hidden">
+                            <x-form.input type="text" id="no_po" placeholder="Nomor PO dari konsumen" />
+                        </x-form.group>
+                        <x-form.group label="Tanggal Order">
+                            <x-form.input type="date" id="tgl_order" value="{{ date('Y-m-d') }}" />
+                        </x-form.group>
+                    </div>
                 </x-card>
 
                 {{-- DETAIL PESANAN --}}
@@ -101,7 +120,7 @@
                         <x-form.input type="text" id="nama_file" placeholder="Contoh: Banner Spanduk 3x1m" />
                     </x-form.group>
 
-                    <div id="wrapper_ukuran" class="hidden grid grid-cols-3 gap-6 p-6 bg-slate-50 rounded-2xl border border-slate-100 mb-8">
+                    <div id="wrapper_ukuran" class="hidden grid grid-cols-3 gap-6 p-6 bg-slate-50 rounded-2xl border border-slate-100 mb-3">
                         <div class="space-y-2">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Panjang (cm)</span>
                             <input type="number" id="input_p" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-3 text-sm font-black text-center">
@@ -115,11 +134,41 @@
                             <input type="number" id="input_qty_ukuran" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-3 text-sm font-black text-center" value="1">
                         </div>
                     </div>
+                    <p id="note_ukuran" class="hidden text-[11px] text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-8 leading-relaxed">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Ukuran untuk menghitung harga bukan ukuran file asli. Silakan ubah ukuran jika bahan memerlukan penyesuaian.
+                    </p>
 
                     <div id="wrapper_qty" class="hidden mb-8">
                         <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-3">Jumlah Unit</label>
                         <input type="number" id="input_qty_biasa" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-4 text-2xl font-black text-center" value="1">
                     </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <x-form.group label="Status Urgensi">
+                            <x-form.select id="input_status_urgensi">
+                                <option value="Normal">Normal</option>
+                                <option value="Urgent">Urgent</option>
+                                <option value="Very Urgent">Very Urgent</option>
+                            </x-form.select>
+                        </x-form.group>
+                        <x-form.group label="Status Finishing">
+                            <x-form.select id="input_status_finishing">
+                                <option value="Standar">Standar</option>
+                                <option value="Custom">Custom</option>
+                            </x-form.select>
+                        </x-form.group>
+                        <x-form.group label="Thumbnail Gambar">
+                            <div class="flex items-center gap-2">
+                                <input type="file" id="input_thumbnail" accept="image/png,image/jpeg,image/webp" onchange="uploadThumbnail(this)" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-indigo-50 file:text-indigo-600">
+                                <img id="thumbnail_preview" class="hidden w-10 h-10 rounded-lg object-cover border border-slate-200">
+                            </div>
+                        </x-form.group>
+                    </div>
+
+                    <x-form.group label="Catatan Produksi" class="mb-8">
+                        <textarea id="input_catatan_produksi" rows="2" placeholder="Catatan khusus untuk tim produksi (opsional)" class="w-full rounded-xl border-slate-200 p-3 text-sm"></textarea>
+                    </x-form.group>
 
                     {{-- Indikator stok BOM - PERINGATAN saja, tidak memblokir order
                          (lihat catatan keputusan: workflow percetakan biasa order
@@ -148,6 +197,10 @@
                                         <option value="{{ $f->id_finishing }}" data-harga="{{ $f->harga_default ?? 0 }}">{{ $f->nama_finishing }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Biaya Cetak</p>
+                                <input type="number" id="input_cetak" oninput="hitungSubtotal()" class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-right focus:outline-none" value="0">
                             </div>
                             <div class="text-right">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Biaya Finishing</p>
@@ -267,6 +320,16 @@
                 @endforeach
             </x-form.select>
         </x-form.group>
+        <x-form.group label="Tipe Konsumen">
+            <div class="flex gap-2">
+                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-bold cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500">
+                    <input type="radio" name="new_tipe_konsumen" value="temporary" checked class="accent-indigo-600"> Temporary
+                </label>
+                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-bold cursor-pointer has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-300 has-[:checked]:text-emerald-600 text-slate-500">
+                    <input type="radio" name="new_tipe_konsumen" value="permanent" class="accent-emerald-600"> Permanent
+                </label>
+            </div>
+        </x-form.group>
 
         <x-button onclick="saveKonsumen()" class="w-full">
             SIMPAN PELANGGAN
@@ -311,6 +374,44 @@
     let cart = [];
     let currentProduk = null;
     let editIndex = null;
+    let currentThumbnail = null;
+
+    function onTipeOrderChange() {
+        const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
+        document.getElementById('wrapper_no_po').classList.toggle('hidden', tipe !== 'PO');
+    }
+
+    // Upload thumbnail segera saat file dipilih (bukan dikirim bareng payload
+    // /penjualan/store yang formatnya JSON) - path hasil upload disimpan di
+    // currentThumbnail lalu ikut ke item keranjang sebagai string biasa.
+    async function uploadThumbnail(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('thumbnail', file);
+
+        try {
+            const response = await fetch('{{ route("penjualan.upload-thumbnail") }}', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: formData
+            });
+            const res = await response.json();
+            if (res.status === 'success') {
+                currentThumbnail = res.path;
+                const preview = document.getElementById('thumbnail_preview');
+                preview.src = res.url;
+                preview.classList.remove('hidden');
+            } else {
+                Swal.fire('Gagal', 'Upload thumbnail gagal.', 'error');
+                input.value = '';
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Upload thumbnail gagal, cek koneksi.', 'error');
+            input.value = '';
+        }
+    }
 
     $(document).ready(function() {
         $('.select2-konsumen').select2({
@@ -403,6 +504,7 @@
         const nama = document.getElementById('new_nama').value;
         const hp = document.getElementById('new_hp').value;
         const idGol = document.getElementById('new_id_golongan').value;
+        const tipeKonsumen = document.querySelector('input[name="new_tipe_konsumen"]:checked').value;
 
         if (!nama) return Swal.fire('Opps', 'Nama wajib diisi!', 'warning');
 
@@ -413,7 +515,8 @@
                 body: JSON.stringify({
                     nama_konsumen: nama,
                     telepon: hp,
-                    id_golongan: idGol
+                    id_golongan: idGol,
+                    tipe_konsumen: tipeKonsumen
                 })
             });
 
@@ -468,6 +571,7 @@
         const selectedOption = $('#select_produk').find(':selected');
         const metode = selectedOption.data('metode');
         $('#wrapper_ukuran').toggleClass('hidden', metode !== 'ukuran');
+        $('#note_ukuran').toggleClass('hidden', metode !== 'ukuran');
         $('#wrapper_qty').toggleClass('hidden', metode !== 'quantity');
 
         try {
@@ -499,6 +603,7 @@
         const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
         const biayaDesain = parseFloat(document.getElementById('input_desain').value) || 0;
         const biayaFinishing = parseFloat(document.getElementById('input_finishing_biaya').value) || 0;
+        const biayaCetak = parseFloat(document.getElementById('input_cetak').value) || 0;
 
         let qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
         if (qtyCari <= 0) { updateDisplay(0, 0); return null; }
@@ -508,7 +613,7 @@
             const response = await fetch(url);
             const data = await response.json();
             const hargaJual = parseFloat(data.harga_jual) || 0;
-            const subtotal = (hargaJual * qtyCari) + biayaDesain + biayaFinishing;
+            const subtotal = (hargaJual * qtyCari) + biayaDesain + biayaFinishing + biayaCetak;
             updateDisplay(hargaJual, subtotal, data.is_promo);
             cekStokBom(currentProduk.id_produk, p, l, (currentProduk.metode_hitung === 'ukuran') ? qU : qB);
             return { harga_satuan: hargaJual, subtotal: subtotal, qty_hitung: qtyCari, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB };
@@ -571,14 +676,19 @@
             id_produk: currentProduk.id_produk,
             nama_produk: currentProduk.nama_produk,
             nama_file: namaFile,
+            thumbnail: currentThumbnail,
             p: res.p, l: res.l,
             qty_input: res.qty_input,
             qty_hitung: res.qty_hitung,
             harga_satuan: res.harga_satuan,
             biaya_desain: parseFloat(document.getElementById('input_desain').value) || 0,
+            biaya_cetak: parseFloat(document.getElementById('input_cetak').value) || 0,
             id_finishing: idFinishing,
             nama_finishing: namaFinishing,
             biaya_finishing: parseFloat(document.getElementById('input_finishing_biaya').value) || 0,
+            status_urgensi: document.getElementById('input_status_urgensi').value,
+            status_finishing: document.getElementById('input_status_finishing').value,
+            catatan_produksi: document.getElementById('input_catatan_produksi').value.trim(),
             subtotal: res.subtotal,
             id_kategori: $('#filter_kategori').val()
         };
@@ -664,14 +774,30 @@
             container.innerHTML = '<tr><td colspan="4" class="py-20 text-center opacity-20"><p class="font-bold uppercase text-[9px] tracking-[0.2em]">Belum Ada Pesanan</p></td></tr>';
         }
 
+        const urgensiColor = { 'Urgent': 'text-amber-500', 'Very Urgent': 'text-red-500' };
+
         cart.forEach((item, index) => {
             total += item.subtotal;
+            const urgensi = item.status_urgensi && item.status_urgensi !== 'Normal' ? item.status_urgensi : null;
+            const biayaTambahan = [
+                item.biaya_cetak ? `Cetak ${Math.round(item.biaya_cetak).toLocaleString('id-ID')}` : null,
+                item.biaya_desain ? `Desain ${Math.round(item.biaya_desain).toLocaleString('id-ID')}` : null,
+                item.biaya_finishing ? `Finishing ${Math.round(item.biaya_finishing).toLocaleString('id-ID')}` : null,
+            ].filter(Boolean).join(' &bull; ');
+
             container.innerHTML += `
                 <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50">
                     <td class="px-6 py-4">
-                        <p class="text-[11px] font-black text-slate-800 uppercase leading-none">${escapeHtml(item.nama_produk)}</p>
-                        <p class="text-[9px] text-slate-400 mt-1 uppercase font-bold tracking-tight">${escapeHtml(item.nama_file)}</p>
-                        ${item.id_finishing ? `<p class="text-[9px] text-indigo-500 mt-1 uppercase font-bold tracking-tight">✨ ${escapeHtml(item.nama_finishing)}</p>` : ''}
+                        <div class="flex items-start gap-2">
+                            ${item.thumbnail ? `<img src="/storage/${item.thumbnail}" class="w-8 h-8 rounded-md object-cover border border-slate-100 shrink-0">` : ''}
+                            <div>
+                                <p class="text-[11px] font-black text-slate-800 uppercase leading-none">${escapeHtml(item.nama_produk)}</p>
+                                <p class="text-[9px] text-slate-400 mt-1 uppercase font-bold tracking-tight">${escapeHtml(item.nama_file)}</p>
+                                ${item.id_finishing ? `<p class="text-[9px] text-indigo-500 mt-1 uppercase font-bold tracking-tight">✨ ${escapeHtml(item.nama_finishing)} (${escapeHtml(item.status_finishing || 'Standar')})</p>` : ''}
+                                ${urgensi ? `<p class="text-[9px] mt-1 uppercase font-black tracking-tight ${urgensiColor[urgensi]}">⚡ ${urgensi}</p>` : ''}
+                                ${biayaTambahan ? `<p class="text-[8px] text-slate-400 mt-1">${biayaTambahan}</p>` : ''}
+                            </div>
+                        </div>
                     </td>
                     <td class="px-4 py-4 text-center font-mono text-[10px] font-bold text-slate-700">
                         ${item.qty_hitung.toFixed(2)}
@@ -724,8 +850,20 @@
             document.getElementById('input_qty_ukuran').value = item.qty_input;
             document.getElementById('input_qty_biasa').value = item.qty_input;
             document.getElementById('input_desain').value = item.biaya_desain;
+            document.getElementById('input_cetak').value = item.biaya_cetak || 0;
             document.getElementById('select_finishing').value = item.id_finishing || '';
             document.getElementById('input_finishing_biaya').value = item.biaya_finishing || 0;
+            document.getElementById('input_status_urgensi').value = item.status_urgensi || 'Normal';
+            document.getElementById('input_status_finishing').value = item.status_finishing || 'Standar';
+            document.getElementById('input_catatan_produksi').value = item.catatan_produksi || '';
+            currentThumbnail = item.thumbnail || null;
+            const preview = document.getElementById('thumbnail_preview');
+            if (currentThumbnail) {
+                preview.src = `/storage/${currentThumbnail}`;
+                preview.classList.remove('hidden');
+            } else {
+                preview.classList.add('hidden');
+            }
 
             const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
             btn.innerText = "UPDATE ITEM";
@@ -743,8 +881,15 @@
         document.getElementById('input_qty_ukuran').value = "1";
         document.getElementById('input_qty_biasa').value = "1";
         document.getElementById('input_desain').value = "0";
+        document.getElementById('input_cetak').value = "0";
         document.getElementById('select_finishing').value = "";
         document.getElementById('input_finishing_biaya').value = "0";
+        document.getElementById('input_status_urgensi').value = "Normal";
+        document.getElementById('input_status_finishing').value = "Standar";
+        document.getElementById('input_catatan_produksi').value = "";
+        document.getElementById('input_thumbnail').value = "";
+        document.getElementById('thumbnail_preview').classList.add('hidden');
+        currentThumbnail = null;
         document.getElementById('display_harga').innerText = "Rp 0 /unit";
         document.getElementById('display_subtotal').innerText = "Rp 0";
         document.getElementById('stok_warning').hidden = true;
@@ -777,10 +922,20 @@
         const idKonsumen = $('#id_konsumen').val();
         if (!idKonsumen) return Swal.fire('Konsumen', 'Pilih konsumen dulu.', 'warning');
 
+        const tipeOrder = document.querySelector('input[name="tipe_order"]:checked').value;
+        const noPo = document.getElementById('no_po').value.trim();
+        if (tipeOrder === 'PO' && !noPo) {
+            document.getElementById('no_po').focus();
+            return Swal.fire('No. PO', 'No. PO wajib diisi untuk tipe order PO.', 'warning');
+        }
+
         const payload = {
             id_konsumen: idKonsumen,
             id_golongan: document.getElementById('id_golongan').value,
             no_nota: document.getElementById('no_nota_display').innerText,
+            tipe_order: tipeOrder,
+            no_po: noPo,
+            tgl_order: document.getElementById('tgl_order').value,
             items: cart,
             _token: '{{ csrf_token() }}'
         };
