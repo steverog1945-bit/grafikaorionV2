@@ -84,6 +84,11 @@
                                     {{ $b->mesin->nama_mesin ?? '-' }}
                                 </span>
                                 <span class="text-[9px] text-slate-400 font-medium uppercase">{{ $b->kategori->nama_kategori ?? 'Umum' }}</span>
+                                @if($b->merk || $b->jenisBahan)
+                                    <span class="text-[9px] text-indigo-400 font-medium uppercase">
+                                        {{ $b->merk->nama_merk ?? '' }}{{ $b->merk && $b->jenisBahan ? ' • ' : '' }}{{ $b->jenisBahan->nama_jenis ?? '' }}
+                                    </span>
+                                @endif
                             </div>
                         </td>
                         <td class="px-6 py-5 text-center">
@@ -189,6 +194,27 @@
                         </select>
                     </div>
 
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Merk (Opsional)</label>
+                            <select name="id_merk" id="input_id_merk" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                                <option value="">-- Tanpa Merk --</option>
+                                @foreach($merk as $m)
+                                    <option value="{{ $m->id_merk }}">{{ $m->nama_merk }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Jenis Bahan (Opsional)</label>
+                            <select name="id_jenis_bahan" id="input_id_jenis_bahan" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                                <option value="">-- Tanpa Jenis --</option>
+                                @foreach($jenisBahan as $j)
+                                    <option value="{{ $j->id_jenis_bahan }}">{{ $j->nama_jenis }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="pt-2 border-t border-slate-50">
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4 mb-3">Konversi Satuan &amp; Stok</p>
                     </div>
@@ -273,6 +299,8 @@
         document.getElementById('input_nilai_konversi').value = data.nilai_konversi;
         document.getElementById('input_stok').value = data.stok;
         document.getElementById('input_stok_minimal').value = data.stok_minimal;
+        document.getElementById('input_id_merk').value = data.id_merk || '';
+        document.getElementById('input_id_jenis_bahan').value = data.id_jenis_bahan || '';
 
         document.getElementById('modalBahan').classList.remove('hidden');
     }

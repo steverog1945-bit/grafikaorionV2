@@ -5,16 +5,18 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\BahanBaku;
-use App\Models\Kategori; 
-use App\Models\Mesin;   
+use App\Models\Kategori;
+use App\Models\Mesin;
 use App\Models\Satuan;
+use App\Models\Merk;
+use App\Models\JenisBahan;
 
 class BahanBakuController extends Controller
 {
     public function index(Request $request)
     {
         // Gunakan Eager Loading untuk semua relasi termasuk satuan ganda
-        $query = BahanBaku::with(['kategori', 'mesin', 'satuanStok', 'satuanHitung']); 
+        $query = BahanBaku::with(['kategori', 'mesin', 'satuanStok', 'satuanHitung', 'merk', 'jenisBahan']);
 
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
@@ -40,8 +42,10 @@ class BahanBakuController extends Controller
         $kategori = Kategori::all();
         $mesin = Mesin::all();
         $satuan = Satuan::all();
+        $merk = Merk::orderBy('nama_merk')->get();
+        $jenisBahan = JenisBahan::orderBy('nama_jenis')->get();
 
-        return view('master/bahan.index', compact('bahan', 'kategori', 'mesin', 'satuan'));
+        return view('master/bahan.index', compact('bahan', 'kategori', 'mesin', 'satuan', 'merk', 'jenisBahan'));
     }
 
     public function store(Request $request)
@@ -56,9 +60,18 @@ class BahanBakuController extends Controller
             'nilai_konversi'    => 'required|numeric',
             'stok'              => 'required|numeric',
             'stok_minimal'      => 'required|numeric',
+            'id_merk'           => 'nullable|exists:merk,id_merk',
+            'id_jenis_bahan'    => 'nullable|exists:jenis_bahan,id_jenis_bahan',
         ]);
 
         try {
+            // satuan_stok (kolom string legacy) diturunkan otomatis dari nama
+            // satuan yang dipilih di id_satuan_stok - form ini tidak pernah
+            // mengirim field teks terpisah untuk itu, jadi sebelumnya selalu
+            // tersimpan '-' untuk SEMUA bahan baru (lihat Paper Sublime,
+            // id_bahan 13, yang persis menunjukkan gejala ini).
+            $namaSatuanStok = Satuan::find($request->id_satuan_stok)->nama_satuan ?? '-';
+
             BahanBaku::create([
                 'nama_bahan'       => $request->nama_bahan,
                 'kode_bahan'       => $request->kode_bahan,
@@ -69,7 +82,9 @@ class BahanBakuController extends Controller
                 'nilai_konversi'   => $request->nilai_konversi,
                 'stok'             => $request->stok,
                 'stok_minimal'     => $request->stok_minimal,
-                'satuan_stok'  => $request->satuan_stok ?? '-',
+                'satuan_stok'      => $namaSatuanStok,
+                'id_merk'          => $request->id_merk ?: null,
+                'id_jenis_bahan'   => $request->id_jenis_bahan ?: null,
                 'status'           => 'aktif'
             ]);
 
@@ -89,13 +104,21 @@ class BahanBakuController extends Controller
             'nilai_konversi'    => 'required|numeric',
             'stok'              => 'required|numeric',
             'stok_minimal'      => 'required|numeric',
+            'id_merk'           => 'nullable|exists:merk,id_merk',
+            'id_jenis_bahan'    => 'nullable|exists:jenis_bahan,id_jenis_bahan',
         ]);
 
         $bahan = BahanBaku::findOrFail($id_bahan);
-        $bahan->update($request->only([
+
+        $data = $request->only([
             'nama_bahan', 'kode_bahan', 'id_mesin', 'id_kategori', 'stok',
             'stok_minimal', 'id_satuan_stok', 'id_satuan_hitung', 'nilai_konversi',
-        ]));
+        ]);
+        $data['id_merk'] = $request->id_merk ?: null;
+        $data['id_jenis_bahan'] = $request->id_jenis_bahan ?: null;
+        $data['satuan_stok'] = Satuan::find($request->id_satuan_stok)->nama_satuan ?? $bahan->satuan_stok;
+
+        $bahan->update($data);
 
         return redirect()->route('bahan.index')->with('success', 'Data bahan & logika konversi diperbarui!');
     }
