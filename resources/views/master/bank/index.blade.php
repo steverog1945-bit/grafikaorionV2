@@ -1,13 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="flex justify-between items-center mb-8">
-    <div>
-        <h1 class="text-2xl font-bold text-slate-900 uppercase">Rekening Bank Perusahaan</h1>
-        <p class="text-sm text-slate-500">Daftar rekening bank untuk penerimaan pembayaran nota.</p>
-    </div>
-    <button onclick="toggleModal('modalBank')" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg transition active:scale-95">＋ Tambah Rekening</button>
-</div>
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+
+    <x-page-header title="Rekening Bank Perusahaan" subtitle="Daftar rekening bank untuk penerimaan pembayaran nota.">
+        <x-slot:actions>
+            <x-button onclick="toggleModal('modalBank')">
+                <i class="fas fa-plus-circle"></i>
+                Tambah Rekening
+            </x-button>
+        </x-slot:actions>
+    </x-page-header>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     @foreach($bank as $b)
@@ -27,6 +30,8 @@
         <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold italic">a/n {{ $b->atas_nama }}</div>
     </div>
     @endforeach
+</div>
+
 </div>
 
 <div id="modalBank" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">

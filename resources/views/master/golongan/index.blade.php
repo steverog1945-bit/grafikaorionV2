@@ -2,23 +2,14 @@
 
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
-    {{-- HEADER --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-        <div>
-            <h1 class="text-3xl font-bold text-slate-800 tracking-tight">
-                Master <span class="text-indigo-600">Golongan</span>
-            </h1>
-            <p class="text-slate-400 font-medium mt-1 text-xs uppercase tracking-wider">
-                Klasifikasi pelanggan untuk pembedaan level harga dan layanan.
-            </p>
-        </div>
-
-        <button onclick="toggleModal('modalGolongan')"
-           class="inline-flex items-center justify-center px-6 py-3 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg gap-3 active:scale-95">
-            <i class="fas fa-layer-group text-indigo-400"></i>
-            Tambah Golongan
-        </button>
-    </div>
+    <x-page-header title="Master Golongan" subtitle="Klasifikasi pelanggan untuk pembedaan level harga dan layanan.">
+        <x-slot:actions>
+            <x-button onclick="toggleModal('modalGolongan')">
+                <i class="fas fa-layer-group"></i>
+                Tambah Golongan
+            </x-button>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- TABLE CONTAINER --}}
     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">

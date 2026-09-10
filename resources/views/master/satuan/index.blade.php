@@ -3,23 +3,14 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
     
-    {{-- HEADER --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-        <div>
-            <h1 class="text-3xl font-bold text-slate-800 tracking-tight uppercase">
-                Manajemen <span class="text-indigo-600">Satuan</span>
-            </h1>
-            <p class="text-slate-400 font-medium mt-1 text-xs uppercase tracking-wider">
-                Konfigurasi unit ukur & standarisasi konversi stok
-            </p>
-        </div>
-
-        <button onclick="openTambahModal()"
-           class="inline-flex items-center justify-center px-6 py-3 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg gap-3 active:scale-95">
-            <i class="fas fa-plus-circle text-indigo-400"></i>
-            Tambah Satuan
-        </button>
-    </div>
+    <x-page-header title="Manajemen Satuan" subtitle="Konfigurasi unit ukur & standarisasi konversi stok">
+        <x-slot:actions>
+            <x-button onclick="openTambahModal()">
+                <i class="fas fa-plus-circle"></i>
+                Tambah Satuan
+            </x-button>
+        </x-slot:actions>
+    </x-page-header>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {{-- INFO PANEL (Kiri) --}}
