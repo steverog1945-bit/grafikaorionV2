@@ -12,14 +12,35 @@ use Illuminate\Support\Facades\DB;
 class PembelianBahanController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
+        // Filter search/from/to sebelumnya ditampilkan di form tapi diabaikan
+        // total oleh controller (index() tidak menerima Request sama sekali) -
+        // apapun yang diisi user, hasil yang tampil selalu daftar penuh tanpa
+        // filter.
+        $query = PembelianBahan::with('kedatangan.supplier');
 
-        $data = PembelianBahan::with('kedatangan.supplier')
-            ->orderBy('id_pembelian','desc')
-            ->paginate(10);
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('no_faktur', 'like', "%{$search}%")
+                  ->orWhereHas('kedatangan.supplier', function ($qs) use ($search) {
+                      $qs->where('nama_supplier', 'like', "%{$search}%");
+                  });
+            });
+        }
 
-        return view('pembelian-bahan.index',compact('data'));
+        if ($request->filled('from')) {
+            $query->whereDate('tgl_transaksi', '>=', $request->from);
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('tgl_transaksi', '<=', $request->to);
+        }
+
+        $data = $query->orderBy('id_pembelian', 'desc')->paginate(10)->withQueryString();
+
+        return view('pembelian-bahan.index', compact('data'));
 
     }
 
