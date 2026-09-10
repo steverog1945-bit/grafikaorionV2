@@ -13,10 +13,10 @@
                 <x-button href="{{ route('penjualan.riwayat') }}" variant="outline">
                     <i class="fas fa-receipt"></i> Riwayat Nota
                 </x-button>
-                <div class="bg-white shadow-sm border border-slate-200 rounded-2xl px-5 sm:px-8 py-4 flex items-center gap-4 sm:gap-6 max-w-full">
+                <div class="bg-white shadow-sm border border-slate-100 rounded-2xl px-5 sm:px-8 py-4 flex items-center gap-4 sm:gap-6 max-w-full">
                     <div class="text-right border-r border-slate-100 pr-4 sm:pr-6 min-w-0">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nomor Nota</p>
-                        <p id="no_nota_display" class="text-base sm:text-xl font-black text-slate-800 font-mono tracking-tighter truncate">{{ $no_nota }}</p>
+                        <p id="no_nota_display" class="text-base sm:text-xl font-black text-slate-800 tracking-tight truncate">{{ $no_nota }}</p>
                     </div>
                     <svg class="w-8 h-8 text-indigo-100 hidden sm:block shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"></path></svg>
                 </div>
@@ -183,10 +183,10 @@
                         </div>
                     </div>
 
-                    <div class="bg-indigo-900 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl shadow-indigo-100">
+                    <div class="bg-indigo-900 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4">
                         <div class="text-center md:text-left">
                             <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1">Harga Estimasi</p>
-                            <h2 id="display_subtotal" class="text-3xl font-black text-white italic tracking-tighter font-mono">Rp 0</h2>
+                            <h2 id="display_subtotal" class="text-3xl font-black text-white tracking-tight">Rp 0</h2>
                             <p id="display_harga" class="text-indigo-400 text-[10px] font-bold mt-1">Rp 0 /unit</p>
                             <span id="badge_promo" hidden class="mt-2 px-3 py-1 bg-rose-500 text-white text-xs font-bold uppercase tracking-widest rounded-full">🔥 Harga Promo Aktif</span>
                         </div>
@@ -260,8 +260,8 @@
 
             {{-- KERANJANG --}}
             <div class="w-full lg:w-[42%] flex flex-col self-stretch">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
-                    <div class="p-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 flex justify-between items-center">
                         <h3 class="text-lg font-bold text-slate-800">Keranjang Pesanan</h3>
                         <div id="item_count_badge" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-bold">0 Items</div>
                     </div>
@@ -279,13 +279,13 @@
                         <div class="flex justify-between items-center mb-5">
                             <div>
                                 <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Pembayaran</p>
-                                <h2 id="grand_total" class="text-3xl font-black text-white font-mono tracking-tighter leading-none">Rp 0</h2>
+                                <h2 id="grand_total" class="text-3xl font-black text-white tracking-tight leading-none">Rp 0</h2>
                             </div>
                             <button onclick="resetCart()" class="p-2.5 bg-slate-800 text-slate-500 hover:text-red-400 rounded-xl transition-all">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
-                        <button onclick="simpanTransaksi()" class="w-full py-4 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-2xl shadow-indigo-900/40">
+                        <button onclick="simpanTransaksi()" class="w-full py-4 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
                             Simpan & Cetak Nota
                         </button>
                     </div>
@@ -338,6 +338,7 @@
         30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
         40%, 60% { transform: translate3d(4px, 0, 0); }
     }
+    .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #e2e8f0 transparent; }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
@@ -359,6 +360,27 @@
     .select2-container--default .select2-selection--single .select2-selection__arrow {
         height: 46px !important;
     }
+
+    /* Dropdown hasil pencarian - dibuat senada dengan panel keranjang
+       (radius, shadow, dan scrollbar tipis yang sama), bukan tampilan
+       default Select2 yang kotak/berbayang tebal. */
+    .select2-dropdown {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 0.75rem !important;
+        box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.08) !important;
+        overflow: hidden;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #eef2ff !important;
+        color: #4338ca !important;
+    }
+    .select2-results__options {
+        scrollbar-width: thin;
+        scrollbar-color: #e2e8f0 transparent;
+    }
+    .select2-results__options::-webkit-scrollbar { width: 4px; }
+    .select2-results__options::-webkit-scrollbar-track { background: transparent; }
+    .select2-results__options::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 </style>
 <script>
     // 1. GLOBAL STATE
@@ -366,6 +388,7 @@
     let currentProduk = null;
     let editIndex = null;
     let currentThumbnail = null;
+    let currentKategoriFilter = 'all';
 
     function onTipeOrderChange() {
         const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
@@ -482,6 +505,40 @@
             allowClear: true,
             width: '100%'
         });
+
+        // select_produk & select_jasa punya class "select2-produk" tapi
+        // sebelumnya tidak pernah dipanggil .select2() sama sekali - keduanya
+        // cuma <select> polos berbaju nama class yang menyesatkan, terlihat
+        // beda (tanpa kotak pencarian) dibanding Cari Pelanggan yang benar-
+        // benar sudah jadi widget Select2. Diinisialisasi sekarang supaya
+        // ketiganya konsisten.
+        //
+        // select_produk butuh matcher kustom: filterProduk() (filter
+        // Kategori) sebelumnya cukup set opt.style.display='none' pada
+        // <option> karena itu masih <select> native (browser menghormati
+        // display:none). Select2 membangun daftar hasilnya sendiri dari
+        // data option, TIDAK pernah mengecek style.display - begitu
+        // diinisialisasi Select2, filter Kategori diam-diam berhenti
+        // berfungsi (semua produk selalu tampil apa pun kategorinya) kalau
+        // tidak diganti jadi matcher seperti ini.
+        $('#select_produk').select2({
+            width: '100%',
+            matcher: function (params, data) {
+                const el = data.element;
+                const katId = el ? el.getAttribute('data-kategori') : null;
+                if (katId !== null && currentKategoriFilter !== 'all' && katId != currentKategoriFilter) {
+                    return null;
+                }
+                if (!params.term || params.term.trim() === '') {
+                    return data;
+                }
+                if (data.text.toUpperCase().indexOf(params.term.toUpperCase()) > -1) {
+                    return data;
+                }
+                return null;
+            }
+        });
+        $('#select_jasa').select2({ width: '100%' });
 
         $('.select2-konsumen').on('select2:select', function (e) {
             let idGol = $(this).find(':selected').data('golongan');
@@ -616,16 +673,9 @@
 
     // 3. PRODUCT FUNCTIONS
     function filterProduk(idKat) {
-        const selectProd = document.getElementById('select_produk');
-        const options = selectProd.options;
-        selectProd.value = "";
+        currentKategoriFilter = idKat;
+        $('#select_produk').val('').trigger('change');
         resetInputProduk();
-        for (let i = 0; i < options.length; i++) {
-            const opt = options[i];
-            if (opt.value === "") continue;
-            const katId = opt.getAttribute('data-kategori');
-            opt.style.display = (idKat === 'all' || katId == idKat) ? 'block' : 'none';
-        }
     }
 
     async function getDetailProduk() {
@@ -893,8 +943,8 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
-                        <span class="text-xs font-bold text-slate-400 font-mono">Qty ${item.qty_hitung.toFixed(2)}</span>
-                        <span class="text-sm font-bold text-slate-900 font-mono">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(item.subtotal))}</span>
+                        <span class="text-xs font-bold text-slate-400">Qty ${item.qty_hitung.toFixed(2)}</span>
+                        <span class="text-sm font-bold text-slate-900">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(item.subtotal))}</span>
                     </div>
                 </div>`;
         });
