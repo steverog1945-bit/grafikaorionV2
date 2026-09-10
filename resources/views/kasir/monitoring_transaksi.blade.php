@@ -57,7 +57,8 @@
 </div>
 
 <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
-    <table class="w-full text-left border-collapse">
+    <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse min-w-[640px]">
         <thead class="bg-slate-50 border-b border-slate-100">
             <tr>
                 <th class="p-6 text-[10px] font-black uppercase text-slate-400">Nota & Konsumen</th>
@@ -108,6 +109,7 @@
             @endforeach
         </tbody>
     </table>
+    </div>
 </div>
 
 <script>
