@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+
 <div class="mb-8 flex justify-between items-end">
     <div>
         <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight uppercase">Kelola Kas Harian</h2>
@@ -131,6 +133,8 @@
             @endforeach
         </tbody>
     </table>
+</div>
+
 </div>
 
 <script>
