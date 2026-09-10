@@ -122,6 +122,9 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
 
         Route::get('/get-harga/{id_produk}/{id_golongan}/{qty}',
             [PenjualanApiController::class, 'getHarga']);
+
+        Route::get('/check-stok',
+            [PenjualanApiController::class, 'checkStok']);
     });
 
 

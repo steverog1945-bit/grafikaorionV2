@@ -121,6 +121,17 @@
                         <input type="number" id="input_qty_biasa" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-4 text-2xl font-black text-center" value="1">
                     </div>
 
+                    {{-- Indikator stok BOM - PERINGATAN saja, tidak memblokir order
+                         (lihat catatan keputusan: workflow percetakan biasa order
+                         dulu, restock belakangan sebelum naik cetak) --}}
+                    <div id="stok_warning" hidden class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
+                        <i class="fas fa-exclamation-triangle text-amber-500 mt-0.5"></i>
+                        <div>
+                            <p class="text-[11px] font-black text-amber-700 uppercase tracking-wide">Stok bahan tidak cukup</p>
+                            <p id="stok_warning_detail" class="text-[11px] text-amber-600 mt-1"></p>
+                        </div>
+                    </div>
+
                     <div class="bg-indigo-900 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl shadow-indigo-100">
                         <div class="text-center md:text-left">
                             <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Harga Estimasi</p>
@@ -499,8 +510,34 @@
             const hargaJual = parseFloat(data.harga_jual) || 0;
             const subtotal = (hargaJual * qtyCari) + biayaDesain + biayaFinishing;
             updateDisplay(hargaJual, subtotal, data.is_promo);
+            cekStokBom(currentProduk.id_produk, p, l, (currentProduk.metode_hitung === 'ukuran') ? qU : qB);
             return { harga_satuan: hargaJual, subtotal: subtotal, qty_hitung: qtyCari, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB };
         } catch (error) { return null; }
+    }
+
+    // Indikator stok - PERINGATAN saja, tidak pernah memblokir Tambah/Simpan.
+    async function cekStokBom(idProduk, p, l, qtyInput) {
+        const warningBox = document.getElementById('stok_warning');
+        try {
+            const url = `/api/penjualan/check-stok?id_produk=${idProduk}&p=${p}&l=${l}&qty_input=${qtyInput}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.cukup) {
+                warningBox.hidden = true;
+                return;
+            }
+
+            const kurang = data.detail.filter(d => !d.cukup)
+                .map(d => `${d.nama_bahan} (butuh ${d.dibutuhkan} ${d.satuan}, tersedia ${d.tersedia})`)
+                .join(', ');
+
+            document.getElementById('stok_warning_detail').innerText =
+                `${kurang}. Order tetap bisa disimpan, tapi bahan perlu direstock sebelum naik cetak.`;
+            warningBox.hidden = false;
+        } catch (e) {
+            warningBox.hidden = true;
+        }
     }
 
     function updateDisplay(harga, subtotal, isPromo) {
@@ -710,6 +747,7 @@
         document.getElementById('input_finishing_biaya').value = "0";
         document.getElementById('display_harga').innerText = "Rp 0 /unit";
         document.getElementById('display_subtotal').innerText = "Rp 0";
+        document.getElementById('stok_warning').hidden = true;
 
         // editIndex HARUS direset di sini juga. Sebelumnya ini terlewat: kalau
         // user sedang mengedit item keranjang (editIndex terisi, tombol jadi
