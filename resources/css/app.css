@@ -143,11 +143,20 @@
     margin: auto;
 }
 
+/* h1-h4 TIDAK diberi warna default di sini (lihat riwayat git untuk versi
+   sebelumnya). Rule "h1,h2,h3,h4{color:#0f172a}" bertabrakan head-to-head
+   dengan utility Tailwind seperti text-white pada elemen heading yang
+   SENGAJA dibuat terang di atas background gelap (contoh nyata: #grand_total
+   dan #display_subtotal di penjualan/create.blade.php, keduanya h2
+   berwarna putih di atas kotak bg-slate-900/bg-indigo-900 - total
+   pembayaran di kasir jadi tidak terbaca karena teksnya jadi sewarna
+   background). Selector elemen (h1-h4) dan class Tailwind (.text-white)
+   punya specificity yang SAMA, jadi yang menang cuma soal urutan file -
+   dan karena app.css dimuat setelah utility Tailwind, rule inilah yang
+   menang. Setiap heading di aplikasi ini sudah diberi warna eksplisit lewat
+   class Tailwind (text-slate-800, text-white, dst), jadi fallback warna di
+   sini tidak pernah benar-benar dibutuhkan - hanya berisiko menimpa warna
+   yang sengaja dipilih berbeda. */
 h1, h2, h3, h4 {
     font-family: 'Inter', sans-serif;
-    color: #0f172a; /* slate-900 - sebelumnya "color: #white" (bukan hex
-                        valid) sehingga rule ini tidak pernah benar-benar
-                        berlaku; nilai ini menyamai warna yang memang sudah
-                        efektif tampil selama ini lewat class Tailwind di
-                        <body>, jadi tidak ada perubahan visual. */
 }

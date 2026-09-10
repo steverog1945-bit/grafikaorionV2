@@ -13,12 +13,12 @@
                 <x-button href="{{ route('penjualan.riwayat') }}" variant="outline">
                     <i class="fas fa-receipt"></i> Riwayat Nota
                 </x-button>
-                <div class="bg-white shadow-sm border border-slate-200 rounded-2xl px-8 py-4 flex items-center gap-6">
-                    <div class="text-right border-r border-slate-100 pr-6">
+                <div class="bg-white shadow-sm border border-slate-200 rounded-2xl px-5 sm:px-8 py-4 flex items-center gap-4 sm:gap-6 max-w-full">
+                    <div class="text-right border-r border-slate-100 pr-4 sm:pr-6 min-w-0">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nomor Nota</p>
-                        <p id="no_nota_display" class="text-xl font-black text-slate-800 font-mono tracking-tighter">{{ $no_nota }}</p>
+                        <p id="no_nota_display" class="text-base sm:text-xl font-black text-slate-800 font-mono tracking-tighter truncate">{{ $no_nota }}</p>
                     </div>
-                    <svg class="w-8 h-8 text-indigo-100" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"></path></svg>
+                    <svg class="w-8 h-8 text-indigo-100 hidden sm:block shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"></path></svg>
                 </div>
             </x-slot:actions>
         </x-page-header>
