@@ -7,9 +7,15 @@ use Illuminate\Support\Facades\DB;
 
 class GolonganController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $golongan = DB::table('golongan_konsumen')->get();
+        $query = DB::table('golongan_konsumen');
+
+        if ($request->filled('search')) {
+            $query->where('nama_golongan', 'like', '%' . $request->search . '%');
+        }
+
+        $golongan = $query->orderBy('nama_golongan')->paginate(15)->withQueryString();
         return view('master.golongan.index', compact('golongan'));
     }
 

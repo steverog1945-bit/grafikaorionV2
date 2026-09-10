@@ -11,4 +11,9 @@ class Supplier extends Model
     public $timestamps = false;
 
     protected $guarded = [];
+
+    public function kedatanganBahan()
+    {
+        return $this->hasMany(KedatanganBahan::class, 'id_supplier', 'id_supplier');
+    }
 }

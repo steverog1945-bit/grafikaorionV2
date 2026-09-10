@@ -7,8 +7,18 @@ use Illuminate\Support\Facades\DB;
 
 class BankController extends Controller
 {
-    public function index() {
-        $bank = DB::table('bank_perusahaan')->get();
+    public function index(Request $request) {
+        $query = DB::table('bank_perusahaan');
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('nama_bank', 'like', '%' . $request->search . '%')
+                  ->orWhere('atas_nama', 'like', '%' . $request->search . '%')
+                  ->orWhere('nomor_rekening', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $bank = $query->orderBy('nama_bank')->paginate(15)->withQueryString();
         return view('master.bank.index', compact('bank'));
     }
 

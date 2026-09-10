@@ -17,4 +17,9 @@ class Kategori extends Model
 
     // Kolom yang boleh diisi secara massal
     protected $fillable = ['nama_kategori'];
+
+    public function bahanBaku()
+    {
+        return $this->hasMany(BahanBaku::class, 'id_kategori', 'id_kategori');
+    }
 }

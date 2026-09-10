@@ -8,9 +8,15 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Satuan;
 class SatuanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $satuan = DB::table('satuan')->get();
+        $query = DB::table('satuan');
+
+        if ($request->filled('search')) {
+            $query->where('nama_satuan', 'like', '%' . $request->search . '%');
+        }
+
+        $satuan = $query->orderBy('nama_satuan')->paginate(15)->withQueryString();
         return view('master.satuan.index', compact('satuan'));
     }
 

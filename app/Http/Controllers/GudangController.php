@@ -7,9 +7,15 @@ use Illuminate\Support\Facades\DB;
 
 class GudangController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $gudang = DB::table('gudang')->orderBy('nama_gudang')->get();
+        $query = DB::table('gudang');
+
+        if ($request->filled('search')) {
+            $query->where('nama_gudang', 'like', '%' . $request->search . '%');
+        }
+
+        $gudang = $query->orderBy('nama_gudang')->paginate(15)->withQueryString();
         return view('master.gudang.index', compact('gudang'));
     }
 

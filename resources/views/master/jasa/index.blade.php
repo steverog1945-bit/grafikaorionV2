@@ -11,6 +11,34 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- FILTER & SEARCH --}}
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-8">
+        <form method="GET" action="{{ route('jasa.index') }}" class="flex flex-wrap items-end gap-4">
+            <div class="flex-1 min-w-[260px]">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Jasa</label>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                    <input type="text" name="search" value="{{ request('search') }}"
+                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                           placeholder="Ketik nama jasa...">
+                </div>
+            </div>
+            <div class="w-full md:w-56">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Unit Hitung</label>
+                <select name="id_satuan" class="select2-filter w-full">
+                    <option value="">Semua Satuan</option>
+                    @foreach($satuan as $s)
+                        <option value="{{ $s->id_satuan }}" {{ request('id_satuan') == $s->id_satuan ? 'selected' : '' }}>{{ $s->nama_satuan }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <button type="submit" class="h-[46px] px-6 bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700">Filter</button>
+            <a href="{{ route('jasa.index') }}" class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
+                <i class="fas fa-undo-alt text-sm"></i>
+            </a>
+        </form>
+    </div>
+
     {{-- TABLE CONTAINER --}}
     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
@@ -67,6 +95,8 @@
             </table>
         </div>
     </div>
+
+    <x-table.pagination :paginator="$jasa" />
 </div>
 
 {{-- MODAL TAMBAH (Indigo) --}}
@@ -170,6 +200,16 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        $('.select2-filter').select2({ width: '100%' }).on('change', function() {
+            $(this).closest('form').submit();
+        });
+    });
+</script>
+@endpush
 
 <script>
     function toggleModal(id) {

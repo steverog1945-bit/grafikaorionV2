@@ -7,16 +7,28 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Konsumen;
 class KonsumenController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Menggabungkan tabel konsumen dengan nama golongannya
-        $konsumen = DB::table('konsumen')
+        $query = DB::table('konsumen')
             ->join('golongan_konsumen', 'konsumen.id_golongan', '=', 'golongan_konsumen.id_golongan')
-            ->select('konsumen.*', 'golongan_konsumen.nama_golongan')
-            ->get();
-            
+            ->select('konsumen.*', 'golongan_konsumen.nama_golongan');
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('konsumen.nama_konsumen', 'like', '%' . $request->search . '%')
+                  ->orWhere('konsumen.telepon', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('id_golongan')) {
+            $query->where('konsumen.id_golongan', $request->id_golongan);
+        }
+
+        $konsumen = $query->orderBy('konsumen.nama_konsumen')->paginate(15)->withQueryString();
+
         $golongan = DB::table('golongan_konsumen')->get();
-        
+
         return view('master.konsumen.index', compact('konsumen', 'golongan'));
     }
     public function update(Request $request, $id)

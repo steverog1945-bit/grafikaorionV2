@@ -7,10 +7,25 @@ use Illuminate\Http\Request;
 
 class KaryawanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $karyawan = Karyawan::all();
-        return view('master.karyawan.index', compact('karyawan'));
+        $query = Karyawan::query();
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('nama_karyawan', 'like', '%' . $request->search . '%')
+                  ->orWhere('telepon', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('bagian')) {
+            $query->where('bagian', $request->bagian);
+        }
+
+        $karyawan = $query->orderBy('nama_karyawan')->paginate(15)->withQueryString();
+        $daftarBagian = Karyawan::select('bagian')->distinct()->orderBy('bagian')->pluck('bagian');
+
+        return view('master.karyawan.index', compact('karyawan', 'daftarBagian'));
     }
 
     public function store(Request $request)

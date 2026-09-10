@@ -7,13 +7,21 @@ use Illuminate\Support\Facades\DB;
 
 class JasaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $jasa = DB::table('jasa')
+        $query = DB::table('jasa')
             ->leftJoin('satuan', 'jasa.id_satuan', '=', 'satuan.id_satuan')
-            ->select('jasa.*', 'satuan.nama_satuan')
-            ->orderBy('jasa.nama_jasa')
-            ->get();
+            ->select('jasa.*', 'satuan.nama_satuan');
+
+        if ($request->filled('search')) {
+            $query->where('jasa.nama_jasa', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('id_satuan')) {
+            $query->where('jasa.id_satuan', $request->id_satuan);
+        }
+
+        $jasa = $query->orderBy('jasa.nama_jasa')->paginate(15)->withQueryString();
 
         $satuan = DB::table('satuan')->orderBy('nama_satuan')->get();
 

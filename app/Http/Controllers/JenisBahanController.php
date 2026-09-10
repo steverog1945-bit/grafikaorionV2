@@ -7,9 +7,15 @@ use Illuminate\Support\Facades\DB;
 
 class JenisBahanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $jenisBahan = DB::table('jenis_bahan')->orderBy('nama_jenis')->get();
+        $query = DB::table('jenis_bahan');
+
+        if ($request->filled('search')) {
+            $query->where('nama_jenis', 'like', '%' . $request->search . '%');
+        }
+
+        $jenisBahan = $query->orderBy('nama_jenis')->paginate(15)->withQueryString();
         return view('master.jenis-bahan.index', compact('jenisBahan'));
     }
 

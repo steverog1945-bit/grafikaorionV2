@@ -26,8 +26,7 @@
 
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
-                <select name="kategori" onchange="this.form.submit()"
-                        class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                <select name="kategori" class="select2-filter w-full">
                     <option value="">Semua Divisi</option>
                     @foreach($kategori as $kat)
                         <option value="{{ $kat->id_kategori }}" {{ request('kategori') == $kat->id_kategori ? 'selected' : '' }}>{{ $kat->nama_kategori }}</option>
@@ -300,6 +299,12 @@
 
 @push('scripts')
 <script>
+    $(document).ready(function() {
+        $('.select2-filter').select2({ width: '100%' }).on('change', function() {
+            $(this).closest('form').submit();
+        });
+    });
+
     function openTambahModal() {
         document.getElementById('modalTitle').innerText = "Registrasi Material Baru";
         document.getElementById('formBahan').action = "{{ route('bahan.store') }}";

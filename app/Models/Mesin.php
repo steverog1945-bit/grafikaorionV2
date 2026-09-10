@@ -11,4 +11,14 @@ class Mesin extends Model
     public $timestamps = false;
 
     protected $fillable = ['nama_mesin', 'tipe_mesin'];
+
+    public function bahanBaku()
+    {
+        return $this->hasMany(BahanBaku::class, 'id_mesin', 'id_mesin');
+    }
+
+    public function finishing()
+    {
+        return $this->hasMany(Finishing::class, 'id_mesin', 'id_mesin');
+    }
 }

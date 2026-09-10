@@ -7,8 +7,17 @@ use Illuminate\Support\Facades\DB;
 
 class SupplierController extends Controller
 {
-    public function index() {
-        $supplier = DB::table('supplier')->get();
+    public function index(Request $request) {
+        $query = DB::table('supplier');
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('nama_supplier', 'like', '%' . $request->search . '%')
+                  ->orWhere('kontak', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $supplier = $query->orderBy('nama_supplier')->paginate(15)->withQueryString();
         return view('master.supplier.index', compact('supplier'));
     }
 

@@ -7,9 +7,15 @@ use Illuminate\Support\Facades\DB;
 
 class MerkController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $merk = DB::table('merk')->orderBy('nama_merk')->get();
+        $query = DB::table('merk');
+
+        if ($request->filled('search')) {
+            $query->where('nama_merk', 'like', '%' . $request->search . '%');
+        }
+
+        $merk = $query->orderBy('nama_merk')->paginate(15)->withQueryString();
         return view('master.merk.index', compact('merk'));
     }
 

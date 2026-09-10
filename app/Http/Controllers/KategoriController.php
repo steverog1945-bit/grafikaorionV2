@@ -10,10 +10,19 @@ class KategoriController extends Controller
     /**
      * Tampilkan data kategori yang ada di database.
      */
-    public function index()
+    public function index(Request $request)
     {
         // Mengambil data kategori untuk ditampilkan di tabel
-        $kategori = DB::table('kategori')->get();
+        $query = DB::table('kategori');
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('nama_kategori', 'like', '%' . $request->search . '%')
+                  ->orWhere('kode_kategori', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $kategori = $query->orderBy('nama_kategori')->paginate(15)->withQueryString();
         return view('master.kategori.index', compact('kategori'));
     }
 

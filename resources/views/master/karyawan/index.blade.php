@@ -16,6 +16,34 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- FILTER & SEARCH --}}
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-8">
+        <form method="GET" action="{{ url('/karyawan') }}" class="flex flex-wrap items-end gap-4">
+            <div class="flex-1 min-w-[260px]">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Karyawan</label>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                    <input type="text" name="search" value="{{ request('search') }}"
+                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                           placeholder="Ketik nama atau no. telepon...">
+                </div>
+            </div>
+            <div class="w-full md:w-56">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Bagian</label>
+                <select name="bagian" class="select2-filter w-full">
+                    <option value="">Semua Bagian</option>
+                    @foreach($daftarBagian as $b)
+                        <option value="{{ $b }}" {{ request('bagian') == $b ? 'selected' : '' }}>{{ $b }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <button type="submit" class="h-[46px] px-6 bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700">Filter</button>
+            <a href="{{ url('/karyawan') }}" class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
+                <i class="fas fa-undo-alt text-sm"></i>
+            </a>
+        </form>
+    </div>
+
     {{-- TABLE CONTAINER --}}
     <div class="bg-white rounded-[3rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto p-4">
@@ -135,6 +163,8 @@
             </table>
         </div>
     </div>
+
+    <x-table.pagination :paginator="$karyawan" />
 </div>
 
 {{-- MODAL TAMBAH --}}
@@ -184,6 +214,12 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    $(document).ready(function() {
+        $('.select2-filter').select2({ width: '100%' }).on('change', function() {
+            $(this).closest('form').submit();
+        });
+    });
+
     function toggleModal(id) {
         const modal = document.getElementById(id);
         if (modal.classList.contains('hidden')) {

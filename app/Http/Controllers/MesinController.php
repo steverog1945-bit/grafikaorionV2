@@ -7,10 +7,22 @@ use Illuminate\Http\Request;
 
 class MesinController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $mesin = Mesin::all();
-        return view('master.mesin.index', compact('mesin'));
+        $query = Mesin::query();
+
+        if ($request->filled('search')) {
+            $query->where('nama_mesin', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('tipe_mesin')) {
+            $query->where('tipe_mesin', $request->tipe_mesin);
+        }
+
+        $mesin = $query->orderBy('nama_mesin')->paginate(15)->withQueryString();
+        $daftarTipe = Mesin::select('tipe_mesin')->distinct()->orderBy('tipe_mesin')->pluck('tipe_mesin');
+
+        return view('master.mesin.index', compact('mesin', 'daftarTipe'));
     }
 
     public function store(Request $request)

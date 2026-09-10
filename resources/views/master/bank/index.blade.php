@@ -12,25 +12,54 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- FILTER & SEARCH --}}
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-8">
+        <form method="GET" action="{{ route('bank.index') }}" class="flex flex-wrap items-end gap-4">
+            <div class="flex-1 min-w-[260px]">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Rekening</label>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                    <input type="text" name="search" value="{{ request('search') }}"
+                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                           placeholder="Ketik nama bank, atas nama, atau no. rekening...">
+                </div>
+            </div>
+            <button type="submit" class="h-[46px] px-6 bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700">Filter</button>
+            <a href="{{ route('bank.index') }}" class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
+                <i class="fas fa-undo-alt text-sm"></i>
+            </a>
+        </form>
+    </div>
+
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    @foreach($bank as $b)
+    @forelse($bank as $b)
     <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative group hover:shadow-md transition-all">
         <div class="flex justify-between items-start mb-4">
             <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-xs font-extrabold uppercase">{{ $b->nama_bank }}</span>
             <div class="flex gap-2">
-                <button onclick="openEditBank({{ json_encode($b) }})" class="text-slate-300 hover:text-indigo-600 transition">✏️</button>
-                
+                <button onclick="openEditBank({{ json_encode($b) }})"
+                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
+                    <i class="far fa-edit text-sm"></i>
+                </button>
+
                 <form action="{{ route('bank.destroy', $b->id_bank) }}" method="POST" onsubmit="return confirm('Hapus rekening ini?')">
                     @csrf @method('DELETE')
-                    <button type="submit" class="text-slate-300 hover:text-red-500 transition">🗑️</button>
+                    <button type="submit"
+                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                        <i class="far fa-trash-alt text-sm"></i>
+                    </button>
                 </form>
             </div>
         </div>
         <div class="text-xl font-mono font-bold text-slate-800 mb-1">{{ $b->nomor_rekening }}</div>
         <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold italic">a/n {{ $b->atas_nama }}</div>
     </div>
-    @endforeach
+    @empty
+    <div class="col-span-full py-20 text-center text-slate-400 font-medium italic">Belum ada rekening bank yang terdaftar.</div>
+    @endforelse
 </div>
+
+<x-table.pagination :paginator="$bank" />
 
 </div>
 

@@ -22,4 +22,9 @@ class Konsumen extends Model
     {
         return $this->hasMany(KonsumenDeposit::class, 'id_konsumen', 'id_konsumen');
     }
+
+    public function golongan()
+    {
+        return $this->belongsTo(GolonganKonsumen::class, 'id_golongan', 'id_golongan');
+    }
 }
