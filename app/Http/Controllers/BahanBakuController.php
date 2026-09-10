@@ -156,7 +156,10 @@ class BahanBakuController extends Controller
 
         $bahan->update($data);
 
-        return redirect()->route('bahan.index')->with('success', 'Data bahan & logika konversi diperbarui!');
+        // back() bukan redirect()->route() supaya query string halaman saat
+        // ini (?page=2&search=...) ikut terbawa - edit banyak bahan dari
+        // halaman 2+ dulu selalu terlempar balik ke halaman 1 tiap simpan.
+        return back()->with('success', 'Data bahan & logika konversi diperbarui!');
     }
 
     public function destroy($id)
