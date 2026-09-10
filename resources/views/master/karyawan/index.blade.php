@@ -3,24 +3,18 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 bg-slate-50 min-h-screen max-w-[1600px] mx-auto">
 
-    {{-- HEADER --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-        <div>
-            <h1 class="text-3xl font-black text-slate-800 tracking-tighter uppercase leading-none">
-                Master <span class="text-indigo-600">Karyawan</span>
-            </h1>
-            <p class="text-slate-500 font-medium mt-3 text-[13px] uppercase tracking-[0.2em] flex items-center gap-2">
-                <i class="fas fa-users text-indigo-400"></i>
-                SDM <span class="text-slate-300">/</span> Manajemen Profil & Produksi
-            </p>
-        </div>
-
-        <button onclick="toggleModal('modalTambah')" 
-                class="inline-flex items-center justify-center px-8 py-4 bg-slate-900 hover:bg-indigo-600 text-white rounded-[1.5rem] text-[13px] font-black uppercase tracking-[0.15em] transition-all shadow-xl shadow-slate-200 gap-3 active:scale-95">
-            <i class="fas fa-plus-circle text-sm text-indigo-400"></i>
-            Tambah Karyawan
-        </button>
-    </div>
+    <x-page-header title="Master Karyawan">
+        <x-slot:subtitle>
+            <i class="fas fa-users text-indigo-400"></i>
+            SDM <span class="mx-1 text-slate-300">/</span> Manajemen Profil &amp; Produksi
+        </x-slot:subtitle>
+        <x-slot:actions>
+            <x-button onclick="toggleModal('modalTambah')">
+                <i class="fas fa-plus-circle"></i>
+                Tambah Karyawan
+            </x-button>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- TABLE CONTAINER --}}
     <div class="bg-white rounded-[3rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
@@ -95,7 +89,7 @@
                         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onclick="toggleModal('modalEdit{{ $k->id_karyawan }}')"></div>
                         <div class="relative w-full max-w-md bg-white rounded-[2.5rem] p-10 shadow-2xl border border-white/20 transform transition-all scale-100">
                             <div class="mb-8">
-                                <h3 class="text-2xl font-black text-slate-800 tracking-tighter uppercase">Edit <span class="text-indigo-600">Profil</span></h3>
+                                <h3 class="text-2xl font-black text-slate-800 tracking-tighter uppercase">Edit Profil</h3>
                                 <p class="text-slate-400 text-[13px] font-bold mt-1 uppercase tracking-wider">ID Karyawan: #{{ $k->id_karyawan }}</p>
                             </div>
 
@@ -130,7 +124,7 @@
                                     <button type="button" onclick="toggleModal('modalEdit{{ $k->id_karyawan }}')" 
                                             class="flex-1 px-4 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all">Batal</button>
                                     <button type="submit" 
-                                            class="flex-[2] bg-indigo-600 text-white px-6 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-black transition-all">Update Profil</button>
+                                            class="flex-[2] bg-indigo-600 text-white px-6 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">Update Profil</button>
                                 </div>
                                 
                             </form>
@@ -151,7 +145,7 @@
             <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-user-plus text-indigo-600 text-2xl"></i>
             </div>
-            <h3 class="text-2xl font-black text-slate-800 tracking-tighter uppercase">Karyawan <span class="text-indigo-600">Baru</span></h3>
+            <h3 class="text-2xl font-black text-slate-800 tracking-tighter uppercase">Karyawan Baru</h3>
             <p class="text-slate-400 text-[12px] font-bold mt-1 uppercase tracking-wider">Input data personil produksi</p>
         </div>
 
@@ -181,7 +175,7 @@
                 <button type="button" onclick="toggleModal('modalTambah')" 
                         class="flex-1 px-4 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all">Batal</button>
                 <button type="submit" 
-                        class="flex-[2] bg-slate-900 text-white px-6 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest shadow-lg shadow-slate-200 hover:bg-indigo-600 transition-all">Simpan Data</button>
+                        class="flex-[2] bg-indigo-600 text-white px-6 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">Simpan Data</button>
             </div>
         </form>
     </div>
