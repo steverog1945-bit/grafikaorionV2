@@ -545,27 +545,34 @@
     <span class="text-sm font-medium">Setting Akses</span>
 </a>
 @endif
-    
-    <div class="mt-10 pt-10 border-t border-slate-800 px-3">
-        <form action="{{ url('logout') }}" method="POST">
-            @csrf
-            <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition group">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500 group-hover:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span class="text-sm font-medium">Keluar Sistem</span>
-            </button>
-        </form>
-    </div>
 </nav>
         </aside>
 
         <main id="mainContent" class="transition-all duration-300">
-    <div class="topbar sticky top-0 bg-white shadow-sm z-30">
-        <button id="sidebarCollapseToggle" onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-slate-100 transition-transform duration-300" title="Sembunyikan/tampilkan menu">
-            <i class="fas fa-bars"></i>
-        </button>
-        <span class="font-bold text-slate-700">PRINT-ERP</span>
+    <div class="topbar sticky top-0 bg-white shadow-sm z-30 justify-between">
+        <div class="flex items-center gap-3">
+            <button id="sidebarCollapseToggle" onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-slate-100 transition-transform duration-300" title="Sembunyikan/tampilkan menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="font-bold text-slate-700">PRINT-ERP</span>
+        </div>
+
+        <div class="flex items-center gap-3">
+            @php $namaTampil = optional(Auth::user()->karyawan)->nama_karyawan ?? Auth::user()->username; @endphp
+            <div class="hidden sm:flex flex-col items-end leading-tight">
+                <span class="text-[13px] font-bold text-slate-700">{{ $namaTampil }}</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{{ optional(Auth::user()->role)->nama_role }}</span>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0">
+                {{ strtoupper(substr($namaTampil, 0, 1)) }}
+            </div>
+            <form action="{{ url('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all" title="Keluar Sistem">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </form>
+        </div>
     </div>
 
     <div class="content-wrapper">
