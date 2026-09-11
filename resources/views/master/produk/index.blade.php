@@ -45,9 +45,9 @@
 
             @if(request()->anyFilled(['search', 'category']) || request('status', 'aktif') !== 'aktif')
                 <a href="{{ route('produk.index') }}"
-                   class="px-6 py-3 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-100 transition-all"
+                   class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all"
                    title="Reset Filter">
-                    <i class="fas fa-times"></i>
+                    <i class="fas fa-undo-alt text-sm"></i>
                 </a>
             @endif
         </form>
@@ -56,17 +56,17 @@
     <x-table>
         <thead>
             <tr>
-                <th class="px-8 py-5 text-left">Detail Produk</th>
-                <th class="px-4 py-5 text-center">Metode Hitung</th>
-                <th class="px-4 py-5 text-left">Bahan Baku (BOM)</th>
-                <th class="px-4 py-5 text-center">Logic Pemakaian</th>
-                <th class="px-8 py-5 text-right">Aksi</th>
+                <th class="px-6 py-4 text-left">Detail Produk</th>
+                <th class="px-4 py-4 text-center">Metode Hitung</th>
+                <th class="px-4 py-4 text-left">Bahan Baku (BOM)</th>
+                <th class="px-4 py-4 text-center">Logic Pemakaian</th>
+                <th class="px-6 py-4 text-right">Aksi</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
             @forelse($produk as $p)
             <tr class="group hover:bg-indigo-50/40 transition-all {{ $p->status === 'nonaktif' ? 'opacity-50' : '' }}">
-                <td class="px-8 py-5">
+                <td class="px-6 py-3.5">
                     <div class="font-bold text-slate-800 text-[14px] flex items-center gap-2">
                         {{ $p->nama_produk }}
                         @if($p->status === 'nonaktif')
@@ -79,17 +79,17 @@
                     </div>
                 </td>
 
-                <td class="px-4 py-5 text-center">
-                    <span class="inline-flex items-center px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest {{ $p->metode_hitung == 'ukuran' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 'bg-blue-50 text-blue-600 border border-blue-100' }}">
-                        <i class="fas {{ $p->metode_hitung == 'ukuran' ? 'fa-ruler-combined' : 'fa-layer-group' }} mr-2"></i>
+                <td class="px-4 py-3.5 text-center">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest {{ $p->metode_hitung == 'ukuran' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 'bg-blue-50 text-blue-600 border border-blue-100' }}">
+                        <i class="fas {{ $p->metode_hitung == 'ukuran' ? 'fa-ruler-combined' : 'fa-layer-group' }} mr-1.5"></i>
                         {{ $p->metode_hitung }}
                     </span>
                 </td>
 
-                <td class="px-4 py-5">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
-                            <i class="fas fa-boxes text-[12px]"></i>
+                <td class="px-4 py-3.5">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                            <i class="fas fa-boxes text-[11px]"></i>
                         </div>
                         <span class="text-sm font-bold text-slate-600">
                             {{ $p->daftar_bahan ?? 'Belum ada bahan' }}
@@ -97,16 +97,18 @@
                     </div>
                 </td>
 
-                <td class="px-4 py-5 text-center">
-                    <code class="px-3 py-1.5 rounded-lg bg-slate-100 text-indigo-600 text-[11px] font-black border border-slate-200">
+                <td class="px-4 py-3.5 text-center">
+                    {{-- Bukan <code> (browser render monospace) - badge biasa
+                         senada dengan chip Metode Hitung di kolom sebelah. --}}
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-slate-50 text-indigo-600 text-[10px] font-bold uppercase tracking-widest border border-slate-100">
                         {{ $p->cara_hitung_pemakaian ?? '-' }}
-                    </code>
+                    </span>
                 </td>
 
-                <td class="px-8 py-5 text-right">
+                <td class="px-6 py-3.5 text-right">
                     <div class="flex items-center justify-end gap-2">
                         <x-button size="icon" variant="ghost" onclick="editProduk({{ json_encode($p) }})" class="border border-slate-100 hover:text-amber-500 hover:border-amber-200">
-                            <i class="fas fa-edit text-sm"></i>
+                            <i class="far fa-edit text-sm"></i>
                         </x-button>
 
                         <form action="{{ route('produk.toggle-status', $p->id_produk) }}" method="POST" class="inline" id="toggle-form-{{ $p->id_produk }}">
@@ -121,7 +123,7 @@
                         <form action="{{ route('produk.destroy', $p->id_produk) }}" method="POST" class="inline" id="delete-form-{{ $p->id_produk }}">
                             @csrf @method('DELETE')
                             <x-button type="button" size="icon" variant="ghost" onclick="confirmDelete('{{ $p->id_produk }}', '{{ $p->nama_produk }}')" class="border border-slate-100 hover:text-rose-600 hover:border-rose-200">
-                                <i class="fas fa-trash text-sm"></i>
+                                <i class="far fa-trash-alt text-sm"></i>
                             </x-button>
                         </form>
                     </div>
@@ -139,29 +141,17 @@
 
     <x-table.pagination :paginator="$produk" />
 
-    {{-- MODAL PRODUK + BOM --}}
-    <x-modal id="produk" maxWidth="6xl">
+    {{-- MODAL PRODUK + BOM - pakai header bawaan x-modal (title prop) seperti
+         semua modal lain di app ini (bahan_baku, finishing, jasa, dst),
+         bukan lagi header kustom (kotak ikon indigo + judul 2 baris) yang
+         cuma dipakai di halaman ini sendiri. id elemen judul yang
+         dihasilkan x-modal ("modal-produk-title") persis sama dengan yang
+         sudah dipakai JS di bawah, jadi toggle judul Tambah/Edit tetap
+         jalan tanpa perlu ubah apa pun di sana. --}}
+    <x-modal id="produk" title="Product Engineering" maxWidth="6xl">
         <form id="formProduk" action="{{ route('produk.store') }}" method="POST">
             @csrf
             <div id="methodField"></div>
-
-            {{-- Header kustom (ikon + judul 2 baris) - dipadatkan mengikuti gaya
-                 input Kasir Utama (kartu ringkas, tidak banyak whitespace
-                 berlebih) supaya modal ini tidak makan tempat terlalu banyak. --}}
-            <div class="flex justify-between items-start mb-6 pb-4 border-b border-slate-100">
-                <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0">
-                        <i class="fas fa-drafting-compass text-base"></i>
-                    </div>
-                    <div>
-                        <h3 id="modal-produk-title" class="text-lg font-black text-slate-800 uppercase tracking-tighter leading-tight">Product Engineering</h3>
-                        <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Konfigurasi Multi-BOM & Alur Kerja Produksi</p>
-                    </div>
-                </div>
-                <button type="button" onclick="closeProdukModal()" class="text-slate-300 hover:text-rose-500 transition-colors">
-                    <i class="fas fa-times-circle text-2xl"></i>
-                </button>
-            </div>
 
             {{-- INFO PRODUK - full-width (dulu kolom sempit 4/12 di samping BOM,
                  sekarang selebar modal supaya field-nya mengalir jelas dari atas
@@ -169,12 +159,12 @@
                  referensi tampilan yang diberikan). Panel & field dipadatkan
                  (padding/radius/jarak antar-field diturunkan) mengikuti gaya
                  input Kasir Utama - bukan lagi kartu besar berjarak lega. --}}
-            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-4 mb-5">
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3 mb-5">
                 <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
                     <i class="fas fa-info-circle"></i> Info Produk
                 </p>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
                     <div class="md:col-span-2">
                         <x-form.group label="Nama Produk">
                             <x-form.input type="text" name="nama_produk" id="input_nama_produk" required class="!bg-white !shadow-sm !py-2.5" />
@@ -185,7 +175,7 @@
                     </x-form.group>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                     <x-form.group label="Mesin / Divisi Produksi">
                         <x-form.select name="id_mesin" id="input_id_mesin" onchange="filterBahanByMesin(this.value)" class="!bg-white !shadow-sm !text-indigo-600 !py-2.5">
                             <option value="">-- Pilih Mesin --</option>
@@ -216,7 +206,7 @@
                     </x-form.select>
                 </x-form.group>
 
-                <div id="field_min_ukuran" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div id="field_min_ukuran" class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                     <x-form.group label="Ukuran Min Order - Panjang (cm)">
                         <x-form.input type="number" name="min_p" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-2.5" />
                     </x-form.group>
@@ -253,7 +243,7 @@
                 </div>
 
                 <div id="tab-panel-bahan" class="p-5">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
                         <div class="md:col-span-1">
                             <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Pilih Bahan</label>
                             <select id="temp_id_bahan" class="w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
@@ -294,14 +284,14 @@
                         </thead>
                         <tbody id="bom_table_body" class="divide-y divide-slate-50 text-[12px] font-bold text-slate-600">
                             <tr id="empty_state">
-                                <td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
+                                <td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
                             </tr>
                         </tbody>
                     </x-table>
                 </div>
 
                 <div id="tab-panel-finishing" class="p-5 hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5 bg-purple-50/50 p-4 rounded-2xl border border-purple-100">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-4 bg-purple-50/50 p-4 rounded-2xl border border-purple-100">
                         <div class="md:col-span-1">
                             <label class="block text-[9px] font-black text-purple-700 uppercase mb-1.5">Pilih Finishing</label>
                             <select id="temp_id_finishing" class="w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
@@ -332,7 +322,7 @@
                         </thead>
                         <tbody id="finishing_table_body" class="divide-y divide-slate-50 text-[12px] font-bold text-slate-600">
                             <tr id="empty_state_finishing">
-                                <td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
+                                <td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
                             </tr>
                         </tbody>
                     </x-table>
@@ -368,11 +358,11 @@
 
         document.getElementById('bom_table_body').innerHTML = `
             <tr id="empty_state">
-                <td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
+                <td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
             </tr>`;
         document.getElementById('finishing_table_body').innerHTML = `
             <tr id="empty_state_finishing">
-                <td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
+                <td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
             </tr>`;
         switchBomTab('bahan');
 
@@ -469,7 +459,7 @@
                     renderBahanRow(item.id_bahan, item.nama_bahan, item.cara_hitung_pemakaian, item.satuan_stok);
                 });
             } else {
-                tbody.innerHTML = '<tr id="empty_state"><td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>';
+                tbody.innerHTML = '<tr id="empty_state"><td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>';
             }
 
             const tbodyFinishing = document.getElementById('finishing_table_body');
@@ -480,7 +470,7 @@
                     renderFinishingRow(item.id_finishing, item.nama_finishing, item.qty);
                 });
             } else {
-                tbodyFinishing.innerHTML = '<tr id="empty_state_finishing"><td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada finishing.</td></tr>';
+                tbodyFinishing.innerHTML = '<tr id="empty_state_finishing"><td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada finishing.</td></tr>';
             }
 
             switchBomTab('bahan');
@@ -561,11 +551,11 @@
             </td>
             <td class="p-3">
                 <input type="hidden" name="cara_hitung_pemakaian[]" value="${rumus}">
-                <code class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded text-[10px] font-black">${rumus}</code>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-widest">${rumus}</span>
             </td>
             <td class="p-3 text-center">
                 <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmpty();" class="text-slate-300 hover:text-rose-500">
-                    <i class="fas fa-trash-alt"></i>
+                    <i class="far fa-trash-alt"></i>
                 </button>
             </td>
         `;
@@ -575,7 +565,7 @@
     function checkEmpty() {
         const tbody = document.getElementById('bom_table_body');
         if (tbody.children.length === 0) {
-            tbody.innerHTML = `<tr id="empty_state"><td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>`;
+            tbody.innerHTML = `<tr id="empty_state"><td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>`;
         }
     }
 
@@ -626,11 +616,11 @@
             </td>
             <td class="p-3">
                 <input type="hidden" name="finishing_qty[]" value="${qty}">
-                <code class="bg-purple-50 text-purple-600 px-2 py-1 rounded text-[10px] font-black">${qty}</code>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-50 text-purple-600 text-[10px] font-bold uppercase tracking-widest">${qty}</span>
             </td>
             <td class="p-3 text-center">
                 <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmptyFinishing();" class="text-slate-300 hover:text-rose-500">
-                    <i class="fas fa-trash-alt"></i>
+                    <i class="far fa-trash-alt"></i>
                 </button>
             </td>
         `;
@@ -640,7 +630,7 @@
     function checkEmptyFinishing() {
         const tbody = document.getElementById('finishing_table_body');
         if (tbody.children.length === 0) {
-            tbody.innerHTML = `<tr id="empty_state_finishing"><td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada finishing.</td></tr>`;
+            tbody.innerHTML = `<tr id="empty_state_finishing"><td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada finishing.</td></tr>`;
         }
     }
 
