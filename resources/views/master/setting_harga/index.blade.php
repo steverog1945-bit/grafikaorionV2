@@ -55,7 +55,13 @@
         </thead>
         <tbody class="divide-y divide-slate-50">
             @forelse($produk as $p)
-            @php $hargaProduk = $all_harga[$p->id_produk] ?? collect(); @endphp
+            @php
+                $hargaProduk = $all_harga[$p->id_produk] ?? collect();
+                $satuanRentangRow = $p->metode_hitung === 'ukuran' ? 'm²' : 'Pcs';
+                // rtrim ganda: buang nol desimal berlebih (2.00 -> 2, 0.50 -> 0.5)
+                // supaya tier bilangan bulat tetap tampil bersih, bukan "2.00".
+                $fmtRentang = fn ($v) => rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
+            @endphp
             <tr class="group hover:bg-slate-50/50 transition-all">
                 <td class="px-6 py-5">
                     <div class="text-[13px] font-bold text-slate-700 uppercase">{{ $p->nama_produk }}</div>
@@ -63,7 +69,7 @@
                         <span class="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-bold uppercase border border-indigo-100">
                             <i class="fas fa-print mr-1"></i>{{ $p->nama_mesin ?? 'Tanpa Mesin' }}
                         </span>
-                        <span class="text-[9px] text-slate-400 font-medium italic">By {{ $p->metode_hitung }}</span>
+                        <span class="text-[9px] text-slate-400 font-medium italic">By {{ $p->metode_hitung }} ({{ $satuanRentangRow }})</span>
                     </div>
                 </td>
 
@@ -76,8 +82,8 @@
                         @elseif($tiersGol->count() === 1)
                             @php $satu = $tiersGol->first(); @endphp
                             <span class="text-slate-700 font-semibold">Rp{{ number_format($satu->harga_jual, 0, ',', '.') }}</span>
-                            @if($satu->range_min > 1 || $satu->range_max)
-                                <div class="text-[9px] text-slate-400">qty {{ $satu->range_min }}-{{ $satu->range_max ?? '∞' }}</div>
+                            @if($satu->range_min > 0.01 || $satu->range_max)
+                                <div class="text-[9px] text-slate-400">{{ $fmtRentang($satu->range_min) }}-{{ $satu->range_max !== null ? $fmtRentang($satu->range_max) : '∞' }} {{ $satuanRentangRow }}</div>
                             @endif
                         @else
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">{{ $tiersGol->count() }} TIER</span>
@@ -109,10 +115,23 @@
          punya form CRUD sendiri dengan id_harga asli, add/edit/hapus satu
          tier TIDAK PERNAH menyentuh tier lain sama sekali). --}}
     @foreach($produk as $p)
-    @php $hargaProdukModal = $all_harga[$p->id_produk] ?? collect(); @endphp
+    @php
+        $hargaProdukModal = $all_harga[$p->id_produk] ?? collect();
+        // Satuan rentang Min/Max HARUS eksplisit di sini - sebelumnya cuma
+        // angka polos tanpa keterangan, admin yang mengisi tidak tahu apakah
+        // "1" itu 1 m² atau 1 pcs. Ikut metode_hitung produk yang sama
+        // seperti dipakai HargaService::getHargaEfektif() menghitung qty
+        // sesungguhnya - m² untuk 'ukuran', Pcs untuk 'quantity'.
+        $satuanRentang = $p->metode_hitung === 'ukuran' ? 'm²' : 'Pcs';
+        $stepRentang = $p->metode_hitung === 'ukuran' ? '0.01' : '1';
+    @endphp
     <x-modal id="harga-produk-{{ $p->id_produk }}" title="Kelola Harga: {{ $p->nama_produk }}" maxWidth="3xl">
         <div class="mb-4 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs text-slate-500">
-            Tiap baris berlaku untuk satu golongan &amp; rentang qty tertentu. Kosongkan <b>Max</b> untuk rentang tak terbatas ("qty X ke atas"). Harga dipilih otomatis di Kasir Utama berdasarkan golongan konsumen &amp; qty yang diinput.
+            Tiap baris berlaku untuk satu golongan &amp; rentang <b>{{ $satuanRentang }}</b> tertentu
+            @if($p->metode_hitung === 'ukuran')
+                (luas cetak = panjang &times; lebar, mis. stiker 30&times;30cm = 0,09 m² - boleh pecahan)
+            @endif
+            . Kosongkan <b>Max</b> untuk rentang tak terbatas ("{{ $satuanRentang }} X ke atas"). Harga dipilih otomatis di Kasir Utama berdasarkan golongan konsumen &amp; {{ $satuanRentang }} yang diinput.
         </div>
 
         <div class="overflow-x-auto mb-4">
@@ -120,8 +139,8 @@
                 <thead>
                     <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-100">
                         <th class="text-left py-2 pr-2">Golongan</th>
-                        <th class="text-center py-2 px-2 w-20">Min</th>
-                        <th class="text-center py-2 px-2 w-20">Max</th>
+                        <th class="text-center py-2 px-2 w-20">Min ({{ $satuanRentang }})</th>
+                        <th class="text-center py-2 px-2 w-20">Max ({{ $satuanRentang }})</th>
                         <th class="text-left py-2 px-2">Harga (Rp)</th>
                         <th class="w-20"></th>
                     </tr>
@@ -138,9 +157,10 @@
                                 <form action="{{ route('setting-harga.tier.update', $t->id_harga) }}" class="tier-edit-form-produk flex items-center gap-2 flex-1">
                                     @csrf
                                     <span class="w-28 shrink-0 text-[11px] font-bold text-slate-600 uppercase truncate" title="{{ $namaGolonganTier }}">{{ $namaGolonganTier }}</span>
-                                    <input type="number" name="range_min" value="{{ $t->range_min }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                                    <input type="number" name="range_min" value="{{ rtrim(rtrim(number_format($t->range_min, 2, '.', ''), '0'), '.') }}" min="0.01" step="{{ $stepRentang }}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                                     <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                                    <input type="number" name="range_max" value="{{ $t->range_max }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                                    <input type="number" name="range_max" value="{{ $t->range_max !== null ? rtrim(rtrim(number_format($t->range_max, 2, '.', ''), '0'), '.') : '' }}" min="0.01" step="{{ $stepRentang }}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                                    <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentang }}</span>
                                     <span class="text-[10px] text-slate-400">Rp</span>
                                     <input type="number" name="harga_jual" value="{{ (int) $t->harga_jual }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
                                     <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
@@ -158,16 +178,17 @@
             </table>
         </div>
 
-        <form action="{{ route('setting-harga.tier.store', $p->id_produk) }}" class="tier-add-form-produk flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-produk="{{ $p->id_produk }}">
+        <form action="{{ route('setting-harga.tier.store', $p->id_produk) }}" class="tier-add-form-produk flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-produk="{{ $p->id_produk }}" data-satuan-rentang="{{ $satuanRentang }}">
             @csrf
             <select name="id_golongan" required class="w-28 shrink-0 text-[11px] bg-white border-none rounded-lg py-2 px-1 font-bold text-slate-600">
                 @foreach($golongan as $g)
                     <option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>
                 @endforeach
             </select>
-            <input type="number" name="range_min" placeholder="Min" value="1" min="1" required class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
+            <input type="number" name="range_min" placeholder="Min" value="{{ $p->metode_hitung === 'ukuran' ? '0.01' : '1' }}" min="0.01" step="{{ $stepRentang }}" required class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
             <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-            <input type="number" name="range_max" placeholder="~" min="1" class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
+            <input type="number" name="range_max" placeholder="~" min="0.01" step="{{ $stepRentang }}" class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
+            <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentang }}</span>
             <span class="text-[10px] text-slate-400">Rp</span>
             <input type="number" name="harga_jual" placeholder="0" min="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-bold">
             <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shrink-0" title="Tambah Tier">
@@ -201,7 +222,7 @@
         @endforeach
     };
 
-    function buildHargaTierRowHtml(t) {
+    function buildHargaTierRowHtml(t, satuanRentang, stepRentang) {
         const namaGol = namaGolonganMap[t.id_golongan] ?? '?';
         return `
             <tr class="tier-row-produk" data-id="${t.id_harga}" data-id-golongan="${t.id_golongan}">
@@ -210,9 +231,10 @@
                         <form action="{{ url('/setting-harga-tier') }}/${t.id_harga}" class="tier-edit-form-produk flex items-center gap-2 flex-1">
                             <input type="hidden" name="_token" value="${csrfTokenHarga}">
                             <span class="w-28 shrink-0 text-[11px] font-bold text-slate-600 uppercase truncate" title="${namaGol}">${namaGol}</span>
-                            <input type="number" name="range_min" value="${t.range_min}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                            <input type="number" name="range_min" value="${t.range_min}" min="0.01" step="${stepRentang}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                             <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                            <input type="number" name="range_max" value="${t.range_max ?? ''}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                            <input type="number" name="range_max" value="${t.range_max ?? ''}" min="0.01" step="${stepRentang}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                            <span class="text-[9px] text-slate-400 uppercase shrink-0">${satuanRentang}</span>
                             <span class="text-[10px] text-slate-400">Rp</span>
                             <input type="number" name="harga_jual" value="${parseInt(t.harga_jual)}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
                             <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
@@ -238,6 +260,10 @@
 
         const tbody = document.getElementById('tier-tbody-produk-' + idProduk);
         const rows = Array.from(tbody.querySelectorAll(`.tier-row-produk[data-id-golongan="${idGolongan}"]`));
+        // Satuan rentang disimpan di form Tambah tier produk ini (data-satuan-
+        // rentang) - dibaca dari sana supaya ringkasan di tabel utama juga
+        // eksplisit menyebut m²/Pcs, bukan kata "qty" generik yang ambigu.
+        const satuanRentang = document.querySelector(`.tier-add-form-produk[data-id-produk="${idProduk}"]`)?.dataset.satuanRentang || '';
 
         if (rows.length === 0) {
             cell.innerHTML = '<span class="text-slate-300 italic text-[10px]">Belum Diatur</span>';
@@ -251,8 +277,8 @@
             const min = rows[0].querySelector('[name="range_min"]').value;
             const max = rows[0].querySelector('[name="range_max"]').value;
             let html = `<span class="text-slate-700 font-semibold">${fmt(hargaList[0])}</span>`;
-            if (parseInt(min) > 1 || max) {
-                html += `<div class="text-[9px] text-slate-400">qty ${min}-${max || '∞'}</div>`;
+            if (parseFloat(min) > 0.01 || max) {
+                html += `<div class="text-[9px] text-slate-400">${min}-${max || '&infin;'} ${satuanRentang}</div>`;
             }
             cell.innerHTML = html;
         } else {
@@ -295,7 +321,8 @@
             const idProduk = form.dataset.idProduk;
             const tbody = document.getElementById('tier-tbody-produk-' + idProduk);
             tbody.querySelector('.tier-empty-msg-produk').hidden = true;
-            tbody.insertAdjacentHTML('beforeend', buildHargaTierRowHtml(data.row));
+            const stepRentang = form.querySelector('[name="range_min"]').step || '1';
+            tbody.insertAdjacentHTML('beforeend', buildHargaTierRowHtml(data.row, form.dataset.satuanRentang || '', stepRentang));
             const golSelect = form.querySelector('[name="id_golongan"]');
             form.reset();
             golSelect.selectedIndex = 0;

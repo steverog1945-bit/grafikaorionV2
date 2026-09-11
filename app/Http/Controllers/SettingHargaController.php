@@ -67,8 +67,14 @@ class SettingHargaController extends Controller
     {
         $request->validate([
             'id_golongan' => 'required|exists:golongan_konsumen,id_golongan',
-            'range_min'   => 'required|integer|min:1',
-            'range_max'   => 'nullable|integer|gte:range_min',
+            // numeric (bukan integer) SENGAJA - lihat migrasi
+            // 2026_09_11_240000: untuk produk metode_hitung='ukuran', satuan
+            // rentang ini adalah luas m² yang pecahan (mis. 0.09 m² utk
+            // stiker 30x30cm). integer|min:1 sebelumnya membuat order di
+            // bawah 1 m² MUSTAHIL dapat harga sama sekali (selalu tertolak
+            // "Harga belum diatur") - bukan cuma masalah tampilan.
+            'range_min'   => 'required|numeric|min:0.01',
+            'range_max'   => 'nullable|numeric|gte:range_min',
             'harga_jual'  => 'required|numeric|min:0',
         ]);
 
@@ -94,9 +100,10 @@ class SettingHargaController extends Controller
 
     public function updateRow(Request $request, $id)
     {
+        // numeric, bukan integer - lihat catatan di storeRow().
         $request->validate([
-            'range_min'  => 'required|integer|min:1',
-            'range_max'  => 'nullable|integer|gte:range_min',
+            'range_min'  => 'required|numeric|min:0.01',
+            'range_max'  => 'nullable|numeric|gte:range_min',
             'harga_jual' => 'required|numeric|min:0',
         ]);
 

@@ -14,9 +14,13 @@ class JasaHargaController extends Controller
 {
     public function store(Request $request, $idJasa)
     {
+        // numeric (bukan integer) - konsisten dengan Price List produk &
+        // Finishing (lihat migrasi 2026_09_11_240000), walau qty jasa
+        // biasanya bilangan bulat, disamakan supaya satu aturan berlaku di
+        // ketiga tabel harga bertingkat ini.
         $request->validate([
-            'range_min' => 'required|integer|min:1',
-            'range_max' => 'nullable|integer|gte:range_min',
+            'range_min' => 'required|numeric|min:0.01',
+            'range_max' => 'nullable|numeric|gte:range_min',
             'harga'     => 'required|numeric|min:0',
         ]);
 
@@ -37,8 +41,8 @@ class JasaHargaController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'range_min' => 'required|integer|min:1',
-            'range_max' => 'nullable|integer|gte:range_min',
+            'range_min' => 'required|numeric|min:0.01',
+            'range_max' => 'nullable|numeric|gte:range_min',
             'harga'     => 'required|numeric|min:0',
         ]);
 

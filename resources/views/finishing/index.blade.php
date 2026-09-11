@@ -82,17 +82,25 @@
             Harga Default (<b>Rp {{ number_format($d->harga_default, 0, ',', '.') }}</b>) dipakai kalau qty tidak cocok tier manapun di bawah, atau belum ada tier sama sekali. Kasir tetap bisa menimpa manual di Kasir Utama - ini hanya acuan/starting point.
         </div>
 
-        @php $tiers = $hargaTiers[$d->id_finishing] ?? collect(); @endphp
+        @php
+            $tiers = $hargaTiers[$d->id_finishing] ?? collect();
+            // Satuan rentang eksplisit ikut metode_hitung finishing ITU SENDIRI
+            // ('luas' vs 'quantity' - lihat perbaikan qty acuan finishing sesi
+            // sebelumnya), sama seperti Price List produk - luas m² boleh pecahan.
+            $satuanRentangFinishing = $d->metode_hitung === 'luas' ? 'm²' : 'Pcs';
+            $stepRentangFinishing = $d->metode_hitung === 'luas' ? '0.01' : '1';
+        @endphp
 
-        <div id="tier-container-finishing-{{ $d->id_finishing }}" class="space-y-2 mb-4">
+        <div id="tier-container-finishing-{{ $d->id_finishing }}" class="space-y-2 mb-4" data-satuan-rentang="{{ $satuanRentangFinishing }}">
             <p class="text-xs text-slate-400 italic tier-empty-msg-finishing" {{ $tiers->isNotEmpty() ? 'hidden' : '' }}>Belum ada tier harga - selalu memakai Harga Default di atas.</p>
             @foreach($tiers as $t)
             <div class="tier-row-finishing flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2" data-id="{{ $t->id_finishing_harga }}">
                 <form action="{{ route('finishing.harga.update', $t->id_finishing_harga) }}" class="tier-edit-form-finishing flex items-center gap-2 flex-1">
                     @csrf
-                    <input type="number" name="range_min" value="{{ $t->range_min }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <input type="number" name="range_min" value="{{ $t->range_min }}" min="0.01" step="{{ $stepRentangFinishing }}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                    <input type="number" name="range_max" value="{{ $t->range_max }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <input type="number" name="range_max" value="{{ $t->range_max }}" min="0.01" step="{{ $stepRentangFinishing }}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentangFinishing }}</span>
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>
                     <input type="number" name="harga" value="{{ (int) $t->harga }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
@@ -107,11 +115,12 @@
             @endforeach
         </div>
 
-        <form action="{{ route('finishing.harga.store', $d->id_finishing) }}" class="tier-add-form-finishing flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-finishing="{{ $d->id_finishing }}">
+        <form action="{{ route('finishing.harga.store', $d->id_finishing) }}" class="tier-add-form-finishing flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-finishing="{{ $d->id_finishing }}" data-satuan-rentang="{{ $satuanRentangFinishing }}">
             @csrf
-            <input type="number" name="range_min" placeholder="Min" min="1" required class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
+            <input type="number" name="range_min" placeholder="Min" min="0.01" step="{{ $stepRentangFinishing }}" required class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
             <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-            <input type="number" name="range_max" placeholder="~" min="1" class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
+            <input type="number" name="range_max" placeholder="~" min="0.01" step="{{ $stepRentangFinishing }}" class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
+            <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentangFinishing }}</span>
             <span class="text-[10px] text-slate-400">=</span>
             <span class="text-[10px] text-slate-400">Rp</span>
             <input type="number" name="harga" placeholder="0" min="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-bold">
@@ -236,14 +245,15 @@
     // beberapa tier berturut-turut.
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-    function buildFinishingTierRowHtml(t) {
+    function buildFinishingTierRowHtml(t, satuanRentang, stepRentang) {
         return `
             <div class="tier-row-finishing flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2" data-id="${t.id_finishing_harga}">
                 <form action="{{ url('/finishing-harga') }}/${t.id_finishing_harga}" class="tier-edit-form-finishing flex items-center gap-2 flex-1">
                     <input type="hidden" name="_token" value="${csrfToken}">
-                    <input type="number" name="range_min" value="${t.range_min}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <input type="number" name="range_min" value="${t.range_min}" min="0.01" step="${stepRentang}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                    <input type="number" name="range_max" value="${t.range_max ?? ''}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <input type="number" name="range_max" value="${t.range_max ?? ''}" min="0.01" step="${stepRentang}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <span class="text-[9px] text-slate-400 uppercase shrink-0">${satuanRentang}</span>
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>
                     <input type="number" name="harga" value="${parseInt(t.harga)}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
@@ -294,7 +304,8 @@
             const idFinishing = form.dataset.idFinishing;
             const container = document.getElementById('tier-container-finishing-' + idFinishing);
             container.querySelector('.tier-empty-msg-finishing').hidden = true;
-            container.insertAdjacentHTML('beforeend', buildFinishingTierRowHtml(data.row));
+            const stepRentang = form.querySelector('[name="range_min"]').step || '1';
+            container.insertAdjacentHTML('beforeend', buildFinishingTierRowHtml(data.row, form.dataset.satuanRentang || '', stepRentang));
             form.reset();
             Toast.fire({ icon: 'success', title: data.message });
         } else if (e.target.matches('.tier-edit-form-finishing')) {
