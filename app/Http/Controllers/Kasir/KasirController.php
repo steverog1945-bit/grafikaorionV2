@@ -177,6 +177,19 @@ class KasirController extends Controller
             )
             ->get();
 
+        // qty_hitung = satuan hitung SEBENARNYA yang dipakai untuk Harga per
+        // item (m² untuk produk metode 'ukuran', pcs untuk 'quantity'/jasa) -
+        // PERSIS rumus yang sama dengan HargaService/PenjualanController::
+        // store()/StokReversalService & prosesBayar() di bawah. Dihitung di
+        // sini (bukan dipercaya dari kolom qty mentah) supaya tampilan Harga
+        // & preview Custom Harga di blade selalu cocok dengan apa yang nanti
+        // benar-benar disimpan server saat submit.
+        foreach ($items as $item) {
+            $item->qty_hitung = ($item->metode_hitung === 'ukuran')
+                ? round(((float) $item->p_ukuran * (float) $item->l_ukuran / 10000) * (float) $item->qty, 4)
+                : (float) $item->qty;
+        }
+
         $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
         $sisaTagihan = $transaksi->total_bayar - $totalTerbayar;
         $banks = DB::table('bank_perusahaan')->orderBy('nama_bank')->get();
@@ -243,6 +256,27 @@ class KasirController extends Controller
                         continue;
                     }
 
+                    // "Harga" adalah harga PER SATUAN HITUNG (per m² untuk produk
+                    // metode 'ukuran', per pcs untuk 'quantity'/jasa) - PERSIS
+                    // definisi yang sama dengan Price List & HargaService di
+                    // seluruh aplikasi ini. Untuk produk metode 'ukuran', satuan
+                    // hitungnya BUKAN transaksi_detail.qty (itu jumlah PCS yang
+                    // dipesan) melainkan qtyHitung = (p*l/10000)*qty (area m²) -
+                    // dikalikan qty mentah di sini akan salah kali lipat (order
+                    // 200x100cm = 2m², harga per m² 18rb, tapi kode lama
+                    // mengalikan 18rb x qty_pcs bukan x 2m², jadi Harga yang
+                    // ditampilkan/tersimpan tidak pernah cocok dengan Price
+                    // List). Rumus ini SENGAJA dihitung ulang di server (bukan
+                    // dipercaya dari client) - sama seperti qty_hitung di
+                    // PenjualanController::store() & StokReversalService.
+                    $qtyEfektif = (float) $detailRow->qty;
+                    if ($detailRow->id_produk) {
+                        $metodeHitung = DB::table('produk')->where('id_produk', $detailRow->id_produk)->value('metode_hitung');
+                        if ($metodeHitung === 'ukuran') {
+                            $qtyEfektif = ((float) $detailRow->p_ukuran * (float) $detailRow->l_ukuran / 10000) * (float) $detailRow->qty;
+                        }
+                    }
+
                     $bersihkan = fn ($v) => (float) str_replace('.', '', (string) ($v ?? 0));
 
                     $hargaBersih = $bersihkan($data['harga'] ?? 0);
@@ -257,7 +291,7 @@ class KasirController extends Controller
                         }
                     }
 
-                    $subtotalBaru = ($hargaBersih * $detailRow->qty) + $biayaCetakBaru + $biayaDesainBaru + $biayaFinishingBaru - $potonganBaru;
+                    $subtotalBaru = ($hargaBersih * $qtyEfektif) + $biayaCetakBaru + $biayaDesainBaru + $biayaFinishingBaru - $potonganBaru;
 
                     if ($subtotalBaru < 0) {
                         throw new \Exception("Potongan untuk item \"{$detailRow->nama_file}\" tidak boleh lebih besar dari total item itu sendiri.");

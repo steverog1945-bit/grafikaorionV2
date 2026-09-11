@@ -40,7 +40,13 @@
                     </thead>
                     <tbody class="divide-y divide-slate-50">
                         @foreach($items as $i => $item)
-                        @php $hargaSatuan = ($item->qty > 0) ? ($item->subtotal + $item->potongan - $item->biaya_cetak - $item->biaya_desain - $item->biaya_finishing) / $item->qty : 0; @endphp
+                        {{-- Harga per satuan hitung = m² untuk produk metode 'ukuran',
+                             pcs untuk 'quantity'/jasa. Pakai qty_hitung (dihitung di
+                             KasirController::bayarForm), BUKAN $item->qty mentah - untuk
+                             produk 'ukuran', qty mentah itu jumlah pcs bukan luas, jadi
+                             Harga hasil bagi-mundur akan salah kali lipat & tidak cocok
+                             dengan Price List kalau dipakai. --}}
+                        @php $hargaSatuan = ($item->qty_hitung > 0) ? ($item->subtotal + $item->potongan - $item->biaya_cetak - $item->biaya_desain - $item->biaya_finishing) / $item->qty_hitung : 0; @endphp
                         <tr class="item-row" data-id="{{ $item->id_detail }}">
                             <td class="py-3 pr-2 text-slate-400">{{ $i + 1 }}</td>
                             <td class="py-3 px-2">
@@ -48,7 +54,14 @@
                                 <div class="text-[10px] text-slate-400 italic">{{ $item->nama_file }}</div>
                             </td>
                             <td class="py-3 px-2 text-right disp-harga font-bold text-slate-700">Rp {{ number_format($hargaSatuan, 0, ',', '.') }}</td>
-                            <td class="py-3 px-2 text-center text-slate-500">{{ $item->qty }} {{ $item->metode_hitung == 'ukuran' ? 'm²' : ($item->id_jasa ? 'Jasa' : 'Pcs') }}</td>
+                            <td class="py-3 px-2 text-center text-slate-500">
+                                @if($item->metode_hitung == 'ukuran')
+                                    {{ number_format($item->qty_hitung, 2, ',', '.') }} m²
+                                    <div class="text-[10px] text-slate-300">{{ $item->qty }} pcs</div>
+                                @else
+                                    {{ $item->qty }} {{ $item->id_jasa ? 'Jasa' : 'Pcs' }}
+                                @endif
+                            </td>
                             <td class="py-3 px-2 text-right disp-cetak text-slate-500">Rp {{ number_format($item->biaya_cetak, 0, ',', '.') }}</td>
                             <td class="py-3 px-2 text-right disp-desain text-slate-500">Rp {{ number_format($item->biaya_desain, 0, ',', '.') }}</td>
                             <td class="py-3 px-2 text-right disp-finishing text-slate-500">Rp {{ number_format($item->biaya_finishing, 0, ',', '.') }}</td>
@@ -69,7 +82,11 @@
                             <input type="hidden" class="inp-desain" name="items[{{ $item->id_detail }}][biaya_desain]" value="{{ (int) $item->biaya_desain }}">
                             <input type="hidden" class="inp-finishing" name="items[{{ $item->id_detail }}][biaya_finishing]" value="{{ (int) $item->biaya_finishing }}">
                             <input type="hidden" class="inp-potongan" name="items[{{ $item->id_detail }}][potongan]" value="{{ (int) $item->potongan }}">
-                            <input type="hidden" class="inp-qty" value="{{ $item->qty }}" data-satuan="{{ $item->metode_hitung == 'ukuran' ? 'm²' : ($item->id_jasa ? 'jasa' : 'pcs') }}">
+                            {{-- inp-qty menyimpan qty_hitung (satuan hitung harga - m² atau
+                                 pcs), BUKAN string berformat Rupiah, jadi dibaca dengan
+                                 parseFloat() biasa di JS (lihat calculateInvoice), tidak lewat
+                                 cleanRupiah() yang akan salah membuang titik desimalnya. --}}
+                            <input type="hidden" class="inp-qty" value="{{ number_format($item->qty_hitung, 4, '.', '') }}" data-satuan="{{ $item->metode_hitung == 'ukuran' ? 'm²' : ($item->id_jasa ? 'jasa' : 'pcs') }}">
                         </tr>
                         @endforeach
                     </tbody>
@@ -120,6 +137,23 @@
 
         {{-- BAGIAN 2: VALIDASI PEMBAYARAN --}}
         <x-card>
+            @if($saldoDeposit > 0)
+            {{-- Notifikasi deposit - murni informasi + auto-fill lewat JS
+                 (autoTerapkanDeposit), BUKAN kuncian. Kasir tetap bebas ganti
+                 ke Tunai/Transfer atau ubah nominal kapan saja - selaras
+                 dengan prinsip "warn don't block" yang dipakai di seluruh
+                 halaman ini. --}}
+            <div class="mb-6 flex items-center gap-4 bg-emerald-50 border border-emerald-100 rounded-2xl px-5 py-4">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-xs font-black text-emerald-700 uppercase tracking-wide">Konsumen punya saldo deposit Rp {{ number_format($saldoDeposit, 0, ',', '.') }}</p>
+                    <p class="text-[11px] text-emerald-600 mt-0.5">Otomatis diterapkan ke tagihan ini. Ganti Metode Pembayaran di bawah jika ingin memakai Tunai/Transfer.</p>
+                </div>
+            </div>
+            @endif
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-6">
                     {{-- Sebelumnya status DP/Lunas cuma DISIMPULKAN diam-diam dari
@@ -146,13 +180,27 @@
                         </div>
                     </div>
 
+                    {{-- Metode Pembayaran disederhanakan dari <select> polos jadi
+                         pill-button minimalist (konsisten dgn Jenis Pembayaran di
+                         atas & ikon fa di seluruh app) - TANPA mengurangi fungsi:
+                         Tunai/Transfer/Deposit ketiganya tetap ada & tetap
+                         men-submit field metode_pembayaran seperti sebelumnya. --}}
                     <div>
                         <label class="block text-xs font-black text-slate-500 uppercase mb-3">Metode Pembayaran</label>
-                        <select name="metode_pembayaran" id="metode-pembayaran" onchange="toggleBankField()" class="w-full h-14 rounded-2xl border-slate-200 text-base font-bold focus:ring-4 focus:ring-indigo-100 transition-all">
-                            <option value="Tunai">💵 TUNAI</option>
-                            <option value="Transfer">🏦 TRANSFER</option>
-                            <option value="Deposit" {{ $saldoDeposit <= 0 ? 'disabled' : '' }}>👛 DEPOSIT (Saldo: Rp {{ number_format($saldoDeposit, 0, ',', '.') }})</option>
-                        </select>
+                        <div class="grid grid-cols-3 gap-2">
+                            <label class="metode-bayar-option relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-black text-[11px] uppercase cursor-pointer transition-all">
+                                <input type="radio" name="metode_pembayaran" id="metode-tunai" value="Tunai" class="sr-only" checked onchange="onMetodePembayaranChange()">
+                                <i class="fas fa-money-bill-wave"></i> Tunai
+                            </label>
+                            <label class="metode-bayar-option relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border-2 border-slate-100 text-slate-400 font-black text-[11px] uppercase cursor-pointer transition-all">
+                                <input type="radio" name="metode_pembayaran" value="Transfer" class="sr-only" onchange="onMetodePembayaranChange()">
+                                <i class="fas fa-university"></i> Transfer
+                            </label>
+                            <label class="metode-bayar-option relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border-2 border-slate-100 text-slate-400 font-black text-[11px] uppercase cursor-pointer transition-all {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}">
+                                <input type="radio" name="metode_pembayaran" value="Deposit" class="sr-only" {{ $saldoDeposit <= 0 ? 'disabled' : '' }} onchange="onMetodePembayaranChange()">
+                                <i class="fas fa-wallet"></i> Deposit
+                            </label>
+                        </div>
                     </div>
                     <div id="wrapper-bank" class="hidden">
                         <label class="block text-xs font-black text-slate-500 uppercase mb-3">Rekening Tujuan</label>
@@ -276,7 +324,11 @@
         let totalKotor = 0;
 
         document.querySelectorAll('.item-row').forEach(row => {
-            const subtotal = cleanRupiah(row.querySelector('.inp-harga').value) * cleanRupiah(row.querySelector('.inp-qty').value)
+            // inp-qty = qty_hitung (m²/pcs) sebagai angka desimal biasa,
+            // dibaca dengan parseFloat() - BUKAN cleanRupiah() yang salah
+            // membuang titik desimalnya (dianggap pemisah ribuan Rupiah).
+            const qtyHitung = parseFloat(row.querySelector('.inp-qty').value) || 0;
+            const subtotal = cleanRupiah(row.querySelector('.inp-harga').value) * qtyHitung
                 + cleanRupiah(row.querySelector('.inp-cetak').value)
                 + cleanRupiah(row.querySelector('.inp-desain').value)
                 + cleanRupiah(row.querySelector('.inp-finishing').value)
@@ -381,10 +433,56 @@
 
     const saldoDepositTersedia = {{ (float) $saldoDeposit }};
 
+    function getMetodePembayaran() {
+        return document.querySelector('input[name="metode_pembayaran"]:checked')?.value || 'Tunai';
+    }
+
+    // Sinkron gaya pill button "Metode Pembayaran" dengan pill "Jenis
+    // Pembayaran" di atasnya - sama-sama radio yang disamarkan (sr-only),
+    // tampilannya digambar ulang lewat class toggle di label pembungkusnya.
+    function onMetodePembayaranChange() {
+        document.querySelectorAll('.metode-bayar-option').forEach(label => {
+            const input = label.querySelector('input');
+            const isChecked = input.checked;
+            label.classList.toggle('border-indigo-500', isChecked);
+            label.classList.toggle('bg-indigo-50', isChecked);
+            label.classList.toggle('text-indigo-700', isChecked);
+            label.classList.toggle('border-slate-100', !isChecked && !input.disabled);
+            label.classList.toggle('text-slate-400', !isChecked);
+        });
+        toggleBankField();
+    }
+
     function toggleBankField() {
-        const metode = document.getElementById('metode-pembayaran').value;
+        const metode = getMetodePembayaran();
         document.getElementById('wrapper-bank').classList.toggle('hidden', metode !== 'Transfer');
         document.getElementById('wrapper-deposit-info').classList.toggle('hidden', metode !== 'Deposit');
+    }
+
+    // Kalau konsumen ini punya saldo deposit, otomatis pilih Metode
+    // Pembayaran = Deposit & isi Uang Diterima = saldo (dibatasi maksimal
+    // sisa tagihan) saat halaman pertama dibuka, supaya kasir tidak perlu
+    // ingat menerapkannya manual. HANYA jalan sekali di awal load (bukan
+    // tiap kali angka berubah) supaya tidak menimpa input yang sudah
+    // diketik sendiri - kasir tetap bebas ganti ke Tunai/Transfer kapan
+    // saja (banner di atas cuma informasi, bukan kuncian).
+    function autoTerapkanDeposit() {
+        if (saldoDepositTersedia <= 0) return;
+        const sisaTagihan = parseFloat(document.getElementById('grand_total_hidden').value) || 0;
+        if (sisaTagihan <= 0) return;
+
+        document.getElementById('metode-tunai').checked = false;
+        const radioDeposit = document.querySelector('input[name="metode_pembayaran"][value="Deposit"]');
+        radioDeposit.checked = true;
+        onMetodePembayaranChange();
+
+        const jumlahOtomatis = Math.min(saldoDepositTersedia, sisaTagihan);
+        const tipeLunas = jumlahOtomatis >= sisaTagihan;
+        document.querySelector(`input[name="tipe_bayar"][value="${tipeLunas ? 'lunas' : 'dp'}"]`).checked = true;
+        onTipeBayarChange();
+
+        document.getElementById('input-bayar-mask').value = formatRupiah(jumlahOtomatis);
+        calculateInvoice();
     }
 
     // ---- CUSTOM HARGA MODAL ----
@@ -408,7 +506,11 @@
 
     function hitungPreviewCustomHarga() {
         if (!currentEditingRow) return;
-        const qty = cleanRupiah(currentEditingRow.querySelector('.inp-qty').value);
+        // inp-qty menyimpan qty_hitung (m²/pcs) sebagai angka desimal biasa
+        // (mis. "2.4500"), bukan string berformat Rupiah - dibaca dengan
+        // parseFloat(), BUKAN cleanRupiah() yang akan salah membuang
+        // titik desimalnya (dianggap pemisah ribuan).
+        const qty = parseFloat(currentEditingRow.querySelector('.inp-qty').value) || 0;
         const harga = cleanRupiah(document.getElementById('ch-harga').value);
         const cetak = cleanRupiah(document.getElementById('ch-cetak').value);
         const desain = cleanRupiah(document.getElementById('ch-desain').value);
@@ -424,7 +526,7 @@
     function simpanCustomHarga() {
         if (!currentEditingRow) return;
         const row = currentEditingRow;
-        const qty = cleanRupiah(row.querySelector('.inp-qty').value);
+        const qty = parseFloat(row.querySelector('.inp-qty').value) || 0;
 
         const harga = cleanRupiah(document.getElementById('ch-harga').value);
         const cetak = cleanRupiah(document.getElementById('ch-cetak').value);
@@ -460,7 +562,7 @@
     // (KasirController::prosesBayar), ini cuma UX, bukan satu-satunya
     // penjaga.
     document.getElementById('form-pembayaran').addEventListener('submit', function (e) {
-        const metode = document.getElementById('metode-pembayaran').value;
+        const metode = getMetodePembayaran();
         const bayar = cleanRupiah(document.getElementById('input-bayar-mask').value);
         if (metode === 'Deposit' && bayar > saldoDepositTersedia) {
             e.preventDefault();
@@ -471,6 +573,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         calculateInvoice();
         toggleBankField();
+        autoTerapkanDeposit();
     });
 </script>
 @endsection
