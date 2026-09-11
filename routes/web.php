@@ -352,6 +352,7 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::patch('/produksi/{id}/cancel', [ProduksiController::class, 'cancel'])->name('produksi.cancel');
 
     Route::get('/collecting', [CollectingController::class, 'index'])->name('collecting.index');
+    Route::patch('/collecting/{id}/proses', [CollectingController::class, 'proses'])->name('collecting.proses');
 
     Route::get('/laporan/order', [LaporanController::class, 'order'])->name('laporan.order');
     Route::get('/laporan/produksi', [LaporanController::class, 'produksi'])->name('laporan.produksi');

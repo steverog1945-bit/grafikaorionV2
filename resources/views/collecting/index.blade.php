@@ -39,11 +39,20 @@
             </div>
 
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Collecting</label>
-                <x-form.select name="status_collecting">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Pengerjaan</label>
+                <x-form.select name="status_pengerjaan">
                     <option value="">-- Semua --</option>
-                    <option value="belum" {{ request('status_collecting') === 'belum' ? 'selected' : '' }}>Belum Lengkap</option>
-                    <option value="lengkap" {{ request('status_collecting') === 'lengkap' ? 'selected' : '' }}>Lengkap</option>
+                    <option value="belum" {{ request('status_pengerjaan') === 'belum' ? 'selected' : '' }}>Belum Lengkap</option>
+                    <option value="lengkap" {{ request('status_pengerjaan') === 'lengkap' ? 'selected' : '' }}>Lengkap</option>
+                </x-form.select>
+            </div>
+
+            <div class="w-full md:w-48">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Pengambilan</label>
+                <x-form.select name="status_pengambilan">
+                    <option value="">-- Semua --</option>
+                    <option value="Belum Diambil" {{ request('status_pengambilan') === 'Belum Diambil' ? 'selected' : '' }}>Belum Diambil</option>
+                    <option value="Sudah Diambil" {{ request('status_pengambilan') === 'Sudah Diambil' ? 'selected' : '' }}>Sudah Diambil</option>
                 </x-form.select>
             </div>
 
@@ -52,7 +61,7 @@
                 Filter
             </x-button>
 
-            @if(request()->anyFilled(['nama_konsumen', 'nomor_nota', 'tgl_dari', 'tgl_sampai', 'status_collecting']))
+            @if(request()->anyFilled(['nama_konsumen', 'nomor_nota', 'tgl_dari', 'tgl_sampai', 'status_pengerjaan', 'status_pengambilan']))
                 <a href="{{ route('collecting.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
@@ -68,7 +77,8 @@
                 <th class="px-4 py-5 text-left">Tanggal Order</th>
                 <th class="px-4 py-5 text-center">Progres Item</th>
                 <th class="px-4 py-5 text-center">Status Bayar</th>
-                <th class="px-4 py-5 text-center">Status Collecting</th>
+                <th class="px-4 py-5 text-center">Status Pengerjaan</th>
+                <th class="px-4 py-5 text-center">Pengambilan</th>
                 <th class="px-8 py-5 text-center">Aksi</th>
             </tr>
         </thead>
@@ -106,15 +116,33 @@
                         <x-badge variant="warning">Belum Lengkap</x-badge>
                     @endif
                 </td>
+                <td class="px-4 py-5 text-center">
+                    @if($item->status_collecting === 'Sudah Diambil')
+                        <x-badge variant="success">Sudah Diambil</x-badge>
+                        <div class="text-[9px] text-slate-400 mt-1">{{ \Carbon\Carbon::parse($item->tgl_collecting)->format('d M Y H:i') }} &middot; {{ $item->diambil_oleh ?? '-' }}</div>
+                    @else
+                        <x-badge variant="info">Belum Diambil</x-badge>
+                    @endif
+                </td>
                 <td class="px-8 py-5 text-center">
-                    <x-button href="{{ route('produksi.index', ['konsumen' => $item->nama_konsumen, 'status_produksi' => 'semua']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat progres di Produksi">
-                        <i class="fas fa-eye text-xs"></i>
-                    </x-button>
+                    <div class="flex items-center justify-center gap-2">
+                        <x-button href="{{ route('produksi.index', ['konsumen' => $item->nama_konsumen, 'status_produksi' => 'semua']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat progres di Produksi">
+                            <i class="fas fa-eye text-xs"></i>
+                        </x-button>
+                        @if($item->status_collecting !== 'Sudah Diambil')
+                            <x-button type="button" size="icon" variant="ghost"
+                                onclick="prosesCollecting('{{ $item->id_transaksi }}', {{ json_encode($item->nomor_nota) }}, {{ $lengkap ? 'true' : 'false' }})"
+                                class="border border-slate-100 {{ $lengkap ? 'hover:text-emerald-600' : 'text-slate-200 cursor-not-allowed' }}"
+                                title="{{ $lengkap ? 'Tandai Sudah Diambil' : 'Belum bisa diproses - masih ada item yang belum selesai' }}">
+                                <i class="fas fa-hand-holding text-xs"></i>
+                            </x-button>
+                        @endif
+                    </div>
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     <x-empty-state title="Tidak ada data" description="Sesuaikan filter atau tunggu order baru." />
                 </td>
             </tr>
@@ -125,4 +153,45 @@
     <x-table.pagination :paginator="$collecting" />
 
 </div>
+
+@push('scripts')
+<script>
+    function prosesCollecting(idTransaksi, nomorNota, sudahLengkap) {
+        if (!sudahLengkap) {
+            Swal.fire({
+                title: 'Belum Bisa Diproses',
+                html: `Masih ada item pada nota <b>${nomorNota}</b> yang belum selesai dikerjakan. Semua item harus Selesai/Batal dulu sebelum bisa ditandai diambil.`,
+                icon: 'warning',
+                confirmButtonColor: '#4f46e5',
+                customClass: { popup: 'rounded-[2rem]' }
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Tandai Sudah Diambil?',
+            html: `Nota <b>${nomorNota}</b> akan ditandai sudah diambil customer dan status ini tidak dimaksudkan untuk dibatalkan sembarangan. Lanjutkan?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#f8fafc',
+            confirmButtonText: 'Ya, Sudah Diambil',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/collecting/${idTransaksi}/proses`;
+                form.innerHTML = `@csrf @method('PATCH')`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>
+@endpush
 @endsection
