@@ -52,7 +52,11 @@ class SupplierController extends Controller
     }
 
     public function destroy($id) {
-        DB::table('supplier')->where('id_supplier', $id)->delete();
-        return redirect()->back()->with('success', 'Supplier dihapus.');
+        try {
+            DB::table('supplier')->where('id_supplier', $id)->delete();
+            return redirect()->back()->with('success', 'Supplier dihapus.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal hapus! Supplier ini masih punya riwayat kedatangan bahan.');
+        }
     }
 }
