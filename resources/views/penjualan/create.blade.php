@@ -722,6 +722,7 @@
     async function refreshFinishingBiayaSuggestion() {
         const sel = document.getElementById('select_finishing');
         if (!sel.value || finishingBiayaManualEdit || !currentProduk) return;
+        const idFinishingSaatMulai = sel.value;
 
         const p = parseFloat(document.getElementById('input_p').value) || 0;
         const l = parseFloat(document.getElementById('input_l').value) || 0;
@@ -733,6 +734,16 @@
         try {
             const res = await fetch(`{{ url('/api/penjualan/get-harga-finishing') }}/${sel.value}/${qtyCari}`);
             const data = await res.json();
+            // Cek ulang SETELAH await, bukan cuma sebelum fetch - selama fetch
+            // berjalan (network delay), kasir bisa saja sudah keburu mengetik
+            // biaya finishing manual sendiri (finishingBiayaManualEdit jadi
+            // true), atau editItem() sedang memulihkan angka historis item
+            // yang sedang diedit. Tanpa cek ulang ini, hasil fetch yang lambat
+            // datang tetap MENIMPA nilai yang baru saja sengaja diisi -
+            // persis bug yang bikin biaya_finishing kesimpan beda dari yang
+            // dipakai hitung subtotal (subtotal keburu dihitung duluan pakai
+            // angka manual, baru fetch ini menimpa field-nya belakangan).
+            if (finishingBiayaManualEdit || sel.value !== idFinishingSaatMulai) return;
             document.getElementById('input_finishing_biaya').value = data.harga ?? 0;
         } catch (e) {}
     }
@@ -922,6 +933,10 @@
         try {
             const res = await fetch(`{{ url('/api/penjualan/get-harga-jasa') }}/${idJasa}/${qty}`);
             const data = await res.json();
+            // Cek ulang SETELAH await - sama seperti refreshFinishingBiayaSuggestion,
+            // supaya fetch yang telat nyampe tidak menimpa balik angka yang
+            // sudah keburu diketik manual selama fetch berjalan.
+            if (jasaHargaManualEdit) return;
             if (data.harga > 0) {
                 document.getElementById('input_jasa_harga').value = data.harga;
             }
@@ -1075,6 +1090,18 @@
         // tampil "UPDATE ITEM" tapi klik-nya diam-diam menambah baris baru,
         // bukan mengganti baris yang sedang diedit.
         editIndex = index;
+
+        // Dikunci TRUE SETELAH kedua trigger('change') di atas (yang lewat
+        // resetInputProduk() ikut mereset flag ini ke false secara sinkron) -
+        // baris yang sedang dibuka untuk diedit BUKAN sedang minta saran
+        // baru, melainkan memulihkan angka biaya_finishing yang SUDAH final
+        // (baik hasil ketikan manual maupun saran yang sudah diterima
+        // sebelumnya). Bagian ASYNC dari trigger di atas (fetch produk,
+        // fetch saran finishing) baru lanjut jalan belakangan (setelah baris
+        // sinkron ini selesai) - dengan flag ini sudah true duluan,
+        // refreshFinishingBiayaSuggestion() manapun yang telat nyampe tidak
+        // akan menimpa balik angka historis begitu form-nya kebuka.
+        finishingBiayaManualEdit = true;
 
         setTimeout(() => {
             document.getElementById('nama_file').value = item.nama_file;
