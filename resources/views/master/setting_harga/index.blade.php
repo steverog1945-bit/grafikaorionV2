@@ -130,7 +130,13 @@
         $defaultMin = $p->metode_hitung === 'ukuran' ? '0.01' : '1';
         $fmtNilai = fn ($v) => rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
     @endphp
-    <x-modal id="harga-produk-{{ $p->id_produk }}" title="Kelola Harga: {{ $p->nama_produk }}" maxWidth="4xl">
+    {{-- maxWidth 6xl (bukan 4xl) - modal ini padat secara horizontal (tab
+         golongan + baris tier 3 kolom + tombol aksi), melebarkan modal
+         memberi ruang supaya baris tier tidak perlu membungkus/menumpuk di
+         resolusi kecil (itu yang bikin modal jadi tinggi & butuh banyak
+         scroll - melebarkan ke samping mengurangi kebutuhan memanjang ke
+         bawah). Sama dengan lebar modal Produk & BOM untuk konsistensi. --}}
+    <x-modal id="harga-produk-{{ $p->id_produk }}" title="Kelola Harga: {{ $p->nama_produk }}" maxWidth="6xl">
         <p class="text-xs text-slate-400 mb-5 -mt-2">
             Rentang dalam <b class="text-slate-500">{{ $satuanRentang }}</b>{{ $p->metode_hitung === 'ukuran' ? ' (luas = panjang × lebar, boleh pecahan - mis. 0,09 m²)' : '' }}. Kosongkan <b class="text-slate-500">Max</b> untuk rentang tak terbatas. Harga dipilih otomatis di Kasir Utama sesuai golongan &amp; {{ $satuanRentang }} order.
         </p>
@@ -179,7 +185,23 @@
                     </div>
                 </form>
 
-                <x-table bare>
+                {{-- max-h + overflow-y-auto pada WRAPPER (bukan <tbody> - overflow
+                     tidak reliable di elemen tbody lintas browser) supaya golongan
+                     dengan banyak tier scroll SENDIRI di area ini, bukan mendorong
+                     seluruh modal jadi tinggi tak terbatas. --}}
+                <div class="max-h-[360px] overflow-y-auto rounded-xl">
+                {{-- table-fixed + !min-w-0 WAJIB. Akar masalahnya: class
+                     .modern-table (dipakai bersama SEMUA tabel di app ini)
+                     punya "min-width: 1000px" bawaan - sengaja untuk tabel
+                     data lebar asli (biar kolom tetap presisi & scroll
+                     horizontal alih-alih terjepit). Tabel INI bukan tabel
+                     data biasa (satu sel colspan=4 berisi form/grid custom),
+                     jadi lantai 1000px itu justru memaksa baris jadi lebar
+                     tak wajar & terpotong di layar sempit - persis yang
+                     dikeluhkan. !min-w-0 meniadakan lantai itu KHUSUS di
+                     sini, table-fixed mencegah tabel melebar lagi ikut
+                     lebar konten internalnya. --}}
+                <x-table bare class="table-fixed !min-w-0">
                     <thead>
                         <tr>
                             <th class="p-3 text-left">Min ({{ $satuanRentang }})</th>
@@ -195,28 +217,39 @@
                         @foreach($tiersProdukGol as $t)
                         <tr class="tier-row-produk" data-id="{{ $t->id_harga }}">
                             <td colspan="4" class="p-2">
-                                <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
-                                    <form action="{{ route('setting-harga.tier.update', $t->id_harga) }}" class="tier-edit-form-produk grid grid-cols-3 gap-2 flex-1 items-center">
+                                {{-- flex-col di layar sempit (form 3 input BERTUMPUK penuh
+                                     lebar, bukan mengecil berdesakan jadi 3 kolom sempit) ->
+                                     flex-row lagi mulai breakpoint sm supaya baris tetap
+                                     ringkas di layar normal. Tombol Simpan sengaja DI LUAR
+                                     <form> (dihubungkan lewat atribut form="...") supaya
+                                     kolom Harga tidak perlu berdesakan dengan tombol di
+                                     dalamnya - itu sumber utama baris "terlalu panjang"/
+                                     membungkus tak beraturan di resolusi kecil sebelumnya. --}}
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
+                                    <form id="tier-edit-form-{{ $t->id_harga }}" action="{{ route('setting-harga.tier.update', $t->id_harga) }}" class="tier-edit-form-produk grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
                                         @csrf
                                         <input type="number" name="range_min" value="{{ $fmtNilai($t->range_min) }}" min="0.01" step="{{ $stepRentang }}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
                                         <input type="number" name="range_max" value="{{ $t->range_max !== null ? $fmtNilai($t->range_max) : '' }}" min="0.01" step="{{ $stepRentang }}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
-                                        <div class="relative flex items-center gap-1">
-                                            <span class="absolute left-2.5 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
+                                        <div class="relative">
+                                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
                                             <input type="number" name="harga_jual" value="{{ (int) $t->harga_jual }}" min="0" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold">
-                                            <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
-                                                <i class="fas fa-save text-xs"></i>
-                                            </button>
                                         </div>
                                     </form>
-                                    <button type="button" onclick="confirmHapusTierHarga({{ $t->id_harga }})" class="w-9 h-9 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
-                                        <i class="far fa-trash-alt text-xs"></i>
-                                    </button>
+                                    <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                                        <button type="submit" form="tier-edit-form-{{ $t->id_harga }}" class="w-9 h-9 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
+                                            <i class="fas fa-save text-xs"></i>
+                                        </button>
+                                        <button type="button" onclick="confirmHapusTierHarga({{ $t->id_harga }})" class="w-9 h-9 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
+                                            <i class="far fa-trash-alt text-xs"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
                         @endforeach
                     </tbody>
                 </x-table>
+                </div>
             </div>
             @endforeach
         </div>
@@ -261,25 +294,28 @@
     }
 
     function buildHargaTierRowHtml(t, stepRentang) {
+        const formId = `tier-edit-form-${t.id_harga}`;
         return `
             <tr class="tier-row-produk" data-id="${t.id_harga}">
                 <td colspan="4" class="p-2">
-                    <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
-                        <form action="{{ url('/setting-harga-tier') }}/${t.id_harga}" class="tier-edit-form-produk grid grid-cols-3 gap-2 flex-1 items-center">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
+                        <form id="${formId}" action="{{ url('/setting-harga-tier') }}/${t.id_harga}" class="tier-edit-form-produk grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
                             <input type="hidden" name="_token" value="${csrfTokenHarga}">
                             <input type="number" name="range_min" value="${t.range_min}" min="0.01" step="${stepRentang}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
                             <input type="number" name="range_max" value="${t.range_max ?? ''}" min="0.01" step="${stepRentang}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
-                            <div class="relative flex items-center gap-1">
-                                <span class="absolute left-2.5 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
+                            <div class="relative">
+                                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
                                 <input type="number" name="harga_jual" value="${parseInt(t.harga_jual)}" min="0" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold">
-                                <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
-                                    <i class="fas fa-save text-xs"></i>
-                                </button>
                             </div>
                         </form>
-                        <button type="button" onclick="confirmHapusTierHarga(${t.id_harga})" class="w-9 h-9 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
-                            <i class="far fa-trash-alt text-xs"></i>
-                        </button>
+                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                            <button type="submit" form="${formId}" class="w-9 h-9 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
+                                <i class="fas fa-save text-xs"></i>
+                            </button>
+                            <button type="button" onclick="confirmHapusTierHarga(${t.id_harga})" class="w-9 h-9 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
+                                <i class="far fa-trash-alt text-xs"></i>
+                            </button>
+                        </div>
                     </div>
                 </td>
             </tr>`;
