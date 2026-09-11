@@ -139,7 +139,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Divisi / Bagian</label>
-                                    <select name="bagian" class="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-[13px] font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 shadow-inner appearance-none">
+                                    <select name="bagian" onchange="toggleMesinField(this, 'mesin_wrapper_edit{{ $k->id_karyawan }}')" class="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-[13px] font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 shadow-inner appearance-none">
                                         @foreach(['Admin', 'Desain', 'Produksi', 'Kasir', 'Gudang'] as $div)
                                             <option value="{{ $div }}" {{ $k->bagian == $div ? 'selected' : '' }}>{{ $div }}</option>
                                         @endforeach
@@ -157,9 +157,9 @@
                                     <input type="text" name="telepon" value="{{ $k->telepon }}"
                                            class="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-[13px] font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
                                 </div>
-                                <div>
+                                <div id="mesin_wrapper_edit{{ $k->id_karyawan }}" class="{{ in_array($k->bagian, ['Produksi', 'Desain']) ? '' : 'hidden' }}">
                                     <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Mesin / Divisi yang Ditangani</label>
-                                    <p class="text-[10px] text-slate-400 mb-2 ml-1">Kosongkan = tidak dibatasi, tetap lihat semua divisi di SPK.</p>
+                                    <p class="text-[10px] text-slate-400 mb-2 ml-1">Kosongkan = tidak dibatasi, tetap lihat semua divisi di SPK. Hanya berlaku untuk bagian Produksi/Desain.</p>
                                     <div class="grid grid-cols-2 gap-2 bg-slate-50 rounded-2xl p-4 shadow-inner">
                                         @foreach($daftarMesin as $m)
                                             <label class="flex items-center gap-2 text-[12px] font-semibold text-slate-600 cursor-pointer">
@@ -211,7 +211,7 @@
             </div>
             <div>
                 <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Pilih Bagian</label>
-                <select name="bagian" class="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-[13px] font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 shadow-inner" required>
+                <select name="bagian" onchange="toggleMesinField(this, 'mesin_wrapper_tambah')" class="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-[13px] font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 shadow-inner" required>
                     <option value="Admin">Admin</option>
                     <option value="Desain">Desain</option>
                     <option value="Produksi">Produksi</option>
@@ -224,9 +224,9 @@
                 <input type="text" name="telepon" placeholder="0812xxxx"
                        class="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-[13px] font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 shadow-inner" required>
             </div>
-            <div>
+            <div id="mesin_wrapper_tambah" class="hidden">
                 <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Mesin / Divisi yang Ditangani</label>
-                <p class="text-[10px] text-slate-400 mb-2 ml-1">Kosongkan = tidak dibatasi, tetap lihat semua divisi di SPK.</p>
+                <p class="text-[10px] text-slate-400 mb-2 ml-1">Kosongkan = tidak dibatasi, tetap lihat semua divisi di SPK. Hanya berlaku untuk bagian Produksi/Desain.</p>
                 <div class="grid grid-cols-2 gap-2 bg-slate-50 rounded-2xl p-4 shadow-inner">
                     @foreach($daftarMesin as $m)
                         <label class="flex items-center gap-2 text-[12px] font-semibold text-slate-600 cursor-pointer">
@@ -255,6 +255,25 @@
             $(this).closest('form').submit();
         });
     });
+
+    // Mesin/divisi cuma relevan untuk bagian yang benar-benar turun ke
+    // mesin fisik (Produksi) atau lini desain per-mesin (Desain) - Kasir/
+    // Admin/Gudang tidak beroperasi di mesin tertentu, jadi field-nya
+    // disembunyikan & checkbox yang mungkin masih tercentang dari state
+    // sebelumnya ikut dikosongkan supaya tidak ada data nyasar terkirim.
+    const BAGIAN_BISA_MESIN = ['Produksi', 'Desain'];
+
+    function toggleMesinField(selectEl, wrapperId) {
+        const wrapper = document.getElementById(wrapperId);
+        if (!wrapper) return;
+
+        if (BAGIAN_BISA_MESIN.includes(selectEl.value)) {
+            wrapper.classList.remove('hidden');
+        } else {
+            wrapper.classList.add('hidden');
+            wrapper.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+    }
 
     function toggleModal(id) {
         const modal = document.getElementById(id);

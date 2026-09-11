@@ -8,6 +8,13 @@ use Illuminate\Http\Request;
 
 class KaryawanController extends Controller
 {
+    // Bagian yang benar-benar turun ke mesin fisik/lini per-mesin. Kasir,
+    // Admin, dan Gudang tidak beroperasi di mesin tertentu - dicek di sini
+    // juga (bukan cuma disembunyikan lewat JS di form) supaya request yang
+    // dimanipulasi manual tidak bisa menitip penugasan mesin untuk bagian
+    // yang tidak relevan.
+    private const BAGIAN_BISA_MESIN = ['Produksi', 'Desain'];
+
     public function index(Request $request)
     {
         $query = Karyawan::with('mesin');
@@ -40,7 +47,8 @@ class KaryawanController extends Controller
             'mesin_ids.*' => 'exists:mesin,id_mesin',
         ]);
         $karyawan = Karyawan::create($request->only(['nama_karyawan', 'bagian', 'telepon']));
-        $karyawan->mesin()->sync($request->input('mesin_ids', []));
+        $mesinIds = in_array($request->bagian, self::BAGIAN_BISA_MESIN) ? $request->input('mesin_ids', []) : [];
+        $karyawan->mesin()->sync($mesinIds);
         return back()->with('success', 'Data karyawan berhasil ditambahkan!');
     }
    public function update(Request $request, $id)
@@ -57,7 +65,8 @@ class KaryawanController extends Controller
             'telepon'       => $request->telepon,
             'status_aktif'  => $request->status_aktif,
         ]);
-        $karyawan->mesin()->sync($request->input('mesin_ids', []));
+        $mesinIds = in_array($request->bagian, self::BAGIAN_BISA_MESIN) ? $request->input('mesin_ids', []) : [];
+        $karyawan->mesin()->sync($mesinIds);
 
         return back()->with('success', 'Data karyawan berhasil diperbarui!');
     }
