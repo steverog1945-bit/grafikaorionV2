@@ -20,20 +20,19 @@
                     <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-indigo-100">
                         <i class="fas fa-exchange-alt text-xl"></i>
                     </div>
-                    <h4 class="font-bold text-slate-800 mb-2 tracking-tight">Pusat Konversi</h4>
-                    <p class="text-slate-500 text-[11px] leading-relaxed ">
-                        Sistem menggunakan satuan terkecil sebagai <span class="text-indigo-600 font-bold">Base Unit (1.00)</span>.
+                    <h4 class="font-bold text-slate-800 mb-2 tracking-tight">Katalog Satuan</h4>
+                    <p class="text-slate-500 text-[11px] leading-relaxed">
+                        Daftar nama satuan yang dipakai di seluruh aplikasi (pilihan Satuan Stok/Satuan Hitung di Bahan Baku, satuan Jasa, dsb).
                     </p>
-                    
-                    <div class="mt-8 space-y-4">
-                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-colors">
-                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] mb-2">Logika Kertas</p>
-                            <p class="text-xs text-slate-600 font-semibold ">1 Rim <span class="text-indigo-500 mx-1">→</span> 500 Lembar</p>
-                        </div>
-                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-colors">
-                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] mb-2">Logika Panjang</p>
-                            <p class="text-xs text-slate-600 font-semibold ">1 Meter <span class="text-indigo-500 mx-1">→</span> 100 CM</p>
-                        </div>
+
+                    <div class="mt-8 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                        <p class="text-[9px] font-black text-amber-600 uppercase tracking-[0.15em] mb-2">
+                            <i class="fas fa-info-circle mr-1"></i> Penting
+                        </p>
+                        <p class="text-[11px] text-amber-700 leading-relaxed">
+                            Angka konversi di halaman ini <b>tidak dipakai otomatis</b> untuk menghitung stok. Konversi riil per bahan (mis. 1 Roll = 224 m²) diatur di
+                            <a href="{{ route('bahan.index') }}" class="underline font-bold">Master Bahan Baku</a> masing-masing bahan, karena tiap bahan bisa punya nilai konversi berbeda meski satuannya sama (contoh: dua bahan roll dengan lebar berbeda).
+                        </p>
                     </div>
                 </div>
             </div>
@@ -66,8 +65,7 @@
                         <thead>
                             <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
                                 <th class="px-8 py-5 text-left">Nama Satuan</th>
-                                <th class="px-6 py-5 text-center">Status Unit</th>
-                                <th class="px-6 py-5 text-center">Kapasitas (Konversi)</th>
+                                <th class="px-6 py-5 text-center">Catatan Konversi</th>
                                 <th class="px-8 py-5 text-right">Aksi</th>
                             </tr>
                         </thead>
@@ -85,20 +83,7 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-5 text-center">
-                                    @if($s->nilai_konversi == 1)
-                                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2"></span> Base Unit
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100">
-                                            Converter
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-5 text-center">
-                                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-slate-50/50 rounded-xl border border-slate-100">
-                                        <span class="text-[11px]  font-bold text-indigo-600">x{{ number_format($s->nilai_konversi, 0) }}</span>
-                                    </div>
+                                    <span class="text-[11px] font-semibold text-slate-400">{{ number_format($s->nilai_konversi, 2) }}</span>
                                 </td>
                                 <td class="px-8 py-5 text-right">
                                     <div class="flex justify-end gap-2">
@@ -117,7 +102,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="4" class="px-8 py-20 text-center text-slate-300  text-sm">Belum ada data satuan.</td>
+                                <td colspan="3" class="px-8 py-20 text-center text-slate-300  text-sm">Belum ada data satuan.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -159,14 +144,13 @@
                     </div>
 
                     <div class="max-w-[85%] mx-auto text-left">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Isi Konversi (Terhadap Satuan Terkecil)</label>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Catatan Konversi (Opsional)</label>
                         <div class="relative">
                             <input type="number" step="0.01" name="nilai_konversi" id="input_nilai" placeholder="1.00" required
                                 class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center">
-                            <div class="absolute right-5 top-1/2 -translate-y-1/2 text-[9px] font-black text-indigo-300 uppercase">Multiplier</div>
                         </div>
-                        <p class="mt-4 px-2 text-[10px] text-slate-400 leading-relaxed  text-center">
-                            *Jika ini satuan dasar, isi <b>1</b>. Jika 1 Pack = 12 Pcs, masukkan <b>12</b>.
+                        <p class="mt-4 px-2 text-[10px] text-slate-400 leading-relaxed text-center">
+                            Angka ini murni catatan, tidak dipakai otomatis oleh sistem. Isi <b>1</b> kalau tidak ada catatan khusus.
                         </p>
                     </div>
                 </div>
