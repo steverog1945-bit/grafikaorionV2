@@ -69,10 +69,10 @@
             @csrf
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1 ml-1">Tautkan Karyawan</label>
-                <select name="id_karyawan" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 transition" required>
+                <select name="id_karyawan" id="pilih_karyawan_baru" onchange="autoPilihRole(this, 'id_role_baru')" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 transition" required>
                     <option value="">-- Pilih Nama Karyawan --</option>
                     @foreach($karyawan as $k)
-                        <option value="{{ $k->id_karyawan }}">{{ $k->nama_karyawan }} ({{ $k->bagian }})</option>
+                        <option value="{{ $k->id_karyawan }}" data-bagian="{{ $k->bagian }}">{{ $k->nama_karyawan }} ({{ $k->bagian }})</option>
                     @endforeach
                 </select>
             </div>
@@ -90,11 +90,12 @@
 
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1 ml-1">Role / Tingkat Akses</label>
-                <select name="id_role" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 transition" required>
+                <select name="id_role" id="id_role_baru" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 transition" required>
                     @foreach($roles as $r)
-                        <option value="{{ $r->id_role }}">{{ $r->nama_role }}</option>
+                        <option value="{{ $r->id_role }}" data-nama-role="{{ $r->nama_role }}">{{ $r->nama_role }}</option>
                     @endforeach
                 </select>
+                <p class="text-[11px] text-slate-400 mt-1.5 ml-1">Otomatis tersaran sesuai bagian karyawan - bisa diubah manual bila perlu.</p>
             </div>
 
             <div class="flex justify-end gap-3 mt-8">
@@ -153,6 +154,26 @@
 </div>
 
 <script>
+    const BAGIAN_ROLE_MAP = @json($bagianRoleMap);
+
+    // Auto-pilih role begitu karyawan dipilih, mengikuti pemetaan
+    // bagian->role yang dibakukan (lihat UserController::BAGIAN_ROLE_MAP).
+    // Tetap bisa diubah manual sesudahnya kalau memang ada kasus khusus -
+    // ini cuma saran awal, bukan penguncian.
+    function autoPilihRole(karyawanSelect, roleSelectId) {
+        const bagian = karyawanSelect.selectedOptions[0]?.dataset.bagian;
+        const namaRoleDisaran = BAGIAN_ROLE_MAP[bagian];
+        if (!namaRoleDisaran) return;
+
+        const roleSelect = document.getElementById(roleSelectId);
+        for (const opt of roleSelect.options) {
+            if (opt.dataset.namaRole === namaRoleDisaran) {
+                roleSelect.value = opt.value;
+                break;
+            }
+        }
+    }
+
     function toggleModal(id) {
         const modal = document.getElementById(id);
         modal.classList.toggle('hidden');
