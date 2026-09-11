@@ -36,8 +36,10 @@
             </x-button>
 
             @if(request()->anyFilled(['search', 'category']))
-                <a href="{{ route('setting-harga.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
-                    Reset
+                <a href="{{ route('setting-harga.index') }}"
+                   class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all"
+                   title="Reset Filter">
+                    <i class="fas fa-undo-alt text-sm"></i>
                 </a>
             @endif
         </form>

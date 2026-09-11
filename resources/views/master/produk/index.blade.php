@@ -18,13 +18,15 @@
 
     {{-- QUICK SEARCH & FILTER --}}
     <x-card class="mb-8">
-        <form action="{{ route('produk.index') }}" method="GET" class="flex flex-col lg:flex-row gap-4">
+        <form action="{{ route('produk.index') }}" method="GET" class="flex flex-col lg:flex-row gap-4 lg:items-end">
             <div class="flex-1">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Produk</label>
                 <x-form.input type="text" name="search" value="{{ request('search') }}"
                     placeholder="Cari Produk atau Barcode..." />
             </div>
 
             <div class="w-full lg:w-72">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin/Divisi</label>
                 <x-form.select name="category" onchange="this.form.submit()">
                     <option value="">Semua Mesin</option>
                     @foreach($mesin as $m)
@@ -36,6 +38,7 @@
             </div>
 
             <div class="w-full lg:w-48">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
                 <x-form.select name="status" onchange="this.form.submit()">
                     <option value="aktif" {{ request('status', 'aktif') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                     <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
@@ -308,9 +311,9 @@
                             <input type="number" id="temp_finishing_qty" value="1" min="0.01" step="0.01" class="w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
                         </div>
                         <div class="md:col-span-1 flex items-end">
-                            <button type="button" onclick="addFinishingToTable()" class="w-full inline-flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 bg-purple-500 hover:bg-purple-600 text-white shadow-lg shadow-purple-100 text-xs px-6 py-2.5">
+                            <x-button type="button" variant="success" onclick="addFinishingToTable()" class="w-full !py-2.5">
                                 <i class="fas fa-plus"></i> Tambahkan
-                            </button>
+                            </x-button>
                         </div>
                     </div>
 
