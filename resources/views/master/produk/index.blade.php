@@ -198,6 +198,20 @@
                     </x-form.group>
                 </div>
 
+                {{-- Toggle eksplisit "pakai minimal order atau tidak" - sebelumnya
+                     field min order cuma disembunyikan/tampil berdasarkan Metode
+                     Hitung, tanpa cara eksplisit bilang "produk ini memang tidak
+                     punya batas minimal" (mengandalkan konvensi implisit isi 0 =
+                     tanpa minimum). Sekarang eksplisit seperti pada referensi -
+                     pilih Tidak akan menyembunyikan & mengosongkan field ukuran/qty
+                     minimumnya (tersimpan 0, sama artinya "tanpa minimum"). --}}
+                <x-form.group label="Minimal Order">
+                    <x-form.select id="input_pakai_min_order" onchange="toggleMinOrderFields()" class="!bg-white !shadow-sm !py-3">
+                        <option value="ya">Menggunakan Minimal Order</option>
+                        <option value="tidak">Tanpa Minimal Order</option>
+                    </x-form.select>
+                </x-form.group>
+
                 <div id="field_min_ukuran" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <x-form.group label="Ukuran Min Order - Panjang (cm)">
                         <x-form.input type="number" name="min_p" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
@@ -381,8 +395,19 @@
     // untuk diisi tergantung metode yang dipilih.
     function toggleMinOrderFields() {
         const method = document.querySelector('select[name="metode_hitung"]').value;
-        document.getElementById('field_min_ukuran').classList.toggle('hidden', method !== 'ukuran');
-        document.getElementById('field_min_qty').classList.toggle('hidden', method === 'ukuran');
+        const pakaiMinOrder = document.getElementById('input_pakai_min_order').value === 'ya';
+
+        document.getElementById('field_min_ukuran').classList.toggle('hidden', !pakaiMinOrder || method !== 'ukuran');
+        document.getElementById('field_min_qty').classList.toggle('hidden', !pakaiMinOrder || method === 'ukuran');
+
+        // "Tanpa Minimal Order" mengosongkan field yang disembunyikan (tersimpan
+        // 0 di server, sama artinya tanpa batas minimum) - supaya angka lama
+        // tidak diam-diam ikut tersubmit padahal sudah dipilih "Tidak".
+        if (!pakaiMinOrder) {
+            document.querySelector('input[name="min_p"]').value = '';
+            document.querySelector('input[name="min_l"]').value = '';
+            document.querySelector('input[name="min_order_qty"]').value = '';
+        }
     }
 
     // EDIT PRODUK (AJAX FETCH)
@@ -412,6 +437,16 @@
             form.querySelector('input[name="min_l"]').value = data.produk.min_lebar || '';
             form.querySelector('input[name="min_order_qty"]').value = data.produk.metode_hitung === 'quantity' ? (data.produk.min_order || '') : '';
             form.querySelector('textarea[name="keterangan"]').value = (data.produk.keterangan && data.produk.keterangan !== '-') ? data.produk.keterangan : '';
+
+            // Tidak ada kolom tersendiri utk toggle "pakai minimal order?" -
+            // disimpulkan dari data lama: ada angka minimum > 0 berarti "Ya",
+            // kalau semuanya 0/kosong berarti "Tidak" (konvensi yang sama
+            // dipakai sebelum toggle ini ada). WAJIB diisi SEBELUM
+            // toggleMinOrderFields() di bawah supaya field yang baru saja
+            // diisi tidak ikut dikosongkan kalau ternyata simpulannya "Tidak".
+            const adaMinOrder = (parseFloat(data.produk.min_panjang) > 0) || (parseFloat(data.produk.min_lebar) > 0) || (parseFloat(data.produk.min_order) > 0);
+            document.getElementById('input_pakai_min_order').value = adaMinOrder ? 'ya' : 'tidak';
+
             toggleMinOrderFields();
 
             // Set value mesin di atas TIDAK memicu event 'change' (cuma
