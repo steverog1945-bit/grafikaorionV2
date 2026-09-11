@@ -23,18 +23,24 @@ class KasirController extends Controller
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->join('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
             ->select(
-                'transaksi.*', 
-                'konsumen.nama_konsumen', 
+                'transaksi.*',
+                'konsumen.nama_konsumen',
                 'users.username',
                 DB::raw("(SELECT SUM(nominal) FROM pembayaran_riwayat WHERE pembayaran_riwayat.id_transaksi = transaksi.id_transaksi) as total_masuk")
             )
-            ->where('transaksi.status_pembayaran', '!=', 'Belum Bayar'); // Sembunyikan yang belum disentuh kasir
+            ->where('transaksi.status_pembayaran', '!=', 'Belum Bayar') // Sembunyikan yang belum disentuh kasir
+            // Nota yang sudah dibatalkan (lihat PenjualanController::batalkanNota)
+            // tidak perlu terus "dimonitor" pembayarannya di sini - sebelumnya
+            // luput dikecualikan waktu fitur batal-nota ditambahkan, jadi nota
+            // DP/Lunas yang belakangan dibatalkan tetap nyangkut di daftar ini.
+            ->where('transaksi.status_nota', '!=', 'Dibatalkan');
 
-        if ($request->search) {
-            $query->where(function($q) use ($request) {
-                $q->where('transaksi.nomor_nota', 'like', "%{$request->search}%")
-                  ->orWhere('konsumen.nama_konsumen', 'like', "%{$request->search}%");
-            });
+        if ($request->filled('id_konsumen')) {
+            $query->where('transaksi.id_konsumen', $request->id_konsumen);
+        }
+
+        if ($request->filled('nomor_nota')) {
+            $query->where('transaksi.nomor_nota', 'like', "%{$request->nomor_nota}%");
         }
 
         if ($request->status_bayar) {
@@ -48,9 +54,20 @@ class KasirController extends Controller
             $query->whereDate('transaksi.tgl_order', '<=', $request->tgl_selesai);
         }
 
-        $transaksi = $query->orderBy('transaksi.updated_at', 'desc')->paginate(10)->withQueryString();
+        $transaksi = $query->orderBy('transaksi.updated_at', 'desc')->paginate(15)->withQueryString();
 
-        return view('kasir.monitoring_transaksi', compact('transaksi', 'waitingCount'));
+        // Dropdown filter Konsumen - dibatasi ke konsumen yang memang pernah
+        // punya transaksi DP/Lunas (bukan seluruh master konsumen), supaya
+        // daftar pilihan relevan dan tidak membengkak tanpa guna.
+        $konsumenList = DB::table('transaksi')
+            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+            ->where('transaksi.status_pembayaran', '!=', 'Belum Bayar')
+            ->select('konsumen.id_konsumen', 'konsumen.nama_konsumen')
+            ->distinct()
+            ->orderBy('konsumen.nama_konsumen')
+            ->get();
+
+        return view('kasir.monitoring_transaksi', compact('transaksi', 'waitingCount', 'konsumenList'));
     }
 
     /**
