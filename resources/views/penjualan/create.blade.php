@@ -214,18 +214,38 @@
                                     <option value="Custom">Custom</option>
                                 </select>
                             </div>
+                            {{-- Biaya Cetak SEKARANG komponen UTAMA subtotal (Subtotal =
+                                 Cetak + Desain + Finishing, lihat hitungSubtotal()) -
+                                 bukan lagi tambahan di atas Harga x Qty. Defaultnya
+                                 otomatis mengikuti Harga Price List x Qty setiap kali
+                                 produk/ukuran/qty/golongan berubah, TAPI berhenti
+                                 mengikuti begitu operator mengetik manual sendiri
+                                 (cetakManualEdit) - sama seperti pola yang sudah
+                                 dipakai Biaya Finishing (finishingBiayaManualEdit). --}}
                             <div class="text-right">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Cetak</p>
                                 <input type="number" id="input_cetak" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
                             </div>
-                            <div class="text-right">
+                            {{-- Biaya Finishing hanya relevan begitu jenis Finishing
+                                 dipilih di dropdown sebelahnya - disembunyikan selama
+                                 belum ada finishing dipilih (lihat onFinishingChange()),
+                                 bukan lagi selalu tampil dengan angka 0 yang tidak
+                                 bermakna. --}}
+                            <div id="wrapper_biaya_finishing" class="text-right hidden">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Finishing</p>
                                 <input type="number" id="input_finishing_biaya" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
                             </div>
-                            <div class="text-right">
+                            {{-- Biaya Desain TIDAK punya penanda "sedang dipakai/tidak"
+                                 bawaan seperti finishing - disembunyikan default, baru
+                                 muncul lewat tombol "+ Desain" (tampilkanBiayaDesain())
+                                 kalau memang ada biaya desain yang perlu ditambahkan. --}}
+                            <div id="wrapper_biaya_desain" class="text-right hidden">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Desain</p>
                                 <input type="number" id="input_desain" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
                             </div>
+                            <button type="button" id="btn_tambah_desain" onclick="tampilkanBiayaDesain()" class="text-indigo-300 hover:text-white text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
+                                <i class="fas fa-plus-circle"></i> Biaya Desain
+                            </button>
                             <button onclick="tambahKeKeranjang()" class="bg-emerald-500 hover:bg-emerald-400 text-white h-12 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
                                 Tambah
                             </button>
@@ -719,12 +739,32 @@
             const res = await fetch(`{{ url('/api/penjualan/produk') }}/${id}`);
             currentProduk = await res.json();
             currentProduk.metode_hitung = metode;
+            // Ganti produk = Biaya Cetak manual (kalau ada) tidak relevan lagi
+            // untuk produk yang baru dipilih - kembali ke auto-default dari
+            // Price List produk ini.
+            cetakManualEdit = false;
             setTimeout(() => {
                 if (metode === 'ukuran') { $('#input_p').focus().select(); }
                 else { $('#input_qty_biasa').focus().select(); }
             }, 100);
             hitungSubtotal();
         } catch (e) { console.error("Gagal ambil produk:", e); }
+    }
+
+    // Biaya Cetak sekarang komponen UTAMA subtotal, defaultnya otomatis
+    // mengikuti Harga Price List x Qty (lihat hitungSubtotal()) - pola
+    // "manual edit" ini PERSIS sama seperti finishingBiayaManualEdit di
+    // bawah: begitu operator mengetik sendiri, auto-fill berhenti menimpa
+    // balik angka yang sudah sengaja diubah.
+    let cetakManualEdit = false;
+    document.getElementById('input_cetak').addEventListener('input', () => {
+        cetakManualEdit = true;
+    });
+
+    function tampilkanBiayaDesain() {
+        document.getElementById('wrapper_biaya_desain').classList.remove('hidden');
+        document.getElementById('btn_tambah_desain').classList.add('hidden');
+        document.getElementById('input_desain').focus();
     }
 
     // Biaya finishing hasil auto-suggest (tier finishing_harga berdasarkan
@@ -746,12 +786,15 @@
         // finishing atau belum" sekarang cuma dropdown ini, supaya tidak
         // ada dua tempat terpisah yang bisa saling bertentangan.
         const statusFinishing = document.getElementById('input_status_finishing');
+        const wrapperBiayaFinishing = document.getElementById('wrapper_biaya_finishing');
         if (sel.value) {
             statusFinishing.disabled = false;
+            wrapperBiayaFinishing.classList.remove('hidden');
         } else {
             statusFinishing.disabled = true;
             statusFinishing.value = 'Standar';
             document.getElementById('input_finishing_biaya').value = 0;
+            wrapperBiayaFinishing.classList.add('hidden');
         }
 
         // Reset lalu delegasikan ke hitungSubtotal() (yang sudah meng-await
@@ -814,7 +857,6 @@
         const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
         const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
         const biayaDesain = parseFloat(document.getElementById('input_desain').value) || 0;
-        const biayaCetak = parseFloat(document.getElementById('input_cetak').value) || 0;
 
         let qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
         if (qtyCari <= 0) { updateDisplay(0, 0); return null; }
@@ -831,7 +873,18 @@
             const response = await fetch(url);
             const data = await response.json();
             const hargaJual = parseFloat(data.harga_jual) || 0;
-            const subtotal = (hargaJual * qtyCari) + biayaDesain + biayaFinishing + biayaCetak;
+
+            // Biaya Cetak = komponen UTAMA subtotal, defaultnya mengikuti
+            // Harga Price List x Qty - TAPI cuma kalau operator belum
+            // mengetik manual sendiri (cetakManualEdit), pola sama persis
+            // dengan refreshFinishingBiayaSuggestion() di atas.
+            const inputCetak = document.getElementById('input_cetak');
+            if (!cetakManualEdit) {
+                inputCetak.value = Math.round(hargaJual * qtyCari);
+            }
+            const biayaCetak = parseFloat(inputCetak.value) || 0;
+
+            const subtotal = biayaCetak + biayaDesain + biayaFinishing;
             updateDisplay(hargaJual, subtotal, data.is_promo);
             cekStokBom(currentProduk.id_produk, p, l, (currentProduk.metode_hitung === 'ukuran') ? qU : qB);
             cekMinOrder(p, l, qU, qB);
@@ -1158,8 +1211,11 @@
         // fetch saran finishing) baru lanjut jalan belakangan (setelah baris
         // sinkron ini selesai) - dengan flag ini sudah true duluan,
         // refreshFinishingBiayaSuggestion() manapun yang telat nyampe tidak
-        // akan menimpa balik angka historis begitu form-nya kebuka.
+        // akan menimpa balik angka historis begitu form-nya kebuka. Sama
+        // persis alasannya untuk cetakManualEdit - item yang sedang diedit
+        // sudah punya Biaya Cetak final-nya sendiri, bukan minta saran baru.
         finishingBiayaManualEdit = true;
+        cetakManualEdit = true;
 
         setTimeout(() => {
             document.getElementById('nama_file').value = item.nama_file;
@@ -1175,6 +1231,14 @@
             document.getElementById('input_status_finishing').disabled = !item.id_finishing;
             document.getElementById('input_status_finishing').value = item.status_finishing || 'Standar';
             document.getElementById('input_catatan_produksi').value = item.catatan_produksi || '';
+
+            // Biaya Desain/Finishing muncul otomatis kalau item yang sedang
+            // diedit ini memang sudah punya nilainya - konsisten dengan
+            // "muncul ketika ada penambahan biaya", bukan cuma saat pertama
+            // ditambahkan.
+            document.getElementById('wrapper_biaya_desain').classList.toggle('hidden', !(item.biaya_desain > 0));
+            document.getElementById('btn_tambah_desain').classList.toggle('hidden', item.biaya_desain > 0);
+            document.getElementById('wrapper_biaya_finishing').classList.toggle('hidden', !item.id_finishing);
             currentThumbnail = item.thumbnail || null;
             const preview = document.getElementById('thumbnail_preview');
             if (currentThumbnail) {
@@ -1204,6 +1268,10 @@
         document.getElementById('select_finishing').value = "";
         document.getElementById('input_finishing_biaya').value = "0";
         finishingBiayaManualEdit = false;
+        cetakManualEdit = false;
+        document.getElementById('wrapper_biaya_desain').classList.add('hidden');
+        document.getElementById('btn_tambah_desain').classList.remove('hidden');
+        document.getElementById('wrapper_biaya_finishing').classList.add('hidden');
         document.getElementById('input_status_urgensi').value = "Normal";
         document.getElementById('input_status_finishing').disabled = true;
         document.getElementById('input_status_finishing').value = "Standar";

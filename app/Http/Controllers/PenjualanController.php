@@ -182,8 +182,12 @@ public function getHarga($id_produk, $id_golongan, $qty) {
 
         // Harga promo (kalau sedang aktif) atau price list biasa - HargaService
         // adalah sumber yang sama persis dipakai layar POS untuk menampilkan
-        // harga saat operator mengetik qty, supaya harga yang tersimpan tidak
-        // pernah berbeda dari yang ditampilkan sebelum disimpan.
+        // harga saat operator mengetik qty. Price List di sini TETAP wajib
+        // ada (guard rail supaya tidak ada produk terjual tanpa harga pernah
+        // diatur sama sekali) - tapi angkanya sendiri TIDAK LAGI otomatis
+        // ditambahkan ke subtotal (lihat catatan biaya_cetak di bawah),
+        // murni jadi SARAN nilai default untuk Biaya Cetak yang dikirim
+        // client dari hitungSubtotal() di penjualan/create.blade.php.
         $hargaSatuan = HargaService::getHargaEfektif($produk->id_produk, (int) $request->id_golongan, $qtyHitung)['harga_jual'];
 
         if ($hargaSatuan <= 0) {
@@ -193,10 +197,15 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             ], 422);
         }
 
-        // biaya_desain & biaya_cetak memang input manual operator (tidak ada
-        // tabel acuannya - biaya cetak riil tergantung mesin/ongkos produksi
-        // saat itu), hanya dipastikan tidak negatif supaya tidak bisa dipakai
-        // mengurangi total.
+        // Biaya Cetak SEKARANG jadi komponen UTAMA subtotal (menggantikan
+        // hargaSatuan*qtyHitung, bukan lagi ditambahkan di atasnya) - selaras
+        // dengan biaya_desain/biaya_finishing yang memang sudah lebih dulu
+        // murni input manual operator (tidak ada tabel acuan yang mengikat,
+        // biaya cetak riil tergantung mesin/ongkos produksi saat itu).
+        // Defaultnya dikirim client = hargaSatuan*qtyHitung (Price List),
+        // tapi operator bebas menimpa - sama persis tingkat kepercayaan yang
+        // sudah berlaku untuk desain/finishing, cuma dipastikan tidak
+        // negatif supaya tidak bisa dipakai mengurangi total.
         $biayaDesain = max(0, (float) ($item['biaya_desain'] ?? 0));
         $biayaCetak = max(0, (float) ($item['biaya_cetak'] ?? 0));
 
@@ -245,7 +254,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             'biaya_desain' => $biayaDesain,
             'status_urgensi' => $statusUrgensi,
             'status_finishing' => $statusFinishing,
-            'subtotal' => ($hargaSatuan * $qtyHitung) + $biayaDesain + $biayaFinishing + $biayaCetak,
+            'subtotal' => $biayaCetak + $biayaDesain + $biayaFinishing,
         ];
     }
 

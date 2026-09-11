@@ -345,30 +345,49 @@
          bukan satu modal per item - lebih ringan & konsisten dengan pola
          openEditX(data) yang sudah dipakai di halaman master lain. --}}
     <x-modal id="custom-harga" title="Custom Harga" maxWidth="sm">
-        <p id="ch-nama-item" class="text-xs text-slate-400 uppercase font-bold mb-5 -mt-2"></p>
+        <p id="ch-nama-item" class="text-xs text-slate-400 uppercase font-bold mb-1 -mt-2"></p>
+        {{-- Acuan per-unit murni informasi (Biaya Cetak / Qty), dihitung LIVE
+             lewat hitungPreviewCustomHarga() - Biaya Cetak sekarang komponen
+             UTAMA Subtotal (bukan lagi Harga x Qty ditambah Biaya Cetak
+             sebagai ekstra), jadi tidak ada lagi field "Harga" per-unit
+             terpisah yang perlu diketik/disimpan sendiri. --}}
+        <p id="ch-harga-acuan" class="text-[11px] text-slate-400 mb-5"></p>
 
         <div class="space-y-4">
+            {{-- Biaya Cetak SELALU tampil, defaultnya = subtotal saat item ini
+                 pertama dibuat (dipulihkan di openCustomHarga() dari
+                 subtotal-potongan-desain-finishing, supaya nilainya
+                 konsisten baik untuk item baru maupun item lama sebelum
+                 Biaya Cetak jadi komponen utama). --}}
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Harga <span id="ch-satuan" class="normal-case"></span></label>
-                <input type="text" id="ch-harga" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Biaya Cetak</label>
+                <input type="text" id="ch-cetak" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
+
+            {{-- Biaya Desain/Finishing disembunyikan default, cuma muncul kalau
+                 item ini memang sudah punya nilainya (dari nota asli) atau
+                 operator sengaja menambahkannya lewat tombol di bawah -
+                 selaras dengan penjualan/create.blade.php. --}}
+            <div id="ch-wrapper-desain" class="hidden">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Biaya Desain</label>
+                <input type="text" id="ch-desain" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            </div>
+            <div id="ch-wrapper-finishing" class="hidden">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Biaya Finishing</label>
+                <input type="text" id="ch-finishing" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            </div>
+            <div class="flex flex-wrap gap-x-4 gap-y-1">
+                <button type="button" id="ch-btn-tambah-desain" onclick="tampilkanChBiaya('desain')" class="text-indigo-500 hover:text-indigo-700 text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
+                    <i class="fas fa-plus-circle"></i> Biaya Desain
+                </button>
+                <button type="button" id="ch-btn-tambah-finishing" onclick="tampilkanChBiaya('finishing')" class="text-indigo-500 hover:text-indigo-700 text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
+                    <i class="fas fa-plus-circle"></i> Biaya Finishing
+                </button>
+            </div>
+
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Potongan Tunai (Diskon Item Ini)</label>
                 <input type="text" id="ch-potongan" class="format-ribuan-modal w-full bg-rose-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-rose-600 focus:ring-2 focus:ring-rose-500/20 shadow-inner">
-            </div>
-            <div class="grid grid-cols-1 gap-4">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Biaya Cetak</label>
-                    <input type="text" id="ch-cetak" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Biaya Desain</label>
-                    <input type="text" id="ch-desain" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Biaya Finishing</label>
-                    <input type="text" id="ch-finishing" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                </div>
             </div>
 
             <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
@@ -381,7 +400,15 @@
             </div>
         </div>
 
-        <div class="pt-6 flex gap-3">
+        {{-- Kembalikan nilai SEMUA field di modal ini ke kondisi saat modal
+             dibuka (nota asli sebelum diedit) - berguna kalau operator sudah
+             sempat mengubah-ubah Biaya Desain/Finishing/Potongan lalu
+             berubah pikiran, tanpa perlu tutup modal & buka ulang. --}}
+        <button type="button" onclick="kembalikanNilaiAsliCh()" class="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 font-bold text-[11px] uppercase tracking-widest transition-all">
+            <i class="fas fa-undo-alt"></i> Kembalikan Nilai Asli
+        </button>
+
+        <div class="pt-3 flex gap-3">
             <x-button type="button" variant="secondary" onclick="closeModal('custom-harga')" class="flex-1">Batalkan</x-button>
             <x-button type="button" onclick="simpanCustomHarga()" class="flex-1">Simpan</x-button>
         </div>
@@ -580,38 +607,97 @@
     }
 
     // ---- CUSTOM HARGA MODAL ----
+    // Biaya Cetak sekarang komponen UTAMA subtotal (Subtotal = Cetak +
+    // Desain + Finishing - Potongan), bukan lagi "Harga per unit x Qty"
+    // ditambah Biaya Cetak sebagai ekstra - lihat perubahan formula yang
+    // sama di KasirController::prosesBayar() & PenjualanController::store().
     let currentEditingRow = null;
+    let chNilaiAsli = null; // snapshot saat modal dibuka, untuk tombol "Kembalikan Nilai Asli"
 
     function openCustomHarga(idDetail) {
         const row = document.querySelector(`.item-row[data-id="${idDetail}"]`);
         currentEditingRow = row;
 
+        const qty = parseFloat(row.querySelector('.inp-qty').value) || 0;
+        const hargaLama = cleanRupiah(row.querySelector('.inp-harga').value);
+        let cetak = cleanRupiah(row.querySelector('.inp-cetak').value);
+        const desain = cleanRupiah(row.querySelector('.inp-desain').value);
+        const finishing = cleanRupiah(row.querySelector('.inp-finishing').value);
+        const potongan = cleanRupiah(row.querySelector('.inp-potongan').value);
+
+        // Item LAMA (dibuat sebelum Biaya Cetak jadi komponen utama)
+        // biaya_cetak-nya bisa 0 padahal subtotal sudah benar (dulu dihitung
+        // dari Harga x Qty terpisah). Dipulihkan di sini dari komponen harga
+        // per unit yang masih tersisa, supaya "default sama dengan subtotal"
+        // konsisten untuk item lama MAUPUN baru, dan klik Simpan tanpa ubah
+        // apa pun tidak diam-diam mengubah subtotal nota yang sudah ada.
+        if (cetak <= 0 && hargaLama > 0 && qty > 0) {
+            cetak = Math.round(hargaLama * qty);
+        }
+
+        chNilaiAsli = { cetak, desain, finishing, potongan };
+
         document.getElementById('ch-nama-item').innerText = row.querySelector('td:nth-child(2) .font-bold').innerText;
-        document.getElementById('ch-satuan').innerText = '/ ' + (row.querySelector('.inp-qty').dataset.satuan || 'unit');
-        document.getElementById('ch-harga').value = formatRupiah(row.querySelector('.inp-harga').value);
-        document.getElementById('ch-cetak').value = formatRupiah(row.querySelector('.inp-cetak').value);
-        document.getElementById('ch-desain').value = formatRupiah(row.querySelector('.inp-desain').value);
-        document.getElementById('ch-finishing').value = formatRupiah(row.querySelector('.inp-finishing').value);
-        document.getElementById('ch-potongan').value = formatRupiah(row.querySelector('.inp-potongan').value);
+        document.getElementById('ch-cetak').value = formatRupiah(cetak);
+        document.getElementById('ch-desain').value = formatRupiah(desain);
+        document.getElementById('ch-finishing').value = formatRupiah(finishing);
+        document.getElementById('ch-potongan').value = formatRupiah(potongan);
+
+        // Desain/Finishing cuma tampil kalau item ini memang sudah punya
+        // nilainya - "muncul ketika ada penambahan biaya".
+        document.getElementById('ch-wrapper-desain').classList.toggle('hidden', desain <= 0);
+        document.getElementById('ch-btn-tambah-desain').classList.toggle('hidden', desain > 0);
+        document.getElementById('ch-wrapper-finishing').classList.toggle('hidden', finishing <= 0);
+        document.getElementById('ch-btn-tambah-finishing').classList.toggle('hidden', finishing > 0);
 
         hitungPreviewCustomHarga();
         openModal('custom-harga');
     }
 
+    function tampilkanChBiaya(jenis) {
+        document.getElementById(`ch-wrapper-${jenis}`).classList.remove('hidden');
+        document.getElementById(`ch-btn-tambah-${jenis}`).classList.add('hidden');
+        document.getElementById(`ch-${jenis}`).focus();
+    }
+
+    // Mengembalikan keempat field (Cetak/Desain/Finishing/Potongan) ke
+    // kondisi PERSIS saat modal ini dibuka (chNilaiAsli) - membatalkan
+    // ketikan yang sudah sempat diubah tanpa perlu tutup+buka ulang modal.
+    function kembalikanNilaiAsliCh() {
+        if (!chNilaiAsli) return;
+        document.getElementById('ch-cetak').value = formatRupiah(chNilaiAsli.cetak);
+        document.getElementById('ch-desain').value = formatRupiah(chNilaiAsli.desain);
+        document.getElementById('ch-finishing').value = formatRupiah(chNilaiAsli.finishing);
+        document.getElementById('ch-potongan').value = formatRupiah(chNilaiAsli.potongan);
+
+        document.getElementById('ch-wrapper-desain').classList.toggle('hidden', chNilaiAsli.desain <= 0);
+        document.getElementById('ch-btn-tambah-desain').classList.toggle('hidden', chNilaiAsli.desain > 0);
+        document.getElementById('ch-wrapper-finishing').classList.toggle('hidden', chNilaiAsli.finishing <= 0);
+        document.getElementById('ch-btn-tambah-finishing').classList.toggle('hidden', chNilaiAsli.finishing > 0);
+
+        hitungPreviewCustomHarga();
+
+        Toast.fire({ icon: 'info', title: 'Dikembalikan ke nilai sebelum diedit.' });
+    }
+
     function hitungPreviewCustomHarga() {
         if (!currentEditingRow) return;
-        // inp-qty menyimpan qty_hitung (m²/pcs) sebagai angka desimal biasa
-        // (mis. "2.4500"), bukan string berformat Rupiah - dibaca dengan
-        // parseFloat(), BUKAN cleanRupiah() yang akan salah membuang
-        // titik desimalnya (dianggap pemisah ribuan).
-        const qty = parseFloat(currentEditingRow.querySelector('.inp-qty').value) || 0;
-        const harga = cleanRupiah(document.getElementById('ch-harga').value);
         const cetak = cleanRupiah(document.getElementById('ch-cetak').value);
         const desain = cleanRupiah(document.getElementById('ch-desain').value);
         const finishing = cleanRupiah(document.getElementById('ch-finishing').value);
         const potongan = cleanRupiah(document.getElementById('ch-potongan').value);
 
-        const subtotal = Math.max(0, (harga * qty) + cetak + desain + finishing - potongan);
+        const subtotal = Math.max(0, cetak + desain + finishing - potongan);
+
+        // inp-qty menyimpan qty_hitung (m²/pcs) sebagai angka desimal biasa
+        // (mis. "2.4500") - dibaca dengan parseFloat(), BUKAN cleanRupiah()
+        // yang akan salah membuang titik desimalnya (dianggap pemisah
+        // ribuan). Cuma dipakai untuk acuan "≈ Rp X /unit" - informasi saja,
+        // tidak lagi bagian dari rumus subtotal.
+        const qty = parseFloat(currentEditingRow.querySelector('.inp-qty').value) || 0;
+        const satuan = currentEditingRow.querySelector('.inp-qty').dataset.satuan || 'unit';
+        const acuan = document.getElementById('ch-harga-acuan');
+        acuan.innerText = qty > 0 ? `≈ Rp ${formatRupiah(Math.round(cetak / qty))} / ${satuan}` : '';
 
         document.getElementById('ch-total-potongan').innerText = 'Rp ' + formatRupiah(potongan);
         document.getElementById('ch-preview-subtotal').innerText = 'Rp ' + formatRupiah(subtotal);
@@ -620,21 +706,22 @@
     function simpanCustomHarga() {
         if (!currentEditingRow) return;
         const row = currentEditingRow;
-        const qty = parseFloat(row.querySelector('.inp-qty').value) || 0;
 
-        const harga = cleanRupiah(document.getElementById('ch-harga').value);
         const cetak = cleanRupiah(document.getElementById('ch-cetak').value);
         const desain = cleanRupiah(document.getElementById('ch-desain').value);
         const finishing = cleanRupiah(document.getElementById('ch-finishing').value);
         const potongan = cleanRupiah(document.getElementById('ch-potongan').value);
 
-        row.querySelector('.inp-harga').value = harga;
+        // "Harga" per-unit terpisah tidak lagi dipakai (Biaya Cetak sudah
+        // jadi komponen utama) - diset 0 di baris tabel supaya tidak
+        // menampilkan angka lama yang sudah tidak relevan/menyesatkan.
+        row.querySelector('.inp-harga').value = 0;
         row.querySelector('.inp-cetak').value = cetak;
         row.querySelector('.inp-desain').value = desain;
         row.querySelector('.inp-finishing').value = finishing;
         row.querySelector('.inp-potongan').value = potongan;
 
-        row.querySelector('.disp-harga').innerText = 'Rp ' + formatRupiah(harga);
+        row.querySelector('.disp-harga').innerText = 'Rp 0';
         // Cetak/Desain/Finishing/Potongan tidak lagi kolom terpisah - dirangkum
         // jadi satu baris kecil di bawah Deskripsi (lihat buildBiayaTambahanText),
         // sama seperti dulu dirender server-side saat halaman pertama dimuat.

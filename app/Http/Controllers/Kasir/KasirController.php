@@ -288,42 +288,27 @@ class KasirController extends Controller
                         continue;
                     }
 
-                    // "Harga" adalah harga PER SATUAN HITUNG (per m² untuk produk
-                    // metode 'ukuran', per pcs untuk 'quantity'/jasa) - PERSIS
-                    // definisi yang sama dengan Price List & HargaService di
-                    // seluruh aplikasi ini. Untuk produk metode 'ukuran', satuan
-                    // hitungnya BUKAN transaksi_detail.qty (itu jumlah PCS yang
-                    // dipesan) melainkan qtyHitung = (p*l/10000)*qty (area m²) -
-                    // dikalikan qty mentah di sini akan salah kali lipat (order
-                    // 200x100cm = 2m², harga per m² 18rb, tapi kode lama
-                    // mengalikan 18rb x qty_pcs bukan x 2m², jadi Harga yang
-                    // ditampilkan/tersimpan tidak pernah cocok dengan Price
-                    // List). Rumus ini SENGAJA dihitung ulang di server (bukan
-                    // dipercaya dari client) - sama seperti qty_hitung di
-                    // PenjualanController::store() & StokReversalService.
-                    $qtyEfektif = (float) $detailRow->qty;
-                    if ($detailRow->id_produk) {
-                        $metodeHitung = DB::table('produk')->where('id_produk', $detailRow->id_produk)->value('metode_hitung');
-                        if ($metodeHitung === 'ukuran') {
-                            $qtyEfektif = ((float) $detailRow->p_ukuran * (float) $detailRow->l_ukuran / 10000) * (float) $detailRow->qty;
-                        }
-                    }
-
+                    // Biaya Cetak SEKARANG komponen UTAMA subtotal (menggantikan
+                    // "Harga per satuan hitung x qty", bukan lagi ditambahkan di
+                    // atasnya - lihat catatan yang sama di PenjualanController::
+                    // store()). "Harga" per-unit yang dulu dikalikan qty di sini
+                    // TIDAK LAGI dipakai untuk hitungan - field itu murni acuan/
+                    // referensi Price List di UI, tidak lagi disetorkan ke
+                    // subtotal supaya tidak dobel-hitung dengan Biaya Cetak.
                     $bersihkan = fn ($v) => (float) str_replace('.', '', (string) ($v ?? 0));
 
-                    $hargaBersih = $bersihkan($data['harga'] ?? 0);
                     $biayaCetakBaru = $bersihkan($data['biaya_cetak'] ?? $detailRow->biaya_cetak);
                     $biayaDesainBaru = $bersihkan($data['biaya_desain'] ?? $detailRow->biaya_desain);
                     $biayaFinishingBaru = $bersihkan($data['biaya_finishing'] ?? $detailRow->biaya_finishing);
                     $potonganBaru = $bersihkan($data['potongan'] ?? 0);
 
-                    foreach (['Harga unit' => $hargaBersih, 'Biaya cetak' => $biayaCetakBaru, 'Biaya desain' => $biayaDesainBaru, 'Biaya finishing' => $biayaFinishingBaru, 'Potongan' => $potonganBaru] as $label => $nilai) {
+                    foreach (['Biaya cetak' => $biayaCetakBaru, 'Biaya desain' => $biayaDesainBaru, 'Biaya finishing' => $biayaFinishingBaru, 'Potongan' => $potonganBaru] as $label => $nilai) {
                         if ($nilai < 0) {
                             throw new \Exception("{$label} tidak boleh negatif.");
                         }
                     }
 
-                    $subtotalBaru = ($hargaBersih * $qtyEfektif) + $biayaCetakBaru + $biayaDesainBaru + $biayaFinishingBaru - $potonganBaru;
+                    $subtotalBaru = $biayaCetakBaru + $biayaDesainBaru + $biayaFinishingBaru - $potonganBaru;
 
                     if ($subtotalBaru < 0) {
                         throw new \Exception("Potongan untuk item \"{$detailRow->nama_file}\" tidak boleh lebih besar dari total item itu sendiri.");
