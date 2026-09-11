@@ -8,30 +8,58 @@ use Illuminate\Support\Facades\DB;
 
 class KartuStokController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->get('search');
+
         $bahan = DB::table('bahan_baku')
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('nama_bahan', 'like', "%{$search}%")
+                       ->orWhere('kode_bahan', 'like', "%{$search}%");
+                });
+            })
             ->orderBy('nama_bahan')
             ->get();
 
-        return view('kartu_stok.index', compact('bahan'));
+        return view('kartu_stok.index', compact('bahan', 'search'));
     }
 
-    public function detail($id)
+    public function detail(Request $request, $id)
     {
         $bahan = DB::table('bahan_baku')
             ->leftJoin('satuan as satuan_stok_ref', 'satuan_stok_ref.id_satuan', '=', 'bahan_baku.id_satuan_stok')
             ->leftJoin('satuan as satuan_hitung_ref', 'satuan_hitung_ref.id_satuan', '=', 'bahan_baku.id_satuan_hitung')
             ->where('bahan_baku.id_bahan', $id)
             ->select('bahan_baku.*', 'satuan_stok_ref.nama_satuan as nama_satuan_stok', 'satuan_hitung_ref.nama_satuan as nama_satuan_hitung')
-            ->first();
+            ->firstOrFail();
+
+        $awal = $request->get('awal', now()->startOfMonth()->toDateString());
+        $akhir = $request->get('akhir', now()->toDateString());
+        $tipe = $request->get('tipe');
+
+        // Saldo sebelum periode - dipakai sebagai baris "Saldo Awal" supaya
+        // baris pertama yang tampil tidak muncul begitu saja tanpa konteks
+        // saat histori difilter ke sub-rentang tanggal (pola sama seperti
+        // Buku Besar akuntansi: AkuntansiController::bukuBesar()).
+        $saldoAwal = DB::table('kartu_stok')
+            ->where('id_bahan', $id)
+            ->where('tanggal', '<', $awal)
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('id', 'desc')
+            ->value('stok_sesudah');
+        $saldoAwal = $saldoAwal !== null ? (float) $saldoAwal : 0.0;
 
         $kartu = DB::table('kartu_stok')
             ->where('id_bahan', $id)
+            ->whereDate('tanggal', '>=', $awal)
+            ->whereDate('tanggal', '<=', $akhir)
+            ->when($tipe, fn ($q) => $q->where('tipe', $tipe))
             ->orderBy('tanggal', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
 
-        return view('kartu_stok.detail', compact('bahan', 'kartu'));
+        return view('kartu_stok.detail', compact('bahan', 'kartu', 'awal', 'akhir', 'tipe', 'saldoAwal'));
     }
 
     /**

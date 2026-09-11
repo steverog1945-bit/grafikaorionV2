@@ -15,6 +15,35 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- FILTER --}}
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6">
+        <form method="GET" action="{{ url('/kartu-stok/'.$bahan->id_bahan) }}" class="flex flex-wrap items-end gap-4">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
+                <input type="date" name="awal" value="{{ $awal }}" class="bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
+                <input type="date" name="akhir" value="{{ $akhir }}" class="bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            </div>
+            <div class="w-full md:w-44">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Tipe</label>
+                <select name="tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                    <option value="">Semua Tipe</option>
+                    <option value="IN" {{ $tipe == 'IN' ? 'selected' : '' }}>IN (Masuk)</option>
+                    <option value="OUT" {{ $tipe == 'OUT' ? 'selected' : '' }}>OUT (Keluar)</option>
+                    <option value="ADJUSTMENT" {{ $tipe == 'ADJUSTMENT' ? 'selected' : '' }}>Penyesuaian</option>
+                </select>
+            </div>
+            <button type="submit" class="h-[46px] px-6 flex items-center justify-center bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all">
+                <i class="fas fa-filter mr-1"></i> Tampilkan
+            </button>
+            <a href="{{ url('/kartu-stok/'.$bahan->id_bahan) }}" class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
+                <i class="fas fa-undo-alt text-sm"></i>
+            </a>
+        </form>
+    </div>
+
     <div class="grid {{ strtolower($bahan->nama_satuan_stok ?? '') === 'roll' && $bahan->nilai_konversi > 1 ? 'grid-cols-2' : 'grid-cols-1' }} gap-4 mb-6">
         <x-card>
             <div class="flex items-center justify-between">
@@ -56,6 +85,11 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
+            <tr class="bg-slate-50/40">
+                <td colspan="4" class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Saldo Awal ({{ \Carbon\Carbon::parse($awal)->format('d M Y') }})</td>
+                <td class="px-4 py-3 text-right text-sm font-bold text-slate-700">{{ number_format($saldoAwal, 2) }}</td>
+                <td colspan="2"></td>
+            </tr>
             @forelse($kartu as $k)
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-6 py-5">
@@ -89,7 +123,7 @@
             @empty
             <tr>
                 <td colspan="7">
-                    <x-empty-state title="Belum ada transaksi" description="Riwayat pergerakan stok bahan ini akan tercatat otomatis." />
+                    <x-empty-state title="Tidak ada transaksi pada rentang filter ini" description="Coba perlebar rentang tanggal atau reset filter tipe." />
                 </td>
             </tr>
             @endforelse

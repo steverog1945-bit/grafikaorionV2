@@ -15,6 +15,29 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- FILTER & SEARCH --}}
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6">
+        <form method="GET" action="{{ route('kartu-stok.index') }}" class="flex flex-wrap items-end gap-4">
+            <div class="flex-1 min-w-[280px]">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Bahan</label>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                    <input type="text" name="search" value="{{ $search }}"
+                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                           placeholder="Ketik SKU atau Nama Bahan...">
+                </div>
+            </div>
+            <button type="submit" class="h-[46px] px-6 flex items-center justify-center bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all">
+                <i class="fas fa-filter mr-1"></i> Tampilkan
+            </button>
+            @if($search)
+                <a href="{{ route('kartu-stok.index') }}" class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
+                    <i class="fas fa-undo-alt text-sm"></i>
+                </a>
+            @endif
+        </form>
+    </div>
+
     <x-table>
         <thead>
             <tr>
@@ -50,7 +73,7 @@
             @empty
             <tr>
                 <td colspan="4">
-                    <x-empty-state title="Belum ada data bahan baku" />
+                    <x-empty-state :title="$search ? 'Tidak ada bahan yang cocok dengan pencarian' : 'Belum ada data bahan baku'" />
                 </td>
             </tr>
             @endforelse
