@@ -253,7 +253,7 @@
                             </select>
                         </x-form.group>
                         <x-form.group label="Qty">
-                            <x-form.input type="number" id="input_jasa_qty" value="1" />
+                            <x-form.input type="number" id="input_jasa_qty" value="1" oninput="refreshJasaHargaSuggestion()" />
                         </x-form.group>
                         <x-form.group label="Harga Satuan (Rp)">
                             <x-form.input type="number" id="input_jasa_harga" placeholder="0" />
@@ -680,11 +680,19 @@
         } catch (e) { console.error("Gagal ambil produk:", e); }
     }
 
-    function onFinishingChange() {
+    // Biaya finishing hasil auto-suggest (tier finishing_harga berdasarkan
+    // qty, fallback harga_default) BUKAN harga final - kasir tetap bebas
+    // menimpa manual. finishingBiayaManualEdit menandai kalau field sudah
+    // disentuh manual SEJAK terakhir auto-fill, supaya perubahan qty
+    // sesudahnya tidak diam-diam menimpa balik angka yang sudah sengaja
+    // diubah kasir.
+    let finishingBiayaManualEdit = false;
+    document.getElementById('input_finishing_biaya').addEventListener('input', () => {
+        finishingBiayaManualEdit = true;
+    });
+
+    async function onFinishingChange() {
         const sel = document.getElementById('select_finishing');
-        const opt = sel.options[sel.selectedIndex];
-        const harga = opt ? parseFloat(opt.getAttribute('data-harga')) || 0 : 0;
-        document.getElementById('input_finishing_biaya').value = harga;
 
         // Spek finishing (Standar/Custom) cuma bermakna kalau ada jenis
         // finishing yang dipilih - satu-satunya sumber "sudah pilih
@@ -696,9 +704,37 @@
         } else {
             statusFinishing.disabled = true;
             statusFinishing.value = 'Standar';
+            document.getElementById('input_finishing_biaya').value = 0;
         }
 
-        hitungSubtotal();
+        // Reset lalu delegasikan ke hitungSubtotal() (yang sudah meng-await
+        // refreshFinishingBiayaSuggestion() SEBELUM menghitung subtotal) -
+        // sengaja TIDAK memanggil refreshFinishingBiayaSuggestion() lagi di
+        // sini secara terpisah, supaya tidak ada dua fetch berjalan
+        // bersamaan yang bisa saling menimpa (race condition).
+        finishingBiayaManualEdit = false;
+        await hitungSubtotal();
+    }
+
+    // Qty acuan tier finishing dipakai sama seperti qty produk (area untuk
+    // metode 'ukuran', qty langsung untuk 'quantity') - finishing dianggap
+    // mengikuti volume cetak yang sama dengan produk induknya.
+    async function refreshFinishingBiayaSuggestion() {
+        const sel = document.getElementById('select_finishing');
+        if (!sel.value || finishingBiayaManualEdit || !currentProduk) return;
+
+        const p = parseFloat(document.getElementById('input_p').value) || 0;
+        const l = parseFloat(document.getElementById('input_l').value) || 0;
+        const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
+        const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
+        const qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
+        if (qtyCari <= 0) return;
+
+        try {
+            const res = await fetch(`{{ url('/api/penjualan/get-harga-finishing') }}/${sel.value}/${qtyCari}`);
+            const data = await res.json();
+            document.getElementById('input_finishing_biaya').value = data.harga ?? 0;
+        } catch (e) {}
     }
 
     async function hitungSubtotal() {
@@ -709,11 +745,17 @@
         const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
         const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
         const biayaDesain = parseFloat(document.getElementById('input_desain').value) || 0;
-        const biayaFinishing = parseFloat(document.getElementById('input_finishing_biaya').value) || 0;
         const biayaCetak = parseFloat(document.getElementById('input_cetak').value) || 0;
 
         let qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
         if (qtyCari <= 0) { updateDisplay(0, 0); return null; }
+
+        // Refresh dulu SEBELUM baca nilainya - supaya subtotal di bawah ini
+        // memakai saran harga finishing yang sudah sesuai qty terbaru, bukan
+        // nilai lama dari sebelum qty berubah (kalau dipanggil belakangan
+        // tanpa di-await, hasilnya selalu telat satu langkah/race condition).
+        await refreshFinishingBiayaSuggestion();
+        const biayaFinishing = parseFloat(document.getElementById('input_finishing_biaya').value) || 0;
 
         try {
             const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${qtyCari}`;
@@ -851,13 +893,39 @@
         });
     }
 
-    function onJasaChange() {
+    // Sama seperti finishingBiayaManualEdit - jasa sebelumnya 100% manual,
+    // auto-suggest ini murni starting point, tidak boleh menimpa balik
+    // angka yang sudah sengaja diubah kasir.
+    let jasaHargaManualEdit = false;
+    document.getElementById('input_jasa_harga').addEventListener('input', () => {
+        jasaHargaManualEdit = true;
+    });
+
+    async function onJasaChange() {
         const sel = document.getElementById('select_jasa');
         const namaJasa = sel.value ? sel.options[sel.selectedIndex].dataset.nama : '';
         const ketInput = document.getElementById('jasa_keterangan');
         if (namaJasa && !ketInput.value) {
             ketInput.value = namaJasa;
         }
+
+        jasaHargaManualEdit = false;
+        await refreshJasaHargaSuggestion();
+    }
+
+    async function refreshJasaHargaSuggestion() {
+        const idJasa = document.getElementById('select_jasa').value;
+        if (!idJasa || jasaHargaManualEdit) return;
+
+        const qty = parseFloat(document.getElementById('input_jasa_qty').value) || 1;
+
+        try {
+            const res = await fetch(`{{ url('/api/penjualan/get-harga-jasa') }}/${idJasa}/${qty}`);
+            const data = await res.json();
+            if (data.harga > 0) {
+                document.getElementById('input_jasa_harga').value = data.harga;
+            }
+        } catch (e) {}
     }
 
     function tambahJasaKeKeranjang() {
@@ -896,6 +964,7 @@
         document.getElementById('input_jasa_qty').value = 1;
         document.getElementById('input_jasa_harga').value = '';
         document.getElementById('jasa_keterangan').value = '';
+        jasaHargaManualEdit = false;
 
         Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }).fire({
             icon: 'success', title: 'Jasa ditambahkan ke keranjang'
@@ -1049,6 +1118,7 @@
         document.getElementById('input_cetak').value = "0";
         document.getElementById('select_finishing').value = "";
         document.getElementById('input_finishing_biaya').value = "0";
+        finishingBiayaManualEdit = false;
         document.getElementById('input_status_urgensi').value = "Normal";
         document.getElementById('input_status_finishing').disabled = true;
         document.getElementById('input_status_finishing').value = "Standar";

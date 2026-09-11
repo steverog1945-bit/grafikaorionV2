@@ -36,6 +36,39 @@ class PenjualanApiController extends Controller
     }
 
     /**
+     * Harga acuan Finishing berdasarkan qty (finishing_harga tier, fallback
+     * harga_default) - murni STARTING POINT untuk mengisi field biaya_finishing
+     * di POS, kasir tetap bisa menimpa manual (lihat komentar di
+     * PenjualanController: harga_default cuma starting point, bukan final).
+     */
+    public function getHargaFinishing($id_finishing, $qty)
+    {
+        try {
+            $harga = HargaService::getHargaFinishingEfektif((int) $id_finishing, (float) $qty);
+
+            return response()->json(['harga' => $harga]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Sama seperti getHargaFinishing tapi untuk Jasa - jasa sebelumnya tidak
+     * punya harga tersimpan sama sekali, ini angka acuan baru, kasir tetap
+     * menentukan harga akhir manual di POS.
+     */
+    public function getHargaJasa($id_jasa, $qty)
+    {
+        try {
+            $harga = HargaService::getHargaJasaEfektif((int) $id_jasa, (float) $qty);
+
+            return response()->json(['harga' => $harga]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Indikator ketersediaan stok bahan (BOM) SEBELUM checkout - murni
      * informasi untuk kasir, TIDAK memblokir apa pun. Order tetap boleh
      * dibuat walau bahan kurang (workflow percetakan biasa: order dulu,

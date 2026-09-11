@@ -37,6 +37,9 @@ class HargaService
             ->where('id_produk', $idProduk)
             ->where('id_golongan', $idGolongan)
             ->where('range_min', '<=', $qty)
+            ->where(function ($q) use ($qty) {
+                $q->whereNull('range_max')->orWhere('range_max', '>=', $qty);
+            })
             ->orderBy('range_min', 'desc')
             ->first();
 
@@ -45,6 +48,60 @@ class HargaService
             'is_promo' => false,
             'promo_selesai' => null,
         ];
+    }
+
+    /**
+     * Harga Finishing bertingkat berdasarkan qty (finishing_harga) - TANPA
+     * dimensi golongan (finishing dianggap ongkos kerja, satu rentang
+     * berlaku untuk semua pelanggan). Kalau tidak ada tier yang cocok atau
+     * belum diatur tiernya sama sekali, jatuh balik ke finishing.harga_default.
+     * Ini murni ANGKA ACUAN/starting point untuk POS - operator tetap bisa
+     * menimpa manual, sama seperti perilaku harga_default sebelumnya.
+     */
+    public static function getHargaFinishingEfektif(int $idFinishing, float $qty): float
+    {
+        $tier = DB::table('finishing_harga')
+            ->where('id_finishing', $idFinishing)
+            ->where('range_min', '<=', $qty)
+            ->where(function ($q) use ($qty) {
+                $q->whereNull('range_max')->orWhere('range_max', '>=', $qty);
+            })
+            ->orderBy('range_min', 'desc')
+            ->first();
+
+        if ($tier) {
+            return (float) $tier->harga;
+        }
+
+        $default = DB::table('finishing')->where('id_finishing', $idFinishing)->value('harga_default');
+
+        return (float) ($default ?? 0);
+    }
+
+    /**
+     * Sama seperti getHargaFinishingEfektif tapi untuk Jasa (jasa_harga +
+     * jasa.harga_default sebagai fallback). Jasa sebelumnya tidak punya
+     * harga tersimpan sama sekali - ini angka acuan baru, kasir tetap bisa
+     * override manual di POS.
+     */
+    public static function getHargaJasaEfektif(int $idJasa, float $qty): float
+    {
+        $tier = DB::table('jasa_harga')
+            ->where('id_jasa', $idJasa)
+            ->where('range_min', '<=', $qty)
+            ->where(function ($q) use ($qty) {
+                $q->whereNull('range_max')->orWhere('range_max', '>=', $qty);
+            })
+            ->orderBy('range_min', 'desc')
+            ->first();
+
+        if ($tier) {
+            return (float) $tier->harga;
+        }
+
+        $default = DB::table('jasa')->where('id_jasa', $idJasa)->value('harga_default');
+
+        return (float) ($default ?? 0);
     }
 
     public static function promoAktif(int $idProduk): ?object

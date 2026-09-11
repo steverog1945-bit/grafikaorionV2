@@ -14,7 +14,13 @@ class FinishingController extends Controller
         $data = Finishing::with('mesin')->orderBy('nama_finishing')->get();
         $mesin = DB::table('mesin')->orderBy('nama_mesin')->get();
 
-        return view('finishing.index', compact('data', 'mesin'));
+        $hargaTiers = DB::table('finishing_harga')
+            ->whereIn('id_finishing', $data->pluck('id_finishing'))
+            ->orderBy('range_min')
+            ->get()
+            ->groupBy('id_finishing');
+
+        return view('finishing.index', compact('data', 'mesin', 'hargaTiers'));
     }
 
     public function store(Request $request)

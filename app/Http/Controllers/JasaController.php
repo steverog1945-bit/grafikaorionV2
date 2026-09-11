@@ -25,23 +25,31 @@ class JasaController extends Controller
 
         $satuan = DB::table('satuan')->orderBy('nama_satuan')->get();
 
-        return view('master.jasa.index', compact('jasa', 'satuan'));
+        $hargaTiers = DB::table('jasa_harga')
+            ->whereIn('id_jasa', $jasa->pluck('id_jasa'))
+            ->orderBy('range_min')
+            ->get()
+            ->groupBy('id_jasa');
+
+        return view('master.jasa.index', compact('jasa', 'satuan', 'hargaTiers'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'nama_jasa'  => 'required|max:100',
-            'id_satuan'  => 'nullable|exists:satuan,id_satuan',
-            'keterangan' => 'nullable',
+            'nama_jasa'      => 'required|max:100',
+            'id_satuan'      => 'nullable|exists:satuan,id_satuan',
+            'harga_default'  => 'nullable|numeric|min:0',
+            'keterangan'     => 'nullable',
         ]);
 
         DB::table('jasa')->insert([
-            'nama_jasa'  => $request->nama_jasa,
-            'id_satuan'  => $request->id_satuan ?: null,
-            'keterangan' => $request->keterangan,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'nama_jasa'      => $request->nama_jasa,
+            'id_satuan'      => $request->id_satuan ?: null,
+            'harga_default'  => $request->harga_default ?: null,
+            'keterangan'     => $request->keterangan,
+            'created_at'     => now(),
+            'updated_at'     => now(),
         ]);
 
         return redirect()->back()->with('success', 'Jasa berhasil ditambahkan.');
@@ -50,15 +58,17 @@ class JasaController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'nama_jasa' => 'required|max:100',
-            'id_satuan' => 'nullable|exists:satuan,id_satuan',
+            'nama_jasa'     => 'required|max:100',
+            'id_satuan'     => 'nullable|exists:satuan,id_satuan',
+            'harga_default' => 'nullable|numeric|min:0',
         ]);
 
         DB::table('jasa')->where('id_jasa', $id)->update([
-            'nama_jasa'  => $request->nama_jasa,
-            'id_satuan'  => $request->id_satuan ?: null,
-            'keterangan' => $request->keterangan,
-            'updated_at' => now(),
+            'nama_jasa'      => $request->nama_jasa,
+            'id_satuan'      => $request->id_satuan ?: null,
+            'harga_default'  => $request->harga_default ?: null,
+            'keterangan'     => $request->keterangan,
+            'updated_at'     => now(),
         ]);
 
         return redirect()->back()->with('success', 'Jasa berhasil diperbarui.');

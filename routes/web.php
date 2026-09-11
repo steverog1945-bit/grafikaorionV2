@@ -80,10 +80,16 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::resource('mesin', MesinController::class);
     Route::resource('produk', ProdukController::class);
     Route::resource('finishing', FinishingController::class)->except(['create', 'edit', 'show']);
+    Route::post('/finishing/{id}/harga', [\App\Http\Controllers\FinishingHargaController::class, 'store'])->name('finishing.harga.store');
+    Route::patch('/finishing-harga/{id}', [\App\Http\Controllers\FinishingHargaController::class, 'update'])->name('finishing.harga.update');
+    Route::delete('/finishing-harga/{id}', [\App\Http\Controllers\FinishingHargaController::class, 'destroy'])->name('finishing.harga.destroy');
 
     Route::resource('merk', \App\Http\Controllers\MerkController::class)->except(['create', 'edit', 'show']);
     Route::resource('jenis-bahan', \App\Http\Controllers\JenisBahanController::class)->except(['create', 'edit', 'show']);
     Route::resource('jasa', \App\Http\Controllers\JasaController::class)->except(['create', 'edit', 'show']);
+    Route::post('/jasa/{id}/harga', [\App\Http\Controllers\JasaHargaController::class, 'store'])->name('jasa.harga.store');
+    Route::patch('/jasa-harga/{id}', [\App\Http\Controllers\JasaHargaController::class, 'update'])->name('jasa.harga.update');
+    Route::delete('/jasa-harga/{id}', [\App\Http\Controllers\JasaHargaController::class, 'destroy'])->name('jasa.harga.destroy');
     Route::resource('gudang', \App\Http\Controllers\GudangController::class)->except(['create', 'edit', 'show']);
     Route::get('/konsumen-deposit', [\App\Http\Controllers\KonsumenDepositController::class, 'index'])->name('konsumen-deposit.index');
     Route::post('/konsumen-deposit', [\App\Http\Controllers\KonsumenDepositController::class, 'store'])->name('konsumen-deposit.store');
@@ -131,6 +137,12 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
 
         Route::get('/get-harga/{id_produk}/{id_golongan}/{qty}',
             [PenjualanApiController::class, 'getHarga']);
+
+        Route::get('/get-harga-finishing/{id_finishing}/{qty}',
+            [PenjualanApiController::class, 'getHargaFinishing']);
+
+        Route::get('/get-harga-jasa/{id_jasa}/{qty}',
+            [PenjualanApiController::class, 'getHargaJasa']);
 
         Route::get('/check-stok',
             [PenjualanApiController::class, 'checkStok']);
@@ -251,13 +263,17 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         [SettingHargaController::class, 'index'])
         ->name('setting-harga.index');
 
-    Route::post('/setting-harga/update-bulk',
-        [SettingHargaController::class, 'update_bulk'])
-        ->name('setting-harga.update_bulk');
+    Route::post('/setting-harga/{id_produk}/tier',
+        [SettingHargaController::class, 'storeRow'])
+        ->name('setting-harga.tier.store');
 
-    Route::delete('/setting-harga/{id_produk}',
-        [SettingHargaController::class, 'destroy'])
-        ->name('setting-harga.destroy');
+    Route::patch('/setting-harga-tier/{id}',
+        [SettingHargaController::class, 'updateRow'])
+        ->name('setting-harga.tier.update');
+
+    Route::delete('/setting-harga-tier/{id}',
+        [SettingHargaController::class, 'destroyRow'])
+        ->name('setting-harga.tier.destroy');
 
 
 

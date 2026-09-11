@@ -48,6 +48,7 @@
                         <th class="px-8 py-5 text-left w-24">ID</th>
                         <th class="px-6 py-5 text-left">Nama Jasa</th>
                         <th class="px-6 py-5 text-center">Unit Hitung</th>
+                        <th class="px-6 py-5 text-right">Harga</th>
                         <th class="px-6 py-5 text-left">Keterangan</th>
                         <th class="px-8 py-5 text-right">Manajemen</th>
                     </tr>
@@ -64,6 +65,16 @@
                                 {{ $j->nama_satuan ?? '-' }}
                             </span>
                         </td>
+                        <td class="px-6 py-5 text-right">
+                            @php $tierCount = ($hargaTiers[$j->id_jasa] ?? collect())->count(); @endphp
+                            @if($tierCount > 0)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">BERTINGKAT ({{ $tierCount }})</span>
+                            @elseif($j->harga_default)
+                                <span class="text-sm font-bold text-slate-700">Rp {{ number_format($j->harga_default, 0, ',', '.') }}</span>
+                            @else
+                                <span class="text-[10px] text-slate-300 italic">Manual di Kasir</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-5">
                             <p class="text-sm text-slate-500 leading-relaxed truncate max-w-xs">
                                 {{ $j->keterangan ?? 'Tidak ada deskripsi tambahan' }}
@@ -71,6 +82,10 @@
                         </td>
                         <td class="px-8 py-5 text-right">
                             <div class="flex justify-end gap-2">
+                                <button onclick="openModal('harga-jasa-{{ $j->id_jasa }}')"
+                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all" title="Harga Bertingkat per Qty">
+                                    <i class="fas fa-layer-group text-sm"></i>
+                                </button>
                                 <button onclick="openEditJasa({{ json_encode($j) }})"
                                         class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
                                     <i class="far fa-edit text-sm"></i>
@@ -88,7 +103,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="py-20 text-center text-slate-400 font-medium italic">Belum ada jasa yang terdaftar.</td>
+                        <td colspan="6" class="py-20 text-center text-slate-400 font-medium italic">Belum ada jasa yang terdaftar.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -132,6 +147,12 @@
                                 <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <div class="max-w-[85%] mx-auto">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Harga Dasar (Rp) <span class="normal-case font-normal text-slate-300">- opsional, starting point di Kasir</span></label>
+                        <input type="number" name="harga_default" min="0" placeholder="0"
+                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center">
                     </div>
 
                     <div class="max-w-[85%] mx-auto">
@@ -186,6 +207,12 @@
                     </div>
 
                     <div class="max-w-[85%] mx-auto">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Harga Dasar (Rp) <span class="normal-case font-normal text-slate-300">- opsional, starting point di Kasir</span></label>
+                        <input type="number" name="harga_default" id="edit_harga_default" min="0" placeholder="0"
+                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner text-center">
+                    </div>
+
+                    <div class="max-w-[85%] mx-auto">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Keterangan Singkat</label>
                         <textarea name="keterangan" id="edit_keterangan"
                                   class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner text-center"></textarea>
@@ -200,6 +227,70 @@
         </div>
     </div>
 </div>
+
+{{-- MODAL HARGA BERTINGKAT (satu per jasa - pola sama seperti Finishing,
+     server-rendered per baris supaya add/edit/hapus satu tier tidak pernah
+     menyentuh tier lain). --}}
+@foreach($jasa as $j)
+<x-modal id="harga-jasa-{{ $j->id_jasa }}" title="Harga Bertingkat: {{ $j->nama_jasa }}" maxWidth="lg">
+    <div class="mb-4 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs text-slate-500">
+        @if($j->harga_default)
+            Harga Dasar (<b>Rp {{ number_format($j->harga_default, 0, ',', '.') }}</b>) dipakai kalau qty tidak cocok tier manapun di bawah, atau belum ada tier sama sekali.
+        @else
+            Belum ada Harga Dasar diatur - tanpa tier yang cocok, kasir tetap input manual seperti biasa.
+        @endif
+        Kasir tetap bisa menimpa manual di Kasir Utama - ini hanya acuan/starting point.
+    </div>
+
+    @php $tiersJ = $hargaTiers[$j->id_jasa] ?? collect(); @endphp
+
+    @if($tiersJ->isEmpty())
+        <p class="text-xs text-slate-400 italic mb-4">Belum ada tier harga.</p>
+    @else
+        <div class="space-y-2 mb-4">
+            @foreach($tiersJ as $t)
+            <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
+                <form action="{{ route('jasa.harga.update', $t->id_jasa_harga) }}" method="POST" class="flex items-center gap-2 flex-1">
+                    @csrf @method('PATCH')
+                    <input type="number" name="range_min" value="{{ $t->range_min }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+                    <input type="number" name="range_max" value="{{ $t->range_max }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <span class="text-[10px] text-slate-400">=</span>
+                    <span class="text-[10px] text-slate-400">Rp</span>
+                    <input type="number" name="harga" value="{{ (int) $t->harga }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
+                    <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
+                        <i class="fas fa-save text-xs"></i>
+                    </button>
+                </form>
+                <form action="{{ route('jasa.harga.destroy', $t->id_jasa_harga) }}" method="POST" id="hapus-tier-jasa-{{ $t->id_jasa_harga }}">
+                    @csrf @method('DELETE')
+                    <button type="button" onclick="confirmHapusTierJasa({{ $t->id_jasa_harga }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                </form>
+            </div>
+            @endforeach
+        </div>
+    @endif
+
+    <form action="{{ route('jasa.harga.store', $j->id_jasa) }}" method="POST" class="flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2">
+        @csrf
+        <input type="number" name="range_min" placeholder="Min" min="1" required class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
+        <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+        <input type="number" name="range_max" placeholder="~" min="1" class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
+        <span class="text-[10px] text-slate-400">=</span>
+        <span class="text-[10px] text-slate-400">Rp</span>
+        <input type="number" name="harga" placeholder="0" min="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-bold">
+        <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shrink-0" title="Tambah Tier">
+            <i class="fas fa-plus text-xs"></i>
+        </button>
+    </form>
+
+    <div class="pt-4 flex justify-end">
+        <x-button type="button" variant="secondary" onclick="closeModal('harga-jasa-{{ $j->id_jasa }}')">Tutup</x-button>
+    </div>
+</x-modal>
+@endforeach
 
 @push('scripts')
 <script>
@@ -225,8 +316,25 @@
         form.action = `{{ url('/jasa') }}/${data.id_jasa}`;
         document.getElementById('edit_nama_jasa').value = data.nama_jasa;
         document.getElementById('edit_id_satuan').value = data.id_satuan || '';
+        document.getElementById('edit_harga_default').value = data.harga_default || '';
         document.getElementById('edit_keterangan').value = data.keterangan || '';
         toggleModal('modalEditJasa');
+    }
+
+    function confirmHapusTierJasa(id) {
+        Swal.fire({
+            title: 'Hapus Tier Harga Ini?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#f1f5f9',
+            cancelButtonText: '<span style="color: #64748b">Batal</span>',
+            confirmButtonText: 'Ya, Hapus!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('hapus-tier-jasa-' + id).submit();
+            }
+        });
     }
 
     function confirmDeleteJasa(id, nama) {
