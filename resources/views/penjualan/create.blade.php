@@ -975,6 +975,23 @@
         const res = await hitungSubtotal();
         if (!res || res.harga_satuan <= 0) return Swal.fire('Opps!', 'Detail belum lengkap.', 'error');
 
+        // BUG PENTING yang pernah kejadian nyata: validasi di atas cuma
+        // mengecek res.harga_satuan (tarif Price List), BUKAN Biaya Cetak
+        // yang sesungguhnya akan tersimpan (subtotal item ini = Biaya Cetak
+        // + Desain + Finishing, lihat hitungSubtotal()). Kalau operator
+        // sempat menyentuh field Biaya Cetak (cetakManualEdit jadi true,
+        // auto-fill berhenti mengikuti) lalu MENGOSONGKANNYA atau
+        // membiarkannya 0, guard di atas tetap lolos selama Price List-nya
+        // sendiri valid - item masuk keranjang dengan Biaya Cetak 0 tanpa
+        // peringatan apa pun, subtotal-nya 0 walau harga_satuan Price List-
+        // nya benar. Dicegat eksplisit di sini.
+        const biayaCetakSaatIni = parseFloat(document.getElementById('input_cetak').value) || 0;
+        if (biayaCetakSaatIni <= 0) {
+            Swal.fire('Biaya Cetak Kosong', 'Biaya Cetak tidak boleh 0 - isi dulu sebelum menambahkan ke keranjang.', 'error');
+            document.getElementById('input_cetak').focus();
+            return;
+        }
+
         const selFinishing = document.getElementById('select_finishing');
         const idFinishing = selFinishing.value || null;
         const namaFinishing = idFinishing ? selFinishing.options[selFinishing.selectedIndex].text : null;

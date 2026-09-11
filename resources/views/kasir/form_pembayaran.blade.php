@@ -720,7 +720,7 @@
         document.getElementById('ch-preview-subtotal').innerText = 'Rp ' + formatRupiah(subtotal);
     }
 
-    function simpanCustomHarga() {
+    async function simpanCustomHarga() {
         if (!currentEditingRow) return;
         const row = currentEditingRow;
 
@@ -728,6 +728,24 @@
         const desain = cleanRupiah(document.getElementById('ch-desain').value);
         const finishing = cleanRupiah(document.getElementById('ch-finishing').value);
         const potongan = cleanRupiah(document.getElementById('ch-potongan').value);
+
+        // Biaya Cetak+Desain+Finishing yang semuanya 0 berarti item ini mau
+        // disimpan dengan subtotal Rp 0 - biasanya bukan kesengajaan
+        // (Biaya Cetak ke-clear tidak sengaja). Konfirmasi dulu, TIDAK
+        // diblokir total (bisa saja memang item ini sengaja mau digratiskan/
+        // dibatalkan harganya) - selaras prinsip "warn don't block".
+        if (cetak <= 0 && desain <= 0 && finishing <= 0) {
+            const konfirmasi = await Swal.fire({
+                title: 'Subtotal Item Ini Jadi Rp 0?',
+                text: 'Biaya Cetak, Desain, dan Finishing semuanya kosong - subtotal item ini akan tersimpan Rp 0. Lanjutkan?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                confirmButtonText: 'Ya, Simpan Rp 0',
+                cancelButtonText: 'Batal, Saya Cek Lagi'
+            });
+            if (!konfirmasi.isConfirmed) return;
+        }
 
         // "Harga" per-unit terpisah tidak lagi dipakai (Biaya Cetak sudah
         // jadi komponen utama) - diset 0 di baris tabel supaya tidak
