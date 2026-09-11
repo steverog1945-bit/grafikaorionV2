@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-5xl mx-auto pb-20">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto pb-20">
 
     <x-page-header title="Input Pembayaran">
         <x-slot:actions>
@@ -230,12 +230,9 @@
                              pilihan toggle ini. --}}
                         <div>
                             <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Jenis Pembayaran</label>
-                            {{-- grid-cols-2 (bukan grid-cols-1/bertumpuk) supaya ukuran
-                                 tiap pill SAMA dengan pill Metode Pembayaran di sebelah
-                                 (lihat catatan di sana) - dua grup pilihan berdampingan
-                                 ini seharusnya terlihat sepasang, bukan salah satu lebih
-                                 besar/panjang dari yang lain. --}}
-                            <div class="grid grid-cols-2 gap-1.5">
+                            {{-- grid-cols-1 - 2 pilihan bertumpuk ke bawah, masing-masing
+                                 selebar penuh kolomnya. --}}
+                            <div class="grid grid-cols-1 gap-1.5">
                                 <label class="tipe-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-black text-[10px] uppercase cursor-pointer transition-all">
                                     <input type="radio" name="tipe_bayar" value="lunas" class="sr-only" checked onchange="onTipeBayarChange()">
                                     <i class="fas fa-check-circle"></i> Lunas
@@ -257,11 +254,12 @@
                              sebagai Transfer padahal beda sumber uang). --}}
                         <div>
                             <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Metode Pembayaran</label>
-                            {{-- Semua pill (di sini maupun di Jenis Pembayaran) SEKARANG
-                                 pakai ukuran seragam: py-2.5, text-[10px], gap-1.5 - dulu
-                                 Tunai sendirian text-[11px]/gap-1.5 sementara 3 lainnya
-                                 text-[10px]/gap-1, jadi pil Tunai kelihatan sedikit lebih
-                                 besar dari saudara-saudaranya sendiri di grup yang sama. --}}
+                            {{-- grid-cols-2 SENGAJA dipertahankan (bukan grid-cols-4/
+                                 sebaris) - CSS grid membagi tiap kolom SAMA RATA (1fr),
+                                 jadi keempat pill (Tunai/Debit/Transfer/Deposit) otomatis
+                                 punya lebar identik apa pun panjang teksnya, tidak ada yang
+                                 lebih panjang dari yang lain. grid-cols-4 sebaris akan
+                                 membuat teks "Transfer" mepet/terpotong di layar sempit. --}}
                             <div class="grid grid-cols-2 gap-1.5">
                                 <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-black text-[10px] uppercase cursor-pointer transition-all">
                                     <input type="radio" name="metode_pembayaran" id="metode-tunai" value="Tunai" class="sr-only" checked onchange="onMetodePembayaranChange()">
