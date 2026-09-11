@@ -53,6 +53,11 @@
             <tr class="total-row selisih"><td>Selisih</td><td class="right">Rp {{ number_format($kas->selisih, 0, ',', '.') }}</td></tr>
         </table>
 
+        <div class="divider"></div>
+        <table>
+            <tr><td>Status Rolling</td><td class="right">{{ $kas->status_rolling ?? '-' }}</td></tr>
+        </table>
+
         @if($kas->keterangan_closing)
         <div class="divider"></div>
         <p class="sub">Catatan: {{ $kas->keterangan_closing }}</p>

@@ -88,90 +88,6 @@ class KasirController extends Controller
         return view('kasir.monitoring_transaksi', compact('transaksi', 'waitingCount', 'konsumenList'));
     }
 
-    /**
-     * Closing cepat lewat modal di Kelola Kas (beda dari alur preview di
-     * closing-preview -> simpanClosing, yang menampilkan rincian dulu sebelum
-     * dikunci). Dipakai oleh tombol "Closing Kas Sekarang" di kelola_kas.blade.php.
-     * Kedua alur ini sengaja dipertahankan berdampingan karena sama-sama nyata
-     * dipakai di UI - bukan disatukan di sini tanpa sepengetahuan pemilik aplikasi.
-     */
-    public function prosesClosing(Request $request)
-    {
-        DB::beginTransaction();
-        try {
-            $id_kas = $request->id_kas;
-            $saldo_fisik = (float) str_replace('.', '', $request->saldo_fisik ?? 0);
-
-            if ($saldo_fisik < 0) {
-                throw new \Exception('Saldo fisik tidak boleh negatif.');
-            }
-
-            $kas = DB::table('kas_harian')->where('id_kas', $id_kas)->lockForUpdate()->first();
-
-            if (!$kas || $kas->status_lock === 'closed') {
-                throw new \Exception('Sesi kas sudah ditutup atau tidak ditemukan.');
-            }
-
-            // Rincian tunai/transfer/debit DIHITUNG ULANG dari pembayaran_riwayat
-            // (sama seperti simpanClosing()) dan disimpan ke kolom
-            // total_tunai_masuk/total_transfer_masuk/total_debit_masuk/
-            // total_tunai_keluar. Sebelumnya kolom-kolom ini tidak pernah diisi
-            // oleh alur closing yang benar-benar terhubung ke tombol "CLOSING
-            // KAS SEKARANG", sehingga nota cetak closing (print_closing.blade.php)
-            // selalu menampilkan Rp 0 untuk semua rincian pemasukan/pengeluaran
-            // walau uang sungguhan sudah masuk. Debit (kartu, non-tunai seperti
-            // Transfer) TIDAK ikut menambah saldoAkhirSistem (laci fisik).
-            $pemasukan = DB::table('pembayaran_riwayat')
-                ->whereDate('tgl_bayar', $kas->tgl_kas)
-                ->select(
-                    DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
-                    DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk"),
-                    DB::raw("SUM(CASE WHEN metode = 'Debit' THEN nominal ELSE 0 END) as debit_masuk")
-                )->first();
-
-            $tunaiMasuk = (float) ($pemasukan->tunai_masuk ?? 0);
-            $transferMasuk = (float) ($pemasukan->transfer_masuk ?? 0);
-            $debitMasuk = (float) ($pemasukan->debit_masuk ?? 0);
-
-            // "Kas Tidak Terduga" (kas_manual) - satu-satunya sumber
-            // pengeluaran tunai riil di app ini (nota selalu pemasukan,
-            // tidak pernah pengeluaran). Kas masuk manual juga ikut
-            // menambah laci fisik sama seperti Tunai dari nota.
-            $manual = DB::table('kas_manual')
-                ->where('id_kas', $kas->id_kas)
-                ->select(
-                    DB::raw("SUM(CASE WHEN status = 'Masuk' THEN nominal ELSE 0 END) as manual_masuk"),
-                    DB::raw("SUM(CASE WHEN status = 'Keluar' THEN nominal ELSE 0 END) as manual_keluar")
-                )->first();
-            $manualMasuk = (float) ($manual->manual_masuk ?? 0);
-            $tunaiKeluar = (float) ($manual->manual_keluar ?? 0);
-
-            $saldoAkhirSistem = $kas->saldo_awal + $tunaiMasuk + $manualMasuk - $tunaiKeluar;
-            $selisih = $saldo_fisik - $saldoAkhirSistem;
-
-            DB::table('kas_harian')->where('id_kas', $id_kas)->update([
-                'total_tunai_masuk' => $tunaiMasuk,
-                'total_transfer_masuk' => $transferMasuk,
-                'total_debit_masuk' => $debitMasuk,
-                'total_tunai_keluar' => $tunaiKeluar,
-                'saldo_akhir' => $saldoAkhirSistem,
-                'saldo_fisik' => $saldo_fisik,
-                'selisih' => $selisih,
-                'status_lock' => 'closed',
-                'waktu_tutup' => now(),
-                'keterangan_closing' => $request->keterangan,
-                'updated_at' => now()
-            ]);
-
-            DB::commit();
-            return redirect()->route('kasir.kelola')->with('success', 'Kas Berhasil Ditutup. Selisih: Rp ' . number_format($selisih, 0, ',', '.'));
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Gagal Closing: ' . $e->getMessage());
-        }
-    }
-
     public function waitingList()
     {
         // Pastikan hanya mengambil status 'Belum Bayar'. Urut berdasar
@@ -493,6 +409,24 @@ class KasirController extends Controller
         $hari_ini = date('Y-m-d');
         $kasAktif = DB::table('kas_harian')->where('tgl_kas', $hari_ini)->where('status_lock', 'open')->first();
 
+        // "Status Rolling Saldo Akhir" - kalau sesi kas yang PALING BARU
+        // ditutup (tanggal berapa pun sebelum hari ini, bukan cuma kemarin
+        // persis - jaga-jaga ada hari libur/lewat tanpa buka kas) ditutup
+        // dengan status 'Rolling', saldo fisik hasil hitungannya dibawa
+        // lanjut jadi SARAN saldo awal hari ini (tetap bisa ditimpa manual
+        // di prompt "Buka Saldo Kasir" - bukan otomatis dipaksakan).
+        $saldoRolling = null;
+        if (!$kasAktif) {
+            $kasSebelumnya = DB::table('kas_harian')
+                ->where('status_lock', 'closed')
+                ->where('tgl_kas', '<', $hari_ini)
+                ->orderByDesc('tgl_kas')
+                ->first();
+            if ($kasSebelumnya && $kasSebelumnya->status_rolling === 'Rolling') {
+                $saldoRolling = (float) $kasSebelumnya->saldo_fisik;
+            }
+        }
+
         $mutasi = DB::table('pembayaran_riwayat')
             ->join('transaksi', 'pembayaran_riwayat.id_transaksi', '=', 'transaksi.id_transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
@@ -521,7 +455,7 @@ class KasirController extends Controller
             'nominal_manual_keluar' => $mutasiManual->where('status', 'Keluar')->sum('nominal'),
         ]]);
 
-        return view('kasir.kelola_kas', compact('kasAktif', 'mutasi', 'mutasiManual', 'data_kas'));
+        return view('kasir.kelola_kas', compact('kasAktif', 'mutasi', 'mutasiManual', 'data_kas', 'saldoRolling'));
     }
 
     /**
@@ -707,6 +641,10 @@ public function previewClosing()
 
 public function simpanClosing(Request $request)
 {
+    $request->validate([
+        'status_rolling' => 'required|in:Rolling,Tidak Rolling',
+    ]);
+
     $id_kas = $request->id_kas;
     $saldo_fisik = (float) str_replace('.', '', $request->saldo_fisik ?? 0);
 
@@ -766,6 +704,8 @@ public function simpanClosing(Request $request)
             'selisih' => $selisih,
             'status_lock' => 'closed',
             'waktu_tutup' => now(),
+            'keterangan_closing' => $request->keterangan,
+            'status_rolling' => $request->status_rolling,
             'updated_at' => now()
         ]);
 

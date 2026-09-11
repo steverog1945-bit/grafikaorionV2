@@ -70,39 +70,34 @@
                 </form>
             </x-modal>
 
-            <x-button variant="danger" onclick="openModal('closing-kas')">
+            {{-- Closing SELALU lewat laporan penuh (closing-preview), bukan
+                 lagi modal singkat yang langsung mengunci begitu disubmit -
+                 operator perlu melihat rekap satu hari penuh (rekap
+                 transaksi per mesin, rekap pembayaran, selisih laci) dulu
+                 sebelum menutup kas. --}}
+            <x-button variant="danger" href="{{ route('kasir.preview-closing') }}">
                 <i class="fas fa-lock"></i>
                 Closing Kas Sekarang
             </x-button>
-
-            <x-modal id="closing-kas" title="Closing Kasir" maxWidth="md">
-                <form action="{{ route('kasir.proses-closing') }}" method="POST" class="space-y-5">
-                    @csrf
-                    <input type="hidden" name="id_kas" value="{{ $kasAktif->id_kas }}">
-
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                        <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest">Saldo Akhir di Sistem</p>
-                        <p class="text-2xl font-black text-indigo-700 mt-1">Rp {{ number_format($kasAktif->saldo_akhir, 0, ',', '.') }}</p>
-                    </div>
-
-                    <x-form.group label="Jumlah Uang Fisik (Di Laci)" required>
-                        <x-form.input type="number" name="saldo_fisik" required placeholder="0" class="text-xl font-bold" />
-                    </x-form.group>
-
-                    <x-form.group label="Keterangan / Catatan" required>
-                        <textarea name="keterangan" rows="2" required placeholder="Contoh: Aman, atau selisih kurang karena..."
-                            class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
-                    </x-form.group>
-
-                    <div class="pt-2 flex gap-3">
-                        <x-button type="button" variant="secondary" onclick="closeModal('closing-kas')" class="flex-1">Batal</x-button>
-                        <x-button type="submit" variant="danger" class="flex-1">Konfirmasi Closing</x-button>
-                    </div>
-                </form>
-            </x-modal>
         </div>
     @endif
 </div>
+
+{{-- SALDO ROLLING - kas kemarin (atau sesi terakhir sebelum hari ini)
+     ditutup dengan status "Rolling", saldonya jadi saran saldo awal hari
+     ini. Ditampilkan HANYA saat kasir belum dibuka - begitu dibuka, saran
+     ini tidak relevan lagi. --}}
+@if(!$kasAktif && $saldoRolling !== null)
+<div class="mb-6 flex items-center gap-3 bg-indigo-50 border-2 border-indigo-200 rounded-2xl px-5 py-4">
+    <div class="w-10 h-10 rounded-xl bg-indigo-500 text-white flex items-center justify-center shrink-0 text-lg">
+        <i class="fas fa-arrows-rotate"></i>
+    </div>
+    <div class="flex-1">
+        <p class="text-sm font-black text-indigo-800 uppercase tracking-wide">Saldo Di-rolling dari Sesi Sebelumnya</p>
+        <p class="text-xs text-indigo-600 mt-0.5">Sesi kas terakhir ditutup dengan saldo Rp {{ number_format($saldoRolling, 0, ',', '.') }} dan status "Rolling" - uang ini tetap di laci, dipakai sebagai saran saldo awal hari ini (tetap bisa diubah manual saat membuka kasir).</p>
+    </div>
+</div>
+@endif
 
 <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
     <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -264,8 +259,9 @@ function aksiKas(tipe) {
     if(tipe === 'open') {
         Swal.fire({
             title: 'Buka Saldo Awal',
-            text: 'Masukkan jumlah modal awal yang ada di laci kasir sekarang:',
+            text: {{ $saldoRolling !== null ? "'Saldo di-rolling dari sesi sebelumnya sudah terisi otomatis - ubah kalau berbeda dari laci fisik sekarang:'" : "'Masukkan jumlah modal awal yang ada di laci kasir sekarang:'" }},
             input: 'number',
+            inputValue: {{ $saldoRolling !== null ? (int) $saldoRolling : 0 }},
             inputAttributes: { min: 0 },
             showCancelButton: true,
             confirmButtonText: 'Buka Kas',

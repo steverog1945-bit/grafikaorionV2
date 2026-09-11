@@ -1,5 +1,23 @@
+{{-- Sebelumnya file ini bare fragment (tanpa @extends) - dulu tidak
+     masalah karena cuma dipakai sebagai POST-redirect-back dari modal
+     singkat di Kelola Kas (jarang benar-benar dilihat penuh). Sekarang
+     jadi SATU-SATUNYA jalur closing (tombol "Closing Kas Sekarang"
+     langsung ke sini), jadi perlu sidebar/layout app supaya tidak terasa
+     seperti halaman lepas/rusak. --}}
+@extends('layouts.app')
+
+@section('content')
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+
+    <x-page-header title="Closing Alur Kas Kasir" subtitle="Rekap satu hari penuh sebelum menutup & mengunci sesi kas.">
+        <x-slot:actions>
+            <x-button href="{{ route('kasir.kelola') }}" variant="outline">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </x-button>
+        </x-slot:actions>
+    </x-page-header>
+
 <div class="max-w-4xl mx-auto p-6 bg-white rounded-3xl shadow-xl">
-    <h2 class="text-2xl font-black text-slate-800 mb-6 uppercase tracking-tighter">Closing Alur Kas Kasir</h2>
 
     {{-- REKAP TRANSAKSI - nota Order yang tgl_order-nya HARI INI, dipecah per
          Mesin/Divisi (lihat KasirController::previewClosing()). "Nota
@@ -77,12 +95,17 @@
                 <div class="flex justify-between"><span>Total Masuk Transfer</span> <b>Rp {{ number_format($pemasukan->transfer_masuk) }}</b></div>
                 <div class="flex justify-between"><span>Total Masuk Debit</span> <b>Rp {{ number_format($pemasukan->debit_masuk ?? 0) }}</b></div>
                 <div class="flex justify-between"><span>Total Masuk Deposit</span> <b>Rp {{ number_format($pemasukan->deposit_masuk ?? 0) }}</b></div>
-                <p class="text-[10px] text-blue-500 mt-4">*Transfer/Debit/Deposit tidak dihitung dalam saldo fisik laci - Deposit sudah masuk kas saat konsumen setor deposit dulu, bukan hari ini.</p>
+                {{-- Ditegaskan eksplisit sesuai arahan pemilik aplikasi: Transfer
+                     (juga Debit & Deposit) TIDAK pernah ikut closing kas -
+                     murni laporan keuangan, tidak menyentuh keadaan fisik laci
+                     sama sekali (tidak ada di SALDO AKHIR LACI, tidak ada di
+                     Saldo Revisi, tidak mempengaruhi Selisih). --}}
+                <p class="text-[10px] text-blue-500 mt-4 font-bold">*Transfer/Debit/Deposit HANYA laporan keuangan - tidak ikut ditutup/dicocokkan di closing kas ini, karena tidak berwujud uang fisik di laci. Deposit sendiri sudah masuk kas saat konsumen setor deposit dulu, bukan hari ini.</p>
             </div>
         </div>
     </div>
 
-    <form action="{{ route('kasir.simpan-closing') }}" method="POST" class="bg-slate-900 p-8 rounded-3xl text-white">
+    <form action="{{ route('kasir.simpan-closing') }}" method="POST" class="bg-slate-900 p-8 rounded-3xl text-white" id="form-closing">
         @csrf
         <input type="hidden" name="id_kas" value="{{ $kas->id_kas }}">
         <input type="hidden" name="saldo_sistem" value="{{ $saldo_akhir_sistem }}">
@@ -95,10 +118,57 @@
              manual di laci) - nama disamakan konsepnya, cuma label mengikuti
              yang sudah dipakai sebelumnya di app ini supaya konsisten. --}}
         <label class="block text-center text-sm font-bold text-slate-400 mb-2 uppercase">Saldo Revisi (Uang Fisik di Laci)</label>
-        <input type="number" name="saldo_fisik" class="w-full bg-transparent text-center text-4xl font-black text-white border-b-2 border-slate-700 focus:outline-none focus:border-emerald-500 mb-6" placeholder="0" required>
+        <input type="number" name="saldo_fisik" id="input-saldo-fisik" oninput="hitungSelisihLive()" class="w-full bg-transparent text-center text-4xl font-black text-white border-b-2 border-slate-700 focus:outline-none focus:border-emerald-500 mb-2" placeholder="0" required>
+
+        {{-- Selisih DIHITUNG LIVE di browser (saldo fisik yang diketik vs
+             SALDO AKHIR LACI sistem) - operator langsung tahu kurang/lebih
+             SEBELUM menekan submit, bukan cuma tahu setelah tersimpan.
+             Server tetap menghitung ulang angka final-nya sendiri (lihat
+             KasirController::simpanClosing), ini murni bantuan tampilan. --}}
+        <div id="display-selisih-live" class="text-center text-sm font-bold mb-6 text-slate-500">Selisih: Rp 0</div>
+
+        <div class="mb-6">
+            <label class="block text-center text-xs font-bold text-slate-400 mb-2 uppercase">Status Rolling Saldo Akhir</label>
+            <select name="status_rolling" required class="w-full bg-white/10 border-none rounded-xl py-3 px-4 text-sm font-bold text-white focus:ring-2 focus:ring-emerald-500/40">
+                <option value="Rolling">Rolling - Saldo Akhir Dipakai Kasir Besok (uang tetap di laci)</option>
+                <option value="Tidak Rolling">Tidak Rolling - Uang Diambil/Disetor (besok mulai saldo baru)</option>
+            </select>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-center text-xs font-bold text-slate-400 mb-2 uppercase">Keterangan / Catatan Selisih</label>
+            <textarea name="keterangan" id="input-keterangan" rows="3" required placeholder="Jelaskan penyebab selisih (kalau ada), atau tulis 'Aman' kalau pas."
+                class="w-full bg-white/10 border-none rounded-xl py-3 px-4 text-sm font-medium text-white placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/40"></textarea>
+        </div>
 
         <button type="submit" class="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl font-black uppercase tracking-widest transition-all">
             VERIFIKASI & KUNCI KASIR
         </button>
     </form>
 </div>
+
+</div>
+
+@push('scripts')
+<script>
+    const saldoAkhirSistemJs = {{ (float) $saldo_akhir_sistem }};
+
+    function hitungSelisihLive() {
+        const fisik = parseFloat(document.getElementById('input-saldo-fisik').value) || 0;
+        const selisih = fisik - saldoAkhirSistemJs;
+        const fmt = new Intl.NumberFormat('id-ID');
+        const el = document.getElementById('display-selisih-live');
+
+        if (selisih === 0) {
+            el.innerHTML = 'Selisih: <span class="text-emerald-400">Rp 0 (Pas)</span>';
+        } else if (selisih < 0) {
+            el.innerHTML = `Selisih: <span class="text-rose-400">- Rp ${fmt.format(Math.abs(selisih))} (Kurang dari sistem)</span>`;
+        } else {
+            el.innerHTML = `Selisih: <span class="text-amber-400">+ Rp ${fmt.format(selisih)} (Lebih dari sistem)</span>`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', hitungSelisihLive);
+</script>
+@endpush
+@endsection
