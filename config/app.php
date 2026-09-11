@@ -60,12 +60,17 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you may specify the default timezone for your application, which
-    | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | will be used by the PHP date and date-time functions. Diset ke
+    | "Asia/Jakarta" (WIB, UTC+7) - sebelumnya "UTC" bawaan Laravel bikin
+    | SEMUA now()/created_at/updated_at/tgl_bayar dll di aplikasi ini
+    | tercatat 7 jam DI BELAKANG waktu riil (jam OS & MySQL server di sini
+    | sudah benar WIB/SE Asia Standard Time, cuma konfigurasi timezone
+    | Laravel-nya yang salah) - bukan cuma soal tampilan "Antrean Pesanan
+    | Baru", tapi setiap jam yang tersimpan lewat now() di seluruh app.
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Jakarta',
 
     /*
     |--------------------------------------------------------------------------
