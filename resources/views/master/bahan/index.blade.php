@@ -116,7 +116,7 @@
                             <span class="text-base font-bold {{ $b->stok <= $b->stok_minimal ? 'text-rose-500' : 'text-slate-700' }}" title="Stok minimal: {{ number_format($b->stok_minimal, 2, ',', '.') }}">
                                 {{ number_format($b->stok, 0, ',', '.') }}
                             </span>
-                            @if($b->satuanStok && strtolower($b->satuanStok->nama_satuan) === 'roll' && $b->nilai_konversi > 1 && $b->satuanHitung)
+                            @if($b->satuanHitung && $b->id_satuan_stok !== $b->id_satuan_hitung && $b->nilai_konversi > 1)
                                 <div class="text-[10px] text-slate-400 font-semibold mt-1">
                                     ≈ {{ number_format($b->stok * $b->nilai_konversi, 0, ',', '.') }} {{ $b->satuanHitung->nama_satuan }}
                                 </div>

@@ -44,7 +44,12 @@
         </form>
     </div>
 
-    <div class="grid {{ strtolower($bahan->nama_satuan_stok ?? '') === 'roll' && $bahan->nilai_konversi > 1 ? 'grid-cols-2' : 'grid-cols-1' }} gap-4 mb-6">
+    @php
+        $adaEstimasi = $bahan->nama_satuan_hitung
+            && $bahan->id_satuan_stok !== $bahan->id_satuan_hitung
+            && $bahan->nilai_konversi > 1;
+    @endphp
+    <div class="grid {{ $adaEstimasi ? 'grid-cols-2' : 'grid-cols-1' }} gap-4 mb-6">
         <x-card>
             <div class="flex items-center justify-between">
                 <div>
@@ -56,13 +61,13 @@
                 </div>
             </div>
         </x-card>
-        @if(strtolower($bahan->nama_satuan_stok ?? '') === 'roll' && $bahan->nilai_konversi > 1 && $bahan->nama_satuan_hitung)
+        @if($adaEstimasi)
         <x-card>
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estimasi Luas Tersisa</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estimasi dalam {{ $bahan->nama_satuan_hitung }}</p>
                     <h3 class="text-3xl font-black text-slate-900 mt-1">≈ {{ number_format($bahan->stok * $bahan->nilai_konversi, 0, ',', '.') }} <span class="text-base font-bold text-slate-400">{{ $bahan->nama_satuan_hitung }}</span></h3>
-                    <p class="text-[10px] text-slate-400 mt-1">Dihitung dari {{ number_format($bahan->stok, 2) }} roll × {{ number_format($bahan->nilai_konversi, 0, ',', '.') }} {{ $bahan->nama_satuan_hitung }}/roll</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Dihitung dari {{ number_format($bahan->stok, 2) }} {{ $bahan->nama_satuan_stok }} × {{ number_format($bahan->nilai_konversi, 0, ',', '.') }} {{ $bahan->nama_satuan_hitung }}/{{ $bahan->nama_satuan_stok }}</p>
                 </div>
                 <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl">
                     <i class="fas fa-ruler-combined"></i>
