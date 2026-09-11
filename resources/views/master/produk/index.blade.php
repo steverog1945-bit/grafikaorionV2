@@ -274,7 +274,8 @@
                         </div>
                     </div>
 
-                    <x-table bare>
+                    <div class="max-h-[360px] overflow-y-auto rounded-xl">
+                    <x-table bare class="table-fixed !min-w-0">
                         <thead>
                             <tr>
                                 <th class="p-3 text-left">Bahan Baku Penyusun</th>
@@ -288,6 +289,7 @@
                             </tr>
                         </tbody>
                     </x-table>
+                    </div>
                 </div>
 
                 <div id="tab-panel-finishing" class="p-5 hidden">
@@ -312,7 +314,8 @@
                         </div>
                     </div>
 
-                    <x-table bare>
+                    <div class="max-h-[360px] overflow-y-auto rounded-xl">
+                    <x-table bare class="table-fixed !min-w-0">
                         <thead>
                             <tr>
                                 <th class="p-3 text-left">Finishing Penyusun</th>
@@ -326,6 +329,7 @@
                             </tr>
                         </tbody>
                     </x-table>
+                    </div>
                 </div>
             </div>
 
