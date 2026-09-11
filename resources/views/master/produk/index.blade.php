@@ -35,7 +35,15 @@
                 </x-form.select>
             </div>
 
-            @if(request()->anyFilled(['search', 'category']))
+            <div class="w-full lg:w-48">
+                <x-form.select name="status" onchange="this.form.submit()">
+                    <option value="aktif" {{ request('status', 'aktif') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                    <option value="semua" {{ request('status') == 'semua' ? 'selected' : '' }}>Semua Status</option>
+                </x-form.select>
+            </div>
+
+            @if(request()->anyFilled(['search', 'category']) || request('status', 'aktif') !== 'aktif')
                 <a href="{{ route('produk.index') }}"
                    class="px-6 py-3 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-100 transition-all"
                    title="Reset Filter">
@@ -57,9 +65,14 @@
         </thead>
         <tbody class="divide-y divide-slate-50">
             @forelse($produk as $p)
-            <tr class="group hover:bg-indigo-50/40 transition-all">
+            <tr class="group hover:bg-indigo-50/40 transition-all {{ $p->status === 'nonaktif' ? 'opacity-50' : '' }}">
                 <td class="px-8 py-5">
-                    <div class="font-bold text-slate-800 text-[14px]">{{ $p->nama_produk }}</div>
+                    <div class="font-bold text-slate-800 text-[14px] flex items-center gap-2">
+                        {{ $p->nama_produk }}
+                        @if($p->status === 'nonaktif')
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-400 text-[9px] font-black uppercase tracking-widest">Nonaktif</span>
+                        @endif
+                    </div>
                     <div class="text-[10px] text-indigo-500 font-bold mt-1 uppercase tracking-widest flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
                         {{ $p->nama_kategori ?? 'Umum' }}
@@ -95,6 +108,15 @@
                         <x-button size="icon" variant="ghost" onclick="editProduk({{ json_encode($p) }})" class="border border-slate-100 hover:text-amber-500 hover:border-amber-200">
                             <i class="fas fa-edit text-sm"></i>
                         </x-button>
+
+                        <form action="{{ route('produk.toggle-status', $p->id_produk) }}" method="POST" class="inline" id="toggle-form-{{ $p->id_produk }}">
+                            @csrf @method('PATCH')
+                            <x-button type="button" size="icon" variant="ghost" onclick="confirmToggleStatus('{{ $p->id_produk }}', '{{ $p->status }}', {{ json_encode($p->nama_produk) }})"
+                                class="border border-slate-100 {{ $p->status === 'aktif' ? 'hover:text-slate-600' : 'hover:text-emerald-500 hover:border-emerald-200' }}"
+                                title="{{ $p->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan kembali' }}">
+                                <i class="far {{ $p->status === 'aktif' ? 'fa-eye-slash' : 'fa-eye' }} text-sm"></i>
+                            </x-button>
+                        </form>
 
                         <form action="{{ route('produk.destroy', $p->id_produk) }}" method="POST" class="inline" id="delete-form-{{ $p->id_produk }}">
                             @csrf @method('DELETE')
@@ -434,6 +456,27 @@
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+    }
+
+    function confirmToggleStatus(id, currentStatus, namaProduk) {
+        const mauNonaktifkan = currentStatus === 'aktif';
+        Swal.fire({
+            title: mauNonaktifkan ? 'Nonaktifkan produk ini?' : 'Aktifkan kembali produk ini?',
+            html: mauNonaktifkan
+                ? `<b>${escapeHtml(namaProduk)}</b> tidak akan muncul lagi di pilihan produk saat membuat nota baru.<br><small class="text-slate-400">Riwayat transaksi lama tidak berubah, dan bisa diaktifkan lagi kapan saja.</small>`
+                : `<b>${escapeHtml(namaProduk)}</b> akan muncul lagi di pilihan produk saat membuat nota baru.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: mauNonaktifkan ? '#64748b' : '#10b981',
+            confirmButtonText: mauNonaktifkan ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) document.getElementById(`toggle-form-${id}`).submit();
+        });
     }
 
     function confirmDelete(id, name) {

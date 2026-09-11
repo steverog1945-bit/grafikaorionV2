@@ -10,7 +10,16 @@ class SpkController extends Controller
     /**
      * SPK dibaca langsung dari transaksi_detail yang sudah dibuat oleh Kasir/Penjualan.
      * Tidak ada tabel/duplikasi data baru - hanya menambahkan tampilan & tracking
-     * di atas data yang sudah ada.
+     * di atas data yang sudah ada. transaksi_detail hanya pernah terbentuk lewat
+     * PenjualanController::store() (satu transaksi DB atomik bareng transaksi
+     * induknya, dengan status_spk='Antre') - jadi tidak ada jalur lain yang bisa
+     * memunculkan SPK tanpa nota resmi tersimpan dari Kasir.
+     *
+     * status_nota='Aktif' WAJIB difilter di sini - nota yang sudah Dibatalkan
+     * (lihat PenjualanController::batalkanNota atau serupa) baris
+     * transaksi_detail-nya TIDAK dihapus (riwayat harus tetap ada), tapi kalau
+     * tidak difilter di sini item SPK dari nota yang sudah batal tetap muncul
+     * di antrean produksi padahal ordernya sudah tidak berlaku.
      */
     public function index(Request $request)
     {
@@ -21,6 +30,7 @@ class SpkController extends Controller
             ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
             ->join('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
             ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
+            ->where('transaksi.status_nota', 'Aktif')
             ->select(
                 'transaksi_detail.id_detail',
                 'transaksi_detail.nama_file',

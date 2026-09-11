@@ -16,10 +16,14 @@ class PenjualanController extends Controller
 {
     $kategori = DB::table('kategori')->get();
     
-    // Ambil data produk lengkap dengan id_kategori dari bahan bakunya
+    // Ambil data produk lengkap dengan id_kategori dari bahan bakunya - hanya
+    // yang berstatus 'aktif' (produk dinonaktifkan sengaja disembunyikan dari
+    // pilihan order baru, sama seperti bahan_baku nonaktif tidak muncul di
+    // BOM/Kedatangan Bahan, lihat ProdukController::toggleStatus).
     $produk = DB::table('produk')
     ->leftJoin('bom_detail', 'produk.id_produk', '=', 'bom_detail.id_produk')
     ->leftJoin('bahan_baku', 'bom_detail.id_bahan', '=', 'bahan_baku.id_bahan')
+    ->where('produk.status', 'aktif')
     ->select('produk.*', DB::raw('COALESCE(bahan_baku.id_kategori, 0) as id_kategori'))
     ->get()
     ->unique('id_produk');
@@ -74,6 +78,21 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             'status' => 'error',
             'msg' => 'Golongan konsumen wajib diisi'
         ], 400);
+    }
+
+    // Order baru (dan otomatis SPK yang ikut terbentuk dari transaksi_detail-
+    // nya - lihat SpkController::index, SPK dibaca langsung dari sini tanpa
+    // tabel terpisah) HANYA boleh dibuat saat kasir sudah resmi "buka toko"
+    // hari ini (kas_harian berstatus open). Sebelum ini tidak ada guard sama
+    // sekali di sini - order/SPK bisa terbentuk kapan pun tanpa sesi kas yang
+    // menaunginya. Guard yang sama persis dengan KasirController::prosesBayar().
+    $kasHariIni = DB::table('kas_harian')
+        ->where('tgl_kas', date('Y-m-d'))
+        ->where('status_lock', 'open')
+        ->first();
+
+    if (!$kasHariIni) {
+        return response()->json(['status' => 'error', 'msg' => 'Kasir belum dibuka! Buka kas terlebih dahulu sebelum membuat order baru.'], 400);
     }
 
     $tipeOrder = in_array($request->tipe_order, ['Reguler', 'PO']) ? $request->tipe_order : 'Reguler';

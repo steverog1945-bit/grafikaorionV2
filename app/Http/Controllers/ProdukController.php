@@ -41,6 +41,15 @@ public function index(Request $request)
         $query->where('produk.id_mesin', $request->category);
     }
 
+    // Default cuma tampilkan yang aktif - sama seperti pola BahanBakuController::
+    // index(). Produk nonaktif (dipensiunkan tapi masih punya riwayat transaksi
+    // lama) tetap ada di DB, cuma disembunyikan dari daftar kerja sehari-hari
+    // kecuali diminta eksplisit lewat filter status=nonaktif / semua.
+    $statusFilter = $request->get('status', 'aktif');
+    if ($statusFilter !== 'semua') {
+        $query->where('produk.status', $statusFilter);
+    }
+
     // 5. Eksekusi Pagination
     $produk = $query->latest('produk.created_at')
         ->paginate(25)
@@ -169,15 +178,54 @@ public function show($id)
             return redirect()->back()->with('success', 'Update Produk & Engineering Berhasil.');
         });
     }
+    /**
+     * Hapus permanen HANYA untuk produk yang belum pernah dipakai di
+     * transaksi apa pun - transaksi_detail.id_produk sengaja FK RESTRICT
+     * (bukan CASCADE) supaya riwayat nota lama tidak pernah ikut hilang atau
+     * jadi rujukan yatim kalau produknya dihapus. Sebelum ini destroy() juga
+     * tidak membersihkan bom_finishing & harga_promo (dua tabel lain yang
+     * FK ke produk) - keduanya sekarang ikut dibersihkan supaya produk yang
+     * memang belum ada riwayat transaksi bisa dihapus bersih tanpa
+     * SQLSTATE[23000]. Untuk produk yang SUDAH punya riwayat, arahkan ke
+     * Nonaktifkan (lihat toggleStatus) alih-alih memaksa hapus.
+     */
     public function destroy($id)
     {
-        return DB::transaction(function () use ($id) {
-            // Hapus ketergantungan terlebih dahulu
-            DB::table('setting_harga')->where('id_produk', $id)->delete();
-            DB::table('bom_detail')->where('id_produk', $id)->delete();
-            DB::table('produk')->where('id_produk', $id)->delete();
+        if (DB::table('transaksi_detail')->where('id_produk', $id)->exists()) {
+            return redirect()->back()->with('error', 'Produk ini sudah pernah dipakai dalam transaksi, tidak bisa dihapus permanen. Gunakan tombol Nonaktifkan supaya tidak muncul lagi di order baru, riwayat lama tetap utuh.');
+        }
 
-            return redirect()->back()->with('success', 'Produk berhasil dihapus selamanya.');
-        });
+        try {
+            DB::transaction(function () use ($id) {
+                DB::table('setting_harga')->where('id_produk', $id)->delete();
+                DB::table('bom_detail')->where('id_produk', $id)->delete();
+                DB::table('bom_finishing')->where('id_produk', $id)->delete();
+                DB::table('harga_promo')->where('id_produk', $id)->delete();
+                DB::table('produk')->where('id_produk', $id)->delete();
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->back()->with('error', 'Produk masih terikat data lain dan tidak bisa dihapus. Gunakan tombol Nonaktifkan sebagai gantinya.');
+        }
+
+        return redirect()->back()->with('success', 'Produk berhasil dihapus selamanya.');
+    }
+
+    /**
+     * Alternatif hapus permanen - lihat catatan di destroy(). Pola sama
+     * persis dengan BahanBakuController::toggleStatus().
+     */
+    public function toggleStatus($id)
+    {
+        $produk = DB::table('produk')->where('id_produk', $id)->first();
+        if (!$produk) {
+            return redirect()->back()->with('error', 'Produk tidak ditemukan.');
+        }
+
+        $statusBaru = $produk->status === 'aktif' ? 'nonaktif' : 'aktif';
+        DB::table('produk')->where('id_produk', $id)->update(['status' => $statusBaru, 'updated_at' => now()]);
+
+        return redirect()->back()->with('success', $statusBaru === 'aktif'
+            ? 'Produk diaktifkan kembali.'
+            : 'Produk dinonaktifkan - tidak akan muncul lagi di pilihan order baru.');
     }
 }

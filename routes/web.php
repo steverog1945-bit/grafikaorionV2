@@ -79,6 +79,8 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::resource('satuan', SatuanController::class);
     Route::resource('mesin', MesinController::class);
     Route::resource('produk', ProdukController::class);
+    Route::patch('/produk/{id}/toggle-status', [ProdukController::class, 'toggleStatus'])
+        ->name('produk.toggle-status');
     Route::resource('finishing', FinishingController::class)->except(['create', 'edit', 'show']);
     Route::post('/finishing/{id}/harga', [\App\Http\Controllers\FinishingHargaController::class, 'store'])->name('finishing.harga.store');
     Route::patch('/finishing-harga/{id}', [\App\Http\Controllers\FinishingHargaController::class, 'update'])->name('finishing.harga.update');

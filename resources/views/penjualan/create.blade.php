@@ -203,7 +203,7 @@
                                 <select id="select_finishing" onchange="onFinishingChange()" class="w-32 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none">
                                     <option value="">-- Tanpa Finishing --</option>
                                     @foreach($finishing as $f)
-                                        <option value="{{ $f->id_finishing }}" data-harga="{{ $f->harga_default ?? 0 }}">{{ $f->nama_finishing }}</option>
+                                        <option value="{{ $f->id_finishing }}" data-harga="{{ $f->harga_default ?? 0 }}" data-metode="{{ $f->metode_hitung }}">{{ $f->nama_finishing }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -763,11 +763,22 @@
         if (!sel.value || finishingBiayaManualEdit || !currentProduk) return;
         const idFinishingSaatMulai = sel.value;
 
+        // Satuan hitung finishing dipakai untuk cari qty acuan tier
+        // finishing_harga adalah milik FINISHING ITU SENDIRI (kolom
+        // finishing.metode_hitung, 'luas' vs 'quantity') - BUKAN otomatis
+        // ikut metode_hitung produk induknya seperti sebelumnya. Sebelum ini,
+        // finishing quantity (mis. "Pasang Mata Ayam" per pcs) yang dipasang
+        // ke produk metode 'ukuran' (mis. Banner) salah dihitung pakai luas
+        // m², padahal seharusnya tetap per pcs terpasang - dan sebaliknya.
         const p = parseFloat(document.getElementById('input_p').value) || 0;
         const l = parseFloat(document.getElementById('input_l').value) || 0;
         const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
         const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
-        const qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
+        const metodeFinishing = sel.selectedOptions[0]?.dataset.metode;
+        const pcsProduk = (currentProduk.metode_hitung === 'ukuran') ? qU : qB;
+        const qtyCari = (metodeFinishing === 'luas')
+            ? ((currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : pcsProduk)
+            : pcsProduk;
         if (qtyCari <= 0) return;
 
         try {
