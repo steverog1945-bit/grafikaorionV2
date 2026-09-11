@@ -42,7 +42,15 @@
         <div class="p-8">
             <div class="mb-6">
                 <span class="bg-indigo-50 text-indigo-600 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Nota #{{ $w->nomor_nota }}</span>
-                <p class="text-[10px] text-slate-400 mt-2 uppercase">{{ date('d M Y • H:i', strtotime($w->created_at)) }}</p>
+                {{-- Pakai tgl_order, BUKAN created_at - transaksi dibuat lewat
+                     DB::table()->insertGetId() (query builder, bukan Eloquent)
+                     di PenjualanController::store(), jadi created_at TIDAK
+                     PERNAH otomatis terisi (selalu NULL). Sebelumnya
+                     strtotime(null) menghasilkan waktu ngawur (epoch 1970),
+                     itulah sumber laporan "waktu bukan waktu riil". tgl_order
+                     SELALU diisi now() saat order dibuat, jadi ini yang benar
+                     merepresentasikan kapan pesanan ini masuk. --}}
+                <p class="text-[10px] text-slate-400 mt-2 uppercase">{{ \Carbon\Carbon::parse($w->tgl_order)->format('d M Y • H:i') }}</p>
             </div>
             
             <h3 class="text-xl font-black text-slate-800 uppercase leading-tight mb-2 group-hover:text-indigo-600 transition-colors">{{ $w->nama_konsumen }}</h3>

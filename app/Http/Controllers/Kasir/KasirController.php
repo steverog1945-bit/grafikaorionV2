@@ -67,7 +67,12 @@ class KasirController extends Controller
             $query->whereIn('transaksi.status_pembayaran', ['Belum Bayar', 'DP']);
         }
 
-        $transaksi = $query->orderBy('transaksi.updated_at', 'desc')->paginate(15)->withQueryString();
+        // COALESCE ke tgl_order - baris 'Belum Bayar' yang belum pernah
+        // disentuh kasir sama sekali punya updated_at NULL (insertGetId()
+        // di PenjualanController::store() tidak mengisinya), jadi kalau
+        // urut murni by updated_at DESC baris-baris ini selalu terdorong ke
+        // paling bawah biarpun order-nya baru masuk barusan.
+        $transaksi = $query->orderByRaw('COALESCE(transaksi.updated_at, transaksi.tgl_order) DESC')->paginate(15)->withQueryString();
 
         // Dropdown filter Konsumen - dibatasi ke konsumen yang memang pernah
         // bertransaksi (bukan seluruh master konsumen), supaya daftar
@@ -156,12 +161,16 @@ class KasirController extends Controller
 
     public function waitingList()
     {
-        // Pastikan hanya mengambil status 'Belum Bayar'
+        // Pastikan hanya mengambil status 'Belum Bayar'. Urut berdasar
+        // tgl_order (BUKAN created_at) - transaksi dibuat lewat
+        // DB::table()->insertGetId() di PenjualanController::store(), yang
+        // tidak otomatis mengisi created_at (selalu NULL), sementara
+        // tgl_order SELALU diisi now() saat order dibuat.
         $waiting = DB::table('transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->where('transaksi.status_pembayaran', 'Belum Bayar')
             ->select('transaksi.*', 'konsumen.nama_konsumen')
-            ->orderBy('transaksi.created_at', 'desc')
+            ->orderBy('transaksi.tgl_order', 'desc')
             ->get();
 
         return view('kasir.waiting_list', compact('waiting'));
