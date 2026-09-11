@@ -36,20 +36,17 @@
     </div>
     @endif
 
-    {{-- INFO NOTA & KONSUMEN - satu baris ringkas (foto acuan order, nama
-         konsumen, nomor nota, golongan) mengikuti referensi "Pelunasan
-         Transaksi" - sebelumnya cuma teks kecil di subtitle page-header,
-         sekarang jadi kartu sendiri supaya langsung kelihatan sekilas tanpa
-         menambah tinggi berlebihan. --}}
-    @php $thumbnailPertama = $items->first()->thumbnail ?? null; @endphp
+    {{-- INFO NOTA & KONSUMEN - satu baris ringkas (nama konsumen, nomor
+         nota, golongan). Thumbnail acuan order TIDAK lagi ditampilkan di
+         sini - sebelumnya cuma menampilkan foto item PERTAMA seolah itu
+         "foto konsumen", padahal satu nota bisa berisi banyak item dengan
+         file acuan yang berbeda-beda. Sekarang tiap item di Rincian Barang
+         menampilkan thumbnail-nya masing-masing (lihat kolom Deskripsi di
+         bawah), supaya kasir tahu persis gambar acuan SETIAP barang. --}}
     <div class="flex items-center gap-4 bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-5">
-        @if($thumbnailPertama)
-            <img src="{{ asset('storage/'.$thumbnailPertama) }}" class="w-14 h-14 rounded-xl object-cover border border-slate-100 shrink-0">
-        @else
-            <div class="w-14 h-14 rounded-xl bg-slate-50 border border-slate-100 shrink-0 flex items-center justify-center text-slate-300">
-                <i class="far fa-image text-lg"></i>
-            </div>
-        @endif
+        <div class="w-11 h-11 rounded-xl bg-indigo-50 border border-indigo-100 shrink-0 flex items-center justify-center text-indigo-400">
+            <i class="fas fa-user text-lg"></i>
+        </div>
         <div class="flex-1 min-w-0">
             <p class="font-bold text-slate-800 truncate">{{ $transaksi->nama_konsumen }}</p>
             <p class="text-xs text-slate-400">Nota #{{ $transaksi->nomor_nota }} &middot; {{ \Carbon\Carbon::parse($transaksi->tgl_order)->format('d M Y H:i') }}</p>
@@ -105,9 +102,20 @@
                         <tr class="item-row" data-id="{{ $item->id_detail }}">
                             <td class="py-3 pr-2 text-slate-400">{{ $i + 1 }}</td>
                             <td class="py-3 px-2">
-                                <div class="font-bold text-slate-700 uppercase">{{ $item->nama_produk ?? $item->nama_jasa }}</div>
-                                <div class="text-xs text-slate-400 italic">{{ $item->nama_file }}</div>
-                                <div class="disp-biaya-tambahan text-[10px] text-slate-400 mt-0.5">{!! $bagianBiaya !!}</div>
+                                <div class="flex items-center gap-2.5">
+                                    @if($item->thumbnail)
+                                        <img src="{{ asset('storage/'.$item->thumbnail) }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 shrink-0">
+                                    @else
+                                        <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 shrink-0 flex items-center justify-center text-slate-300">
+                                            <i class="far fa-image text-sm"></i>
+                                        </div>
+                                    @endif
+                                    <div class="min-w-0">
+                                        <div class="font-bold text-slate-700 uppercase truncate">{{ $item->nama_produk ?? $item->nama_jasa }}</div>
+                                        <div class="text-xs text-slate-400 italic truncate">{{ $item->nama_file }}</div>
+                                        <div class="disp-biaya-tambahan text-[10px] text-slate-400 mt-0.5">{!! $bagianBiaya !!}</div>
+                                    </div>
+                                </div>
                             </td>
                             <td class="py-3 px-2 text-right disp-harga font-bold text-slate-700">Rp {{ number_format($hargaSatuan, 0, ',', '.') }}</td>
                             <td class="py-3 px-2 text-center text-slate-500">
@@ -222,12 +230,17 @@
                              pilihan toggle ini. --}}
                         <div>
                             <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Jenis Pembayaran</label>
-                            <div class="grid grid-cols-1 gap-1.5">
-                                <label class="tipe-bayar-option relative flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-black text-[11px] uppercase cursor-pointer transition-all">
+                            {{-- grid-cols-2 (bukan grid-cols-1/bertumpuk) supaya ukuran
+                                 tiap pill SAMA dengan pill Metode Pembayaran di sebelah
+                                 (lihat catatan di sana) - dua grup pilihan berdampingan
+                                 ini seharusnya terlihat sepasang, bukan salah satu lebih
+                                 besar/panjang dari yang lain. --}}
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <label class="tipe-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-black text-[10px] uppercase cursor-pointer transition-all">
                                     <input type="radio" name="tipe_bayar" value="lunas" class="sr-only" checked onchange="onTipeBayarChange()">
                                     <i class="fas fa-check-circle"></i> Lunas
                                 </label>
-                                <label class="tipe-bayar-option relative flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[11px] uppercase cursor-pointer transition-all">
+                                <label class="tipe-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all">
                                     <input type="radio" name="tipe_bayar" value="dp" class="sr-only" onchange="onTipeBayarChange()">
                                     <i class="fas fa-hand-holding-usd"></i> DP
                                 </label>
@@ -244,20 +257,25 @@
                              sebagai Transfer padahal beda sumber uang). --}}
                         <div>
                             <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Metode Pembayaran</label>
+                            {{-- Semua pill (di sini maupun di Jenis Pembayaran) SEKARANG
+                                 pakai ukuran seragam: py-2.5, text-[10px], gap-1.5 - dulu
+                                 Tunai sendirian text-[11px]/gap-1.5 sementara 3 lainnya
+                                 text-[10px]/gap-1, jadi pil Tunai kelihatan sedikit lebih
+                                 besar dari saudara-saudaranya sendiri di grup yang sama. --}}
                             <div class="grid grid-cols-2 gap-1.5">
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-black text-[11px] uppercase cursor-pointer transition-all">
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-black text-[10px] uppercase cursor-pointer transition-all">
                                     <input type="radio" name="metode_pembayaran" id="metode-tunai" value="Tunai" class="sr-only" checked onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-money-bill-wave"></i> Tunai
                                 </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-1 py-2 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all">
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all">
                                     <input type="radio" name="metode_pembayaran" value="Debit" class="sr-only" onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-credit-card"></i> Debit
                                 </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-1 py-2 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all">
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all">
                                     <input type="radio" name="metode_pembayaran" value="Transfer" class="sr-only" onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-university"></i> Transfer
                                 </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-1 py-2 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}">
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}">
                                     <input type="radio" name="metode_pembayaran" value="Deposit" class="sr-only" {{ $saldoDeposit <= 0 ? 'disabled' : '' }} onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-wallet"></i> Deposit
                                 </label>

@@ -400,22 +400,44 @@ class KasirController extends Controller
                 }
             }
 
-            // 3. Update Status (Paksa pindah dari Belum Bayar ke DP)
+            // 3. Update Status - DIHITUNG JUJUR dari pembayaran_riwayat yang
+            // BENAR-BENAR ada, bukan dipaksa jadi DP begitu form ini
+            // disubmit apa pun isinya. Sebelumnya status SELALU dipaksa jadi
+            // DP (bahkan untuk klik "Simpan" dengan uang 0 - lihat riwayat
+            // git), jadi ada transaksi berstatus DP di database TANPA satu
+            // pun baris pembayaran_riwayat menyertainya - kalau dibuka lagi
+            // kelihatan seperti "nilai DP-nya hilang" padahal memang tidak
+            // pernah ada uang yang tercatat sama sekali. Sekarang DP hanya
+            // bisa dicapai lewat pembayaran yang sungguhan tercatat > 0;
+            // kalau belum ada uang masuk sama sekali, tetap "Belum Bayar"
+            // (sekarang aman ditinggal di status ini - Monitoring Kasir
+            // sudah menampilkan & bisa memfilter Belum Bayar juga).
             $totalTerbayarSemua = DB::table('pembayaran_riwayat')->where('id_transaksi', $id_transaksi)->sum('nominal') ?? 0;
 
             if ($totalTerbayarSemua >= $grandTotalFinal && $grandTotalFinal > 0) {
                 $status = 'Lunas';
-            } else {
-                // Berapapun bayarnya (termasuk 0), status jadi DP agar masuk Monitoring
+            } elseif ($totalTerbayarSemua > 0) {
                 $status = 'DP';
+            } else {
+                $status = 'Belum Bayar';
             }
 
-            DB::table('transaksi')->where('id_transaksi', $id_transaksi)->update([
+            $updateData = [
                 'total_bayar'       => $grandTotalFinal,
                 'status_pembayaran' => $status,
-                'metode_pembayaran' => $metode,
                 'updated_at'        => now()
-            ]);
+            ];
+
+            // metode_pembayaran cuma dicatat kalau nota INI memang baru
+            // menerima uang sungguhan - jangan sampai klik "Simpan" (0
+            // rupiah) diam-diam menuliskan metode dari radio button yang
+            // sedang aktif di form, padahal tidak ada uang yang berpindah
+            // lewat metode itu sama sekali.
+            if ($uangDiterimaSekarang > 0) {
+                $updateData['metode_pembayaran'] = $metode;
+            }
+
+            DB::table('transaksi')->where('id_transaksi', $id_transaksi)->update($updateData);
 
             DB::commit();
             return redirect()->route('kasir.index')->with('success', 'Transaksi berhasil diproses ke Monitoring.');
