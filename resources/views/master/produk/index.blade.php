@@ -161,121 +161,169 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            {{-- INFO PRODUK - full-width (dulu kolom sempit 4/12 di samping BOM,
+                 sekarang selebar modal supaya field-nya mengalir jelas dari atas
+                 ke bawah sebelum masuk ke komposisi BOM, mengikuti alur pada
+                 referensi tampilan yang diberikan). --}}
+            <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 space-y-6 mb-8">
+                <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-info-circle"></i> Info Produk
+                </p>
 
-                {{-- LEFT: Spesifikasi Produk --}}
-                <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 space-y-6">
-                        <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
-                            <i class="fas fa-info-circle"></i> Info Produk
-                        </p>
-
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
                         <x-form.group label="Nama Produk">
                             <x-form.input type="text" name="nama_produk" id="input_nama_produk" required class="!bg-white !shadow-sm" />
                         </x-form.group>
+                    </div>
+                    <x-form.group label="Barcode">
+                        <x-form.input type="text" name="barcode" placeholder="ID-001" class="!bg-white !shadow-sm" />
+                    </x-form.group>
+                </div>
 
-                        <x-form.group label="Mesin / Divisi Produksi">
-                            <x-form.select name="id_mesin" id="input_id_mesin" onchange="filterBahanByMesin(this.value)" class="!bg-white !shadow-sm !text-indigo-600">
-                                <option value="">-- Pilih Mesin --</option>
-                                @foreach($mesin as $m)
-                                    <option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <x-form.group label="Mesin / Divisi Produksi">
+                        <x-form.select name="id_mesin" id="input_id_mesin" onchange="filterBahanByMesin(this.value)" class="!bg-white !shadow-sm !text-indigo-600">
+                            <option value="">-- Pilih Mesin --</option>
+                            @foreach($mesin as $m)
+                                <option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>
+                            @endforeach
+                        </x-form.select>
+                    </x-form.group>
+                    <x-form.group label="Metode Hitung Order">
+                        <x-form.select name="metode_hitung" onchange="toggleMinOrderFields()" class="!bg-white !shadow-sm !py-3">
+                            <option value="ukuran">Berdasarkan Ukuran Cetak (m²)</option>
+                            <option value="quantity">Berdasarkan Satuan (Pcs)</option>
+                        </x-form.select>
+                    </x-form.group>
+                </div>
+
+                <div id="field_min_ukuran" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <x-form.group label="Ukuran Min Order - Panjang (cm)">
+                        <x-form.input type="number" name="min_p" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
+                    </x-form.group>
+                    <x-form.group label="Ukuran Min Order - Lebar (cm)">
+                        <x-form.input type="number" name="min_l" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
+                    </x-form.group>
+                </div>
+
+                <div id="field_min_qty">
+                    <x-form.group label="Min Order (Pcs)">
+                        <x-form.input type="number" name="min_order_qty" step="1" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
+                    </x-form.group>
+                </div>
+
+                <x-form.group label="Keterangan">
+                    <textarea name="keterangan" rows="2" placeholder="Catatan tambahan produk (opsional)" class="w-full bg-white shadow-sm rounded-xl border-none text-xs font-semibold p-3 focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                </x-form.group>
+            </div>
+
+            {{-- KOMPOSISI: dua tab - Bahan Baku Penyusun (bom_detail, sudah ada
+                 sejak lama) & Finishing Penyusun (bom_finishing - tabel & endpoint
+                 lamanya, BomFinishingController, sudah ada di database tapi TIDAK
+                 PERNAH disambungkan ke tampilan mana pun. Sekarang disatukan ke
+                 form ini, disimpan atomik bareng data produk & bahan baku lewat
+                 syncBomFinishing() di ProdukController, bukan panggilan terpisah). --}}
+            <div class="bg-white rounded-[2.5rem] border-2 border-dashed border-slate-200 overflow-hidden">
+                <div class="flex border-b border-slate-100">
+                    <button type="button" onclick="switchBomTab('bahan')" id="tab-btn-bahan" class="flex-1 py-4 text-[11px] font-black uppercase tracking-widest transition-all bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500">
+                        <i class="fas fa-boxes mr-2"></i> Bahan Baku Penyusun
+                    </button>
+                    <button type="button" onclick="switchBomTab('finishing')" id="tab-btn-finishing" class="flex-1 py-4 text-[11px] font-black uppercase tracking-widest transition-all text-slate-400 border-b-2 border-transparent hover:text-slate-600">
+                        <i class="fas fa-magic mr-2"></i> Finishing Penyusun
+                    </button>
+                </div>
+
+                <div id="tab-panel-bahan" class="p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100">
+                        <div class="md:col-span-1">
+                            <label class="block text-[9px] font-black text-emerald-700 uppercase mb-2">Pilih Bahan</label>
+                            <select id="temp_id_bahan" class="w-full border-none rounded-xl py-3 px-4 text-xs font-bold shadow-sm">
+                                <option value="">-- Pilih Bahan --</option>
+                                @foreach($bahan_baku as $bb)
+                                    <option value="{{ $bb->id_bahan }}"
+                                            data-nama="{{ $bb->nama_bahan }}"
+                                            data-satuan="{{ $bb->satuan_stok }}"
+                                            data-mesin="{{ $bb->id_mesin }}"
+                                            class="bahan-opt hidden"> [{{ $bb->nama_kategori }}] {{ $bb->nama_bahan }}
+                                    </option>
                                 @endforeach
-                            </x-form.select>
-                        </x-form.group>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <x-form.group label="Metode Hitung">
-                                <x-form.select name="metode_hitung" onchange="toggleMinOrderFields()" class="!bg-white !shadow-sm !py-3">
-                                    <option value="ukuran">Ukuran (m²)</option>
-                                    <option value="quantity">Satuan (Pcs)</option>
-                                </x-form.select>
-                            </x-form.group>
-                            <x-form.group label="Barcode">
-                                <x-form.input type="text" name="barcode" placeholder="ID-001" class="!bg-white !shadow-sm !!py-3" />
-                            </x-form.group>
+                            </select>
                         </div>
-
-                        <div id="field_min_ukuran" class="grid grid-cols-2 gap-4">
-                            <x-form.group label="Min Panjang (cm)">
-                                <x-form.input type="number" name="min_p" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
-                            </x-form.group>
-                            <x-form.group label="Min Lebar (cm)">
-                                <x-form.input type="number" name="min_l" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
-                            </x-form.group>
+                        <div class="md:col-span-1">
+                            <label class="block text-[9px] font-black text-emerald-700 uppercase mb-2">Cara Hitung Pemakaian</label>
+                            <select id="temp_rumus" class="w-full border-none rounded-xl py-3 px-4 text-xs font-bold shadow-sm">
+                                <option value="(P*L)/10000">Luas (m²) - [P*L/10000]</option>
+                                <option value="Q">Quantity (1:1) - [Satuan]</option>
+                                <option value="2*(P+L)/100">Keliling (m) - [2*(P+L)/100]</option>
+                                <option value="(P*L)/10000*2">Bolak Balik (x2)</option>
+                            </select>
                         </div>
-
-                        <div id="field_min_qty">
-                            <x-form.group label="Min Order (Pcs)">
-                                <x-form.input type="number" name="min_order_qty" step="1" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
-                            </x-form.group>
+                        <div class="md:col-span-1 flex items-end">
+                            <x-button type="button" variant="success" onclick="addBahanToTable()" class="w-full">
+                                <i class="fas fa-plus"></i> Tambahkan
+                            </x-button>
                         </div>
-
-                        <x-form.group label="Keterangan">
-                            <textarea name="keterangan" rows="2" placeholder="Catatan tambahan produk (opsional)" class="w-full bg-white shadow-sm rounded-xl border-none text-xs font-semibold p-3 focus:ring-2 focus:ring-indigo-500/20"></textarea>
-                        </x-form.group>
                     </div>
+
+                    <x-table bare>
+                        <thead>
+                            <tr>
+                                <th class="p-4 text-left">Bahan Baku Penyusun</th>
+                                <th class="p-4 text-left">Cara Hitung Pemakaian</th>
+                                <th class="p-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bom_table_body" class="divide-y divide-slate-50 text-[12px] font-bold text-slate-600">
+                            <tr id="empty_state">
+                                <td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
+                            </tr>
+                        </tbody>
+                    </x-table>
                 </div>
 
-                {{-- RIGHT: Multi-BOM (Bahan Baku) --}}
-                <div class="lg:col-span-8 space-y-6">
-                    <div class="bg-white p-8 rounded-[2.5rem] border-2 border-dashed border-slate-200">
-                        <p class="text-[11px] font-black text-emerald-600 uppercase tracking-widest mb-6 flex items-center gap-2">
-                            <i class="fas fa-boxes"></i> Komposisi Bahan Baku (BOM)
-                        </p>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100">
-                            <div class="md:col-span-1">
-                                <label class="block text-[9px] font-black text-emerald-700 uppercase mb-2">Pilih Bahan</label>
-                                <select id="temp_id_bahan" class="w-full border-none rounded-xl py-3 px-4 text-xs font-bold shadow-sm">
-                                    <option value="">-- Pilih Bahan --</option>
-                                    @foreach($bahan_baku as $bb)
-                                        <option value="{{ $bb->id_bahan }}"
-                                                data-nama="{{ $bb->nama_bahan }}"
-                                                data-satuan="{{ $bb->satuan_stok }}"
-                                                data-mesin="{{ $bb->id_mesin }}"
-                                                class="bahan-opt hidden"> [{{ $bb->nama_kategori }}] {{ $bb->nama_bahan }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="md:col-span-1">
-                                <label class="block text-[9px] font-black text-emerald-700 uppercase mb-2">Rumus Pemakaian</label>
-                                <select id="temp_rumus" class="w-full border-none rounded-xl py-3 px-4 text-xs font-bold shadow-sm">
-                                    <option value="(P*L)/10000">Luas (m²) - [P*L/10000]</option>
-                                    <option value="Q">Quantity (1:1) - [Satuan]</option>
-                                    <option value="2*(P+L)/100">Keliling (m) - [2*(P+L)/100]</option>
-                                    <option value="(P*L)/10000*2">Bolak Balik (x2)</option>
-                                </select>
-                            </div>
-                            <div class="md:col-span-1 flex items-end">
-                                <x-button type="button" variant="success" onclick="addBahanToTable()" class="w-full">
-                                    <i class="fas fa-plus"></i> Tambah Ke List
-                                </x-button>
-                            </div>
+                <div id="tab-panel-finishing" class="p-8 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-purple-50/50 p-6 rounded-3xl border border-purple-100">
+                        <div class="md:col-span-1">
+                            <label class="block text-[9px] font-black text-purple-700 uppercase mb-2">Pilih Finishing</label>
+                            <select id="temp_id_finishing" class="w-full border-none rounded-xl py-3 px-4 text-xs font-bold shadow-sm">
+                                <option value="">-- Pilih Finishing --</option>
+                                @foreach($finishing as $f)
+                                    <option value="{{ $f->id_finishing }}" data-nama="{{ $f->nama_finishing }}">{{ $f->nama_finishing }}</option>
+                                @endforeach
+                            </select>
                         </div>
-
-                        {{-- Tabel BOM: pakai bare karena sudah di dalam panel dashed di atas --}}
-                        <x-table bare>
-                            <thead>
-                                <tr>
-                                    <th class="p-4 text-left">Bahan Baku Penyusun</th>
-                                    <th class="p-4 text-left">Logika Potong Stok</th>
-                                    <th class="p-4 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bom_table_body" class="divide-y divide-slate-50 text-[12px] font-bold text-slate-600">
-                                <tr id="empty_state">
-                                    <td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
-                                </tr>
-                            </tbody>
-                        </x-table>
+                        <div class="md:col-span-1">
+                            <label class="block text-[9px] font-black text-purple-700 uppercase mb-2">Qty per Produk</label>
+                            <input type="number" id="temp_finishing_qty" value="1" min="0.01" step="0.01" class="w-full border-none rounded-xl py-3 px-4 text-xs font-bold shadow-sm">
+                        </div>
+                        <div class="md:col-span-1 flex items-end">
+                            <button type="button" onclick="addFinishingToTable()" class="w-full inline-flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 bg-purple-500 hover:bg-purple-600 text-white shadow-lg shadow-purple-100 text-xs px-6 py-3">
+                                <i class="fas fa-plus"></i> Tambahkan
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="flex gap-4">
-                        <x-button type="button" variant="secondary" onclick="closeProdukModal()" class="flex-1">Batal</x-button>
-                        <x-button type="submit" class="flex-[2]">Simpan Master Produk</x-button>
-                    </div>
+                    <x-table bare>
+                        <thead>
+                            <tr>
+                                <th class="p-4 text-left">Finishing Penyusun</th>
+                                <th class="p-4 text-left">Qty</th>
+                                <th class="p-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="finishing_table_body" class="divide-y divide-slate-50 text-[12px] font-bold text-slate-600">
+                            <tr id="empty_state_finishing">
+                                <td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
+                            </tr>
+                        </tbody>
+                    </x-table>
                 </div>
+            </div>
+
+            <div class="flex gap-4 mt-8">
+                <x-button type="button" variant="secondary" onclick="closeProdukModal()" class="flex-1">Batal</x-button>
+                <x-button type="submit" class="flex-[2]">Simpan Semua Data Produk</x-button>
             </div>
         </form>
     </x-modal>
@@ -304,8 +352,27 @@
             <tr id="empty_state">
                 <td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
             </tr>`;
+        document.getElementById('finishing_table_body').innerHTML = `
+            <tr id="empty_state_finishing">
+                <td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
+            </tr>`;
+        switchBomTab('bahan');
 
         openModal('produk');
+    }
+
+    // Tab "Bahan Baku Penyusun" / "Finishing Penyusun" - murni tampilan,
+    // kedua tabel tetap ikut ter-submit bersamaan lewat form yang sama
+    // (input hidden id_bahan[]/id_finishing[] ada di kedua tab, tab yang
+    // tidak aktif cuma disembunyikan lewat class hidden, bukan dihapus).
+    function switchBomTab(tab) {
+        document.getElementById('tab-panel-bahan').classList.toggle('hidden', tab !== 'bahan');
+        document.getElementById('tab-panel-finishing').classList.toggle('hidden', tab !== 'finishing');
+
+        const aktif = 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500';
+        const nonaktif = 'text-slate-400 border-b-2 border-transparent hover:text-slate-600';
+        document.getElementById('tab-btn-bahan').className = 'flex-1 py-4 text-[11px] font-black uppercase tracking-widest transition-all ' + (tab === 'bahan' ? aktif : nonaktif);
+        document.getElementById('tab-btn-finishing').className = 'flex-1 py-4 text-[11px] font-black uppercase tracking-widest transition-all ' + (tab === 'finishing' ? aktif : nonaktif);
     }
 
     // Tampilkan input Min Order sesuai metode_hitung: Panjang/Lebar (m²) untuk
@@ -347,6 +414,14 @@
             form.querySelector('textarea[name="keterangan"]').value = (data.produk.keterangan && data.produk.keterangan !== '-') ? data.produk.keterangan : '';
             toggleMinOrderFields();
 
+            // Set value mesin di atas TIDAK memicu event 'change' (cuma
+            // assignment .value biasa), jadi filterBahanByMesin() harus
+            // dipanggil manual di sini - sebelumnya terlewat, akibatnya saat
+            // edit dropdown Bahan selalu kosong/tersembunyi semua sampai
+            // operator sengaja mengubah-ubah Mesin/Divisi dulu (padahal
+            // sudah benar) supaya listener onchange-nya ikut terpicu.
+            filterBahanByMesin(data.produk.id_mesin || '');
+
             const tbody = document.getElementById('bom_table_body');
             tbody.innerHTML = '';
 
@@ -357,6 +432,19 @@
             } else {
                 tbody.innerHTML = '<tr id="empty_state"><td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>';
             }
+
+            const tbodyFinishing = document.getElementById('finishing_table_body');
+            tbodyFinishing.innerHTML = '';
+
+            if (data.bom_finishing && data.bom_finishing.length > 0) {
+                data.bom_finishing.forEach(item => {
+                    renderFinishingRow(item.id_finishing, item.nama_finishing, item.qty);
+                });
+            } else {
+                tbodyFinishing.innerHTML = '<tr id="empty_state_finishing"><td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada finishing.</td></tr>';
+            }
+
+            switchBomTab('bahan');
 
             Swal.close();
             openModal('produk');
@@ -449,6 +537,71 @@
         const tbody = document.getElementById('bom_table_body');
         if (tbody.children.length === 0) {
             tbody.innerHTML = `<tr id="empty_state"><td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>`;
+        }
+    }
+
+    // Finishing Penyusun - pola identik dengan Bahan Baku Penyusun di atas
+    // (addBahanToTable/renderBahanRow/checkEmpty), cuma tanpa filter per
+    // mesin (finishing tidak terikat divisi produksi seperti bahan baku).
+    function addFinishingToTable() {
+        const selectFinishing = document.getElementById('temp_id_finishing');
+        const qtyInput = document.getElementById('temp_finishing_qty');
+
+        if (!selectFinishing.value) {
+            Swal.fire('Pilih Finishing!', 'Silahkan pilih finishing.', 'error');
+            return;
+        }
+
+        const namaFinishing = selectFinishing.options[selectFinishing.selectedIndex].getAttribute('data-nama');
+        const idFinishing = selectFinishing.value;
+        const qty = parseFloat(qtyInput.value) || 1;
+
+        renderFinishingRow(idFinishing, namaFinishing, qty);
+        selectFinishing.value = "";
+        qtyInput.value = "1";
+    }
+
+    function renderFinishingRow(id, nama, qty) {
+        const tbody = document.getElementById('finishing_table_body');
+        const emptyState = document.getElementById('empty_state_finishing');
+        if (emptyState) emptyState.remove();
+
+        const existing = tbody.querySelector(`input[value="${id}"][name="id_finishing[]"]`);
+        if (existing) {
+            Swal.fire('Info', 'Finishing sudah ada di list.', 'info');
+            return;
+        }
+
+        const rowId = 'row_finishing_' + Math.random().toString(36).substr(2, 9);
+        const tr = document.createElement('tr');
+        tr.id = rowId;
+        tr.className = "hover:bg-slate-50 border-b border-slate-50";
+
+        tr.innerHTML = `
+            <td class="p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+                    <input type="hidden" name="id_finishing[]" value="${id}">
+                    <span class="font-bold">${nama}</span>
+                </div>
+            </td>
+            <td class="p-4">
+                <input type="hidden" name="finishing_qty[]" value="${qty}">
+                <code class="bg-purple-50 text-purple-600 px-2 py-1 rounded text-[10px] font-black">${qty}</code>
+            </td>
+            <td class="p-4 text-center">
+                <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmptyFinishing();" class="text-slate-300 hover:text-rose-500">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function checkEmptyFinishing() {
+        const tbody = document.getElementById('finishing_table_body');
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = `<tr id="empty_state_finishing"><td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada finishing.</td></tr>`;
         }
     }
 

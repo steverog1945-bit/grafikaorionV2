@@ -62,8 +62,9 @@ public function index(Request $request)
         ->where('bahan_baku.status', 'aktif')
         ->select('bahan_baku.*', 'kategori.nama_kategori')
         ->get();
+    $finishing = DB::table('finishing')->orderBy('nama_finishing')->get();
 
-    return view('master.produk.index', compact('produk', 'bahan_baku', 'mesin'));
+    return view('master.produk.index', compact('produk', 'bahan_baku', 'mesin', 'finishing'));
 }
     public function store(Request $request)
     {
@@ -114,9 +115,49 @@ public function index(Request $request)
                 DB::table('bom_detail')->insert($bomData);
             }
 
+            $this->syncBomFinishing($id_produk, $request);
+
             return redirect()->back()->with('success', 'Master Produk & Engineering BOM berhasil disimpan!');
         });
     }
+
+    /**
+     * Sync Bahan Finishing Penyusun (bom_finishing) - dulu tabel & controller-
+     * nya (BomFinishingController) sudah ada tapi TIDAK PERNAH tersambung ke
+     * satu pun view/route, jadi fitur "Finishing Penyusun" ini sebelumnya
+     * sama sekali tidak bisa dipakai. Sekarang disatukan ke dalam transaksi
+     * DB yang sama dengan store()/update() (bukan panggilan AJAX terpisah ke
+     * BomFinishingController) - satu tombol "Simpan Semua Data Produk" wajib
+     * atomik: bahan baku, finishing, & data produk sendiri sukses/gagal
+     * bersamaan. Pola delete & re-insert sama persis dengan sync bom_detail.
+     */
+    private function syncBomFinishing(int $idProduk, Request $request): void
+    {
+        DB::table('bom_finishing')->where('id_produk', $idProduk)->delete();
+
+        if (!$request->has('id_finishing')) {
+            return;
+        }
+
+        $data = [];
+        foreach ($request->id_finishing as $key => $idFinishing) {
+            if (empty($idFinishing)) {
+                continue;
+            }
+            $data[] = [
+                'id_produk'    => $idProduk,
+                'id_finishing' => $idFinishing,
+                'qty'          => (float) ($request->finishing_qty[$key] ?? 1),
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ];
+        }
+
+        if (!empty($data)) {
+            DB::table('bom_finishing')->insert($data);
+        }
+    }
+
 public function show($id)
 {
     $produk = DB::table('produk')->where('id_produk', $id)->first();
@@ -125,10 +166,16 @@ public function show($id)
         ->where('bom_detail.id_produk', $id)
         ->select('bahan_baku.id_bahan', 'bahan_baku.nama_bahan', 'bahan_baku.satuan_stok', 'bom_detail.cara_hitung_pemakaian')
         ->get();
+    $bomFinishing = DB::table('bom_finishing')
+        ->join('finishing', 'bom_finishing.id_finishing', '=', 'finishing.id_finishing')
+        ->where('bom_finishing.id_produk', $id)
+        ->select('finishing.id_finishing', 'finishing.nama_finishing', 'bom_finishing.qty')
+        ->get();
 
     return response()->json([
         'produk' => $produk,
-        'bom'    => $bom
+        'bom'    => $bom,
+        'bom_finishing' => $bomFinishing,
     ]);
 }
 
@@ -174,6 +221,8 @@ public function show($id)
                     DB::table('bom_detail')->insert($bomData);
                 }
             }
+
+            $this->syncBomFinishing((int) $id, $request);
 
             return redirect()->back()->with('success', 'Update Produk & Engineering Berhasil.');
         });
