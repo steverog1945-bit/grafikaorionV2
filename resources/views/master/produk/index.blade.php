@@ -145,45 +145,49 @@
             @csrf
             <div id="methodField"></div>
 
-            {{-- Header kustom (ikon + judul 2 baris) --}}
-            <div class="flex justify-between items-start mb-10 pb-6 border-b border-slate-100">
-                <div class="flex items-center gap-6">
-                    <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                        <i class="fas fa-drafting-compass text-2xl"></i>
+            {{-- Header kustom (ikon + judul 2 baris) - dipadatkan mengikuti gaya
+                 input Kasir Utama (kartu ringkas, tidak banyak whitespace
+                 berlebih) supaya modal ini tidak makan tempat terlalu banyak. --}}
+            <div class="flex justify-between items-start mb-6 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0">
+                        <i class="fas fa-drafting-compass text-base"></i>
                     </div>
                     <div>
-                        <h3 id="modal-produk-title" class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Product Engineering</h3>
-                        <p class="text-slate-400 text-[12px] font-bold uppercase tracking-widest">Konfigurasi Multi-BOM & Alur Kerja Produksi</p>
+                        <h3 id="modal-produk-title" class="text-lg font-black text-slate-800 uppercase tracking-tighter leading-tight">Product Engineering</h3>
+                        <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Konfigurasi Multi-BOM & Alur Kerja Produksi</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeProdukModal()" class="text-slate-300 hover:text-rose-500 transition-colors">
-                    <i class="fas fa-times-circle text-3xl"></i>
+                    <i class="fas fa-times-circle text-2xl"></i>
                 </button>
             </div>
 
             {{-- INFO PRODUK - full-width (dulu kolom sempit 4/12 di samping BOM,
                  sekarang selebar modal supaya field-nya mengalir jelas dari atas
                  ke bawah sebelum masuk ke komposisi BOM, mengikuti alur pada
-                 referensi tampilan yang diberikan). --}}
-            <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 space-y-6 mb-8">
+                 referensi tampilan yang diberikan). Panel & field dipadatkan
+                 (padding/radius/jarak antar-field diturunkan) mengikuti gaya
+                 input Kasir Utama - bukan lagi kartu besar berjarak lega. --}}
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-4 mb-5">
                 <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
                     <i class="fas fa-info-circle"></i> Info Produk
                 </p>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div class="md:col-span-2">
                         <x-form.group label="Nama Produk">
-                            <x-form.input type="text" name="nama_produk" id="input_nama_produk" required class="!bg-white !shadow-sm" />
+                            <x-form.input type="text" name="nama_produk" id="input_nama_produk" required class="!bg-white !shadow-sm !py-2.5" />
                         </x-form.group>
                     </div>
                     <x-form.group label="Barcode">
-                        <x-form.input type="text" name="barcode" placeholder="ID-001" class="!bg-white !shadow-sm" />
+                        <x-form.input type="text" name="barcode" placeholder="ID-001" class="!bg-white !shadow-sm !py-2.5" />
                     </x-form.group>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <x-form.group label="Mesin / Divisi Produksi">
-                        <x-form.select name="id_mesin" id="input_id_mesin" onchange="filterBahanByMesin(this.value)" class="!bg-white !shadow-sm !text-indigo-600">
+                        <x-form.select name="id_mesin" id="input_id_mesin" onchange="filterBahanByMesin(this.value)" class="!bg-white !shadow-sm !text-indigo-600 !py-2.5">
                             <option value="">-- Pilih Mesin --</option>
                             @foreach($mesin as $m)
                                 <option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>
@@ -191,7 +195,7 @@
                         </x-form.select>
                     </x-form.group>
                     <x-form.group label="Metode Hitung Order">
-                        <x-form.select name="metode_hitung" onchange="toggleMinOrderFields()" class="!bg-white !shadow-sm !py-3">
+                        <x-form.select name="metode_hitung" onchange="toggleMinOrderFields()" class="!bg-white !shadow-sm !py-2.5">
                             <option value="ukuran">Berdasarkan Ukuran Cetak (m²)</option>
                             <option value="quantity">Berdasarkan Satuan (Pcs)</option>
                         </x-form.select>
@@ -206,29 +210,29 @@
                      pilih Tidak akan menyembunyikan & mengosongkan field ukuran/qty
                      minimumnya (tersimpan 0, sama artinya "tanpa minimum"). --}}
                 <x-form.group label="Minimal Order">
-                    <x-form.select id="input_pakai_min_order" onchange="toggleMinOrderFields()" class="!bg-white !shadow-sm !py-3">
+                    <x-form.select id="input_pakai_min_order" onchange="toggleMinOrderFields()" class="!bg-white !shadow-sm !py-2.5">
                         <option value="ya">Menggunakan Minimal Order</option>
                         <option value="tidak">Tanpa Minimal Order</option>
                     </x-form.select>
                 </x-form.group>
 
-                <div id="field_min_ukuran" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div id="field_min_ukuran" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <x-form.group label="Ukuran Min Order - Panjang (cm)">
-                        <x-form.input type="number" name="min_p" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
+                        <x-form.input type="number" name="min_p" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-2.5" />
                     </x-form.group>
                     <x-form.group label="Ukuran Min Order - Lebar (cm)">
-                        <x-form.input type="number" name="min_l" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
+                        <x-form.input type="number" name="min_l" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-2.5" />
                     </x-form.group>
                 </div>
 
                 <div id="field_min_qty">
                     <x-form.group label="Min Order (Pcs)">
-                        <x-form.input type="number" name="min_order_qty" step="1" min="0" placeholder="0" class="!bg-white !shadow-sm !py-3" />
+                        <x-form.input type="number" name="min_order_qty" step="1" min="0" placeholder="0" class="!bg-white !shadow-sm !py-2.5" />
                     </x-form.group>
                 </div>
 
                 <x-form.group label="Keterangan">
-                    <textarea name="keterangan" rows="2" placeholder="Catatan tambahan produk (opsional)" class="w-full bg-white shadow-sm rounded-xl border-none text-xs font-semibold p-3 focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                    <textarea name="keterangan" rows="2" placeholder="Catatan tambahan produk (opsional)" class="w-full bg-white shadow-sm rounded-xl border-none text-xs font-semibold p-2.5 focus:ring-2 focus:ring-indigo-500/20"></textarea>
                 </x-form.group>
             </div>
 
@@ -238,21 +242,21 @@
                  PERNAH disambungkan ke tampilan mana pun. Sekarang disatukan ke
                  form ini, disimpan atomik bareng data produk & bahan baku lewat
                  syncBomFinishing() di ProdukController, bukan panggilan terpisah). --}}
-            <div class="bg-white rounded-[2.5rem] border-2 border-dashed border-slate-200 overflow-hidden">
+            <div class="bg-white rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden">
                 <div class="flex border-b border-slate-100">
-                    <button type="button" onclick="switchBomTab('bahan')" id="tab-btn-bahan" class="flex-1 py-4 text-[11px] font-black uppercase tracking-widest transition-all bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500">
+                    <button type="button" onclick="switchBomTab('bahan')" id="tab-btn-bahan" class="flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition-all bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500">
                         <i class="fas fa-boxes mr-2"></i> Bahan Baku Penyusun
                     </button>
-                    <button type="button" onclick="switchBomTab('finishing')" id="tab-btn-finishing" class="flex-1 py-4 text-[11px] font-black uppercase tracking-widest transition-all text-slate-400 border-b-2 border-transparent hover:text-slate-600">
+                    <button type="button" onclick="switchBomTab('finishing')" id="tab-btn-finishing" class="flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition-all text-slate-400 border-b-2 border-transparent hover:text-slate-600">
                         <i class="fas fa-magic mr-2"></i> Finishing Penyusun
                     </button>
                 </div>
 
-                <div id="tab-panel-bahan" class="p-8">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100">
+                <div id="tab-panel-bahan" class="p-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
                         <div class="md:col-span-1">
-                            <label class="block text-[9px] font-black text-emerald-700 uppercase mb-2">Pilih Bahan</label>
-                            <select id="temp_id_bahan" class="w-full border-none rounded-xl py-3 px-4 text-xs font-bold shadow-sm">
+                            <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Pilih Bahan</label>
+                            <select id="temp_id_bahan" class="w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
                                 <option value="">-- Pilih Bahan --</option>
                                 @foreach($bahan_baku as $bb)
                                     <option value="{{ $bb->id_bahan }}"
@@ -265,8 +269,8 @@
                             </select>
                         </div>
                         <div class="md:col-span-1">
-                            <label class="block text-[9px] font-black text-emerald-700 uppercase mb-2">Cara Hitung Pemakaian</label>
-                            <select id="temp_rumus" class="w-full border-none rounded-xl py-3 px-4 text-xs font-bold shadow-sm">
+                            <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Cara Hitung Pemakaian</label>
+                            <select id="temp_rumus" class="w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
                                 <option value="(P*L)/10000">Luas (m²) - [P*L/10000]</option>
                                 <option value="Q">Quantity (1:1) - [Satuan]</option>
                                 <option value="2*(P+L)/100">Keliling (m) - [2*(P+L)/100]</option>
@@ -274,7 +278,7 @@
                             </select>
                         </div>
                         <div class="md:col-span-1 flex items-end">
-                            <x-button type="button" variant="success" onclick="addBahanToTable()" class="w-full">
+                            <x-button type="button" variant="success" onclick="addBahanToTable()" class="w-full !py-2.5">
                                 <i class="fas fa-plus"></i> Tambahkan
                             </x-button>
                         </div>
@@ -283,24 +287,24 @@
                     <x-table bare>
                         <thead>
                             <tr>
-                                <th class="p-4 text-left">Bahan Baku Penyusun</th>
-                                <th class="p-4 text-left">Cara Hitung Pemakaian</th>
-                                <th class="p-4 text-center">Aksi</th>
+                                <th class="p-3 text-left">Bahan Baku Penyusun</th>
+                                <th class="p-3 text-left">Cara Hitung Pemakaian</th>
+                                <th class="p-3 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="bom_table_body" class="divide-y divide-slate-50 text-[12px] font-bold text-slate-600">
                             <tr id="empty_state">
-                                <td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
+                                <td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
                             </tr>
                         </tbody>
                     </x-table>
                 </div>
 
-                <div id="tab-panel-finishing" class="p-8 hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-purple-50/50 p-6 rounded-3xl border border-purple-100">
+                <div id="tab-panel-finishing" class="p-5 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5 bg-purple-50/50 p-4 rounded-2xl border border-purple-100">
                         <div class="md:col-span-1">
-                            <label class="block text-[9px] font-black text-purple-700 uppercase mb-2">Pilih Finishing</label>
-                            <select id="temp_id_finishing" class="w-full border-none rounded-xl py-3 px-4 text-xs font-bold shadow-sm">
+                            <label class="block text-[9px] font-black text-purple-700 uppercase mb-1.5">Pilih Finishing</label>
+                            <select id="temp_id_finishing" class="w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
                                 <option value="">-- Pilih Finishing --</option>
                                 @foreach($finishing as $f)
                                     <option value="{{ $f->id_finishing }}" data-nama="{{ $f->nama_finishing }}">{{ $f->nama_finishing }}</option>
@@ -308,11 +312,11 @@
                             </select>
                         </div>
                         <div class="md:col-span-1">
-                            <label class="block text-[9px] font-black text-purple-700 uppercase mb-2">Qty per Produk</label>
-                            <input type="number" id="temp_finishing_qty" value="1" min="0.01" step="0.01" class="w-full border-none rounded-xl py-3 px-4 text-xs font-bold shadow-sm">
+                            <label class="block text-[9px] font-black text-purple-700 uppercase mb-1.5">Qty per Produk</label>
+                            <input type="number" id="temp_finishing_qty" value="1" min="0.01" step="0.01" class="w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
                         </div>
                         <div class="md:col-span-1 flex items-end">
-                            <button type="button" onclick="addFinishingToTable()" class="w-full inline-flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 bg-purple-500 hover:bg-purple-600 text-white shadow-lg shadow-purple-100 text-xs px-6 py-3">
+                            <button type="button" onclick="addFinishingToTable()" class="w-full inline-flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 bg-purple-500 hover:bg-purple-600 text-white shadow-lg shadow-purple-100 text-xs px-6 py-2.5">
                                 <i class="fas fa-plus"></i> Tambahkan
                             </button>
                         </div>
@@ -321,21 +325,21 @@
                     <x-table bare>
                         <thead>
                             <tr>
-                                <th class="p-4 text-left">Finishing Penyusun</th>
-                                <th class="p-4 text-left">Qty</th>
-                                <th class="p-4 text-center">Aksi</th>
+                                <th class="p-3 text-left">Finishing Penyusun</th>
+                                <th class="p-3 text-left">Qty</th>
+                                <th class="p-3 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="finishing_table_body" class="divide-y divide-slate-50 text-[12px] font-bold text-slate-600">
                             <tr id="empty_state_finishing">
-                                <td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
+                                <td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
                             </tr>
                         </tbody>
                     </x-table>
                 </div>
             </div>
 
-            <div class="flex gap-4 mt-8">
+            <div class="flex gap-3 mt-5">
                 <x-button type="button" variant="secondary" onclick="closeProdukModal()" class="flex-1">Batal</x-button>
                 <x-button type="submit" class="flex-[2]">Simpan Semua Data Produk</x-button>
             </div>
@@ -364,11 +368,11 @@
 
         document.getElementById('bom_table_body').innerHTML = `
             <tr id="empty_state">
-                <td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
+                <td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
             </tr>`;
         document.getElementById('finishing_table_body').innerHTML = `
             <tr id="empty_state_finishing">
-                <td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
+                <td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
             </tr>`;
         switchBomTab('bahan');
 
@@ -385,8 +389,8 @@
 
         const aktif = 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500';
         const nonaktif = 'text-slate-400 border-b-2 border-transparent hover:text-slate-600';
-        document.getElementById('tab-btn-bahan').className = 'flex-1 py-4 text-[11px] font-black uppercase tracking-widest transition-all ' + (tab === 'bahan' ? aktif : nonaktif);
-        document.getElementById('tab-btn-finishing').className = 'flex-1 py-4 text-[11px] font-black uppercase tracking-widest transition-all ' + (tab === 'finishing' ? aktif : nonaktif);
+        document.getElementById('tab-btn-bahan').className = 'flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition-all ' + (tab === 'bahan' ? aktif : nonaktif);
+        document.getElementById('tab-btn-finishing').className = 'flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition-all ' + (tab === 'finishing' ? aktif : nonaktif);
     }
 
     // Tampilkan input Min Order sesuai metode_hitung: Panjang/Lebar (m²) untuk
@@ -465,7 +469,7 @@
                     renderBahanRow(item.id_bahan, item.nama_bahan, item.cara_hitung_pemakaian, item.satuan_stok);
                 });
             } else {
-                tbody.innerHTML = '<tr id="empty_state"><td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>';
+                tbody.innerHTML = '<tr id="empty_state"><td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>';
             }
 
             const tbodyFinishing = document.getElementById('finishing_table_body');
@@ -476,7 +480,7 @@
                     renderFinishingRow(item.id_finishing, item.nama_finishing, item.qty);
                 });
             } else {
-                tbodyFinishing.innerHTML = '<tr id="empty_state_finishing"><td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada finishing.</td></tr>';
+                tbodyFinishing.innerHTML = '<tr id="empty_state_finishing"><td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada finishing.</td></tr>';
             }
 
             switchBomTab('bahan');
@@ -547,7 +551,7 @@
         tr.className = "hover:bg-slate-50 border-b border-slate-50";
 
         tr.innerHTML = `
-            <td class="p-4">
+            <td class="p-3">
                 <div class="flex items-center gap-3">
                     <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
                     <input type="hidden" name="id_bahan[]" value="${id}">
@@ -555,11 +559,11 @@
                     <small class="text-slate-400">${satuan ? '('+satuan+')' : ''}</small>
                 </div>
             </td>
-            <td class="p-4">
+            <td class="p-3">
                 <input type="hidden" name="cara_hitung_pemakaian[]" value="${rumus}">
                 <code class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded text-[10px] font-black">${rumus}</code>
             </td>
-            <td class="p-4 text-center">
+            <td class="p-3 text-center">
                 <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmpty();" class="text-slate-300 hover:text-rose-500">
                     <i class="fas fa-trash-alt"></i>
                 </button>
@@ -571,7 +575,7 @@
     function checkEmpty() {
         const tbody = document.getElementById('bom_table_body');
         if (tbody.children.length === 0) {
-            tbody.innerHTML = `<tr id="empty_state"><td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>`;
+            tbody.innerHTML = `<tr id="empty_state"><td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>`;
         }
     }
 
@@ -613,18 +617,18 @@
         tr.className = "hover:bg-slate-50 border-b border-slate-50";
 
         tr.innerHTML = `
-            <td class="p-4">
+            <td class="p-3">
                 <div class="flex items-center gap-3">
                     <div class="w-2 h-2 rounded-full bg-purple-400"></div>
                     <input type="hidden" name="id_finishing[]" value="${id}">
                     <span class="font-bold">${nama}</span>
                 </div>
             </td>
-            <td class="p-4">
+            <td class="p-3">
                 <input type="hidden" name="finishing_qty[]" value="${qty}">
                 <code class="bg-purple-50 text-purple-600 px-2 py-1 rounded text-[10px] font-black">${qty}</code>
             </td>
-            <td class="p-4 text-center">
+            <td class="p-3 text-center">
                 <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmptyFinishing();" class="text-slate-300 hover:text-rose-500">
                     <i class="fas fa-trash-alt"></i>
                 </button>
@@ -636,7 +640,7 @@
     function checkEmptyFinishing() {
         const tbody = document.getElementById('finishing_table_body');
         if (tbody.children.length === 0) {
-            tbody.innerHTML = `<tr id="empty_state_finishing"><td colspan="3" class="p-8 text-center text-slate-300 italic">Belum ada finishing.</td></tr>`;
+            tbody.innerHTML = `<tr id="empty_state_finishing"><td colspan="3" class="p-6 text-center text-slate-300 italic">Belum ada finishing.</td></tr>`;
         }
     }
 
