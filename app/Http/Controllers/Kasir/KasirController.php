@@ -153,7 +153,9 @@ class KasirController extends Controller
     {
         $transaksi = DB::table('transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+            ->leftJoin('golongan_konsumen', 'konsumen.id_golongan', '=', 'golongan_konsumen.id_golongan')
             ->where('transaksi.id_transaksi', $id)
+            ->select('transaksi.*', 'konsumen.nama_konsumen', 'konsumen.telepon', 'golongan_konsumen.nama_golongan')
             ->first();
 
         if (!$transaksi) {
