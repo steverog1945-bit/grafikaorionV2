@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-    :root { --sidebar-width: 280px; }
+    :root { --sidebar-width: 280px; --sidebar-width-collapsed: 84px; }
     body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; background-color: #f5f7fa; overflow-x: hidden; }
 
     /* SIDEBAR CORE (Tetap Dipertahankan) */
@@ -36,8 +36,24 @@
         main { margin-left: 0 !important; }
     }
 
-    body.sidebar-hidden aside { transform: translateX(-100%); }
-    body.sidebar-hidden main { margin-left: 0 !important; }
+    /* Collapse desktop = ICON-ONLY, bukan sidebar hilang total (dulu
+       translateX(-100%) penuh - melanggar prinsip "sidebar tetap harus
+       terlihat, minimal ikonnya"). Teks menu/group-header/subtitle brand
+       disembunyikan lewat selector generik (bukan nambah class di setiap
+       baris menu - menu di file ini ada puluhan baris, nambah class satu-
+       satu terlalu berisiko salah satu kelewat) - dipilih berdasarkan
+       struktur HTML yang memang sudah konsisten (span di dalam <a> nav,
+       div label group pakai tracking-[0.2em]).) */
+    body.sidebar-collapsed aside { width: var(--sidebar-width-collapsed); }
+    body.sidebar-collapsed main { margin-left: var(--sidebar-width-collapsed); }
+    body.sidebar-collapsed aside nav a { justify-content: center; }
+    body.sidebar-collapsed aside nav a span,
+    body.sidebar-collapsed aside nav .tracking-\[0\.2em\],
+    body.sidebar-collapsed aside .sidebar-brand-text,
+    body.sidebar-collapsed aside .sidebar-text-label { display: none; }
+    body.sidebar-collapsed aside .sidebar-kas-status { justify-content: center; }
+    body.sidebar-collapsed aside #sidebarBrandHeader { justify-content: center; }
+    body.sidebar-collapsed aside #sidebarCollapseToggle i { transform: rotate(180deg); }
 
     /* MAIN - satu-satunya definisi (sebelumnya didefinisikan ulang & bentrok
        di style block kedua di bagian bawah file ini) */
@@ -51,6 +67,18 @@
         flex-direction: column;
         min-width: 0;
         width: 100%;
+    }
+
+    /* Topbar sebelumnya tidak pernah punya definisi CSS sama sekali (class
+       "topbar" tidak dipakai di manapun selain di sini) - burger icon &
+       judul cuma numpang di elemen tanpa padding/tinggi/alignment eksplisit,
+       jadinya terlihat "nempel asal" alih-alih menyatu dengan header. */
+    .topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 24px;
+        border-bottom: 1px solid #e2e8f0;
     }
 
     /* Wadah konten halaman. Sengaja TIDAK diberi warna/card/shadow di sini -
@@ -89,37 +117,49 @@
     
 </head>
 <body class="text-slate-900">
+    <script>
+        // Terapkan state collapse SEBELUM sidebar dirender (bukan nunggu
+        // DOMContentLoaded) supaya tidak ada kedipan "kebuka lebar dulu baru
+        // menyempit" tiap pindah halaman (app ini full page reload antar
+        // route, jadi state collapse harus dipasang secepat mungkin di
+        // setiap load, bukan cuma sekali di SPA).
+        try {
+            if (window.innerWidth >= 1024 && localStorage.getItem('sidebarCollapsed') === '1') {
+                document.body.classList.add('sidebar-collapsed');
+            }
+        } catch (e) {}
+    </script>
 
     <div id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
 
     <div class="flex min-h-screen">
         <aside id="mainSidebar">
-            <div class="p-6 border-b border-slate-800/50 flex justify-between items-center">
-                <div>
+            <div id="sidebarBrandHeader" class="p-6 border-b border-slate-800/50 flex justify-between items-center">
+                <div class="sidebar-brand-text">
                     <h4 class="text-xl font-extrabold tracking-tighter text-indigo-400 flex items-center gap-2">
                         <span class="bg-indigo-500/20 p-1.5 rounded-lg text-lg">🖨️</span>
                         PRINT-ERP
                     </h4>
                     <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">v1.0 Production</p>
                 </div>
-                <button onclick="toggleMobileMenu()" class="lg:hidden text-slate-400">
+                <button onclick="toggleMobileMenu()" class="lg:hidden text-slate-400 sidebar-brand-text">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 {{-- Tambahan Status Kas --}}
 <div class="mt-4 px-2">
     @if($kasAktif)
-        <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2 flex items-center gap-2">
-            <span class="relative flex h-2 w-2">
+        <div class="sidebar-kas-status bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2 flex items-center gap-2" title="Kasir: Open">
+            <span class="relative flex h-2 w-2 shrink-0">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span class="text-[10px] font-bold text-emerald-400 uppercase">Kasir: Open</span>
+            <span class="text-[10px] font-bold text-emerald-400 uppercase sidebar-text-label">Kasir: Open</span>
         </div>
     @else
-        <div class="bg-rose-500/10 border border-rose-500/20 rounded-lg p-2 flex items-center gap-2">
-            <span class="h-2 w-2 rounded-full bg-rose-500"></span>
-            <span class="text-[10px] font-bold text-rose-400 uppercase">Kasir: Standby</span>
+        <div class="sidebar-kas-status bg-rose-500/10 border border-rose-500/20 rounded-lg p-2 flex items-center gap-2" title="Kasir: Standby">
+            <span class="h-2 w-2 rounded-full bg-rose-500 shrink-0"></span>
+            <span class="text-[10px] font-bold text-rose-400 uppercase sidebar-text-label">Kasir: Standby</span>
         </div>
     @endif
 </div>
@@ -522,10 +562,10 @@
 
         <main id="mainContent" class="transition-all duration-300">
     <div class="topbar sticky top-0 bg-white shadow-sm z-30">
-        <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-slate-100">
+        <button id="sidebarCollapseToggle" onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-slate-100 transition-transform duration-300" title="Sembunyikan/tampilkan menu">
             <i class="fas fa-bars"></i>
         </button>
-        <span class="font-bold text-slate-700 ml-2">PRINT-ERP</span>
+        <span class="font-bold text-slate-700">PRINT-ERP</span>
     </div>
 
     <div class="content-wrapper">
@@ -608,10 +648,14 @@
     @endif
     </script>
     <script>
-        // Toggle Sidebar Desktop
+        // Toggle Sidebar Desktop - collapse ke ICON-ONLY (bukan hilang total,
+        // lihat rule body.sidebar-collapsed di <style>), disimpan ke
+        // localStorage supaya pilihan user tidak reset tiap pindah halaman
+        // (aplikasi ini full page reload antar route, bukan SPA).
         function toggleSidebar() {
             if (window.innerWidth >= 1024) {
-                document.body.classList.toggle('sidebar-hidden');
+                const collapsed = document.body.classList.toggle('sidebar-collapsed');
+                try { localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0'); } catch (e) {}
             } else {
                 toggleMobileMenu();
             }
@@ -621,7 +665,7 @@
         function toggleMobileMenu() {
             const sidebar = document.getElementById('mainSidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            
+
             if (sidebar.classList.contains('mobile-open')) {
                 sidebar.classList.remove('mobile-open');
                 $(overlay).fadeOut();
@@ -631,10 +675,23 @@
             }
         }
 
+        // Tooltip native (title) di tiap link menu - satu-satunya cara tahu
+        // nama menu saat ikon-only tanpa mengetik ulang ratusan baris label
+        // secara manual di semua menu yang sudah ada (state collapse sendiri
+        // sudah dipasang lebih awal, lihat script tepat setelah <body>).
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('#mainSidebar nav a').forEach(function(a) {
+                const span = a.querySelector('span');
+                if (span && span.textContent.trim()) {
+                    a.setAttribute('title', span.textContent.trim());
+                }
+            });
+        });
+
         // Sembunyikan sidebar otomatis jika layar diresize ke kecil
         window.addEventListener('resize', function() {
             if (window.innerWidth < 1024) {
-                document.body.classList.remove('sidebar-hidden');
+                document.body.classList.remove('sidebar-collapsed');
             }
         });
     </script>

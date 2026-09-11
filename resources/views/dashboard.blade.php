@@ -37,7 +37,7 @@
             <div class="text-3xl font-extrabold text-emerald-500 group-hover:text-emerald-600 transition-colors">{{ $spkSelesai }}</div>
             <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Selesai Produksi</div>
         </a>
-        <a href="{{ route('collecting.index', ['status_collecting' => 'lengkap']) }}" class="text-center group">
+        <a href="{{ route('collecting.index', ['status_pengerjaan' => 'lengkap']) }}" class="text-center group">
             <div class="text-3xl font-extrabold text-teal-500 group-hover:text-teal-600 transition-colors">{{ $notaLengkap }}</div>
             <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Siap Diambil</div>
         </a>
@@ -150,7 +150,7 @@
         <p class="text-sm font-bold">{{ $notaBelumLengkap }} nota belum lengkap produksinya</p>
         <p class="text-xs text-amber-600">Barang belum bisa diserahkan ke konsumen sampai semua item selesai.</p>
     </div>
-    <a href="{{ route('collecting.index', ['status_collecting' => 'belum']) }}" class="px-4 py-2 bg-amber-500 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all">
+    <a href="{{ route('collecting.index', ['status_pengerjaan' => 'belum']) }}" class="px-4 py-2 bg-amber-500 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all">
         Lihat Detail
     </a>
 </div>
