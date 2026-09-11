@@ -24,6 +24,52 @@
                 </span>
                 <span class="text-[10px] font-black text-emerald-600 uppercase">Kasir Aktif</span>
             </div>
+            {{-- Kas Tidak Terduga - mutasi tunai yang tidak terikat nota
+                 (pengeluaran operasional dadakan, kas masuk di luar
+                 penjualan). Mengikuti referensi "Alur Kas Kasir": Waktu
+                 (otomatis = sekarang, bukan diketik manual), Keterangan,
+                 Status Debet/Kredit, Nominal. --}}
+            <x-button variant="warning" onclick="openModal('kas-manual')">
+                <i class="fas fa-exclamation-circle"></i>
+                Kas Tidak Terduga
+            </x-button>
+
+            <x-modal id="kas-manual" title="Alur Kas Kasir" maxWidth="sm">
+                <form action="{{ route('kasir.kas-manual.store') }}" method="POST" class="space-y-5">
+                    @csrf
+                    <x-form.group label="Waktu">
+                        <x-form.input type="text" value="{{ now()->format('d-m-Y H:i:s') }}" disabled class="!bg-slate-100 !text-slate-400" />
+                    </x-form.group>
+
+                    <x-form.group label="Keterangan" required>
+                        <textarea name="keterangan" rows="3" required placeholder="Contoh: Beli perlengkapan kebersihan, sumbangan kas dari pemilik, dll"
+                            class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
+                    </x-form.group>
+
+                    <x-form.group label="Status" required>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="relative flex items-center gap-2 py-3 px-4 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 font-bold text-xs cursor-pointer transition-all status-manual-option">
+                                <input type="radio" name="status" value="Masuk" class="accent-emerald-600" checked onchange="toggleStatusManual(this)">
+                                Debet / Kas Masuk
+                            </label>
+                            <label class="relative flex items-center gap-2 py-3 px-4 rounded-xl border-2 border-slate-100 text-slate-400 font-bold text-xs cursor-pointer transition-all status-manual-option">
+                                <input type="radio" name="status" value="Keluar" class="accent-rose-600" onchange="toggleStatusManual(this)">
+                                Kredit / Kas Keluar
+                            </label>
+                        </div>
+                    </x-form.group>
+
+                    <x-form.group label="Nominal / Jumlah" required>
+                        <x-form.input type="number" name="nominal" min="1" required placeholder="0" class="text-xl font-bold" />
+                    </x-form.group>
+
+                    <div class="pt-2 flex gap-3">
+                        <x-button type="button" variant="secondary" onclick="closeModal('kas-manual')" class="flex-1">Batal</x-button>
+                        <x-button type="submit" class="flex-1">Simpan</x-button>
+                    </div>
+                </form>
+            </x-modal>
+
             <x-button variant="danger" onclick="openModal('closing-kas')">
                 <i class="fas fa-lock"></i>
                 Closing Kas Sekarang
@@ -141,9 +187,79 @@
     </table>
 </div>
 
+{{-- KAS TIDAK TERDUGA - mutasi tunai yang tidak terikat nota, terpisah
+     dari tabel mutasi nota di atas supaya kolom Nota/Konsumen/Metode yang
+     tidak relevan tidak perlu dipaksakan ada isinya. --}}
+@if($mutasiManual->isNotEmpty())
+<div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden mt-6">
+    <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+        <div>
+            <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight">Kas Tidak Terduga Hari Ini</h3>
+            <p class="text-xs text-slate-500 italic">Mutasi tunai di luar nota (pengeluaran dadakan, kas masuk lain-lain)</p>
+        </div>
+        <div class="flex gap-4">
+            <div class="px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100 text-right">
+                <span class="block text-[9px] font-black text-emerald-600 uppercase">Masuk</span>
+                <span class="font-bold text-emerald-700">Rp {{ number_format($data_kas->sum('nominal_manual_masuk'), 0, ',', '.') }}</span>
+            </div>
+            <div class="px-4 py-2 bg-rose-50 rounded-xl border border-rose-100 text-right">
+                <span class="block text-[9px] font-black text-rose-600 uppercase">Keluar</span>
+                <span class="font-bold text-rose-700">Rp {{ number_format($data_kas->sum('nominal_manual_keluar'), 0, ',', '.') }}</span>
+            </div>
+        </div>
+    </div>
+
+    <table class="w-full text-left border-collapse">
+        <thead>
+            <tr class="bg-slate-50">
+                <th class="p-4 text-[10px] font-black uppercase text-slate-400">Waktu</th>
+                <th class="p-4 text-[10px] font-black uppercase text-slate-400">Keterangan</th>
+                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-center">Status</th>
+                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-right">Nominal</th>
+                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-center">Dicatat Oleh</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+            @foreach($mutasiManual as $m)
+            <tr class="hover:bg-slate-50/50 transition-all">
+                <td class="p-4 text-xs text-slate-500">{{ \Carbon\Carbon::parse($m->waktu)->format('H:i') }}</td>
+                <td class="p-4 text-sm text-slate-600">{{ $m->keterangan }}</td>
+                <td class="p-4 text-center">
+                    @if($m->status === 'Masuk')
+                        <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[9px] font-black">DEBET / MASUK</span>
+                    @else
+                        <span class="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[9px] font-black">KREDIT / KELUAR</span>
+                    @endif
+                </td>
+                <td class="p-4 text-right font-black {{ $m->status === 'Masuk' ? 'text-emerald-600' : 'text-rose-600' }}">
+                    {{ $m->status === 'Masuk' ? '+' : '-' }} Rp {{ number_format($m->nominal, 0, ',', '.') }}
+                </td>
+                <td class="p-4 text-center text-[11px] text-slate-400">{{ $m->dicatat_oleh ?? '-' }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+@endif
+
 </div>
 
 <script>
+function toggleStatusManual(input) {
+    document.querySelectorAll('.status-manual-option').forEach(label => {
+        const isMasuk = label.querySelector('input').value === 'Masuk';
+        const isChecked = label.querySelector('input').checked;
+        label.classList.toggle('border-emerald-500', isChecked && isMasuk);
+        label.classList.toggle('bg-emerald-50', isChecked && isMasuk);
+        label.classList.toggle('text-emerald-700', isChecked && isMasuk);
+        label.classList.toggle('border-rose-500', isChecked && !isMasuk);
+        label.classList.toggle('bg-rose-50', isChecked && !isMasuk);
+        label.classList.toggle('text-rose-700', isChecked && !isMasuk);
+        label.classList.toggle('border-slate-100', !isChecked);
+        label.classList.toggle('text-slate-400', !isChecked);
+    });
+}
+
 function aksiKas(tipe) {
     if(tipe === 'open') {
         Swal.fire({

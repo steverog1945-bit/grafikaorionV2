@@ -132,8 +132,21 @@ class KasirController extends Controller
             $tunaiMasuk = (float) ($pemasukan->tunai_masuk ?? 0);
             $transferMasuk = (float) ($pemasukan->transfer_masuk ?? 0);
             $debitMasuk = (float) ($pemasukan->debit_masuk ?? 0);
-            $tunaiKeluar = 0; // Belum ada fitur Kas Keluar.
-            $saldoAkhirSistem = $kas->saldo_awal + $tunaiMasuk - $tunaiKeluar;
+
+            // "Kas Tidak Terduga" (kas_manual) - satu-satunya sumber
+            // pengeluaran tunai riil di app ini (nota selalu pemasukan,
+            // tidak pernah pengeluaran). Kas masuk manual juga ikut
+            // menambah laci fisik sama seperti Tunai dari nota.
+            $manual = DB::table('kas_manual')
+                ->where('id_kas', $kas->id_kas)
+                ->select(
+                    DB::raw("SUM(CASE WHEN status = 'Masuk' THEN nominal ELSE 0 END) as manual_masuk"),
+                    DB::raw("SUM(CASE WHEN status = 'Keluar' THEN nominal ELSE 0 END) as manual_keluar")
+                )->first();
+            $manualMasuk = (float) ($manual->manual_masuk ?? 0);
+            $tunaiKeluar = (float) ($manual->manual_keluar ?? 0);
+
+            $saldoAkhirSistem = $kas->saldo_awal + $tunaiMasuk + $manualMasuk - $tunaiKeluar;
             $selisih = $saldo_fisik - $saldoAkhirSistem;
 
             DB::table('kas_harian')->where('id_kas', $id_kas)->update([
@@ -479,7 +492,7 @@ class KasirController extends Controller
     {
         $hari_ini = date('Y-m-d');
         $kasAktif = DB::table('kas_harian')->where('tgl_kas', $hari_ini)->where('status_lock', 'open')->first();
-        
+
         $mutasi = DB::table('pembayaran_riwayat')
             ->join('transaksi', 'pembayaran_riwayat.id_transaksi', '=', 'transaksi.id_transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
@@ -488,13 +501,75 @@ class KasirController extends Controller
             ->orderBy('pembayaran_riwayat.tgl_bayar', 'desc')
             ->get();
 
+        // "Kas Tidak Terduga" - mutasi tunai yang tidak terikat nota (lihat
+        // migrasi create_kas_manual_table). Ditampilkan terpisah dari
+        // $mutasi (yang murni pembayaran_riwayat/nota) supaya kolom-kolom
+        // yang tidak relevan (Nota, Konsumen, Metode) tidak perlu dipaksakan
+        // ada isinya untuk baris ini.
+        $mutasiManual = DB::table('kas_manual')
+            ->join('users', 'kas_manual.id_user', '=', 'users.id_user')
+            ->whereDate('kas_manual.waktu', $hari_ini)
+            ->select('kas_manual.*', 'users.username as dicatat_oleh')
+            ->orderBy('kas_manual.waktu', 'desc')
+            ->get();
+
         $data_kas = collect([(object) [
             'nominal_tunai' => $mutasi->where('metode', 'Tunai')->sum('nominal'),
             'nominal_transfer' => $mutasi->where('metode', 'Transfer')->sum('nominal'),
             'nominal_debit' => $mutasi->where('metode', 'Debit')->sum('nominal'),
+            'nominal_manual_masuk' => $mutasiManual->where('status', 'Masuk')->sum('nominal'),
+            'nominal_manual_keluar' => $mutasiManual->where('status', 'Keluar')->sum('nominal'),
         ]]);
 
-        return view('kasir.kelola_kas', compact('kasAktif', 'mutasi', 'data_kas'));
+        return view('kasir.kelola_kas', compact('kasAktif', 'mutasi', 'mutasiManual', 'data_kas'));
+    }
+
+    /**
+     * "Kas Tidak Terduga" - catat mutasi tunai yang tidak terikat nota
+     * (pengeluaran operasional dadakan, kas masuk di luar penjualan).
+     * Mengikuti referensi form "Alur Kas Kasir": Keterangan, Status
+     * (Debet/Kas Masuk atau Kredit/Kas Keluar), Nominal - selalu Tunai
+     * (uang fisik di laci), tidak ada pilihan metode seperti pembayaran
+     * nota.
+     */
+    public function storeKasManual(Request $request)
+    {
+        $request->validate([
+            'keterangan' => 'required|string|max:500',
+            'status'     => 'required|in:Masuk,Keluar',
+            'nominal'    => 'required|numeric|min:1',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $kas = DB::table('kas_harian')
+                ->where('tgl_kas', now()->format('Y-m-d'))
+                ->where('status_lock', 'open')
+                ->first();
+
+            if (!$kas) {
+                throw new \Exception('Kasir belum dibuka! Silakan buka kas terlebih dahulu.');
+            }
+
+            $idKasManual = DB::table('kas_manual')->insertGetId([
+                'id_kas'      => $kas->id_kas,
+                'waktu'       => now(),
+                'keterangan'  => $request->keterangan,
+                'status'      => $request->status,
+                'nominal'     => $request->nominal,
+                'id_user'     => Auth::id(),
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+
+            AccountingService::postKasManual('KAS-MANUAL-' . $idKasManual, (float) $request->nominal, $request->status);
+
+            DB::commit();
+            return redirect()->route('kasir.kelola')->with('success', 'Mutasi kas tidak terduga berhasil dicatat.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('kasir.kelola')->with('error', 'Gagal mencatat: ' . $e->getMessage());
+        }
     }
 
    public function storeKas(Request $request)
@@ -525,6 +600,20 @@ class KasirController extends Controller
     // Setelah simpan, lempar ke halaman monitoring
     return redirect()->route('kasir.index')->with('success', 'Kas Berhasil Dibuka!');
 }
+/**
+ * Rombak total mengikuti referensi "Closing Alur Kas Kasir" milik pemilik
+ * aplikasi - rekap nota HARI INI per Mesin/Divisi (sebelumnya cuma rincian
+ * pemasukan per metode bayar, tidak ada gambaran nota apa saja yang masuk
+ * hari ini). "Nota Penjualan Barang"/"Piutang Penjualan Barang" di
+ * referensi SENGAJA TIDAK direplikasi - app ini cuma py satu jenis
+ * transaksi (transaksi+transaksi_detail, mencakup produk & jasa
+ * sekaligus), tidak ada jalur "penjualan barang" terpisah dari "nota
+ * order" seperti sistem lama pemilik aplikasi, jadi bagian itu tidak py
+ * padanan data nyata untuk ditampilkan (bukan dihilangkan sengaja,
+ * memang tidak ada). Begitu juga "Status Rolling Saldo Akhir" & "Bayar DP
+ * Transaksi Ref" - tidak py alur kerja yang jelas padanannya di app ini,
+ * jadi tidak dipaksakan dibangun tanpa tahu maksud pastinya.
+ */
 public function previewClosing()
 {
     $hari_ini = date('Y-m-d');
@@ -539,23 +628,81 @@ public function previewClosing()
         return redirect()->route('kasir.kelola')->with('error', 'Tidak ada alur kas aktif yang bisa ditutup!');
     }
 
-    // Hitung Rincian Pemasukan dari Riwayat Pembayaran
+    // REKAP TRANSAKSI - nota yang ORDER-nya dibuat hari ini (tgl_order),
+    // dipecah per Mesin/Divisi produk (Jasa & produk tanpa mesin masuk
+    // "Jasa / Lain-lain"). Ini "Nota Order Cetak" di referensi.
+    $rekapKategori = DB::table('transaksi_detail')
+        ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
+        ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+        ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
+        ->whereDate('transaksi.tgl_order', $hari_ini)
+        ->where('transaksi.status_nota', '!=', 'Dibatalkan')
+        ->select(
+            DB::raw("COALESCE(mesin.nama_mesin, 'Jasa / Lain-lain') as kategori"),
+            DB::raw('SUM(transaksi_detail.subtotal) as total')
+        )
+        ->groupBy('kategori')
+        ->orderByDesc('total')
+        ->get();
+
+    $totalNotaOrder = (float) $rekapKategori->sum('total');
+
+    // Piutang Nota Order - sisa tagihan (belum dibayar) KHUSUS dari nota
+    // yang order-nya dibuat hari ini (bukan seluruh piutang lama).
+    $notaHariIni = DB::table('transaksi')
+        ->whereDate('tgl_order', $hari_ini)
+        ->where('status_nota', '!=', 'Dibatalkan')
+        ->select('id_transaksi', 'total_bayar')
+        ->get();
+    $totalTerbayarNotaHariIni = DB::table('pembayaran_riwayat')
+        ->whereIn('id_transaksi', $notaHariIni->pluck('id_transaksi'))
+        ->sum('nominal');
+    $piutangNotaOrder = max(0, $totalNotaOrder - (float) $totalTerbayarNotaHariIni);
+    $totalPendapatan = $totalNotaOrder - $piutangNotaOrder;
+
+    // REKAP PEMBAYARAN - seluruh pembayaran yang diterima HARI INI (tgl_bayar),
+    // dipecah: "Bayar Pelunasan" (melunasi/mencicil nota yang ORDER-nya dari
+    // hari-hari SEBELUMNYA) vs "Bayar Transaksi Hari Ini" (nota yang order &
+    // bayarnya sama-sama hari ini).
+    $pembayaranHariIni = DB::table('pembayaran_riwayat')
+        ->join('transaksi', 'pembayaran_riwayat.id_transaksi', '=', 'transaksi.id_transaksi')
+        ->whereDate('pembayaran_riwayat.tgl_bayar', $hari_ini)
+        ->select('pembayaran_riwayat.nominal', 'pembayaran_riwayat.metode', DB::raw('DATE(transaksi.tgl_order) as tgl_order_date'))
+        ->get();
+    $bayarPelunasan = (float) $pembayaranHariIni->where('tgl_order_date', '!=', $hari_ini)->sum('nominal');
+    $bayarHariIni = (float) $pembayaranHariIni->where('tgl_order_date', $hari_ini)->sum('nominal');
+
+    // Hitung Rincian Pemasukan dari Riwayat Pembayaran (per metode, seluruh
+    // pembayaran hari ini apa pun tanggal order-nya - dipakai utk mutasi laci).
     $pemasukan = DB::table('pembayaran_riwayat')
         ->whereDate('tgl_bayar', $hari_ini)
         ->select(
             DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
             DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk"),
-            DB::raw("SUM(CASE WHEN metode = 'Debit' THEN nominal ELSE 0 END) as debit_masuk")
+            DB::raw("SUM(CASE WHEN metode = 'Debit' THEN nominal ELSE 0 END) as debit_masuk"),
+            DB::raw("SUM(CASE WHEN metode = 'Deposit' THEN nominal ELSE 0 END) as deposit_masuk")
         )->first();
 
-    // Belum ada tabel pengeluaran/kas_keluar di database, jadi pengeluaran tunai
-    // sementara selalu 0 sampai fitur "Kas Keluar" benar-benar dibangun.
-    $pengeluaran_tunai = 0;
+    // "Kas Tidak Terduga" - satu-satunya sumber pengeluaran tunai riil di
+    // app ini (nota selalu pemasukan, tidak pernah pengeluaran).
+    $manual = DB::table('kas_manual')
+        ->where('id_kas', $kas->id_kas)
+        ->select(
+            DB::raw("SUM(CASE WHEN status = 'Masuk' THEN nominal ELSE 0 END) as manual_masuk"),
+            DB::raw("SUM(CASE WHEN status = 'Keluar' THEN nominal ELSE 0 END) as manual_keluar")
+        )->first();
+    $manualMasuk = (float) ($manual->manual_masuk ?? 0);
+    $pengeluaran_tunai = (float) ($manual->manual_keluar ?? 0);
 
-    // Kalkulasi Saldo Akhir Laci (Hanya Tunai)
-    $saldo_akhir_sistem = ($kas->saldo_awal + $pemasukan->tunai_masuk) - $pengeluaran_tunai;
+    // Kalkulasi Saldo Akhir Laci (Hanya Tunai - Transfer/Debit/Deposit tidak
+    // pernah menyentuh uang fisik di laci).
+    $saldo_akhir_sistem = ($kas->saldo_awal + $pemasukan->tunai_masuk + $manualMasuk) - $pengeluaran_tunai;
 
-    return view('kasir.preview_closing', compact('kas', 'pemasukan', 'pengeluaran_tunai', 'saldo_akhir_sistem'));
+    return view('kasir.preview_closing', compact(
+        'kas', 'pemasukan', 'pengeluaran_tunai', 'saldo_akhir_sistem',
+        'rekapKategori', 'totalNotaOrder', 'piutangNotaOrder', 'totalPendapatan',
+        'bayarPelunasan', 'bayarHariIni', 'manualMasuk'
+    ));
 }
 
 public function simpanClosing(Request $request)
@@ -595,8 +742,18 @@ public function simpanClosing(Request $request)
         $tunaiMasuk = (float) ($pemasukan->tunai_masuk ?? 0);
         $transferMasuk = (float) ($pemasukan->transfer_masuk ?? 0);
         $debitMasuk = (float) ($pemasukan->debit_masuk ?? 0);
-        $tunaiKeluar = 0; // Belum ada fitur Kas Keluar - lihat catatan di previewClosing().
-        $saldoAkhirSistem = $kas->saldo_awal + $tunaiMasuk - $tunaiKeluar;
+
+        // "Kas Tidak Terduga" - lihat catatan yang sama di previewClosing().
+        $manual = DB::table('kas_manual')
+            ->where('id_kas', $kas->id_kas)
+            ->select(
+                DB::raw("SUM(CASE WHEN status = 'Masuk' THEN nominal ELSE 0 END) as manual_masuk"),
+                DB::raw("SUM(CASE WHEN status = 'Keluar' THEN nominal ELSE 0 END) as manual_keluar")
+            )->first();
+        $manualMasuk = (float) ($manual->manual_masuk ?? 0);
+        $tunaiKeluar = (float) ($manual->manual_keluar ?? 0);
+
+        $saldoAkhirSistem = $kas->saldo_awal + $tunaiMasuk + $manualMasuk - $tunaiKeluar;
         $selisih = $saldo_fisik - $saldoAkhirSistem;
 
         DB::table('kas_harian')->where('id_kas', $id_kas)->update([

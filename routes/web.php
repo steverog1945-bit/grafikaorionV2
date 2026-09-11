@@ -212,6 +212,9 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
         Route::get('/store-kas',
             [KasirController::class, 'storeKas']);
 
+        Route::post('/kas-manual',
+            [KasirController::class, 'storeKasManual'])->name('kas-manual.store');
+
         Route::post('/proses-closing',
             [KasirController::class, 'prosesClosing'])->name('proses-closing');
 

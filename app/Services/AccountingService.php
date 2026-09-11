@@ -29,7 +29,9 @@ class AccountingService
     private const AKUN_HUTANG_DEPOSIT = '2100';
     private const AKUN_PENDAPATAN_PENJUALAN = '4000';
     private const AKUN_PENDAPATAN_JASA = '4100';
+    private const AKUN_PENDAPATAN_LAIN_LAIN = '4200';
     private const AKUN_HPP = '5000';
+    private const AKUN_BIAYA_LAIN_LAIN = '5100';
 
     /**
      * @param array<int, array{kode_akun: string, debet?: float, kredit?: float}> $lines
@@ -131,6 +133,31 @@ class AccountingService
             ['kode_akun' => $akunKasMasuk, 'debet' => $nominal],
             ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'kredit' => $nominal],
         ]);
+    }
+
+    /**
+     * "Kas Tidak Terduga" (KasirController::storeKasManual) - mutasi kas
+     * tunai yang TIDAK terikat nota penjualan (mis. pengeluaran operasional
+     * dadakan, kas masuk di luar penjualan). $status: 'Masuk' -> Dr Kas /
+     * Cr Pendapatan Lain-lain, 'Keluar' -> Dr Biaya Lain-lain / Cr Kas.
+     */
+    public static function postKasManual(string $noReferensi, float $nominal, string $status): void
+    {
+        if ($nominal <= 0) {
+            return;
+        }
+
+        $lines = $status === 'Masuk'
+            ? [
+                ['kode_akun' => self::AKUN_KAS, 'debet' => $nominal],
+                ['kode_akun' => self::AKUN_PENDAPATAN_LAIN_LAIN, 'kredit' => $nominal],
+            ]
+            : [
+                ['kode_akun' => self::AKUN_BIAYA_LAIN_LAIN, 'debet' => $nominal],
+                ['kode_akun' => self::AKUN_KAS, 'kredit' => $nominal],
+            ];
+
+        self::postJournal(now()->toDateString(), $noReferensi, "Kas Tidak Terduga ({$status}) {$noReferensi}", $lines);
     }
 
     /**
