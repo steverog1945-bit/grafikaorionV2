@@ -179,21 +179,31 @@
     function cancelSpk(id) {
         Swal.fire({
             title: 'Batalkan SPK ini?',
-            text: 'Status akan diubah menjadi Batal. Stok bahan baku TIDAK diubah otomatis.',
+            html: `
+                <p class="text-sm text-slate-500 text-left mb-3">Status item ini akan diubah menjadi Batal.</p>
+                <input id="swal-alasan-batal" class="swal2-input" placeholder="Alasan pembatalan (opsional)">
+                <label class="flex items-start gap-2 text-left text-sm text-slate-600 mt-3 px-1 cursor-pointer">
+                    <input type="checkbox" id="swal-kembalikan-stok" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                    <span>Kembalikan bahan baku yang sudah dipotong ke stok<br><small class="text-slate-400">Centang HANYA kalau materialnya belum benar-benar dipakai/rusak.</small></span>
+                </label>
+            `,
             icon: 'warning',
-            input: 'text',
-            inputPlaceholder: 'Alasan pembatalan (opsional)',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
             confirmButtonText: 'Ya, Batalkan',
             cancelButtonText: 'Kembali',
-            customClass: { popup: 'rounded-[2rem]' }
+            customClass: { popup: 'rounded-[2rem]' },
+            preConfirm: () => ({
+                alasan: document.getElementById('swal-alasan-batal').value,
+                kembalikanStok: document.getElementById('swal-kembalikan-stok').checked,
+            })
         }).then((result) => {
             if (result.isConfirmed) {
+                const { alasan, kembalikanStok } = result.value;
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = `{{ url('produksi') }}/${id}/cancel`;
-                form.innerHTML = `@csrf @method('PATCH')<input type="hidden" name="alasan_batal" value="${(result.value || '').replace(/"/g, '&quot;')}">`;
+                form.innerHTML = `@csrf @method('PATCH')<input type="hidden" name="alasan_batal" value="${(alasan || '').replace(/"/g, '&quot;')}"><input type="hidden" name="kembalikan_stok" value="${kembalikanStok ? '1' : '0'}">`;
                 document.body.appendChild(form);
                 form.submit();
             }
