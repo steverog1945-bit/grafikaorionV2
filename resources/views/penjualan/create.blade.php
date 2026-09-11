@@ -146,18 +146,12 @@
                         <input type="number" id="input_qty_biasa" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-3 text-2xl font-black text-center" value="1">
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <x-form.group label="Status Urgensi">
                             <x-form.select id="input_status_urgensi">
                                 <option value="Normal">Normal</option>
                                 <option value="Urgent">Urgent</option>
                                 <option value="Very Urgent">Very Urgent</option>
-                            </x-form.select>
-                        </x-form.group>
-                        <x-form.group label="Status Finishing">
-                            <x-form.select id="input_status_finishing">
-                                <option value="Standar">Standar</option>
-                                <option value="Custom">Custom</option>
                             </x-form.select>
                         </x-form.group>
                         <x-form.group label="Thumbnail Gambar" required>
@@ -198,6 +192,13 @@
                                     @foreach($finishing as $f)
                                         <option value="{{ $f->id_finishing }}" data-harga="{{ $f->harga_default ?? 0 }}">{{ $f->nama_finishing }}</option>
                                     @endforeach
+                                </select>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Spek Finishing</p>
+                                <select id="input_status_finishing" disabled class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed">
+                                    <option value="Standar">Standar</option>
+                                    <option value="Custom">Custom</option>
                                 </select>
                             </div>
                             <div class="text-right">
@@ -671,6 +672,19 @@
         const opt = sel.options[sel.selectedIndex];
         const harga = opt ? parseFloat(opt.getAttribute('data-harga')) || 0 : 0;
         document.getElementById('input_finishing_biaya').value = harga;
+
+        // Spek finishing (Standar/Custom) cuma bermakna kalau ada jenis
+        // finishing yang dipilih - satu-satunya sumber "sudah pilih
+        // finishing atau belum" sekarang cuma dropdown ini, supaya tidak
+        // ada dua tempat terpisah yang bisa saling bertentangan.
+        const statusFinishing = document.getElementById('input_status_finishing');
+        if (sel.value) {
+            statusFinishing.disabled = false;
+        } else {
+            statusFinishing.disabled = true;
+            statusFinishing.value = 'Standar';
+        }
+
         hitungSubtotal();
     }
 
@@ -960,6 +974,7 @@
             document.getElementById('select_finishing').value = item.id_finishing || '';
             document.getElementById('input_finishing_biaya').value = item.biaya_finishing || 0;
             document.getElementById('input_status_urgensi').value = item.status_urgensi || 'Normal';
+            document.getElementById('input_status_finishing').disabled = !item.id_finishing;
             document.getElementById('input_status_finishing').value = item.status_finishing || 'Standar';
             document.getElementById('input_catatan_produksi').value = item.catatan_produksi || '';
             currentThumbnail = item.thumbnail || null;
@@ -991,6 +1006,7 @@
         document.getElementById('select_finishing').value = "";
         document.getElementById('input_finishing_biaya').value = "0";
         document.getElementById('input_status_urgensi').value = "Normal";
+        document.getElementById('input_status_finishing').disabled = true;
         document.getElementById('input_status_finishing').value = "Standar";
         document.getElementById('input_catatan_produksi').value = "";
         document.getElementById('input_thumbnail').value = "";
