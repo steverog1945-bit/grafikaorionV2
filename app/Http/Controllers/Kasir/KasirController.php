@@ -212,11 +212,24 @@ class KasirController extends Controller
                 }
             }
 
-            // 1. Update Detail Barang. Kasir memang sengaja diberi wewenang untuk
-            // menyesuaikan harga di sini (lihat label "Penyesuaian Harga" di form) -
-            // itu TIDAK dihapus. Yang dijaga hanya batas wajarnya: harga tidak boleh
-            // negatif, dan qty dipakai dari data transaksi_detail yang tersimpan
-            // (bukan dari field tersembunyi di request) supaya tidak bisa dikalikan
+            // 1. Update Detail Barang ("Custom Harga" per item). Kasir memang
+            // sengaja diberi wewenang untuk menyesuaikan harga & biaya di sini -
+            // itu TIDAK dihapus, malah diperluas supaya biaya_cetak/biaya_desain/
+            // biaya_finishing juga bisa dikoreksi (mis. operator lupa
+            // menambahkannya saat nota dibuat), plus "potongan" (diskon per
+            // item) untuk kasus itu juga.
+            //
+            // SEBELUMNYA baris ini HANYA mengganti subtotal = harga_baru * qty,
+            // diam-diam MEMBUANG biaya_cetak/biaya_finishing yang sudah
+            // tersimpan (kolom aslinya tidak disentuh sama sekali) - subtotal
+            // jadi tidak sinkron lagi dengan biaya_cetak/finishing yang masih
+            // tampil di SPK/Produksi/cetak nota. Sekarang SEMUA komponen
+            // (harga, cetak, desain, finishing, potongan) dibaca & disimpan
+            // bersamaan supaya subtotal selalu konsisten dengan kolom-kolom
+            // penyusunnya.
+            //
+            // qty dipakai dari data transaksi_detail yang tersimpan (bukan
+            // dari field tersembunyi di request) supaya tidak bisa dikalikan
             // dengan qty palsu untuk memperbesar/memperkecil subtotal di luar
             // penyesuaian harga yang sesungguhnya dimaksud.
             if ($request->items) {
@@ -230,14 +243,32 @@ class KasirController extends Controller
                         continue;
                     }
 
-                    $harga_bersih = (float) str_replace('.', '', $data['harga'] ?? 0);
+                    $bersihkan = fn ($v) => (float) str_replace('.', '', (string) ($v ?? 0));
 
-                    if ($harga_bersih < 0) {
-                        throw new \Exception("Harga unit tidak boleh negatif.");
+                    $hargaBersih = $bersihkan($data['harga'] ?? 0);
+                    $biayaCetakBaru = $bersihkan($data['biaya_cetak'] ?? $detailRow->biaya_cetak);
+                    $biayaDesainBaru = $bersihkan($data['biaya_desain'] ?? $detailRow->biaya_desain);
+                    $biayaFinishingBaru = $bersihkan($data['biaya_finishing'] ?? $detailRow->biaya_finishing);
+                    $potonganBaru = $bersihkan($data['potongan'] ?? 0);
+
+                    foreach (['Harga unit' => $hargaBersih, 'Biaya cetak' => $biayaCetakBaru, 'Biaya desain' => $biayaDesainBaru, 'Biaya finishing' => $biayaFinishingBaru, 'Potongan' => $potonganBaru] as $label => $nilai) {
+                        if ($nilai < 0) {
+                            throw new \Exception("{$label} tidak boleh negatif.");
+                        }
+                    }
+
+                    $subtotalBaru = ($hargaBersih * $detailRow->qty) + $biayaCetakBaru + $biayaDesainBaru + $biayaFinishingBaru - $potonganBaru;
+
+                    if ($subtotalBaru < 0) {
+                        throw new \Exception("Potongan untuk item \"{$detailRow->nama_file}\" tidak boleh lebih besar dari total item itu sendiri.");
                     }
 
                     DB::table('transaksi_detail')->where('id_detail', $id_detail)->update([
-                        'subtotal' => $harga_bersih * $detailRow->qty
+                        'biaya_cetak'     => $biayaCetakBaru,
+                        'biaya_desain'    => $biayaDesainBaru,
+                        'biaya_finishing' => $biayaFinishingBaru,
+                        'potongan'        => $potonganBaru,
+                        'subtotal'        => $subtotalBaru,
                     ]);
                 }
             }

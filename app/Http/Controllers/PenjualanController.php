@@ -223,6 +223,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             'id_finishing' => $idFinishing,
             'biaya_finishing' => $biayaFinishing,
             'biaya_cetak' => $biayaCetak,
+            'biaya_desain' => $biayaDesain,
             'status_urgensi' => $statusUrgensi,
             'status_finishing' => $statusFinishing,
             'subtotal' => ($hargaSatuan * $qtyHitung) + $biayaDesain + $biayaFinishing + $biayaCetak,
@@ -291,6 +292,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                 'id_finishing'     => $item['id_finishing'],
                 'biaya_finishing'  => $item['biaya_finishing'],
                 'biaya_cetak'      => $item['biaya_cetak'],
+                'biaya_desain'     => $item['biaya_desain'],
                 'status_urgensi'   => $item['status_urgensi'],
                 // status_urgent (kolom lama, tinyint) tetap diisi supaya
                 // layar SPK yang sudah ada (toggleUrgent/bulkUrgent, sorting
