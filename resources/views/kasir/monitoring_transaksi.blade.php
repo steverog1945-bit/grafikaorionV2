@@ -21,9 +21,37 @@
         </button>
     </div>
 
+    {{-- LOCK KASIR - $kasAktif dibagikan global lewat AppServiceProvider.
+         Peringatan yang sama juga ada di Antrean Baru & Form Pembayaran
+         (di sanalah aksinya benar-benar dikunci) - di sini murni supaya
+         siapa pun yang membuka Monitoring langsung tahu kondisinya tanpa
+         perlu masuk ke halaman lain dulu. --}}
+    @if(!$kasAktif)
+    <div class="mb-6 flex items-center gap-3 bg-amber-50 border-2 border-amber-200 rounded-2xl px-5 py-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-lg">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="flex-1">
+            <p class="text-sm font-black text-amber-800 uppercase tracking-wide">Kas Kasir Belum Dibuka</p>
+            <p class="text-xs text-amber-600 mt-0.5">Pencatatan pembayaran baru terkunci sampai saldo kas hari ini dibuka.</p>
+        </div>
+        <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0">
+            <i class="fas fa-wallet"></i> Buka Kas Sekarang
+        </x-button>
+    </div>
+    @endif
+
     {{-- FILTER --}}
     <x-card class="mb-6">
         <form method="GET" action="{{ route('kasir.index') }}" class="flex flex-wrap items-end gap-4">
+            {{-- Penanda "form filter ini memang disubmit" - membedakan nav
+                 pertama ke halaman ini (tanpa query string sama sekali,
+                 default tampilkan yang belum lunas saja) dari submit
+                 eksplisit dengan Status Transaksi dikosongkan/"-- Semua
+                 Status --" (yang berarti benar-benar tampilkan semua,
+                 termasuk Lunas). Lihat KasirController::index(). --}}
+            <input type="hidden" name="status_filtered" value="1">
+
             <div class="w-full md:w-40">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
                 <x-form.input type="date" name="tgl_mulai" value="{{ request('tgl_mulai') }}" />
@@ -53,6 +81,7 @@
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Transaksi</label>
                 <x-form.select name="status_bayar">
                     <option value="">-- Semua Status --</option>
+                    <option value="Belum Bayar" {{ request('status_bayar') === 'Belum Bayar' ? 'selected' : '' }}>Belum Bayar</option>
                     <option value="DP" {{ request('status_bayar') === 'DP' ? 'selected' : '' }}>DP / Panjar</option>
                     <option value="Lunas" {{ request('status_bayar') === 'Lunas' ? 'selected' : '' }}>Lunas</option>
                 </x-form.select>
@@ -106,6 +135,16 @@
                 </td>
                 <td class="px-6 py-5 text-right">
                     <span class="text-[13px] font-bold text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>
+                    {{-- Rincian "sudah terbayar berapa" untuk status DP - data
+                         ini sebelumnya SUDAH diambil lewat subquery total_masuk
+                         (lihat KasirController::index()) tapi tidak pernah
+                         ditampilkan di sini, jadi begitu status berubah dari DP
+                         ke Lunas, jejak cicilannya seolah "menghilang" karena
+                         cuma bisa dilihat lewat modal Riwayat Proses terpisah. --}}
+                    @if($t->status_pembayaran === 'DP')
+                        <div class="text-[10px] text-emerald-500 font-bold mt-0.5">Terbayar Rp {{ number_format($t->total_masuk ?? 0, 0, ',', '.') }}</div>
+                        <div class="text-[10px] text-amber-500 font-bold">Sisa Rp {{ number_format($t->total_bayar - ($t->total_masuk ?? 0), 0, ',', '.') }}</div>
+                    @endif
                 </td>
                 <td class="px-4 py-5 text-center">
                     <x-badge :status="$t->status_pembayaran" />

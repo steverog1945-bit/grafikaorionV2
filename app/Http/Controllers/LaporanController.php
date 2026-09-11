@@ -168,6 +168,7 @@ class LaporanController extends Controller
         $ringkasanQuery = clone $query;
         $totalTunaiMasuk = (clone $ringkasanQuery)->sum('kas_harian.total_tunai_masuk');
         $totalTransferMasuk = (clone $ringkasanQuery)->sum('kas_harian.total_transfer_masuk');
+        $totalDebitMasuk = (clone $ringkasanQuery)->sum('kas_harian.total_debit_masuk');
         $totalKeluar = (clone $ringkasanQuery)->sum('kas_harian.total_tunai_keluar');
         $totalSelisih = (clone $ringkasanQuery)->sum('kas_harian.selisih');
         $jumlahSesi = (clone $ringkasanQuery)->count();
@@ -176,7 +177,7 @@ class LaporanController extends Controller
 
         return view('laporan.kas', compact(
             'data', 'tglDari', 'tglSampai',
-            'totalTunaiMasuk', 'totalTransferMasuk', 'totalKeluar', 'totalSelisih', 'jumlahSesi'
+            'totalTunaiMasuk', 'totalTransferMasuk', 'totalDebitMasuk', 'totalKeluar', 'totalSelisih', 'jumlahSesi'
         ));
     }
 }

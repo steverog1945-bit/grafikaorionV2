@@ -11,6 +11,31 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- LOCK KASIR - $kasAktif dibagikan global ke semua view lewat
+         AppServiceProvider (view composer '*'), jadi tersedia di sini tanpa
+         perlu dioper eksplisit dari KasirController::bayarForm(). Sebelumnya
+         TIDAK ada peringatan sama sekali di halaman ini - kasir baru tahu
+         kas belum dibuka SETELAH mengisi form lengkap & klik Bayar (pesan
+         error muncul dari validasi server di prosesBayar()). Sekarang
+         dikunci dari awal: tombol Bayar dinonaktifkan kalau kas belum
+         dibuka, supaya waktu kasir tidak terbuang mengisi form yang pasti
+         ditolak. Tombol "Simpan" (tanpa uang masuk, cuma menyimpan status
+         DP/antrean) TETAP aktif - tidak menyentuh kas sama sekali. --}}
+    @if(!$kasAktif)
+    <div class="mb-5 flex items-center gap-3 bg-amber-50 border-2 border-amber-200 rounded-2xl px-5 py-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-lg">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="flex-1">
+            <p class="text-sm font-black text-amber-800 uppercase tracking-wide">Kas Kasir Belum Dibuka</p>
+            <p class="text-xs text-amber-600 mt-0.5">Anda tidak bisa mencatat pembayaran sebelum membuka saldo kas hari ini. Nota tetap bisa disimpan sebagai antrean (tanpa uang masuk).</p>
+        </div>
+        <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0">
+            <i class="fas fa-wallet"></i> Buka Kas
+        </x-button>
+    </div>
+    @endif
+
     {{-- INFO NOTA & KONSUMEN - satu baris ringkas (foto acuan order, nama
          konsumen, nomor nota, golongan) mengikuti referensi "Pelunasan
          Transaksi" - sebelumnya cuma teks kecil di subtitle page-header,
@@ -211,25 +236,31 @@
 
                         {{-- Metode Pembayaran disederhanakan dari <select> polos jadi
                              pill-button minimalist - TANPA mengurangi fungsi:
-                             Tunai/Transfer/Deposit ketiganya tetap ada & tetap
-                             men-submit field metode_pembayaran seperti sebelumnya. --}}
+                             Tunai/Debit/Transfer/Deposit keempatnya tetap ada &
+                             tetap men-submit field metode_pembayaran seperti
+                             sebelumnya (Debit ditambahkan - lihat migrasi
+                             2026_09_11_250000: kartu debit sebelumnya tidak
+                             punya opsi sendiri, kasir terpaksa mencatatnya
+                             sebagai Transfer padahal beda sumber uang). --}}
                         <div>
                             <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Metode Pembayaran</label>
-                            <div class="grid grid-cols-1 gap-1.5">
+                            <div class="grid grid-cols-2 gap-1.5">
                                 <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-black text-[11px] uppercase cursor-pointer transition-all">
                                     <input type="radio" name="metode_pembayaran" id="metode-tunai" value="Tunai" class="sr-only" checked onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-money-bill-wave"></i> Tunai
                                 </label>
-                                <div class="grid grid-cols-2 gap-1.5">
-                                    <label class="metode-bayar-option relative flex items-center justify-center gap-1 py-2 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all">
-                                        <input type="radio" name="metode_pembayaran" value="Transfer" class="sr-only" onchange="onMetodePembayaranChange()">
-                                        <i class="fas fa-university"></i> Transfer
-                                    </label>
-                                    <label class="metode-bayar-option relative flex items-center justify-center gap-1 py-2 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}">
-                                        <input type="radio" name="metode_pembayaran" value="Deposit" class="sr-only" {{ $saldoDeposit <= 0 ? 'disabled' : '' }} onchange="onMetodePembayaranChange()">
-                                        <i class="fas fa-wallet"></i> Deposit
-                                    </label>
-                                </div>
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-1 py-2 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all">
+                                    <input type="radio" name="metode_pembayaran" value="Debit" class="sr-only" onchange="onMetodePembayaranChange()">
+                                    <i class="fas fa-credit-card"></i> Debit
+                                </label>
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-1 py-2 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all">
+                                    <input type="radio" name="metode_pembayaran" value="Transfer" class="sr-only" onchange="onMetodePembayaranChange()">
+                                    <i class="fas fa-university"></i> Transfer
+                                </label>
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-1 py-2 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}">
+                                    <input type="radio" name="metode_pembayaran" value="Deposit" class="sr-only" {{ $saldoDeposit <= 0 ? 'disabled' : '' }} onchange="onMetodePembayaranChange()">
+                                    <i class="fas fa-wallet"></i> Deposit
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -284,7 +315,7 @@
                         <button type="button" onclick="simpanSaja()" class="flex items-center justify-center gap-1.5 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold text-[11px] uppercase tracking-wide transition-all">
                             <i class="fas fa-inbox"></i> Simpan
                         </button>
-                        <button type="submit" class="flex items-center justify-center gap-1.5 py-3 bg-white text-indigo-600 hover:bg-indigo-50 rounded-xl font-bold text-[11px] uppercase tracking-wide transition-all">
+                        <button type="submit" {{ !$kasAktif ? 'disabled title="Kas belum dibuka - lihat peringatan di atas"' : '' }} class="flex items-center justify-center gap-1.5 py-3 bg-white text-indigo-600 hover:bg-indigo-50 rounded-xl font-bold text-[11px] uppercase tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white">
                             <i class="fas fa-cash-register"></i> Bayar
                         </button>
                     </div>

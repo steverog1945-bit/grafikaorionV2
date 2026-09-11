@@ -70,6 +70,10 @@
                 <span class="block text-[9px] font-black text-emerald-600 uppercase">Total Tunai</span>
                 <span class="font-bold text-emerald-700">Rp {{ number_format($data_kas->sum('nominal_tunai'), 0, ',', '.') }}</span>
             </div>
+            <div class="px-4 py-2 bg-sky-50 rounded-xl border border-sky-100 text-right">
+                <span class="block text-[9px] font-black text-sky-600 uppercase">Total Debit</span>
+                <span class="font-bold text-sky-700">Rp {{ number_format($data_kas->sum('nominal_debit'), 0, ',', '.') }}</span>
+            </div>
             <div class="px-4 py-2 bg-blue-50 rounded-xl border border-blue-100 text-right">
                 <span class="block text-[9px] font-black text-blue-600 uppercase">Total Transfer</span>
                 <span class="font-bold text-blue-700">Rp {{ number_format($data_kas->sum('nominal_transfer'), 0, ',', '.') }}</span>
@@ -99,15 +103,30 @@
                 <td class="p-4">
                     <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-600">#{{ $m->nomor_nota }}</span>
                 </td>
+                {{-- Sebelumnya cuma dibedakan Tunai vs "selain Tunai" (dianggap
+                     selalu Transfer) - Debit & Deposit ikut kepencet label
+                     TRANSFER yang salah. Sekarang eksplisit 4 metode. --}}
                 <td class="p-4 text-center">
                     @if($m->metode == 'Tunai')
                         <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-[9px] font-black"><i class="fas fa-money-bill-wave mr-1"></i>TUNAI</span>
+                    @elseif($m->metode == 'Debit')
+                        <span class="px-2 py-1 bg-sky-100 text-sky-700 rounded-lg text-[9px] font-black"><i class="fas fa-credit-card mr-1"></i>DEBIT</span>
+                    @elseif($m->metode == 'Deposit')
+                        <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-[9px] font-black"><i class="fas fa-wallet mr-1"></i>DEPOSIT</span>
                     @else
                         <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black"><i class="fas fa-university mr-1"></i>TRANSFER</span>
                     @endif
                 </td>
                 <td class="p-4 text-right">
-                    <span class="font-black {{ $m->metode == 'Tunai' ? 'text-emerald-600' : 'text-blue-600' }}">
+                    @php
+                        $warnaNominal = match($m->metode) {
+                            'Tunai' => 'text-emerald-600',
+                            'Debit' => 'text-sky-600',
+                            'Deposit' => 'text-purple-600',
+                            default => 'text-blue-600',
+                        };
+                    @endphp
+                    <span class="font-black {{ $warnaNominal }}">
                         Rp {{ number_format($m->nominal, 0, ',', '.') }}
                     </span>
                 </td>

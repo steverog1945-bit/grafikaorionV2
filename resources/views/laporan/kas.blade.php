@@ -57,7 +57,7 @@
     </x-card>
 
     {{-- RESUME --}}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-6">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Sesi</p>
             <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($jumlahSesi, 0, ',', '.') }}</h3>
@@ -69,6 +69,10 @@
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Transfer Masuk</p>
             <h3 class="text-2xl font-bold text-indigo-600 mt-1">Rp {{ number_format($totalTransferMasuk, 0, ',', '.') }}</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Debit Masuk</p>
+            <h3 class="text-2xl font-bold text-sky-600 mt-1">Rp {{ number_format($totalDebitMasuk, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Selisih</p>
@@ -84,6 +88,7 @@
                 <th class="px-4 py-5 text-right">Saldo Awal</th>
                 <th class="px-4 py-5 text-right">Tunai Masuk</th>
                 <th class="px-4 py-5 text-right">Transfer Masuk</th>
+                <th class="px-4 py-5 text-right">Debit Masuk</th>
                 <th class="px-4 py-5 text-right">Tunai Keluar</th>
                 <th class="px-4 py-5 text-right">Saldo Fisik</th>
                 <th class="px-4 py-5 text-right">Selisih</th>
@@ -109,6 +114,9 @@
                     <span class="text-[12px] text-indigo-600 font-bold">Rp {{ number_format($k->total_transfer_masuk, 0, ',', '.') }}</span>
                 </td>
                 <td class="px-4 py-5 text-right">
+                    <span class="text-[12px] text-sky-600 font-bold">Rp {{ number_format($k->total_debit_masuk ?? 0, 0, ',', '.') }}</span>
+                </td>
+                <td class="px-4 py-5 text-right">
                     <span class="text-[12px] text-rose-500 font-semibold">Rp {{ number_format($k->total_tunai_keluar, 0, ',', '.') }}</span>
                 </td>
                 <td class="px-4 py-5 text-right">
@@ -131,7 +139,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="9">
+                <td colspan="10">
                     <x-empty-state title="Tidak ada sesi kas" description="Sesuaikan filter tanggal untuk melihat rekap kas." />
                 </td>
             </tr>

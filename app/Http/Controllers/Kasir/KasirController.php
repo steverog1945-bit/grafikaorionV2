@@ -18,7 +18,12 @@ class KasirController extends Controller
             ->where('status_pembayaran', 'Belum Bayar')
             ->count();
 
-        // 2. Query Monitoring Utama (Hanya yang SUDAH DIPROSES: DP/Lunas)
+        // 2. Query Monitoring Utama - SEMUA status (Belum Bayar/DP/Lunas)
+        // sekarang ikut ditampilkan & bisa difilter di sini (sebelumnya
+        // Belum Bayar dikecualikan paksa dari halaman ini sama sekali, cuma
+        // bisa dilihat lewat "Antrean Baru" terpisah - operator yang ingin
+        // rekap SEMUA nota, termasuk yang benar-benar belum disentuh kasir,
+        // tidak punya satu tempat untuk itu).
         $query = DB::table('transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->join('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
@@ -28,7 +33,6 @@ class KasirController extends Controller
                 'users.username',
                 DB::raw("(SELECT SUM(nominal) FROM pembayaran_riwayat WHERE pembayaran_riwayat.id_transaksi = transaksi.id_transaksi) as total_masuk")
             )
-            ->where('transaksi.status_pembayaran', '!=', 'Belum Bayar') // Sembunyikan yang belum disentuh kasir
             // Nota yang sudah dibatalkan (lihat PenjualanController::batalkanNota)
             // tidak perlu terus "dimonitor" pembayarannya di sini - sebelumnya
             // luput dikecualikan waktu fitur batal-nota ditambahkan, jadi nota
@@ -43,10 +47,6 @@ class KasirController extends Controller
             $query->where('transaksi.nomor_nota', 'like', "%{$request->nomor_nota}%");
         }
 
-        if ($request->status_bayar) {
-            $query->where('transaksi.status_pembayaran', $request->status_bayar);
-        }
-
         if ($request->filled('tgl_mulai')) {
             $query->whereDate('transaksi.tgl_order', '>=', $request->tgl_mulai);
         }
@@ -54,14 +54,27 @@ class KasirController extends Controller
             $query->whereDate('transaksi.tgl_order', '<=', $request->tgl_selesai);
         }
 
+        // Status: kalau operator MEMILIH status tertentu, ikuti pilihannya
+        // (termasuk pilihan eksplisit "-- Semua Status --" = tidak difilter
+        // sama sekali, ditandai dari hidden input "status_filtered" yang ikut
+        // terkirim setiap kali form filter ini disubmit). Kalau halaman baru
+        // dibuka TANPA filter apa pun (nav pertama dari sidebar), default-nya
+        // tampilkan yang masih perlu ditagih saja (Belum Bayar + DP) - nota
+        // yang sudah Lunas tetap bisa dicari kapan saja lewat filter status.
+        if ($request->filled('status_bayar')) {
+            $query->where('transaksi.status_pembayaran', $request->status_bayar);
+        } elseif (!$request->has('status_filtered')) {
+            $query->whereIn('transaksi.status_pembayaran', ['Belum Bayar', 'DP']);
+        }
+
         $transaksi = $query->orderBy('transaksi.updated_at', 'desc')->paginate(15)->withQueryString();
 
         // Dropdown filter Konsumen - dibatasi ke konsumen yang memang pernah
-        // punya transaksi DP/Lunas (bukan seluruh master konsumen), supaya
-        // daftar pilihan relevan dan tidak membengkak tanpa guna.
+        // bertransaksi (bukan seluruh master konsumen), supaya daftar
+        // pilihan relevan dan tidak membengkak tanpa guna.
         $konsumenList = DB::table('transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
-            ->where('transaksi.status_pembayaran', '!=', 'Belum Bayar')
+            ->where('transaksi.status_nota', '!=', 'Dibatalkan')
             ->select('konsumen.id_konsumen', 'konsumen.nama_konsumen')
             ->distinct()
             ->orderBy('konsumen.nama_konsumen')
@@ -94,22 +107,26 @@ class KasirController extends Controller
                 throw new \Exception('Sesi kas sudah ditutup atau tidak ditemukan.');
             }
 
-            // Rincian tunai/transfer DIHITUNG ULANG dari pembayaran_riwayat (sama
-            // seperti simpanClosing()) dan disimpan ke kolom total_tunai_masuk/
-            // total_transfer_masuk/total_tunai_keluar. Sebelumnya kolom-kolom ini
-            // tidak pernah diisi oleh alur closing yang benar-benar terhubung ke
-            // tombol "CLOSING KAS SEKARANG", sehingga nota cetak closing
-            // (print_closing.blade.php) selalu menampilkan Rp 0 untuk semua
-            // rincian pemasukan/pengeluaran walau uang sungguhan sudah masuk.
+            // Rincian tunai/transfer/debit DIHITUNG ULANG dari pembayaran_riwayat
+            // (sama seperti simpanClosing()) dan disimpan ke kolom
+            // total_tunai_masuk/total_transfer_masuk/total_debit_masuk/
+            // total_tunai_keluar. Sebelumnya kolom-kolom ini tidak pernah diisi
+            // oleh alur closing yang benar-benar terhubung ke tombol "CLOSING
+            // KAS SEKARANG", sehingga nota cetak closing (print_closing.blade.php)
+            // selalu menampilkan Rp 0 untuk semua rincian pemasukan/pengeluaran
+            // walau uang sungguhan sudah masuk. Debit (kartu, non-tunai seperti
+            // Transfer) TIDAK ikut menambah saldoAkhirSistem (laci fisik).
             $pemasukan = DB::table('pembayaran_riwayat')
                 ->whereDate('tgl_bayar', $kas->tgl_kas)
                 ->select(
                     DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
-                    DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk")
+                    DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk"),
+                    DB::raw("SUM(CASE WHEN metode = 'Debit' THEN nominal ELSE 0 END) as debit_masuk")
                 )->first();
 
             $tunaiMasuk = (float) ($pemasukan->tunai_masuk ?? 0);
             $transferMasuk = (float) ($pemasukan->transfer_masuk ?? 0);
+            $debitMasuk = (float) ($pemasukan->debit_masuk ?? 0);
             $tunaiKeluar = 0; // Belum ada fitur Kas Keluar.
             $saldoAkhirSistem = $kas->saldo_awal + $tunaiMasuk - $tunaiKeluar;
             $selisih = $saldo_fisik - $saldoAkhirSistem;
@@ -117,6 +134,7 @@ class KasirController extends Controller
             DB::table('kas_harian')->where('id_kas', $id_kas)->update([
                 'total_tunai_masuk' => $tunaiMasuk,
                 'total_transfer_masuk' => $transferMasuk,
+                'total_debit_masuk' => $debitMasuk,
                 'total_tunai_keluar' => $tunaiKeluar,
                 'saldo_akhir' => $saldoAkhirSistem,
                 'saldo_fisik' => $saldo_fisik,
@@ -214,6 +232,9 @@ class KasirController extends Controller
             }
             if ($diskon < 0) {
                 throw new \Exception("Diskon tidak boleh negatif.");
+            }
+            if (!in_array($metode, ['Tunai', 'Debit', 'Transfer', 'Deposit'], true)) {
+                throw new \Exception("Metode pembayaran tidak dikenali.");
             }
 
             // id_bank hanya relevan untuk Transfer - divalidasi ke tabel
@@ -424,6 +445,7 @@ class KasirController extends Controller
         $data_kas = collect([(object) [
             'nominal_tunai' => $mutasi->where('metode', 'Tunai')->sum('nominal'),
             'nominal_transfer' => $mutasi->where('metode', 'Transfer')->sum('nominal'),
+            'nominal_debit' => $mutasi->where('metode', 'Debit')->sum('nominal'),
         ]]);
 
         return view('kasir.kelola_kas', compact('kasAktif', 'mutasi', 'data_kas'));
@@ -476,7 +498,8 @@ public function previewClosing()
         ->whereDate('tgl_bayar', $hari_ini)
         ->select(
             DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
-            DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk")
+            DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk"),
+            DB::raw("SUM(CASE WHEN metode = 'Debit' THEN nominal ELSE 0 END) as debit_masuk")
         )->first();
 
     // Belum ada tabel pengeluaran/kas_keluar di database, jadi pengeluaran tunai
@@ -519,11 +542,13 @@ public function simpanClosing(Request $request)
             ->whereDate('tgl_bayar', $kas->tgl_kas)
             ->select(
                 DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
-                DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk")
+                DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk"),
+                DB::raw("SUM(CASE WHEN metode = 'Debit' THEN nominal ELSE 0 END) as debit_masuk")
             )->first();
 
         $tunaiMasuk = (float) ($pemasukan->tunai_masuk ?? 0);
         $transferMasuk = (float) ($pemasukan->transfer_masuk ?? 0);
+        $debitMasuk = (float) ($pemasukan->debit_masuk ?? 0);
         $tunaiKeluar = 0; // Belum ada fitur Kas Keluar - lihat catatan di previewClosing().
         $saldoAkhirSistem = $kas->saldo_awal + $tunaiMasuk - $tunaiKeluar;
         $selisih = $saldo_fisik - $saldoAkhirSistem;
@@ -531,6 +556,7 @@ public function simpanClosing(Request $request)
         DB::table('kas_harian')->where('id_kas', $id_kas)->update([
             'total_tunai_masuk' => $tunaiMasuk,
             'total_transfer_masuk' => $transferMasuk,
+            'total_debit_masuk' => $debitMasuk,
             'total_tunai_keluar' => $tunaiKeluar,
             'saldo_akhir' => $saldoAkhirSistem,
             'saldo_fisik' => $saldo_fisik,

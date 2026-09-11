@@ -17,10 +17,11 @@
         </div>
 
         <div class="p-6 bg-blue-50 rounded-2xl border-2 border-blue-100">
-            <h3 class="font-bold text-blue-800 mb-4">LAPORAN TRANSFER (NON-LACI)</h3>
+            <h3 class="font-bold text-blue-800 mb-4">LAPORAN NON-TUNAI (NON-LACI)</h3>
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between"><span>Total Masuk Transfer</span> <b>Rp {{ number_format($pemasukan->transfer_masuk) }}</b></div>
-                <p class="text-[10px] text-blue-500 mt-4">*Uang transfer tidak dihitung dalam saldo fisik laci.</p>
+                <div class="flex justify-between"><span>Total Masuk Debit</span> <b>Rp {{ number_format($pemasukan->debit_masuk ?? 0) }}</b></div>
+                <p class="text-[10px] text-blue-500 mt-4">*Uang Transfer/Debit tidak dihitung dalam saldo fisik laci.</p>
             </div>
         </div>
     </div>
@@ -31,6 +32,7 @@
         <input type="hidden" name="saldo_sistem" value="{{ $saldo_akhir_sistem }}">
         <input type="hidden" name="tunai_masuk" value="{{ $pemasukan->tunai_masuk }}">
         <input type="hidden" name="transfer_masuk" value="{{ $pemasukan->transfer_masuk }}">
+        <input type="hidden" name="debit_masuk" value="{{ $pemasukan->debit_masuk ?? 0 }}">
         <input type="hidden" name="tunai_keluar" value="{{ $pengeluaran_tunai }}">
 
         <label class="block text-center text-sm font-bold text-slate-400 mb-2 uppercase">Masukkan Jumlah Uang Fisik di Laci</label>

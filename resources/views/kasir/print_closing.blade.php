@@ -41,6 +41,7 @@
             <tr><td>Saldo Awal (Modal)</td><td class="right">{{ number_format($kas->saldo_awal, 0, ',', '.') }}</td></tr>
             <tr><td>Pemasukan Tunai</td><td class="right">{{ number_format($kas->total_tunai_masuk, 0, ',', '.') }}</td></tr>
             <tr><td>Pemasukan Transfer</td><td class="right">{{ number_format($kas->total_transfer_masuk, 0, ',', '.') }}</td></tr>
+            <tr><td>Pemasukan Debit</td><td class="right">{{ number_format($kas->total_debit_masuk ?? 0, 0, ',', '.') }}</td></tr>
             <tr><td>Pengeluaran Tunai</td><td class="right">{{ number_format($kas->total_tunai_keluar, 0, ',', '.') }}</td></tr>
         </table>
 

@@ -12,6 +12,25 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- LOCK KASIR - $kasAktif dibagikan global lewat AppServiceProvider.
+         Antrean baru TERKUNCI (kartu "Buka Transaksi" dinonaktifkan) selama
+         kas hari ini belum dibuka, supaya kasir tidak masuk ke form
+         pembayaran yang ujung-ujungnya pasti ditolak. --}}
+    @if(!$kasAktif)
+    <div class="mb-8 flex items-center gap-3 bg-amber-50 border-2 border-amber-200 rounded-2xl px-5 py-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-lg">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="flex-1">
+            <p class="text-sm font-black text-amber-800 uppercase tracking-wide">Kas Kasir Belum Dibuka</p>
+            <p class="text-xs text-amber-600 mt-0.5">Anda tidak dapat memproses transaksi apa pun sebelum membuka saldo kas hari ini.</p>
+        </div>
+        <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0">
+            <i class="fas fa-wallet"></i> Buka Kas Sekarang
+        </x-button>
+    </div>
+    @endif
+
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     @forelse($waiting as $w)
     <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-300 transition-all overflow-hidden group relative">
@@ -41,9 +60,15 @@
             </div>
 
             <div class="flex flex-col gap-2">
-                <a href="{{ url('/kasir/bayar-form/'.$w->id_transaksi) }}" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-center py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-100">
-                    Buka Transaksi 💰
-                </a>
+                @if($kasAktif)
+                    <a href="{{ url('/kasir/bayar-form/'.$w->id_transaksi) }}" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-center py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-100">
+                        Buka Transaksi 💰
+                    </a>
+                @else
+                    <span class="w-full bg-slate-100 text-slate-400 text-center py-4 rounded-2xl font-black text-xs uppercase tracking-widest cursor-not-allowed flex items-center justify-center gap-2" title="Kas belum dibuka">
+                        <i class="fas fa-lock"></i> Terkunci
+                    </span>
+                @endif
             </div>
         </div>
     </div>
