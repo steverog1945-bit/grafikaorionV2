@@ -233,54 +233,65 @@
                     </div>
                 </x-card>
 
-                {{-- TAMBAH JASA (layanan non-material, harga manual - lihat Master Jasa) --}}
-                <x-card>
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
+                {{-- TAMBAH JASA (layanan non-material, harga manual - lihat Master Jasa).
+                     Accordion, TERTUTUP secara default - jasa dipakai jauh lebih jarang
+                     dibanding produk cetak, jadi bentuk kartu penuh yang selalu terbuka
+                     cuma memakan tempat vertikal tanpa dipakai kebanyakan order. Dibuka
+                     lewat klik header, isinya tidak berubah sama sekali. --}}
+                <x-card :padding="false">
+                    <button type="button" onclick="toggleTambahJasa()" class="w-full flex items-center gap-3 p-5 text-left">
+                        <div class="p-2 bg-purple-50 rounded-lg text-purple-600 shrink-0">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
                         </div>
                         <h3 class="text-lg font-bold text-slate-800">Tambah Jasa</h3>
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">(Layanan non-material)</span>
-                    </div>
+                        <i id="icon_toggle_jasa" class="fas fa-chevron-down text-slate-300 ml-auto transition-transform"></i>
+                    </button>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <x-form.group label="Pilih Jasa">
-                            <select id="select_jasa" onchange="onJasaChange()" class="select2-produk w-full">
-                                <option value="">-- Ketik Nama Jasa --</option>
-                                @foreach($jasa as $j)
-                                    <option value="{{ $j->id_jasa }}" data-nama="{{ $j->nama_jasa }}">{{ $j->nama_jasa }}{{ $j->nama_satuan ? ' ('.$j->nama_satuan.')' : '' }}</option>
-                                @endforeach
-                            </select>
-                        </x-form.group>
-                        <x-form.group label="Qty">
-                            <x-form.input type="number" id="input_jasa_qty" value="1" oninput="refreshJasaHargaSuggestion()" />
-                        </x-form.group>
-                        <x-form.group label="Harga Satuan (Rp)">
-                            <x-form.input type="number" id="input_jasa_harga" placeholder="0" />
-                        </x-form.group>
-                    </div>
+                    <div id="wrapper_tambah_jasa" class="hidden px-5 pb-5">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <x-form.group label="Pilih Jasa">
+                                <select id="select_jasa" onchange="onJasaChange()" class="select2-produk w-full">
+                                    <option value="">-- Ketik Nama Jasa --</option>
+                                    @foreach($jasa as $j)
+                                        <option value="{{ $j->id_jasa }}" data-nama="{{ $j->nama_jasa }}">{{ $j->nama_jasa }}{{ $j->nama_satuan ? ' ('.$j->nama_satuan.')' : '' }}</option>
+                                    @endforeach
+                                </select>
+                            </x-form.group>
+                            <x-form.group label="Qty">
+                                <x-form.input type="number" id="input_jasa_qty" value="1" oninput="refreshJasaHargaSuggestion()" />
+                            </x-form.group>
+                            <x-form.group label="Harga Satuan (Rp)">
+                                <x-form.input type="number" id="input_jasa_harga" placeholder="0" />
+                            </x-form.group>
+                        </div>
 
-                    <x-form.group label="Keterangan" class="mb-4">
-                        <x-form.input type="text" id="jasa_keterangan" placeholder="Contoh: Instalasi banner outdoor" />
-                    </x-form.group>
+                        <x-form.group label="Keterangan" class="mb-4">
+                            <x-form.input type="text" id="jasa_keterangan" placeholder="Contoh: Instalasi banner outdoor" />
+                        </x-form.group>
 
-                    <div class="flex justify-end">
-                        <button onclick="tambahJasaKeKeranjang()" class="bg-purple-500 hover:bg-purple-400 text-white h-12 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
-                            Tambah Jasa
-                        </button>
+                        <div class="flex justify-end">
+                            <button onclick="tambahJasaKeKeranjang()" class="bg-purple-500 hover:bg-purple-400 text-white h-12 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
+                                Tambah Jasa
+                            </button>
+                        </div>
                     </div>
                 </x-card>
             </div>
 
-            {{-- KERANJANG --}}
-            <div class="w-full lg:w-[42%] flex flex-col self-stretch">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full overflow-hidden">
+            {{-- KERANJANG - sticky supaya Total & tombol Simpan selalu kelihatan di
+                 layar berapa pun tingginya form Detail Pesanan di sebelah kiri,
+                 tidak perlu scroll sampai bawah untuk menemukannya. Tinggi kartu
+                 sendiri dibatasi setinggi viewport (dikurangi jarak dari atas),
+                 daftar item di dalamnya yang scroll sendiri kalau melebihi. --}}
+            <div class="w-full lg:w-[42%] flex flex-col lg:sticky lg:top-4 lg:self-start">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden lg:max-h-[calc(100vh-2rem)]">
                     <div class="p-5 border-b border-slate-100 flex justify-between items-center">
                         <h3 class="text-lg font-bold text-slate-800">Keranjang Pesanan</h3>
                         <div id="item_count_badge" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-bold">0 Items</div>
                     </div>
 
-                    <div class="flex-grow overflow-y-auto custom-scrollbar p-0">
+                    <div class="flex-grow overflow-y-auto custom-scrollbar p-0 min-h-[120px]">
                         <div id="cart_body" class="divide-y divide-slate-50 text-slate-600">
                             <div class="py-16 text-center opacity-30">
                                 <i class="fas fa-receipt text-2xl mb-2 block"></i>
@@ -289,7 +300,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-auto p-5 bg-slate-900 rounded-b-2xl">
+                    <div class="mt-auto p-5 bg-slate-900 rounded-b-2xl shrink-0">
                         <div class="flex justify-between items-center mb-5">
                             <div>
                                 <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Pembayaran</p>
@@ -374,6 +385,12 @@
     function onTipeOrderChange() {
         const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
         document.getElementById('wrapper_no_po').classList.toggle('hidden', tipe !== 'PO');
+    }
+
+    // Accordion "Tambah Jasa" - tertutup default (lihat catatan di HTML-nya).
+    function toggleTambahJasa() {
+        document.getElementById('wrapper_tambah_jasa').classList.toggle('hidden');
+        document.getElementById('icon_toggle_jasa').classList.toggle('rotate-180');
     }
 
     // Nama file gambar -> teks deskripsi yang manusiawi: buang ekstensi,
