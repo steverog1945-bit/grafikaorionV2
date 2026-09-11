@@ -202,4 +202,35 @@ class AccountingService
             ['kode_akun' => self::AKUN_PENDAPATAN_JASA, 'kredit' => $grandTotal],
         ]);
     }
+
+    /**
+     * Membalik SEMUA baris jurnal untuk satu no_referensi (nota) dengan
+     * entri kontra (debet<->kredit ditukar) - dipakai saat sebuah nota
+     * dikoreksi lewat alur Edit Nota (PenjualanController::applyApprovedEdit).
+     * SENGAJA tidak pernah menghapus/mengubah baris jurnal asli (itu jejak
+     * audit permanen) - pembalikan akuntansi yang benar selalu berupa entri
+     * baru yang saling meniadakan, persis pola ini.
+     */
+    public static function reversePenjualan(string $noNota): void
+    {
+        $baris = DB::table('jurnal_umum')->where('no_referensi', $noNota)->get();
+
+        if ($baris->isEmpty()) {
+            return;
+        }
+
+        // Semua baris asli (bisa berasal dari beberapa panggilan postJournal
+        // terpisah, mis. postPenjualan menulis 2 baris Piutang/Pendapatan +
+        // 2 baris HPP/Persediaan kalau ada HPP) digabung jadi SATU baris
+        // pembalikan sekaligus - tiap baris cuma diisi salah satu dari
+        // debet/kredit (tidak pernah dua-duanya), jadi menukar posisi nilai
+        // per baris otomatis tetap balance selama set aslinya balance.
+        $lines = $baris->map(fn ($b) => [
+            'kode_akun' => $b->kode_akun,
+            'debet' => (float) $b->kredit,
+            'kredit' => (float) $b->debet,
+        ])->all();
+
+        self::postJournal(now()->toDateString(), $noNota, "Koreksi/pembalikan nota {$noNota}", $lines);
+    }
 }

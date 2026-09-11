@@ -560,6 +560,14 @@
         });
         $('#select_jasa').select2({ width: '100%' });
 
+        // Redirect dari alur Edit Nota (PenjualanController::applyApprovedEdit)
+        // membawa ?id_konsumen= supaya kasir tidak perlu mencari ulang
+        // konsumennya saat mau membuat nota pengganti - murni kenyamanan,
+        // kasir tetap bebas ganti kalau ternyata salah.
+        @if(request()->filled('id_konsumen'))
+            $('.select2-konsumen').val('{{ request('id_konsumen') }}').trigger('change');
+        @endif
+
         $('.select2-konsumen').on('select2:select', function (e) {
             let idGol = $(this).find(':selected').data('golongan');
             if (idGol) {

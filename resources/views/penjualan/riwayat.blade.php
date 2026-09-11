@@ -5,6 +5,14 @@
 
     <x-page-header title="Riwayat Nota" :subtitle="$konsumenTerpilih ? 'Daftar transaksi penjualan per konsumen' : 'Daftar transaksi penjualan • default hari ini'">
         <x-slot:actions>
+            @if($isAdmin)
+                <a href="{{ route('penjualan.edit-approval') }}" class="relative inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-amber-50 text-amber-700 border border-amber-100 hover:bg-amber-100 transition-all font-bold text-xs uppercase tracking-widest">
+                    <i class="fas fa-user-shield"></i> Persetujuan Edit Nota
+                    @if($pendingEditCount > 0)
+                        <span class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">{{ $pendingEditCount }}</span>
+                    @endif
+                </a>
+            @endif
             <x-button href="{{ route('penjualan.create') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali ke Kasir
             </x-button>
@@ -101,9 +109,30 @@
                     <span class="text-[14px] font-bold text-indigo-600">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>
                 </td>
                 <td class="px-8 py-5 text-right">
-                    <a href="{{ route('penjualan.show', $t->id_transaksi) }}" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-indigo-600 hover:bg-indigo-50 transition-all">
-                        <i class="far fa-eye"></i> Lihat
-                    </a>
+                    <div class="flex items-center justify-end gap-1.5">
+                        <a href="{{ route('penjualan.show', $t->id_transaksi) }}" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-indigo-600 hover:bg-indigo-50 transition-all">
+                            <i class="far fa-eye"></i> Lihat
+                        </a>
+
+                        @if($t->status_nota !== 'Dibatalkan')
+                            @if($t->edit_request_status === 'Menunggu')
+                                <span class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-amber-600 bg-amber-50" title="Menunggu persetujuan Administrator">
+                                    <i class="far fa-clock"></i> Menunggu
+                                </span>
+                            @elseif($t->edit_request_status === 'Disetujui')
+                                <form action="{{ route('penjualan.edit-apply', $t->edit_request_id) }}" method="POST" class="inline" id="apply-edit-form-{{ $t->id_transaksi }}">
+                                    @csrf
+                                    <button type="button" onclick="confirmApplyEdit('{{ $t->id_transaksi }}', {{ json_encode($t->nomor_nota) }})" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-emerald-600 hover:bg-emerald-50 transition-all">
+                                        <i class="fas fa-check-circle"></i> Proses Koreksi
+                                    </button>
+                                </form>
+                            @else
+                                <button type="button" onclick="openRequestEdit('{{ $t->id_transaksi }}', {{ json_encode($t->nomor_nota) }})" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="{{ $t->edit_request_status === 'Ditolak' ? 'Permintaan sebelumnya ditolak - ajukan lagi' : 'Ajukan edit (butuh persetujuan Administrator)' }}">
+                                    <i class="far fa-edit"></i> Edit
+                                </button>
+                            @endif
+                        @endif
+                    </div>
                 </td>
             </tr>
             @empty
@@ -118,5 +147,53 @@
 
     <x-table.pagination :paginator="$transaksis" />
 
+    {{-- MODAL AJUKAN EDIT NOTA - satu modal dipakai bergantian untuk semua
+         baris (diisi ulang lewat JS), sama seperti pola Custom Harga di
+         halaman pembayaran. --}}
+    <x-modal id="request-edit" title="Ajukan Edit Nota" maxWidth="sm">
+        <p class="text-xs text-slate-400 mb-5 -mt-2">
+            Nota <b id="req-nomor-nota" class="text-slate-600"></b> akan dibatalkan & dibuat ulang setelah disetujui Administrator (stok & jurnal otomatis dikembalikan). Jelaskan kesalahan yang perlu dikoreksi.
+        </p>
+        <form id="form-request-edit" method="POST">
+            @csrf
+            <x-form.group label="Alasan / Kesalahan yang Perlu Dikoreksi">
+                <textarea name="alasan" id="req-alasan" rows="4" required placeholder="Contoh: salah ukuran, seharusnya 200x100cm bukan 100x100cm" class="w-full rounded-xl border-slate-200 text-sm p-3"></textarea>
+            </x-form.group>
+            <div class="pt-4 flex gap-3">
+                <x-button type="button" variant="secondary" onclick="closeModal('request-edit')" class="flex-1">Batal</x-button>
+                <x-button type="submit" class="flex-1">Kirim Permintaan</x-button>
+            </div>
+        </form>
+    </x-modal>
+
 </div>
+
+@push('scripts')
+<script>
+    function openRequestEdit(idTransaksi, nomorNota) {
+        document.getElementById('req-nomor-nota').innerText = nomorNota;
+        document.getElementById('req-alasan').value = '';
+        document.getElementById('form-request-edit').action = `{{ url('/penjualan') }}/${idTransaksi}/request-edit`;
+        openModal('request-edit');
+    }
+
+    // "Proses Koreksi" MEMBATALKAN nota lama (stok & jurnal dikembalikan)
+    // dan langsung mengarah ke Kasir Utama untuk membuat nota pengganti -
+    // aksi ini tidak bisa diundo lewat tombol ini sendiri (pembatalannya
+    // permanen, sama seperti batalkanNota()), jadi wajib konfirmasi dulu.
+    function confirmApplyEdit(idTransaksi, nomorNota) {
+        Swal.fire({
+            title: 'Proses koreksi nota ini?',
+            html: `Nota <b>${nomorNota}</b> akan DIBATALKAN (stok & jurnal otomatis dikembalikan), lalu Anda diarahkan ke Kasir Utama untuk membuat nota pengganti dengan data yang benar.<br><small class="text-slate-400">Nota lama tetap tersimpan di riwayat untuk referensi/audit.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#059669',
+            confirmButtonText: 'Ya, Proses Sekarang',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) document.getElementById(`apply-edit-form-${idTransaksi}`).submit();
+        });
+    }
+</script>
+@endpush
 @endsection

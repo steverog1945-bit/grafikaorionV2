@@ -119,6 +119,21 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::patch('/penjualan/{id}/batalkan-nota', [PenjualanController::class, 'batalkanNota'])
         ->name('penjualan.batalkan-nota');
 
+    // Alur Edit Nota (lihat catatan di PenjualanController::show) - path
+    // 'edit-nota/...' sengaja bukan '/penjualan/{id}/...' polos untuk yang
+    // GET (edit-approval) supaya tidak pernah tertangkap wildcard
+    // penjualan.show ({id}) di atas kalau suatu saat urutan berubah.
+    Route::post('/penjualan/{id}/request-edit', [PenjualanController::class, 'requestEditNota'])
+        ->name('penjualan.request-edit');
+    Route::get('/penjualan/edit-nota/approval', [PenjualanController::class, 'editApprovalIndex'])
+        ->name('penjualan.edit-approval');
+    Route::patch('/penjualan/edit-nota/{id}/approve', [PenjualanController::class, 'approveEditNota'])
+        ->name('penjualan.edit-approve');
+    Route::patch('/penjualan/edit-nota/{id}/reject', [PenjualanController::class, 'rejectEditNota'])
+        ->name('penjualan.edit-reject');
+    Route::post('/penjualan/edit-nota/{id}/apply', [PenjualanController::class, 'applyApprovedEdit'])
+        ->name('penjualan.edit-apply');
+
     Route::post('/penjualan/upload-thumbnail', [PenjualanController::class, 'uploadThumbnail'])
         ->name('penjualan.upload-thumbnail');
 

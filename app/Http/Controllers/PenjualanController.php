@@ -543,11 +543,22 @@ public function riwayat(Request $request)
         $konsumenTerpilih = DB::table('konsumen')->where('id_konsumen', $request->id_konsumen)->first();
     }
 
+    // Permintaan edit TERBARU per nota (kalau ada) - dipakai riwayat.blade.php
+    // untuk menampilkan tombol yang sesuai (Ajukan Edit / Menunggu / Disetujui-
+    // proses sekarang / Ditolak). MAX(id_request) per id_transaksi lalu di-join
+    // balik ke tabelnya - pola "ambil baris terbaru per grup" standar untuk
+    // Query Builder biasa (tanpa window function).
+    $latestEditReq = DB::table('nota_edit_request')
+        ->select('id_transaksi', DB::raw('MAX(id_request) as max_id'))
+        ->groupBy('id_transaksi');
+
     $transaksis = DB::table('transaksi')
         ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
         ->leftJoin('golongan_konsumen', 'konsumen.id_golongan', '=', 'golongan_konsumen.id_golongan')
         ->leftJoin('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
         ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
+        ->leftJoinSub($latestEditReq, 'latest_req', fn ($join) => $join->on('transaksi.id_transaksi', '=', 'latest_req.id_transaksi'))
+        ->leftJoin('nota_edit_request', 'nota_edit_request.id_request', '=', 'latest_req.max_id')
         ->when($from, fn ($q) => $q->whereDate('tgl_order', '>=', $from))
         ->when($to, fn ($q) => $q->whereDate('tgl_order', '<=', $to))
         ->when($filterKonsumen, fn ($q) => $q->where('transaksi.id_konsumen', $request->id_konsumen))
@@ -555,13 +566,19 @@ public function riwayat(Request $request)
             'transaksi.*',
             'konsumen.nama_konsumen',
             'golongan_konsumen.nama_golongan',
-            'karyawan.nama_karyawan as nama_kasir'
+            'karyawan.nama_karyawan as nama_kasir',
+            'nota_edit_request.id_request as edit_request_id',
+            'nota_edit_request.status as edit_request_status',
+            'nota_edit_request.catatan_approver as edit_request_catatan'
         )
         ->orderByDesc('tgl_order')
         ->paginate(15)
         ->withQueryString();
 
-    return view('penjualan.riwayat', compact('transaksis', 'from', 'to', 'konsumenTerpilih'));
+    $isAdmin = optional(optional($request->user())->role)->nama_role === 'Administrator';
+    $pendingEditCount = $isAdmin ? DB::table('nota_edit_request')->where('status', 'Menunggu')->count() : 0;
+
+    return view('penjualan.riwayat', compact('transaksis', 'from', 'to', 'konsumenTerpilih', 'isAdmin', 'pendingEditCount'));
 }
 
 /**
@@ -692,5 +709,223 @@ public function batalkanNota(Request $request, $id)
     }
 
     return redirect()->route('penjualan.show', $id)->with('success', $pesan);
+}
+
+/**
+ * ALUR EDIT NOTA (lihat catatan di show() kenapa tidak ada edit langsung).
+ * Kasir mengajukan permintaan lebih dulu - TIDAK langsung membuka akses
+ * edit. Satu nota hanya boleh punya satu permintaan yang masih berjalan
+ * (Menunggu/Disetujui-belum-dipakai) supaya tidak ada spam permintaan
+ * ganda untuk nota yang sama.
+ */
+public function requestEditNota(Request $request, $id)
+{
+    $request->validate(['alasan' => 'required|string|max:1000']);
+
+    $transaksi = DB::table('transaksi')->where('id_transaksi', $id)->first();
+    if (!$transaksi) {
+        return back()->with('error', 'Nota tidak ditemukan.');
+    }
+    if ($transaksi->status_nota === 'Dibatalkan') {
+        return back()->with('error', 'Nota ini sudah dibatalkan, tidak perlu diedit.');
+    }
+
+    $adaPermintaanBerjalan = DB::table('nota_edit_request')
+        ->where('id_transaksi', $id)
+        ->whereIn('status', ['Menunggu', 'Disetujui'])
+        ->exists();
+    if ($adaPermintaanBerjalan) {
+        return back()->with('error', 'Nota ini sudah punya permintaan edit yang masih berjalan (menunggu/sudah disetujui).');
+    }
+
+    DB::table('nota_edit_request')->insert([
+        'id_transaksi' => $id,
+        'id_user_requester' => Auth::id(),
+        'alasan' => $request->input('alasan'),
+        'status' => 'Menunggu',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return back()->with('success', 'Permintaan edit nota dikirim, menunggu persetujuan Administrator.');
+}
+
+/**
+ * Semua route /penjualan/* (termasuk tiga method approval di bawah ini)
+ * berbagi satu aturan menu_access ('penjualan' => [3]) yang sama dengan
+ * create/store/riwayat - jadi kasir biasa pun lolos middleware CheckMenuAccess
+ * untuk URL ini. Approval edit nota HARUS Administrator-only (itu intinya
+ * fitur ini - anti "orang sembarangan tangan" mengedit nota), jadi dicek
+ * eksplisit di sini, sama seperti SpkController::index() mendeteksi admin.
+ */
+private function pastikanAdministrator(Request $request): ?\Illuminate\Http\RedirectResponse
+{
+    $isAdmin = optional(optional($request->user())->role)->nama_role === 'Administrator';
+    if (!$isAdmin) {
+        return redirect()->route('penjualan.riwayat')->with('error', 'Halaman ini khusus Administrator.');
+    }
+    return null;
+}
+
+/**
+ * Daftar permintaan edit nota - HANYA untuk Administrator.
+ */
+public function editApprovalIndex(Request $request)
+{
+    if ($redirect = $this->pastikanAdministrator($request)) {
+        return $redirect;
+    }
+
+    $query = DB::table('nota_edit_request')
+        ->join('transaksi', 'nota_edit_request.id_transaksi', '=', 'transaksi.id_transaksi')
+        ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+        ->join('users as requester', 'nota_edit_request.id_user_requester', '=', 'requester.id_user')
+        ->leftJoin('karyawan as karyawan_requester', 'requester.id_karyawan', '=', 'karyawan_requester.id_karyawan')
+        ->leftJoin('users as approver', 'nota_edit_request.id_user_approver', '=', 'approver.id_user')
+        ->leftJoin('karyawan as karyawan_approver', 'approver.id_karyawan', '=', 'karyawan_approver.id_karyawan')
+        ->select(
+            'nota_edit_request.*',
+            'transaksi.nomor_nota',
+            'transaksi.total_bayar',
+            'konsumen.nama_konsumen',
+            DB::raw('COALESCE(karyawan_requester.nama_karyawan, requester.username) as nama_requester'),
+            DB::raw('COALESCE(karyawan_approver.nama_karyawan, approver.username) as nama_approver')
+        );
+
+    if ($request->filled('status')) {
+        $query->where('nota_edit_request.status', $request->status);
+    } else {
+        $query->where('nota_edit_request.status', 'Menunggu');
+    }
+
+    $requests = $query->orderByDesc('nota_edit_request.created_at')->paginate(15)->withQueryString();
+
+    return view('penjualan.edit-approval', compact('requests'));
+}
+
+public function approveEditNota(Request $request, $id)
+{
+    if ($redirect = $this->pastikanAdministrator($request)) {
+        return $redirect;
+    }
+
+    $req = DB::table('nota_edit_request')->where('id_request', $id)->first();
+    if (!$req) {
+        return back()->with('error', 'Permintaan tidak ditemukan.');
+    }
+    if ($req->status !== 'Menunggu') {
+        return back()->with('error', 'Permintaan ini sudah diproses sebelumnya (status: ' . $req->status . ').');
+    }
+
+    DB::table('nota_edit_request')->where('id_request', $id)->update([
+        'status' => 'Disetujui',
+        'id_user_approver' => Auth::id(),
+        'catatan_approver' => $request->input('catatan'),
+        'tgl_keputusan' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return back()->with('success', 'Permintaan edit disetujui. Kasir sekarang bisa memproses koreksi nota ini.');
+}
+
+public function rejectEditNota(Request $request, $id)
+{
+    if ($redirect = $this->pastikanAdministrator($request)) {
+        return $redirect;
+    }
+
+    $request->validate(['catatan' => 'required|string|max:1000']);
+
+    $req = DB::table('nota_edit_request')->where('id_request', $id)->first();
+    if (!$req) {
+        return back()->with('error', 'Permintaan tidak ditemukan.');
+    }
+    if ($req->status !== 'Menunggu') {
+        return back()->with('error', 'Permintaan ini sudah diproses sebelumnya (status: ' . $req->status . ').');
+    }
+
+    DB::table('nota_edit_request')->where('id_request', $id)->update([
+        'status' => 'Ditolak',
+        'id_user_approver' => Auth::id(),
+        'catatan_approver' => $request->input('catatan'),
+        'tgl_keputusan' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return back()->with('success', 'Permintaan edit ditolak.');
+}
+
+/**
+ * Eksekusi koreksi setelah permintaan Disetujui - dipanggil kasir dari
+ * Riwayat Nota. TIDAK menulis ulang logic pembalikan stok/jurnal dari nol:
+ * memakai ulang persis StokReversalService::kembalikan() (sama seperti
+ * batalkanNota()) + AccountingService::reversePenjualan() (entri kontra,
+ * tidak pernah menghapus/mengubah baris jurnal asli). Nota lama ditandai
+ * Dibatalkan (riwayat & jejak audit tetap utuh, bisa dilihat lewat
+ * alasan_batal_nota yang mengarah ke permintaan edit ini) - nota
+ * PENGGANTI dibuat manual oleh kasir lewat Kasir Utama seperti biasa
+ * (bukan auto-generate) supaya harga/stok nota baru selalu dihitung ulang
+ * dari data TERKINI (Price List, stok bahan saat ini), bukan menyalin
+ * mentah angka lama yang mungkin sudah usang atau memang salah.
+ */
+public function applyApprovedEdit($id)
+{
+    $req = DB::table('nota_edit_request')->where('id_request', $id)->first();
+    if (!$req) {
+        return back()->with('error', 'Permintaan edit tidak ditemukan.');
+    }
+    if ($req->status !== 'Disetujui') {
+        return back()->with('error', 'Permintaan ini belum disetujui Administrator (status: ' . $req->status . ').');
+    }
+
+    $transaksi = DB::table('transaksi')->where('id_transaksi', $req->id_transaksi)->first();
+    if (!$transaksi) {
+        return back()->with('error', 'Nota tidak ditemukan.');
+    }
+    if ($transaksi->status_nota === 'Dibatalkan') {
+        DB::table('nota_edit_request')->where('id_request', $id)->update(['status' => 'Selesai', 'tgl_selesai' => now()]);
+        return redirect()->route('penjualan.riwayat')->with('error', 'Nota ini sudah dibatalkan/dikoreksi sebelumnya.');
+    }
+
+    $items = DB::table('transaksi_detail')->where('id_transaksi', $transaksi->id_transaksi)->get();
+    $sudahSelesai = $items->firstWhere('status_spk', 'Selesai');
+    if ($sudahSelesai) {
+        return back()->with('error', 'Nota ini tidak bisa dikoreksi - ada item ("' . $sudahSelesai->nama_file . '") yang sudah Selesai diproduksi.');
+    }
+    if ($transaksi->status_collecting === 'Sudah Diambil') {
+        return back()->with('error', 'Nota ini tidak bisa dikoreksi - barang sudah diambil konsumen.');
+    }
+
+    DB::transaction(function () use ($items, $transaksi, $req) {
+        foreach ($items as $item) {
+            if ($item->status_spk === 'Batal') {
+                continue;
+            }
+            DB::table('transaksi_detail')->where('id_detail', $item->id_detail)->update(['status_spk' => 'Batal']);
+            StokReversalService::kembalikan(
+                $item,
+                'EDIT-NOTA-' . $transaksi->id_transaksi,
+                'Koreksi nota #' . $transaksi->nomor_nota . ' (permintaan edit #' . $req->id_request . ') - stok dikembalikan'
+            );
+        }
+
+        AccountingService::reversePenjualan($transaksi->nomor_nota);
+
+        DB::table('transaksi')->where('id_transaksi', $transaksi->id_transaksi)->update([
+            'status_nota' => 'Dibatalkan',
+            'alasan_batal_nota' => 'Dikoreksi via alur Edit Nota (disetujui Administrator) - alasan kasir: ' . $req->alasan,
+            'tgl_dibatalkan_nota' => now(),
+            'id_user_pembatal_nota' => Auth::id(),
+        ]);
+
+        DB::table('nota_edit_request')->where('id_request', $req->id_request)->update([
+            'status' => 'Selesai',
+            'tgl_selesai' => now(),
+            'updated_at' => now(),
+        ]);
+    });
+
+    return redirect()->route('penjualan.create', ['id_konsumen' => $transaksi->id_konsumen])
+        ->with('success', 'Nota lama sudah dibatalkan, stok & jurnal sudah dikembalikan. Silakan buat nota pengganti dengan data yang benar (nota lama tetap bisa dilihat di Riwayat untuk referensi).');
 }
 }
