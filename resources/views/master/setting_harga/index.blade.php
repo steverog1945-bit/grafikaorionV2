@@ -70,18 +70,20 @@
                 @foreach($golongan as $g)
                 <td class="px-4 py-5 text-center">
                     @php $tiersGol = $hargaProduk->where('id_golongan', $g->id_golongan); @endphp
-                    @if($tiersGol->isEmpty())
-                        <span class="text-slate-300 italic text-[10px]">Belum Diatur</span>
-                    @elseif($tiersGol->count() === 1)
-                        @php $satu = $tiersGol->first(); @endphp
-                        <span class="text-slate-700 font-semibold">Rp{{ number_format($satu->harga_jual, 0, ',', '.') }}</span>
-                        @if($satu->range_min > 1 || $satu->range_max)
-                            <div class="text-[9px] text-slate-400">qty {{ $satu->range_min }}-{{ $satu->range_max ?? '∞' }}</div>
+                    <span id="harga-summary-{{ $p->id_produk }}-{{ $g->id_golongan }}">
+                        @if($tiersGol->isEmpty())
+                            <span class="text-slate-300 italic text-[10px]">Belum Diatur</span>
+                        @elseif($tiersGol->count() === 1)
+                            @php $satu = $tiersGol->first(); @endphp
+                            <span class="text-slate-700 font-semibold">Rp{{ number_format($satu->harga_jual, 0, ',', '.') }}</span>
+                            @if($satu->range_min > 1 || $satu->range_max)
+                                <div class="text-[9px] text-slate-400">qty {{ $satu->range_min }}-{{ $satu->range_max ?? '∞' }}</div>
+                            @endif
+                        @else
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">{{ $tiersGol->count() }} TIER</span>
+                            <div class="text-[9px] text-slate-400 mt-0.5">Rp{{ number_format($tiersGol->min('harga_jual'), 0, ',', '.') }} - Rp{{ number_format($tiersGol->max('harga_jual'), 0, ',', '.') }}</div>
                         @endif
-                    @else
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">{{ $tiersGol->count() }} TIER</span>
-                        <div class="text-[9px] text-slate-400 mt-0.5">Rp{{ number_format($tiersGol->min('harga_jual'), 0, ',', '.') }} - Rp{{ number_format($tiersGol->max('harga_jual'), 0, ',', '.') }}</div>
-                    @endif
+                    </span>
                 </td>
                 @endforeach
 
@@ -130,7 +132,7 @@
                     </tr>
                     @foreach($hargaProdukModal as $t)
                     @php $namaGolonganTier = optional($golongan->firstWhere('id_golongan', $t->id_golongan))->nama_golongan ?? '?'; @endphp
-                    <tr class="tier-row-produk" data-id="{{ $t->id_harga }}">
+                    <tr class="tier-row-produk" data-id="{{ $t->id_harga }}" data-id-golongan="{{ $t->id_golongan }}">
                         <td colspan="5" class="py-1">
                             <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
                                 <form action="{{ route('setting-harga.tier.update', $t->id_harga) }}" class="tier-edit-form-produk flex items-center gap-2 flex-1">
@@ -192,10 +194,6 @@
     // asli, jadi kalau tetap FormData request sampai ke Laravel dengan
     // input kosong dan validasi selalu gagal walau datanya kelihatan benar.
     //
-    // Catatan: ringkasan harga di KOLOM TABEL UTAMA (di belakang modal) TIDAK
-    // ikut ter-update live saat modal ditutup - itu baru akurat lagi setelah
-    // halaman di-refresh/filter ulang. Modal "Kelola Harga" sendiri SELALU
-    // akurat karena baris di dalamnya langsung disinkronkan tiap aksi.
     const csrfTokenHarga = document.querySelector('meta[name="csrf-token"]').content;
     const namaGolonganMap = {
         @foreach($golongan as $g)
@@ -206,7 +204,7 @@
     function buildHargaTierRowHtml(t) {
         const namaGol = namaGolonganMap[t.id_golongan] ?? '?';
         return `
-            <tr class="tier-row-produk" data-id="${t.id_harga}">
+            <tr class="tier-row-produk" data-id="${t.id_harga}" data-id-golongan="${t.id_golongan}">
                 <td colspan="5" class="py-1">
                     <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
                         <form action="{{ url('/setting-harga-tier') }}/${t.id_harga}" class="tier-edit-form-produk flex items-center gap-2 flex-1">
@@ -227,6 +225,43 @@
                     </div>
                 </td>
             </tr>`;
+    }
+
+    // Kolom ringkasan di TABEL UTAMA (di belakang modal) dihitung ulang
+    // dari baris-baris yang SEDANG ada di modal untuk produk+golongan
+    // terkait - dipanggil setiap kali tambah/edit/hapus tier sukses, supaya
+    // begitu modal ditutup tabel utama sudah akurat tanpa perlu reload
+    // halaman sama sekali.
+    function refreshHargaSummary(idProduk, idGolongan) {
+        const cell = document.getElementById(`harga-summary-${idProduk}-${idGolongan}`);
+        if (!cell) return;
+
+        const tbody = document.getElementById('tier-tbody-produk-' + idProduk);
+        const rows = Array.from(tbody.querySelectorAll(`.tier-row-produk[data-id-golongan="${idGolongan}"]`));
+
+        if (rows.length === 0) {
+            cell.innerHTML = '<span class="text-slate-300 italic text-[10px]">Belum Diatur</span>';
+            return;
+        }
+
+        const hargaList = rows.map(r => parseFloat(r.querySelector('[name="harga_jual"]').value) || 0);
+        const fmt = (n) => 'Rp' + new Intl.NumberFormat('id-ID').format(n);
+
+        if (rows.length === 1) {
+            const min = rows[0].querySelector('[name="range_min"]').value;
+            const max = rows[0].querySelector('[name="range_max"]').value;
+            let html = `<span class="text-slate-700 font-semibold">${fmt(hargaList[0])}</span>`;
+            if (parseInt(min) > 1 || max) {
+                html += `<div class="text-[9px] text-slate-400">qty ${min}-${max || '∞'}</div>`;
+            }
+            cell.innerHTML = html;
+        } else {
+            const minHarga = Math.min(...hargaList);
+            const maxHarga = Math.max(...hargaList);
+            cell.innerHTML = `
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">${rows.length} TIER</span>
+                <div class="text-[9px] text-slate-400 mt-0.5">${fmt(minHarga)} - ${fmt(maxHarga)}</div>`;
+        }
     }
 
     async function submitHargaTierFormAjax(form, method) {
@@ -264,11 +299,15 @@
             const golSelect = form.querySelector('[name="id_golongan"]');
             form.reset();
             golSelect.selectedIndex = 0;
+            refreshHargaSummary(idProduk, data.row.id_golongan);
             Toast.fire({ icon: 'success', title: data.message });
         } else if (e.target.matches('.tier-edit-form-produk')) {
             e.preventDefault();
+            const row = e.target.closest('.tier-row-produk');
             const data = await submitHargaTierFormAjax(e.target, 'PATCH');
             if (!data) return;
+            const idProduk = row.closest('tbody').id.replace('tier-tbody-produk-', '');
+            refreshHargaSummary(idProduk, row.dataset.idGolongan);
             Toast.fire({ icon: 'success', title: data.message });
         }
     });
@@ -297,10 +336,13 @@
                 }
                 const row = document.querySelector(`.tier-row-produk[data-id="${id}"]`);
                 const tbody = row.closest('tbody');
+                const idProduk = tbody.id.replace('tier-tbody-produk-', '');
+                const idGolongan = row.dataset.idGolongan;
                 row.remove();
                 if (tbody.querySelectorAll('.tier-row-produk').length === 0) {
                     tbody.querySelector('.tier-empty-msg-produk').hidden = false;
                 }
+                refreshHargaSummary(idProduk, idGolongan);
                 Toast.fire({ icon: 'success', title: data.message });
             } catch (e) {
                 Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');

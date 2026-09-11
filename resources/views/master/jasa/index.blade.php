@@ -67,13 +67,15 @@
                         </td>
                         <td class="px-6 py-5 text-right">
                             @php $tierCount = ($hargaTiers[$j->id_jasa] ?? collect())->count(); @endphp
-                            @if($tierCount > 0)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">BERTINGKAT ({{ $tierCount }})</span>
-                            @elseif($j->harga_default)
-                                <span class="text-sm font-bold text-slate-700">Rp {{ number_format($j->harga_default, 0, ',', '.') }}</span>
-                            @else
-                                <span class="text-[10px] text-slate-300 italic">Manual di Kasir</span>
-                            @endif
+                            <span id="jasa-harga-summary-{{ $j->id_jasa }}">
+                                @if($tierCount > 0)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">BERTINGKAT ({{ $tierCount }})</span>
+                                @elseif($j->harga_default)
+                                    <span class="text-sm font-bold text-slate-700">Rp {{ number_format($j->harga_default, 0, ',', '.') }}</span>
+                                @else
+                                    <span class="text-[10px] text-slate-300 italic">Manual di Kasir</span>
+                                @endif
+                            </span>
                         </td>
                         <td class="px-6 py-5">
                             <p class="text-sm text-slate-500 leading-relaxed truncate max-w-xs">
@@ -244,7 +246,7 @@
 
     @php $tiersJ = $hargaTiers[$j->id_jasa] ?? collect(); @endphp
 
-    <div id="tier-container-jasa-{{ $j->id_jasa }}" class="space-y-2 mb-4">
+    <div id="tier-container-jasa-{{ $j->id_jasa }}" class="space-y-2 mb-4" data-harga-default="{{ $j->harga_default ?? '' }}">
         <p class="text-xs text-slate-400 italic tier-empty-msg-jasa" {{ $tiersJ->isNotEmpty() ? 'hidden' : '' }}>Belum ada tier harga.</p>
         @foreach($tiersJ as $t)
         <div class="tier-row-jasa flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2" data-id="{{ $t->id_jasa_harga }}">
@@ -344,6 +346,27 @@
             </div>`;
     }
 
+    // Kolom "Harga" di TABEL UTAMA (di belakang modal) dihitung ulang dari
+    // baris-baris yang SEDANG ada di modal - dipanggil tiap kali tambah/
+    // edit/hapus tier sukses, supaya begitu modal ditutup tabel utama sudah
+    // akurat tanpa perlu reload halaman.
+    function refreshJasaSummary(idJasa) {
+        const cell = document.getElementById('jasa-harga-summary-' + idJasa);
+        const container = document.getElementById('tier-container-jasa-' + idJasa);
+        if (!cell || !container) return;
+
+        const tierCount = container.querySelectorAll('.tier-row-jasa').length;
+        const hargaDefault = container.dataset.hargaDefault;
+
+        if (tierCount > 0) {
+            cell.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">BERTINGKAT (${tierCount})</span>`;
+        } else if (hargaDefault) {
+            cell.innerHTML = `<span class="text-sm font-bold text-slate-700">Rp ${new Intl.NumberFormat('id-ID').format(hargaDefault)}</span>`;
+        } else {
+            cell.innerHTML = '<span class="text-[10px] text-slate-300 italic">Manual di Kasir</span>';
+        }
+    }
+
     async function submitJasaTierFormAjax(form, method) {
         const formData = new FormData(form);
         const payload = {};
@@ -377,6 +400,7 @@
             container.querySelector('.tier-empty-msg-jasa').hidden = true;
             container.insertAdjacentHTML('beforeend', buildJasaTierRowHtml(data.row));
             form.reset();
+            refreshJasaSummary(idJasa);
             Toast.fire({ icon: 'success', title: data.message });
         } else if (e.target.matches('.tier-edit-form-jasa')) {
             e.preventDefault();
@@ -409,10 +433,12 @@
                 }
                 const row = document.querySelector(`.tier-row-jasa[data-id="${id}"]`);
                 const container = row.closest('[id^="tier-container-jasa-"]');
+                const idJasa = container.id.replace('tier-container-jasa-', '');
                 row.remove();
                 if (container.querySelectorAll('.tier-row-jasa').length === 0) {
                     container.querySelector('.tier-empty-msg-jasa').hidden = false;
                 }
+                refreshJasaSummary(idJasa);
                 Toast.fire({ icon: 'success', title: data.message });
             } catch (e) {
                 Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');
