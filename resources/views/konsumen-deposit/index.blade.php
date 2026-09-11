@@ -28,14 +28,28 @@
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     @forelse($saldoPerKonsumen as $s)
-                    <tr class="hover:bg-slate-50/30 transition-all">
+                    {{-- Baris saldo 0 (deposit pernah ada, sekarang sudah habis
+                         terpakai semua) SENGAJA tetap ditampilkan, bukan
+                         dibuang dari daftar - lihat catatan di
+                         KonsumenDepositController::index(). Diberi opacity
+                         lebih pudar + badge "Habis Terpakai" supaya beda
+                         jelas dari yang masih aktif punya saldo. --}}
+                    <tr class="hover:bg-slate-50/30 transition-all {{ $s->saldo_deposit <= 0 ? 'opacity-60' : '' }}">
                         <td class="px-8 py-4 text-sm font-bold text-slate-700 uppercase">{{ $s->nama_konsumen }}</td>
                         <td class="px-6 py-4 text-center">
                             <span class="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">
                                 {{ $s->nama_golongan ?? '-' }}
                             </span>
                         </td>
-                        <td class="px-8 py-4 text-right text-sm font-black text-emerald-600">Rp {{ number_format($s->saldo_deposit, 0, ',', '.') }}</td>
+                        <td class="px-8 py-4 text-right">
+                            @if($s->saldo_deposit > 0)
+                                <span class="text-sm font-black text-emerald-600">Rp {{ number_format($s->saldo_deposit, 0, ',', '.') }}</span>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase bg-slate-100 text-slate-400 border border-slate-200" title="Deposit konsumen ini sudah habis terpakai semua - tidak bisa dipakai lagi untuk pembayaran sampai ada setoran baru.">
+                                    <i class="fas fa-ban"></i> Habis Terpakai
+                                </span>
+                            @endif
+                        </td>
                     </tr>
                     @empty
                     <tr>

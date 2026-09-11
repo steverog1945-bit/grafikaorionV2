@@ -13,6 +13,17 @@ class KonsumenDepositController extends Controller
     {
         // Saldo per konsumen = SUM(Setoran) - SUM(Pemakaian). Bukan kolom
         // running-balance terpisah, supaya tidak ada dua sumber kebenaran.
+        //
+        // Sebelumnya konsumen yang saldonya persis 0 (deposit pernah ada,
+        // tapi sudah habis terpakai semua) DIBUANG total dari daftar ini
+        // (havingRaw('saldo_deposit != 0')) - hilang begitu saja tanpa
+        // keterangan, seolah-olah tidak pernah punya deposit sama sekali.
+        // Sekarang tetap ditampilkan dengan badge "Habis Terpakai" di view
+        // (konsumen-deposit/index.blade.php) supaya jelas depositnya PERNAH
+        // ada tapi sudah tidak bisa dipakai lagi - bukan sekadar hilang.
+        // Konsumen yang memang TIDAK PERNAH punya baris konsumen_deposit
+        // sama sekali tetap tidak muncul (join di atas sudah otomatis
+        // mengecualikan mereka).
         $saldoPerKonsumen = DB::table('konsumen_deposit')
             ->join('konsumen', 'konsumen_deposit.id_konsumen', '=', 'konsumen.id_konsumen')
             ->leftJoin('golongan_konsumen', 'konsumen.id_golongan', '=', 'golongan_konsumen.id_golongan')
@@ -23,7 +34,6 @@ class KonsumenDepositController extends Controller
                 DB::raw("SUM(CASE WHEN konsumen_deposit.tipe = 'Setoran' THEN konsumen_deposit.nominal ELSE -konsumen_deposit.nominal END) as saldo_deposit")
             )
             ->groupBy('konsumen.id_konsumen', 'konsumen.nama_konsumen', 'golongan_konsumen.nama_golongan')
-            ->havingRaw('saldo_deposit != 0')
             ->orderByDesc('saldo_deposit')
             ->get();
 

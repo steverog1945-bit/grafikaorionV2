@@ -214,6 +214,21 @@
                     <p class="text-[11px] text-emerald-600 mt-0.5">Otomatis diterapkan. Ganti Metode Pembayaran jika ingin pakai Tunai/Transfer.</p>
                 </div>
             </div>
+            @elseif($depositSudahHabis)
+            {{-- Konsumen ini PERNAH setor deposit (beda dari yang memang
+                 tidak pernah punya sama sekali) tapi saldonya sekarang 0 -
+                 supaya kasir tidak bingung kenapa opsi Deposit di bawah
+                 terkunci/tidak otomatis terisi padahal pelanggan ini
+                 langganan pakai deposit. --}}
+            <div class="mb-5 flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                <div class="w-8 h-8 rounded-lg bg-slate-300 text-white flex items-center justify-center shrink-0 text-sm">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-xs font-black text-slate-500 uppercase tracking-wide">Deposit Sudah Habis Terpakai</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Konsumen ini pernah setor deposit, tapi saldonya sudah habis - tidak bisa dipakai lagi sampai ada setoran baru.</p>
+                </div>
+            </div>
             @endif
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -273,7 +288,8 @@
                                     <input type="radio" name="metode_pembayaran" value="Transfer" class="sr-only" onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-university"></i> Transfer
                                 </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}">
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}"
+                                    title="{{ $saldoDeposit > 0 ? '' : ($depositSudahHabis ? 'Deposit konsumen ini sudah habis terpakai, tidak bisa dipakai lagi.' : 'Konsumen ini belum pernah setor deposit.') }}">
                                     <input type="radio" name="metode_pembayaran" value="Deposit" class="sr-only" {{ $saldoDeposit <= 0 ? 'disabled' : '' }} onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-wallet"></i> Deposit
                                 </label>

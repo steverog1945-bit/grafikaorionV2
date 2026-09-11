@@ -224,7 +224,17 @@ class KasirController extends Controller
         $banks = DB::table('bank_perusahaan')->orderBy('nama_bank')->get();
         $saldoDeposit = KonsumenDepositController::saldoUntuk($transaksi->id_konsumen);
 
-        return view('kasir.form_pembayaran', compact('transaksi', 'items', 'totalTerbayar', 'sisaTagihan', 'banks', 'saldoDeposit'));
+        // Konsumen ini PERNAH setor deposit tapi saldoDeposit sekarang 0 -
+        // dibedakan dari "memang tidak pernah punya deposit sama sekali",
+        // supaya kasir dapat keterangan jelas kenapa opsi Deposit tidak bisa
+        // dipakai (lihat pesan di form_pembayaran.blade.php), bukan cuma
+        // opsi yang diam-diam disabled tanpa alasan.
+        $depositSudahHabis = $saldoDeposit <= 0 && DB::table('konsumen_deposit')
+            ->where('id_konsumen', $transaksi->id_konsumen)
+            ->where('tipe', 'Setoran')
+            ->exists();
+
+        return view('kasir.form_pembayaran', compact('transaksi', 'items', 'totalTerbayar', 'sisaTagihan', 'banks', 'saldoDeposit', 'depositSudahHabis'));
     }
 
     public function prosesBayar(Request $request)
