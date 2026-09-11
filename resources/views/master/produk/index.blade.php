@@ -307,11 +307,11 @@
         });
 
         try {
-            const response = await fetch(`/produk/${id}`);
+            const response = await fetch(`{{ url('/produk') }}/${id}`);
             const data = await response.json();
 
             const form = document.getElementById('formProduk');
-            form.action = `/produk/${id}`;
+            form.action = `{{ url('/produk') }}/${id}`;
             document.getElementById('methodField').innerHTML = '<input type="hidden" name="_method" value="PUT">';
 
             document.getElementById('modal-produk-title').innerText = "Edit: " + data.produk.nama_produk;

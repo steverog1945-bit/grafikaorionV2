@@ -177,6 +177,19 @@
                         </div>
                     </div>
 
+                    {{-- Indikator di bawah ukuran/qty minimum produk (Master Produk
+                         punya field Min Panjang/Lebar/Order yang sebelumnya
+                         dikumpulkan tapi tidak pernah dibaca di mana pun - PERINGATAN
+                         saja seperti stok BOM, kasir yang putuskan tetap lanjut atau
+                         tidak, mis. kalau memang ada kesepakatan khusus ke konsumen). --}}
+                    <div id="min_order_warning" hidden class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
+                        <i class="fas fa-ruler-combined text-amber-500 mt-0.5"></i>
+                        <div>
+                            <p class="text-xs font-bold text-amber-700 uppercase tracking-wide">Di bawah minimum order produk ini</p>
+                            <p id="min_order_warning_detail" class="text-xs text-amber-600 mt-1"></p>
+                        </div>
+                    </div>
+
                     <div class="bg-indigo-900 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4">
                         <div class="text-center md:text-left">
                             <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1">Harga Estimasi</p>
@@ -597,7 +610,7 @@
         if (!nama) return Swal.fire('Opps', 'Nama wajib diisi!', 'warning');
 
         try {
-            const response = await fetch('/konsumen/store-ajax', {
+            const response = await fetch('{{ url('/konsumen/store-ajax') }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 body: JSON.stringify({
@@ -656,7 +669,7 @@
         $('#wrapper_qty').toggleClass('hidden', metode !== 'quantity');
 
         try {
-            const res = await fetch(`/api/penjualan/produk/${id}`);
+            const res = await fetch(`{{ url('/api/penjualan/produk') }}/${id}`);
             currentProduk = await res.json();
             currentProduk.metode_hitung = metode;
             setTimeout(() => {
@@ -703,13 +716,14 @@
         if (qtyCari <= 0) { updateDisplay(0, 0); return null; }
 
         try {
-            const url = `/api/penjualan/get-harga/${currentProduk.id_produk}/${idGol}/${qtyCari}`;
+            const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${qtyCari}`;
             const response = await fetch(url);
             const data = await response.json();
             const hargaJual = parseFloat(data.harga_jual) || 0;
             const subtotal = (hargaJual * qtyCari) + biayaDesain + biayaFinishing + biayaCetak;
             updateDisplay(hargaJual, subtotal, data.is_promo);
             cekStokBom(currentProduk.id_produk, p, l, (currentProduk.metode_hitung === 'ukuran') ? qU : qB);
+            cekMinOrder(p, l, qU, qB);
             return { harga_satuan: hargaJual, subtotal: subtotal, qty_hitung: qtyCari, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB };
         } catch (error) { return null; }
     }
@@ -718,7 +732,7 @@
     async function cekStokBom(idProduk, p, l, qtyInput) {
         const warningBox = document.getElementById('stok_warning');
         try {
-            const url = `/api/penjualan/check-stok?id_produk=${idProduk}&p=${p}&l=${l}&qty_input=${qtyInput}`;
+            const url = `{{ url('/api/penjualan/check-stok') }}?id_produk=${idProduk}&p=${p}&l=${l}&qty_input=${qtyInput}`;
             const res = await fetch(url);
             const data = await res.json();
 
@@ -737,6 +751,36 @@
         } catch (e) {
             warningBox.hidden = true;
         }
+    }
+
+    // Min Panjang/Lebar/Order di Master Produk sebelumnya dikumpulkan tapi
+    // tidak pernah dibaca di mana pun - operator bisa input ukuran/qty di
+    // bawah batas tanpa tahu itu di bawah minimum. PERINGATAN saja (pola
+    // sama seperti stok BOM), tidak memblokir - kasir yang putuskan.
+    function cekMinOrder(p, l, qU, qB) {
+        const box = document.getElementById('min_order_warning');
+        const detail = document.getElementById('min_order_warning_detail');
+        if (!currentProduk) { box.hidden = true; return; }
+
+        if (currentProduk.metode_hitung === 'ukuran') {
+            const minP = parseFloat(currentProduk.min_panjang) || 0;
+            const minL = parseFloat(currentProduk.min_lebar) || 0;
+            const kurangP = minP > 0 && p > 0 && p < minP;
+            const kurangL = minL > 0 && l > 0 && l < minL;
+            if (kurangP || kurangL) {
+                detail.innerText = `Minimum ${minP} x ${minL} cm untuk produk ini (input sekarang: ${p} x ${l} cm). Order tetap bisa disimpan.`;
+                box.hidden = false;
+                return;
+            }
+        } else {
+            const minQty = parseFloat(currentProduk.min_order) || 0;
+            if (minQty > 0 && qB > 0 && qB < minQty) {
+                detail.innerText = `Minimum order ${minQty} pcs untuk produk ini (input sekarang: ${qB} pcs). Order tetap bisa disimpan.`;
+                box.hidden = false;
+                return;
+            }
+        }
+        box.hidden = true;
     }
 
     function updateDisplay(harga, subtotal, isPromo) {
@@ -1015,6 +1059,7 @@
         document.getElementById('display_harga').innerText = "Rp 0 /unit";
         document.getElementById('display_subtotal').innerText = "Rp 0";
         document.getElementById('stok_warning').hidden = true;
+        document.getElementById('min_order_warning').hidden = true;
 
         // editIndex HARUS direset di sini juga. Sebelumnya ini terlewat: kalau
         // user sedang mengedit item keranjang (editIndex terisi, tombol jadi
@@ -1064,7 +1109,7 @@
 
         try {
             Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-            const response = await fetch('/penjualan/store', {
+            const response = await fetch('{{ route('penjualan.store') }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
