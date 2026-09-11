@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * CRUD per-baris untuk tier harga Jasa (jasa_harga) - pola identik dengan
- * FinishingHargaController (satu baris satu aksi, bukan bulk replace).
+ * FinishingHargaController (satu baris satu aksi, bukan bulk replace,
+ * SELALU JSON supaya dipanggil lewat fetch() tanpa reload halaman).
  */
 class JasaHargaController extends Controller
 {
@@ -19,7 +20,7 @@ class JasaHargaController extends Controller
             'harga'     => 'required|numeric|min:0',
         ]);
 
-        DB::table('jasa_harga')->insert([
+        $id = DB::table('jasa_harga')->insertGetId([
             'id_jasa'    => $idJasa,
             'range_min'  => $request->range_min,
             'range_max'  => $request->range_max ?: null,
@@ -28,7 +29,9 @@ class JasaHargaController extends Controller
             'updated_at' => now(),
         ]);
 
-        return redirect()->back()->with('success', 'Tier harga jasa ditambahkan.');
+        $row = DB::table('jasa_harga')->where('id_jasa_harga', $id)->first();
+
+        return response()->json(['success' => true, 'message' => 'Tier harga ditambahkan.', 'row' => $row]);
     }
 
     public function update(Request $request, $id)
@@ -46,13 +49,13 @@ class JasaHargaController extends Controller
             'updated_at' => now(),
         ]);
 
-        return redirect()->back()->with('success', 'Tier harga jasa diperbarui.');
+        return response()->json(['success' => true, 'message' => 'Tier harga diperbarui.']);
     }
 
     public function destroy($id)
     {
         DB::table('jasa_harga')->where('id_jasa_harga', $id)->delete();
 
-        return redirect()->back()->with('success', 'Tier harga jasa dihapus.');
+        return response()->json(['success' => true, 'message' => 'Tier harga dihapus.']);
     }
 }

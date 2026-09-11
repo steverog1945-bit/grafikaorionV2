@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\DB;
  * lama Price List produk) supaya tidak ada kelas bug "baris lain ikut
  * hilang karena key array bentrok" - setiap baris py id_finishing_harga
  * asli di database, add/edit/hapus tidak pernah menyentuh baris lain.
+ *
+ * SELALU JSON (bukan redirect): dipanggil murni lewat fetch() dari modal
+ * "Harga Bertingkat" supaya menambah/edit/hapus satu tier tidak perlu
+ * reload seluruh halaman - sebelumnya submit form biasa (full page
+ * reload) terasa lambat kalau mau memasukkan beberapa tier berturut-turut.
  */
 class FinishingHargaController extends Controller
 {
@@ -22,7 +27,7 @@ class FinishingHargaController extends Controller
             'harga'     => 'required|numeric|min:0',
         ]);
 
-        DB::table('finishing_harga')->insert([
+        $id = DB::table('finishing_harga')->insertGetId([
             'id_finishing' => $idFinishing,
             'range_min'    => $request->range_min,
             'range_max'    => $request->range_max ?: null,
@@ -31,7 +36,9 @@ class FinishingHargaController extends Controller
             'updated_at'   => now(),
         ]);
 
-        return redirect()->back()->with('success', 'Tier harga finishing ditambahkan.');
+        $row = DB::table('finishing_harga')->where('id_finishing_harga', $id)->first();
+
+        return response()->json(['success' => true, 'message' => 'Tier harga ditambahkan.', 'row' => $row]);
     }
 
     public function update(Request $request, $id)
@@ -49,13 +56,13 @@ class FinishingHargaController extends Controller
             'updated_at' => now(),
         ]);
 
-        return redirect()->back()->with('success', 'Tier harga finishing diperbarui.');
+        return response()->json(['success' => true, 'message' => 'Tier harga diperbarui.']);
     }
 
     public function destroy($id)
     {
         DB::table('finishing_harga')->where('id_finishing_harga', $id)->delete();
 
-        return redirect()->back()->with('success', 'Tier harga finishing dihapus.');
+        return response()->json(['success' => true, 'message' => 'Tier harga dihapus.']);
     }
 }

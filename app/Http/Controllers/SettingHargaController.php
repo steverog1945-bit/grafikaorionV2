@@ -73,10 +73,10 @@ class SettingHargaController extends Controller
         ]);
 
         if ($this->tumpangTindih($idProduk, $request->id_golongan, $request->range_min, $request->range_max)) {
-            return back()->with('error', 'Rentang qty ini tumpang tindih dengan tier yang sudah ada untuk golongan tersebut. Sesuaikan dulu Min/Max-nya.');
+            return response()->json(['success' => false, 'message' => 'Rentang qty ini tumpang tindih dengan tier yang sudah ada untuk golongan tersebut. Sesuaikan dulu Min/Max-nya.'], 422);
         }
 
-        DB::table('setting_harga')->insert([
+        $id = DB::table('setting_harga')->insertGetId([
             'id_produk'   => $idProduk,
             'id_golongan' => $request->id_golongan,
             'range_min'   => $request->range_min,
@@ -87,7 +87,9 @@ class SettingHargaController extends Controller
             'updated_at'  => now(),
         ]);
 
-        return back()->with('success', 'Tier harga ditambahkan.');
+        $row = DB::table('setting_harga')->where('id_harga', $id)->first();
+
+        return response()->json(['success' => true, 'message' => 'Tier harga ditambahkan.', 'row' => $row]);
     }
 
     public function updateRow(Request $request, $id)
@@ -100,11 +102,11 @@ class SettingHargaController extends Controller
 
         $row = DB::table('setting_harga')->where('id_harga', $id)->first();
         if (!$row) {
-            return back()->with('error', 'Tier harga tidak ditemukan.');
+            return response()->json(['success' => false, 'message' => 'Tier harga tidak ditemukan.'], 404);
         }
 
         if ($this->tumpangTindih($row->id_produk, $row->id_golongan, $request->range_min, $request->range_max, $id)) {
-            return back()->with('error', 'Rentang qty ini tumpang tindih dengan tier lain untuk golongan tersebut. Sesuaikan dulu Min/Max-nya.');
+            return response()->json(['success' => false, 'message' => 'Rentang qty ini tumpang tindih dengan tier lain untuk golongan tersebut. Sesuaikan dulu Min/Max-nya.'], 422);
         }
 
         DB::table('setting_harga')->where('id_harga', $id)->update([
@@ -114,14 +116,14 @@ class SettingHargaController extends Controller
             'updated_at' => now(),
         ]);
 
-        return back()->with('success', 'Tier harga diperbarui.');
+        return response()->json(['success' => true, 'message' => 'Tier harga diperbarui.']);
     }
 
     public function destroyRow($id)
     {
         DB::table('setting_harga')->where('id_harga', $id)->delete();
 
-        return back()->with('success', 'Tier harga dihapus.');
+        return response()->json(['success' => true, 'message' => 'Tier harga dihapus.']);
     }
 
     /**

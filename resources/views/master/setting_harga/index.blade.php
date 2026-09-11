@@ -113,54 +113,50 @@
             Tiap baris berlaku untuk satu golongan &amp; rentang qty tertentu. Kosongkan <b>Max</b> untuk rentang tak terbatas ("qty X ke atas"). Harga dipilih otomatis di Kasir Utama berdasarkan golongan konsumen &amp; qty yang diinput.
         </div>
 
-        @if($hargaProdukModal->isEmpty())
-            <p class="text-xs text-slate-400 italic mb-4">Belum ada harga diatur untuk produk ini - order dengan produk ini akan ditolak di Kasir sampai minimal satu tier diisi.</p>
-        @else
-            <div class="overflow-x-auto mb-4">
-                <table class="w-full text-xs">
-                    <thead>
-                        <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-100">
-                            <th class="text-left py-2 pr-2">Golongan</th>
-                            <th class="text-center py-2 px-2 w-20">Min</th>
-                            <th class="text-center py-2 px-2 w-20">Max</th>
-                            <th class="text-left py-2 px-2">Harga (Rp)</th>
-                            <th class="w-20"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        @foreach($hargaProdukModal as $t)
-                        @php $namaGolonganTier = optional($golongan->firstWhere('id_golongan', $t->id_golongan))->nama_golongan ?? '?'; @endphp
-                        <tr>
-                            <td colspan="5" class="py-1">
-                                <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
-                                    <form action="{{ route('setting-harga.tier.update', $t->id_harga) }}" method="POST" class="flex items-center gap-2 flex-1">
-                                        @csrf @method('PATCH')
-                                        <span class="w-28 shrink-0 text-[11px] font-bold text-slate-600 uppercase truncate" title="{{ $namaGolonganTier }}">{{ $namaGolonganTier }}</span>
-                                        <input type="number" name="range_min" value="{{ $t->range_min }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                                        <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                                        <input type="number" name="range_max" value="{{ $t->range_max }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                                        <span class="text-[10px] text-slate-400">Rp</span>
-                                        <input type="number" name="harga_jual" value="{{ (int) $t->harga_jual }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
-                                        <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
-                                            <i class="fas fa-save text-xs"></i>
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('setting-harga.tier.destroy', $t->id_harga) }}" method="POST" id="hapus-tier-harga-{{ $t->id_harga }}">
-                                        @csrf @method('DELETE')
-                                        <button type="button" onclick="confirmHapusTierHarga({{ $t->id_harga }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
-                                            <i class="fas fa-trash-alt text-xs"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
+        <div class="overflow-x-auto mb-4">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-100">
+                        <th class="text-left py-2 pr-2">Golongan</th>
+                        <th class="text-center py-2 px-2 w-20">Min</th>
+                        <th class="text-center py-2 px-2 w-20">Max</th>
+                        <th class="text-left py-2 px-2">Harga (Rp)</th>
+                        <th class="w-20"></th>
+                    </tr>
+                </thead>
+                <tbody id="tier-tbody-produk-{{ $p->id_produk }}" class="divide-y divide-slate-50">
+                    <tr class="tier-empty-msg-produk" {{ $hargaProdukModal->isNotEmpty() ? 'hidden' : '' }}>
+                        <td colspan="5" class="py-2 text-xs text-slate-400 italic">Belum ada harga diatur - order dengan produk ini akan ditolak di Kasir sampai minimal satu tier diisi.</td>
+                    </tr>
+                    @foreach($hargaProdukModal as $t)
+                    @php $namaGolonganTier = optional($golongan->firstWhere('id_golongan', $t->id_golongan))->nama_golongan ?? '?'; @endphp
+                    <tr class="tier-row-produk" data-id="{{ $t->id_harga }}">
+                        <td colspan="5" class="py-1">
+                            <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
+                                <form action="{{ route('setting-harga.tier.update', $t->id_harga) }}" class="tier-edit-form-produk flex items-center gap-2 flex-1">
+                                    @csrf
+                                    <span class="w-28 shrink-0 text-[11px] font-bold text-slate-600 uppercase truncate" title="{{ $namaGolonganTier }}">{{ $namaGolonganTier }}</span>
+                                    <input type="number" name="range_min" value="{{ $t->range_min }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                                    <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+                                    <input type="number" name="range_max" value="{{ $t->range_max }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                                    <span class="text-[10px] text-slate-400">Rp</span>
+                                    <input type="number" name="harga_jual" value="{{ (int) $t->harga_jual }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
+                                    <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
+                                        <i class="fas fa-save text-xs"></i>
+                                    </button>
+                                </form>
+                                <button type="button" onclick="confirmHapusTierHarga({{ $t->id_harga }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
-        <form action="{{ route('setting-harga.tier.store', $p->id_produk) }}" method="POST" class="flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2">
+        <form action="{{ route('setting-harga.tier.store', $p->id_produk) }}" class="tier-add-form-produk flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-produk="{{ $p->id_produk }}">
             @csrf
             <select name="id_golongan" required class="w-28 shrink-0 text-[11px] bg-white border-none rounded-lg py-2 px-1 font-bold text-slate-600">
                 @foreach($golongan as $g)
@@ -187,6 +183,96 @@
 
 @push('scripts')
 <script>
+    // Aksi tier harga (tambah/edit/hapus) dikirim lewat fetch() dengan body
+    // JSON - modal tetap terbuka, tabel update di tempat tanpa reload
+    // halaman (sebelumnya submit form biasa = reload penuh tiap satu tier,
+    // lambat kalau mau memasukkan beberapa tier berturut-turut). Body
+    // HARUS JSON (bukan FormData/multipart) untuk method PATCH/DELETE -
+    // PHP tidak otomatis mem-parse body multipart untuk method selain POST
+    // asli, jadi kalau tetap FormData request sampai ke Laravel dengan
+    // input kosong dan validasi selalu gagal walau datanya kelihatan benar.
+    //
+    // Catatan: ringkasan harga di KOLOM TABEL UTAMA (di belakang modal) TIDAK
+    // ikut ter-update live saat modal ditutup - itu baru akurat lagi setelah
+    // halaman di-refresh/filter ulang. Modal "Kelola Harga" sendiri SELALU
+    // akurat karena baris di dalamnya langsung disinkronkan tiap aksi.
+    const csrfTokenHarga = document.querySelector('meta[name="csrf-token"]').content;
+    const namaGolonganMap = {
+        @foreach($golongan as $g)
+            {{ $g->id_golongan }}: @json($g->nama_golongan),
+        @endforeach
+    };
+
+    function buildHargaTierRowHtml(t) {
+        const namaGol = namaGolonganMap[t.id_golongan] ?? '?';
+        return `
+            <tr class="tier-row-produk" data-id="${t.id_harga}">
+                <td colspan="5" class="py-1">
+                    <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
+                        <form action="{{ url('/setting-harga-tier') }}/${t.id_harga}" class="tier-edit-form-produk flex items-center gap-2 flex-1">
+                            <input type="hidden" name="_token" value="${csrfTokenHarga}">
+                            <span class="w-28 shrink-0 text-[11px] font-bold text-slate-600 uppercase truncate" title="${namaGol}">${namaGol}</span>
+                            <input type="number" name="range_min" value="${t.range_min}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                            <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+                            <input type="number" name="range_max" value="${t.range_max ?? ''}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                            <span class="text-[10px] text-slate-400">Rp</span>
+                            <input type="number" name="harga_jual" value="${parseInt(t.harga_jual)}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
+                            <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
+                                <i class="fas fa-save text-xs"></i>
+                            </button>
+                        </form>
+                        <button type="button" onclick="confirmHapusTierHarga(${t.id_harga})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
+                            <i class="fas fa-trash-alt text-xs"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+    }
+
+    async function submitHargaTierFormAjax(form, method) {
+        const formData = new FormData(form);
+        const payload = {};
+        formData.forEach((v, k) => { if (k !== '_token') payload[k] = v; });
+        try {
+            const res = await fetch(form.action, {
+                method,
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfTokenHarga },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                Swal.fire('Opps!', data.message || 'Gagal menyimpan.', 'error');
+                return null;
+            }
+            return data;
+        } catch (e) {
+            Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');
+            return null;
+        }
+    }
+
+    document.addEventListener('submit', async function (e) {
+        if (e.target.matches('.tier-add-form-produk')) {
+            e.preventDefault();
+            const form = e.target;
+            const data = await submitHargaTierFormAjax(form, 'POST');
+            if (!data) return;
+            const idProduk = form.dataset.idProduk;
+            const tbody = document.getElementById('tier-tbody-produk-' + idProduk);
+            tbody.querySelector('.tier-empty-msg-produk').hidden = true;
+            tbody.insertAdjacentHTML('beforeend', buildHargaTierRowHtml(data.row));
+            const golSelect = form.querySelector('[name="id_golongan"]');
+            form.reset();
+            golSelect.selectedIndex = 0;
+            Toast.fire({ icon: 'success', title: data.message });
+        } else if (e.target.matches('.tier-edit-form-produk')) {
+            e.preventDefault();
+            const data = await submitHargaTierFormAjax(e.target, 'PATCH');
+            if (!data) return;
+            Toast.fire({ icon: 'success', title: data.message });
+        }
+    });
+
     function confirmHapusTierHarga(id) {
         Swal.fire({
             title: 'Hapus Tier Harga Ini?',
@@ -197,9 +283,27 @@
             cancelButtonColor: '#f1f5f9',
             cancelButtonText: '<span style="color: #64748b">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('hapus-tier-harga-' + id).submit();
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
+            try {
+                const res = await fetch(`{{ url('/setting-harga-tier') }}/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfTokenHarga },
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    Swal.fire('Opps!', data.message || 'Gagal menghapus.', 'error');
+                    return;
+                }
+                const row = document.querySelector(`.tier-row-produk[data-id="${id}"]`);
+                const tbody = row.closest('tbody');
+                row.remove();
+                if (tbody.querySelectorAll('.tier-row-produk').length === 0) {
+                    tbody.querySelector('.tier-empty-msg-produk').hidden = false;
+                }
+                Toast.fire({ icon: 'success', title: data.message });
+            } catch (e) {
+                Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');
             }
         });
     }

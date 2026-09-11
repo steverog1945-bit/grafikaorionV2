@@ -244,36 +244,30 @@
 
     @php $tiersJ = $hargaTiers[$j->id_jasa] ?? collect(); @endphp
 
-    @if($tiersJ->isEmpty())
-        <p class="text-xs text-slate-400 italic mb-4">Belum ada tier harga.</p>
-    @else
-        <div class="space-y-2 mb-4">
-            @foreach($tiersJ as $t)
-            <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
-                <form action="{{ route('jasa.harga.update', $t->id_jasa_harga) }}" method="POST" class="flex items-center gap-2 flex-1">
-                    @csrf @method('PATCH')
-                    <input type="number" name="range_min" value="{{ $t->range_min }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                    <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                    <input type="number" name="range_max" value="{{ $t->range_max }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                    <span class="text-[10px] text-slate-400">=</span>
-                    <span class="text-[10px] text-slate-400">Rp</span>
-                    <input type="number" name="harga" value="{{ (int) $t->harga }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
-                    <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
-                        <i class="fas fa-save text-xs"></i>
-                    </button>
-                </form>
-                <form action="{{ route('jasa.harga.destroy', $t->id_jasa_harga) }}" method="POST" id="hapus-tier-jasa-{{ $t->id_jasa_harga }}">
-                    @csrf @method('DELETE')
-                    <button type="button" onclick="confirmHapusTierJasa({{ $t->id_jasa_harga }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
-                        <i class="fas fa-trash-alt text-xs"></i>
-                    </button>
-                </form>
-            </div>
-            @endforeach
+    <div id="tier-container-jasa-{{ $j->id_jasa }}" class="space-y-2 mb-4">
+        <p class="text-xs text-slate-400 italic tier-empty-msg-jasa" {{ $tiersJ->isNotEmpty() ? 'hidden' : '' }}>Belum ada tier harga.</p>
+        @foreach($tiersJ as $t)
+        <div class="tier-row-jasa flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2" data-id="{{ $t->id_jasa_harga }}">
+            <form action="{{ route('jasa.harga.update', $t->id_jasa_harga) }}" class="tier-edit-form-jasa flex items-center gap-2 flex-1">
+                @csrf
+                <input type="number" name="range_min" value="{{ $t->range_min }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+                <input type="number" name="range_max" value="{{ $t->range_max }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                <span class="text-[10px] text-slate-400">=</span>
+                <span class="text-[10px] text-slate-400">Rp</span>
+                <input type="number" name="harga" value="{{ (int) $t->harga }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
+                <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
+                    <i class="fas fa-save text-xs"></i>
+                </button>
+            </form>
+            <button type="button" onclick="confirmHapusTierJasa({{ $t->id_jasa_harga }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
+                <i class="fas fa-trash-alt text-xs"></i>
+            </button>
         </div>
-    @endif
+        @endforeach
+    </div>
 
-    <form action="{{ route('jasa.harga.store', $j->id_jasa) }}" method="POST" class="flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2">
+    <form action="{{ route('jasa.harga.store', $j->id_jasa) }}" class="tier-add-form-jasa flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-jasa="{{ $j->id_jasa }}">
         @csrf
         <input type="number" name="range_min" placeholder="Min" min="1" required class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
         <span class="text-[10px] text-slate-300 font-bold">s/d</span>
@@ -321,6 +315,77 @@
         toggleModal('modalEditJasa');
     }
 
+    // Aksi tier harga (tambah/edit/hapus) dikirim lewat fetch() dengan body
+    // JSON - modal tetap terbuka, tabel update di tempat tanpa reload
+    // halaman. Body HARUS JSON (bukan FormData/multipart) untuk method
+    // PATCH/DELETE - PHP tidak otomatis mem-parse body multipart untuk
+    // method selain POST asli, jadi kalau tetap FormData request akan
+    // sampai ke Laravel dengan input kosong dan validasi selalu gagal.
+    const csrfTokenJasa = document.querySelector('meta[name="csrf-token"]').content;
+
+    function buildJasaTierRowHtml(t) {
+        return `
+            <div class="tier-row-jasa flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2" data-id="${t.id_jasa_harga}">
+                <form action="{{ url('/jasa-harga') }}/${t.id_jasa_harga}" class="tier-edit-form-jasa flex items-center gap-2 flex-1">
+                    <input type="hidden" name="_token" value="${csrfTokenJasa}">
+                    <input type="number" name="range_min" value="${t.range_min}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+                    <input type="number" name="range_max" value="${t.range_max ?? ''}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <span class="text-[10px] text-slate-400">=</span>
+                    <span class="text-[10px] text-slate-400">Rp</span>
+                    <input type="number" name="harga" value="${parseInt(t.harga)}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
+                    <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
+                        <i class="fas fa-save text-xs"></i>
+                    </button>
+                </form>
+                <button type="button" onclick="confirmHapusTierJasa(${t.id_jasa_harga})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                </button>
+            </div>`;
+    }
+
+    async function submitJasaTierFormAjax(form, method) {
+        const formData = new FormData(form);
+        const payload = {};
+        formData.forEach((v, k) => { if (k !== '_token') payload[k] = v; });
+        try {
+            const res = await fetch(form.action, {
+                method,
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfTokenJasa },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                Swal.fire('Opps!', data.message || 'Gagal menyimpan.', 'error');
+                return null;
+            }
+            return data;
+        } catch (e) {
+            Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');
+            return null;
+        }
+    }
+
+    document.addEventListener('submit', async function (e) {
+        if (e.target.matches('.tier-add-form-jasa')) {
+            e.preventDefault();
+            const form = e.target;
+            const data = await submitJasaTierFormAjax(form, 'POST');
+            if (!data) return;
+            const idJasa = form.dataset.idJasa;
+            const container = document.getElementById('tier-container-jasa-' + idJasa);
+            container.querySelector('.tier-empty-msg-jasa').hidden = true;
+            container.insertAdjacentHTML('beforeend', buildJasaTierRowHtml(data.row));
+            form.reset();
+            Toast.fire({ icon: 'success', title: data.message });
+        } else if (e.target.matches('.tier-edit-form-jasa')) {
+            e.preventDefault();
+            const data = await submitJasaTierFormAjax(e.target, 'PATCH');
+            if (!data) return;
+            Toast.fire({ icon: 'success', title: data.message });
+        }
+    });
+
     function confirmHapusTierJasa(id) {
         Swal.fire({
             title: 'Hapus Tier Harga Ini?',
@@ -330,9 +395,27 @@
             cancelButtonColor: '#f1f5f9',
             cancelButtonText: '<span style="color: #64748b">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('hapus-tier-jasa-' + id).submit();
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
+            try {
+                const res = await fetch(`{{ url('/jasa-harga') }}/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfTokenJasa },
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    Swal.fire('Opps!', data.message || 'Gagal menghapus.', 'error');
+                    return;
+                }
+                const row = document.querySelector(`.tier-row-jasa[data-id="${id}"]`);
+                const container = row.closest('[id^="tier-container-jasa-"]');
+                row.remove();
+                if (container.querySelectorAll('.tier-row-jasa').length === 0) {
+                    container.querySelector('.tier-empty-msg-jasa').hidden = false;
+                }
+                Toast.fire({ icon: 'success', title: data.message });
+            } catch (e) {
+                Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');
             }
         });
     }

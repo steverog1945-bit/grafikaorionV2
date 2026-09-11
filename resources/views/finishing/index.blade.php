@@ -84,36 +84,30 @@
 
         @php $tiers = $hargaTiers[$d->id_finishing] ?? collect(); @endphp
 
-        @if($tiers->isEmpty())
-            <p class="text-xs text-slate-400 italic mb-4">Belum ada tier harga - selalu memakai Harga Default di atas.</p>
-        @else
-            <div class="space-y-2 mb-4">
-                @foreach($tiers as $t)
-                <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
-                    <form action="{{ route('finishing.harga.update', $t->id_finishing_harga) }}" method="POST" class="flex items-center gap-2 flex-1">
-                        @csrf @method('PATCH')
-                        <input type="number" name="range_min" value="{{ $t->range_min }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                        <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                        <input type="number" name="range_max" value="{{ $t->range_max }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                        <span class="text-[10px] text-slate-400">=</span>
-                        <span class="text-[10px] text-slate-400">Rp</span>
-                        <input type="number" name="harga" value="{{ (int) $t->harga }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
-                        <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
-                            <i class="fas fa-save text-xs"></i>
-                        </button>
-                    </form>
-                    <form action="{{ route('finishing.harga.destroy', $t->id_finishing_harga) }}" method="POST" id="hapus-tier-finishing-{{ $t->id_finishing_harga }}">
-                        @csrf @method('DELETE')
-                        <button type="button" onclick="confirmHapusTierFinishing({{ $t->id_finishing_harga }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
-                            <i class="fas fa-trash-alt text-xs"></i>
-                        </button>
-                    </form>
-                </div>
-                @endforeach
+        <div id="tier-container-finishing-{{ $d->id_finishing }}" class="space-y-2 mb-4">
+            <p class="text-xs text-slate-400 italic tier-empty-msg-finishing" {{ $tiers->isNotEmpty() ? 'hidden' : '' }}>Belum ada tier harga - selalu memakai Harga Default di atas.</p>
+            @foreach($tiers as $t)
+            <div class="tier-row-finishing flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2" data-id="{{ $t->id_finishing_harga }}">
+                <form action="{{ route('finishing.harga.update', $t->id_finishing_harga) }}" class="tier-edit-form-finishing flex items-center gap-2 flex-1">
+                    @csrf
+                    <input type="number" name="range_min" value="{{ $t->range_min }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+                    <input type="number" name="range_max" value="{{ $t->range_max }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <span class="text-[10px] text-slate-400">=</span>
+                    <span class="text-[10px] text-slate-400">Rp</span>
+                    <input type="number" name="harga" value="{{ (int) $t->harga }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
+                    <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
+                        <i class="fas fa-save text-xs"></i>
+                    </button>
+                </form>
+                <button type="button" onclick="confirmHapusTierFinishing({{ $t->id_finishing_harga }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                </button>
             </div>
-        @endif
+            @endforeach
+        </div>
 
-        <form action="{{ route('finishing.harga.store', $d->id_finishing) }}" method="POST" class="flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2">
+        <form action="{{ route('finishing.harga.store', $d->id_finishing) }}" class="tier-add-form-finishing flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-finishing="{{ $d->id_finishing }}">
             @csrf
             <input type="number" name="range_min" placeholder="Min" min="1" required class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
             <span class="text-[10px] text-slate-300 font-bold">s/d</span>
@@ -235,6 +229,82 @@
         return div.innerHTML;
     }
 
+    // Semua aksi tier harga (tambah/edit/hapus) dikirim lewat fetch(),
+    // BUKAN submit form biasa - supaya modal tetap terbuka dan tabelnya
+    // update di tempat tanpa reload seluruh halaman. Sebelumnya reload
+    // penuh tiap satu tier disimpan terasa lambat kalau mau memasukkan
+    // beberapa tier berturut-turut.
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    function buildFinishingTierRowHtml(t) {
+        return `
+            <div class="tier-row-finishing flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2" data-id="${t.id_finishing_harga}">
+                <form action="{{ url('/finishing-harga') }}/${t.id_finishing_harga}" class="tier-edit-form-finishing flex items-center gap-2 flex-1">
+                    <input type="hidden" name="_token" value="${csrfToken}">
+                    <input type="number" name="range_min" value="${t.range_min}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+                    <input type="number" name="range_max" value="${t.range_max ?? ''}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <span class="text-[10px] text-slate-400">=</span>
+                    <span class="text-[10px] text-slate-400">Rp</span>
+                    <input type="number" name="harga" value="${parseInt(t.harga)}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
+                    <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
+                        <i class="fas fa-save text-xs"></i>
+                    </button>
+                </form>
+                <button type="button" onclick="confirmHapusTierFinishing(${t.id_finishing_harga})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                </button>
+            </div>`;
+    }
+
+    // PENTING: body dikirim sebagai JSON, BUKAN FormData - PHP tidak
+    // otomatis mem-parse body multipart/form-data untuk method PATCH/PUT/
+    // DELETE (keterbatasan lama PHP, cuma method POST asli yang diurai ke
+    // $_POST). Kalau tetap pakai FormData, request PATCH/DELETE akan
+    // sampai ke Laravel dengan input KOSONG dan validasi selalu gagal
+    // "field is required" walau datanya kelihatan benar di form.
+    async function submitTierFormAjax(form, method) {
+        const formData = new FormData(form);
+        const payload = {};
+        formData.forEach((v, k) => { if (k !== '_token') payload[k] = v; });
+        try {
+            const res = await fetch(form.action, {
+                method,
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                Swal.fire('Opps!', data.message || 'Gagal menyimpan.', 'error');
+                return null;
+            }
+            return data;
+        } catch (e) {
+            Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');
+            return null;
+        }
+    }
+
+    document.addEventListener('submit', async function (e) {
+        if (e.target.matches('.tier-add-form-finishing')) {
+            e.preventDefault();
+            const form = e.target;
+            const data = await submitTierFormAjax(form, 'POST');
+            if (!data) return;
+            const idFinishing = form.dataset.idFinishing;
+            const container = document.getElementById('tier-container-finishing-' + idFinishing);
+            container.querySelector('.tier-empty-msg-finishing').hidden = true;
+            container.insertAdjacentHTML('beforeend', buildFinishingTierRowHtml(data.row));
+            form.reset();
+            Toast.fire({ icon: 'success', title: data.message });
+        } else if (e.target.matches('.tier-edit-form-finishing')) {
+            e.preventDefault();
+            const data = await submitTierFormAjax(e.target, 'PATCH');
+            if (!data) return;
+            Toast.fire({ icon: 'success', title: data.message });
+        }
+    });
+
     function confirmHapusTierFinishing(id) {
         Swal.fire({
             title: 'Hapus Tier Harga Ini?',
@@ -244,9 +314,27 @@
             cancelButtonColor: '#f1f5f9',
             cancelButtonText: '<span style="color: #64748b">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('hapus-tier-finishing-' + id).submit();
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
+            try {
+                const res = await fetch(`{{ url('/finishing-harga') }}/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    Swal.fire('Opps!', data.message || 'Gagal menghapus.', 'error');
+                    return;
+                }
+                const row = document.querySelector(`.tier-row-finishing[data-id="${id}"]`);
+                const container = row.closest('[id^="tier-container-finishing-"]');
+                row.remove();
+                if (container.querySelectorAll('.tier-row-finishing').length === 0) {
+                    container.querySelector('.tier-empty-msg-finishing').hidden = false;
+                }
+                Toast.fire({ icon: 'success', title: data.message });
+            } catch (e) {
+                Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');
             }
         });
     }
