@@ -1197,7 +1197,14 @@
                 renderCart();
                 resetInputProduk();
 
-                Swal.fire('Berhasil!', 'Transaksi disimpan.', 'success').then(() => window.location.reload());
+                let pesanBerhasil = 'Transaksi disimpan.';
+                if (result.deposit_terpakai) {
+                    const d = result.deposit_terpakai;
+                    const fmt = new Intl.NumberFormat('id-ID');
+                    pesanBerhasil += ` Rp ${fmt.format(d.dipakai)} otomatis dipotong dari saldo deposit konsumen ini (sisa saldo: Rp ${fmt.format(d.sisa_saldo)}). Status nota: ${d.status}.`;
+                }
+
+                Swal.fire('Berhasil!', pesanBerhasil, 'success').then(() => window.location.reload());
             } else {
                 Swal.fire('Gagal!', result.msg || 'Terjadi kesalahan.', 'error');
             }

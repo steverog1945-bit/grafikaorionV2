@@ -400,12 +400,72 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             AccountingService::postPenjualanJasa($request->no_nota, $totalJasaSemua);
         }
 
+        // Pakai saldo deposit konsumen (kalau ada) LANGSUNG saat nota ini
+        // dibuat - sebelumnya deposit cuma bisa dipakai lewat pilihan manual
+        // di halaman Bayar Kasir (kasir harus pilih "Deposit" di dropdown +
+        // ketik nominal sendiri), jadi konsumen dengan saldo tetap muncul
+        // "Belum Bayar" sampai ada yang memprosesnya secara terpisah.
+        // Rumus & ledger PERSIS sama dengan KasirController::prosesBayar()
+        // untuk metode Deposit (insert konsumen_deposit tipe Pemakaian +
+        // pembayaran_riwayat + posting akuntansi yang sama) supaya tidak ada
+        // dua cara berbeda mencatat pemakaian deposit.
+        //
+        // SENGAJA hanya berlaku untuk nota BARU ini - tidak menyapu mundur
+        // ke nota lain milik konsumen yang sama yang mungkin masih Belum
+        // Bayar/DP (itu tetap harus diproses manual seperti biasa di Kasir).
+        $depositTerpakai = null;
+        if ($grand_total > 0) {
+            $saldoDeposit = KonsumenDepositController::saldoUntuk((int) $request->id_konsumen);
+
+            if ($saldoDeposit > 0) {
+                $jumlahPakai = min($saldoDeposit, $grand_total);
+
+                DB::table('konsumen_deposit')->insert([
+                    'id_konsumen'  => $request->id_konsumen,
+                    'tipe'         => 'Pemakaian',
+                    'nominal'      => $jumlahPakai,
+                    'metode_bayar' => 'Deposit',
+                    'keterangan'   => "Pembayaran otomatis nota {$request->no_nota} saat order dibuat",
+                    'tgl_deposit'  => now()->toDateString(),
+                    'id_transaksi' => $id_transaksi,
+                    'id_user'      => Auth::id(),
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
+
+                DB::table('pembayaran_riwayat')->insert([
+                    'id_transaksi' => $id_transaksi,
+                    'nominal'      => $jumlahPakai,
+                    'metode'       => 'Deposit',
+                    'id_bank'      => null,
+                    'tgl_bayar'    => now(),
+                    'keterangan'   => 'Otomatis dipotong dari saldo deposit saat order dibuat',
+                ]);
+
+                AccountingService::postPembayaranDeposit($request->no_nota, $jumlahPakai);
+
+                $statusBaru = $jumlahPakai >= $grand_total ? 'Lunas' : 'DP';
+
+                DB::table('transaksi')->where('id_transaksi', $id_transaksi)->update([
+                    'status_pembayaran' => $statusBaru,
+                    'metode_pembayaran' => 'Deposit',
+                ]);
+
+                $depositTerpakai = [
+                    'dipakai'    => $jumlahPakai,
+                    'sisa_saldo' => $saldoDeposit - $jumlahPakai,
+                    'status'     => $statusBaru,
+                ];
+            }
+        }
+
         DB::commit();
 
         return response()->json([
             'status' => 'success',
             'msg' => 'Transaksi Berhasil',
-            'id_transaksi' => $id_transaksi
+            'id_transaksi' => $id_transaksi,
+            'deposit_terpakai' => $depositTerpakai,
         ]);
 
     } catch (\Exception $e) {
