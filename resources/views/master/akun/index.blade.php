@@ -200,7 +200,7 @@
 
     function openEditAkun(data) {
         const form = document.getElementById('formEditAkun');
-        form.action = `/akun/${data.id_akun}`;
+        form.action = `{{ url('/akun') }}/${data.id_akun}`;
         document.getElementById('edit_kode_akun').value = data.kode_akun;
         document.getElementById('edit_nama_akun').value = data.nama_akun;
         document.getElementById('edit_tipe_akun').value = data.tipe_akun;

@@ -177,7 +177,7 @@
 
     function openEditJenisBahan(data) {
         const form = document.getElementById('formEditJenisBahan');
-        form.action = `/jenis-bahan/${data.id_jenis_bahan}`;
+        form.action = `{{ url('/jenis-bahan') }}/${data.id_jenis_bahan}`;
         document.getElementById('edit_nama_jenis').value = data.nama_jenis;
         document.getElementById('edit_keterangan').value = data.keterangan || '';
         toggleModal('modalEditJenisBahan');

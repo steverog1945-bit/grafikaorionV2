@@ -194,7 +194,7 @@
 
     function openEditGudang(data) {
         const form = document.getElementById('formEditGudang');
-        form.action = `/gudang/${data.id_gudang}`;
+        form.action = `{{ url('/gudang') }}/${data.id_gudang}`;
         document.getElementById('edit_nama_gudang').value = data.nama_gudang;
         document.getElementById('edit_alamat').value = data.alamat || '';
         document.getElementById('edit_penanggung_jawab').value = data.penanggung_jawab || '';

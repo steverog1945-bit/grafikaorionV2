@@ -164,7 +164,7 @@
         btnSubmit.classList.replace('hover:bg-indigo-700', 'hover:bg-amber-600');
         modalIcon.className = "fas fa-edit";
 
-        form.action = `/kategori/${data.id_kategori}`;
+        form.action = `{{ url('/kategori') }}/${data.id_kategori}`;
         document.getElementById('methodField').innerHTML = '@method("PUT")';
         document.getElementById('input_nama').value = data.nama_kategori;
         document.getElementById('input_kode').value = data.kode_kategori;

@@ -198,7 +198,7 @@
         btnSubmit.classList.replace('hover:bg-indigo-700', 'hover:bg-amber-600');
         modalIcon.className = "fas fa-edit";
 
-        form.action = `/satuan/${id}`;
+        form.action = `{{ url('/satuan') }}/${id}`;
         document.getElementById('methodField').innerHTML = '@method("PUT")';
         document.getElementById('input_nama').value = nama;
         document.getElementById('input_nilai').value = nilai;

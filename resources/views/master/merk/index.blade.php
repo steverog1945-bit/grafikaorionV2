@@ -177,7 +177,7 @@
 
     function openEditMerk(data) {
         const form = document.getElementById('formEditMerk');
-        form.action = `/merk/${data.id_merk}`;
+        form.action = `{{ url('/merk') }}/${data.id_merk}`;
         document.getElementById('edit_nama_merk').value = data.nama_merk;
         document.getElementById('edit_keterangan').value = data.keterangan || '';
         toggleModal('modalEditMerk');

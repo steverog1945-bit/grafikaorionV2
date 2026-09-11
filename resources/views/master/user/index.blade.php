@@ -180,7 +180,7 @@
     }
 
     function openEditUser(user) {
-        document.getElementById('formEditUser').action = `/users/update/${user.id_user}`;
+        document.getElementById('formEditUser').action = `{{ url('/users/update') }}/${user.id_user}`;
         document.getElementById('edit_username').value = user.username;
         document.getElementById('edit_id_role').value = user.id_role;
         toggleModal('modalEditUser');

@@ -222,7 +222,7 @@
 
     function openEditJasa(data) {
         const form = document.getElementById('formEditJasa');
-        form.action = `/jasa/${data.id_jasa}`;
+        form.action = `{{ url('/jasa') }}/${data.id_jasa}`;
         document.getElementById('edit_nama_jasa').value = data.nama_jasa;
         document.getElementById('edit_id_satuan').value = data.id_satuan || '';
         document.getElementById('edit_keterangan').value = data.keterangan || '';

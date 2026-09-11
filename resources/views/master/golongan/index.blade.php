@@ -173,7 +173,7 @@
 
     function openEditGolongan(data) {
         const form = document.getElementById('formEditGolongan');
-        form.action = `/golongan/${data.id_golongan}`;
+        form.action = `{{ url('/golongan') }}/${data.id_golongan}`;
         document.getElementById('edit_nama_golongan').value = data.nama_golongan;
         document.getElementById('edit_keterangan').value = data.keterangan || '';
         toggleModal('modalEditGolongan');

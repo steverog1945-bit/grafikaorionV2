@@ -143,7 +143,7 @@
 <script>
     function openEditSupplier(data) {
         const form = document.getElementById('formEditSupplier');
-        form.action = `/supplier/${data.id_supplier}`;
+        form.action = `{{ url('/supplier') }}/${data.id_supplier}`;
         document.getElementById('edit_nama_supplier').value = data.nama_supplier;
         document.getElementById('edit_kontak').value = data.kontak;
         document.getElementById('edit_alamat').value = data.alamat || '';

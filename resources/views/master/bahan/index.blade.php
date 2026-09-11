@@ -369,7 +369,7 @@
     function editBahan(data) {
         document.getElementById('modalTitle').innerText = "Update Spesifikasi Material";
         const form = document.getElementById('formBahan');
-        form.action = `/bahan-baku/${data.id_bahan}`;
+        form.action = `{{ url('/bahan-baku') }}/${data.id_bahan}`;
         document.getElementById('methodField').innerHTML = '@method("PUT")';
 
         document.getElementById('input_nama_bahan').value = data.nama_bahan;
@@ -434,7 +434,7 @@
             if (result.isConfirmed) {
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = `/bahan-baku/${id}`;
+                form.action = `{{ url('/bahan-baku') }}/${id}`;
                 form.innerHTML = `@csrf @method('DELETE')`;
                 document.body.appendChild(form);
                 form.submit();
@@ -463,7 +463,7 @@
             if (result.isConfirmed) {
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = `/bahan-baku/${id}/toggle-status`;
+                form.action = `{{ url('/bahan-baku') }}/${id}/toggle-status`;
                 form.innerHTML = `@csrf @method('PATCH')`;
                 document.body.appendChild(form);
                 form.submit();

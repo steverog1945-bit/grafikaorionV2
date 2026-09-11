@@ -109,7 +109,7 @@
     function openEditBank(data) {
         // Set Action URL sesuai ID Bank
         const form = document.getElementById('formEditBank');
-        form.action = `/bank/${data.id_bank}`;
+        form.action = `{{ url('/bank') }}/${data.id_bank}`;
         
         // Isi nilai input modal edit
         document.getElementById('edit_nama_bank').value = data.nama_bank;

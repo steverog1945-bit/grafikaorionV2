@@ -203,7 +203,7 @@
 
     function openEditKonsumen(data) {
         const form = document.getElementById('formEditKonsumen');
-        form.action = `/konsumen/${data.id_konsumen}`;
+        form.action = `{{ url('/konsumen') }}/${data.id_konsumen}`;
 
         document.getElementById('edit_nama').value = data.nama_konsumen;
         document.getElementById('edit_telepon').value = data.telepon;

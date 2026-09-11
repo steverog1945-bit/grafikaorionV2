@@ -185,7 +185,7 @@
             if (result.isConfirmed) {
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = `/collecting/${idTransaksi}/proses`;
+                form.action = `{{ url('/collecting') }}/${idTransaksi}/proses`;
                 form.innerHTML = `@csrf @method('PATCH')`;
                 document.body.appendChild(form);
                 form.submit();
