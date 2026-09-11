@@ -90,6 +90,9 @@
 
                 <td class="px-8 py-5 text-right">
                     <div class="flex justify-end gap-2">
+                        <x-button href="{{ route('penjualan.riwayat', ['id_konsumen' => $k->id_konsumen]) }}" size="icon" variant="ghost" class="hover:text-indigo-500 hover:bg-indigo-50" title="Riwayat Transaksi">
+                            <i class="fas fa-history text-sm"></i>
+                        </x-button>
                         <x-button size="icon" variant="ghost" onclick="openEditKonsumen({{ json_encode($k) }})" class="hover:text-amber-500 hover:bg-amber-50">
                             <i class="far fa-edit text-sm"></i>
                         </x-button>
@@ -169,6 +172,13 @@
                 </x-form.group>
             </div>
 
+            <x-form.group label="Tipe Konsumen">
+                <x-form.select name="tipe_konsumen" id="edit_tipe_konsumen">
+                    <option value="temporary">Guest (Temporary)</option>
+                    <option value="permanent">Member (Permanent)</option>
+                </x-form.select>
+            </x-form.group>
+
             <x-form.group label="Alamat Domisili">
                 <textarea name="alamat" id="edit_alamat" rows="2"
                           class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-amber-500/20 shadow-inner"></textarea>
@@ -198,6 +208,7 @@
         document.getElementById('edit_nama').value = data.nama_konsumen;
         document.getElementById('edit_telepon').value = data.telepon;
         document.getElementById('edit_golongan').value = data.id_golongan;
+        document.getElementById('edit_tipe_konsumen').value = data.tipe_konsumen || 'temporary';
         document.getElementById('edit_alamat').value = data.alamat || '';
 
         openModal('edit-konsumen');

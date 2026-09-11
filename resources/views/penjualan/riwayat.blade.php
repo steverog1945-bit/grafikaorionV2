@@ -3,7 +3,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Riwayat Nota" subtitle="Daftar transaksi penjualan • default hari ini">
+    <x-page-header title="Riwayat Nota" :subtitle="$konsumenTerpilih ? 'Daftar transaksi penjualan per konsumen' : 'Daftar transaksi penjualan • default hari ini'">
         <x-slot:actions>
             <x-button href="{{ route('penjualan.create') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali ke Kasir
@@ -11,9 +11,27 @@
         </x-slot:actions>
     </x-page-header>
 
+    @if($konsumenTerpilih)
+        <div class="mb-6 flex items-center justify-between bg-indigo-50 border border-indigo-100 rounded-2xl px-6 py-4">
+            <p class="text-[13px] text-indigo-700">
+                <i class="fas fa-user mr-1.5"></i>
+                Menampilkan seluruh riwayat untuk <b>{{ $konsumenTerpilih->nama_konsumen }}</b>
+                @if($from || $to)
+                    (dipersempit ke rentang tanggal di bawah)
+                @endif
+            </p>
+            <a href="{{ route('penjualan.riwayat') }}" class="text-[11px] font-bold text-indigo-500 uppercase tracking-widest hover:underline">
+                <i class="fas fa-times-circle mr-1"></i> Hapus Filter Konsumen
+            </a>
+        </div>
+    @endif
+
     {{-- FILTER RANGE TANGGAL --}}
     <x-card class="mb-8">
         <form method="GET" action="{{ route('penjualan.riwayat') }}" class="flex flex-wrap items-end gap-4">
+            @if($konsumenTerpilih)
+                <input type="hidden" name="id_konsumen" value="{{ $konsumenTerpilih->id_konsumen }}">
+            @endif
             <div class="w-full md:w-56">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
                 <x-form.input type="date" name="from" value="{{ $from }}" />

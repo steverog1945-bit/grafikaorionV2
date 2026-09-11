@@ -38,6 +38,7 @@ class KonsumenController extends Controller
         'nama_konsumen' => 'required|max:255',
         'telepon' => 'required',
         'id_golongan' => 'required|numeric',
+        'tipe_konsumen' => 'nullable|in:permanent,temporary',
     ]);
 
     // 2. Update data ke database
@@ -45,9 +46,8 @@ class KonsumenController extends Controller
         'nama_konsumen' => $request->nama_konsumen,
         'telepon'       => $request->telepon,
         'id_golongan'   => $request->id_golongan,
+        'tipe_konsumen' => $request->tipe_konsumen ?? 'temporary',
         'alamat'        => $request->alamat,
-        // Jika ada kolom tipe_konsumen di form, tambahkan di sini
-        // 'tipe_konsumen' => $request->tipe_konsumen, 
     ]);
 
     // 3. Kembali ke halaman sebelumnya dengan pesan sukses
@@ -131,7 +131,11 @@ public function storeAjax(Request $request)
 
     public function destroy($id)
     {
-        DB::table('konsumen')->where('id_konsumen', $id)->delete();
-        return redirect()->back()->with('success', 'Konsumen dihapus.');
+        try {
+            DB::table('konsumen')->where('id_konsumen', $id)->delete();
+            return redirect()->back()->with('success', 'Konsumen dihapus.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal hapus! Konsumen ini masih punya riwayat transaksi atau deposit.');
+        }
     }
 }

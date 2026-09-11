@@ -447,16 +447,28 @@ public function uploadThumbnail(Request $request)
  */
 public function riwayat(Request $request)
 {
-    $from = $request->filled('from') ? $request->from : date('Y-m-d');
-    $to   = $request->filled('to') ? $request->to : date('Y-m-d');
+    // Default HARI INI hanya masuk akal untuk lihat transaksi umum tanpa
+    // filter - begitu ada id_konsumen (dipakai link "Riwayat Transaksi"
+    // dari Master Konsumen), default HARI INI justru menyembunyikan
+    // hampir seluruh histori pelanggan itu. Default melebar ke semua
+    // tanggal kalau id_konsumen diisi TANPA rentang tanggal eksplisit.
+    $filterKonsumen = $request->filled('id_konsumen');
+    $from = $request->filled('from') ? $request->from : ($filterKonsumen ? null : date('Y-m-d'));
+    $to   = $request->filled('to') ? $request->to : ($filterKonsumen ? null : date('Y-m-d'));
+
+    $konsumenTerpilih = null;
+    if ($filterKonsumen) {
+        $konsumenTerpilih = DB::table('konsumen')->where('id_konsumen', $request->id_konsumen)->first();
+    }
 
     $transaksis = DB::table('transaksi')
         ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
         ->leftJoin('golongan_konsumen', 'konsumen.id_golongan', '=', 'golongan_konsumen.id_golongan')
         ->leftJoin('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
         ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
-        ->whereDate('tgl_order', '>=', $from)
-        ->whereDate('tgl_order', '<=', $to)
+        ->when($from, fn ($q) => $q->whereDate('tgl_order', '>=', $from))
+        ->when($to, fn ($q) => $q->whereDate('tgl_order', '<=', $to))
+        ->when($filterKonsumen, fn ($q) => $q->where('transaksi.id_konsumen', $request->id_konsumen))
         ->select(
             'transaksi.*',
             'konsumen.nama_konsumen',
@@ -464,9 +476,10 @@ public function riwayat(Request $request)
             'karyawan.nama_karyawan as nama_kasir'
         )
         ->orderByDesc('tgl_order')
-        ->paginate(15);
+        ->paginate(15)
+        ->withQueryString();
 
-    return view('penjualan.riwayat', compact('transaksis', 'from', 'to'));
+    return view('penjualan.riwayat', compact('transaksis', 'from', 'to', 'konsumenTerpilih'));
 }
 
 /**
