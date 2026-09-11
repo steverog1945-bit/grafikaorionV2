@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Services\HargaService;
 use App\Services\AccountingService;
+use App\Services\StokReversalService;
 use Carbon\Carbon;
 
 class PenjualanController extends Controller
@@ -498,13 +499,16 @@ public function show($id)
         ->leftJoin('golongan_konsumen', 'konsumen.id_golongan', '=', 'golongan_konsumen.id_golongan')
         ->leftJoin('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
         ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
+        ->leftJoin('users as pembatal', 'transaksi.id_user_pembatal_nota', '=', 'pembatal.id_user')
+        ->leftJoin('karyawan as karyawan_pembatal', 'pembatal.id_karyawan', '=', 'karyawan_pembatal.id_karyawan')
         ->where('transaksi.id_transaksi', $id)
         ->select(
             'transaksi.*',
             'konsumen.nama_konsumen',
             'konsumen.telepon',
             'golongan_konsumen.nama_golongan',
-            'karyawan.nama_karyawan as nama_kasir'
+            'karyawan.nama_karyawan as nama_kasir',
+            DB::raw('COALESCE(karyawan_pembatal.nama_karyawan, pembatal.username) as nama_pembatal_nota')
         )
         ->first();
 
@@ -526,5 +530,86 @@ public function show($id)
         ->get();
 
     return view('penjualan.show', compact('transaksi', 'items'));
+}
+
+/**
+ * Membatalkan SELURUH nota (bukan per-item SPK seperti
+ * ProduksiController::cancel) - untuk kasus nota salah input (salah
+ * konsumen, duplikat, dsb). Ini SOFT-CANCEL: nota TIDAK dihapus dari
+ * database (nomor_nota, riwayat pembayaran, kartu stok yang sudah
+ * tertaut tetap utuh untuk audit) - hanya ditandai status_nota =
+ * 'Dibatalkan' dan seluruh item SPK di dalamnya ikut dibatalkan supaya
+ * tidak ada yang lanjut mengerjakan nota yang sudah tidak valid.
+ *
+ * Diblokir kalau ada item yang sudah 'Selesai' atau nota sudah
+ * 'Sudah Diambil' (collecting) - barang fisik kemungkinan sudah di
+ * tangan konsumen, pembatalan di titik itu harus lewat proses retur
+ * manual, bukan tombol ini.
+ */
+public function batalkanNota(Request $request, $id)
+{
+    $request->validate([
+        'alasan' => 'required|string|max:1000',
+    ]);
+
+    $transaksi = DB::table('transaksi')->where('id_transaksi', $id)->first();
+
+    if (!$transaksi) {
+        return back()->with('error', 'Nota tidak ditemukan.');
+    }
+
+    if ($transaksi->status_nota === 'Dibatalkan') {
+        return back()->with('error', 'Nota ini sudah dibatalkan sebelumnya.');
+    }
+
+    if ($transaksi->status_collecting === 'Sudah Diambil') {
+        return back()->with('error', 'Nota ini tidak bisa dibatalkan - barang sudah diambil konsumen (Collecting). Gunakan proses retur manual kalau memang diperlukan.');
+    }
+
+    $items = DB::table('transaksi_detail')->where('id_transaksi', $id)->get();
+
+    $sudahSelesai = $items->firstWhere('status_spk', 'Selesai');
+    if ($sudahSelesai) {
+        return back()->with('error', 'Nota ini tidak bisa dibatalkan - ada item ("' . $sudahSelesai->nama_file . '") yang sudah Selesai diproduksi. Gunakan proses retur manual kalau memang diperlukan.');
+    }
+
+    $kembalikanStok = $request->boolean('kembalikan_stok');
+    $ringkasanStok = [];
+
+    DB::transaction(function () use ($request, $id, $items, $kembalikanStok, &$ringkasanStok) {
+        foreach ($items as $item) {
+            if ($item->status_spk === 'Batal') {
+                continue;
+            }
+
+            DB::table('transaksi_detail')->where('id_detail', $item->id_detail)->update([
+                'status_spk' => 'Batal',
+            ]);
+
+            if ($kembalikanStok) {
+                $ringkasanStok = array_merge($ringkasanStok, StokReversalService::kembalikan(
+                    $item,
+                    'BATAL-NOTA-' . $id,
+                    'Pembatalan nota #' . $id . ' - stok dikembalikan'
+                ));
+            }
+        }
+
+        DB::table('transaksi')->where('id_transaksi', $id)->update([
+            'status_nota' => 'Dibatalkan',
+            'alasan_batal_nota' => $request->input('alasan'),
+            'tgl_dibatalkan_nota' => now(),
+            'id_user_pembatal_nota' => Auth::id(),
+        ]);
+    });
+
+    $pesan = 'Nota dibatalkan. Seluruh item SPK di dalamnya ikut ditandai Batal.';
+    if ($kembalikanStok) {
+        $pesan .= !empty($ringkasanStok)
+            ? ' Stok dikembalikan: ' . implode(', ', $ringkasanStok) . '.'
+            : ' Tidak ada bahan BOM untuk dikembalikan pada nota ini.';
+    }
+
+    return redirect()->route('penjualan.show', $id)->with('success', $pesan);
 }
 }

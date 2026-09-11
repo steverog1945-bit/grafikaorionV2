@@ -31,6 +31,7 @@ class CollectingController extends Controller
                 'transaksi.nomor_nota',
                 'transaksi.tgl_order',
                 'transaksi.status_pembayaran',
+                'transaksi.status_nota',
                 'transaksi.status_collecting',
                 'transaksi.tgl_collecting',
                 'konsumen.nama_konsumen',
@@ -44,6 +45,7 @@ class CollectingController extends Controller
                 'transaksi.nomor_nota',
                 'transaksi.tgl_order',
                 'transaksi.status_pembayaran',
+                'transaksi.status_nota',
                 'transaksi.status_collecting',
                 'transaksi.tgl_collecting',
                 'konsumen.nama_konsumen',
@@ -103,6 +105,10 @@ class CollectingController extends Controller
 
             if ($transaksi->status_collecting === 'Sudah Diambil') {
                 return back()->with('error', 'Nota ini sudah ditandai diambil sebelumnya.');
+            }
+
+            if ($transaksi->status_nota === 'Dibatalkan') {
+                return back()->with('error', 'Nota ini sudah dibatalkan - tidak ada barang yang perlu diambil.');
             }
 
             $progres = DB::table('transaksi_detail')

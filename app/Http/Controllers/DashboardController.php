@@ -23,8 +23,12 @@ class DashboardController extends Controller
         $today = now()->format('Y-m-d');
 
         // --- ORDER & NOTA HARI INI ---
-        $orderHariIni = DB::table('transaksi')->whereDate('tgl_order', $today)->count();
-        $nilaiOrderHariIni = DB::table('transaksi')->whereDate('tgl_order', $today)->sum('total_bayar');
+        // Nota yang sudah dibatalkan (status_nota, lihat PenjualanController::
+        // batalkanNota) dikeluarkan dari hitungan order/nilai/piutang - kalau
+        // tidak, nota yang batal karena salah input tetap terhitung seolah
+        // order & piutang sungguhan.
+        $orderHariIni = DB::table('transaksi')->whereDate('tgl_order', $today)->where('status_nota', '!=', 'Dibatalkan')->count();
+        $nilaiOrderHariIni = DB::table('transaksi')->whereDate('tgl_order', $today)->where('status_nota', '!=', 'Dibatalkan')->sum('total_bayar');
         $itemSpkHariIni = DB::table('transaksi_detail')
             ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
             ->whereDate('transaksi.tgl_order', $today)
@@ -66,8 +70,8 @@ class DashboardController extends Controller
         $notaBelumLengkap = $collectingRaw->count() - $notaLengkap;
 
         // --- KEUANGAN ---
-        $piutang = DB::table('transaksi')->where('status_pembayaran', '!=', 'Lunas')->sum('total_bayar');
-        $piutangCount = DB::table('transaksi')->where('status_pembayaran', '!=', 'Lunas')->count();
+        $piutang = DB::table('transaksi')->where('status_pembayaran', '!=', 'Lunas')->where('status_nota', '!=', 'Dibatalkan')->sum('total_bayar');
+        $piutangCount = DB::table('transaksi')->where('status_pembayaran', '!=', 'Lunas')->where('status_nota', '!=', 'Dibatalkan')->count();
         $kasMasukHariIni = DB::table('pembayaran_riwayat')->whereDate('tgl_bayar', $today)->sum('nominal');
 
         $kasAktif = DB::table('kas_harian')
@@ -89,7 +93,7 @@ class DashboardController extends Controller
 
         $orderTerbaru = DB::table('transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
-            ->select('transaksi.id_transaksi', 'transaksi.nomor_nota', 'transaksi.tgl_order', 'transaksi.total_bayar', 'transaksi.status_pembayaran', 'konsumen.nama_konsumen')
+            ->select('transaksi.id_transaksi', 'transaksi.nomor_nota', 'transaksi.tgl_order', 'transaksi.total_bayar', 'transaksi.status_pembayaran', 'transaksi.status_nota', 'konsumen.nama_konsumen')
             ->orderByDesc('transaksi.id_transaksi')
             ->limit(5)
             ->get();

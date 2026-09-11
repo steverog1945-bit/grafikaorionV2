@@ -8,8 +8,30 @@
             <x-button href="{{ route('penjualan.riwayat') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali ke Riwayat
             </x-button>
+            @if($transaksi->status_nota !== 'Dibatalkan')
+                <x-button type="button" variant="danger" onclick="batalkanNota()">
+                    <i class="fas fa-ban"></i> Batalkan Nota
+                </x-button>
+            @endif
         </x-slot:actions>
     </x-page-header>
+
+    @if($transaksi->status_nota === 'Dibatalkan')
+        <div class="mb-8 bg-rose-50 border border-rose-200 rounded-2xl p-5 flex items-start gap-4">
+            <i class="fas fa-ban text-rose-500 text-xl mt-0.5"></i>
+            <div>
+                <p class="text-sm font-black text-rose-700 uppercase tracking-wide">Nota Ini Dibatalkan</p>
+                <p class="text-sm text-rose-600 mt-1">
+                    Dibatalkan oleh <b>{{ $transaksi->nama_pembatal_nota ?? '-' }}</b>
+                    pada {{ $transaksi->tgl_dibatalkan_nota ? \Carbon\Carbon::parse($transaksi->tgl_dibatalkan_nota)->format('d M Y, H:i') : '-' }}.
+                </p>
+                @if($transaksi->alasan_batal_nota)
+                    <p class="text-sm text-rose-600 mt-1"><b>Alasan:</b> {{ $transaksi->alasan_batal_nota }}</p>
+                @endif
+                <p class="text-xs text-rose-400 mt-2">Data nota ini TIDAK dihapus - tetap tersimpan untuk jejak audit, hanya ditandai batal dan dikeluarkan dari antrian produksi aktif.</p>
+            </div>
+        </div>
+    @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <x-card>
@@ -35,8 +57,13 @@
 
         <x-card>
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Status & Total</p>
-            <x-badge :status="$transaksi->status_pembayaran" />
-            <p class="text-2xl font-black text-indigo-600 mt-2">Rp {{ number_format($transaksi->total_bayar, 0, ',', '.') }}</p>
+            <div class="flex items-center gap-2">
+                <x-badge :status="$transaksi->status_pembayaran" />
+                @if($transaksi->status_nota === 'Dibatalkan')
+                    <x-badge status="Dibatalkan" variant="danger" />
+                @endif
+            </div>
+            <p class="text-2xl font-black {{ $transaksi->status_nota === 'Dibatalkan' ? 'text-slate-400 line-through' : 'text-indigo-600' }} mt-2">Rp {{ number_format($transaksi->total_bayar, 0, ',', '.') }}</p>
         </x-card>
     </div>
 
@@ -102,4 +129,54 @@
         </tfoot>
     </x-table>
 </div>
+
+@push('scripts')
+<script>
+    function batalkanNota() {
+        Swal.fire({
+            title: 'Batalkan Nota {{ $transaksi->nomor_nota }}?',
+            html: `
+                <div class="text-left">
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
+                        <p class="text-xs text-amber-700"><b>Ini BUKAN hapus permanen.</b> Nota tetap tersimpan untuk jejak audit (nomor nota, riwayat pembayaran, kartu stok tidak hilang) - hanya ditandai Dibatalkan dan seluruh item SPK di dalamnya ikut dibatalkan supaya tidak ada yang lanjut memproduksinya.</p>
+                    </div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Alasan pembatalan (wajib diisi)</label>
+                    <textarea id="swal-alasan-nota" class="swal2-textarea" style="display:flex" placeholder="Contoh: salah input konsumen, nota duplikat, dsb."></textarea>
+                    <label class="flex items-start gap-2 text-sm text-slate-600 mt-2 px-1 cursor-pointer">
+                        <input type="checkbox" id="swal-kembalikan-stok-nota" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <span>Kembalikan bahan baku yang sudah dipotong ke stok (untuk semua item di nota ini)<br><small class="text-slate-400">Centang HANYA kalau materialnya belum benar-benar dipakai/rusak.</small></span>
+                    </label>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            confirmButtonText: 'Ya, Batalkan Nota',
+            cancelButtonText: 'Kembali',
+            customClass: { popup: 'rounded-[2rem]' },
+            preConfirm: () => {
+                const alasan = document.getElementById('swal-alasan-nota').value.trim();
+                if (!alasan) {
+                    Swal.showValidationMessage('Alasan pembatalan wajib diisi');
+                    return false;
+                }
+                return {
+                    alasan,
+                    kembalikanStok: document.getElementById('swal-kembalikan-stok-nota').checked,
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const { alasan, kembalikanStok } = result.value;
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `{{ route('penjualan.batalkan-nota', $transaksi->id_transaksi) }}`;
+                form.innerHTML = `@csrf @method('PATCH')<input type="hidden" name="alasan" value="${alasan.replace(/"/g, '&quot;')}"><input type="hidden" name="kembalikan_stok" value="${kembalikanStok ? '1' : '0'}">`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>
+@endpush
 @endsection

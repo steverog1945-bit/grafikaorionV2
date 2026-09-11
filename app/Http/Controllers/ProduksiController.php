@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\StokReversalService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +62,12 @@ class ProduksiController extends Controller
             $query->where('transaksi_detail.status_spk', 'Selesai');
         } elseif ($statusProduksi === 'batal') {
             $query->where('transaksi_detail.status_spk', 'Batal');
+        } elseif ($statusProduksi === 'pending') {
+            // Item yang dibatalkan dengan tindakan "Pending" (lihat
+            // ProduksiController::cancel) - diparkir di sini untuk ditinjau,
+            // keputusan akhirnya (Antre lagi / Batal) diselesaikan dari
+            // halaman SPK (lihat SpkController::resolvePending).
+            $query->where('transaksi_detail.status_spk', 'Pending');
         } elseif ($statusProduksi === 'semua') {
             // Dipakai oleh quick-link "Lihat di Produksi" (SPK) dan "Lihat progres
             // di Produksi" (Collecting) - keduanya menuju item/konsumen spesifik
@@ -149,88 +156,54 @@ class ProduksiController extends Controller
             return back()->with('error', 'Item ini sudah ' . $detail->status_spk . ', tidak bisa dibatalkan.');
         }
 
-        // Sebelumnya cancel MURNI mengubah status - stok bahan baku yang sudah
-        // dipotong otomatis saat order dibuat (lihat PenjualanController::store,
-        // sudah diverifikasi benar & konsisten di audit Satuan & Konversi
-        // sesi ini - alasan lama "mekanisme potong stok belum konsisten" sudah
-        // tidak berlaku lagi) TIDAK PERNAH dikembalikan, jadi satu-satunya
-        // jalan keluar adalah koreksi manual lewat Kartu Stok - gampang lupa
-        // dan tidak ada jejak yang menjelaskan KENAPA stok itu dikoreksi.
-        //
-        // Sekarang operator diberi PILIHAN eksplisit saat membatalkan (checkbox
-        // di dialog konfirmasi) - bukan otomatis tanpa syarat - karena material
-        // kadang sudah terlanjur dipakai/rusak sebelum pembatalan dicatat, jadi
-        // mengembalikan stok begitu saja bisa salah. Kalau dipilih, qty yang
-        // dikembalikan DIHITUNG ULANG dari data yang sudah tersimpan di baris
-        // ini sendiri (p_ukuran/l_ukuran/qty + BOM produk) - rumus yang PERSIS
-        // sama dengan yang dipakai saat stok dipotong pertama kali - bukan
-        // menelusuri baris kartu_stok lama (referensi di sana level NOTA, bukan
-        // per-item, jadi tidak bisa dipisah kalau satu nota punya banyak item).
+        // Sebelumnya "Batalkan SPK" MURNI berarti status_spk = 'Batal' - status
+        // akhir mati tanpa jalan balik selain koreksi manual ke database.
+        // Sekarang operator memilih TINDAKAN SELANJUTNYA secara eksplisit di
+        // dialog konfirmasi: kembalikan ke antrian SPK biasa (item bisa
+        // diambil ulang siapa saja), diparkir Pending (belum diputuskan, tidak
+        // ikut antrian aktif), atau batal permanen (seperti sebelumnya).
+        $tindakan = $request->input('tindakan', 'batal');
+        $statusBaru = match ($tindakan) {
+            'antre'   => 'Antre',
+            'pending' => 'Pending',
+            default   => 'Batal',
+        };
+
+        // Stok bahan baku yang sudah dipotong otomatis saat order dibuat
+        // (lihat PenjualanController::store) TIDAK otomatis dikembalikan -
+        // material kadang sudah terlanjur dipakai/rusak sebelum pembatalan
+        // dicatat, jadi mengembalikan stok begitu saja bisa salah. Checkbox
+        // ini independen dari tindakan (mau balik Antre/Pending/Batal, stok
+        // yang sudah terlanjur terpotong tetap bisa dikembalikan kalau
+        // memang belum dipakai). Rumusnya lihat StokReversalService - PERSIS
+        // sama dengan rumus potong stok saat order dibuat.
         $kembalikanStok = $request->boolean('kembalikan_stok');
         $ringkasanStok = [];
 
-        DB::transaction(function () use ($request, $id, $detail, $kembalikanStok, &$ringkasanStok) {
+        DB::transaction(function () use ($request, $id, $detail, $statusBaru, $kembalikanStok, &$ringkasanStok) {
             DB::table('transaksi_detail')->where('id_detail', $id)->update([
-                'status_spk' => 'Batal',
+                'status_spk' => $statusBaru,
                 'catatan_produksi' => $request->input('alasan_batal'),
             ]);
 
-            if (!$kembalikanStok || !$detail->id_produk) {
+            if (!$kembalikanStok) {
                 return;
             }
 
-            $produk = DB::table('produk')->where('id_produk', $detail->id_produk)->first();
-            if (!$produk) {
-                return;
-            }
-
-            $qtyHitung = $produk->metode_hitung === 'ukuran'
-                ? ((float) $detail->p_ukuran * (float) $detail->l_ukuran / 10000) * (float) $detail->qty
-                : (float) $detail->qty;
-
-            $boms = DB::table('bom_detail')->where('id_produk', $detail->id_produk)->get();
-
-            foreach ($boms as $bom) {
-                $qtyPakai = $bom->cara_hitung_pemakaian === '(P*L)/10000' ? $qtyHitung : (float) $detail->qty;
-                if ($qtyPakai <= 0) {
-                    continue;
-                }
-
-                $bahan = DB::table('bahan_baku')->where('id_bahan', $bom->id_bahan)->lockForUpdate()->first();
-                if (!$bahan) {
-                    continue;
-                }
-
-                $nilaiKonversi = (float) ($bahan->nilai_konversi ?: 1);
-                if ($nilaiKonversi <= 0) {
-                    $nilaiKonversi = 1;
-                }
-                $qtyKembali = $qtyPakai / $nilaiKonversi;
-
-                $stokSebelum = (float) $bahan->stok;
-                $stokSesudah = $stokSebelum + $qtyKembali;
-
-                DB::table('bahan_baku')->where('id_bahan', $bom->id_bahan)->update(['stok' => $stokSesudah]);
-
-                DB::table('kartu_stok')->insert([
-                    'id_bahan'     => $bom->id_bahan,
-                    'tanggal'      => now(),
-                    'tipe'         => 'IN',
-                    'qty'          => $qtyKembali,
-                    'stok_sebelum' => $stokSebelum,
-                    'stok_sesudah' => $stokSesudah,
-                    'referensi'    => 'BATAL-SPK-' . $id,
-                    'keterangan'   => 'Pembatalan produksi (SPK #' . $id . ') - stok dikembalikan',
-                    'created_by'   => Auth::id(),
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
-                ]);
-
-                $ringkasanStok[] = $bahan->nama_bahan . ' +' . number_format($qtyKembali, 2);
-            }
+            $ringkasanStok = StokReversalService::kembalikan(
+                $detail,
+                'BATAL-SPK-' . $id,
+                'Pembatalan produksi (SPK #' . $id . ') - stok dikembalikan'
+            );
         });
 
-        $pesan = 'Item SPK dibatalkan.';
+        $labelTindakan = [
+            'Antre'   => 'dikembalikan ke antrian SPK',
+            'Pending' => 'ditandai Pending, menunggu keputusan lebih lanjut',
+            'Batal'   => 'dibatalkan permanen',
+        ][$statusBaru];
+
+        $pesan = "Item SPK {$labelTindakan}.";
         if ($kembalikanStok) {
             $pesan .= !empty($ringkasanStok)
                 ? ' Stok dikembalikan: ' . implode(', ', $ringkasanStok) . '.'

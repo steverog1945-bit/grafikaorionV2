@@ -22,6 +22,7 @@ class LaporanController extends Controller
                 'transaksi.tgl_order',
                 'transaksi.total_bayar',
                 'transaksi.status_pembayaran',
+                'transaksi.status_nota',
                 'konsumen.nama_konsumen',
                 'golongan_konsumen.nama_golongan'
             );
@@ -43,10 +44,14 @@ class LaporanController extends Controller
         }
 
         // Resume dihitung dari query YANG SAMA (sebelum pagination) supaya konsisten dengan filter.
-        $resumeQuery = clone $query;
+        // Nota yang sudah dibatalkan tetap ditampilkan di listing (untuk jejak
+        // audit, ditandai badge Dibatalkan) tapi dikeluarkan dari resume angka
+        // supaya total transaksi/piutang tidak ikut menghitung order yang
+        // sudah batal.
+        $resumeQuery = (clone $query)->where('transaksi.status_nota', '!=', 'Dibatalkan');
         $jumlahTransaksi = $resumeQuery->count();
-        $totalTransaksi = (clone $query)->sum('transaksi.total_bayar');
-        $totalPiutang = (clone $query)->where('transaksi.status_pembayaran', '!=', 'Lunas')->sum('transaksi.total_bayar');
+        $totalTransaksi = (clone $resumeQuery)->sum('transaksi.total_bayar');
+        $totalPiutang = (clone $resumeQuery)->where('transaksi.status_pembayaran', '!=', 'Lunas')->sum('transaksi.total_bayar');
 
         $data = $query->orderByDesc('transaksi.tgl_order')->paginate(20)->withQueryString();
 

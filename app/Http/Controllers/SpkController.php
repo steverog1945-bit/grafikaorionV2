@@ -177,6 +177,43 @@ class SpkController extends Controller
     }
 
     /**
+     * Menyelesaikan item berstatus 'Pending' (hasil pembatalan produksi yang
+     * "diparkir" - lihat ProduksiController::cancel) jadi salah satu dari dua
+     * keputusan akhir: kembali ke antrian SPK biasa (Antre) atau batal
+     * permanen (Batal). Hanya berlaku untuk item yang memang sedang Pending -
+     * mencegah tombol ini disalahgunakan untuk mengubah status item lain.
+     */
+    public function resolvePending(Request $request, $id)
+    {
+        $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
+
+        if (!$detail) {
+            return back()->with('error', 'Item SPK tidak ditemukan.');
+        }
+
+        if ($detail->status_spk !== 'Pending') {
+            return back()->with('error', 'Item ini bukan status Pending (status saat ini: ' . $detail->status_spk . ').');
+        }
+
+        $tindakan = $request->input('tindakan');
+        if (!in_array($tindakan, ['antre', 'batal'])) {
+            return back()->with('error', 'Tindakan tidak valid.');
+        }
+
+        $statusBaru = $tindakan === 'antre' ? 'Antre' : 'Batal';
+
+        DB::table('transaksi_detail')->where('id_detail', $id)->update([
+            'status_spk' => $statusBaru,
+        ]);
+
+        $pesan = $tindakan === 'antre'
+            ? 'Item dikembalikan ke antrian SPK.'
+            : 'Item dibatalkan permanen.';
+
+        return back()->with('success', $pesan);
+    }
+
+    /**
      * Cetak SPK (thermal/A4) - dipakai sebagai surat kerja saat produksi
      * berjalan maupun sebagai bukti selesai setelah status_spk = Selesai.
      * Satu view melayani kedua kebutuhan karena datanya sama, hanya status

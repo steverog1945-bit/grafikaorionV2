@@ -110,7 +110,9 @@
                     <x-badge :status="$item->status_pembayaran" />
                 </td>
                 <td class="px-4 py-5 text-center">
-                    @if($lengkap)
+                    @if($item->status_nota === 'Dibatalkan')
+                        <x-badge status="Dibatalkan" variant="danger" />
+                    @elseif($lengkap)
                         <x-badge variant="success">Lengkap</x-badge>
                     @else
                         <x-badge variant="warning">Belum Lengkap</x-badge>
@@ -129,7 +131,7 @@
                         <x-button href="{{ route('produksi.index', ['konsumen' => $item->nama_konsumen, 'status_produksi' => 'semua']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat progres di Produksi">
                             <i class="fas fa-eye text-xs"></i>
                         </x-button>
-                        @if($item->status_collecting !== 'Sudah Diambil')
+                        @if($item->status_collecting !== 'Sudah Diambil' && $item->status_nota !== 'Dibatalkan')
                             <x-button type="button" size="icon" variant="ghost"
                                 onclick="prosesCollecting('{{ $item->id_transaksi }}', {{ json_encode($item->nomor_nota) }}, {{ $lengkap ? 'true' : 'false' }})"
                                 class="border border-slate-100 {{ $lengkap ? 'hover:text-emerald-600' : 'text-slate-200 cursor-not-allowed' }}"

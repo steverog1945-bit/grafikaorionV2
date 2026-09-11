@@ -110,7 +110,11 @@
                 </div>
                 <div class="text-right">
                     <div class="text-sm font-bold text-slate-800">Rp {{ number_format($o->total_bayar, 0, ',', '.') }}</div>
-                    <x-badge :status="$o->status_pembayaran" />
+                    @if($o->status_nota === 'Dibatalkan')
+                        <x-badge status="Dibatalkan" variant="danger" />
+                    @else
+                        <x-badge :status="$o->status_pembayaran" />
+                    @endif
                 </div>
             </div>
             @empty

@@ -99,7 +99,7 @@
         </thead>
         <tbody class="divide-y divide-slate-50">
             @forelse($data as $t)
-            <tr class="hover:bg-slate-50/50 transition-all">
+            <tr class="hover:bg-slate-50/50 transition-all {{ $t->status_nota === 'Dibatalkan' ? 'opacity-50' : '' }}">
                 <td class="px-6 py-5"><span class="text-[13px] font-bold text-slate-700 uppercase">{{ $t->nomor_nota }}</span></td>
                 <td class="px-4 py-5"><span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->format('d M Y') }}</span></td>
                 <td class="px-4 py-5"><span class="text-[12px] font-bold text-slate-700 uppercase">{{ $t->nama_konsumen }}</span></td>
@@ -108,7 +108,13 @@
                         {{ $t->nama_golongan }}
                     </span>
                 </td>
-                <td class="px-4 py-5 text-center"><x-badge :status="$t->status_pembayaran" /></td>
+                <td class="px-4 py-5 text-center">
+                    @if($t->status_nota === 'Dibatalkan')
+                        <x-badge status="Dibatalkan" variant="danger" />
+                    @else
+                        <x-badge :status="$t->status_pembayaran" />
+                    @endif
+                </td>
                 <td class="px-8 py-5 text-right"><span class="text-[13px] font-bold text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span></td>
             </tr>
             @empty

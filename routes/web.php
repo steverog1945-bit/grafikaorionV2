@@ -108,6 +108,9 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::get('/penjualan/{id}', [PenjualanController::class, 'show'])
         ->name('penjualan.show');
 
+    Route::patch('/penjualan/{id}/batalkan-nota', [PenjualanController::class, 'batalkanNota'])
+        ->name('penjualan.batalkan-nota');
+
     Route::post('/penjualan/upload-thumbnail', [PenjualanController::class, 'uploadThumbnail'])
         ->name('penjualan.upload-thumbnail');
 
@@ -344,6 +347,7 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::post('/spk/bulk-urgent', [SpkController::class, 'bulkUrgent'])->name('spk.bulk-urgent');
     Route::post('/spk/bulk-ambil', [SpkController::class, 'bulkAmbil'])->name('spk.bulk-ambil');
     Route::patch('/spk/{id}/ambil', [SpkController::class, 'ambilPekerjaan'])->name('spk.ambil');
+    Route::patch('/spk/{id}/resolve-pending', [SpkController::class, 'resolvePending'])->name('spk.resolve-pending');
     Route::get('/spk/{id}/print/{format?}', [SpkController::class, 'printSpk'])->name('spk.print');
 
     Route::get('/produksi', [ProduksiController::class, 'index'])->name('produksi.index');

@@ -43,6 +43,7 @@
                 <x-form.select name="status_produksi">
                     <option value="progress" {{ request('status_produksi', 'progress') === 'progress' ? 'selected' : '' }}>On Progress</option>
                     <option value="selesai" {{ request('status_produksi') === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                    <option value="pending" {{ request('status_produksi') === 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="batal" {{ request('status_produksi') === 'batal' ? 'selected' : '' }}>Dibatalkan</option>
                 </x-form.select>
             </div>
@@ -100,7 +101,7 @@
                     <span class="text-[13px] font-bold text-slate-700">{{ $item->qty }}</span>
                 </td>
                 <td class="px-4 py-5 text-center">
-                    @if(in_array($item->status_spk, ['Selesai', 'Batal']))
+                    @if(in_array($item->status_spk, ['Selesai', 'Batal', 'Pending']))
                         <span class="text-[13px] font-bold text-slate-700">{{ $item->qty_cetak ?? '-' }}</span>
                     @else
                         <form method="POST" action="{{ route('produksi.simpan-qty', $item->id_detail) }}" class="flex items-center justify-center gap-1">
@@ -126,7 +127,11 @@
                             <i class="fas fa-print text-xs"></i>
                         </x-button>
 
-                        @if(!in_array($item->status_spk, ['Selesai', 'Batal']))
+                        @if($item->status_spk === 'Pending')
+                            <x-button href="{{ route('spk.index', ['status_spk' => 'Pending']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-amber-600" title="Selesaikan keputusan di halaman SPK">
+                                <i class="fas fa-clipboard-list text-xs"></i>
+                            </x-button>
+                        @elseif(!in_array($item->status_spk, ['Selesai', 'Batal']))
                             <x-button type="button" size="icon" variant="ghost" onclick="selesaiProduksi({{ $item->id_detail }})" class="border border-slate-100 hover:text-emerald-600" title="Tandai Selesai">
                                 <i class="fas fa-check text-xs"></i>
                             </x-button>
@@ -178,32 +183,47 @@
 
     function cancelSpk(id) {
         Swal.fire({
-            title: 'Batalkan SPK ini?',
+            title: 'Batalkan Produksi Item Ini?',
             html: `
-                <p class="text-sm text-slate-500 text-left mb-3">Status item ini akan diubah menjadi Batal.</p>
-                <input id="swal-alasan-batal" class="swal2-input" placeholder="Alasan pembatalan (opsional)">
-                <label class="flex items-start gap-2 text-left text-sm text-slate-600 mt-3 px-1 cursor-pointer">
-                    <input type="checkbox" id="swal-kembalikan-stok" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                    <span>Kembalikan bahan baku yang sudah dipotong ke stok<br><small class="text-slate-400">Centang HANYA kalau materialnya belum benar-benar dipakai/rusak.</small></span>
-                </label>
+                <div class="text-left">
+                    <p class="text-sm text-slate-500 mb-3">Pilih tindakan selanjutnya untuk item ini:</p>
+                    <label class="flex items-start gap-2 text-sm text-slate-700 mb-2 cursor-pointer">
+                        <input type="radio" name="swal-tindakan" value="antre" class="mt-1 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <span><b>Kembalikan ke antrian SPK</b><br><small class="text-slate-400">Siap diambil ulang siapa saja, sama seperti SPK baru.</small></span>
+                    </label>
+                    <label class="flex items-start gap-2 text-sm text-slate-700 mb-2 cursor-pointer">
+                        <input type="radio" name="swal-tindakan" value="pending" class="mt-1 text-amber-600 focus:ring-amber-500 cursor-pointer">
+                        <span><b>Pending (belum diputuskan)</b><br><small class="text-slate-400">Diparkir di halaman SPK, tidak ikut antrian aktif sampai ada keputusan lanjutan.</small></span>
+                    </label>
+                    <label class="flex items-start gap-2 text-sm text-slate-700 mb-3 cursor-pointer">
+                        <input type="radio" name="swal-tindakan" value="batal" class="mt-1 text-rose-600 focus:ring-rose-500 cursor-pointer" checked>
+                        <span><b>Batal permanen</b><br><small class="text-slate-400">Tidak akan diambil/diproses lagi.</small></span>
+                    </label>
+                    <input id="swal-alasan-batal" class="swal2-input" placeholder="Alasan pembatalan (opsional)">
+                    <label class="flex items-start gap-2 text-sm text-slate-600 mt-3 px-1 cursor-pointer">
+                        <input type="checkbox" id="swal-kembalikan-stok" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <span>Kembalikan bahan baku yang sudah dipotong ke stok<br><small class="text-slate-400">Centang HANYA kalau materialnya belum benar-benar dipakai/rusak - berlaku untuk tindakan apapun di atas.</small></span>
+                    </label>
+                </div>
             `,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
-            confirmButtonText: 'Ya, Batalkan',
+            confirmButtonText: 'Ya, Lanjutkan',
             cancelButtonText: 'Kembali',
             customClass: { popup: 'rounded-[2rem]' },
             preConfirm: () => ({
+                tindakan: document.querySelector('input[name="swal-tindakan"]:checked')?.value || 'batal',
                 alasan: document.getElementById('swal-alasan-batal').value,
                 kembalikanStok: document.getElementById('swal-kembalikan-stok').checked,
             })
         }).then((result) => {
             if (result.isConfirmed) {
-                const { alasan, kembalikanStok } = result.value;
+                const { tindakan, alasan, kembalikanStok } = result.value;
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = `{{ url('produksi') }}/${id}/cancel`;
-                form.innerHTML = `@csrf @method('PATCH')<input type="hidden" name="alasan_batal" value="${(alasan || '').replace(/"/g, '&quot;')}"><input type="hidden" name="kembalikan_stok" value="${kembalikanStok ? '1' : '0'}">`;
+                form.innerHTML = `@csrf @method('PATCH')<input type="hidden" name="tindakan" value="${tindakan}"><input type="hidden" name="alasan_batal" value="${(alasan || '').replace(/"/g, '&quot;')}"><input type="hidden" name="kembalikan_stok" value="${kembalikanStok ? '1' : '0'}">`;
                 document.body.appendChild(form);
                 form.submit();
             }

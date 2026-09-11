@@ -46,7 +46,7 @@
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status SPK</label>
                 <x-form.select name="status_spk">
                     <option value="">-- Semua Status --</option>
-                    @foreach(['Antre', 'Desain', 'Cetak', 'Selesai', 'Batal'] as $s)
+                    @foreach(['Antre', 'Desain', 'Cetak', 'Selesai', 'Pending', 'Batal'] as $s)
                         <option value="{{ $s }}" {{ request('status_spk') === $s ? 'selected' : '' }}>{{ $s }}</option>
                     @endforeach
                 </x-form.select>
@@ -132,6 +132,13 @@
                             @if($item->status_spk === 'Antre')
                                 <x-button type="button" size="icon" variant="ghost" onclick="ambilPekerjaan({{ $item->id_detail }})" class="border border-slate-100 hover:text-emerald-600" title="Ambil Pekerjaan (pindah ke Produksi)">
                                     <i class="fas fa-hand-paper text-xs"></i>
+                                </x-button>
+                            @elseif($item->status_spk === 'Pending')
+                                <x-button type="button" size="icon" variant="ghost" onclick="resolvePending({{ $item->id_detail }}, 'antre')" class="border border-slate-100 hover:text-indigo-600" title="Kembalikan ke Antrian">
+                                    <i class="fas fa-undo text-xs"></i>
+                                </x-button>
+                                <x-button type="button" size="icon" variant="ghost" onclick="resolvePending({{ $item->id_detail }}, 'batal')" class="border border-slate-100 hover:text-rose-600" title="Batalkan Permanen">
+                                    <i class="fas fa-ban text-xs"></i>
                                 </x-button>
                             @endif
                             <x-button href="{{ route('spk.print', ['id' => $item->id_detail, 'format' => 'thermal']) }}" target="_blank" size="icon" variant="ghost" class="border border-slate-100 hover:text-slate-800" title="Cetak SPK (Thermal)">
@@ -242,6 +249,31 @@
         form.innerHTML = `@csrf @method('PATCH')`;
         document.body.appendChild(form);
         form.submit();
+    }
+
+    function resolvePending(id, tindakan) {
+        const isAntre = tindakan === 'antre';
+        Swal.fire({
+            title: isAntre ? 'Kembalikan ke Antrian?' : 'Batalkan Item Ini Permanen?',
+            text: isAntre
+                ? 'Item akan kembali ke antrian SPK biasa dan bisa diambil siapa saja.'
+                : 'Item akan ditandai Batal permanen dan tidak akan diproses lagi.',
+            icon: isAntre ? 'question' : 'warning',
+            showCancelButton: true,
+            confirmButtonColor: isAntre ? '#4f46e5' : '#e11d48',
+            confirmButtonText: isAntre ? 'Ya, Kembalikan' : 'Ya, Batalkan',
+            cancelButtonText: 'Kembali',
+            customClass: { popup: 'rounded-[2rem]' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `{{ url('spk') }}/${id}/resolve-pending`;
+                form.innerHTML = `@csrf @method('PATCH')<input type="hidden" name="tindakan" value="${tindakan}">`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
     }
 
     function ambilPekerjaan(id) {

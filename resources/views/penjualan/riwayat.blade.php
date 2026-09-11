@@ -68,7 +68,7 @@
         </thead>
         <tbody class="divide-y divide-slate-50">
             @forelse($transaksis as $t)
-            <tr class="group hover:bg-slate-50/30 transition-all">
+            <tr class="group hover:bg-slate-50/30 transition-all {{ $t->status_nota === 'Dibatalkan' ? 'opacity-50' : '' }}">
                 <td class="px-8 py-5">
                     <span class="text-[13px] font-bold text-slate-700">{{ $t->nomor_nota }}</span>
                 </td>
@@ -91,7 +91,11 @@
                     <span class="text-sm text-slate-500">{{ $t->nama_kasir ?? '-' }}</span>
                 </td>
                 <td class="px-6 py-5 text-center">
-                    <x-badge :status="$t->status_pembayaran" />
+                    @if($t->status_nota === 'Dibatalkan')
+                        <x-badge status="Dibatalkan" variant="danger" />
+                    @else
+                        <x-badge :status="$t->status_pembayaran" />
+                    @endif
                 </td>
                 <td class="px-6 py-5 text-right">
                     <span class="text-[14px] font-bold text-indigo-600">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>
