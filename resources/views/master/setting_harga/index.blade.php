@@ -46,11 +46,11 @@
     <x-table>
         <thead>
             <tr>
-                <th class="px-6 py-5 text-left">Produk</th>
+                <th class="px-6 py-4 text-left">Produk</th>
                 @foreach($golongan as $g)
-                <th class="px-4 py-5 text-center">{{ $g->nama_golongan }}</th>
+                <th class="px-4 py-4 text-center">{{ $g->nama_golongan }}</th>
                 @endforeach
-                <th class="px-8 py-5 text-right">Aksi</th>
+                <th class="px-6 py-4 text-right">Aksi</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
@@ -63,18 +63,18 @@
                 $fmtRentang = fn ($v) => rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
             @endphp
             <tr class="group hover:bg-slate-50/50 transition-all">
-                <td class="px-6 py-5">
-                    <div class="text-[13px] font-bold text-slate-700 uppercase">{{ $p->nama_produk }}</div>
+                <td class="px-6 py-3.5">
+                    <div class="text-[14px] font-bold text-slate-700 uppercase">{{ $p->nama_produk }}</div>
                     <div class="flex items-center gap-2 mt-0.5">
                         <span class="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-bold uppercase border border-indigo-100">
                             <i class="fas fa-print mr-1"></i>{{ $p->nama_mesin ?? 'Tanpa Mesin' }}
                         </span>
-                        <span class="text-[9px] text-slate-400 font-medium italic">By {{ $p->metode_hitung }} ({{ $satuanRentangRow }})</span>
+                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{{ $p->metode_hitung }} &middot; {{ $satuanRentangRow }}</span>
                     </div>
                 </td>
 
                 @foreach($golongan as $g)
-                <td class="px-4 py-5 text-center">
+                <td class="px-4 py-3.5 text-center">
                     @php $tiersGol = $hargaProduk->where('id_golongan', $g->id_golongan); @endphp
                     <span id="harga-summary-{{ $p->id_produk }}-{{ $g->id_golongan }}">
                         @if($tiersGol->isEmpty())
@@ -93,8 +93,8 @@
                 </td>
                 @endforeach
 
-                <td class="px-8 py-5 text-right">
-                    <x-button size="icon" variant="ghost" onclick="openModal('harga-produk-{{ $p->id_produk }}')" class="hover:text-indigo-600" title="Kelola Harga">
+                <td class="px-6 py-3.5 text-right">
+                    <x-button size="icon" variant="ghost" onclick="openModal('harga-produk-{{ $p->id_produk }}')" class="border border-slate-100 hover:text-indigo-600 hover:border-indigo-200" title="Kelola Harga">
                         <i class="fas fa-sliders-h text-sm"></i>
                     </x-button>
                 </td>
@@ -111,92 +111,117 @@
 
     <x-table.pagination :paginator="$produk" />
 
-    {{-- MODAL KELOLA HARGA (satu per produk - server-rendered, setiap tier
-         punya form CRUD sendiri dengan id_harga asli, add/edit/hapus satu
-         tier TIDAK PERNAH menyentuh tier lain sama sekali). --}}
+    {{-- MODAL KELOLA HARGA - satu per produk, DIROMBAK TOTAL: dulu satu
+         daftar tier datar dengan dropdown Golongan yang harus dipilih ULANG
+         di setiap kali tambah tier (menyusahkan kalau mau isi banyak tier
+         sekaligus, gampang salah pilih golongan). Sekarang golongan jadi
+         TAB - pilih golongan SEKALI lewat tab, semua tier yang ditambahkan
+         selama tab itu aktif otomatis untuk golongan tersebut, tidak perlu
+         pilih ulang sama sekali. Tetap satu form/aksi per baris tier
+         (add/edit/hapus satu tier tidak pernah menyentuh tier lain). --}}
     @foreach($produk as $p)
     @php
         $hargaProdukModal = $all_harga[$p->id_produk] ?? collect();
-        // Satuan rentang Min/Max HARUS eksplisit di sini - sebelumnya cuma
-        // angka polos tanpa keterangan, admin yang mengisi tidak tahu apakah
-        // "1" itu 1 m² atau 1 pcs. Ikut metode_hitung produk yang sama
-        // seperti dipakai HargaService::getHargaEfektif() menghitung qty
-        // sesungguhnya - m² untuk 'ukuran', Pcs untuk 'quantity'.
+        // Satuan rentang Min/Max HARUS eksplisit - m² untuk metode 'ukuran',
+        // Pcs untuk 'quantity', ikut definisi yang sama dengan
+        // HargaService::getHargaEfektif().
         $satuanRentang = $p->metode_hitung === 'ukuran' ? 'm²' : 'Pcs';
         $stepRentang = $p->metode_hitung === 'ukuran' ? '0.01' : '1';
+        $defaultMin = $p->metode_hitung === 'ukuran' ? '0.01' : '1';
+        $fmtNilai = fn ($v) => rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
     @endphp
-    <x-modal id="harga-produk-{{ $p->id_produk }}" title="Kelola Harga: {{ $p->nama_produk }}" maxWidth="3xl">
-        <div class="mb-4 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs text-slate-500">
-            Tiap baris berlaku untuk satu golongan &amp; rentang <b>{{ $satuanRentang }}</b> tertentu
-            @if($p->metode_hitung === 'ukuran')
-                (luas cetak = panjang &times; lebar, mis. stiker 30&times;30cm = 0,09 m² - boleh pecahan)
-            @endif
-            . Kosongkan <b>Max</b> untuk rentang tak terbatas ("{{ $satuanRentang }} X ke atas"). Harga dipilih otomatis di Kasir Utama berdasarkan golongan konsumen &amp; {{ $satuanRentang }} yang diinput.
-        </div>
+    <x-modal id="harga-produk-{{ $p->id_produk }}" title="Kelola Harga: {{ $p->nama_produk }}" maxWidth="4xl">
+        <p class="text-xs text-slate-400 mb-5 -mt-2">
+            Rentang dalam <b class="text-slate-500">{{ $satuanRentang }}</b>{{ $p->metode_hitung === 'ukuran' ? ' (luas = panjang × lebar, boleh pecahan - mis. 0,09 m²)' : '' }}. Kosongkan <b class="text-slate-500">Max</b> untuk rentang tak terbatas. Harga dipilih otomatis di Kasir Utama sesuai golongan &amp; {{ $satuanRentang }} order.
+        </p>
 
-        <div class="overflow-x-auto mb-4">
-            <table class="w-full text-xs">
-                <thead>
-                    <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-100">
-                        <th class="text-left py-2 pr-2">Golongan</th>
-                        <th class="text-center py-2 px-2 w-20">Min ({{ $satuanRentang }})</th>
-                        <th class="text-center py-2 px-2 w-20">Max ({{ $satuanRentang }})</th>
-                        <th class="text-left py-2 px-2">Harga (Rp)</th>
-                        <th class="w-20"></th>
-                    </tr>
-                </thead>
-                <tbody id="tier-tbody-produk-{{ $p->id_produk }}" class="divide-y divide-slate-50">
-                    <tr class="tier-empty-msg-produk" {{ $hargaProdukModal->isNotEmpty() ? 'hidden' : '' }}>
-                        <td colspan="5" class="py-2 text-xs text-slate-400 italic">Belum ada harga diatur - order dengan produk ini akan ditolak di Kasir sampai minimal satu tier diisi.</td>
-                    </tr>
-                    @foreach($hargaProdukModal as $t)
-                    @php $namaGolonganTier = optional($golongan->firstWhere('id_golongan', $t->id_golongan))->nama_golongan ?? '?'; @endphp
-                    <tr class="tier-row-produk" data-id="{{ $t->id_harga }}" data-id-golongan="{{ $t->id_golongan }}">
-                        <td colspan="5" class="py-1">
-                            <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
-                                <form action="{{ route('setting-harga.tier.update', $t->id_harga) }}" class="tier-edit-form-produk flex items-center gap-2 flex-1">
-                                    @csrf
-                                    <span class="w-28 shrink-0 text-[11px] font-bold text-slate-600 uppercase truncate" title="{{ $namaGolonganTier }}">{{ $namaGolonganTier }}</span>
-                                    <input type="number" name="range_min" value="{{ rtrim(rtrim(number_format($t->range_min, 2, '.', ''), '0'), '.') }}" min="0.01" step="{{ $stepRentang }}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                                    <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                                    <input type="number" name="range_max" value="{{ $t->range_max !== null ? rtrim(rtrim(number_format($t->range_max, 2, '.', ''), '0'), '.') : '' }}" min="0.01" step="{{ $stepRentang }}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                                    <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentang }}</span>
-                                    <span class="text-[10px] text-slate-400">Rp</span>
-                                    <input type="number" name="harga_jual" value="{{ (int) $t->harga_jual }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
-                                    <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
-                                        <i class="fas fa-save text-xs"></i>
-                                    </button>
-                                </form>
-                                <button type="button" onclick="confirmHapusTierHarga({{ $t->id_harga }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
-                                    <i class="fas fa-trash-alt text-xs"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-
-        <form action="{{ route('setting-harga.tier.store', $p->id_produk) }}" class="tier-add-form-produk flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-produk="{{ $p->id_produk }}" data-satuan-rentang="{{ $satuanRentang }}">
-            @csrf
-            <select name="id_golongan" required class="w-28 shrink-0 text-[11px] bg-white border-none rounded-lg py-2 px-1 font-bold text-slate-600">
-                @foreach($golongan as $g)
-                    <option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>
+        {{-- TAB GOLONGAN --}}
+        <div class="rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden">
+            <div class="flex border-b border-slate-100 overflow-x-auto">
+                @foreach($golongan as $i => $g)
+                @php $jumlahTierGol = $hargaProdukModal->where('id_golongan', $g->id_golongan)->count(); @endphp
+                <button type="button" onclick="switchHargaTab({{ $p->id_produk }}, {{ $g->id_golongan }})"
+                    id="harga-tab-btn-{{ $p->id_produk }}-{{ $g->id_golongan }}"
+                    class="flex-1 min-w-[110px] py-3 px-2 text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap {{ $i === 0 ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500' : 'text-slate-400 border-b-2 border-transparent hover:text-slate-600' }}">
+                    {{ $g->nama_golongan }}
+                    <span class="ml-1 text-[9px] {{ $jumlahTierGol > 0 ? 'text-indigo-400' : 'text-slate-300' }}">({{ $jumlahTierGol }})</span>
+                </button>
                 @endforeach
-            </select>
-            <input type="number" name="range_min" placeholder="Min" value="{{ $p->metode_hitung === 'ukuran' ? '0.01' : '1' }}" min="0.01" step="{{ $stepRentang }}" required class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
-            <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-            <input type="number" name="range_max" placeholder="~" min="0.01" step="{{ $stepRentang }}" class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
-            <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentang }}</span>
-            <span class="text-[10px] text-slate-400">Rp</span>
-            <input type="number" name="harga_jual" placeholder="0" min="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-bold">
-            <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shrink-0" title="Tambah Tier">
-                <i class="fas fa-plus text-xs"></i>
-            </button>
-        </form>
+            </div>
 
-        <div class="pt-4 flex justify-end">
+            @foreach($golongan as $i => $g)
+            @php $tiersProdukGol = $hargaProdukModal->where('id_golongan', $g->id_golongan); @endphp
+            <div id="harga-tab-panel-{{ $p->id_produk }}-{{ $g->id_golongan }}" class="p-5 {{ $i === 0 ? '' : 'hidden' }}">
+                {{-- Tambah tier - TANPA pemilihan golongan, sudah tersirat
+                     dari tab yang sedang aktif (id_golongan dikirim lewat
+                     hidden input). --}}
+                <form action="{{ route('setting-harga.tier.store', $p->id_produk) }}"
+                    class="tier-add-form-produk grid grid-cols-1 md:grid-cols-4 gap-2.5 mb-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100"
+                    data-id-produk="{{ $p->id_produk }}" data-id-golongan="{{ $g->id_golongan }}" data-satuan-rentang="{{ $satuanRentang }}">
+                    @csrf
+                    <input type="hidden" name="id_golongan" value="{{ $g->id_golongan }}">
+                    <div>
+                        <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Min ({{ $satuanRentang }})</label>
+                        <input type="number" name="range_min" placeholder="Min" value="{{ $defaultMin }}" min="0.01" step="{{ $stepRentang }}" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Max ({{ $satuanRentang }})</label>
+                        <input type="number" name="range_max" placeholder="~ (tak terbatas)" min="0.01" step="{{ $stepRentang }}" class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Harga (Rp)</label>
+                        <input type="number" name="harga_jual" placeholder="0" min="0" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm">
+                    </div>
+                    <div class="flex items-end">
+                        <x-button type="submit" variant="success" class="w-full !py-2.5">
+                            <i class="fas fa-plus"></i> Tambahkan
+                        </x-button>
+                    </div>
+                </form>
+
+                <x-table bare>
+                    <thead>
+                        <tr>
+                            <th class="p-3 text-left">Min ({{ $satuanRentang }})</th>
+                            <th class="p-3 text-left">Max ({{ $satuanRentang }})</th>
+                            <th class="p-3 text-left">Harga (Rp)</th>
+                            <th class="p-3 text-center w-20">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tier-tbody-produk-{{ $p->id_produk }}-gol-{{ $g->id_golongan }}" class="divide-y divide-slate-50" data-id-produk="{{ $p->id_produk }}" data-id-golongan="{{ $g->id_golongan }}">
+                        <tr class="tier-empty-msg-produk" {{ $tiersProdukGol->isNotEmpty() ? 'hidden' : '' }}>
+                            <td colspan="4" class="p-5 text-center text-slate-300 italic">Belum ada harga untuk golongan ini - order akan ditolak di Kasir sampai diisi.</td>
+                        </tr>
+                        @foreach($tiersProdukGol as $t)
+                        <tr class="tier-row-produk" data-id="{{ $t->id_harga }}">
+                            <td colspan="4" class="p-2">
+                                <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
+                                    <form action="{{ route('setting-harga.tier.update', $t->id_harga) }}" class="tier-edit-form-produk grid grid-cols-3 gap-2 flex-1 items-center">
+                                        @csrf
+                                        <input type="number" name="range_min" value="{{ $fmtNilai($t->range_min) }}" min="0.01" step="{{ $stepRentang }}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
+                                        <input type="number" name="range_max" value="{{ $t->range_max !== null ? $fmtNilai($t->range_max) : '' }}" min="0.01" step="{{ $stepRentang }}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
+                                        <div class="relative flex items-center gap-1">
+                                            <span class="absolute left-2.5 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
+                                            <input type="number" name="harga_jual" value="{{ (int) $t->harga_jual }}" min="0" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold">
+                                            <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
+                                                <i class="fas fa-save text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                    <button type="button" onclick="confirmHapusTierHarga({{ $t->id_harga }})" class="w-9 h-9 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
+                                        <i class="far fa-trash-alt text-xs"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </x-table>
+            </div>
+            @endforeach
+        </div>
+
+        <div class="pt-5 flex justify-end">
             <x-button type="button" variant="secondary" onclick="closeModal('harga-produk-{{ $p->id_produk }}')">Tutup</x-button>
         </div>
     </x-modal>
@@ -216,54 +241,73 @@
     // input kosong dan validasi selalu gagal walau datanya kelihatan benar.
     //
     const csrfTokenHarga = document.querySelector('meta[name="csrf-token"]').content;
-    const namaGolonganMap = {
-        @foreach($golongan as $g)
-            {{ $g->id_golongan }}: @json($g->nama_golongan),
-        @endforeach
-    };
 
-    function buildHargaTierRowHtml(t, satuanRentang, stepRentang) {
-        const namaGol = namaGolonganMap[t.id_golongan] ?? '?';
+    // Tab Golongan di dalam modal Kelola Harga - dulu golongan cuma dropdown
+    // di form Tambah (harus dipilih ULANG di setiap tier baru), sekarang tab:
+    // pilih golongan sekali, tabel & form Tambah di bawahnya otomatis sudah
+    // untuk golongan itu sampai tab-nya diganti.
+    function switchHargaTab(idProduk, idGolongan) {
+        document.querySelectorAll(`[id^="harga-tab-panel-${idProduk}-"]`).forEach(panel => {
+            panel.classList.toggle('hidden', panel.id !== `harga-tab-panel-${idProduk}-${idGolongan}`);
+        });
+        document.querySelectorAll(`[id^="harga-tab-btn-${idProduk}-"]`).forEach(btn => {
+            const aktif = btn.id === `harga-tab-btn-${idProduk}-${idGolongan}`;
+            btn.classList.toggle('bg-indigo-50', aktif);
+            btn.classList.toggle('text-indigo-600', aktif);
+            btn.classList.toggle('border-indigo-500', aktif);
+            btn.classList.toggle('text-slate-400', !aktif);
+            btn.classList.toggle('border-transparent', !aktif);
+        });
+    }
+
+    function buildHargaTierRowHtml(t, stepRentang) {
         return `
-            <tr class="tier-row-produk" data-id="${t.id_harga}" data-id-golongan="${t.id_golongan}">
-                <td colspan="5" class="py-1">
+            <tr class="tier-row-produk" data-id="${t.id_harga}">
+                <td colspan="4" class="p-2">
                     <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
-                        <form action="{{ url('/setting-harga-tier') }}/${t.id_harga}" class="tier-edit-form-produk flex items-center gap-2 flex-1">
+                        <form action="{{ url('/setting-harga-tier') }}/${t.id_harga}" class="tier-edit-form-produk grid grid-cols-3 gap-2 flex-1 items-center">
                             <input type="hidden" name="_token" value="${csrfTokenHarga}">
-                            <span class="w-28 shrink-0 text-[11px] font-bold text-slate-600 uppercase truncate" title="${namaGol}">${namaGol}</span>
-                            <input type="number" name="range_min" value="${t.range_min}" min="0.01" step="${stepRentang}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                            <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                            <input type="number" name="range_max" value="${t.range_max ?? ''}" min="0.01" step="${stepRentang}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                            <span class="text-[9px] text-slate-400 uppercase shrink-0">${satuanRentang}</span>
-                            <span class="text-[10px] text-slate-400">Rp</span>
-                            <input type="number" name="harga_jual" value="${parseInt(t.harga_jual)}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
-                            <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
-                                <i class="fas fa-save text-xs"></i>
-                            </button>
+                            <input type="number" name="range_min" value="${t.range_min}" min="0.01" step="${stepRentang}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
+                            <input type="number" name="range_max" value="${t.range_max ?? ''}" min="0.01" step="${stepRentang}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
+                            <div class="relative flex items-center gap-1">
+                                <span class="absolute left-2.5 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
+                                <input type="number" name="harga_jual" value="${parseInt(t.harga_jual)}" min="0" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold">
+                                <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
+                                    <i class="fas fa-save text-xs"></i>
+                                </button>
+                            </div>
                         </form>
-                        <button type="button" onclick="confirmHapusTierHarga(${t.id_harga})" class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
-                            <i class="fas fa-trash-alt text-xs"></i>
+                        <button type="button" onclick="confirmHapusTierHarga(${t.id_harga})" class="w-9 h-9 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 transition-all shrink-0" title="Hapus tier ini">
+                            <i class="far fa-trash-alt text-xs"></i>
                         </button>
                     </div>
                 </td>
             </tr>`;
     }
 
-    // Kolom ringkasan di TABEL UTAMA (di belakang modal) dihitung ulang
-    // dari baris-baris yang SEDANG ada di modal untuk produk+golongan
-    // terkait - dipanggil setiap kali tambah/edit/hapus tier sukses, supaya
-    // begitu modal ditutup tabel utama sudah akurat tanpa perlu reload
-    // halaman sama sekali.
+    // Kolom ringkasan di TABEL UTAMA (di belakang modal) dihitung ulang dari
+    // baris-baris yang SEDANG ada di tab golongan terkait - dipanggil tiap
+    // kali tambah/edit/hapus tier sukses, supaya begitu modal ditutup tabel
+    // utama sudah akurat tanpa reload halaman sama sekali.
     function refreshHargaSummary(idProduk, idGolongan) {
         const cell = document.getElementById(`harga-summary-${idProduk}-${idGolongan}`);
-        if (!cell) return;
+        const tbody = document.getElementById(`tier-tbody-produk-${idProduk}-gol-${idGolongan}`);
+        if (!cell || !tbody) return;
 
-        const tbody = document.getElementById('tier-tbody-produk-' + idProduk);
-        const rows = Array.from(tbody.querySelectorAll(`.tier-row-produk[data-id-golongan="${idGolongan}"]`));
-        // Satuan rentang disimpan di form Tambah tier produk ini (data-satuan-
-        // rentang) - dibaca dari sana supaya ringkasan di tabel utama juga
-        // eksplisit menyebut m²/Pcs, bukan kata "qty" generik yang ambigu.
-        const satuanRentang = document.querySelector(`.tier-add-form-produk[data-id-produk="${idProduk}"]`)?.dataset.satuanRentang || '';
+        const rows = Array.from(tbody.querySelectorAll('.tier-row-produk'));
+        const satuanRentang = document.querySelector(`.tier-add-form-produk[data-id-produk="${idProduk}"][data-id-golongan="${idGolongan}"]`)?.dataset.satuanRentang || '';
+
+        // Badge jumlah tier di tab juga ikut diperbarui di sini - satu-
+        // satunya tempat "jumlah tier golongan ini berubah" terjadi.
+        const tabBtn = document.getElementById(`harga-tab-btn-${idProduk}-${idGolongan}`);
+        if (tabBtn) {
+            const badge = tabBtn.querySelector('span');
+            if (badge) {
+                badge.textContent = `(${rows.length})`;
+                badge.classList.toggle('text-indigo-400', rows.length > 0);
+                badge.classList.toggle('text-slate-300', rows.length === 0);
+            }
+        }
 
         if (rows.length === 0) {
             cell.innerHTML = '<span class="text-slate-300 italic text-[10px]">Belum Diatur</span>';
@@ -319,22 +363,25 @@
             const data = await submitHargaTierFormAjax(form, 'POST');
             if (!data) return;
             const idProduk = form.dataset.idProduk;
-            const tbody = document.getElementById('tier-tbody-produk-' + idProduk);
+            const idGolongan = form.dataset.idGolongan;
+            const tbody = document.getElementById(`tier-tbody-produk-${idProduk}-gol-${idGolongan}`);
             tbody.querySelector('.tier-empty-msg-produk').hidden = true;
             const stepRentang = form.querySelector('[name="range_min"]').step || '1';
-            tbody.insertAdjacentHTML('beforeend', buildHargaTierRowHtml(data.row, form.dataset.satuanRentang || '', stepRentang));
-            const golSelect = form.querySelector('[name="id_golongan"]');
+            tbody.insertAdjacentHTML('beforeend', buildHargaTierRowHtml(data.row, stepRentang));
+            // form.reset() kembali ke nilai default HTML-nya (range_min
+            // terisi default, sisanya kosong) - id_golongan (hidden) & tab
+            // yang sedang aktif tidak ikut berubah, jadi bisa langsung isi
+            // tier berikutnya untuk golongan yang sama tanpa aksi tambahan.
             form.reset();
-            golSelect.selectedIndex = 0;
-            refreshHargaSummary(idProduk, data.row.id_golongan);
+            refreshHargaSummary(idProduk, idGolongan);
             Toast.fire({ icon: 'success', title: data.message });
         } else if (e.target.matches('.tier-edit-form-produk')) {
             e.preventDefault();
             const row = e.target.closest('.tier-row-produk');
+            const tbody = row.closest('tbody');
             const data = await submitHargaTierFormAjax(e.target, 'PATCH');
             if (!data) return;
-            const idProduk = row.closest('tbody').id.replace('tier-tbody-produk-', '');
-            refreshHargaSummary(idProduk, row.dataset.idGolongan);
+            refreshHargaSummary(tbody.dataset.idProduk, tbody.dataset.idGolongan);
             Toast.fire({ icon: 'success', title: data.message });
         }
     });
@@ -363,8 +410,8 @@
                 }
                 const row = document.querySelector(`.tier-row-produk[data-id="${id}"]`);
                 const tbody = row.closest('tbody');
-                const idProduk = tbody.id.replace('tier-tbody-produk-', '');
-                const idGolongan = row.dataset.idGolongan;
+                const idProduk = tbody.dataset.idProduk;
+                const idGolongan = tbody.dataset.idGolongan;
                 row.remove();
                 if (tbody.querySelectorAll('.tier-row-produk').length === 0) {
                     tbody.querySelector('.tier-empty-msg-produk').hidden = false;
