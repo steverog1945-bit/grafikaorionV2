@@ -302,6 +302,26 @@ class KasirController extends Controller
                     $biayaFinishingBaru = $bersihkan($data['biaya_finishing'] ?? $detailRow->biaya_finishing);
                     $potonganBaru = $bersihkan($data['potongan'] ?? 0);
 
+                    // JARING PENGAMAN: item LAMA (biaya_cetak masih 0 di
+                    // database, dari sebelum Biaya Cetak jadi komponen
+                    // utama) yang hidden input-nya di client belum sempat
+                    // direkonsiliasi (lihat reconcileSemuaBiayaCetak() di
+                    // form_pembayaran.blade.php) TIDAK BOLEH diam-diam
+                    // menol-kan subtotal yang sudah ada cuma karena ketiga
+                    // field biaya ini kosong di request - persis bug yang
+                    // pernah membuat "harga di rincian barang jadi 0 setelah
+                    // disimpan" (termasuk semua proses DP/Deposit). Kalau
+                    // ketiganya 0 TAPI baris ini sudah punya subtotal
+                    // tersimpan > 0, dipulihkan dulu dari situ - diperlakukan
+                    // sebagai "belum sempat disentuh", bukan sengaja
+                    // dikosongkan (potongan lama ikut dikembalikan supaya
+                    // hasilnya persis subtotal yang sudah ada sebelum baris
+                    // formula di bawah menghitung ulang dengan potongan BARU
+                    // dari request ini).
+                    if ($biayaCetakBaru <= 0 && $biayaDesainBaru <= 0 && $biayaFinishingBaru <= 0 && (float) $detailRow->subtotal > 0) {
+                        $biayaCetakBaru = (float) $detailRow->subtotal + (float) $detailRow->potongan;
+                    }
+
                     foreach (['Biaya cetak' => $biayaCetakBaru, 'Biaya desain' => $biayaDesainBaru, 'Biaya finishing' => $biayaFinishingBaru, 'Potongan' => $potonganBaru] as $label => $nilai) {
                         if ($nilai < 0) {
                             throw new \Exception("{$label} tidak boleh negatif.");

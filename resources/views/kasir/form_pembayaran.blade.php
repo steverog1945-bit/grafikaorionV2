@@ -444,13 +444,14 @@
     function calculateInvoice() {
         let totalKotor = 0;
 
+        // Subtotal = Cetak + Desain + Finishing - Potongan (SAMA PERSIS
+        // dengan rumus server di KasirController::prosesBayar()) - TIDAK
+        // lagi ada komponen Harga x Qty terpisah. reconcileSemuaBiayaCetak()
+        // di DOMContentLoaded sudah memastikan .inp-harga selalu 0 untuk
+        // SEMUA baris sebelum fungsi ini pernah dipanggil, jadi rumus di
+        // sini dan yang tersimpan di server tidak akan pernah berbeda lagi.
         document.querySelectorAll('.item-row').forEach(row => {
-            // inp-qty = qty_hitung (m²/pcs) sebagai angka desimal biasa,
-            // dibaca dengan parseFloat() - BUKAN cleanRupiah() yang salah
-            // membuang titik desimalnya (dianggap pemisah ribuan Rupiah).
-            const qtyHitung = parseFloat(row.querySelector('.inp-qty').value) || 0;
-            const subtotal = cleanRupiah(row.querySelector('.inp-harga').value) * qtyHitung
-                + cleanRupiah(row.querySelector('.inp-cetak').value)
+            const subtotal = cleanRupiah(row.querySelector('.inp-cetak').value)
                 + cleanRupiah(row.querySelector('.inp-desain').value)
                 + cleanRupiah(row.querySelector('.inp-finishing').value)
                 - cleanRupiah(row.querySelector('.inp-potongan').value);
@@ -751,7 +752,39 @@
         }
     });
 
+    // BUG PENTING (ditemukan dari laporan "harga di rincian barang jadi 0
+    // setelah disimpan", termasuk transaksi DP/Deposit): server sekarang
+    // menghitung subtotal murni dari Cetak+Desain+Finishing-Potongan (lihat
+    // KasirController::prosesBayar()), TAPI hidden input .inp-cetak untuk
+    // item LAMA (dibuat sebelum Biaya Cetak jadi komponen utama, biaya_cetak
+    // masih 0 di database) baru direkonsiliasi ke nilai yang benar KETIKA
+    // modal Custom Harga item itu dibuka (lihat openCustomHarga()). Form ini
+    // SELALU mengirim items[][...] untuk SEMUA baris di setiap submit (Bayar
+    // maupun Simpan) - kalau kasir tidak sempat membuka Custom Harga untuk
+    // setiap item (kasus paling umum: langsung isi nominal bayar & klik
+    // Bayar), hidden input yang masih 0 itu ikut terkirim apa adanya, server
+    // menyimpannya sebagai subtotal 0 - persis yang dilaporkan.
+    //
+    // Diperbaiki di akarnya: rekonsiliasi SEMUA baris (bukan cuma yang
+    // dibuka lewat modal) sekali di awal, SEBELUM form sempat disubmit sama
+    // sekali - supaya hidden input yang terkirim selalu sudah benar apa pun
+    // yang kasir lakukan setelahnya.
+    function reconcileSemuaBiayaCetak() {
+        document.querySelectorAll('.item-row').forEach(row => {
+            const qty = parseFloat(row.querySelector('.inp-qty').value) || 0;
+            const hargaLama = cleanRupiah(row.querySelector('.inp-harga').value);
+            const cetakLama = cleanRupiah(row.querySelector('.inp-cetak').value);
+
+            if (cetakLama <= 0 && hargaLama > 0 && qty > 0) {
+                row.querySelector('.inp-cetak').value = Math.round(hargaLama * qty);
+                row.querySelector('.inp-harga').value = 0;
+                row.querySelector('.disp-harga').innerText = 'Rp 0';
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+        reconcileSemuaBiayaCetak();
         calculateInvoice();
         toggleBankField();
         autoTerapkanDeposit();
