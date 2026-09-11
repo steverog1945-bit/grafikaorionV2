@@ -64,19 +64,12 @@
                                                 class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
                                             <i class="far fa-edit text-sm"></i>
                                         </button>
-                                        <form action="{{ route('akun.toggle-active', $a->id_akun) }}" method="POST" class="inline">
-                                            @csrf @method('PATCH')
-                                            <button type="submit" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all" title="{{ $a->is_active ? 'Nonaktifkan' : 'Aktifkan' }}">
-                                                <i class="fas {{ $a->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }} text-sm"></i>
-                                            </button>
-                                        </form>
-                                        <form action="{{ route('akun.destroy', $a->id_akun) }}" method="POST" class="inline">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" onclick="return confirm('Hapus akun ini? Hanya bisa dihapus kalau belum pernah dipakai di jurnal.')"
-                                                    class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                                                <i class="far fa-trash-alt text-sm"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" onclick="confirmToggleAktif('{{ $a->id_akun }}', {{ json_encode($a->nama_akun) }}, {{ $a->is_active ? 'true' : 'false' }})" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all" title="{{ $a->is_active ? 'Nonaktifkan' : 'Aktifkan' }}">
+                                            <i class="fas {{ $a->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }} text-sm"></i>
+                                        </button>
+                                        <button type="button" onclick="confirmDeleteAkun('{{ $a->id_akun }}', {{ json_encode($a->nama_akun) }})" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                                            <i class="far fa-trash-alt text-sm"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -213,6 +206,57 @@
         document.getElementById('edit_tipe_akun').value = data.tipe_akun;
         document.getElementById('edit_saldo_normal').value = data.saldo_normal;
         toggleModal('modalEditAkun');
+    }
+
+    function submitForm(action, method) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = action;
+        form.innerHTML = `@csrf @method('${method}')`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function confirmToggleAktif(id, namaAkun, sedangAktif) {
+        Swal.fire({
+            title: sedangAktif ? 'Nonaktifkan Akun?' : 'Aktifkan Akun?',
+            html: `Akun <b>${namaAkun}</b> akan di${sedangAktif ? 'nonaktifkan' : 'aktifkan'}.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#f8fafc',
+            confirmButtonText: 'Ya, Lanjutkan',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                submitForm(`/akun/${id}/toggle-active`, 'PATCH');
+            }
+        });
+    }
+
+    function confirmDeleteAkun(id, namaAkun) {
+        Swal.fire({
+            title: 'Hapus Akun?',
+            html: `Akun <b>${namaAkun}</b> akan dihapus permanen. Hanya bisa dihapus kalau belum pernah dipakai di jurnal.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#f8fafc',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                submitForm(`/akun/${id}`, 'DELETE');
+            }
+        });
     }
 </script>
 @endsection

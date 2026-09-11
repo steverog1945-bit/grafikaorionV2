@@ -42,13 +42,13 @@
                     <i class="far fa-edit text-sm"></i>
                 </button>
 
-                <form action="{{ route('bank.destroy', $b->id_bank) }}" method="POST" onsubmit="return confirm('Hapus rekening ini?')">
+                <form id="delete-form-bank-{{ $b->id_bank }}" action="{{ route('bank.destroy', $b->id_bank) }}" method="POST">
                     @csrf @method('DELETE')
-                    <button type="submit"
-                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                        <i class="far fa-trash-alt text-sm"></i>
-                    </button>
                 </form>
+                <button type="button" onclick="confirmDeleteBank('{{ $b->id_bank }}', {{ json_encode($b->nama_bank . ' - ' . $b->nomor_rekening) }})"
+                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                    <i class="far fa-trash-alt text-sm"></i>
+                </button>
             </div>
         </div>
         <div class="text-xl font-bold text-slate-800 mb-1">{{ $b->nomor_rekening }}</div>
@@ -118,6 +118,27 @@
         
         // Tampilkan modal
         toggleModal('modalEditBank');
+    }
+
+    function confirmDeleteBank(id, label) {
+        Swal.fire({
+            title: 'Hapus Rekening?',
+            html: `Rekening <b>${label}</b> akan dihapus permanen.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#f8fafc',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-form-bank-${id}`).submit();
+            }
+        });
     }
 </script>
 @endsection

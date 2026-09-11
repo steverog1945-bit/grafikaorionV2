@@ -62,13 +62,13 @@
                                     <i class="far fa-edit text-sm"></i>
                                 </button>
 
-                                <form action="{{ route('gudang.destroy', $g->id_gudang) }}" method="POST" class="inline">
+                                <form id="delete-form-gudang-{{ $g->id_gudang }}" action="{{ route('gudang.destroy', $g->id_gudang) }}" method="POST" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Hapus gudang ini?')"
-                                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                                        <i class="far fa-trash-alt text-sm"></i>
-                                    </button>
                                 </form>
+                                <button type="button" onclick="confirmDeleteGudang('{{ $g->id_gudang }}', {{ json_encode($g->nama_gudang) }})"
+                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                                    <i class="far fa-trash-alt text-sm"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -200,6 +200,27 @@
         document.getElementById('edit_penanggung_jawab').value = data.penanggung_jawab || '';
         document.getElementById('edit_telepon').value = data.telepon || '';
         toggleModal('modalEditGudang');
+    }
+
+    function confirmDeleteGudang(id, nama) {
+        Swal.fire({
+            title: 'Hapus Gudang?',
+            html: `Gudang <b>${nama}</b> akan dihapus permanen.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#f8fafc',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-form-gudang-${id}`).submit();
+            }
+        });
     }
 </script>
 @endsection

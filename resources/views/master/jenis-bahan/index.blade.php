@@ -63,13 +63,13 @@
                                     <i class="far fa-edit text-sm"></i>
                                 </button>
 
-                                <form action="{{ route('jenis-bahan.destroy', $j->id_jenis_bahan) }}" method="POST" class="inline">
+                                <form id="delete-form-jenis-bahan-{{ $j->id_jenis_bahan }}" action="{{ route('jenis-bahan.destroy', $j->id_jenis_bahan) }}" method="POST" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Hapus jenis bahan ini?')"
-                                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                                        <i class="far fa-trash-alt text-sm"></i>
-                                    </button>
                                 </form>
+                                <button type="button" onclick="confirmDeleteJenisBahan('{{ $j->id_jenis_bahan }}', {{ json_encode($j->nama_jenis) }})"
+                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                                    <i class="far fa-trash-alt text-sm"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -181,6 +181,27 @@
         document.getElementById('edit_nama_jenis').value = data.nama_jenis;
         document.getElementById('edit_keterangan').value = data.keterangan || '';
         toggleModal('modalEditJenisBahan');
+    }
+
+    function confirmDeleteJenisBahan(id, nama) {
+        Swal.fire({
+            title: 'Hapus Jenis Bahan?',
+            html: `Jenis bahan <b>${nama}</b> akan dihapus permanen.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#f8fafc',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-form-jenis-bahan-${id}`).submit();
+            }
+        });
     }
 </script>
 @endsection

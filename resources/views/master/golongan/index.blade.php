@@ -63,13 +63,13 @@
                                     <i class="far fa-edit text-sm"></i>
                                 </button>
                                 
-                                <form action="{{ route('golongan.destroy', $g->id_golongan) }}" method="POST" class="inline">
+                                <form id="delete-form-golongan-{{ $g->id_golongan }}" action="{{ route('golongan.destroy', $g->id_golongan) }}" method="POST" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Hapus golongan ini?')" 
-                                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                                        <i class="far fa-trash-alt text-sm"></i>
-                                    </button>
                                 </form>
+                                <button type="button" onclick="confirmDeleteGolongan('{{ $g->id_golongan }}', {{ json_encode($g->nama_golongan) }})"
+                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                                    <i class="far fa-trash-alt text-sm"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -177,6 +177,27 @@
         document.getElementById('edit_nama_golongan').value = data.nama_golongan;
         document.getElementById('edit_keterangan').value = data.keterangan || '';
         toggleModal('modalEditGolongan');
+    }
+
+    function confirmDeleteGolongan(id, nama) {
+        Swal.fire({
+            title: 'Hapus Golongan?',
+            html: `Golongan <b>${nama}</b> akan dihapus permanen.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#f8fafc',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-form-golongan-${id}`).submit();
+            }
+        });
     }
 </script>
 @endsection

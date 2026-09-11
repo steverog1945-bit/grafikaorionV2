@@ -106,12 +106,12 @@
                                                 class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all">
                                             <i class="fas fa-edit text-sm"></i>
                                         </button>
-                                        <form action="{{ route('satuan.destroy', $s->id_satuan) }}" method="POST" class="delete-form inline">
+                                        <form id="delete-form-satuan-{{ $s->id_satuan }}" action="{{ route('satuan.destroy', $s->id_satuan) }}" method="POST" class="inline">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
-                                                <i class="fas fa-trash-alt text-sm"></i>
-                                            </button>
                                         </form>
+                                        <button type="button" onclick="confirmDeleteSatuan('{{ $s->id_satuan }}', {{ json_encode($s->nama_satuan) }})" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
+                                            <i class="fas fa-trash-alt text-sm"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -227,10 +227,25 @@
         document.body.style.overflow = 'auto';
     }
 
-    document.querySelectorAll('.delete-form').forEach(f => {
-        f.addEventListener('submit', function(e){
-            if(!confirm('Hapus satuan ini? Perhitungan konversi stok yang menggunakan satuan ini mungkin akan kacau.')) e.preventDefault();
+    function confirmDeleteSatuan(id, nama) {
+        Swal.fire({
+            title: 'Hapus Satuan?',
+            html: `Satuan <b>${nama}</b> akan dihapus permanen.<br><small class="text-amber-600 font-semibold">Perhitungan konversi stok yang menggunakan satuan ini mungkin akan kacau.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#f8fafc',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-form-satuan-${id}`).submit();
+            }
         });
-    });
+    }
 </script>
 @endsection

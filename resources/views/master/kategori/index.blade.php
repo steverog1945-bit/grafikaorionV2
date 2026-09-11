@@ -61,13 +61,13 @@
                                     <i class="far fa-edit text-sm"></i>
                                 </button>
                                 
-                                <form action="{{ route('kategori.destroy', $kat->id_kategori) }}" method="POST" class="inline">
+                                <form id="delete-form-kategori-{{ $kat->id_kategori }}" action="{{ route('kategori.destroy', $kat->id_kategori) }}" method="POST" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Hapus kategori ini?')" 
-                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
-                                        <i class="far fa-trash-alt text-sm"></i>
-                                    </button>
                                 </form>
+                                <button type="button" onclick="confirmDeleteKategori('{{ $kat->id_kategori }}', {{ json_encode($kat->nama_kategori) }})"
+                                    class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
+                                    <i class="far fa-trash-alt text-sm"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -175,6 +175,27 @@
     function closeModalKategori() {
         modal.classList.add('hidden');
         document.body.style.overflow = 'auto';
+    }
+
+    function confirmDeleteKategori(id, nama) {
+        Swal.fire({
+            title: 'Hapus Kategori?',
+            html: `Kategori <b>${nama}</b> akan dihapus permanen.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#f8fafc',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'rounded-lg px-6 py-2.5',
+                cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-form-kategori-${id}`).submit();
+            }
+        });
     }
 </script>
 @endsection
