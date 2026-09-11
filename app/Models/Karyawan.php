@@ -26,4 +26,11 @@ class Karyawan extends Model
     {
         return $this->hasOne(User::class, 'id_karyawan');
     }
+
+    // Mesin/divisi yang jadi tanggung jawab karyawan ini - dipakai untuk
+    // membatasi tampilan SPK ke divisi yang relevan saat operator login.
+    public function mesin()
+    {
+        return $this->belongsToMany(Mesin::class, 'karyawan_mesin', 'id_karyawan', 'id_mesin');
+    }
 }

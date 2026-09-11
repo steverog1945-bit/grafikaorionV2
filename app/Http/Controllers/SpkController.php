@@ -45,6 +45,25 @@ class SpkController extends Controller
             });
         }
 
+        // Batasi ke mesin/divisi yang jadi tanggung jawab karyawan yang login
+        // (lihat Karyawan::mesin(), migrasi karyawan_mesin) - Administrator
+        // selalu bebas lihat semua, sama seperti CheckMenuAccess. Karyawan
+        // tanpa penugasan mesin sama sekali (belum diisi, atau memang bukan
+        // peran operator) juga tetap lihat semua - restriksi baru berlaku
+        // begitu ada penugasan eksplisit, supaya rollout ini tidak
+        // mendadak mempersempit akses siapa pun tanpa dikonfigurasi dulu.
+        $karyawan = optional($request->user())->karyawan;
+        $isAdmin = optional(optional($request->user())->role)->nama_role === 'Administrator';
+        $mesinDiizinkan = null;
+
+        if ($karyawan && !$isAdmin) {
+            $idMesinDiizinkan = $karyawan->mesin()->pluck('mesin.id_mesin');
+            if ($idMesinDiizinkan->isNotEmpty()) {
+                $mesinDiizinkan = $idMesinDiizinkan;
+                $query->whereIn('produk.id_mesin', $mesinDiizinkan);
+            }
+        }
+
         if ($request->filled('divisi')) {
             $query->where('produk.id_mesin', $request->divisi);
         }
@@ -64,6 +83,7 @@ class SpkController extends Controller
         $divisis = DB::table('mesin')
             ->join('produk', 'produk.id_mesin', '=', 'mesin.id_mesin')
             ->join('transaksi_detail', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+            ->when($mesinDiizinkan, fn ($q) => $q->whereIn('mesin.id_mesin', $mesinDiizinkan))
             ->select('mesin.id_mesin', 'mesin.nama_mesin')
             ->distinct()
             ->orderBy('mesin.nama_mesin')

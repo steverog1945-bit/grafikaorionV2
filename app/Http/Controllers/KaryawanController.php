@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Karyawan;
+use App\Models\Mesin;
 use Illuminate\Http\Request;
 
 class KaryawanController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Karyawan::query();
+        $query = Karyawan::with('mesin');
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
@@ -24,8 +25,9 @@ class KaryawanController extends Controller
 
         $karyawan = $query->orderBy('nama_karyawan')->paginate(15)->withQueryString();
         $daftarBagian = Karyawan::select('bagian')->distinct()->orderBy('bagian')->pluck('bagian');
+        $daftarMesin = Mesin::orderBy('nama_mesin')->get();
 
-        return view('master.karyawan.index', compact('karyawan', 'daftarBagian'));
+        return view('master.karyawan.index', compact('karyawan', 'daftarBagian', 'daftarMesin'));
     }
 
     public function store(Request $request)
@@ -33,13 +35,21 @@ class KaryawanController extends Controller
         $request->validate([
             'nama_karyawan' => 'required',
             'bagian' => 'required',
-            'telepon' => 'required'
+            'telepon' => 'required',
+            'mesin_ids' => 'nullable|array',
+            'mesin_ids.*' => 'exists:mesin,id_mesin',
         ]);
-        Karyawan::create($request->only(['nama_karyawan', 'bagian', 'telepon']));
+        $karyawan = Karyawan::create($request->only(['nama_karyawan', 'bagian', 'telepon']));
+        $karyawan->mesin()->sync($request->input('mesin_ids', []));
         return back()->with('success', 'Data karyawan berhasil ditambahkan!');
     }
    public function update(Request $request, $id)
     {
+        $request->validate([
+            'mesin_ids' => 'nullable|array',
+            'mesin_ids.*' => 'exists:mesin,id_mesin',
+        ]);
+
         $karyawan = Karyawan::findOrFail($id);
         $karyawan->update([
             'nama_karyawan' => $request->nama_karyawan,
@@ -47,6 +57,7 @@ class KaryawanController extends Controller
             'telepon'       => $request->telepon,
             'status_aktif'  => $request->status_aktif,
         ]);
+        $karyawan->mesin()->sync($request->input('mesin_ids', []));
 
         return back()->with('success', 'Data karyawan berhasil diperbarui!');
     }

@@ -78,6 +78,15 @@
                             <span class="inline-flex items-center px-4 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100">
                                 {{ $k->bagian }}
                             </span>
+                            @if($k->mesin->isNotEmpty())
+                                <div class="mt-2 flex flex-wrap gap-1">
+                                    @foreach($k->mesin as $m)
+                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide bg-slate-100 text-slate-500">
+                                            <i class="fas fa-cog text-[8px] mr-1"></i>{{ $m->nama_mesin }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
                         </td>
 
                         {{-- Status --}}
@@ -145,11 +154,25 @@
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Nomor Telepon</label>
-                                    <input type="text" name="telepon" value="{{ $k->telepon }}" 
+                                    <input type="text" name="telepon" value="{{ $k->telepon }}"
                                            class="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-[13px] font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
                                 </div>
+                                <div>
+                                    <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Mesin / Divisi yang Ditangani</label>
+                                    <p class="text-[10px] text-slate-400 mb-2 ml-1">Kosongkan = tidak dibatasi, tetap lihat semua divisi di SPK.</p>
+                                    <div class="grid grid-cols-2 gap-2 bg-slate-50 rounded-2xl p-4 shadow-inner">
+                                        @foreach($daftarMesin as $m)
+                                            <label class="flex items-center gap-2 text-[12px] font-semibold text-slate-600 cursor-pointer">
+                                                <input type="checkbox" name="mesin_ids[]" value="{{ $m->id_mesin }}"
+                                                       {{ $k->mesin->contains('id_mesin', $m->id_mesin) ? 'checked' : '' }}
+                                                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                                                {{ $m->nama_mesin }}
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
                                 <div class="flex gap-4 pt-4">
-                                    <button type="button" onclick="toggleModal('modalEdit{{ $k->id_karyawan }}')" 
+                                    <button type="button" onclick="toggleModal('modalEdit{{ $k->id_karyawan }}')"
                                             class="flex-1 px-4 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all">Batal</button>
                                     <button type="submit" 
                                             class="flex-[2] bg-indigo-600 text-white px-6 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">Update Profil</button>
@@ -201,8 +224,21 @@
                 <input type="text" name="telepon" placeholder="0812xxxx"
                        class="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-[13px] font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 shadow-inner" required>
             </div>
+            <div>
+                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Mesin / Divisi yang Ditangani</label>
+                <p class="text-[10px] text-slate-400 mb-2 ml-1">Kosongkan = tidak dibatasi, tetap lihat semua divisi di SPK.</p>
+                <div class="grid grid-cols-2 gap-2 bg-slate-50 rounded-2xl p-4 shadow-inner">
+                    @foreach($daftarMesin as $m)
+                        <label class="flex items-center gap-2 text-[12px] font-semibold text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="mesin_ids[]" value="{{ $m->id_mesin }}"
+                                   class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                            {{ $m->nama_mesin }}
+                        </label>
+                    @endforeach
+                </div>
+            </div>
             <div class="flex gap-4 pt-4">
-                <button type="button" onclick="toggleModal('modalTambah')" 
+                <button type="button" onclick="toggleModal('modalTambah')"
                         class="flex-1 px-4 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all">Batal</button>
                 <button type="submit" 
                         class="flex-[2] bg-indigo-600 text-white px-6 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">Simpan Data</button>

@@ -21,4 +21,9 @@ class Mesin extends Model
     {
         return $this->hasMany(Finishing::class, 'id_mesin', 'id_mesin');
     }
+
+    public function karyawan()
+    {
+        return $this->belongsToMany(Karyawan::class, 'karyawan_mesin', 'id_mesin', 'id_karyawan');
+    }
 }
