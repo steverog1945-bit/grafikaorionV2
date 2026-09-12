@@ -466,25 +466,28 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         Route::put('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'update'])->name('orders.update');
         Route::delete('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'destroy'])->name('orders.destroy');
         Route::get('/{order}/print', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'print'])->name('orders.print');
-
-        Route::post('/master/customers', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeCustomer'])->name('master.customers.store');
-        Route::put('/master/customers/{customer}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'updateCustomer'])->name('master.customers.update');
-        Route::patch('/master/customers/{customer}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleCustomer'])->name('master.customers.toggle');
+        Route::get('/{order}/lines/{line}/spk', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'printLine'])->name('orders.lines.spk');
 
         Route::post('/master/designers', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeDesigner'])->name('master.designers.store');
+        Route::put('/master/designers/{designer}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'updateDesigner'])->name('master.designers.update');
         Route::patch('/master/designers/{designer}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleDesigner'])->name('master.designers.toggle');
 
         Route::post('/master/product-types', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeProductType'])->name('master.product-types.store');
+        Route::put('/master/product-types/{productType}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'updateProductType'])->name('master.product-types.update');
         Route::patch('/master/product-types/{productType}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleProductType'])->name('master.product-types.toggle');
 
         Route::post('/master/categories', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeCategory'])->name('master.categories.store');
+        Route::put('/master/categories/{category}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'updateCategory'])->name('master.categories.update');
         Route::patch('/master/categories/{category}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleCategory'])->name('master.categories.toggle');
 
         Route::post('/master/sizes', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeSize'])->name('master.sizes.store');
+        Route::put('/master/sizes/{size}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'updateSize'])->name('master.sizes.update');
         Route::patch('/master/sizes/{size}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleSize'])->name('master.sizes.toggle');
 
         Route::post('/master/price-settings', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storePriceSetting'])->name('master.price-settings.store');
         Route::delete('/master/price-settings/{priceSetting}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'destroyPriceSetting'])->name('master.price-settings.destroy');
+
+        Route::post('/upload-thumbnail', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'uploadThumbnail'])->name('orders.upload-thumbnail');
     });
 
 });

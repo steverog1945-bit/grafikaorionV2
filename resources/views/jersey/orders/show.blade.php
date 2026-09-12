@@ -2,12 +2,12 @@
 
 @section('content')
 @include('partials.rupiah-format-script')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-5xl mx-auto">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-6xl mx-auto">
 
     <x-page-header :title="$order->order_number" subtitle="Detail order jersey">
         <x-slot:actions>
             <x-button href="{{ route('jersey.orders.print', $order->id) }}" variant="secondary" target="_blank">
-                <i class="fas fa-print"></i> Cetak
+                <i class="fas fa-print"></i> Cetak Ringkasan
             </x-button>
             <x-button href="{{ route('jersey.orders.index') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali
@@ -27,14 +27,12 @@
         <x-card class="md:col-span-2">
             <h3 class="text-sm font-bold text-slate-700 mb-4">Informasi Order</h3>
             <div class="grid grid-cols-2 gap-4 text-sm">
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Pelanggan</p><p class="font-semibold">{{ $order->customer_name }}</p></div>
+                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Pelanggan</p><p class="font-semibold">{{ $order->konsumen->nama_konsumen ?? $order->customer_name }}</p></div>
                 <div><p class="text-[10px] text-slate-400 uppercase font-bold">No. HP</p><p class="font-semibold">{{ $order->customer_phone ?? '-' }}</p></div>
                 <div><p class="text-[10px] text-slate-400 uppercase font-bold">Tim</p><p class="font-semibold">{{ $order->team_name ?? '-' }}</p></div>
                 <div><p class="text-[10px] text-slate-400 uppercase font-bold">Tanggal Order</p><p class="font-semibold">{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</p></div>
                 <div><p class="text-[10px] text-slate-400 uppercase font-bold">Deadline</p><p class="font-semibold">{{ $order->deadline ? \Carbon\Carbon::parse($order->deadline)->format('d/m/Y') : '-' }}</p></div>
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Tipe / Kategori</p><p class="font-semibold">{{ $order->productType->name ?? '-' }} / {{ $order->category->name ?? '-' }}</p></div>
                 <div><p class="text-[10px] text-slate-400 uppercase font-bold">Desainer</p><p class="font-semibold">{{ $order->designer_name ?? '-' }}</p></div>
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Mode</p><p class="font-semibold">{{ ['player_list' => 'Daftar Pemain', 'quantity_only' => 'Qty per Ukuran', 'mixed' => 'Campuran'][$order->order_type] ?? $order->order_type }}</p></div>
             </div>
             @if($order->notes)
                 <div class="mt-4 p-3 bg-slate-50 rounded-xl text-xs text-slate-500">{{ $order->notes }}</div>
@@ -44,6 +42,7 @@
         <x-card>
             <h3 class="text-sm font-bold text-slate-700 mb-4">Ringkasan Biaya</h3>
             <div class="space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-slate-400">Subtotal Barang</span><span>Rp {{ number_format($order->lines->sum('subtotal'), 0, ',', '.') }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Diskon</span><span>Rp {{ number_format($order->discount, 0, ',', '.') }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Biaya Tambahan</span><span>Rp {{ number_format($order->additional_charge, 0, ',', '.') }}</span></div>
                 <div class="flex justify-between border-t border-slate-100 pt-2 font-bold text-base"><span>Total</span><span>Rp {{ number_format($order->total, 0, ',', '.') }}</span></div>
@@ -52,37 +51,63 @@
         </x-card>
     </div>
 
-    @if($order->items->isNotEmpty())
-    <x-card class="mb-6">
-        <h3 class="text-sm font-bold text-slate-700 mb-4">Daftar Pemain ({{ $order->items->count() }})</h3>
-        <x-table bare>
-            <thead><tr><th class="p-2 text-left">Nama</th><th class="p-2 text-left">No.</th><th class="p-2 text-left">Ukuran</th><th class="p-2 text-left">Gender</th><th class="p-2 text-left">Lengan</th><th class="p-2 text-left">Kerah</th></tr></thead>
-            <tbody class="divide-y divide-slate-50">
-                @foreach($order->items as $item)
-                <tr>
-                    <td class="p-2 font-semibold">{{ $item->player_name }}</td>
-                    <td class="p-2">{{ $item->player_number ?? '-' }}</td>
-                    <td class="p-2">{{ $item->size }}</td>
-                    <td class="p-2">{{ $item->gender }}</td>
-                    <td class="p-2">{{ $item->sleeve }}</td>
-                    <td class="p-2">{{ $item->collar ?? '-' }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </x-table>
-    </x-card>
-    @endif
+    <div class="space-y-6 mb-6">
+        @foreach($order->lines as $line)
+        <x-card>
+            <div class="flex items-start justify-between mb-4 gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+                        @if($line->thumbnail)
+                            <img src="{{ asset('storage/' . $line->thumbnail) }}" class="w-full h-full object-cover">
+                        @else
+                            <i class="fas fa-image text-slate-300"></i>
+                        @endif
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-700">{{ $line->nama_barang }}</h3>
+                        <p class="text-[11px] text-slate-400">{{ $line->productType->name ?? '-' }} &middot; {{ $line->category->name ?? '-' }} &middot; {{ $line->bahan ?? '-' }}</p>
+                        <p class="text-[11px] text-slate-400">{{ $line->qty }} pcs &times; Rp {{ number_format($line->harga_satuan, 0, ',', '.') }} = <span class="font-bold text-slate-600">Rp {{ number_format($line->subtotal, 0, ',', '.') }}</span></p>
+                    </div>
+                </div>
+                <x-button href="{{ route('jersey.orders.lines.spk', [$order->id, $line->id]) }}" size="sm" variant="secondary" target="_blank">
+                    <i class="fas fa-print"></i> SPK
+                </x-button>
+            </div>
 
-    @if($order->sizeQuantities->isNotEmpty())
-    <x-card class="mb-6">
-        <h3 class="text-sm font-bold text-slate-700 mb-4">Qty per Ukuran</h3>
-        <div class="flex flex-wrap gap-3">
-            @foreach($order->sizeQuantities as $sq)
-                <div class="px-4 py-2 bg-slate-50 rounded-xl text-xs font-bold">{{ $sq->size->name ?? '-' }}: {{ $sq->quantity }} pcs</div>
-            @endforeach
-        </div>
-    </x-card>
-    @endif
+            @if($line->keterangan)
+                <div class="mb-4 p-3 bg-slate-50 rounded-xl text-xs text-slate-500">{{ $line->keterangan }}</div>
+            @endif
+
+            @if($line->items->isNotEmpty())
+            <div class="mb-4 overflow-x-auto">
+                <table class="w-full text-xs">
+                    <thead><tr class="text-[9px] text-slate-400 uppercase"><th class="p-2 text-left">Nama</th><th class="p-2 text-left">No.</th><th class="p-2 text-left">Ukuran</th><th class="p-2 text-left">Gender</th><th class="p-2 text-left">Lengan</th><th class="p-2 text-left">Kerah</th></tr></thead>
+                    <tbody class="divide-y divide-slate-50">
+                        @foreach($line->items as $item)
+                        <tr>
+                            <td class="p-2 font-semibold">{{ $item->player_name }}</td>
+                            <td class="p-2">{{ $item->player_number ?? '-' }}</td>
+                            <td class="p-2">{{ $item->size }}</td>
+                            <td class="p-2">{{ $item->gender }}</td>
+                            <td class="p-2">{{ $item->sleeve }}</td>
+                            <td class="p-2">{{ $item->collar ?? '-' }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @endif
+
+            @if($line->sizeQuantities->isNotEmpty())
+            <div class="flex flex-wrap gap-2">
+                @foreach($line->sizeQuantities as $sq)
+                    <div class="px-3 py-1.5 bg-slate-50 rounded-lg text-[11px] font-bold text-slate-600">{{ $sq->size->name ?? '-' }}: {{ $sq->quantity }} pcs</div>
+                @endforeach
+            </div>
+            @endif
+        </x-card>
+        @endforeach
+    </div>
 
     <x-card>
         <h3 class="text-sm font-bold text-slate-700 mb-4">Update Status & Pembayaran</h3>
@@ -110,11 +135,11 @@
             </x-form.group>
             <div class="md:col-span-4">
                 <x-form.group label="Catatan">
-                    <textarea name="notes" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $order->notes }}</textarea>
+                    <textarea name="notes" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-slate-400/30 shadow-inner">{{ $order->notes }}</textarea>
                 </x-form.group>
             </div>
             <div class="md:col-span-4 flex justify-end">
-                <x-button type="submit">Simpan Perubahan</x-button>
+                <button type="submit" class="px-8 py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs uppercase tracking-widest">Simpan Perubahan</button>
             </div>
         </form>
     </x-card>

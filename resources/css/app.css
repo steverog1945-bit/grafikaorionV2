@@ -188,6 +188,8 @@
 }
 
 .select2-dropdown {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 15px !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 0.75rem !important;
     box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.08) !important;

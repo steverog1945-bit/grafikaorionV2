@@ -7,51 +7,33 @@
     @include('partials.print-style')
 </head>
 <body>
-    <div class="sheet" style="max-width: 620px;">
-        @include('partials.print-header', ['docTitle' => 'Order Jersey'])
+    <div class="sheet" style="max-width: 680px;">
+        @include('partials.print-header', ['docTitle' => 'Ringkasan Order Jersey'])
 
         <table>
             <tr><td>No. Order</td><td class="right">{{ $order->order_number }}</td></tr>
             <tr><td>Tanggal</td><td class="right">{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</td></tr>
-            <tr><td>Pelanggan</td><td class="right">{{ $order->customer_name }}</td></tr>
+            <tr><td>Pelanggan</td><td class="right">{{ $order->konsumen->nama_konsumen ?? $order->customer_name }}</td></tr>
             <tr><td>Tim</td><td class="right">{{ $order->team_name ?? '-' }}</td></tr>
-            <tr><td>Tipe / Kategori</td><td class="right">{{ $order->productType->name ?? '-' }} / {{ $order->category->name ?? '-' }}</td></tr>
             <tr><td>Deadline</td><td class="right">{{ $order->deadline ? \Carbon\Carbon::parse($order->deadline)->format('d/m/Y') : '-' }}</td></tr>
             <tr><td>Desainer</td><td class="right">{{ $order->designer_name ?? '-' }}</td></tr>
         </table>
 
         <div class="divider"></div>
 
-        @if($order->items->isNotEmpty())
         <table>
-            <thead>
-                <tr><th>Nama Pemain</th><th>No.</th><th>Ukuran</th><th>Gender</th><th>Lengan</th><th>Kerah</th></tr>
-            </thead>
+            <thead><tr><th>Barang</th><th>Tipe/Kategori</th><th class="right">Qty</th><th class="right">Subtotal</th></tr></thead>
             <tbody>
-                @foreach($order->items as $item)
+                @foreach($order->lines as $line)
                 <tr>
-                    <td>{{ $item->player_name }}</td>
-                    <td>{{ $item->player_number ?? '-' }}</td>
-                    <td>{{ $item->size }}</td>
-                    <td>{{ $item->gender }}</td>
-                    <td>{{ $item->sleeve }}</td>
-                    <td>{{ $item->collar ?? '-' }}</td>
+                    <td>{{ $line->nama_barang }}</td>
+                    <td>{{ $line->productType->name ?? '-' }} / {{ $line->category->name ?? '-' }}</td>
+                    <td class="right">{{ $line->qty }}</td>
+                    <td class="right">{{ number_format($line->subtotal, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
-        @endif
-
-        @if($order->sizeQuantities->isNotEmpty())
-        <table>
-            <thead><tr><th>Ukuran</th><th class="right">Qty</th></tr></thead>
-            <tbody>
-                @foreach($order->sizeQuantities as $sq)
-                <tr><td>{{ $sq->size->name ?? '-' }}</td><td class="right">{{ $sq->quantity }}</td></tr>
-                @endforeach
-            </tbody>
-        </table>
-        @endif
 
         <div class="divider"></div>
 

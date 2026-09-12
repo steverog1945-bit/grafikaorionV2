@@ -9,7 +9,7 @@ class JerseyOrderItem extends Model
     protected $table = 'jersey_order_items';
 
     protected $fillable = [
-        'jersey_order_id',
+        'jersey_order_line_id',
         'player_name',
         'player_number',
         'size',
@@ -19,8 +19,8 @@ class JerseyOrderItem extends Model
         'notes',
     ];
 
-    public function order()
+    public function line()
     {
-        return $this->belongsTo(JerseyOrder::class, 'jersey_order_id');
+        return $this->belongsTo(JerseyOrderLine::class, 'jersey_order_line_id');
     }
 }

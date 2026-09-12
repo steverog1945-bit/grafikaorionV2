@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Jersey;
 
 use App\Http\Controllers\Controller;
 use App\Models\JerseyCategory;
-use App\Models\JerseyCustomer;
 use App\Models\JerseyDesigner;
 use App\Models\JerseyOrder;
 use App\Models\JerseyProductType;
 use App\Models\JerseySize;
+use App\Models\Konsumen;
 use App\Services\JerseyOrderPricingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +18,7 @@ class JerseyOrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = JerseyOrder::with(['category', 'productType'])->orderByDesc('id');
+        $query = JerseyOrder::with(['konsumen', 'lines'])->orderByDesc('id');
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -45,7 +45,7 @@ class JerseyOrderController extends Controller
     private function formData(): array
     {
         return [
-            'customers' => JerseyCustomer::where('is_active', true)->orderBy('name')->get(),
+            'konsumenList' => Konsumen::orderBy('nama_konsumen')->get(),
             'designers' => JerseyDesigner::where('is_active', true)->orderBy('name')->get(),
             'productTypes' => JerseyProductType::where('is_active', true)->orderBy('name')->get(),
             'categories' => JerseyCategory::where('is_active', true)->orderBy('name')->get(),
@@ -53,122 +53,150 @@ class JerseyOrderController extends Controller
         ];
     }
 
+    /**
+     * Upload thumbnail mockup desain SATU line - dipanggil terpisah dari
+     * submit form utama (sama seperti PenjualanController::uploadThumbnail)
+     * karena line-nya sendiri belum tentu tersimpan ke database saat user
+     * memilih file (order masih dalam proses diisi di form).
+     */
+    public function uploadThumbnail(Request $request)
+    {
+        $request->validate([
+            'thumbnail' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
+
+        $path = $request->file('thumbnail')->store('jersey_thumbnails', 'public');
+
+        return response()->json([
+            'status' => 'success',
+            'path' => $path,
+            'url' => asset('storage/' . $path),
+        ]);
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
             'order_date' => 'required|date',
-            'jersey_customer_id' => 'nullable|exists:jersey_customers,id',
-            'customer_name' => 'required|string|max:255',
-            'customer_phone' => 'nullable|string|max:50',
+            'id_konsumen' => 'required|exists:konsumen,id_konsumen',
             'team_name' => 'nullable|string|max:255',
-            'jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
-            'jersey_category_id' => 'nullable|exists:jersey_categories,id',
             'deadline' => 'nullable|date',
-            'order_type' => 'required|in:quantity_only,player_list,mixed',
             'jersey_designer_id' => 'nullable|exists:jersey_designers,id',
             'notes' => 'nullable|string|max:2000',
             'discount' => 'nullable|numeric|min:0',
             'additional_charge' => 'nullable|numeric|min:0',
             'deposit' => 'nullable|numeric|min:0',
 
-            'items' => 'required_if:order_type,player_list,mixed|array',
-            'items.*.player_name' => 'required_with:items|string|max:255',
-            'items.*.player_number' => 'nullable|string|max:20',
-            'items.*.size' => 'required_with:items|in:S,M,L,XL,2XL,3XL,4XL',
-            'items.*.gender' => 'required_with:items|in:L,P',
-            'items.*.sleeve' => 'required_with:items|in:Pendek,Panjang',
-            'items.*.collar' => 'nullable|string|max:100',
-            'items.*.notes' => 'nullable|string|max:500',
+            'lines' => 'required|array|min:1',
+            'lines.*.nama_barang' => 'required|string|max:255',
+            'lines.*.jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
+            'lines.*.jersey_category_id' => 'nullable|exists:jersey_categories,id',
+            'lines.*.bahan' => 'nullable|string|max:255',
+            'lines.*.keterangan' => 'nullable|string|max:2000',
+            'lines.*.thumbnail' => 'nullable|string|max:255',
+            'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
 
-            'size_quantities' => 'required_if:order_type,quantity_only,mixed|array',
-            'size_quantities.*' => 'nullable|integer|min:0',
+            'lines.*.items' => 'nullable|array',
+            'lines.*.items.*.player_name' => 'nullable|string|max:255',
+            'lines.*.items.*.player_number' => 'nullable|string|max:20',
+            'lines.*.items.*.size' => 'nullable|in:S,M,L,XL,2XL,3XL,4XL,5XL',
+            'lines.*.items.*.gender' => 'nullable|in:L,P',
+            'lines.*.items.*.sleeve' => 'nullable|in:Pendek,Panjang',
+            'lines.*.items.*.collar' => 'nullable|string|max:100',
+
+            'lines.*.size_quantities' => 'nullable|array',
+            'lines.*.size_quantities.*' => 'nullable|integer|min:0',
+
+            'lines.*.materials' => 'nullable|array',
+            'lines.*.materials.*.nama_barang' => 'nullable|string|max:255',
+            'lines.*.materials.*.warna' => 'nullable|string|max:100',
+            'lines.*.materials.*.penggunaan_kg' => 'nullable|numeric|min:0',
+            'lines.*.materials.*.penggunaan_meter' => 'nullable|numeric|min:0',
+            'lines.*.materials.*.penggunaan_yard' => 'nullable|numeric|min:0',
+            'lines.*.materials.*.keterangan' => 'nullable|string|max:255',
         ]);
 
         DB::beginTransaction();
         try {
-            $totalQty = 0;
-            if (!empty($data['items'])) {
-                $totalQty += count($data['items']);
-            }
-            if (!empty($data['size_quantities'])) {
-                $totalQty += array_sum(array_map('intval', $data['size_quantities']));
-            }
-            if ($totalQty <= 0) {
-                return back()->withInput()->with('error', 'Order harus punya minimal 1 pemain atau 1 ukuran dengan qty > 0.');
-            }
-
-            $tier = JerseyOrderPricingService::cariTierHarga(
-                $data['jersey_product_type_id'] ?? null,
-                $data['jersey_category_id'] ?? null,
-                $totalQty
-            );
-            $hargaSatuan = (float) ($tier->price ?? 0);
-            $subtotal = $hargaSatuan * $totalQty;
-            $discount = (float) ($data['discount'] ?? 0);
-            $additionalCharge = (float) ($data['additional_charge'] ?? 0);
-            $total = max(0, $subtotal - $discount + $additionalCharge);
-
-            $customerName = $data['customer_name'];
-            $customerPhone = $data['customer_phone'] ?? null;
-            if (!empty($data['jersey_customer_id'])) {
-                $cust = JerseyCustomer::find($data['jersey_customer_id']);
-                if ($cust) {
-                    $customerName = $cust->name;
-                    $customerPhone = $cust->phone;
-                }
-            }
-
-            $designerName = null;
-            if (!empty($data['jersey_designer_id'])) {
-                $designerName = JerseyDesigner::find($data['jersey_designer_id'])?->name;
-            }
+            $konsumen = Konsumen::findOrFail($data['id_konsumen']);
 
             $order = JerseyOrder::create([
                 'order_number' => JerseyOrder::generateOrderNumber(now()),
                 'order_date' => $data['order_date'],
-                'jersey_customer_id' => $data['jersey_customer_id'] ?? null,
-                'customer_name' => $customerName,
-                'customer_phone' => $customerPhone,
+                'id_konsumen' => $konsumen->id_konsumen,
+                'customer_name' => $konsumen->nama_konsumen,
+                'customer_phone' => $konsumen->telepon,
                 'team_name' => $data['team_name'] ?? null,
-                'jersey_product_type_id' => $data['jersey_product_type_id'] ?? null,
-                'jersey_category_id' => $data['jersey_category_id'] ?? null,
                 'deadline' => $data['deadline'] ?? null,
                 'status' => 'baru',
-                'order_type' => $data['order_type'],
                 'jersey_designer_id' => $data['jersey_designer_id'] ?? null,
-                'designer_name' => $designerName,
+                'designer_name' => !empty($data['jersey_designer_id'])
+                    ? JerseyDesigner::find($data['jersey_designer_id'])?->name
+                    : null,
                 'notes' => $data['notes'] ?? null,
-                'total' => $total,
-                'discount' => $discount,
-                'additional_charge' => $additionalCharge,
-                'price_breakdown' => [
-                    'harga_satuan' => $hargaSatuan,
-                    'qty' => $totalQty,
-                    'subtotal' => $subtotal,
-                ],
-                'jersey_price_setting_id' => $tier->id ?? null,
+                'total' => 0,
+                'discount' => $data['discount'] ?? 0,
+                'additional_charge' => $data['additional_charge'] ?? 0,
                 'deposit' => $data['deposit'] ?? 0,
                 'status_pembayaran' => 'Belum Bayar',
                 'created_by' => Auth::id(),
             ]);
 
-            if (!empty($data['items'])) {
-                foreach ($data['items'] as $item) {
-                    $order->items()->create($item);
+            $adaLineValid = false;
+
+            foreach ($data['lines'] as $lineData) {
+                $items = array_values(array_filter($lineData['items'] ?? [], fn ($i) => trim($i['player_name'] ?? '') !== ''));
+                $sizeQuantities = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
+                $materials = array_values(array_filter($lineData['materials'] ?? [], fn ($m) => trim($m['nama_barang'] ?? '') !== ''));
+
+                $qty = count($items) + array_sum(array_map('intval', $sizeQuantities));
+                if ($qty <= 0) {
+                    continue; // baris kosong (line ditambahkan tapi tidak diisi) - dilewati, bukan error
+                }
+                $adaLineValid = true;
+
+                $tier = JerseyOrderPricingService::cariTierHarga(
+                    $lineData['jersey_product_type_id'] ?? null,
+                    $lineData['jersey_category_id'] ?? null,
+                    $qty
+                );
+                $hargaSatuan = (float) ($tier->price ?? 0);
+                $subtotal = $hargaSatuan * $qty;
+
+                $line = $order->lines()->create([
+                    'jersey_product_type_id' => $lineData['jersey_product_type_id'] ?? null,
+                    'jersey_category_id' => $lineData['jersey_category_id'] ?? null,
+                    'nama_barang' => $lineData['nama_barang'],
+                    'bahan' => $lineData['bahan'] ?? null,
+                    'keterangan' => $lineData['keterangan'] ?? null,
+                    'thumbnail' => $lineData['thumbnail'] ?? null,
+                    'order_type' => $lineData['order_type'],
+                    'qty' => $qty,
+                    'harga_satuan' => $hargaSatuan,
+                    'subtotal' => $subtotal,
+                    'jersey_price_setting_id' => $tier->id ?? null,
+                ]);
+
+                foreach ($items as $item) {
+                    $line->items()->create($item);
+                }
+                foreach ($sizeQuantities as $sizeId => $qtyUkuran) {
+                    $line->sizeQuantities()->create([
+                        'jersey_size_id' => $sizeId,
+                        'quantity' => (int) $qtyUkuran,
+                    ]);
+                }
+                foreach ($materials as $material) {
+                    $line->materials()->create($material);
                 }
             }
 
-            if (!empty($data['size_quantities'])) {
-                foreach ($data['size_quantities'] as $sizeId => $qty) {
-                    $qty = (int) $qty;
-                    if ($qty > 0) {
-                        $order->sizeQuantities()->create([
-                            'jersey_size_id' => $sizeId,
-                            'quantity' => $qty,
-                        ]);
-                    }
-                }
+            if (!$adaLineValid) {
+                DB::rollBack();
+                return back()->withInput()->with('error', 'Order harus punya minimal 1 jenis barang dengan pemain/qty terisi.');
             }
+
+            $order->recalculateTotal();
 
             DB::commit();
 
@@ -182,7 +210,10 @@ class JerseyOrderController extends Controller
 
     public function show(JerseyOrder $order)
     {
-        $order->load(['customer', 'designer', 'productType', 'category', 'items', 'sizeQuantities.size']);
+        $order->load([
+            'konsumen', 'designer',
+            'lines.productType', 'lines.category', 'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
+        ]);
         return view('jersey.orders.show', compact('order'));
     }
 
@@ -209,7 +240,22 @@ class JerseyOrderController extends Controller
 
     public function print(JerseyOrder $order)
     {
-        $order->load(['customer', 'designer', 'productType', 'category', 'items', 'sizeQuantities.size']);
+        $order->load([
+            'konsumen', 'designer',
+            'lines.productType', 'lines.category', 'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
+        ]);
         return view('jersey.orders.print', compact('order'));
+    }
+
+    /**
+     * Cetak SPK (Surat Perintah Kerja) SATU line spesifik - format detail
+     * produksi per-jenis-barang (thumbnail, ukuran, spesifikasi bahan),
+     * beda dari print() di atas yang mencetak ringkasan seluruh order.
+     */
+    public function printLine(JerseyOrder $order, \App\Models\JerseyOrderLine $line)
+    {
+        abort_if($line->jersey_order_id !== $order->id, 404);
+        $line->load(['productType', 'category', 'items', 'sizeQuantities.size', 'materials', 'order.konsumen', 'order.designer']);
+        return view('jersey.orders.spk-print', compact('order', 'line'));
     }
 }

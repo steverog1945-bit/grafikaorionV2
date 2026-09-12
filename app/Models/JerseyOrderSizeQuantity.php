@@ -8,11 +8,11 @@ class JerseyOrderSizeQuantity extends Model
 {
     protected $table = 'jersey_order_size_quantities';
 
-    protected $fillable = ['jersey_order_id', 'jersey_size_id', 'quantity'];
+    protected $fillable = ['jersey_order_line_id', 'jersey_size_id', 'quantity'];
 
-    public function order()
+    public function line()
     {
-        return $this->belongsTo(JerseyOrder::class, 'jersey_order_id');
+        return $this->belongsTo(JerseyOrderLine::class, 'jersey_order_line_id');
     }
 
     public function size()

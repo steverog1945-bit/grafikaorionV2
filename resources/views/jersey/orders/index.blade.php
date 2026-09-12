@@ -8,9 +8,9 @@
             <x-button href="{{ route('jersey.master.index') }}" variant="secondary">
                 <i class="fas fa-sliders-h"></i> Master Data
             </x-button>
-            <x-button href="{{ route('jersey.orders.create') }}">
+            <a href="{{ route('jersey.orders.create') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs uppercase tracking-widest">
                 <i class="fas fa-plus"></i> Order Baru
-            </x-button>
+            </a>
         </x-slot:actions>
     </x-page-header>
 
@@ -38,7 +38,7 @@
             <tr>
                 <th class="px-6 py-5 text-left">No. Order</th>
                 <th class="px-6 py-5 text-left">Pelanggan / Tim</th>
-                <th class="px-6 py-5 text-left">Kategori</th>
+                <th class="px-6 py-5 text-left">Barang</th>
                 <th class="px-6 py-5 text-center">Deadline</th>
                 <th class="px-6 py-5 text-center">Status</th>
                 <th class="px-6 py-5 text-center">Bayar</th>
@@ -49,24 +49,27 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($orders as $o)
             <tr class="hover:bg-slate-50/50">
-                <td class="px-6 py-4 font-bold text-indigo-600">{{ $o->order_number }}</td>
+                <td class="px-6 py-4 font-bold text-slate-700">{{ $o->order_number }}</td>
                 <td class="px-6 py-4">
-                    <p class="font-semibold text-slate-700">{{ $o->customer_name }}</p>
+                    <p class="font-semibold text-slate-700">{{ $o->konsumen->nama_konsumen ?? $o->customer_name }}</p>
                     @if($o->team_name)<p class="text-[11px] text-slate-400">{{ $o->team_name }}</p>@endif
                 </td>
-                <td class="px-6 py-4 text-xs text-slate-500">{{ $o->category->name ?? '-' }}</td>
+                <td class="px-6 py-4 text-xs text-slate-500">
+                    {{ $o->lines->pluck('nama_barang')->implode(', ') ?: '-' }}
+                    @if($o->lines->count() > 1)<span class="text-slate-300"> ({{ $o->lines->count() }} jenis)</span>@endif
+                </td>
                 <td class="px-6 py-4 text-center text-xs">{{ $o->deadline ? \Carbon\Carbon::parse($o->deadline)->format('d/m/Y') : '-' }}</td>
                 <td class="px-6 py-4 text-center">
-                    @php $statusColor = ['baru' => 'bg-slate-100 text-slate-500', 'proses' => 'bg-amber-50 text-amber-600', 'selesai' => 'bg-indigo-50 text-indigo-600', 'diambil' => 'bg-emerald-50 text-emerald-600'][$o->status] ?? 'bg-slate-100 text-slate-500'; @endphp
+                    @php $statusColor = ['baru' => 'bg-slate-100 text-slate-500', 'proses' => 'bg-slate-200 text-slate-600', 'selesai' => 'bg-slate-700 text-white', 'diambil' => 'bg-emerald-50 text-emerald-600'][$o->status] ?? 'bg-slate-100 text-slate-500'; @endphp
                     <span class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase {{ $statusColor }}">{{ $o->status }}</span>
                 </td>
                 <td class="px-6 py-4 text-center">
-                    @php $bayarColor = ['Belum Bayar' => 'bg-rose-50 text-rose-600', 'DP' => 'bg-amber-50 text-amber-600', 'Lunas' => 'bg-emerald-50 text-emerald-600'][$o->status_pembayaran] ?? 'bg-slate-100 text-slate-500'; @endphp
+                    @php $bayarColor = ['Belum Bayar' => 'bg-rose-50 text-rose-600', 'DP' => 'bg-amber-50 text-amber-700', 'Lunas' => 'bg-emerald-50 text-emerald-600'][$o->status_pembayaran] ?? 'bg-slate-100 text-slate-500'; @endphp
                     <span class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase {{ $bayarColor }}">{{ $o->status_pembayaran }}</span>
                 </td>
                 <td class="px-6 py-4 text-right font-bold">Rp {{ number_format($o->total, 0, ',', '.') }}</td>
                 <td class="px-6 py-4 text-center">
-                    <x-button href="{{ route('jersey.orders.show', $o->id) }}" size="icon" variant="ghost" class="hover:text-indigo-600" title="Detail">
+                    <x-button href="{{ route('jersey.orders.show', $o->id) }}" size="icon" variant="ghost" class="hover:text-slate-700" title="Detail">
                         <i class="fas fa-eye text-xs"></i>
                     </x-button>
                 </td>

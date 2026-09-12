@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Jersey;
 
 use App\Http\Controllers\Controller;
 use App\Models\JerseyCategory;
-use App\Models\JerseyCustomer;
 use App\Models\JerseyDesigner;
 use App\Models\JerseyPriceSetting;
 use App\Models\JerseyProductType;
@@ -12,17 +11,17 @@ use App\Models\JerseySize;
 use Illuminate\Http\Request;
 
 /**
- * Semua master data modul jersey (pelanggan, desainer, tipe produk,
- * kategori, ukuran, tier harga) dalam SATU halaman bertab - pola yang
- * sama seperti Master Jasa (jasa + jasa_harga digabung satu halaman) di
- * modul percetakan, supaya tidak perlu 6 halaman terpisah untuk data
- * pendukung yang masing-masing sangat sederhana (cuma nama + status aktif).
+ * Semua master data modul jersey (desainer, tipe produk, kategori, ukuran,
+ * tier harga) dalam SATU halaman bertab. Semua aksi (tambah/ubah/toggle/
+ * hapus) dikirim lewat fetch() JSON dan mengembalikan JSON juga - BUKAN
+ * submit form biasa - supaya tab yang sedang aktif tidak pernah ke-reset
+ * ke tab pertama tiap kali user menambah satu baris data (keluhan
+ * langsung dari user setelah demo pertama modul ini).
  */
 class JerseyMasterController extends Controller
 {
     public function index()
     {
-        $customers = JerseyCustomer::orderBy('name')->get();
         $designers = JerseyDesigner::orderBy('name')->get();
         $productTypes = JerseyProductType::orderBy('name')->get();
         $categories = JerseyCategory::orderBy('name')->get();
@@ -33,79 +32,71 @@ class JerseyMasterController extends Controller
             ->get();
 
         return view('jersey.master.index', compact(
-            'customers', 'designers', 'productTypes', 'categories', 'sizes', 'priceSettings'
+            'designers', 'productTypes', 'categories', 'sizes', 'priceSettings'
         ));
-    }
-
-    // ---- Pelanggan ----
-    public function storeCustomer(Request $request)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string|max:1000',
-        ]);
-        JerseyCustomer::create($data);
-        return back()->with('success', 'Pelanggan jersey berhasil ditambahkan.');
-    }
-
-    public function updateCustomer(Request $request, JerseyCustomer $customer)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string|max:1000',
-        ]);
-        $customer->update($data);
-        return back()->with('success', 'Pelanggan jersey berhasil diperbarui.');
-    }
-
-    public function toggleCustomer(JerseyCustomer $customer)
-    {
-        $customer->update(['is_active' => !$customer->is_active]);
-        return back()->with('success', 'Status pelanggan diperbarui.');
     }
 
     // ---- Desainer ----
     public function storeDesigner(Request $request)
     {
         $data = $request->validate(['name' => 'required|string|max:255|unique:jersey_designers,name']);
-        JerseyDesigner::create($data);
-        return back()->with('success', 'Desainer berhasil ditambahkan.');
+        $row = JerseyDesigner::create($data);
+        return response()->json(['success' => true, 'message' => 'Desainer berhasil ditambahkan.', 'row' => $row]);
+    }
+
+    public function updateDesigner(Request $request, JerseyDesigner $designer)
+    {
+        $data = $request->validate(['name' => 'required|string|max:255|unique:jersey_designers,name,' . $designer->id]);
+        $designer->update($data);
+        return response()->json(['success' => true, 'message' => 'Desainer berhasil diperbarui.', 'row' => $designer]);
     }
 
     public function toggleDesigner(JerseyDesigner $designer)
     {
         $designer->update(['is_active' => !$designer->is_active]);
-        return back()->with('success', 'Status desainer diperbarui.');
+        return response()->json(['success' => true, 'message' => 'Status desainer diperbarui.', 'row' => $designer]);
     }
 
     // ---- Tipe Produk ----
     public function storeProductType(Request $request)
     {
         $data = $request->validate(['name' => 'required|string|max:255|unique:jersey_product_types,name']);
-        JerseyProductType::create($data);
-        return back()->with('success', 'Tipe produk berhasil ditambahkan.');
+        $row = JerseyProductType::create($data);
+        return response()->json(['success' => true, 'message' => 'Tipe produk berhasil ditambahkan.', 'row' => $row]);
+    }
+
+    public function updateProductType(Request $request, JerseyProductType $productType)
+    {
+        $data = $request->validate(['name' => 'required|string|max:255|unique:jersey_product_types,name,' . $productType->id]);
+        $productType->update($data);
+        return response()->json(['success' => true, 'message' => 'Tipe produk berhasil diperbarui.', 'row' => $productType]);
     }
 
     public function toggleProductType(JerseyProductType $productType)
     {
         $productType->update(['is_active' => !$productType->is_active]);
-        return back()->with('success', 'Status tipe produk diperbarui.');
+        return response()->json(['success' => true, 'message' => 'Status tipe produk diperbarui.', 'row' => $productType]);
     }
 
     // ---- Kategori ----
     public function storeCategory(Request $request)
     {
         $data = $request->validate(['name' => 'required|string|max:255|unique:jersey_categories,name']);
-        JerseyCategory::create($data);
-        return back()->with('success', 'Kategori berhasil ditambahkan.');
+        $row = JerseyCategory::create($data);
+        return response()->json(['success' => true, 'message' => 'Kategori berhasil ditambahkan.', 'row' => $row]);
+    }
+
+    public function updateCategory(Request $request, JerseyCategory $category)
+    {
+        $data = $request->validate(['name' => 'required|string|max:255|unique:jersey_categories,name,' . $category->id]);
+        $category->update($data);
+        return response()->json(['success' => true, 'message' => 'Kategori berhasil diperbarui.', 'row' => $category]);
     }
 
     public function toggleCategory(JerseyCategory $category)
     {
         $category->update(['is_active' => !$category->is_active]);
-        return back()->with('success', 'Status kategori diperbarui.');
+        return response()->json(['success' => true, 'message' => 'Status kategori diperbarui.', 'row' => $category]);
     }
 
     // ---- Ukuran ----
@@ -116,18 +107,33 @@ class JerseyMasterController extends Controller
             'sort_order' => 'nullable|integer|min:0',
             'price_surcharge' => 'nullable|numeric|min:0',
         ]);
-        JerseySize::create([
+        $row = JerseySize::create([
             'name' => $data['name'],
             'sort_order' => $data['sort_order'] ?? 0,
             'price_surcharge' => $data['price_surcharge'] ?? 0,
         ]);
-        return back()->with('success', 'Ukuran berhasil ditambahkan.');
+        return response()->json(['success' => true, 'message' => 'Ukuran berhasil ditambahkan.', 'row' => $row]);
+    }
+
+    public function updateSize(Request $request, JerseySize $size)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:20|unique:jersey_sizes,name,' . $size->id,
+            'sort_order' => 'nullable|integer|min:0',
+            'price_surcharge' => 'nullable|numeric|min:0',
+        ]);
+        $size->update([
+            'name' => $data['name'],
+            'sort_order' => $data['sort_order'] ?? 0,
+            'price_surcharge' => $data['price_surcharge'] ?? 0,
+        ]);
+        return response()->json(['success' => true, 'message' => 'Ukuran berhasil diperbarui.', 'row' => $size]);
     }
 
     public function toggleSize(JerseySize $size)
     {
         $size->update(['is_active' => !$size->is_active]);
-        return back()->with('success', 'Status ukuran diperbarui.');
+        return response()->json(['success' => true, 'message' => 'Status ukuran diperbarui.', 'row' => $size]);
     }
 
     // ---- Tier Harga ----
@@ -140,13 +146,13 @@ class JerseyMasterController extends Controller
             'qty_max' => 'nullable|integer|gte:qty_min',
             'price' => 'required|numeric|min:0',
         ]);
-        JerseyPriceSetting::create($data);
-        return back()->with('success', 'Tier harga berhasil ditambahkan.');
+        $row = JerseyPriceSetting::create($data)->load(['productType', 'category']);
+        return response()->json(['success' => true, 'message' => 'Tier harga berhasil ditambahkan.', 'row' => $row]);
     }
 
     public function destroyPriceSetting(JerseyPriceSetting $priceSetting)
     {
         $priceSetting->delete();
-        return back()->with('success', 'Tier harga berhasil dihapus.');
+        return response()->json(['success' => true, 'message' => 'Tier harga berhasil dihapus.']);
     }
 }

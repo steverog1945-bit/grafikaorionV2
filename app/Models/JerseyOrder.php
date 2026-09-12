@@ -12,23 +12,18 @@ class JerseyOrder extends Model
     protected $fillable = [
         'order_number',
         'order_date',
-        'jersey_customer_id',
+        'id_konsumen',
         'customer_name',
         'customer_phone',
         'team_name',
-        'jersey_product_type_id',
-        'jersey_category_id',
         'deadline',
         'status',
-        'order_type',
         'jersey_designer_id',
         'designer_name',
         'notes',
         'total',
         'discount',
         'additional_charge',
-        'price_breakdown',
-        'jersey_price_setting_id',
         'deposit',
         'status_pembayaran',
         'catatan_referensi_transaksi',
@@ -42,22 +37,11 @@ class JerseyOrder extends Model
         'discount' => 'decimal:2',
         'additional_charge' => 'decimal:2',
         'deposit' => 'decimal:2',
-        'price_breakdown' => 'array',
     ];
 
-    public function customer()
+    public function konsumen()
     {
-        return $this->belongsTo(JerseyCustomer::class, 'jersey_customer_id');
-    }
-
-    public function productType()
-    {
-        return $this->belongsTo(JerseyProductType::class, 'jersey_product_type_id');
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(JerseyCategory::class, 'jersey_category_id');
+        return $this->belongsTo(Konsumen::class, 'id_konsumen', 'id_konsumen');
     }
 
     public function designer()
@@ -65,26 +49,23 @@ class JerseyOrder extends Model
         return $this->belongsTo(JerseyDesigner::class, 'jersey_designer_id');
     }
 
-    public function priceSetting()
+    public function lines()
     {
-        return $this->belongsTo(JerseyPriceSetting::class, 'jersey_price_setting_id');
-    }
-
-    public function items()
-    {
-        return $this->hasMany(JerseyOrderItem::class, 'jersey_order_id');
-    }
-
-    public function sizeQuantities()
-    {
-        return $this->hasMany(JerseyOrderSizeQuantity::class, 'jersey_order_id');
+        return $this->hasMany(JerseyOrderLine::class, 'jersey_order_id');
     }
 
     /**
-     * Format JO-YYYYMMDD-### (reset urut per hari) - dipakai berpasangan
-     * dengan lockForUpdate di JerseyOrderController::store() supaya aman
-     * dari dua order dibuat bersamaan pada hari yang sama.
+     * Total order = jumlah subtotal semua line + biaya tambahan - diskon -
+     * dipanggil ulang tiap line berubah (tambah/edit/hapus) supaya total
+     * order selalu konsisten dengan rincian per-jenis-barangnya.
      */
+    public function recalculateTotal(): void
+    {
+        $subtotalLines = (float) $this->lines()->sum('subtotal');
+        $total = max(0, $subtotalLines - (float) $this->discount + (float) $this->additional_charge);
+        $this->update(['total' => $total]);
+    }
+
     public static function generateOrderNumber(\DateTimeInterface $date): string
     {
         $prefix = 'JO-' . $date->format('Ymd') . '-';
