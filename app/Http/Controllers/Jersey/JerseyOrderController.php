@@ -180,7 +180,7 @@ class JerseyOrderController extends Controller
                 'total' => 0,
                 'discount' => $data['discount'] ?? 0,
                 'additional_charge' => $data['additional_charge'] ?? 0,
-                'deposit' => $data['deposit'] ?? 0,
+                'deposit' => 0,
                 'status_pembayaran' => 'Belum Bayar',
                 'created_by' => Auth::id(),
             ]);
@@ -281,6 +281,23 @@ class JerseyOrderController extends Controller
 
             $order->recalculateTotal();
 
+            // DP awal saat order dibuat dicatat sebagai baris pertama di
+            // ledger Keuangan Jersey (bukan cuma angka manual di kolom
+            // deposit seperti sebelumnya) - supaya konsisten tercatat lewat
+            // satu jalur yang sama dengan pembayaran susulan (cicilan,
+            // pelunasan) yang ditambahkan lewat modul Keuangan Jersey.
+            $depositAwal = (float) ($data['deposit'] ?? 0);
+            if ($depositAwal > 0) {
+                $order->payments()->create([
+                    'tanggal_bayar' => $data['order_date'],
+                    'jumlah' => $depositAwal,
+                    'metode_bayar' => 'Tunai',
+                    'keterangan' => 'DP awal saat order dibuat.',
+                    'created_by' => Auth::id(),
+                ]);
+                $order->recalculatePembayaran();
+            }
+
             DB::commit();
 
             return redirect()->route('jersey.orders.show', $order->id)
@@ -294,7 +311,7 @@ class JerseyOrderController extends Controller
     public function show(JerseyOrder $order)
     {
         $order->load([
-            'konsumen', 'designer',
+            'konsumen', 'designer', 'payments',
             'lines.productType', 'lines.category', 'lines.material', 'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
         ]);
         return view('jersey.orders.show', compact('order'));
@@ -302,10 +319,12 @@ class JerseyOrderController extends Controller
 
     public function update(Request $request, JerseyOrder $order)
     {
+        // status_pembayaran TIDAK lagi diisi manual di sini - sekarang
+        // dihitung otomatis dari ledger Keuangan Jersey (lihat
+        // JerseyOrder::recalculatePembayaran(), dipanggil dari
+        // JerseyFinanceController tiap ada pembayaran ditambah/dihapus).
         $data = $request->validate([
             'status' => 'required|in:baru,proses,selesai,diambil',
-            'status_pembayaran' => 'required|in:Belum Bayar,DP,Lunas',
-            'catatan_referensi_transaksi' => 'nullable|string|max:255',
             'deadline' => 'nullable|date',
             'notes' => 'nullable|string|max:2000',
         ]);

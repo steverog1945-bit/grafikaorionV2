@@ -54,6 +54,11 @@ class JerseyOrder extends Model
         return $this->hasMany(JerseyOrderLine::class, 'jersey_order_id');
     }
 
+    public function payments()
+    {
+        return $this->hasMany(JerseyOrderPayment::class, 'jersey_order_id');
+    }
+
     /**
      * Total order = jumlah subtotal semua line + biaya tambahan - diskon -
      * dipanggil ulang tiap line berubah (tambah/edit/hapus) supaya total
@@ -64,6 +69,46 @@ class JerseyOrder extends Model
         $subtotalLines = (float) $this->lines()->sum('subtotal');
         $total = max(0, $subtotalLines - (float) $this->discount + (float) $this->additional_charge);
         $this->update(['total' => $total]);
+        $this->recalculatePembayaran();
+    }
+
+    /**
+     * deposit & status_pembayaran BUKAN lagi diisi manual - keduanya
+     * turunan dari jumlah baris jersey_order_payments (ledger Keuangan
+     * Jersey, terpisah dari kas Kasir utama). Dipanggil ulang tiap ada
+     * pembayaran ditambah/dihapus, dan tiap total order berubah (lihat
+     * recalculateTotal() di atas) supaya status Lunas/DP tetap akurat
+     * kalau total order berubah setelah sebagian sudah dibayar.
+     */
+    public function recalculatePembayaran(): void
+    {
+        $totalDibayar = (float) $this->payments()->sum('jumlah');
+        $total = (float) $this->total;
+
+        $status = 'Belum Bayar';
+        if ($totalDibayar > 0 && $totalDibayar < $total) {
+            $status = 'DP';
+        } elseif ($totalDibayar > 0 && $totalDibayar >= $total) {
+            $status = 'Lunas';
+        }
+
+        $this->update(['deposit' => $totalDibayar, 'status_pembayaran' => $status]);
+    }
+
+    public function getSisaTagihanAttribute(): float
+    {
+        return max(0, (float) $this->total - (float) $this->deposit);
+    }
+
+    /**
+     * Piutang jatuh tempo (lewat deadline, belum lunas) - dipakai untuk
+     * pengingat di dashboard Keuangan Jersey & badge di daftar order.
+     */
+    public function getJatuhTempoAttribute(): bool
+    {
+        return $this->status_pembayaran !== 'Lunas'
+            && $this->deadline
+            && $this->deadline->isPast();
     }
 
     public static function generateOrderNumber(\DateTimeInterface $date): string

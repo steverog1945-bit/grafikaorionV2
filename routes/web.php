@@ -463,6 +463,12 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         Route::post('/', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'store'])->name('orders.store');
         Route::post('/cek-kelengkapan', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'cekKelengkapan'])->name('orders.cek-kelengkapan');
         Route::get('/master', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'index'])->name('master.index');
+
+        Route::get('/keuangan', [\App\Http\Controllers\Jersey\JerseyFinanceController::class, 'index'])->name('keuangan.index');
+        Route::post('/keuangan/{order}/bayar', [\App\Http\Controllers\Jersey\JerseyFinanceController::class, 'storePayment'])->name('keuangan.bayar.store');
+        Route::delete('/keuangan/bayar/{payment}', [\App\Http\Controllers\Jersey\JerseyFinanceController::class, 'destroyPayment'])->name('keuangan.bayar.destroy');
+        Route::post('/keuangan/upload-bukti', [\App\Http\Controllers\Jersey\JerseyFinanceController::class, 'uploadBukti'])->name('keuangan.upload-bukti');
+
         Route::get('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'show'])->name('orders.show');
         Route::put('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'update'])->name('orders.update');
         Route::delete('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'destroy'])->name('orders.destroy');
