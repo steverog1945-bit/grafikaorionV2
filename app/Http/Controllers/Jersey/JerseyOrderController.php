@@ -79,6 +79,47 @@ class JerseyOrderController extends Controller
         ]);
     }
 
+    /**
+     * Cek kelengkapan tiap baris barang SEBELUM benar-benar disimpan (harga
+     * dari tier belum ketemu -> akan tersimpan Rp 0, Bahan belum dipilih)
+     * - dipanggil lewat fetch() oleh create.blade.php sesaat sebelum submit
+     * form yang sesungguhnya, supaya operator diberi peringatan dulu (warn,
+     * bukan block - order tetap bisa disimpan kalau operator yakin) alih-
+     * alih diam-diam tersimpan dengan harga Rp 0 tanpa disadari.
+     */
+    public function cekKelengkapan(Request $request)
+    {
+        $sizeIdByName = JerseySize::pluck('id', 'name');
+        $peringatan = [];
+
+        foreach ($request->input('lines', []) as $i => $lineData) {
+            $items = array_values(array_filter($lineData['items'] ?? [], fn ($it) => trim($it['player_name'] ?? '') !== ''));
+            $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
+            $qty = count($items) + array_sum(array_map('intval', $sizeQuantitiesMentah));
+            if ($qty <= 0) {
+                continue; // baris kosong - sama seperti store(), dilewati saja
+            }
+
+            $nama = trim($lineData['nama_barang'] ?? '') ?: ('Barang #' . ($i + 1));
+
+            if (empty($lineData['jersey_material_id'])) {
+                $peringatan[] = "\"{$nama}\": Bahan belum dipilih.";
+            }
+
+            $tier = JerseyOrderPricingService::cariTierHarga(
+                !empty($lineData['jersey_product_type_id']) ? (int) $lineData['jersey_product_type_id'] : null,
+                !empty($lineData['jersey_category_id']) ? (int) $lineData['jersey_category_id'] : null,
+                !empty($lineData['jersey_material_id']) ? (int) $lineData['jersey_material_id'] : null,
+                $qty
+            );
+            if (!$tier || (float) $tier->price <= 0) {
+                $peringatan[] = "\"{$nama}\": belum ada tier harga yang cocok untuk qty {$qty} - harga akan tersimpan Rp 0.";
+            }
+        }
+
+        return response()->json(['peringatan' => $peringatan]);
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([

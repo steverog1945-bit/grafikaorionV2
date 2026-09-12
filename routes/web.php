@@ -461,6 +461,7 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         Route::get('/', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'index'])->name('orders.index');
         Route::get('/create', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'create'])->name('orders.create');
         Route::post('/', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'store'])->name('orders.store');
+        Route::post('/cek-kelengkapan', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'cekKelengkapan'])->name('orders.cek-kelengkapan');
         Route::get('/master', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'index'])->name('master.index');
         Route::get('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'show'])->name('orders.show');
         Route::put('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'update'])->name('orders.update');

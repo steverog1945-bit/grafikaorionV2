@@ -320,7 +320,9 @@
         tambahBarisBarang();
     });
 
-    document.getElementById('jersey-order-form').addEventListener('submit', function (e) {
+    document.getElementById('jersey-order-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
         // Baris pemain kosong dibuang dulu - baris tersembunyi (mis. mode
         // diganti ke Qty per Ukuran) tetap terkirim ke server kalau tidak
         // dibersihkan.
@@ -330,7 +332,6 @@
 
         const cards = document.querySelectorAll('.jersey-line-card');
         if (cards.length === 0) {
-            e.preventDefault();
             Swal.fire('Belum Ada Barang', 'Tambahkan minimal 1 jenis barang sebelum menyimpan.', 'warning');
             return;
         }
@@ -339,13 +340,46 @@
         // required HTML) supaya pesannya jelas menunjuk barang yang mana.
         for (const card of cards) {
             if (card.querySelector('.thumbnail-path').value.trim() === '') {
-                e.preventDefault();
                 const nomor = card.querySelector('.line-number').textContent;
                 Swal.fire('Thumbnail Belum Diisi', `Barang #${nomor} belum ada thumbnail desain - wajib diisi sebagai acuan warna & bentuk produksi.`, 'warning');
                 card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
         }
+
+        // Cek kelengkapan komponen penunjang profesionalitas kerja (harga
+        // dari tier belum ketemu, bahan belum dipilih, dst) - warn don't
+        // block, sama seperti pola "Subtotal Item Ini Jadi Rp 0?" di form
+        // pembayaran Kasir. Order tetap bisa disimpan kalau operator yakin.
+        let peringatan = [];
+        try {
+            const res = await fetch('{{ route('jersey.orders.cek-kelengkapan') }}', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: new FormData(this),
+            });
+            const data = await res.json();
+            peringatan = data.peringatan || [];
+        } catch (err) {
+            peringatan = []; // gagal cek (mis. jaringan) - jangan sampai memblokir penyimpanan
+        }
+
+        if (peringatan.length > 0) {
+            const daftar = peringatan.map(p => `<li>${p}</li>`).join('');
+            const konfirmasi = await Swal.fire({
+                title: 'Ada Komponen Belum Lengkap',
+                html: `<ul style="text-align:left; font-size:12.5px; padding-left:1.2em;">${daftar}</ul>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                confirmButtonText: 'Ya, Simpan Sekarang',
+                cancelButtonText: 'Batal, Saya Cek Lagi',
+                customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
+            });
+            if (!konfirmasi.isConfirmed) return;
+        }
+
+        this.submit();
     });
 </script>
 @endpush
