@@ -116,6 +116,7 @@ class JerseyOrderController extends Controller
         ]);
 
         $sizeIdByName = JerseySize::pluck('id', 'name');
+        $surchargeBySizeId = JerseySize::pluck('price_surcharge', 'id');
 
         DB::beginTransaction();
         try {
@@ -179,7 +180,19 @@ class JerseyOrderController extends Controller
                     $qty
                 );
                 $hargaSatuan = (float) ($tier->price ?? 0);
-                $subtotal = $hargaSatuan * $qty;
+
+                // Tambahan harga per ukuran (mis. 2XL-5XL lebih mahal, diatur
+                // di Master Data > Ukuran) - sebelumnya diam-diam TIDAK PERNAH
+                // ikut dijumlahkan ke subtotal, jadi order dengan ukuran besar
+                // selalu kurang tagih. Dijumlahkan per ukuran x qty ukuran itu
+                // di baris ini, bukan flat per qty, karena tidak semua ukuran
+                // dalam satu baris barang tentu punya surcharge yang sama.
+                $surchargeTotal = 0.0;
+                foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
+                    $surchargeTotal += (float) ($surchargeBySizeId[$sizeId] ?? 0) * $qtyUkuran;
+                }
+
+                $subtotal = ($hargaSatuan * $qty) + $surchargeTotal;
 
                 $line = $order->lines()->create([
                     'jersey_product_type_id' => $lineData['jersey_product_type_id'] ?? null,
@@ -192,6 +205,7 @@ class JerseyOrderController extends Controller
                     'order_type' => $lineData['order_type'],
                     'qty' => $qty,
                     'harga_satuan' => $hargaSatuan,
+                    'size_surcharge_total' => $surchargeTotal,
                     'subtotal' => $subtotal,
                     'jersey_price_setting_id' => $tier->id ?? null,
                 ]);
@@ -213,7 +227,8 @@ class JerseyOrderController extends Controller
                 foreach (JerseyMaterialEstimationService::hitungEstimasi($qtyPerSizeId) as $estimasi) {
                     $line->materials()->create([
                         'nama_barang' => $estimasi['component']->name,
-                        'penggunaan_meter' => round($estimasi['total_meter'], 2),
+                        'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,
+                        'penggunaan_kg' => $estimasi['total_weight_gram'] > 0 ? round($estimasi['total_weight_gram'] / 1000, 2) : null,
                     ]);
                 }
             }

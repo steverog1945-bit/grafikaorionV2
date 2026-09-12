@@ -21,12 +21,14 @@ class JerseyOrderLine extends Model
         'qty',
         'harga_satuan',
         'subtotal',
+        'size_surcharge_total',
         'jersey_price_setting_id',
     ];
 
     protected $casts = [
         'harga_satuan' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'size_surcharge_total' => 'decimal:2',
     ];
 
     public function order()

@@ -11,6 +11,7 @@ use App\Models\JerseyPriceSetting;
 use App\Models\JerseyProductType;
 use App\Models\JerseySize;
 use App\Models\JerseySizeComponentUsage;
+use App\Services\JerseyMaterialEstimationService;
 use Illuminate\Http\Request;
 
 /**
@@ -38,13 +39,33 @@ class JerseyMasterController extends Controller
             ->orderBy('qty_min')
             ->get();
 
-        // Matriks estimasi: [id_ukuran][id_komponen] => meter
+        // Matriks estimasi: [id_ukuran][id_komponen] => {usage_meter, usage_weight_gram}
         $usageMatrix = JerseySizeComponentUsage::all()
             ->groupBy('jersey_size_id')
             ->map(fn ($rows) => $rows->keyBy('jersey_component_id'));
 
+        // Total per ukuran (jumlah semua komponen aktif) - ditampilkan di
+        // kolom "Total" pada kedua matriks (meter & berat), dihitung ulang
+        // secara live lewat JS begitu admin mengubah sel, ini cuma nilai
+        // awal saat halaman pertama dimuat.
+        $komponenAktif = $components->where('is_active', true);
+        $totalPerSize = [];
+        foreach ($sizes as $s) {
+            $meter = 0.0;
+            $gram = 0.0;
+            foreach ($komponenAktif as $comp) {
+                $usage = optional($usageMatrix[$s->id] ?? null)[$comp->id] ?? null;
+                $meter += (float) ($usage->usage_meter ?? 0);
+                $gram += (float) ($usage->usage_weight_gram ?? 0);
+            }
+            $totalPerSize[$s->id] = [
+                'meter_text' => $meter > 0 ? number_format($meter, 2, ',', '.') . ' m' : '-',
+                'berat_text' => JerseyMaterialEstimationService::formatBeratGram($gram),
+            ];
+        }
+
         return view('jersey.master.index', compact(
-            'designers', 'productTypes', 'categories', 'sizes', 'materials', 'components', 'priceSettings', 'usageMatrix'
+            'designers', 'productTypes', 'categories', 'sizes', 'materials', 'components', 'priceSettings', 'usageMatrix', 'totalPerSize'
         ));
     }
 
@@ -193,11 +214,24 @@ class JerseyMasterController extends Controller
             'jersey_size_id' => 'required|exists:jersey_sizes,id',
             'jersey_component_id' => 'required|exists:jersey_components,id',
             'usage_meter' => 'nullable|numeric|min:0',
+            'usage_weight_gram' => 'nullable|numeric|min:0',
         ]);
+
+        // Request cuma mengirim SATU field yang baru diubah (meter ATAU
+        // berat, lihat simpanEstimasi() di JS) - hanya masukkan field yang
+        // benar-benar dikirim ke $values supaya updateOrCreate() tidak diam-
+        // diam menimpa field lain jadi NULL.
+        $values = [];
+        if ($request->has('usage_meter')) {
+            $values['usage_meter'] = $data['usage_meter'] ?? null;
+        }
+        if ($request->has('usage_weight_gram')) {
+            $values['usage_weight_gram'] = $data['usage_weight_gram'] ?? null;
+        }
 
         $row = JerseySizeComponentUsage::updateOrCreate(
             ['jersey_size_id' => $data['jersey_size_id'], 'jersey_component_id' => $data['jersey_component_id']],
-            ['usage_meter' => $data['usage_meter'] ?? null]
+            $values
         );
 
         return response()->json(['success' => true, 'message' => 'Estimasi tersimpan.', 'row' => $row]);

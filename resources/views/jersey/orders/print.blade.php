@@ -37,6 +37,16 @@
             </tbody>
         </table>
 
+        @php
+            $totalBeratKg = $order->lines->flatMap->materials->sum('penggunaan_kg');
+        @endphp
+        @if($totalBeratKg > 0)
+        <div class="divider"></div>
+        <table>
+            <tr><td>Estimasi Total Berat Bahan</td><td class="right">{{ \App\Services\JerseyMaterialEstimationService::formatBeratGram($totalBeratKg * 1000) }}</td></tr>
+        </table>
+        @endif
+
         <div class="divider"></div>
 
         <table>

@@ -8,9 +8,9 @@ class JerseySizeComponentUsage extends Model
 {
     protected $table = 'jersey_size_component_usage';
 
-    protected $fillable = ['jersey_size_id', 'jersey_component_id', 'usage_meter'];
+    protected $fillable = ['jersey_size_id', 'jersey_component_id', 'usage_meter', 'usage_weight_gram'];
 
-    protected $casts = ['usage_meter' => 'decimal:3'];
+    protected $casts = ['usage_meter' => 'decimal:3', 'usage_weight_gram' => 'decimal:2'];
 
     public function size()
     {

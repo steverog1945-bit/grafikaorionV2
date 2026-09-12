@@ -76,7 +76,13 @@
                     <div>
                         <h3 class="text-sm font-bold text-slate-700">{{ $line->nama_barang }}</h3>
                         <p class="text-[11px] text-slate-400">{{ $line->productType->name ?? '-' }} &middot; {{ $line->category->name ?? '-' }} &middot; {{ $line->bahan ?? '-' }}</p>
-                        <p class="text-[11px] text-slate-400">{{ $line->qty }} pcs &times; Rp {{ number_format($line->harga_satuan, 0, ',', '.') }} = <span class="font-bold text-slate-600">Rp {{ number_format($line->subtotal, 0, ',', '.') }}</span></p>
+                        <p class="text-[11px] text-slate-400">
+                            {{ $line->qty }} pcs &times; Rp {{ number_format($line->harga_satuan, 0, ',', '.') }}
+                            @if($line->size_surcharge_total > 0)
+                                + Rp {{ number_format($line->size_surcharge_total, 0, ',', '.') }} <span class="text-amber-500 font-semibold">(tambahan ukuran)</span>
+                            @endif
+                            = <span class="font-bold text-slate-600">Rp {{ number_format($line->subtotal, 0, ',', '.') }}</span>
+                        </p>
                     </div>
                 </div>
                 <x-button href="{{ route('jersey.orders.lines.spk', [$order->id, $line->id]) }}" size="sm" variant="secondary" target="_blank">

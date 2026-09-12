@@ -132,13 +132,15 @@
     {{-- ESTIMASI BAHAN (matriks ukuran x komponen) --}}
     <div id="tab-panel-estimasi" class="jersey-tab-panel hidden">
         <x-card>
-            <p class="text-xs text-slate-400 mb-4">Estimasi kebutuhan kain (meter) per ukuran, per komponen (Body/Lengan/Rib/Celana, dst) - dipakai untuk menghitung otomatis "Spesifikasi Order" saat order dibuat. Murni estimasi, bukan pemotongan stok riil. Kosongkan sel yang belum diketahui angkanya.</p>
+            <p class="text-xs text-slate-400 mb-4">Estimasi kebutuhan bahan per ukuran, per komponen (Body/Lengan/Rib/Celana, dst) - dalam meter DAN berat (gram/kg) - dipakai untuk menghitung otomatis "Spesifikasi Order" saat order dibuat. Murni estimasi, bukan pemotongan stok riil. Kosongkan sel yang belum diketahui angkanya. Kolom <b class="text-slate-500">Total</b> menjumlahkan seluruh komponen aktif per ukuran - perkiraan total bahan untuk SATU baju ukuran itu.</p>
             <form id="form-add-komponen" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama komponen baru (mis. Kerah)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah Komponen</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-estimasi', 'placeholder' => 'Cari nama ukuran...'])
-            <div class="overflow-x-auto">
+
+            <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-2 mt-2">Estimasi Meter</p>
+            <div class="overflow-x-auto mb-6">
                 <table class="w-full text-xs border-collapse" id="tabel-estimasi">
                     <thead>
                         <tr>
@@ -149,9 +151,10 @@
                                 <button type="button" onclick="nonaktifkanKomponen({{ $comp->id }})" class="ml-1 text-slate-300 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
                             </th>
                             @endforeach
+                            <th class="p-2.5 text-center whitespace-nowrap bg-indigo-50 text-indigo-600">Total (m)</th>
                         </tr>
                     </thead>
-                    <tbody id="tbody-estimasi">
+                    <tbody id="tbody-estimasi-meter">
                         @foreach($sizes as $s)
                         <tr data-size-id="{{ $s->id }}">
                             <td class="p-2.5 font-semibold sticky left-0 bg-white">{{ $s->name }}</td>
@@ -159,10 +162,44 @@
                             @php $nilaiUsage = optional(optional($usageMatrix[$s->id] ?? null)[$comp->id] ?? null)->usage_meter; @endphp
                             <td class="p-1" data-component-td="{{ $comp->id }}">
                                 <input type="number" step="0.01" min="0" value="{{ $nilaiUsage }}"
-                                    onchange="simpanEstimasi({{ $s->id }}, {{ $comp->id }}, this.value)"
-                                    class="w-20 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
+                                    onchange="simpanEstimasi({{ $s->id }}, {{ $comp->id }}, 'meter', this.value)"
+                                    class="input-meter-cell w-20 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
                             </td>
                             @endforeach
+                            <td class="p-2.5 text-center font-bold text-indigo-600 bg-indigo-50/40 total-meter-cell">{{ $totalPerSize[$s->id]['meter_text'] }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-2">Estimasi Berat (gram)</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs border-collapse" id="tabel-estimasi-berat-tbl">
+                    <thead>
+                        <tr>
+                            <th class="p-2.5 text-left sticky left-0 bg-white z-10">Ukuran</th>
+                            @foreach($components->where('is_active', true) as $comp)
+                            <th class="p-2.5 text-center whitespace-nowrap" data-component-th-berat="{{ $comp->id }}">
+                                {{ $comp->name }} <span class="text-slate-300 font-normal">(g)</span>
+                            </th>
+                            @endforeach
+                            <th class="p-2.5 text-center whitespace-nowrap bg-indigo-50 text-indigo-600">Total (Berat)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-estimasi-berat">
+                        @foreach($sizes as $s)
+                        <tr data-size-id="{{ $s->id }}">
+                            <td class="p-2.5 font-semibold sticky left-0 bg-white">{{ $s->name }}</td>
+                            @foreach($components->where('is_active', true) as $comp)
+                            @php $nilaiBerat = optional(optional($usageMatrix[$s->id] ?? null)[$comp->id] ?? null)->usage_weight_gram; @endphp
+                            <td class="p-1" data-component-td-berat="{{ $comp->id }}">
+                                <input type="number" step="1" min="0" value="{{ $nilaiBerat }}"
+                                    onchange="simpanEstimasi({{ $s->id }}, {{ $comp->id }}, 'weight', this.value)"
+                                    class="input-berat-cell w-20 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
+                            </td>
+                            @endforeach
+                            <td class="p-2.5 text-center font-bold text-indigo-600 bg-indigo-50/40 total-berat-cell">{{ $totalPerSize[$s->id]['berat_text'] }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -605,7 +642,7 @@
         terapkanFilterUkuran();
     }
 
-    // ---- Estimasi Bahan (matriks ukuran x komponen) ----
+    // ---- Estimasi Bahan (matriks ukuran x komponen, meter & berat) ----
     document.getElementById('form-add-komponen').addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
@@ -616,22 +653,37 @@
         form.reset();
         tampilkanToastJersey(data.message);
 
-        // Tambah kolom baru ke tabel matriks TANPA reload - satu <th> di
-        // header + satu <td> berisi input di tiap baris ukuran yang sudah ada.
-        const table = document.getElementById('tabel-estimasi');
-        const headRow = table.querySelector('thead tr');
-        headRow.insertAdjacentHTML('beforeend', `
+        // Tambah kolom baru ke KEDUA tabel matriks (meter & berat) TANPA
+        // reload - satu <th> di header + satu <td> berisi input di tiap
+        // baris ukuran yang sudah ada, di masing-masing tabel.
+        const headRowMeter = document.getElementById('tabel-estimasi').querySelector('thead tr');
+        headRowMeter.insertAdjacentHTML('beforeend', `
             <th class="p-2.5 text-center whitespace-nowrap" data-component-th="${data.row.id}">
                 ${escapeHtmlJersey(data.row.name)} <span class="text-slate-300 font-normal">(m)</span>
                 <button type="button" onclick="nonaktifkanKomponen(${data.row.id})" class="ml-1 text-slate-300 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
             </th>`);
-        document.querySelectorAll('#tbody-estimasi tr').forEach(row => {
+        document.querySelectorAll('#tbody-estimasi-meter tr[data-size-id]').forEach(row => {
             const sizeId = row.dataset.sizeId;
-            row.insertAdjacentHTML('beforeend', `
+            row.querySelector('.total-meter-cell')?.insertAdjacentHTML('beforebegin', `
                 <td class="p-1" data-component-td="${data.row.id}">
                     <input type="number" step="0.01" min="0" value=""
-                        onchange="simpanEstimasi(${sizeId}, ${data.row.id}, this.value)"
-                        class="w-20 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
+                        onchange="simpanEstimasi(${sizeId}, ${data.row.id}, 'meter', this.value)"
+                        class="input-meter-cell w-20 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
+                </td>`);
+        });
+
+        const headRowBerat = document.getElementById('tabel-estimasi-berat-tbl').querySelector('thead tr');
+        headRowBerat.insertAdjacentHTML('beforeend', `
+            <th class="p-2.5 text-center whitespace-nowrap" data-component-th-berat="${data.row.id}">
+                ${escapeHtmlJersey(data.row.name)} <span class="text-slate-300 font-normal">(g)</span>
+            </th>`);
+        document.querySelectorAll('#tbody-estimasi-berat tr[data-size-id]').forEach(row => {
+            const sizeId = row.dataset.sizeId;
+            row.querySelector('.total-berat-cell')?.insertAdjacentHTML('beforebegin', `
+                <td class="p-1" data-component-td-berat="${data.row.id}">
+                    <input type="number" step="1" min="0" value=""
+                        onchange="simpanEstimasi(${sizeId}, ${data.row.id}, 'weight', this.value)"
+                        class="input-berat-cell w-20 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
                 </td>`);
         });
     });
@@ -639,7 +691,7 @@
     async function nonaktifkanKomponen(id) {
         const konfirmasi = await Swal.fire({
             title: 'Nonaktifkan komponen ini?',
-            html: 'Kolomnya akan hilang dari matriks. <small class="text-slate-400">Data tersimpan, bisa dikembalikan lewat database bila perlu.</small>',
+            html: 'Kolomnya akan hilang dari matriks (meter & berat). <small class="text-slate-400">Data tersimpan, bisa dikembalikan lewat database bila perlu.</small>',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#64748b',
@@ -652,28 +704,68 @@
         if (!data) return;
         document.querySelector(`[data-component-th="${id}"]`)?.remove();
         document.querySelectorAll(`[data-component-td="${id}"]`).forEach(td => td.remove());
+        document.querySelector(`[data-component-th-berat="${id}"]`)?.remove();
+        document.querySelectorAll(`[data-component-td-berat="${id}"]`).forEach(td => td.remove());
+        document.querySelectorAll('#tbody-estimasi-meter tr[data-size-id]').forEach(row => recalcTotalEstimasi(row.dataset.sizeId));
         tampilkanToastJersey(data.message);
     }
 
     function terapkanFilterEstimasi() {
         const q = (document.getElementById('search-estimasi').value || '').toLowerCase().trim();
-        const kolom = document.getElementById('tabel-estimasi').querySelector('thead tr').children.length;
-        terapkanFilterTabel('tbody-estimasi', (row) => {
+        const kolomMeter = document.getElementById('tabel-estimasi').querySelector('thead tr').children.length;
+        const kolomBerat = document.getElementById('tabel-estimasi-berat-tbl').querySelector('thead tr').children.length;
+        const cocok = (row) => {
             const nama = row.querySelector('td')?.textContent.toLowerCase() ?? '';
             return !q || nama.includes(q);
-        }, kolom);
+        };
+        terapkanFilterTabel('tbody-estimasi-meter', cocok, kolomMeter);
+        terapkanFilterTabel('tbody-estimasi-berat', cocok, kolomBerat);
     }
     document.getElementById('search-estimasi').addEventListener('input', terapkanFilterEstimasi);
 
-    let simpanEstimasiTimer = null;
-    function simpanEstimasi(sizeId, componentId, value) {
-        clearTimeout(simpanEstimasiTimer);
-        simpanEstimasiTimer = setTimeout(async () => {
-            const data = await kirimJson('{{ url("/jersey/master/usage") }}', 'POST', {
-                jersey_size_id: sizeId,
-                jersey_component_id: componentId,
-                usage_meter: value === '' ? null : value,
-            });
+    // Format gram jadi teks siap tampil - cerminan dari
+    // JerseyMaterialEstimationService::formatBeratGram() di PHP, supaya
+    // total yang dihitung ulang secara live di browser (tanpa reload)
+    // konsisten dengan yang dihitung server saat halaman dimuat pertama.
+    function formatBeratJs(gram) {
+        if (!gram || gram <= 0) return '-';
+        if (gram >= 1000) return (gram / 1000).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kg';
+        return Math.round(gram).toLocaleString('id-ID') + ' g';
+    }
+
+    // Hitung ulang kolom Total (meter & berat) untuk satu baris ukuran,
+    // langsung dari nilai input yang sedang tampil di layar - instan, tidak
+    // menunggu respons server (server tetap jadi sumber kebenaran lewat
+    // simpanEstimasi() yang berjalan terpisah di belakang layar).
+    function recalcTotalEstimasi(sizeId) {
+        let totalMeter = 0;
+        document.querySelectorAll(`#tbody-estimasi-meter tr[data-size-id="${sizeId}"] .input-meter-cell`).forEach(i => {
+            totalMeter += parseFloat(i.value) || 0;
+        });
+        const meterCell = document.querySelector(`#tbody-estimasi-meter tr[data-size-id="${sizeId}"] .total-meter-cell`);
+        if (meterCell) meterCell.textContent = totalMeter > 0 ? totalMeter.toFixed(2).replace('.', ',') + ' m' : '-';
+
+        let totalGram = 0;
+        document.querySelectorAll(`#tbody-estimasi-berat tr[data-size-id="${sizeId}"] .input-berat-cell`).forEach(i => {
+            totalGram += parseFloat(i.value) || 0;
+        });
+        const beratCell = document.querySelector(`#tbody-estimasi-berat tr[data-size-id="${sizeId}"] .total-berat-cell`);
+        if (beratCell) beratCell.textContent = formatBeratJs(totalGram);
+    }
+
+    // Timer debounce PER SEL (bukan satu timer global) - supaya mengedit
+    // meter lalu buru-buru mengedit berat pada sel lain tidak saling
+    // membatalkan simpan otomatis masing-masing.
+    const simpanEstimasiTimers = {};
+    function simpanEstimasi(sizeId, componentId, field, value) {
+        recalcTotalEstimasi(sizeId);
+        const key = `${sizeId}-${componentId}-${field}`;
+        clearTimeout(simpanEstimasiTimers[key]);
+        simpanEstimasiTimers[key] = setTimeout(async () => {
+            const payload = { jersey_size_id: sizeId, jersey_component_id: componentId };
+            if (field === 'meter') payload.usage_meter = value === '' ? null : value;
+            if (field === 'weight') payload.usage_weight_gram = value === '' ? null : value;
+            const data = await kirimJson('{{ url("/jersey/master/usage") }}', 'POST', payload);
             if (data) tampilkanToastJersey(data.message);
         }, 400);
     }
