@@ -156,9 +156,6 @@ class JerseyOrderController extends Controller
             'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi untuk setiap barang (acuan warna & bentuk produksi).',
         ]);
 
-        $sizeIdByName = JerseySize::pluck('id', 'name');
-        $surchargeBySizeId = JerseySize::pluck('price_surcharge', 'id');
-
         DB::beginTransaction();
         try {
             $konsumen = Konsumen::findOrFail($data['id_konsumen']);
@@ -186,91 +183,9 @@ class JerseyOrderController extends Controller
             ]);
 
             $adaLineValid = false;
-
             foreach ($data['lines'] as $lineData) {
-                $items = array_values(array_filter($lineData['items'] ?? [], fn ($i) => trim($i['player_name'] ?? '') !== ''));
-                $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
-
-                $qty = count($items) + array_sum(array_map('intval', $sizeQuantitiesMentah));
-                if ($qty <= 0) {
-                    continue; // baris kosong (line ditambahkan tapi tidak diisi) - dilewati, bukan error
-                }
-                $adaLineValid = true;
-
-                // Qty per ukuran DIGABUNG dari kedua sumber (bukan salah satu
-                // saja) - untuk mode "mixed" qty datang dari size_quantities
-                // DAN dari daftar pemain sekaligus, keduanya harus masuk
-                // hitungan estimasi bahan & rekap ukuran, bukan cuma salah satu.
-                $qtyPerSizeId = [];
-                foreach ($sizeQuantitiesMentah as $sizeId => $q) {
-                    $qtyPerSizeId[$sizeId] = ($qtyPerSizeId[$sizeId] ?? 0) + (int) $q;
-                }
-                foreach ($items as $item) {
-                    $sizeId = $sizeIdByName[$item['size']] ?? null;
-                    if ($sizeId) {
-                        $qtyPerSizeId[$sizeId] = ($qtyPerSizeId[$sizeId] ?? 0) + 1;
-                    }
-                }
-
-                $material = !empty($lineData['jersey_material_id']) ? JerseyMaterial::find($lineData['jersey_material_id']) : null;
-
-                $tier = JerseyOrderPricingService::cariTierHarga(
-                    $lineData['jersey_product_type_id'] ?? null,
-                    $lineData['jersey_category_id'] ?? null,
-                    $material?->id,
-                    $qty
-                );
-                $hargaSatuan = (float) ($tier->price ?? 0);
-
-                // Tambahan harga per ukuran (mis. 2XL-5XL lebih mahal, diatur
-                // di Master Data > Ukuran) - sebelumnya diam-diam TIDAK PERNAH
-                // ikut dijumlahkan ke subtotal, jadi order dengan ukuran besar
-                // selalu kurang tagih. Dijumlahkan per ukuran x qty ukuran itu
-                // di baris ini, bukan flat per qty, karena tidak semua ukuran
-                // dalam satu baris barang tentu punya surcharge yang sama.
-                $surchargeTotal = 0.0;
-                foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
-                    $surchargeTotal += (float) ($surchargeBySizeId[$sizeId] ?? 0) * $qtyUkuran;
-                }
-
-                $subtotal = ($hargaSatuan * $qty) + $surchargeTotal;
-
-                $line = $order->lines()->create([
-                    'jersey_product_type_id' => $lineData['jersey_product_type_id'] ?? null,
-                    'jersey_category_id' => $lineData['jersey_category_id'] ?? null,
-                    'jersey_material_id' => $material?->id,
-                    'nama_barang' => $lineData['nama_barang'],
-                    'bahan' => $material?->name,
-                    'keterangan' => $lineData['keterangan'] ?? null,
-                    'thumbnail' => $lineData['thumbnail'],
-                    'order_type' => $lineData['order_type'],
-                    'qty' => $qty,
-                    'harga_satuan' => $hargaSatuan,
-                    'size_surcharge_total' => $surchargeTotal,
-                    'subtotal' => $subtotal,
-                    'jersey_price_setting_id' => $tier->id ?? null,
-                ]);
-
-                foreach ($items as $item) {
-                    $line->items()->create($item);
-                }
-                foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
-                    $line->sizeQuantities()->create([
-                        'jersey_size_id' => $sizeId,
-                        'quantity' => $qtyUkuran,
-                    ]);
-                }
-
-                // Spesifikasi Order (pemakaian bahan) dihitung OTOMATIS dari
-                // qty per ukuran x matriks estimasi ukuran-komponen di Master
-                // Data - bukan diketik manual lagi (lihat
-                // JerseyMaterialEstimationService). Estimasi murni.
-                foreach (JerseyMaterialEstimationService::hitungEstimasi($qtyPerSizeId) as $estimasi) {
-                    $line->materials()->create([
-                        'nama_barang' => $estimasi['component']->name,
-                        'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,
-                        'penggunaan_kg' => $estimasi['total_weight_gram'] > 0 ? round($estimasi['total_weight_gram'] / 1000, 2) : null,
-                    ]);
+                if ($this->simpanBarisOrder($order, $lineData)) {
+                    $adaLineValid = true;
                 }
             }
 
@@ -308,13 +223,114 @@ class JerseyOrderController extends Controller
         }
     }
 
+    /**
+     * Bangun & simpan SATU baris barang (qty per ukuran, harga dari tier +
+     * tambahan ukuran, estimasi bahan) - logika inti yang sama dipakai
+     * store() (order baru) maupun updateLines() (edit barang di order yang
+     * sudah ada), supaya kedua alur selalu menghitung harga & estimasi
+     * dengan cara yang identik. Baris kosong (qty 0) dilewati, kembalikan
+     * false supaya pemanggil tahu baris itu tidak jadi dibuat.
+     */
+    private function simpanBarisOrder(JerseyOrder $order, array $lineData): bool
+    {
+        static $sizeIdByName = null;
+        static $surchargeBySizeId = null;
+        $sizeIdByName ??= JerseySize::pluck('id', 'name');
+        $surchargeBySizeId ??= JerseySize::pluck('price_surcharge', 'id');
+
+        $items = array_values(array_filter($lineData['items'] ?? [], fn ($i) => trim($i['player_name'] ?? '') !== ''));
+        $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
+
+        $qty = count($items) + array_sum(array_map('intval', $sizeQuantitiesMentah));
+        if ($qty <= 0) {
+            return false; // baris kosong (line ditambahkan tapi tidak diisi) - dilewati, bukan error
+        }
+
+        // Qty per ukuran DIGABUNG dari kedua sumber (bukan salah satu saja)
+        // - untuk mode "mixed" qty datang dari size_quantities DAN dari
+        // daftar pemain sekaligus, keduanya harus masuk hitungan estimasi
+        // bahan & rekap ukuran, bukan cuma salah satu.
+        $qtyPerSizeId = [];
+        foreach ($sizeQuantitiesMentah as $sizeId => $q) {
+            $qtyPerSizeId[$sizeId] = ($qtyPerSizeId[$sizeId] ?? 0) + (int) $q;
+        }
+        foreach ($items as $item) {
+            $sizeId = $sizeIdByName[$item['size']] ?? null;
+            if ($sizeId) {
+                $qtyPerSizeId[$sizeId] = ($qtyPerSizeId[$sizeId] ?? 0) + 1;
+            }
+        }
+
+        $material = !empty($lineData['jersey_material_id']) ? JerseyMaterial::find($lineData['jersey_material_id']) : null;
+
+        $tier = JerseyOrderPricingService::cariTierHarga(
+            $lineData['jersey_product_type_id'] ?? null,
+            $lineData['jersey_category_id'] ?? null,
+            $material?->id,
+            $qty
+        );
+        $hargaSatuan = (float) ($tier->price ?? 0);
+
+        // Tambahan harga per ukuran (mis. 2XL-5XL lebih mahal, diatur di
+        // Master Data > Ukuran) - dijumlahkan per ukuran x qty ukuran itu
+        // di baris ini, bukan flat per qty, karena tidak semua ukuran dalam
+        // satu baris barang tentu punya surcharge yang sama.
+        $surchargeTotal = 0.0;
+        foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
+            $surchargeTotal += (float) ($surchargeBySizeId[$sizeId] ?? 0) * $qtyUkuran;
+        }
+
+        $subtotal = ($hargaSatuan * $qty) + $surchargeTotal;
+
+        $line = $order->lines()->create([
+            'jersey_product_type_id' => $lineData['jersey_product_type_id'] ?? null,
+            'jersey_category_id' => $lineData['jersey_category_id'] ?? null,
+            'jersey_material_id' => $material?->id,
+            'nama_barang' => $lineData['nama_barang'],
+            'bahan' => $material?->name,
+            'keterangan' => $lineData['keterangan'] ?? null,
+            'thumbnail' => $lineData['thumbnail'],
+            'order_type' => $lineData['order_type'],
+            'qty' => $qty,
+            'harga_satuan' => $hargaSatuan,
+            'size_surcharge_total' => $surchargeTotal,
+            'subtotal' => $subtotal,
+            'jersey_price_setting_id' => $tier->id ?? null,
+        ]);
+
+        foreach ($items as $item) {
+            $line->items()->create($item);
+        }
+        foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
+            $line->sizeQuantities()->create([
+                'jersey_size_id' => $sizeId,
+                'quantity' => $qtyUkuran,
+            ]);
+        }
+
+        // Spesifikasi Order (pemakaian bahan) dihitung OTOMATIS dari qty per
+        // ukuran x matriks estimasi ukuran-komponen di Master Data - bukan
+        // diketik manual lagi (lihat JerseyMaterialEstimationService).
+        // Estimasi murni.
+        foreach (JerseyMaterialEstimationService::hitungEstimasi($qtyPerSizeId) as $estimasi) {
+            $line->materials()->create([
+                'nama_barang' => $estimasi['component']->name,
+                'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,
+                'penggunaan_kg' => $estimasi['total_weight_gram'] > 0 ? round($estimasi['total_weight_gram'] / 1000, 2) : null,
+            ]);
+        }
+
+        return true;
+    }
+
     public function show(JerseyOrder $order)
     {
         $order->load([
             'konsumen', 'designer', 'payments',
             'lines.productType', 'lines.category', 'lines.material', 'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
         ]);
-        return view('jersey.orders.show', compact('order'));
+        $designers = JerseyDesigner::where('is_active', true)->orderBy('name')->get();
+        return view('jersey.orders.show', compact('order', 'designers'));
     }
 
     public function update(Request $request, JerseyOrder $order)
@@ -327,11 +343,101 @@ class JerseyOrderController extends Controller
             'status' => 'required|in:baru,proses,selesai,diambil',
             'deadline' => 'nullable|date',
             'notes' => 'nullable|string|max:2000',
+            'team_name' => 'nullable|string|max:255',
+            'jersey_designer_id' => 'nullable|exists:jersey_designers,id',
+            'discount' => 'nullable|numeric|min:0',
+            'additional_charge' => 'nullable|numeric|min:0',
         ]);
 
+        $data['designer_name'] = !empty($data['jersey_designer_id'])
+            ? JerseyDesigner::find($data['jersey_designer_id'])?->name
+            : null;
+
         $order->update($data);
+        // Diskon/Biaya Tambahan bisa berubah di sini - total & status
+        // pembayaran harus ikut dihitung ulang (bisa saja order yang
+        // tadinya Lunas jadi DP lagi kalau totalnya naik, atau sebaliknya).
+        $order->recalculateTotal();
 
         return back()->with('success', 'Order jersey berhasil diperbarui.');
+    }
+
+    /**
+     * Halaman kelola barang (tambah/ubah/hapus) untuk order yang SUDAH ada
+     * - reuse penuh markup & JS form multi-baris dari create.blade.php,
+     * cuma pra-isi dengan data barang yang sudah tersimpan.
+     */
+    public function editLines(JerseyOrder $order)
+    {
+        $order->load(['lines.items', 'lines.sizeQuantities']);
+        return view('jersey.orders.edit-lines', $this->formData() + compact('order'));
+    }
+
+    /**
+     * Simpan ulang SELURUH barang order - pola sinkron hapus-lalu-buat-ulang
+     * (sama seperti sync BOM di ProdukController, size_quantities saat
+     * store(), dst di aplikasi ini) BUKAN diff per baris, supaya harga,
+     * tambahan ukuran, & estimasi bahan tiap barang selalu dihitung ulang
+     * dari nol dengan cara yang identik dengan store() - tidak ada celah
+     * baris "setengah lama setengah baru" yang datanya tidak sinkron.
+     *
+     * Konsekuensi yang perlu disadari: id tiap baris barang berubah stelah
+     * ini (baris lama dihapus, dibuat ulang) - link SPK yang sudah dicetak
+     * untuk order ini (/{order}/lines/{line}/spk) jadi tidak berlaku lagi,
+     * harus dicetak ulang dari halaman detail order setelah disimpan.
+     */
+    public function updateLines(Request $request, JerseyOrder $order)
+    {
+        $data = $request->validate([
+            'lines' => 'required|array|min:1',
+            'lines.*.nama_barang' => 'required|string|max:255',
+            'lines.*.jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
+            'lines.*.jersey_category_id' => 'nullable|exists:jersey_categories,id',
+            'lines.*.jersey_material_id' => 'nullable|exists:jersey_materials,id',
+            'lines.*.keterangan' => 'nullable|string|max:2000',
+            'lines.*.thumbnail' => 'required|string|max:255',
+            'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
+
+            'lines.*.items' => 'nullable|array',
+            'lines.*.items.*.player_name' => 'nullable|string|max:255',
+            'lines.*.items.*.player_number' => 'nullable|string|max:20',
+            'lines.*.items.*.size' => 'nullable|in:S,M,L,XL,2XL,3XL,4XL,5XL',
+            'lines.*.items.*.gender' => 'nullable|in:L,P',
+            'lines.*.items.*.sleeve' => 'nullable|in:Pendek,Panjang',
+            'lines.*.items.*.collar' => 'nullable|string|max:100',
+
+            'lines.*.size_quantities' => 'nullable|array',
+            'lines.*.size_quantities.*' => 'nullable|integer|min:0',
+        ], [
+            'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi untuk setiap barang (acuan warna & bentuk produksi).',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $order->lines()->delete();
+
+            $adaLineValid = false;
+            foreach ($data['lines'] as $lineData) {
+                if ($this->simpanBarisOrder($order, $lineData)) {
+                    $adaLineValid = true;
+                }
+            }
+
+            if (!$adaLineValid) {
+                DB::rollBack();
+                return back()->withInput()->with('error', 'Order harus punya minimal 1 jenis barang dengan pemain/qty terisi.');
+            }
+
+            $order->recalculateTotal();
+
+            DB::commit();
+
+            return redirect()->route('jersey.orders.show', $order->id)
+                ->with('success', 'Barang pada order jersey berhasil diperbarui. Cetak ulang SPK barang yang berubah bila perlu.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Gagal memperbarui barang: ' . $e->getMessage());
+        }
     }
 
     public function destroy(JerseyOrder $order)

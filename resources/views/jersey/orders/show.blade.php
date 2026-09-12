@@ -19,6 +19,9 @@
                     </a>
                 </div>
             </div>
+            <x-button href="{{ route('jersey.orders.edit-lines', $order->id) }}" variant="secondary">
+                <i class="fas fa-boxes-stacked"></i> Kelola Barang
+            </x-button>
             <x-button href="{{ route('jersey.orders.index') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali
             </x-button>
@@ -180,7 +183,7 @@
     </x-card>
 
     <x-card>
-        <h3 class="text-sm font-bold text-slate-700 mb-4">Update Status Produksi</h3>
+        <h3 class="text-sm font-bold text-slate-700 mb-4">Update Data Order</h3>
         <form action="{{ route('jersey.orders.update', $order->id) }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             @csrf @method('PUT')
             <x-form.group label="Status Order">
@@ -192,6 +195,21 @@
             </x-form.group>
             <x-form.group label="Deadline">
                 <x-form.input type="date" name="deadline" value="{{ $order->deadline?->format('Y-m-d') }}" />
+            </x-form.group>
+            <x-form.group label="Nama Tim (opsional)">
+                <x-form.input type="text" name="team_name" value="{{ $order->team_name }}" />
+            </x-form.group>
+            <x-form.group label="Desainer">
+                <x-form.select name="jersey_designer_id">
+                    <option value="">-- Pilih --</option>
+                    @foreach($designers as $d)<option value="{{ $d->id }}" @selected($order->jersey_designer_id === $d->id)>{{ $d->name }}</option>@endforeach
+                </x-form.select>
+            </x-form.group>
+            <x-form.group label="Diskon (Rp)">
+                <input type="text" inputmode="numeric" name="discount" value="{{ number_format($order->discount, 0, ',', '.') }}" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            </x-form.group>
+            <x-form.group label="Biaya Tambahan (Rp)">
+                <input type="text" inputmode="numeric" name="additional_charge" value="{{ number_format($order->additional_charge, 0, ',', '.') }}" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </x-form.group>
             <div class="md:col-span-3">
                 <x-form.group label="Catatan">

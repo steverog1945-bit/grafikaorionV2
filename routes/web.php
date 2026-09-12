@@ -472,6 +472,8 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         Route::get('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'show'])->name('orders.show');
         Route::put('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'update'])->name('orders.update');
         Route::delete('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'destroy'])->name('orders.destroy');
+        Route::get('/{order}/edit-lines', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'editLines'])->name('orders.edit-lines');
+        Route::put('/{order}/lines', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'updateLines'])->name('orders.update-lines');
         Route::get('/{order}/print/{format?}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'print'])->name('orders.print');
         Route::get('/{order}/lines/{line}/spk', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'printLine'])->name('orders.lines.spk');
 
