@@ -39,11 +39,29 @@
 
         @php
             $totalBeratKg = $order->lines->flatMap->materials->sum('penggunaan_kg');
+
+            $totalUkuranOrder = [];
+            foreach ($order->lines as $line) {
+                foreach ($line->sizeQuantities as $sq) {
+                    $nama = $sq->size->name ?? '-';
+                    $sort = $sq->size->sort_order ?? 0;
+                    if (!isset($totalUkuranOrder[$nama])) {
+                        $totalUkuranOrder[$nama] = ['qty' => 0, 'sort' => $sort];
+                    }
+                    $totalUkuranOrder[$nama]['qty'] += $sq->quantity;
+                }
+            }
+            uasort($totalUkuranOrder, fn ($a, $b) => $a['sort'] <=> $b['sort']);
         @endphp
-        @if($totalBeratKg > 0)
+        @if(!empty($totalUkuranOrder) || $totalBeratKg > 0)
         <div class="divider"></div>
         <table>
+            @if(!empty($totalUkuranOrder))
+            <tr><td>Total Ukuran</td><td class="right">{{ collect($totalUkuranOrder)->map(fn ($v, $k) => "{$k}: {$v['qty']}")->implode(', ') }}</td></tr>
+            @endif
+            @if($totalBeratKg > 0)
             <tr><td>Estimasi Total Berat Bahan</td><td class="right">{{ \App\Services\JerseyMaterialEstimationService::formatBeratGram($totalBeratKg * 1000) }}</td></tr>
+            @endif
         </table>
         @endif
 

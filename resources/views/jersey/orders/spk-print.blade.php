@@ -213,18 +213,28 @@
             <div class="section-title">Estimasi Kebutuhan Bahan <span class="note">(estimasi otomatis, bukan hasil timbang riil)</span></div>
             <table class="material">
                 <thead>
-                    <tr><th>Komponen</th><th style="text-align:right">Perkiraan Meter</th></tr>
+                    <tr><th>Komponen</th><th style="text-align:right">Perkiraan Meter</th><th style="text-align:right">Perkiraan Berat</th></tr>
                 </thead>
                 <tbody>
                     @forelse($line->materials as $m)
                     <tr>
                         <td>{{ $m->nama_barang }}</td>
                         <td class="num">{{ $m->penggunaan_meter !== null ? number_format($m->penggunaan_meter, 2, ',', '.') . ' m' : '-' }}</td>
+                        <td class="num">{{ $m->penggunaan_kg !== null ? \App\Services\JerseyMaterialEstimationService::formatBeratGram($m->penggunaan_kg * 1000) : '-' }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="2" class="empty-note" style="padding: 12px 8px;">Belum ada data estimasi bahan untuk ukuran pada order ini.</td></tr>
+                    <tr><td colspan="3" class="empty-note" style="padding: 12px 8px;">Belum ada data estimasi bahan untuk ukuran pada order ini.</td></tr>
                     @endforelse
                 </tbody>
+                @if($line->materials->isNotEmpty())
+                <tfoot>
+                    <tr style="border-top: 1.5px solid #0f172a;">
+                        <td style="font-weight: 800; color: #0f172a;">TOTAL</td>
+                        <td class="num" style="font-weight: 800; color: #0f172a;">{{ number_format($line->materials->sum('penggunaan_meter'), 2, ',', '.') }} m</td>
+                        <td class="num" style="font-weight: 800; color: #0f172a;">{{ \App\Services\JerseyMaterialEstimationService::formatBeratGram($line->materials->sum('penggunaan_kg') * 1000) }}</td>
+                    </tr>
+                </tfoot>
+                @endif
             </table>
         </div>
 

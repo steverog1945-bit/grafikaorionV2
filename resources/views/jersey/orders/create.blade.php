@@ -379,6 +379,16 @@
             if (!konfirmasi.isConfirmed) return;
         }
 
+        // form.submit() (native) TIDAK memicu event 'submit' - listener
+        // pembersih format-ribuan di partials.rupiah-format-script (yang
+        // biasanya jalan otomatis di form lain) jadi ikut terlewat,
+        // akibatnya Diskon/Biaya Tambahan/Deposit terkirim mentah dengan
+        // titik ribuan (mis. "150.000" kebaca PHP sebagai desimal 150).
+        // Dibersihkan manual di sini sebelum submit sungguhan.
+        this.querySelectorAll('input.format-ribuan').forEach(input => {
+            input.value = cleanRupiah(input.value);
+        });
+
         this.submit();
     });
 </script>
