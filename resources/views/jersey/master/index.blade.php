@@ -47,8 +47,13 @@
         <x-card>
             <form id="form-add-tipe" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe produk (mis. Jersey, Celana, Sublime Lainnya)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <label class="flex items-center gap-2 text-xs font-semibold text-slate-500 bg-white border border-slate-200 rounded-xl py-3 px-4 whitespace-nowrap cursor-pointer">
+                    <input type="checkbox" name="has_sleeve_collar" checked class="rounded text-indigo-600 focus:ring-indigo-500/20">
+                    Punya Lengan &amp; Kerah
+                </label>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
+            <p class="text-[11px] text-slate-400 -mt-4 mb-4">Matikan centang "Punya Lengan &amp; Kerah" untuk tipe produk tanpa lengan/kerah (mis. Celana) - pilihan Lengan/Kerah otomatis disembunyikan di form Order untuk tipe ini.</p>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-tipe', 'statusId' => 'filter-status-tipe', 'placeholder' => 'Cari nama tipe produk...'])
             <x-table bare>
                 <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
@@ -413,6 +418,12 @@
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nama</label>
                 <input type="text" id="edit-simple-name" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
+            <div id="edit-simple-has-sleeve-collar-wrapper" class="hidden">
+                <label class="flex items-center gap-2 text-xs font-semibold text-slate-500 cursor-pointer">
+                    <input type="checkbox" id="edit-simple-has-sleeve-collar" class="rounded text-indigo-600 focus:ring-indigo-500/20">
+                    Punya Lengan &amp; Kerah
+                </label>
+            </div>
             <div class="pt-2 flex gap-3">
                 <button type="button" onclick="closeModal('edit-simple')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
                 <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase">Simpan</button>
@@ -601,12 +612,14 @@
     });
 
     function baseRowHtml(entity, row) {
+        const badgeLenganKerah = (entity === 'product-types' && row.has_sleeve_collar === false)
+            ? '<span class="ml-2 text-[9px] font-bold uppercase tracking-wide text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">Tanpa Lengan/Kerah</span>' : '';
         return `
         <tr data-id="${row.id}" class="${row.is_active ? '' : 'opacity-50'}">
-            <td class="p-2.5 font-semibold">${escapeHtmlJersey(row.name)}</td>
+            <td class="p-2.5 font-semibold">${escapeHtmlJersey(row.name)}${badgeLenganKerah}</td>
             <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
-                    <button type="button" onclick="bukaEditSimple('${entity}', ${row.id}, ${JSON.stringify(row.name).replace(/"/g, '&quot;')})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
+                    <button type="button" onclick="bukaEditSimple('${entity}', ${row.id}, ${JSON.stringify(row.name).replace(/"/g, '&quot;')}, ${row.has_sleeve_collar !== false})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
                     <button type="button" onclick="toggleEntitas('${entity}', ${row.id})" class="w-8 h-8 rounded-lg text-slate-400 ${row.is_active ? 'hover:text-slate-600 hover:bg-slate-100' : 'hover:text-emerald-500 hover:bg-emerald-50'}" title="${row.is_active ? 'Nonaktifkan' : 'Aktifkan'}"><i class="far ${row.is_active ? 'fa-eye-slash' : 'fa-eye'} text-xs"></i></button>
                 </div>
             </td>
@@ -619,7 +632,11 @@
             const form = e.target;
             const name = form.querySelector('[name="name"]').value.trim();
             if (!name) return;
-            const data = await kirimJson(cfg.routeBase, 'POST', { name });
+            const payload = { name };
+            if (entity === 'product-types') {
+                payload.has_sleeve_collar = form.querySelector('[name="has_sleeve_collar"]').checked;
+            }
+            const data = await kirimJson(cfg.routeBase, 'POST', payload);
             if (!data) return;
             hapusBarisKosong(cfg.tbody);
             document.getElementById(cfg.tbody).insertAdjacentHTML('beforeend', baseRowHtml(entity, data.row));
@@ -686,10 +703,15 @@
         table.querySelectorAll(`[data-type-td="${id}"]`).forEach(td => td.remove());
     }
 
-    function bukaEditSimple(entity, id, name) {
+    function bukaEditSimple(entity, id, name, hasSleeveCollar) {
         document.getElementById('edit-simple-entity').value = entity;
         document.getElementById('edit-simple-id').value = id;
         document.getElementById('edit-simple-name').value = name;
+        const wrapperLenganKerah = document.getElementById('edit-simple-has-sleeve-collar-wrapper');
+        wrapperLenganKerah.classList.toggle('hidden', entity !== 'product-types');
+        if (entity === 'product-types') {
+            document.getElementById('edit-simple-has-sleeve-collar').checked = hasSleeveCollar !== false;
+        }
         openModal('edit-simple');
     }
 
@@ -699,10 +721,14 @@
         const id = document.getElementById('edit-simple-id').value;
         const name = document.getElementById('edit-simple-name').value.trim();
         const cfg = entityConfig[entity];
-        const data = await kirimJson(`${cfg.routeBase}/${id}`, 'PUT', { name });
+        const payload = { name };
+        if (entity === 'product-types') {
+            payload.has_sleeve_collar = document.getElementById('edit-simple-has-sleeve-collar').checked;
+        }
+        const data = await kirimJson(`${cfg.routeBase}/${id}`, 'PUT', payload);
         if (!data) return;
         const row = document.querySelector(`#${cfg.tbody} tr[data-id="${id}"]`);
-        if (row) row.querySelector('td').textContent = data.row.name;
+        if (row) row.outerHTML = baseRowHtml(entity, data.row);
         if (cfg.selectTarget) {
             const opt = document.querySelector(`#${cfg.selectTarget} option[value="${id}"]`);
             if (opt) opt.textContent = data.row.name;

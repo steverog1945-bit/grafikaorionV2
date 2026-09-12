@@ -111,6 +111,7 @@ class JerseyMasterController extends Controller
     public function storeProductType(Request $request)
     {
         $data = $request->validate(['name' => 'required|string|max:255|unique:jersey_product_types,name']);
+        $data['has_sleeve_collar'] = $request->boolean('has_sleeve_collar', true);
         $row = JerseyProductType::create($data);
         return response()->json(['success' => true, 'message' => 'Tipe produk berhasil ditambahkan.', 'row' => $row]);
     }
@@ -118,6 +119,7 @@ class JerseyMasterController extends Controller
     public function updateProductType(Request $request, JerseyProductType $productType)
     {
         $data = $request->validate(['name' => 'required|string|max:255|unique:jersey_product_types,name,' . $productType->id]);
+        $data['has_sleeve_collar'] = $request->boolean('has_sleeve_collar', true);
         $productType->update($data);
         return response()->json(['success' => true, 'message' => 'Tipe produk berhasil diperbarui.', 'row' => $productType]);
     }

@@ -107,6 +107,7 @@
         card.querySelector('.line-number').textContent = document.querySelectorAll('.jersey-line-card').length;
         card.dataset.prefix = `lines[${idx}]`;
         pasangPasteThumbnail(card);
+        perbaruiVisibilitasLenganKerah(card);
     }
 
     function toggleLineType(radio) {
@@ -125,6 +126,7 @@
             label.classList.toggle('border-slate-100', !checked);
             label.classList.toggle('text-slate-400', !checked);
         });
+        perbaruiVisibilitasLenganKerah(card);
     }
 
     function tambahBarisPemain(btn) {
@@ -135,6 +137,24 @@
             .replaceAll('__PREFIX__', card.dataset.prefix)
             .replaceAll('__ITEM__', itemIdx);
         tbody.insertAdjacentHTML('beforeend', html);
+        perbaruiVisibilitasLenganKerah(card);
+    }
+
+    // Lengan/Kerah default (level barang) tidak relevan untuk mode Daftar
+    // Pemain (selalu pakai pilihan tiap pemain), dan kolom Lengan/Kerah di
+    // tabel Daftar Pemain tidak relevan kalau Tipe Produk-nya memang tidak
+    // punya lengan/kerah (mis. Celana) - dikelola lewat checkbox "Punya
+    // Lengan & Kerah" di Master Data Tipe Produk, bukan hardcode nama.
+    function perbaruiVisibilitasLenganKerah(source) {
+        const card = source.closest ? source.closest('.jersey-line-card') : source;
+        if (!card) return;
+        const ptSelect = card.querySelector('select[name$="[jersey_product_type_id]"]');
+        const opsiTerpilih = ptSelect ? ptSelect.options[ptSelect.selectedIndex] : null;
+        const punyaLenganKerah = !opsiTerpilih || opsiTerpilih.value === '' || opsiTerpilih.dataset.hasSleeveCollar !== '0';
+        const orderType = card.querySelector('input[name$="[order_type]"]:checked')?.value || 'quantity_only';
+        const tampilkanDefault = punyaLenganKerah && orderType !== 'player_list';
+        card.querySelectorAll('.wrapper-lengan-kerah-default').forEach(el => el.classList.toggle('hidden', !tampilkanDefault));
+        card.querySelectorAll('.col-lengan-kerah').forEach(el => el.classList.toggle('hidden', !punyaLenganKerah));
     }
 
     // ---- Thumbnail: upload via klik-pilih-file ATAU tempel (Ctrl+V) ----

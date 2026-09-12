@@ -26,9 +26,9 @@
         </div>
         <div>
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
-            <select name="lines[{{ $idx }}][jersey_product_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <select name="lines[{{ $idx }}][jersey_product_type_id]" onchange="perbaruiVisibilitasLenganKerah(this)" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 <option value="">-- Pilih --</option>
-                @foreach($productTypes as $pt)<option value="{{ $pt->id }}" @selected(($line->jersey_product_type_id ?? null) == $pt->id)>{{ $pt->name }}</option>@endforeach
+                @foreach($productTypes as $pt)<option value="{{ $pt->id }}" data-has-sleeve-collar="{{ $pt->has_sleeve_collar ? 1 : 0 }}" @selected(($line->jersey_product_type_id ?? null) == $pt->id)>{{ $pt->name }}</option>@endforeach
             </select>
         </div>
         <div>
@@ -48,26 +48,28 @@
                 <p class="text-[10px] text-rose-500 mt-1">Belum ada data Bahan - <a href="{{ route('jersey.master.index') }}" target="_blank" class="underline">tambah dulu di Master Data</a>.</p>
             @endif
         </div>
-        <div>
-            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Lengan (default)</label>
-            <select name="lines[{{ $idx }}][jersey_sleeve_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                <option value="">-- Pilih --</option>
-                @foreach($sleeveTypes as $st)<option value="{{ $st->id }}" @selected(($line->jersey_sleeve_type_id ?? null) == $st->id)>{{ $st->name }}</option>@endforeach
-            </select>
-        </div>
-        <div>
-            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kerah (default)</label>
-            <select name="lines[{{ $idx }}][jersey_collar_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                <option value="">-- Pilih --</option>
-                @foreach($collarTypes as $ct)<option value="{{ $ct->id }}" @selected(($line->jersey_collar_type_id ?? null) == $ct->id)>{{ $ct->name }}</option>@endforeach
-            </select>
+        <div class="wrapper-lengan-kerah-default md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Lengan (default)</label>
+                <select name="lines[{{ $idx }}][jersey_sleeve_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <option value="">-- Pilih --</option>
+                    @foreach($sleeveTypes as $st)<option value="{{ $st->id }}" @selected(($line->jersey_sleeve_type_id ?? null) == $st->id)>{{ $st->name }}</option>@endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kerah (default)</label>
+                <select name="lines[{{ $idx }}][jersey_collar_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <option value="">-- Pilih --</option>
+                    @foreach($collarTypes as $ct)<option value="{{ $ct->id }}" @selected(($line->jersey_collar_type_id ?? null) == $ct->id)>{{ $ct->name }}</option>@endforeach
+                </select>
+            </div>
         </div>
         <div class="md:col-span-2">
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Keterangan Desain</label>
             <textarea name="lines[{{ $idx }}][keterangan]" rows="2" placeholder="mis. Lengan kanan bendera, dada kiri logo klub..." class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $line->keterangan ?? '' }}</textarea>
         </div>
     </div>
-    <p class="text-[10px] text-slate-400 -mt-4">Lengan &amp; Kerah default dipakai penuh untuk mode <b>Qty per Ukuran</b>, dan sebagai bawaan bagian qty-per-ukuran pada mode <b>Campuran</b> - baris Daftar Pemain di bawah selalu memakai pilihan masing-masing pemain sendiri.</p>
+    <p class="text-[10px] text-slate-400 -mt-4 wrapper-lengan-kerah-default">Lengan &amp; Kerah default dipakai penuh untuk mode <b>Qty per Ukuran</b>, dan sebagai bawaan bagian qty-per-ukuran pada mode <b>Campuran</b> - baris Daftar Pemain di bawah selalu memakai pilihan masing-masing pemain sendiri.</p>
 
     <div>
         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
@@ -121,7 +123,7 @@
         <table class="w-full text-xs">
             <thead><tr class="text-[10px] text-slate-400 uppercase">
                 <th class="p-1 text-left">Nama</th><th class="p-1 text-left w-16">No.</th><th class="p-1 text-left w-20">Ukuran</th>
-                <th class="p-1 text-left w-20">Gender</th><th class="p-1 text-left w-24">Lengan</th><th class="p-1 text-left">Kerah</th><th class="p-1 w-8"></th>
+                <th class="p-1 text-left w-20">Gender</th><th class="p-1 text-left w-24 col-lengan-kerah">Lengan</th><th class="p-1 text-left col-lengan-kerah">Kerah</th><th class="p-1 w-8"></th>
             </tr></thead>
             <tbody class="tbody-pemain divide-y divide-slate-50">
                 @if($line)
