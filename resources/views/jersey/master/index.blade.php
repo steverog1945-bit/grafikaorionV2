@@ -637,7 +637,17 @@
     });
 
     async function nonaktifkanKomponen(id) {
-        if (!confirm('Nonaktifkan komponen ini? Kolomnya akan hilang dari matriks (data tersimpan, bisa dikembalikan lewat database bila perlu).')) return;
+        const konfirmasi = await Swal.fire({
+            title: 'Nonaktifkan komponen ini?',
+            html: 'Kolomnya akan hilang dari matriks. <small class="text-slate-400">Data tersimpan, bisa dikembalikan lewat database bila perlu.</small>',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Nonaktifkan',
+            cancelButtonText: 'Batal',
+            customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
+        });
+        if (!konfirmasi.isConfirmed) return;
         const data = await kirimJson(`{{ url("/jersey/master/components") }}/${id}/toggle`, 'PATCH', {});
         if (!data) return;
         document.querySelector(`[data-component-th="${id}"]`)?.remove();
@@ -761,7 +771,17 @@
     });
 
     async function hapusHarga(id) {
-        if (!confirm('Hapus tier harga ini?')) return;
+        const konfirmasi = await Swal.fire({
+            title: 'Hapus Tier Harga?',
+            html: 'Tier harga ini akan dihapus permanen.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
+        });
+        if (!konfirmasi.isConfirmed) return;
         const data = await kirimJson(`{{ url("/jersey/master/price-settings") }}/${id}`, 'DELETE', {});
         if (!data) return;
         document.querySelector(`#tbody-harga tr[data-id="${id}"]`)?.remove();

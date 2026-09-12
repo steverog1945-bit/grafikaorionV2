@@ -782,7 +782,12 @@
         const bayar = cleanRupiah(document.getElementById('input-bayar-mask').value);
         if (metode === 'Deposit' && bayar > saldoDepositTersedia) {
             e.preventDefault();
-            alert('Jumlah bayar melebihi saldo deposit yang tersedia (Rp ' + formatRupiah(saldoDepositTersedia) + ').');
+            Swal.fire({
+                title: 'Saldo Deposit Tidak Cukup',
+                text: 'Jumlah bayar melebihi saldo deposit yang tersedia (Rp ' + formatRupiah(saldoDepositTersedia) + ').',
+                icon: 'error',
+                confirmButtonColor: '#4f46e5',
+            });
         }
     });
 

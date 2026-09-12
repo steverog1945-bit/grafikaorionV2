@@ -22,9 +22,9 @@
             <x-button href="{{ route('jersey.orders.index') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali
             </x-button>
-            <form action="{{ route('jersey.orders.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Hapus order jersey ini? Tindakan tidak bisa dibatalkan.')">
+            <form id="delete-form-jersey-order" action="{{ route('jersey.orders.destroy', $order->id) }}" method="POST">
                 @csrf @method('DELETE')
-                <x-button type="submit" variant="danger"><i class="far fa-trash-alt"></i> Hapus</x-button>
+                <x-button type="button" variant="danger" onclick="confirmHapusOrderJersey()"><i class="far fa-trash-alt"></i> Hapus</x-button>
             </form>
         </x-slot:actions>
     </x-page-header>
@@ -163,6 +163,21 @@
         menu.classList.toggle('hidden');
     }
     document.addEventListener('click', () => document.getElementById('print-menu-ringkasan')?.classList.add('hidden'));
+
+    function confirmHapusOrderJersey() {
+        Swal.fire({
+            title: 'Hapus Order Jersey?',
+            html: 'Order <b>{{ $order->order_number }}</b> beserta seluruh barang & rinciannya akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
+        }).then((result) => {
+            if (result.isConfirmed) document.getElementById('delete-form-jersey-order').submit();
+        });
+    }
 </script>
 @endpush
 @endsection
