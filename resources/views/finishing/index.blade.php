@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@include('partials.rupiah-format-script')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Finishing Produk" subtitle="Master Produk & BOM / Jenis Pekerjaan Finishing">
@@ -103,7 +104,7 @@
                     <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentangFinishing }}</span>
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>
-                    <input type="number" name="harga" value="{{ (int) $t->harga }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
+                    <input type="text" inputmode="numeric" name="harga" value="{{ number_format((int) $t->harga, 0, '', '.') }}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
                     <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
                         <i class="fas fa-save text-xs"></i>
                     </button>
@@ -123,7 +124,7 @@
             <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentangFinishing }}</span>
             <span class="text-[10px] text-slate-400">=</span>
             <span class="text-[10px] text-slate-400">Rp</span>
-            <input type="number" name="harga" placeholder="0" min="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-bold">
+            <input type="text" inputmode="numeric" name="harga" placeholder="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-bold format-ribuan">
             <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shrink-0" title="Tambah Tier">
                 <i class="fas fa-plus text-xs"></i>
             </button>
@@ -161,7 +162,7 @@
             </div>
 
             <x-form.group label="Harga Default (Rp)" name="harga_default" required>
-                <x-form.input type="number" name="harga_default" min="0" step="1" required />
+                <x-form.input type="text" inputmode="numeric" name="harga_default" required class="format-ribuan" />
             </x-form.group>
 
             <x-form.group label="Keterangan" name="keterangan">
@@ -201,7 +202,7 @@
             </div>
 
             <x-form.group label="Harga Default (Rp)">
-                <x-form.input type="number" name="harga_default" id="edit_harga_default" min="0" step="1" required />
+                <x-form.input type="text" inputmode="numeric" name="harga_default" id="edit_harga_default" required class="format-ribuan" />
             </x-form.group>
 
             <x-form.group label="Keterangan">
@@ -226,7 +227,7 @@
         document.getElementById('edit_nama_finishing').value = data.nama_finishing;
         document.getElementById('edit_id_mesin').value = data.id_mesin || '';
         document.getElementById('edit_metode_hitung').value = data.metode_hitung || 'luas';
-        document.getElementById('edit_harga_default').value = data.harga_default || 0;
+        document.getElementById('edit_harga_default').value = formatRupiah(data.harga_default || 0);
         document.getElementById('edit_keterangan').value = data.keterangan || '';
 
         openModal('edit-finishing');
@@ -256,7 +257,7 @@
                     <span class="text-[9px] text-slate-400 uppercase shrink-0">${satuanRentang}</span>
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>
-                    <input type="number" name="harga" value="${parseInt(t.harga)}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
+                    <input type="text" inputmode="numeric" name="harga" value="${formatRupiah(parseInt(t.harga))}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
                     <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
                         <i class="fas fa-save text-xs"></i>
                     </button>

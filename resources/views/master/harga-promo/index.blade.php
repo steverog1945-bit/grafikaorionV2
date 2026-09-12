@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@include('partials.rupiah-format-script')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Harga Promo">
@@ -122,7 +123,7 @@
             </x-form.group>
 
             <x-form.group label="Harga Promo (Rp, berlaku semua golongan)" name="harga_promo" required>
-                <x-form.input type="number" name="harga_promo" min="1" required />
+                <x-form.input type="text" inputmode="numeric" name="harga_promo" required class="format-ribuan" />
             </x-form.group>
 
             <div class="grid grid-cols-2 gap-4">
@@ -154,7 +155,7 @@
             </x-form.group>
 
             <x-form.group label="Harga Promo (Rp)">
-                <x-form.input type="number" name="harga_promo" id="edit_harga_promo" min="1" required />
+                <x-form.input type="text" inputmode="numeric" name="harga_promo" id="edit_harga_promo" required class="format-ribuan" />
             </x-form.group>
 
             <div class="grid grid-cols-2 gap-4">
@@ -182,7 +183,7 @@
         const form = document.getElementById('formEditPromo');
         form.action = `{{ url('harga-promo') }}/${data.id_promo}`;
         document.getElementById('edit_id_produk').value = data.id_produk;
-        document.getElementById('edit_harga_promo').value = data.harga_promo;
+        document.getElementById('edit_harga_promo').value = formatRupiah(data.harga_promo);
         document.getElementById('edit_tgl_mulai').value = data.tgl_mulai;
         document.getElementById('edit_tgl_selesai').value = data.tgl_selesai;
         openModal('edit-promo');

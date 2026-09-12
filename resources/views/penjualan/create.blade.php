@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('content')
+@include('partials.rupiah-format-script')
 <div class="min-h-screen bg-[#f3f4f6] p-4 lg:p-8">
     <div class="max-w-[1600px] mx-auto">
 
@@ -224,7 +225,7 @@
                                  dipakai Biaya Finishing (finishingBiayaManualEdit). --}}
                             <div class="text-right">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Cetak</p>
-                                <input type="number" id="input_cetak" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
+                                <input type="text" inputmode="numeric" id="input_cetak" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
                             </div>
                             {{-- Biaya Finishing hanya relevan begitu jenis Finishing
                                  dipilih di dropdown sebelahnya - disembunyikan selama
@@ -233,7 +234,7 @@
                                  bermakna. --}}
                             <div id="wrapper_biaya_finishing" class="text-right hidden">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Finishing</p>
-                                <input type="number" id="input_finishing_biaya" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
+                                <input type="text" inputmode="numeric" id="input_finishing_biaya" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
                             </div>
                             {{-- Biaya Desain TIDAK punya penanda "sedang dipakai/tidak"
                                  bawaan seperti finishing - disembunyikan default, baru
@@ -241,7 +242,7 @@
                                  kalau memang ada biaya desain yang perlu ditambahkan. --}}
                             <div id="wrapper_biaya_desain" class="text-right hidden">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Desain</p>
-                                <input type="number" id="input_desain" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="0">
+                                <input type="text" inputmode="numeric" id="input_desain" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
                             </div>
                             <button type="button" id="btn_tambah_desain" onclick="tampilkanBiayaDesain()" class="text-indigo-300 hover:text-white text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
                                 <i class="fas fa-plus-circle"></i> Biaya Desain
@@ -282,7 +283,7 @@
                                 <x-form.input type="number" id="input_jasa_qty" value="1" oninput="refreshJasaHargaSuggestion()" />
                             </x-form.group>
                             <x-form.group label="Harga Satuan (Rp)">
-                                <x-form.input type="number" id="input_jasa_harga" placeholder="0" />
+                                <x-form.input type="text" inputmode="numeric" id="input_jasa_harga" placeholder="0" class="format-ribuan" />
                             </x-form.group>
                         </div>
 
@@ -793,7 +794,7 @@
         } else {
             statusFinishing.disabled = true;
             statusFinishing.value = 'Standar';
-            document.getElementById('input_finishing_biaya').value = 0;
+            document.getElementById('input_finishing_biaya').value = "0";
             wrapperBiayaFinishing.classList.add('hidden');
         }
 
@@ -845,7 +846,7 @@
             // dipakai hitung subtotal (subtotal keburu dihitung duluan pakai
             // angka manual, baru fetch ini menimpa field-nya belakangan).
             if (finishingBiayaManualEdit || sel.value !== idFinishingSaatMulai) return;
-            document.getElementById('input_finishing_biaya').value = data.harga ?? 0;
+            document.getElementById('input_finishing_biaya').value = formatRupiah(data.harga ?? 0);
         } catch (e) {}
     }
 
@@ -856,7 +857,7 @@
         const l = parseFloat(document.getElementById('input_l').value) || 0;
         const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
         const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
-        const biayaDesain = parseFloat(document.getElementById('input_desain').value) || 0;
+        const biayaDesain = cleanRupiah(document.getElementById('input_desain').value);
 
         let qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
         if (qtyCari <= 0) { updateDisplay(0, 0); return null; }
@@ -866,7 +867,7 @@
         // nilai lama dari sebelum qty berubah (kalau dipanggil belakangan
         // tanpa di-await, hasilnya selalu telat satu langkah/race condition).
         await refreshFinishingBiayaSuggestion();
-        const biayaFinishing = parseFloat(document.getElementById('input_finishing_biaya').value) || 0;
+        const biayaFinishing = cleanRupiah(document.getElementById('input_finishing_biaya').value);
 
         try {
             const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${qtyCari}`;
@@ -880,9 +881,9 @@
             // dengan refreshFinishingBiayaSuggestion() di atas.
             const inputCetak = document.getElementById('input_cetak');
             if (!cetakManualEdit) {
-                inputCetak.value = Math.round(hargaJual * qtyCari);
+                inputCetak.value = formatRupiah(Math.round(hargaJual * qtyCari));
             }
-            const biayaCetak = parseFloat(inputCetak.value) || 0;
+            const biayaCetak = cleanRupiah(inputCetak.value);
 
             const subtotal = biayaCetak + biayaDesain + biayaFinishing;
             updateDisplay(hargaJual, subtotal, data.is_promo);
@@ -985,7 +986,7 @@
         // sendiri valid - item masuk keranjang dengan Biaya Cetak 0 tanpa
         // peringatan apa pun, subtotal-nya 0 walau harga_satuan Price List-
         // nya benar. Dicegat eksplisit di sini.
-        const biayaCetakSaatIni = parseFloat(document.getElementById('input_cetak').value) || 0;
+        const biayaCetakSaatIni = cleanRupiah(document.getElementById('input_cetak').value);
         if (biayaCetakSaatIni <= 0) {
             Swal.fire('Biaya Cetak Kosong', 'Biaya Cetak tidak boleh 0 - isi dulu sebelum menambahkan ke keranjang.', 'error');
             document.getElementById('input_cetak').focus();
@@ -1005,11 +1006,11 @@
             qty_input: res.qty_input,
             qty_hitung: res.qty_hitung,
             harga_satuan: res.harga_satuan,
-            biaya_desain: parseFloat(document.getElementById('input_desain').value) || 0,
-            biaya_cetak: parseFloat(document.getElementById('input_cetak').value) || 0,
+            biaya_desain: cleanRupiah(document.getElementById('input_desain').value),
+            biaya_cetak: cleanRupiah(document.getElementById('input_cetak').value),
             id_finishing: idFinishing,
             nama_finishing: namaFinishing,
-            biaya_finishing: parseFloat(document.getElementById('input_finishing_biaya').value) || 0,
+            biaya_finishing: cleanRupiah(document.getElementById('input_finishing_biaya').value),
             status_urgensi: document.getElementById('input_status_urgensi').value,
             status_finishing: document.getElementById('input_status_finishing').value,
             catatan_produksi: document.getElementById('input_catatan_produksi').value.trim(),
@@ -1066,7 +1067,7 @@
             // sudah keburu diketik manual selama fetch berjalan.
             if (jasaHargaManualEdit) return;
             if (data.harga > 0) {
-                document.getElementById('input_jasa_harga').value = data.harga;
+                document.getElementById('input_jasa_harga').value = formatRupiah(data.harga);
             }
         } catch (e) {}
     }
@@ -1081,7 +1082,7 @@
 
         const namaJasa = selJasa.options[selJasa.selectedIndex].dataset.nama;
         const qty = parseFloat(document.getElementById('input_jasa_qty').value) || 0;
-        const harga = parseFloat(document.getElementById('input_jasa_harga').value) || 0;
+        const harga = cleanRupiah(document.getElementById('input_jasa_harga').value);
         const keterangan = document.getElementById('jasa_keterangan').value.trim() || namaJasa;
 
         if (qty <= 0) return Swal.fire('Opps!', 'Qty jasa harus lebih dari 0.', 'warning');
@@ -1240,10 +1241,10 @@
             document.getElementById('input_l').value = item.l;
             document.getElementById('input_qty_ukuran').value = item.qty_input;
             document.getElementById('input_qty_biasa').value = item.qty_input;
-            document.getElementById('input_desain').value = item.biaya_desain;
-            document.getElementById('input_cetak').value = item.biaya_cetak || 0;
+            document.getElementById('input_desain').value = formatRupiah(item.biaya_desain || 0);
+            document.getElementById('input_cetak').value = formatRupiah(item.biaya_cetak || 0);
             document.getElementById('select_finishing').value = item.id_finishing || '';
-            document.getElementById('input_finishing_biaya').value = item.biaya_finishing || 0;
+            document.getElementById('input_finishing_biaya').value = formatRupiah(item.biaya_finishing || 0);
             document.getElementById('input_status_urgensi').value = item.status_urgensi || 'Normal';
             document.getElementById('input_status_finishing').disabled = !item.id_finishing;
             document.getElementById('input_status_finishing').value = item.status_finishing || 'Standar';

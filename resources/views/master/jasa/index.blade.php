@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@include('partials.rupiah-format-script')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
     <x-page-header title="Master Jasa" subtitle="Layanan non-material (mis. instalasi, laminasi luar).">
         <x-slot:actions>
@@ -153,8 +154,8 @@
 
                     <div class="max-w-[85%] mx-auto">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Harga Dasar (Rp) <span class="normal-case font-normal text-slate-300">- opsional, starting point di Kasir</span></label>
-                        <input type="number" name="harga_default" min="0" placeholder="0"
-                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center">
+                        <input type="text" inputmode="numeric" name="harga_default" placeholder="0"
+                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center format-ribuan">
                     </div>
 
                     <div class="max-w-[85%] mx-auto">
@@ -210,8 +211,8 @@
 
                     <div class="max-w-[85%] mx-auto">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Harga Dasar (Rp) <span class="normal-case font-normal text-slate-300">- opsional, starting point di Kasir</span></label>
-                        <input type="number" name="harga_default" id="edit_harga_default" min="0" placeholder="0"
-                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner text-center">
+                        <input type="text" inputmode="numeric" name="harga_default" id="edit_harga_default" placeholder="0"
+                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner text-center format-ribuan">
                     </div>
 
                     <div class="max-w-[85%] mx-auto">
@@ -257,7 +258,7 @@
                 <input type="number" name="range_max" value="{{ $t->range_max }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                 <span class="text-[10px] text-slate-400">=</span>
                 <span class="text-[10px] text-slate-400">Rp</span>
-                <input type="number" name="harga" value="{{ (int) $t->harga }}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
+                <input type="text" inputmode="numeric" name="harga" value="{{ number_format((int) $t->harga, 0, '', '.') }}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
                 <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
                     <i class="fas fa-save text-xs"></i>
                 </button>
@@ -276,7 +277,7 @@
         <input type="number" name="range_max" placeholder="~" min="1" class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
         <span class="text-[10px] text-slate-400">=</span>
         <span class="text-[10px] text-slate-400">Rp</span>
-        <input type="number" name="harga" placeholder="0" min="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-bold">
+        <input type="text" inputmode="numeric" name="harga" placeholder="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-bold format-ribuan">
         <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shrink-0" title="Tambah Tier">
             <i class="fas fa-plus text-xs"></i>
         </button>
@@ -312,7 +313,7 @@
         form.action = `{{ url('/jasa') }}/${data.id_jasa}`;
         document.getElementById('edit_nama_jasa').value = data.nama_jasa;
         document.getElementById('edit_id_satuan').value = data.id_satuan || '';
-        document.getElementById('edit_harga_default').value = data.harga_default || '';
+        document.getElementById('edit_harga_default').value = data.harga_default ? formatRupiah(data.harga_default) : '';
         document.getElementById('edit_keterangan').value = data.keterangan || '';
         toggleModal('modalEditJasa');
     }
@@ -335,7 +336,7 @@
                     <input type="number" name="range_max" value="${t.range_max ?? ''}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>
-                    <input type="number" name="harga" value="${parseInt(t.harga)}" min="0" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold">
+                    <input type="text" inputmode="numeric" name="harga" value="${formatRupiah(parseInt(t.harga))}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
                     <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
                         <i class="fas fa-save text-xs"></i>
                     </button>

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@include('partials.rupiah-format-script')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
 <div class="mb-8 flex justify-between items-end">
@@ -60,7 +61,7 @@
                     </x-form.group>
 
                     <x-form.group label="Nominal / Jumlah" required>
-                        <x-form.input type="number" name="nominal" min="1" required placeholder="0" class="text-xl font-bold" />
+                        <x-form.input type="text" inputmode="numeric" name="nominal" required placeholder="0" class="text-xl font-bold format-ribuan" />
                     </x-form.group>
 
                     <div class="pt-2 flex gap-3">
@@ -259,7 +260,7 @@ function aksiKas(tipe) {
     if(tipe === 'open') {
         Swal.fire({
             title: 'Buka Saldo Awal',
-            text: {{ $saldoRolling !== null ? "'Saldo di-rolling dari sesi sebelumnya sudah terisi otomatis - ubah kalau berbeda dari laci fisik sekarang:'" : "'Masukkan jumlah modal awal yang ada di laci kasir sekarang:'" }},
+            text: {!! $saldoRolling !== null ? "'Saldo di-rolling dari sesi sebelumnya sudah terisi otomatis - ubah kalau berbeda dari laci fisik sekarang:'" : "'Masukkan jumlah modal awal yang ada di laci kasir sekarang:'" !!},
             input: 'number',
             inputValue: {{ $saldoRolling !== null ? (int) $saldoRolling : 0 }},
             inputAttributes: { min: 0 },

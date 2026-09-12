@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@include('partials.rupiah-format-script')
 <div class="max-w-6xl mx-auto px-4 py-10">
     <form action="{{ route('pembelian-bahan.store') }}" method="POST" id="main-form">
         @csrf
@@ -205,12 +206,12 @@
                         <td class="px-4 py-6">
                             <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-2 shadow-inner">
                                 <span class="text-[10px] font-bold text-slate-300 uppercase">Harga</span>
-                                <input type="number" name="harga[]" value="" oninput="calculateGrandTotal()" class="w-full bg-transparent font-bold text-sm text-slate-700 outline-none">
+                                <input type="text" inputmode="numeric" name="harga[]" value="" oninput="calculateGrandTotal()" class="w-full bg-transparent font-bold text-sm text-slate-700 outline-none format-ribuan">
                             </div>
                         </td>
                         <td class="px-4 py-6 space-y-1">
-                            <input type="number" name="diskon[]" placeholder="Disc Rp" value="" oninput="calculateGrandTotal()" class="w-full text-[10px] font-bold bg-slate-50 rounded-lg p-2 outline-none border border-transparent focus:border-rose-200">
-                            <input type="number" name="potongan[]" placeholder="Pot Rp" value="" oninput="calculateGrandTotal()" class="w-full text-[10px] font-bold bg-slate-50 rounded-lg p-2 outline-none border border-transparent focus:border-rose-200">
+                            <input type="text" inputmode="numeric" name="diskon[]" placeholder="Disc Rp" value="" oninput="calculateGrandTotal()" class="w-full text-[10px] font-bold bg-slate-50 rounded-lg p-2 outline-none border border-transparent focus:border-rose-200 format-ribuan">
+                            <input type="text" inputmode="numeric" name="potongan[]" placeholder="Pot Rp" value="" oninput="calculateGrandTotal()" class="w-full text-[10px] font-bold bg-slate-50 rounded-lg p-2 outline-none border border-transparent focus:border-rose-200 format-ribuan">
                         </td>
                         <td class="px-10 py-6 text-right">
                             <p class="subtotal-text font-bold text-slate-800">Rp 0</p>
@@ -264,9 +265,9 @@
             if (!qtyInput) return;
 
             const qty = parseFloat(qtyInput.value) || 0;
-            const harga = parseFloat(row.querySelector('[name="harga[]"]').value) || 0;
-            const disc = parseFloat(row.querySelector('[name="diskon[]"]').value) || 0;
-            const pot = parseFloat(row.querySelector('[name="potongan[]"]').value) || 0;
+            const harga = cleanRupiah(row.querySelector('[name="harga[]"]').value);
+            const disc = cleanRupiah(row.querySelector('[name="diskon[]"]').value);
+            const pot = cleanRupiah(row.querySelector('[name="potongan[]"]').value);
 
             const sub = (qty * harga) - disc - pot;
             row.querySelector('.subtotal-text').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sub);

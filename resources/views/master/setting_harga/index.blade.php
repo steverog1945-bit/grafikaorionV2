@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@include('partials.rupiah-format-script')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Price List & Level" subtitle="Harga jual produk per golongan konsumen, bisa bertingkat berdasarkan qty.">
@@ -178,7 +179,7 @@
                     </div>
                     <div>
                         <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Harga (Rp)</label>
-                        <input type="number" name="harga_jual" placeholder="0" min="0" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm">
+                        <input type="text" inputmode="numeric" name="harga_jual" placeholder="0" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm format-ribuan">
                     </div>
                     <div class="flex items-end">
                         <x-button type="submit" variant="success" class="w-full !py-2.5">
@@ -234,7 +235,7 @@
                                         <input type="number" name="range_max" value="{{ $t->range_max !== null ? $fmtNilai($t->range_max) : '' }}" min="0.01" step="{{ $stepRentang }}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
                                         <div class="relative">
                                             <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
-                                            <input type="number" name="harga_jual" value="{{ (int) $t->harga_jual }}" min="0" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold">
+                                            <input type="text" inputmode="numeric" name="harga_jual" value="{{ number_format((int) $t->harga_jual, 0, '', '.') }}" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
                                         </div>
                                     </form>
                                     <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
@@ -307,7 +308,7 @@
                             <input type="number" name="range_max" value="${t.range_max ?? ''}" min="0.01" step="${stepRentang}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
                             <div class="relative">
                                 <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
-                                <input type="number" name="harga_jual" value="${parseInt(t.harga_jual)}" min="0" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold">
+                                <input type="text" inputmode="numeric" name="harga_jual" value="${formatRupiah(parseInt(t.harga_jual))}" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
                             </div>
                         </form>
                         <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
@@ -352,7 +353,7 @@
             return;
         }
 
-        const hargaList = rows.map(r => parseFloat(r.querySelector('[name="harga_jual"]').value) || 0);
+        const hargaList = rows.map(r => cleanRupiah(r.querySelector('[name="harga_jual"]').value));
         const fmt = (n) => 'Rp' + new Intl.NumberFormat('id-ID').format(n);
 
         if (rows.length === 1) {
