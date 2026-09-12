@@ -8,6 +8,7 @@
         body { background: #fff !important; }
     }
 </style>
+@include('partials.print-report-header', ['docTitle' => 'Laporan Kas'])
 
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
