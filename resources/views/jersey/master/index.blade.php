@@ -28,6 +28,7 @@
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama desainer" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
+            @include('jersey.master._filter-toolbar', ['searchId' => 'search-desainer', 'statusId' => 'filter-status-desainer', 'placeholder' => 'Cari nama desainer...'])
             <x-table bare>
                 <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-desainer" data-empty-colspan="2" data-empty-text="Belum ada desainer">
@@ -48,6 +49,7 @@
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe produk (mis. Jersey, Celana, Sublime Lainnya)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
+            @include('jersey.master._filter-toolbar', ['searchId' => 'search-tipe', 'statusId' => 'filter-status-tipe', 'placeholder' => 'Cari nama tipe produk...'])
             <x-table bare>
                 <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-tipe" data-empty-colspan="2" data-empty-text="Belum ada tipe produk">
@@ -68,6 +70,7 @@
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama kategori (mis. Jersey Futsal)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
+            @include('jersey.master._filter-toolbar', ['searchId' => 'search-kategori', 'statusId' => 'filter-status-kategori', 'placeholder' => 'Cari nama kategori...'])
             <x-table bare>
                 <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-kategori" data-empty-colspan="2" data-empty-text="Belum ada kategori">
@@ -90,6 +93,7 @@
                 <input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                 <x-button type="submit" variant="success">Tambah Ukuran</x-button>
             </form>
+            @include('jersey.master._filter-toolbar', ['searchId' => 'search-ukuran', 'statusId' => 'filter-status-ukuran', 'placeholder' => 'Cari nama ukuran...'])
             <x-table bare>
                 <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center">Urutan</th><th class="p-2.5 text-right">Tambahan Harga</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-ukuran" data-empty-colspan="4" data-empty-text="Belum ada ukuran">
@@ -111,6 +115,7 @@
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama bahan (mis. Dryfit)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
+            @include('jersey.master._filter-toolbar', ['searchId' => 'search-bahan', 'statusId' => 'filter-status-bahan', 'placeholder' => 'Cari nama bahan...'])
             <x-table bare>
                 <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-bahan" data-empty-colspan="2" data-empty-text="Belum ada bahan">
@@ -132,6 +137,7 @@
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama komponen baru (mis. Kerah)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah Komponen</x-button>
             </form>
+            @include('jersey.master._filter-toolbar', ['searchId' => 'search-estimasi', 'placeholder' => 'Cari nama ukuran...'])
             <div class="overflow-x-auto">
                 <table class="w-full text-xs border-collapse" id="tabel-estimasi">
                     <thead>
@@ -209,6 +215,23 @@
                     </x-button>
                 </div>
             </form>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                <select id="filter-harga-bahan" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <option value="">Semua Bahan</option>
+                    @foreach($materials as $m)<option value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
+                </select>
+                <select id="filter-harga-tipe" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <option value="">Semua Tipe</option>
+                    @foreach($productTypes as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                </select>
+                <select id="filter-harga-kategori" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <option value="">Semua Kategori</option>
+                    @foreach($categories as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                </select>
+                <button type="button" onclick="resetFilterHarga()" class="flex items-center justify-center gap-2 bg-slate-100 text-slate-500 rounded-xl py-2.5 px-3 text-xs font-bold uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-all">
+                    <i class="fas fa-undo-alt text-[10px]"></i> Reset Filter
+                </button>
+            </div>
             <x-table bare>
                 <thead><tr><th class="p-2.5 text-left">Bahan</th><th class="p-2.5 text-left">Tipe</th><th class="p-2.5 text-left">Kategori</th><th class="p-2.5 text-center">Qty</th><th class="p-2.5 text-right">Harga/pcs</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-harga" data-empty-colspan="6" data-empty-text="Belum ada tier harga">
@@ -363,11 +386,58 @@
     // konsisten dengan pola Master Bahan Baku yang sudah ada di aplikasi,
     // BUKAN badge status berwarna terpisah (makan tempat & beda gaya). ----
     const entityConfig = {
-        designers: { tbody: 'tbody-desainer', form: 'form-add-desainer', routeBase: '{{ url("/jersey/master/designers") }}' },
-        'product-types': { tbody: 'tbody-tipe', form: 'form-add-tipe', routeBase: '{{ url("/jersey/master/product-types") }}', selectTarget: 'harga-select-tipe' },
-        categories: { tbody: 'tbody-kategori', form: 'form-add-kategori', routeBase: '{{ url("/jersey/master/categories") }}', selectTarget: 'harga-select-kategori' },
-        materials: { tbody: 'tbody-bahan', form: 'form-add-bahan', routeBase: '{{ url("/jersey/master/materials") }}', selectTarget: 'harga-select-bahan' },
+        designers: { tbody: 'tbody-desainer', form: 'form-add-desainer', routeBase: '{{ url("/jersey/master/designers") }}', search: 'search-desainer', status: 'filter-status-desainer', colspan: 2 },
+        'product-types': { tbody: 'tbody-tipe', form: 'form-add-tipe', routeBase: '{{ url("/jersey/master/product-types") }}', selectTarget: 'harga-select-tipe', search: 'search-tipe', status: 'filter-status-tipe', colspan: 2 },
+        categories: { tbody: 'tbody-kategori', form: 'form-add-kategori', routeBase: '{{ url("/jersey/master/categories") }}', selectTarget: 'harga-select-kategori', search: 'search-kategori', status: 'filter-status-kategori', colspan: 2 },
+        materials: { tbody: 'tbody-bahan', form: 'form-add-bahan', routeBase: '{{ url("/jersey/master/materials") }}', selectTarget: 'harga-select-bahan', search: 'search-bahan', status: 'filter-status-bahan', colspan: 2 },
     };
+
+    // ---- Filter & pencarian (semua tab) - murni client-side, data tiap tab
+    // sudah dimuat semua di halaman jadi tidak perlu roundtrip ke server
+    // cuma untuk mencari/menyaring. Baris yang tidak cocok disembunyikan
+    // (class hidden), bukan dihapus, supaya baris hasil tambah/ubah/toggle
+    // lewat AJAX tidak perlu dibangun ulang. ----
+    function terapkanFilterTabel(tbodyId, predicate, colspan) {
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        const rows = Array.from(tbody.querySelectorAll('tr[data-id], tr[data-size-id]'));
+        let visibleCount = 0;
+        rows.forEach(row => {
+            const cocok = predicate(row);
+            row.classList.toggle('hidden', !cocok);
+            if (cocok) visibleCount++;
+        });
+        let noMatchRow = tbody.querySelector('.row-no-match');
+        if (rows.length > 0 && visibleCount === 0) {
+            if (!noMatchRow) {
+                noMatchRow = document.createElement('tr');
+                noMatchRow.className = 'row-no-match';
+                noMatchRow.innerHTML = `<td colspan="${colspan}" class="p-6 text-center text-slate-300 text-xs italic"><i class="fas fa-search mr-2"></i>Tidak ada data yang cocok dengan pencarian/filter.</td>`;
+                tbody.appendChild(noMatchRow);
+            }
+        } else if (noMatchRow) {
+            noMatchRow.remove();
+        }
+    }
+
+    function terapkanFilterEntitas(entity) {
+        const cfg = entityConfig[entity];
+        if (!cfg || !cfg.search) return;
+        const q = (document.getElementById(cfg.search).value || '').toLowerCase().trim();
+        const status = cfg.status ? document.getElementById(cfg.status).value : 'semua';
+        terapkanFilterTabel(cfg.tbody, (row) => {
+            const nama = row.querySelector('td')?.textContent.toLowerCase() ?? '';
+            const cocokNama = !q || nama.includes(q);
+            const isActive = !row.classList.contains('opacity-50');
+            const cocokStatus = status === 'semua' || (status === 'aktif' && isActive) || (status === 'nonaktif' && !isActive);
+            return cocokNama && cocokStatus;
+        }, cfg.colspan);
+    }
+
+    Object.entries(entityConfig).forEach(([entity, cfg]) => {
+        if (cfg.search) document.getElementById(cfg.search).addEventListener('input', () => terapkanFilterEntitas(entity));
+        if (cfg.status) document.getElementById(cfg.status).addEventListener('change', () => terapkanFilterEntitas(entity));
+    });
 
     function baseRowHtml(entity, row) {
         return `
@@ -394,6 +464,7 @@
             document.getElementById(cfg.tbody).insertAdjacentHTML('beforeend', baseRowHtml(entity, data.row));
             form.reset();
             tampilkanToastJersey(data.message);
+            terapkanFilterEntitas(entity);
 
             // Tipe Produk/Kategori baru langsung muncul di dropdown tier
             // harga TANPA reload - sebelumnya harus reload dulu baru
@@ -428,6 +499,7 @@
         }
         closeModal('edit-simple');
         tampilkanToastJersey(data.message);
+        terapkanFilterEntitas(entity);
     });
 
     async function toggleEntitas(entity, id) {
@@ -448,6 +520,7 @@
             }
         }
         tampilkanToastJersey(data.message);
+        terapkanFilterEntitas(entity);
     }
 
     // ---- Ukuran ----
@@ -466,7 +539,22 @@
         document.getElementById('tbody-ukuran').insertAdjacentHTML('beforeend', baseRowSizeHtml(data.row));
         form.reset();
         tampilkanToastJersey(data.message);
+        terapkanFilterUkuran();
     });
+
+    function terapkanFilterUkuran() {
+        const q = (document.getElementById('search-ukuran').value || '').toLowerCase().trim();
+        const status = document.getElementById('filter-status-ukuran').value;
+        terapkanFilterTabel('tbody-ukuran', (row) => {
+            const nama = row.querySelector('td')?.textContent.toLowerCase() ?? '';
+            const cocokNama = !q || nama.includes(q);
+            const isActive = !row.classList.contains('opacity-50');
+            const cocokStatus = status === 'semua' || (status === 'aktif' && isActive) || (status === 'nonaktif' && !isActive);
+            return cocokNama && cocokStatus;
+        }, 4);
+    }
+    document.getElementById('search-ukuran').addEventListener('input', terapkanFilterUkuran);
+    document.getElementById('filter-status-ukuran').addEventListener('change', terapkanFilterUkuran);
 
     function baseRowSizeHtml(row) {
         return `
@@ -505,6 +593,7 @@
         if (row) row.outerHTML = baseRowSizeHtml(data.row);
         closeModal('edit-ukuran');
         tampilkanToastJersey(data.message);
+        terapkanFilterUkuran();
     });
 
     async function toggleUkuran(id) {
@@ -513,6 +602,7 @@
         const row = document.querySelector(`#tbody-ukuran tr[data-id="${id}"]`);
         if (row) row.outerHTML = baseRowSizeHtml(data.row);
         tampilkanToastJersey(data.message);
+        terapkanFilterUkuran();
     }
 
     // ---- Estimasi Bahan (matriks ukuran x komponen) ----
@@ -555,6 +645,16 @@
         tampilkanToastJersey(data.message);
     }
 
+    function terapkanFilterEstimasi() {
+        const q = (document.getElementById('search-estimasi').value || '').toLowerCase().trim();
+        const kolom = document.getElementById('tabel-estimasi').querySelector('thead tr').children.length;
+        terapkanFilterTabel('tbody-estimasi', (row) => {
+            const nama = row.querySelector('td')?.textContent.toLowerCase() ?? '';
+            return !q || nama.includes(q);
+        }, kolom);
+    }
+    document.getElementById('search-estimasi').addEventListener('input', terapkanFilterEstimasi);
+
     let simpanEstimasiTimer = null;
     function simpanEstimasi(sizeId, componentId, value) {
         clearTimeout(simpanEstimasiTimer);
@@ -586,11 +686,35 @@
         document.getElementById('tbody-harga').insertAdjacentHTML('beforeend', rowHargaHtml(data.row));
         form.reset();
         tampilkanToastJersey(data.message);
+        terapkanFilterHarga();
+    });
+
+    function terapkanFilterHarga() {
+        const bahan = document.getElementById('filter-harga-bahan').value;
+        const tipe = document.getElementById('filter-harga-tipe').value;
+        const kategori = document.getElementById('filter-harga-kategori').value;
+        terapkanFilterTabel('tbody-harga', (row) => {
+            const cocokBahan = !bahan || row.dataset.materialId === bahan;
+            const cocokTipe = !tipe || row.dataset.typeId === tipe;
+            const cocokKategori = !kategori || row.dataset.categoryId === kategori;
+            return cocokBahan && cocokTipe && cocokKategori;
+        }, 6);
+    }
+
+    function resetFilterHarga() {
+        document.getElementById('filter-harga-bahan').value = '';
+        document.getElementById('filter-harga-tipe').value = '';
+        document.getElementById('filter-harga-kategori').value = '';
+        terapkanFilterHarga();
+    }
+
+    ['filter-harga-bahan', 'filter-harga-tipe', 'filter-harga-kategori'].forEach(id => {
+        document.getElementById(id).addEventListener('change', terapkanFilterHarga);
     });
 
     function rowHargaHtml(row) {
         return `
-        <tr data-id="${row.id}">
+        <tr data-id="${row.id}" data-material-id="${row.jersey_material_id ?? ''}" data-type-id="${row.jersey_product_type_id ?? ''}" data-category-id="${row.jersey_category_id ?? ''}">
             <td class="p-2.5 font-semibold text-indigo-600">${row.material ? escapeHtmlJersey(row.material.name) : 'Semua Bahan'}</td>
             <td class="p-2.5">${row.product_type ? escapeHtmlJersey(row.product_type.name) : 'Semua'}</td>
             <td class="p-2.5">${row.category ? escapeHtmlJersey(row.category.name) : 'Semua'}</td>
@@ -633,6 +757,7 @@
         if (row) row.outerHTML = rowHargaHtml(data.row);
         closeModal('edit-harga');
         tampilkanToastJersey(data.message);
+        terapkanFilterHarga();
     });
 
     async function hapusHarga(id) {
@@ -641,6 +766,7 @@
         if (!data) return;
         document.querySelector(`#tbody-harga tr[data-id="${id}"]`)?.remove();
         tampilkanToastJersey(data.message);
+        terapkanFilterHarga();
     }
 </script>
 @endpush

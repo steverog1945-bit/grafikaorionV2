@@ -1,5 +1,5 @@
 {{-- Sinkron dengan rowHargaHtml() di JS master/index.blade.php. --}}
-<tr data-id="{{ $row->id }}">
+<tr data-id="{{ $row->id }}" data-material-id="{{ $row->jersey_material_id }}" data-type-id="{{ $row->jersey_product_type_id }}" data-category-id="{{ $row->jersey_category_id }}">
     <td class="p-2.5 font-semibold text-indigo-600">{{ $row->material->name ?? 'Semua Bahan' }}</td>
     <td class="p-2.5">{{ $row->productType->name ?? 'Semua' }}</td>
     <td class="p-2.5">{{ $row->category->name ?? 'Semua' }}</td>
