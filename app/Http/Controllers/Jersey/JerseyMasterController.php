@@ -4,19 +4,22 @@ namespace App\Http\Controllers\Jersey;
 
 use App\Http\Controllers\Controller;
 use App\Models\JerseyCategory;
+use App\Models\JerseyComponent;
 use App\Models\JerseyDesigner;
+use App\Models\JerseyMaterial;
 use App\Models\JerseyPriceSetting;
 use App\Models\JerseyProductType;
 use App\Models\JerseySize;
+use App\Models\JerseySizeComponentUsage;
 use Illuminate\Http\Request;
 
 /**
  * Semua master data modul jersey (desainer, tipe produk, kategori, ukuran,
- * tier harga) dalam SATU halaman bertab. Semua aksi (tambah/ubah/toggle/
- * hapus) dikirim lewat fetch() JSON dan mengembalikan JSON juga - BUKAN
- * submit form biasa - supaya tab yang sedang aktif tidak pernah ke-reset
- * ke tab pertama tiap kali user menambah satu baris data (keluhan
- * langsung dari user setelah demo pertama modul ini).
+ * bahan, estimasi bahan per ukuran, tier harga) dalam SATU halaman bertab.
+ * Semua aksi (tambah/ubah/toggle/hapus) dikirim lewat fetch() JSON dan
+ * mengembalikan JSON juga - BUKAN submit form biasa - supaya tab yang
+ * sedang aktif tidak pernah ke-reset ke tab pertama tiap kali user
+ * menambah satu baris data.
  */
 class JerseyMasterController extends Controller
 {
@@ -26,13 +29,20 @@ class JerseyMasterController extends Controller
         $productTypes = JerseyProductType::orderBy('name')->get();
         $categories = JerseyCategory::orderBy('name')->get();
         $sizes = JerseySize::orderBy('sort_order')->get();
+        $materials = JerseyMaterial::orderBy('name')->get();
+        $components = JerseyComponent::orderBy('sort_order')->get();
         $priceSettings = JerseyPriceSetting::with(['productType', 'category'])
             ->orderBy('jersey_category_id')
             ->orderBy('qty_min')
             ->get();
 
+        // Matriks estimasi: [id_ukuran][id_komponen] => meter
+        $usageMatrix = JerseySizeComponentUsage::all()
+            ->groupBy('jersey_size_id')
+            ->map(fn ($rows) => $rows->keyBy('jersey_component_id'));
+
         return view('jersey.master.index', compact(
-            'designers', 'productTypes', 'categories', 'sizes', 'priceSettings'
+            'designers', 'productTypes', 'categories', 'sizes', 'materials', 'components', 'priceSettings', 'usageMatrix'
         ));
     }
 
@@ -134,6 +144,61 @@ class JerseyMasterController extends Controller
     {
         $size->update(['is_active' => !$size->is_active]);
         return response()->json(['success' => true, 'message' => 'Status ukuran diperbarui.', 'row' => $size]);
+    }
+
+    // ---- Bahan ----
+    public function storeMaterial(Request $request)
+    {
+        $data = $request->validate(['name' => 'required|string|max:255|unique:jersey_materials,name']);
+        $row = JerseyMaterial::create($data);
+        return response()->json(['success' => true, 'message' => 'Bahan berhasil ditambahkan.', 'row' => $row]);
+    }
+
+    public function updateMaterial(Request $request, JerseyMaterial $material)
+    {
+        $data = $request->validate(['name' => 'required|string|max:255|unique:jersey_materials,name,' . $material->id]);
+        $material->update($data);
+        return response()->json(['success' => true, 'message' => 'Bahan berhasil diperbarui.', 'row' => $material]);
+    }
+
+    public function toggleMaterial(JerseyMaterial $material)
+    {
+        $material->update(['is_active' => !$material->is_active]);
+        return response()->json(['success' => true, 'message' => 'Status bahan diperbarui.', 'row' => $material]);
+    }
+
+    // ---- Komponen (untuk matriks estimasi bahan per ukuran) ----
+    public function storeComponent(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255|unique:jersey_components,name',
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+        $row = JerseyComponent::create($data);
+        return response()->json(['success' => true, 'message' => 'Komponen berhasil ditambahkan.', 'row' => $row]);
+    }
+
+    public function toggleComponent(JerseyComponent $component)
+    {
+        $component->update(['is_active' => !$component->is_active]);
+        return response()->json(['success' => true, 'message' => 'Status komponen diperbarui.', 'row' => $component]);
+    }
+
+    // ---- Matriks estimasi bahan (ukuran x komponen -> meter) ----
+    public function saveUsage(Request $request)
+    {
+        $data = $request->validate([
+            'jersey_size_id' => 'required|exists:jersey_sizes,id',
+            'jersey_component_id' => 'required|exists:jersey_components,id',
+            'usage_meter' => 'nullable|numeric|min:0',
+        ]);
+
+        $row = JerseySizeComponentUsage::updateOrCreate(
+            ['jersey_size_id' => $data['jersey_size_id'], 'jersey_component_id' => $data['jersey_component_id']],
+            ['usage_meter' => $data['usage_meter'] ?? null]
+        );
+
+        return response()->json(['success' => true, 'message' => 'Estimasi tersimpan.', 'row' => $row]);
     }
 
     // ---- Tier Harga ----

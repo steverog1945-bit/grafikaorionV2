@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Order Jersey {{ $order->order_number }}</title>
-    @php($format = 'normal')
     @include('partials.print-style')
+    @if($format !== 'thermal')
+    <style>.sheet { max-width: 680px; }</style>
+    @endif
 </head>
 <body>
-    <div class="sheet" style="max-width: 680px;">
+    <div class="sheet">
         @include('partials.print-header', ['docTitle' => 'Ringkasan Order Jersey'])
 
         <table>

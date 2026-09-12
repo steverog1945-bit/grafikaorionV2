@@ -6,9 +6,19 @@
 
     <x-page-header :title="$order->order_number" subtitle="Detail order jersey">
         <x-slot:actions>
-            <x-button href="{{ route('jersey.orders.print', $order->id) }}" variant="secondary" target="_blank">
-                <i class="fas fa-print"></i> Cetak Ringkasan
-            </x-button>
+            <div class="relative">
+                <x-button type="button" variant="secondary" onclick="togglePrintMenuRingkasan(event)">
+                    <i class="fas fa-print"></i> Cetak Ringkasan
+                </x-button>
+                <div id="print-menu-ringkasan" class="hidden absolute right-0 mt-2 w-52 bg-white border border-slate-100 shadow-xl rounded-xl z-50 overflow-hidden">
+                    <a href="{{ route('jersey.orders.print', [$order->id, 'thermal']) }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50 border-b border-slate-50">
+                        <i class="fas fa-receipt text-indigo-400"></i> THERMAL (58MM)
+                    </a>
+                    <a href="{{ route('jersey.orders.print', [$order->id, 'normal']) }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50">
+                        <i class="fas fa-file-invoice text-indigo-400"></i> A4 / F4
+                    </a>
+                </div>
+            </div>
             <x-button href="{{ route('jersey.orders.index') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali
             </x-button>
@@ -135,13 +145,24 @@
             </x-form.group>
             <div class="md:col-span-4">
                 <x-form.group label="Catatan">
-                    <textarea name="notes" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-slate-400/30 shadow-inner">{{ $order->notes }}</textarea>
+                    <textarea name="notes" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $order->notes }}</textarea>
                 </x-form.group>
             </div>
             <div class="md:col-span-4 flex justify-end">
-                <button type="submit" class="px-8 py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs uppercase tracking-widest">Simpan Perubahan</button>
+                <x-button type="submit">Simpan Perubahan</x-button>
             </div>
         </form>
     </x-card>
 </div>
+
+@push('scripts')
+<script>
+    function togglePrintMenuRingkasan(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('print-menu-ringkasan');
+        menu.classList.toggle('hidden');
+    }
+    document.addEventListener('click', () => document.getElementById('print-menu-ringkasan')?.classList.add('hidden'));
+</script>
+@endpush
 @endsection

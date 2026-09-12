@@ -12,6 +12,7 @@ class JerseyOrderLine extends Model
         'jersey_order_id',
         'jersey_product_type_id',
         'jersey_category_id',
+        'jersey_material_id',
         'nama_barang',
         'bahan',
         'keterangan',
@@ -41,6 +42,11 @@ class JerseyOrderLine extends Model
     public function category()
     {
         return $this->belongsTo(JerseyCategory::class, 'jersey_category_id');
+    }
+
+    public function material()
+    {
+        return $this->belongsTo(JerseyMaterial::class, 'jersey_material_id');
     }
 
     public function priceSetting()

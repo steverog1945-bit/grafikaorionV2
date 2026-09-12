@@ -465,7 +465,7 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         Route::get('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'show'])->name('orders.show');
         Route::put('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'update'])->name('orders.update');
         Route::delete('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'destroy'])->name('orders.destroy');
-        Route::get('/{order}/print', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'print'])->name('orders.print');
+        Route::get('/{order}/print/{format?}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'print'])->name('orders.print');
         Route::get('/{order}/lines/{line}/spk', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'printLine'])->name('orders.lines.spk');
 
         Route::post('/master/designers', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeDesigner'])->name('master.designers.store');
@@ -486,6 +486,15 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
 
         Route::post('/master/price-settings', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storePriceSetting'])->name('master.price-settings.store');
         Route::delete('/master/price-settings/{priceSetting}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'destroyPriceSetting'])->name('master.price-settings.destroy');
+
+        Route::post('/master/materials', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeMaterial'])->name('master.materials.store');
+        Route::put('/master/materials/{material}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'updateMaterial'])->name('master.materials.update');
+        Route::patch('/master/materials/{material}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleMaterial'])->name('master.materials.toggle');
+
+        Route::post('/master/components', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeComponent'])->name('master.components.store');
+        Route::patch('/master/components/{component}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleComponent'])->name('master.components.toggle');
+
+        Route::post('/master/usage', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'saveUsage'])->name('master.usage.save');
 
         Route::post('/upload-thumbnail', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'uploadThumbnail'])->name('orders.upload-thumbnail');
     });

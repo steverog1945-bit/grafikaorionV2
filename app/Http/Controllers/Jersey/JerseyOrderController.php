@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Jersey;
 use App\Http\Controllers\Controller;
 use App\Models\JerseyCategory;
 use App\Models\JerseyDesigner;
+use App\Models\JerseyMaterial;
 use App\Models\JerseyOrder;
+use App\Models\JerseyOrderLine;
 use App\Models\JerseyProductType;
 use App\Models\JerseySize;
 use App\Models\Konsumen;
+use App\Services\JerseyMaterialEstimationService;
 use App\Services\JerseyOrderPricingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,6 +52,7 @@ class JerseyOrderController extends Controller
             'designers' => JerseyDesigner::where('is_active', true)->orderBy('name')->get(),
             'productTypes' => JerseyProductType::where('is_active', true)->orderBy('name')->get(),
             'categories' => JerseyCategory::where('is_active', true)->orderBy('name')->get(),
+            'materials' => JerseyMaterial::where('is_active', true)->orderBy('name')->get(),
             'sizes' => JerseySize::where('is_active', true)->orderBy('sort_order')->get(),
         ];
     }
@@ -57,7 +61,8 @@ class JerseyOrderController extends Controller
      * Upload thumbnail mockup desain SATU line - dipanggil terpisah dari
      * submit form utama (sama seperti PenjualanController::uploadThumbnail)
      * karena line-nya sendiri belum tentu tersimpan ke database saat user
-     * memilih file (order masih dalam proses diisi di form).
+     * memilih file (order masih dalam proses diisi di form). Dipakai baik
+     * dari input file biasa maupun tempel (Ctrl+V) gambar dari clipboard.
      */
     public function uploadThumbnail(Request $request)
     {
@@ -91,9 +96,9 @@ class JerseyOrderController extends Controller
             'lines.*.nama_barang' => 'required|string|max:255',
             'lines.*.jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
             'lines.*.jersey_category_id' => 'nullable|exists:jersey_categories,id',
-            'lines.*.bahan' => 'nullable|string|max:255',
+            'lines.*.jersey_material_id' => 'nullable|exists:jersey_materials,id',
             'lines.*.keterangan' => 'nullable|string|max:2000',
-            'lines.*.thumbnail' => 'nullable|string|max:255',
+            'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
 
             'lines.*.items' => 'nullable|array',
@@ -106,15 +111,11 @@ class JerseyOrderController extends Controller
 
             'lines.*.size_quantities' => 'nullable|array',
             'lines.*.size_quantities.*' => 'nullable|integer|min:0',
-
-            'lines.*.materials' => 'nullable|array',
-            'lines.*.materials.*.nama_barang' => 'nullable|string|max:255',
-            'lines.*.materials.*.warna' => 'nullable|string|max:100',
-            'lines.*.materials.*.penggunaan_kg' => 'nullable|numeric|min:0',
-            'lines.*.materials.*.penggunaan_meter' => 'nullable|numeric|min:0',
-            'lines.*.materials.*.penggunaan_yard' => 'nullable|numeric|min:0',
-            'lines.*.materials.*.keterangan' => 'nullable|string|max:255',
+        ], [
+            'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi untuk setiap barang (acuan warna & bentuk produksi).',
         ]);
+
+        $sizeIdByName = JerseySize::pluck('id', 'name');
 
         DB::beginTransaction();
         try {
@@ -146,14 +147,30 @@ class JerseyOrderController extends Controller
 
             foreach ($data['lines'] as $lineData) {
                 $items = array_values(array_filter($lineData['items'] ?? [], fn ($i) => trim($i['player_name'] ?? '') !== ''));
-                $sizeQuantities = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
-                $materials = array_values(array_filter($lineData['materials'] ?? [], fn ($m) => trim($m['nama_barang'] ?? '') !== ''));
+                $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
 
-                $qty = count($items) + array_sum(array_map('intval', $sizeQuantities));
+                $qty = count($items) + array_sum(array_map('intval', $sizeQuantitiesMentah));
                 if ($qty <= 0) {
                     continue; // baris kosong (line ditambahkan tapi tidak diisi) - dilewati, bukan error
                 }
                 $adaLineValid = true;
+
+                // Qty per ukuran DIGABUNG dari kedua sumber (bukan salah satu
+                // saja) - untuk mode "mixed" qty datang dari size_quantities
+                // DAN dari daftar pemain sekaligus, keduanya harus masuk
+                // hitungan estimasi bahan & rekap ukuran, bukan cuma salah satu.
+                $qtyPerSizeId = [];
+                foreach ($sizeQuantitiesMentah as $sizeId => $q) {
+                    $qtyPerSizeId[$sizeId] = ($qtyPerSizeId[$sizeId] ?? 0) + (int) $q;
+                }
+                foreach ($items as $item) {
+                    $sizeId = $sizeIdByName[$item['size']] ?? null;
+                    if ($sizeId) {
+                        $qtyPerSizeId[$sizeId] = ($qtyPerSizeId[$sizeId] ?? 0) + 1;
+                    }
+                }
+
+                $material = !empty($lineData['jersey_material_id']) ? JerseyMaterial::find($lineData['jersey_material_id']) : null;
 
                 $tier = JerseyOrderPricingService::cariTierHarga(
                     $lineData['jersey_product_type_id'] ?? null,
@@ -166,10 +183,11 @@ class JerseyOrderController extends Controller
                 $line = $order->lines()->create([
                     'jersey_product_type_id' => $lineData['jersey_product_type_id'] ?? null,
                     'jersey_category_id' => $lineData['jersey_category_id'] ?? null,
+                    'jersey_material_id' => $material?->id,
                     'nama_barang' => $lineData['nama_barang'],
-                    'bahan' => $lineData['bahan'] ?? null,
+                    'bahan' => $material?->name,
                     'keterangan' => $lineData['keterangan'] ?? null,
-                    'thumbnail' => $lineData['thumbnail'] ?? null,
+                    'thumbnail' => $lineData['thumbnail'],
                     'order_type' => $lineData['order_type'],
                     'qty' => $qty,
                     'harga_satuan' => $hargaSatuan,
@@ -180,14 +198,22 @@ class JerseyOrderController extends Controller
                 foreach ($items as $item) {
                     $line->items()->create($item);
                 }
-                foreach ($sizeQuantities as $sizeId => $qtyUkuran) {
+                foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
                     $line->sizeQuantities()->create([
                         'jersey_size_id' => $sizeId,
-                        'quantity' => (int) $qtyUkuran,
+                        'quantity' => $qtyUkuran,
                     ]);
                 }
-                foreach ($materials as $material) {
-                    $line->materials()->create($material);
+
+                // Spesifikasi Order (pemakaian bahan) dihitung OTOMATIS dari
+                // qty per ukuran x matriks estimasi ukuran-komponen di Master
+                // Data - bukan diketik manual lagi (lihat
+                // JerseyMaterialEstimationService). Estimasi murni.
+                foreach (JerseyMaterialEstimationService::hitungEstimasi($qtyPerSizeId) as $estimasi) {
+                    $line->materials()->create([
+                        'nama_barang' => $estimasi['component']->name,
+                        'penggunaan_meter' => round($estimasi['total_meter'], 2),
+                    ]);
                 }
             }
 
@@ -212,7 +238,7 @@ class JerseyOrderController extends Controller
     {
         $order->load([
             'konsumen', 'designer',
-            'lines.productType', 'lines.category', 'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
+            'lines.productType', 'lines.category', 'lines.material', 'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
         ]);
         return view('jersey.orders.show', compact('order'));
     }
@@ -238,13 +264,19 @@ class JerseyOrderController extends Controller
         return redirect()->route('jersey.orders.index')->with('success', 'Order jersey berhasil dihapus.');
     }
 
-    public function print(JerseyOrder $order)
+    /**
+     * Cetak ringkasan seluruh order - $format 'thermal' (58mm) atau
+     * 'normal' (A4/F4), sama seperti pola print nota/closing kas di modul
+     * Kasir yang sudah ada.
+     */
+    public function print(JerseyOrder $order, string $format = 'normal')
     {
         $order->load([
             'konsumen', 'designer',
             'lines.productType', 'lines.category', 'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
         ]);
-        return view('jersey.orders.print', compact('order'));
+        $format = in_array($format, ['thermal', 'normal']) ? $format : 'normal';
+        return view('jersey.orders.print', compact('order', 'format'));
     }
 
     /**
@@ -252,10 +284,10 @@ class JerseyOrderController extends Controller
      * produksi per-jenis-barang (thumbnail, ukuran, spesifikasi bahan),
      * beda dari print() di atas yang mencetak ringkasan seluruh order.
      */
-    public function printLine(JerseyOrder $order, \App\Models\JerseyOrderLine $line)
+    public function printLine(JerseyOrder $order, JerseyOrderLine $line)
     {
         abort_if($line->jersey_order_id !== $order->id, 404);
-        $line->load(['productType', 'category', 'items', 'sizeQuantities.size', 'materials', 'order.konsumen', 'order.designer']);
+        $line->load(['productType', 'category', 'material', 'items', 'sizeQuantities.size', 'materials', 'order.konsumen', 'order.designer']);
         return view('jersey.orders.spk-print', compact('order', 'line'));
     }
 }
