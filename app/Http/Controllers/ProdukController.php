@@ -93,6 +93,7 @@ public function index(Request $request)
                 'min_panjang'   => $minPanjang,
                 'min_lebar'     => $minLebar,
                 'keterangan'    => $request->keterangan ?? '-',
+                'status'        => 'aktif',
                 'created_at'    => now(),
                 'updated_at'    => now(),
             ]);
