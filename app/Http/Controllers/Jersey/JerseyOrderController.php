@@ -175,6 +175,7 @@ class JerseyOrderController extends Controller
                 $tier = JerseyOrderPricingService::cariTierHarga(
                     $lineData['jersey_product_type_id'] ?? null,
                     $lineData['jersey_category_id'] ?? null,
+                    $material?->id,
                     $qty
                 );
                 $hargaSatuan = (float) ($tier->price ?? 0);

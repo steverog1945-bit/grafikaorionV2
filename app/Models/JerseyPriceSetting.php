@@ -11,6 +11,7 @@ class JerseyPriceSetting extends Model
     protected $fillable = [
         'jersey_product_type_id',
         'jersey_category_id',
+        'jersey_material_id',
         'qty_min',
         'qty_max',
         'price',
@@ -30,5 +31,10 @@ class JerseyPriceSetting extends Model
     public function category()
     {
         return $this->belongsTo(JerseyCategory::class, 'jersey_category_id');
+    }
+
+    public function material()
+    {
+        return $this->belongsTo(JerseyMaterial::class, 'jersey_material_id');
     }
 }

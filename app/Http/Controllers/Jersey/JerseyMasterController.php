@@ -31,7 +31,9 @@ class JerseyMasterController extends Controller
         $sizes = JerseySize::orderBy('sort_order')->get();
         $materials = JerseyMaterial::orderBy('name')->get();
         $components = JerseyComponent::orderBy('sort_order')->get();
-        $priceSettings = JerseyPriceSetting::with(['productType', 'category'])
+        $priceSettings = JerseyPriceSetting::with(['productType', 'category', 'material'])
+            ->orderByRaw('jersey_material_id IS NULL')
+            ->orderBy('jersey_material_id')
             ->orderBy('jersey_category_id')
             ->orderBy('qty_min')
             ->get();
@@ -207,12 +209,28 @@ class JerseyMasterController extends Controller
         $data = $request->validate([
             'jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
             'jersey_category_id' => 'nullable|exists:jersey_categories,id',
+            'jersey_material_id' => 'nullable|exists:jersey_materials,id',
             'qty_min' => 'required|integer|min:1',
             'qty_max' => 'nullable|integer|gte:qty_min',
             'price' => 'required|numeric|min:0',
         ]);
-        $row = JerseyPriceSetting::create($data)->load(['productType', 'category']);
+        $row = JerseyPriceSetting::create($data)->load(['productType', 'category', 'material']);
         return response()->json(['success' => true, 'message' => 'Tier harga berhasil ditambahkan.', 'row' => $row]);
+    }
+
+    public function updatePriceSetting(Request $request, JerseyPriceSetting $priceSetting)
+    {
+        $data = $request->validate([
+            'jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
+            'jersey_category_id' => 'nullable|exists:jersey_categories,id',
+            'jersey_material_id' => 'nullable|exists:jersey_materials,id',
+            'qty_min' => 'required|integer|min:1',
+            'qty_max' => 'nullable|integer|gte:qty_min',
+            'price' => 'required|numeric|min:0',
+        ]);
+        $priceSetting->update($data);
+        $row = $priceSetting->fresh()->load(['productType', 'category', 'material']);
+        return response()->json(['success' => true, 'message' => 'Tier harga berhasil diperbarui.', 'row' => $row]);
     }
 
     public function destroyPriceSetting(JerseyPriceSetting $priceSetting)

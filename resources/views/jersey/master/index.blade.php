@@ -168,28 +168,54 @@
     {{-- TIER HARGA --}}
     <div id="tab-panel-harga" class="jersey-tab-panel hidden">
         <x-card>
-            <p class="text-xs text-slate-400 mb-4">Kosongkan Tipe Produk/Kategori untuk berlaku sebagai tier umum ("berlaku untuk semua"). Pencarian harga otomatis memilih tier paling spesifik yang cocok dengan qty tiap baris barang.</p>
+            <p class="text-xs text-slate-400 mb-4">Harga sekarang berpusat pada <b class="text-slate-500">Bahan</b> - tiap bahan bisa punya tier qty & harga sendiri karena selisih harga belanja antar bahan bisa sangat jauh. Kosongkan Bahan/Tipe Produk/Kategori untuk membuat tier "berlaku umum" (fallback kalau tidak ada tier spesifik yang cocok). Pencarian harga otomatis memilih tier paling spesifik yang cocok dengan bahan & qty tiap baris barang.</p>
             <form id="form-add-harga" class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
-                <select name="jersey_product_type_id" id="harga-select-tipe" class="md:col-span-1 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
-                    <option value="">-- Semua Tipe --</option>
-                    @foreach($productTypes->where('is_active', true) as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
-                </select>
-                <select name="jersey_category_id" id="harga-select-kategori" class="md:col-span-1 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
-                    <option value="">-- Semua Kategori --</option>
-                    @foreach($categories->where('is_active', true) as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
-                </select>
-                <input type="number" name="qty_min" placeholder="Qty Min" required min="1" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
-                <input type="number" name="qty_max" placeholder="Qty Max (~)" min="1" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
-                <input type="text" inputmode="numeric" name="price" placeholder="Harga/pcs (Rp)" required class="format-ribuan bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
-                <x-button type="submit" variant="success">Tambah Tier</x-button>
+                <div class="md:col-span-2">
+                    <label class="block text-[9px] font-black text-indigo-600 uppercase tracking-widest mb-1.5">Bahan</label>
+                    <select name="jersey_material_id" id="harga-select-bahan" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                        <option value="">-- Semua Bahan --</option>
+                        @foreach($materials->where('is_active', true) as $m)<option value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
+                    <select name="jersey_product_type_id" id="harga-select-tipe" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                        <option value="">-- Semua Tipe --</option>
+                        @foreach($productTypes->where('is_active', true) as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Kategori</label>
+                    <select name="jersey_category_id" id="harga-select-kategori" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                        <option value="">-- Semua Kategori --</option>
+                        @foreach($categories->where('is_active', true) as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Qty Min</label>
+                    <input type="number" name="qty_min" placeholder="1" required min="1" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                </div>
+                <div>
+                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Qty Max</label>
+                    <input type="number" name="qty_max" placeholder="~ (kosongkan)" min="1" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Harga per Pcs (Rp)</label>
+                    <input type="text" inputmode="numeric" name="price" placeholder="0" required class="format-ribuan w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                </div>
+                <div class="md:col-span-2 flex items-end">
+                    <x-button type="submit" variant="success" class="w-full">
+                        <i class="fas fa-plus"></i> Tambah Tier
+                    </x-button>
+                </div>
             </form>
             <x-table bare>
-                <thead><tr><th class="p-2.5 text-left">Tipe</th><th class="p-2.5 text-left">Kategori</th><th class="p-2.5 text-center">Qty</th><th class="p-2.5 text-right">Harga/pcs</th><th class="p-2.5 text-center w-16">Aksi</th></tr></thead>
-                <tbody class="divide-y divide-slate-50" id="tbody-harga" data-empty-colspan="5" data-empty-text="Belum ada tier harga">
+                <thead><tr><th class="p-2.5 text-left">Bahan</th><th class="p-2.5 text-left">Tipe</th><th class="p-2.5 text-left">Kategori</th><th class="p-2.5 text-center">Qty</th><th class="p-2.5 text-right">Harga/pcs</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
+                <tbody class="divide-y divide-slate-50" id="tbody-harga" data-empty-colspan="6" data-empty-text="Belum ada tier harga">
                     @forelse($priceSettings as $p)
                         @include('jersey.master._row-harga', ['row' => $p])
                     @empty
-                    <tr class="row-empty"><td colspan="5"><x-empty-state title="Belum ada tier harga" description="Order tetap bisa dibuat, harga akan Rp 0 sampai tier diisi." /></td></tr>
+                    <tr class="row-empty"><td colspan="6"><x-empty-state title="Belum ada tier harga" description="Order tetap bisa dibuat, harga akan Rp 0 sampai tier diisi." /></td></tr>
                     @endforelse
                 </tbody>
             </x-table>
@@ -229,6 +255,53 @@
             </div>
             <div class="pt-2 flex gap-3">
                 <button type="button" onclick="closeModal('edit-ukuran')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
+                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase">Simpan</button>
+            </div>
+        </form>
+    </x-modal>
+
+    <x-modal id="edit-harga" title="Ubah Tier Harga" maxWidth="sm">
+        <form id="form-edit-harga" class="space-y-4">
+            <input type="hidden" id="edit-harga-id">
+            <div>
+                <label class="block text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-2">Bahan</label>
+                <select id="edit-harga-bahan" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <option value="">-- Semua Bahan --</option>
+                    @foreach($materials->where('is_active', true) as $m)<option value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
+                    <select id="edit-harga-tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                        <option value="">-- Semua --</option>
+                        @foreach($productTypes->where('is_active', true) as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kategori</label>
+                    <select id="edit-harga-kategori" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                        <option value="">-- Semua --</option>
+                        @foreach($categories->where('is_active', true) as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Qty Min</label>
+                    <input type="number" id="edit-harga-qty-min" min="1" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Qty Max</label>
+                    <input type="number" id="edit-harga-qty-max" min="1" placeholder="~ (kosongkan)" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                </div>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Harga per Pcs (Rp)</label>
+                <input type="text" inputmode="numeric" id="edit-harga-price" required class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            </div>
+            <div class="pt-2 flex gap-3">
+                <button type="button" onclick="closeModal('edit-harga')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
                 <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase">Simpan</button>
             </div>
         </form>
@@ -293,7 +366,7 @@
         designers: { tbody: 'tbody-desainer', form: 'form-add-desainer', routeBase: '{{ url("/jersey/master/designers") }}' },
         'product-types': { tbody: 'tbody-tipe', form: 'form-add-tipe', routeBase: '{{ url("/jersey/master/product-types") }}', selectTarget: 'harga-select-tipe' },
         categories: { tbody: 'tbody-kategori', form: 'form-add-kategori', routeBase: '{{ url("/jersey/master/categories") }}', selectTarget: 'harga-select-kategori' },
-        materials: { tbody: 'tbody-bahan', form: 'form-add-bahan', routeBase: '{{ url("/jersey/master/materials") }}' },
+        materials: { tbody: 'tbody-bahan', form: 'form-add-bahan', routeBase: '{{ url("/jersey/master/materials") }}', selectTarget: 'harga-select-bahan' },
     };
 
     function baseRowHtml(entity, row) {
@@ -500,6 +573,7 @@
         e.preventDefault();
         const form = e.target;
         const payload = {
+            jersey_material_id: form.querySelector('[name="jersey_material_id"]').value || null,
             jersey_product_type_id: form.querySelector('[name="jersey_product_type_id"]').value || null,
             jersey_category_id: form.querySelector('[name="jersey_category_id"]').value || null,
             qty_min: form.querySelector('[name="qty_min"]').value,
@@ -517,15 +591,49 @@
     function rowHargaHtml(row) {
         return `
         <tr data-id="${row.id}">
+            <td class="p-2.5 font-semibold text-indigo-600">${row.material ? escapeHtmlJersey(row.material.name) : 'Semua Bahan'}</td>
             <td class="p-2.5">${row.product_type ? escapeHtmlJersey(row.product_type.name) : 'Semua'}</td>
             <td class="p-2.5">${row.category ? escapeHtmlJersey(row.category.name) : 'Semua'}</td>
             <td class="p-2.5 text-center">${row.qty_min} - ${row.qty_max ?? '∞'}</td>
             <td class="p-2.5 text-right font-bold">Rp ${formatRupiah(Math.round(parseFloat(row.price)))}</td>
             <td class="p-2.5 text-center">
-                <button type="button" onclick="hapusHarga(${row.id})" class="w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-50"><i class="far fa-trash-alt text-xs"></i></button>
+                <div class="flex items-center justify-center gap-1">
+                    <button type="button" onclick="bukaEditHarga(${JSON.stringify(row).replace(/"/g, '&quot;')})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
+                    <button type="button" onclick="hapusHarga(${row.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
+                </div>
             </td>
         </tr>`;
     }
+
+    function bukaEditHarga(row) {
+        document.getElementById('edit-harga-id').value = row.id;
+        document.getElementById('edit-harga-bahan').value = row.jersey_material_id ?? '';
+        document.getElementById('edit-harga-tipe').value = row.jersey_product_type_id ?? '';
+        document.getElementById('edit-harga-kategori').value = row.jersey_category_id ?? '';
+        document.getElementById('edit-harga-qty-min').value = row.qty_min;
+        document.getElementById('edit-harga-qty-max').value = row.qty_max ?? '';
+        document.getElementById('edit-harga-price').value = formatRupiah(Math.round(parseFloat(row.price)));
+        openModal('edit-harga');
+    }
+
+    document.getElementById('form-edit-harga').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-harga-id').value;
+        const payload = {
+            jersey_material_id: document.getElementById('edit-harga-bahan').value || null,
+            jersey_product_type_id: document.getElementById('edit-harga-tipe').value || null,
+            jersey_category_id: document.getElementById('edit-harga-kategori').value || null,
+            qty_min: document.getElementById('edit-harga-qty-min').value,
+            qty_max: document.getElementById('edit-harga-qty-max').value || null,
+            price: cleanRupiah(document.getElementById('edit-harga-price').value),
+        };
+        const data = await kirimJson(`{{ url("/jersey/master/price-settings") }}/${id}`, 'PUT', payload);
+        if (!data) return;
+        const row = document.querySelector(`#tbody-harga tr[data-id="${id}"]`);
+        if (row) row.outerHTML = rowHargaHtml(data.row);
+        closeModal('edit-harga');
+        tampilkanToastJersey(data.message);
+    });
 
     async function hapusHarga(id) {
         if (!confirm('Hapus tier harga ini?')) return;
