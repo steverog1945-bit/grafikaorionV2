@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Jersey;
 
 use App\Http\Controllers\Controller;
 use App\Models\JerseyCategory;
+use App\Models\JerseyCollarType;
 use App\Models\JerseyComponent;
 use App\Models\JerseyDesigner;
 use App\Models\JerseyMaterial;
 use App\Models\JerseyPriceSetting;
 use App\Models\JerseyProductType;
 use App\Models\JerseySize;
+use App\Models\JerseySizeCollarUsage;
 use App\Models\JerseySizeComponentUsage;
+use App\Models\JerseySizeSleeveUsage;
+use App\Models\JerseySleeveType;
 use App\Services\JerseyMaterialEstimationService;
 use Illuminate\Http\Request;
 
@@ -32,6 +36,8 @@ class JerseyMasterController extends Controller
         $sizes = JerseySize::orderBy('sort_order')->get();
         $materials = JerseyMaterial::orderBy('name')->get();
         $components = JerseyComponent::orderBy('sort_order')->get();
+        $sleeveTypes = JerseySleeveType::orderBy('sort_order')->get();
+        $collarTypes = JerseyCollarType::orderBy('sort_order')->get();
         $priceSettings = JerseyPriceSetting::with(['productType', 'category', 'material'])
             ->orderByRaw('jersey_material_id IS NULL')
             ->orderBy('jersey_material_id')
@@ -43,6 +49,16 @@ class JerseyMasterController extends Controller
         $usageMatrix = JerseySizeComponentUsage::all()
             ->groupBy('jersey_size_id')
             ->map(fn ($rows) => $rows->keyBy('jersey_component_id'));
+
+        // Matriks estimasi Lengan & Kerah - struktur sama persis dengan
+        // Komponen di atas, tapi tabel & kolom FK-nya beda (lihat
+        // JerseyMaterialEstimationService::hitungEstimasiLengan/Kerah()).
+        $sleeveUsageMatrix = JerseySizeSleeveUsage::all()
+            ->groupBy('jersey_size_id')
+            ->map(fn ($rows) => $rows->keyBy('jersey_sleeve_type_id'));
+        $collarUsageMatrix = JerseySizeCollarUsage::all()
+            ->groupBy('jersey_size_id')
+            ->map(fn ($rows) => $rows->keyBy('jersey_collar_type_id'));
 
         // Total per ukuran (jumlah semua komponen aktif) - ditampilkan di
         // kolom "Total" pada kedua matriks (meter & berat), dihitung ulang
@@ -65,7 +81,8 @@ class JerseyMasterController extends Controller
         }
 
         return view('jersey.master.index', compact(
-            'designers', 'productTypes', 'categories', 'sizes', 'materials', 'components', 'priceSettings', 'usageMatrix', 'totalPerSize'
+            'designers', 'productTypes', 'categories', 'sizes', 'materials', 'components', 'sleeveTypes', 'collarTypes',
+            'priceSettings', 'usageMatrix', 'sleeveUsageMatrix', 'collarUsageMatrix', 'totalPerSize'
         ));
     }
 
@@ -235,6 +252,112 @@ class JerseyMasterController extends Controller
         );
 
         return response()->json(['success' => true, 'message' => 'Estimasi tersimpan.', 'row' => $row]);
+    }
+
+    // ---- Tipe Lengan ----
+    public function storeSleeveType(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255|unique:jersey_sleeve_types,name',
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+        $row = JerseySleeveType::create($data);
+        return response()->json(['success' => true, 'message' => 'Tipe lengan berhasil ditambahkan.', 'row' => $row]);
+    }
+
+    public function updateSleeveType(Request $request, JerseySleeveType $sleeveType)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255|unique:jersey_sleeve_types,name,' . $sleeveType->id,
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+        $sleeveType->update($data);
+        return response()->json(['success' => true, 'message' => 'Tipe lengan berhasil diperbarui.', 'row' => $sleeveType]);
+    }
+
+    public function toggleSleeveType(JerseySleeveType $sleeveType)
+    {
+        $sleeveType->update(['is_active' => !$sleeveType->is_active]);
+        return response()->json(['success' => true, 'message' => 'Status tipe lengan diperbarui.', 'row' => $sleeveType]);
+    }
+
+    // ---- Tipe Kerah ----
+    public function storeCollarType(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255|unique:jersey_collar_types,name',
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+        $row = JerseyCollarType::create($data);
+        return response()->json(['success' => true, 'message' => 'Tipe kerah berhasil ditambahkan.', 'row' => $row]);
+    }
+
+    public function updateCollarType(Request $request, JerseyCollarType $collarType)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255|unique:jersey_collar_types,name,' . $collarType->id,
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+        $collarType->update($data);
+        return response()->json(['success' => true, 'message' => 'Tipe kerah berhasil diperbarui.', 'row' => $collarType]);
+    }
+
+    public function toggleCollarType(JerseyCollarType $collarType)
+    {
+        $collarType->update(['is_active' => !$collarType->is_active]);
+        return response()->json(['success' => true, 'message' => 'Status tipe kerah diperbarui.', 'row' => $collarType]);
+    }
+
+    // ---- Matriks estimasi Lengan (ukuran x tipe lengan -> meter/berat) ----
+    public function saveSleeveUsage(Request $request)
+    {
+        $data = $request->validate([
+            'jersey_size_id' => 'required|exists:jersey_sizes,id',
+            'jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
+            'usage_meter' => 'nullable|numeric|min:0',
+            'usage_weight_gram' => 'nullable|numeric|min:0',
+        ]);
+
+        $values = [];
+        if ($request->has('usage_meter')) {
+            $values['usage_meter'] = $data['usage_meter'] ?? null;
+        }
+        if ($request->has('usage_weight_gram')) {
+            $values['usage_weight_gram'] = $data['usage_weight_gram'] ?? null;
+        }
+
+        $row = JerseySizeSleeveUsage::updateOrCreate(
+            ['jersey_size_id' => $data['jersey_size_id'], 'jersey_sleeve_type_id' => $data['jersey_sleeve_type_id']],
+            $values
+        );
+
+        return response()->json(['success' => true, 'message' => 'Estimasi lengan tersimpan.', 'row' => $row]);
+    }
+
+    // ---- Matriks estimasi Kerah (ukuran x tipe kerah -> meter/berat) ----
+    public function saveCollarUsage(Request $request)
+    {
+        $data = $request->validate([
+            'jersey_size_id' => 'required|exists:jersey_sizes,id',
+            'jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
+            'usage_meter' => 'nullable|numeric|min:0',
+            'usage_weight_gram' => 'nullable|numeric|min:0',
+        ]);
+
+        $values = [];
+        if ($request->has('usage_meter')) {
+            $values['usage_meter'] = $data['usage_meter'] ?? null;
+        }
+        if ($request->has('usage_weight_gram')) {
+            $values['usage_weight_gram'] = $data['usage_weight_gram'] ?? null;
+        }
+
+        $row = JerseySizeCollarUsage::updateOrCreate(
+            ['jersey_size_id' => $data['jersey_size_id'], 'jersey_collar_type_id' => $data['jersey_collar_type_id']],
+            $values
+        );
+
+        return response()->json(['success' => true, 'message' => 'Estimasi kerah tersimpan.', 'row' => $row]);
     }
 
     // ---- Tier Harga ----

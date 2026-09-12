@@ -15,12 +15,24 @@ class JerseyOrderItem extends Model
         'size',
         'gender',
         'sleeve',
+        'jersey_sleeve_type_id',
         'collar',
+        'jersey_collar_type_id',
         'notes',
     ];
 
     public function line()
     {
         return $this->belongsTo(JerseyOrderLine::class, 'jersey_order_line_id');
+    }
+
+    public function sleeveType()
+    {
+        return $this->belongsTo(JerseySleeveType::class, 'jersey_sleeve_type_id');
+    }
+
+    public function collarType()
+    {
+        return $this->belongsTo(JerseyCollarType::class, 'jersey_collar_type_id');
     }
 }

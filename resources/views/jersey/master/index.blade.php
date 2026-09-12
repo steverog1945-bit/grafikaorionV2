@@ -13,7 +13,7 @@
     </x-page-header>
 
     <div class="flex flex-wrap gap-2 mb-6" id="jersey-master-tabs">
-        @foreach(['desainer' => 'Desainer', 'tipe' => 'Tipe Produk', 'kategori' => 'Kategori', 'ukuran' => 'Ukuran', 'bahan' => 'Bahan', 'estimasi' => 'Estimasi Bahan', 'harga' => 'Tier Harga'] as $key => $label)
+        @foreach(['desainer' => 'Desainer', 'tipe' => 'Tipe Produk', 'kategori' => 'Kategori', 'ukuran' => 'Ukuran', 'bahan' => 'Bahan', 'lengan' => 'Tipe Lengan', 'kerah' => 'Tipe Kerah', 'estimasi' => 'Estimasi Bahan', 'harga' => 'Tier Harga'] as $key => $label)
             <button type="button" onclick="switchJerseyTab('{{ $key }}')" id="tab-btn-{{ $key }}"
                 class="jersey-tab-btn px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all {{ $loop->first ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-white text-slate-400 border border-slate-200' }}">
                 {{ $label }}
@@ -129,6 +129,50 @@
         </x-card>
     </div>
 
+    {{-- TIPE LENGAN --}}
+    <div id="tab-panel-lengan" class="jersey-tab-panel hidden">
+        <x-card>
+            <p class="text-xs text-slate-400 mb-4">Tipe lengan riil (mis. Pendek, Panjang, 3/4) yang dipilih saat membuat order - dipakai sebagai acuan estimasi bahan, bukan lagi pilihan tetap.</p>
+            <form id="form-add-lengan" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
+                <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe lengan (mis. 3/4 Lengan)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <x-button type="submit" variant="success">Tambah</x-button>
+            </form>
+            @include('jersey.master._filter-toolbar', ['searchId' => 'search-lengan', 'statusId' => 'filter-status-lengan', 'placeholder' => 'Cari tipe lengan...'])
+            <x-table bare>
+                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
+                <tbody class="divide-y divide-slate-50" id="tbody-lengan" data-empty-colspan="2" data-empty-text="Belum ada tipe lengan">
+                    @forelse($sleeveTypes as $st)
+                        @include('jersey.master._row-simple', ['row' => $st, 'entity' => 'sleeve-types'])
+                    @empty
+                    <tr class="row-empty"><td colspan="2"><x-empty-state title="Belum ada tipe lengan" /></td></tr>
+                    @endforelse
+                </tbody>
+            </x-table>
+        </x-card>
+    </div>
+
+    {{-- TIPE KERAH --}}
+    <div id="tab-panel-kerah" class="jersey-tab-panel hidden">
+        <x-card>
+            <p class="text-xs text-slate-400 mb-4">Tipe kerah riil (mis. O-Neck, V-Neck) yang dipilih saat membuat order - dipakai sebagai acuan estimasi bahan, bukan lagi diketik bebas.</p>
+            <form id="form-add-kerah" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
+                <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe kerah (mis. V-Neck)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <x-button type="submit" variant="success">Tambah</x-button>
+            </form>
+            @include('jersey.master._filter-toolbar', ['searchId' => 'search-kerah', 'statusId' => 'filter-status-kerah', 'placeholder' => 'Cari tipe kerah...'])
+            <x-table bare>
+                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
+                <tbody class="divide-y divide-slate-50" id="tbody-kerah" data-empty-colspan="2" data-empty-text="Belum ada tipe kerah">
+                    @forelse($collarTypes as $ct)
+                        @include('jersey.master._row-simple', ['row' => $ct, 'entity' => 'collar-types'])
+                    @empty
+                    <tr class="row-empty"><td colspan="2"><x-empty-state title="Belum ada tipe kerah" /></td></tr>
+                    @endforelse
+                </tbody>
+            </x-table>
+        </x-card>
+    </div>
+
     {{-- ESTIMASI BAHAN (matriks ukuran x komponen) --}}
     <div id="tab-panel-estimasi" class="jersey-tab-panel hidden">
         <x-card>
@@ -204,6 +248,84 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            <div class="border-t border-slate-100 mt-6 pt-6">
+                <p class="text-xs text-slate-400 mb-4">Estimasi bahan untuk Tipe Lengan & Tipe Kerah - kelola daftar tipenya di tab <b class="text-slate-500">Tipe Lengan</b>/<b class="text-slate-500">Tipe Kerah</b>, isi angka pemakaiannya di sini per ukuran. Order mode Daftar Pemain/Campuran memakai pilihan lengan/kerah masing-masing pemain; mode Qty per Ukuran memakai pilihan default di level barang.</p>
+
+                <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-2">Estimasi Lengan (meter &amp; gram)</p>
+                <div class="overflow-x-auto mb-6">
+                    <table class="w-full text-xs border-collapse" id="tabel-estimasi-lengan">
+                        <thead>
+                            <tr>
+                                <th class="p-2.5 text-left sticky left-0 bg-white z-10">Ukuran</th>
+                                @foreach($sleeveTypes->where('is_active', true) as $st)
+                                <th class="p-2.5 text-center whitespace-nowrap" data-type-th="{{ $st->id }}">{{ $st->name }}</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($sleeveTypes->where('is_active', true) as $x)@break @empty
+                            <tr><td class="p-3 text-center text-slate-300 italic">Belum ada Tipe Lengan aktif - tambah dulu di tab Tipe Lengan.</td></tr>
+                            @endforelse
+                            @if($sleeveTypes->where('is_active', true)->isNotEmpty())
+                            @foreach($sizes as $s)
+                            <tr data-size-id="{{ $s->id }}">
+                                <td class="p-2.5 font-semibold sticky left-0 bg-white">{{ $s->name }}</td>
+                                @foreach($sleeveTypes->where('is_active', true) as $st)
+                                @php $u = optional($sleeveUsageMatrix[$s->id] ?? null)[$st->id] ?? null; @endphp
+                                <td class="p-1" data-type-td="{{ $st->id }}">
+                                    <input type="number" step="0.01" min="0" value="{{ $u->usage_meter ?? '' }}" placeholder="m"
+                                        onchange="simpanEstimasiLengan({{ $s->id }}, {{ $st->id }}, 'meter', this.value)"
+                                        class="w-16 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20 mb-1">
+                                    <input type="number" step="1" min="0" value="{{ $u->usage_weight_gram ?? '' }}" placeholder="g"
+                                        onchange="simpanEstimasiLengan({{ $s->id }}, {{ $st->id }}, 'weight', this.value)"
+                                        class="w-16 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
+                                </td>
+                                @endforeach
+                            </tr>
+                            @endforeach
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-2">Estimasi Kerah (meter &amp; gram)</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs border-collapse" id="tabel-estimasi-kerah">
+                        <thead>
+                            <tr>
+                                <th class="p-2.5 text-left sticky left-0 bg-white z-10">Ukuran</th>
+                                @foreach($collarTypes->where('is_active', true) as $ct)
+                                <th class="p-2.5 text-center whitespace-nowrap" data-type-th="{{ $ct->id }}">{{ $ct->name }}</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($collarTypes->where('is_active', true) as $x)@break @empty
+                            <tr><td class="p-3 text-center text-slate-300 italic">Belum ada Tipe Kerah aktif - tambah dulu di tab Tipe Kerah.</td></tr>
+                            @endforelse
+                            @if($collarTypes->where('is_active', true)->isNotEmpty())
+                            @foreach($sizes as $s)
+                            <tr data-size-id="{{ $s->id }}">
+                                <td class="p-2.5 font-semibold sticky left-0 bg-white">{{ $s->name }}</td>
+                                @foreach($collarTypes->where('is_active', true) as $ct)
+                                @php $u = optional($collarUsageMatrix[$s->id] ?? null)[$ct->id] ?? null; @endphp
+                                <td class="p-1" data-type-td="{{ $ct->id }}">
+                                    <input type="number" step="0.01" min="0" value="{{ $u->usage_meter ?? '' }}" placeholder="m"
+                                        onchange="simpanEstimasiKerah({{ $s->id }}, {{ $ct->id }}, 'meter', this.value)"
+                                        class="w-16 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20 mb-1">
+                                    <input type="number" step="1" min="0" value="{{ $u->usage_weight_gram ?? '' }}" placeholder="g"
+                                        onchange="simpanEstimasiKerah({{ $s->id }}, {{ $ct->id }}, 'weight', this.value)"
+                                        class="w-16 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
+                                </td>
+                                @endforeach
+                            </tr>
+                            @endforeach
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </x-card>
     </div>
@@ -427,6 +549,8 @@
         'product-types': { tbody: 'tbody-tipe', form: 'form-add-tipe', routeBase: '{{ url("/jersey/master/product-types") }}', selectTarget: 'harga-select-tipe', search: 'search-tipe', status: 'filter-status-tipe', colspan: 2 },
         categories: { tbody: 'tbody-kategori', form: 'form-add-kategori', routeBase: '{{ url("/jersey/master/categories") }}', selectTarget: 'harga-select-kategori', search: 'search-kategori', status: 'filter-status-kategori', colspan: 2 },
         materials: { tbody: 'tbody-bahan', form: 'form-add-bahan', routeBase: '{{ url("/jersey/master/materials") }}', selectTarget: 'harga-select-bahan', search: 'search-bahan', status: 'filter-status-bahan', colspan: 2 },
+        'sleeve-types': { tbody: 'tbody-lengan', form: 'form-add-lengan', routeBase: '{{ url("/jersey/master/sleeve-types") }}', search: 'search-lengan', status: 'filter-status-lengan', colspan: 2 },
+        'collar-types': { tbody: 'tbody-kerah', form: 'form-add-kerah', routeBase: '{{ url("/jersey/master/collar-types") }}', search: 'search-kerah', status: 'filter-status-kerah', colspan: 2 },
     };
 
     // ---- Filter & pencarian (semua tab) - murni client-side, data tiap tab
@@ -510,8 +634,57 @@
                 document.getElementById(cfg.selectTarget)
                     .insertAdjacentHTML('beforeend', `<option value="${data.row.id}">${escapeHtmlJersey(data.row.name)}</option>`);
             }
+
+            // Tipe Lengan/Kerah baru langsung jadi kolom baru di matriks
+            // Estimasi Lengan/Kerah TANPA reload - sama seperti "Tambah
+            // Komponen" di matriks Estimasi Bahan.
+            if (entity === 'sleeve-types') tambahKolomEstimasiTipe('lengan', data.row);
+            if (entity === 'collar-types') tambahKolomEstimasiTipe('kerah', data.row);
         });
     });
+
+    // Tambah satu kolom (th + td berisi 2 input meter/gram per baris
+    // ukuran) ke tabel Estimasi Lengan atau Estimasi Kerah - dipanggil
+    // begitu Tipe Lengan/Kerah baru berhasil ditambahkan.
+    function tambahKolomEstimasiTipe(jenis, row) {
+        const table = document.getElementById(`tabel-estimasi-${jenis}`);
+        if (!table) return;
+        const fkField = jenis === 'lengan' ? 'jersey_sleeve_type_id' : 'jersey_collar_type_id';
+        const fnName = jenis === 'lengan' ? 'simpanEstimasiLengan' : 'simpanEstimasiKerah';
+
+        table.querySelector('thead tr').insertAdjacentHTML('beforeend', `<th class="p-2.5 text-center whitespace-nowrap" data-type-th="${row.id}">${escapeHtmlJersey(row.name)}</th>`);
+
+        let tbody = table.querySelector('tbody');
+        const belumAdaBarisUkuran = tbody.querySelectorAll('tr[data-size-id]').length === 0;
+        if (belumAdaBarisUkuran) {
+            // Matriks sebelumnya kosong ("Belum ada Tipe X aktif") - bangun
+            // ulang seluruh baris ukuran sekarang tipe pertama sudah ada.
+            const ukuranRows = @json($sizes->map(fn ($s) => ['id' => $s->id, 'name' => $s->name]));
+            tbody.innerHTML = ukuranRows.map(u => `
+                <tr data-size-id="${u.id}">
+                    <td class="p-2.5 font-semibold sticky left-0 bg-white">${escapeHtmlJersey(u.name)}</td>
+                </tr>`).join('');
+        }
+        tbody.querySelectorAll('tr[data-size-id]').forEach(tr => {
+            const sizeId = tr.dataset.sizeId;
+            tr.insertAdjacentHTML('beforeend', `
+                <td class="p-1" data-type-td="${row.id}">
+                    <input type="number" step="0.01" min="0" value="" placeholder="m"
+                        onchange="${fnName}(${sizeId}, ${row.id}, 'meter', this.value)"
+                        class="w-16 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20 mb-1">
+                    <input type="number" step="1" min="0" value="" placeholder="g"
+                        onchange="${fnName}(${sizeId}, ${row.id}, 'weight', this.value)"
+                        class="w-16 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
+                </td>`);
+        });
+    }
+
+    function hapusKolomEstimasiTipe(jenis, id) {
+        const table = document.getElementById(`tabel-estimasi-${jenis}`);
+        if (!table) return;
+        table.querySelector(`[data-type-th="${id}"]`)?.remove();
+        table.querySelectorAll(`[data-type-td="${id}"]`).forEach(td => td.remove());
+    }
 
     function bukaEditSimple(entity, id, name) {
         document.getElementById('edit-simple-entity').value = entity;
@@ -558,6 +731,17 @@
         }
         tampilkanToastJersey(data.message);
         terapkanFilterEntitas(entity);
+
+        // Tipe Lengan/Kerah yang dinonaktifkan langsung hilang dari matriks
+        // estimasi, yang diaktifkan lagi langsung muncul lagi - tanpa reload.
+        if (entity === 'sleeve-types' || entity === 'collar-types') {
+            const jenis = entity === 'sleeve-types' ? 'lengan' : 'kerah';
+            if (data.row.is_active) {
+                tambahKolomEstimasiTipe(jenis, data.row);
+            } else {
+                hapusKolomEstimasiTipe(jenis, id);
+            }
+        }
     }
 
     // ---- Ukuran ----
@@ -766,6 +950,36 @@
             if (field === 'meter') payload.usage_meter = value === '' ? null : value;
             if (field === 'weight') payload.usage_weight_gram = value === '' ? null : value;
             const data = await kirimJson('{{ url("/jersey/master/usage") }}', 'POST', payload);
+            if (data) tampilkanToastJersey(data.message);
+        }, 400);
+    }
+
+    // ---- Estimasi Lengan & Kerah (ukuran x tipe -> meter/berat) - pola
+    // debounce sama seperti simpanEstimasi() Komponen, tapi tanpa kolom
+    // Total live (matriksnya lebih kecil, tipe dikelola di tab terpisah
+    // jadi tidak butuh tambah-kolom-dinamis lewat JS). ----
+    const simpanEstimasiLenganTimers = {};
+    function simpanEstimasiLengan(sizeId, sleeveTypeId, field, value) {
+        const key = `${sizeId}-${sleeveTypeId}-${field}`;
+        clearTimeout(simpanEstimasiLenganTimers[key]);
+        simpanEstimasiLenganTimers[key] = setTimeout(async () => {
+            const payload = { jersey_size_id: sizeId, jersey_sleeve_type_id: sleeveTypeId };
+            if (field === 'meter') payload.usage_meter = value === '' ? null : value;
+            if (field === 'weight') payload.usage_weight_gram = value === '' ? null : value;
+            const data = await kirimJson('{{ url("/jersey/master/sleeve-usage") }}', 'POST', payload);
+            if (data) tampilkanToastJersey(data.message);
+        }, 400);
+    }
+
+    const simpanEstimasiKerahTimers = {};
+    function simpanEstimasiKerah(sizeId, collarTypeId, field, value) {
+        const key = `${sizeId}-${collarTypeId}-${field}`;
+        clearTimeout(simpanEstimasiKerahTimers[key]);
+        simpanEstimasiKerahTimers[key] = setTimeout(async () => {
+            const payload = { jersey_size_id: sizeId, jersey_collar_type_id: collarTypeId };
+            if (field === 'meter') payload.usage_meter = value === '' ? null : value;
+            if (field === 'weight') payload.usage_weight_gram = value === '' ? null : value;
+            const data = await kirimJson('{{ url("/jersey/master/collar-usage") }}', 'POST', payload);
             if (data) tampilkanToastJersey(data.message);
         }, 400);
     }

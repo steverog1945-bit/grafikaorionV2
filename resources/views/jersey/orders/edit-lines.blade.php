@@ -34,7 +34,7 @@
         <div id="wrapper-lines" class="space-y-6 mb-6">
             @foreach($order->lines as $line)
             <div class="jersey-line-card bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden" data-prefix="lines[{{ $line->id }}]">
-                @include('jersey.orders._line-card-fields', ['idx' => $line->id, 'line' => $line, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes])
+                @include('jersey.orders._line-card-fields', ['idx' => $line->id, 'line' => $line, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
             </div>
             @endforeach
         </div>
@@ -52,13 +52,13 @@
 {{-- ===================== TEMPLATE 1 BARIS BARANG (kosong, untuk "+ Tambah Jenis Barang") ===================== --}}
 <template id="template_baris_barang">
     <div class="jersey-line-card bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-        @include('jersey.orders._line-card-fields', ['idx' => '__LINE__', 'line' => null, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes])
+        @include('jersey.orders._line-card-fields', ['idx' => '__LINE__', 'line' => null, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
     </div>
 </template>
 
 {{-- ===================== TEMPLATE BARIS PEMAIN (kosong) ===================== --}}
 <template id="template_baris_pemain_jersey">
-    @include('jersey.orders._player-row-fields', ['prefix' => '__PREFIX__', 'itemIdx' => '__ITEM__', 'item' => null, 'sizes' => $sizes])
+    @include('jersey.orders._player-row-fields', ['prefix' => '__PREFIX__', 'itemIdx' => '__ITEM__', 'item' => null, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
 </template>
 
 @push('scripts')

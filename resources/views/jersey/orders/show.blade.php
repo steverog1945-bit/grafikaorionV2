@@ -19,6 +19,9 @@
                     </a>
                 </div>
             </div>
+            <x-button type="button" variant="success" onclick="openModal('tambah-susulan')">
+                <i class="fas fa-plus"></i> Tambah Barang Susulan
+            </x-button>
             <x-button href="{{ route('jersey.orders.edit-lines', $order->id) }}" variant="secondary">
                 <i class="fas fa-boxes-stacked"></i> Kelola Barang
             </x-button>
@@ -86,8 +89,13 @@
                         @endif
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-slate-700">{{ $line->nama_barang }}</h3>
-                        <p class="text-[11px] text-slate-400">{{ $line->productType->name ?? '-' }} &middot; {{ $line->category->name ?? '-' }} &middot; {{ $line->bahan ?? '-' }}</p>
+                        <h3 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            {{ $line->nama_barang }}
+                            @if($line->is_susulan)
+                                <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-[9px] font-black uppercase tracking-widest">Susulan</span>
+                            @endif
+                        </h3>
+                        <p class="text-[11px] text-slate-400">{{ $line->productType->name ?? '-' }} &middot; {{ $line->category->name ?? '-' }} &middot; {{ $line->bahan ?? '-' }} @if($line->sleeveType) &middot; {{ $line->sleeveType->name }} @endif @if($line->collarType) &middot; {{ $line->collarType->name }} @endif</p>
                         <p class="text-[11px] text-slate-400">
                             {{ $line->qty }} pcs &times; Rp {{ number_format($line->harga_satuan, 0, ',', '.') }}
                             @if($line->size_surcharge_total > 0)
@@ -222,6 +230,20 @@
         </form>
     </x-card>
 
+    <x-modal id="tambah-susulan" title="Tambah Barang Susulan" maxWidth="4xl">
+        <p class="text-xs text-slate-400 mb-4 -mt-2">Barang lama pada order ini <b class="text-slate-500">tidak akan berubah/terhapus</b> - cocok untuk kasus qty/jenis barang bertambah setelah order awal berjalan (mis. panitia bertambah, butuh jersey tambahan).</p>
+        <form id="form-tambah-susulan" action="{{ route('jersey.orders.lines.susulan', $order->id) }}" method="POST">
+            @csrf
+            <div class="jersey-line-card bg-slate-50/60 rounded-2xl border border-slate-200 overflow-hidden mb-5">
+                @include('jersey.orders._line-card-fields', ['idx' => 0, 'line' => null, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeModal('tambah-susulan')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
+                <button type="submit" class="flex-[2] py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase">Simpan Barang Susulan</button>
+            </div>
+        </form>
+    </x-modal>
+
     <x-modal id="tambah-pembayaran" title="Catat Pembayaran" maxWidth="md">
         <form id="form-tambah-pembayaran" action="{{ route('jersey.keuangan.bayar.store', $order->id) }}" method="POST">
             @csrf
@@ -266,6 +288,12 @@
         </form>
     </x-modal>
 </div>
+
+{{-- Template baris pemain kosong - dipakai tombol "+ Tambah Pemain" di
+     dalam modal Tambah Barang Susulan (pola sama seperti create.blade.php). --}}
+<template id="template_baris_pemain_jersey">
+    @include('jersey.orders._player-row-fields', ['prefix' => '__PREFIX__', 'itemIdx' => '__ITEM__', 'item' => null, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
+</template>
 
 @push('scripts')
 <script>
@@ -356,6 +384,132 @@
 
     document.getElementById('form-tambah-pembayaran').addEventListener('submit', (e) => {
         document.getElementById('pembayaran-jumlah').value = cleanRupiah(document.getElementById('pembayaran-jumlah-display').value);
+    });
+
+    // ---- Modal Tambah Barang Susulan - dukungan mode order (toggle),
+    // daftar pemain, & upload thumbnail sama persis dengan Order Jersey
+    // Baru / Kelola Barang (satu kartu barang saja, idx tetap 0). ----
+    function toggleLineType(radio) {
+        const card = radio.closest('.jersey-line-card');
+        const tipe = radio.value;
+        card.querySelector('.wrapper-qty-ukuran').classList.toggle('hidden', tipe === 'player_list');
+        card.querySelector('.wrapper-daftar-pemain').classList.toggle('hidden', tipe === 'quantity_only');
+        if (tipe !== 'quantity_only' && card.querySelectorAll('.tbody-pemain .baris-pemain').length === 0) {
+            tambahBarisPemain(card.querySelector('.wrapper-daftar-pemain button'));
+        }
+        card.querySelectorAll('.line-type-option').forEach(label => {
+            const checked = label.querySelector('input').checked;
+            label.classList.toggle('border-indigo-500', checked);
+            label.classList.toggle('bg-indigo-50', checked);
+            label.classList.toggle('text-indigo-700', checked);
+            label.classList.toggle('border-slate-100', !checked);
+            label.classList.toggle('text-slate-400', !checked);
+        });
+    }
+
+    function tambahBarisPemain(btn) {
+        const card = btn.closest('.jersey-line-card');
+        const tbody = card.querySelector('.tbody-pemain');
+        const itemIdx = tbody.querySelectorAll('.baris-pemain').length;
+        const html = document.getElementById('template_baris_pemain_jersey').innerHTML
+            .replaceAll('__PREFIX__', 'lines[0]')
+            .replaceAll('__ITEM__', itemIdx);
+        tbody.insertAdjacentHTML('beforeend', html);
+    }
+
+    function pasangPasteThumbnail(card) {
+        const dropzone = card.querySelector('.thumbnail-dropzone');
+        dropzone.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || window.clipboardData).items;
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    prosesUploadThumbnailBarang(card, item.getAsFile());
+                    e.preventDefault();
+                    return;
+                }
+            }
+        });
+    }
+
+    async function uploadThumbnailLine(input) {
+        if (!input.files || !input.files[0]) return;
+        await prosesUploadThumbnailBarang(input.closest('.jersey-line-card'), input.files[0]);
+    }
+
+    async function prosesUploadThumbnailBarang(card, file) {
+        const statusEl = card.querySelector('.thumbnail-status');
+        statusEl.textContent = 'Mengunggah...';
+        statusEl.classList.remove('text-rose-500');
+        const formData = new FormData();
+        formData.append('thumbnail', file);
+        formData.append('_token', '{{ csrf_token() }}');
+        try {
+            const res = await fetch('{{ route("jersey.orders.upload-thumbnail") }}', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.status === 'success') {
+                card.querySelector('.thumbnail-path').value = data.path;
+                const img = card.querySelector('.thumbnail-preview');
+                img.src = data.url;
+                img.classList.remove('hidden');
+                card.querySelectorAll('.thumbnail-placeholder').forEach(el => el.classList.add('hidden'));
+                statusEl.textContent = 'Thumbnail siap. Klik kotak untuk mengganti.';
+            } else {
+                statusEl.textContent = 'Gagal mengunggah, coba lagi.';
+                statusEl.classList.add('text-rose-500');
+            }
+        } catch (e) {
+            statusEl.textContent = 'Gagal mengunggah, coba lagi.';
+            statusEl.classList.add('text-rose-500');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const card = document.querySelector('#modal-tambah-susulan .jersey-line-card');
+        if (card) pasangPasteThumbnail(card);
+    });
+
+    document.getElementById('form-tambah-susulan').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        document.querySelectorAll('#modal-tambah-susulan .baris-pemain').forEach(row => {
+            if (row.querySelector('[name*="player_name"]').value.trim() === '') row.remove();
+        });
+
+        const card = document.querySelector('#modal-tambah-susulan .jersey-line-card');
+        if (!card || card.querySelector('.thumbnail-path').value.trim() === '') {
+            Swal.fire('Thumbnail Belum Diisi', 'Barang susulan wajib ada thumbnail desain.', 'warning');
+            return;
+        }
+
+        let peringatan = [];
+        try {
+            const res = await fetch('{{ route("jersey.orders.cek-kelengkapan") }}', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: new FormData(this),
+            });
+            const data = await res.json();
+            peringatan = data.peringatan || [];
+        } catch (err) {
+            peringatan = [];
+        }
+
+        if (peringatan.length > 0) {
+            const daftar = peringatan.map(p => `<li>${p}</li>`).join('');
+            const konfirmasi = await Swal.fire({
+                title: 'Ada Komponen Belum Lengkap',
+                html: `<ul style="text-align:left; font-size:12.5px; padding-left:1.2em;">${daftar}</ul>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                confirmButtonText: 'Ya, Simpan Sekarang',
+                cancelButtonText: 'Batal, Saya Cek Lagi',
+                customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
+            });
+            if (!konfirmasi.isConfirmed) return;
+        }
+
+        this.submit();
     });
 </script>
 @endpush

@@ -15,11 +15,16 @@
         </select>
     </td>
     <td class="p-1">
-        <select name="{{ $prefix }}[items][{{ $itemIdx }}][sleeve]" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-semibold">
-            <option value="Pendek" @selected(($item->sleeve ?? 'Pendek') === 'Pendek')>Pendek</option>
-            <option value="Panjang" @selected(($item->sleeve ?? null) === 'Panjang')>Panjang</option>
+        <select name="{{ $prefix }}[items][{{ $itemIdx }}][jersey_sleeve_type_id]" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-semibold">
+            <option value="">-- Lengan --</option>
+            @foreach($sleeveTypes as $st)<option value="{{ $st->id }}" @selected(($item->jersey_sleeve_type_id ?? null) == $st->id)>{{ $st->name }}</option>@endforeach
         </select>
     </td>
-    <td class="p-1"><input type="text" name="{{ $prefix }}[items][{{ $itemIdx }}][collar]" value="{{ $item->collar ?? '' }}" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-semibold"></td>
+    <td class="p-1">
+        <select name="{{ $prefix }}[items][{{ $itemIdx }}][jersey_collar_type_id]" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-semibold">
+            <option value="">-- Kerah --</option>
+            @foreach($collarTypes as $ct)<option value="{{ $ct->id }}" @selected(($item->jersey_collar_type_id ?? null) == $ct->id)>{{ $ct->name }}</option>@endforeach
+        </select>
+    </td>
     <td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove()" class="w-6 h-6 text-rose-400"><i class="far fa-trash-alt text-[10px]"></i></button></td>
 </tr>

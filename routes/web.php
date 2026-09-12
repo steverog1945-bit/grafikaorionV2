@@ -474,6 +474,7 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         Route::delete('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'destroy'])->name('orders.destroy');
         Route::get('/{order}/edit-lines', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'editLines'])->name('orders.edit-lines');
         Route::put('/{order}/lines', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'updateLines'])->name('orders.update-lines');
+        Route::post('/{order}/lines/susulan', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'storeLineSusulan'])->name('orders.lines.susulan');
         Route::get('/{order}/print/{format?}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'print'])->name('orders.print');
         Route::get('/{order}/lines/{line}/spk', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'printLine'])->name('orders.lines.spk');
 
@@ -505,6 +506,16 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         Route::patch('/master/components/{component}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleComponent'])->name('master.components.toggle');
 
         Route::post('/master/usage', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'saveUsage'])->name('master.usage.save');
+
+        Route::post('/master/sleeve-types', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeSleeveType'])->name('master.sleeve-types.store');
+        Route::put('/master/sleeve-types/{sleeveType}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'updateSleeveType'])->name('master.sleeve-types.update');
+        Route::patch('/master/sleeve-types/{sleeveType}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleSleeveType'])->name('master.sleeve-types.toggle');
+        Route::post('/master/sleeve-usage', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'saveSleeveUsage'])->name('master.sleeve-usage.save');
+
+        Route::post('/master/collar-types', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeCollarType'])->name('master.collar-types.store');
+        Route::put('/master/collar-types/{collarType}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'updateCollarType'])->name('master.collar-types.update');
+        Route::patch('/master/collar-types/{collarType}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleCollarType'])->name('master.collar-types.toggle');
+        Route::post('/master/collar-usage', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'saveCollarUsage'])->name('master.collar-usage.save');
 
         Route::post('/upload-thumbnail', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'uploadThumbnail'])->name('orders.upload-thumbnail');
     });

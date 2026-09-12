@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Jersey;
 
 use App\Http\Controllers\Controller;
 use App\Models\JerseyCategory;
+use App\Models\JerseyCollarType;
 use App\Models\JerseyDesigner;
 use App\Models\JerseyMaterial;
 use App\Models\JerseyOrder;
 use App\Models\JerseyOrderLine;
 use App\Models\JerseyProductType;
 use App\Models\JerseySize;
+use App\Models\JerseySleeveType;
 use App\Models\Konsumen;
 use App\Services\JerseyMaterialEstimationService;
 use App\Services\JerseyOrderPricingService;
@@ -54,6 +56,8 @@ class JerseyOrderController extends Controller
             'categories' => JerseyCategory::where('is_active', true)->orderBy('name')->get(),
             'materials' => JerseyMaterial::where('is_active', true)->orderBy('name')->get(),
             'sizes' => JerseySize::where('is_active', true)->orderBy('sort_order')->get(),
+            'sleeveTypes' => JerseySleeveType::where('is_active', true)->orderBy('sort_order')->get(),
+            'collarTypes' => JerseyCollarType::where('is_active', true)->orderBy('sort_order')->get(),
         ];
     }
 
@@ -138,6 +142,8 @@ class JerseyOrderController extends Controller
             'lines.*.jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
             'lines.*.jersey_category_id' => 'nullable|exists:jersey_categories,id',
             'lines.*.jersey_material_id' => 'nullable|exists:jersey_materials,id',
+            'lines.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
+            'lines.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
             'lines.*.keterangan' => 'nullable|string|max:2000',
             'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
@@ -147,8 +153,8 @@ class JerseyOrderController extends Controller
             'lines.*.items.*.player_number' => 'nullable|string|max:20',
             'lines.*.items.*.size' => 'nullable|in:S,M,L,XL,2XL,3XL,4XL,5XL',
             'lines.*.items.*.gender' => 'nullable|in:L,P',
-            'lines.*.items.*.sleeve' => 'nullable|in:Pendek,Panjang',
-            'lines.*.items.*.collar' => 'nullable|string|max:100',
+            'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
+            'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
 
             'lines.*.size_quantities' => 'nullable|array',
             'lines.*.size_quantities.*' => 'nullable|integer|min:0',
@@ -231,12 +237,16 @@ class JerseyOrderController extends Controller
      * dengan cara yang identik. Baris kosong (qty 0) dilewati, kembalikan
      * false supaya pemanggil tahu baris itu tidak jadi dibuat.
      */
-    private function simpanBarisOrder(JerseyOrder $order, array $lineData): bool
+    private function simpanBarisOrder(JerseyOrder $order, array $lineData, bool $susulan = false): bool
     {
         static $sizeIdByName = null;
         static $surchargeBySizeId = null;
+        static $sleeveNameById = null;
+        static $collarNameById = null;
         $sizeIdByName ??= JerseySize::pluck('id', 'name');
         $surchargeBySizeId ??= JerseySize::pluck('price_surcharge', 'id');
+        $sleeveNameById ??= JerseySleeveType::pluck('name', 'id');
+        $collarNameById ??= JerseyCollarType::pluck('name', 'id');
 
         $items = array_values(array_filter($lineData['items'] ?? [], fn ($i) => trim($i['player_name'] ?? '') !== ''));
         $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
@@ -258,6 +268,40 @@ class JerseyOrderController extends Controller
             $sizeId = $sizeIdByName[$item['size']] ?? null;
             if ($sizeId) {
                 $qtyPerSizeId[$sizeId] = ($qtyPerSizeId[$sizeId] ?? 0) + 1;
+            }
+        }
+
+        // Qty per ukuran x tipe Lengan/Kerah - dipakai untuk estimasi bahan
+        // yang lebih akurat (lengan panjang/kerah tertentu makan bahan
+        // lebih banyak, tidak lagi disamaratakan). Bagian size_quantities
+        // (tanpa data per pemain) memakai pilihan DEFAULT di level barang;
+        // bagian daftar pemain memakai pilihan masing-masing pemain sendiri
+        // - keduanya digabung per ukuran, sama seperti penggabungan qty.
+        $lineSleeveTypeId = !empty($lineData['jersey_sleeve_type_id']) ? (int) $lineData['jersey_sleeve_type_id'] : null;
+        $lineCollarTypeId = !empty($lineData['jersey_collar_type_id']) ? (int) $lineData['jersey_collar_type_id'] : null;
+
+        $qtyPerSizeSleeveType = [];
+        $qtyPerSizeCollarType = [];
+        foreach ($sizeQuantitiesMentah as $sizeId => $q) {
+            if ($lineSleeveTypeId) {
+                $qtyPerSizeSleeveType[$sizeId][$lineSleeveTypeId] = ($qtyPerSizeSleeveType[$sizeId][$lineSleeveTypeId] ?? 0) + (int) $q;
+            }
+            if ($lineCollarTypeId) {
+                $qtyPerSizeCollarType[$sizeId][$lineCollarTypeId] = ($qtyPerSizeCollarType[$sizeId][$lineCollarTypeId] ?? 0) + (int) $q;
+            }
+        }
+        foreach ($items as $item) {
+            $sizeId = $sizeIdByName[$item['size']] ?? null;
+            if (!$sizeId) {
+                continue;
+            }
+            if (!empty($item['jersey_sleeve_type_id'])) {
+                $stId = (int) $item['jersey_sleeve_type_id'];
+                $qtyPerSizeSleeveType[$sizeId][$stId] = ($qtyPerSizeSleeveType[$sizeId][$stId] ?? 0) + 1;
+            }
+            if (!empty($item['jersey_collar_type_id'])) {
+                $ctId = (int) $item['jersey_collar_type_id'];
+                $qtyPerSizeCollarType[$sizeId][$ctId] = ($qtyPerSizeCollarType[$sizeId][$ctId] ?? 0) + 1;
             }
         }
 
@@ -286,11 +330,14 @@ class JerseyOrderController extends Controller
             'jersey_product_type_id' => $lineData['jersey_product_type_id'] ?? null,
             'jersey_category_id' => $lineData['jersey_category_id'] ?? null,
             'jersey_material_id' => $material?->id,
+            'jersey_sleeve_type_id' => $lineSleeveTypeId,
+            'jersey_collar_type_id' => $lineCollarTypeId,
             'nama_barang' => $lineData['nama_barang'],
             'bahan' => $material?->name,
             'keterangan' => $lineData['keterangan'] ?? null,
             'thumbnail' => $lineData['thumbnail'],
             'order_type' => $lineData['order_type'],
+            'is_susulan' => $susulan,
             'qty' => $qty,
             'harga_satuan' => $hargaSatuan,
             'size_surcharge_total' => $surchargeTotal,
@@ -299,6 +346,12 @@ class JerseyOrderController extends Controller
         ]);
 
         foreach ($items as $item) {
+            // sleeve/collar (teks) dipertahankan sebagai snapshot nama -
+            // pola sama seperti jersey_order_lines.bahan mendampingi
+            // jersey_material_id - supaya tampilan lama (SPK, daftar
+            // pemain) tidak perlu diubah, cukup baca kolom teks ini.
+            $item['sleeve'] = !empty($item['jersey_sleeve_type_id']) ? ($sleeveNameById[$item['jersey_sleeve_type_id']] ?? null) : null;
+            $item['collar'] = !empty($item['jersey_collar_type_id']) ? ($collarNameById[$item['jersey_collar_type_id']] ?? null) : null;
             $line->items()->create($item);
         }
         foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
@@ -309,12 +362,27 @@ class JerseyOrderController extends Controller
         }
 
         // Spesifikasi Order (pemakaian bahan) dihitung OTOMATIS dari qty per
-        // ukuran x matriks estimasi ukuran-komponen di Master Data - bukan
-        // diketik manual lagi (lihat JerseyMaterialEstimationService).
-        // Estimasi murni.
+        // ukuran x TIGA matriks estimasi di Master Data (Komponen, Tipe
+        // Lengan, Tipe Kerah) - bukan diketik manual lagi, dan tidak lagi
+        // menyamaratakan semua pilihan lengan/kerah (lihat
+        // JerseyMaterialEstimationService). Estimasi murni.
         foreach (JerseyMaterialEstimationService::hitungEstimasi($qtyPerSizeId) as $estimasi) {
             $line->materials()->create([
                 'nama_barang' => $estimasi['component']->name,
+                'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,
+                'penggunaan_kg' => $estimasi['total_weight_gram'] > 0 ? round($estimasi['total_weight_gram'] / 1000, 2) : null,
+            ]);
+        }
+        foreach (JerseyMaterialEstimationService::hitungEstimasiLengan($qtyPerSizeSleeveType) as $estimasi) {
+            $line->materials()->create([
+                'nama_barang' => 'Lengan ' . $estimasi['component']->name,
+                'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,
+                'penggunaan_kg' => $estimasi['total_weight_gram'] > 0 ? round($estimasi['total_weight_gram'] / 1000, 2) : null,
+            ]);
+        }
+        foreach (JerseyMaterialEstimationService::hitungEstimasiKerah($qtyPerSizeCollarType) as $estimasi) {
+            $line->materials()->create([
+                'nama_barang' => 'Kerah ' . $estimasi['component']->name,
                 'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,
                 'penggunaan_kg' => $estimasi['total_weight_gram'] > 0 ? round($estimasi['total_weight_gram'] / 1000, 2) : null,
             ]);
@@ -327,10 +395,13 @@ class JerseyOrderController extends Controller
     {
         $order->load([
             'konsumen', 'designer', 'payments',
-            'lines.productType', 'lines.category', 'lines.material', 'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
+            'lines.productType', 'lines.category', 'lines.material', 'lines.sleeveType', 'lines.collarType',
+            'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
         ]);
-        $designers = JerseyDesigner::where('is_active', true)->orderBy('name')->get();
-        return view('jersey.orders.show', compact('order', 'designers'));
+        // Master data (termasuk designers) dari formData() yang sama dipakai
+        // create/edit-lines - dibutuhkan form modal "Tambah Barang Susulan"
+        // yang reuse partial _line-card-fields di halaman ini.
+        return view('jersey.orders.show', $this->formData() + compact('order'));
     }
 
     public function update(Request $request, JerseyOrder $order)
@@ -394,6 +465,8 @@ class JerseyOrderController extends Controller
             'lines.*.jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
             'lines.*.jersey_category_id' => 'nullable|exists:jersey_categories,id',
             'lines.*.jersey_material_id' => 'nullable|exists:jersey_materials,id',
+            'lines.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
+            'lines.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
             'lines.*.keterangan' => 'nullable|string|max:2000',
             'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
@@ -403,8 +476,8 @@ class JerseyOrderController extends Controller
             'lines.*.items.*.player_number' => 'nullable|string|max:20',
             'lines.*.items.*.size' => 'nullable|in:S,M,L,XL,2XL,3XL,4XL,5XL',
             'lines.*.items.*.gender' => 'nullable|in:L,P',
-            'lines.*.items.*.sleeve' => 'nullable|in:Pendek,Panjang',
-            'lines.*.items.*.collar' => 'nullable|string|max:100',
+            'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
+            'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
 
             'lines.*.size_quantities' => 'nullable|array',
             'lines.*.size_quantities.*' => 'nullable|integer|min:0',
@@ -437,6 +510,70 @@ class JerseyOrderController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Gagal memperbarui barang: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Tambah SATU barang susulan ke order yang sudah berjalan - TIDAK
+     * menyentuh barang lama sama sekali (beda dari updateLines() yang
+     * hapus-lalu-buat-ulang semua barang). Cocok untuk kasus qty/jenis
+     * barang bertambah SETELAH order awal jalan (mis. panitia acara
+     * bertambah, butuh jersey tambahan beberapa hari kemudian) - SPK
+     * barang lama yang sudah dicetak/diproses tetap valid, cuma barang
+     * baru ini yang ditandai is_susulan=true supaya jelas terlihat beda
+     * dari pesanan awal di halaman detail & cetak.
+     */
+    public function storeLineSusulan(Request $request, JerseyOrder $order)
+    {
+        $data = $request->validate([
+            'lines' => 'required|array|min:1',
+            'lines.*.nama_barang' => 'required|string|max:255',
+            'lines.*.jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
+            'lines.*.jersey_category_id' => 'nullable|exists:jersey_categories,id',
+            'lines.*.jersey_material_id' => 'nullable|exists:jersey_materials,id',
+            'lines.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
+            'lines.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
+            'lines.*.keterangan' => 'nullable|string|max:2000',
+            'lines.*.thumbnail' => 'required|string|max:255',
+            'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
+
+            'lines.*.items' => 'nullable|array',
+            'lines.*.items.*.player_name' => 'nullable|string|max:255',
+            'lines.*.items.*.player_number' => 'nullable|string|max:20',
+            'lines.*.items.*.size' => 'nullable|in:S,M,L,XL,2XL,3XL,4XL,5XL',
+            'lines.*.items.*.gender' => 'nullable|in:L,P',
+            'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
+            'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
+
+            'lines.*.size_quantities' => 'nullable|array',
+            'lines.*.size_quantities.*' => 'nullable|integer|min:0',
+        ], [
+            'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi.',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $adaLineValid = false;
+            foreach ($data['lines'] as $lineData) {
+                if ($this->simpanBarisOrder($order, $lineData, susulan: true)) {
+                    $adaLineValid = true;
+                }
+            }
+
+            if (!$adaLineValid) {
+                DB::rollBack();
+                return back()->withInput()->with('error', 'Isi qty/daftar pemain terlebih dahulu.');
+            }
+
+            $order->recalculateTotal();
+
+            DB::commit();
+
+            return redirect()->route('jersey.orders.show', $order->id)
+                ->with('success', 'Barang susulan berhasil ditambahkan ke order ' . $order->order_number . '.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Gagal menambah barang susulan: ' . $e->getMessage());
         }
     }
 

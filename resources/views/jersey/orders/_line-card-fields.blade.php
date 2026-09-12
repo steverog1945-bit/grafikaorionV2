@@ -48,11 +48,26 @@
                 <p class="text-[10px] text-rose-500 mt-1">Belum ada data Bahan - <a href="{{ route('jersey.master.index') }}" target="_blank" class="underline">tambah dulu di Master Data</a>.</p>
             @endif
         </div>
-        <div class="md:col-span-3">
+        <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Lengan (default)</label>
+            <select name="lines[{{ $idx }}][jersey_sleeve_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <option value="">-- Pilih --</option>
+                @foreach($sleeveTypes as $st)<option value="{{ $st->id }}" @selected(($line->jersey_sleeve_type_id ?? null) == $st->id)>{{ $st->name }}</option>@endforeach
+            </select>
+        </div>
+        <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kerah (default)</label>
+            <select name="lines[{{ $idx }}][jersey_collar_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <option value="">-- Pilih --</option>
+                @foreach($collarTypes as $ct)<option value="{{ $ct->id }}" @selected(($line->jersey_collar_type_id ?? null) == $ct->id)>{{ $ct->name }}</option>@endforeach
+            </select>
+        </div>
+        <div class="md:col-span-2">
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Keterangan Desain</label>
             <textarea name="lines[{{ $idx }}][keterangan]" rows="2" placeholder="mis. Lengan kanan bendera, dada kiri logo klub..." class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $line->keterangan ?? '' }}</textarea>
         </div>
     </div>
+    <p class="text-[10px] text-slate-400 -mt-4">Lengan &amp; Kerah default dipakai penuh untuk mode <b>Qty per Ukuran</b>, dan sebagai bawaan bagian qty-per-ukuran pada mode <b>Campuran</b> - baris Daftar Pemain di bawah selalu memakai pilihan masing-masing pemain sendiri.</p>
 
     <div>
         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
@@ -111,7 +126,7 @@
             <tbody class="tbody-pemain divide-y divide-slate-50">
                 @if($line)
                     @foreach($line->items as $itemIdx => $item)
-                        @include('jersey.orders._player-row-fields', ['prefix' => "lines[{$idx}]", 'itemIdx' => $itemIdx, 'item' => $item, 'sizes' => $sizes])
+                        @include('jersey.orders._player-row-fields', ['prefix' => "lines[{$idx}]", 'itemIdx' => $itemIdx, 'item' => $item, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
                     @endforeach
                 @endif
             </tbody>
