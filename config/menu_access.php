@@ -65,6 +65,8 @@ return [
 
         'akun' => [35],
         'akuntansi' => [36],
+
+        'jersey' => [38],
     ],
 
     'always_allow' => [
