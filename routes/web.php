@@ -32,6 +32,7 @@ use App\Http\Controllers\CollectingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\HargaPromoController;
+use App\Http\Controllers\SettingAplikasiController;
 
 
 
@@ -434,5 +435,19 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::post('/setting-akses/update',
         [AksesController::class, 'update'])
         ->name('akses.update');
+
+    /*
+    |--------------------------------------------------------------------------
+    | PENGATURAN APLIKASI
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/pengaturan-aplikasi',
+        [SettingAplikasiController::class, 'edit'])
+        ->name('pengaturan-aplikasi.edit');
+
+    Route::post('/pengaturan-aplikasi',
+        [SettingAplikasiController::class, 'update'])
+        ->name('pengaturan-aplikasi.update');
 
 });

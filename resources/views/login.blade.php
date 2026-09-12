@@ -1,9 +1,10 @@
+@php($appSetting = \App\Models\AppSetting::current())
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - PRINT ERP</title>
+    <title>Login - {{ $appSetting->nama_aplikasi }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>body { font-family: 'Inter', sans-serif; }</style>
@@ -12,7 +13,10 @@
 
     <div class="w-full max-w-md">
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold text-indigo-600 tracking-tighter">PRINT-ERP</h1>
+            @if($appSetting->logo_path)
+                <img src="{{ asset('storage/' . $appSetting->logo_path) }}" alt="Logo" class="w-16 h-16 mx-auto mb-3 object-contain">
+            @endif
+            <h1 class="text-3xl font-extrabold text-indigo-600 tracking-tighter">{{ $appSetting->nama_aplikasi }}</h1>
             <p class="text-slate-500 mt-2 font-medium">Sistem Kendali Produksi Terpadu</p>
         </div>
 
