@@ -41,14 +41,15 @@ class StokReversalService
             return $ringkasan;
         }
 
-        $qtyHitung = $produk->metode_hitung === 'ukuran'
-            ? ((float) $detail->p_ukuran * (float) $detail->l_ukuran / 10000) * (float) $detail->qty
-            : (float) $detail->qty;
-
         $boms = DB::table('bom_detail')->where('id_produk', $detail->id_produk)->get();
 
         foreach ($boms as $bom) {
-            $qtyPakai = $bom->cara_hitung_pemakaian === '(P*L)/10000' ? $qtyHitung : (float) $detail->qty;
+            $qtyPakai = BomCalculationService::hitungQtyPakai(
+                $bom->cara_hitung_pemakaian,
+                (float) $detail->p_ukuran,
+                (float) $detail->l_ukuran,
+                (float) $detail->qty
+            );
             if ($qtyPakai <= 0) {
                 continue;
             }

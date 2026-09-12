@@ -345,13 +345,12 @@ public function getHarga($id_produk, $id_golongan, $qty) {
 
             foreach ($boms as $bom) {
 
-                $qty_pakai = 0;
-
-                if ($bom->cara_hitung_pemakaian == '(P*L)/10000') {
-                    $qty_pakai = $item['qty_hitung'] ?? 0;
-                } else {
-                    $qty_pakai = $jumlah_order;
-                }
+                $qty_pakai = \App\Services\BomCalculationService::hitungQtyPakai(
+                    $bom->cara_hitung_pemakaian,
+                    (float) $item['p'],
+                    (float) $item['l'],
+                    $jumlah_order
+                );
 
                 if ($qty_pakai > 0) {
                     // Baca stok_sebelum dengan lock supaya aman dari order

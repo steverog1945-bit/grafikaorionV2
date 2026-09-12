@@ -90,16 +90,12 @@ class PenjualanApiController extends Controller
             return response()->json(['cukup' => true, 'detail' => []]);
         }
 
-        $qtyHitung = $produk->metode_hitung === 'ukuran'
-            ? ($p * $l / 10000) * $qtyInput
-            : $qtyInput;
-
         $boms = DB::table('bom_detail')->where('id_produk', $idProduk)->get();
         $detail = [];
         $cukup = true;
 
         foreach ($boms as $bom) {
-            $qtyPakai = $bom->cara_hitung_pemakaian === '(P*L)/10000' ? $qtyHitung : $qtyInput;
+            $qtyPakai = \App\Services\BomCalculationService::hitungQtyPakai($bom->cara_hitung_pemakaian, $p, $l, $qtyInput);
             if ($qtyPakai <= 0) {
                 continue;
             }
