@@ -26,12 +26,12 @@
     {{-- DESAINER --}}
     <div id="tab-panel-desainer" class="jersey-tab-panel">
         <x-card>
-            <form id="form-add-desainer" class="flex gap-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <form id="form-add-desainer" class="flex flex-col sm:flex-row gap-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama desainer" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-slate-400/30"></div>
                 <button type="submit" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold uppercase tracking-widest">Tambah</button>
             </form>
             <x-table bare>
-                <thead><tr><th class="p-3 text-left">Nama</th><th class="p-3 text-center w-40">Status</th><th class="p-3 text-center w-16">Aksi</th></tr></thead>
+                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-40">Status</th><th class="p-2.5 text-center w-16">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-desainer" data-empty-colspan="3" data-empty-text="Belum ada desainer">
                     @forelse($designers as $d)
                         @include('jersey.master._row-simple', ['row' => $d, 'entity' => 'designers'])
@@ -46,12 +46,12 @@
     {{-- TIPE PRODUK --}}
     <div id="tab-panel-tipe" class="jersey-tab-panel hidden">
         <x-card>
-            <form id="form-add-tipe" class="flex gap-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <form id="form-add-tipe" class="flex flex-col sm:flex-row gap-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe produk (mis. Jersey, Celana, Sublime Lainnya)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-slate-400/30"></div>
                 <button type="submit" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold uppercase tracking-widest">Tambah</button>
             </form>
             <x-table bare>
-                <thead><tr><th class="p-3 text-left">Nama</th><th class="p-3 text-center w-40">Status</th><th class="p-3 text-center w-16">Aksi</th></tr></thead>
+                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-40">Status</th><th class="p-2.5 text-center w-16">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-tipe" data-empty-colspan="3" data-empty-text="Belum ada tipe produk">
                     @forelse($productTypes as $pt)
                         @include('jersey.master._row-simple', ['row' => $pt, 'entity' => 'product-types'])
@@ -66,12 +66,12 @@
     {{-- KATEGORI --}}
     <div id="tab-panel-kategori" class="jersey-tab-panel hidden">
         <x-card>
-            <form id="form-add-kategori" class="flex gap-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <form id="form-add-kategori" class="flex flex-col sm:flex-row gap-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama kategori (mis. Jersey Futsal)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-slate-400/30"></div>
                 <button type="submit" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold uppercase tracking-widest">Tambah</button>
             </form>
             <x-table bare>
-                <thead><tr><th class="p-3 text-left">Nama</th><th class="p-3 text-center w-40">Status</th><th class="p-3 text-center w-16">Aksi</th></tr></thead>
+                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-40">Status</th><th class="p-2.5 text-center w-16">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-kategori" data-empty-colspan="3" data-empty-text="Belum ada kategori">
                     @forelse($categories as $cat)
                         @include('jersey.master._row-simple', ['row' => $cat, 'entity' => 'categories'])
@@ -93,7 +93,7 @@
                 <button type="submit" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold uppercase tracking-widest">Tambah Ukuran</button>
             </form>
             <x-table bare>
-                <thead><tr><th class="p-3 text-left">Nama</th><th class="p-3 text-center">Urutan</th><th class="p-3 text-right">Tambahan Harga</th><th class="p-3 text-center w-40">Status</th><th class="p-3 text-center w-16">Aksi</th></tr></thead>
+                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center">Urutan</th><th class="p-2.5 text-right">Tambahan Harga</th><th class="p-2.5 text-center w-40">Status</th><th class="p-2.5 text-center w-16">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-ukuran" data-empty-colspan="5" data-empty-text="Belum ada ukuran">
                     @forelse($sizes as $s)
                         @include('jersey.master._row-size', ['row' => $s])
@@ -124,7 +124,7 @@
                 <button type="submit" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold uppercase tracking-widest">Tambah Tier</button>
             </form>
             <x-table bare>
-                <thead><tr><th class="p-3 text-left">Tipe</th><th class="p-3 text-left">Kategori</th><th class="p-3 text-center">Qty</th><th class="p-3 text-right">Harga/pcs</th><th class="p-3 text-center w-16">Aksi</th></tr></thead>
+                <thead><tr><th class="p-2.5 text-left">Tipe</th><th class="p-2.5 text-left">Kategori</th><th class="p-2.5 text-center">Qty</th><th class="p-2.5 text-right">Harga/pcs</th><th class="p-2.5 text-center w-16">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-harga" data-empty-colspan="5" data-empty-text="Belum ada tier harga">
                     @forelse($priceSettings as $p)
                         @include('jersey.master._row-harga', ['row' => $p])
@@ -236,11 +236,11 @@
     function baseRowHtml(entity, row) {
         return `
         <tr data-id="${row.id}">
-            <td class="p-3 font-semibold">${escapeHtmlJersey(row.name)}</td>
-            <td class="p-3 text-center" data-status>${badgeStatus(row.is_active)}</td>
-            <td class="p-3 text-center">
+            <td class="p-2.5 font-semibold">${escapeHtmlJersey(row.name)}</td>
+            <td class="p-2.5 text-center" data-status>${badgeStatus(row.is_active)}</td>
+            <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
-                    <button type="button" onclick='bukaEditSimple("${entity}", ${row.id}, ${JSON.stringify(row.name)})' class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100" title="Ubah"><i class="fas fa-pen text-xs"></i></button>
+                    <button type="button" onclick="bukaEditSimple('${entity}', ${row.id}, ${JSON.stringify(row.name).replace(/"/g, '&quot;')})" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100" title="Ubah"><i class="fas fa-pen text-xs"></i></button>
                     <button type="button" onclick="toggleEntitas('${entity}', ${row.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100" title="Aktif/Nonaktif"><i class="fas fa-power-off text-xs"></i></button>
                 </div>
             </td>
@@ -319,13 +319,13 @@
     function baseRowSizeHtml(row) {
         return `
         <tr data-id="${row.id}">
-            <td class="p-3 font-semibold">${escapeHtmlJersey(row.name)}</td>
-            <td class="p-3 text-center">${row.sort_order}</td>
-            <td class="p-3 text-right" data-surcharge>Rp ${formatRupiah(Math.round(parseFloat(row.price_surcharge)))}</td>
-            <td class="p-3 text-center" data-status>${badgeStatus(row.is_active)}</td>
-            <td class="p-3 text-center">
+            <td class="p-2.5 font-semibold">${escapeHtmlJersey(row.name)}</td>
+            <td class="p-2.5 text-center">${row.sort_order}</td>
+            <td class="p-2.5 text-right" data-surcharge>Rp ${formatRupiah(Math.round(parseFloat(row.price_surcharge)))}</td>
+            <td class="p-2.5 text-center" data-status>${badgeStatus(row.is_active)}</td>
+            <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
-                    <button type="button" onclick='bukaEditUkuran(${JSON.stringify(row)})' class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100" title="Ubah"><i class="fas fa-pen text-xs"></i></button>
+                    <button type="button" onclick="bukaEditUkuran(${JSON.stringify(row).replace(/"/g, '&quot;')})" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100" title="Ubah"><i class="fas fa-pen text-xs"></i></button>
                     <button type="button" onclick="toggleUkuran(${row.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100" title="Aktif/Nonaktif"><i class="fas fa-power-off text-xs"></i></button>
                 </div>
             </td>
@@ -386,11 +386,11 @@
     function rowHargaHtml(row) {
         return `
         <tr data-id="${row.id}">
-            <td class="p-3">${row.product_type ? escapeHtmlJersey(row.product_type.name) : 'Semua'}</td>
-            <td class="p-3">${row.category ? escapeHtmlJersey(row.category.name) : 'Semua'}</td>
-            <td class="p-3 text-center">${row.qty_min} - ${row.qty_max ?? '∞'}</td>
-            <td class="p-3 text-right font-bold">Rp ${formatRupiah(Math.round(parseFloat(row.price)))}</td>
-            <td class="p-3 text-center">
+            <td class="p-2.5">${row.product_type ? escapeHtmlJersey(row.product_type.name) : 'Semua'}</td>
+            <td class="p-2.5">${row.category ? escapeHtmlJersey(row.category.name) : 'Semua'}</td>
+            <td class="p-2.5 text-center">${row.qty_min} - ${row.qty_max ?? '∞'}</td>
+            <td class="p-2.5 text-right font-bold">Rp ${formatRupiah(Math.round(parseFloat(row.price)))}</td>
+            <td class="p-2.5 text-center">
                 <button type="button" onclick="hapusHarga(${row.id})" class="w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-50"><i class="far fa-trash-alt text-xs"></i></button>
             </td>
         </tr>`;

@@ -54,7 +54,7 @@
     <div class="space-y-6 mb-6">
         @foreach($order->lines as $line)
         <x-card>
-            <div class="flex items-start justify-between mb-4 gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-4">
                 <div class="flex items-center gap-4">
                     <div class="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
                         @if($line->thumbnail)
@@ -81,7 +81,7 @@
             @if($line->items->isNotEmpty())
             <div class="mb-4 overflow-x-auto">
                 <table class="w-full text-xs">
-                    <thead><tr class="text-[9px] text-slate-400 uppercase"><th class="p-2 text-left">Nama</th><th class="p-2 text-left">No.</th><th class="p-2 text-left">Ukuran</th><th class="p-2 text-left">Gender</th><th class="p-2 text-left">Lengan</th><th class="p-2 text-left">Kerah</th></tr></thead>
+                    <thead><tr class="text-[10px] text-slate-400 uppercase"><th class="p-2 text-left">Nama</th><th class="p-2 text-left">No.</th><th class="p-2 text-left">Ukuran</th><th class="p-2 text-left">Gender</th><th class="p-2 text-left">Lengan</th><th class="p-2 text-left">Kerah</th></tr></thead>
                     <tbody class="divide-y divide-slate-50">
                         @foreach($line->items as $item)
                         <tr>

@@ -47,14 +47,14 @@
         .ukuran-col .head { padding: 8px 16px; text-align: center; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #475569; border-bottom: 1.5px solid #334155; background: #f1f5f9; }
         table.ukuran { width: 100%; border-collapse: collapse; flex: 1; }
         table.ukuran th, table.ukuran td { border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; font-size: 11px; }
-        table.ukuran th { background: #f8fafc; font-weight: 700; color: #64748b; text-transform: uppercase; font-size: 9px; }
+        table.ukuran th { background: #f8fafc; font-weight: 700; color: #64748b; text-transform: uppercase; font-size: 10px; }
         table.ukuran td.qty { font-weight: 800; color: #0f172a; }
         .total-pcs { padding: 10px 16px; text-align: center; background: #0f172a; color: #fff; font-weight: 800; font-size: 13px; letter-spacing: 0.04em; }
 
         .spek-title { padding: 10px 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #fff; background: #334155; }
         table.spek { width: 100%; border-collapse: collapse; }
         table.spek th, table.spek td { border: 1px solid #e2e8f0; padding: 8px 10px; font-size: 11px; text-align: left; }
-        table.spek th { background: #f8fafc; font-weight: 700; color: #64748b; text-transform: uppercase; font-size: 9px; }
+        table.spek th { background: #f8fafc; font-weight: 700; color: #64748b; text-transform: uppercase; font-size: 10px; }
         table.spek td.empty-row { height: 26px; }
 
         .note-strip { padding: 10px 20px; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; }
@@ -67,6 +67,25 @@
         .no-print { text-align: center; margin-top: 20px; }
         .no-print button { padding: 10px 28px; font-family: inherit; font-weight: 700; cursor: pointer; background: #334155; color: #fff; border: none; border-radius: 10px; font-size: 13px; }
         .no-print button:hover { background: #1e293b; }
+
+        /* Preview di layar sempit (HP/tablet) SEBELUM dicetak - dokumen ini
+           dirancang untuk kertas A4/F4 (lebar tetap), jadi baru disusun
+           ulang jadi 1 kolom di bawah breakpoint ini supaya masih terbaca
+           tanpa geser horizontal. Tidak memengaruhi @media print di bawah -
+           saat benar-benar dicetak selalu tetap layout aslinya. */
+        @media screen and (max-width: 640px) {
+            body { padding: 10px; }
+            .title-row { flex-direction: column; }
+            .title-row .left { border-right: none; border-bottom: 1.5px solid #334155; }
+            .title-row .right { flex-direction: column; align-items: flex-start; gap: 4px; }
+            .title-row .right h1 { font-size: 26px; }
+            table.info td.label { width: 42%; }
+            .body-row { flex-direction: column; }
+            .thumb-col { border-right: none; border-bottom: 1.5px solid #334155; min-height: 160px; }
+            table.ukuran, table.spek { display: block; overflow-x: auto; white-space: nowrap; }
+            .signature { flex-direction: column; }
+            .signature > div:first-child { border-right: none; border-bottom: 1.5px solid #334155; }
+        }
         @media print {
             body { background: #fff; padding: 0; }
             .sheet { border: none; border-radius: 0; max-width: 100%; }

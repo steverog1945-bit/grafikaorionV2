@@ -120,7 +120,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div class="w-20 h-20 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 thumbnail-preview-wrapper">
                     <i class="fas fa-image text-slate-300 text-xl thumbnail-placeholder"></i>
                     <img class="w-full h-full object-cover hidden thumbnail-preview" src="" alt="">
@@ -135,7 +135,7 @@
 
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Mode Order</label>
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <label class="line-type-option relative flex items-center justify-center py-3 px-3 rounded-xl border-2 border-slate-700 bg-slate-100 text-slate-700 font-bold text-[11px] cursor-pointer">
                         <input type="radio" name="lines[__LINE__][order_type]" value="quantity_only" checked onchange="toggleLineType(this)" class="absolute top-1.5 right-1.5">
                         Qty per Ukuran
@@ -156,7 +156,7 @@
                 <div class="grid grid-cols-3 md:grid-cols-8 gap-2">
                     @foreach($sizes as $s)
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-400 uppercase text-center mb-1">{{ $s->name }}</label>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase text-center mb-1">{{ $s->name }}</label>
                         <input type="number" name="lines[__LINE__][size_quantities][{{ $s->id }}]" min="0" value="0" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-bold text-center">
                     </div>
                     @endforeach
@@ -170,7 +170,7 @@
                 </div>
                 <div class="overflow-x-auto">
                 <table class="w-full text-xs">
-                    <thead><tr class="text-[9px] text-slate-400 uppercase">
+                    <thead><tr class="text-[10px] text-slate-400 uppercase">
                         <th class="p-1 text-left">Nama</th><th class="p-1 text-left w-16">No.</th><th class="p-1 text-left w-20">Ukuran</th>
                         <th class="p-1 text-left w-20">Gender</th><th class="p-1 text-left w-24">Lengan</th><th class="p-1 text-left">Kerah</th><th class="p-1 w-8"></th>
                     </tr></thead>
@@ -188,7 +188,7 @@
                     </div>
                     <div class="overflow-x-auto">
                     <table class="w-full text-xs">
-                        <thead><tr class="text-[9px] text-slate-400 uppercase">
+                        <thead><tr class="text-[10px] text-slate-400 uppercase">
                             <th class="p-1 text-left">Nama Barang</th><th class="p-1 text-left w-24">Warna</th>
                             <th class="p-1 text-left w-16">Kg</th><th class="p-1 text-left w-16">Meter</th><th class="p-1 text-left w-16">Yard</th>
                             <th class="p-1 text-left">Keterangan</th><th class="p-1 w-8"></th>
