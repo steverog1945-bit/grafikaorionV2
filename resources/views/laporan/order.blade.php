@@ -105,11 +105,10 @@
 
     {{-- BREAKDOWN PER DIVISI/MESIN - tabel produk tidak punya kolom
          kategori tersendiri, jadi pengelompokan pakai Divisi (mesin) yang
-         sudah dipakai konsisten di Laporan Produksi. Ikut tercetak (sesuai
-         referensi yang menampilkan tabel rincian kategori di bawah
-         resume). --}}
+         sudah dipakai konsisten di Laporan Produksi. Kartu berwarna di
+         layar (tidak diubah), tabel polos sederhana khusus cetak. --}}
     @if($breakdownDivisi->isNotEmpty())
-    <x-card title="Rincian Biaya per Divisi" class="mb-6 break-inside-avoid">
+    <x-card title="Rincian Biaya per Divisi" class="mb-6 break-inside-avoid print:hidden">
         <x-table bare class="rtable">
             <thead>
                 <tr>
@@ -131,10 +130,59 @@
             </tbody>
         </x-table>
     </x-card>
+    <div class="hidden print:block break-inside-avoid">
+        <x-laporan.print-table title="Rincian Biaya per Divisi" :headers="['Divisi', 'Biaya Cetak', 'Biaya Design', 'Biaya Finishing']" :align="['left', 'right', 'right', 'right']">
+            @foreach($breakdownDivisi as $b)
+            <tr>
+                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $b->divisi }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_cetak, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_desain, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_finishing, 0, ',', '.') }}</td>
+            </tr>
+            @endforeach
+        </x-laporan.print-table>
+    </div>
     @endif
 
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Detail Transaksi</div>
+    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Transaksi</div>
 
+    {{-- DETAIL TRANSAKSI - kartu per nota di layar (tidak diubah), tabel
+         datar sederhana khusus cetak (bukan kartu) - satu baris per item,
+         info nota (no. nota/tanggal/konsumen/status) diulang di tiap
+         baris supaya tetap satu tabel utuh, bukan blok terpisah-pisah. --}}
+    <div class="hidden print:block">
+        <x-laporan.print-table title="Detail Transaksi" :headers="['No. Nota', 'Tanggal', 'Konsumen', 'Produk / Jasa', 'Qty', 'Harga', 'Subtotal', 'Status']" :align="['left', 'left', 'left', 'left', 'right', 'right', 'right', 'left']">
+            @forelse($data as $t)
+            @php $itemNotaPrint = $itemPerNota->get($t->id_transaksi, collect()); @endphp
+            @forelse($itemNotaPrint as $i => $item)
+            <tr>
+                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $i === 0 ? $t->nomor_nota : '' }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $i === 0 ? \Carbon\Carbon::parse($t->tgl_order)->format('d/m/Y') : '' }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $i === 0 ? $t->nama_konsumen : '' }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $item->nama_produk ?? $item->nama_jasa ?? '-' }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->qty, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->harga_jual_snapshot, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $i === 0 ? ($t->status_nota === 'Dibatalkan' ? 'Dibatalkan' : $t->status_pembayaran) : '' }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $t->nomor_nota }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->format('d/m/Y') }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $t->nama_konsumen }}</td>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="4">Tidak ada rincian item</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $t->status_nota === 'Dibatalkan' ? 'Dibatalkan' : $t->status_pembayaran }}</td>
+            </tr>
+            @endforelse
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="8">Tidak ada data</td>
+            </tr>
+            @endforelse
+        </x-laporan.print-table>
+    </div>
+
+    <div class="print:hidden">
     @forelse($data as $t)
     @php $itemNota = $itemPerNota->get($t->id_transaksi, collect()); @endphp
     <div class="nota-block bg-white rounded-3xl border border-slate-100 shadow-sm mb-5 overflow-hidden {{ $t->status_nota === 'Dibatalkan' ? 'opacity-60' : '' }}">
@@ -230,6 +278,7 @@
         <x-empty-state title="Tidak ada data" description="Sesuaikan filter untuk melihat transaksi." />
     </x-card>
     @endforelse
+    </div>
 
     <div class="no-print">
         <x-table.pagination :paginator="$data" />

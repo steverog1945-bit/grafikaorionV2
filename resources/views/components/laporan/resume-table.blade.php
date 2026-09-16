@@ -4,15 +4,16 @@
 ])
 
 {{--
-    Tabel ringkasan standar untuk laporan - dipakai SAMA persis di layar
-    maupun saat dicetak (tidak ada lagi versi kartu berwarna di layar +
-    versi polos khusus print) supaya konsisten dan paddingnya tidak
-    berlebihan seperti kartu dashboard. Border tipis, padding rapat,
-    tanpa rounded/shadow - meniru gaya tabel laporan cetak standar.
+    Tabel ringkasan standar untuk laporan (khusus cetak - dipasang di
+    dalam pembungkus "hidden print:block" oleh pemanggil). Border tipis,
+    padding rapat, tanpa rounded/shadow. Ukuran font mengikuti skala cetak
+    yang sama di semua bagian laporan: 10px untuk label section, 11px
+    untuk isi data - supaya tidak ada campuran ukuran font yang beda-beda
+    dalam satu dokumen ("font size wajib sama" - laporan profesional).
 --}}
-<div class="mb-6 border border-slate-200 rounded-md overflow-hidden">
-    <p class="text-[11px] font-bold text-slate-700 uppercase tracking-wide px-3 py-2 bg-slate-50 border-b border-slate-200">{{ $title }}</p>
-    <table class="w-full text-[12.5px]">
+<div class="mb-6 border border-slate-200 overflow-hidden">
+    <p class="text-[10px] font-bold text-slate-700 uppercase tracking-wide px-3 py-2 bg-slate-50 border-b border-slate-200">{{ $title }}</p>
+    <table class="w-full text-[11px]">
         <tbody class="divide-y divide-slate-100">
             @foreach($rows as $label => $value)
             <tr>
