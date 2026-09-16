@@ -67,63 +67,76 @@
         </form>
     </x-card>
 
-    {{-- RESUME --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    {{-- RESUME - hanya metrik yang memang sah dijumlah lintas divisi
+         (jumlah pcs/nota, satuannya konsisten). Luas (m2) SENGAJA TIDAK
+         ditampilkan di sini sebagai satu angka gabungan - lihat catatan
+         di bawah. --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Order</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($totalOrderKeseluruhan, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Order (Semua Divisi)</p>
+            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($totalOrderKeseluruhan, 0, ',', '.') }} pcs</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Cetak</p>
-            <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ number_format($totalCetakKeseluruhan, 0, ',', '.') }}</h3>
-        </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Luas Cetak (Outdoor/Ukuran)</p>
-            <h3 class="text-2xl font-bold text-indigo-600 mt-1">{{ number_format($totalM2Keseluruhan, 2, ',', '.') }} m&sup2;</h3>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Cetak (Semua Divisi)</p>
+            <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ number_format($totalCetakKeseluruhan, 0, ',', '.') }} pcs</h3>
         </div>
     </div>
 
-    {{-- RINGKASAN PER DIVISI & PRODUK --}}
-    <x-card title="Ringkasan per Divisi & Produk" class="mb-6" :padding="false">
+    {{-- RINGKASAN PER DIVISI - tiap divisi jadi BLOK/BAGIAN SENDIRI dengan
+         Total-nya masing-masing (persis pola referensi: tiap Kategori
+         tampil sebagai bagian terpisah dengan Total sendiri) - TIDAK
+         digabung jadi satu tabel/angka besar lintas divisi, karena luas
+         (m2) satu divisi tidak sepadan dijumlah dengan pcs/m2 divisi lain
+         (mesin/proses produksi berbeda). --}}
+    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Ringkasan per Divisi</p>
+    @forelse($ringkasanPerDivisi as $div)
+    <x-card :title="$div->divisi" class="mb-4" :padding="false">
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead class="bg-slate-50 border-y border-slate-100">
                     <tr>
-                        <th class="px-6 py-3 text-[10px] font-black uppercase text-slate-400">Divisi</th>
-                        <th class="px-4 py-3 text-[10px] font-black uppercase text-slate-400">Produk</th>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase text-slate-400">Produk</th>
                         <th class="px-4 py-3 text-[10px] font-black uppercase text-slate-400 text-center">Jml Nota</th>
-                        <th class="px-4 py-3 text-[10px] font-black uppercase text-slate-400 text-center">Total Order</th>
-                        <th class="px-4 py-3 text-[10px] font-black uppercase text-slate-400 text-center">Total Cetak</th>
-                        <th class="px-6 py-3 text-[10px] font-black uppercase text-slate-400 text-center">Total m&sup2;</th>
+                        <th class="px-4 py-3 text-[10px] font-black uppercase text-slate-400 text-center">Qty Order</th>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase text-slate-400 text-center">Qty Cetak</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    @forelse($ringkasan as $r)
+                    @foreach($div->baris as $r)
                     <tr class="hover:bg-slate-50/50">
-                        <td class="px-6 py-3 text-[12px] font-bold text-slate-700 uppercase">{{ $r->divisi ?? '-' }}</td>
-                        <td class="px-4 py-3 text-[12px] font-semibold text-slate-600">{{ $r->nama_produk }}</td>
+                        <td class="px-6 py-3 text-[12px] font-semibold text-slate-600">{{ $r->nama_produk }}</td>
                         <td class="px-4 py-3 text-[12px] font-bold text-slate-700 text-center">{{ $r->total_transaksi }}</td>
-                        <td class="px-4 py-3 text-[12px] font-bold text-slate-700 text-center">{{ number_format($r->total_order, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-[12px] font-bold text-emerald-600 text-center">{{ number_format($r->total_cetak, 0, ',', '.') }}</td>
-                        <td class="px-6 py-3 text-[12px] font-bold text-indigo-600 text-center">{!! $r->metode_hitung === 'ukuran' ? number_format($r->total_m2, 2, ',', '.') . ' m&sup2;' : '-' !!}</td>
+                        <td class="px-4 py-3 text-[12px] font-bold text-slate-700 text-center">
+                            {!! $r->metode_hitung === 'ukuran' ? number_format($r->total_m2_order, 2, ',', '.') . ' m&sup2;' : number_format($r->total_order, 0, ',', '.') . ' pcs' !!}
+                        </td>
+                        <td class="px-6 py-3 text-[12px] font-bold text-emerald-600 text-center">
+                            {!! $r->metode_hitung === 'ukuran' ? number_format($r->total_m2_cetak, 2, ',', '.') . ' m&sup2;' : number_format($r->total_cetak, 0, ',', '.') . ' pcs' !!}
+                        </td>
                     </tr>
-                    @empty
-                    <tr><td colspan="6" class="px-6 py-8 text-center text-slate-400 text-sm">Tidak ada data</td></tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
-                @if($ringkasan->isNotEmpty())
                 <tfoot class="bg-slate-50 border-t border-slate-100">
                     <tr>
-                        <td colspan="3" class="px-6 py-3 text-[11px] font-black uppercase text-slate-500">Total Keseluruhan</td>
-                        <td class="px-4 py-3 text-[13px] font-black text-slate-800 text-center">{{ number_format($totalOrderKeseluruhan, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-[13px] font-black text-emerald-700 text-center">{{ number_format($totalCetakKeseluruhan, 0, ',', '.') }}</td>
-                        <td class="px-6 py-3 text-[13px] font-black text-indigo-700 text-center">{{ number_format($totalM2Keseluruhan, 2, ',', '.') }} m&sup2;</td>
+                        <td class="px-6 py-3 text-[11px] font-black uppercase text-slate-500">Total {{ $div->divisi }}</td>
+                        <td></td>
+                        <td class="px-4 py-3 text-[13px] font-black text-slate-800 text-center">
+                            @if($div->subtotal_qty_order_pcs > 0) {{ number_format($div->subtotal_qty_order_pcs, 0, ',', '.') }} pcs @endif
+                            @if($div->subtotal_m2_order > 0) {{ number_format($div->subtotal_m2_order, 2, ',', '.') }} m&sup2; @endif
+                        </td>
+                        <td class="px-6 py-3 text-[13px] font-black text-emerald-700 text-center">
+                            @if($div->subtotal_qty_cetak_pcs > 0) {{ number_format($div->subtotal_qty_cetak_pcs, 0, ',', '.') }} pcs @endif
+                            @if($div->subtotal_m2_cetak > 0) {{ number_format($div->subtotal_m2_cetak, 2, ',', '.') }} m&sup2; @endif
+                        </td>
                     </tr>
                 </tfoot>
-                @endif
             </table>
         </div>
     </x-card>
+    @empty
+    <x-card class="mb-6">
+        <x-empty-state title="Tidak ada data" description="Sesuaikan filter untuk melihat ringkasan produksi." />
+    </x-card>
+    @endforelse
 
     {{-- DETAIL PER SPK --}}
     <x-table>

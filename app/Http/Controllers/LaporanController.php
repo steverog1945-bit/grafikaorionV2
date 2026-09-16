@@ -166,11 +166,18 @@ class LaporanController extends Controller
         }
 
         // --- RINGKASAN PER DIVISI & PRODUK ---
-        // Total m2 HANYA dihitung untuk produk metode_hitung='ukuran'
-        // (produk outdoor/area, harga dari panjang x lebar) - produk
-        // metode 'quantity' (harga per pcs) tidak punya makna luas, jadi
-        // dibiarkan 0 lewat CASE WHEN, bukan dipaksakan dihitung.
-        $ringkasan = (clone $base)
+        // m2 HANYA dihitung untuk produk metode_hitung='ukuran' (outdoor/
+        // area, harga dari panjang x lebar) - produk metode 'quantity'
+        // (harga per pcs) tidak punya makna luas, dibiarkan 0.
+        //
+        // PENTING: m2 SENGAJA TIDAK dijumlahkan lintas divisi jadi satu
+        // angka gabungan (permintaan eksplisit user, mengacu ke referensi -
+        // tiap divisi/kategori di sana selalu tampil sebagai bagian/blok
+        // SENDIRI dengan totalnya masing-masing, tidak pernah digabung jadi
+        // satu total besar lintas divisi yang unitnya beda-beda). Baris
+        // mentah dikelompokkan PER DIVISI di PHP (bukan cuma di-flatten)
+        // supaya tiap divisi punya subtotalnya sendiri di view.
+        $ringkasanMentah = (clone $base)
             ->select(
                 'mesin.nama_mesin as divisi',
                 'produk.nama_produk',
@@ -178,16 +185,33 @@ class LaporanController extends Controller
                 DB::raw('COUNT(DISTINCT transaksi_detail.id_transaksi) as total_transaksi'),
                 DB::raw('SUM(transaksi_detail.qty) as total_order'),
                 DB::raw('SUM(COALESCE(transaksi_detail.qty_cetak, 0)) as total_cetak'),
-                DB::raw("SUM(CASE WHEN produk.metode_hitung = 'ukuran' THEN (transaksi_detail.p_ukuran * transaksi_detail.l_ukuran / 10000) * transaksi_detail.qty ELSE 0 END) as total_m2")
+                DB::raw("SUM(CASE WHEN produk.metode_hitung = 'ukuran' THEN (transaksi_detail.p_ukuran * transaksi_detail.l_ukuran / 10000) * transaksi_detail.qty ELSE 0 END) as total_m2_order"),
+                DB::raw("SUM(CASE WHEN produk.metode_hitung = 'ukuran' THEN (transaksi_detail.p_ukuran * transaksi_detail.l_ukuran / 10000) * COALESCE(transaksi_detail.qty_cetak, 0) ELSE 0 END) as total_m2_cetak")
             )
             ->groupBy('mesin.nama_mesin', 'produk.nama_produk', 'produk.metode_hitung')
-            ->orderBy('mesin.nama_mesin')
             ->orderBy('produk.nama_produk')
             ->get();
 
-        $totalOrderKeseluruhan = $ringkasan->sum('total_order');
-        $totalCetakKeseluruhan = $ringkasan->sum('total_cetak');
-        $totalM2Keseluruhan = $ringkasan->sum('total_m2');
+        $ringkasanPerDivisi = $ringkasanMentah
+            ->groupBy(fn ($r) => $r->divisi ?? 'Lainnya')
+            ->sortKeys()
+            ->map(fn ($baris, $namaDivisi) => (object) [
+                'divisi' => $namaDivisi,
+                'baris' => $baris,
+                // Subtotal divisi ini SAJA - qty pcs dan m2 dipisah (bukan
+                // dijumlah jadi satu angka) karena satuannya beda.
+                'subtotal_qty_order_pcs' => $baris->where('metode_hitung', '!=', 'ukuran')->sum('total_order'),
+                'subtotal_qty_cetak_pcs' => $baris->where('metode_hitung', '!=', 'ukuran')->sum('total_cetak'),
+                'subtotal_m2_order' => $baris->where('metode_hitung', 'ukuran')->sum('total_m2_order'),
+                'subtotal_m2_cetak' => $baris->where('metode_hitung', 'ukuran')->sum('total_m2_cetak'),
+            ]);
+
+        // Total keseluruhan LAPORAN (jumlah nota &amp; qty pesanan) tetap
+        // ditampilkan di resume atas - ini beda dari m2, memang lazim
+        // dijumlahkan lintas divisi (sama seperti "Jumlah Transaksi" di
+        // Laporan Order), karena satuannya konsisten (pcs/nota).
+        $totalOrderKeseluruhan = $ringkasanMentah->sum('total_order');
+        $totalCetakKeseluruhan = $ringkasanMentah->sum('total_cetak');
 
         // --- DETAIL PER SPK (status_spk sudah diterapkan di $base di atas) ---
         $detail = (clone $base)
@@ -213,7 +237,7 @@ class LaporanController extends Controller
         $divisis = DB::table('mesin')->orderBy('nama_mesin')->get();
 
         return view('laporan.produksi', compact(
-            'ringkasan', 'detail', 'divisis', 'totalOrderKeseluruhan', 'totalCetakKeseluruhan', 'totalM2Keseluruhan',
+            'ringkasanPerDivisi', 'detail', 'divisis', 'totalOrderKeseluruhan', 'totalCetakKeseluruhan',
             'tglDari', 'tglSampai'
         ));
     }
