@@ -29,11 +29,11 @@
         <form method="GET" action="{{ route('laporan.produksi') }}" class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-44">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
-                <x-form.input type="date" name="tgl_dari" value="{{ request('tgl_dari') }}" />
+                <x-form.input type="date" name="tgl_dari" value="{{ $tglDari }}" />
             </div>
             <div class="w-full md:w-44">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
-                <x-form.input type="date" name="tgl_sampai" value="{{ request('tgl_sampai') }}" />
+                <x-form.input type="date" name="tgl_sampai" value="{{ $tglSampai }}" />
             </div>
             <div class="w-full md:w-52">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Divisi (Mesin)</label>
@@ -67,6 +67,22 @@
         </form>
     </x-card>
 
+    {{-- RESUME --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Order</p>
+            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($totalOrderKeseluruhan, 0, ',', '.') }}</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Cetak</p>
+            <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ number_format($totalCetakKeseluruhan, 0, ',', '.') }}</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Luas Cetak (Outdoor/Ukuran)</p>
+            <h3 class="text-2xl font-bold text-indigo-600 mt-1">{{ number_format($totalM2Keseluruhan, 2, ',', '.') }} m&sup2;</h3>
+        </div>
+    </div>
+
     {{-- RINGKASAN PER DIVISI & PRODUK --}}
     <x-card title="Ringkasan per Divisi & Produk" class="mb-6" :padding="false">
         <div class="overflow-x-auto">
@@ -77,7 +93,8 @@
                         <th class="px-4 py-3 text-[10px] font-black uppercase text-slate-400">Produk</th>
                         <th class="px-4 py-3 text-[10px] font-black uppercase text-slate-400 text-center">Jml Nota</th>
                         <th class="px-4 py-3 text-[10px] font-black uppercase text-slate-400 text-center">Total Order</th>
-                        <th class="px-6 py-3 text-[10px] font-black uppercase text-slate-400 text-center">Total Cetak</th>
+                        <th class="px-4 py-3 text-[10px] font-black uppercase text-slate-400 text-center">Total Cetak</th>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase text-slate-400 text-center">Total m&sup2;</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
@@ -87,10 +104,11 @@
                         <td class="px-4 py-3 text-[12px] font-semibold text-slate-600">{{ $r->nama_produk }}</td>
                         <td class="px-4 py-3 text-[12px] font-bold text-slate-700 text-center">{{ $r->total_transaksi }}</td>
                         <td class="px-4 py-3 text-[12px] font-bold text-slate-700 text-center">{{ number_format($r->total_order, 0, ',', '.') }}</td>
-                        <td class="px-6 py-3 text-[12px] font-bold text-emerald-600 text-center">{{ number_format($r->total_cetak, 0, ',', '.') }}</td>
+                        <td class="px-4 py-3 text-[12px] font-bold text-emerald-600 text-center">{{ number_format($r->total_cetak, 0, ',', '.') }}</td>
+                        <td class="px-6 py-3 text-[12px] font-bold text-indigo-600 text-center">{!! $r->metode_hitung === 'ukuran' ? number_format($r->total_m2, 2, ',', '.') . ' m&sup2;' : '-' !!}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">Tidak ada data</td></tr>
+                    <tr><td colspan="6" class="px-6 py-8 text-center text-slate-400 text-sm">Tidak ada data</td></tr>
                     @endforelse
                 </tbody>
                 @if($ringkasan->isNotEmpty())
@@ -98,7 +116,8 @@
                     <tr>
                         <td colspan="3" class="px-6 py-3 text-[11px] font-black uppercase text-slate-500">Total Keseluruhan</td>
                         <td class="px-4 py-3 text-[13px] font-black text-slate-800 text-center">{{ number_format($totalOrderKeseluruhan, 0, ',', '.') }}</td>
-                        <td class="px-6 py-3 text-[13px] font-black text-emerald-700 text-center">{{ number_format($totalCetakKeseluruhan, 0, ',', '.') }}</td>
+                        <td class="px-4 py-3 text-[13px] font-black text-emerald-700 text-center">{{ number_format($totalCetakKeseluruhan, 0, ',', '.') }}</td>
+                        <td class="px-6 py-3 text-[13px] font-black text-indigo-700 text-center">{{ number_format($totalM2Keseluruhan, 2, ',', '.') }} m&sup2;</td>
                     </tr>
                 </tfoot>
                 @endif
@@ -116,13 +135,16 @@
                 <th class="px-4 py-5 text-left">Tanggal</th>
                 <th class="px-4 py-5 text-left">Divisi</th>
                 <th class="px-4 py-5 text-left">Desainer</th>
+                <th class="px-4 py-5 text-left">Ukuran</th>
                 <th class="px-4 py-5 text-center">Qty Order</th>
                 <th class="px-4 py-5 text-center">Qty Cetak</th>
+                <th class="px-4 py-5 text-center">m&sup2;</th>
                 <th class="px-8 py-5 text-center">Status</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
             @forelse($detail as $d)
+            @php $m2Baris = $d->metode_hitung === 'ukuran' && $d->p_ukuran > 0 && $d->l_ukuran > 0 ? ($d->p_ukuran * $d->l_ukuran / 10000) * $d->qty : null; @endphp
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-6 py-5"><span class="text-[12px] font-bold text-slate-500">#{{ $d->id_detail }}</span></td>
                 <td class="px-4 py-5"><span class="text-[13px] font-bold text-slate-700 uppercase">{{ $d->nama_file }}</span> <div class="text-[10px] text-slate-400">{{ $d->nomor_nota }}</div></td>
@@ -130,13 +152,15 @@
                 <td class="px-4 py-5"><span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($d->tgl_order)->format('d M Y') }}</span></td>
                 <td class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $d->divisi ?? '-' }}</span></td>
                 <td class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $d->desainer ?? '-' }}</span></td>
+                <td class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $d->p_ukuran > 0 && $d->l_ukuran > 0 ? number_format($d->p_ukuran, 0, ',', '.') . 'x' . number_format($d->l_ukuran, 0, ',', '.') . ' cm' : '-' }}</span></td>
                 <td class="px-4 py-5 text-center"><span class="text-[13px] font-bold text-slate-700">{{ $d->qty }}</span></td>
                 <td class="px-4 py-5 text-center"><span class="text-[13px] font-bold text-slate-700">{{ $d->qty_cetak ?? '-' }}</span></td>
+                <td class="px-4 py-5 text-center"><span class="text-[13px] font-bold text-indigo-600">{{ $m2Baris !== null ? number_format($m2Baris, 2, ',', '.') : '-' }}</span></td>
                 <td class="px-8 py-5 text-center"><x-badge :status="$d->status_spk" /></td>
             </tr>
             @empty
             <tr>
-                <td colspan="9">
+                <td colspan="11">
                     <x-empty-state title="Tidak ada data" description="Sesuaikan filter untuk melihat detail produksi." />
                 </td>
             </tr>

@@ -19,7 +19,7 @@ class KasKecilController extends Controller
     {
         $query = KasKecil::with('user')->orderByDesc('tanggal')->orderByDesc('id');
 
-        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->startOfMonth()->format('Y-m-d');
+        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
         $query->whereDate('tanggal', '>=', $tglDari)->whereDate('tanggal', '<=', $tglSampai);
 

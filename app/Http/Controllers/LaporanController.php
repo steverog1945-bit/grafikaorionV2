@@ -44,12 +44,14 @@ class LaporanController extends Controller
                     ->whereColumn('pembayaran_riwayat.id_transaksi', 'transaksi.id_transaksi');
             }, 'total_dibayar');
 
-        if ($request->filled('tgl_dari')) {
-            $query->whereDate('transaksi.tgl_order', '>=', $request->tgl_dari);
-        }
-        if ($request->filled('tgl_sampai')) {
-            $query->whereDate('transaksi.tgl_order', '<=', $request->tgl_sampai);
-        }
+        // Default rekap HARI INI SAJA - berlaku sama di semua laporan,
+        // supaya begitu dibuka langsung menampilkan pergerakan hari itu
+        // tanpa perlu isi filter dulu.
+        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
+        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        $query->whereDate('transaksi.tgl_order', '>=', $tglDari)
+              ->whereDate('transaksi.tgl_order', '<=', $tglSampai);
+
         if ($request->filled('status_pembayaran')) {
             $query->where('transaksi.status_pembayaran', $request->status_pembayaran);
         }
@@ -120,7 +122,8 @@ class LaporanController extends Controller
         $konsumenList = DB::table('konsumen')->orderBy('nama_konsumen')->get(['id_konsumen', 'nama_konsumen', 'telepon']);
 
         return view('laporan.order', compact(
-            'data', 'golongan', 'konsumenList', 'jumlahTransaksi', 'totalTransaksi', 'totalPiutang', 'breakdownDivisi', 'itemPerNota'
+            'data', 'golongan', 'konsumenList', 'jumlahTransaksi', 'totalTransaksi', 'totalPiutang', 'breakdownDivisi', 'itemPerNota',
+            'tglDari', 'tglSampai'
         ));
     }
 
@@ -140,12 +143,14 @@ class LaporanController extends Controller
             ->leftJoin('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
             ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan');
 
-        if ($request->filled('tgl_dari')) {
-            $base->whereDate('transaksi.tgl_order', '>=', $request->tgl_dari);
-        }
-        if ($request->filled('tgl_sampai')) {
-            $base->whereDate('transaksi.tgl_order', '<=', $request->tgl_sampai);
-        }
+        // Default rekap HARI INI SAJA (bukan lagi seluruh riwayat) - berlaku
+        // sama di semua laporan, supaya begitu dibuka langsung menampilkan
+        // pergerakan hari itu tanpa perlu isi filter dulu.
+        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
+        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        $base->whereDate('transaksi.tgl_order', '>=', $tglDari)
+             ->whereDate('transaksi.tgl_order', '<=', $tglSampai);
+
         if ($request->filled('id_mesin')) {
             $base->where('produk.id_mesin', $request->id_mesin);
         }
@@ -161,21 +166,28 @@ class LaporanController extends Controller
         }
 
         // --- RINGKASAN PER DIVISI & PRODUK ---
+        // Total m2 HANYA dihitung untuk produk metode_hitung='ukuran'
+        // (produk outdoor/area, harga dari panjang x lebar) - produk
+        // metode 'quantity' (harga per pcs) tidak punya makna luas, jadi
+        // dibiarkan 0 lewat CASE WHEN, bukan dipaksakan dihitung.
         $ringkasan = (clone $base)
             ->select(
                 'mesin.nama_mesin as divisi',
                 'produk.nama_produk',
+                'produk.metode_hitung',
                 DB::raw('COUNT(DISTINCT transaksi_detail.id_transaksi) as total_transaksi'),
                 DB::raw('SUM(transaksi_detail.qty) as total_order'),
-                DB::raw('SUM(COALESCE(transaksi_detail.qty_cetak, 0)) as total_cetak')
+                DB::raw('SUM(COALESCE(transaksi_detail.qty_cetak, 0)) as total_cetak'),
+                DB::raw("SUM(CASE WHEN produk.metode_hitung = 'ukuran' THEN (transaksi_detail.p_ukuran * transaksi_detail.l_ukuran / 10000) * transaksi_detail.qty ELSE 0 END) as total_m2")
             )
-            ->groupBy('mesin.nama_mesin', 'produk.nama_produk')
+            ->groupBy('mesin.nama_mesin', 'produk.nama_produk', 'produk.metode_hitung')
             ->orderBy('mesin.nama_mesin')
             ->orderBy('produk.nama_produk')
             ->get();
 
         $totalOrderKeseluruhan = $ringkasan->sum('total_order');
         $totalCetakKeseluruhan = $ringkasan->sum('total_cetak');
+        $totalM2Keseluruhan = $ringkasan->sum('total_m2');
 
         // --- DETAIL PER SPK (status_spk sudah diterapkan di $base di atas) ---
         $detail = (clone $base)
@@ -184,7 +196,10 @@ class LaporanController extends Controller
                 'transaksi_detail.nama_file',
                 'transaksi_detail.qty',
                 'transaksi_detail.qty_cetak',
+                'transaksi_detail.p_ukuran',
+                'transaksi_detail.l_ukuran',
                 'transaksi_detail.status_spk',
+                'produk.metode_hitung',
                 'transaksi.nomor_nota',
                 'transaksi.tgl_order',
                 'konsumen.nama_konsumen',
@@ -197,7 +212,10 @@ class LaporanController extends Controller
 
         $divisis = DB::table('mesin')->orderBy('nama_mesin')->get();
 
-        return view('laporan.produksi', compact('ringkasan', 'detail', 'divisis', 'totalOrderKeseluruhan', 'totalCetakKeseluruhan'));
+        return view('laporan.produksi', compact(
+            'ringkasan', 'detail', 'divisis', 'totalOrderKeseluruhan', 'totalCetakKeseluruhan', 'totalM2Keseluruhan',
+            'tglDari', 'tglSampai'
+        ));
     }
 
     /**
@@ -217,7 +235,7 @@ class LaporanController extends Controller
                 DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama_kasir')
             );
 
-        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->startOfMonth()->format('Y-m-d');
+        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
 
         $query->whereDate('kas_harian.tgl_kas', '>=', $tglDari)
@@ -256,7 +274,7 @@ class LaporanController extends Controller
     {
         $query = DB::table('pembelian_bahan');
 
-        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->startOfMonth()->format('Y-m-d');
+        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
         $query->whereDate('tgl_transaksi', '>=', $tglDari)->whereDate('tgl_transaksi', '<=', $tglSampai);
 
@@ -292,12 +310,12 @@ class LaporanController extends Controller
     {
         $query = \App\Models\JerseyOrder::with(['konsumen', 'designer']);
 
-        if ($request->filled('tgl_dari')) {
-            $query->whereDate('order_date', '>=', $request->tgl_dari);
-        }
-        if ($request->filled('tgl_sampai')) {
-            $query->whereDate('order_date', '<=', $request->tgl_sampai);
-        }
+        // Default rekap HARI INI SAJA - berlaku sama di semua laporan.
+        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
+        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        $query->whereDate('order_date', '>=', $tglDari)
+              ->whereDate('order_date', '<=', $tglSampai);
+
         if ($request->filled('status_pembayaran')) {
             $query->where('status_pembayaran', $request->status_pembayaran);
         }
@@ -355,7 +373,7 @@ class LaporanController extends Controller
 
         return view('laporan.order-jersey', compact(
             'data', 'designers', 'konsumenList', 'jumlahOrder', 'totalTransaksi', 'totalPiutang',
-            'breakdownDesainer', 'breakdownKategori', 'linePerOrder'
+            'breakdownDesainer', 'breakdownKategori', 'linePerOrder', 'tglDari', 'tglSampai'
         ));
     }
 }

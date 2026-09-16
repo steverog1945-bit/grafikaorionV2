@@ -30,11 +30,11 @@
         <form method="GET" action="{{ route('laporan.order-jersey') }}" class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-44">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
-                <x-form.input type="date" name="tgl_dari" value="{{ request('tgl_dari') }}" />
+                <x-form.input type="date" name="tgl_dari" value="{{ $tglDari }}" />
             </div>
             <div class="w-full md:w-44">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
-                <x-form.input type="date" name="tgl_sampai" value="{{ request('tgl_sampai') }}" />
+                <x-form.input type="date" name="tgl_sampai" value="{{ $tglSampai }}" />
             </div>
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Pembayaran</label>
