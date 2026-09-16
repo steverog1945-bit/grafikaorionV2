@@ -112,8 +112,9 @@ class LaporanController extends Controller
         $itemPerNota = DB::table('transaksi_detail')
             ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
             ->leftJoin('jasa', 'transaksi_detail.id_jasa', '=', 'jasa.id_jasa')
+            ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
             ->whereIn('transaksi_detail.id_transaksi', $idNotaHalamanIni)
-            ->select('transaksi_detail.*', 'produk.nama_produk', 'jasa.nama_jasa')
+            ->select('transaksi_detail.*', 'produk.nama_produk', 'jasa.nama_jasa', 'mesin.nama_mesin as divisi')
             ->orderBy('transaksi_detail.id_detail')
             ->get()
             ->groupBy('id_transaksi');

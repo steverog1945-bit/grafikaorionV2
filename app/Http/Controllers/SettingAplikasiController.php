@@ -20,7 +20,9 @@ class SettingAplikasiController extends Controller
             'nama_aplikasi' => 'required|string|max:255',
             'alamat' => 'nullable|string|max:1000',
             'telepon' => 'nullable|string|max:50',
+            'fax' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
+            'website' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
         ]);
 
@@ -30,7 +32,9 @@ class SettingAplikasiController extends Controller
             'nama_aplikasi' => $data['nama_aplikasi'],
             'alamat' => $data['alamat'] ?? null,
             'telepon' => $data['telepon'] ?? null,
+            'fax' => $data['fax'] ?? null,
             'email' => $data['email'] ?? null,
+            'website' => $data['website'] ?? null,
         ];
 
         if ($request->hasFile('logo')) {

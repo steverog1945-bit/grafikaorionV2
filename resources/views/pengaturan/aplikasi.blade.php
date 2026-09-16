@@ -44,8 +44,16 @@
                     <x-form.input type="text" name="telepon" value="{{ old('telepon', $setting->telepon) }}" placeholder="08xx / 021xx" />
                 </x-form.group>
 
+                <x-form.group label="Fax" name="fax">
+                    <x-form.input type="text" name="fax" value="{{ old('fax', $setting->fax) }}" placeholder="- (kosongkan kalau tidak ada)" />
+                </x-form.group>
+
                 <x-form.group label="Email" name="email">
                     <x-form.input type="email" name="email" value="{{ old('email', $setting->email) }}" placeholder="info@perusahaan.com" />
+                </x-form.group>
+
+                <x-form.group label="Website" name="website">
+                    <x-form.input type="text" name="website" value="{{ old('website', $setting->website) }}" placeholder="http://perusahaan.com" />
                 </x-form.group>
             </div>
 

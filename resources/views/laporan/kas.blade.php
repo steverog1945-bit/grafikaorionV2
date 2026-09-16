@@ -59,7 +59,7 @@
     </x-card>
 
     {{-- RESUME --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Sesi</p>
             <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($jumlahSesi, 0, ',', '.') }}</h3>
@@ -80,6 +80,16 @@
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Selisih</p>
             <h3 class="text-2xl font-bold {{ $totalSelisih < 0 ? 'text-rose-500' : 'text-slate-900' }} mt-1">Rp {{ number_format($totalSelisih, 0, ',', '.') }}</h3>
         </div>
+    </div>
+    <div class="hidden print:block mb-4">
+        <p class="text-[12px] font-bold text-slate-900 mb-1">Resume</p>
+        <table class="text-[11px]">
+            <tr><td class="pr-3 text-slate-600">Jumlah Sesi</td><td class="pr-2">:</td><td class="font-semibold">{{ number_format($jumlahSesi, 0, ',', '.') }}</td></tr>
+            <tr><td class="pr-3 text-slate-600">Total Tunai Masuk</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalTunaiMasuk, 0, ',', '.') }}</td></tr>
+            <tr><td class="pr-3 text-slate-600">Total Transfer Masuk</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalTransferMasuk, 0, ',', '.') }}</td></tr>
+            <tr><td class="pr-3 text-slate-600">Total Debit Masuk</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalDebitMasuk, 0, ',', '.') }}</td></tr>
+            <tr><td class="pr-3 text-slate-600">Total Selisih</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalSelisih, 0, ',', '.') }}</td></tr>
+        </table>
     </div>
 
     <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Detail Sesi Kas</div>
@@ -106,7 +116,7 @@
 
         @if($manual->isNotEmpty())
         <div class="overflow-x-auto">
-            <table class="w-full text-xs">
+            <table class="w-full text-xs rtable">
                 <thead>
                     <tr class="text-[10px] text-slate-400 uppercase bg-slate-50/60">
                         <th class="p-3 text-left w-6">#</th>
@@ -120,14 +130,14 @@
                 <tbody class="divide-y divide-slate-50">
                     @foreach($manual as $i => $m)
                     <tr>
-                        <td class="p-3 text-slate-400">{{ $i + 1 }}</td>
-                        <td class="p-3 text-slate-500">{{ \Carbon\Carbon::parse($m->waktu)->format('H:i') }}</td>
-                        <td class="p-3 font-semibold text-slate-700">{{ $m->keterangan }}</td>
-                        <td class="p-3 text-slate-500">{{ $m->nama_user ?? '-' }}</td>
-                        <td class="p-3 text-center">
+                        <td data-label="#" class="p-3 text-slate-400">{{ $i + 1 }}</td>
+                        <td data-label="Waktu" class="p-3 text-slate-500">{{ \Carbon\Carbon::parse($m->waktu)->format('H:i') }}</td>
+                        <td data-label="Keterangan" class="p-3 font-semibold text-slate-700">{{ $m->keterangan }}</td>
+                        <td data-label="Oleh" class="p-3 text-slate-500">{{ $m->nama_user ?? '-' }}</td>
+                        <td data-label="Status" class="p-3 text-center">
                             <x-badge :variant="$m->status === 'Masuk' ? 'success' : 'danger'">{{ $m->status }}</x-badge>
                         </td>
-                        <td class="p-3 text-right font-bold {{ $m->status === 'Masuk' ? 'text-emerald-600' : 'text-rose-500' }}">
+                        <td data-label="Nominal" class="p-3 text-right font-bold {{ $m->status === 'Masuk' ? 'text-emerald-600' : 'text-rose-500' }}">
                             {{ $m->status === 'Masuk' ? '+' : '-' }} Rp {{ number_format($m->nominal, 0, ',', '.') }}
                         </td>
                     </tr>

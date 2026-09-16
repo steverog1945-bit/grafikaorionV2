@@ -78,7 +78,7 @@
     </x-card>
 
     {{-- RESUME --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Order</p>
             <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($jumlahOrder, 0, ',', '.') }}</h3>
@@ -92,12 +92,20 @@
             <h3 class="text-2xl font-bold text-rose-500 mt-1">Rp {{ number_format($totalPiutang, 0, ',', '.') }}</h3>
         </div>
     </div>
+    <div class="hidden print:block mb-4">
+        <p class="text-[12px] font-bold text-slate-900 mb-1">Resume Transaksi</p>
+        <table class="text-[11px]">
+            <tr><td class="pr-3 text-slate-600">Jumlah Order</td><td class="pr-2">:</td><td class="font-semibold">{{ number_format($jumlahOrder, 0, ',', '.') }} Kali</td></tr>
+            <tr><td class="pr-3 text-slate-600">Total Transaksi</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalTransaksi, 0, ',', '.') }}</td></tr>
+            <tr><td class="pr-3 text-slate-600">Total Piutang</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalPiutang, 0, ',', '.') }}</td></tr>
+        </table>
+    </div>
 
-    {{-- BREAKDOWN PER KATEGORI &amp; DESAINER --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 no-print">
+    {{-- BREAKDOWN PER KATEGORI &amp; DESAINER - ikut tercetak (sesuai referensi). --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 break-inside-avoid">
         @if($breakdownKategori->isNotEmpty())
         <x-card title="Rincian per Kategori Jersey">
-            <x-table bare>
+            <x-table bare class="rtable">
                 <thead>
                     <tr>
                         <th class="px-4 py-3 text-left">Kategori</th>
@@ -108,9 +116,9 @@
                 <tbody class="divide-y divide-slate-50">
                     @foreach($breakdownKategori as $b)
                     <tr>
-                        <td class="px-4 py-3 text-[12px] font-bold text-slate-700">{{ $b->kategori }}</td>
-                        <td class="px-4 py-3 text-right text-[12px] text-slate-600">{{ number_format($b->total_qty, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">Rp {{ number_format($b->total_subtotal, 0, ',', '.') }}</td>
+                        <td data-label="Kategori" class="px-4 py-3 text-[12px] font-bold text-slate-700">{{ $b->kategori }}</td>
+                        <td data-label="Qty" class="px-4 py-3 text-right text-[12px] text-slate-600">{{ number_format($b->total_qty, 0, ',', '.') }}</td>
+                        <td data-label="Subtotal" class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">Rp {{ number_format($b->total_subtotal, 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -120,7 +128,7 @@
 
         @if($breakdownDesainer->isNotEmpty())
         <x-card title="Rincian per Desainer">
-            <x-table bare>
+            <x-table bare class="rtable">
                 <thead>
                     <tr>
                         <th class="px-4 py-3 text-left">Desainer</th>
@@ -131,9 +139,9 @@
                 <tbody class="divide-y divide-slate-50">
                     @foreach($breakdownDesainer as $b)
                     <tr>
-                        <td class="px-4 py-3 text-[12px] font-bold text-slate-700">{{ $b->nama }}</td>
-                        <td class="px-4 py-3 text-right text-[12px] text-slate-600">{{ number_format($b->jumlah_order, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">Rp {{ number_format($b->total, 0, ',', '.') }}</td>
+                        <td data-label="Desainer" class="px-4 py-3 text-[12px] font-bold text-slate-700">{{ $b->nama }}</td>
+                        <td data-label="Jml Order" class="px-4 py-3 text-right text-[12px] text-slate-600">{{ number_format($b->jumlah_order, 0, ',', '.') }}</td>
+                        <td data-label="Total" class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">Rp {{ number_format($b->total, 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -173,7 +181,7 @@
 
         @if($lineOrder->isNotEmpty())
         <div class="overflow-x-auto">
-            <table class="w-full text-xs">
+            <table class="w-full text-xs rtable">
                 <thead>
                     <tr class="text-[10px] text-slate-400 uppercase bg-slate-50/60">
                         <th class="p-3 text-left w-6">#</th>
@@ -187,12 +195,12 @@
                 <tbody class="divide-y divide-slate-50">
                     @foreach($lineOrder as $i => $line)
                     <tr>
-                        <td class="p-3 text-slate-400">{{ $i + 1 }}</td>
-                        <td class="p-3 font-semibold text-slate-700">{{ $line->nama_barang }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ $line->qty }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ number_format($line->harga_satuan, 0, ',', '.') }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ number_format($line->size_surcharge_total + $line->sleeve_collar_surcharge_total, 0, ',', '.') }}</td>
-                        <td class="p-3 text-right font-bold text-slate-800">{{ number_format($line->subtotal, 0, ',', '.') }}</td>
+                        <td data-label="#" class="p-3 text-slate-400">{{ $i + 1 }}</td>
+                        <td data-label="Nama Barang" class="p-3 font-semibold text-slate-700">{{ $line->nama_barang }}</td>
+                        <td data-label="Qty" class="p-3 text-right text-slate-500">{{ $line->qty }}</td>
+                        <td data-label="Harga Satuan" class="p-3 text-right text-slate-500">{{ number_format($line->harga_satuan, 0, ',', '.') }}</td>
+                        <td data-label="Tambahan" class="p-3 text-right text-slate-500">{{ number_format($line->size_surcharge_total + $line->sleeve_collar_surcharge_total, 0, ',', '.') }}</td>
+                        <td data-label="Subtotal" class="p-3 text-right font-bold text-slate-800">{{ number_format($line->subtotal, 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>

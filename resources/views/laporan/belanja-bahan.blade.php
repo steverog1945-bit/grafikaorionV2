@@ -68,7 +68,7 @@
     </x-card>
 
     {{-- RESUME --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Faktur</p>
             <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($jumlahFaktur, 0, ',', '.') }}</h3>
@@ -81,6 +81,14 @@
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sisa Hutang (belum Lunas)</p>
             <h3 class="text-2xl font-bold text-rose-500 mt-1">Rp {{ number_format($totalHutang, 0, ',', '.') }}</h3>
         </div>
+    </div>
+    <div class="hidden print:block mb-4">
+        <p class="text-[12px] font-bold text-slate-900 mb-1">Resume</p>
+        <table class="text-[11px]">
+            <tr><td class="pr-3 text-slate-600">Jumlah Faktur</td><td class="pr-2">:</td><td class="font-semibold">{{ number_format($jumlahFaktur, 0, ',', '.') }}</td></tr>
+            <tr><td class="pr-3 text-slate-600">Total Belanja Bahan</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalBelanja, 0, ',', '.') }}</td></tr>
+            <tr><td class="pr-3 text-slate-600">Sisa Hutang</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalHutang, 0, ',', '.') }}</td></tr>
+        </table>
     </div>
 
     <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Detail Faktur</div>
@@ -113,7 +121,7 @@
 
         @if($item->isNotEmpty())
         <div class="overflow-x-auto">
-            <table class="w-full text-xs">
+            <table class="w-full text-xs rtable">
                 <thead>
                     <tr class="text-[10px] text-slate-400 uppercase bg-slate-50/60">
                         <th class="p-3 text-left w-6">#</th>
@@ -128,13 +136,13 @@
                 <tbody class="divide-y divide-slate-50">
                     @foreach($item as $i => $d)
                     <tr>
-                        <td class="p-3 text-slate-400">{{ $i + 1 }}</td>
-                        <td class="p-3 font-semibold text-slate-700">{{ $d->nama_bahan ?? '-' }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ number_format($d->qty, 0, ',', '.') }} {{ $d->satuan_stok }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ number_format($d->harga, 0, ',', '.') }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ number_format($d->diskon, 0, ',', '.') }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ number_format($d->potongan, 0, ',', '.') }}</td>
-                        <td class="p-3 text-right font-bold text-slate-800">{{ number_format($d->subtotal, 0, ',', '.') }}</td>
+                        <td data-label="#" class="p-3 text-slate-400">{{ $i + 1 }}</td>
+                        <td data-label="Bahan" class="p-3 font-semibold text-slate-700">{{ $d->nama_bahan ?? '-' }}</td>
+                        <td data-label="Qty" class="p-3 text-right text-slate-500">{{ number_format($d->qty, 0, ',', '.') }} {{ $d->satuan_stok }}</td>
+                        <td data-label="Harga" class="p-3 text-right text-slate-500">{{ number_format($d->harga, 0, ',', '.') }}</td>
+                        <td data-label="Diskon" class="p-3 text-right text-slate-500">{{ number_format($d->diskon, 0, ',', '.') }}</td>
+                        <td data-label="Potongan" class="p-3 text-right text-slate-500">{{ number_format($d->potongan, 0, ',', '.') }}</td>
+                        <td data-label="Subtotal" class="p-3 text-right font-bold text-slate-800">{{ number_format($d->subtotal, 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>

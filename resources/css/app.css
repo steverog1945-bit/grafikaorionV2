@@ -105,6 +105,36 @@
     color: #1f6fd1;
 }
 
+/* --- RESPONSIVE TABLE (stack jadi kartu label:value di layar sempit) ---
+   Sebelumnya tabel rincian di kartu laporan (rincian nota/order/faktur/
+   sesi kas/produksi) cuma dibungkus overflow-x-auto - di layar sempit
+   (HP) tabel tetap selebar aslinya lalu harus discroll horizontal, bukan
+   benar-benar responsive. Pasangkan class "rtable" pada <table> + atribut
+   data-label="..." pada tiap <td> (isinya nama kolom) supaya di bawah
+   640px baris tabel berubah jadi kartu vertikal label:value tanpa scroll
+   horizontal sama sekali. thead disembunyikan karena label sudah pindah
+   ke tiap td. Opt-in (class baru) - tidak mengubah tabel lain yang belum
+   dipasangi class ini. */
+@media (max-width: 640px) {
+    table.rtable { min-width: 0 !important; width: 100%; }
+    table.rtable thead { display: none; }
+    table.rtable, table.rtable tbody, table.rtable tr, table.rtable td { display: block; width: 100%; }
+    table.rtable tbody tr {
+        border: 1px solid #eef1f4; border-radius: 12px; margin-bottom: 10px; padding: 6px 4px; background: #fff;
+    }
+    table.rtable td {
+        display: flex; justify-content: space-between; align-items: center; gap: 12px;
+        text-align: right; border: none !important; padding: 6px 10px;
+    }
+    table.rtable td[data-label]::before {
+        content: attr(data-label);
+        font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+        color: #94a3b8; text-align: left; margin-right: auto;
+    }
+    table.rtable td:empty,
+    table.rtable td[data-label=""] { display: none; }
+}
+
 /* --- EMPTY STATE --- */
 .empty-state {
     text-align: center;
@@ -135,6 +165,31 @@
 
 .modern-nav .page-link span {
     display: inline-block;
+}
+
+/* --- CETAK LAPORAN (@media print) ---
+   Laporan (Order/Produksi/Kas/Belanja Bahan/Order Jersey) dipakai baik di
+   layar (kartu berwarna, rounded, shadow, badge pill) maupun saat
+   dicetak - alih-alih duplikasi seluruh markup jadi 2 versi terpisah,
+   saat benar-benar dicetak elemen yang SAMA "dilucuti" jadi gaya laporan
+   formal (mendekati referensi cetak lama milik user): tanpa rounded
+   besar/shadow/badge pill berwarna, tabel dibiarkan lebar penuh (tidak
+   lagi dipaksa min-width lalu discroll). Cukup satu tempat, otomatis
+   berlaku ke semua laporan yang memakai <x-card>/<x-table>/.chip/blok
+   kartu (.nota-block, .order-block, .sesi-block, .faktur-block,
+   .divisi-block). */
+@media print {
+    .rounded-3xl, .rounded-2xl, .rounded-\[2rem\], .rounded-2rem { border-radius: 3px !important; }
+    .shadow-sm, .shadow, .shadow-md { box-shadow: none !important; }
+    .chip {
+        border-radius: 4px !important;
+        border: 1px solid currentColor !important;
+        background: transparent !important;
+        padding: 1px 8px !important;
+    }
+    .modern-table-wrapper { box-shadow: none !important; overflow: visible !important; border-color: #94a3b8 !important; }
+    .modern-table { min-width: 0 !important; }
+    .modern-table th { border-bottom: 1.5px solid #0f172a !important; }
 }
 
 /* --- MISC --- */

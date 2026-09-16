@@ -77,8 +77,9 @@
         </form>
     </x-card>
 
-    {{-- RESUME --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    {{-- RESUME - kartu berwarna di layar, daftar polos "Label : Nilai"
+         saat dicetak (sesuai referensi). --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Transaksi</p>
             <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($jumlahTransaksi, 0, ',', '.') }}</h3>
@@ -92,13 +93,23 @@
             <h3 class="text-2xl font-bold text-rose-500 mt-1">Rp {{ number_format($totalPiutang, 0, ',', '.') }}</h3>
         </div>
     </div>
+    <div class="hidden print:block mb-4">
+        <p class="text-[12px] font-bold text-slate-900 mb-1">Resume Transaksi</p>
+        <table class="text-[11px]">
+            <tr><td class="pr-3 text-slate-600">Jumlah Transaksi</td><td class="pr-2">:</td><td class="font-semibold">{{ number_format($jumlahTransaksi, 0, ',', '.') }} Kali</td></tr>
+            <tr><td class="pr-3 text-slate-600">Total Transaksi</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalTransaksi, 0, ',', '.') }}</td></tr>
+            <tr><td class="pr-3 text-slate-600">Total Piutang</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalPiutang, 0, ',', '.') }}</td></tr>
+        </table>
+    </div>
 
     {{-- BREAKDOWN PER DIVISI/MESIN - tabel produk tidak punya kolom
          kategori tersendiri, jadi pengelompokan pakai Divisi (mesin) yang
-         sudah dipakai konsisten di Laporan Produksi. --}}
+         sudah dipakai konsisten di Laporan Produksi. Ikut tercetak (sesuai
+         referensi yang menampilkan tabel rincian kategori di bawah
+         resume). --}}
     @if($breakdownDivisi->isNotEmpty())
-    <x-card title="Rincian Biaya per Divisi" class="mb-6 no-print">
-        <x-table bare>
+    <x-card title="Rincian Biaya per Divisi" class="mb-6 break-inside-avoid">
+        <x-table bare class="rtable">
             <thead>
                 <tr>
                     <th class="px-4 py-3 text-left">Divisi</th>
@@ -110,10 +121,10 @@
             <tbody class="divide-y divide-slate-50">
                 @foreach($breakdownDivisi as $b)
                 <tr>
-                    <td class="px-4 py-3 text-[12px] font-bold text-slate-700">{{ $b->divisi }}</td>
-                    <td class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">{{ number_format($b->total_biaya_cetak, 0, ',', '.') }}</td>
-                    <td class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">{{ number_format($b->total_biaya_desain, 0, ',', '.') }}</td>
-                    <td class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">{{ number_format($b->total_biaya_finishing, 0, ',', '.') }}</td>
+                    <td data-label="Divisi" class="px-4 py-3 text-[12px] font-bold text-slate-700">{{ $b->divisi }}</td>
+                    <td data-label="Biaya Cetak" class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">{{ number_format($b->total_biaya_cetak, 0, ',', '.') }}</td>
+                    <td data-label="Biaya Design" class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">{{ number_format($b->total_biaya_desain, 0, ',', '.') }}</td>
+                    <td data-label="Biaya Finishing" class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">{{ number_format($b->total_biaya_finishing, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -164,13 +175,15 @@
         {{-- ITEM PESANAN - selalu tampil penuh, tidak lagi expand/collapse. --}}
         @if($itemNota->isNotEmpty())
         <div class="overflow-x-auto">
-            <table class="w-full text-xs">
+            <table class="w-full text-xs rtable">
                 <thead>
                     <tr class="text-[10px] text-slate-400 uppercase bg-slate-50/60">
                         <th class="p-3 text-left w-6">#</th>
+                        <th class="p-3 text-left">Divisi</th>
                         <th class="p-3 text-left">Produk / Jasa</th>
                         <th class="p-3 text-left">Ukuran</th>
                         <th class="p-3 text-right">Harga</th>
+                        <th class="p-3 text-right">Potongan</th>
                         <th class="p-3 text-right">Qty</th>
                         <th class="p-3 text-right">Cetak</th>
                         <th class="p-3 text-right">Design</th>
@@ -181,15 +194,17 @@
                 <tbody class="divide-y divide-slate-50">
                     @foreach($itemNota as $i => $item)
                     <tr>
-                        <td class="p-3 text-slate-400">{{ $i + 1 }}</td>
-                        <td class="p-3 font-semibold text-slate-700">{{ $item->nama_produk ?? $item->nama_jasa ?? '-' }}<br><span class="text-[10px] font-normal text-slate-400">{{ $item->nama_file }}</span></td>
-                        <td class="p-3 text-slate-500">{{ $item->p_ukuran > 0 && $item->l_ukuran > 0 ? number_format($item->p_ukuran, 0, ',', '.') . 'x' . number_format($item->l_ukuran, 0, ',', '.') . ' cm' : '-' }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ number_format($item->harga_jual_snapshot, 0, ',', '.') }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ number_format($item->qty, 0, ',', '.') }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ number_format($item->biaya_cetak, 0, ',', '.') }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ number_format($item->biaya_desain, 0, ',', '.') }}</td>
-                        <td class="p-3 text-right text-slate-500">{{ number_format($item->biaya_finishing, 0, ',', '.') }}</td>
-                        <td class="p-3 text-right font-bold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                        <td data-label="#" class="p-3 text-slate-400">{{ $i + 1 }}</td>
+                        <td data-label="Divisi" class="p-3 text-slate-500">{{ $item->divisi ?? '-' }}</td>
+                        <td data-label="Produk / Jasa" class="p-3 font-semibold text-slate-700">{{ $item->nama_produk ?? $item->nama_jasa ?? '-' }}<br><span class="text-[10px] font-normal text-slate-400">{{ $item->nama_file }}</span></td>
+                        <td data-label="Ukuran" class="p-3 text-slate-500">{{ $item->p_ukuran > 0 && $item->l_ukuran > 0 ? number_format($item->p_ukuran, 0, ',', '.') . 'x' . number_format($item->l_ukuran, 0, ',', '.') . ' cm' : '-' }}</td>
+                        <td data-label="Harga" class="p-3 text-right text-slate-500">{{ number_format($item->harga_jual_snapshot, 0, ',', '.') }}</td>
+                        <td data-label="Potongan" class="p-3 text-right text-slate-500">{{ number_format($item->potongan, 0, ',', '.') }}</td>
+                        <td data-label="Qty" class="p-3 text-right text-slate-500">{{ number_format($item->qty, 0, ',', '.') }}</td>
+                        <td data-label="Cetak" class="p-3 text-right text-slate-500">{{ number_format($item->biaya_cetak, 0, ',', '.') }}</td>
+                        <td data-label="Design" class="p-3 text-right text-slate-500">{{ number_format($item->biaya_desain, 0, ',', '.') }}</td>
+                        <td data-label="Finishing" class="p-3 text-right text-slate-500">{{ number_format($item->biaya_finishing, 0, ',', '.') }}</td>
+                        <td data-label="Subtotal" class="p-3 text-right font-bold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>

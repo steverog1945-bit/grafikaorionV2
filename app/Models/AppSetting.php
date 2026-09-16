@@ -13,7 +13,9 @@ class AppSetting extends Model
         'nama_aplikasi',
         'alamat',
         'telepon',
+        'fax',
         'email',
+        'website',
         'logo_path',
     ];
 
