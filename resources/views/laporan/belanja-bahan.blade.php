@@ -9,23 +9,20 @@
         .faktur-block { break-inside: avoid; }
     }
 </style>
-@include('partials.print-report-header', ['docTitle' => 'Laporan Belanja Bahan'])
 
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <div class="print:hidden">
-        <x-page-header title="Laporan Belanja Bahan">
-            <x-slot:subtitle>
-                Laporan <span class="mx-1 text-slate-300">/</span> Pembukuan Pembelian Bahan Baku - terpisah dari Laporan Kas &amp; Keuangan Jersey
-            </x-slot:subtitle>
-            <x-slot:actions>
-                <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
-                    <i class="fas fa-print"></i>
-                    Cetak
-                </x-button>
-            </x-slot:actions>
-        </x-page-header>
-    </div>
+    <x-page-header title="Laporan Belanja Bahan">
+        <x-slot:subtitle>
+            Laporan <span class="mx-1 text-slate-300">/</span> Pembukuan Pembelian Bahan Baku - terpisah dari Laporan Kas &amp; Keuangan Jersey
+        </x-slot:subtitle>
+        <x-slot:actions>
+            <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
+                <i class="fas fa-print"></i>
+                Cetak
+            </x-button>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- FILTER --}}
     <x-card class="mb-6 no-print">
@@ -69,29 +66,12 @@
         </form>
     </x-card>
 
-    {{-- RESUME --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Faktur</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($jumlahFaktur, 0, ',', '.') }}</h3>
-        </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Belanja Bahan</p>
-            <h3 class="text-2xl font-bold text-indigo-600 mt-1">Rp {{ number_format($totalBelanja, 0, ',', '.') }}</h3>
-        </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sisa Hutang (belum Lunas)</p>
-            <h3 class="text-2xl font-bold text-rose-500 mt-1">Rp {{ number_format($totalHutang, 0, ',', '.') }}</h3>
-        </div>
-    </div>
-    <div class="hidden print:block mb-4">
-        <p class="text-[12px] font-bold text-slate-900 mb-1">Resume</p>
-        <table class="text-[11px]">
-            <tr><td class="pr-3 text-slate-600">Jumlah Faktur</td><td class="pr-2">:</td><td class="font-semibold">{{ number_format($jumlahFaktur, 0, ',', '.') }}</td></tr>
-            <tr><td class="pr-3 text-slate-600">Total Belanja Bahan</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalBelanja, 0, ',', '.') }}</td></tr>
-            <tr><td class="pr-3 text-slate-600">Sisa Hutang</td><td class="pr-2">:</td><td class="font-semibold">Rp {{ number_format($totalHutang, 0, ',', '.') }}</td></tr>
-        </table>
-    </div>
+    {{-- RESUME - tabel standar, sama persis di layar maupun cetak. --}}
+    <x-laporan.resume-table title="Resume" :rows="[
+        'Jumlah Faktur' => number_format($jumlahFaktur, 0, ',', '.'),
+        'Total Belanja Bahan' => 'Rp ' . number_format($totalBelanja, 0, ',', '.'),
+        'Sisa Hutang (belum Lunas)' => 'Rp ' . number_format($totalHutang, 0, ',', '.'),
+    ]" />
 
     <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Detail Faktur</div>
 
