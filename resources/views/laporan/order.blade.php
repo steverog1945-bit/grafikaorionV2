@@ -11,7 +11,7 @@
 </style>
 @include('partials.print-report-header', ['docTitle' => 'Laporan Rekap Transaksi Order'])
 
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 print:pt-0 max-w-[1600px] mx-auto">
 
     <div class="print:hidden">
         <x-page-header title="Laporan Rekap Transaksi Order">
@@ -171,40 +171,78 @@
 
     <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Transaksi</div>
 
-    {{-- DETAIL TRANSAKSI - kartu per nota di layar (tidak diubah), tabel
-         datar sederhana khusus cetak (bukan kartu) - satu baris per item,
-         info nota (no. nota/tanggal/konsumen/status) diulang di tiap
-         baris supaya tetap satu tabel utuh, bukan blok terpisah-pisah. --}}
+    {{-- DETAIL TRANSAKSI - kartu per nota di layar (tidak diubah). Saat
+         cetak, isinya disamakan persis dengan referensi (satu tabel per
+         nota: kolom Divisi/Produk/Ukuran/Harga/Potongan/Qty/Cetak/Design/
+         Finishing/Subtotal + baris Grand Total/Bayar/Kurang Bayar) tapi
+         tetap pakai gaya visual kita sendiri (tabel polos, bukan kartu
+         berwarna/rounded/shadow seperti tampilan layar). --}}
     <div class="hidden print:block">
-        <x-laporan.print-table title="Detail Transaksi" :headers="['No. Nota', 'Tanggal', 'Konsumen', 'Produk / Jasa', 'Qty', 'Harga', 'Subtotal', 'Status']" :align="['left', 'left', 'left', 'left', 'right', 'right', 'right', 'left']">
-            @forelse($data as $t)
-            @php $itemNotaPrint = $itemPerNota->get($t->id_transaksi, collect()); @endphp
-            @forelse($itemNotaPrint as $i => $item)
-            <tr>
-                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $i === 0 ? $t->nomor_nota : '' }}</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ $i === 0 ? \Carbon\Carbon::parse($t->tgl_order)->format('d/m/Y') : '' }}</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ $i === 0 ? $t->nama_konsumen : '' }}</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ $item->nama_produk ?? $item->nama_jasa ?? '-' }}</td>
-                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->qty, 0, ',', '.') }}</td>
-                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->harga_jual_snapshot, 0, ',', '.') }}</td>
-                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ $i === 0 ? ($t->status_nota === 'Dibatalkan' ? 'Dibatalkan' : $t->status_pembayaran) : '' }}</td>
-            </tr>
-            @empty
-            <tr>
-                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $t->nomor_nota }}</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->format('d/m/Y') }}</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ $t->nama_konsumen }}</td>
-                <td class="px-3 py-1.5 text-slate-400 italic" colspan="4">Tidak ada rincian item</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ $t->status_nota === 'Dibatalkan' ? 'Dibatalkan' : $t->status_pembayaran }}</td>
-            </tr>
-            @endforelse
-            @empty
-            <tr>
-                <td class="px-3 py-1.5 text-slate-400 italic" colspan="8">Tidak ada data</td>
-            </tr>
-            @endforelse
-        </x-laporan.print-table>
+        <p class="text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-2">Detail Transaksi</p>
+        @forelse($data as $t)
+        @php
+            $itemNotaPrint = $itemPerNota->get($t->id_transaksi, collect());
+            $kurangBayarPrint = max(0, $t->total_bayar - $t->total_dibayar);
+        @endphp
+        <div class="mb-6 border border-slate-200 overflow-hidden break-inside-avoid">
+            <div class="px-3 py-2 bg-slate-50 border-b border-slate-200 text-[10.5px] text-slate-600 leading-relaxed">
+                <span class="font-bold text-slate-800">{{ $t->nomor_nota }}</span>
+                &middot; Konsumen: {{ $t->nama_konsumen }}
+                &middot; Golongan: {{ $t->nama_golongan }}
+                @if($t->no_po) &middot; No. PO: {{ $t->no_po }} @endif
+                &middot; Tanggal: {{ \Carbon\Carbon::parse($t->tgl_order)->format('d/m/Y') }}
+                @if($t->nama_operator) &middot; Operator: {{ $t->nama_operator }} @endif
+                &middot; Status: {{ $t->status_nota === 'Dibatalkan' ? 'Dibatalkan' : $t->status_pembayaran }}
+            </div>
+            <table class="w-full text-[11px] border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left w-6">#</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Divisi</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Produk</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Ukuran</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Harga</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Potongan</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Qty</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Cetak(Rp)</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Design(Rp)</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Finishing(Rp)</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($itemNotaPrint as $i => $item)
+                    <tr>
+                        <td class="px-3 py-1.5 text-slate-400">{{ $i + 1 }}</td>
+                        <td class="px-3 py-1.5 text-slate-600">{{ $item->divisi ?? '-' }}</td>
+                        <td class="px-3 py-1.5 text-slate-700">{{ $item->nama_produk ?? $item->nama_jasa ?? '-' }}</td>
+                        <td class="px-3 py-1.5 text-slate-600">{{ $item->p_ukuran > 0 && $item->l_ukuran > 0 ? number_format($item->p_ukuran, 0, ',', '.') . 'x' . number_format($item->l_ukuran, 0, ',', '.') . ' cm' : '-' }}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->harga_jual_snapshot, 0, ',', '.') }}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->potongan, 0, ',', '.') }}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->qty, 0, ',', '.') }}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->biaya_cetak, 0, ',', '.') }}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->biaya_desain, 0, ',', '.') }}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->biaya_finishing, 0, ',', '.') }}</td>
+                        <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td class="px-3 py-1.5 text-slate-400 italic" colspan="11">Tidak ada rincian item untuk nota ini.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            <div class="px-3 py-2 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <table class="text-[11px]">
+                    <tr><td class="pr-4 text-slate-600">Grand Total</td><td class="text-right font-semibold text-slate-800">{{ number_format($t->total_bayar, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Total Bayar</td><td class="text-right font-semibold text-slate-800">{{ number_format($t->total_dibayar, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 font-bold text-slate-700">{{ $kurangBayarPrint > 0 ? 'Kurang Bayar' : 'Lunas' }}</td><td class="text-right font-bold text-slate-900">{{ number_format($kurangBayarPrint, 0, ',', '.') }}</td></tr>
+                </table>
+            </div>
+        </div>
+        @empty
+        <p class="text-[11px] text-slate-400 italic">Tidak ada data.</p>
+        @endforelse
     </div>
 
     <div class="print:hidden">
