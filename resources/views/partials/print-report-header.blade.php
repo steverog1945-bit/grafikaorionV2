@@ -16,7 +16,7 @@
     - $tglDari, $tglSampai : dipakai untuk baris "Periode Cetak" (opsional)
 --}}
 @php($appSettingReportPrint = \App\Models\AppSetting::current())
-<div class="hidden print:block mb-10">
+<div class="hidden print:block mb-6">
     <div class="flex items-start justify-between gap-6">
         <div class="flex items-start gap-3">
             @if($appSettingReportPrint->logo_path)

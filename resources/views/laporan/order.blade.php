@@ -130,17 +130,42 @@
             </tbody>
         </x-table>
     </x-card>
-    <div class="hidden print:block break-inside-avoid">
-        <x-laporan.print-table title="Rincian Biaya per Divisi" :headers="['Divisi', 'Biaya Cetak', 'Biaya Design', 'Biaya Finishing']" :align="['left', 'right', 'right', 'right']">
-            @foreach($breakdownDivisi as $b)
-            <tr>
-                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $b->divisi }}</td>
-                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_cetak, 0, ',', '.') }}</td>
-                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_desain, 0, ',', '.') }}</td>
-                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_finishing, 0, ',', '.') }}</td>
-            </tr>
-            @endforeach
-        </x-laporan.print-table>
+    <div class="hidden print:block">
+        <div class="break-inside-avoid">
+            <x-laporan.print-table title="Rincian Biaya per Divisi" :headers="['Divisi', 'Biaya Cetak', 'Biaya Design', 'Biaya Finishing']" :align="['left', 'right', 'right', 'right']">
+                @foreach($breakdownDivisi as $b)
+                <tr>
+                    <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $b->divisi }}</td>
+                    <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_cetak, 0, ',', '.') }}</td>
+                    <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_desain, 0, ',', '.') }}</td>
+                    <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_finishing, 0, ',', '.') }}</td>
+                </tr>
+                @endforeach
+            </x-laporan.print-table>
+        </div>
+
+        {{-- RINCIAN PER PRODUK DI TIAP DIVISI - selengkap referensi (tiap
+             divisi jadi tabel produk tersendiri dengan Total-nya sendiri,
+             sama seperti pola "Ringkasan per Divisi" di Laporan Produksi -
+             TIDAK digabung jadi satu angka lintas divisi). --}}
+        @foreach($breakdownProduk as $namaDivisi => $baris)
+        <div class="break-inside-avoid">
+            <x-laporan.print-table :title="'Divisi: ' . $namaDivisi" :headers="['Produk', 'Jml Nota', 'Qty', 'Total']" :align="['left', 'right', 'right', 'right']">
+                @foreach($baris as $p)
+                <tr>
+                    <td class="px-3 py-1.5 text-slate-600">{{ $p->produk }}</td>
+                    <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($p->jml_nota, 0, ',', '.') }}</td>
+                    <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($p->total_qty, 0, ',', '.') }}</td>
+                    <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($p->total_subtotal, 0, ',', '.') }}</td>
+                </tr>
+                @endforeach
+                <tr class="bg-slate-50 border-t border-slate-200">
+                    <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="3">Total {{ $namaDivisi }}</td>
+                    <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($baris->sum('total_subtotal'), 0, ',', '.') }}</td>
+                </tr>
+            </x-laporan.print-table>
+        </div>
+        @endforeach
     </div>
     @endif
 

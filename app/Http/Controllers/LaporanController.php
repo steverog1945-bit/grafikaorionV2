@@ -98,6 +98,31 @@ class LaporanController extends Controller
             ->orderByDesc(DB::raw('SUM(transaksi_detail.biaya_cetak)'))
             ->get();
 
+        // Rincian per PRODUK di dalam tiap divisi (bukan cuma total per
+        // divisi) - dipakai laporan cetak supaya rinciannya selengkap
+        // referensi (tiap divisi jadi tabel produk tersendiri, sama
+        // seperti pola "Ringkasan per Divisi" di Laporan Produksi).
+        // DIBATASI ke nota yang sama persis dengan filter resume, sama
+        // seperti breakdownDivisi.
+        $breakdownProdukMentah = DB::table('transaksi_detail')
+            ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+            ->leftJoin('jasa', 'transaksi_detail.id_jasa', '=', 'jasa.id_jasa')
+            ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
+            ->whereIn('transaksi_detail.id_transaksi', $idNotaSesuaiFilter)
+            ->select(
+                DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya') as divisi"),
+                DB::raw("COALESCE(produk.nama_produk, jasa.nama_jasa, '-') as produk"),
+                DB::raw('COUNT(DISTINCT transaksi_detail.id_transaksi) as jml_nota'),
+                DB::raw('SUM(transaksi_detail.qty) as total_qty'),
+                DB::raw('SUM(transaksi_detail.subtotal) as total_subtotal')
+            )
+            ->groupBy(DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya')"), DB::raw("COALESCE(produk.nama_produk, jasa.nama_jasa, '-')"))
+            ->orderBy('produk')
+            ->get();
+        $breakdownProduk = $breakdownProdukMentah
+            ->groupBy('divisi')
+            ->sortKeys();
+
         // Paginasi lebih kecil dari laporan lain (10, bukan 20) - tiap nota
         // sekarang tampil sebagai blok PENUH (header + tabel item + total),
         // bukan satu baris ringkas, supaya satu halaman tidak kepanjangan.
@@ -123,7 +148,7 @@ class LaporanController extends Controller
         $konsumenList = DB::table('konsumen')->orderBy('nama_konsumen')->get(['id_konsumen', 'nama_konsumen', 'telepon']);
 
         return view('laporan.order', compact(
-            'data', 'golongan', 'konsumenList', 'jumlahTransaksi', 'totalTransaksi', 'totalPiutang', 'breakdownDivisi', 'itemPerNota',
+            'data', 'golongan', 'konsumenList', 'jumlahTransaksi', 'totalTransaksi', 'totalPiutang', 'breakdownDivisi', 'breakdownProduk', 'itemPerNota',
             'tglDari', 'tglSampai'
         ));
     }
