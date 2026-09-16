@@ -6,6 +6,7 @@
         aside, .no-print { display: none !important; }
         main { margin-left: 0 !important; padding: 0 !important; }
         body { background: #fff !important; }
+        .faktur-block { break-inside: avoid; }
     }
 </style>
 @include('partials.print-report-header', ['docTitle' => 'Laporan Belanja Bahan'])
@@ -82,52 +83,76 @@
         </div>
     </div>
 
-    <x-table>
-        <thead>
-            <tr>
-                <th class="px-6 py-5 text-left">Tanggal</th>
-                <th class="px-4 py-5 text-left">No. Faktur</th>
-                <th class="px-4 py-5 text-center">Tipe</th>
-                <th class="px-4 py-5 text-right">Grand Total</th>
-                <th class="px-4 py-5 text-left">Jatuh Tempo</th>
-                <th class="px-4 py-5 text-center">Status</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-50">
-            @forelse($data as $p)
-            <tr class="hover:bg-slate-50/50 transition-all">
-                <td class="px-6 py-5">
-                    <span class="text-[13px] font-bold text-slate-700">{{ \Carbon\Carbon::parse($p->tgl_transaksi)->format('d M Y') }}</span>
-                </td>
-                <td class="px-4 py-5">
-                    <span class="text-[12px] font-semibold text-slate-600">{{ $p->no_faktur }}</span>
-                </td>
-                <td class="px-4 py-5 text-center">
-                    <span class="text-[11px] font-bold uppercase text-slate-500">{{ $p->tipe_pembelian }}</span>
-                </td>
-                <td class="px-4 py-5 text-right">
-                    <span class="text-[12px] text-indigo-600 font-bold">Rp {{ number_format($p->grand_total, 0, ',', '.') }}</span>
-                </td>
-                <td class="px-4 py-5">
-                    <span class="text-[12px] text-slate-500">{{ $p->jatuh_tempo_tgl ? \Carbon\Carbon::parse($p->jatuh_tempo_tgl)->format('d M Y') : '-' }}</span>
-                </td>
-                <td class="px-4 py-5 text-center">
-                    @if($p->status_pembayaran === 'Lunas')
-                        <x-badge variant="success">Lunas</x-badge>
-                    @else
-                        <x-badge variant="warning">Hutang</x-badge>
-                    @endif
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="6">
-                    <x-empty-state title="Tidak ada pembelian bahan" description="Sesuaikan filter tanggal untuk melihat rekap belanja bahan." />
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </x-table>
+    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Detail Faktur</div>
+
+    @forelse($data as $p)
+    @php $item = $itemPerFaktur->get($p->id_pembelian, collect()); @endphp
+    <div class="faktur-block bg-white rounded-3xl border border-slate-100 shadow-sm mb-5 overflow-hidden">
+        <div class="px-6 py-4 bg-slate-50/80 border-b border-slate-100 flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-[14px] font-bold text-slate-800 uppercase">{{ $p->no_faktur }}</span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-500">
+                        {{ $p->tipe_pembelian }}
+                    </span>
+                </div>
+                <p class="text-[12px] text-slate-500 mt-1.5">
+                    <span class="font-bold text-slate-700">{{ $p->nama_supplier ?? '-' }}</span>
+                    &middot; {{ \Carbon\Carbon::parse($p->tgl_transaksi)->format('d M Y') }}
+                    @if($p->jatuh_tempo_tgl) &middot; Jatuh Tempo: {{ \Carbon\Carbon::parse($p->jatuh_tempo_tgl)->format('d M Y') }} @endif
+                </p>
+            </div>
+            <div class="text-right shrink-0">
+                @if($p->status_pembayaran === 'Lunas')
+                    <x-badge variant="success">Lunas</x-badge>
+                @else
+                    <x-badge variant="warning">Hutang</x-badge>
+                @endif
+            </div>
+        </div>
+
+        @if($item->isNotEmpty())
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="text-[10px] text-slate-400 uppercase bg-slate-50/60">
+                        <th class="p-3 text-left w-6">#</th>
+                        <th class="p-3 text-left">Bahan</th>
+                        <th class="p-3 text-right">Qty</th>
+                        <th class="p-3 text-right">Harga</th>
+                        <th class="p-3 text-right">Diskon</th>
+                        <th class="p-3 text-right">Potongan</th>
+                        <th class="p-3 text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    @foreach($item as $i => $d)
+                    <tr>
+                        <td class="p-3 text-slate-400">{{ $i + 1 }}</td>
+                        <td class="p-3 font-semibold text-slate-700">{{ $d->nama_bahan ?? '-' }}</td>
+                        <td class="p-3 text-right text-slate-500">{{ number_format($d->qty, 0, ',', '.') }} {{ $d->satuan_stok }}</td>
+                        <td class="p-3 text-right text-slate-500">{{ number_format($d->harga, 0, ',', '.') }}</td>
+                        <td class="p-3 text-right text-slate-500">{{ number_format($d->diskon, 0, ',', '.') }}</td>
+                        <td class="p-3 text-right text-slate-500">{{ number_format($d->potongan, 0, ',', '.') }}</td>
+                        <td class="p-3 text-right font-bold text-slate-800">{{ number_format($d->subtotal, 0, ',', '.') }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @else
+        <p class="text-[11px] text-slate-300 italic p-4">Tidak ada rincian bahan untuk faktur ini.</p>
+        @endif
+
+        <div class="px-6 py-4 bg-slate-50/60 border-t border-slate-100 flex justify-end">
+            <p class="text-[13px] font-black flex justify-between gap-6"><span>Grand Total</span> <span class="text-indigo-600">Rp {{ number_format($p->grand_total, 0, ',', '.') }}</span></p>
+        </div>
+    </div>
+    @empty
+    <x-card>
+        <x-empty-state title="Tidak ada pembelian bahan" description="Sesuaikan filter tanggal untuk melihat rekap belanja bahan." />
+    </x-card>
+    @endforelse
 
     <div class="no-print">
         <x-table.pagination :paginator="$data" />

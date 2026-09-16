@@ -279,11 +279,24 @@ class LaporanController extends Controller
         $totalSelisih = (clone $ringkasanQuery)->sum('kas_harian.selisih');
         $jumlahSesi = (clone $ringkasanQuery)->count();
 
-        $data = $query->orderByDesc('kas_harian.tgl_kas')->paginate(20)->withQueryString();
+        $data = $query->orderByDesc('kas_harian.tgl_kas')->paginate(10)->withQueryString();
+
+        // Rincian transaksi manual (pemasukan/pengeluaran non-penjualan) per
+        // sesi kas, supaya langsung terlihat semua tanpa perlu klik - pola
+        // sama dengan itemPerNota di laporan Order.
+        $idSesiHalamanIni = collect($data->items())->pluck('id_kas');
+        $manualPerSesi = DB::table('kas_manual')
+            ->leftJoin('users', 'kas_manual.id_user', '=', 'users.id_user')
+            ->whereIn('kas_manual.id_kas', $idSesiHalamanIni)
+            ->select('kas_manual.*', 'users.username as nama_user')
+            ->orderBy('kas_manual.waktu')
+            ->get()
+            ->groupBy('id_kas');
 
         return view('laporan.kas', compact(
             'data', 'tglDari', 'tglSampai',
-            'totalTunaiMasuk', 'totalTransferMasuk', 'totalDebitMasuk', 'totalKeluar', 'totalSelisih', 'jumlahSesi'
+            'totalTunaiMasuk', 'totalTransferMasuk', 'totalDebitMasuk', 'totalKeluar', 'totalSelisih', 'jumlahSesi',
+            'manualPerSesi'
         ));
     }
 
@@ -296,28 +309,43 @@ class LaporanController extends Controller
      */
     public function belanjaBahan(Request $request)
     {
-        $query = DB::table('pembelian_bahan');
+        $query = DB::table('pembelian_bahan')
+            ->leftJoin('kedatangan_bahan', 'pembelian_bahan.id_kedatangan', '=', 'kedatangan_bahan.id_kedatangan')
+            ->leftJoin('supplier', 'kedatangan_bahan.id_supplier', '=', 'supplier.id_supplier')
+            ->select('pembelian_bahan.*', 'supplier.nama_supplier');
 
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
-        $query->whereDate('tgl_transaksi', '>=', $tglDari)->whereDate('tgl_transaksi', '<=', $tglSampai);
+        $query->whereDate('pembelian_bahan.tgl_transaksi', '>=', $tglDari)->whereDate('pembelian_bahan.tgl_transaksi', '<=', $tglSampai);
 
         if ($request->filled('status_pembayaran')) {
-            $query->where('status_pembayaran', $request->status_pembayaran);
+            $query->where('pembelian_bahan.status_pembayaran', $request->status_pembayaran);
         }
         if ($request->filled('tipe_pembelian')) {
-            $query->where('tipe_pembelian', $request->tipe_pembelian);
+            $query->where('pembelian_bahan.tipe_pembelian', $request->tipe_pembelian);
         }
 
         $ringkasanQuery = clone $query;
-        $totalBelanja = (clone $ringkasanQuery)->sum('grand_total');
-        $totalHutang = (clone $ringkasanQuery)->where('status_pembayaran', '!=', 'Lunas')->sum('grand_total');
+        $totalBelanja = (clone $ringkasanQuery)->sum('pembelian_bahan.grand_total');
+        $totalHutang = (clone $ringkasanQuery)->where('pembelian_bahan.status_pembayaran', '!=', 'Lunas')->sum('pembelian_bahan.grand_total');
         $jumlahFaktur = (clone $ringkasanQuery)->count();
 
-        $data = $query->orderByDesc('tgl_transaksi')->paginate(20)->withQueryString();
+        $data = $query->orderByDesc('pembelian_bahan.tgl_transaksi')->paginate(10)->withQueryString();
+
+        // Rincian bahan yang dibeli per faktur, supaya langsung terlihat
+        // semua tanpa perlu klik - pola sama dengan itemPerNota di laporan
+        // Order.
+        $idFakturHalamanIni = collect($data->items())->pluck('id_pembelian');
+        $itemPerFaktur = DB::table('pembelian_bahan_detail')
+            ->leftJoin('bahan_baku', 'pembelian_bahan_detail.id_bahan', '=', 'bahan_baku.id_bahan')
+            ->whereIn('pembelian_bahan_detail.id_pembelian', $idFakturHalamanIni)
+            ->select('pembelian_bahan_detail.*', 'bahan_baku.nama_bahan', 'bahan_baku.satuan_stok')
+            ->orderBy('pembelian_bahan_detail.id_detail')
+            ->get()
+            ->groupBy('id_pembelian');
 
         return view('laporan.belanja-bahan', compact(
-            'data', 'tglDari', 'tglSampai', 'totalBelanja', 'totalHutang', 'jumlahFaktur'
+            'data', 'tglDari', 'tglSampai', 'totalBelanja', 'totalHutang', 'jumlahFaktur', 'itemPerFaktur'
         ));
     }
 
