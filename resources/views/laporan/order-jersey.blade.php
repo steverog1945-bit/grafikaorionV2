@@ -4,7 +4,7 @@
 <style>
     @media print {
         aside, .no-print { display: none !important; }
-        main { margin-left: 0 !important; padding: 0 !important; }
+        main { margin-left: 0 !important; padding: 28px 32px !important; }
         body { background: #fff !important; }
         .order-block { break-inside: avoid; }
     }
