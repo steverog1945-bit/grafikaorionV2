@@ -9,20 +9,23 @@
         .sesi-block { break-inside: avoid; }
     }
 </style>
+@include('partials.print-report-header', ['docTitle' => 'Laporan Kas'])
 
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Laporan Kas">
-        <x-slot:subtitle>
-            Laporan <span class="mx-1 text-slate-300">/</span> Rekap Sesi Kas Harian
-        </x-slot:subtitle>
-        <x-slot:actions>
-            <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
-                <i class="fas fa-print"></i>
-                Cetak
-            </x-button>
-        </x-slot:actions>
-    </x-page-header>
+    <div class="print:hidden">
+        <x-page-header title="Laporan Kas">
+            <x-slot:subtitle>
+                Laporan <span class="mx-1 text-slate-300">/</span> Rekap Sesi Kas Harian
+            </x-slot:subtitle>
+            <x-slot:actions>
+                <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
+                    <i class="fas fa-print"></i>
+                    Cetak
+                </x-button>
+            </x-slot:actions>
+        </x-page-header>
+    </div>
 
     {{-- FILTER --}}
     <x-card class="mb-6 no-print">
@@ -57,14 +60,39 @@
         </form>
     </x-card>
 
-    {{-- RESUME - tabel standar, sama persis di layar maupun cetak. --}}
-    <x-laporan.resume-table title="Resume" :rows="[
-        'Jumlah Sesi' => number_format($jumlahSesi, 0, ',', '.'),
-        'Total Tunai Masuk' => 'Rp ' . number_format($totalTunaiMasuk, 0, ',', '.'),
-        'Total Transfer Masuk' => 'Rp ' . number_format($totalTransferMasuk, 0, ',', '.'),
-        'Total Debit Masuk' => 'Rp ' . number_format($totalDebitMasuk, 0, ',', '.'),
-        'Total Selisih' => 'Rp ' . number_format($totalSelisih, 0, ',', '.'),
-    ]" />
+    {{-- RESUME - kartu berwarna di layar (tidak diubah), tabel standar
+         polos khusus cetak. --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-6 print:hidden">
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Sesi</p>
+            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($jumlahSesi, 0, ',', '.') }}</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Tunai Masuk</p>
+            <h3 class="text-2xl font-bold text-emerald-600 mt-1">Rp {{ number_format($totalTunaiMasuk, 0, ',', '.') }}</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Transfer Masuk</p>
+            <h3 class="text-2xl font-bold text-indigo-600 mt-1">Rp {{ number_format($totalTransferMasuk, 0, ',', '.') }}</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Debit Masuk</p>
+            <h3 class="text-2xl font-bold text-sky-600 mt-1">Rp {{ number_format($totalDebitMasuk, 0, ',', '.') }}</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Selisih</p>
+            <h3 class="text-2xl font-bold {{ $totalSelisih < 0 ? 'text-rose-500' : 'text-slate-900' }} mt-1">Rp {{ number_format($totalSelisih, 0, ',', '.') }}</h3>
+        </div>
+    </div>
+    <div class="hidden print:block">
+        <x-laporan.resume-table title="Resume" :rows="[
+            'Jumlah Sesi' => number_format($jumlahSesi, 0, ',', '.'),
+            'Total Tunai Masuk' => 'Rp ' . number_format($totalTunaiMasuk, 0, ',', '.'),
+            'Total Transfer Masuk' => 'Rp ' . number_format($totalTransferMasuk, 0, ',', '.'),
+            'Total Debit Masuk' => 'Rp ' . number_format($totalDebitMasuk, 0, ',', '.'),
+            'Total Selisih' => 'Rp ' . number_format($totalSelisih, 0, ',', '.'),
+        ]" />
+    </div>
 
     <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Detail Sesi Kas</div>
 

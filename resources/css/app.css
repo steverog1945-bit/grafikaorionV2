@@ -179,6 +179,14 @@
    kartu (.nota-block, .order-block, .sesi-block, .faktur-block,
    .divisi-block). */
 @media print {
+    /* Topbar aplikasi (nama toko, avatar user, tombol logout - lihat
+       layouts/app.blade.php) sebelumnya TIDAK PERNAH disembunyikan saat
+       print (cuma aside/.no-print yang disembunyikan per halaman
+       laporan), jadi ikut tercetak di atas setiap laporan - ini
+       ditaruh di sini (bukan di <style> tiap laporan) supaya otomatis
+       tersembunyi di SEMUA halaman yang memakai layout ini, bukan cuma
+       laporan. */
+    .topbar { display: none !important; }
     .rounded-3xl, .rounded-2xl, .rounded-\[2rem\], .rounded-2rem { border-radius: 3px !important; }
     .shadow-sm, .shadow, .shadow-md { box-shadow: none !important; }
     .chip {

@@ -8,20 +8,23 @@
         body { background: #fff !important; }
     }
 </style>
+@include('partials.print-report-header', ['docTitle' => 'Laporan Produksi'])
 
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Laporan Produksi">
-        <x-slot:subtitle>
-            Laporan <span class="mx-1 text-slate-300">/</span> Rekap Produksi per Divisi &amp; Produk
-        </x-slot:subtitle>
-        <x-slot:actions>
-            <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
-                <i class="fas fa-print"></i>
-                Cetak
-            </x-button>
-        </x-slot:actions>
-    </x-page-header>
+    <div class="print:hidden">
+        <x-page-header title="Laporan Produksi">
+            <x-slot:subtitle>
+                Laporan <span class="mx-1 text-slate-300">/</span> Rekap Produksi per Divisi &amp; Produk
+            </x-slot:subtitle>
+            <x-slot:actions>
+                <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
+                    <i class="fas fa-print"></i>
+                    Cetak
+                </x-button>
+            </x-slot:actions>
+        </x-page-header>
+    </div>
 
     {{-- FILTER --}}
     <x-card class="mb-6 no-print">
@@ -69,11 +72,25 @@
     {{-- RESUME - hanya metrik yang memang sah dijumlah lintas divisi
          (jumlah pcs/nota, satuannya konsisten). Luas (m2) SENGAJA TIDAK
          ditampilkan di sini sebagai satu angka gabungan - rincian m2 per
-         divisi ada di tabel "Ringkasan per Divisi" di bawah. --}}
-    <x-laporan.resume-table title="Resume" :rows="[
-        'Total Order (Semua Divisi)' => number_format($totalOrderKeseluruhan, 0, ',', '.') . ' pcs',
-        'Total Cetak (Semua Divisi)' => number_format($totalCetakKeseluruhan, 0, ',', '.') . ' pcs',
-    ]" />
+         divisi ada di tabel "Ringkasan per Divisi" di bawah. Kartu
+         berwarna di layar (tidak diubah), tabel standar polos khusus
+         cetak. --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 print:hidden">
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Order (Semua Divisi)</p>
+            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($totalOrderKeseluruhan, 0, ',', '.') }} pcs</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Cetak (Semua Divisi)</p>
+            <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ number_format($totalCetakKeseluruhan, 0, ',', '.') }} pcs</h3>
+        </div>
+    </div>
+    <div class="hidden print:block">
+        <x-laporan.resume-table title="Resume" :rows="[
+            'Total Order (Semua Divisi)' => number_format($totalOrderKeseluruhan, 0, ',', '.') . ' pcs',
+            'Total Cetak (Semua Divisi)' => number_format($totalCetakKeseluruhan, 0, ',', '.') . ' pcs',
+        ]" />
+    </div>
 
     {{-- RINGKASAN PER DIVISI - tiap divisi jadi BLOK/BAGIAN SENDIRI dengan
          Total-nya masing-masing (persis pola referensi: tiap Kategori
