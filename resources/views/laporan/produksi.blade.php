@@ -12,17 +12,19 @@
 
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Laporan Produksi">
-        <x-slot:subtitle>
-            Laporan <span class="mx-1 text-slate-300">/</span> Rekap Produksi per Divisi &amp; Produk
-        </x-slot:subtitle>
-        <x-slot:actions>
-            <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
-                <i class="fas fa-print"></i>
-                Cetak
-            </x-button>
-        </x-slot:actions>
-    </x-page-header>
+    <div class="print:hidden">
+        <x-page-header title="Laporan Produksi">
+            <x-slot:subtitle>
+                Laporan <span class="mx-1 text-slate-300">/</span> Rekap Produksi per Divisi &amp; Produk
+            </x-slot:subtitle>
+            <x-slot:actions>
+                <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
+                    <i class="fas fa-print"></i>
+                    Cetak
+                </x-button>
+            </x-slot:actions>
+        </x-page-header>
+    </div>
 
     {{-- FILTER --}}
     <x-card class="mb-6 no-print">

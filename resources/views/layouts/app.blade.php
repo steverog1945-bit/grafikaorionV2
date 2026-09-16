@@ -544,6 +544,15 @@
     </a>
     @endif
 
+    @if($cekAkses(44))
+    <a href="{{ route('laporan.piutang') }}" class="{{ $menuClass }} {{ request()->routeIs('laporan.piutang') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.piutang') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m9-8a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Piutang</span>
+    </a>
+    @endif
+
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">Akuntansi</div>
 
     @if($cekAkses(35))

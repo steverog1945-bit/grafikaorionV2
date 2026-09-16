@@ -429,4 +429,80 @@ class LaporanController extends Controller
             'breakdownDesainer', 'breakdownKategori', 'linePerOrder', 'tglDari', 'tglSampai'
         ));
     }
+
+    /**
+     * Laporan Daftar Piutang - nota yang belum Lunas dengan sisa tagihan
+     * riil (total_bayar dikurangi yang sudah dibayar lewat
+     * pembayaran_riwayat) masih > 0. Piutang RIIL cuma bisa dihitung
+     * setelah baris diambil (hasil selisih dua kolom), jadi filter
+     * "piutang > 0" dan sortir dilakukan di koleksi PHP, bukan di SQL -
+     * makanya paginasi juga dibangun manual dari koleksi yang sudah
+     * difilter, bukan ->paginate() langsung dari query builder.
+     */
+    public function piutang(Request $request)
+    {
+        $query = DB::table('transaksi')
+            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+            ->where('transaksi.status_nota', '!=', 'Dibatalkan')
+            ->where('transaksi.status_pembayaran', '!=', 'Lunas')
+            ->select(
+                'transaksi.id_transaksi',
+                'transaksi.nomor_nota',
+                'transaksi.tgl_order',
+                'transaksi.total_bayar',
+                'konsumen.nama_konsumen',
+                'konsumen.id_konsumen'
+            )
+            ->selectSub(function ($q) {
+                $q->from('pembayaran_riwayat')
+                    ->selectRaw('COALESCE(SUM(nominal), 0)')
+                    ->whereColumn('pembayaran_riwayat.id_transaksi', 'transaksi.id_transaksi');
+            }, 'total_dibayar');
+
+        // Default rekap HARI INI SAJA - sama seperti laporan lain.
+        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
+        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        $query->whereDate('transaksi.tgl_order', '>=', $tglDari)
+              ->whereDate('transaksi.tgl_order', '<=', $tglSampai);
+
+        if ($request->filled('id_konsumen')) {
+            $query->where('transaksi.id_konsumen', $request->id_konsumen);
+        }
+
+        $semua = $query->get()
+            ->map(function ($t) {
+                $t->piutang = max(0, $t->total_bayar - $t->total_dibayar);
+                return $t;
+            })
+            ->filter(fn ($t) => $t->piutang > 0)
+            ->values();
+
+        $sortBy = $request->get('sort_by', 'tanggal_terbaru');
+        $semua = match ($sortBy) {
+            'piutang_terbesar' => $semua->sortByDesc('piutang')->values(),
+            'piutang_terkecil' => $semua->sortBy('piutang')->values(),
+            'nama_az' => $semua->sortBy('nama_konsumen')->values(),
+            'tanggal_terlama' => $semua->sortBy('tgl_order')->values(),
+            default => $semua->sortByDesc('tgl_order')->values(),
+        };
+
+        $jumlahNota = $semua->count();
+        $totalPiutang = $semua->sum('piutang');
+
+        $perPage = 15;
+        $page = (int) $request->get('page', 1);
+        $data = new \Illuminate\Pagination\LengthAwarePaginator(
+            $semua->forPage($page, $perPage)->values(),
+            $semua->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        $konsumenList = DB::table('konsumen')->orderBy('nama_konsumen')->get(['id_konsumen', 'nama_konsumen', 'telepon']);
+
+        return view('laporan.piutang', compact(
+            'data', 'konsumenList', 'jumlahNota', 'totalPiutang', 'sortBy', 'tglDari', 'tglSampai'
+        ));
+    }
 }
