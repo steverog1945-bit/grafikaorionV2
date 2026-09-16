@@ -56,8 +56,11 @@ class LaporanController extends Controller
         if ($request->filled('id_golongan')) {
             $query->where('konsumen.id_golongan', $request->id_golongan);
         }
-        if ($request->filled('konsumen')) {
-            $query->where('konsumen.nama_konsumen', 'like', '%' . $request->konsumen . '%');
+        // Sebelumnya text-input dicocokkan LIKE ke nama_konsumen (rawan
+        // typo/salah pilih kalau nama mirip) - diganti pilih pasti lewat
+        // id_konsumen dari dropdown Select2 (live search) di baris ini.
+        if ($request->filled('id_konsumen')) {
+            $query->where('transaksi.id_konsumen', $request->id_konsumen);
         }
 
         // Resume dihitung dari query YANG SAMA (sebelum pagination) supaya konsisten dengan filter.
@@ -114,9 +117,10 @@ class LaporanController extends Controller
             ->groupBy('id_transaksi');
 
         $golongan = DB::table('golongan_konsumen')->orderBy('nama_golongan')->get();
+        $konsumenList = DB::table('konsumen')->orderBy('nama_konsumen')->get(['id_konsumen', 'nama_konsumen', 'telepon']);
 
         return view('laporan.order', compact(
-            'data', 'golongan', 'jumlahTransaksi', 'totalTransaksi', 'totalPiutang', 'breakdownDivisi', 'itemPerNota'
+            'data', 'golongan', 'konsumenList', 'jumlahTransaksi', 'totalTransaksi', 'totalPiutang', 'breakdownDivisi', 'itemPerNota'
         ));
     }
 
@@ -300,6 +304,9 @@ class LaporanController extends Controller
         if ($request->filled('jersey_designer_id')) {
             $query->where('jersey_designer_id', $request->jersey_designer_id);
         }
+        if ($request->filled('id_konsumen')) {
+            $query->where('id_konsumen', $request->id_konsumen);
+        }
 
         // Resume &amp; breakdown dihitung dari SELURUH hasil filter (bukan cuma
         // halaman yang tampil) - pola sama dengan laporan Order/Kas/Belanja
@@ -344,9 +351,10 @@ class LaporanController extends Controller
             ->groupBy('jersey_order_id');
 
         $designers = \App\Models\JerseyDesigner::orderBy('name')->get();
+        $konsumenList = DB::table('konsumen')->orderBy('nama_konsumen')->get(['id_konsumen', 'nama_konsumen', 'telepon']);
 
         return view('laporan.order-jersey', compact(
-            'data', 'designers', 'jumlahOrder', 'totalTransaksi', 'totalPiutang',
+            'data', 'designers', 'konsumenList', 'jumlahOrder', 'totalTransaksi', 'totalPiutang',
             'breakdownDesainer', 'breakdownKategori', 'linePerOrder'
         ));
     }

@@ -54,9 +54,14 @@
                     @endforeach
                 </x-form.select>
             </div>
-            <div class="flex-1 min-w-[200px]">
+            <div class="flex-1 min-w-[220px]">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
-                <x-form.input type="text" name="konsumen" value="{{ request('konsumen') }}" placeholder="Nama konsumen..." />
+                <select name="id_konsumen" id="select-konsumen-laporan" class="select2-konsumen-laporan w-full">
+                    <option value="">-- Cari Nama / No. HP --</option>
+                    @foreach($konsumenList as $k)
+                        <option value="{{ $k->id_konsumen }}" {{ (string) request('id_konsumen') === (string) $k->id_konsumen ? 'selected' : '' }}>{{ $k->nama_konsumen }}{{ $k->telepon ? ' - ' . $k->telepon : '' }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <x-button type="submit">
@@ -64,7 +69,7 @@
                 Filter
             </x-button>
 
-            @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'status_pembayaran', 'id_golongan', 'konsumen']))
+            @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'status_pembayaran', 'id_golongan', 'id_konsumen']))
                 <a href="{{ route('laporan.order') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
@@ -215,4 +220,12 @@
     </div>
 
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        $('.select2-konsumen-laporan').select2({ placeholder: '-- Cari Nama / No. HP --', allowClear: true, width: '100%' });
+    });
+</script>
+@endpush
 @endsection
