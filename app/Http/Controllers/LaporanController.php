@@ -180,4 +180,38 @@ class LaporanController extends Controller
             'totalTunaiMasuk', 'totalTransferMasuk', 'totalDebitMasuk', 'totalKeluar', 'totalSelisih', 'jumlahSesi'
         ));
     }
+
+    /**
+     * Laporan Belanja Bahan - pembukuan pembelian bahan baku TERPISAH dari
+     * Laporan Kas (kas fisik laci kasir) dan Keuangan Jersey. Pembelian
+     * bahan sebelumnya cuma terlihat lewat jurnal akuntansi (akun 1200/
+     * 2000) tanpa daftar operasional per faktur - laporan ini murni baca
+     * dari pembelian_bahan, tidak ada tabel/kolom baru.
+     */
+    public function belanjaBahan(Request $request)
+    {
+        $query = DB::table('pembelian_bahan');
+
+        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->startOfMonth()->format('Y-m-d');
+        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        $query->whereDate('tgl_transaksi', '>=', $tglDari)->whereDate('tgl_transaksi', '<=', $tglSampai);
+
+        if ($request->filled('status_pembayaran')) {
+            $query->where('status_pembayaran', $request->status_pembayaran);
+        }
+        if ($request->filled('tipe_pembelian')) {
+            $query->where('tipe_pembelian', $request->tipe_pembelian);
+        }
+
+        $ringkasanQuery = clone $query;
+        $totalBelanja = (clone $ringkasanQuery)->sum('grand_total');
+        $totalHutang = (clone $ringkasanQuery)->where('status_pembayaran', '!=', 'Lunas')->sum('grand_total');
+        $jumlahFaktur = (clone $ringkasanQuery)->count();
+
+        $data = $query->orderByDesc('tgl_transaksi')->paginate(20)->withQueryString();
+
+        return view('laporan.belanja-bahan', compact(
+            'data', 'tglDari', 'tglSampai', 'totalBelanja', 'totalHutang', 'jumlahFaktur'
+        ));
+    }
 }

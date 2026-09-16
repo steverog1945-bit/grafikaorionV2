@@ -55,7 +55,10 @@ return [
         'laporan/order' => [25],
         'laporan/produksi' => [26],
         'laporan/kas' => [29],
+        'laporan/belanja-bahan' => [40],
         'harga-promo' => [28],
+
+        'kas-kecil' => [39],
 
         'merk' => [30],
         'jenis-bahan' => [31],

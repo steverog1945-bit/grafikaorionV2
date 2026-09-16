@@ -97,6 +97,13 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::get('/konsumen-deposit', [\App\Http\Controllers\KonsumenDepositController::class, 'index'])->name('konsumen-deposit.index');
     Route::post('/konsumen-deposit', [\App\Http\Controllers\KonsumenDepositController::class, 'store'])->name('konsumen-deposit.store');
 
+    Route::get('/kas-kecil', [\App\Http\Controllers\KasKecilController::class, 'index'])->name('kas-kecil.index');
+    Route::post('/kas-kecil', [\App\Http\Controllers\KasKecilController::class, 'store'])->name('kas-kecil.store');
+    Route::delete('/kas-kecil/{kasKecil}', [\App\Http\Controllers\KasKecilController::class, 'destroy'])->name('kas-kecil.destroy');
+    Route::post('/kas-kecil/upload-bukti', [\App\Http\Controllers\KasKecilController::class, 'uploadBukti'])->name('kas-kecil.upload-bukti');
+
+    Route::get('/laporan/belanja-bahan', [LaporanController::class, 'belanjaBahan'])->name('laporan.belanja-bahan');
+
 
 
     /*
