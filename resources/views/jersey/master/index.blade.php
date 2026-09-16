@@ -140,6 +140,7 @@
             <p class="text-xs text-slate-400 mb-4">Tipe lengan riil (mis. Pendek, Panjang, 3/4) yang dipilih saat membuat order - dipakai sebagai acuan estimasi bahan, bukan lagi pilihan tetap.</p>
             <form id="form-add-lengan" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe lengan (mis. 3/4 Lengan)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <div class="sm:w-48"><input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-lengan', 'statusId' => 'filter-status-lengan', 'placeholder' => 'Cari tipe lengan...'])
@@ -162,6 +163,7 @@
             <p class="text-xs text-slate-400 mb-4">Tipe kerah riil (mis. O-Neck, V-Neck) yang dipilih saat membuat order - dipakai sebagai acuan estimasi bahan, bukan lagi diketik bebas.</p>
             <form id="form-add-kerah" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe kerah (mis. V-Neck)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <div class="sm:w-48"><input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-kerah', 'statusId' => 'filter-status-kerah', 'placeholder' => 'Cari tipe kerah...'])
@@ -182,10 +184,19 @@
     <div id="tab-panel-estimasi" class="jersey-tab-panel hidden">
         <x-card>
             <p class="text-xs text-slate-400 mb-4">Estimasi kebutuhan bahan per ukuran, per komponen (Body/Lengan/Rib/Celana, dst) - dalam meter DAN berat (gram/kg) - dipakai untuk menghitung otomatis "Spesifikasi Order" saat order dibuat. Murni estimasi, bukan pemotongan stok riil. Kosongkan sel yang belum diketahui angkanya. Kolom <b class="text-slate-500">Total</b> menjumlahkan seluruh komponen aktif per ukuran - perkiraan total bahan untuk SATU baju ukuran itu.</p>
-            <form id="form-add-komponen" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
+            <form id="form-add-komponen" class="flex flex-col sm:flex-row gap-3 mb-3 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama komponen baru (mis. Kerah)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <select name="jersey_product_type_id" class="sm:w-44 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <option value="">-- Semua Tipe Produk --</option>
+                    @foreach($productTypes->where('is_active', true) as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                </select>
+                <select name="jersey_category_id" class="sm:w-44 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <option value="">-- Semua Kategori --</option>
+                    @foreach($categories->where('is_active', true) as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                </select>
                 <x-button type="submit" variant="success">Tambah Komponen</x-button>
             </form>
+            <p class="text-[11px] text-slate-400 -mt-1 mb-4">Kosongkan Tipe Produk/Kategori kalau komponen berlaku untuk SEMUA barang (mis. Body). Isi salah satu/keduanya kalau komponen cuma relevan untuk barang tertentu (mis. komponen "Celana" cuma untuk Tipe Produk Celana) - supaya SPK cuma menampilkan estimasi yang benar-benar dipakai barangnya.</p>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-estimasi', 'placeholder' => 'Cari nama ukuran...'])
 
             <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-2 mt-2">Estimasi Meter</p>
@@ -197,7 +208,9 @@
                             @foreach($components->where('is_active', true) as $comp)
                             <th class="p-2.5 text-center whitespace-nowrap" data-component-th="{{ $comp->id }}">
                                 {{ $comp->name }} <span class="text-slate-300 font-normal">(m)</span>
+                                <button type="button" onclick="bukaEditScopeKomponen({{ $comp->id }}, {{ $comp->jersey_product_type_id ?? 'null' }}, {{ $comp->jersey_category_id ?? 'null' }})" class="ml-1 text-slate-300 hover:text-indigo-500" title="Atur cakupan Tipe Produk/Kategori"><i class="fas fa-sliders-h"></i></button>
                                 <button type="button" onclick="nonaktifkanKomponen({{ $comp->id }})" class="ml-1 text-slate-300 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
+                                <div class="text-[9px] font-normal normal-case text-slate-400 mt-0.5" data-component-scope="{{ $comp->id }}">{{ $comp->productType->name ?? 'Semua Tipe' }} @if($comp->category)&middot; {{ $comp->category->name }}@endif</div>
                             </th>
                             @endforeach
                             <th class="p-2.5 text-center whitespace-nowrap bg-indigo-50 text-indigo-600">Total (m)</th>
@@ -424,8 +437,37 @@
                     Punya Lengan &amp; Kerah
                 </label>
             </div>
+            <div id="edit-simple-price-surcharge-wrapper" class="hidden">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tambahan Harga (Rp)</label>
+                <input type="text" inputmode="numeric" id="edit-simple-price-surcharge" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            </div>
             <div class="pt-2 flex gap-3">
                 <button type="button" onclick="closeModal('edit-simple')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
+                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase">Simpan</button>
+            </div>
+        </form>
+    </x-modal>
+
+    <x-modal id="edit-komponen-scope" title="Cakupan Komponen" maxWidth="sm">
+        <form id="form-edit-komponen-scope" class="space-y-4">
+            <input type="hidden" id="edit-komponen-scope-id">
+            <p class="text-xs text-slate-400">Kosongkan supaya komponen ini berlaku untuk semua barang. Isi salah satu/keduanya supaya komponen ini cuma dihitung &amp; ditampilkan di SPK barang dengan Tipe Produk/Kategori yang cocok.</p>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
+                <select id="edit-komponen-scope-tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <option value="">-- Semua Tipe Produk --</option>
+                    @foreach($productTypes->where('is_active', true) as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kategori</label>
+                <select id="edit-komponen-scope-kategori" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <option value="">-- Semua Kategori --</option>
+                    @foreach($categories->where('is_active', true) as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                </select>
+            </div>
+            <div class="pt-2 flex gap-3">
+                <button type="button" onclick="closeModal('edit-komponen-scope')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
                 <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase">Simpan</button>
             </div>
         </form>
@@ -614,12 +656,14 @@
     function baseRowHtml(entity, row) {
         const badgeLenganKerah = (entity === 'product-types' && row.has_sleeve_collar === false)
             ? '<span class="ml-2 text-[9px] font-bold uppercase tracking-wide text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">Tanpa Lengan/Kerah</span>' : '';
+        const badgeSurcharge = (['sleeve-types', 'collar-types'].includes(entity) && Number(row.price_surcharge) > 0)
+            ? `<span class="ml-2 text-[9px] font-bold uppercase tracking-wide text-emerald-600 bg-emerald-50 rounded px-1.5 py-0.5">+Rp ${Number(row.price_surcharge).toLocaleString('id-ID')}</span>` : '';
         return `
         <tr data-id="${row.id}" class="${row.is_active ? '' : 'opacity-50'}">
-            <td class="p-2.5 font-semibold">${escapeHtmlJersey(row.name)}${badgeLenganKerah}</td>
+            <td class="p-2.5 font-semibold">${escapeHtmlJersey(row.name)}${badgeLenganKerah}${badgeSurcharge}</td>
             <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
-                    <button type="button" onclick="bukaEditSimple('${entity}', ${row.id}, ${JSON.stringify(row.name).replace(/"/g, '&quot;')}, ${row.has_sleeve_collar !== false})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
+                    <button type="button" onclick="bukaEditSimple('${entity}', ${row.id}, ${JSON.stringify(row.name).replace(/"/g, '&quot;')}, ${row.has_sleeve_collar !== false}, ${Number(row.price_surcharge) || 0})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
                     <button type="button" onclick="toggleEntitas('${entity}', ${row.id})" class="w-8 h-8 rounded-lg text-slate-400 ${row.is_active ? 'hover:text-slate-600 hover:bg-slate-100' : 'hover:text-emerald-500 hover:bg-emerald-50'}" title="${row.is_active ? 'Nonaktifkan' : 'Aktifkan'}"><i class="far ${row.is_active ? 'fa-eye-slash' : 'fa-eye'} text-xs"></i></button>
                 </div>
             </td>
@@ -635,6 +679,9 @@
             const payload = { name };
             if (entity === 'product-types') {
                 payload.has_sleeve_collar = form.querySelector('[name="has_sleeve_collar"]').checked;
+            }
+            if (entity === 'sleeve-types' || entity === 'collar-types') {
+                payload.price_surcharge = cleanRupiah(form.querySelector('[name="price_surcharge"]').value || '0');
             }
             const data = await kirimJson(cfg.routeBase, 'POST', payload);
             if (!data) return;
@@ -703,7 +750,7 @@
         table.querySelectorAll(`[data-type-td="${id}"]`).forEach(td => td.remove());
     }
 
-    function bukaEditSimple(entity, id, name, hasSleeveCollar) {
+    function bukaEditSimple(entity, id, name, hasSleeveCollar, priceSurcharge) {
         document.getElementById('edit-simple-entity').value = entity;
         document.getElementById('edit-simple-id').value = id;
         document.getElementById('edit-simple-name').value = name;
@@ -711,6 +758,12 @@
         wrapperLenganKerah.classList.toggle('hidden', entity !== 'product-types');
         if (entity === 'product-types') {
             document.getElementById('edit-simple-has-sleeve-collar').checked = hasSleeveCollar !== false;
+        }
+        const wrapperSurcharge = document.getElementById('edit-simple-price-surcharge-wrapper');
+        const tampilkanSurcharge = entity === 'sleeve-types' || entity === 'collar-types';
+        wrapperSurcharge.classList.toggle('hidden', !tampilkanSurcharge);
+        if (tampilkanSurcharge) {
+            document.getElementById('edit-simple-price-surcharge').value = formatRupiah(Math.round(parseFloat(priceSurcharge) || 0));
         }
         openModal('edit-simple');
     }
@@ -724,6 +777,9 @@
         const payload = { name };
         if (entity === 'product-types') {
             payload.has_sleeve_collar = document.getElementById('edit-simple-has-sleeve-collar').checked;
+        }
+        if (entity === 'sleeve-types' || entity === 'collar-types') {
+            payload.price_surcharge = cleanRupiah(document.getElementById('edit-simple-price-surcharge').value || '0');
         }
         const data = await kirimJson(`${cfg.routeBase}/${id}`, 'PUT', payload);
         if (!data) return;
@@ -853,12 +909,29 @@
     }
 
     // ---- Estimasi Bahan (matriks ukuran x komponen, meter & berat) ----
+    // Label cakupan Tipe Produk/Kategori untuk badge di bawah nama komponen
+    // - "Semua Tipe" kalau keduanya kosong, sama seperti teks server-render.
+    function labelCakupanKomponen(row) {
+        const namaTipe = row.jersey_product_type_id
+            ? (document.querySelector(`#form-add-komponen [name="jersey_product_type_id"] option[value="${row.jersey_product_type_id}"]`)?.textContent ?? 'Tipe tertentu')
+            : 'Semua Tipe';
+        const namaKategori = row.jersey_category_id
+            ? (document.querySelector(`#form-add-komponen [name="jersey_category_id"] option[value="${row.jersey_category_id}"]`)?.textContent ?? null)
+            : null;
+        return namaKategori ? `${namaTipe} &middot; ${namaKategori}` : namaTipe;
+    }
+
     document.getElementById('form-add-komponen').addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
         const name = form.querySelector('[name="name"]').value.trim();
         if (!name) return;
-        const data = await kirimJson('{{ url("/jersey/master/components") }}', 'POST', { name });
+        const payload = {
+            name,
+            jersey_product_type_id: form.querySelector('[name="jersey_product_type_id"]').value || null,
+            jersey_category_id: form.querySelector('[name="jersey_category_id"]').value || null,
+        };
+        const data = await kirimJson('{{ url("/jersey/master/components") }}', 'POST', payload);
         if (!data) return;
         form.reset();
         tampilkanToastJersey(data.message);
@@ -870,7 +943,9 @@
         headRowMeter.insertAdjacentHTML('beforeend', `
             <th class="p-2.5 text-center whitespace-nowrap" data-component-th="${data.row.id}">
                 ${escapeHtmlJersey(data.row.name)} <span class="text-slate-300 font-normal">(m)</span>
+                <button type="button" onclick="bukaEditScopeKomponen(${data.row.id}, ${data.row.jersey_product_type_id ?? 'null'}, ${data.row.jersey_category_id ?? 'null'})" class="ml-1 text-slate-300 hover:text-indigo-500" title="Atur cakupan Tipe Produk/Kategori"><i class="fas fa-sliders-h"></i></button>
                 <button type="button" onclick="nonaktifkanKomponen(${data.row.id})" class="ml-1 text-slate-300 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
+                <div class="text-[9px] font-normal normal-case text-slate-400 mt-0.5" data-component-scope="${data.row.id}">${labelCakupanKomponen(data.row)}</div>
             </th>`);
         document.querySelectorAll('#tbody-estimasi-meter tr[data-size-id]').forEach(row => {
             const sizeId = row.dataset.sizeId;
@@ -919,6 +994,29 @@
         document.querySelectorAll('#tbody-estimasi-meter tr[data-size-id]').forEach(row => recalcTotalEstimasi(row.dataset.sizeId));
         tampilkanToastJersey(data.message);
     }
+
+    function bukaEditScopeKomponen(id, productTypeId, categoryId) {
+        document.getElementById('edit-komponen-scope-id').value = id;
+        document.getElementById('edit-komponen-scope-tipe').value = productTypeId ?? '';
+        document.getElementById('edit-komponen-scope-kategori').value = categoryId ?? '';
+        openModal('edit-komponen-scope');
+    }
+
+    document.getElementById('form-edit-komponen-scope').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-komponen-scope-id').value;
+        const payload = {
+            jersey_product_type_id: document.getElementById('edit-komponen-scope-tipe').value || null,
+            jersey_category_id: document.getElementById('edit-komponen-scope-kategori').value || null,
+        };
+        const data = await kirimJson(`{{ url("/jersey/master/components") }}/${id}/scope`, 'PUT', payload);
+        if (!data) return;
+        document.querySelectorAll(`[data-component-scope="${id}"]`).forEach(el => {
+            el.innerHTML = labelCakupanKomponen(data.row);
+        });
+        closeModal('edit-komponen-scope');
+        tampilkanToastJersey(data.message);
+    });
 
     function terapkanFilterEstimasi() {
         const q = (document.getElementById('search-estimasi').value || '').toLowerCase().trim();

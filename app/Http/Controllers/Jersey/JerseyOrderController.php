@@ -243,10 +243,14 @@ class JerseyOrderController extends Controller
         static $surchargeBySizeId = null;
         static $sleeveNameById = null;
         static $collarNameById = null;
+        static $sleeveSurchargeById = null;
+        static $collarSurchargeById = null;
         $sizeIdByName ??= JerseySize::pluck('id', 'name');
         $surchargeBySizeId ??= JerseySize::pluck('price_surcharge', 'id');
         $sleeveNameById ??= JerseySleeveType::pluck('name', 'id');
         $collarNameById ??= JerseyCollarType::pluck('name', 'id');
+        $sleeveSurchargeById ??= JerseySleeveType::pluck('price_surcharge', 'id');
+        $collarSurchargeById ??= JerseyCollarType::pluck('price_surcharge', 'id');
 
         $items = array_values(array_filter($lineData['items'] ?? [], fn ($i) => trim($i['player_name'] ?? '') !== ''));
         $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
@@ -324,7 +328,24 @@ class JerseyOrderController extends Controller
             $surchargeTotal += (float) ($surchargeBySizeId[$sizeId] ?? 0) * $qtyUkuran;
         }
 
-        $subtotal = ($hargaSatuan * $qty) + $surchargeTotal;
+        // Tambahan harga per Tipe Lengan/Kerah (mis. lengan panjang lebih
+        // mahal, diatur di Master Data > Tipe Lengan/Tipe Kerah) - dihitung
+        // dari struktur ukuran x tipe yang sama dengan estimasi bahan di
+        // bawah, supaya konsisten dengan pilihan lengan/kerah riil per
+        // pemain (bukan disamaratakan pakai default level barang saja).
+        $sleeveCollarSurchargeTotal = 0.0;
+        foreach ($qtyPerSizeSleeveType as $perType) {
+            foreach ($perType as $typeId => $qtyTipe) {
+                $sleeveCollarSurchargeTotal += (float) ($sleeveSurchargeById[$typeId] ?? 0) * $qtyTipe;
+            }
+        }
+        foreach ($qtyPerSizeCollarType as $perType) {
+            foreach ($perType as $typeId => $qtyTipe) {
+                $sleeveCollarSurchargeTotal += (float) ($collarSurchargeById[$typeId] ?? 0) * $qtyTipe;
+            }
+        }
+
+        $subtotal = ($hargaSatuan * $qty) + $surchargeTotal + $sleeveCollarSurchargeTotal;
 
         $line = $order->lines()->create([
             'jersey_product_type_id' => $lineData['jersey_product_type_id'] ?? null,
@@ -341,6 +362,7 @@ class JerseyOrderController extends Controller
             'qty' => $qty,
             'harga_satuan' => $hargaSatuan,
             'size_surcharge_total' => $surchargeTotal,
+            'sleeve_collar_surcharge_total' => $sleeveCollarSurchargeTotal,
             'subtotal' => $subtotal,
             'jersey_price_setting_id' => $tier->id ?? null,
         ]);
@@ -366,7 +388,7 @@ class JerseyOrderController extends Controller
         // Lengan, Tipe Kerah) - bukan diketik manual lagi, dan tidak lagi
         // menyamaratakan semua pilihan lengan/kerah (lihat
         // JerseyMaterialEstimationService). Estimasi murni.
-        foreach (JerseyMaterialEstimationService::hitungEstimasi($qtyPerSizeId) as $estimasi) {
+        foreach (JerseyMaterialEstimationService::hitungEstimasi($qtyPerSizeId, $lineData['jersey_product_type_id'] ?? null, $lineData['jersey_category_id'] ?? null) as $estimasi) {
             $line->materials()->create([
                 'nama_barang' => $estimasi['component']->name,
                 'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,

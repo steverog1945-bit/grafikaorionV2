@@ -24,9 +24,11 @@ class JerseyMaterialEstimationService
 {
     /**
      * @param  array<int,int>  $qtyPerSize  [jersey_size_id => qty]
+     * @param  int|null  $productTypeId  Tipe Produk barang - dipakai untuk menyaring Komponen yang di-scope (lihat catatan di bawah)
+     * @param  int|null  $categoryId  Kategori barang - dipakai untuk menyaring Komponen yang di-scope
      * @return array<int,array{component: \Illuminate\Database\Eloquent\Model, total_meter: float, total_weight_gram: float}>
      */
-    public static function hitungEstimasi(array $qtyPerSize): array
+    public static function hitungEstimasi(array $qtyPerSize, ?int $productTypeId = null, ?int $categoryId = null): array
     {
         $qtyPerSize = array_filter($qtyPerSize, fn ($q) => $q > 0);
         if (empty($qtyPerSize)) {
@@ -42,14 +44,26 @@ class JerseyMaterialEstimationService
 
         $totals = [];
         foreach ($usages as $usage) {
-            if (!$usage->component || !$usage->component->is_active) {
+            $component = $usage->component;
+            if (!$component || !$component->is_active) {
+                continue;
+            }
+            // Komponen yang di-scope ke Tipe Produk/Kategori tertentu di
+            // Master Data (mis. "Celana" cuma untuk tipe produk Celana)
+            // dilewati kalau barang ini bukan tipe/kategori itu - null di
+            // Master Data berarti komponen itu berlaku untuk SEMUA barang,
+            // sama seperti pola null di jersey_price_settings.
+            if ($component->jersey_product_type_id && $component->jersey_product_type_id != $productTypeId) {
+                continue;
+            }
+            if ($component->jersey_category_id && $component->jersey_category_id != $categoryId) {
                 continue;
             }
             $qty = $qtyPerSize[$usage->jersey_size_id] ?? 0;
             if ($qty <= 0) {
                 continue;
             }
-            self::tambahTotal($totals, $usage->jersey_component_id, $usage->component, $usage, $qty);
+            self::tambahTotal($totals, $usage->jersey_component_id, $component, $usage, $qty);
         }
 
         return self::urutkanTotal($totals);

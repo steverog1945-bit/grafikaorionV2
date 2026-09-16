@@ -35,7 +35,7 @@ class JerseyMasterController extends Controller
         $categories = JerseyCategory::orderBy('name')->get();
         $sizes = JerseySize::orderBy('sort_order')->get();
         $materials = JerseyMaterial::orderBy('name')->get();
-        $components = JerseyComponent::orderBy('sort_order')->get();
+        $components = JerseyComponent::with(['productType', 'category'])->orderBy('sort_order')->get();
         $sleeveTypes = JerseySleeveType::orderBy('sort_order')->get();
         $collarTypes = JerseyCollarType::orderBy('sort_order')->get();
         $priceSettings = JerseyPriceSetting::with(['productType', 'category', 'material'])
@@ -215,9 +215,24 @@ class JerseyMasterController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:jersey_components,name',
             'sort_order' => 'nullable|integer|min:0',
+            'jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
+            'jersey_category_id' => 'nullable|exists:jersey_categories,id',
         ]);
         $row = JerseyComponent::create($data);
-        return response()->json(['success' => true, 'message' => 'Komponen berhasil ditambahkan.', 'row' => $row]);
+        return response()->json(['success' => true, 'message' => 'Komponen berhasil ditambahkan.', 'row' => $row->load(['productType', 'category'])]);
+    }
+
+    public function updateComponentScope(Request $request, JerseyComponent $component)
+    {
+        $data = $request->validate([
+            'jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
+            'jersey_category_id' => 'nullable|exists:jersey_categories,id',
+        ]);
+        $component->update([
+            'jersey_product_type_id' => $data['jersey_product_type_id'] ?? null,
+            'jersey_category_id' => $data['jersey_category_id'] ?? null,
+        ]);
+        return response()->json(['success' => true, 'message' => 'Cakupan komponen berhasil diperbarui.', 'row' => $component->load(['productType', 'category'])]);
     }
 
     public function toggleComponent(JerseyComponent $component)
@@ -262,7 +277,9 @@ class JerseyMasterController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:jersey_sleeve_types,name',
             'sort_order' => 'nullable|integer|min:0',
+            'price_surcharge' => 'nullable|numeric|min:0',
         ]);
+        $data['price_surcharge'] = $data['price_surcharge'] ?? 0;
         $row = JerseySleeveType::create($data);
         return response()->json(['success' => true, 'message' => 'Tipe lengan berhasil ditambahkan.', 'row' => $row]);
     }
@@ -272,7 +289,9 @@ class JerseyMasterController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:jersey_sleeve_types,name,' . $sleeveType->id,
             'sort_order' => 'nullable|integer|min:0',
+            'price_surcharge' => 'nullable|numeric|min:0',
         ]);
+        $data['price_surcharge'] = $data['price_surcharge'] ?? 0;
         $sleeveType->update($data);
         return response()->json(['success' => true, 'message' => 'Tipe lengan berhasil diperbarui.', 'row' => $sleeveType]);
     }
@@ -289,7 +308,9 @@ class JerseyMasterController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:jersey_collar_types,name',
             'sort_order' => 'nullable|integer|min:0',
+            'price_surcharge' => 'nullable|numeric|min:0',
         ]);
+        $data['price_surcharge'] = $data['price_surcharge'] ?? 0;
         $row = JerseyCollarType::create($data);
         return response()->json(['success' => true, 'message' => 'Tipe kerah berhasil ditambahkan.', 'row' => $row]);
     }
@@ -299,7 +320,9 @@ class JerseyMasterController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:jersey_collar_types,name,' . $collarType->id,
             'sort_order' => 'nullable|integer|min:0',
+            'price_surcharge' => 'nullable|numeric|min:0',
         ]);
+        $data['price_surcharge'] = $data['price_surcharge'] ?? 0;
         $collarType->update($data);
         return response()->json(['success' => true, 'message' => 'Tipe kerah berhasil diperbarui.', 'row' => $collarType]);
     }

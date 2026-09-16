@@ -101,6 +101,9 @@
                             @if($line->size_surcharge_total > 0)
                                 + Rp {{ number_format($line->size_surcharge_total, 0, ',', '.') }} <span class="text-amber-500 font-semibold">(tambahan ukuran)</span>
                             @endif
+                            @if($line->sleeve_collar_surcharge_total > 0)
+                                + Rp {{ number_format($line->sleeve_collar_surcharge_total, 0, ',', '.') }} <span class="text-amber-500 font-semibold">(tambahan lengan/kerah)</span>
+                            @endif
                             = <span class="font-bold text-slate-600">Rp {{ number_format($line->subtotal, 0, ',', '.') }}</span>
                         </p>
                     </div>

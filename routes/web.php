@@ -503,6 +503,7 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         Route::patch('/master/materials/{material}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleMaterial'])->name('master.materials.toggle');
 
         Route::post('/master/components', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeComponent'])->name('master.components.store');
+        Route::put('/master/components/{component}/scope', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'updateComponentScope'])->name('master.components.scope');
         Route::patch('/master/components/{component}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleComponent'])->name('master.components.toggle');
 
         Route::post('/master/usage', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'saveUsage'])->name('master.usage.save');

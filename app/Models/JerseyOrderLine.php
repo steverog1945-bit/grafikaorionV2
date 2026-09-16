@@ -25,6 +25,7 @@ class JerseyOrderLine extends Model
         'harga_satuan',
         'subtotal',
         'size_surcharge_total',
+        'sleeve_collar_surcharge_total',
         'jersey_price_setting_id',
     ];
 
@@ -32,6 +33,7 @@ class JerseyOrderLine extends Model
         'harga_satuan' => 'decimal:2',
         'subtotal' => 'decimal:2',
         'size_surcharge_total' => 'decimal:2',
+        'sleeve_collar_surcharge_total' => 'decimal:2',
         'is_susulan' => 'boolean',
     ];
 

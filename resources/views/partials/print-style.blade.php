@@ -16,37 +16,58 @@
     .print-header { text-align: center; margin-bottom: 14px; }
     .print-header img { max-height: {{ $format === 'thermal' ? '32px' : '44px' }}; margin-bottom: 6px; object-fit: contain; }
     .print-header h1 {
-        font-size: {{ $format === 'thermal' ? '13px' : '19px' }};
-        margin: 0; font-weight: 800; letter-spacing: -0.02em; color: #0f172a;
+        font-size: {{ $format === 'thermal' ? '14px' : '19px' }};
+        margin: 0; font-weight: {{ $format === 'thermal' ? '700' : '800' }};
+        letter-spacing: {{ $format === 'thermal' ? 'normal' : '-0.02em' }}; color: #0f172a;
     }
     .print-header .company-info {
-        font-size: {{ $format === 'thermal' ? '9px' : '11px' }};
+        font-size: {{ $format === 'thermal' ? '10px' : '11px' }};
         color: #64748b; margin: 2px 0 0; line-height: 1.4;
     }
     .print-header .doc-title {
-        font-size: {{ $format === 'thermal' ? '10px' : '12px' }};
-        text-transform: uppercase; letter-spacing: 0.08em; color: #4f46e5;
-        font-weight: 700; margin: 6px 0 0;
+        font-size: {{ $format === 'thermal' ? '11px' : '12px' }};
+        text-transform: uppercase; letter-spacing: {{ $format === 'thermal' ? '0.02em' : '0.08em' }}; color: #4f46e5;
+        font-weight: {{ $format === 'thermal' ? '600' : '700' }}; margin: 6px 0 0;
     }
 
     .center { text-align: center; }
     .sub { font-size: 11px; color: #64748b; margin: 0 0 12px; }
 
-    table { width: 100%; border-collapse: collapse; font-size: {{ $format === 'thermal' ? '10px' : '12.5px' }}; }
+    {{--
+        Ukuran &amp; ketebalan font untuk thermal SENGAJA tidak dibuat terlalu
+        kecil/tebal - font kecil (&lt;10px) dikombinasikan font-weight
+        700-800 + letter-spacing sering membuat printer thermal (rendering
+        1-bit dari browser, tanpa anti-alias abu-abu seperti di layar)
+        mencetak tepi huruf jadi pecah seperti titik-titik/dot, bukan garis
+        utuh - keluhan langsung dari user. Non-thermal (A5/A4) tidak
+        disentuh sama sekali, sudah normal di kertas biasa.
+    --}}
+    table { width: 100%; border-collapse: collapse; font-size: {{ $format === 'thermal' ? '11px' : '12.5px' }}; }
     th, td { padding: 6px 4px; text-align: left; vertical-align: top; }
     th {
-        border-bottom: 1.5px solid #e2e8f0; font-size: {{ $format === 'thermal' ? '9px' : '10px' }};
-        text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; font-weight: 700;
+        border-bottom: 1.5px solid #e2e8f0; font-size: {{ $format === 'thermal' ? '10px' : '10px' }};
+        text-transform: uppercase; letter-spacing: {{ $format === 'thermal' ? '0.02em' : '0.04em' }};
+        color: #64748b; font-weight: {{ $format === 'thermal' ? '600' : '700' }};
     }
     td.right, th.right { text-align: right; }
 
     .divider { border-top: 1px dashed #cbd5e1; margin: 10px 0; }
 
-    .total-row td { font-weight: 800; font-size: {{ $format === 'thermal' ? '11px' : '15px' }}; color: #0f172a; }
+    {{--
+        Kelas opsional (opt-in, TIDAK mengubah default table/th/td/divider
+        di atas supaya nota & closing kas yang juga memakai partial ini
+        tidak ikut berubah) - dipakai halaman yang butuh baris lebih rapat
+        di bagian tertentu saja, mis. Ringkasan Order Jersey yang ingin
+        rapat di semua bagian KECUALI tabel rincian barang.
+    --}}
+    .table-compact th, .table-compact td { padding: 2px 4px; }
+    .divider-tight { margin: 4px 0; }
+
+    .total-row td { font-weight: {{ $format === 'thermal' ? '700' : '800' }}; font-size: {{ $format === 'thermal' ? '12px' : '15px' }}; color: #0f172a; }
 
     .status-badge {
         display: inline-block; padding: 4px 12px; border-radius: 999px;
-        background: #eef2ff; color: #4f46e5; font-weight: 800;
+        background: #eef2ff; color: #4f46e5; font-weight: {{ $format === 'thermal' ? '700' : '800' }};
         font-size: {{ $format === 'thermal' ? '10px' : '12px' }};
     }
 

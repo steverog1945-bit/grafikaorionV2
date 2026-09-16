@@ -8,7 +8,7 @@ class JerseySleeveType extends Model
 {
     protected $table = 'jersey_sleeve_types';
 
-    protected $fillable = ['name', 'sort_order', 'is_active'];
+    protected $fillable = ['name', 'sort_order', 'is_active', 'price_surcharge'];
 
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = ['is_active' => 'boolean', 'price_surcharge' => 'decimal:2'];
 }

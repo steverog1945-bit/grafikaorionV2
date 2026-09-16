@@ -7,12 +7,22 @@
     @if($format !== 'thermal')
     <style>.sheet { max-width: 680px; }</style>
     @endif
+    {{--
+        Rapatkan margin/spasi di SEMUA bagian ringkasan KECUALI tabel
+        rincian barang - permintaan langsung user, tabel rincian barang
+        sengaja dibiarkan pakai padding baris default (lebih lega) supaya
+        tetap mudah dibaca per barang.
+    --}}
+    <style>
+        .ringkasan-jersey .print-header { margin-bottom: 8px; }
+        .ringkasan-jersey .signature { margin-top: 20px; }
+    </style>
 </head>
 <body>
-    <div class="sheet">
+    <div class="sheet ringkasan-jersey">
         @include('partials.print-header', ['docTitle' => 'Ringkasan Order Jersey'])
 
-        <table>
+        <table class="table-compact">
             <tr><td>No. Order</td><td class="right">{{ $order->order_number }}</td></tr>
             <tr><td>Tanggal</td><td class="right">{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</td></tr>
             <tr><td>Pelanggan</td><td class="right">{{ $order->konsumen->nama_konsumen ?? $order->customer_name }}</td></tr>
@@ -21,7 +31,7 @@
             <tr><td>Desainer</td><td class="right">{{ $order->designer_name ?? '-' }}</td></tr>
         </table>
 
-        <div class="divider"></div>
+        <div class="divider divider-tight"></div>
 
         <table>
             <thead><tr><th>Barang</th><th>Tipe/Kategori</th><th class="right">Qty</th><th class="right">Subtotal</th></tr></thead>
@@ -54,8 +64,8 @@
             uasort($totalUkuranOrder, fn ($a, $b) => $a['sort'] <=> $b['sort']);
         @endphp
         @if(!empty($totalUkuranOrder) || $totalBeratKg > 0)
-        <div class="divider"></div>
-        <table>
+        <div class="divider divider-tight"></div>
+        <table class="table-compact">
             @if(!empty($totalUkuranOrder))
             <tr><td>Total Ukuran</td><td class="right">{{ collect($totalUkuranOrder)->map(fn ($v, $k) => "{$k}: {$v['qty']}")->implode(', ') }}</td></tr>
             @endif
@@ -65,9 +75,9 @@
         </table>
         @endif
 
-        <div class="divider"></div>
+        <div class="divider divider-tight"></div>
 
-        <table>
+        <table class="table-compact">
             <tr><td>Diskon</td><td class="right">Rp {{ number_format($order->discount, 0, ',', '.') }}</td></tr>
             <tr><td>Biaya Tambahan</td><td class="right">Rp {{ number_format($order->additional_charge, 0, ',', '.') }}</td></tr>
             <tr class="total-row"><td>TOTAL</td><td class="right">Rp {{ number_format($order->total, 0, ',', '.') }}</td></tr>
@@ -75,7 +85,7 @@
         </table>
 
         @if($order->notes)
-        <div class="divider"></div>
+        <div class="divider divider-tight"></div>
         <div class="catatan">{{ $order->notes }}</div>
         @endif
 

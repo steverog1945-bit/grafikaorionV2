@@ -37,13 +37,22 @@
         }
         .topbar .doc-code { display: block; margin-top: 5px; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
 
-        .hero { display: flex; gap: 18px; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; }
+        {{--
+            Kotak thumbnail TIDAK dikunci persegi lagi - lebar/tinggi
+            menyesuaikan rasio asli gambar (landscape memanjang ke samping,
+            portrait memanjang ke bawah), dibatasi max-width/max-height
+            supaya tetap proporsional dengan kolom info di sampingnya.
+            min-width/min-height cuma untuk kotak placeholder saat belum
+            ada thumbnail, supaya tidak menciut jadi kotak kecil.
+        --}}
+        .hero { display: flex; gap: 18px; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; align-items: flex-start; }
         .hero-thumb {
-            flex: 0 0 190px; height: 190px; border-radius: 16px; overflow: hidden;
+            flex: 0 0 auto; min-width: 160px; min-height: 160px;
+            max-width: 320px; max-height: 320px; border-radius: 16px; overflow: hidden;
             background: #f8fafc; border: 1.5px dashed #c7d2fe;
             display: flex; align-items: center; justify-content: center;
         }
-        .hero-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .hero-thumb img { display: block; max-width: 320px; max-height: 320px; width: auto; height: auto; }
         .hero-thumb .placeholder { color: #a5b4fc; font-size: 10.5px; text-align: center; padding: 0 12px; }
 
         .hero-info { flex: 1; min-width: 0; }
@@ -111,7 +120,7 @@
         @media screen and (max-width: 640px) {
             body { padding: 10px; }
             .hero { flex-direction: column; }
-            .hero-thumb { flex: none; width: 100%; height: 160px; }
+            .hero-thumb { flex: none; width: 100%; max-width: 100%; max-height: 220px; }
             table.roster, table.material { display: block; overflow-x: auto; white-space: nowrap; }
         }
         @media print {
