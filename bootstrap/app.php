@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'menu.access' => \App\Http\Middleware\CheckMenuAccess::class,
+            'restrict.input-only' => \App\Http\Middleware\RestrictInputOnlyRoles::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -449,7 +449,7 @@
 @endif
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">Finance & HR</div>
 
-    @if($cekAkses(16))
+    @if($cekAkses(3) || $cekAkses(41))
     <a href="{{ route('penjualan.create') }}"
        class="{{ $menuClass }} {{ Request::is('penjualan/kasir*') ? 'bg-emerald-500/10 text-emerald-400' : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('penjualan/kasir*') ? 'text-emerald-400' : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -457,7 +457,9 @@
         </svg>
         <span class="text-sm font-medium">Kasir Utama</span>
     </a>
+    @endif
 
+    @if($cekAkses(3))
     <a href="{{ route('penjualan.riwayat') }}"
        class="{{ $menuClass }} {{ Request::is('penjualan/riwayat*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('penjualan/riwayat*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -533,6 +535,15 @@
     </a>
     @endif
 
+    @if($cekAkses(43))
+    <a href="{{ route('laporan.order-jersey') }}" class="{{ $menuClass }} {{ request()->routeIs('laporan.order-jersey') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.order-jersey') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 7h16M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7M9 7v11m6-11v11" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Order Jersey</span>
+    </a>
+    @endif
+
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">Akuntansi</div>
 
     @if($cekAkses(35))
@@ -553,14 +564,25 @@
     </a>
     @endif
 
-    @if($cekAkses(38))
+    @if($cekAkses(38) || $cekAkses(42))
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">Order Jersey</div>
-    <a href="{{ url('/jersey') }}" class="{{ $menuClass }} {{ (Request::is('jersey*') && !Request::is('jersey/master*') && !Request::is('jersey/keuangan*')) ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ (Request::is('jersey*') && !Request::is('jersey/master*') && !Request::is('jersey/keuangan*')) ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    @if($cekAkses(38))
+    <a href="{{ url('/jersey') }}" class="{{ $menuClass }} {{ (Request::is('jersey*') && !Request::is('jersey/master*') && !Request::is('jersey/keuangan*') && !Request::is('jersey/create')) ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ (Request::is('jersey*') && !Request::is('jersey/master*') && !Request::is('jersey/keuangan*') && !Request::is('jersey/create')) ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 7h16M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7M9 7v11m6-11v11" />
         </svg>
         <span class="text-sm font-medium">Daftar Order</span>
     </a>
+    @endif
+    @if(!$cekAkses(38) && $cekAkses(42))
+    <a href="{{ route('jersey.orders.create') }}" class="{{ $menuClass }} {{ Request::is('jersey/create') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jersey/create') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 7h16M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7M9 7v11m6-11v11" />
+        </svg>
+        <span class="text-sm font-medium">Order Jersey Baru</span>
+    </a>
+    @endif
+    @if($cekAkses(38))
     <a href="{{ url('/jersey/master') }}" class="{{ $menuClass }} {{ Request::is('jersey/master') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jersey/master') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -574,6 +596,7 @@
         </svg>
         <span class="text-sm font-medium">Keuangan Jersey</span>
     </a>
+    @endif
     @endif
 
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">System Control</div>

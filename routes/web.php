@@ -103,6 +103,7 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::post('/kas-kecil/upload-bukti', [\App\Http\Controllers\KasKecilController::class, 'uploadBukti'])->name('kas-kecil.upload-bukti');
 
     Route::get('/laporan/belanja-bahan', [LaporanController::class, 'belanjaBahan'])->name('laporan.belanja-bahan');
+    Route::get('/laporan/order-jersey', [LaporanController::class, 'orderJersey'])->name('laporan.order-jersey');
 
 
 
@@ -125,6 +126,7 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
         ->name('penjualan.show');
 
     Route::patch('/penjualan/{id}/batalkan-nota', [PenjualanController::class, 'batalkanNota'])
+        ->middleware('restrict.input-only')
         ->name('penjualan.batalkan-nota');
 
     // Alur Edit Nota (lihat catatan di PenjualanController::show) - path
@@ -132,6 +134,7 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     // GET (edit-approval) supaya tidak pernah tertangkap wildcard
     // penjualan.show ({id}) di atas kalau suatu saat urutan berubah.
     Route::post('/penjualan/{id}/request-edit', [PenjualanController::class, 'requestEditNota'])
+        ->middleware('restrict.input-only')
         ->name('penjualan.request-edit');
     Route::get('/penjualan/edit-nota/approval', [PenjualanController::class, 'editApprovalIndex'])
         ->name('penjualan.edit-approval');
@@ -465,9 +468,22 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     */
 
     Route::prefix('jersey')->name('jersey.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'index'])->name('orders.index');
+        // restrict.input-only di sini WALAU config/menu_access.php mengizinkan
+        // id_menu 42 untuk prefix 'jersey' (dibutuhkan supaya orders.show di
+        // bawah tetap bisa diakses sebagai halaman redirect sukses setelah
+        // submit order baru) - tanpa middleware ini, role yang cuma dikasih
+        // 42 otomatis ikut bisa browse SELURUH daftar order lewat URL
+        // langsung juga (index & show berbagi prefix path yang sama,
+        // config tidak bisa membedakan "/jersey" vs "/jersey/{order}").
+        Route::get('/', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'index'])->middleware('restrict.input-only')->name('orders.index');
         Route::get('/create', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'create'])->name('orders.create');
-        Route::post('/', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'store'])->name('orders.store');
+        // Sengaja '/store' (bukan '/' polos) - GET /jersey (index, browse
+        // semua order) & POST ke sini (submit order baru) dulu berbagi path
+        // string identik ('jersey'), sehingga CheckMenuAccess (yang cuma
+        // cocokkan path, tidak pernah cek method) tidak pernah bisa
+        // membedakan keduanya untuk role yang sengaja dibatasi hanya boleh
+        // input order baru tanpa boleh membuka daftar SEMUA order.
+        Route::post('/store', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'store'])->name('orders.store');
         Route::post('/cek-kelengkapan', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'cekKelengkapan'])->name('orders.cek-kelengkapan');
         Route::post('/preview-harga', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'previewHarga'])->name('orders.preview-harga');
         Route::get('/master', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'index'])->name('master.index');
@@ -478,11 +494,11 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         Route::post('/keuangan/upload-bukti', [\App\Http\Controllers\Jersey\JerseyFinanceController::class, 'uploadBukti'])->name('keuangan.upload-bukti');
 
         Route::get('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'show'])->name('orders.show');
-        Route::put('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'update'])->name('orders.update');
-        Route::delete('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'destroy'])->name('orders.destroy');
-        Route::get('/{order}/edit-lines', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'editLines'])->name('orders.edit-lines');
-        Route::put('/{order}/lines', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'updateLines'])->name('orders.update-lines');
-        Route::post('/{order}/lines/susulan', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'storeLineSusulan'])->name('orders.lines.susulan');
+        Route::put('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'update'])->middleware('restrict.input-only')->name('orders.update');
+        Route::delete('/{order}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'destroy'])->middleware('restrict.input-only')->name('orders.destroy');
+        Route::get('/{order}/edit-lines', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'editLines'])->middleware('restrict.input-only')->name('orders.edit-lines');
+        Route::put('/{order}/lines', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'updateLines'])->middleware('restrict.input-only')->name('orders.update-lines');
+        Route::post('/{order}/lines/susulan', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'storeLineSusulan'])->middleware('restrict.input-only')->name('orders.lines.susulan');
         Route::get('/{order}/print/{format?}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'print'])->name('orders.print');
         Route::get('/{order}/lines/{line}/spk', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'printLine'])->name('orders.lines.spk');
 

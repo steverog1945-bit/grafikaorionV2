@@ -24,9 +24,26 @@ return [
         'bahan-baku' => [1],
         'kartu-stok' => [1],
 
-        'penjualan' => [3],
-        'api/penjualan' => [3],
-        'konsumen/store-ajax' => [3],
+        // 'penjualan/riwayat' & 'penjualan/edit-nota' sengaja HANYA [3]
+        // (bukan ikut [41]) - role yang cuma dikasih id_menu 41 ("input
+        // order saja", mis. Operator Desain) harus tetap 403 di sini,
+        // walau base 'penjualan' di bawah dia dapat akses (untuk
+        // create/store/show - show WAJIB tetap terbuka karena itu halaman
+        // redirect sukses setelah submit order baru). Route mutasi yang
+        // path-nya '/{id}/aksi' (batalkan-nota, request-edit) tidak bisa
+        // dipisah lewat prefix di sini sama sekali (id ada SEBELUM segmen
+        // pembeda) - itu digembok lewat middleware restrict.input-only
+        // langsung di route-nya (lihat routes/web.php).
+        'penjualan/riwayat' => [3],
+        'penjualan/edit-nota' => [3],
+        'penjualan' => [3, 41],
+        // 'api/penjualan/produk/{id}' dipanggil AJAX oleh halaman Kasir
+        // Utama sendiri (ambil detail harga produk saat dipilih) - WAJIB
+        // ikut [41], kalau tidak pemilihan produk gagal total untuk role
+        // yang cuma dikasih akses input-order (ditemukan langsung lewat
+        // uji coba nyata: "Gagal ambil produk", 403).
+        'api/penjualan' => [3, 41],
+        'konsumen/store-ajax' => [3, 41],
 
         'setting-akses' => [4],
         'karyawan' => [5],
@@ -56,6 +73,7 @@ return [
         'laporan/produksi' => [26],
         'laporan/kas' => [29],
         'laporan/belanja-bahan' => [40],
+        'laporan/order-jersey' => [43],
         'harga-promo' => [28],
 
         'kas-kecil' => [39],
@@ -69,7 +87,27 @@ return [
         'akun' => [35],
         'akuntansi' => [36],
 
-        'jersey' => [38],
+        // Sama pola dengan 'penjualan' di atas: 'jersey/master' &
+        // 'jersey/keuangan' HANYA [38] (bukan ikut [42]). Route mutasi
+        // yang path-nya '/{order}/aksi' (update, destroy, edit-lines,
+        // update-lines, lines/susulan) tidak bisa dipisah lewat prefix
+        // (order id ada SEBELUM segmen pembeda) - digembok lewat
+        // middleware restrict.input-only langsung di route-nya.
+        'jersey/master' => [38],
+        'jersey/keuangan' => [38],
+        'jersey/create' => [38, 42],
+        'jersey/store' => [38, 42],
+        'jersey/cek-kelengkapan' => [38, 42],
+        'jersey/preview-harga' => [38, 42],
+        'jersey/upload-thumbnail' => [38, 42],
+        // Base 'jersey' menaungi GET / (daftar order - index) DAN
+        // GET/{order} (show, dibutuhkan sebagai halaman redirect sukses
+        // setelah submit order baru) - role id_menu 42 saja otomatis bisa
+        // juga membuka index & show barang orang lain (kompromi yang
+        // disadari, lihat catatan di RestrictInputOnlyRoles), tapi TIDAK
+        // bisa update/hapus/edit-lines/susulan karena route itu digembok
+        // middleware terpisah di atas.
+        'jersey' => [38, 42],
     ],
 
     'always_allow' => [

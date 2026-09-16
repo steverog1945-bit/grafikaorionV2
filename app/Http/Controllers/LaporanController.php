@@ -25,7 +25,17 @@ class LaporanController extends Controller
                 'transaksi.status_nota',
                 'konsumen.nama_konsumen',
                 'golongan_konsumen.nama_golongan'
-            );
+            )
+            // Piutang RIIL per nota = total_bayar dikurangi yang sudah
+            // dibayar (pembayaran_riwayat) - sebelumnya resume "Total
+            // Piutang" memakai total_bayar PENUH untuk nota berstatus
+            // bukan Lunas, jadi overstate untuk nota yang sudah DP
+            // sebagian. Kolom ini dipakai baik di tabel maupun resume.
+            ->selectSub(function ($q) {
+                $q->from('pembayaran_riwayat')
+                    ->selectRaw('COALESCE(SUM(nominal), 0)')
+                    ->whereColumn('pembayaran_riwayat.id_transaksi', 'transaksi.id_transaksi');
+            }, 'total_dibayar');
 
         if ($request->filled('tgl_dari')) {
             $query->whereDate('transaksi.tgl_order', '>=', $request->tgl_dari);
@@ -51,13 +61,49 @@ class LaporanController extends Controller
         $resumeQuery = (clone $query)->where('transaksi.status_nota', '!=', 'Dibatalkan');
         $jumlahTransaksi = $resumeQuery->count();
         $totalTransaksi = (clone $resumeQuery)->sum('transaksi.total_bayar');
-        $totalPiutang = (clone $resumeQuery)->where('transaksi.status_pembayaran', '!=', 'Lunas')->sum('transaksi.total_bayar');
+        $totalPiutang = (clone $resumeQuery)
+            ->where('transaksi.status_pembayaran', '!=', 'Lunas')
+            ->get()
+            ->sum(fn ($t) => max(0, $t->total_bayar - $t->total_dibayar));
+
+        // Breakdown per Divisi/Mesin (proxy kategori - lihat catatan di
+        // laporan.order.blade.php, tabel produk tidak punya kolom
+        // kategori) - biaya cetak/design/finishing dijumlah dari
+        // transaksi_detail, DIBATASI ke nota yang sama persis dengan hasil
+        // filter resume di atas supaya kedua bagian laporan selalu sinkron.
+        $idNotaSesuaiFilter = (clone $resumeQuery)->pluck('transaksi.id_transaksi');
+        $breakdownDivisi = DB::table('transaksi_detail')
+            ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+            ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
+            ->whereIn('transaksi_detail.id_transaksi', $idNotaSesuaiFilter)
+            ->select(
+                DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya') as divisi"),
+                DB::raw('SUM(transaksi_detail.biaya_cetak) as total_biaya_cetak'),
+                DB::raw('SUM(transaksi_detail.biaya_desain) as total_biaya_desain'),
+                DB::raw('SUM(transaksi_detail.biaya_finishing) as total_biaya_finishing')
+            )
+            ->groupBy(DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya')"))
+            ->orderByDesc(DB::raw('SUM(transaksi_detail.biaya_cetak)'))
+            ->get();
 
         $data = $query->orderByDesc('transaksi.tgl_order')->paginate(20)->withQueryString();
 
+        // Detail item per nota - HANYA untuk nota di halaman yang sedang
+        // tampil (bukan seluruh hasil filter) supaya query tetap ringan.
+        $idNotaHalamanIni = collect($data->items())->pluck('id_transaksi');
+        $itemPerNota = DB::table('transaksi_detail')
+            ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+            ->whereIn('transaksi_detail.id_transaksi', $idNotaHalamanIni)
+            ->select('transaksi_detail.*', 'produk.nama_produk')
+            ->orderBy('transaksi_detail.id_detail')
+            ->get()
+            ->groupBy('id_transaksi');
+
         $golongan = DB::table('golongan_konsumen')->orderBy('nama_golongan')->get();
 
-        return view('laporan.order', compact('data', 'golongan', 'jumlahTransaksi', 'totalTransaksi', 'totalPiutang'));
+        return view('laporan.order', compact(
+            'data', 'golongan', 'jumlahTransaksi', 'totalTransaksi', 'totalPiutang', 'breakdownDivisi', 'itemPerNota'
+        ));
     }
 
     /**
@@ -212,6 +258,82 @@ class LaporanController extends Controller
 
         return view('laporan.belanja-bahan', compact(
             'data', 'tglDari', 'tglSampai', 'totalBelanja', 'totalHutang', 'jumlahFaktur'
+        ));
+    }
+
+    /**
+     * Laporan Order Jersey - pola sama dengan laporan Order percetakan
+     * biasa (resume Jumlah Order/Total Transaksi/Total Piutang + breakdown
+     * + detail per order), tapi TERPISAH karena modul jersey punya tabel
+     * &amp; alur sendiri (jersey_orders, bukan transaksi). Piutang pakai
+     * accessor sisa_tagihan (total - deposit, deposit = ledger riil dari
+     * jersey_order_payments) - sudah akurat sejak awal, beda dengan
+     * laporan Order biasa yang baru diperbaiki di method order() di atas.
+     */
+    public function orderJersey(Request $request)
+    {
+        $query = \App\Models\JerseyOrder::with(['konsumen', 'designer']);
+
+        if ($request->filled('tgl_dari')) {
+            $query->whereDate('order_date', '>=', $request->tgl_dari);
+        }
+        if ($request->filled('tgl_sampai')) {
+            $query->whereDate('order_date', '<=', $request->tgl_sampai);
+        }
+        if ($request->filled('status_pembayaran')) {
+            $query->where('status_pembayaran', $request->status_pembayaran);
+        }
+        if ($request->filled('jersey_designer_id')) {
+            $query->where('jersey_designer_id', $request->jersey_designer_id);
+        }
+
+        // Resume &amp; breakdown dihitung dari SELURUH hasil filter (bukan cuma
+        // halaman yang tampil) - pola sama dengan laporan Order/Kas/Belanja
+        // Bahan, supaya angkanya benar-benar total, bukan per-halaman.
+        $semuaSesuaiFilter = (clone $query)->get();
+        $jumlahOrder = $semuaSesuaiFilter->count();
+        $totalTransaksi = $semuaSesuaiFilter->sum('total');
+        $totalPiutang = $semuaSesuaiFilter->sum(fn ($o) => $o->sisa_tagihan);
+
+        $breakdownDesainer = $semuaSesuaiFilter
+            ->groupBy(fn ($o) => $o->designer->name ?? ($o->designer_name ?: 'Belum Ditentukan'))
+            ->map(fn ($grup, $nama) => (object) [
+                'nama' => $nama,
+                'jumlah_order' => $grup->count(),
+                'total' => $grup->sum('total'),
+            ])
+            ->sortByDesc('total')
+            ->values();
+
+        $idOrderSesuaiFilter = $semuaSesuaiFilter->pluck('id');
+        $breakdownKategori = DB::table('jersey_order_lines')
+            ->leftJoin('jersey_categories', 'jersey_order_lines.jersey_category_id', '=', 'jersey_categories.id')
+            ->whereIn('jersey_order_lines.jersey_order_id', $idOrderSesuaiFilter)
+            ->select(
+                DB::raw("COALESCE(jersey_categories.name, 'Belum Ditentukan') as kategori"),
+                DB::raw('SUM(jersey_order_lines.qty) as total_qty'),
+                DB::raw('SUM(jersey_order_lines.subtotal) as total_subtotal')
+            )
+            ->groupBy(DB::raw("COALESCE(jersey_categories.name, 'Belum Ditentukan')"))
+            ->orderByDesc(DB::raw('SUM(jersey_order_lines.subtotal)'))
+            ->get();
+
+        $data = $query->orderByDesc('order_date')->paginate(20)->withQueryString();
+
+        // Detail barang per order - hanya untuk order di halaman yang
+        // sedang tampil, sama seperti pola detail-per-nota di laporan
+        // Order percetakan biasa.
+        $idOrderHalamanIni = collect($data->items())->pluck('id');
+        $linePerOrder = \App\Models\JerseyOrderLine::whereIn('jersey_order_id', $idOrderHalamanIni)
+            ->orderBy('id')
+            ->get()
+            ->groupBy('jersey_order_id');
+
+        $designers = \App\Models\JerseyDesigner::orderBy('name')->get();
+
+        return view('laporan.order-jersey', compact(
+            'data', 'designers', 'jumlahOrder', 'totalTransaksi', 'totalPiutang',
+            'breakdownDesainer', 'breakdownKategori', 'linePerOrder'
         ));
     }
 }
