@@ -16,15 +16,22 @@ class LaporanController extends Controller
         $query = DB::table('transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->join('golongan_konsumen', 'konsumen.id_golongan', '=', 'golongan_konsumen.id_golongan')
+            ->leftJoin('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
+            ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
             ->select(
                 'transaksi.id_transaksi',
                 'transaksi.nomor_nota',
+                'transaksi.no_po',
+                'transaksi.tipe_order',
                 'transaksi.tgl_order',
+                'transaksi.created_at',
                 'transaksi.total_bayar',
                 'transaksi.status_pembayaran',
                 'transaksi.status_nota',
+                'transaksi.metode_pembayaran',
                 'konsumen.nama_konsumen',
-                'golongan_konsumen.nama_golongan'
+                'golongan_konsumen.nama_golongan',
+                DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama_operator')
             )
             // Piutang RIIL per nota = total_bayar dikurangi yang sudah
             // dibayar (pembayaran_riwayat) - sebelumnya resume "Total
@@ -86,15 +93,22 @@ class LaporanController extends Controller
             ->orderByDesc(DB::raw('SUM(transaksi_detail.biaya_cetak)'))
             ->get();
 
-        $data = $query->orderByDesc('transaksi.tgl_order')->paginate(20)->withQueryString();
+        // Paginasi lebih kecil dari laporan lain (10, bukan 20) - tiap nota
+        // sekarang tampil sebagai blok PENUH (header + tabel item + total),
+        // bukan satu baris ringkas, supaya satu halaman tidak kepanjangan.
+        $data = $query->orderByDesc('transaksi.tgl_order')->paginate(10)->withQueryString();
 
         // Detail item per nota - HANYA untuk nota di halaman yang sedang
         // tampil (bukan seluruh hasil filter) supaya query tetap ringan.
+        // SELALU ditampilkan penuh (bukan lagi expand/collapse) sesuai
+        // permintaan user - rincian konsumen & item pesanan harus langsung
+        // terlihat semua tanpa perlu klik.
         $idNotaHalamanIni = collect($data->items())->pluck('id_transaksi');
         $itemPerNota = DB::table('transaksi_detail')
             ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+            ->leftJoin('jasa', 'transaksi_detail.id_jasa', '=', 'jasa.id_jasa')
             ->whereIn('transaksi_detail.id_transaksi', $idNotaHalamanIni)
-            ->select('transaksi_detail.*', 'produk.nama_produk')
+            ->select('transaksi_detail.*', 'produk.nama_produk', 'jasa.nama_jasa')
             ->orderBy('transaksi_detail.id_detail')
             ->get()
             ->groupBy('id_transaksi');
@@ -318,7 +332,7 @@ class LaporanController extends Controller
             ->orderByDesc(DB::raw('SUM(jersey_order_lines.subtotal)'))
             ->get();
 
-        $data = $query->orderByDesc('order_date')->paginate(20)->withQueryString();
+        $data = $query->orderByDesc('order_date')->paginate(10)->withQueryString();
 
         // Detail barang per order - hanya untuk order di halaman yang
         // sedang tampil, sama seperti pola detail-per-nota di laporan

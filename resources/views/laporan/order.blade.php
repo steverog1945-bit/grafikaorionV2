@@ -6,10 +6,7 @@
         aside, .no-print { display: none !important; }
         main { margin-left: 0 !important; padding: 0 !important; }
         body { background: #fff !important; }
-        /* Detail item per nota disembunyikan di layar (toggle), tapi
-           selalu tampil saat dicetak supaya laporan cetak lengkap tanpa
-           perlu klik satu-satu. */
-        tr[id^="detail-nota-"] { display: table-row !important; }
+        .nota-block { break-inside: avoid; }
     }
 </style>
 @include('partials.print-report-header', ['docTitle' => 'Laporan Rekap Transaksi Order'])
@@ -119,105 +116,103 @@
     </x-card>
     @endif
 
-    <x-table>
-        <thead>
-            <tr>
-                <th class="px-6 py-5 text-left w-8"></th>
-                <th class="px-2 py-5 text-left">Nomor Nota</th>
-                <th class="px-4 py-5 text-left">Tanggal</th>
-                <th class="px-4 py-5 text-left">Konsumen</th>
-                <th class="px-4 py-5 text-center">Golongan</th>
-                <th class="px-4 py-5 text-center">Status</th>
-                <th class="px-8 py-5 text-right">Total</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-50">
-            @forelse($data as $t)
-            @php $itemNota = $itemPerNota->get($t->id_transaksi, collect()); @endphp
-            <tr class="hover:bg-slate-50/50 transition-all {{ $t->status_nota === 'Dibatalkan' ? 'opacity-50' : '' }}">
-                <td class="px-6 py-5 no-print">
-                    @if($itemNota->isNotEmpty())
-                    <button type="button" onclick="toggleDetailNota({{ $t->id_transaksi }})" class="w-6 h-6 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Lihat rincian item">
-                        <i class="fas fa-chevron-right text-[10px]" id="chevron-nota-{{ $t->id_transaksi }}"></i>
-                    </button>
-                    @endif
-                </td>
-                <td class="px-2 py-5"><span class="text-[13px] font-bold text-slate-700 uppercase">{{ $t->nomor_nota }}</span></td>
-                <td class="px-4 py-5"><span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->format('d M Y') }}</span></td>
-                <td class="px-4 py-5"><span class="text-[12px] font-bold text-slate-700 uppercase">{{ $t->nama_konsumen }}</span></td>
-                <td class="px-4 py-5 text-center">
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Detail Transaksi</div>
+
+    @forelse($data as $t)
+    @php $itemNota = $itemPerNota->get($t->id_transaksi, collect()); @endphp
+    <div class="nota-block bg-white rounded-3xl border border-slate-100 shadow-sm mb-5 overflow-hidden {{ $t->status_nota === 'Dibatalkan' ? 'opacity-60' : '' }}">
+        {{-- HEADER NOTA - konsumen, golongan, operator, tipe order semua
+             langsung terlihat (tidak perlu klik apa pun), sesuai referensi
+             yang diacu user. --}}
+        <div class="px-6 py-4 bg-slate-50/80 border-b border-slate-100 flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-[14px] font-bold text-slate-800 uppercase">{{ $t->nomor_nota }}</span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
                         {{ $t->nama_golongan }}
                     </span>
-                </td>
-                <td class="px-4 py-5 text-center">
-                    @if($t->status_nota === 'Dibatalkan')
-                        <x-badge status="Dibatalkan" variant="danger" />
-                    @else
-                        <x-badge :status="$t->status_pembayaran" />
+                    @if($t->tipe_order)
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-500">
+                        {{ $t->tipe_order }}
+                    </span>
                     @endif
-                </td>
-                <td class="px-8 py-5 text-right"><span class="text-[13px] font-bold text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span></td>
-            </tr>
-            @if($itemNota->isNotEmpty())
-            <tr id="detail-nota-{{ $t->id_transaksi }}" class="hidden">
-                <td></td>
-                <td colspan="6" class="px-4 pb-5">
-                    <div class="bg-slate-50 rounded-2xl p-4 overflow-x-auto">
-                        <table class="w-full text-xs">
-                            <thead>
-                                <tr class="text-[10px] text-slate-400 uppercase">
-                                    <th class="p-2 text-left">Produk</th>
-                                    <th class="p-2 text-right">Qty</th>
-                                    <th class="p-2 text-right">Cetak</th>
-                                    <th class="p-2 text-right">Design</th>
-                                    <th class="p-2 text-right">Finishing</th>
-                                    <th class="p-2 text-right">Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-white">
-                                @foreach($itemNota as $item)
-                                <tr>
-                                    <td class="p-2 font-semibold text-slate-600">{{ $item->nama_produk ?? $item->nama_file ?? '-' }}</td>
-                                    <td class="p-2 text-right text-slate-500">{{ $item->qty }}</td>
-                                    <td class="p-2 text-right text-slate-500">{{ number_format($item->biaya_cetak, 0, ',', '.') }}</td>
-                                    <td class="p-2 text-right text-slate-500">{{ number_format($item->biaya_desain, 0, ',', '.') }}</td>
-                                    <td class="p-2 text-right text-slate-500">{{ number_format($item->biaya_finishing, 0, ',', '.') }}</td>
-                                    <td class="p-2 text-right font-bold text-slate-700">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </td>
-            </tr>
-            @endif
-            @empty
-            <tr>
-                <td colspan="7">
-                    <x-empty-state title="Tidak ada data" description="Sesuaikan filter untuk melihat transaksi." />
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </x-table>
+                </div>
+                <p class="text-[12px] text-slate-500 mt-1.5">
+                    <span class="font-bold text-slate-700">{{ $t->nama_konsumen }}</span>
+                    @if($t->no_po) &middot; No. PO: {{ $t->no_po }} @endif
+                </p>
+                <p class="text-[11px] text-slate-400 mt-0.5">
+                    {{ \Carbon\Carbon::parse($t->tgl_order)->format('d M Y') }}
+                    @if($t->created_at) &middot; {{ \Carbon\Carbon::parse($t->created_at)->format('H:i') }} @endif
+                    @if($t->nama_operator) &middot; Operator: {{ $t->nama_operator }} @endif
+                </p>
+            </div>
+            <div class="text-right shrink-0">
+                @if($t->status_nota === 'Dibatalkan')
+                    <x-badge status="Dibatalkan" variant="danger" />
+                @else
+                    <x-badge :status="$t->status_pembayaran" />
+                @endif
+            </div>
+        </div>
+
+        {{-- ITEM PESANAN - selalu tampil penuh, tidak lagi expand/collapse. --}}
+        @if($itemNota->isNotEmpty())
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="text-[10px] text-slate-400 uppercase bg-slate-50/60">
+                        <th class="p-3 text-left w-6">#</th>
+                        <th class="p-3 text-left">Produk / Jasa</th>
+                        <th class="p-3 text-left">Ukuran</th>
+                        <th class="p-3 text-right">Harga</th>
+                        <th class="p-3 text-right">Qty</th>
+                        <th class="p-3 text-right">Cetak</th>
+                        <th class="p-3 text-right">Design</th>
+                        <th class="p-3 text-right">Finishing</th>
+                        <th class="p-3 text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    @foreach($itemNota as $i => $item)
+                    <tr>
+                        <td class="p-3 text-slate-400">{{ $i + 1 }}</td>
+                        <td class="p-3 font-semibold text-slate-700">{{ $item->nama_produk ?? $item->nama_jasa ?? '-' }}<br><span class="text-[10px] font-normal text-slate-400">{{ $item->nama_file }}</span></td>
+                        <td class="p-3 text-slate-500">{{ $item->p_ukuran > 0 && $item->l_ukuran > 0 ? number_format($item->p_ukuran, 0, ',', '.') . 'x' . number_format($item->l_ukuran, 0, ',', '.') . ' cm' : '-' }}</td>
+                        <td class="p-3 text-right text-slate-500">{{ number_format($item->harga_jual_snapshot, 0, ',', '.') }}</td>
+                        <td class="p-3 text-right text-slate-500">{{ number_format($item->qty, 0, ',', '.') }}</td>
+                        <td class="p-3 text-right text-slate-500">{{ number_format($item->biaya_cetak, 0, ',', '.') }}</td>
+                        <td class="p-3 text-right text-slate-500">{{ number_format($item->biaya_desain, 0, ',', '.') }}</td>
+                        <td class="p-3 text-right text-slate-500">{{ number_format($item->biaya_finishing, 0, ',', '.') }}</td>
+                        <td class="p-3 text-right font-bold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @else
+        <p class="text-[11px] text-slate-300 italic p-4">Tidak ada rincian item untuk nota ini.</p>
+        @endif
+
+        {{-- TOTAL PER NOTA --}}
+        <div class="px-6 py-4 bg-slate-50/60 border-t border-slate-100 flex justify-end">
+            <div class="text-right space-y-1 min-w-[220px]">
+                <p class="text-[12px] text-slate-500 flex justify-between gap-6"><span>Grand Total</span> <span class="font-bold text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span></p>
+                <p class="text-[12px] text-slate-500 flex justify-between gap-6"><span>Sudah Dibayar</span> <span class="font-semibold text-emerald-600">Rp {{ number_format($t->total_dibayar, 0, ',', '.') }}</span></p>
+                @php $kurangBayar = max(0, $t->total_bayar - $t->total_dibayar); @endphp
+                <p class="text-[13px] font-black flex justify-between gap-6 pt-1 border-t border-slate-200 {{ $kurangBayar > 0 ? 'text-rose-500' : 'text-emerald-600' }}"><span>{{ $kurangBayar > 0 ? 'Kurang Bayar' : 'Lunas' }}</span> <span>Rp {{ number_format($kurangBayar, 0, ',', '.') }}</span></p>
+            </div>
+        </div>
+    </div>
+    @empty
+    <x-card>
+        <x-empty-state title="Tidak ada data" description="Sesuaikan filter untuk melihat transaksi." />
+    </x-card>
+    @endforelse
 
     <div class="no-print">
         <x-table.pagination :paginator="$data" />
     </div>
 
 </div>
-
-@push('scripts')
-<script>
-    function toggleDetailNota(id) {
-        const baris = document.getElementById(`detail-nota-${id}`);
-        const chevron = document.getElementById(`chevron-nota-${id}`);
-        if (!baris) return;
-        baris.classList.toggle('hidden');
-        chevron.classList.toggle('fa-chevron-right');
-        chevron.classList.toggle('fa-chevron-down');
-    }
-</script>
-@endpush
 @endsection
