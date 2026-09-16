@@ -16,7 +16,7 @@
 @endphp
 <div class="px-6 py-4 bg-indigo-50/50 border-b border-indigo-100 flex items-center justify-between">
     <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest">Barang #<span class="line-number">1</span></span>
-    <button type="button" onclick="this.closest('.jersey-line-card').remove()" class="w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-50"><i class="far fa-trash-alt text-xs"></i></button>
+    <button type="button" onclick="this.closest('.jersey-line-card').remove(); if (typeof jadwalkanPreviewHarga === 'function') jadwalkanPreviewHarga(); if (typeof jadwalkanPreviewHargaSusulan === 'function') jadwalkanPreviewHargaSusulan();" class="w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-50"><i class="far fa-trash-alt text-xs"></i></button>
 </div>
 <div class="p-6 space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -134,6 +134,14 @@
             </tbody>
         </table>
         </div>
+    </div>
+
+    <div class="line-price-preview rounded-xl bg-emerald-50 border border-emerald-100 p-4 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+            <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Perkiraan Harga Barang Ini</span>
+            <p class="text-[10px] text-emerald-600/80 mt-0.5 line-price-preview-detail">Isi qty &amp; pilihan barang untuk lihat perkiraan harga.</p>
+        </div>
+        <span class="text-xl font-black text-emerald-700 line-price-preview-value">Rp 0</span>
     </div>
 
     <p class="text-[11px] text-slate-400 bg-slate-50 rounded-xl p-3">

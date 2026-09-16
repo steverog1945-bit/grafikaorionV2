@@ -237,7 +237,16 @@ class JerseyOrderController extends Controller
      * dengan cara yang identik. Baris kosong (qty 0) dilewati, kembalikan
      * false supaya pemanggil tahu baris itu tidak jadi dibuat.
      */
-    private function simpanBarisOrder(JerseyOrder $order, array $lineData, bool $susulan = false): bool
+    /**
+     * Inti kalkulasi harga & pengelompokan qty per ukuran/tipe untuk SATU
+     * baris barang, dari array $lineData mentah (bentuk yang sama persis
+     * dengan request["lines"][idx] saat submit form) - dipakai BERSAMA oleh
+     * simpanBarisOrder() (untuk benar-benar menyimpan) dan previewHarga()
+     * (untuk kalkulasi live di form TANPA menyimpan apa pun), supaya kedua
+     * jalur itu tidak pernah punya rumus yang beda sendiri-sendiri.
+     * Return null kalau baris kosong (belum diisi qty/pemain sama sekali).
+     */
+    private function hitungHargaBaris(array $lineData): ?array
     {
         static $sizeIdByName = null;
         static $surchargeBySizeId = null;
@@ -257,7 +266,7 @@ class JerseyOrderController extends Controller
 
         $qty = count($items) + array_sum(array_map('intval', $sizeQuantitiesMentah));
         if ($qty <= 0) {
-            return false; // baris kosong (line ditambahkan tapi tidak diisi) - dilewati, bukan error
+            return null; // baris kosong (line ditambahkan tapi tidak diisi) - dilewati, bukan error
         }
 
         // Qty per ukuran DIGABUNG dari kedua sumber (bukan salah satu saja)
@@ -347,36 +356,62 @@ class JerseyOrderController extends Controller
 
         $subtotal = ($hargaSatuan * $qty) + $surchargeTotal + $sleeveCollarSurchargeTotal;
 
+        return [
+            'items' => $items,
+            'qty' => $qty,
+            'qtyPerSizeId' => $qtyPerSizeId,
+            'qtyPerSizeSleeveType' => $qtyPerSizeSleeveType,
+            'qtyPerSizeCollarType' => $qtyPerSizeCollarType,
+            'lineSleeveTypeId' => $lineSleeveTypeId,
+            'lineCollarTypeId' => $lineCollarTypeId,
+            'sleeveNameById' => $sleeveNameById,
+            'collarNameById' => $collarNameById,
+            'material' => $material,
+            'tier' => $tier,
+            'hargaSatuan' => $hargaSatuan,
+            'surchargeTotal' => $surchargeTotal,
+            'sleeveCollarSurchargeTotal' => $sleeveCollarSurchargeTotal,
+            'subtotal' => $subtotal,
+        ];
+    }
+
+    private function simpanBarisOrder(JerseyOrder $order, array $lineData, bool $susulan = false): bool
+    {
+        $h = $this->hitungHargaBaris($lineData);
+        if ($h === null) {
+            return false;
+        }
+
         $line = $order->lines()->create([
             'jersey_product_type_id' => $lineData['jersey_product_type_id'] ?? null,
             'jersey_category_id' => $lineData['jersey_category_id'] ?? null,
-            'jersey_material_id' => $material?->id,
-            'jersey_sleeve_type_id' => $lineSleeveTypeId,
-            'jersey_collar_type_id' => $lineCollarTypeId,
+            'jersey_material_id' => $h['material']?->id,
+            'jersey_sleeve_type_id' => $h['lineSleeveTypeId'],
+            'jersey_collar_type_id' => $h['lineCollarTypeId'],
             'nama_barang' => $lineData['nama_barang'],
-            'bahan' => $material?->name,
+            'bahan' => $h['material']?->name,
             'keterangan' => $lineData['keterangan'] ?? null,
             'thumbnail' => $lineData['thumbnail'],
             'order_type' => $lineData['order_type'],
             'is_susulan' => $susulan,
-            'qty' => $qty,
-            'harga_satuan' => $hargaSatuan,
-            'size_surcharge_total' => $surchargeTotal,
-            'sleeve_collar_surcharge_total' => $sleeveCollarSurchargeTotal,
-            'subtotal' => $subtotal,
-            'jersey_price_setting_id' => $tier->id ?? null,
+            'qty' => $h['qty'],
+            'harga_satuan' => $h['hargaSatuan'],
+            'size_surcharge_total' => $h['surchargeTotal'],
+            'sleeve_collar_surcharge_total' => $h['sleeveCollarSurchargeTotal'],
+            'subtotal' => $h['subtotal'],
+            'jersey_price_setting_id' => $h['tier']->id ?? null,
         ]);
 
-        foreach ($items as $item) {
+        foreach ($h['items'] as $item) {
             // sleeve/collar (teks) dipertahankan sebagai snapshot nama -
             // pola sama seperti jersey_order_lines.bahan mendampingi
             // jersey_material_id - supaya tampilan lama (SPK, daftar
             // pemain) tidak perlu diubah, cukup baca kolom teks ini.
-            $item['sleeve'] = !empty($item['jersey_sleeve_type_id']) ? ($sleeveNameById[$item['jersey_sleeve_type_id']] ?? null) : null;
-            $item['collar'] = !empty($item['jersey_collar_type_id']) ? ($collarNameById[$item['jersey_collar_type_id']] ?? null) : null;
+            $item['sleeve'] = !empty($item['jersey_sleeve_type_id']) ? ($h['sleeveNameById'][$item['jersey_sleeve_type_id']] ?? null) : null;
+            $item['collar'] = !empty($item['jersey_collar_type_id']) ? ($h['collarNameById'][$item['jersey_collar_type_id']] ?? null) : null;
             $line->items()->create($item);
         }
-        foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
+        foreach ($h['qtyPerSizeId'] as $sizeId => $qtyUkuran) {
             $line->sizeQuantities()->create([
                 'jersey_size_id' => $sizeId,
                 'quantity' => $qtyUkuran,
@@ -388,21 +423,21 @@ class JerseyOrderController extends Controller
         // Lengan, Tipe Kerah) - bukan diketik manual lagi, dan tidak lagi
         // menyamaratakan semua pilihan lengan/kerah (lihat
         // JerseyMaterialEstimationService). Estimasi murni.
-        foreach (JerseyMaterialEstimationService::hitungEstimasi($qtyPerSizeId, $lineData['jersey_product_type_id'] ?? null, $lineData['jersey_category_id'] ?? null) as $estimasi) {
+        foreach (JerseyMaterialEstimationService::hitungEstimasi($h['qtyPerSizeId'], $lineData['jersey_product_type_id'] ?? null, $lineData['jersey_category_id'] ?? null) as $estimasi) {
             $line->materials()->create([
                 'nama_barang' => $estimasi['component']->name,
                 'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,
                 'penggunaan_kg' => $estimasi['total_weight_gram'] > 0 ? round($estimasi['total_weight_gram'] / 1000, 2) : null,
             ]);
         }
-        foreach (JerseyMaterialEstimationService::hitungEstimasiLengan($qtyPerSizeSleeveType) as $estimasi) {
+        foreach (JerseyMaterialEstimationService::hitungEstimasiLengan($h['qtyPerSizeSleeveType']) as $estimasi) {
             $line->materials()->create([
                 'nama_barang' => 'Lengan ' . $estimasi['component']->name,
                 'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,
                 'penggunaan_kg' => $estimasi['total_weight_gram'] > 0 ? round($estimasi['total_weight_gram'] / 1000, 2) : null,
             ]);
         }
-        foreach (JerseyMaterialEstimationService::hitungEstimasiKerah($qtyPerSizeCollarType) as $estimasi) {
+        foreach (JerseyMaterialEstimationService::hitungEstimasiKerah($h['qtyPerSizeCollarType']) as $estimasi) {
             $line->materials()->create([
                 'nama_barang' => 'Kerah ' . $estimasi['component']->name,
                 'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,
@@ -411,6 +446,46 @@ class JerseyOrderController extends Controller
         }
 
         return true;
+    }
+
+    /**
+     * Preview kalkulasi harga LIVE di form (Order Jersey Baru/Kelola
+     * Barang/Tambah Susulan) - dipanggil berulang kali oleh JS setiap field
+     * harga-relevan berubah (tipe produk, kategori, bahan, qty, lengan,
+     * kerah), TIDAK menyimpan apa pun ke database, murni baca & hitung
+     * lewat hitungHargaBaris() yang sama persis dipakai saat submit
+     * sungguhan - supaya angka yang dilihat operator SELALU sama dengan
+     * yang akan benar-benar tersimpan.
+     */
+    public function previewHarga(Request $request)
+    {
+        $hasilPerBaris = [];
+        $totalOrder = 0.0;
+
+        foreach ($request->input('lines', []) as $idx => $lineData) {
+            $h = $this->hitungHargaBaris(is_array($lineData) ? $lineData : []);
+            if ($h === null) {
+                continue;
+            }
+            $totalOrder += $h['subtotal'];
+            $hasilPerBaris[$idx] = [
+                'qty' => $h['qty'],
+                'harga_satuan' => $h['hargaSatuan'],
+                'size_surcharge_total' => $h['surchargeTotal'],
+                'sleeve_collar_surcharge_total' => $h['sleeveCollarSurchargeTotal'],
+                'subtotal' => $h['subtotal'],
+                'ada_tier' => $h['tier'] !== null && (float) $h['tier']->price > 0,
+            ];
+        }
+
+        $diskon = (float) str_replace(['.', ','], ['', '.'], (string) $request->input('discount', 0));
+        $biayaTambahan = (float) str_replace(['.', ','], ['', '.'], (string) $request->input('additional_charge', 0));
+
+        return response()->json([
+            'lines' => $hasilPerBaris,
+            'total_barang' => $totalOrder,
+            'total_order' => max(0, $totalOrder - $diskon + $biayaTambahan),
+        ]);
     }
 
     public function show(JerseyOrder $order)

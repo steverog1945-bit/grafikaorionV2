@@ -43,6 +43,11 @@
             <i class="fas fa-plus"></i> Tambah Jenis Barang
         </button>
 
+        <div class="flex items-center justify-between gap-4 flex-wrap mb-6 bg-indigo-600 rounded-2xl px-8 py-5">
+            <span class="text-xs font-bold text-indigo-200 uppercase tracking-widest">Perkiraan Total Barang</span>
+            <span id="preview-total-order" class="text-2xl font-black text-white">Rp 0</span>
+        </div>
+
         <div class="flex justify-end">
             <x-button type="submit" class="!px-12 !py-5">Simpan Perubahan Barang</x-button>
         </div>
@@ -78,6 +83,7 @@
         pasangPasteThumbnail(card);
         perbaruiNomorBarang();
         perbaruiVisibilitasLenganKerah(card);
+        jadwalkanPreviewHarga();
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
@@ -115,6 +121,7 @@
             .replaceAll('__ITEM__', itemIdx);
         tbody.insertAdjacentHTML('beforeend', html);
         perbaruiVisibilitasLenganKerah(card);
+        jadwalkanPreviewHarga();
     }
 
     // Lengan/Kerah default (level barang) tidak relevan untuk mode Daftar
@@ -189,6 +196,69 @@
             perbaruiVisibilitasLenganKerah(card);
         });
         perbaruiNomorBarang();
+        jalankanPreviewHarga();
+    });
+
+    // ---- Perkiraan harga LIVE - dihitung ulang di server (bukan ditiru di
+    // JS) tiap field yang memengaruhi harga berubah, supaya angka yang
+    // dilihat operator SELALU sama dengan yang akan benar-benar tersimpan.
+    // Di-debounce supaya tidak nembak request tiap ketikan. ----
+    let timerPreviewHarga = null;
+    function jadwalkanPreviewHarga() {
+        clearTimeout(timerPreviewHarga);
+        timerPreviewHarga = setTimeout(jalankanPreviewHarga, 400);
+    }
+
+    async function jalankanPreviewHarga() {
+        const form = document.getElementById('jersey-order-form');
+        if (!form) return;
+        let data;
+        try {
+            // Form ini punya hidden _method=PUT (untuk submit sungguhan ke
+            // update-lines) - kalau ikut terkirim, request preview yang
+            // aslinya POST akan di-spoof jadi PUT oleh Laravel dan malah
+            // kena route PUT /jersey/{order} (update order), bukan endpoint
+            // preview. Dibuang dulu khusus untuk request preview ini.
+            const fd = new FormData(form);
+            fd.delete('_method');
+            const res = await fetch('{{ route("jersey.orders.preview-harga") }}', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: fd,
+            });
+            data = await res.json();
+        } catch (e) {
+            return;
+        }
+
+        document.querySelectorAll('.jersey-line-card').forEach(card => {
+            const m = (card.dataset.prefix || '').match(/\[(.+)\]/);
+            const info = m ? data.lines?.[m[1]] : null;
+            const nilaiEl = card.querySelector('.line-price-preview-value');
+            const detailEl = card.querySelector('.line-price-preview-detail');
+            if (!nilaiEl) return;
+            if (!info) {
+                nilaiEl.textContent = 'Rp 0';
+                if (detailEl) detailEl.textContent = 'Isi qty & pilihan barang untuk lihat perkiraan harga.';
+                return;
+            }
+            nilaiEl.textContent = 'Rp ' + Math.round(info.subtotal).toLocaleString('id-ID');
+            const bagian = [`${info.qty} pcs × Rp ${Math.round(info.harga_satuan).toLocaleString('id-ID')}`];
+            if (info.size_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.size_surcharge_total).toLocaleString('id-ID')} ukuran`);
+            if (info.sleeve_collar_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.sleeve_collar_surcharge_total).toLocaleString('id-ID')} lengan/kerah`);
+            if (!info.ada_tier) bagian.push('belum ada tier harga yang cocok');
+            if (detailEl) detailEl.textContent = bagian.join(', ');
+        });
+
+        const totalEl = document.getElementById('preview-total-order');
+        if (totalEl) totalEl.textContent = 'Rp ' + Math.round(data.total_order || 0).toLocaleString('id-ID');
+    }
+
+    document.getElementById('jersey-order-form').addEventListener('input', (e) => {
+        if (e.target.closest('.jersey-line-card')) jadwalkanPreviewHarga();
+    });
+    document.getElementById('jersey-order-form').addEventListener('change', (e) => {
+        if (e.target.closest('.jersey-line-card')) jadwalkanPreviewHarga();
     });
 
     document.getElementById('jersey-order-form').addEventListener('submit', async function (e) {

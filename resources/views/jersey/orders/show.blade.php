@@ -237,8 +237,12 @@
         <p class="text-xs text-slate-400 mb-4 -mt-2">Barang lama pada order ini <b class="text-slate-500">tidak akan berubah/terhapus</b> - cocok untuk kasus qty/jenis barang bertambah setelah order awal berjalan (mis. panitia bertambah, butuh jersey tambahan).</p>
         <form id="form-tambah-susulan" action="{{ route('jersey.orders.lines.susulan', $order->id) }}" method="POST">
             @csrf
-            <div class="jersey-line-card bg-slate-50/60 rounded-2xl border border-slate-200 overflow-hidden mb-5">
+            <div class="jersey-line-card bg-slate-50/60 rounded-2xl border border-slate-200 overflow-hidden mb-5" data-prefix="lines[0]">
                 @include('jersey.orders._line-card-fields', ['idx' => 0, 'line' => null, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
+            </div>
+            <div class="flex items-center justify-between gap-4 flex-wrap mb-4 bg-indigo-600 rounded-2xl px-6 py-4">
+                <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest">Perkiraan Harga Barang Susulan Ini</span>
+                <span id="preview-total-susulan" class="text-xl font-black text-white">Rp 0</span>
             </div>
             <div class="flex gap-3">
                 <button type="button" onclick="closeModal('tambah-susulan')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
@@ -420,7 +424,63 @@
             .replaceAll('__ITEM__', itemIdx);
         tbody.insertAdjacentHTML('beforeend', html);
         perbaruiVisibilitasLenganKerah(card);
+        jadwalkanPreviewHargaSusulan();
     }
+
+    // ---- Perkiraan harga LIVE untuk modal Tambah Barang Susulan - pola
+    // sama persis dengan create.blade.php/edit-lines.blade.php, cuma target
+    // form & elemen totalnya beda (satu barang saja, idx tetap 0). ----
+    let timerPreviewHargaSusulan = null;
+    function jadwalkanPreviewHargaSusulan() {
+        clearTimeout(timerPreviewHargaSusulan);
+        timerPreviewHargaSusulan = setTimeout(jalankanPreviewHargaSusulan, 400);
+    }
+
+    async function jalankanPreviewHargaSusulan() {
+        const form = document.getElementById('form-tambah-susulan');
+        if (!form) return;
+        let data;
+        try {
+            const fd = new FormData(form);
+            fd.delete('_method');
+            const res = await fetch('{{ route("jersey.orders.preview-harga") }}', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: fd,
+            });
+            data = await res.json();
+        } catch (e) {
+            return;
+        }
+
+        const card = form.querySelector('.jersey-line-card');
+        const info = data.lines?.['0'];
+        const nilaiEl = card?.querySelector('.line-price-preview-value');
+        const detailEl = card?.querySelector('.line-price-preview-detail');
+        if (nilaiEl) {
+            if (!info) {
+                nilaiEl.textContent = 'Rp 0';
+                if (detailEl) detailEl.textContent = 'Isi qty & pilihan barang untuk lihat perkiraan harga.';
+            } else {
+                nilaiEl.textContent = 'Rp ' + Math.round(info.subtotal).toLocaleString('id-ID');
+                const bagian = [`${info.qty} pcs × Rp ${Math.round(info.harga_satuan).toLocaleString('id-ID')}`];
+                if (info.size_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.size_surcharge_total).toLocaleString('id-ID')} ukuran`);
+                if (info.sleeve_collar_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.sleeve_collar_surcharge_total).toLocaleString('id-ID')} lengan/kerah`);
+                if (!info.ada_tier) bagian.push('belum ada tier harga yang cocok');
+                if (detailEl) detailEl.textContent = bagian.join(', ');
+            }
+        }
+
+        const totalEl = document.getElementById('preview-total-susulan');
+        if (totalEl) totalEl.textContent = 'Rp ' + Math.round(data.total_order || 0).toLocaleString('id-ID');
+    }
+
+    document.getElementById('form-tambah-susulan').addEventListener('input', (e) => {
+        if (e.target.closest('.jersey-line-card')) jadwalkanPreviewHargaSusulan();
+    });
+    document.getElementById('form-tambah-susulan').addEventListener('change', (e) => {
+        if (e.target.closest('.jersey-line-card')) jadwalkanPreviewHargaSusulan();
+    });
 
     // Lengan/Kerah default (level barang) tidak relevan untuk mode Daftar
     // Pemain (selalu pakai pilihan tiap pemain), dan kolom Lengan/Kerah di
