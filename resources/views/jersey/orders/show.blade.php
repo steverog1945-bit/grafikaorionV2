@@ -2,6 +2,7 @@
 
 @section('content')
 @include('partials.rupiah-format-script')
+@include('partials.image-compress-script')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-6xl mx-auto">
 
     <x-page-header :title="$order->order_number" subtitle="Detail order jersey">
@@ -371,10 +372,20 @@
 
     async function prosesUploadBukti(file) {
         const statusEl = document.querySelector('.bukti-status');
-        statusEl.textContent = 'Mengunggah...';
+        statusEl.textContent = 'Memampatkan gambar...';
         statusEl.classList.remove('text-rose-500');
+        // Target & dimensi lebih besar daripada thumbnail desain (200KB,
+        // sampai 1200px) - ini bukti transfer/struk, nominal & tanggalnya
+        // harus tetap kebaca jelas, tidak boleh dikompres seagresif
+        // thumbnail yang murni acuan visual.
+        let fileUpload = file;
+        try {
+            const compressed = await compressImage(file, 200 * 1024, [1200, 900, 700, 500, 350]);
+            fileUpload = new File([compressed], file.name.replace(/\.[^./]+$/, '') + '.jpg', { type: 'image/jpeg' });
+        } catch (e) { /* gagal kompres (jarang) - lanjut pakai file asli */ }
+        statusEl.textContent = 'Mengunggah...';
         const formData = new FormData();
-        formData.append('bukti', file);
+        formData.append('bukti', fileUpload);
         formData.append('_token', '{{ csrf_token() }}');
         try {
             const res = await fetch('{{ route("jersey.keuangan.upload-bukti") }}', { method: 'POST', body: formData });
@@ -543,10 +554,18 @@
 
     async function prosesUploadThumbnailBarang(card, file) {
         const statusEl = card.querySelector('.thumbnail-status');
-        statusEl.textContent = 'Mengunggah...';
+        statusEl.textContent = 'Memampatkan gambar...';
         statusEl.classList.remove('text-rose-500');
+        // Dikompres di browser dulu - lihat catatan di
+        // jersey/orders/create.blade.php::prosesUploadThumbnail().
+        let fileUpload = file;
+        try {
+            const compressed = await compressImage(file);
+            fileUpload = new File([compressed], file.name.replace(/\.[^./]+$/, '') + '.jpg', { type: 'image/jpeg' });
+        } catch (e) { /* gagal kompres (jarang) - lanjut pakai file asli */ }
+        statusEl.textContent = 'Mengunggah...';
         const formData = new FormData();
-        formData.append('thumbnail', file);
+        formData.append('thumbnail', fileUpload);
         formData.append('_token', '{{ csrf_token() }}');
         try {
             const res = await fetch('{{ route("jersey.orders.upload-thumbnail") }}', { method: 'POST', body: formData });

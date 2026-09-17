@@ -14,33 +14,33 @@
     $otIsi = $line->order_type ?? 'quantity_only';
     $sizeQtyMap = $line ? $line->sizeQuantities->pluck('quantity', 'jersey_size_id') : collect();
 @endphp
-<div class="px-6 py-4 bg-indigo-50/50 border-b border-indigo-100 flex items-center justify-between">
+<div class="px-5 py-3 bg-indigo-50/50 border-b border-indigo-100 flex items-center justify-between">
     <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest">Barang #<span class="line-number">1</span></span>
     <button type="button" onclick="this.closest('.jersey-line-card').remove(); if (typeof jadwalkanPreviewHarga === 'function') jadwalkanPreviewHarga(); if (typeof jadwalkanPreviewHargaSusulan === 'function') jadwalkanPreviewHargaSusulan();" class="w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-50"><i class="far fa-trash-alt text-xs"></i></button>
 </div>
-<div class="p-6 space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="p-5 space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
         <div class="md:col-span-2">
-            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nama Barang</label>
-            <input type="text" name="lines[{{ $idx }}][nama_barang]" value="{{ $line->nama_barang ?? '' }}" required placeholder="mis. Jersey MTsN Buol" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nama Barang</label>
+            <input type="text" name="lines[{{ $idx }}][nama_barang]" value="{{ $line->nama_barang ?? '' }}" required placeholder="mis. Jersey MTsN Buol" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
         </div>
         <div>
-            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
-            <select name="lines[{{ $idx }}][jersey_product_type_id]" onchange="perbaruiVisibilitasLenganKerah(this)" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
+            <select name="lines[{{ $idx }}][jersey_product_type_id]" onchange="perbaruiVisibilitasLenganKerah(this)" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 <option value="">-- Pilih --</option>
                 @foreach($productTypes as $pt)<option value="{{ $pt->id }}" data-has-sleeve-collar="{{ $pt->has_sleeve_collar ? 1 : 0 }}" @selected(($line->jersey_product_type_id ?? null) == $pt->id)>{{ $pt->name }}</option>@endforeach
             </select>
         </div>
         <div>
-            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kategori</label>
-            <select name="lines[{{ $idx }}][jersey_category_id]" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Kategori</label>
+            <select name="lines[{{ $idx }}][jersey_category_id]" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 <option value="">-- Pilih --</option>
                 @foreach($categories as $cat)<option value="{{ $cat->id }}" @selected(($line->jersey_category_id ?? null) == $cat->id)>{{ $cat->name }}</option>@endforeach
             </select>
         </div>
         <div>
-            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Bahan</label>
-            <select name="lines[{{ $idx }}][jersey_material_id]" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Bahan</label>
+            <select name="lines[{{ $idx }}][jersey_material_id]" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 <option value="">-- Pilih Bahan --</option>
                 @foreach($materials as $m)<option value="{{ $m->id }}" @selected(($line->jersey_material_id ?? null) == $m->id)>{{ $m->name }}</option>@endforeach
             </select>
@@ -48,53 +48,53 @@
                 <p class="text-[10px] text-rose-500 mt-1">Belum ada data Bahan - <a href="{{ route('jersey.master.index') }}" target="_blank" class="underline">tambah dulu di Master Data</a>.</p>
             @endif
         </div>
-        <div class="wrapper-lengan-kerah-default md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="wrapper-lengan-kerah-default md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Lengan (default)</label>
-                <select name="lines[{{ $idx }}][jersey_sleeve_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Lengan (default)</label>
+                <select name="lines[{{ $idx }}][jersey_sleeve_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Pilih --</option>
                     @foreach($sleeveTypes as $st)<option value="{{ $st->id }}" @selected(($line->jersey_sleeve_type_id ?? null) == $st->id)>{{ $st->name }}</option>@endforeach
                 </select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kerah (default)</label>
-                <select name="lines[{{ $idx }}][jersey_collar_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Kerah (default)</label>
+                <select name="lines[{{ $idx }}][jersey_collar_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Pilih --</option>
                     @foreach($collarTypes as $ct)<option value="{{ $ct->id }}" @selected(($line->jersey_collar_type_id ?? null) == $ct->id)>{{ $ct->name }}</option>@endforeach
                 </select>
             </div>
         </div>
         <div class="md:col-span-2">
-            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Keterangan Desain</label>
-            <textarea name="lines[{{ $idx }}][keterangan]" rows="2" placeholder="mis. Lengan kanan bendera, dada kiri logo klub..." class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $line->keterangan ?? '' }}</textarea>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Keterangan Desain</label>
+            <textarea name="lines[{{ $idx }}][keterangan]" rows="2" placeholder="mis. Lengan kanan bendera, dada kiri logo klub..." class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $line->keterangan ?? '' }}</textarea>
         </div>
     </div>
-    <p class="text-[10px] text-slate-400 -mt-4 wrapper-lengan-kerah-default">Lengan &amp; Kerah default dipakai penuh untuk mode <b>Qty per Ukuran</b>, dan sebagai bawaan bagian qty-per-ukuran pada mode <b>Campuran</b> - baris Daftar Pemain di bawah selalu memakai pilihan masing-masing pemain sendiri.</p>
+    <p class="text-[10px] text-slate-400 -mt-3 wrapper-lengan-kerah-default leading-snug">Lengan/Kerah default dipakai untuk mode <b>Qty per Ukuran</b> &amp; <b>Campuran</b> - Daftar Pemain pakai pilihan masing-masing pemain sendiri.</p>
 
+    {{-- Dropzone dimampatkan (dulu 128x128px + 2 baris teks instruksi di
+         dalam kotak) - sekarang 64x64px, instruksi cuma jadi title
+         (tooltip hover) supaya tidak makan tempat vertikal, status teks di
+         sampingnya juga dipersingkat. --}}
     <div>
-        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-            Thumbnail Desain <span class="text-rose-500">*</span>
-            <span class="normal-case font-normal text-slate-400">- acuan warna &amp; bentuk untuk laporan produksi</span>
-        </label>
-        <div class="flex flex-col sm:flex-row items-start gap-4">
-            <div class="thumbnail-dropzone w-32 h-32 rounded-xl bg-slate-50 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center overflow-hidden shrink-0 cursor-pointer transition-all hover:border-indigo-400 hover:bg-indigo-50/30" tabindex="0" onclick="this.querySelector('.thumbnail-file-input').click()">
-                <i class="fas fa-camera text-slate-300 text-lg thumbnail-placeholder {{ ($line->thumbnail ?? null) ? 'hidden' : '' }}"></i>
-                <span class="text-[9px] text-slate-400 font-bold uppercase text-center px-2 mt-1 thumbnail-placeholder {{ ($line->thumbnail ?? null) ? 'hidden' : '' }}">Klik, Tempel (Ctrl+V), atau Pilih File</span>
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Thumbnail Desain <span class="text-rose-500">*</span></label>
+        <div class="flex items-center gap-3">
+            <div class="thumbnail-dropzone w-16 h-16 rounded-lg bg-slate-50 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer transition-all hover:border-indigo-400 hover:bg-indigo-50/30" tabindex="0" onclick="this.querySelector('.thumbnail-file-input').click()" title="Klik, tempel (Ctrl+V), atau pilih file">
+                <i class="fas fa-camera text-slate-300 text-sm thumbnail-placeholder {{ ($line->thumbnail ?? null) ? 'hidden' : '' }}"></i>
                 <img class="w-full h-full object-cover thumbnail-preview {{ ($line->thumbnail ?? null) ? '' : 'hidden' }}" src="{{ ($line->thumbnail ?? null) ? asset('storage/' . $line->thumbnail) : '' }}" alt="">
                 <input type="file" accept="image/*" onchange="uploadThumbnailLine(this)" class="hidden thumbnail-file-input">
             </div>
-            <div class="flex-1">
+            <div class="flex-1 min-w-0">
                 <input type="hidden" name="lines[{{ $idx }}][thumbnail]" value="{{ $line->thumbnail ?? '' }}" class="thumbnail-path" required>
-                <p class="text-xs text-slate-400 thumbnail-status">{{ ($line->thumbnail ?? null) ? 'Thumbnail siap. Klik kotak untuk mengganti.' : 'Belum ada gambar - klik kotak di samping lalu pilih file, atau salin gambar (mis. dari WhatsApp/desain) dan tempel (Ctrl+V) di sini.' }}</p>
+                <p class="text-[11px] text-slate-400 thumbnail-status leading-snug">{{ ($line->thumbnail ?? null) ? 'Thumbnail siap. Klik kotak untuk mengganti.' : 'Klik atau tempel (Ctrl+V) gambar desain di sini.' }}</p>
             </div>
         </div>
     </div>
 
     <div>
-        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Mode Order</label>
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Mode Order</label>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
             @foreach(['quantity_only' => 'Qty per Ukuran', 'player_list' => 'Daftar Pemain', 'mixed' => 'Campuran'] as $val => $label)
-            <label class="line-type-option relative flex items-center justify-center py-3 px-3 rounded-xl border-2 font-bold text-[11px] cursor-pointer {{ $otIsi === $val ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-100 text-slate-400' }}">
+            <label class="line-type-option relative flex items-center justify-center py-2 px-3 rounded-xl border-2 font-bold text-[11px] cursor-pointer {{ $otIsi === $val ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-100 text-slate-400' }}">
                 <input type="radio" name="lines[{{ $idx }}][order_type]" value="{{ $val }}" @checked($otIsi === $val) onchange="toggleLineType(this)" class="absolute top-1.5 right-1.5">
                 {{ $label }}
             </label>
@@ -103,7 +103,7 @@
     </div>
 
     <div class="wrapper-qty-ukuran {{ $otIsi === 'player_list' ? 'hidden' : '' }}">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Qty per Ukuran</p>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Qty per Ukuran</p>
         <div class="grid grid-cols-3 md:grid-cols-8 gap-2">
             @foreach($sizes as $s)
             <div>
@@ -136,7 +136,7 @@
         </div>
     </div>
 
-    <div class="line-price-preview rounded-xl bg-emerald-50 border border-emerald-100 p-4 flex items-center justify-between gap-4 flex-wrap">
+    <div class="line-price-preview rounded-xl bg-emerald-50 border border-emerald-100 p-3 flex items-center justify-between gap-4 flex-wrap">
         <div>
             <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Perkiraan Harga Barang Ini</span>
             <p class="text-[10px] text-emerald-600/80 mt-0.5 line-price-preview-detail">Isi qty &amp; pilihan barang untuk lihat perkiraan harga.</p>
@@ -144,8 +144,8 @@
         <span class="text-xl font-black text-emerald-700 line-price-preview-value">Rp 0</span>
     </div>
 
-    <p class="text-[11px] text-slate-400 bg-slate-50 rounded-xl p-3">
-        <i class="fas fa-info-circle text-indigo-400"></i>
-        Spesifikasi kebutuhan bahan (meter kain per komponen) dihitung <strong>otomatis</strong> dari qty per ukuran x estimasi di Master Data, dan akan terlihat di halaman detail order &amp; SPK setelah disimpan.
+    <p class="text-[10px] text-slate-400 flex items-center gap-1.5">
+        <i class="fas fa-info-circle text-indigo-300"></i>
+        Kebutuhan bahan dihitung otomatis dari qty x estimasi Master Data.
     </p>
 </div>

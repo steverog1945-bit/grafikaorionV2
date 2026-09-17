@@ -2,7 +2,8 @@
 
 @section('content')
 @include('partials.rupiah-format-script')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-6xl mx-auto">
+@include('partials.image-compress-script')
+<div class="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] mx-auto">
 
     <x-page-header title="Kelola Barang - {{ $order->order_number }}" subtitle="Ubah, tambah, atau hapus barang pada order ini. Harga, tambahan ukuran, & estimasi bahan dihitung ulang otomatis.">
         <x-slot:actions>
@@ -12,16 +13,16 @@
         </x-slot:actions>
     </x-page-header>
 
-    <div class="bg-amber-50 text-amber-700 p-4 rounded-2xl mb-6 text-xs font-semibold flex items-start gap-2">
+    <div class="bg-amber-50 text-amber-700 p-3 rounded-2xl mb-4 text-xs font-semibold flex items-start gap-2">
         <i class="fas fa-triangle-exclamation mt-0.5"></i>
         <span>Menyimpan perubahan di sini akan menghitung ulang SEMUA barang pada order ini - id barang lama berubah, jadi tautan SPK yang sudah dicetak sebelumnya perlu dicetak ulang dari halaman Detail Order setelah disimpan.</span>
     </div>
 
     @if (session('error'))
-        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-semibold">{{ session('error') }}</div>
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-4 font-semibold">{{ session('error') }}</div>
     @endif
     @if ($errors->any())
-        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-semibold">
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-4 font-semibold">
             <ul class="list-disc list-inside space-y-1">
                 @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
             </ul>
@@ -31,25 +32,32 @@
     <form action="{{ route('jersey.orders.update-lines', $order->id) }}" method="POST" id="jersey-order-form">
         @csrf @method('PUT')
 
-        <div id="wrapper-lines" class="space-y-6 mb-6">
-            @foreach($order->lines as $line)
-            <div class="jersey-line-card bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden" data-prefix="lines[{{ $line->id }}]">
-                @include('jersey.orders._line-card-fields', ['idx' => $line->id, 'line' => $line, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
+        {{-- Total & tombol Simpan dipindah ke kolom kanan STICKY - selalu
+             kelihatan tanpa perlu scroll ke paling bawah, sama seperti
+             Order Jersey Baru & Keranjang Pesanan Kasir Utama. --}}
+        <div class="flex flex-col lg:flex-row gap-5 items-start">
+            <div class="w-full lg:w-[64%] space-y-4">
+                <div id="wrapper-lines" class="space-y-4">
+                    @foreach($order->lines as $line)
+                    <div class="jersey-line-card bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden" data-prefix="lines[{{ $line->id }}]">
+                        @include('jersey.orders._line-card-fields', ['idx' => $line->id, 'line' => $line, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
+                    </div>
+                    @endforeach
+                </div>
+
+                <button type="button" onclick="tambahBarisBarang()" class="w-full py-3 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 font-bold text-xs uppercase tracking-widest hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
+                    <i class="fas fa-plus"></i> Tambah Jenis Barang
+                </button>
             </div>
-            @endforeach
-        </div>
 
-        <button type="button" onclick="tambahBarisBarang()" class="w-full mb-6 py-4 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 font-bold text-xs uppercase tracking-widest hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
-            <i class="fas fa-plus"></i> Tambah Jenis Barang
-        </button>
+            <div class="w-full lg:w-[36%] lg:sticky lg:top-6 space-y-4">
+                <div class="flex items-center justify-between gap-4 flex-wrap bg-indigo-600 rounded-2xl px-6 py-4">
+                    <span class="text-xs font-bold text-indigo-200 uppercase tracking-widest">Perkiraan Total Barang</span>
+                    <span id="preview-total-order" class="text-2xl font-black text-white">Rp 0</span>
+                </div>
 
-        <div class="flex items-center justify-between gap-4 flex-wrap mb-6 bg-indigo-600 rounded-2xl px-8 py-5">
-            <span class="text-xs font-bold text-indigo-200 uppercase tracking-widest">Perkiraan Total Barang</span>
-            <span id="preview-total-order" class="text-2xl font-black text-white">Rp 0</span>
-        </div>
-
-        <div class="flex justify-end">
-            <x-button type="submit" class="!px-12 !py-5">Simpan Perubahan Barang</x-button>
+                <x-button type="submit" class="w-full !py-4">Simpan Perubahan Barang</x-button>
+            </div>
         </div>
     </form>
 </div>
@@ -180,10 +188,18 @@
 
     async function prosesUploadThumbnail(card, file) {
         const statusEl = card.querySelector('.thumbnail-status');
-        statusEl.textContent = 'Mengunggah...';
+        statusEl.textContent = 'Memampatkan gambar...';
         statusEl.classList.remove('text-rose-500');
+        // Dikompres di browser dulu - lihat catatan di
+        // jersey/orders/create.blade.php::prosesUploadThumbnail().
+        let fileUpload = file;
+        try {
+            const compressed = await compressImage(file);
+            fileUpload = new File([compressed], file.name.replace(/\.[^./]+$/, '') + '.jpg', { type: 'image/jpeg' });
+        } catch (e) { /* gagal kompres (jarang) - lanjut pakai file asli */ }
+        statusEl.textContent = 'Mengunggah...';
         const formData = new FormData();
-        formData.append('thumbnail', file);
+        formData.append('thumbnail', fileUpload);
         formData.append('_token', '{{ csrf_token() }}');
         try {
             const res = await fetch('{{ route("jersey.orders.upload-thumbnail") }}', { method: 'POST', body: formData });

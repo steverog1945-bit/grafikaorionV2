@@ -2,15 +2,16 @@
 
 @section('content')
 @include('partials.rupiah-format-script')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-6xl mx-auto">
+@include('partials.image-compress-script')
+<div class="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] mx-auto">
 
     <x-page-header title="Order Jersey Baru" subtitle="Satu order bisa berisi beberapa jenis barang sekaligus (Jersey, Celana, Sublime lainnya, dst)." />
 
     @if (session('error'))
-        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-semibold">{{ session('error') }}</div>
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-4 font-semibold">{{ session('error') }}</div>
     @endif
     @if ($errors->any())
-        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-semibold">
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-4 font-semibold">
             <ul class="list-disc list-inside space-y-1">
                 @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
             </ul>
@@ -20,70 +21,81 @@
     <form action="{{ route('jersey.orders.store') }}" method="POST" id="jersey-order-form">
         @csrf
 
-        <x-card class="mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <x-form.group label="Tanggal Order" required>
-                    <x-form.input type="date" name="order_date" value="{{ old('order_date', date('Y-m-d')) }}" required />
-                </x-form.group>
+        {{-- Ringkasan (Diskon/Biaya/Deposit/Catatan + Total + tombol Simpan)
+             dipindah ke kolom kanan yang STICKY - dulu satu kolom penuh dari
+             atas ke bawah, jadi total & tombol Simpan cuma kelihatan setelah
+             scroll sampai paling bawah (baru kerasa parah kalau Barang-nya
+             banyak). Sekarang selalu kelihatan tanpa scroll tambahan, sama
+             seperti pola Keranjang Pesanan di Kasir Utama. --}}
+        <div class="flex flex-col lg:flex-row gap-5 items-start">
+            <div class="w-full lg:w-[64%] space-y-4">
+                <x-card>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <x-form.group label="Tanggal Order" required>
+                            <x-form.input type="date" name="order_date" value="{{ old('order_date', date('Y-m-d')) }}" required />
+                        </x-form.group>
 
-                <x-form.group label="Pelanggan" required>
-                    <select id="select_id_konsumen" name="id_konsumen" class="select2-konsumen-jersey" required>
-                        <option value="">-- Cari Nama / No. HP --</option>
-                        @foreach($konsumenList as $k)
-                            <option value="{{ $k->id_konsumen }}" data-telp="{{ $k->telepon }}">{{ $k->nama_konsumen }}</option>
-                        @endforeach
-                    </select>
-                    <p class="text-[11px] text-slate-400 mt-1.5 ml-2">Belum ada namanya? <a href="{{ route('konsumen.index') }}" target="_blank" class="text-indigo-600 underline">Tambah di Master Konsumen</a></p>
-                </x-form.group>
+                        <x-form.group label="Pelanggan" required>
+                            <select id="select_id_konsumen" name="id_konsumen" class="select2-konsumen-jersey" required>
+                                <option value="">-- Cari Nama / No. HP --</option>
+                                @foreach($konsumenList as $k)
+                                    <option value="{{ $k->id_konsumen }}" data-telp="{{ $k->telepon }}">{{ $k->nama_konsumen }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-[11px] text-slate-400 mt-1.5 ml-2">Belum ada namanya? <a href="{{ route('konsumen.index') }}" target="_blank" class="text-indigo-600 underline">Tambah di Master Konsumen</a></p>
+                        </x-form.group>
 
-                <x-form.group label="Nama Tim (opsional)">
-                    <x-form.input type="text" name="team_name" value="{{ old('team_name') }}" />
-                </x-form.group>
+                        <x-form.group label="Nama Tim (opsional)">
+                            <x-form.input type="text" name="team_name" value="{{ old('team_name') }}" />
+                        </x-form.group>
 
-                <x-form.group label="Deadline">
-                    <x-form.input type="date" name="deadline" value="{{ old('deadline') }}" />
-                </x-form.group>
+                        <x-form.group label="Deadline">
+                            <x-form.input type="date" name="deadline" value="{{ old('deadline') }}" />
+                        </x-form.group>
 
-                <x-form.group label="Desainer">
-                    <x-form.select name="jersey_designer_id">
-                        <option value="">-- Pilih --</option>
-                        @foreach($designers as $d)<option value="{{ $d->id }}">{{ $d->name }}</option>@endforeach
-                    </x-form.select>
-                </x-form.group>
+                        <x-form.group label="Desainer">
+                            <x-form.select name="jersey_designer_id">
+                                <option value="">-- Pilih --</option>
+                                @foreach($designers as $d)<option value="{{ $d->id }}">{{ $d->name }}</option>@endforeach
+                            </x-form.select>
+                        </x-form.group>
+                    </div>
+                </x-card>
+
+                {{-- DAFTAR BARANG (multi-line) --}}
+                <div id="wrapper-lines" class="space-y-4"></div>
+
+                <button type="button" onclick="tambahBarisBarang()" class="w-full py-3 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 font-bold text-xs uppercase tracking-widest hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
+                    <i class="fas fa-plus"></i> Tambah Jenis Barang
+                </button>
             </div>
-        </x-card>
 
-        {{-- DAFTAR BARANG (multi-line) --}}
-        <div id="wrapper-lines" class="space-y-6 mb-6"></div>
+            <div class="w-full lg:w-[36%] lg:sticky lg:top-6 space-y-4">
+                <x-card>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Ringkasan Order</h3>
+                    <div class="space-y-4">
+                        <x-form.group label="Diskon (Rp)">
+                            <x-form.input type="text" inputmode="numeric" name="discount" value="{{ old('discount', 0) }}" class="format-ribuan" />
+                        </x-form.group>
+                        <x-form.group label="Biaya Tambahan (Rp)">
+                            <x-form.input type="text" inputmode="numeric" name="additional_charge" value="{{ old('additional_charge', 0) }}" class="format-ribuan" />
+                        </x-form.group>
+                        <x-form.group label="Deposit / DP (Rp)">
+                            <x-form.input type="text" inputmode="numeric" name="deposit" value="{{ old('deposit', 0) }}" class="format-ribuan" />
+                        </x-form.group>
+                        <x-form.group label="Catatan Umum Order">
+                            <textarea name="notes" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ old('notes') }}</textarea>
+                        </x-form.group>
+                    </div>
+                </x-card>
 
-        <button type="button" onclick="tambahBarisBarang()" class="w-full mb-6 py-4 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 font-bold text-xs uppercase tracking-widest hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
-            <i class="fas fa-plus"></i> Tambah Jenis Barang
-        </button>
+                <div class="flex items-center justify-between gap-4 flex-wrap bg-indigo-600 rounded-2xl px-6 py-4">
+                    <span class="text-xs font-bold text-indigo-200 uppercase tracking-widest">Perkiraan Total</span>
+                    <span id="preview-total-order" class="text-2xl font-black text-white">Rp 0</span>
+                </div>
 
-        <x-card class="mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <x-form.group label="Diskon (Rp)">
-                    <x-form.input type="text" inputmode="numeric" name="discount" value="{{ old('discount', 0) }}" class="format-ribuan" />
-                </x-form.group>
-                <x-form.group label="Biaya Tambahan (Rp)">
-                    <x-form.input type="text" inputmode="numeric" name="additional_charge" value="{{ old('additional_charge', 0) }}" class="format-ribuan" />
-                </x-form.group>
-                <x-form.group label="Deposit / DP (Rp)">
-                    <x-form.input type="text" inputmode="numeric" name="deposit" value="{{ old('deposit', 0) }}" class="format-ribuan" />
-                </x-form.group>
+                <x-button type="submit" class="w-full !py-4">Simpan Order</x-button>
             </div>
-            <x-form.group label="Catatan Umum Order" class="mt-6">
-                <textarea name="notes" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ old('notes') }}</textarea>
-            </x-form.group>
-        </x-card>
-
-        <div class="flex items-center justify-between gap-4 flex-wrap mb-6 bg-indigo-600 rounded-2xl px-8 py-5">
-            <span class="text-xs font-bold text-indigo-200 uppercase tracking-widest">Perkiraan Total Order</span>
-            <span id="preview-total-order" class="text-2xl font-black text-white">Rp 0</span>
-        </div>
-
-        <div class="flex justify-end">
-            <x-button type="submit" class="!px-12 !py-5">Simpan Order</x-button>
         </div>
     </form>
 </div>
@@ -203,10 +215,20 @@
 
     async function prosesUploadThumbnail(card, file) {
         const statusEl = card.querySelector('.thumbnail-status');
-        statusEl.textContent = 'Mengunggah...';
+        statusEl.textContent = 'Memampatkan gambar...';
         statusEl.classList.remove('text-rose-500');
+        // Dikompres di browser SEBELUM diunggah (lihat compressImage() di
+        // partials/image-compress-script.blade.php) - gambar asli beresolusi
+        // penuh tidak pernah ikut terkirim ke server, cuma hasil kompresnya
+        // (thumbnail ini murni acuan visual produksi, bukan untuk dicetak).
+        let fileUpload = file;
+        try {
+            const compressed = await compressImage(file);
+            fileUpload = new File([compressed], file.name.replace(/\.[^./]+$/, '') + '.jpg', { type: 'image/jpeg' });
+        } catch (e) { /* gagal kompres (jarang) - lanjut pakai file asli */ }
+        statusEl.textContent = 'Mengunggah...';
         const formData = new FormData();
-        formData.append('thumbnail', file);
+        formData.append('thumbnail', fileUpload);
         formData.append('_token', '{{ csrf_token() }}');
         try {
             const res = await fetch('{{ route("jersey.orders.upload-thumbnail") }}', { method: 'POST', body: formData });
