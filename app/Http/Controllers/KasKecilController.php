@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\KasKecil;
+use App\Models\KategoriKasKecil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,20 +18,22 @@ class KasKecilController extends Controller
 {
     public function index(Request $request)
     {
-        $query = KasKecil::with('user')->orderByDesc('tanggal')->orderByDesc('id');
+        $query = KasKecil::with(['user', 'kategori'])->orderByDesc('tanggal')->orderByDesc('id');
 
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
         $query->whereDate('tanggal', '>=', $tglDari)->whereDate('tanggal', '<=', $tglSampai);
 
-        if ($request->filled('kategori')) {
-            $query->where('kategori', $request->kategori);
+        if ($request->filled('id_kategori')) {
+            $query->where('id_kategori', $request->id_kategori);
         }
 
         $totalPengeluaran = (clone $query)->sum('nominal');
         $data = $query->paginate(20)->withQueryString();
 
-        $kategoriList = KasKecil::select('kategori')->distinct()->orderBy('kategori')->pluck('kategori');
+        // Kategori sekarang tabel referensi tetap (dropdown), bukan lagi
+        // isian bebas - lihat migrasi create_kategori_kas_kecil_table.
+        $kategoriList = KategoriKasKecil::orderBy('nama_kategori')->get();
 
         return view('kas-kecil.index', compact('data', 'tglDari', 'tglSampai', 'totalPengeluaran', 'kategoriList'));
     }
@@ -39,7 +42,7 @@ class KasKecilController extends Controller
     {
         $data = $request->validate([
             'tanggal' => 'required|date',
-            'kategori' => 'required|string|max:100',
+            'id_kategori' => 'required|integer|exists:kategori_kas_kecil,id_kategori_kas_kecil',
             'keterangan' => 'required|string|max:500',
             'nominal' => 'required|numeric|min:1',
             'bukti_path' => 'nullable|string|max:255',

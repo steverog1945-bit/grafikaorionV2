@@ -78,6 +78,7 @@ return [
         'harga-promo' => [28],
 
         'kas-kecil' => [39],
+        'kategori-kas-kecil' => [45],
 
         'merk' => [30],
         'jenis-bahan' => [31],

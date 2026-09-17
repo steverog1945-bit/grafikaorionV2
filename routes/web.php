@@ -10,6 +10,7 @@ use App\Http\Controllers\{
     MesinController,
     BahanBakuController,
     KategoriController,
+    KategoriKasKecilController,
     KonsumenController,
     GolonganController,
     SatuanController,
@@ -73,6 +74,7 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     */
 
     Route::resource('kategori', KategoriController::class);
+    Route::resource('kategori-kas-kecil', KategoriKasKecilController::class)->except(['show', 'create', 'edit']);
     Route::resource('supplier', SupplierController::class);
     Route::resource('bank', BankController::class);
     Route::resource('konsumen', KonsumenController::class);

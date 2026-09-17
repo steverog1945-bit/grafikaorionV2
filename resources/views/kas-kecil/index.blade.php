@@ -47,12 +47,15 @@
                     <x-form.input type="date" name="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}" required />
                 </x-form.group>
                 <x-form.group label="Kategori" required>
-                    <input type="text" name="kategori" list="kategori-kas-kecil" value="{{ old('kategori') }}" required placeholder="mis. ATK, Konsumsi, Transport" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                    <datalist id="kategori-kas-kecil">
+                    <x-form.select name="id_kategori" required>
+                        <option value="">-- Pilih Kategori --</option>
                         @foreach($kategoriList as $kat)
-                            <option value="{{ $kat }}">
+                            <option value="{{ $kat->id_kategori_kas_kecil }}" {{ (string) old('id_kategori') === (string) $kat->id_kategori_kas_kecil ? 'selected' : '' }}>{{ $kat->nama_kategori }}</option>
                         @endforeach
-                    </datalist>
+                    </x-form.select>
+                    <a href="{{ route('kategori-kas-kecil.index') }}" class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest hover:underline ml-2 mt-1 inline-block">
+                        <i class="fas fa-cog"></i> Kelola Kategori
+                    </a>
                 </x-form.group>
                 <x-form.group label="Nominal (Rp)" required>
                     <x-form.input type="text" inputmode="numeric" name="nominal" value="{{ old('nominal') }}" required placeholder="0" class="format-ribuan" />
@@ -82,10 +85,10 @@
             </div>
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
-                <x-form.select name="kategori">
+                <x-form.select name="id_kategori">
                     <option value="">-- Semua --</option>
                     @foreach($kategoriList as $kat)
-                        <option value="{{ $kat }}" {{ request('kategori') === $kat ? 'selected' : '' }}>{{ $kat }}</option>
+                        <option value="{{ $kat->id_kategori_kas_kecil }}" {{ (string) request('id_kategori') === (string) $kat->id_kategori_kas_kecil ? 'selected' : '' }}>{{ $kat->nama_kategori }}</option>
                     @endforeach
                 </x-form.select>
             </div>
@@ -95,7 +98,7 @@
                 Filter
             </x-button>
 
-            @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'kategori']))
+            @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'id_kategori']))
                 <a href="{{ route('kas-kecil.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
@@ -141,7 +144,7 @@
                     <span class="text-[13px] font-bold text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d M Y') }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[11px] font-bold uppercase text-indigo-600 bg-indigo-50 rounded px-2 py-1">{{ $k->kategori }}</span>
+                    <span class="text-[11px] font-bold uppercase text-indigo-600 bg-indigo-50 rounded px-2 py-1">{{ $k->kategori->nama_kategori ?? '-' }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] text-slate-600">{{ $k->keterangan }}</span>
@@ -177,7 +180,7 @@
             @forelse($data as $k)
             <tr>
                 <td class="px-3 py-1.5 font-semibold text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d/m/Y') }}</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ $k->kategori }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $k->kategori->nama_kategori ?? '-' }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->keterangan }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->user->username ?? '-' }}</td>
                 <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($k->nominal, 0, ',', '.') }}</td>
