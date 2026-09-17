@@ -97,7 +97,7 @@
                 @endforeach
 
                 <td class="px-6 py-3.5 text-right">
-                    <x-button size="icon" variant="ghost" onclick="openModal('harga-produk-{{ $p->id_produk }}')" class="border border-slate-100 hover:text-indigo-600 hover:border-indigo-200" title="Kelola Harga">
+                    <x-button size="icon" variant="ghost" onclick="openModal('harga-produk-{{ $p->id_produk }}'); perbaruiSemuaSaranMinTier({{ $p->id_produk }})" class="border border-slate-100 hover:text-indigo-600 hover:border-indigo-200" title="Kelola Harga">
                         <i class="fas fa-sliders-h text-sm"></i>
                     </x-button>
                 </td>
@@ -294,6 +294,40 @@
             btn.classList.toggle('text-slate-400', !aktif);
             btn.classList.toggle('border-transparent', !aktif);
         });
+        perbaruiSaranMinTier(idProduk, idGolongan);
+    }
+
+    // Saran otomatis Min tier berikutnya - dulu form "Tambah Tier" SELALU
+    // default ke Min=1/0.01 apa pun isi tier yang sudah ada, jadi begitu
+    // sudah ada tier "1 s/d 10", operator ketemu error "tumpang tindih"
+    // pas coba tambah tier berikutnya dari Min=1 lagi, dan berakhir coba-
+    // coba sampai ke angka aneh semacam 1,01/10,01 - padahal cukup 11.
+    // Disarankan otomatis: Max tier TERTINGGI (yang punya Max, bukan tak
+    // terbatas) + 1 untuk Pcs, atau +0.01 untuk m² (boleh pecahan). Kalau
+    // belum ada tier sama sekali, atau semua tier yang ada tak terbatas
+    // (Max kosong), tidak ada saran yang masuk akal - biarkan default HTML.
+    function perbaruiSaranMinTier(idProduk, idGolongan) {
+        const form = document.querySelector(`.tier-add-form-produk[data-id-produk="${idProduk}"][data-id-golongan="${idGolongan}"]`);
+        const tbody = document.getElementById(`tier-tbody-produk-${idProduk}-gol-${idGolongan}`);
+        if (!form || !tbody) return;
+        const minInput = form.querySelector('[name="range_min"]');
+        const isPcs = (minInput.step || '1') === '1';
+        const rows = Array.from(tbody.querySelectorAll('.tier-row-produk'));
+        let maxTertinggi = null;
+        rows.forEach(r => {
+            const maxVal = r.querySelector('[name="range_max"]').value;
+            if (maxVal === '') return;
+            const v = parseFloat(maxVal);
+            if (maxTertinggi === null || v > maxTertinggi) maxTertinggi = v;
+        });
+        if (maxTertinggi === null) return;
+        minInput.value = isPcs ? (Math.round(maxTertinggi) + 1) : (Math.round((maxTertinggi + 0.01) * 100) / 100);
+    }
+
+    function perbaruiSemuaSaranMinTier(idProduk) {
+        document.querySelectorAll(`.tier-add-form-produk[data-id-produk="${idProduk}"]`).forEach(form => {
+            perbaruiSaranMinTier(idProduk, form.dataset.idGolongan);
+        });
     }
 
     function buildHargaTierRowHtml(t, stepRentang) {
@@ -374,6 +408,20 @@
     }
 
     async function submitHargaTierFormAjax(form, method) {
+        // Form ini dikirim lewat fetch() (bukan submit native) supaya modal
+        // tidak reload - tapi itu juga berarti validasi "step" HTML native
+        // browser (mis. step=1 untuk Pcs) TIDAK PERNAH dicek, operator bisa
+        // saja mengetik manual "10.5" walau field-nya untuk satuan Pcs.
+        // Dibulatkan paksa di sini kalau step field ini "1" (Pcs) supaya
+        // rentang Pcs selalu bilangan bulat - satuan luas (step 0.01) tidak
+        // disentuh, memang boleh pecahan.
+        const minEl = form.querySelector('[name="range_min"]');
+        const isPcs = minEl && (minEl.step || '1') === '1';
+        if (isPcs) {
+            const maxEl = form.querySelector('[name="range_max"]');
+            if (minEl.value !== '') minEl.value = Math.round(parseFloat(minEl.value));
+            if (maxEl && maxEl.value !== '') maxEl.value = Math.round(parseFloat(maxEl.value));
+        }
         const formData = new FormData(form);
         const payload = {};
         formData.forEach((v, k) => { if (k !== '_token') payload[k] = v; });
@@ -413,6 +461,7 @@
             // tier berikutnya untuk golongan yang sama tanpa aksi tambahan.
             form.reset();
             refreshHargaSummary(idProduk, idGolongan);
+            perbaruiSaranMinTier(idProduk, idGolongan);
             Toast.fire({ icon: 'success', title: data.message });
         } else if (e.target.matches('.tier-edit-form-produk')) {
             e.preventDefault();
@@ -421,6 +470,7 @@
             const data = await submitHargaTierFormAjax(e.target, 'PATCH');
             if (!data) return;
             refreshHargaSummary(tbody.dataset.idProduk, tbody.dataset.idGolongan);
+            perbaruiSaranMinTier(tbody.dataset.idProduk, tbody.dataset.idGolongan);
             Toast.fire({ icon: 'success', title: data.message });
         }
     });
@@ -456,6 +506,7 @@
                     tbody.querySelector('.tier-empty-msg-produk').hidden = false;
                 }
                 refreshHargaSummary(idProduk, idGolongan);
+                perbaruiSaranMinTier(idProduk, idGolongan);
                 Toast.fire({ icon: 'success', title: data.message });
             } catch (e) {
                 Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');
