@@ -183,7 +183,7 @@
         const form = document.getElementById('formEditPromo');
         form.action = `{{ url('harga-promo') }}/${data.id_promo}`;
         document.getElementById('edit_id_produk').value = data.id_produk;
-        document.getElementById('edit_harga_promo').value = formatRupiah(data.harga_promo);
+        document.getElementById('edit_harga_promo').value = formatRupiahDariAngka(data.harga_promo);
         document.getElementById('edit_tgl_mulai').value = data.tgl_mulai;
         document.getElementById('edit_tgl_selesai').value = data.tgl_selesai;
         openModal('edit-promo');

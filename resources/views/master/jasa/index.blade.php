@@ -313,7 +313,7 @@
         form.action = `{{ url('/jasa') }}/${data.id_jasa}`;
         document.getElementById('edit_nama_jasa').value = data.nama_jasa;
         document.getElementById('edit_id_satuan').value = data.id_satuan || '';
-        document.getElementById('edit_harga_default').value = data.harga_default ? formatRupiah(data.harga_default) : '';
+        document.getElementById('edit_harga_default').value = data.harga_default ? formatRupiahDariAngka(data.harga_default) : '';
         document.getElementById('edit_keterangan').value = data.keterangan || '';
         toggleModal('modalEditJasa');
     }

@@ -761,9 +761,18 @@
             .catch(error => console.error('Error checking transactions:', error));
     }
 
-    // Jalankan pengecekan setiap 10 detik
-    @if(auth()->check())
-        setInterval(checkTransactions, 10000); 
+    // Jalankan pengecekan setiap 10 detik - HANYA untuk role yang benar-benar
+    // punya akses ke endpoint-nya sendiri. /kasir/check-pembayaran ada di
+    // bawah prefix "kasir" yang di config/menu_access.php dijaga id_menu 16
+    // (BUKAN 3/41 - itu gate untuk prefix "penjualan"/Kasir Utama Input
+    // Order, beda modul). Sebelumnya jalan untuk SEMUA user login tanpa
+    // syarat, jadi role tanpa id_menu 16 (termasuk Operator Desain yang
+    // cuma punya akses input-order) tetap polling endpoint ini tiap 10
+    // detik selamanya dan SELALU dapat 403 (dijaga CheckMenuAccess) -
+    // percuma membebani server & memenuhi console dengan error "Unexpected
+    // token '<'" (403 balikannya HTML, bukan JSON).
+    @if(auth()->check() && $cekAkses(16))
+        setInterval(checkTransactions, 10000);
     @endif
     </script>
     <script>

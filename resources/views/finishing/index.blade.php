@@ -227,7 +227,7 @@
         document.getElementById('edit_nama_finishing').value = data.nama_finishing;
         document.getElementById('edit_id_mesin').value = data.id_mesin || '';
         document.getElementById('edit_metode_hitung').value = data.metode_hitung || 'luas';
-        document.getElementById('edit_harga_default').value = formatRupiah(data.harga_default || 0);
+        document.getElementById('edit_harga_default').value = formatRupiahDariAngka(data.harga_default);
         document.getElementById('edit_keterangan').value = data.keterangan || '';
 
         openModal('edit-finishing');

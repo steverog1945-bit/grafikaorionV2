@@ -846,7 +846,7 @@
             // dipakai hitung subtotal (subtotal keburu dihitung duluan pakai
             // angka manual, baru fetch ini menimpa field-nya belakangan).
             if (finishingBiayaManualEdit || sel.value !== idFinishingSaatMulai) return;
-            document.getElementById('input_finishing_biaya').value = formatRupiah(data.harga ?? 0);
+            document.getElementById('input_finishing_biaya').value = formatRupiahDariAngka(data.harga ?? 0);
         } catch (e) {}
     }
 
@@ -1067,7 +1067,7 @@
             // sudah keburu diketik manual selama fetch berjalan.
             if (jasaHargaManualEdit) return;
             if (data.harga > 0) {
-                document.getElementById('input_jasa_harga').value = formatRupiah(data.harga);
+                document.getElementById('input_jasa_harga').value = formatRupiahDariAngka(data.harga);
             }
         } catch (e) {}
     }
