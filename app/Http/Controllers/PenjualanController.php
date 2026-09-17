@@ -442,8 +442,17 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         // SENGAJA hanya berlaku untuk nota BARU ini - tidak menyapu mundur
         // ke nota lain milik konsumen yang sama yang mungkin masih Belum
         // Bayar/DP (itu tetap harus diproses manual seperti biasa di Kasir).
+        // Deposit yang otomatis dipakai di sini TETAP "pembayaran" (insert
+        // pembayaran_riwayat + posting akuntansi) - sesi kas aktif bersifat
+        // eksklusif milik SATU orang (lihat catatan di
+        // KasirController::storeKas()/prosesBayar()), jadi user yang BUKAN
+        // pemilik sesi kas yang sedang aktif tidak boleh diam-diam mencatat
+        // pembayaran lewat jalur ini juga - order tetap boleh dibuat
+        // (Belum Bayar), cuma auto-pakai depositnya yang dilewati.
+        $bolehBayarDenganKasIni = $kasHariIni && (int) $kasHariIni->id_user === (int) Auth::id();
+
         $depositTerpakai = null;
-        if ($grand_total > 0) {
+        if ($grand_total > 0 && $bolehBayarDenganKasIni) {
             $saldoDeposit = KonsumenDepositController::saldoUntuk((int) $request->id_konsumen);
 
             if ($saldoDeposit > 0) {

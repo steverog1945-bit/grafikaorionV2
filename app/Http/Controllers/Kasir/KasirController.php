@@ -302,6 +302,15 @@ class KasirController extends Controller
                     throw new \Exception("Kasir belum dibuka! Silakan buka kas terlebih dahulu.");
                 }
 
+                // Kas aktif itu MILIK SATU ORANG SAJA (lihat catatan di
+                // storeKas()) - kalau yang sedang login BUKAN pemilik sesi
+                // kas yang aktif (mis. Administrator sementara Kasir sedang
+                // buka kas), pembayaran ditolak SAMA SEKALI, bukan diam-diam
+                // tercatat ke sesi kas orang lain seperti sebelumnya.
+                if ((int) $kas->id_user !== (int) auth()->id()) {
+                    throw new \Exception("Anda tidak dapat melakukan transaksi. Cek kembali saldo kas kasir Anda. Kas kasir akan terus berjalan sebelum terjadi closing kas kasir.");
+                }
+
                 $transaksiRow = DB::table('transaksi')->where('id_transaksi', $id_transaksi)->first();
                 $nomorNota = $transaksiRow->nomor_nota ?? null;
 
@@ -485,6 +494,12 @@ class KasirController extends Controller
                 throw new \Exception('Kasir belum dibuka! Silakan buka kas terlebih dahulu.');
             }
 
+            // Sama seperti prosesBayar() - kas manual (mutasi tunai di luar
+            // nota) cuma boleh dicatat oleh PEMILIK sesi kas yang aktif.
+            if ((int) $kas->id_user !== (int) auth()->id()) {
+                throw new \Exception('Anda tidak dapat melakukan transaksi. Cek kembali saldo kas kasir Anda. Kas kasir akan terus berjalan sebelum terjadi closing kas kasir.');
+            }
+
             $idKasManual = DB::table('kas_manual')->insertGetId([
                 'id_kas'      => $kas->id_kas,
                 'waktu'       => now(),
@@ -511,14 +526,32 @@ class KasirController extends Controller
     $request->validate(['jumlah' => 'required']);
     $nominal = str_replace('.', '', $request->jumlah);
 
-    $sudahBuka = DB::table('kas_harian')
+    // Open saldo bersifat EKSKLUSIF - hanya SATU sesi kas boleh aktif dalam
+    // satu waktu, SIAPA PUN rolenya (termasuk Administrator). Sebelumnya
+    // pengecekan ini hanya melihat kas milik user yang sedang login sendiri
+    // (where id_user = auth()->id()), jadi Administrator tetap bisa buka
+    // sesi kas KEDUA sementara punya Kasir masih terbuka - akibatnya dua
+    // sesi kas aktif bersamaan, dan prosesBayar()/storeKasManual() (yang
+    // mencari kas aktif tanpa peduli siapa pemiliknya) diam-diam mencatat
+    // pembayaran ke SALAH SATU sesi secara tidak menentu, mengacaukan
+    // pertanggungjawaban uang fisik per kasir. Sekarang dicek GLOBAL: kas
+    // aktif milik siapa pun (termasuk diri sendiri) memblokir open saldo
+    // baru sampai sesi itu di-closing.
+    $kasAktifSiapaPun = DB::table('kas_harian')
         ->where('tgl_kas', now()->format('Y-m-d'))
-        ->where('id_user', auth()->id())
         ->where('status_lock', 'open')
-        ->exists();
+        ->first();
 
-    if ($sudahBuka) {
-        return redirect()->route('kasir.kelola')->with('error', 'Anda sudah membuka sesi kas hari ini.');
+    if ($kasAktifSiapaPun) {
+        if ((int) $kasAktifSiapaPun->id_user === (int) auth()->id()) {
+            return redirect()->route('kasir.kelola')->with('error', 'Anda sudah membuka sesi kas hari ini.');
+        }
+        $namaKasirAktif = DB::table('users')
+            ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
+            ->where('users.id_user', $kasAktifSiapaPun->id_user)
+            ->select(DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama'))
+            ->value('nama') ?? 'pengguna lain';
+        return redirect()->route('kasir.kelola')->with('error', "Sesi kas hari ini sudah dibuka oleh {$namaKasirAktif}. Hanya satu sesi kas yang boleh aktif dalam satu waktu - tunggu sesi tersebut di-closing dulu sebelum membuka sesi baru.");
     }
 
     DB::table('kas_harian')->insert([
