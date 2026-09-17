@@ -37,25 +37,24 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <x-form.group label="Cari Pelanggan">
-                            <div class="flex gap-2">
-                                <div class="flex-1 min-w-0">
-                                    <select id="id_konsumen" name="id_konsumen" class="select2-konsumen">
-                                        <option value="">Cari Nama...</option>
-                                        @foreach($konsumen as $k)
-                                            <option value="{{ $k->id_konsumen }}"
-                                                    data-nama="{{ $k->nama_konsumen }}"
-                                                    data-telp="{{ $k->telepon }}"
-                                                    data-golongan="{{ $k->id_golongan }}">
-                                                {{ $k->nama_konsumen }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <x-button type="button" onclick="openModal('konsumen-baru')" size="icon" class="!w-12 !h-12 !rounded-xl shrink-0" title="Tambah Konsumen Baru">
-                                    <i class="fas fa-plus text-xs"></i>
-                                </x-button>
+                        <x-form.group>
+                            <div class="flex items-center justify-between mb-2 ml-2 mr-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cari Pelanggan</label>
+                                <button type="button" onclick="openModal('konsumen-baru')" class="text-indigo-600 hover:text-indigo-700 font-bold text-[11px] flex items-center gap-1">
+                                    <i class="fas fa-plus text-[9px]"></i> Baru
+                                </button>
                             </div>
+                            <select id="id_konsumen" name="id_konsumen" class="select2-konsumen">
+                                <option value="">Cari Nama...</option>
+                                @foreach($konsumen as $k)
+                                    <option value="{{ $k->id_konsumen }}"
+                                            data-nama="{{ $k->nama_konsumen }}"
+                                            data-telp="{{ $k->telepon }}"
+                                            data-golongan="{{ $k->id_golongan }}">
+                                        {{ $k->nama_konsumen }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </x-form.group>
 
                         <x-form.group label="Nomor Telepon">
