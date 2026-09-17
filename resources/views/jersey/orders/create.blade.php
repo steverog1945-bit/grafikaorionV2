@@ -21,12 +21,17 @@
     <form action="{{ route('jersey.orders.store') }}" method="POST" id="jersey-order-form">
         @csrf
 
-        {{-- Ringkasan (Diskon/Biaya/Deposit/Catatan + Total + tombol Simpan)
-             dipindah ke kolom kanan yang STICKY - dulu satu kolom penuh dari
-             atas ke bawah, jadi total & tombol Simpan cuma kelihatan setelah
-             scroll sampai paling bawah (baru kerasa parah kalau Barang-nya
-             banyak). Sekarang selalu kelihatan tanpa scroll tambahan, sama
-             seperti pola Keranjang Pesanan di Kasir Utama. --}}
+        {{-- Ringkasan (daftar barang + Diskon/Biaya/Deposit/Catatan + Total +
+             tombol Simpan) dipindah ke kolom kanan yang STICKY - dulu satu
+             kolom penuh dari atas ke bawah, jadi total & tombol Simpan cuma
+             kelihatan setelah scroll sampai paling bawah (baru kerasa parah
+             kalau Barang-nya banyak). Sekarang selalu kelihatan tanpa scroll
+             tambahan, sama seperti pola Keranjang Pesanan di Input Order.
+             Panel ini juga BUKAN cuma 3 field penyesuaian menggantung di
+             atas tombol Simpan (kerasa aneh) - sekarang benar-benar
+             "ringkasan": daftar barang yang sudah diisi (nama, qty,
+             thumbnail, subtotal - live update dari jalankanPreviewHarga())
+             tampil dulu di atas, baru penyesuaian & total di bawahnya. --}}
         <div class="flex flex-col lg:flex-row gap-5 items-start">
             <div class="w-full lg:w-[64%] space-y-4">
                 <x-card>
@@ -72,7 +77,18 @@
 
             <div class="w-full lg:w-[36%] lg:sticky lg:top-6 space-y-4">
                 <x-card>
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Ringkasan Order</h3>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Ringkasan Order</h3>
+
+                    {{-- Diisi/diperbarui oleh jalankanPreviewHarga() setiap kali
+                         qty/pilihan barang berubah - lihat ringkasanKosongHtml
+                         di bawah untuk pesan default sebelum ada barang sama
+                         sekali. --}}
+                    <div id="ringkasan-daftar-barang" class="divide-y divide-slate-50">
+                        <p class="text-xs text-slate-300 italic text-center py-5">Belum ada barang ditambahkan.</p>
+                    </div>
+
+                    <div class="border-t border-slate-100 my-4"></div>
+
                     <div class="space-y-4">
                         <x-form.group label="Diskon (Rp)">
                             <x-form.input type="text" inputmode="numeric" name="discount" value="{{ old('discount', 0) }}" class="format-ribuan" />
@@ -287,24 +303,73 @@
             return; // preview murni bantu-lihat, jangan sampai mengganggu alur form
         }
 
-        document.querySelectorAll('.jersey-line-card').forEach(card => {
+        const ringkasanEl = document.getElementById('ringkasan-daftar-barang');
+        ringkasanEl.innerHTML = '';
+
+        document.querySelectorAll('.jersey-line-card').forEach((card, idx) => {
             const m = (card.dataset.prefix || '').match(/\[(.+)\]/);
             const info = m ? data.lines?.[m[1]] : null;
             const nilaiEl = card.querySelector('.line-price-preview-value');
             const detailEl = card.querySelector('.line-price-preview-detail');
-            if (!nilaiEl) return;
-            if (!info) {
-                nilaiEl.textContent = 'Rp 0';
-                if (detailEl) detailEl.textContent = 'Isi qty & pilihan barang untuk lihat perkiraan harga.';
-                return;
+            if (nilaiEl) {
+                if (!info) {
+                    nilaiEl.textContent = 'Rp 0';
+                    if (detailEl) detailEl.textContent = 'Isi qty & pilihan barang untuk lihat perkiraan harga.';
+                } else {
+                    nilaiEl.textContent = 'Rp ' + Math.round(info.subtotal).toLocaleString('id-ID');
+                    const bagian = [`${info.qty} pcs × Rp ${Math.round(info.harga_satuan).toLocaleString('id-ID')}`];
+                    if (info.size_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.size_surcharge_total).toLocaleString('id-ID')} ukuran`);
+                    if (info.sleeve_collar_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.sleeve_collar_surcharge_total).toLocaleString('id-ID')} lengan/kerah`);
+                    if (!info.ada_tier) bagian.push('belum ada tier harga yang cocok');
+                    if (detailEl) detailEl.textContent = bagian.join(', ');
+                }
             }
-            nilaiEl.textContent = 'Rp ' + Math.round(info.subtotal).toLocaleString('id-ID');
-            const bagian = [`${info.qty} pcs × Rp ${Math.round(info.harga_satuan).toLocaleString('id-ID')}`];
-            if (info.size_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.size_surcharge_total).toLocaleString('id-ID')} ukuran`);
-            if (info.sleeve_collar_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.sleeve_collar_surcharge_total).toLocaleString('id-ID')} lengan/kerah`);
-            if (!info.ada_tier) bagian.push('belum ada tier harga yang cocok');
-            if (detailEl) detailEl.textContent = bagian.join(', ');
+
+            // Baris ringkasan di sidebar - dibangun via createElement/textContent
+            // (bukan innerHTML string) supaya nama barang yang diketik operator
+            // tidak pernah dianggap markup, walau isinya aneh-aneh.
+            const namaBarang = card.querySelector('input[name$="[nama_barang]"]')?.value.trim() || `Barang #${idx + 1}`;
+            const thumbSrc = card.querySelector('.thumbnail-preview:not(.hidden)')?.src || '';
+            const qty = info ? info.qty : 0;
+            const subtotal = info ? Math.round(info.subtotal) : 0;
+
+            const baris = document.createElement('div');
+            baris.className = 'flex items-center gap-2.5 py-2';
+
+            const thumbWrap = document.createElement('div');
+            thumbWrap.className = 'w-9 h-9 rounded-lg bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center';
+            if (thumbSrc) {
+                const img = document.createElement('img');
+                img.src = thumbSrc;
+                img.className = 'w-full h-full object-cover';
+                thumbWrap.appendChild(img);
+            } else {
+                thumbWrap.innerHTML = '<i class="fas fa-tshirt text-slate-300 text-xs"></i>';
+            }
+            baris.appendChild(thumbWrap);
+
+            const infoWrap = document.createElement('div');
+            infoWrap.className = 'flex-1 min-w-0';
+            const namaEl = document.createElement('p');
+            namaEl.className = 'text-xs font-bold text-slate-700 truncate';
+            namaEl.textContent = namaBarang;
+            const qtyEl = document.createElement('p');
+            qtyEl.className = 'text-[10px] text-slate-400';
+            qtyEl.textContent = `${qty} pcs`;
+            infoWrap.append(namaEl, qtyEl);
+            baris.appendChild(infoWrap);
+
+            const subtotalEl = document.createElement('span');
+            subtotalEl.className = 'text-xs font-bold text-slate-600 shrink-0';
+            subtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+            baris.appendChild(subtotalEl);
+
+            ringkasanEl.appendChild(baris);
         });
+
+        if (!ringkasanEl.children.length) {
+            ringkasanEl.innerHTML = '<p class="text-xs text-slate-300 italic text-center py-5">Belum ada barang ditambahkan.</p>';
+        }
 
         const totalEl = document.getElementById('preview-total-order');
         if (totalEl) totalEl.textContent = 'Rp ' + Math.round(data.total_order || 0).toLocaleString('id-ID');
