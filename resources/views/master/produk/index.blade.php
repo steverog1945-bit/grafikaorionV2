@@ -161,7 +161,7 @@
                  ke bawah sebelum masuk ke komposisi BOM, mengikuti alur pada
                  referensi tampilan yang diberikan). Panel & field dipadatkan
                  (padding/radius/jarak antar-field diturunkan) mengikuti gaya
-                 input Kasir Utama - bukan lagi kartu besar berjarak lega. --}}
+                 field di halaman Input Order - bukan lagi kartu besar berjarak lega. --}}
             <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3 mb-5">
                 <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
                     <i class="fas fa-info-circle"></i> Info Produk

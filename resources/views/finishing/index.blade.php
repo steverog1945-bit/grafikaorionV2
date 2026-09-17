@@ -88,7 +88,7 @@
     @foreach($data as $d)
     <x-modal id="harga-finishing-{{ $d->id_finishing }}" title="Harga Bertingkat: {{ $d->nama_finishing }}" maxWidth="lg">
         <div class="mb-4 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs text-slate-500">
-            Harga Default (<b>Rp {{ number_format($d->harga_default, 0, ',', '.') }}</b>) dipakai kalau qty tidak cocok tier manapun di bawah, atau belum ada tier sama sekali. Kasir tetap bisa menimpa manual di Kasir Utama - ini hanya acuan/starting point.
+            Harga Default (<b>Rp {{ number_format($d->harga_default, 0, ',', '.') }}</b>) dipakai kalau qty tidak cocok tier manapun di bawah, atau belum ada tier sama sekali. Kasir tetap bisa menimpa manual di Input Order - ini hanya acuan/starting point.
         </div>
 
         @php
@@ -169,7 +169,7 @@
                 </x-form.group>
             </div>
 
-            <x-form.group label="Kategori Berlaku" name="id_kategori" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Kasir Utama.">
+            <x-form.group label="Kategori Berlaku" name="id_kategori" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Input Order.">
                 <x-form.select name="id_kategori">
                     <option value="">-- Semua Kategori --</option>
                     @foreach($kategori as $kat)
@@ -218,7 +218,7 @@
                 </x-form.group>
             </div>
 
-            <x-form.group label="Kategori Berlaku" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Kasir Utama.">
+            <x-form.group label="Kategori Berlaku" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Input Order.">
                 <x-form.select name="id_kategori" id="edit_id_kategori">
                     <option value="">-- Semua Kategori --</option>
                     @foreach($kategori as $kat)

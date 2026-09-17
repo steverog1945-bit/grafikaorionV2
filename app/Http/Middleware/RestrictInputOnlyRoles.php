@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Beberapa role (mis. Operator Desain) sengaja dibatasi HANYA untuk input
- * order baru (Kasir Utama, Order Jersey), bukan mengubah/menghapus data
+ * order baru (Input Order, Order Jersey), bukan mengubah/menghapus data
  * lama. config/menu_access.php TIDAK BISA memisahkan ini sendirian karena
  * route seperti /penjualan/{id}/batalkan-nota atau /jersey/{order}
  * (update/destroy/edit-lines) berbagi prefix yang sama persis dengan route

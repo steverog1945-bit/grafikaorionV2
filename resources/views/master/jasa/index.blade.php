@@ -242,7 +242,7 @@
         @else
             Belum ada Harga Dasar diatur - tanpa tier yang cocok, kasir tetap input manual seperti biasa.
         @endif
-        Kasir tetap bisa menimpa manual di Kasir Utama - ini hanya acuan/starting point.
+        Kasir tetap bisa menimpa manual di Input Order - ini hanya acuan/starting point.
     </div>
 
     @php $tiersJ = $hargaTiers[$j->id_jasa] ?? collect(); @endphp

@@ -141,7 +141,7 @@
          bawah). Sama dengan lebar modal Produk & BOM untuk konsistensi. --}}
     <x-modal id="harga-produk-{{ $p->id_produk }}" title="Kelola Harga: {{ $p->nama_produk }}" maxWidth="6xl">
         <p class="text-xs text-slate-400 mb-5 -mt-2">
-            Rentang dalam <b class="text-slate-500">{{ $satuanRentang }}</b>{{ $p->metode_hitung === 'ukuran' ? ' (luas = panjang × lebar, boleh pecahan - mis. 0,09 m²)' : '' }}. Kosongkan <b class="text-slate-500">Max</b> untuk rentang tak terbatas. Harga dipilih otomatis di Kasir Utama sesuai golongan &amp; {{ $satuanRentang }} order.
+            Rentang dalam <b class="text-slate-500">{{ $satuanRentang }}</b>{{ $p->metode_hitung === 'ukuran' ? ' (luas = panjang × lebar, boleh pecahan - mis. 0,09 m²)' : '' }}. Kosongkan <b class="text-slate-500">Max</b> untuk rentang tak terbatas. Harga dipilih otomatis di Input Order sesuai golongan &amp; {{ $satuanRentang }} order.
         </p>
 
         {{-- TAB GOLONGAN --}}

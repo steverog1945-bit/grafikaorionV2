@@ -178,13 +178,13 @@
     }
 
     // "Proses Koreksi" MEMBATALKAN nota lama (stok & jurnal dikembalikan)
-    // dan langsung mengarah ke Kasir Utama untuk membuat nota pengganti -
+    // dan langsung mengarah ke Input Order untuk membuat nota pengganti -
     // aksi ini tidak bisa diundo lewat tombol ini sendiri (pembatalannya
     // permanen, sama seperti batalkanNota()), jadi wajib konfirmasi dulu.
     function confirmApplyEdit(idTransaksi, nomorNota) {
         Swal.fire({
             title: 'Proses koreksi nota ini?',
-            html: `Nota <b>${nomorNota}</b> akan DIBATALKAN (stok & jurnal otomatis dikembalikan), lalu Anda diarahkan ke Kasir Utama untuk membuat nota pengganti dengan data yang benar.<br><small class="text-slate-400">Nota lama tetap tersimpan di riwayat untuk referensi/audit.</small>`,
+            html: `Nota <b>${nomorNota}</b> akan DIBATALKAN (stok & jurnal otomatis dikembalikan), lalu Anda diarahkan ke Input Order untuk membuat nota pengganti dengan data yang benar.<br><small class="text-slate-400">Nota lama tetap tersimpan di riwayat untuk referensi/audit.</small>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#059669',

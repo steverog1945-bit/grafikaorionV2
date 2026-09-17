@@ -6,10 +6,10 @@
     <div class="max-w-[1600px] mx-auto">
 
         <x-page-header>
-            <x-slot:title>POINT OF <span class="text-indigo-600">SALE</span></x-slot:title>
+            <x-slot:title>INPUT <span class="text-indigo-600">ORDER</span></x-slot:title>
             <x-slot:subtitle>
                 <span class="flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                Sistem Kasir Percetakan &bull; {{ date('d M Y') }}
+                Order Cetak Reguler &bull; {{ date('d M Y') }}
             </x-slot:subtitle>
             <x-slot:actions>
                 <x-button href="{{ route('penjualan.riwayat') }}" variant="outline">

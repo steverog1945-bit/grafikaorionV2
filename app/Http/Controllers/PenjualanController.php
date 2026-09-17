@@ -871,7 +871,7 @@ public function rejectEditNota(Request $request, $id)
  * tidak pernah menghapus/mengubah baris jurnal asli). Nota lama ditandai
  * Dibatalkan (riwayat & jejak audit tetap utuh, bisa dilihat lewat
  * alasan_batal_nota yang mengarah ke permintaan edit ini) - nota
- * PENGGANTI dibuat manual oleh kasir lewat Kasir Utama seperti biasa
+ * PENGGANTI dibuat manual oleh kasir lewat Input Order seperti biasa
  * (bukan auto-generate) supaya harga/stok nota baru selalu dihitung ulang
  * dari data TERKINI (Price List, stok bahan saat ini), bukan menyalin
  * mentah angka lama yang mungkin sudah usang atau memang salah.

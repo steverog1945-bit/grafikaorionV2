@@ -2,7 +2,7 @@
     // Kompres gambar lewat canvas SEBELUM diunggah - turunkan resolusi lalu
     // re-encode sebagai JPEG, dicoba bertahap (dimensi & kualitas makin
     // turun) sampai lolos target targetBytes. Dipakai di SEMUA tempat upload
-    // gambar (thumbnail Kasir Utama, thumbnail Order Jersey, bukti
+    // gambar (thumbnail Input Order, thumbnail Order Jersey, bukti
     // pembayaran) supaya satu-satunya logika kompresi ada di sini - gambar
     // ASLI beresolusi penuh TIDAK PERNAH ikut terkirim ke server ataupun
     // tersimpan di disk manapun (termasuk di komputer development ini),
