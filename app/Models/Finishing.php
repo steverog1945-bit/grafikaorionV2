@@ -23,4 +23,9 @@ class Finishing extends Model
     {
         return $this->belongsTo(Mesin::class, 'id_mesin');
     }
+
+    public function kategori()
+    {
+        return $this->belongsTo(Kategori::class, 'id_kategori');
+    }
 }

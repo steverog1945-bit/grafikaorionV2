@@ -11,8 +11,9 @@ class FinishingController extends Controller
 
     public function index()
     {
-        $data = Finishing::with('mesin')->orderBy('nama_finishing')->get();
+        $data = Finishing::with(['mesin', 'kategori'])->orderBy('nama_finishing')->get();
         $mesin = DB::table('mesin')->orderBy('nama_mesin')->get();
+        $kategori = DB::table('kategori')->orderBy('nama_kategori')->get();
 
         $hargaTiers = DB::table('finishing_harga')
             ->whereIn('id_finishing', $data->pluck('id_finishing'))
@@ -20,7 +21,7 @@ class FinishingController extends Controller
             ->get()
             ->groupBy('id_finishing');
 
-        return view('finishing.index', compact('data', 'mesin', 'hargaTiers'));
+        return view('finishing.index', compact('data', 'mesin', 'kategori', 'hargaTiers'));
     }
 
     public function store(Request $request)
@@ -29,6 +30,7 @@ class FinishingController extends Controller
             'nama_finishing' => 'required|string|max:100',
             'harga_default'  => 'required|numeric|min:0',
             'id_mesin'       => 'nullable|exists:mesin,id_mesin',
+            'id_kategori'    => 'nullable|exists:kategori,id_kategori',
             'metode_hitung'  => 'required|in:luas,quantity',
             'keterangan'     => 'nullable|string',
         ]);
@@ -44,6 +46,7 @@ class FinishingController extends Controller
             'nama_finishing' => 'required|string|max:100',
             'harga_default'  => 'required|numeric|min:0',
             'id_mesin'       => 'nullable|exists:mesin,id_mesin',
+            'id_kategori'    => 'nullable|exists:kategori,id_kategori',
             'metode_hitung'  => 'required|in:luas,quantity',
             'keterangan'     => 'nullable|string',
         ]);

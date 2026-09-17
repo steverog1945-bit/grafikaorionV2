@@ -36,8 +36,17 @@
                         <h3 class="text-lg font-bold text-slate-800">Data Pelanggan</h3>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <x-form.group>
+                    {{-- md:grid-cols-4 (bukan grid-cols-3 rata) - Cari Pelanggan ambil
+                         2 kolom, Nomor Telepon & Tipe Harga masing-masing 1. Sengaja
+                         BUKAN 3-kolom rata: breakpoint "md" bereaksi ke lebar VIEWPORT
+                         penuh, bukan lebar kartu ini - begitu sidebar + panel Keranjang
+                         di kanan aktif (viewport sekitar 1000-1100px), kartu ini
+                         kenyataannya cuma ~494px, dan 3-kolom rata bikin select2
+                         Cari Pelanggan mengecil drastis (nama panjang terpotong jelek).
+                         Nomor Telepon & Tipe Harga isinya pendek (nomor HP, label
+                         golongan) jadi aman diberi porsi lebih kecil. --}}
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <x-form.group class="md:col-span-2">
                             <div class="flex items-center justify-between mb-2 ml-2 mr-1">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cari Pelanggan</label>
                                 <button type="button" onclick="openModal('konsumen-baru')" class="text-indigo-600 hover:text-indigo-700 font-bold text-[11px] flex items-center gap-1">
@@ -203,7 +212,7 @@
                                 <select id="select_finishing" onchange="onFinishingChange()" class="w-32 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none">
                                     <option value="">-- Tanpa Finishing --</option>
                                     @foreach($finishing as $f)
-                                        <option value="{{ $f->id_finishing }}" data-harga="{{ $f->harga_default ?? 0 }}" data-metode="{{ $f->metode_hitung }}">{{ $f->nama_finishing }}</option>
+                                        <option value="{{ $f->id_finishing }}" data-harga="{{ $f->harga_default ?? 0 }}" data-metode="{{ $f->metode_hitung }}" data-kategori="{{ $f->id_kategori ?? '' }}">{{ $f->nama_finishing }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -726,11 +735,38 @@
         resetInputProduk();
     }
 
+    // Finishing hanya relevan untuk kategori bahan/produk tertentu (mis.
+    // Mata Ayam untuk banner OUTDOOR, tidak relevan untuk stiker A3) -
+    // finishing.id_kategori (kosong = berlaku untuk SEMUA kategori, demi
+    // kompatibel mundur dengan finishing lama yang belum diisi kategorinya)
+    // dicocokkan ke data-kategori produk yang sedang dipilih (sumber sama
+    // dengan filter "Kategori" di atas). Opsi yang tidak relevan disembunyikan
+    // (bukan dihapus) supaya value-nya tetap ada kalau nanti kategori produk
+    // diganti lagi. Kalau finishing yang SEDANG terpilih jadi tidak relevan,
+    // reset ke "Tanpa Finishing" supaya tidak ada pilihan tersembunyi yang
+    // diam-diam masih aktif.
+    function filterFinishingByKategori(idKategoriProduk) {
+        const sel = document.getElementById('select_finishing');
+        let terpilihJadiTidakRelevan = false;
+        Array.from(sel.options).forEach(opt => {
+            if (!opt.value) return; // "-- Tanpa Finishing --" selalu tampil
+            const idKategoriFinishing = opt.dataset.kategori;
+            const relevan = !idKategoriFinishing || !idKategoriProduk || idKategoriFinishing == idKategoriProduk;
+            opt.hidden = !relevan;
+            if (!relevan && opt.selected) terpilihJadiTidakRelevan = true;
+        });
+        if (terpilihJadiTidakRelevan) {
+            sel.value = '';
+            onFinishingChange();
+        }
+    }
+
     async function getDetailProduk() {
         const id = $('#select_produk').val();
         if (!id) { resetInputProduk(); return; }
         const selectedOption = $('#select_produk').find(':selected');
         const metode = selectedOption.data('metode');
+        filterFinishingByKategori(selectedOption.data('kategori'));
         $('#wrapper_ukuran').toggleClass('hidden', metode !== 'ukuran');
         $('#note_ukuran').toggleClass('hidden', metode !== 'ukuran');
         $('#wrapper_qty').toggleClass('hidden', metode !== 'quantity');
@@ -1283,6 +1319,7 @@
         document.getElementById('input_desain').value = "0";
         document.getElementById('input_cetak').value = "0";
         document.getElementById('select_finishing').value = "";
+        filterFinishingByKategori(null);
         document.getElementById('input_finishing_biaya').value = "0";
         finishingBiayaManualEdit = false;
         cetakManualEdit = false;

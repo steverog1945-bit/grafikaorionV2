@@ -18,6 +18,7 @@
             <tr>
                 <th class="px-6 py-5 text-left">Nama Finishing</th>
                 <th class="px-4 py-5 text-left">Mesin/Divisi</th>
+                <th class="px-4 py-5 text-left">Kategori Berlaku</th>
                 <th class="px-4 py-5 text-center">Metode Hitung</th>
                 <th class="px-4 py-5 text-right">Harga Default</th>
                 <th class="px-8 py-5 text-right">Aksi</th>
@@ -36,6 +37,13 @@
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] font-semibold text-slate-600">{{ $d->mesin->nama_mesin ?? '-' }}</span>
+                </td>
+                <td class="px-4 py-5">
+                    @if($d->kategori)
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase">{{ $d->kategori->nama_kategori }}</span>
+                    @else
+                        <span class="text-[11px] text-slate-300 italic">Semua Kategori</span>
+                    @endif
                 </td>
                 <td class="px-4 py-5 text-center">
                     <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
@@ -65,7 +73,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="5">
+                <td colspan="6">
                     <x-empty-state title="Belum ada jenis finishing" description="Tambahkan jenis finishing seperti Laminasi, Kisscut, atau Jahit Banner." />
                 </td>
             </tr>
@@ -161,6 +169,15 @@
                 </x-form.group>
             </div>
 
+            <x-form.group label="Kategori Berlaku" name="id_kategori" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Kasir Utama.">
+                <x-form.select name="id_kategori">
+                    <option value="">-- Semua Kategori --</option>
+                    @foreach($kategori as $kat)
+                        <option value="{{ $kat->id_kategori }}">{{ $kat->nama_kategori }}</option>
+                    @endforeach
+                </x-form.select>
+            </x-form.group>
+
             <x-form.group label="Harga Default (Rp)" name="harga_default" required>
                 <x-form.input type="text" inputmode="numeric" name="harga_default" required class="format-ribuan" />
             </x-form.group>
@@ -201,6 +218,15 @@
                 </x-form.group>
             </div>
 
+            <x-form.group label="Kategori Berlaku" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Kasir Utama.">
+                <x-form.select name="id_kategori" id="edit_id_kategori">
+                    <option value="">-- Semua Kategori --</option>
+                    @foreach($kategori as $kat)
+                        <option value="{{ $kat->id_kategori }}">{{ $kat->nama_kategori }}</option>
+                    @endforeach
+                </x-form.select>
+            </x-form.group>
+
             <x-form.group label="Harga Default (Rp)">
                 <x-form.input type="text" inputmode="numeric" name="harga_default" id="edit_harga_default" required class="format-ribuan" />
             </x-form.group>
@@ -226,6 +252,7 @@
 
         document.getElementById('edit_nama_finishing').value = data.nama_finishing;
         document.getElementById('edit_id_mesin').value = data.id_mesin || '';
+        document.getElementById('edit_id_kategori').value = data.id_kategori || '';
         document.getElementById('edit_metode_hitung').value = data.metode_hitung || 'luas';
         document.getElementById('edit_harga_default').value = formatRupiahDariAngka(data.harga_default);
         document.getElementById('edit_keterangan').value = data.keterangan || '';
