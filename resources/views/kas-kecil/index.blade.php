@@ -5,25 +5,27 @@
 <style>
     @media print {
         aside, .no-print { display: none !important; }
-        main { margin-left: 0 !important; padding: 0 !important; }
+        main { margin-left: 0 !important; padding: 28px 32px !important; }
         body { background: #fff !important; }
     }
 </style>
 @include('partials.print-report-header', ['docTitle' => 'Kas Kecil'])
 
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 print:pt-0 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Kas Kecil">
-        <x-slot:subtitle>
-            Pencatatan belanja kebutuhan non-bahan-utama bernilai kecil (ATK, konsumsi, ongkos kirim, dst) - terpisah dari Kas Utama, Belanja Bahan, &amp; Keuangan Jersey
-        </x-slot:subtitle>
-        <x-slot:actions>
-            <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
-                <i class="fas fa-print"></i>
-                Cetak
-            </x-button>
-        </x-slot:actions>
-    </x-page-header>
+    <div class="print:hidden">
+        <x-page-header title="Kas Kecil">
+            <x-slot:subtitle>
+                Pencatatan belanja kebutuhan non-bahan-utama bernilai kecil (ATK, konsumsi, ongkos kirim, dst) - terpisah dari Kas Utama, Belanja Bahan, &amp; Keuangan Jersey
+            </x-slot:subtitle>
+            <x-slot:actions>
+                <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
+                    <i class="fas fa-print"></i>
+                    Cetak
+                </x-button>
+            </x-slot:actions>
+        </x-page-header>
+    </div>
 
     @if (session('success'))
         <div class="bg-emerald-50 text-emerald-700 p-4 rounded-2xl mb-6 font-semibold no-print">{{ session('success') }}</div>
@@ -101,8 +103,9 @@
         </form>
     </x-card>
 
-    {{-- RESUME --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    {{-- RESUME - kartu berwarna di layar (tidak diubah), tabel standar
+         polos khusus cetak. --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Catatan</p>
             <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($data->total(), 0, ',', '.') }}</h3>
@@ -112,7 +115,14 @@
             <h3 class="text-2xl font-bold text-rose-500 mt-1">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
         </div>
     </div>
+    <div class="hidden print:block">
+        <x-laporan.resume-table title="Resume" :rows="[
+            'Jumlah Catatan' => number_format($data->total(), 0, ',', '.'),
+            'Total Pengeluaran (sesuai filter)' => 'Rp ' . number_format($totalPengeluaran, 0, ',', '.'),
+        ]" />
+    </div>
 
+    <div class="print:hidden">
     <x-table>
         <thead>
             <tr>
@@ -158,6 +168,33 @@
             @endforelse
         </tbody>
     </x-table>
+    </div>
+
+    {{-- Versi cetak: tabel polos sederhana, gaya visual sama dengan
+         laporan lain (font 10/11px konsisten, tanpa padding lega UI). --}}
+    <div class="hidden print:block">
+        <x-laporan.print-table title="Detail Kas Kecil" :headers="['Tanggal', 'Kategori', 'Keterangan', 'Dicatat Oleh', 'Nominal']" :align="['left', 'left', 'left', 'left', 'right']">
+            @forelse($data as $k)
+            <tr>
+                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d/m/Y') }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $k->kategori }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $k->keterangan }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $k->user->username ?? '-' }}</td>
+                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($k->nominal, 0, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="5">Belum ada catatan kas kecil.</td>
+            </tr>
+            @endforelse
+            @if($data->isNotEmpty())
+            <tr class="bg-slate-50 border-t border-slate-200">
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="4">Total Pengeluaran (halaman ini)</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($data->sum('nominal'), 0, ',', '.') }}</td>
+            </tr>
+            @endif
+        </x-laporan.print-table>
+    </div>
 
     <div class="no-print">
         <x-table.pagination :paginator="$data" />
