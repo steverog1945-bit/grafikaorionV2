@@ -31,7 +31,7 @@ class FinishingController extends Controller
             'harga_default'  => 'required|numeric|min:0',
             'id_mesin'       => 'nullable|exists:mesin,id_mesin',
             'id_kategori'    => 'nullable|exists:kategori,id_kategori',
-            'metode_hitung'  => 'required|in:luas,quantity',
+            'metode_hitung'  => 'required|in:luas,keliling,quantity',
             'keterangan'     => 'nullable|string',
         ]);
 
@@ -47,7 +47,7 @@ class FinishingController extends Controller
             'harga_default'  => 'required|numeric|min:0',
             'id_mesin'       => 'nullable|exists:mesin,id_mesin',
             'id_kategori'    => 'nullable|exists:kategori,id_kategori',
-            'metode_hitung'  => 'required|in:luas,quantity',
+            'metode_hitung'  => 'required|in:luas,keliling,quantity',
             'keterangan'     => 'nullable|string',
         ]);
 

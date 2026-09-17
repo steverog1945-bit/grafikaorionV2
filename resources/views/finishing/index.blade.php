@@ -47,7 +47,7 @@
                 </td>
                 <td class="px-4 py-5 text-center">
                     <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
-                        {{ $d->metode_hitung === 'luas' ? 'Luas (m²)' : 'Satuan (Pcs)' }}
+                        {{ match($d->metode_hitung) { 'luas' => 'Luas (m²)', 'keliling' => 'Keliling (m)', default => 'Satuan (Pcs)' } }}
                     </span>
                 </td>
                 <td class="px-4 py-5 text-right">
@@ -94,10 +94,11 @@
         @php
             $tiers = $hargaTiers[$d->id_finishing] ?? collect();
             // Satuan rentang eksplisit ikut metode_hitung finishing ITU SENDIRI
-            // ('luas' vs 'quantity' - lihat perbaikan qty acuan finishing sesi
-            // sebelumnya), sama seperti Price List produk - luas m² boleh pecahan.
-            $satuanRentangFinishing = $d->metode_hitung === 'luas' ? 'm²' : 'Pcs';
-            $stepRentangFinishing = $d->metode_hitung === 'luas' ? '0.01' : '1';
+            // ('luas'/'keliling'/'quantity' - lihat perbaikan qty acuan
+            // finishing sesi sebelumnya), sama seperti Price List produk -
+            // luas m² & keliling meter boleh pecahan, Pcs wajib bulat.
+            $satuanRentangFinishing = match($d->metode_hitung) { 'luas' => 'm²', 'keliling' => 'm', default => 'Pcs' };
+            $stepRentangFinishing = $d->metode_hitung === 'quantity' ? '1' : '0.01';
         @endphp
 
         <div id="tier-container-finishing-{{ $d->id_finishing }}" class="space-y-2 mb-4" data-satuan-rentang="{{ $satuanRentangFinishing }}">
@@ -164,6 +165,7 @@
                 <x-form.group label="Metode Hitung" name="metode_hitung" required>
                     <x-form.select name="metode_hitung" required>
                         <option value="luas">Luas (m²)</option>
+                        <option value="keliling">Keliling (m) - mis. jahit tepi</option>
                         <option value="quantity">Satuan (Pcs)</option>
                     </x-form.select>
                 </x-form.group>
@@ -213,6 +215,7 @@
                 <x-form.group label="Metode Hitung">
                     <x-form.select name="metode_hitung" id="edit_metode_hitung" required>
                         <option value="luas">Luas (m²)</option>
+                        <option value="keliling">Keliling (m) - mis. jahit tepi</option>
                         <option value="quantity">Satuan (Pcs)</option>
                     </x-form.select>
                 </x-form.group>

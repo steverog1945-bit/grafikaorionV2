@@ -242,6 +242,19 @@
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Cetak</p>
                                 <input type="text" inputmode="numeric" id="input_cetak" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
                             </div>
+                            {{-- Jumlah Pcs Finishing HANYA untuk finishing metode 'quantity'
+                                 (mis. Pasang Mata Ayam, Pemasangan Tali) - jumlah pcs finishing
+                                 yang dibutuhkan TIDAK SELALU sama dengan qty cetak produknya
+                                 (mis. 1 banner butuh 4 mata ayam, qty 2 banner = 8 mata ayam,
+                                 bukan otomatis 2) - defaultnya diisi tebakan qty produk, tapi
+                                 kasir wajib cek/sesuaikan sendiri. Finishing metode 'luas' &
+                                 'keliling' TIDAK butuh field ini - dihitung otomatis dari
+                                 Panjang/Lebar & Qty produk yang sudah diisi di atas (lihat
+                                 refreshFinishingBiayaSuggestion()). --}}
+                            <div id="wrapper_qty_finishing" class="text-right hidden">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Jumlah Pcs Finishing</p>
+                                <input type="number" min="1" id="input_qty_finishing" oninput="onQtyFinishingManualChange()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="1">
+                            </div>
                             {{-- Biaya Finishing hanya relevan begitu jenis Finishing
                                  dipilih di dropdown sebelahnya - disembunyikan selama
                                  belum ada finishing dipilih (lihat onFinishingChange()),
@@ -768,14 +781,27 @@
         // ada dua tempat terpisah yang bisa saling bertentangan.
         const statusFinishing = document.getElementById('input_status_finishing');
         const wrapperBiayaFinishing = document.getElementById('wrapper_biaya_finishing');
+        const wrapperQtyFinishing = document.getElementById('wrapper_qty_finishing');
+        const metodeFinishing = sel.selectedOptions[0]?.dataset.metode;
         if (sel.value) {
             statusFinishing.disabled = false;
             wrapperBiayaFinishing.classList.remove('hidden');
+            // Field Jumlah Pcs cuma relevan untuk metode 'quantity' - metode
+            // 'luas'/'keliling' dihitung otomatis dari Panjang/Lebar/Qty
+            // produk, tidak butuh input terpisah.
+            wrapperQtyFinishing.classList.toggle('hidden', metodeFinishing !== 'quantity');
+            if (metodeFinishing === 'quantity') {
+                const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 1;
+                const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 1;
+                document.getElementById('input_qty_finishing').value = (currentProduk?.metode_hitung === 'ukuran') ? qU : qB;
+                qtyFinishingManualEdit = false;
+            }
         } else {
             statusFinishing.disabled = true;
             statusFinishing.value = 'Standar';
             document.getElementById('input_finishing_biaya').value = "0";
             wrapperBiayaFinishing.classList.add('hidden');
+            wrapperQtyFinishing.classList.add('hidden');
         }
 
         // Reset lalu delegasikan ke hitungSubtotal() (yang sudah meng-await
@@ -787,34 +813,64 @@
         await hitungSubtotal();
     }
 
-    // Qty acuan tier finishing dipakai sama seperti qty produk (area untuk
-    // metode 'ukuran', qty langsung untuk 'quantity') - finishing dianggap
-    // mengikuti volume cetak yang sama dengan produk induknya.
+    // Jumlah Pcs Finishing diedit manual oleh kasir (mis. 1 banner butuh 4
+    // mata ayam) - begitu disentuh, berhenti auto-ikut qty produk supaya
+    // angka yang sengaja disesuaikan tidak ditimpa balik.
+    let qtyFinishingManualEdit = false;
+    document.getElementById('input_qty_finishing').addEventListener('input', () => {
+        qtyFinishingManualEdit = true;
+    });
+    function onQtyFinishingManualChange() {
+        qtyFinishingManualEdit = true;
+        finishingBiayaManualEdit = false; // qty berubah -> biaya perlu dihitung ulang otomatis
+        hitungSubtotal();
+    }
+
+    // Qty acuan tier finishing & pengali biayanya BEDA per metode_hitung
+    // finishing (kolom finishing.metode_hitung - milik finishing itu
+    // sendiri, BUKAN otomatis ikut metode_hitung produk induknya):
+    // - 'luas'   : luas total = (P x L / 10000) x qty produk, m² - diambil
+    //              otomatis dari input Panjang/Lebar/Qty produk di atas.
+    // - 'keliling': keliling total = (2 x (P+L) / 100) x qty produk, meter -
+    //              untuk finishing jahit/border yang dikerjakan sekeliling
+    //              tepi produk (rumus sama dengan auto-override BOM bahan
+    //              "jahit"). Juga otomatis dari input di atas.
+    // - 'quantity': jumlah pcs finishing dari field "Jumlah Pcs Finishing"
+    //              yang bisa disesuaikan manual (TIDAK selalu sama dengan
+    //              qty cetak produknya).
+    // Tier finishing_harga (& harga_default fallback) adalah HARGA PER
+    // SATUAN (per m²/per meter keliling/per pcs) - dikalikan qty di atas
+    // untuk dapat total biaya, PERSIS pola yang sama seperti harga produk
+    // (lihat hitungSubtotal(): hargaJual x qtyCari). Sebelum ini finishing
+    // TIDAK PERNAH dikalikan qty (field Biaya Finishing langsung diisi
+    // angka tier mentah), jadi order finishing dengan qty besar bisa
+    // under-charge signifikan.
     async function refreshFinishingBiayaSuggestion() {
         const sel = document.getElementById('select_finishing');
         if (!sel.value || finishingBiayaManualEdit || !currentProduk) return;
         const idFinishingSaatMulai = sel.value;
 
-        // Satuan hitung finishing dipakai untuk cari qty acuan tier
-        // finishing_harga adalah milik FINISHING ITU SENDIRI (kolom
-        // finishing.metode_hitung, 'luas' vs 'quantity') - BUKAN otomatis
-        // ikut metode_hitung produk induknya seperti sebelumnya. Sebelum ini,
-        // finishing quantity (mis. "Pasang Mata Ayam" per pcs) yang dipasang
-        // ke produk metode 'ukuran' (mis. Banner) salah dihitung pakai luas
-        // m², padahal seharusnya tetap per pcs terpasang - dan sebaliknya.
         const p = parseFloat(document.getElementById('input_p').value) || 0;
         const l = parseFloat(document.getElementById('input_l').value) || 0;
         const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
         const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
         const metodeFinishing = sel.selectedOptions[0]?.dataset.metode;
         const pcsProduk = (currentProduk.metode_hitung === 'ukuran') ? qU : qB;
-        const qtyCari = (metodeFinishing === 'luas')
-            ? ((currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : pcsProduk)
-            : pcsProduk;
-        if (qtyCari <= 0) return;
+
+        let qtyFinishing;
+        if (metodeFinishing === 'luas') {
+            qtyFinishing = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : pcsProduk;
+        } else if (metodeFinishing === 'keliling') {
+            qtyFinishing = (currentProduk.metode_hitung === 'ukuran') ? (2 * (p + l) / 100) * qU : pcsProduk;
+        } else {
+            // 'quantity' - dari field Jumlah Pcs Finishing (default = qty
+            // produk selama belum disentuh manual, lihat onFinishingChange()).
+            qtyFinishing = parseFloat(document.getElementById('input_qty_finishing').value) || 0;
+        }
+        if (qtyFinishing <= 0) return;
 
         try {
-            const res = await fetch(`{{ url('/api/penjualan/get-harga-finishing') }}/${sel.value}/${qtyCari}`);
+            const res = await fetch(`{{ url('/api/penjualan/get-harga-finishing') }}/${sel.value}/${qtyFinishing}`);
             const data = await res.json();
             // Cek ulang SETELAH await, bukan cuma sebelum fetch - selama fetch
             // berjalan (network delay), kasir bisa saja sudah keburu mengetik
@@ -826,7 +882,8 @@
             // dipakai hitung subtotal (subtotal keburu dihitung duluan pakai
             // angka manual, baru fetch ini menimpa field-nya belakangan).
             if (finishingBiayaManualEdit || sel.value !== idFinishingSaatMulai) return;
-            document.getElementById('input_finishing_biaya').value = formatRupiahDariAngka(data.harga ?? 0);
+            const hargaSatuanFinishing = parseFloat(data.harga) || 0;
+            document.getElementById('input_finishing_biaya').value = formatRupiahDariAngka(hargaSatuanFinishing * qtyFinishing);
         } catch (e) {}
     }
 
@@ -838,6 +895,14 @@
         const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
         const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
         const biayaDesain = cleanRupiah(document.getElementById('input_desain').value);
+
+        // Jumlah Pcs Finishing ikut mengikuti qty produk SELAMA belum
+        // disentuh manual (qtyFinishingManualEdit) - pola sama seperti Biaya
+        // Cetak/Biaya Finishing yang auto-mengikuti sampai kasir mengetik
+        // sendiri.
+        if (!qtyFinishingManualEdit && !document.getElementById('wrapper_qty_finishing').classList.contains('hidden')) {
+            document.getElementById('input_qty_finishing').value = (currentProduk.metode_hitung === 'ukuran') ? qU : qB;
+        }
 
         let qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
         if (qtyCari <= 0) { updateDisplay(0, 0); return null; }
@@ -1237,6 +1302,16 @@
             document.getElementById('wrapper_biaya_desain').classList.toggle('hidden', !(item.biaya_desain > 0));
             document.getElementById('btn_tambah_desain').classList.toggle('hidden', item.biaya_desain > 0);
             document.getElementById('wrapper_biaya_finishing').classList.toggle('hidden', !item.id_finishing);
+            // Item lama tidak pernah menyimpan "jumlah pcs finishing" secara
+            // terpisah (biaya_finishing tersimpan sebagai total jadi, bukan
+            // rate+qty) - field ini cuma alat bantu hitung ulang, diisi
+            // tebakan qty item ini & dikunci manual (qtyFinishingManualEdit)
+            // supaya TIDAK diam-diam menghitung ulang & menimpa biaya_finishing
+            // historis yang sudah final di atas.
+            const metodeFinishingItem = document.querySelector(`#select_finishing option[value="${item.id_finishing}"]`)?.dataset.metode;
+            document.getElementById('wrapper_qty_finishing').classList.toggle('hidden', !item.id_finishing || metodeFinishingItem !== 'quantity');
+            document.getElementById('input_qty_finishing').value = item.qty_input || 1;
+            qtyFinishingManualEdit = true;
             currentThumbnail = item.thumbnail || null;
             const preview = document.getElementById('thumbnail_preview');
             if (currentThumbnail) {
@@ -1271,6 +1346,9 @@
         document.getElementById('wrapper_biaya_desain').classList.add('hidden');
         document.getElementById('btn_tambah_desain').classList.remove('hidden');
         document.getElementById('wrapper_biaya_finishing').classList.add('hidden');
+        document.getElementById('wrapper_qty_finishing').classList.add('hidden');
+        document.getElementById('input_qty_finishing').value = "1";
+        qtyFinishingManualEdit = false;
         document.getElementById('input_status_urgensi').value = "Normal";
         document.getElementById('input_status_finishing').disabled = true;
         document.getElementById('input_status_finishing').value = "Standar";
