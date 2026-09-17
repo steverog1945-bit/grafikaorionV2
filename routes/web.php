@@ -408,6 +408,7 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::get('/laporan/produksi', [LaporanController::class, 'produksi'])->name('laporan.produksi');
     Route::get('/laporan/kas', [LaporanController::class, 'kas'])->name('laporan.kas');
     Route::get('/laporan/piutang', [LaporanController::class, 'piutang'])->name('laporan.piutang');
+    Route::get('/laporan/stok-bahan', [LaporanController::class, 'stokBahan'])->name('laporan.stok-bahan');
 
     Route::get('/harga-promo', [HargaPromoController::class, 'index'])->name('harga-promo.index');
     Route::post('/harga-promo', [HargaPromoController::class, 'store'])->name('harga-promo.store');

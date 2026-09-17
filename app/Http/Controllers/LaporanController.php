@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BahanBaku;
+use App\Models\Kategori;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -528,6 +530,79 @@ class LaporanController extends Controller
 
         return view('laporan.piutang', compact(
             'data', 'konsumenList', 'jumlahNota', 'totalPiutang', 'sortBy', 'tglDari', 'tglSampai'
+        ));
+    }
+
+    /**
+     * Laporan Stok Bahan Baku - evaluasi pengadaan/pembelanjaan bahan.
+     * BEDA dari 6 laporan lain di atas: ini snapshot KONDISI SAAT INI
+     * (stok masih ada berapa), bukan rekap transaksi periode tertentu -
+     * jadi TIDAK pakai filter tanggal seperti laporan lain.
+     *
+     * Status per bahan dihitung dari stok vs stok_minimal (kolom yang
+     * sudah ada di bahan_baku, dipakai juga di master/bahan untuk
+     * menandai teks merah, tapi belum pernah ada laporan konsolidasinya):
+     * - Habis          : stok <= 0
+     * - Menipis        : stok > 0 dan stok <= stok_minimal (stok_minimal harus > 0 dulu)
+     * - Belum Ada Batas: stok > 0 tapi stok_minimal belum diisi (<= 0) -
+     *   dari audit data riil, 25 dari 26 bahan justru dalam kondisi ini,
+     *   jadi ditandai eksplisit (bukan dianggap "Aman" begitu saja)
+     *   supaya kelihatan mana yang batas minimalnya perlu diisi dulu.
+     * - Aman           : stok > stok_minimal, stok_minimal > 0
+     */
+    public function stokBahan(Request $request)
+    {
+        $query = BahanBaku::with(['kategori', 'satuanStok', 'merk'])
+            ->where('status', 'aktif');
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('nama_bahan', 'like', '%' . $request->search . '%')
+                  ->orWhere('kode_bahan', 'like', '%' . $request->search . '%');
+            });
+        }
+        if ($request->filled('id_kategori')) {
+            $query->where('id_kategori', $request->id_kategori);
+        }
+
+        $semua = $query->get()->map(function ($b) {
+            $b->status_stok = match (true) {
+                $b->stok <= 0 => 'Habis',
+                $b->stok_minimal > 0 && $b->stok <= $b->stok_minimal => 'Menipis',
+                $b->stok_minimal <= 0 => 'Belum Ada Batas',
+                default => 'Aman',
+            };
+            return $b;
+        });
+
+        if ($request->filled('status_stok')) {
+            $semua = $semua->where('status_stok', $request->status_stok)->values();
+        }
+
+        // Urutan default: yang paling butuh perhatian (Habis) tampil
+        // duluan, supaya evaluasi pengadaan langsung fokus ke situ.
+        $urutanStatus = ['Habis' => 0, 'Menipis' => 1, 'Belum Ada Batas' => 2, 'Aman' => 3];
+        $semua = $semua->sortBy(fn ($b) => [$urutanStatus[$b->status_stok], $b->nama_bahan])->values();
+
+        $jumlahHabis = $semua->where('status_stok', 'Habis')->count();
+        $jumlahMenipis = $semua->where('status_stok', 'Menipis')->count();
+        $jumlahBelumAdaBatas = $semua->where('status_stok', 'Belum Ada Batas')->count();
+        $jumlahBahan = $semua->count();
+
+        $perPage = 20;
+        $page = (int) $request->get('page', 1);
+        $data = new \Illuminate\Pagination\LengthAwarePaginator(
+            $semua->forPage($page, $perPage)->values(),
+            $semua->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        $kategoriList = Kategori::orderBy('nama_kategori')->get();
+
+        return view('laporan.stok-bahan', compact(
+            'data', 'kategoriList', 'jumlahBahan', 'jumlahHabis', 'jumlahMenipis', 'jumlahBelumAdaBatas'
         ));
     }
 }
