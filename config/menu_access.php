@@ -76,6 +76,7 @@ return [
         'laporan/order-jersey' => [43],
         'laporan/piutang' => [44],
         'laporan/stok-bahan' => [46],
+        'laporan/hpp' => [47],
         'harga-promo' => [28],
 
         'kas-kecil' => [39],

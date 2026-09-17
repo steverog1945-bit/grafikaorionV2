@@ -605,4 +605,85 @@ class LaporanController extends Controller
             'data', 'kategoriList', 'jumlahBahan', 'jumlahHabis', 'jumlahMenipis', 'jumlahBelumAdaBatas'
         ));
     }
+
+    /**
+     * Laporan HPP & Margin - membaca transaksi_detail.hpp_snapshot yang
+     * SUDAH dihitung otomatis sejak PenjualanController::store() (rumus:
+     * qty_pakai per bahan di BOM x bahan_baku.harga_rata_rata, dijumlah
+     * seluruh baris BOM produk itu), tapi sebelum ini datanya tidak pernah
+     * ditampilkan di mana pun - kasir/admin tidak punya cara melihat margin
+     * keuntungan sama sekali walau datanya sudah tersimpan tiap transaksi.
+     *
+     * KETERBATASAN yang perlu disadari (bukan bug, batas data yang memang
+     * tersedia): hpp_snapshot HANYA mencakup biaya BAHAN BAKU sesuai BOM -
+     * belum termasuk ongkos finishing/jasa/tenaga kerja/overhead (aplikasi
+     * ini tidak punya pencatatan biaya untuk komponen-komponen itu). Baris
+     * jasa juga selalu hpp_snapshot=0 (tidak berbasis BOM sama sekali).
+     * Margin yang ditampilkan karena itu adalah "margin kotor atas bahan",
+     * bukan margin bersih sesungguhnya - cukup jelas dari label & catatan
+     * di halaman laporannya sendiri supaya tidak disalahpahami sebagai
+     * laba bersih riil.
+     */
+    public function hpp(Request $request)
+    {
+        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
+        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+
+        $query = DB::table('transaksi_detail')
+            ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
+            ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+            ->leftJoin('jasa', 'transaksi_detail.id_jasa', '=', 'jasa.id_jasa')
+            ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
+            ->where('transaksi.status_nota', '!=', 'Dibatalkan')
+            ->whereDate('transaksi.tgl_order', '>=', $tglDari)
+            ->whereDate('transaksi.tgl_order', '<=', $tglSampai);
+
+        if ($request->filled('id_mesin')) {
+            $query->where('produk.id_mesin', $request->id_mesin);
+        }
+
+        $resumeQuery = clone $query;
+        $jumlahItem = $resumeQuery->count();
+        $totalOmzet = (clone $query)->sum('transaksi_detail.subtotal');
+        $totalHpp = (clone $query)->sum('transaksi_detail.hpp_snapshot');
+        $totalMargin = $totalOmzet - $totalHpp;
+        $marginPersen = $totalOmzet > 0 ? ($totalMargin / $totalOmzet) * 100 : 0;
+
+        $breakdownDivisi = (clone $query)
+            ->select(
+                DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya') as divisi"),
+                DB::raw('SUM(transaksi_detail.subtotal) as total_omzet'),
+                DB::raw('SUM(transaksi_detail.hpp_snapshot) as total_hpp')
+            )
+            ->groupBy(DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya')"))
+            ->orderByDesc(DB::raw('SUM(transaksi_detail.subtotal)'))
+            ->get()
+            ->map(function ($d) {
+                $d->margin = $d->total_omzet - $d->total_hpp;
+                $d->margin_persen = $d->total_omzet > 0 ? ($d->margin / $d->total_omzet) * 100 : 0;
+                return $d;
+            });
+
+        $data = $query
+            ->select(
+                'transaksi_detail.id_detail',
+                'transaksi.nomor_nota',
+                'transaksi.tgl_order',
+                DB::raw("COALESCE(produk.nama_produk, jasa.nama_jasa, transaksi_detail.nama_file) as nama_item"),
+                DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya') as divisi"),
+                'transaksi_detail.qty',
+                'transaksi_detail.subtotal',
+                'transaksi_detail.hpp_snapshot'
+            )
+            ->orderByDesc('transaksi.tgl_order')
+            ->paginate(20)
+            ->withQueryString();
+
+        $mesinList = DB::table('mesin')->orderBy('nama_mesin')->get();
+
+        return view('laporan.hpp', compact(
+            'data', 'totalOmzet', 'totalHpp', 'totalMargin', 'marginPersen', 'jumlahItem',
+            'breakdownDivisi', 'mesinList', 'tglDari', 'tglSampai'
+        ));
+    }
 }
