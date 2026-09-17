@@ -17,6 +17,11 @@ class AppSetting extends Model
         'email',
         'website',
         'logo_path',
+        'libur_kas_minggu',
+    ];
+
+    protected $casts = [
+        'libur_kas_minggu' => 'boolean',
     ];
 
     /**

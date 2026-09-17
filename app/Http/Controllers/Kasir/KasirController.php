@@ -526,6 +526,14 @@ class KasirController extends Controller
     $request->validate(['jumlah' => 'required']);
     $nominal = str_replace('.', '', $request->jumlah);
 
+    // Hari Minggu = kas libur (bisa dinonaktifkan admin di Pengaturan
+    // Aplikasi) - dicek PALING AWAL sebelum guard eksklusivitas di bawah,
+    // supaya pesannya jelas menunjuk alasan hari libur, bukan "sudah dibuka
+    // orang lain" yang membingungkan.
+    if (\App\Models\AppSetting::current()->libur_kas_minggu && now()->isSunday()) {
+        return redirect()->route('kasir.kelola')->with('error', 'Hari Minggu kas libur - Open Saldo tidak bisa dilakukan. Ubah pengaturan ini di Pengaturan Aplikasi kalau toko memang buka hari Minggu.');
+    }
+
     // Open saldo bersifat EKSKLUSIF - hanya SATU sesi kas boleh aktif dalam
     // satu waktu, SIAPA PUN rolenya (termasuk Administrator). Sebelumnya
     // pengecekan ini hanya melihat kas milik user yang sedang login sendiri
@@ -677,6 +685,13 @@ public function simpanClosing(Request $request)
     $request->validate([
         'status_rolling' => 'required|in:Rolling,Tidak Rolling',
     ]);
+
+    // Sama seperti storeKas() - hari Minggu kas libur, closing juga ikut
+    // diblokir (bukan cuma open saldo) supaya konsisten: sekali "libur",
+    // tidak ada aktivitas kas sama sekali hari itu.
+    if (\App\Models\AppSetting::current()->libur_kas_minggu && now()->isSunday()) {
+        return back()->with('error', 'Hari Minggu kas libur - Closing Kas tidak bisa dilakukan. Ubah pengaturan ini di Pengaturan Aplikasi kalau toko memang buka hari Minggu.');
+    }
 
     $id_kas = $request->id_kas;
     $saldo_fisik = (float) str_replace('.', '', $request->saldo_fisik ?? 0);

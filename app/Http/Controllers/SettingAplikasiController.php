@@ -24,6 +24,7 @@ class SettingAplikasiController extends Controller
             'email' => 'nullable|email|max:255',
             'website' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
+            'libur_kas_minggu' => 'nullable|boolean',
         ]);
 
         $setting = AppSetting::current();
@@ -35,6 +36,7 @@ class SettingAplikasiController extends Controller
             'fax' => $data['fax'] ?? null,
             'email' => $data['email'] ?? null,
             'website' => $data['website'] ?? null,
+            'libur_kas_minggu' => $request->boolean('libur_kas_minggu'),
         ];
 
         if ($request->hasFile('logo')) {

@@ -57,6 +57,16 @@
                 </x-form.group>
             </div>
 
+            <div class="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" name="libur_kas_minggu" value="1" @checked(old('libur_kas_minggu', $setting->libur_kas_minggu)) class="mt-1 w-4 h-4 rounded accent-indigo-600">
+                    <span>
+                        <span class="block text-sm font-bold text-slate-700">Kas Libur di Hari Minggu</span>
+                        <span class="block text-xs text-slate-400 mt-0.5">Kalau diaktifkan, Open Saldo & Closing Kas tidak bisa dilakukan setiap hari Minggu (toko dianggap tutup).</span>
+                    </span>
+                </label>
+            </div>
+
             <div class="pt-4 flex justify-end">
                 <x-button type="submit" class="!px-10">Simpan Pengaturan</x-button>
             </div>
