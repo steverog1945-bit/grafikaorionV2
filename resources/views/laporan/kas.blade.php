@@ -11,7 +11,7 @@
 </style>
 @include('partials.print-report-header', ['docTitle' => 'Laporan Kas'])
 
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 print:pt-0 max-w-[1600px] mx-auto">
 
     <div class="print:hidden">
         <x-page-header title="Laporan Kas">
@@ -94,8 +94,66 @@
         ]" />
     </div>
 
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Detail Sesi Kas</div>
+    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Sesi Kas</div>
 
+    {{-- Versi cetak: satu tabel polos per sesi (bukan kartu rounded/
+         shadow/badge berwarna), gaya visual sama dengan Laporan Order. --}}
+    <div class="hidden print:block">
+        <p class="text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-2">Detail Sesi Kas</p>
+        @forelse($data as $k)
+        @php $manualPrint = $manualPerSesi->get($k->id_kas, collect()); @endphp
+        <div class="mb-6 border border-slate-200 overflow-hidden break-inside-avoid">
+            <div class="px-3 py-2 bg-slate-50 border-b border-slate-200 text-[10.5px] text-slate-600 leading-relaxed">
+                <span class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($k->tgl_kas)->format('d/m/Y') }}</span>
+                &middot; Kasir: {{ $k->nama_kasir ?? '-' }}
+                &middot; Saldo Awal: {{ number_format($k->saldo_awal, 0, ',', '.') }}
+                &middot; Status: {{ $k->status_lock === 'open' ? 'Masih Buka' : 'Tutup' }}
+            </div>
+            <table class="w-full text-[11px] border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left w-6">#</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Waktu</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Keterangan</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Oleh</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Status</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Nominal</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($manualPrint as $i => $m)
+                    <tr>
+                        <td class="px-3 py-1.5 text-slate-400">{{ $i + 1 }}</td>
+                        <td class="px-3 py-1.5 text-slate-600">{{ \Carbon\Carbon::parse($m->waktu)->format('H:i') }}</td>
+                        <td class="px-3 py-1.5 text-slate-700">{{ $m->keterangan }}</td>
+                        <td class="px-3 py-1.5 text-slate-600">{{ $m->nama_user ?? '-' }}</td>
+                        <td class="px-3 py-1.5 text-slate-600">{{ $m->status }}</td>
+                        <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ $m->status === 'Masuk' ? '+' : '-' }} {{ number_format($m->nominal, 0, ',', '.') }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td class="px-3 py-1.5 text-slate-400 italic" colspan="6">Tidak ada transaksi manual pada sesi ini.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            <div class="px-3 py-2 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <table class="text-[11px]">
+                    <tr><td class="pr-4 text-slate-600">Tunai Masuk</td><td class="text-right font-semibold text-slate-800">{{ number_format($k->total_tunai_masuk, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Transfer Masuk</td><td class="text-right font-semibold text-slate-800">{{ number_format($k->total_transfer_masuk, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Debit Masuk</td><td class="text-right font-semibold text-slate-800">{{ number_format($k->total_debit_masuk ?? 0, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Tunai Keluar</td><td class="text-right font-semibold text-slate-800">{{ number_format($k->total_tunai_keluar, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Saldo Fisik</td><td class="text-right font-semibold text-slate-800">{{ $k->saldo_fisik !== null ? number_format($k->saldo_fisik, 0, ',', '.') : '-' }}</td></tr>
+                    <tr><td class="pr-4 font-bold text-slate-700">Selisih</td><td class="text-right font-bold text-slate-900">{{ $k->selisih !== null ? number_format($k->selisih, 0, ',', '.') : '-' }}</td></tr>
+                </table>
+            </div>
+        </div>
+        @empty
+        <p class="text-[11px] text-slate-400 italic">Tidak ada data.</p>
+        @endforelse
+    </div>
+
+    <div class="print:hidden">
     @forelse($data as $k)
     @php $manual = $manualPerSesi->get($k->id_kas, collect()); @endphp
     <div class="sesi-block bg-white rounded-3xl border border-slate-100 shadow-sm mb-5 overflow-hidden">
@@ -167,6 +225,7 @@
         <x-empty-state title="Tidak ada sesi kas" description="Sesuaikan filter tanggal untuk melihat rekap kas." />
     </x-card>
     @endforelse
+    </div>
 
     <div class="no-print">
         <x-table.pagination :paginator="$data" />

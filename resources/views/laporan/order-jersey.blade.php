@@ -11,7 +11,7 @@
 </style>
 @include('partials.print-report-header', ['docTitle' => 'Laporan Order Jersey'])
 
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 print:pt-0 max-w-[1600px] mx-auto">
 
     <div class="print:hidden">
         <x-page-header title="Laporan Order Jersey">
@@ -103,8 +103,9 @@
         ]" />
     </div>
 
-    {{-- BREAKDOWN PER KATEGORI &amp; DESAINER - ikut tercetak (sesuai referensi). --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 break-inside-avoid">
+    {{-- BREAKDOWN PER KATEGORI &amp; DESAINER - kartu berwarna di layar
+         (tidak diubah), tabel polos sederhana khusus cetak. --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 break-inside-avoid print:hidden">
         @if($breakdownKategori->isNotEmpty())
         <x-card title="Rincian per Kategori Jersey">
             <x-table bare class="rtable">
@@ -152,8 +153,95 @@
         @endif
     </div>
 
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Detail Order</div>
+    <div class="hidden print:block">
+        @if($breakdownKategori->isNotEmpty())
+        <div class="break-inside-avoid">
+            <x-laporan.print-table title="Rincian per Kategori Jersey" :headers="['Kategori', 'Qty', 'Subtotal']" :align="['left', 'right', 'right']">
+                @foreach($breakdownKategori as $b)
+                <tr>
+                    <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $b->kategori }}</td>
+                    <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_qty, 0, ',', '.') }}</td>
+                    <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_subtotal, 0, ',', '.') }}</td>
+                </tr>
+                @endforeach
+            </x-laporan.print-table>
+        </div>
+        @endif
+        @if($breakdownDesainer->isNotEmpty())
+        <div class="break-inside-avoid">
+            <x-laporan.print-table title="Rincian per Desainer" :headers="['Desainer', 'Jml Order', 'Total']" :align="['left', 'right', 'right']">
+                @foreach($breakdownDesainer as $b)
+                <tr>
+                    <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $b->nama }}</td>
+                    <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->jumlah_order, 0, ',', '.') }}</td>
+                    <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total, 0, ',', '.') }}</td>
+                </tr>
+                @endforeach
+            </x-laporan.print-table>
+        </div>
+        @endif
+    </div>
 
+    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Order</div>
+
+    {{-- Versi cetak: satu tabel polos per order (bukan kartu rounded/
+         shadow/badge berwarna), gaya visual sama dengan Laporan Order. --}}
+    <div class="hidden print:block">
+        <p class="text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-2">Detail Order</p>
+        @forelse($data as $o)
+        @php $lineOrderPrint = $linePerOrder->get($o->id, collect()); @endphp
+        <div class="mb-6 border border-slate-200 overflow-hidden break-inside-avoid">
+            <div class="px-3 py-2 bg-slate-50 border-b border-slate-200 text-[10.5px] text-slate-600 leading-relaxed">
+                <span class="font-bold text-slate-800">{{ $o->order_number }}</span>
+                @if($o->team_name) &middot; Tim {{ $o->team_name }} @endif
+                &middot; Konsumen: {{ $o->konsumen->nama_konsumen ?? $o->customer_name ?? '-' }}
+                &middot; Desainer: {{ $o->designer->name ?? $o->designer_name ?? '-' }}
+                &middot; Tanggal: {{ \Carbon\Carbon::parse($o->order_date)->format('d/m/Y') }}
+                @if($o->deadline) &middot; Deadline: {{ \Carbon\Carbon::parse($o->deadline)->format('d/m/Y') }} @endif
+                &middot; Status: {{ $o->status_pembayaran }}
+            </div>
+            <table class="w-full text-[11px] border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left w-6">#</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Nama Barang</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Qty</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Harga Satuan</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Tambahan</th>
+                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($lineOrderPrint as $i => $line)
+                    <tr>
+                        <td class="px-3 py-1.5 text-slate-400">{{ $i + 1 }}</td>
+                        <td class="px-3 py-1.5 text-slate-700">{{ $line->nama_barang }}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-600">{{ $line->qty }}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($line->harga_satuan, 0, ',', '.') }}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($line->size_surcharge_total + $line->sleeve_collar_surcharge_total, 0, ',', '.') }}</td>
+                        <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($line->subtotal, 0, ',', '.') }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td class="px-3 py-1.5 text-slate-400 italic" colspan="6">Tidak ada rincian barang untuk order ini.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            <div class="px-3 py-2 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <table class="text-[11px]">
+                    <tr><td class="pr-4 text-slate-600">Grand Total</td><td class="text-right font-semibold text-slate-800">{{ number_format($o->total, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Sudah Dibayar</td><td class="text-right font-semibold text-slate-800">{{ number_format($o->deposit, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 font-bold text-slate-700">{{ $o->sisa_tagihan > 0 ? 'Sisa Tagihan' : 'Lunas' }}</td><td class="text-right font-bold text-slate-900">{{ number_format($o->sisa_tagihan, 0, ',', '.') }}</td></tr>
+                </table>
+            </div>
+        </div>
+        @empty
+        <p class="text-[11px] text-slate-400 italic">Tidak ada data.</p>
+        @endforelse
+    </div>
+
+    <div class="print:hidden">
     @forelse($data as $o)
     @php $lineOrder = $linePerOrder->get($o->id, collect()); @endphp
     <div class="order-block bg-white rounded-3xl border border-slate-100 shadow-sm mb-5 overflow-hidden">
@@ -225,6 +313,7 @@
         <x-empty-state title="Tidak ada order jersey" description="Sesuaikan filter untuk melihat data." />
     </x-card>
     @endforelse
+    </div>
 
     <div class="no-print">
         <x-table.pagination :paginator="$data" />

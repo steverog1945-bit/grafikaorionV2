@@ -10,7 +10,7 @@
 </style>
 @include('partials.print-report-header', ['docTitle' => 'Laporan Daftar Piutang'])
 
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 print:pt-0 max-w-[1600px] mx-auto">
 
     <div class="print:hidden">
         <x-page-header title="Laporan Daftar Piutang">
@@ -89,8 +89,9 @@
         ]" />
     </div>
 
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Detail Data Piutang</div>
+    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Data Piutang</div>
 
+    <div class="print:hidden">
     <x-table class="rtable">
         <thead>
             <tr>
@@ -129,6 +130,35 @@
         </tfoot>
         @endif
     </x-table>
+    </div>
+
+    {{-- Versi cetak: tabel polos sederhana (gaya visual sama dengan
+         laporan lain), bukan tabel bawaan layar (.modern-table) yang
+         paddingnya lebih lega untuk kebutuhan UI. --}}
+    <div class="hidden print:block">
+        <x-laporan.print-table title="Detail Data Piutang" :headers="['No. Nota', 'Tanggal', 'Konsumen', 'Total Transaksi', 'Sudah Dibayar', 'Piutang']" :align="['left', 'left', 'left', 'right', 'right', 'right']">
+            @forelse($data as $p)
+            <tr>
+                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $p->nomor_nota }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ \Carbon\Carbon::parse($p->tgl_order)->format('d/m/Y') }}</td>
+                <td class="px-3 py-1.5 text-slate-700">{{ $p->nama_konsumen }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($p->total_bayar, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($p->total_dibayar, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($p->piutang, 0, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="6">Tidak ada piutang.</td>
+            </tr>
+            @endforelse
+            @if($data->isNotEmpty())
+            <tr class="bg-slate-50 border-t border-slate-200">
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="5">Total Piutang (halaman ini)</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($data->sum('piutang'), 0, ',', '.') }}</td>
+            </tr>
+            @endif
+        </x-laporan.print-table>
+    </div>
 
     <div class="no-print">
         <x-table.pagination :paginator="$data" />
