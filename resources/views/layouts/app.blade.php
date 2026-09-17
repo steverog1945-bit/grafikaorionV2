@@ -211,8 +211,10 @@
         <span class="text-sm font-medium">Dashboard</span>
     </a>
 
+    @if($cekAkses(1) || $cekAkses(20) || $cekAkses(17) || $cekAkses(22) || $cekAkses(23) || $cekAkses(24) || $cekAkses(15) || $cekAkses(31) || $cekAkses(30) || $cekAkses(10) || $cekAkses(27) || $cekAkses(33))
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">Produksi & Logistik</div>
-    
+    @endif
+
     @if($cekAkses(1))
     <a href="{{ url('/bahan-baku') }}" class="{{ $menuClass }} {{ Request::is('bahan-baku*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('bahan-baku*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -344,7 +346,9 @@
     </a>
     @endif
 
+    @if($cekAkses(7) || $cekAkses(34) || $cekAkses(18) || $cekAkses(13) || $cekAkses(21) || $cekAkses(32) || $cekAkses(14) || $cekAkses(28) || $cekAkses(9) || $cekAkses(16))
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">Relasi Bisnis</div>
+    @endif
 
     @if($cekAkses(7))
     <a href="{{ url('/konsumen') }}" class="{{ $menuClass }} {{ Request::is('konsumen*') ? $activeClass : $nonActiveClass }}">
@@ -447,7 +451,9 @@
     <span class="text-sm font-medium">Buka/Tutup Kas</span>
 </a>
 @endif
+    @if($cekAkses(3) || $cekAkses(41) || $cekAkses(39) || $cekAkses(45) || $cekAkses(11) || $cekAkses(5))
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">Finance & HR</div>
+    @endif
 
     @if($cekAkses(3) || $cekAkses(41))
     <a href="{{ route('penjualan.create') }}"
@@ -505,7 +511,9 @@
     </a>
     @endif
 
+    @if($cekAkses(25) || $cekAkses(26) || $cekAkses(29) || $cekAkses(40) || $cekAkses(43) || $cekAkses(44) || $cekAkses(46))
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">Laporan</div>
+    @endif
 
     @if($cekAkses(25))
     <a href="{{ route('laporan.order') }}" class="{{ $menuClass }} {{ request()->routeIs('laporan.order') ? $activeClass : $nonActiveClass }}">
@@ -571,7 +579,9 @@
     </a>
     @endif
 
+    @if($cekAkses(35) || $cekAkses(36))
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">Akuntansi</div>
+    @endif
 
     @if($cekAkses(35))
     <a href="{{ route('akun.index') }}" class="{{ $menuClass }} {{ Request::is('akun*') ? $activeClass : $nonActiveClass }}">
@@ -626,7 +636,9 @@
     @endif
     @endif
 
+    @if($cekAkses(6) || $cekAkses(4) || $cekAkses(37))
     <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">System Control</div>
+    @endif
 
     @if($cekAkses(6))
     <a href="{{ url('/users') }}" class="{{ $menuClass }} {{ Request::is('users*') ? $activeClass : $nonActiveClass }}">
