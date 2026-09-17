@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('content')
 @include('partials.rupiah-format-script')
+@include('partials.image-compress-script')
 <div class="min-h-screen bg-[#f3f4f6] p-4 lg:p-8">
     <div class="max-w-[1600px] mx-auto">
 
@@ -422,78 +423,10 @@
         document.getElementById('icon_toggle_jasa').classList.toggle('rotate-180');
     }
 
-    // Nama file gambar -> teks deskripsi yang manusiawi: buang ekstensi,
-    // ganti underscore/dash dengan spasi, rapikan spasi ganda. "banner_3x1-
-    // meter_FINAL.jpg" jadi "banner 3x1 meter FINAL", bukan disalin mentah.
-    function namaFileDariGambar(namaAsli) {
-        return namaAsli
-            .replace(/\.[^./]+$/, '')
-            .replace(/[_-]+/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-    }
-
-    // Kompres gambar lewat canvas sebelum diunggah: turunkan resolusi lalu
-    // re-encode sebagai JPEG, dicoba bertahap (dimensi & kualitas makin
-    // turun) sampai lolos target TARGET_BYTES. Thumbnail ini murni acuan
-    // visual buat tim produksi (bukan untuk dicetak) - boleh dikompres
-    // sangat agresif supaya proses load aplikasi (daftar order, kartu
-    // keranjang, dst - semuanya menampilkan thumbnail ini) tetap ringan.
-    // Dimensi ikut diperkecil (bukan cuma kualitas JPEG-nya) karena foto
-    // dengan detail tinggi bisa tetap di atas target walau kualitasnya
-    // sudah sangat rendah selama dimensinya masih besar. Latar putih
-    // digambar dulu sebelum gambar asli supaya PNG transparan tidak berubah
-    // jadi hitam saat di-flatten ke JPEG (JPEG tidak punya kanal alpha).
-    function compressImage(file, targetBytes = 10 * 1024) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            const objectUrl = URL.createObjectURL(file);
-
-            img.onload = () => {
-                URL.revokeObjectURL(objectUrl);
-
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-
-                function renderAt(maxDim, quality) {
-                    let { width, height } = img;
-                    if (width > maxDim || height > maxDim) {
-                        const scale = maxDim / Math.max(width, height);
-                        width = Math.round(width * scale);
-                        height = Math.round(height * scale);
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, width, height);
-                    ctx.drawImage(img, 0, 0, width, height);
-                    return new Promise((res) => canvas.toBlob(res, 'image/jpeg', quality));
-                }
-
-                (async () => {
-                    const dims = [480, 360, 280, 220, 160, 120, 90];
-                    const qualities = [0.6, 0.4, 0.25, 0.15, 0.08];
-                    let terkecil = null;
-
-                    for (const dim of dims) {
-                        for (const q of qualities) {
-                            const blob = await renderAt(dim, q);
-                            if (!blob) continue;
-                            if (!terkecil || blob.size < terkecil.size) terkecil = blob;
-                            if (blob.size <= targetBytes) { resolve(blob); return; }
-                        }
-                    }
-                    // Tidak ada kombinasi yang lolos target (foto sangat kompleks) -
-                    // pakai hasil terkecil yang berhasil didapat, jangan sampai
-                    // gagal total/tidak ada thumbnail sama sekali.
-                    if (terkecil) resolve(terkecil);
-                    else reject(new Error('Gagal memproses gambar.'));
-                })();
-            };
-            img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('File bukan gambar yang valid.')); };
-            img.src = objectUrl;
-        });
-    }
+    // compressImage() & namaFileDariGambar() ada di partial bersama
+    // partials/image-compress-script.blade.php (di-include di awal file
+    // ini) - dipakai juga oleh Order Jersey, supaya logika kompresi cuma
+    // ada di SATU tempat.
 
     // Upload thumbnail segera saat file dipilih (bukan dikirim bareng payload
     // /penjualan/store yang formatnya JSON) - path hasil upload disimpan di
