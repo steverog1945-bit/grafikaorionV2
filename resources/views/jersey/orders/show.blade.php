@@ -342,24 +342,31 @@
     }
 
     // ---- Modal Tambah Pembayaran: bukti bayar via klik-pilih-file ATAU
-    // tempel (Ctrl+V) - pola sama persis dengan upload thumbnail di form
-    // Order Jersey Baru. ----
+    // tempel (Ctrl+V). Paste dipasang GLOBAL di document (bukan di elemen
+    // dropzone) dengan alasan sama seperti upload thumbnail: klik dropzone
+    // membuka dialog pilih file OS lewat <input type=file>, dan fokus
+    // browser tidak kembali dengan andal ke dropzone setelah dialog itu
+    // ditutup/dibatalkan, sehingga listener 'paste' berbasis fokus tidak
+    // pernah kepicu. ----
     document.addEventListener('DOMContentLoaded', () => {
         const dropzone = document.querySelector('.bukti-dropzone');
         if (!dropzone) return;
-        dropzone.addEventListener('paste', (e) => {
-            const items = (e.clipboardData || window.clipboardData).items;
-            for (const item of items) {
-                if (item.type.startsWith('image/')) {
-                    prosesUploadBukti(item.getAsFile());
-                    e.preventDefault();
-                    return;
-                }
-            }
-        });
         document.getElementById('bukti-file-input').addEventListener('change', (e) => {
             if (e.target.files && e.target.files[0]) prosesUploadBukti(e.target.files[0]);
         });
+    });
+    document.addEventListener('paste', (e) => {
+        const dropzone = document.querySelector('.bukti-dropzone');
+        if (!dropzone || document.getElementById('modal-tambah-pembayaran')?.classList.contains('hidden')) return;
+        const items = (e.clipboardData || window.clipboardData)?.items;
+        if (!items) return;
+        for (const item of items) {
+            if (item.type.startsWith('image/')) {
+                prosesUploadBukti(item.getAsFile());
+                e.preventDefault();
+                return;
+            }
+        }
     });
 
     async function prosesUploadBukti(file) {
@@ -499,19 +506,35 @@
         card.querySelectorAll('.col-lengan-kerah').forEach(el => el.classList.toggle('hidden', !punyaLenganKerah));
     }
 
+    // CATATAN PENTING: paste TIDAK dipasang langsung ke elemen dropzone
+    // (dulu begitu, dan gagal). Kotak dropzone punya onclick yang memicu
+    // .click() pada <input type=file> tersembunyi di dalamnya untuk buka
+    // dialog pilih file OS - begitu dialog itu terbuka lalu ditutup/
+    // dibatalkan, fokus browser TIDAK kembali ke kotak dropzone, jadi
+    // listener 'paste' yang butuh fokus pada dropzone itu sendiri tidak
+    // pernah kepicu - persis gejala yang dilaporkan: paste gambar dari
+    // WhatsApp tidak berfungsi. Solusi: satu listener 'paste' GLOBAL di
+    // document, mengarah ke kartu yang terakhir disentuh mouse (hover/klik)
+    // pada dropzone-nya - tidak bergantung pada fokus DOM yang rapuh
+    // setelah dialog file native.
+    let kartuAktifUntukPasteThumbnail = null;
     function pasangPasteThumbnail(card) {
         const dropzone = card.querySelector('.thumbnail-dropzone');
-        dropzone.addEventListener('paste', (e) => {
-            const items = (e.clipboardData || window.clipboardData).items;
-            for (const item of items) {
-                if (item.type.startsWith('image/')) {
-                    prosesUploadThumbnailBarang(card, item.getAsFile());
-                    e.preventDefault();
-                    return;
-                }
-            }
-        });
+        dropzone.addEventListener('mouseenter', () => { kartuAktifUntukPasteThumbnail = card; });
+        dropzone.addEventListener('click', () => { kartuAktifUntukPasteThumbnail = card; });
     }
+    document.addEventListener('paste', (e) => {
+        if (!kartuAktifUntukPasteThumbnail || !document.body.contains(kartuAktifUntukPasteThumbnail)) return;
+        const items = (e.clipboardData || window.clipboardData)?.items;
+        if (!items) return;
+        for (const item of items) {
+            if (item.type.startsWith('image/')) {
+                prosesUploadThumbnailBarang(kartuAktifUntukPasteThumbnail, item.getAsFile());
+                e.preventDefault();
+                return;
+            }
+        }
+    });
 
     async function uploadThumbnailLine(input) {
         if (!input.files || !input.files[0]) return;
