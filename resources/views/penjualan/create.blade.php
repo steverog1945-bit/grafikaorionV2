@@ -119,12 +119,18 @@
                             </x-form.select>
                         </x-form.group>
                         <x-form.group label="Pilih Produk">
-                            <select id="select_produk" onchange="getDetailProduk()" class="select2-produk w-full">
+                            <select id="select_produk" onchange="getDetailProduk()" class="select2-produk w-full" disabled>
                                 <option value="">-- Ketik Nama Produk --</option>
                                 @foreach($produk as $p)
                                     <option value="{{ $p->id_produk }}" data-kategori="{{ $p->id_kategori }}" data-metode="{{ $p->metode_hitung }}">{{ $p->nama_produk }}</option>
                                 @endforeach
                             </select>
+                            {{-- Produk sengaja TERKUNCI sampai Kategori sungguhan dipilih
+                                 (bukan "Semua Kategori") - mencegah kasir asal pilih produk
+                                 tanpa sadar kategorinya dulu. Lihat filterProduk(). --}}
+                            <p id="hint_kunci_produk" class="text-[11px] text-amber-600 mt-1.5 ml-2">
+                                <i class="fas fa-lock text-[10px]"></i> Pilih Kategori dulu untuk mengaktifkan pilihan produk.
+                            </p>
                         </x-form.group>
                     </div>
 
@@ -666,6 +672,12 @@
         currentKategoriFilter = idKat;
         $('#select_produk').val('').trigger('change');
         resetInputProduk();
+
+        // Produk terkunci sampai Kategori sungguhan dipilih (bukan "Semua
+        // Kategori"/kosong) - lihat catatan di field Pilih Produk.
+        const terkunci = !idKat || idKat === 'all';
+        $('#select_produk').prop('disabled', terkunci);
+        document.getElementById('hint_kunci_produk').classList.toggle('hidden', !terkunci);
     }
 
     // Finishing hanya relevan untuk kategori bahan/produk tertentu (mis.
