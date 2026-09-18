@@ -38,7 +38,7 @@
         </form>
     </div>
 
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
         <div class="overflow-x-auto">
             <table class="w-full border-collapse">
                 <thead>
@@ -96,6 +96,37 @@
                 @endif
             </table>
         </div>
+    </div>
+
+    {{-- Versi cetak - pola print-table yang sama dengan laporan lain. --}}
+    <div class="hidden print:block">
+        <x-laporan.print-table title="Neraca Saldo" :headers="['Kode', 'Nama Akun', 'Tipe', 'Debet', 'Kredit']" :align="['left', 'left', 'left', 'right', 'right']">
+            @forelse($rows as $r)
+            <tr>
+                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $r->kode_akun }}</td>
+                <td class="px-3 py-1.5 text-slate-700">{{ $r->nama_akun }}{{ $r->saldo_tidak_normal ? ' (Tidak Normal)' : '' }}</td>
+                <td class="px-3 py-1.5 text-slate-500">{{ $r->tipe_akun }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->kolom_debet > 0 ? number_format($r->kolom_debet, 0, ',', '.') : '-' }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->kolom_kredit > 0 ? number_format($r->kolom_kredit, 0, ',', '.') : '-' }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="5">Belum ada akun atau belum ada transaksi.</td>
+            </tr>
+            @endforelse
+            @if($rows->isNotEmpty())
+            <tr class="bg-slate-50 border-t border-slate-200">
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="3">Total</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <td class="px-3 py-1.5 text-center font-bold text-slate-700" colspan="5">
+                    {{ abs($totalDebet - $totalKredit) < 0.01 ? 'Balance - Total Debet = Total Kredit' : 'TIDAK BALANCE - Selisih ' . number_format(abs($totalDebet - $totalKredit), 0, ',', '.') }}
+                </td>
+            </tr>
+            @endif
+        </x-laporan.print-table>
     </div>
 </div>
 @endsection

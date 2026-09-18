@@ -42,7 +42,7 @@
         </form>
     </div>
 
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
         <div class="overflow-x-auto">
             <table class="w-full border-collapse">
                 <thead>
@@ -96,6 +96,41 @@
                 @endif
             </table>
         </div>
+    </div>
+
+    {{-- Versi cetak - tabel polos tanpa rounded/shadow, SAMA PERSIS dengan
+         pola print-table yang dipakai Laporan Order/Kas/dll (lihat
+         resources/views/components/laporan/print-table.blade.php) supaya
+         tidak ada pembeda gaya cetak antar laporan. --}}
+    <div class="hidden print:block">
+        <x-laporan.print-table title="Jurnal Umum" :headers="['Tanggal', 'No. Referensi', 'Keterangan', 'Akun', 'Debet', 'Kredit']" :align="['left', 'left', 'left', 'left', 'right', 'right']">
+            @forelse($rows as $r)
+            <tr>
+                <td class="px-3 py-1.5 text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
+                <td class="px-3 py-1.5 text-slate-500">{{ $r->no_referensi }}</td>
+                <td class="px-3 py-1.5 text-slate-700">{{ $r->keterangan }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $r->kode_akun }} - {{ $r->nama_akun }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="6">Tidak ada jurnal pada rentang tanggal ini.</td>
+            </tr>
+            @endforelse
+            @if($rows->isNotEmpty())
+            <tr class="bg-slate-50 border-t border-slate-200">
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="4">Total</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
+            </tr>
+            @if(abs($totalDebet - $totalKredit) < 0.01)
+            <tr>
+                <td class="px-3 py-1.5 text-center font-bold text-slate-700" colspan="6">Balance - Total Debet = Total Kredit</td>
+            </tr>
+            @endif
+            @endif
+        </x-laporan.print-table>
     </div>
 </div>
 @endsection

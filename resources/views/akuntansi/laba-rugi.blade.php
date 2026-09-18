@@ -42,7 +42,7 @@
         </form>
     </div>
 
-    <div class="max-w-3xl mx-auto bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+    <div class="max-w-3xl mx-auto bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
         <div class="px-10 py-6 border-b border-slate-100 text-center">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Periode</p>
             <p class="text-sm font-bold text-slate-700 mt-1">{{ \Carbon\Carbon::parse($awal)->format('d M Y') }} — {{ \Carbon\Carbon::parse($akhir)->format('d M Y') }}</p>
@@ -96,6 +96,50 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    {{-- Versi cetak - pola print-table/resume-table yang sama dengan
+         laporan lain, bukan kartu rounded/shadow di layar. --}}
+    <div class="hidden print:block">
+        <x-laporan.print-table title="Pendapatan" :headers="['Akun', 'Jumlah']" :align="['left', 'right']">
+            @forelse($pendapatan as $p)
+            <tr>
+                <td class="px-3 py-1.5 text-slate-700">{{ $p->nama_akun }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($p->jumlah, 0, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="2">Belum ada pendapatan pada periode ini.</td>
+            </tr>
+            @endforelse
+            <tr class="bg-slate-50 border-t border-slate-200">
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase">Total Pendapatan</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalPendapatan, 0, ',', '.') }}</td>
+            </tr>
+        </x-laporan.print-table>
+
+        <x-laporan.print-table title="Beban" :headers="['Akun', 'Jumlah']" :align="['left', 'right']">
+            @forelse($beban as $b)
+            <tr>
+                <td class="px-3 py-1.5 text-slate-700">{{ $b->nama_akun }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->jumlah, 0, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="2">Belum ada beban tercatat pada periode ini.</td>
+            </tr>
+            @endforelse
+            <tr class="bg-slate-50 border-t border-slate-200">
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase">Total Beban</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalBeban, 0, ',', '.') }}</td>
+            </tr>
+        </x-laporan.print-table>
+
+        <x-laporan.resume-table title="Ringkasan" :rows="[
+            'Total Pendapatan' => number_format($totalPendapatan, 0, ',', '.'),
+            'Total Beban' => number_format($totalBeban, 0, ',', '.'),
+            ($labaBersih >= 0 ? 'Laba Bersih' : 'Rugi Bersih') => number_format(abs($labaBersih), 0, ',', '.'),
+        ]" />
     </div>
 </div>
 @endsection

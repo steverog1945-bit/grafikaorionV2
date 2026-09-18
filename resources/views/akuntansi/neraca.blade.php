@@ -38,7 +38,7 @@
         </form>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 print:hidden">
         {{-- AKTIVA --}}
         <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
             <div class="px-8 py-5 border-b border-slate-100">
@@ -109,7 +109,7 @@
         </div>
     </div>
 
-    <div class="mt-6 rounded-2xl p-5 text-center {{ $balance ? 'bg-emerald-50 border border-emerald-100' : 'bg-rose-50 border border-rose-100' }}">
+    <div class="mt-6 rounded-2xl p-5 text-center print:hidden {{ $balance ? 'bg-emerald-50 border border-emerald-100' : 'bg-rose-50 border border-rose-100' }}">
         @if($balance)
             <span class="text-xs font-bold text-emerald-700 uppercase tracking-widest"><i class="fas fa-check-circle"></i> Balance - Total Aktiva = Total Kewajiban + Ekuitas</span>
         @else
@@ -123,7 +123,7 @@
          Sengaja ikut tercetak (bukan no-print) - ini bagian dari nilai
          tambah "penjelasan profesional" yang diminta, bukan cuma alat
          bantu di layar. --}}
-    <div class="mt-6 bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+    <div class="mt-6 bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
         <div class="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                 <i class="fas fa-wand-magic-sparkles text-sm"></i>
@@ -146,6 +146,80 @@
                     <p class="text-sm text-slate-600 leading-relaxed">{{ $butir['teks'] }}</p>
                 </div>
             @endforeach
+        </div>
+    </div>
+
+    {{-- Versi cetak - pola print-table/resume-table yang sama dengan
+         laporan lain, tanpa kartu rounded/shadow/warna berbeda. --}}
+    <div class="hidden print:block">
+        <x-laporan.print-table title="Aktiva (Aset)" :headers="['Akun', 'Jumlah']" :align="['left', 'right']">
+            @forelse($aset as $a)
+            <tr>
+                <td class="px-3 py-1.5 text-slate-700">{{ $a->nama_akun }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($a->jumlah, 0, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="2">Belum ada akun aset dengan saldo.</td>
+            </tr>
+            @endforelse
+            <tr class="bg-slate-50 border-t border-slate-200">
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase">Total Aktiva</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalAset, 0, ',', '.') }}</td>
+            </tr>
+        </x-laporan.print-table>
+
+        <x-laporan.print-table title="Kewajiban" :headers="['Akun', 'Jumlah']" :align="['left', 'right']">
+            @forelse($kewajiban as $k)
+            <tr>
+                <td class="px-3 py-1.5 text-slate-700">{{ $k->nama_akun }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($k->jumlah, 0, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="2">Belum ada akun kewajiban dengan saldo.</td>
+            </tr>
+            @endforelse
+            <tr class="bg-slate-50 border-t border-slate-200">
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase">Total Kewajiban</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalKewajiban, 0, ',', '.') }}</td>
+            </tr>
+        </x-laporan.print-table>
+
+        <x-laporan.print-table title="Ekuitas" :headers="['Akun', 'Jumlah']" :align="['left', 'right']">
+            @forelse($modal as $m)
+            <tr>
+                <td class="px-3 py-1.5 text-slate-700">{{ $m->nama_akun }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($m->jumlah, 0, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="2">Belum ada setoran modal tercatat.</td>
+            </tr>
+            @endforelse
+            <tr>
+                <td class="px-3 py-1.5 text-slate-700">Laba Ditahan Berjalan</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($labaBerjalan, 0, ',', '.') }}</td>
+            </tr>
+            <tr class="bg-slate-50 border-t border-slate-200">
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase">Total Ekuitas</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalEkuitas, 0, ',', '.') }}</td>
+            </tr>
+        </x-laporan.print-table>
+
+        <x-laporan.resume-table title="Ringkasan" :rows="[
+            'Total Aktiva' => number_format($totalAset, 0, ',', '.'),
+            'Total Kewajiban + Ekuitas' => number_format($totalPasiva, 0, ',', '.'),
+            'Status' => $balance ? 'BALANCE' : 'TIDAK BALANCE - Selisih ' . number_format(abs($totalAset - $totalPasiva), 0, ',', '.'),
+        ]" />
+
+        <div class="mb-6 border border-slate-200 overflow-hidden">
+            <p class="text-[10px] font-bold text-slate-700 uppercase tracking-wide px-3 py-2 bg-slate-50 border-b border-slate-200">Analisis Otomatis</p>
+            <div class="p-3 space-y-1.5">
+                @foreach($narasi as $butir)
+                    <p class="text-[11px] text-slate-600">&bull; {{ $butir['teks'] }}</p>
+                @endforeach
+            </div>
         </div>
     </div>
 </div>

@@ -51,7 +51,7 @@
     </div>
 
     @if($akun)
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
         <div class="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
             <div>
                 <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $akun->kode_akun }}</span>
@@ -102,8 +102,35 @@
             </table>
         </div>
     </div>
+
+    {{-- Versi cetak - pola print-table yang sama dengan laporan lain. --}}
+    <div class="hidden print:block">
+        <x-laporan.print-table :title="'Buku Besar - ' . $akun->kode_akun . ' ' . $akun->nama_akun" :headers="['Tanggal', 'No. Referensi / Keterangan', 'Debet', 'Kredit', 'Saldo']" :align="['left', 'left', 'right', 'right', 'right']">
+            <tr class="bg-slate-50">
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="4">Saldo Awal</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($saldoAwal, 0, ',', '.') }}</td>
+            </tr>
+            @forelse($rows as $r)
+            <tr>
+                <td class="px-3 py-1.5 text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
+                <td class="px-3 py-1.5 text-slate-700">{{ $r->no_referensi }} — {{ $r->keterangan }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}</td>
+                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($r->saldo_berjalan, 0, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="5">Tidak ada mutasi pada rentang tanggal ini.</td>
+            </tr>
+            @endforelse
+            <tr class="bg-slate-50 border-t border-slate-200">
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="4">Saldo Akhir</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($saldoAkhir, 0, ',', '.') }}</td>
+            </tr>
+        </x-laporan.print-table>
+    </div>
     @else
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-16 text-center text-slate-400 italic">
+    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-16 text-center text-slate-400 italic no-print">
         Belum ada akun terdaftar. Tambah akun dulu di Chart of Accounts.
     </div>
     @endif
