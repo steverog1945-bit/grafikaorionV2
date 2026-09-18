@@ -41,6 +41,17 @@
             Status: <span class="status-badge">{{ strtoupper($detail->status_spk) }}</span>
         </p>
 
+        {{-- Barcode Code128 berisi "TRX" + id_transaksi (BUKAN id_detail/
+             nomor_nota) - begitu discan di Monitoring Kasir, kode ini
+             langsung membawa kasir ke halaman Bayar transaksi terkait
+             (route kasir.bayarForm sudah menerima id_transaksi apa adanya,
+             tidak perlu endpoint pencarian baru). Dirender client-side
+             (JsBarcode) supaya tidak perlu tambahan library PHP baru di
+             composer. --}}
+        <div class="center" style="margin: 8px 0;">
+            <svg id="barcode-spk"></svg>
+        </div>
+
         @if($detail->catatan_produksi)
         <div class="catatan">
             <strong>Catatan Produksi:</strong><br>
@@ -63,5 +74,17 @@
     <div class="no-print">
         <button onclick="window.print()">🖨️ Cetak</button>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <script>
+        JsBarcode("#barcode-spk", "TRX{{ $detail->id_transaksi }}", {
+            format: "CODE128",
+            width: {{ $format === 'thermal' ? 1.3 : 1.8 }},
+            height: {{ $format === 'thermal' ? 40 : 50 }},
+            fontSize: {{ $format === 'thermal' ? 10 : 12 }},
+            margin: 4,
+            displayValue: true,
+        });
+    </script>
 </body>
 </html>

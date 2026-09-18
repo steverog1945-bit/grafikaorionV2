@@ -5,6 +5,10 @@
 
     <x-page-header title="Monitoring Kasir" subtitle="Pantau pembayaran, cetak nota, dan riwayat proses pesanan.">
         <x-slot:actions>
+            <x-button type="button" onclick="bukaScanBarcode()" variant="secondary">
+                <i class="fas fa-barcode"></i>
+                Scan Barcode
+            </x-button>
             <x-button href="{{ url('/kasir/waiting-list') }}" variant="warning" class="relative">
                 <i class="fas fa-inbox"></i>
                 Antrean Baru
@@ -182,6 +186,39 @@
 
 </div>
 
+{{-- MODAL SCAN BARCODE - barcode di SPK/nota (lihat spk/print.blade.php)
+     berisi "TRX"+id_transaksi. Dua cara pindai: (1) scanner USB/Bluetooth
+     genggam yang berperilaku seperti keyboard - cukup fokus di kolom
+     manual lalu scan, otomatis "mengetik" kode + Enter; (2) kamera HP/
+     laptop lewat library html5-qrcode (CDN, dimuat sekali saat modal
+     pertama dibuka, bukan di setiap halaman). Keduanya berujung ke fungsi
+     yang sama (prosesKodeBarcode) yang mengarahkan ke halaman Bayar
+     transaksi terkait. --}}
+<x-modal id="scan-barcode" title="Scan Barcode SPK / Nota" maxWidth="md">
+    <div class="space-y-5">
+        <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Scan pakai alat scanner</label>
+            <input type="text" id="input-scan-manual" placeholder="Arahkan scanner ke sini lalu tembak..." autocomplete="off"
+                class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-center tracking-widest focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <p class="text-[11px] text-slate-400 mt-1.5 ml-2">Kolom ini otomatis aktif - tinggal scan, tidak perlu klik dulu.</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="flex-1 h-px bg-slate-100"></div>
+            <span class="text-[10px] font-bold text-slate-300 uppercase">Atau</span>
+            <div class="flex-1 h-px bg-slate-100"></div>
+        </div>
+
+        <div>
+            <x-button type="button" id="btn-buka-kamera-scan" onclick="mulaiScanKamera()" variant="secondary" class="w-full">
+                <i class="fas fa-camera"></i> Scan Pakai Kamera HP/Laptop
+            </x-button>
+            <div id="reader-barcode" class="hidden mt-4 rounded-xl overflow-hidden"></div>
+            <p id="status-kamera-scan" class="text-[11px] text-slate-400 mt-2 text-center"></p>
+        </div>
+    </div>
+</x-modal>
+
 @push('scripts')
 <script>
     $(document).ready(function() {
@@ -258,6 +295,89 @@
             });
     }
     setInterval(checkNewTransaction, 10000);
+
+    // SCAN BARCODE (lihat catatan di atas modal "scan-barcode") - barcode
+    // berisi "TRX"+id_transaksi, kode lain (mis. barcode produk pihak
+    // ketiga yang kebetulan ikut terpindai) ditolak dengan pesan jelas
+    // alih-alih diam-diam redirect ke URL yang salah.
+    function bukaScanBarcode() {
+        openModal('scan-barcode');
+        document.getElementById('input-scan-manual').value = '';
+        setTimeout(() => document.getElementById('input-scan-manual').focus(), 150);
+    }
+
+    document.getElementById('input-scan-manual').addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        prosesKodeBarcode(this.value);
+    });
+
+    function prosesKodeBarcode(kode) {
+        const cocok = /^TRX(\d+)$/i.exec((kode || '').trim());
+        if (!cocok) {
+            Swal.fire('Kode Tidak Dikenali', 'Barcode ini bukan barcode SPK/Nota yang valid dari aplikasi.', 'error');
+            document.getElementById('input-scan-manual').value = '';
+            document.getElementById('input-scan-manual').focus();
+            return;
+        }
+        window.location.href = `{{ url('/kasir/bayar-form') }}/${cocok[1]}`;
+    }
+
+    // Kamera dimuat MALAS (lazy) - library html5-qrcode (CDN) baru
+    // diambil begitu tombol "Scan Pakai Kamera" pertama kali ditekan,
+    // bukan di setiap kunjungan halaman Monitoring Kasir yang notabene
+    // dibuka berkali-kali sehari.
+    let html5QrcodeScannerAktif = null;
+    let libHtml5QrcodeSudahDimuat = false;
+
+    function muatLibHtml5Qrcode() {
+        return new Promise((resolve, reject) => {
+            if (libHtml5QrcodeSudahDimuat) return resolve();
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
+            script.onload = () => { libHtml5QrcodeSudahDimuat = true; resolve(); };
+            script.onerror = () => reject(new Error('Gagal memuat library kamera.'));
+            document.head.appendChild(script);
+        });
+    }
+
+    async function mulaiScanKamera() {
+        const statusEl = document.getElementById('status-kamera-scan');
+        const readerEl = document.getElementById('reader-barcode');
+        statusEl.textContent = 'Memuat kamera...';
+        try {
+            await muatLibHtml5Qrcode();
+        } catch (e) {
+            statusEl.textContent = 'Gagal memuat library kamera - cek koneksi internet.';
+            return;
+        }
+
+        readerEl.classList.remove('hidden');
+        if (html5QrcodeScannerAktif) return;
+
+        html5QrcodeScannerAktif = new Html5Qrcode('reader-barcode', {
+            formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128],
+        });
+
+        try {
+            await html5QrcodeScannerAktif.start(
+                { facingMode: 'environment' },
+                { fps: 10, qrbox: { width: 260, height: 120 } },
+                (kodeTerbaca) => {
+                    statusEl.textContent = 'Terbaca: ' + kodeTerbaca;
+                    html5QrcodeScannerAktif.stop().then(() => {
+                        html5QrcodeScannerAktif = null;
+                        prosesKodeBarcode(kodeTerbaca);
+                    });
+                },
+                () => { /* frame tanpa barcode - abaikan, ini dipanggil terus tiap frame */ }
+            );
+            statusEl.textContent = 'Arahkan kamera ke barcode...';
+        } catch (e) {
+            statusEl.textContent = 'Tidak bisa mengakses kamera - pastikan izin kamera diberikan.';
+            html5QrcodeScannerAktif = null;
+        }
+    }
 </script>
 @endpush
 @endsection
