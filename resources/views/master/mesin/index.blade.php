@@ -40,20 +40,18 @@
     </div>
 
     {{-- TABLE CONTAINER --}}
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div class="overflow-x-auto overflow-y-visible">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-4 py-5 text-center w-10">#</th>
-                        <th class="px-8 py-5 text-left">Identitas Mesin</th>
-                        <th class="px-6 py-5 text-center">Tipe Operasional</th>
-                        <th class="px-6 py-5 text-center">Status</th>
-                        <th class="px-8 py-5 text-right">Manajemen</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    @foreach($mesin as $i => $m)
+    <x-table>
+        <thead>
+            <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
+                <th class="px-8 py-5 text-left">Identitas Mesin</th>
+                <th class="px-6 py-5 text-center">Tipe Operasional</th>
+                <th class="px-6 py-5 text-center">Status</th>
+                <th class="px-8 py-5 text-right">Manajemen</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+            @foreach($mesin as $i => $m)
                     <tr class="group hover:bg-slate-50/30 transition-all">
                         <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $mesin->firstItem() + $i }}</td>
                         {{-- Identitas Mesin --}}
@@ -157,10 +155,8 @@
     </div>
 </div>
                     @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+        </tbody>
+    </x-table>
 
     <x-table.pagination :paginator="$mesin" />
 </div>

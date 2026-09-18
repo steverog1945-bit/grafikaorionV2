@@ -59,50 +59,48 @@
             </div>
             <span class="text-[10px] font-bold text-slate-400 uppercase">Saldo Normal: {{ $akun->saldo_normal }}</span>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-4 py-4 text-center w-10">#</th>
-                        <th class="px-8 py-4 text-left w-28">Tanggal</th>
-                        <th class="px-6 py-4 text-left">No. Referensi / Keterangan</th>
-                        <th class="px-6 py-4 text-right w-32">Debet</th>
-                        <th class="px-6 py-4 text-right w-32">Kredit</th>
-                        <th class="px-8 py-4 text-right w-36">Saldo</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    <tr class="bg-slate-50/40">
-                        <td colspan="5" class="px-8 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest">Saldo Awal</td>
-                        <td class="px-8 py-3 text-right text-sm font-bold text-slate-700">{{ number_format($saldoAwal, 0, ',', '.') }}</td>
-                    </tr>
-                    @forelse($rows as $i => $r)
-                    <tr class="hover:bg-slate-50/30 transition-all">
-                        <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
-                        <td class="px-8 py-3 text-xs text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
-                        <td class="px-6 py-3 text-sm text-slate-700">
-                            <span class="text-xs text-slate-400">{{ $r->no_referensi }}</span> — {{ $r->keterangan }}
-                        </td>
-                        <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
-                            {{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}
-                        </td>
-                        <td class="px-6 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
-                            {{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}
-                        </td>
-                        <td class="px-8 py-3 text-right text-sm font-bold text-slate-800">{{ number_format($r->saldo_berjalan, 0, ',', '.') }}</td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="py-16 text-center text-slate-400 font-medium italic">Tidak ada mutasi pada rentang tanggal ini.</td>
-                    </tr>
-                    @endforelse
-                    <tr class="bg-indigo-50/40 border-t-2 border-indigo-100">
-                        <td colspan="5" class="px-8 py-4 text-right text-[11px] font-bold text-indigo-700 uppercase tracking-widest">Saldo Akhir</td>
-                        <td class="px-8 py-4 text-right text-sm font-black text-indigo-700">{{ number_format($saldoAkhir, 0, ',', '.') }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <x-table bare>
+            <thead>
+                <tr>
+                    <th class="px-4 py-4 text-center w-10">#</th>
+                    <th class="px-8 py-4 text-left w-28">Tanggal</th>
+                    <th class="px-6 py-4 text-left">No. Referensi / Keterangan</th>
+                    <th class="px-6 py-4 text-right w-32">Debet</th>
+                    <th class="px-6 py-4 text-right w-32">Kredit</th>
+                    <th class="px-8 py-4 text-right w-36">Saldo</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                <tr class="bg-slate-50/40">
+                    <td colspan="5" class="px-8 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest">Saldo Awal</td>
+                    <td class="px-8 py-3 text-right text-sm font-bold text-slate-700">{{ number_format($saldoAwal, 0, ',', '.') }}</td>
+                </tr>
+                @forelse($rows as $i => $r)
+                <tr class="hover:bg-slate-50/30 transition-all">
+                    <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
+                    <td class="px-8 py-3 text-xs text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
+                    <td class="px-6 py-3 text-sm text-slate-700">
+                        <span class="text-xs text-slate-400">{{ $r->no_referensi }}</span> — {{ $r->keterangan }}
+                    </td>
+                    <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                        {{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}
+                    </td>
+                    <td class="px-6 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                        {{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}
+                    </td>
+                    <td class="px-8 py-3 text-right text-sm font-bold text-slate-800">{{ number_format($r->saldo_berjalan, 0, ',', '.') }}</td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6" class="py-16 text-center text-slate-400 font-medium italic">Tidak ada mutasi pada rentang tanggal ini.</td>
+                </tr>
+                @endforelse
+                <tr class="bg-indigo-50/40 border-t-2 border-indigo-100">
+                    <td colspan="5" class="px-8 py-4 text-right text-[11px] font-bold text-indigo-700 uppercase tracking-widest">Saldo Akhir</td>
+                    <td class="px-8 py-4 text-right text-sm font-black text-indigo-700">{{ number_format($saldoAkhir, 0, ',', '.') }}</td>
+                </tr>
+            </tbody>
+        </x-table>
     </div>
 
     {{-- Versi cetak - pola print-table yang sama dengan laporan lain. --}}

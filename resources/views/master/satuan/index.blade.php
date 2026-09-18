@@ -59,58 +59,54 @@
                 </form>
             </div>
 
-            <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
-                                <th class="px-4 py-5 text-center w-10">#</th>
-                                <th class="px-8 py-5 text-left">Nama Satuan</th>
-                                <th class="px-6 py-5 text-center">Catatan Konversi</th>
-                                <th class="px-8 py-5 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-50">
-                            @forelse($satuan as $i => $s)
-                            <tr class="group hover:bg-slate-50/30 transition-all">
-                                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $satuan->firstItem() + $i }}</td>
-                                <td class="px-8 py-5">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 font-bold text-[10px] group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                                            {{ substr($s->nama_satuan, 0, 1) }}
-                                        </div>
-                                        <span class="text-sm font-bold text-slate-700 uppercase tracking-tight group-hover:text-indigo-600 transition-colors">
-                                            {{ $s->nama_satuan }}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-5 text-center">
-                                    <span class="text-[11px] font-semibold text-slate-400">{{ number_format($s->nilai_konversi, 2) }}</span>
-                                </td>
-                                <td class="px-8 py-5 text-right">
-                                    <div class="flex justify-end gap-2">
-                                        <button onclick="openEditModal({{ $s->id_satuan }}, '{{ $s->nama_satuan }}', {{ $s->nilai_konversi }})" 
-                                                class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all">
-                                            <i class="fas fa-edit text-sm"></i>
-                                        </button>
-                                        <form id="delete-form-satuan-{{ $s->id_satuan }}" action="{{ route('satuan.destroy', $s->id_satuan) }}" method="POST" class="inline">
-                                            @csrf @method('DELETE')
-                                        </form>
-                                        <button type="button" onclick="confirmDeleteSatuan('{{ $s->id_satuan }}', {{ json_encode($s->nama_satuan) }})" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
-                                            <i class="fas fa-trash-alt text-sm"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="4" class="px-8 py-20 text-center text-slate-300  text-sm">Belum ada data satuan.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <x-table>
+                <thead>
+                    <tr>
+                        <th class="px-4 py-5 text-center w-10">#</th>
+                        <th class="px-8 py-5 text-left">Nama Satuan</th>
+                        <th class="px-6 py-5 text-center">Catatan Konversi</th>
+                        <th class="px-8 py-5 text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    @forelse($satuan as $i => $s)
+                    <tr class="group hover:bg-slate-50/30 transition-all">
+                        <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $satuan->firstItem() + $i }}</td>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 font-bold text-[10px] group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                                    {{ substr($s->nama_satuan, 0, 1) }}
+                                </div>
+                                <span class="text-sm font-bold text-slate-700 uppercase tracking-tight group-hover:text-indigo-600 transition-colors">
+                                    {{ $s->nama_satuan }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 text-center">
+                            <span class="text-[11px] font-semibold text-slate-400">{{ number_format($s->nilai_konversi, 2) }}</span>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button onclick="openEditModal({{ $s->id_satuan }}, '{{ $s->nama_satuan }}', {{ $s->nilai_konversi }})"
+                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </button>
+                                <form id="delete-form-satuan-{{ $s->id_satuan }}" action="{{ route('satuan.destroy', $s->id_satuan) }}" method="POST" class="inline">
+                                    @csrf @method('DELETE')
+                                </form>
+                                <button type="button" onclick="confirmDeleteSatuan('{{ $s->id_satuan }}', {{ json_encode($s->nama_satuan) }})" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
+                                    <i class="fas fa-trash-alt text-sm"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="px-8 py-20 text-center text-slate-300  text-sm">Belum ada data satuan.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </x-table>
 
             <x-table.pagination :paginator="$satuan" />
         </div>

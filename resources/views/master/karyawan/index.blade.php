@@ -45,81 +45,79 @@
     </div>
 
     {{-- TABLE CONTAINER --}}
-    <div class="bg-white rounded-[3rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
-        <div class="overflow-x-auto p-4">
-            <table class="w-full border-separate border-spacing-y-4">
-                <thead>
-                    <tr class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                        <th class="px-6 py-4 w-20 text-center">#</th>
-                        <th class="px-4 py-4 text-left">Profil Karyawan</th>
-                        <th class="px-4 py-4 text-left">Penempatan</th>
-                        <th class="px-4 py-4 text-center">Status Kepegawaian</th>
-                        <th class="px-8 py-4 text-center">Aksi Kendali</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($karyawan as $i => $k)
-                    <tr class="group hover:bg-indigo-50/40 transition-all duration-300">
-                        {{-- Nomor Urut (lintas halaman) --}}
-                        <td class="px-6 py-6 text-center bg-slate-50 group-hover:bg-white rounded-l-[2rem] border-y border-l border-transparent group-hover:border-indigo-100 transition-all">
-                            <span class="text-[11px] font-bold text-slate-400">{{ $karyawan->firstItem() + $i }}</span>
-                        </td>
-                        
-                        {{-- Name & Phone --}}
-                        <td class="px-4 py-6 border-y border-transparent group-hover:border-indigo-100 transition-all">
-                            <div class="font-black text-slate-800 uppercase tracking-tight text-[14px]">{{ $k->nama_karyawan }}</div>
-                            <div class="text-[12px] text-slate-400 font-bold mt-1 flex items-center gap-1.5">
-                                <i class="fas fa-phone-alt text-[10px] text-indigo-300"></i> {{ $k->telepon }}
-                            </div>
-                        </td>
+    <x-table>
+        <thead>
+            <tr>
+                <th class="px-6 py-5 w-20 text-center">#</th>
+                <th class="px-4 py-5 text-left">Profil Karyawan</th>
+                <th class="px-4 py-5 text-left">Penempatan</th>
+                <th class="px-4 py-5 text-center">Status Kepegawaian</th>
+                <th class="px-8 py-5 text-center">Aksi Kendali</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+            @foreach($karyawan as $i => $k)
+            <tr class="group hover:bg-slate-50/30 transition-all">
+                {{-- Nomor Urut (lintas halaman) --}}
+                <td class="px-6 py-5 text-center">
+                    <span class="text-[11px] font-bold text-slate-400">{{ $karyawan->firstItem() + $i }}</span>
+                </td>
 
-                        {{-- Division --}}
-                        <td class="px-4 py-6 border-y border-transparent group-hover:border-indigo-100 transition-all">
-                            <span class="inline-flex items-center px-4 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100">
-                                {{ $k->bagian }}
-                            </span>
-                            @if($k->mesin->isNotEmpty())
-                                <div class="mt-2 flex flex-wrap gap-1">
-                                    @foreach($k->mesin as $m)
-                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide bg-slate-100 text-slate-500">
-                                            <i class="fas fa-cog text-[8px] mr-1"></i>{{ $m->nama_mesin }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </td>
+                {{-- Name & Phone --}}
+                <td class="px-4 py-5">
+                    <div class="font-black text-slate-800 uppercase tracking-tight text-[14px]">{{ $k->nama_karyawan }}</div>
+                    <div class="text-[12px] text-slate-400 font-bold mt-1 flex items-center gap-1.5">
+                        <i class="fas fa-phone-alt text-[10px] text-indigo-300"></i> {{ $k->telepon }}
+                    </div>
+                </td>
 
-                        {{-- Status --}}
-                        <td class="px-4 py-6 text-center border-y border-transparent group-hover:border-indigo-100 transition-all">
-                            @if($k->status_aktif)
-                                <span class="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 text-[11px] font-black uppercase tracking-widest shadow-sm">
-                                    <span class="w-2 h-2 mr-2 rounded-full bg-emerald-500 animate-pulse"></span> Aktif
+                {{-- Division --}}
+                <td class="px-4 py-5">
+                    <span class="inline-flex items-center px-4 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100">
+                        {{ $k->bagian }}
+                    </span>
+                    @if($k->mesin->isNotEmpty())
+                        <div class="mt-2 flex flex-wrap gap-1">
+                            @foreach($k->mesin as $m)
+                                <span class="inline-flex items-center px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide bg-slate-100 text-slate-500">
+                                    <i class="fas fa-cog text-[8px] mr-1"></i>{{ $m->nama_mesin }}
                                 </span>
-                            @else
-                                <span class="inline-flex items-center px-4 py-2 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 text-[11px] font-black uppercase tracking-widest">
-                                    <span class="w-2 h-2 mr-2 rounded-full bg-slate-300"></span> Non-Aktif
-                                </span>
-                            @endif
-                        </td>
+                            @endforeach
+                        </div>
+                    @endif
+                </td>
 
-                        {{-- Actions --}}
-                        <td class="px-8 py-6 text-center rounded-r-[2rem] border-y border-r border-transparent group-hover:border-indigo-100 transition-all">
-                            <div class="flex items-center justify-center gap-3">
-                                <button onclick="toggleModal('modalEdit{{ $k->id_karyawan }}')" 
-                                        class="w-10 h-10 flex items-center justify-center bg-white border border-slate-100 text-slate-400 hover:text-indigo-600 hover:border-indigo-200 rounded-xl transition-all shadow-sm active:scale-90">
-                                    <i class="fas fa-edit text-sm"></i>
-                                </button>
-                                
-                                <form action="{{ url('karyawan/delete/'.$k->id_karyawan) }}" method="POST" class="inline" id="delete-form-{{ $k->id_karyawan }}">
-                                    @csrf @method('DELETE')
-                                    <button type="button" onclick="confirmDelete('{{ $k->id_karyawan }}', '{{ $k->nama_karyawan }}')"
-                                            class="w-10 h-10 flex items-center justify-center bg-white border border-slate-100 text-slate-400 hover:text-rose-600 hover:border-rose-200 rounded-xl transition-all shadow-sm active:scale-90">
-                                        <i class="fas fa-trash text-sm"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
+                {{-- Status --}}
+                <td class="px-4 py-5 text-center">
+                    @if($k->status_aktif)
+                        <span class="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 text-[11px] font-black uppercase tracking-widest shadow-sm">
+                            <span class="w-2 h-2 mr-2 rounded-full bg-emerald-500 animate-pulse"></span> Aktif
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-4 py-2 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 text-[11px] font-black uppercase tracking-widest">
+                            <span class="w-2 h-2 mr-2 rounded-full bg-slate-300"></span> Non-Aktif
+                        </span>
+                    @endif
+                </td>
+
+                {{-- Actions --}}
+                <td class="px-8 py-5 text-center">
+                    <div class="flex items-center justify-center gap-3">
+                        <button onclick="toggleModal('modalEdit{{ $k->id_karyawan }}')"
+                                class="w-10 h-10 flex items-center justify-center bg-white border border-slate-100 text-slate-400 hover:text-indigo-600 hover:border-indigo-200 rounded-xl transition-all shadow-sm active:scale-90">
+                            <i class="fas fa-edit text-sm"></i>
+                        </button>
+
+                        <form action="{{ url('karyawan/delete/'.$k->id_karyawan) }}" method="POST" class="inline" id="delete-form-{{ $k->id_karyawan }}">
+                            @csrf @method('DELETE')
+                            <button type="button" onclick="confirmDelete('{{ $k->id_karyawan }}', '{{ $k->nama_karyawan }}')"
+                                    class="w-10 h-10 flex items-center justify-center bg-white border border-slate-100 text-slate-400 hover:text-rose-600 hover:border-rose-200 rounded-xl transition-all shadow-sm active:scale-90">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
 
                     {{-- MODAL EDIT (Dalam Loop) --}}
                     <div id="modalEdit{{ $k->id_karyawan }}" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
@@ -182,10 +180,8 @@
                         </div>
                     </div>
                     @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+        </tbody>
+    </x-table>
 
     <x-table.pagination :paginator="$karyawan" />
 </div>

@@ -31,55 +31,51 @@
     </div>
 
     {{-- TABLE CONTAINER --}}
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-4 py-5 text-center w-10">#</th>
-                        <th class="px-8 py-5 text-left w-24">ID</th>
-                        <th class="px-6 py-5 text-left">Nama Golongan</th>
-                        <th class="px-6 py-5 text-left">Keterangan</th>
-                        <th class="px-8 py-5 text-right">Manajemen</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    @foreach($golongan as $i => $g)
-                    <tr class="group hover:bg-slate-50/30 transition-all">
-                        <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $golongan->firstItem() + $i }}</td>
-                        <td class="px-8 py-5 text-xs text-slate-400">#{{ $g->id_golongan }}</td>
-                        <td class="px-6 py-5">
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase ">
-                                {{ $g->nama_golongan }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-5">
-                            <p class="text-sm text-slate-500  leading-relaxed truncate max-w-xs">
-                                {{ $g->keterangan ?? 'Tidak ada deskripsi tambahan' }}
-                            </p>
-                        </td>
-                        <td class="px-8 py-5 text-right">
-                            <div class="flex justify-end gap-2">
-                                <button onclick="openEditGolongan({{ json_encode($g) }})" 
-                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
-                                    <i class="far fa-edit text-sm"></i>
-                                </button>
-                                
-                                <form id="delete-form-golongan-{{ $g->id_golongan }}" action="{{ route('golongan.destroy', $g->id_golongan) }}" method="POST" class="inline">
-                                    @csrf @method('DELETE')
-                                </form>
-                                <button type="button" onclick="confirmDeleteGolongan('{{ $g->id_golongan }}', {{ json_encode($g->nama_golongan) }})"
-                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                                    <i class="far fa-trash-alt text-sm"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <x-table>
+        <thead>
+            <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
+                <th class="px-8 py-5 text-left w-24">ID</th>
+                <th class="px-6 py-5 text-left">Nama Golongan</th>
+                <th class="px-6 py-5 text-left">Keterangan</th>
+                <th class="px-8 py-5 text-right">Manajemen</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+            @foreach($golongan as $i => $g)
+            <tr class="group hover:bg-slate-50/30 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $golongan->firstItem() + $i }}</td>
+                <td class="px-8 py-5 text-xs text-slate-400">#{{ $g->id_golongan }}</td>
+                <td class="px-6 py-5">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase ">
+                        {{ $g->nama_golongan }}
+                    </span>
+                </td>
+                <td class="px-6 py-5">
+                    <p class="text-sm text-slate-500  leading-relaxed truncate max-w-xs">
+                        {{ $g->keterangan ?? 'Tidak ada deskripsi tambahan' }}
+                    </p>
+                </td>
+                <td class="px-8 py-5 text-right">
+                    <div class="flex justify-end gap-2">
+                        <button onclick="openEditGolongan({{ json_encode($g) }})"
+                                class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
+                            <i class="far fa-edit text-sm"></i>
+                        </button>
+
+                        <form id="delete-form-golongan-{{ $g->id_golongan }}" action="{{ route('golongan.destroy', $g->id_golongan) }}" method="POST" class="inline">
+                            @csrf @method('DELETE')
+                        </form>
+                        <button type="button" onclick="confirmDeleteGolongan('{{ $g->id_golongan }}', {{ json_encode($g->nama_golongan) }})"
+                                class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                            <i class="far fa-trash-alt text-sm"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </x-table>
 
     <x-table.pagination :paginator="$golongan" />
 </div>

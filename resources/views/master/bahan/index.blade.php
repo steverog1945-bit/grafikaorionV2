@@ -63,10 +63,9 @@
     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
         <form id="bulk-delete-form" method="POST" action="{{ route('bahan.bulk-delete') }}">
             @csrf
-        <div class="overflow-x-auto modern-table-wrapper">
-            <table class="modern-table">
-                <thead>
-                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
+        <x-table bare>
+            <thead>
+                <tr>
                         <th class="px-6 py-5 w-12 text-center">
                             <input type="checkbox" id="checkAll" class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer">
                         </th>
@@ -151,8 +150,7 @@
                     </tr>
                     @endforelse
                 </tbody>
-            </table>
-        </div>
+        </x-table>
 
         {{-- BULK ACTIONS FOOTER --}}
         <div id="bulk-footer" class="px-8 py-5 border-t border-slate-50 flex justify-start opacity-0 pointer-events-none transition-all duration-300 translate-y-2">

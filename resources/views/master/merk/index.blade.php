@@ -31,11 +31,9 @@
     </div>
 
     {{-- TABLE CONTAINER --}}
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
+    <x-table>
+        <thead>
+            <tr>
                         <th class="px-4 py-5 text-center w-10">#</th>
                         <th class="px-8 py-5 text-left w-24">ID</th>
                         <th class="px-6 py-5 text-left">Nama Merk</th>
@@ -80,10 +78,8 @@
                         <td colspan="5" class="py-20 text-center text-slate-400 font-medium italic">Belum ada merk yang terdaftar.</td>
                     </tr>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+        </tbody>
+    </x-table>
 
     <x-table.pagination :paginator="$merk" />
 </div>

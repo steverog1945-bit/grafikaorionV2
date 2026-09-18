@@ -38,66 +38,64 @@
         </form>
     </div>
 
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-4 py-4 text-center w-10">#</th>
-                        <th class="px-8 py-4 text-left w-28">Kode</th>
-                        <th class="px-6 py-4 text-left">Nama Akun</th>
-                        <th class="px-6 py-4 text-left w-28">Tipe</th>
-                        <th class="px-6 py-4 text-right w-36">Debet</th>
-                        <th class="px-8 py-4 text-right w-36">Kredit</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    @forelse($rows as $i => $r)
-                    <tr class="hover:bg-slate-50/30 transition-all">
-                        <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
-                        <td class="px-8 py-3 text-sm font-bold text-slate-600">{{ $r->kode_akun }}</td>
-                        <td class="px-6 py-3 text-sm text-slate-700">
-                            {{ $r->nama_akun }}
-                            @if($r->saldo_tidak_normal)
-                                <span class="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 uppercase" title="Saldo terbalik dari saldo normal yang didefinisikan">
-                                    <i class="fas fa-exclamation-triangle"></i> Tidak Normal
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-3 text-xs text-slate-400">{{ $r->tipe_akun }}</td>
-                        <td class="px-6 py-3 text-right text-sm {{ $r->kolom_debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
-                            {{ $r->kolom_debet > 0 ? number_format($r->kolom_debet, 0, ',', '.') : '-' }}
-                        </td>
-                        <td class="px-8 py-3 text-right text-sm {{ $r->kolom_kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
-                            {{ $r->kolom_kredit > 0 ? number_format($r->kolom_kredit, 0, ',', '.') : '-' }}
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="py-20 text-center text-slate-400 font-medium italic">Belum ada akun atau belum ada transaksi.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-                @if($rows->isNotEmpty())
-                <tfoot>
-                    <tr class="bg-slate-50/70 border-t-2 border-slate-100">
-                        <td colspan="4" class="px-8 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
-                        <td class="px-6 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
-                        <td class="px-8 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="6" class="px-8 py-3 text-center text-[10px] font-bold uppercase tracking-widest {{ abs($totalDebet - $totalKredit) < 0.01 ? 'text-emerald-600 bg-emerald-50/50' : 'text-rose-600 bg-rose-50/50' }}">
-                            @if(abs($totalDebet - $totalKredit) < 0.01)
-                                <i class="fas fa-check-circle"></i> Balance - Total Debet = Total Kredit
-                            @else
-                                <i class="fas fa-exclamation-circle"></i> TIDAK BALANCE - Selisih {{ number_format(abs($totalDebet - $totalKredit), 0, ',', '.') }}
-                            @endif
-                        </td>
-                    </tr>
-                </tfoot>
-                @endif
-            </table>
-        </div>
+    <div class="print:hidden">
+        <x-table>
+            <thead>
+                <tr>
+                    <th class="px-4 py-4 text-center w-10">#</th>
+                    <th class="px-8 py-4 text-left w-28">Kode</th>
+                    <th class="px-6 py-4 text-left">Nama Akun</th>
+                    <th class="px-6 py-4 text-left w-28">Tipe</th>
+                    <th class="px-6 py-4 text-right w-36">Debet</th>
+                    <th class="px-8 py-4 text-right w-36">Kredit</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                @forelse($rows as $i => $r)
+                <tr class="hover:bg-slate-50/30 transition-all">
+                    <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
+                    <td class="px-8 py-3 text-sm font-bold text-slate-600">{{ $r->kode_akun }}</td>
+                    <td class="px-6 py-3 text-sm text-slate-700">
+                        {{ $r->nama_akun }}
+                        @if($r->saldo_tidak_normal)
+                            <span class="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 uppercase" title="Saldo terbalik dari saldo normal yang didefinisikan">
+                                <i class="fas fa-exclamation-triangle"></i> Tidak Normal
+                            </span>
+                        @endif
+                    </td>
+                    <td class="px-6 py-3 text-xs text-slate-400">{{ $r->tipe_akun }}</td>
+                    <td class="px-6 py-3 text-right text-sm {{ $r->kolom_debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                        {{ $r->kolom_debet > 0 ? number_format($r->kolom_debet, 0, ',', '.') : '-' }}
+                    </td>
+                    <td class="px-8 py-3 text-right text-sm {{ $r->kolom_kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                        {{ $r->kolom_kredit > 0 ? number_format($r->kolom_kredit, 0, ',', '.') : '-' }}
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6" class="py-20 text-center text-slate-400 font-medium italic">Belum ada akun atau belum ada transaksi.</td>
+                </tr>
+                @endforelse
+            </tbody>
+            @if($rows->isNotEmpty())
+            <tfoot>
+                <tr class="bg-slate-50/70 border-t-2 border-slate-100">
+                    <td colspan="4" class="px-8 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
+                    <td class="px-6 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
+                    <td class="px-8 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td colspan="6" class="px-8 py-3 text-center text-[10px] font-bold uppercase tracking-widest {{ abs($totalDebet - $totalKredit) < 0.01 ? 'text-emerald-600 bg-emerald-50/50' : 'text-rose-600 bg-rose-50/50' }}">
+                        @if(abs($totalDebet - $totalKredit) < 0.01)
+                            <i class="fas fa-check-circle"></i> Balance - Total Debet = Total Kredit
+                        @else
+                            <i class="fas fa-exclamation-circle"></i> TIDAK BALANCE - Selisih {{ number_format(abs($totalDebet - $totalKredit), 0, ',', '.') }}
+                        @endif
+                    </td>
+                </tr>
+            </tfoot>
+            @endif
+        </x-table>
     </div>
 
     {{-- Versi cetak - pola print-table yang sama dengan laporan lain. --}}

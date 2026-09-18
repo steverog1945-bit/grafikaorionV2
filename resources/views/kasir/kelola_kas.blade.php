@@ -123,16 +123,16 @@
         </div>
     </div>
 
-    <table class="w-full text-left border-collapse">
+    <x-table bare>
         <thead>
-            <tr class="bg-slate-50">
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-center w-10">#</th>
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400">Waktu</th>
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400">Sumber / Konsumen</th>
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400">No. Nota</th>
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-center">Metode</th>
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-right">Nominal Masuk</th>
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-center">Status Nota</th>
+            <tr>
+                <th class="p-4 text-center w-10">#</th>
+                <th class="p-4">Waktu</th>
+                <th class="p-4">Sumber / Konsumen</th>
+                <th class="p-4">No. Nota</th>
+                <th class="p-4 text-center">Metode</th>
+                <th class="p-4 text-right">Nominal Masuk</th>
+                <th class="p-4 text-center">Status Nota</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
@@ -182,7 +182,7 @@
             </tr>
             @endforeach
         </tbody>
-    </table>
+    </x-table>
 </div>
 
 {{-- KAS TIDAK TERDUGA - mutasi tunai yang tidak terikat nota, terpisah
@@ -207,15 +207,15 @@
         </div>
     </div>
 
-    <table class="w-full text-left border-collapse">
+    <x-table bare>
         <thead>
-            <tr class="bg-slate-50">
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-center w-10">#</th>
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400">Waktu</th>
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400">Keterangan</th>
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-center">Status</th>
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-right">Nominal</th>
-                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-center">Dicatat Oleh</th>
+            <tr>
+                <th class="p-4 text-center w-10">#</th>
+                <th class="p-4">Waktu</th>
+                <th class="p-4">Keterangan</th>
+                <th class="p-4 text-center">Status</th>
+                <th class="p-4 text-right">Nominal</th>
+                <th class="p-4 text-center">Dicatat Oleh</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
@@ -238,7 +238,7 @@
             </tr>
             @endforeach
         </tbody>
-    </table>
+    </x-table>
 </div>
 @endif
 

@@ -34,49 +34,47 @@
                     <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold border uppercase {{ $warnaTipe[$tipe] }}">{{ $tipe }}</span>
                     <span class="text-[11px] text-slate-400">{{ $grouped[$tipe]->count() }} akun</span>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
-                                <th class="px-8 py-4 text-left w-32">Kode Akun</th>
-                                <th class="px-6 py-4 text-left">Nama Akun</th>
-                                <th class="px-6 py-4 text-left w-32">Saldo Normal</th>
-                                <th class="px-6 py-4 text-left w-28">Status</th>
-                                <th class="px-8 py-4 text-right">Manajemen</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-50">
-                            @foreach($grouped[$tipe] as $a)
-                            <tr class="group hover:bg-slate-50/30 transition-all {{ !$a->is_active ? 'opacity-50' : '' }}">
-                                <td class="px-8 py-4 text-sm font-bold text-slate-600">{{ $a->kode_akun }}</td>
-                                <td class="px-6 py-4 text-sm font-medium text-slate-700">{{ $a->nama_akun }}</td>
-                                <td class="px-6 py-4 text-xs text-slate-500">{{ $a->saldo_normal }}</td>
-                                <td class="px-6 py-4">
-                                    @if($a->is_active)
-                                        <span class="text-[10px] font-bold text-emerald-600 uppercase">Aktif</span>
-                                    @else
-                                        <span class="text-[10px] font-bold text-slate-400 uppercase">Nonaktif</span>
-                                    @endif
-                                </td>
-                                <td class="px-8 py-4 text-right">
-                                    <div class="flex justify-end gap-2">
-                                        <button onclick="openEditAkun({{ json_encode($a) }})"
-                                                class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
-                                            <i class="far fa-edit text-sm"></i>
-                                        </button>
-                                        <button type="button" onclick="confirmToggleAktif('{{ $a->id_akun }}', {{ json_encode($a->nama_akun) }}, {{ $a->is_active ? 'true' : 'false' }})" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all" title="{{ $a->is_active ? 'Nonaktifkan' : 'Aktifkan' }}">
-                                            <i class="fas {{ $a->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }} text-sm"></i>
-                                        </button>
-                                        <button type="button" onclick="confirmDeleteAkun('{{ $a->id_akun }}', {{ json_encode($a->nama_akun) }})" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                                            <i class="far fa-trash-alt text-sm"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                <x-table bare>
+                    <thead>
+                        <tr>
+                            <th class="px-8 py-4 text-left w-32">Kode Akun</th>
+                            <th class="px-6 py-4 text-left">Nama Akun</th>
+                            <th class="px-6 py-4 text-left w-32">Saldo Normal</th>
+                            <th class="px-6 py-4 text-left w-28">Status</th>
+                            <th class="px-8 py-4 text-right">Manajemen</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        @foreach($grouped[$tipe] as $a)
+                        <tr class="group hover:bg-slate-50/30 transition-all {{ !$a->is_active ? 'opacity-50' : '' }}">
+                            <td class="px-8 py-4 text-sm font-bold text-slate-600">{{ $a->kode_akun }}</td>
+                            <td class="px-6 py-4 text-sm font-medium text-slate-700">{{ $a->nama_akun }}</td>
+                            <td class="px-6 py-4 text-xs text-slate-500">{{ $a->saldo_normal }}</td>
+                            <td class="px-6 py-4">
+                                @if($a->is_active)
+                                    <span class="text-[10px] font-bold text-emerald-600 uppercase">Aktif</span>
+                                @else
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Nonaktif</span>
+                                @endif
+                            </td>
+                            <td class="px-8 py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button onclick="openEditAkun({{ json_encode($a) }})"
+                                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
+                                        <i class="far fa-edit text-sm"></i>
+                                    </button>
+                                    <button type="button" onclick="confirmToggleAktif('{{ $a->id_akun }}', {{ json_encode($a->nama_akun) }}, {{ $a->is_active ? 'true' : 'false' }})" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all" title="{{ $a->is_active ? 'Nonaktifkan' : 'Aktifkan' }}">
+                                        <i class="fas {{ $a->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }} text-sm"></i>
+                                    </button>
+                                    <button type="button" onclick="confirmDeleteAkun('{{ $a->id_akun }}', {{ json_encode($a->nama_akun) }})" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                                        <i class="far fa-trash-alt text-sm"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </x-table>
             </div>
             @endif
         @endforeach

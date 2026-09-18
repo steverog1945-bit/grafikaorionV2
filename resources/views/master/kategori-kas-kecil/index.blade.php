@@ -31,68 +31,64 @@
     </div>
 
     {{-- TABLE CONTAINER --}}
-    <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-4 py-5 text-center w-10">#</th>
-                        <th class="px-8 py-5 text-left">Nama Kategori</th>
-                        <th class="px-6 py-5 text-left">Akun Beban Terkait</th>
-                        <th class="px-8 py-5 text-right">Manajemen</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    @forelse($kategori as $i => $kat)
-                    <tr class="group hover:bg-slate-50/30 transition-all">
-                        <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $kategori->firstItem() + $i }}</td>
-                        <td class="px-8 py-5">
-                            <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
-                                {{ $kat->nama_kategori }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-5">
-                            @if($kat->kode_akun)
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
-                                    {{ $kat->kode_akun }} &middot; {{ optional($akunBeban->firstWhere('kode_akun', $kat->kode_akun))->nama_akun ?? '—' }}
-                                </span>
-                            @else
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-100 uppercase">
-                                    <i class="fas fa-exclamation-triangle"></i> Belum Dipetakan
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-8 py-5 text-right">
-                            <div class="flex justify-end gap-2">
-                                <button onclick="editKategoriKasKecil({{ json_encode($kat) }})"
-                                    class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all">
-                                    <i class="far fa-edit text-sm"></i>
-                                </button>
+    <x-table>
+        <thead>
+            <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
+                <th class="px-8 py-5 text-left">Nama Kategori</th>
+                <th class="px-6 py-5 text-left">Akun Beban Terkait</th>
+                <th class="px-8 py-5 text-right">Manajemen</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+            @forelse($kategori as $i => $kat)
+            <tr class="group hover:bg-slate-50/30 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $kategori->firstItem() + $i }}</td>
+                <td class="px-8 py-5">
+                    <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
+                        {{ $kat->nama_kategori }}
+                    </div>
+                </td>
+                <td class="px-6 py-5">
+                    @if($kat->kode_akun)
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+                            {{ $kat->kode_akun }} &middot; {{ optional($akunBeban->firstWhere('kode_akun', $kat->kode_akun))->nama_akun ?? '—' }}
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-100 uppercase">
+                            <i class="fas fa-exclamation-triangle"></i> Belum Dipetakan
+                        </span>
+                    @endif
+                </td>
+                <td class="px-8 py-5 text-right">
+                    <div class="flex justify-end gap-2">
+                        <button onclick="editKategoriKasKecil({{ json_encode($kat) }})"
+                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all">
+                            <i class="far fa-edit text-sm"></i>
+                        </button>
 
-                                <form id="delete-form-kategori-kas-kecil-{{ $kat->id_kategori_kas_kecil }}" action="{{ route('kategori-kas-kecil.destroy', $kat->id_kategori_kas_kecil) }}" method="POST" class="inline">
-                                    @csrf @method('DELETE')
-                                </form>
-                                <button type="button" onclick="confirmDeleteKategoriKasKecil('{{ $kat->id_kategori_kas_kecil }}', {{ json_encode($kat->nama_kategori) }})"
-                                    class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
-                                    <i class="far fa-trash-alt text-sm"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="4" class="py-24 text-center">
-                            <div class="flex flex-col items-center">
-                                <i class="fas fa-folder-open text-slate-100 text-6xl mb-4"></i>
-                                <p class="text-slate-300 font-medium text-sm">Belum ada kategori yang terdaftar.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+                        <form id="delete-form-kategori-kas-kecil-{{ $kat->id_kategori_kas_kecil }}" action="{{ route('kategori-kas-kecil.destroy', $kat->id_kategori_kas_kecil) }}" method="POST" class="inline">
+                            @csrf @method('DELETE')
+                        </form>
+                        <button type="button" onclick="confirmDeleteKategoriKasKecil('{{ $kat->id_kategori_kas_kecil }}', {{ json_encode($kat->nama_kategori) }})"
+                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
+                            <i class="far fa-trash-alt text-sm"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="4" class="py-24 text-center">
+                    <div class="flex flex-col items-center">
+                        <i class="fas fa-folder-open text-slate-100 text-6xl mb-4"></i>
+                        <p class="text-slate-300 font-medium text-sm">Belum ada kategori yang terdaftar.</p>
+                    </div>
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </x-table>
 
     <x-table.pagination :paginator="$kategori" />
 </div>

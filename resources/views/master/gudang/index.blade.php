@@ -31,58 +31,54 @@
     </div>
 
     {{-- TABLE CONTAINER --}}
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-4 py-5 text-center w-10">#</th>
-                        <th class="px-8 py-5 text-left">Nama Gudang</th>
-                        <th class="px-6 py-5 text-left">Alamat</th>
-                        <th class="px-6 py-5 text-left">Penanggung Jawab</th>
-                        <th class="px-6 py-5 text-left">Telepon</th>
-                        <th class="px-8 py-5 text-right">Manajemen</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    @forelse($gudang as $i => $g)
-                    <tr class="group hover:bg-slate-50/30 transition-all">
-                        <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $gudang->firstItem() + $i }}</td>
-                        <td class="px-8 py-5">
-                            <span class="text-sm font-bold text-slate-700 uppercase">{{ $g->nama_gudang }}</span>
-                            <div class="text-[10px] text-slate-400 mt-0.5">ID: #{{ $g->id_gudang }}</div>
-                        </td>
-                        <td class="px-6 py-5">
-                            <p class="text-sm text-slate-500 leading-relaxed truncate max-w-xs">{{ $g->alamat ?? '-' }}</p>
-                        </td>
-                        <td class="px-6 py-5 text-sm text-slate-600 font-medium">{{ $g->penanggung_jawab ?? '-' }}</td>
-                        <td class="px-6 py-5 text-sm text-slate-500">{{ $g->telepon ?? '-' }}</td>
-                        <td class="px-8 py-5 text-right">
-                            <div class="flex justify-end gap-2">
-                                <button onclick="openEditGudang({{ json_encode($g) }})"
-                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
-                                    <i class="far fa-edit text-sm"></i>
-                                </button>
+    <x-table>
+        <thead>
+            <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
+                <th class="px-8 py-5 text-left">Nama Gudang</th>
+                <th class="px-6 py-5 text-left">Alamat</th>
+                <th class="px-6 py-5 text-left">Penanggung Jawab</th>
+                <th class="px-6 py-5 text-left">Telepon</th>
+                <th class="px-8 py-5 text-right">Manajemen</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+            @forelse($gudang as $i => $g)
+            <tr class="group hover:bg-slate-50/30 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $gudang->firstItem() + $i }}</td>
+                <td class="px-8 py-5">
+                    <span class="text-sm font-bold text-slate-700 uppercase">{{ $g->nama_gudang }}</span>
+                    <div class="text-[10px] text-slate-400 mt-0.5">ID: #{{ $g->id_gudang }}</div>
+                </td>
+                <td class="px-6 py-5">
+                    <p class="text-sm text-slate-500 leading-relaxed truncate max-w-xs">{{ $g->alamat ?? '-' }}</p>
+                </td>
+                <td class="px-6 py-5 text-sm text-slate-600 font-medium">{{ $g->penanggung_jawab ?? '-' }}</td>
+                <td class="px-6 py-5 text-sm text-slate-500">{{ $g->telepon ?? '-' }}</td>
+                <td class="px-8 py-5 text-right">
+                    <div class="flex justify-end gap-2">
+                        <button onclick="openEditGudang({{ json_encode($g) }})"
+                                class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
+                            <i class="far fa-edit text-sm"></i>
+                        </button>
 
-                                <form id="delete-form-gudang-{{ $g->id_gudang }}" action="{{ route('gudang.destroy', $g->id_gudang) }}" method="POST" class="inline">
-                                    @csrf @method('DELETE')
-                                </form>
-                                <button type="button" onclick="confirmDeleteGudang('{{ $g->id_gudang }}', {{ json_encode($g->nama_gudang) }})"
-                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                                    <i class="far fa-trash-alt text-sm"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="py-20 text-center text-slate-400 font-medium italic">Belum ada gudang yang terdaftar.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+                        <form id="delete-form-gudang-{{ $g->id_gudang }}" action="{{ route('gudang.destroy', $g->id_gudang) }}" method="POST" class="inline">
+                            @csrf @method('DELETE')
+                        </form>
+                        <button type="button" onclick="confirmDeleteGudang('{{ $g->id_gudang }}', {{ json_encode($g->nama_gudang) }})"
+                                class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                            <i class="far fa-trash-alt text-sm"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="6" class="py-20 text-center text-slate-400 font-medium italic">Belum ada gudang yang terdaftar.</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </x-table>
 
     <x-table.pagination :paginator="$gudang" />
 </div>
