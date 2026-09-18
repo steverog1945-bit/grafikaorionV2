@@ -79,6 +79,7 @@
                     <th class="px-6 py-5 w-12 text-center">
                         <input type="checkbox" id="checkAll" class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
                     </th>
+                    <th class="px-4 py-5 text-center w-10">#</th>
                     <th class="px-4 py-5 text-left">Nama File</th>
                     <th class="px-4 py-5 text-left">Konsumen</th>
                     <th class="px-4 py-5 text-left">Tanggal Order</th>
@@ -91,11 +92,12 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-50">
-                @forelse($spk as $item)
+                @forelse($spk as $i => $item)
                 <tr class="group hover:bg-slate-50/50 transition-all {{ $item->status_urgent ? 'bg-rose-50/40' : '' }}">
                     <td class="px-6 py-5 text-center">
                         <input type="checkbox" name="ids[]" value="{{ $item->id_detail }}" class="row-checkbox rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
                     </td>
+                    <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $spk->firstItem() + $i }}</td>
                     <td class="px-4 py-5">
                         <div class="text-[13px] font-bold text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $item->nama_file }}</div>
                         <div class="text-[10px] text-slate-400 mt-0.5">Nota: {{ $item->nomor_nota }} &middot; SPK #{{ $item->id_detail }}</div>

@@ -56,6 +56,7 @@
                     <th class="px-6 py-5 w-12 text-center">
                         <input type="checkbox" id="checkAll" class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
                     </th>
+                    <th class="px-4 py-5 text-center w-10">#</th>
                     <th class="px-4 py-5 text-left min-w-[150px]">No. Faktur</th>
                     <th class="px-4 py-5 text-left">Tanggal</th>
                     <th class="px-4 py-5 text-left">Supplier</th>
@@ -66,11 +67,12 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-50">
-                @forelse($data as $item)
+                @forelse($data as $i => $item)
                 <tr class="group hover:bg-slate-50/50 transition-all">
                     <td class="px-6 py-5 text-center">
                         <input type="checkbox" name="ids[]" value="{{ $item->id_pembelian }}" class="row-checkbox rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
                     </td>
+                    <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
 
                     <td class="px-4 py-5">
                         <span class="text-[13px] font-bold text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">

@@ -15,6 +15,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">Username</th>
                 <th class="px-4 py-5 text-left">Nama Karyawan</th>
                 <th class="px-4 py-5 text-left">Role / Akses</th>
@@ -22,8 +23,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @foreach($users as $u)
+            @foreach($users as $i => $u)
             <tr class="hover:bg-slate-50/50 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-6 py-5">
                     <span class="text-[13px] text-indigo-600 font-bold">{{ '@' . $u->username }}</span>
                 </td>

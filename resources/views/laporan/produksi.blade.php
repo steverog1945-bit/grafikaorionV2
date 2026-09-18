@@ -193,6 +193,7 @@
     <x-table class="rtable">
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">SPK</th>
                 <th class="px-4 py-5 text-left">Nama File</th>
                 <th class="px-4 py-5 text-left">Konsumen</th>
@@ -207,9 +208,10 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($detail as $d)
+            @forelse($detail as $i => $d)
             @php $m2Baris = $d->metode_hitung === 'ukuran' && $d->p_ukuran > 0 && $d->l_ukuran > 0 ? ($d->p_ukuran * $d->l_ukuran / 10000) * $d->qty : null; @endphp
             <tr class="hover:bg-slate-50/50 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $detail->firstItem() + $i }}</td>
                 <td data-label="SPK" class="px-6 py-5"><span class="text-[12px] font-bold text-slate-500">#{{ $d->id_detail }}</span></td>
                 <td data-label="Nama File" class="px-4 py-5"><span class="text-[13px] font-bold text-slate-700 uppercase">{{ $d->nama_file }}</span> <div class="text-[10px] text-slate-400">{{ $d->nomor_nota }}</div></td>
                 <td data-label="Konsumen" class="px-4 py-5"><span class="text-[12px] font-bold text-slate-700 uppercase">{{ $d->nama_konsumen }}</span></td>
@@ -224,7 +226,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="11">
+                <td colspan="12">
                     <x-empty-state title="Tidak ada data" description="Sesuaikan filter untuk melihat detail produksi." />
                 </td>
             </tr>
@@ -234,10 +236,11 @@
     </div>
 
     <div class="hidden print:block">
-        <x-laporan.print-table title="Detail per SPK" :headers="['SPK', 'Nama File', 'Konsumen', 'Tanggal', 'Divisi', 'Desainer', 'Ukuran', 'Qty Order', 'Qty Cetak', 'm²', 'Status']" :align="['left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right', 'right', 'left']">
-            @forelse($detail as $d)
+        <x-laporan.print-table title="Detail per SPK" :headers="['#', 'SPK', 'Nama File', 'Konsumen', 'Tanggal', 'Divisi', 'Desainer', 'Ukuran', 'Qty Order', 'Qty Cetak', 'm²', 'Status']" :align="['center', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right', 'right', 'left']">
+            @forelse($detail as $i => $d)
             @php $m2BarisPrint = $d->metode_hitung === 'ukuran' && $d->p_ukuran > 0 && $d->l_ukuran > 0 ? ($d->p_ukuran * $d->l_ukuran / 10000) * $d->qty : null; @endphp
             <tr>
+                <td class="px-3 py-1.5 text-center text-slate-400">{{ $detail->firstItem() + $i }}</td>
                 <td class="px-3 py-1.5 text-slate-500">#{{ $d->id_detail }}</td>
                 <td class="px-3 py-1.5 text-slate-700">{{ $d->nama_file }}<br><span class="text-slate-400">{{ $d->nomor_nota }}</span></td>
                 <td class="px-3 py-1.5 text-slate-700">{{ $d->nama_konsumen }}</td>
@@ -252,7 +255,7 @@
             </tr>
             @empty
             <tr>
-                <td class="px-3 py-1.5 text-slate-400 italic" colspan="11">Tidak ada data</td>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="12">Tidak ada data</td>
             </tr>
             @endforelse
         </x-laporan.print-table>

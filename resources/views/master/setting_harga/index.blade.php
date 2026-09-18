@@ -49,6 +49,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-4 text-center w-10">#</th>
                 <th class="px-6 py-4 text-left">Produk</th>
                 @foreach($golongan as $g)
                 <th class="px-4 py-4 text-center">{{ $g->nama_golongan }}</th>
@@ -57,7 +58,7 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($produk as $p)
+            @forelse($produk as $i => $p)
             @php
                 $hargaProduk = $all_harga[$p->id_produk] ?? collect();
                 $satuanRentangRow = $p->metode_hitung === 'ukuran' ? 'm²' : 'Pcs';
@@ -66,6 +67,7 @@
                 $fmtRentang = fn ($v) => rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
             @endphp
             <tr class="group hover:bg-slate-50/50 transition-all">
+                <td class="px-4 py-3.5 text-center text-[11px] text-slate-400">{{ $produk->firstItem() + $i }}</td>
                 <td class="px-6 py-3.5">
                     <div class="text-[14px] font-bold text-slate-700 uppercase">{{ $p->nama_produk }}</div>
                     <div class="flex items-center gap-2 mt-0.5">
@@ -104,7 +106,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="{{ count($golongan) + 2 }}">
+                <td colspan="{{ count($golongan) + 3 }}">
                     <x-empty-state title="Produk tidak ditemukan" description="Sesuaikan filter di atas." />
                 </td>
             </tr>

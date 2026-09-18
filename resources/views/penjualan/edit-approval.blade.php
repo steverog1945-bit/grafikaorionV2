@@ -32,6 +32,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-8 py-5 text-left">Nota</th>
                 <th class="px-6 py-5 text-left">Diajukan Oleh</th>
                 <th class="px-6 py-5 text-left">Alasan</th>
@@ -41,8 +42,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($requests as $r)
+            @forelse($requests as $i => $r)
             <tr class="hover:bg-slate-50/30 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $requests->firstItem() + $i }}</td>
                 <td class="px-8 py-5">
                     <span class="text-[13px] font-bold text-slate-700">{{ $r->nomor_nota }}</span>
                     <div class="text-[11px] text-slate-400">{{ $r->nama_konsumen }} &middot; Rp {{ number_format($r->total_bayar, 0, ',', '.') }}</div>

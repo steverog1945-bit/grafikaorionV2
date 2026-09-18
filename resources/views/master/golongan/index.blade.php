@@ -36,6 +36,7 @@
             <table class="w-full border-collapse">
                 <thead>
                     <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-4 py-5 text-center w-10">#</th>
                         <th class="px-8 py-5 text-left w-24">ID</th>
                         <th class="px-6 py-5 text-left">Nama Golongan</th>
                         <th class="px-6 py-5 text-left">Keterangan</th>
@@ -43,8 +44,9 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    @foreach($golongan as $g)
+                    @foreach($golongan as $i => $g)
                     <tr class="group hover:bg-slate-50/30 transition-all">
+                        <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $golongan->firstItem() + $i }}</td>
                         <td class="px-8 py-5 text-xs text-slate-400">#{{ $g->id_golongan }}</td>
                         <td class="px-6 py-5">
                             <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase ">

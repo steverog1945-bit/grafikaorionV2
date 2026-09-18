@@ -116,6 +116,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">Nota</th>
                 <th class="px-4 py-5 text-left">Tanggal</th>
                 <th class="px-4 py-5 text-left">Item</th>
@@ -127,9 +128,10 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($data as $row)
+            @forelse($data as $i => $row)
             @php $marginBaris = $row->subtotal - $row->hpp_snapshot; @endphp
             <tr class="hover:bg-slate-50/50 transition-all">
+                <td class="px-4 py-4 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-6 py-4 text-[12px] font-bold text-slate-700">{{ $row->nomor_nota }}</td>
                 <td class="px-4 py-4 text-[12px] text-slate-500">{{ \Carbon\Carbon::parse($row->tgl_order)->format('d M Y') }}</td>
                 <td class="px-4 py-4 text-[12px] font-semibold text-slate-600">{{ $row->nama_item }}</td>
@@ -141,7 +143,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="8">
+                <td colspan="9">
                     <x-empty-state title="Belum ada data" description="Tidak ada transaksi pada rentang tanggal yang dipilih." />
                 </td>
             </tr>

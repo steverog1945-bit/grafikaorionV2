@@ -36,6 +36,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-3 text-center w-10">#</th>
                 <th class="px-4 py-3 text-left">No. Order</th>
                 <th class="px-4 py-3 text-left">Pelanggan / Tim</th>
                 <th class="px-4 py-3 text-left">Barang</th>
@@ -47,8 +48,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($orders as $o)
+            @forelse($orders as $i => $o)
             <tr class="hover:bg-slate-50/50">
+                <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $orders->firstItem() + $i }}</td>
                 <td class="px-4 py-3 font-bold text-slate-700">{{ $o->order_number }}</td>
                 <td class="px-4 py-3">
                     <p class="font-semibold text-slate-700">{{ $o->konsumen->nama_konsumen ?? $o->customer_name }}</p>

@@ -63,6 +63,7 @@
             <table class="w-full border-collapse">
                 <thead>
                     <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-4 py-4 text-center w-10">#</th>
                         <th class="px-8 py-4 text-left w-28">Tanggal</th>
                         <th class="px-6 py-4 text-left">No. Referensi / Keterangan</th>
                         <th class="px-6 py-4 text-right w-32">Debet</th>
@@ -72,11 +73,12 @@
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     <tr class="bg-slate-50/40">
-                        <td colspan="4" class="px-8 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest">Saldo Awal</td>
+                        <td colspan="5" class="px-8 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest">Saldo Awal</td>
                         <td class="px-8 py-3 text-right text-sm font-bold text-slate-700">{{ number_format($saldoAwal, 0, ',', '.') }}</td>
                     </tr>
-                    @forelse($rows as $r)
+                    @forelse($rows as $i => $r)
                     <tr class="hover:bg-slate-50/30 transition-all">
+                        <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                         <td class="px-8 py-3 text-xs text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
                         <td class="px-6 py-3 text-sm text-slate-700">
                             <span class="text-xs text-slate-400">{{ $r->no_referensi }}</span> — {{ $r->keterangan }}
@@ -91,11 +93,11 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="py-16 text-center text-slate-400 font-medium italic">Tidak ada mutasi pada rentang tanggal ini.</td>
+                        <td colspan="6" class="py-16 text-center text-slate-400 font-medium italic">Tidak ada mutasi pada rentang tanggal ini.</td>
                     </tr>
                     @endforelse
                     <tr class="bg-indigo-50/40 border-t-2 border-indigo-100">
-                        <td colspan="4" class="px-8 py-4 text-right text-[11px] font-bold text-indigo-700 uppercase tracking-widest">Saldo Akhir</td>
+                        <td colspan="5" class="px-8 py-4 text-right text-[11px] font-bold text-indigo-700 uppercase tracking-widest">Saldo Akhir</td>
                         <td class="px-8 py-4 text-right text-sm font-black text-indigo-700">{{ number_format($saldoAkhir, 0, ',', '.') }}</td>
                     </tr>
                 </tbody>
@@ -105,13 +107,14 @@
 
     {{-- Versi cetak - pola print-table yang sama dengan laporan lain. --}}
     <div class="hidden print:block">
-        <x-laporan.print-table :title="'Buku Besar - ' . $akun->kode_akun . ' ' . $akun->nama_akun" :headers="['Tanggal', 'No. Referensi / Keterangan', 'Debet', 'Kredit', 'Saldo']" :align="['left', 'left', 'right', 'right', 'right']">
+        <x-laporan.print-table :title="'Buku Besar - ' . $akun->kode_akun . ' ' . $akun->nama_akun" :headers="['#', 'Tanggal', 'No. Referensi / Keterangan', 'Debet', 'Kredit', 'Saldo']" :align="['center', 'left', 'left', 'right', 'right', 'right']">
             <tr class="bg-slate-50">
-                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="4">Saldo Awal</td>
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="5">Saldo Awal</td>
                 <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($saldoAwal, 0, ',', '.') }}</td>
             </tr>
-            @forelse($rows as $r)
+            @forelse($rows as $i => $r)
             <tr>
+                <td class="px-3 py-1.5 text-center text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-3 py-1.5 text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
                 <td class="px-3 py-1.5 text-slate-700">{{ $r->no_referensi }} — {{ $r->keterangan }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}</td>
@@ -120,11 +123,11 @@
             </tr>
             @empty
             <tr>
-                <td class="px-3 py-1.5 text-slate-400 italic" colspan="5">Tidak ada mutasi pada rentang tanggal ini.</td>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="6">Tidak ada mutasi pada rentang tanggal ini.</td>
             </tr>
             @endforelse
             <tr class="bg-slate-50 border-t border-slate-200">
-                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="4">Saldo Akhir</td>
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="5">Saldo Akhir</td>
                 <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($saldoAkhir, 0, ',', '.') }}</td>
             </tr>
         </x-laporan.print-table>

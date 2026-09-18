@@ -101,6 +101,7 @@
     <x-table class="rtable">
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">Kode</th>
                 <th class="px-4 py-5 text-left">Nama Bahan</th>
                 <th class="px-4 py-5 text-left">Kategori</th>
@@ -111,8 +112,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($data as $b)
+            @forelse($data as $i => $b)
             <tr class="hover:bg-slate-50/50 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td data-label="Kode" class="px-6 py-5"><span class="text-[12px] font-bold text-slate-500 uppercase">{{ $b->kode_bahan }}</span></td>
                 <td data-label="Nama Bahan" class="px-4 py-5"><span class="text-[13px] font-bold text-slate-700">{{ $b->nama_bahan }}</span></td>
                 <td data-label="Kategori" class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $b->kategori->nama_kategori ?? '-' }}</span></td>
@@ -125,7 +127,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     <x-empty-state title="Tidak ada bahan" description="Sesuaikan filter untuk melihat stok bahan baku." />
                 </td>
             </tr>
@@ -137,9 +139,10 @@
     {{-- Versi cetak: tabel polos sederhana, gaya visual sama dengan
          laporan lain (font 10/11px konsisten). --}}
     <div class="hidden print:block">
-        <x-laporan.print-table title="Detail Stok Bahan Baku" :headers="['Kode', 'Nama Bahan', 'Kategori', 'Stok Saat Ini', 'Stok Minimal', 'Harga Rata-rata', 'Status']" :align="['left', 'left', 'left', 'right', 'right', 'right', 'left']">
-            @forelse($data as $b)
+        <x-laporan.print-table title="Detail Stok Bahan Baku" :headers="['#', 'Kode', 'Nama Bahan', 'Kategori', 'Stok Saat Ini', 'Stok Minimal', 'Harga Rata-rata', 'Status']" :align="['center', 'left', 'left', 'left', 'right', 'right', 'right', 'left']">
+            @forelse($data as $i => $b)
             <tr>
+                <td class="px-3 py-1.5 text-center text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-3 py-1.5 text-slate-500">{{ $b->kode_bahan }}</td>
                 <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $b->nama_bahan }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $b->kategori->nama_kategori ?? '-' }}</td>
@@ -150,7 +153,7 @@
             </tr>
             @empty
             <tr>
-                <td class="px-3 py-1.5 text-slate-400 italic" colspan="7">Tidak ada bahan.</td>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="8">Tidak ada bahan.</td>
             </tr>
             @endforelse
         </x-laporan.print-table>

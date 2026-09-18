@@ -129,6 +129,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">Tanggal</th>
                 <th class="px-4 py-5 text-left">Kategori</th>
                 <th class="px-4 py-5 text-left">Keterangan</th>
@@ -138,8 +139,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($data as $k)
+            @forelse($data as $i => $k)
             <tr class="hover:bg-slate-50/50 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-6 py-5">
                     <span class="text-[13px] font-bold text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d M Y') }}</span>
                 </td>
@@ -164,7 +166,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6">
+                <td colspan="7">
                     <x-empty-state title="Belum ada catatan kas kecil" description="Sesuaikan filter tanggal, atau catat pengeluaran baru lewat form di atas." />
                 </td>
             </tr>
@@ -176,9 +178,10 @@
     {{-- Versi cetak: tabel polos sederhana, gaya visual sama dengan
          laporan lain (font 10/11px konsisten, tanpa padding lega UI). --}}
     <div class="hidden print:block">
-        <x-laporan.print-table title="Detail Kas Kecil" :headers="['Tanggal', 'Kategori', 'Keterangan', 'Dicatat Oleh', 'Nominal']" :align="['left', 'left', 'left', 'left', 'right']">
-            @forelse($data as $k)
+        <x-laporan.print-table title="Detail Kas Kecil" :headers="['#', 'Tanggal', 'Kategori', 'Keterangan', 'Dicatat Oleh', 'Nominal']" :align="['center', 'left', 'left', 'left', 'left', 'right']">
+            @forelse($data as $i => $k)
             <tr>
+                <td class="px-3 py-1.5 text-center text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-3 py-1.5 font-semibold text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d/m/Y') }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->kategori->nama_kategori ?? '-' }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->keterangan }}</td>
@@ -187,12 +190,12 @@
             </tr>
             @empty
             <tr>
-                <td class="px-3 py-1.5 text-slate-400 italic" colspan="5">Belum ada catatan kas kecil.</td>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="6">Belum ada catatan kas kecil.</td>
             </tr>
             @endforelse
             @if($data->isNotEmpty())
             <tr class="bg-slate-50 border-t border-slate-200">
-                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="4">Total Pengeluaran (halaman ini)</td>
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="5">Total Pengeluaran (halaman ini)</td>
                 <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($data->sum('nominal'), 0, ',', '.') }}</td>
             </tr>
             @endif

@@ -67,6 +67,7 @@
                             <th class="px-6 py-4 w-16 text-center text-indigo-500">
                                 <input type="checkbox" id="checkAll" class="rounded-lg border-slate-200 text-indigo-600 focus:ring-indigo-500 w-5 h-5 transition-all cursor-pointer">
                             </th>
+                            <th class="px-4 py-4 text-center w-10">#</th>
                             <th class="px-4 py-4 text-left">Dokumen SJ</th>
                             <th class="px-4 py-4 text-left">Entitas</th>
                             <th class="px-4 py-4 text-left w-[350px]">Keterangan</th>
@@ -75,7 +76,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($kedatangans as $k)
+                        @forelse($kedatangans as $i => $k)
                         <tr class="group hover:bg-indigo-50/40 transition-all duration-300">
                             <td class="px-6 py-6 text-center bg-slate-50 group-hover:bg-white rounded-l-[2rem] border-y border-l border-transparent group-hover:border-indigo-100 transition-all">
                                 @if($k->status == 'Draft')
@@ -84,6 +85,7 @@
                                     <i class="fas fa-lock text-slate-300 text-xs"></i>
                                 @endif
                             </td>
+                            <td class="px-4 py-6 text-center text-[11px] text-slate-400">{{ $kedatangans->firstItem() + $i }}</td>
                             
                             <td class="px-4 py-6 border-y border-transparent group-hover:border-indigo-100">
                                 <span class="text-[14px] font-black text-slate-800 uppercase block tracking-tight">{{ $k->no_surat_jalan }}</span>

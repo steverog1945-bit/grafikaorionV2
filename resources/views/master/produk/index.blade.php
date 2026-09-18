@@ -59,6 +59,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-4 text-center w-10">#</th>
                 <th class="px-6 py-4 text-left">Detail Produk</th>
                 <th class="px-4 py-4 text-center">Metode Hitung</th>
                 <th class="px-4 py-4 text-left">Bahan Baku (BOM)</th>
@@ -67,8 +68,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($produk as $p)
+            @forelse($produk as $i => $p)
             <tr class="group hover:bg-indigo-50/40 transition-all {{ $p->status === 'nonaktif' ? 'opacity-50' : '' }}">
+                <td class="px-4 py-3.5 text-center text-[11px] text-slate-400">{{ $produk->firstItem() + $i }}</td>
                 <td class="px-6 py-3.5">
                     <div class="font-bold text-slate-800 text-[14px] flex items-center gap-2">
                         {{ $p->nama_produk }}

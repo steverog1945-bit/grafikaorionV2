@@ -95,6 +95,7 @@
     <x-table class="rtable">
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">No. Nota</th>
                 <th class="px-4 py-5 text-left">Tanggal</th>
                 <th class="px-4 py-5 text-left">Konsumen</th>
@@ -104,8 +105,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($data as $p)
+            @forelse($data as $i => $p)
             <tr class="hover:bg-slate-50/50 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td data-label="No. Nota" class="px-6 py-5"><span class="text-[13px] font-bold text-slate-700 uppercase">{{ $p->nomor_nota }}</span></td>
                 <td data-label="Tanggal" class="px-4 py-5"><span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($p->tgl_order)->format('d M Y') }}</span></td>
                 <td data-label="Konsumen" class="px-4 py-5"><span class="text-[12px] font-bold text-slate-700 uppercase">{{ $p->nama_konsumen }}</span></td>
@@ -115,7 +117,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6">
+                <td colspan="7">
                     <x-empty-state title="Tidak ada piutang" description="Sesuaikan filter untuk melihat daftar piutang." />
                 </td>
             </tr>
@@ -124,7 +126,7 @@
         @if($data->isNotEmpty())
         <tfoot class="bg-slate-50 border-t border-slate-100">
             <tr>
-                <td colspan="5" class="px-6 py-3 text-[11px] font-black uppercase text-slate-500">Total Piutang (halaman ini)</td>
+                <td colspan="6" class="px-6 py-3 text-[11px] font-black uppercase text-slate-500">Total Piutang (halaman ini)</td>
                 <td class="px-8 py-3 text-[13px] font-black text-rose-600 text-right">Rp {{ number_format($data->sum('piutang'), 0, ',', '.') }}</td>
             </tr>
         </tfoot>
@@ -136,9 +138,10 @@
          laporan lain), bukan tabel bawaan layar (.modern-table) yang
          paddingnya lebih lega untuk kebutuhan UI. --}}
     <div class="hidden print:block">
-        <x-laporan.print-table title="Detail Data Piutang" :headers="['No. Nota', 'Tanggal', 'Konsumen', 'Total Transaksi', 'Sudah Dibayar', 'Piutang']" :align="['left', 'left', 'left', 'right', 'right', 'right']">
-            @forelse($data as $p)
+        <x-laporan.print-table title="Detail Data Piutang" :headers="['#', 'No. Nota', 'Tanggal', 'Konsumen', 'Total Transaksi', 'Sudah Dibayar', 'Piutang']" :align="['center', 'left', 'left', 'left', 'right', 'right', 'right']">
+            @forelse($data as $i => $p)
             <tr>
+                <td class="px-3 py-1.5 text-center text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $p->nomor_nota }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ \Carbon\Carbon::parse($p->tgl_order)->format('d/m/Y') }}</td>
                 <td class="px-3 py-1.5 text-slate-700">{{ $p->nama_konsumen }}</td>
@@ -148,12 +151,12 @@
             </tr>
             @empty
             <tr>
-                <td class="px-3 py-1.5 text-slate-400 italic" colspan="6">Tidak ada piutang.</td>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="7">Tidak ada piutang.</td>
             </tr>
             @endforelse
             @if($data->isNotEmpty())
             <tr class="bg-slate-50 border-t border-slate-200">
-                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="5">Total Piutang (halaman ini)</td>
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="6">Total Piutang (halaman ini)</td>
                 <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($data->sum('piutang'), 0, ',', '.') }}</td>
             </tr>
             @endif

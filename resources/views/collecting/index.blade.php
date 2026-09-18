@@ -72,6 +72,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">Nomor Faktur</th>
                 <th class="px-4 py-5 text-left">Konsumen</th>
                 <th class="px-4 py-5 text-left">Tanggal Order</th>
@@ -83,9 +84,10 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($collecting as $item)
+            @forelse($collecting as $i => $item)
             @php $lengkap = $item->total_item > 0 && $item->item_kelar == $item->total_item; @endphp
             <tr class="group hover:bg-slate-50/50 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $collecting->firstItem() + $i }}</td>
                 <td class="px-6 py-5">
                     <span class="text-[13px] font-bold text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $item->nomor_nota }}</span>
                 </td>

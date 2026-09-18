@@ -16,6 +16,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">Nama Finishing</th>
                 <th class="px-4 py-5 text-left">Mesin/Divisi</th>
                 <th class="px-4 py-5 text-left">Kategori Berlaku</th>
@@ -25,8 +26,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($data as $d)
+            @forelse($data as $i => $d)
             <tr class="group hover:bg-slate-50/30 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-6 py-5">
                     <div class="text-[13px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors uppercase">
                         {{ $d->nama_finishing }}
@@ -73,7 +75,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6">
+                <td colspan="7">
                     <x-empty-state title="Belum ada jenis finishing" description="Tambahkan jenis finishing seperti Laminasi, Kisscut, atau Jahit Banner." />
                 </td>
             </tr>

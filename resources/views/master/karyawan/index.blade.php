@@ -50,7 +50,7 @@
             <table class="w-full border-separate border-spacing-y-4">
                 <thead>
                     <tr class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                        <th class="px-6 py-4 w-20 text-center">ID</th>
+                        <th class="px-6 py-4 w-20 text-center">#</th>
                         <th class="px-4 py-4 text-left">Profil Karyawan</th>
                         <th class="px-4 py-4 text-left">Penempatan</th>
                         <th class="px-4 py-4 text-center">Status Kepegawaian</th>
@@ -58,11 +58,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($karyawan as $k)
+                    @foreach($karyawan as $i => $k)
                     <tr class="group hover:bg-indigo-50/40 transition-all duration-300">
-                        {{-- ID Column --}}
+                        {{-- Nomor Urut (lintas halaman) --}}
                         <td class="px-6 py-6 text-center bg-slate-50 group-hover:bg-white rounded-l-[2rem] border-y border-l border-transparent group-hover:border-indigo-100 transition-all">
-                            <span class="text-[11px] font-bold text-slate-400">#{{ $k->id_karyawan }}</span>
+                            <span class="text-[11px] font-bold text-slate-400">{{ $karyawan->firstItem() + $i }}</span>
                         </td>
                         
                         {{-- Name & Phone --}}

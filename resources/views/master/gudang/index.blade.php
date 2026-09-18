@@ -36,6 +36,7 @@
             <table class="w-full border-collapse">
                 <thead>
                     <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-4 py-5 text-center w-10">#</th>
                         <th class="px-8 py-5 text-left">Nama Gudang</th>
                         <th class="px-6 py-5 text-left">Alamat</th>
                         <th class="px-6 py-5 text-left">Penanggung Jawab</th>
@@ -44,8 +45,9 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    @forelse($gudang as $g)
+                    @forelse($gudang as $i => $g)
                     <tr class="group hover:bg-slate-50/30 transition-all">
+                        <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $gudang->firstItem() + $i }}</td>
                         <td class="px-8 py-5">
                             <span class="text-sm font-bold text-slate-700 uppercase">{{ $g->nama_gudang }}</span>
                             <div class="text-[10px] text-slate-400 mt-0.5">ID: #{{ $g->id_gudang }}</div>

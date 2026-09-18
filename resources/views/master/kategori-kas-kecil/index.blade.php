@@ -36,13 +36,15 @@
             <table class="w-full border-collapse">
                 <thead>
                     <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-4 py-5 text-center w-10">#</th>
                         <th class="px-8 py-5 text-left">Nama Kategori</th>
                         <th class="px-8 py-5 text-right">Manajemen</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    @forelse($kategori as $kat)
+                    @forelse($kategori as $i => $kat)
                     <tr class="group hover:bg-slate-50/30 transition-all">
+                        <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $kategori->firstItem() + $i }}</td>
                         <td class="px-8 py-5">
                             <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
                                 {{ $kat->nama_kategori }}

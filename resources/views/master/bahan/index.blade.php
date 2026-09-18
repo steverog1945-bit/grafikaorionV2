@@ -70,6 +70,7 @@
                         <th class="px-6 py-5 w-12 text-center">
                             <input type="checkbox" id="checkAll" class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer">
                         </th>
+                        <th class="px-4 py-5 text-center w-10">#</th>
                         <th class="px-8 py-5 text-left">Identitas Material</th>
                         <th class="px-6 py-5 text-center">Spesifikasi</th>
                         <th class="px-6 py-5 text-center">Volume Stok</th>
@@ -78,11 +79,12 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    @forelse($bahan as $b)
+                    @forelse($bahan as $i => $b)
                     <tr class="group hover:bg-slate-50/30 transition-all {{ $b->status === 'nonaktif' ? 'opacity-50' : '' }}">
                         <td class="px-6 py-5 text-center">
                             <input type="checkbox" name="ids[]" value="{{ $b->id_bahan }}" class="row-checkbox rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer">
                         </td>
+                        <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $bahan->firstItem() + $i }}</td>
                         <td class="px-8 py-5">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-bold text-xs">

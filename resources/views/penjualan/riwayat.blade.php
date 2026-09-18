@@ -63,6 +63,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-8 py-5 text-left">No. Nota</th>
                 <th class="px-6 py-5 text-left">Tanggal & Jam</th>
                 <th class="px-6 py-5 text-left">Pelanggan</th>
@@ -75,8 +76,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($transaksis as $t)
+            @forelse($transaksis as $i => $t)
             <tr class="group hover:bg-slate-50/30 transition-all {{ $t->status_nota === 'Dibatalkan' ? 'opacity-50' : '' }}">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $transaksis->firstItem() + $i }}</td>
                 <td class="px-8 py-5">
                     <span class="text-[13px] font-bold text-slate-700">{{ $t->nomor_nota }}</span>
                 </td>

@@ -47,6 +47,7 @@
             <table class="w-full border-collapse">
                 <thead>
                     <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-4 py-4 text-center w-10">#</th>
                         <th class="px-8 py-4 text-left w-28">Tanggal</th>
                         <th class="px-6 py-4 text-left">No. Referensi</th>
                         <th class="px-6 py-4 text-left">Keterangan</th>
@@ -56,8 +57,9 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    @forelse($rows as $r)
+                    @forelse($rows as $i => $r)
                     <tr class="hover:bg-slate-50/30 transition-all">
+                        <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                         <td class="px-8 py-3 text-xs text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
                         <td class="px-6 py-3 text-xs text-slate-500">{{ $r->no_referensi }}</td>
                         <td class="px-6 py-3 text-sm text-slate-700">{{ $r->keterangan }}</td>
@@ -74,20 +76,20 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="py-20 text-center text-slate-400 font-medium italic">Tidak ada jurnal pada rentang tanggal ini.</td>
+                        <td colspan="7" class="py-20 text-center text-slate-400 font-medium italic">Tidak ada jurnal pada rentang tanggal ini.</td>
                     </tr>
                     @endforelse
                 </tbody>
                 @if($rows->isNotEmpty())
                 <tfoot>
                     <tr class="bg-slate-50/70 border-t-2 border-slate-100">
-                        <td colspan="4" class="px-8 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
+                        <td colspan="5" class="px-8 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
                         <td class="px-6 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
                         <td class="px-8 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
                     </tr>
                     @if(abs($totalDebet - $totalKredit) < 0.01)
                     <tr>
-                        <td colspan="6" class="px-8 py-3 text-center text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50/50">
+                        <td colspan="7" class="px-8 py-3 text-center text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50/50">
                             <i class="fas fa-check-circle"></i> Balance - Total Debet = Total Kredit
                         </td>
                     </tr>
@@ -103,9 +105,10 @@
          resources/views/components/laporan/print-table.blade.php) supaya
          tidak ada pembeda gaya cetak antar laporan. --}}
     <div class="hidden print:block">
-        <x-laporan.print-table title="Jurnal Umum" :headers="['Tanggal', 'No. Referensi', 'Keterangan', 'Akun', 'Debet', 'Kredit']" :align="['left', 'left', 'left', 'left', 'right', 'right']">
-            @forelse($rows as $r)
+        <x-laporan.print-table title="Jurnal Umum" :headers="['#', 'Tanggal', 'No. Referensi', 'Keterangan', 'Akun', 'Debet', 'Kredit']" :align="['center', 'left', 'left', 'left', 'left', 'right', 'right']">
+            @forelse($rows as $i => $r)
             <tr>
+                <td class="px-3 py-1.5 text-center text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-3 py-1.5 text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
                 <td class="px-3 py-1.5 text-slate-500">{{ $r->no_referensi }}</td>
                 <td class="px-3 py-1.5 text-slate-700">{{ $r->keterangan }}</td>
@@ -115,18 +118,18 @@
             </tr>
             @empty
             <tr>
-                <td class="px-3 py-1.5 text-slate-400 italic" colspan="6">Tidak ada jurnal pada rentang tanggal ini.</td>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="7">Tidak ada jurnal pada rentang tanggal ini.</td>
             </tr>
             @endforelse
             @if($rows->isNotEmpty())
             <tr class="bg-slate-50 border-t border-slate-200">
-                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="4">Total</td>
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="5">Total</td>
                 <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
                 <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
             </tr>
             @if(abs($totalDebet - $totalKredit) < 0.01)
             <tr>
-                <td class="px-3 py-1.5 text-center font-bold text-slate-700" colspan="6">Balance - Total Debet = Total Kredit</td>
+                <td class="px-3 py-1.5 text-center font-bold text-slate-700" colspan="7">Balance - Total Debet = Total Kredit</td>
             </tr>
             @endif
             @endif

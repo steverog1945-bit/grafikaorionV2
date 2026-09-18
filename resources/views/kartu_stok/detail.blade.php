@@ -80,6 +80,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">Tanggal</th>
                 <th class="px-4 py-5 text-center">Tipe</th>
                 <th class="px-4 py-5 text-right">Qty</th>
@@ -91,12 +92,13 @@
         </thead>
         <tbody class="divide-y divide-slate-50">
             <tr class="bg-slate-50/40">
-                <td colspan="4" class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Saldo Awal ({{ \Carbon\Carbon::parse($awal)->format('d M Y') }})</td>
+                <td colspan="5" class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Saldo Awal ({{ \Carbon\Carbon::parse($awal)->format('d M Y') }})</td>
                 <td class="px-4 py-3 text-right text-sm font-bold text-slate-700">{{ number_format($saldoAwal, 2) }}</td>
                 <td colspan="2"></td>
             </tr>
-            @forelse($kartu as $k)
+            @forelse($kartu as $i => $k)
             <tr class="hover:bg-slate-50/50 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-6 py-5">
                     <span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($k->tanggal)->format('d M Y H:i') }}</span>
                 </td>
@@ -127,7 +129,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     <x-empty-state title="Tidak ada transaksi pada rentang filter ini" description="Coba perlebar rentang tanggal atau reset filter tipe." />
                 </td>
             </tr>

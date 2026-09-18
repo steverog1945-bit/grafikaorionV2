@@ -64,14 +64,16 @@
                     <table class="w-full border-collapse">
                         <thead>
                             <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
+                                <th class="px-4 py-5 text-center w-10">#</th>
                                 <th class="px-8 py-5 text-left">Nama Satuan</th>
                                 <th class="px-6 py-5 text-center">Catatan Konversi</th>
                                 <th class="px-8 py-5 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50">
-                            @forelse($satuan as $s)
+                            @forelse($satuan as $i => $s)
                             <tr class="group hover:bg-slate-50/30 transition-all">
+                                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $satuan->firstItem() + $i }}</td>
                                 <td class="px-8 py-5">
                                     <div class="flex items-center gap-3">
                                         <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 font-bold text-[10px] group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">

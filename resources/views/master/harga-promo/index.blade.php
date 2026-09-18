@@ -35,6 +35,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">Produk</th>
                 <th class="px-4 py-5 text-right">Harga Normal</th>
                 <th class="px-4 py-5 text-right">Harga Promo</th>
@@ -44,12 +45,13 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($promo as $p)
+            @forelse($promo as $i => $p)
             @php
                 $today = now()->format('Y-m-d');
                 $sedangBerlaku = $p->status_promo === 'aktif' && $p->tgl_mulai <= $today && $p->tgl_selesai >= $today;
             @endphp
             <tr class="hover:bg-slate-50/50 transition-all {{ $sedangBerlaku ? 'bg-rose-50/30' : '' }}">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $promo->firstItem() + $i }}</td>
                 <td class="px-6 py-5">
                     <span class="text-[13px] font-bold text-slate-700 uppercase">{{ $p->nama_produk }}</span>
                 </td>

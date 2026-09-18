@@ -34,6 +34,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-8 py-5 text-left">Nama Perusahaan</th>
                 <th class="px-6 py-5 text-left">Kontak Sales</th>
                 <th class="px-6 py-5 text-left">Alamat Kantor</th>
@@ -41,8 +42,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($supplier as $s)
+            @forelse($supplier as $i => $s)
             <tr class="group hover:bg-slate-50/30 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $supplier->firstItem() + $i }}</td>
                 <td class="px-8 py-5">
                     <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors uppercase">
                         {{ $s->nama_supplier }}

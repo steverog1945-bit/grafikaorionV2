@@ -41,6 +41,7 @@
     <x-table>
         <thead>
             <tr>
+                <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">Kode</th>
                 <th class="px-4 py-5 text-left">Nama Bahan</th>
                 <th class="px-4 py-5 text-right">Stok Saat Ini</th>
@@ -48,8 +49,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @forelse($bahan as $b)
+            @forelse($bahan as $i => $b)
             <tr class="group hover:bg-slate-50/50 transition-all">
+                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-6 py-5">
                     <span class="text-[12px] font-bold text-slate-700">{{ $b->kode_bahan }}</span>
                 </td>

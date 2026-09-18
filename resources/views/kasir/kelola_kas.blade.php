@@ -126,6 +126,7 @@
     <table class="w-full text-left border-collapse">
         <thead>
             <tr class="bg-slate-50">
+                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-center w-10">#</th>
                 <th class="p-4 text-[10px] font-black uppercase text-slate-400">Waktu</th>
                 <th class="p-4 text-[10px] font-black uppercase text-slate-400">Sumber / Konsumen</th>
                 <th class="p-4 text-[10px] font-black uppercase text-slate-400">No. Nota</th>
@@ -135,8 +136,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
-            @foreach($mutasi as $m)
+            @foreach($mutasi as $i => $m)
             <tr class="hover:bg-slate-50/50 transition-all">
+                <td class="p-4 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="p-4 text-xs text-slate-500">{{ date('H:i', strtotime($m->tgl_bayar)) }}</td>
                 <td class="p-4">
                     <span class="block font-bold text-slate-700 uppercase text-sm">{{ $m->nama_konsumen }}</span>
@@ -208,6 +210,7 @@
     <table class="w-full text-left border-collapse">
         <thead>
             <tr class="bg-slate-50">
+                <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-center w-10">#</th>
                 <th class="p-4 text-[10px] font-black uppercase text-slate-400">Waktu</th>
                 <th class="p-4 text-[10px] font-black uppercase text-slate-400">Keterangan</th>
                 <th class="p-4 text-[10px] font-black uppercase text-slate-400 text-center">Status</th>
@@ -216,8 +219,9 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
-            @foreach($mutasiManual as $m)
+            @foreach($mutasiManual as $i => $m)
             <tr class="hover:bg-slate-50/50 transition-all">
+                <td class="p-4 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="p-4 text-xs text-slate-500">{{ \Carbon\Carbon::parse($m->waktu)->format('H:i') }}</td>
                 <td class="p-4 text-sm text-slate-600">{{ $m->keterangan }}</td>
                 <td class="p-4 text-center">
