@@ -57,115 +57,110 @@
     </div>
 
     {{-- TABLE --}}
-    <div class="bg-white rounded-[3rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
-        <form id="bulk-delete-form" method="POST" action="{{ route('kedatangan-bahan.bulk-delete') }}">
-            @csrf
-            <div class="overflow-x-auto p-4">
-                <table class="w-full border-separate border-spacing-y-4">
-                    <thead>
-                        <tr class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                            <th class="px-6 py-4 w-16 text-center text-indigo-500">
-                                <input type="checkbox" id="checkAll" class="rounded-lg border-slate-200 text-indigo-600 focus:ring-indigo-500 w-5 h-5 transition-all cursor-pointer">
-                            </th>
-                            <th class="px-4 py-4 text-center w-10">#</th>
-                            <th class="px-4 py-4 text-left">Dokumen SJ</th>
-                            <th class="px-4 py-4 text-left">Entitas</th>
-                            <th class="px-4 py-4 text-left w-[350px]">Keterangan</th>
-                            <th class="px-4 py-4 text-center">Status</th>
-                            <th class="px-8 py-4 text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($kedatangans as $i => $k)
-                        <tr class="group hover:bg-indigo-50/40 transition-all duration-300">
-                            <td class="px-6 py-6 text-center bg-slate-50 group-hover:bg-white rounded-l-[2rem] border-y border-l border-transparent group-hover:border-indigo-100 transition-all">
-                                @if($k->status == 'Draft')
-                                    <input type="checkbox" name="ids[]" value="{{ $k->id_kedatangan }}" class="row-checkbox rounded-lg border-slate-200 text-indigo-600 focus:ring-indigo-500 w-5 h-5 transition-all cursor-pointer">
-                                @else
-                                    <i class="fas fa-lock text-slate-300 text-xs"></i>
-                                @endif
-                            </td>
-                            <td class="px-4 py-6 text-center text-[11px] text-slate-400">{{ $kedatangans->firstItem() + $i }}</td>
-                            
-                            <td class="px-4 py-6 border-y border-transparent group-hover:border-indigo-100">
-                                <span class="text-[14px] font-black text-slate-800 uppercase block tracking-tight">{{ $k->no_surat_jalan }}</span>
-                                <span class="text-[12px] text-slate-400 font-bold mt-1 block uppercase">{{ optional($k->tgl_datang)->format('d M Y') }}</span>
-                            </td>
+    <form id="bulk-delete-form" method="POST" action="{{ route('kedatangan-bahan.bulk-delete') }}">
+        @csrf
+        <x-table>
+            <thead>
+                <tr>
+                    <th class="px-6 py-5 w-12 text-center">
+                        <input type="checkbox" id="checkAll" class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
+                    </th>
+                    <th class="px-4 py-5 text-center w-10">#</th>
+                    <th class="px-4 py-5 text-left">Dokumen SJ</th>
+                    <th class="px-4 py-5 text-left">Entitas</th>
+                    <th class="px-4 py-5 text-left">Keterangan</th>
+                    <th class="px-4 py-5 text-center">Status</th>
+                    <th class="px-8 py-5 text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                @forelse($kedatangans as $i => $k)
+                <tr class="group hover:bg-slate-50/50 transition-all">
+                    <td class="px-6 py-5 text-center">
+                        @if($k->status == 'Draft')
+                            <input type="checkbox" name="ids[]" value="{{ $k->id_kedatangan }}" class="row-checkbox rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
+                        @else
+                            <i class="fas fa-lock text-slate-300 text-xs"></i>
+                        @endif
+                    </td>
+                    <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $kedatangans->firstItem() + $i }}</td>
 
-                            <td class="px-4 py-6 border-y border-transparent group-hover:border-indigo-100">
-                                <span class="text-[13px] font-bold text-slate-700 uppercase block leading-tight">{{ $k->supplier->nama_supplier ?? 'VENDOR UMUM' }}</span>
-                                <span class="text-[11px] font-black text-indigo-500 uppercase tracking-wider flex items-center gap-1 mt-1">
-                                    <i class="fas fa-warehouse text-[10px]"></i> {{ $k->gudang->nama_gudang ?? 'UTAMA' }}
-                                </span>
-                            </td>
+                    <td class="px-4 py-5">
+                        <span class="text-[13px] font-bold text-slate-700 uppercase block">{{ $k->no_surat_jalan }}</span>
+                        <span class="text-[11px] text-slate-400 font-semibold mt-0.5 block">{{ optional($k->tgl_datang)->format('d M Y') }}</span>
+                    </td>
 
-                            {{-- KETERANGAN: Mendukung Newline/Enter & Tooltip Detail --}}
-                            <td class="px-4 py-6 border-y border-transparent group-hover:border-indigo-100 relative">
-                                <div class="relative group/note">
-                                    <p class="text-[13px] text-slate-500 leading-relaxed line-clamp-3 cursor-help italic whitespace-pre-line">
-                                        {{ $k->keterangan ?? 'Tidak ada catatan...' }}
-                                    </p>
-                                    
-                                    <div class="absolute z-50 invisible group-hover/note:visible opacity-0 group-hover/note:opacity-100 transition-all duration-300 bottom-full left-0 mb-3 w-80 p-5 bg-slate-900 text-white text-[13px] rounded-2xl shadow-2xl pointer-events-none border border-slate-700">
-                                        <div class="font-black mb-2 uppercase text-indigo-400 tracking-tighter flex items-center gap-2">
-                                            <i class="fas fa-sticky-note text-[10px]"></i> Detail Catatan:
-                                        </div>
-                                        <div class="whitespace-pre-line leading-relaxed text-slate-200">
-                                            {{ $k->keterangan ?? '—' }}
-                                        </div>
-                                        <div class="absolute -bottom-1 left-6 w-3 h-3 bg-slate-900 rotate-45 border-b border-r border-slate-700"></div>
-                                    </div>
+                    <td class="px-4 py-5">
+                        <span class="text-[12px] font-bold text-slate-700 uppercase block leading-tight">{{ $k->supplier->nama_supplier ?? 'VENDOR UMUM' }}</span>
+                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1 mt-0.5">
+                            <i class="fas fa-warehouse text-[9px]"></i> {{ $k->gudang->nama_gudang ?? 'UTAMA' }}
+                        </span>
+                    </td>
+
+                    {{-- KETERANGAN: Mendukung Newline/Enter & Tooltip Detail --}}
+                    <td class="px-4 py-5 relative max-w-xs">
+                        <div class="relative group/note">
+                            <p class="text-[12px] text-slate-500 leading-relaxed line-clamp-2 cursor-help italic whitespace-pre-line">
+                                {{ $k->keterangan ?? 'Tidak ada catatan...' }}
+                            </p>
+
+                            <div class="absolute z-50 invisible group-hover/note:visible opacity-0 group-hover/note:opacity-100 transition-all duration-300 bottom-full left-0 mb-3 w-80 p-5 bg-slate-900 text-white text-[13px] rounded-2xl shadow-2xl pointer-events-none border border-slate-700">
+                                <div class="font-black mb-2 uppercase text-indigo-400 tracking-tighter flex items-center gap-2">
+                                    <i class="fas fa-sticky-note text-[10px]"></i> Detail Catatan:
                                 </div>
-                            </td>
-
-                            <td class="px-4 py-6 text-center border-y border-transparent group-hover:border-indigo-100">
-                                <span class="px-4 py-2 rounded-xl border {{ $k->status == 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100' }} text-[11px] font-black uppercase tracking-widest shadow-sm">
-                                    {{ $k->status }}
-                                </span>
-                            </td>
-
-                            <td class="px-8 py-6 text-center rounded-r-[2rem] border-y border-r border-transparent group-hover:border-indigo-100">
-                                <div class="flex items-center justify-center gap-3">
-                                    @if($k->status == 'Draft')
-                                        <button type="button" onclick="confirmApprove('{{ $k->id_kedatangan }}', '{{ $k->no_surat_jalan }}')"
-                                            class="h-10 px-6 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl transition-all text-[11px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-                                            Validasi
-                                        </button>
-                                        <a href="{{ route('kedatangan-bahan.edit', $k->id_kedatangan) }}" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-100 text-slate-400 hover:text-indigo-600 rounded-xl transition-all shadow-sm">
-                                            <i class="fas fa-edit text-sm"></i>
-                                        </a>
-                                        <button type="button" onclick="singleDelete('{{ $k->id_kedatangan }}')" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-100 text-slate-400 hover:text-rose-600 rounded-xl transition-all shadow-sm">
-                                            <i class="fas fa-trash text-sm"></i>
-                                        </button>
-                                    @else
-                                        <span class="text-[11px] font-black text-slate-300 uppercase italic">
-                                            <i class="fas fa-check-double mr-1"></i> Terverifikasi
-                                        </span>
-                                    @endif
+                                <div class="whitespace-pre-line leading-relaxed text-slate-200">
+                                    {{ $k->keterangan ?? '—' }}
                                 </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="px-8 py-32 text-center">
-                                <i class="fas fa-box-open text-slate-200 text-6xl mb-6"></i>
-                                <p class="text-slate-400 text-[14px] font-black uppercase tracking-widest">Belum ada data kedatangan</p>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                                <div class="absolute -bottom-1 left-6 w-3 h-3 bg-slate-900 rotate-45 border-b border-r border-slate-700"></div>
+                            </div>
+                        </div>
+                    </td>
 
-            {{-- BULK ACTIONS FOOTER --}}
-            <div id="bulk-footer" class="p-8 border-t border-slate-50 flex justify-start opacity-0 pointer-events-none transition-all duration-300 translate-y-2">
-                <button type="button" id="btn-bulk-delete" 
-                        class="px-8 py-4 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-[1.5rem] text-[12px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg shadow-rose-100">
-                    <i class="fas fa-trash-alt"></i> Hapus Terpilih (<span id="count-checked">0</span>)
-                </button>
-            </div>
-        </form>
-    </div>
+                    <td class="px-4 py-5 text-center">
+                        <span class="px-3 py-1.5 rounded-lg border {{ $k->status == 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100' }} text-[10px] font-bold uppercase tracking-widest">
+                            {{ $k->status }}
+                        </span>
+                    </td>
+
+                    <td class="px-8 py-5 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            @if($k->status == 'Draft')
+                                <x-button type="button" onclick="confirmApprove('{{ $k->id_kedatangan }}', '{{ $k->no_surat_jalan }}')" size="sm" class="!px-4">
+                                    Validasi
+                                </x-button>
+                                <x-button href="{{ route('kedatangan-bahan.edit', $k->id_kedatangan) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Edit">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </x-button>
+                                <x-button type="button" size="icon" variant="ghost" onclick="singleDelete('{{ $k->id_kedatangan }}')" class="border border-slate-100 hover:text-rose-600" title="Hapus">
+                                    <i class="fas fa-trash text-xs"></i>
+                                </x-button>
+                            @else
+                                <span class="text-[11px] font-bold text-slate-300 uppercase italic">
+                                    <i class="fas fa-check-double mr-1"></i> Terverifikasi
+                                </span>
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="7">
+                        <x-empty-state title="Belum ada data kedatangan" description="Klik 'Tambah Kedatangan' untuk mencatat surat jalan pertama." />
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </x-table>
+
+        {{-- BULK ACTIONS FOOTER --}}
+        <div class="mt-4">
+            <x-button type="button" id="btn-bulk-delete" variant="danger" class="opacity-0 pointer-events-none" disabled>
+                <i class="fas fa-trash-alt"></i> Hapus Terpilih (<span id="count-checked">0</span>)
+            </x-button>
+        </div>
+    </form>
+
+    <x-table.pagination :paginator="$kedatangans" />
 
     <x-table.pagination :paginator="$kedatangans" />
 </div>
@@ -191,21 +186,23 @@
 <script>
     const checkAll = document.getElementById('checkAll');
     const checkboxes = document.querySelectorAll('.row-checkbox');
-    const bulkFooter = document.getElementById('bulk-footer');
     const bulkBtn = document.getElementById('btn-bulk-delete');
     const countSpan = document.getElementById('count-checked');
 
-    // Fungsi Update Bulk Button & Footer Visibility
+    // Fungsi Update Bulk Button Visibility - toggle langsung di tombolnya
+    // sendiri (pola sama dengan pembelian-bahan/index.blade.php), bukan
+    // wrapper footer terpisah.
     function updateBulkUI() {
         const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
         countSpan.textContent = checkedCount;
-        
-        if(checkedCount > 0) {
-            bulkFooter.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
-            bulkFooter.classList.add('opacity-100', 'translate-y-0');
+        bulkBtn.disabled = checkedCount === 0;
+
+        if (checkedCount > 0) {
+            bulkBtn.classList.remove('opacity-0', 'pointer-events-none');
+            bulkBtn.classList.add('opacity-100');
         } else {
-            bulkFooter.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
-            bulkFooter.classList.remove('opacity-100', 'translate-y-0');
+            bulkBtn.classList.add('opacity-0', 'pointer-events-none');
+            bulkBtn.classList.remove('opacity-100');
         }
     }
 
