@@ -18,6 +18,9 @@ class AppSetting extends Model
         'website',
         'logo_path',
         'libur_kas_minggu',
+        'format_nota',
+        'nomor_nota_prefix',
+        'nota_footer_text',
     ];
 
     protected $casts = [

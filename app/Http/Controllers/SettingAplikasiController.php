@@ -25,6 +25,9 @@ class SettingAplikasiController extends Controller
             'website' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
             'libur_kas_minggu' => 'nullable|boolean',
+            'format_nota' => 'nullable|in:thermal,a4,continuous',
+            'nomor_nota_prefix' => 'nullable|string|max:20|regex:/^[A-Za-z0-9\-]+$/',
+            'nota_footer_text' => 'nullable|string|max:2000',
         ]);
 
         $setting = AppSetting::current();
@@ -37,6 +40,9 @@ class SettingAplikasiController extends Controller
             'email' => $data['email'] ?? null,
             'website' => $data['website'] ?? null,
             'libur_kas_minggu' => $request->boolean('libur_kas_minggu'),
+            'format_nota' => $data['format_nota'] ?? 'a4',
+            'nomor_nota_prefix' => $data['nomor_nota_prefix'] ?? 'INV',
+            'nota_footer_text' => $data['nota_footer_text'] ?? null,
         ];
 
         if ($request->hasFile('logo')) {

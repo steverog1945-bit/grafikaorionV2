@@ -11,7 +11,11 @@
         font-family: -apple-system, 'Segoe UI', 'Inter', Roboto, sans-serif;
         margin: 0; padding: 24px; color: #1e293b; background: #fff;
     }
-    .sheet { max-width: {{ $format === 'thermal' ? '58mm' : '480px' }}; margin: 0 auto; }
+    {{-- 'continuous' (kertas sambung/dot-matrix) pakai ukuran font yang SAMA
+         dengan 'a4' di seluruh style ini (kedua-duanya "bukan thermal") -
+         cuma lebar kertasnya beda (dot-matrix continuous form biasanya
+         lebih lebar dari A4/A5). --}}
+    .sheet { max-width: {{ $format === 'thermal' ? '58mm' : ($format === 'continuous' ? '190mm' : '480px') }}; margin: 0 auto; }
 
     .print-header { text-align: center; margin-bottom: 14px; }
     .print-header img { max-height: {{ $format === 'thermal' ? '32px' : '44px' }}; margin-bottom: 6px; object-fit: contain; }

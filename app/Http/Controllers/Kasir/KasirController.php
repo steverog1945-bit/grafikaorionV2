@@ -767,9 +767,11 @@ public function simpanClosing(Request $request)
 }
 
 /**
- * Cetak nota transaksi. Format ditentukan lewat query string (?format=thermal
- * untuk struk 58mm, default 'a4' untuk invoice biasa) - satu view yang sama,
- * cuma CSS lebar kertasnya beda, supaya tidak perlu 2 template terpisah.
+ * Cetak nota transaksi. Format kertas (thermal/a4/continuous) diambil dari
+ * Pengaturan Aplikasi GLOBAL (dulu dipilih manual per transaksi lewat
+ * dropdown "Nota Thermal"/"Invoice A4" - kasir tidak perlu pilih format
+ * tiap kali cetak lagi, satu view yang sama, cuma CSS lebar kertasnya
+ * beda, supaya tidak perlu template terpisah per format).
  */
 public function printOpsi(Request $request, $id)
 {
@@ -797,7 +799,7 @@ public function printOpsi(Request $request, $id)
         ->get();
 
     $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
-    $format = $request->query('format', 'a4') === 'thermal' ? 'thermal' : 'a4';
+    $format = \App\Models\AppSetting::current()->format_nota ?? 'a4';
 
     return view('kasir.print_nota', compact('transaksi', 'items', 'totalTerbayar', 'format'));
 }

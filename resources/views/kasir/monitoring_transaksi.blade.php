@@ -155,19 +155,12 @@
                             <i class="fas fa-money-bill-wave text-xs"></i>
                         </x-button>
 
-                        <div class="relative">
-                            <x-button type="button" size="icon" variant="ghost" onclick="togglePrintMenu(event, {{ $t->id_transaksi }})" class="border border-slate-100 hover:text-indigo-600" title="Cetak Nota">
-                                <i class="fas fa-print text-xs"></i>
-                            </x-button>
-                            <div id="print-menu-{{ $t->id_transaksi }}" class="hidden absolute right-0 mt-2 w-48 bg-white border border-slate-100 shadow-xl rounded-xl z-50 overflow-hidden">
-                                <a href="{{ url('/kasir/print-opsi/'.$t->id_transaksi) }}?format=thermal" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50 border-b border-slate-50">
-                                    <i class="fas fa-receipt text-indigo-400"></i> NOTA THERMAL (58mm)
-                                </a>
-                                <a href="{{ url('/kasir/print-opsi/'.$t->id_transaksi) }}?format=a4" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50">
-                                    <i class="fas fa-file-invoice text-indigo-400"></i> INVOICE (A4/A5)
-                                </a>
-                            </div>
-                        </div>
+                        {{-- Format kertas (thermal/A4/continuous) sekarang GLOBAL dari
+                             Pengaturan Aplikasi - dulu dropdown 2 pilihan di sini,
+                             kasir tidak perlu pilih format tiap kali cetak lagi. --}}
+                        <x-button href="{{ url('/kasir/print-opsi/'.$t->id_transaksi) }}" target="_blank" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Cetak Nota">
+                            <i class="fas fa-print text-xs"></i>
+                        </x-button>
 
                         <x-button type="button" size="icon" variant="ghost" onclick="showHistory('{{ $t->id_transaksi }}')" class="border border-slate-100 hover:text-slate-800" title="Riwayat Proses">
                             <i class="fas fa-clock-rotate-left text-xs"></i>
@@ -201,24 +194,6 @@
         return div.innerHTML;
     }
 
-    // Dropdown "Cetak Nota" dipicu lewat klik/tap, bukan :hover CSS - supaya
-    // tetap berfungsi di layar sentuh (kasir sering pakai perangkat touchscreen,
-    // dan dropdown hover-only tidak pernah terbuka lewat tap).
-    function togglePrintMenu(event, id) {
-        event.stopPropagation();
-        const menu = document.getElementById('print-menu-' + id);
-        const isOpen = !menu.classList.contains('hidden');
-
-        document.querySelectorAll('[id^="print-menu-"]').forEach(m => m.classList.add('hidden'));
-
-        if (!isOpen) {
-            menu.classList.remove('hidden');
-        }
-    }
-
-    document.addEventListener('click', function () {
-        document.querySelectorAll('[id^="print-menu-"]').forEach(m => m.classList.add('hidden'));
-    });
 
     async function showHistory(id) {
         Swal.fire({ title: 'Memuat...', didOpen: () => Swal.showLoading() });

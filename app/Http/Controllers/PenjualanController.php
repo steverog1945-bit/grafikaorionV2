@@ -37,10 +37,12 @@ class PenjualanController extends Controller
         ->orderBy('jasa.nama_jasa')
         ->get();
 
-    // Generate No. Nota
+    // Generate No. Nota - prefix bisa diatur di Pengaturan Aplikasi (dulu
+    // hardcode "INV").
     $date = date('Ymd');
     $lastNota = DB::table('transaksi')->whereDate('tgl_order', date('Y-m-d'))->count();
-    $no_nota = "INV-" . $date . "-" . str_pad($lastNota + 1, 3, '0', STR_PAD_LEFT);
+    $prefixNota = \App\Models\AppSetting::current()->nomor_nota_prefix ?: 'INV';
+    $no_nota = $prefixNota . "-" . $date . "-" . str_pad($lastNota + 1, 3, '0', STR_PAD_LEFT);
 
     return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing', 'jasa'));
 }
