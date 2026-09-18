@@ -795,13 +795,41 @@ public function printOpsi(Request $request, $id)
 
     $items = DB::table('transaksi_detail')
         ->where('id_transaksi', $id)
-        ->select('nama_file', 'qty', 'subtotal')
+        ->select('nama_file', 'qty', 'subtotal', 'biaya_cetak', 'biaya_desain', 'biaya_finishing', 'p_ukuran', 'l_ukuran')
         ->get();
 
     $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
+    $totalCetak = (float) $items->sum('biaya_cetak');
+    $totalDesain = (float) $items->sum('biaya_desain');
+    $totalFinishing = (float) $items->sum('biaya_finishing');
+    // "Kembali" hanya bermakna kalau total yang sudah dibayar MELEBIHI
+    // tagihan (dibayar tunai lebih lalu dikembalikan kembaliannya) - aplikasi
+    // ini tidak menyimpan "uang diterima" terpisah dari "nominal diterapkan
+    // ke nota" per pembayaran, jadi ini pendekatan terbaik yang bisa dihitung
+    // dari data yang benar-benar ada.
+    $kembali = max(0, $totalTerbayar - $transaksi->total_bayar);
+    $kurangBayar = max(0, $transaksi->total_bayar - $totalTerbayar);
+
+    // Info deposit - dipakai buat baris "Penggunaan deposit pada transaksi
+    // ini" & "Saldo deposit anda saat ini" di nota (lihat referensi user).
+    $depositTerpakaiTransaksiIni = (float) DB::table('konsumen_deposit')
+        ->where('id_transaksi', $id)
+        ->where('tipe', 'Pemakaian')
+        ->sum('nominal');
+    $saldoDepositSaatIni = KonsumenDepositController::saldoUntuk((int) $transaksi->id_konsumen);
+    // Blok deposit di nota cuma relevan kalau konsumen ini memang PERNAH
+    // pakai deposit (di transaksi ini atau transaksi lain) - konsumen yang
+    // tidak pernah sama sekali menyetor/memakai deposit tidak perlu melihat
+    // baris "Saldo deposit Rp 0" yang tidak bermakna apa pun buat mereka.
+    $konsumenPernahPakaiDeposit = DB::table('konsumen_deposit')->where('id_konsumen', $transaksi->id_konsumen)->exists();
+
     $format = \App\Models\AppSetting::current()->format_nota ?? 'a4';
 
-    return view('kasir.print_nota', compact('transaksi', 'items', 'totalTerbayar', 'format'));
+    return view('kasir.print_nota', compact(
+        'transaksi', 'items', 'totalTerbayar', 'format',
+        'totalCetak', 'totalDesain', 'totalFinishing', 'kembali', 'kurangBayar',
+        'depositTerpakaiTransaksiIni', 'saldoDepositSaatIni', 'konsumenPernahPakaiDeposit'
+    ));
 }
 
 /**

@@ -48,7 +48,15 @@ class KonsumenDepositController extends Controller
 
         $konsumen = DB::table('konsumen')->orderBy('nama_konsumen')->get();
 
-        return view('konsumen-deposit.index', compact('saldoPerKonsumen', 'riwayat', 'konsumen'));
+        // Saldo saat ini per konsumen (map id_konsumen -> saldo_deposit) -
+        // dipakai di baris Riwayat bertipe Setoran untuk kasih tahu status
+        // pemakaiannya SEKARANG (deposit dicatat sebagai saldo terpool per
+        // konsumen, bukan dialokasikan per-setoran/FIFO ke transaksi
+        // tertentu, jadi ini status "saldo konsumen saat ini" - bukan klaim
+        // persis setoran mana yang dipakai untuk transaksi mana).
+        $saldoMap = $saldoPerKonsumen->keyBy('id_konsumen');
+
+        return view('konsumen-deposit.index', compact('saldoPerKonsumen', 'riwayat', 'konsumen', 'saldoMap'));
     }
 
     public function store(Request $request)

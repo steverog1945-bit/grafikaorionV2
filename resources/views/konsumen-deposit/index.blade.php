@@ -89,8 +89,33 @@
                                 {{ $r->tipe }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-right text-sm font-black {{ $r->tipe === 'Setoran' ? 'text-emerald-600' : 'text-rose-500' }}">
-                            {{ $r->tipe === 'Setoran' ? '+' : '-' }} Rp {{ number_format($r->nominal, 0, ',', '.') }}
+                        <td class="px-6 py-4 text-right">
+                            <span class="text-sm font-black {{ $r->tipe === 'Setoran' ? 'text-emerald-600' : 'text-rose-500' }}">
+                                {{ $r->tipe === 'Setoran' ? '+' : '-' }} Rp {{ number_format($r->nominal, 0, ',', '.') }}
+                            </span>
+                            {{-- Deposit dicatat sebagai saldo terpool per konsumen
+                                 (bukan dialokasikan per-setoran/FIFO ke transaksi
+                                 tertentu) - badge ini menunjukkan status SALDO
+                                 KONSUMEN SAAT INI, bukan klaim persis setoran ini
+                                 sudah/belum kepakai transaksi mana. --}}
+                            @if($r->tipe === 'Setoran')
+                                @php $saldoSaatIni = $saldoMap[$r->id_konsumen]->saldo_deposit ?? 0; @endphp
+                                <div class="mt-1">
+                                    @if($saldoSaatIni <= 0)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase bg-slate-100 text-slate-400" title="Saldo deposit konsumen ini sekarang habis - setoran ini (dan setoran lain miliknya) sudah terpakai semua.">
+                                            <i class="fas fa-ban"></i> Habis Terpakai
+                                        </span>
+                                    @elseif($saldoSaatIni < $r->nominal)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-50 text-amber-600" title="Saldo deposit konsumen ini sekarang lebih kecil dari nominal setoran ini - sebagian sudah terpakai.">
+                                            <i class="fas fa-adjust"></i> Terpakai Sebagian
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-600">
+                                            <i class="fas fa-check-circle"></i> Tersedia
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-center">
                             @if($r->tipe === 'Setoran')
