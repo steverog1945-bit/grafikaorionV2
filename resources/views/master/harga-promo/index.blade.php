@@ -101,7 +101,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6">
+                <td colspan="7">
                     <x-empty-state title="Belum ada harga promo" description="Buat promo baru supaya harga otomatis berubah di POS selama periode berlaku." />
                 </td>
             </tr>

@@ -71,7 +71,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="8"><x-empty-state title="Belum ada order jersey" description="Klik 'Order Baru' untuk membuat order pertama." /></td></tr>
+            <tr><td colspan="9"><x-empty-state title="Belum ada order jersey" description="Klik 'Order Baru' untuk membuat order pertama." /></td></tr>
             @endforelse
         </tbody>
     </x-table>

@@ -147,7 +147,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="px-8 py-32 text-center">
+                            <td colspan="7" class="px-8 py-32 text-center">
                                 <i class="fas fa-box-open text-slate-200 text-6xl mb-6"></i>
                                 <p class="text-slate-400 text-[14px] font-black uppercase tracking-widest">Belum ada data kedatangan</p>
                             </td>

@@ -137,7 +137,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8">
+                    <td colspan="9">
                         <x-empty-state title="Data tidak ditemukan" />
                     </td>
                 </tr>

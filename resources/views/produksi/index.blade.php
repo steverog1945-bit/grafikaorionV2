@@ -146,7 +146,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="8">
+                <td colspan="9">
                     <x-empty-state title="Tidak ada pekerjaan produksi" description="Sesuaikan filter atau tunggu order baru dari Kasir." />
                 </td>
             </tr>

@@ -86,7 +86,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6">
+                <td colspan="7">
                     <x-empty-state title="Tidak ada permintaan edit dengan status ini" />
                 </td>
             </tr>

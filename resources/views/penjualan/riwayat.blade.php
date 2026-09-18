@@ -139,7 +139,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="9">
+                <td colspan="10">
                     <x-empty-state title="Belum ada nota pada rentang tanggal ini" />
                 </td>
             </tr>

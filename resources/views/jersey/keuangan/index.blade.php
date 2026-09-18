@@ -82,7 +82,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="8"><x-empty-state title="Tidak ada piutang" description="Semua order jersey sudah lunas, atau belum ada order sama sekali." /></td></tr>
+            <tr><td colspan="9"><x-empty-state title="Tidak ada piutang" description="Semua order jersey sudah lunas, atau belum ada order sama sekali." /></td></tr>
             @endforelse
         </tbody>
     </x-table>

@@ -154,7 +154,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="10">
+                    <td colspan="11">
                         <x-empty-state title="Belum ada SPK" description="SPK akan muncul otomatis begitu ada order baru dari Kasir." />
                     </td>
                 </tr>

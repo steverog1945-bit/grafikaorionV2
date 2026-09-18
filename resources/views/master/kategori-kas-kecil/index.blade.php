@@ -69,7 +69,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="2" class="py-24 text-center">
+                        <td colspan="3" class="py-24 text-center">
                             <div class="flex flex-col items-center">
                                 <i class="fas fa-folder-open text-slate-100 text-6xl mb-4"></i>
                                 <p class="text-slate-300 font-medium text-sm">Belum ada kategori yang terdaftar.</p>

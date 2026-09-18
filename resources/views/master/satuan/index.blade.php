@@ -104,7 +104,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="3" class="px-8 py-20 text-center text-slate-300  text-sm">Belum ada data satuan.</td>
+                                <td colspan="4" class="px-8 py-20 text-center text-slate-300  text-sm">Belum ada data satuan.</td>
                             </tr>
                             @endforelse
                         </tbody>

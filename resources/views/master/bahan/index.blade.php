@@ -147,7 +147,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="py-20 text-center text-slate-400 font-medium italic">Data tidak ditemukan.</td>
+                        <td colspan="7" class="py-20 text-center text-slate-400 font-medium italic">Data tidak ditemukan.</td>
                     </tr>
                     @endforelse
                 </tbody>

@@ -74,7 +74,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="4">
+                <td colspan="5">
                     <x-empty-state :title="$search ? 'Tidak ada bahan yang cocok dengan pencarian' : 'Belum ada data bahan baku'" />
                 </td>
             </tr>

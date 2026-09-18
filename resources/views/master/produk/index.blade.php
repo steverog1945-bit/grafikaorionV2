@@ -136,7 +136,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="5">
+                <td colspan="6">
                     <x-empty-state title="Database produk masih kosong" />
                 </td>
             </tr>

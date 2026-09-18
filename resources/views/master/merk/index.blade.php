@@ -77,7 +77,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="py-20 text-center text-slate-400 font-medium italic">Belum ada merk yang terdaftar.</td>
+                        <td colspan="5" class="py-20 text-center text-slate-400 font-medium italic">Belum ada merk yang terdaftar.</td>
                     </tr>
                     @endforelse
                 </tbody>

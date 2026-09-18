@@ -81,7 +81,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="4">
+                <td colspan="5">
                     <x-empty-state title="Belum ada supplier terdaftar" />
                 </td>
             </tr>
