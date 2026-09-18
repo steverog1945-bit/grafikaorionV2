@@ -591,7 +591,7 @@ public function riwayat(Request $request)
             'nota_edit_request.catatan_approver as edit_request_catatan'
         )
         ->orderByDesc('tgl_order')
-        ->paginate(15)
+        ->paginate(20)
         ->withQueryString();
 
     $isAdmin = optional(optional($request->user())->role)->nama_role === 'Administrator';
@@ -817,7 +817,7 @@ public function editApprovalIndex(Request $request)
         $query->where('nota_edit_request.status', 'Menunggu');
     }
 
-    $requests = $query->orderByDesc('nota_edit_request.created_at')->paginate(15)->withQueryString();
+    $requests = $query->orderByDesc('nota_edit_request.created_at')->paginate(20)->withQueryString();
 
     return view('penjualan.edit-approval', compact('requests'));
 }

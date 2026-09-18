@@ -34,7 +34,7 @@ class JerseyFinanceController extends Controller
             });
         }
 
-        $piutang = $query->paginate(25)->withQueryString();
+        $piutang = $query->paginate(20)->withQueryString();
 
         // Ringkasan dashboard - dihitung dari SELURUH order (bukan cuma
         // halaman yang sedang tampil) supaya angkanya benar-benar total.

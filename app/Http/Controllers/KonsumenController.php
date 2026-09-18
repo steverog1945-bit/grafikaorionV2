@@ -25,7 +25,7 @@ class KonsumenController extends Controller
             $query->where('konsumen.id_golongan', $request->id_golongan);
         }
 
-        $konsumen = $query->orderBy('konsumen.nama_konsumen')->paginate(15)->withQueryString();
+        $konsumen = $query->orderBy('konsumen.nama_konsumen')->paginate(20)->withQueryString();
 
         $golongan = DB::table('golongan_konsumen')->get();
 

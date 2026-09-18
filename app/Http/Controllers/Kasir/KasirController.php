@@ -72,7 +72,7 @@ class KasirController extends Controller
         // di PenjualanController::store() tidak mengisinya), jadi kalau
         // urut murni by updated_at DESC baris-baris ini selalu terdorong ke
         // paling bawah biarpun order-nya baru masuk barusan.
-        $transaksi = $query->orderByRaw('COALESCE(transaksi.updated_at, transaksi.tgl_order) DESC')->paginate(15)->withQueryString();
+        $transaksi = $query->orderByRaw('COALESCE(transaksi.updated_at, transaksi.tgl_order) DESC')->paginate(20)->withQueryString();
 
         // Dropdown filter Konsumen - dibatasi ke konsumen yang memang pernah
         // bertransaksi (bukan seluruh master konsumen), supaya daftar

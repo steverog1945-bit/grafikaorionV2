@@ -128,7 +128,7 @@ class LaporanController extends Controller
         // Paginasi lebih kecil dari laporan lain (10, bukan 20) - tiap nota
         // sekarang tampil sebagai blok PENUH (header + tabel item + total),
         // bukan satu baris ringkas, supaya satu halaman tidak kepanjangan.
-        $data = $query->orderByDesc('transaksi.tgl_order')->paginate(10)->withQueryString();
+        $data = $query->orderByDesc('transaksi.tgl_order')->paginate(20)->withQueryString();
 
         // Detail item per nota - HANYA untuk nota di halaman yang sedang
         // tampil (bukan seluruh hasil filter) supaya query tetap ringan.
@@ -307,7 +307,7 @@ class LaporanController extends Controller
         $totalSelisih = (clone $ringkasanQuery)->sum('kas_harian.selisih');
         $jumlahSesi = (clone $ringkasanQuery)->count();
 
-        $data = $query->orderByDesc('kas_harian.tgl_kas')->paginate(10)->withQueryString();
+        $data = $query->orderByDesc('kas_harian.tgl_kas')->paginate(20)->withQueryString();
 
         // Rincian transaksi manual (pemasukan/pengeluaran non-penjualan) per
         // sesi kas, supaya langsung terlihat semua tanpa perlu klik - pola
@@ -358,7 +358,7 @@ class LaporanController extends Controller
         $totalHutang = (clone $ringkasanQuery)->where('pembelian_bahan.status_pembayaran', '!=', 'Lunas')->sum('pembelian_bahan.grand_total');
         $jumlahFaktur = (clone $ringkasanQuery)->count();
 
-        $data = $query->orderByDesc('pembelian_bahan.tgl_transaksi')->paginate(10)->withQueryString();
+        $data = $query->orderByDesc('pembelian_bahan.tgl_transaksi')->paginate(20)->withQueryString();
 
         // Rincian bahan yang dibeli per faktur, supaya langsung terlihat
         // semua tanpa perlu klik - pola sama dengan itemPerNota di laporan
@@ -437,7 +437,7 @@ class LaporanController extends Controller
             ->orderByDesc(DB::raw('SUM(jersey_order_lines.subtotal)'))
             ->get();
 
-        $data = $query->orderByDesc('order_date')->paginate(10)->withQueryString();
+        $data = $query->orderByDesc('order_date')->paginate(20)->withQueryString();
 
         // Detail barang per order - hanya untuk order di halaman yang
         // sedang tampil, sama seperti pola detail-per-nota di laporan

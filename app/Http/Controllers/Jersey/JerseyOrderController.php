@@ -37,7 +37,7 @@ class JerseyOrderController extends Controller
             $query->where('status', $request->status);
         }
 
-        $orders = $query->paginate(15)->withQueryString();
+        $orders = $query->paginate(20)->withQueryString();
 
         return view('jersey.orders.index', compact('orders'));
     }

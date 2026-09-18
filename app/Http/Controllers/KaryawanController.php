@@ -30,7 +30,7 @@ class KaryawanController extends Controller
             $query->where('bagian', $request->bagian);
         }
 
-        $karyawan = $query->orderBy('nama_karyawan')->paginate(15)->withQueryString();
+        $karyawan = $query->orderBy('nama_karyawan')->paginate(20)->withQueryString();
         $daftarBagian = Karyawan::select('bagian')->distinct()->orderBy('bagian')->pluck('bagian');
         $daftarMesin = Mesin::orderBy('nama_mesin')->get();
 

@@ -86,7 +86,7 @@ class SpkController extends Controller
             $query->where('transaksi_detail.status_urgent', 1);
         }
 
-        $spk = $query->orderByDesc('transaksi_detail.id_detail')->paginate(15)->withQueryString();
+        $spk = $query->orderByDesc('transaksi_detail.id_detail')->paginate(20)->withQueryString();
 
         // Divisi diambil dari data master mesin yang benar-benar dipakai produk,
         // bukan hard-code. Submenu akan otomatis bertambah kalau ada mesin/divisi baru.

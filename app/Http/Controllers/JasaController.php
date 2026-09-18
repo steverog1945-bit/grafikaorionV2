@@ -21,7 +21,7 @@ class JasaController extends Controller
             $query->where('jasa.id_satuan', $request->id_satuan);
         }
 
-        $jasa = $query->orderBy('jasa.nama_jasa')->paginate(15)->withQueryString();
+        $jasa = $query->orderBy('jasa.nama_jasa')->paginate(20)->withQueryString();
 
         $satuan = DB::table('satuan')->orderBy('nama_satuan')->get();
 

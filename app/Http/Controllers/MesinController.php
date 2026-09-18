@@ -19,7 +19,7 @@ class MesinController extends Controller
             $query->where('tipe_mesin', $request->tipe_mesin);
         }
 
-        $mesin = $query->orderBy('nama_mesin')->paginate(15)->withQueryString();
+        $mesin = $query->orderBy('nama_mesin')->paginate(20)->withQueryString();
         $daftarTipe = Mesin::select('tipe_mesin')->distinct()->orderBy('tipe_mesin')->pluck('tipe_mesin');
 
         return view('master.mesin.index', compact('mesin', 'daftarTipe'));

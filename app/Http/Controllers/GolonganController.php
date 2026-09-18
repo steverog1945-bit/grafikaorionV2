@@ -15,7 +15,7 @@ class GolonganController extends Controller
             $query->where('nama_golongan', 'like', '%' . $request->search . '%');
         }
 
-        $golongan = $query->orderBy('nama_golongan')->paginate(15)->withQueryString();
+        $golongan = $query->orderBy('nama_golongan')->paginate(20)->withQueryString();
         return view('master.golongan.index', compact('golongan'));
     }
 

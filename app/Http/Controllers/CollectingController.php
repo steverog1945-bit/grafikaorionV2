@@ -83,7 +83,7 @@ class CollectingController extends Controller
             $query->where('transaksi.status_collecting', $request->status_pengambilan);
         }
 
-        $collecting = $query->orderByDesc('transaksi.id_transaksi')->paginate(15)->withQueryString();
+        $collecting = $query->orderByDesc('transaksi.id_transaksi')->paginate(20)->withQueryString();
 
         return view('collecting.index', compact('collecting'));
     }

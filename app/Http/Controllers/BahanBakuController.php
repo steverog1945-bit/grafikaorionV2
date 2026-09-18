@@ -47,7 +47,7 @@ class BahanBakuController extends Controller
             $query->orderBy('created_at', 'desc');
         }
 
-        $bahan = $query->paginate(10);
+        $bahan = $query->paginate(20);
         $kategori = Kategori::all();
         $mesin = Mesin::all();
         $satuan = Satuan::all();

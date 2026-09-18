@@ -39,7 +39,7 @@ class PembelianBahanController extends Controller
             $query->whereDate('tgl_transaksi', '<=', $request->to);
         }
 
-        $data = $query->orderBy('id_pembelian', 'desc')->paginate(10)->withQueryString();
+        $data = $query->orderBy('id_pembelian', 'desc')->paginate(20)->withQueryString();
 
         return view('pembelian-bahan.index', compact('data'));
 

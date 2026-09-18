@@ -15,7 +15,7 @@ class JenisBahanController extends Controller
             $query->where('nama_jenis', 'like', '%' . $request->search . '%');
         }
 
-        $jenisBahan = $query->orderBy('nama_jenis')->paginate(15)->withQueryString();
+        $jenisBahan = $query->orderBy('nama_jenis')->paginate(20)->withQueryString();
         return view('master.jenis-bahan.index', compact('jenisBahan'));
     }
 

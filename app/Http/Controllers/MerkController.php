@@ -15,7 +15,7 @@ class MerkController extends Controller
             $query->where('nama_merk', 'like', '%' . $request->search . '%');
         }
 
-        $merk = $query->orderBy('nama_merk')->paginate(15)->withQueryString();
+        $merk = $query->orderBy('nama_merk')->paginate(20)->withQueryString();
         return view('master.merk.index', compact('merk'));
     }
 

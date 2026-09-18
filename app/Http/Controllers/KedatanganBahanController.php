@@ -60,7 +60,7 @@ class KedatanganBahanController extends Controller
     });
 
     // Urutkan berdasarkan yang terbaru dan paginasi
-    $kedatangans = $query->latest('tgl_datang')->paginate(15);
+    $kedatangans = $query->latest('tgl_datang')->paginate(20);
 
     return view('kedatangan-bahan.index', compact('kedatangans'));
 }
@@ -345,7 +345,7 @@ public function ajaxBahan(Request $request)
             });
         })
         ->orderBy('nama_bahan')
-        ->paginate(10);
+        ->paginate(20);
 
     return response()->json($bahans);
 }

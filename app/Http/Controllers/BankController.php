@@ -18,7 +18,7 @@ class BankController extends Controller
             });
         }
 
-        $bank = $query->orderBy('nama_bank')->paginate(15)->withQueryString();
+        $bank = $query->orderBy('nama_bank')->paginate(20)->withQueryString();
         return view('master.bank.index', compact('bank'));
     }
 

@@ -22,7 +22,7 @@ class KategoriController extends Controller
             });
         }
 
-        $kategori = $query->orderBy('nama_kategori')->paginate(15)->withQueryString();
+        $kategori = $query->orderBy('nama_kategori')->paginate(20)->withQueryString();
         return view('master.kategori.index', compact('kategori'));
     }
 

@@ -15,7 +15,7 @@ class GudangController extends Controller
             $query->where('nama_gudang', 'like', '%' . $request->search . '%');
         }
 
-        $gudang = $query->orderBy('nama_gudang')->paginate(15)->withQueryString();
+        $gudang = $query->orderBy('nama_gudang')->paginate(20)->withQueryString();
         return view('master.gudang.index', compact('gudang'));
     }
 

@@ -16,7 +16,7 @@ class SatuanController extends Controller
             $query->where('nama_satuan', 'like', '%' . $request->search . '%');
         }
 
-        $satuan = $query->orderBy('nama_satuan')->paginate(15)->withQueryString();
+        $satuan = $query->orderBy('nama_satuan')->paginate(20)->withQueryString();
         return view('master.satuan.index', compact('satuan'));
     }
 

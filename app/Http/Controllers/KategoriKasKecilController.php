@@ -22,7 +22,7 @@ class KategoriKasKecilController extends Controller
             $query->where('nama_kategori', 'like', '%' . $request->search . '%');
         }
 
-        $kategori = $query->orderBy('nama_kategori')->paginate(15)->withQueryString();
+        $kategori = $query->orderBy('nama_kategori')->paginate(20)->withQueryString();
 
         return view('master.kategori-kas-kecil.index', compact('kategori'));
     }

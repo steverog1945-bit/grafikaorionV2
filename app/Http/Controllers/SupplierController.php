@@ -17,7 +17,7 @@ class SupplierController extends Controller
             });
         }
 
-        $supplier = $query->orderBy('nama_supplier')->paginate(15)->withQueryString();
+        $supplier = $query->orderBy('nama_supplier')->paginate(20)->withQueryString();
         return view('master.supplier.index', compact('supplier'));
     }
 

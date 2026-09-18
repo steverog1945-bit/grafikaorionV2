@@ -46,7 +46,7 @@ class SettingHargaController extends Controller
         $direction = $request->get('direction', 'asc');
         $query->orderBy($sort, $direction);
 
-        $produk = $query->paginate(25)->withQueryString();
+        $produk = $query->paginate(20)->withQueryString();
 
         $golongan = DB::table('golongan_konsumen')->orderBy('nama_golongan')->get();
         $categories = DB::table('mesin')->orderBy('nama_mesin')->get();

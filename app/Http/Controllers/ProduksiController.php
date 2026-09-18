@@ -83,7 +83,7 @@ class ProduksiController extends Controller
             $query->whereIn('transaksi_detail.status_spk', ['Desain', 'Cetak']);
         }
 
-        $produksi = $query->orderByDesc('transaksi_detail.id_detail')->paginate(15)->withQueryString();
+        $produksi = $query->orderByDesc('transaksi_detail.id_detail')->paginate(20)->withQueryString();
 
         return view('produksi.index', compact('produksi'));
     }

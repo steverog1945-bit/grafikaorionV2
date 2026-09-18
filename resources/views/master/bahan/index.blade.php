@@ -161,29 +161,11 @@
         </div>
         </form>
 
-       {{-- PAGINATION --}}
-<div class="px-8 py-6 bg-white border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-    
-    {{-- Info Data --}}
-    <div class="text-sm font-medium text-slate-400">
-        Showing <span class="text-slate-900 font-bold">{{ $bahan->firstItem() }}</span> to 
-        <span class="text-slate-900 font-bold">{{ $bahan->lastItem() }}</span> of 
-        <span class="text-slate-900 font-bold">{{ $bahan->total() }}</span> entries
-    </div>
-
-    {{-- Navigasi Minimalis --}}
-    <div class="pagination-custom relative flex items-center min-w-[300px] justify-end">
-        {{-- Teks Tengah --}}
-        <div class="absolute left-1/2 -translate-x-1/2 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/80 whitespace-nowrap hidden sm:block">
-            HAL {{ $bahan->currentPage() }} DARI {{ $bahan->lastPage() }}
-        </div>
-
-        {{-- Gunakan withQueryString() agar filter kategori & sort tidak hilang saat klik next --}}
-        <div class="modern-nav">
-            {{ $bahan->withQueryString()->links('pagination::bootstrap-4') }}
-        </div>
-    </div>
-</div>
+       {{-- PAGINATION - komponen bersama x-table.pagination (sama dengan
+            semua halaman lain), bukan lagi markup Bootstrap-4 sendiri -
+            sekaligus dapat fitur "Ke Halaman" untuk lompat langsung ke
+            nomor halaman berapa pun tanpa harus klik Next berulang. --}}
+       <x-table.pagination :paginator="$bahan" />
     </div>
 </div>
 

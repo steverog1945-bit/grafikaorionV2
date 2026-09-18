@@ -17,7 +17,7 @@ class HargaPromoController extends Controller
             $query->where('produk.nama_produk', 'like', '%' . $request->search . '%');
         }
 
-        $promo = $query->orderByDesc('harga_promo.id_promo')->paginate(15)->withQueryString();
+        $promo = $query->orderByDesc('harga_promo.id_promo')->paginate(20)->withQueryString();
         $produk = DB::table('produk')->orderBy('nama_produk')->get();
 
         return view('master.harga-promo.index', compact('promo', 'produk'));

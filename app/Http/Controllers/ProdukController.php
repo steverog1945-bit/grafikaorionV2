@@ -52,7 +52,7 @@ public function index(Request $request)
 
     // 5. Eksekusi Pagination
     $produk = $query->latest('produk.created_at')
-        ->paginate(25)
+        ->paginate(20)
         ->withQueryString();
 
     // Data pendukung untuk modal
