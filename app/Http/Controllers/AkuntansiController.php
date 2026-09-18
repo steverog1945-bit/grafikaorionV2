@@ -116,6 +116,15 @@ class AkuntansiController extends Controller
         return view('akuntansi.neraca-saldo', compact('rows', 'akhir', 'totalDebet', 'totalKredit'));
     }
 
+    /**
+     * Direstrukturisasi supaya memisahkan Laba Kotor (Penjualan - HPP)
+     * SEBELUM Beban Usaha - sebelumnya HPP (kode 5000) tercampur rata
+     * dalam satu daftar "Beban" bersama Beban Usaha lainnya, jadi laporan
+     * tidak pernah menampilkan Laba Kotor sama sekali (langsung loncat ke
+     * Laba Bersih). Format sekarang: Penjualan -> HPP -> Laba Kotor ->
+     * rincian Beban Usaha per akun -> Total Beban -> Laba Bersih ->
+     * Persentase Laba, mengikuti format laporan laba rugi standar.
+     */
     public function labaRugi(Request $request)
     {
         $awal = $request->get('awal', now()->startOfMonth()->toDateString());
@@ -135,16 +144,30 @@ class AkuntansiController extends Controller
             return $a;
         })->values();
 
-        $beban = $totals->where('tipe_akun', 'Beban')->map(function ($a) {
+        // Akun 5000 (Harga Pokok Penjualan) SENGAJA dipisah dari sisa akun
+        // Beban - HPP dikurangkan lebih dulu untuk dapat Laba Kotor,
+        // Beban Usaha (5100 dst) baru dikurangkan setelahnya. Angka HPP di
+        // sini datang dari jurnal_umum yang diposting AccountingService::
+        // postPenjualan() = qty BOM x bahan_baku.harga_rata_rata (harga
+        // pembelian riil, rata-rata tertimbang) - bukan estimasi manual.
+        $totalHpp = (float) $totals->where('kode_akun', '5000')->sum(fn ($a) => $a->total_debet - $a->total_kredit);
+
+        $bebanUsaha = $totals->where('tipe_akun', 'Beban')->where('kode_akun', '!=', '5000')->map(function ($a) {
             $a->jumlah = $a->total_debet - $a->total_kredit;
             return $a;
         })->values();
 
-        $totalPendapatan = $pendapatan->sum('jumlah');
-        $totalBeban = $beban->sum('jumlah');
-        $labaBersih = $totalPendapatan - $totalBeban;
+        $totalPendapatan = (float) $pendapatan->sum('jumlah');
+        $totalBebanUsaha = (float) $bebanUsaha->sum('jumlah');
+        $labaKotor = $totalPendapatan - $totalHpp;
+        $labaBersih = $labaKotor - $totalBebanUsaha;
+        $persentaseLaba = $totalPendapatan > 0 ? ($labaBersih / $totalPendapatan) * 100 : 0;
 
-        return view('akuntansi.laba-rugi', compact('awal', 'akhir', 'pendapatan', 'beban', 'totalPendapatan', 'totalBeban', 'labaBersih'));
+        return view('akuntansi.laba-rugi', compact(
+            'awal', 'akhir', 'pendapatan', 'totalPendapatan',
+            'totalHpp', 'labaKotor', 'bebanUsaha', 'totalBebanUsaha',
+            'labaBersih', 'persentaseLaba'
+        ));
     }
 
     public function neraca(Request $request)

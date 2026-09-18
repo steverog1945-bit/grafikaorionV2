@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\KasKecil;
 use App\Models\KategoriKasKecil;
+use App\Services\AccountingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Kas Kecil - pengeluaran non-bahan-utama bernilai kecil (ATK, konsumsi,
@@ -49,16 +51,41 @@ class KasKecilController extends Controller
         ]);
         $data['id_user'] = Auth::id();
 
-        KasKecil::create($data);
+        // Setiap pengeluaran kas kecil SEKARANG ikut masuk jurnal akuntansi
+        // (sebelumnya berdiri sendiri, tidak pernah muncul di Laba Rugi) -
+        // akun Beban yang di-debit ditentukan oleh kategori yang dipilih
+        // (kategori_kas_kecil.kode_akun). Kalau kategori itu kebetulan
+        // belum dipetakan ke akun apa pun (kode_akun kosong), pencatatan
+        // kas kecil TETAP disimpan (tidak memblokir operasional harian),
+        // tapi jurnalnya dilewati dengan peringatan ke user supaya ketahuan
+        // dan bisa dilengkapi lewat menu Kategori Kas Kecil.
+        $kategori = KategoriKasKecil::findOrFail($data['id_kategori']);
 
-        return back()->with('success', 'Pengeluaran kas kecil berhasil dicatat.');
+        $kasKecil = DB::transaction(function () use ($data, $kategori) {
+            $kk = KasKecil::create($data);
+
+            if ($kategori->kode_akun) {
+                AccountingService::postKasKecil('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal);
+            }
+
+            return $kk;
+        });
+
+        if (!$kategori->kode_akun) {
+            return back()->with('error', "Pengeluaran tersimpan, TAPI kategori \"{$kategori->nama_kategori}\" belum dihubungkan ke akun Beban manapun - nominal ini belum ikut terhitung di Laba Rugi. Lengkapi pemetaan akunnya lewat menu Kategori Kas Kecil.");
+        }
+
+        return back()->with('success', 'Pengeluaran kas kecil berhasil dicatat & masuk ke jurnal akuntansi.');
     }
 
     public function destroy(KasKecil $kasKecil)
     {
-        $kasKecil->delete();
+        DB::transaction(function () use ($kasKecil) {
+            AccountingService::reverseByReferensi('KK-' . $kasKecil->id);
+            $kasKecil->delete();
+        });
 
-        return back()->with('success', 'Catatan kas kecil dihapus.');
+        return back()->with('success', 'Catatan kas kecil dihapus & jurnal akuntansi terkait sudah dibalik.');
     }
 
     public function uploadBukti(Request $request)

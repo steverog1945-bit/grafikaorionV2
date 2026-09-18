@@ -38,6 +38,7 @@
                     <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
                         <th class="px-4 py-5 text-center w-10">#</th>
                         <th class="px-8 py-5 text-left">Nama Kategori</th>
+                        <th class="px-6 py-5 text-left">Akun Beban Terkait</th>
                         <th class="px-8 py-5 text-right">Manajemen</th>
                     </tr>
                 </thead>
@@ -49,6 +50,17 @@
                             <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
                                 {{ $kat->nama_kategori }}
                             </div>
+                        </td>
+                        <td class="px-6 py-5">
+                            @if($kat->kode_akun)
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+                                    {{ $kat->kode_akun }} &middot; {{ optional($akunBeban->firstWhere('kode_akun', $kat->kode_akun))->nama_akun ?? '—' }}
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-100 uppercase">
+                                    <i class="fas fa-exclamation-triangle"></i> Belum Dipetakan
+                                </span>
+                            @endif
                         </td>
                         <td class="px-8 py-5 text-right">
                             <div class="flex justify-end gap-2">
@@ -69,7 +81,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="3" class="py-24 text-center">
+                        <td colspan="4" class="py-24 text-center">
                             <div class="flex flex-col items-center">
                                 <i class="fas fa-folder-open text-slate-100 text-6xl mb-4"></i>
                                 <p class="text-slate-300 font-medium text-sm">Belum ada kategori yang terdaftar.</p>
@@ -106,8 +118,20 @@
 
                 <div class="max-w-[85%] mx-auto">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Nama Kategori</label>
-                    <input type="text" name="nama_kategori" id="inputNamaKategoriKasKecil" placeholder="Contoh: ATK" required
+                    <input type="text" name="nama_kategori" id="inputNamaKategoriKasKecil" placeholder="Contoh: Beban Internet" required
                            class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center">
+                </div>
+
+                <div class="max-w-[85%] mx-auto">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Akun Beban Terkait</label>
+                    <select name="kode_akun" id="inputKodeAkunKategoriKasKecil"
+                           class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center">
+                        <option value="">-- Belum Dipetakan --</option>
+                        @foreach($akunBeban as $akun)
+                            <option value="{{ $akun->kode_akun }}">{{ $akun->kode_akun }} - {{ $akun->nama_akun }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-[10px] text-slate-400 mt-2 text-center">Menentukan akun Beban mana yang otomatis tercatat di jurnal & Laba Rugi tiap kali kategori ini dipakai mencatat pengeluaran Kas Kecil.</p>
                 </div>
 
                 <div class="flex flex-col items-center gap-3 pt-4 max-w-[70%] mx-auto">
@@ -140,6 +164,7 @@
         formKategoriKasKecil.action = "{{ route('kategori-kas-kecil.store') }}";
         document.getElementById('methodFieldKategoriKasKecil').innerHTML = '';
         formKategoriKasKecil.reset();
+        document.getElementById('inputKodeAkunKategoriKasKecil').value = '';
         modalKategoriKasKecil.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }
@@ -154,6 +179,7 @@
         formKategoriKasKecil.action = `{{ url('/kategori-kas-kecil') }}/${data.id_kategori_kas_kecil}`;
         document.getElementById('methodFieldKategoriKasKecil').innerHTML = '@method("PUT")';
         document.getElementById('inputNamaKategoriKasKecil').value = data.nama_kategori;
+        document.getElementById('inputKodeAkunKategoriKasKecil').value = data.kode_akun || '';
         modalKategoriKasKecil.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }

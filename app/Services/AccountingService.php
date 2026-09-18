@@ -231,6 +231,52 @@ class AccountingService
     }
 
     /**
+     * Pengeluaran Kas Kecil dicatat (KasKecilController::store()) - akun
+     * lawan (Beban) ditentukan oleh kategori yang dipilih user
+     * (kategori_kas_kecil.kode_akun), BUKAN dihardcode seperti
+     * postKasManual() - satu akun Beban generik tidak cukup lagi sekarang
+     * ada rincian kategori (ATK, listrik, marketing, dst). Selalu Cr Kas
+     * (1000) - Kas Kecil memang representasi laci kas fisik kecil, tidak
+     * ada pilihan Bank di form-nya.
+     */
+    public static function postKasKecil(string $noReferensi, string $kodeAkunBeban, float $nominal): void
+    {
+        if ($nominal <= 0) {
+            return;
+        }
+
+        self::postJournal(now()->toDateString(), $noReferensi, "Pengeluaran Kas Kecil {$noReferensi}", [
+            ['kode_akun' => $kodeAkunBeban, 'debet' => $nominal],
+            ['kode_akun' => self::AKUN_KAS, 'kredit' => $nominal],
+        ]);
+    }
+
+    /**
+     * Versi generik dari reversePenjualan() (nama lama dipertahankan apa
+     * adanya supaya alur Edit Nota yang sudah ada tidak perlu disentuh) -
+     * membalik SEMUA baris jurnal untuk satu no_referensi apa pun
+     * sumbernya, dipakai KasKecilController::destroy() saat sebuah catatan
+     * Kas Kecil dihapus (jurnal lama tidak dihapus/diubah, tetap jadi jejak
+     * audit - pembalikan selalu berupa entri baru yang saling meniadakan).
+     */
+    public static function reverseByReferensi(string $noReferensi): void
+    {
+        $baris = DB::table('jurnal_umum')->where('no_referensi', $noReferensi)->get();
+
+        if ($baris->isEmpty()) {
+            return;
+        }
+
+        $lines = $baris->map(fn ($b) => [
+            'kode_akun' => $b->kode_akun,
+            'debet' => (float) $b->kredit,
+            'kredit' => (float) $b->debet,
+        ])->all();
+
+        self::postJournal(now()->toDateString(), $noReferensi, "Koreksi/pembalikan {$noReferensi}", $lines);
+    }
+
+    /**
      * Membalik SEMUA baris jurnal untuk satu no_referensi (nota) dengan
      * entri kontra (debet<->kredit ditukar) - dipakai saat sebuah nota
      * dikoreksi lewat alur Edit Nota (PenjualanController::applyApprovedEdit).

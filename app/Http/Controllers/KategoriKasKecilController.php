@@ -4,13 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\KategoriKasKecil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Kelola daftar kategori Kas Kecil (dropdown tetap) - sebelumnya kolom
  * kas_kecil.kategori isian bebas + datalist autocomplete, berisiko variasi
  * penulisan (ATK vs Atk) memecah laporan per kategori. Mengikuti pola CRUD
- * KategoriController (kategori bahan baku), tanpa kolom kode karena tidak
- * dibutuhkan untuk kas kecil.
+ * KategoriController (kategori bahan baku).
+ *
+ * kode_akun (migrasi add_kode_akun_to_kategori_kas_kecil) menghubungkan
+ * tiap kategori ke satu akun Beban di Chart of Accounts - inilah yang
+ * membuat pengeluaran Kas Kecil bisa ikut masuk jurnal & Laporan Laba
+ * Rugi (lihat KasKecilController::store()), bukan cuma sekadar dropdown
+ * dekoratif seperti sebelumnya.
  */
 class KategoriKasKecilController extends Controller
 {
@@ -24,18 +30,33 @@ class KategoriKasKecilController extends Controller
 
         $kategori = $query->orderBy('nama_kategori')->paginate(20)->withQueryString();
 
-        return view('master.kategori-kas-kecil.index', compact('kategori'));
+        // Cuma akun tipe Beban SELAIN 5000 (HPP) yang relevan sebagai
+        // pilihan - HPP punya jalur pencatatan otomatisnya sendiri dari
+        // BOM x harga_rata_rata bahan (AccountingService::postPenjualan),
+        // tidak pernah dipetakan manual dari kategori kas kecil.
+        $akunBeban = DB::table('bag_akun')
+            ->where('tipe_akun', 'Beban')
+            ->where('kode_akun', '!=', '5000')
+            ->where('is_active', 1)
+            ->orderBy('kode_akun')
+            ->get();
+
+        return view('master.kategori-kas-kecil.index', compact('kategori', 'akunBeban'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'nama_kategori' => 'required|string|max:100|unique:kategori_kas_kecil,nama_kategori',
+            'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun',
         ], [
             'nama_kategori.unique' => 'Nama kategori sudah ada!',
         ]);
 
-        KategoriKasKecil::create(['nama_kategori' => $request->nama_kategori]);
+        KategoriKasKecil::create([
+            'nama_kategori' => $request->nama_kategori,
+            'kode_akun' => $request->kode_akun ?: null,
+        ]);
 
         return redirect()->route('kategori-kas-kecil.index')->with('success', 'Kategori kas kecil baru berhasil disimpan.');
     }
@@ -44,11 +65,15 @@ class KategoriKasKecilController extends Controller
     {
         $request->validate([
             'nama_kategori' => 'required|string|max:100|unique:kategori_kas_kecil,nama_kategori,' . $kategoriKasKecil->id_kategori_kas_kecil . ',id_kategori_kas_kecil',
+            'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun',
         ], [
             'nama_kategori.unique' => 'Nama kategori sudah ada!',
         ]);
 
-        $kategoriKasKecil->update(['nama_kategori' => $request->nama_kategori]);
+        $kategoriKasKecil->update([
+            'nama_kategori' => $request->nama_kategori,
+            'kode_akun' => $request->kode_akun ?: null,
+        ]);
 
         return redirect()->route('kategori-kas-kecil.index')->with('success', 'Kategori kas kecil berhasil diperbarui.');
     }
