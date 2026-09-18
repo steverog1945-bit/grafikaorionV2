@@ -116,5 +116,37 @@
             <span class="text-xs font-bold text-rose-700 uppercase tracking-widest"><i class="fas fa-exclamation-circle"></i> TIDAK BALANCE - Selisih {{ number_format(abs($totalAset - $totalPasiva), 0, ',', '.') }}</span>
         @endif
     </div>
+
+    {{-- Analisis Otomatis - narasi RULE-BASED dari angka yang sudah
+         dihitung controller (AkuntansiController::buildNarasiNeraca()),
+         BUKAN dari AI/LLM - deterministik, instan, tanpa API eksternal.
+         Sengaja ikut tercetak (bukan no-print) - ini bagian dari nilai
+         tambah "penjelasan profesional" yang diminta, bukan cuma alat
+         bantu di layar. --}}
+    <div class="mt-6 bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <i class="fas fa-wand-magic-sparkles text-sm"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-slate-800">Analisis Otomatis</h3>
+                <p class="text-[11px] text-slate-400">Dibentuk otomatis dari rasio &amp; komposisi neraca ini - bukan nasihat keuangan formal, gunakan sebagai gambaran awal.</p>
+            </div>
+        </div>
+        <div class="p-8 space-y-3">
+            @foreach($narasi as $butir)
+                @php
+                    $ikon = ['positif' => 'fa-circle-check', 'peringatan' => 'fa-triangle-exclamation', 'info' => 'fa-circle-info'][$butir['tone']];
+                    $warna = ['positif' => 'text-emerald-600 bg-emerald-50', 'peringatan' => 'text-amber-600 bg-amber-50', 'info' => 'text-slate-500 bg-slate-50'][$butir['tone']];
+                @endphp
+                <div class="flex items-start gap-3">
+                    <span class="w-6 h-6 rounded-lg {{ $warna }} flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fas {{ $ikon }} text-[11px]"></i>
+                    </span>
+                    <p class="text-sm text-slate-600 leading-relaxed">{{ $butir['teks'] }}</p>
+                </div>
+            @endforeach
+        </div>
+    </div>
 </div>
 @endsection
