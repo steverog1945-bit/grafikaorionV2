@@ -41,10 +41,15 @@
             <tr><td>Status</td><td class="right" colspan="2">{{ $transaksi->status_pembayaran }}</td></tr>
         </table>
 
+        {{-- nota_footer_text sudah disaring ketat saat disimpan (whitelist
+             tag, semua atribut dibuang - lihat
+             SettingAplikasiController::sanitizeFooterHtml()), aman dicetak
+             sebagai HTML mentah supaya format tebal/miring/daftar yang
+             diatur admin ikut tampil, bukan cuma teks polos. --}}
         @php($footerNota = \App\Models\AppSetting::current()->nota_footer_text)
         @if($footerNota)
             <div class="divider"></div>
-            <p class="footer-note" style="white-space: pre-line; text-align: left;">{{ $footerNota }}</p>
+            <div class="footer-note" style="text-align: left;">{!! $footerNota !!}</div>
         @else
             <p class="footer-note">Terima kasih atas kepercayaan Anda</p>
         @endif

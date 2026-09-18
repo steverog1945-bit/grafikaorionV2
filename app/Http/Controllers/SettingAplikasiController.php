@@ -27,7 +27,7 @@ class SettingAplikasiController extends Controller
             'libur_kas_minggu' => 'nullable|boolean',
             'format_nota' => 'nullable|in:thermal,a4,continuous',
             'nomor_nota_prefix' => 'nullable|string|max:20|regex:/^[A-Za-z0-9\-]+$/',
-            'nota_footer_text' => 'nullable|string|max:2000',
+            'nota_footer_text' => 'nullable|string|max:5000',
         ]);
 
         $setting = AppSetting::current();
@@ -42,7 +42,7 @@ class SettingAplikasiController extends Controller
             'libur_kas_minggu' => $request->boolean('libur_kas_minggu'),
             'format_nota' => $data['format_nota'] ?? 'a4',
             'nomor_nota_prefix' => $data['nomor_nota_prefix'] ?? 'INV',
-            'nota_footer_text' => $data['nota_footer_text'] ?? null,
+            'nota_footer_text' => $this->sanitizeFooterHtml($data['nota_footer_text'] ?? null),
         ];
 
         if ($request->hasFile('logo')) {
@@ -56,5 +56,31 @@ class SettingAplikasiController extends Controller
         AppSetting::clearCache();
 
         return back()->with('success', 'Pengaturan aplikasi berhasil disimpan.');
+    }
+
+    /**
+     * Footer nota diketik lewat editor contenteditable (toolbar tebal/
+     * miring/garis-bawah/daftar) di sisi klien, hasilnya HTML mentah
+     * (element.innerHTML) - WAJIB disaring di server sebelum disimpan,
+     * karena nilai ini nantinya dicetak balik sebagai HTML MENTAH
+     * (bukan di-escape) di kasir.print_nota. Dua lapis:
+     * 1. strip_tags dengan whitelist SANGAT ketat (cuma tag pembentuk
+     *    format dasar, tidak ada <a>/<img>/<script>/dst).
+     * 2. Buang SEMUA atribut dari tag yang tersisa (termasuk onclick=,
+     *    style=, href=javascript:) - formatting dasar tidak butuh atribut
+     *    apa pun, jadi paling aman dihapus total daripada whitelist per-
+     *    atribut yang gampang bocor.
+     */
+    private function sanitizeFooterHtml(?string $html): ?string
+    {
+        if (!$html || trim(strip_tags($html)) === '') {
+            return null;
+        }
+
+        $allowedTags = '<b><strong><i><em><u><br><p><div><ul><ol><li>';
+        $bersih = strip_tags($html, $allowedTags);
+        $bersih = preg_replace('/<([a-z][a-z0-9]*)[^>]*>/i', '<$1>', $bersih);
+
+        return trim($bersih);
     }
 }
