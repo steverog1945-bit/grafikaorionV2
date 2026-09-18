@@ -111,8 +111,15 @@
                                         </div>
                                     @endif
                                     <div class="min-w-0">
-                                        <div class="font-bold text-slate-700 uppercase truncate">{{ $item->nama_produk ?? $item->nama_jasa }}</div>
-                                        <div class="text-xs text-slate-400 italic truncate">{{ $item->nama_file }}</div>
+                                        <div class="font-bold text-slate-700 uppercase truncate">{{ $item->nama_produk ?? $item->nama_jasa ?? $item->nama_file }}</div>
+                                        {{-- Baris Penjualan Barang (id_bahan) tidak punya nama_produk/
+                                             nama_jasa - nama_file SUDAH tampil di baris judul di atas
+                                             (fallback ke-3), jadi baris italic kedua ini cuma diulang
+                                             kalau memang ada nama_produk/nama_jasa yang berbeda dari
+                                             nama_file (kasus normal produk/jasa). --}}
+                                        @if($item->nama_produk || $item->nama_jasa)
+                                            <div class="text-xs text-slate-400 italic truncate">{{ $item->nama_file }}</div>
+                                        @endif
                                         <div class="disp-biaya-tambahan text-[10px] text-slate-400 mt-0.5">{!! $bagianBiaya !!}</div>
                                     </div>
                                 </div>
@@ -123,7 +130,7 @@
                                     {{ number_format($item->qty_hitung, 2, ',', '.') }} m²
                                     <div class="text-[10px] text-slate-300">{{ $item->qty }} pcs</div>
                                 @else
-                                    {{ $item->qty }} {{ $item->id_jasa ? 'Jasa' : 'Pcs' }}
+                                    {{ $item->qty }} {{ $item->id_jasa ? 'Jasa' : ($item->id_bahan ? 'Bahan' : 'Pcs') }}
                                 @endif
                             </td>
                             <td class="py-3 pl-2 text-right disp-subtotal font-black text-slate-800">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>

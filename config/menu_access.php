@@ -37,6 +37,10 @@ return [
         'penjualan/riwayat' => [3],
         'penjualan/edit-nota' => [3],
         'penjualan' => [3, 41],
+        // Penjualan Barang HANYA Kasir (3) - beda dari Input Order biasa
+        // yang juga dibuka untuk Operator Desain (41), jual bahan baku
+        // langsung bukan bagian dari alur kerja desainer.
+        'penjualan-barang' => [3],
         // 'api/penjualan/produk/{id}' dipanggil AJAX oleh halaman Kasir
         // Utama sendiri (ambil detail harga produk saat dipilih) - WAJIB
         // ikut [41], kalau tidak pemilihan produk gagal total untuk role

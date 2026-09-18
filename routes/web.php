@@ -147,6 +147,15 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::post('/penjualan/edit-nota/{id}/apply', [PenjualanController::class, 'applyApprovedEdit'])
         ->name('penjualan.edit-apply');
 
+    // Penjualan Barang - jual bahan baku langsung, terintegrasi penuh ke
+    // transaksi/nota yang sama (lihat catatan di PenjualanBarangController).
+    // Path '/penjualan-barang' SENGAJA beda dari '/penjualan/...' di atas -
+    // tidak boleh ikut tertangkap wildcard penjualan.show ({id}).
+    Route::get('/penjualan-barang', [\App\Http\Controllers\PenjualanBarangController::class, 'create'])
+        ->name('penjualan-barang.create');
+    Route::post('/penjualan-barang/store', [\App\Http\Controllers\PenjualanBarangController::class, 'store'])
+        ->name('penjualan-barang.store');
+
     Route::post('/penjualan/upload-thumbnail', [PenjualanController::class, 'uploadThumbnail'])
         ->name('penjualan.upload-thumbnail');
 

@@ -795,7 +795,7 @@ public function printOpsi(Request $request, $id)
 
     $items = DB::table('transaksi_detail')
         ->where('id_transaksi', $id)
-        ->select('nama_file', 'qty', 'subtotal', 'biaya_cetak', 'biaya_desain', 'biaya_finishing', 'p_ukuran', 'l_ukuran')
+        ->select('nama_file', 'qty', 'subtotal', 'biaya_cetak', 'biaya_desain', 'biaya_finishing', 'p_ukuran', 'l_ukuran', 'id_bahan', 'id_produk', 'id_jasa')
         ->get();
 
     $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
@@ -823,7 +823,15 @@ public function printOpsi(Request $request, $id)
     // baris "Saldo deposit Rp 0" yang tidak bermakna apa pun buat mereka.
     $konsumenPernahPakaiDeposit = DB::table('konsumen_deposit')->where('id_konsumen', $transaksi->id_konsumen)->exists();
 
-    $format = \App\Models\AppSetting::current()->format_nota ?? 'a4';
+    // Nota Penjualan Barang (transaksi isinya CUMA bahan baku, tidak ada
+    // produk/jasa sama sekali) defaultnya A4/Continuous Form, TIDAK PERNAH
+    // Thermal - permintaan eksplisit user, nota jual bahan lebih pas
+    // sebagai invoice (A4/Continuous) daripada struk kasir sempit. Nota
+    // biasa (ada produk/jasa) tetap ikut format global apa adanya.
+    $formatGlobal = \App\Models\AppSetting::current()->format_nota ?? 'a4';
+    $hanyaBahan = $items->isNotEmpty()
+        && $items->every(fn ($i) => $i->id_bahan && !$i->id_produk && !$i->id_jasa);
+    $format = ($hanyaBahan && $formatGlobal === 'thermal') ? 'a4' : $formatGlobal;
 
     return view('kasir.print_nota', compact(
         'transaksi', 'items', 'totalTerbayar', 'format',
