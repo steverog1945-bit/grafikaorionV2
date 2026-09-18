@@ -314,6 +314,10 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         [SettingHargaController::class, 'destroyRow'])
         ->name('setting-harga.tier.destroy');
 
+    Route::post('/setting-harga/{id_produk}/copy-golongan',
+        [SettingHargaController::class, 'copyKeSemuaGolongan'])
+        ->name('setting-harga.copy-golongan');
+
 
 
     /*

@@ -141,6 +141,80 @@ class SettingHargaController extends Controller
     }
 
     /**
+     * Copy SELURUH tier harga satu golongan (golongan yang sedang aktif di
+     * tab modal) ke SEMUA golongan lain untuk produk yang sama - dipakai
+     * saat harga memang sama rata di semua golongan, supaya tidak perlu
+     * mengetik ulang tier satu-satu di tiap tab. Tier golongan tujuan
+     * DIGANTI TOTAL (hapus lalu insert ulang) dengan salinan tier golongan
+     * sumber - ini aksi destruktif yang disengaja (harus dikonfirmasi dulu
+     * di sisi klien), bukan digabung dengan tier yang sudah ada di golongan
+     * tujuan supaya hasilnya benar-benar identik dengan golongan sumber,
+     * tidak tercampur sisa tier lama yang mungkin tumpang tindih.
+     */
+    public function copyKeSemuaGolongan(Request $request, $idProduk)
+    {
+        $request->validate([
+            'id_golongan_sumber' => 'required|exists:golongan_konsumen,id_golongan',
+        ]);
+
+        $idSumber = (int) $request->id_golongan_sumber;
+
+        $tiersSumber = DB::table('setting_harga')
+            ->where('id_produk', $idProduk)
+            ->where('id_golongan', $idSumber)
+            ->orderBy('range_min')
+            ->get();
+
+        if ($tiersSumber->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'Golongan ini belum punya tier harga untuk disalin.'], 422);
+        }
+
+        $golonganLain = DB::table('golongan_konsumen')->where('id_golongan', '!=', $idSumber)->pluck('id_golongan');
+
+        DB::transaction(function () use ($idProduk, $idSumber, $tiersSumber, $golonganLain) {
+            DB::table('setting_harga')
+                ->where('id_produk', $idProduk)
+                ->whereIn('id_golongan', $golonganLain)
+                ->delete();
+
+            $baris = [];
+            foreach ($golonganLain as $idGolonganTujuan) {
+                foreach ($tiersSumber as $t) {
+                    $baris[] = [
+                        'id_produk'   => $idProduk,
+                        'id_golongan' => $idGolonganTujuan,
+                        'range_min'   => $t->range_min,
+                        'range_max'   => $t->range_max,
+                        'harga_jual'  => $t->harga_jual,
+                        'qty_berlaku' => 1,
+                        'created_at'  => now(),
+                        'updated_at'  => now(),
+                    ];
+                }
+            }
+            if (!empty($baris)) {
+                DB::table('setting_harga')->insert($baris);
+            }
+        });
+
+        // Kembalikan SELURUH tier produk ini (semua golongan) yang sudah
+        // diperbarui, dikelompokkan per golongan - dipakai klien untuk
+        // menggambar ulang semua tab tanpa reload halaman.
+        $semuaTier = DB::table('setting_harga')
+            ->where('id_produk', $idProduk)
+            ->orderBy('id_golongan')
+            ->orderBy('range_min')
+            ->get()
+            ->groupBy('id_golongan');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Harga golongan ini berhasil disalin ke ' . $golonganLain->count() . ' golongan lain.',
+            'tiers' => $semuaTier,
+        ]);
+    }
+
+    /**
      * Cek apakah rentang [min, max] (max null = tak terbatas) tumpang
      * tindih dengan tier LAIN yang sudah ada untuk produk+golongan yang
      * sama - sebelumnya TIDAK ADA validasi ini sama sekali, jadi dua tier

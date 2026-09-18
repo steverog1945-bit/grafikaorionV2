@@ -161,6 +161,17 @@
             @foreach($golongan as $i => $g)
             @php $tiersProdukGol = $hargaProdukModal->where('id_golongan', $g->id_golongan); @endphp
             <div id="harga-tab-panel-{{ $p->id_produk }}-{{ $g->id_golongan }}" class="p-5 {{ $i === 0 ? '' : 'hidden' }}">
+                {{-- Copy SELURUH tier golongan ini ke semua golongan lain -
+                     dipakai kalau harga memang sama rata di semua golongan,
+                     supaya tidak perlu mengetik ulang tier satu-satu di
+                     tiap tab. Aksi ini MENGGANTI TOTAL tier golongan lain
+                     (bukan digabung) - selalu dikonfirmasi dulu. --}}
+                <div class="flex justify-end mb-3">
+                    <button type="button" onclick="confirmCopyHargaGolongan({{ $p->id_produk }}, {{ $g->id_golongan }}, '{{ $g->nama_golongan }}')" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5">
+                        <i class="fas fa-clone text-[10px]"></i> Copy Harga {{ $g->nama_golongan }} ke Semua Golongan Lain
+                    </button>
+                </div>
+
                 {{-- Tambah tier - TANPA pemilihan golongan, sudah tersirat
                      dari tab yang sedang aktif (id_golongan dikirim lewat
                      hidden input). --}}
@@ -474,6 +485,61 @@
             Toast.fire({ icon: 'success', title: data.message });
         }
     });
+
+    // Copy SELURUH tier satu golongan ke semua golongan lain untuk produk
+    // yang sama - lihat SettingHargaController::copyKeSemuaGolongan().
+    // Aksi destruktif (mengganti total tier golongan tujuan), jadi selalu
+    // dikonfirmasi dulu dengan peringatan eksplisit.
+    function confirmCopyHargaGolongan(idProduk, idGolongan, namaGolongan) {
+        Swal.fire({
+            title: `Copy Harga "${namaGolongan}" ke Semua Golongan Lain?`,
+            html: `Seluruh tier harga golongan <b>${namaGolongan}</b> akan disalin ke SEMUA golongan lain untuk produk ini.<br><small class="text-slate-400">Tier harga yang sudah ada di golongan lain akan DIGANTI TOTAL, bukan digabung.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#f1f5f9',
+            cancelButtonText: '<span style="color: #64748b">Batal</span>',
+            confirmButtonText: 'Ya, Salin ke Semua',
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
+            try {
+                const res = await fetch(`{{ url('/setting-harga') }}/${idProduk}/copy-golongan`, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfTokenHarga },
+                    body: JSON.stringify({ id_golongan_sumber: idGolongan }),
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    Swal.fire('Opps!', data.message || 'Gagal menyalin harga.', 'error');
+                    return;
+                }
+                terapkanSalinanHargaKeSemuaTab(idProduk, data.tiers || {});
+                Toast.fire({ icon: 'success', title: data.message });
+            } catch (e) {
+                Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');
+            }
+        });
+    }
+
+    // Gambar ulang SEMUA tab golongan produk ini (bukan cuma golongan
+    // sumber) berdasarkan data tier terbaru dari server - dipanggil sekali
+    // setelah copy sukses, supaya modal langsung mencerminkan hasil salinan
+    // tanpa reload halaman.
+    function terapkanSalinanHargaKeSemuaTab(idProduk, tiersByGolongan) {
+        document.querySelectorAll(`[id^="tier-tbody-produk-${idProduk}-gol-"]`).forEach(tbody => {
+            const idGolongan = tbody.dataset.idGolongan;
+            const daftarTier = tiersByGolongan[idGolongan] || [];
+            const form = document.querySelector(`.tier-add-form-produk[data-id-produk="${idProduk}"][data-id-golongan="${idGolongan}"]`);
+            const stepRentang = form ? (form.querySelector('[name="range_min"]').step || '1') : '1';
+
+            const emptyRowHtml = `<tr class="tier-empty-msg-produk" ${daftarTier.length ? 'hidden' : ''}><td colspan="4" class="p-5 text-center text-slate-300 italic">Belum ada harga untuk golongan ini - order akan ditolak di Kasir sampai diisi.</td></tr>`;
+            const rowsHtml = daftarTier.map(t => buildHargaTierRowHtml(t, stepRentang)).join('');
+            tbody.innerHTML = emptyRowHtml + rowsHtml;
+
+            refreshHargaSummary(idProduk, idGolongan);
+            perbaruiSaranMinTier(idProduk, idGolongan);
+        });
+    }
 
     function confirmHapusTierHarga(id) {
         Swal.fire({

@@ -9,7 +9,7 @@
     * { box-sizing: border-box; }
     body {
         font-family: -apple-system, 'Segoe UI', 'Inter', Roboto, sans-serif;
-        margin: 0; padding: 24px; color: #1e293b; background: #fff;
+        margin: 0; padding: 16px; color: #1e293b; background: #fff;
     }
     {{-- 'continuous' (kertas sambung/dot-matrix) pakai ukuran font yang SAMA
          dengan 'a4' di seluruh style ini (kedua-duanya "bukan thermal") -
@@ -17,7 +17,7 @@
          lebih lebar dari A4/A5). --}}
     .sheet { max-width: {{ $format === 'thermal' ? '58mm' : ($format === 'continuous' ? '190mm' : '480px') }}; margin: 0 auto; }
 
-    .print-header { text-align: center; margin-bottom: 14px; }
+    .print-header { text-align: center; margin-bottom: 8px; }
     .print-header img { max-height: {{ $format === 'thermal' ? '32px' : '44px' }}; margin-bottom: 6px; object-fit: contain; }
     .print-header h1 {
         font-size: {{ $format === 'thermal' ? '14px' : '19px' }};
@@ -47,7 +47,7 @@
         disentuh sama sekali, sudah normal di kertas biasa.
     --}}
     table { width: 100%; border-collapse: collapse; font-size: {{ $format === 'thermal' ? '11px' : '12.5px' }}; }
-    th, td { padding: 6px 4px; text-align: left; vertical-align: top; }
+    th, td { padding: 3px 4px; text-align: left; vertical-align: top; }
     th {
         border-bottom: 1.5px solid #e2e8f0; font-size: {{ $format === 'thermal' ? '10px' : '10px' }};
         text-transform: uppercase; letter-spacing: {{ $format === 'thermal' ? '0.02em' : '0.04em' }};
@@ -55,7 +55,7 @@
     }
     td.right, th.right { text-align: right; }
 
-    .divider { border-top: 1px dashed #cbd5e1; margin: 10px 0; }
+    .divider { border-top: 1px dashed #cbd5e1; margin: 6px 0; }
 
     {{--
         Kelas opsional (opt-in, TIDAK mengubah default table/th/td/divider
@@ -87,7 +87,7 @@
     .selisih-negatif { color: #dc2626; }
     .selisih-positif { color: #16a34a; }
 
-    .footer-note { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 16px; }
+    .footer-note { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 10px; }
 
     .no-print { text-align: center; margin-top: 24px; }
     .no-print button {
