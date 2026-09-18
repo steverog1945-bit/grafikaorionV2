@@ -1,12 +1,32 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
-    <x-page-header title="Neraca" subtitle="Posisi keuangan (Aset = Kewajiban + Ekuitas) per tanggal tertentu." />
+<style>
+    @media print {
+        aside, .no-print { display: none !important; }
+        main { margin-left: 0 !important; padding: 28px 32px !important; }
+        body { background: #fff !important; }
+    }
+</style>
+@include('partials.print-report-header', ['docTitle' => 'Neraca Keuangan per ' . \Carbon\Carbon::parse($tanggal)->format('d/m/Y')])
 
-    @include('akuntansi._subnav')
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 print:pt-0 max-w-[1600px] mx-auto">
+    <div class="print:hidden">
+        <x-page-header title="Neraca" subtitle="Posisi keuangan (Aset = Kewajiban + Ekuitas) per tanggal tertentu.">
+            <x-slot:actions>
+                <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
+                    <i class="fas fa-print"></i>
+                    Cetak
+                </x-button>
+            </x-slot:actions>
+        </x-page-header>
+    </div>
 
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 mb-6">
+    <div class="no-print">
+        @include('akuntansi._subnav')
+    </div>
+
+    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 mb-6 no-print">
         <form method="GET" class="flex flex-wrap items-end gap-4">
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Per Tanggal</label>
