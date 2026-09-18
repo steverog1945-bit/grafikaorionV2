@@ -823,15 +823,19 @@ public function printOpsi(Request $request, $id)
     // baris "Saldo deposit Rp 0" yang tidak bermakna apa pun buat mereka.
     $konsumenPernahPakaiDeposit = DB::table('konsumen_deposit')->where('id_konsumen', $transaksi->id_konsumen)->exists();
 
-    // Nota Penjualan Barang (transaksi isinya CUMA bahan baku, tidak ada
-    // produk/jasa sama sekali) defaultnya A4/Continuous Form, TIDAK PERNAH
-    // Thermal - permintaan eksplisit user, nota jual bahan lebih pas
-    // sebagai invoice (A4/Continuous) daripada struk kasir sempit. Nota
-    // biasa (ada produk/jasa) tetap ikut format global apa adanya.
+    // Nota Penjualan Barang (transaksi isinya bahan baku dan/atau barang
+    // custom/lainnya - tidak ada produk/jasa dari Input Order sama sekali)
+    // defaultnya A4/Continuous Form, TIDAK PERNAH Thermal - permintaan
+    // eksplisit user, nota jual barang lebih pas sebagai invoice
+    // (A4/Continuous) daripada struk kasir sempit. Nota biasa (ada
+    // produk/jasa) tetap ikut format global apa adanya. Item custom (lihat
+    // PenjualanBarangController::store()) juga tidak punya id_bahan, jadi
+    // cek-nya sengaja TIDAK mensyaratkan id_bahan - cukup pastikan tidak ada
+    // baris id_produk/id_jasa (ciri transaksi dari Input Order).
     $formatGlobal = \App\Models\AppSetting::current()->format_nota ?? 'a4';
-    $hanyaBahan = $items->isNotEmpty()
-        && $items->every(fn ($i) => $i->id_bahan && !$i->id_produk && !$i->id_jasa);
-    $format = ($hanyaBahan && $formatGlobal === 'thermal') ? 'a4' : $formatGlobal;
+    $dariPenjualanBarang = $items->isNotEmpty()
+        && $items->every(fn ($i) => !$i->id_produk && !$i->id_jasa);
+    $format = ($dariPenjualanBarang && $formatGlobal === 'thermal') ? 'a4' : $formatGlobal;
 
     return view('kasir.print_nota', compact(
         'transaksi', 'items', 'totalTerbayar', 'format',

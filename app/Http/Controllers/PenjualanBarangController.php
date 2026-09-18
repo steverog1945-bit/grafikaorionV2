@@ -26,6 +26,7 @@ class PenjualanBarangController extends Controller
     public function create()
     {
         $konsumen = DB::table('konsumen')->orderBy('nama_konsumen')->get();
+        $golongan = DB::table('golongan_konsumen')->get();
         $kategori = DB::table('kategori')->orderBy('nama_kategori')->get();
 
         // Bahan baku beserta info tampilan (kategori, satuan) - status aktif
@@ -49,7 +50,7 @@ class PenjualanBarangController extends Controller
         $prefixNota = AppSetting::current()->nomor_nota_prefix ?: 'INV';
         $no_nota = $prefixNota . '-' . $date . '-' . str_pad($lastNota + 1, 3, '0', STR_PAD_LEFT);
 
-        return view('penjualan-barang.create', compact('konsumen', 'kategori', 'bahan', 'no_nota'));
+        return view('penjualan-barang.create', compact('konsumen', 'golongan', 'kategori', 'bahan', 'no_nota'));
     }
 
     public function store(Request $request)
@@ -57,9 +58,14 @@ class PenjualanBarangController extends Controller
         $request->validate([
             'id_konsumen' => 'required|exists:konsumen,id_konsumen',
             'items' => 'required|array|min:1',
-            'items.*.id_bahan' => 'required|exists:bahan_baku,id_bahan',
+            'items.*.tipe' => 'required|in:bahan,custom',
             'items.*.qty' => 'required|numeric|min:0.01',
             'items.*.harga' => 'required|numeric|min:0',
+            // Bahan Baku: wajib pilih dari master (stok ikut berkurang).
+            'items.*.id_bahan' => 'required_if:items.*.tipe,bahan|nullable|exists:bahan_baku,id_bahan',
+            // Custom/Lainnya: barang/jasa yang tidak ada di data bahan baku,
+            // nama diisi bebas, TIDAK memotong stok apa pun.
+            'items.*.nama' => 'required_if:items.*.tipe,custom|nullable|string|max:255',
         ]);
 
         // Order (belum tentu pembayaran) HANYA boleh dibuat selama toko
@@ -98,15 +104,44 @@ class PenjualanBarangController extends Controller
             $grandTotal = 0;
 
             foreach ($request->items as $item) {
-                $bahan = DB::table('bahan_baku')->where('id_bahan', $item['id_bahan'])->lockForUpdate()->first();
-                if (!$bahan) {
-                    throw new \Exception('Bahan baku tidak ditemukan.');
-                }
-
                 $qty = (float) $item['qty'];
                 $harga = (float) $item['harga'];
                 $subtotal = $qty * $harga;
                 $grandTotal += $subtotal;
+
+                if ($item['tipe'] === 'custom') {
+                    // Barang/jasa CUSTOM: tidak ada di data master bahan baku
+                    // (mis. barang titipan, jasa tambahan dadakan, barang
+                    // bekas/rusak yang dijual sekali) - nama & harga murni
+                    // manual, hpp_snapshot=0 (tidak ada acuan biaya, sama
+                    // seperti baris Jasa di Input Order), dan TIDAK menyentuh
+                    // stok/kartu_stok sama sekali karena bukan item inventaris.
+                    DB::table('transaksi_detail')->insert([
+                        'id_transaksi' => $idTransaksi,
+                        'id_bahan' => null,
+                        'nama_file' => $item['nama'],
+                        'p_ukuran' => 0,
+                        'l_ukuran' => 0,
+                        'qty' => $qty,
+                        'biaya_cetak' => $subtotal,
+                        'biaya_desain' => 0,
+                        'biaya_finishing' => 0,
+                        'subtotal' => $subtotal,
+                        'harga_jual_snapshot' => $subtotal,
+                        'hpp_snapshot' => 0,
+                        'status_spk' => 'Selesai',
+                        'status_urgensi' => 'Normal',
+                        'status_finishing' => 'Standar',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    continue;
+                }
+
+                $bahan = DB::table('bahan_baku')->where('id_bahan', $item['id_bahan'])->lockForUpdate()->first();
+                if (!$bahan) {
+                    throw new \Exception('Bahan baku tidak ditemukan.');
+                }
 
                 // HPP baris ini = qty x harga_rata_rata bahan (biaya bahan
                 // sesungguhnya, BUKAN harga jual manual di atas) - konsisten
