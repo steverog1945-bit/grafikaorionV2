@@ -465,6 +465,10 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
         [SettingAplikasiController::class, 'update'])
         ->name('pengaturan-aplikasi.update');
 
+    Route::get('/pengaturan-aplikasi/preview-nota',
+        [SettingAplikasiController::class, 'previewNota'])
+        ->name('pengaturan-aplikasi.preview-nota');
+
     /*
     |--------------------------------------------------------------------------
     | MODUL ORDER JERSEY (terpisah dari transaksi/kasir/BOM percetakan -

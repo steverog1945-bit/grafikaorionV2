@@ -135,46 +135,22 @@
                     </x-card>
                 </div>
 
-                {{-- PREVIEW LIVE --}}
+                {{-- PREVIEW LIVE - <iframe> ke SettingAplikasiController::previewNota(),
+                     merender view kasir.print_nota YANG SAMA PERSIS dengan
+                     cetak sungguhan (WYSIWYG asli, bukan mockup manual yang
+                     bisa nyimpang dari tampilan asli seiring waktu). Lebar
+                     iframe diset ke UKURAN NYATA kertas (58mm/480px/190mm,
+                     sama seperti partials/print-style.blade.php), lalu
+                     di-scale-down lewat CSS transform supaya proporsi antar
+                     format ikut terlihat akurat, bukan cuma "kira-kira mirip". --}}
                 <div class="w-full lg:w-[42%] lg:sticky lg:top-6">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">Preview Nota</p>
-                    <div class="bg-slate-100 rounded-2xl p-6 flex justify-center">
-                        <div id="preview-nota-sheet" class="bg-white shadow-md p-4 text-[11.5px]" style="max-width: 320px; width: 100%;">
-                            <div class="text-center mb-2.5">
-                                <img id="preview-nota-logo" class="hidden mx-auto mb-1 object-contain" style="max-height: 36px;" alt="Logo">
-                                <h1 id="preview-nota-nama" class="font-extrabold text-slate-900" style="font-size: 1.15em;"></h1>
-                                <p id="preview-nota-alamat" class="text-slate-500 mt-0.5" style="font-size: 0.85em;"></p>
-                                <p class="text-indigo-600 font-bold uppercase mt-1" style="font-size: 0.8em; letter-spacing: 0.03em;">Nota Penjualan</p>
-                            </div>
-                            <table class="w-full">
-                                <tr><td class="py-0.5">No. Nota</td><td class="py-0.5 text-right" id="preview-nota-nomor"></td></tr>
-                                <tr><td class="py-0.5">Tanggal</td><td class="py-0.5 text-right">{{ now()->format('d/m/Y H:i') }}</td></tr>
-                                <tr><td class="py-0.5">Konsumen</td><td class="py-0.5 text-right">Budi Santoso</td></tr>
-                            </table>
-                            <div class="border-t border-dashed border-slate-300 my-2"></div>
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="text-slate-400 uppercase" style="font-size: 0.8em;">
-                                        <th class="text-left font-bold pb-1">Item</th>
-                                        <th class="text-right font-bold pb-1">Qty</th>
-                                        <th class="text-right font-bold pb-1">Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td class="py-0.5">Banner 3x1m</td><td class="py-0.5 text-right">2</td><td class="py-0.5 text-right">150.000</td></tr>
-                                    <tr><td class="py-0.5">Stiker A3</td><td class="py-0.5 text-right">5</td><td class="py-0.5 text-right">50.000</td></tr>
-                                </tbody>
-                            </table>
-                            <div class="border-t border-dashed border-slate-300 my-2"></div>
-                            <table class="w-full">
-                                <tr class="font-extrabold text-slate-900"><td class="py-0.5">TOTAL</td><td class="py-0.5 text-right" colspan="2">Rp 200.000</td></tr>
-                                <tr><td class="py-0.5">Status</td><td class="py-0.5 text-right" colspan="2">Belum Bayar</td></tr>
-                            </table>
-                            <div class="border-t border-dashed border-slate-300 my-2"></div>
-                            <div id="preview-nota-footer" class="text-slate-400 text-center" style="font-size: 0.83em;"></div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">Preview Nota - Ukuran Nyata</p>
+                    <div class="bg-slate-200 rounded-2xl p-4 overflow-hidden" style="max-height: 70vh; overflow-y: auto;">
+                        <div id="preview-nota-wrap" class="mx-auto bg-white shadow-md" style="transform-origin: top center;">
+                            <iframe id="preview-nota-iframe" class="w-full border-0 block" style="min-height: 400px;"></iframe>
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-400 text-center mt-2">Ilustrasi - proporsi lebar kertas sungguhan mengikuti format yang dipilih.</p>
+                    <p class="text-[10px] text-slate-400 text-center mt-2">Lebar sesuai ukuran kertas sungguhan (di-skala biar muat panel ini) - isi contoh, bukan data transaksi asli.</p>
                 </div>
             </div>
         </div>
@@ -254,36 +230,49 @@
         perbaruiPreviewNota();
     }
 
+    // Lebar NYATA per format (mm dikonversi ke px 96dpi) - HARUS sama persis
+    // dengan partials/print-style.blade.php (.sheet max-width) supaya
+    // preview benar-benar WYSIWYG, bukan kira-kira.
+    const LEBAR_MM_KE_PX = { thermal: 58 * 3.7795, a4: 480, continuous: 190 * 3.7795 };
+    const LEBAR_PANEL_MAKS = 340; // px - lebar visual panel preview di sisi kanan
+
+    let timerPreviewNota = null;
     function perbaruiPreviewNota() {
-        const namaApl = document.querySelector('input[name="nama_aplikasi"]')?.value || 'Nama Perusahaan';
-        const alamat = document.querySelector('textarea[name="alamat"]')?.value || '';
-        const telepon = document.querySelector('input[name="telepon"]')?.value || '';
+        clearTimeout(timerPreviewNota);
+        timerPreviewNota = setTimeout(jalankanPreviewNota, 300);
+    }
+
+    function jalankanPreviewNota() {
         const prefix = document.querySelector('input[name="nomor_nota_prefix"]')?.value || 'INV';
         const format = document.querySelector('input[name="format_nota"]:checked')?.value || 'a4';
-        const footerHtml = document.getElementById('editor-footer-nota')?.innerHTML.trim();
+        const footerHtml = document.getElementById('editor-footer-nota')?.innerHTML.trim() || '';
 
-        document.getElementById('preview-nota-nama').textContent = namaApl;
-        document.getElementById('preview-nota-alamat').textContent = [alamat, telepon].filter(Boolean).join(' • ');
+        const lebarAsli = LEBAR_MM_KE_PX[format] || LEBAR_MM_KE_PX.a4;
+        const skala = Math.min(1, LEBAR_PANEL_MAKS / lebarAsli);
 
-        const hariIni = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-        document.getElementById('preview-nota-nomor').textContent = `${prefix}-${hariIni}-001`;
+        const wrap = document.getElementById('preview-nota-wrap');
+        const iframe = document.getElementById('preview-nota-iframe');
+        wrap.style.width = lebarAsli + 'px';
+        wrap.style.transform = `scale(${skala})`;
+        iframe.style.width = lebarAsli + 'px';
 
-        const footerEl = document.getElementById('preview-nota-footer');
-        footerEl.innerHTML = footerHtml || 'Terima kasih atas kepercayaan Anda';
-
-        const sheet = document.getElementById('preview-nota-sheet');
-        const lebar = format === 'thermal' ? '200px' : (format === 'continuous' ? '400px' : '320px');
-        sheet.style.maxWidth = lebar;
-
-        const logoAsli = document.getElementById('preview-logo');
-        const logoPreview = document.getElementById('preview-nota-logo');
-        if (logoAsli && !logoAsli.classList.contains('hidden') && logoAsli.getAttribute('src')) {
-            logoPreview.src = logoAsli.src;
-            logoPreview.classList.remove('hidden');
-        } else {
-            logoPreview.classList.add('hidden');
-        }
+        const params = new URLSearchParams({ format, prefix, footer: footerHtml });
+        iframe.src = `{{ route('pengaturan-aplikasi.preview-nota') }}?${params.toString()}`;
     }
+
+    // Tinggi iframe & wrapper (yang sudah di-scale) disesuaikan ke tinggi
+    // KONTEN ASLI setelah preview selesai dimuat - supaya tidak ada spasi
+    // kosong berlebih di bawah ATAU konten yang terpotong, apa pun panjang
+    // isi contoh notanya.
+    document.getElementById('preview-nota-iframe').addEventListener('load', function () {
+        try {
+            const tinggiAsli = this.contentDocument.body.scrollHeight;
+            this.style.height = tinggiAsli + 'px';
+            const wrap = document.getElementById('preview-nota-wrap');
+            const skalaSaatIni = parseFloat(wrap.style.transform.replace(/[^0-9.]/g, '')) || 1;
+            wrap.style.height = (tinggiAsli * skalaSaatIni) + 'px';
+        } catch (e) { /* cross-origin dsb - preview tetap tampil, cuma tinggi wrapper tidak auto-pas */ }
+    });
 
     document.getElementById('form-pengaturan-aplikasi').addEventListener('input', perbaruiPreviewNota);
     document.addEventListener('DOMContentLoaded', () => {

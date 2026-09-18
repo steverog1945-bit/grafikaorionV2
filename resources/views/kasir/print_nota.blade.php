@@ -91,8 +91,12 @@
              tag, semua atribut dibuang - lihat
              SettingAplikasiController::sanitizeFooterHtml()), aman dicetak
              sebagai HTML mentah supaya format tebal/miring/daftar yang
-             diatur admin ikut tampil, bukan cuma teks polos. --}}
-        @php($footerNota = \App\Models\AppSetting::current()->nota_footer_text)
+             diatur admin ikut tampil, bukan cuma teks polos.
+             $footerNotaOverride dipakai KHUSUS oleh
+             SettingAplikasiController::previewNota() (preview live tab
+             Nota, sebelum disimpan) - sudah disaring sanitizer yang sama
+             di sana juga sebelum sampai ke sini. --}}
+        @php($footerNota = $footerNotaOverride ?? \App\Models\AppSetting::current()->nota_footer_text)
         @if($footerNota)
             <div class="divider"></div>
             <div class="footer-note" style="text-align: left;">{!! $footerNota !!}</div>
