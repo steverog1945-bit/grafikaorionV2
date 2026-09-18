@@ -28,6 +28,7 @@ class SettingAplikasiController extends Controller
             'format_nota' => 'nullable|in:thermal,a4,continuous',
             'nomor_nota_prefix' => 'nullable|string|max:20|regex:/^[A-Za-z0-9\-]+$/',
             'nota_footer_text' => 'nullable|string|max:5000',
+            'pembulatan_nota' => 'nullable|in:tidak,100,500,1000',
         ]);
 
         $setting = AppSetting::current();
@@ -43,6 +44,7 @@ class SettingAplikasiController extends Controller
             'format_nota' => $data['format_nota'] ?? 'a4',
             'nomor_nota_prefix' => $data['nomor_nota_prefix'] ?? 'INV',
             'nota_footer_text' => $this->sanitizeFooterHtml($data['nota_footer_text'] ?? null),
+            'pembulatan_nota' => $data['pembulatan_nota'] ?? 'tidak',
         ];
 
         if ($request->hasFile('logo')) {
@@ -92,31 +94,47 @@ class SettingAplikasiController extends Controller
         $footerQuery = $request->query('footer');
         $footerNota = $footerQuery !== null ? $this->sanitizeFooterHtml($footerQuery) : $setting->nota_footer_text;
 
+        $pembulatanQuery = $request->query('pembulatan');
+        $pembulatanQuery = in_array($pembulatanQuery, ['tidak', '100', '500', '1000'], true)
+            ? $pembulatanQuery
+            : ($setting->pembulatan_nota ?? 'tidak');
+
+        // Grand Total contoh SENGAJA nominal ganjil (200.300, bukan bulat
+        // 200.000) - supaya baris "Pembulatan" langsung kelihatan di
+        // preview ini begitu admin mengaktifkan/mengganti kelipatan
+        // pembulatan, tanpa perlu bikin transaksi asli dulu untuk mengecek.
+        $totalTagihanAsli = 200300.0;
+        $totalTagihanBulat = AppSetting::bulatkan($totalTagihanAsli, $pembulatanQuery);
+        $totalTerbayar = $totalTagihanAsli;
+
         $transaksi = (object) [
             'nomor_nota' => $prefix . '-' . now()->format('Ymd') . '-001',
             'tgl_order' => now(),
             'nama_konsumen' => 'Budi Santoso (Contoh)',
             'telepon' => '0812xxxxxxx',
             'nama_kasir' => 'Contoh Kasir',
-            'total_bayar' => 200000,
+            'total_bayar' => $totalTagihanAsli,
             'status_pembayaran' => 'Lunas',
             'id_konsumen' => 0,
         ];
         $items = collect([
-            (object) ['nama_file' => 'Banner Outdoor 3x1m Custom Full Desain Logo Perusahaan', 'qty' => 2, 'subtotal' => 150000, 'biaya_cetak' => 150000, 'biaya_desain' => 0, 'biaya_finishing' => 0, 'p_ukuran' => 300, 'l_ukuran' => 100],
+            (object) ['nama_file' => 'Banner Outdoor 3x1m Custom Full Desain Logo Perusahaan', 'qty' => 2, 'subtotal' => 150300, 'biaya_cetak' => 150300, 'biaya_desain' => 0, 'biaya_finishing' => 0, 'p_ukuran' => 300, 'l_ukuran' => 100],
             (object) ['nama_file' => 'Stiker A3', 'qty' => 5, 'subtotal' => 50000, 'biaya_cetak' => 40000, 'biaya_desain' => 0, 'biaya_finishing' => 10000, 'p_ukuran' => 0, 'l_ukuran' => 0],
         ]);
 
         return view('kasir.print_nota', [
             'transaksi' => $transaksi,
             'items' => $items,
-            'totalTerbayar' => 200000,
+            'totalTerbayar' => $totalTerbayar,
             'format' => $format,
-            'totalCetak' => 190000,
+            'totalCetak' => 190300,
             'totalDesain' => 0,
             'totalFinishing' => 10000,
-            'kembali' => 0,
-            'kurangBayar' => 0,
+            'kembali' => max(0, $totalTerbayar - $totalTagihanBulat),
+            'kurangBayar' => max(0, $totalTagihanBulat - $totalTerbayar),
+            'totalTagihanAsli' => $totalTagihanAsli,
+            'totalTagihanBulat' => $totalTagihanBulat,
+            'pembulatan' => $totalTagihanBulat - $totalTagihanAsli,
             'depositTerpakaiTransaksiIni' => 0,
             'saldoDepositSaatIni' => 0,
             'konsumenPernahPakaiDeposit' => false,

@@ -802,13 +802,26 @@ public function printOpsi(Request $request, $id)
     $totalCetak = (float) $items->sum('biaya_cetak');
     $totalDesain = (float) $items->sum('biaya_desain');
     $totalFinishing = (float) $items->sum('biaya_finishing');
+
+    // Pembulatan MURNI tampilan nota (lihat AppSetting::bulatkan() &
+    // migrasi 2026_09_18_120000) - transaksi.total_bayar, pembayaran_riwayat,
+    // dan jurnal_umum TIDAK disentuh/diubah sama sekali di sini, tetap
+    // presisi asli untuk keperluan akuntansi. Krg. Bayar/Kembali di nota
+    // sengaja dihitung terhadap nominal yang SUDAH dibulatkan (kalau beda)
+    // - supaya nota tidak menampilkan "kembalian" yang sebenarnya cuma
+    // selisih pembulatan (tidak ada uang fisik yang sungguhan dikembalikan
+    // untuk selisih sekecil itu).
+    $totalTagihanAsli = (float) $transaksi->total_bayar;
+    $totalTagihanBulat = \App\Models\AppSetting::bulatkan($totalTagihanAsli);
+    $pembulatan = $totalTagihanBulat - $totalTagihanAsli;
+
     // "Kembali" hanya bermakna kalau total yang sudah dibayar MELEBIHI
     // tagihan (dibayar tunai lebih lalu dikembalikan kembaliannya) - aplikasi
     // ini tidak menyimpan "uang diterima" terpisah dari "nominal diterapkan
     // ke nota" per pembayaran, jadi ini pendekatan terbaik yang bisa dihitung
     // dari data yang benar-benar ada.
-    $kembali = max(0, $totalTerbayar - $transaksi->total_bayar);
-    $kurangBayar = max(0, $transaksi->total_bayar - $totalTerbayar);
+    $kembali = max(0, $totalTerbayar - $totalTagihanBulat);
+    $kurangBayar = max(0, $totalTagihanBulat - $totalTerbayar);
 
     // Info deposit - dipakai buat baris "Penggunaan deposit pada transaksi
     // ini" & "Saldo deposit anda saat ini" di nota (lihat referensi user).
@@ -840,6 +853,7 @@ public function printOpsi(Request $request, $id)
     return view('kasir.print_nota', compact(
         'transaksi', 'items', 'totalTerbayar', 'format',
         'totalCetak', 'totalDesain', 'totalFinishing', 'kembali', 'kurangBayar',
+        'totalTagihanAsli', 'totalTagihanBulat', 'pembulatan',
         'depositTerpakaiTransaksiIni', 'saldoDepositSaatIni', 'konsumenPernahPakaiDeposit'
     ));
 }

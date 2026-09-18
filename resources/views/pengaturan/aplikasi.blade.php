@@ -103,6 +103,22 @@
                             <x-form.input type="text" name="nomor_nota_prefix" value="{{ old('nomor_nota_prefix', $setting->nomor_nota_prefix ?? 'INV') }}" maxlength="20" placeholder="INV" />
                         </x-form.group>
 
+                        <x-form.group label="Pembulatan Nota" name="pembulatan_nota" help="Hanya memengaruhi TAMPILAN nota cetak (baris 'Pembulatan' & 'Total Tagihan') - Grand Total dan seluruh pencatatan akuntansi tetap presisi asli, tidak berubah.">
+                            {{-- SENGAJA pakai array List [value, label] per baris, BUKAN array
+                                 asosiatif ('100' => ..., dst) - PHP otomatis mengubah kunci array
+                                 yang berupa string angka murni ('100','500','1000') jadi int,
+                                 sehingga perbandingan === dengan nilai string dari database
+                                 selalu gagal (tidak ada opsi yang pernah kecentang). --}}
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                @foreach([['tidak', 'Tidak Dibulatkan'], ['100', 'Ke Rp 100'], ['500', 'Ke Rp 500'], ['1000', 'Ke Rp 1.000']] as [$val, $label])
+                                <label class="relative flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer text-center {{ old('pembulatan_nota', $setting->pembulatan_nota ?? 'tidak') === $val ? 'border-indigo-500 bg-indigo-50' : 'border-slate-100' }}">
+                                    <input type="radio" name="pembulatan_nota" value="{{ $val }}" @checked(old('pembulatan_nota', $setting->pembulatan_nota ?? 'tidak') === $val) onchange="tandaiPembulatanNota(this)" class="absolute inset-0 opacity-0 cursor-pointer">
+                                    <span class="text-xs font-bold text-slate-700">{{ $label }}</span>
+                                </label>
+                                @endforeach
+                            </div>
+                        </x-form.group>
+
                         <x-form.group label="Footer Nota" help="Ditampilkan di bagian bawah nota - rekening pembayaran, syarat & ketentuan, dst. Kosongkan untuk memakai pesan default.">
                             {{-- Editor ringan (contenteditable + execCommand) - bukan
                                  library WYSIWYG pihak ketiga, cukup untuk kebutuhan
@@ -213,6 +229,17 @@
         perbaruiPreviewNota();
     }
 
+    function tandaiPembulatanNota(radio) {
+        radio.closest('.grid').querySelectorAll('label').forEach(l => {
+            l.classList.remove('border-indigo-500', 'bg-indigo-50');
+            l.classList.add('border-slate-100');
+        });
+        const label = radio.closest('label');
+        label.classList.remove('border-slate-100');
+        label.classList.add('border-indigo-500', 'bg-indigo-50');
+        perbaruiPreviewNota();
+    }
+
     // Toolbar formatting pakai document.execCommand - API lama/deprecated tapi
     // masih berfungsi luas di browser berbasis Chromium untuk perintah dasar
     // (bold/italic/underline/list) - cukup untuk kebutuhan footer nota tanpa
@@ -245,6 +272,7 @@
     function jalankanPreviewNota() {
         const prefix = document.querySelector('input[name="nomor_nota_prefix"]')?.value || 'INV';
         const format = document.querySelector('input[name="format_nota"]:checked')?.value || 'a4';
+        const pembulatan = document.querySelector('input[name="pembulatan_nota"]:checked')?.value || 'tidak';
         const footerHtml = document.getElementById('editor-footer-nota')?.innerHTML.trim() || '';
 
         const lebarAsli = LEBAR_MM_KE_PX[format] || LEBAR_MM_KE_PX.a4;
@@ -256,7 +284,7 @@
         wrap.style.transform = `scale(${skala})`;
         iframe.style.width = lebarAsli + 'px';
 
-        const params = new URLSearchParams({ format, prefix, footer: footerHtml });
+        const params = new URLSearchParams({ format, prefix, pembulatan, footer: footerHtml });
         iframe.src = `{{ route('pengaturan-aplikasi.preview-nota') }}?${params.toString()}`;
     }
 

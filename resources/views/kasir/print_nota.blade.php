@@ -70,7 +70,16 @@
             @if($totalFinishing > 0)
             <tr><td>Total Finishing</td><td class="right">{{ number_format($totalFinishing, 0, ',', '.') }}</td></tr>
             @endif
-            <tr class="total-row"><td>Grand Total</td><td class="right">{{ number_format($transaksi->total_bayar, 0, ',', '.') }}</td></tr>
+            <tr class="total-row"><td>Grand Total</td><td class="right">{{ number_format($totalTagihanAsli, 0, ',', '.') }}</td></tr>
+            {{-- Baris pembulatan CUMA tampil kalau memang ada selisih (setting
+                 aktif & Grand Total bukan kelipatan bulat) - murni penyesuaian
+                 tampilan nota, tidak mengubah data akuntansi apa pun (lihat
+                 AppSetting::bulatkan()). --}}
+            @if($pembulatan != 0)
+            <tr><td>Pembulatan</td><td class="right">{{ ($pembulatan > 0 ? '+' : '-') . number_format(abs($pembulatan), 0, ',', '.') }}</td></tr>
+            <tr class="total-row"><td>Total Tagihan</td><td class="right">{{ number_format($totalTagihanBulat, 0, ',', '.') }}</td></tr>
+            @endif
+            <tr><td>Total Bayar</td><td class="right">{{ number_format($totalTerbayar, 0, ',', '.') }}</td></tr>
             <tr><td>Krg. Bayar</td><td class="right">{{ number_format($kurangBayar, 0, ',', '.') }}</td></tr>
             <tr><td>Kembali</td><td class="right">{{ number_format($kembali, 0, ',', '.') }}</td></tr>
         </table>

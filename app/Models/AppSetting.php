@@ -21,6 +21,7 @@ class AppSetting extends Model
         'format_nota',
         'nomor_nota_prefix',
         'nota_footer_text',
+        'pembulatan_nota',
     ];
 
     protected $casts = [
@@ -42,5 +43,24 @@ class AppSetting extends Model
     public static function clearCache(): void
     {
         Cache::forget('app_settings_current');
+    }
+
+    /**
+     * Pembulatan MURNI untuk tampilan nota cetak (lihat catatan migrasi
+     * 2026_09_18_120000) - tidak pernah dipakai untuk menghitung
+     * total_bayar/pembayaran_riwayat/jurnal_umum, hanya untuk baris
+     * "Pembulatan"/"Total Tagihan" & basis Krg. Bayar/Kembali di
+     * kasir.print_nota. 'tidak' (atau nilai bukan angka apa pun) berarti
+     * tidak ada pembulatan sama sekali - nominal dikembalikan apa adanya.
+     */
+    public static function bulatkan(float $nominal, ?string $kelipatanOverride = null): float
+    {
+        $kelipatan = (int) ($kelipatanOverride ?? self::current()->pembulatan_nota ?? 0);
+
+        if ($kelipatan <= 0) {
+            return $nominal;
+        }
+
+        return round($nominal / $kelipatan) * $kelipatan;
     }
 }
