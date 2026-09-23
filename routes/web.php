@@ -480,6 +480,17 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/qc', [\App\Http\Controllers\QcController::class, 'index'])->name('qc.index');
     Route::get('/qc/create', [\App\Http\Controllers\QcController::class, 'create'])->name('qc.create');
     Route::post('/qc', [\App\Http\Controllers\QcController::class, 'store'])->name('qc.store');
+    // Quotation / Penawaran (LEVEL 2) - akses seperti Input Order.
+    Route::get('/quotation', [\App\Http\Controllers\QuotationController::class, 'index'])->name('quotation.index');
+    Route::get('/quotation/create', [\App\Http\Controllers\QuotationController::class, 'create'])->name('quotation.create');
+    Route::post('/quotation', [\App\Http\Controllers\QuotationController::class, 'store'])->name('quotation.store');
+    Route::get('/quotation/{quotation}/edit', [\App\Http\Controllers\QuotationController::class, 'edit'])->name('quotation.edit');
+    Route::get('/quotation/{quotation}/cetak', [\App\Http\Controllers\QuotationController::class, 'cetak'])->name('quotation.cetak');
+    Route::patch('/quotation/{quotation}', [\App\Http\Controllers\QuotationController::class, 'update'])->name('quotation.update');
+    Route::patch('/quotation/{quotation}/kirim', [\App\Http\Controllers\QuotationController::class, 'kirim'])->name('quotation.kirim');
+    Route::patch('/quotation/{quotation}/tanggapi', [\App\Http\Controllers\QuotationController::class, 'tanggapi'])->name('quotation.tanggapi');
+    Route::delete('/quotation/{quotation}', [\App\Http\Controllers\QuotationController::class, 'destroy'])->name('quotation.destroy');
+
     // Waste Management (LEVEL 2) - abnormal waste lewat Approval Workflow.
     Route::get('/waste', [\App\Http\Controllers\WasteController::class, 'index'])->name('waste.index');
     Route::get('/waste/create', [\App\Http\Controllers\WasteController::class, 'create'])->name('waste.create');

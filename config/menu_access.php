@@ -46,6 +46,8 @@ return [
         // yang juga dibuka untuk Operator Desain (41), jual bahan baku
         // langsung bukan bagian dari alur kerja desainer.
         'penjualan-barang' => [3],
+        // Quotation: kasir (3) & operator input order (41), sama seperti Input Order.
+        'quotation' => [3, 41],
         // 'api/penjualan/produk/{id}' dipanggil AJAX oleh halaman Kasir
         // Utama sendiri (ambil detail harga produk saat dipilih) - WAJIB
         // ikut [41], kalau tidak pemilihan produk gagal total untuk role

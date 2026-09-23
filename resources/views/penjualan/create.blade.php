@@ -5,6 +5,24 @@
 <div class="min-h-screen bg-[#f3f4f6] p-4 lg:p-8">
     <div class="max-w-[1600px] mx-auto">
 
+        @if(!empty($quotationRef))
+        <div class="mb-6 p-5 rounded-2xl bg-amber-50 border border-amber-200">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div class="text-sm font-bold text-amber-800"><i class="fas fa-file-signature"></i> Order dari Penawaran {{ $quotationRef->nomor }} - {{ $quotationRef->nama_pelanggan }}</div>
+                <div class="text-sm font-extrabold text-amber-800">Total penawaran Rp {{ number_format($quotationRef->total, 0, ',', '.') }}{{ $quotationRef->diskon > 0 ? ' (sudah diskon Rp ' . number_format($quotationRef->diskon, 0, ',', '.') . ')' : '' }}</div>
+            </div>
+            <ul class="text-xs text-amber-900 space-y-1">
+                @foreach($quotationRef->items as $it)
+                <li>&bull; <b>{{ $it->nama_item }}</b>
+                    {{ $it->tipe === 'Produk' && $it->p_ukuran > 0 ? rtrim(rtrim($it->p_ukuran, '0'), '.') . ' x ' . rtrim(rtrim($it->l_ukuran, '0'), '.') . ' cm' : '' }}
+                    &times; {{ rtrim(rtrim(number_format($it->qty, 2, ',', '.'), '0'), ',') }}
+                    = Rp {{ number_format($it->subtotal, 0, ',', '.') }}{{ $it->catatan ? ' - ' . $it->catatan : '' }}</li>
+                @endforeach
+            </ul>
+            <p class="text-[11px] text-amber-700 mt-3">Input item di bawah sesuai penawaran ini. Setelah order tersimpan, penawaran otomatis berstatus "Menjadi Order".</p>
+        </div>
+        @endif
+
         <x-page-header>
             <x-slot:title>INPUT <span class="text-indigo-600">ORDER</span></x-slot:title>
             <x-slot:subtitle>
@@ -1404,6 +1422,7 @@
             no_po: noPo,
             tgl_order: document.getElementById('tgl_order').value,
             items: cart,
+            quotation_id: {{ !empty($quotationRef) ? (int) $quotationRef->id : 'null' }},
             _token: '{{ csrf_token() }}'
         };
 

@@ -45,7 +45,17 @@ class PenjualanController extends Controller
     $prefixNota = \App\Models\AppSetting::current()->nomor_nota_prefix ?: 'INV';
     $no_nota = $prefixNota . "-" . $date . "-" . str_pad($lastNota + 1, 3, '0', STR_PAD_LEFT);
 
-    return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing', 'jasa'));
+    // Order dari penawaran: tampilkan rincian penawaran sebagai acuan di
+    // layar Input Order (item tetap diinput operator seperti biasa).
+    $quotationRef = null;
+    if (request()->filled('quotation')) {
+        $q = \App\Models\Quotation::with('items')->find(request('quotation'));
+        if ($q && in_array($q->status, ['Terkirim', 'Disetujui'], true)) {
+            $quotationRef = $q;
+        }
+    }
+
+    return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef'));
 }
 
 public function getHarga($id_produk, $id_golongan, $qty) {
@@ -520,6 +530,17 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         }
 
         DB::commit();
+
+        // Order dibuat dari penawaran (Quotation): tandai penawaran jadi
+        // "Menjadi Order". Setelah commit & dibungkus try/catch - order sudah
+        // sah dan tidak boleh gagal hanya karena penandaan penawaran.
+        if ($request->filled('quotation_id')) {
+            try {
+                \App\Services\QuotationService::tandaiMenjadiOrder((int) $request->quotation_id, (int) $id_transaksi);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
 
         return response()->json([
             'status' => 'success',

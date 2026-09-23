@@ -69,6 +69,7 @@ Purchase Order berstatus Dipesan/Draft bisa dibatalkan selama belum ada barang y
 Input Order -> SPK -> Produksi -> Pembayaran di Kasir -> Collecting (serah barang)
 ```
 
+0. **Quotation (opsional, Finance & HR > Quotation):** untuk pelanggan yang bertanya harga dulu. Buat penawaran (pelanggan terdaftar atau prospek), pilih produk/jasa, ukuran, qty; harga dihitung otomatis dari Price List golongan pelanggan (sama dengan Input Order) dan bisa ditimpa per baris, ditambah finishing, desain, dan diskon. Cetak/simpan PDF atau kirim lewat WhatsApp, lalu **Tandai Terkirim**. Catat tanggapan pelanggan (**Setuju/Menolak**). Penawaran lewat masa berlaku otomatis tampil **Kedaluwarsa** dan tidak bisa disetujui atau dijadikan order. Untuk penawaran yang Terkirim/Disetujui, tombol **Buat Order dari Penawaran** membuka Input Order dengan rincian penawaran sebagai acuan di bagian atas layar; **item tetap diinput operator** sesuai penawaran. Begitu order tersimpan, penawaran berstatus **Menjadi Order** dan tertaut ke nota.
 1. **Input Order** (Kasir atau Operator Desain): pilih atau tambah konsumen, pilih produk/jasa/finishing, isi ukuran dan qty, tentukan urgensi. Nomor nota dibuat server. Nota dapat berstatus Belum Bayar, DP, atau Lunas.
 2. **SPK** (Operator Produksi): antrean kerja per item, status Antre, Desain, Cetak, Selesai (atau Pending/Batal).
 3. **Produksi:** operator mencatat qty hasil, menyelesaikan, atau membatalkan item.
