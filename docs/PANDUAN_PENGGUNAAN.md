@@ -16,7 +16,7 @@ Hak akses tiap peran diatur Administrator di System Control > Setting Akses. Mem
 
 ## 2. Aturan penting yang berlaku di seluruh aplikasi
 
-1. **Tidak ada penghapusan langsung untuk data keuangan.** Membatalkan nota, membatalkan faktur pembelian, dan membatalkan pembayaran hutang hanya bisa **diajukan**. Administrator memutuskan di menu **Approval Workflow**. Saat disetujui, jurnal akuntansi dibalik dengan entri kontra; jurnal asli tidak pernah dihapus.
+1. **Tidak ada penghapusan langsung untuk data keuangan.** Membatalkan nota, faktur pembelian, pembayaran hutang, pembayaran/order Jersey, dan catatan Kas Kecil hanya bisa **diajukan**. Administrator memutuskan di menu **Approval Workflow**. Saat disetujui, jurnal akuntansi dibalik dengan entri kontra; jurnal asli tidak pernah dihapus.
 2. **Jurnal akuntansi dibuat otomatis** dari transaksi (penjualan, pembayaran, pembelian, kas kecil, deposit). Anda tidak menginput jurnal manual.
 3. **Periode yang sudah ditutup terkunci.** Setelah Administrator menutup suatu bulan di Akuntansi > Accounting Period, transaksi yang menghasilkan jurnal bertanggal bulan itu ditolak sampai periode dibuka lagi.
 4. **Semua perubahan penting tercatat** di System Control > Log Aktivitas (siapa, kapan, sebelum dan sesudah).
@@ -83,7 +83,7 @@ Input Order -> SPK -> Produksi -> Pembayaran di Kasir -> Collecting (serah baran
 ## 7. Kas dan keuangan harian
 
 - **Buka/Tutup Kas:** kas harian dibuka satu orang saja per hari (eksklusif). Saldo awal, transaksi tunai, dan kas manual dicatat di sesi itu. Hari Minggu libur kas jika diaktifkan di Pengaturan Aplikasi. Di akhir hari lakukan **Closing** dan cetak laporannya.
-- **Kas Kecil:** catat pengeluaran kecil per kategori (Kategori Kas Kecil menentukan akun beban di jurnal). Menghapus catatan membalik jurnalnya.
+- **Kas Kecil:** catat pengeluaran kecil per kategori (Kategori Kas Kecil menentukan akun beban di jurnal). Membatalkan catatan hanya berupa pengajuan ke Approval Workflow; jurnalnya dibalik setelah disetujui.
 - **Deposit Konsumen:** setoran deposit dicatat sebagai kewajiban dan dapat dipakai membayar nota.
 - **Laporan:** Order, Produksi, Kas Utama, Belanja Bahan, Hutang Supplier, Piutang, Stok Bahan Baku, HPP & Margin, Order Jersey, dan Laporan Keuangan (Akuntansi).
 
@@ -105,7 +105,7 @@ Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) 
 
 ## 10. Administrasi sistem (Administrator)
 
-- **Approval Workflow:** daftar pengajuan Menunggu. Setujui untuk mengeksekusi, atau Tolak dengan alasan. Jenis pengajuan saat ini: pembatalan nota, Stock Opname, Purchase Request, pembatalan faktur pembelian, void pembayaran hutang, void pembayaran Jersey, dan pembatalan order Jersey.
+- **Approval Workflow:** daftar pengajuan Menunggu. Setujui untuk mengeksekusi, atau Tolak dengan alasan. Jenis pengajuan saat ini: pembatalan nota, Stock Opname, Purchase Request, pembatalan faktur pembelian, void pembayaran hutang, void pembayaran Jersey, pembatalan order Jersey, dan pembatalan catatan Kas Kecil.
 - **Log Aktivitas:** telusuri perubahan data, filter menurut jenis, kejadian, dan tanggal.
 - **Backup & Recovery:** backup otomatis harian, mingguan, dan bulanan (retensi 7/4/12) dan tombol backup manual. Otomatis hanya berjalan jika scheduler aktif (lihat panduan deploy). File backup di `storage/app/backups/` berisi data konsumen; simpan salinannya di lokasi lain juga.
 - **Manajemen User dan Setting Akses:** buat akun per karyawan, atur menu per peran.

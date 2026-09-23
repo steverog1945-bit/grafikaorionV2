@@ -213,12 +213,12 @@
     function konfirmasiHapusKasKecil(e, form) {
         e.preventDefault();
         Swal.fire({
-            title: 'Hapus catatan kas kecil ini?',
-            text: 'Data yang sudah dihapus tidak bisa dikembalikan.',
+            title: 'Ajukan pembatalan catatan kas kecil?',
+            text: 'Catatan baru dibatalkan setelah disetujui Administrator; jurnalnya akan dibalik.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
-            confirmButtonText: 'Ya, Hapus',
+            confirmButtonText: 'Ya, Ajukan',
             cancelButtonText: 'Batal',
             customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
         }).then((result) => {

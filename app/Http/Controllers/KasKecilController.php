@@ -78,14 +78,32 @@ class KasKecilController extends Controller
         return back()->with('success', 'Pengeluaran kas kecil berhasil dicatat & masuk ke jurnal akuntansi.');
     }
 
-    public function destroy(KasKecil $kasKecil)
+    /**
+     * Pembatalan catatan kas kecil = MENGAJUKAN ke Approval Workflow
+     * (tipe_aksi 'batalkan_kas_kecil'); jurnal dibalik & catatan dihapus
+     * saat disetujui (lihat KasKecilService::batalkan).
+     */
+    public function destroy(Request $request, KasKecil $kasKecil)
     {
-        DB::transaction(function () use ($kasKecil) {
-            AccountingService::reverseByReferensi('KK-' . $kasKecil->id);
-            $kasKecil->delete();
-        });
+        $sudahAda = \App\Models\ApprovalRequest::where('tipe_aksi', 'batalkan_kas_kecil')
+            ->where('referensi_id', $kasKecil->id)->where('status', 'Menunggu')->exists();
 
-        return back()->with('success', 'Catatan kas kecil dihapus & jurnal akuntansi terkait sudah dibalik.');
+        if ($sudahAda) {
+            return back()->with('error', 'Catatan ini sudah punya pengajuan pembatalan yang menunggu.');
+        }
+
+        $alasan = $request->input('alasan') ?: 'Pembatalan catatan kas kecil';
+
+        \App\Services\ApprovalService::ajukan(
+            'batalkan_kas_kecil',
+            'kas_kecil',
+            $kasKecil->id,
+            ['alasan' => $alasan],
+            "Batalkan kas kecil KK-{$kasKecil->id} (Rp " . number_format($kasKecil->nominal ?? 0, 0, ',', '.') . ')',
+            $alasan
+        );
+
+        return back()->with('success', 'Pengajuan pembatalan kas kecil dikirim untuk persetujuan Administrator.');
     }
 
     public function uploadBukti(Request $request)
