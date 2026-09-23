@@ -446,6 +446,16 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::get('/backup', [\App\Http\Controllers\BackupController::class, 'index'])->name('backup.index');
     Route::post('/backup/jalankan', [\App\Http\Controllers\BackupController::class, 'jalankan'])->name('backup.jalankan');
 
+    // Stock Opname (roadmap LEVEL 1) - eksekusi adjustment sungguhan lewat
+    // Approval Workflow (lihat ApprovalController), bukan lewat route di sini.
+    Route::get('/stock-opname', [\App\Http\Controllers\StockOpnameController::class, 'index'])->name('stock-opname.index');
+    Route::get('/stock-opname/create', [\App\Http\Controllers\StockOpnameController::class, 'create'])->name('stock-opname.create');
+    Route::post('/stock-opname', [\App\Http\Controllers\StockOpnameController::class, 'store'])->name('stock-opname.store');
+    Route::get('/stock-opname/{stockOpname}/edit', [\App\Http\Controllers\StockOpnameController::class, 'edit'])->name('stock-opname.edit');
+    Route::patch('/stock-opname/{stockOpname}', [\App\Http\Controllers\StockOpnameController::class, 'updateDetails'])->name('stock-opname.update-details');
+    Route::patch('/stock-opname/{stockOpname}/ajukan', [\App\Http\Controllers\StockOpnameController::class, 'ajukan'])->name('stock-opname.ajukan');
+    Route::delete('/stock-opname/{stockOpname}', [\App\Http\Controllers\StockOpnameController::class, 'destroy'])->name('stock-opname.destroy');
+
     Route::get('/harga-promo', [HargaPromoController::class, 'index'])->name('harga-promo.index');
     Route::post('/harga-promo', [HargaPromoController::class, 'store'])->name('harga-promo.store');
     Route::put('/harga-promo/{id}', [HargaPromoController::class, 'update'])->name('harga-promo.update');

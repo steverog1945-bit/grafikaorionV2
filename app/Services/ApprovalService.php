@@ -65,13 +65,20 @@ class ApprovalService
         });
     }
 
-    public static function tolak(ApprovalRequest $req, ?string $catatan = null): void
+    /**
+     * @param  \Closure(array $payload): void|null  $eksekusi  Opsional - dijalankan HANYA kalau pengajuan masih Menunggu, di dalam transaction yang sama dengan perubahan status approval-nya. Dipakai jenis aksi yang entitasnya perlu status eksplisit "Ditolak" (mis. Stock Opname), bukan cuma diam di status semula seperti batalkan_nota.
+     */
+    public static function tolak(ApprovalRequest $req, ?string $catatan = null, ?\Closure $eksekusi = null): void
     {
-        DB::transaction(function () use ($req, $catatan) {
+        DB::transaction(function () use ($req, $catatan, $eksekusi) {
             $fresh = ApprovalRequest::whereKey($req->id)->lockForUpdate()->firstOrFail();
 
             if ($fresh->status !== 'Menunggu') {
                 throw new \RuntimeException('Pengajuan ini sudah diputuskan sebelumnya (status: ' . $fresh->status . ').');
+            }
+
+            if ($eksekusi) {
+                $eksekusi($fresh->payload ?? []);
             }
 
             $fresh->update([

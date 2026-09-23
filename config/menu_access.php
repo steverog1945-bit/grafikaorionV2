@@ -23,6 +23,11 @@ return [
     'rules' => [
         'bahan-baku' => [1],
         'kartu-stok' => [1],
+        // Stock Opname - sama level akses dengan bahan-baku/kartu-stok
+        // (staff gudang yang menghitung fisik). Persetujuan hasil hitung
+        // (baru benar-benar mengubah stok) tetap lewat /approval yang
+        // sudah khusus Administrator - bukan di sini.
+        'stock-opname' => [1],
 
         // 'penjualan/riwayat' & 'penjualan/edit-nota' sengaja HANYA [3]
         // (bukan ikut [41]) - role yang cuma dikasih id_menu 41 ("input

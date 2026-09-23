@@ -56,7 +56,11 @@ class ApprovalController extends Controller
         $request->validate(['catatan' => 'required|string|max:500']);
 
         try {
-            ApprovalService::tolak($approvalRequest, $request->input('catatan'));
+            ApprovalService::tolak(
+                $approvalRequest,
+                $request->input('catatan'),
+                fn (array $payload) => $this->eksekusiPenolakan($approvalRequest)
+            );
         } catch (\Throwable $e) {
             return back()->with('error', 'Gagal menolak: ' . $e->getMessage());
         }
@@ -74,7 +78,23 @@ class ApprovalController extends Controller
     {
         match ($req->tipe_aksi) {
             'batalkan_nota' => app(PenjualanController::class)->eksekusiPembatalanNota((int) $req->referensi_id, $payload),
+            'stock_opname' => \App\Services\StockOpnameService::eksekusiAdjustment((int) $req->referensi_id),
             default => throw new \RuntimeException("Tipe aksi '{$req->tipe_aksi}' tidak dikenali - belum ada logic eksekusinya di ApprovalController::eksekusi()."),
+        };
+    }
+
+    /**
+     * Peta tipe_aksi -> logic tambahan saat DITOLAK. Kebanyakan tipe_aksi
+     * (mis. batalkan_nota) tidak butuh apa-apa - entitasnya sudah diam di
+     * status semula. Cuma tipe_aksi yang entitasnya butuh status eksplisit
+     * "Ditolak" (mis. Stock Opname, supaya tidak nyangkut selamanya di
+     * Diajukan) yang perlu case di sini.
+     */
+    private function eksekusiPenolakan(ApprovalRequest $req): void
+    {
+        match ($req->tipe_aksi) {
+            'stock_opname' => \App\Services\StockOpnameService::eksekusiPenolakan((int) $req->referensi_id),
+            default => null,
         };
     }
 }
