@@ -184,6 +184,17 @@ class HutangSupplierTest extends TestCase
         $this->assertEquals($noAsli, $p->fresh()->no_faktur);
     }
 
+    public function test_halaman_daftar_dan_detail_faktur_menampilkan_sisa_dan_riwayat_pembayaran(): void
+    {
+        $p = $this->fakturTempo(1000000);
+        PembayaranHutangService::bayar($p->id_pembelian, 250000, 'Transfer', null, 'DP awal');
+
+        $this->get('/pembelian-bahan')->assertOk()->assertSee($p->no_faktur)->assertSee('Sisa Rp 750.000');
+        $this->get("/pembelian-bahan/{$p->id_pembelian}")->assertOk()
+            ->assertSee('Riwayat Pembayaran Hutang')->assertSee('DP awal')->assertSee('Ajukan Void')->assertSee('Sisa hutang: Rp 750.000');
+        $this->get("/pembelian-bahan/{$p->id_pembelian}/edit")->assertOk()->assertSee($p->no_faktur);
+    }
+
     public function test_laporan_hutang_menampilkan_sisa_dan_umur(): void
     {
         $this->fakturTempo(900000, now()->subDays(45)->toDateString()); // telat 45 hari -> bucket 31-60
