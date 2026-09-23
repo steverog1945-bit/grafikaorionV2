@@ -1,0 +1,96 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\BackupLog;
+use Symfony\Component\Process\Process;
+
+/**
+ * Backup & Recovery (roadmap LEVEL 1 - WAJIB, "wajib sebelum production").
+ * Menjalankan mysqldump ke storage/app/backups/{tipe}/ (di luar public/,
+ * tidak pernah bisa diakses lewat web - lihat catatan security di audit)
+ * lalu menerapkan retensi (hapus file lama di luar batas config('backup.
+ * retention')). Setiap eksekusi dicatat ke backup_logs baik sukses maupun
+ * gagal, supaya halaman /backup selalu punya riwayat yang bisa ditelusuri.
+ */
+class BackupService
+{
+    public static function run(string $tipe): BackupLog
+    {
+        $startedAt = now();
+        $log = BackupLog::create(['tipe' => $tipe, 'status' => 'Sukses', 'started_at' => $startedAt]);
+
+        try {
+            $dir = config('backup.disk_path') . DIRECTORY_SEPARATOR . $tipe;
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+
+            $filename = "backup_{$tipe}_" . $startedAt->format('Ymd_His') . '.sql';
+            $filePath = $dir . DIRECTORY_SEPARATOR . $filename;
+
+            $dump = self::dump();
+            file_put_contents($filePath, $dump);
+            $size = filesize($filePath);
+
+            self::terapkanRetensi($dir, $tipe);
+
+            $log->update([
+                'file_path' => $filePath,
+                'ukuran_bytes' => $size,
+                'status' => 'Sukses',
+                'finished_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            $log->update([
+                'status' => 'Gagal',
+                'pesan_error' => $e->getMessage(),
+                'finished_at' => now(),
+            ]);
+            throw $e;
+        }
+
+        return $log->fresh();
+    }
+
+    private static function dump(): string
+    {
+        $db = config('database.connections.mysql');
+
+        $command = [
+            config('backup.mysqldump_path'),
+            '--host=' . $db['host'],
+            '--port=' . $db['port'],
+            '--user=' . $db['username'],
+            '--single-transaction',
+            '--routines',
+            '--triggers',
+            $db['database'],
+        ];
+
+        // Password lewat env var MYSQL_PWD (bukan --password= di argumen
+        // command) supaya tidak muncul di daftar proses OS - hanya
+        // ditambahkan kalau memang ada password (XAMPP root lokal umumnya
+        // tanpa password).
+        $env = $db['password'] !== '' ? ['MYSQL_PWD' => $db['password']] : null;
+
+        $process = new Process($command, null, $env);
+        $process->setTimeout(300);
+        $process->mustRun();
+
+        return $process->getOutput();
+    }
+
+    private static function terapkanRetensi(string $dir, string $tipe): void
+    {
+        $maxSimpan = config("backup.retention.{$tipe}", 7);
+
+        $files = collect(glob($dir . DIRECTORY_SEPARATOR . '*.sql'))
+            ->sortByDesc(fn (string $f) => filemtime($f))
+            ->values();
+
+        foreach ($files->slice($maxSimpan) as $fileLama) {
+            @unlink($fileLama);
+        }
+    }
+}

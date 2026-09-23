@@ -102,6 +102,7 @@ return [
         'log-aktivitas' => [],
         'approval' => [],
         'accounting-period' => [],
+        'backup' => [],
 
         // Sama pola dengan 'penjualan' di atas: 'jersey/master' &
         // 'jersey/keuangan' HANYA [38] (bukan ikut [42]). Route mutasi

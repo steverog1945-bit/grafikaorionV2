@@ -442,6 +442,10 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::patch('/accounting-period/tutup', [\App\Http\Controllers\AccountingPeriodController::class, 'tutup'])->name('accounting-period.tutup');
     Route::patch('/accounting-period/buka', [\App\Http\Controllers\AccountingPeriodController::class, 'buka'])->name('accounting-period.buka');
 
+    // Backup & Recovery (roadmap LEVEL 1) - khusus Administrator.
+    Route::get('/backup', [\App\Http\Controllers\BackupController::class, 'index'])->name('backup.index');
+    Route::post('/backup/jalankan', [\App\Http\Controllers\BackupController::class, 'jalankan'])->name('backup.jalankan');
+
     Route::get('/harga-promo', [HargaPromoController::class, 'index'])->name('harga-promo.index');
     Route::post('/harga-promo', [HargaPromoController::class, 'store'])->name('harga-promo.store');
     Route::put('/harga-promo/{id}', [HargaPromoController::class, 'update'])->name('harga-promo.update');
