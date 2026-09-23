@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\HargaService;
 use App\Services\AccountingService;
 use App\Services\StokReversalService;
+use App\Services\DocumentNumberService;
 use Carbon\Carbon;
 
 class PenjualanController extends Controller
@@ -264,10 +265,22 @@ public function getHarga($id_produk, $id_golongan, $qty) {
 
     try {
 
+        // Nomor nota di-generate ULANG di sini (atomik lewat
+        // DocumentNumberService), bukan dipercaya dari $request->no_nota.
+        // Sebelumnya nomor cuma dihitung sekali saat form GET dimuat
+        // (create(), pola COUNT(*)+1) lalu dikirim balik client saat
+        // submit - dua order dibuat nyaris bersamaan bisa melihat "nomor
+        // berikutnya" yang sama sebelum salah satu commit (race
+        // condition nyata, bukan teoretis - beda sesi kasir/tab yang
+        // buka form di waktu berdekatan). $no_nota di create() sekarang
+        // MURNI preview UX, angka final selalu ditentukan di sini.
+        $prefixNota = \App\Models\AppSetting::current()->nomor_nota_prefix ?: 'INV';
+        $noNota = DocumentNumberService::generate($prefixNota);
+
         $grand_total = collect($itemsTervalidasi)->sum('subtotal');
 
         $id_transaksi = DB::table('transaksi')->insertGetId([
-            'nomor_nota'        => $request->no_nota,
+            'nomor_nota'        => $noNota,
             'tipe_order'        => $tipeOrder,
             'no_po'             => $noPo,
             'id_konsumen'       => $request->id_konsumen,
@@ -400,8 +413,8 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                         'qty'           => $qtyPakaiSatuanStok,
                         'stok_sebelum'  => $stokSebelum,
                         'stok_sesudah'  => $stokSesudah,
-                        'referensi'     => $request->no_nota,
-                        'keterangan'    => 'Pemakaian produksi order ' . $request->no_nota,
+                        'referensi'     => $noNota,
+                        'keterangan'    => 'Pemakaian produksi order ' . $noNota,
                         'created_by'    => Auth::id(),
                         'created_at'    => now(),
                         'updated_at'    => now(),
@@ -425,10 +438,10 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         // perlu diubah sama sekali - order campuran produk+jasa cukup
         // menjalankan keduanya dalam transaction yang sama.
         if ($totalProdukSemua > 0) {
-            AccountingService::postPenjualan($request->no_nota, $totalProdukSemua, $totalHppMaterialSemua);
+            AccountingService::postPenjualan($noNota, $totalProdukSemua, $totalHppMaterialSemua);
         }
         if ($totalJasaSemua > 0) {
-            AccountingService::postPenjualanJasa($request->no_nota, $totalJasaSemua);
+            AccountingService::postPenjualanJasa($noNota, $totalJasaSemua);
         }
 
         // Pakai saldo deposit konsumen (kalau ada) LANGSUNG saat nota ini
@@ -472,7 +485,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                     'tipe'         => 'Pemakaian',
                     'nominal'      => $jumlahPakai,
                     'metode_bayar' => 'Deposit',
-                    'keterangan'   => "Pembayaran otomatis nota {$request->no_nota} saat order dibuat",
+                    'keterangan'   => "Pembayaran otomatis nota {$noNota} saat order dibuat",
                     'tgl_deposit'  => now()->toDateString(),
                     'id_transaksi' => $id_transaksi,
                     'id_user'      => Auth::id(),
@@ -489,7 +502,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                     'keterangan'   => 'Otomatis dipotong dari saldo deposit saat order dibuat',
                 ]);
 
-                AccountingService::postPembayaranDeposit($request->no_nota, $jumlahPakai);
+                AccountingService::postPembayaranDeposit($noNota, $jumlahPakai);
 
                 $statusBaru = $jumlahPakai >= $grand_total ? 'Lunas' : 'DP';
 
@@ -512,6 +525,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             'status' => 'success',
             'msg' => 'Transaksi Berhasil',
             'id_transaksi' => $id_transaksi,
+            'nomor_nota' => $noNota,
             'deposit_terpakai' => $depositTerpakai,
         ]);
 
