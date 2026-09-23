@@ -74,9 +74,11 @@ return [
         'mesin' => [27],
 
         'pembelian-bahan' => [20],
-        // Purchase Request & Purchase Order - sama level akses dengan
-        // pembelian-bahan (persetujuan PR tetap lewat /approval, admin-only).
-        'purchase-request' => [20],
+        // Purchase Request boleh dibuat staf gudang (menu bahan-baku [1])
+        // maupun pembelian [20] - alur di dokumen audit: gudang meminta,
+        // owner menyetujui lewat /approval (admin-only), baru pembelian
+        // membuat PO. Purchase Order sendiri tetap khusus pembelian [20].
+        'purchase-request' => [1, 20],
         'purchase-order' => [20],
         'finishing' => [21],
         'spk' => [22],

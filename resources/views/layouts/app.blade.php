@@ -274,13 +274,15 @@
         <span class="text-sm font-medium">Pembelian Bahan</span>
     </a>
     @endif
-    @if($cekAkses(20))
+    @if($cekAkses(1) || $cekAkses(20))
     <a href="{{ url('/purchase-request') }}" class="{{ $menuClass }} {{ Request::is('purchase-request*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-request*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6m-6 4h4" />
         </svg>
         <span class="text-sm font-medium">Purchase Request</span>
     </a>
+    @endif
+    @if($cekAkses(20))
     <a href="{{ url('/purchase-order') }}" class="{{ $menuClass }} {{ Request::is('purchase-order*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-order*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

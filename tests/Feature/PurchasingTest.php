@@ -198,6 +198,24 @@ class PurchasingTest extends TestCase
         $this->assertEquals('Dipesan', $po->fresh()->status);
     }
 
+    public function test_staf_gudang_bisa_membuat_pr_tapi_tidak_bisa_mengakses_po(): void
+    {
+        $role = Role::factory()->create(['nama_role' => 'Gudang']);
+        $gudang = User::factory()->create(['id_role' => $role->id_role]);
+        DB::table('menus')->insertOrIgnore(['id_menu' => 1, 'nama_menu' => 'Master Bahan', 'url_link' => 'bahan-baku', 'parent_id' => 0]);
+        DB::table('role_permissions')->insert(['id_role' => $role->id_role, 'id_menu' => 1]);
+
+        $this->actingAs($gudang)->get('/purchase-request')->assertOk();
+        $this->actingAs($gudang)->post('/purchase-request', [
+            'tanggal' => now()->toDateString(), 'items' => [['id_bahan' => $this->buatBahan(), 'qty' => 10]],
+        ])->assertRedirect();
+        $this->assertEquals(1, PurchaseRequest::count());
+
+        // Persetujuan tetap khusus Administrator, dan PO khusus pembelian.
+        $this->actingAs($gudang)->get('/approval')->assertForbidden();
+        $this->actingAs($gudang)->get('/purchase-order')->assertForbidden();
+    }
+
     public function test_akses_menu_purchase_sesuai_role(): void
     {
         $roleGudang = Role::factory()->create(['nama_role' => 'Gudang']);
