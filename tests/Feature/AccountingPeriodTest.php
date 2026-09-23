@@ -91,6 +91,24 @@ class AccountingPeriodTest extends TestCase
         $response->assertForbidden();
     }
 
+    public function test_periode_tertutup_yang_lolos_ke_handler_global_tampil_ramah_bukan_500(): void
+    {
+        $admin = $this->admin();
+        AccountingPeriodService::tutup(2026, 8, $admin->id_user);
+
+        \Illuminate\Support\Facades\Route::middleware('web')->match(['get'], '/_uji-periode', function () {
+            AccountingService::postJournal('2026-08-15', 'UJI-1', 'Uji', [
+                ['kode_akun' => '1000', 'debet' => 1000],
+                ['kode_akun' => '4000', 'kredit' => 1000],
+            ]);
+        });
+
+        $this->actingAs($admin)->from('/asal')->get('/_uji-periode')
+            ->assertRedirect('/asal')->assertSessionHas('error');
+        $this->actingAs($admin)->getJson('/_uji-periode')
+            ->assertStatus(422)->assertJsonPath('message', fn ($m) => str_contains($m, 'sudah ditutup'));
+    }
+
     public function test_administrator_bisa_akses_halaman_accounting_period(): void
     {
         $response = $this->actingAs($this->admin())->get('/accounting-period');

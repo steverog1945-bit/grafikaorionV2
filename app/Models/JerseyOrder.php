@@ -88,6 +88,7 @@ class JerseyOrder extends Model
             $subtotalLines = (float) $this->lines()->sum('subtotal');
             $total = max(0, $subtotalLines - (float) $this->discount + (float) $this->additional_charge);
             $this->update(['total' => $total]);
+            \App\Services\JerseyAccountingService::sinkronPendapatan($this);
             $this->recalculatePembayaran();
         });
     }

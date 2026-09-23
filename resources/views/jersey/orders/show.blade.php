@@ -314,12 +314,12 @@
 
     function confirmHapusOrderJersey() {
         Swal.fire({
-            title: 'Hapus Order Jersey?',
-            html: 'Order <b>{{ $order->order_number }}</b> beserta seluruh barang & rinciannya akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.',
+            title: 'Hapus / batalkan Order Jersey?',
+            html: 'Order <b>{{ $order->order_number }}</b> beserta seluruh barang & rinciannya akan dihapus. Jika order sudah diakui sebagai pendapatan atau sudah ada pembayaran, ini hanya MENGAJUKAN pembatalan ke Administrator (jurnal dibalik setelah disetujui).',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
-            confirmButtonText: 'Ya, Hapus!',
+            confirmButtonText: 'Ya, Lanjutkan',
             cancelButtonText: 'Batal',
             customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
         }).then((result) => {
@@ -329,12 +329,12 @@
 
     function confirmHapusPembayaran(id) {
         Swal.fire({
-            title: 'Hapus Baris Pembayaran?',
-            html: 'Status pembayaran order akan dihitung ulang setelah baris ini dihapus.',
+            title: 'Ajukan void pembayaran?',
+            html: 'Pembayaran baru di-void dan jurnalnya dibalik setelah disetujui Administrator di Approval Workflow.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
-            confirmButtonText: 'Ya, Hapus!',
+            confirmButtonText: 'Ya, Lanjutkan',
             cancelButtonText: 'Batal',
             customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
         }).then((result) => {

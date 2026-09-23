@@ -74,7 +74,7 @@ class AccountingService
         // satu-satunya jalur tulis jurnal_umum, jadi ini satu-satunya titik
         // yang perlu menolak posting ke periode yang sudah ditutup.
         if (\App\Services\AccountingPeriodService::isClosed($tglJurnal)) {
-            throw new \RuntimeException(
+            throw new \App\Exceptions\PeriodeAkuntansiTertutupException(
                 "Periode akuntansi untuk tanggal {$tglJurnal} sudah ditutup (Closed) - tidak bisa memposting jurnal baru ke periode ini."
             );
         }
@@ -231,6 +231,38 @@ class AccountingService
         self::postJournal(now()->toDateString(), $noReferensi, "Pembayaran hutang {$noFaktur} ({$metode})", [
             ['kode_akun' => self::AKUN_HUTANG_USAHA, 'debet' => $nominal],
             ['kode_akun' => $akunKeluar, 'kredit' => $nominal],
+        ]);
+    }
+
+    /**
+     * Pengakuan/koreksi pendapatan Order Jersey (JerseyAccountingService).
+     * $selisih positif = pendapatan bertambah (Dr Piutang / Cr Pendapatan
+     * Jersey), negatif = berkurang (dibalik). Pendapatan Jersey memakai
+     * akun 4300 terpisah dari Pendapatan Penjualan.
+     */
+    public static function postPendapatanJersey(string $noOrder, float $selisih): void
+    {
+        $nilai = abs($selisih);
+
+        if ($nilai < 0.01) {
+            return;
+        }
+
+        $lines = $selisih > 0
+            ? [['kode_akun' => self::AKUN_PIUTANG_USAHA, 'debet' => $nilai], ['kode_akun' => '4300', 'kredit' => $nilai]]
+            : [['kode_akun' => '4300', 'debet' => $nilai], ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'kredit' => $nilai]];
+
+        self::postJournal(now()->toDateString(), $noOrder, ($selisih > 0 ? 'Pendapatan' : 'Koreksi pendapatan') . " order jersey {$noOrder}", $lines);
+    }
+
+    /** Pembayaran Order Jersey: Tunai -> Kas, metode lain (Transfer/QRIS/Lainnya) -> Bank. */
+    public static function postPembayaranJersey(string $noReferensi, string $noOrder, float $nominal, string $metode): void
+    {
+        $akunMasuk = $metode === 'Tunai' ? self::AKUN_KAS : self::AKUN_BANK;
+
+        self::postJournal(now()->toDateString(), $noReferensi, "Pembayaran order jersey {$noOrder} ({$metode})", [
+            ['kode_akun' => $akunMasuk, 'debet' => $nominal],
+            ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'kredit' => $nominal],
         ]);
     }
 

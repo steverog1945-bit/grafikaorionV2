@@ -679,8 +679,34 @@ class JerseyOrderController extends Controller
         }
     }
 
-    public function destroy(JerseyOrder $order)
+    public function destroy(Request $request, JerseyOrder $order)
     {
+        // Order yang sudah diakui sebagai pendapatan (atau sudah ada
+        // pembayaran) tidak boleh dihapus langsung - jurnalnya harus dibalik,
+        // jadi diajukan lewat Approval Workflow. Order yang belum bernilai
+        // (total_terjurnal 0, tanpa pembayaran) masih boleh dihapus langsung.
+        if ((float) $order->total_terjurnal > 0 || $order->payments()->exists()) {
+            $alasan = $request->input('alasan') ?: 'Pembatalan order jersey';
+
+            $sudahAda = \App\Models\ApprovalRequest::where('tipe_aksi', 'batalkan_order_jersey')
+                ->where('referensi_id', $order->id)->where('status', 'Menunggu')->exists();
+
+            if ($sudahAda) {
+                return back()->with('error', 'Order ini sudah punya pengajuan pembatalan yang menunggu.');
+            }
+
+            \App\Services\ApprovalService::ajukan(
+                'batalkan_order_jersey',
+                'jersey_orders',
+                $order->id,
+                ['alasan' => $alasan],
+                "Batalkan order jersey {$order->order_number} (Rp " . number_format($order->total, 0, ',', '.') . ')',
+                $alasan
+            );
+
+            return back()->with('success', 'Pengajuan pembatalan order dikirim untuk persetujuan Administrator.');
+        }
+
         $order->delete();
         return redirect()->route('jersey.orders.index')->with('success', 'Order jersey berhasil dihapus.');
     }

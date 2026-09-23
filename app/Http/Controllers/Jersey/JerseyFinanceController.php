@@ -58,8 +58,9 @@ class JerseyFinanceController extends Controller
             'keterangan' => 'nullable|string|max:500',
         ]);
 
+        try {
         DB::transaction(function () use ($data, $order) {
-            $order->payments()->create([
+            $payment = $order->payments()->create([
                 'tanggal_bayar' => $data['tanggal_bayar'],
                 'jumlah' => $data['jumlah'],
                 'metode_bayar' => $data['metode_bayar'],
@@ -67,22 +68,46 @@ class JerseyFinanceController extends Controller
                 'keterangan' => $data['keterangan'] ?? null,
                 'created_by' => Auth::id(),
             ]);
+            \App\Services\JerseyAccountingService::catatPembayaran($order, $payment);
             $order->recalculatePembayaran();
         });
+        } catch (\RuntimeException $e) {
+            // Mis. periode akuntansi sudah ditutup - seluruh transaksi
+            // (termasuk baris pembayaran) sudah di-rollback.
+            return back()->withInput()->with('error', 'Pembayaran gagal dicatat: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Pembayaran berhasil dicatat.');
     }
 
-    public function destroyPayment(JerseyOrderPayment $payment)
+    /**
+     * Menghapus pembayaran = MENGAJUKAN void lewat Approval Workflow
+     * (tipe_aksi 'void_pembayaran_jersey'); jurnalnya dibalik & status order
+     * dihitung ulang baru saat disetujui.
+     */
+    public function destroyPayment(Request $request, JerseyOrderPayment $payment)
     {
-        $order = $payment->order;
+        $request->validate(['alasan' => 'nullable|string|max:255']);
 
-        DB::transaction(function () use ($payment, $order) {
-            $payment->delete();
-            $order->recalculatePembayaran();
-        });
+        $sudahAda = \App\Models\ApprovalRequest::where('tipe_aksi', 'void_pembayaran_jersey')
+            ->where('referensi_id', $payment->id)->where('status', 'Menunggu')->exists();
 
-        return back()->with('success', 'Baris pembayaran dihapus, status order dihitung ulang.');
+        if ($sudahAda) {
+            return back()->with('error', 'Pembayaran ini sudah punya pengajuan void yang menunggu.');
+        }
+
+        $alasan = $request->input('alasan') ?: 'Void pembayaran jersey';
+
+        \App\Services\ApprovalService::ajukan(
+            'void_pembayaran_jersey',
+            'jersey_order_payments',
+            $payment->id,
+            ['alasan' => $alasan],
+            "Void pembayaran jersey {$payment->order->order_number} (Rp " . number_format($payment->jumlah, 0, ',', '.') . ')',
+            $alasan
+        );
+
+        return back()->with('success', 'Pengajuan void pembayaran dikirim untuk persetujuan Administrator.');
     }
 
     public function uploadBukti(Request $request)

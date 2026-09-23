@@ -89,7 +89,12 @@ Input Order -> SPK -> Produksi -> Pembayaran di Kasir -> Collecting (serah baran
 
 ## 8. Order Jersey
 
-Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) memiliki modul sendiri untuk order, komponen, ukuran, dan pembayaran. **Catatan:** pembayaran dan pendapatan Jersey saat ini belum otomatis masuk ke jurnal akuntansi (lihat bagian 11).
+Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) memiliki modul sendiri untuk order, komponen, ukuran, dan pembayaran, dan **terhubung ke akuntansi**:
+
+- Total order diakui sebagai piutang dan pendapatan di akun **Pendapatan Order Jersey (4300)**. Jika line order berubah, sistem hanya memposting selisihnya.
+- Pembayaran Tunai masuk Kas; Transfer/QRIS/Lainnya masuk Bank. Pembayaran mengurangi piutang.
+- **Hapus pembayaran** dan **hapus order yang sudah bernilai atau sudah ada pembayaran** hanya berupa pengajuan ke Approval Workflow (jurnal dibalik saat disetujui). Order yang punya pembayaran hanya bisa dibatalkan setelah pembayarannya di-void. Order kosong (belum bernilai) masih bisa dihapus langsung.
+- Data Jersey lama (sebelum integrasi ini) tidak di-backfill ke jurnal; data uji direset sebelum go-live.
 
 ## 9. Akuntansi dan tutup buku bulanan
 
@@ -100,7 +105,7 @@ Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) 
 
 ## 10. Administrasi sistem (Administrator)
 
-- **Approval Workflow:** daftar pengajuan Menunggu. Setujui untuk mengeksekusi, atau Tolak dengan alasan. Jenis pengajuan saat ini: pembatalan nota, Stock Opname, Purchase Request, pembatalan faktur pembelian, dan void pembayaran hutang.
+- **Approval Workflow:** daftar pengajuan Menunggu. Setujui untuk mengeksekusi, atau Tolak dengan alasan. Jenis pengajuan saat ini: pembatalan nota, Stock Opname, Purchase Request, pembatalan faktur pembelian, void pembayaran hutang, void pembayaran Jersey, dan pembatalan order Jersey.
 - **Log Aktivitas:** telusuri perubahan data, filter menurut jenis, kejadian, dan tanggal.
 - **Backup & Recovery:** backup otomatis harian, mingguan, dan bulanan (retensi 7/4/12) dan tombol backup manual. Otomatis hanya berjalan jika scheduler aktif (lihat panduan deploy). File backup di `storage/app/backups/` berisi data konsumen; simpan salinannya di lokasi lain juga.
 - **Manajemen User dan Setting Akses:** buat akun per karyawan, atur menu per peran.
@@ -108,7 +113,6 @@ Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) 
 ## 11. Hal yang belum tercakup (saat ini)
 
 - **Stock Transfer antar gudang:** ditunda karena stok masih satu angka global dan hanya ada satu gudang aktif.
-- **Order dan pembayaran Jersey belum terhubung ke jurnal akuntansi.** Sampai diputuskan akun-akunnya, pendapatan Jersey belum muncul di Laporan Keuangan.
 - **Penyesuaian stok manual satu bahan** di Kartu Stok sedang dikaji agar ikut melalui persetujuan seperti Stock Opname.
 
 ## 12. Bila ada masalah
