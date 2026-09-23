@@ -218,9 +218,14 @@ class KasirController extends Controller
             // penyesuaian harga yang sesungguhnya dimaksud.
             if ($request->items) {
                 foreach ($request->items as $id_detail => $data) {
+                    // lockForUpdate() - sudah di dalam transaction luar
+                    // (baris 171), cuma menambah lock supaya klik ganda
+                    // "Simpan" pada form koreksi harga yang sama tidak
+                    // saling menimpa hasil hitungan biaya_cetak/subtotal.
                     $detailRow = DB::table('transaksi_detail')
                         ->where('id_detail', $id_detail)
                         ->where('id_transaksi', $id_transaksi)
+                        ->lockForUpdate()
                         ->first();
 
                     if (!$detailRow) {

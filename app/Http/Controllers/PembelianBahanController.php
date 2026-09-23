@@ -294,19 +294,22 @@ public function update(Request $request, $id)
 // Fitur Aksi Pelunasan (ERP Style)
 public function pelunasan(Request $request, $id)
 {
-    // Pastikan mencari berdasarkan kolom id_pembelian
-    $pembelian = DB::table('pembelian_bahan')->where('id_pembelian', $id)->first();
-
-    if (!$pembelian) {
-        return redirect()->back()->with('error', 'Data pembelian dengan ID ' . $id . ' tidak ditemukan.');
-    }
-
-    if ($pembelian->status_pembayaran === 'Lunas') {
-        return redirect()->back()->with('error', 'Faktur ini sudah lunas.');
-    }
-
     DB::beginTransaction();
     try {
+        // lockForUpdate() + cek status DI DALAM transaction (bukan sebelum
+        // beginTransaction()) - sebelumnya klik ganda tombol "Lunaskan"
+        // bisa membuat dua request sama-sama lolos cek "belum Lunas" lalu
+        // dua-duanya posting jurnal pelunasan untuk faktur yang sama.
+        $pembelian = DB::table('pembelian_bahan')->where('id_pembelian', $id)->lockForUpdate()->first();
+
+        if (!$pembelian) {
+            throw new \Exception('Data pembelian dengan ID ' . $id . ' tidak ditemukan.');
+        }
+
+        if ($pembelian->status_pembayaran === 'Lunas') {
+            throw new \Exception('Faktur ini sudah lunas.');
+        }
+
         DB::table('pembelian_bahan')->where('id_pembelian', $id)->update([
             'status_pembayaran' => 'Lunas',
             'tgl_pelunasan'     => now(),

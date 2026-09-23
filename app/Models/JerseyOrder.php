@@ -71,10 +71,22 @@ class JerseyOrder extends Model
      */
     public function recalculateTotal(): void
     {
-        $subtotalLines = (float) $this->lines()->sum('subtotal');
-        $total = max(0, $subtotalLines - (float) $this->discount + (float) $this->additional_charge);
-        $this->update(['total' => $total]);
-        $this->recalculatePembayaran();
+        // lockForUpdate() pada baris order sendiri sebelum hitung ulang -
+        // tanpa ini, dua panggilan nyaris bersamaan (mis. dua baris order
+        // ditambah/dihapus beruntun) bisa saling menimpa hasil hitungan
+        // total/status pembayaran satu sama lain (lost update pada kolom
+        // turunan). DB::transaction() aman di-nest via SAVEPOINT dengan
+        // recalculatePembayaran() di bawah, jadi tidak mengubah perilaku
+        // saat dipanggil standalone dari JerseyFinanceController.
+        DB::transaction(function () {
+            DB::table('jersey_orders')->where('id', $this->id)->lockForUpdate()->first();
+            $this->refresh();
+
+            $subtotalLines = (float) $this->lines()->sum('subtotal');
+            $total = max(0, $subtotalLines - (float) $this->discount + (float) $this->additional_charge);
+            $this->update(['total' => $total]);
+            $this->recalculatePembayaran();
+        });
     }
 
     /**
@@ -87,17 +99,27 @@ class JerseyOrder extends Model
      */
     public function recalculatePembayaran(): void
     {
-        $totalDibayar = (float) $this->payments()->sum('jumlah');
-        $total = (float) $this->total;
+        // lockForUpdate() sendiri juga (bukan cuma mengandalkan caller) -
+        // dipanggil standalone dari JerseyFinanceController::storePayment/
+        // destroyPayment tiap ada pembayaran ditambah/dihapus, jadi dua
+        // pembayaran nyaris bersamaan untuk order yang sama perlu dijaga
+        // di sini juga, bukan cuma lewat recalculateTotal().
+        DB::transaction(function () {
+            DB::table('jersey_orders')->where('id', $this->id)->lockForUpdate()->first();
+            $this->refresh();
 
-        $status = 'Belum Bayar';
-        if ($totalDibayar > 0 && $totalDibayar < $total) {
-            $status = 'DP';
-        } elseif ($totalDibayar > 0 && $totalDibayar >= $total) {
-            $status = 'Lunas';
-        }
+            $totalDibayar = (float) $this->payments()->sum('jumlah');
+            $total = (float) $this->total;
 
-        $this->update(['deposit' => $totalDibayar, 'status_pembayaran' => $status]);
+            $status = 'Belum Bayar';
+            if ($totalDibayar > 0 && $totalDibayar < $total) {
+                $status = 'DP';
+            } elseif ($totalDibayar > 0 && $totalDibayar >= $total) {
+                $status = 'Lunas';
+            }
+
+            $this->update(['deposit' => $totalDibayar, 'status_pembayaran' => $status]);
+        });
     }
 
     public function getSisaTagihanAttribute(): float

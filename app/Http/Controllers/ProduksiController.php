@@ -95,17 +95,24 @@ class ProduksiController extends Controller
             'catatan_produksi' => 'nullable|string|max:1000',
         ]);
 
-        $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
+        $pesanError = null;
 
-        if (!$detail) {
-            return back()->with('error', 'Item SPK tidak ditemukan.');
-        }
+        DB::transaction(function () use ($request, $id, &$pesanError) {
+            // lockForUpdate() + cek status DI DALAM transaction - sebelumnya
+            // dibaca sebelum beginTransaction(), jadi dua request nyaris
+            // bersamaan bisa sama-sama lolos cek status basi itu.
+            $detail = DB::table('transaksi_detail')->where('id_detail', $id)->lockForUpdate()->first();
 
-        if (in_array($detail->status_spk, ['Selesai', 'Batal'])) {
-            return back()->with('error', 'Item ini sudah ' . $detail->status_spk . ', tidak bisa diubah lagi.');
-        }
+            if (!$detail) {
+                $pesanError = 'Item SPK tidak ditemukan.';
+                return;
+            }
 
-        DB::transaction(function () use ($request, $id, $detail) {
+            if (in_array($detail->status_spk, ['Selesai', 'Batal'])) {
+                $pesanError = 'Item ini sudah ' . $detail->status_spk . ', tidak bisa diubah lagi.';
+                return;
+            }
+
             DB::table('transaksi_detail')->where('id_detail', $id)->update([
                 'qty_cetak' => $request->qty_cetak,
                 'catatan_produksi' => $request->catatan_produksi,
@@ -118,22 +125,30 @@ class ProduksiController extends Controller
             ]);
         });
 
+        if ($pesanError) {
+            return back()->with('error', $pesanError);
+        }
+
         return back()->with('success', 'Jumlah produksi disimpan.');
     }
 
     public function selesai(Request $request, $id)
     {
-        $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
+        $pesanError = null;
 
-        if (!$detail) {
-            return back()->with('error', 'Item SPK tidak ditemukan.');
-        }
+        DB::transaction(function () use ($request, $id, &$pesanError) {
+            $detail = DB::table('transaksi_detail')->where('id_detail', $id)->lockForUpdate()->first();
 
-        if (in_array($detail->status_spk, ['Selesai', 'Batal'])) {
-            return back()->with('error', 'Item ini sudah ' . $detail->status_spk . '.');
-        }
+            if (!$detail) {
+                $pesanError = 'Item SPK tidak ditemukan.';
+                return;
+            }
 
-        DB::transaction(function () use ($request, $id, $detail) {
+            if (in_array($detail->status_spk, ['Selesai', 'Batal'])) {
+                $pesanError = 'Item ini sudah ' . $detail->status_spk . '.';
+                return;
+            }
+
             DB::table('transaksi_detail')->where('id_detail', $id)->update([
                 // Kalau qty_cetak belum pernah diisi, dianggap sesuai qty order.
                 'qty_cetak' => $detail->qty_cetak ?? $detail->qty,
@@ -141,21 +156,15 @@ class ProduksiController extends Controller
             ]);
         });
 
+        if ($pesanError) {
+            return back()->with('error', $pesanError);
+        }
+
         return back()->with('success', 'Item produksi ditandai selesai.');
     }
 
     public function cancel(Request $request, $id)
     {
-        $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
-
-        if (!$detail) {
-            return back()->with('error', 'Item SPK tidak ditemukan.');
-        }
-
-        if (in_array($detail->status_spk, ['Selesai', 'Batal'])) {
-            return back()->with('error', 'Item ini sudah ' . $detail->status_spk . ', tidak bisa dibatalkan.');
-        }
-
         // Sebelumnya "Batalkan SPK" MURNI berarti status_spk = 'Batal' - status
         // akhir mati tanpa jalan balik selain koreksi manual ke database.
         // Sekarang operator memilih TINDAKAN SELANJUTNYA secara eksplisit di
@@ -179,8 +188,25 @@ class ProduksiController extends Controller
         // sama dengan rumus potong stok saat order dibuat.
         $kembalikanStok = $request->boolean('kembalikan_stok');
         $ringkasanStok = [];
+        $pesanError = null;
 
-        DB::transaction(function () use ($request, $id, $detail, $statusBaru, $kembalikanStok, &$ringkasanStok) {
+        DB::transaction(function () use ($request, $id, $statusBaru, $kembalikanStok, &$ringkasanStok, &$pesanError) {
+            // lockForUpdate() + cek status DI DALAM transaction - klik ganda
+            // "Batalkan" pada item yang sama sebelumnya bisa lolos cek basi
+            // dan memicu StokReversalService::kembalikan() dua kali (stok
+            // dikembalikan dobel karena service-nya tidak idempoten).
+            $detail = DB::table('transaksi_detail')->where('id_detail', $id)->lockForUpdate()->first();
+
+            if (!$detail) {
+                $pesanError = 'Item SPK tidak ditemukan.';
+                return;
+            }
+
+            if (in_array($detail->status_spk, ['Selesai', 'Batal'])) {
+                $pesanError = 'Item ini sudah ' . $detail->status_spk . ', tidak bisa dibatalkan.';
+                return;
+            }
+
             DB::table('transaksi_detail')->where('id_detail', $id)->update([
                 'status_spk' => $statusBaru,
                 'catatan_produksi' => $request->input('alasan_batal'),
@@ -196,6 +222,10 @@ class ProduksiController extends Controller
                 'Pembatalan produksi (SPK #' . $id . ') - stok dikembalikan'
             );
         });
+
+        if ($pesanError) {
+            return back()->with('error', $pesanError);
+        }
 
         $labelTindakan = [
             'Antre'   => 'dikembalikan ke antrian SPK',

@@ -169,19 +169,22 @@ class SpkController extends Controller
      */
     public function ambilPekerjaan($id)
     {
-        $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
+        // UPDATE...WHERE satu query atomik (pola sama seperti bulkAmbil() di
+        // atas) - bukan cek-lalu-update terpisah, supaya dua klik "Ambil
+        // Pekerjaan" nyaris bersamaan pada item yang sama tidak bisa
+        // sama-sama lolos cek status 'Antre' yang sudah basi.
+        $diambil = DB::table('transaksi_detail')
+            ->where('id_detail', $id)
+            ->where('status_spk', 'Antre')
+            ->update(['status_spk' => 'Desain']);
 
-        if (!$detail) {
-            return back()->with('error', 'Item SPK tidak ditemukan.');
-        }
-
-        if ($detail->status_spk !== 'Antre') {
+        if ($diambil === 0) {
+            $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
+            if (!$detail) {
+                return back()->with('error', 'Item SPK tidak ditemukan.');
+            }
             return back()->with('error', 'Item ini sudah diambil/diproses sebelumnya (status: ' . $detail->status_spk . ').');
         }
-
-        DB::table('transaksi_detail')->where('id_detail', $id)->update([
-            'status_spk' => 'Desain',
-        ]);
 
         return back()->with('success', 'Pekerjaan diambil, item sekarang ada di halaman Produksi.');
     }
