@@ -1,0 +1,119 @@
+@extends('layouts.app')
+
+@section('content')
+@php
+    $editable = !$pr || $pr->status === 'Draft';
+    $rows = old('items', $pr ? $pr->details->map(fn ($d) => ['id_bahan' => $d->id_bahan, 'qty' => $d->qty, 'catatan' => $d->catatan])->all() : [['id_bahan' => '', 'qty' => '', 'catatan' => '']]);
+    $variantMap = ['Draft' => 'info', 'Diajukan' => 'warning', 'Disetujui' => 'success', 'Ditolak' => 'danger', 'Diproses PO' => 'success'];
+@endphp
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1100px] mx-auto">
+
+    <x-page-header title="{{ $pr ? 'Purchase Request ' . $pr->nomor : 'Purchase Request Baru' }}">
+        <x-slot:subtitle>
+            <i class="fas fa-clipboard-list text-amber-400"></i>
+            {{ $editable ? 'Isi bahan yang perlu dibeli, simpan sebagai Draft, lalu ajukan untuk persetujuan' : 'Hanya-baca - sudah tidak berstatus Draft' }}
+        </x-slot:subtitle>
+        @if($pr)
+        <x-slot:actions>
+            <x-badge :status="$pr->status" :variant="$variantMap[$pr->status] ?? 'info'" />
+        </x-slot:actions>
+        @endif
+    </x-page-header>
+
+    @if($errors->any())
+        <div class="mb-6 p-4 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold">
+            @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
+        </div>
+    @endif
+
+    <form id="form-pr" method="POST" action="{{ $pr ? route('purchase-request.update', $pr->id) : route('purchase-request.store') }}">
+        @csrf
+        @if($pr) @method('PATCH') @endif
+
+        <x-card class="mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <x-form.group label="Tanggal">
+                    <x-form.input type="date" name="tanggal" value="{{ old('tanggal', $pr ? $pr->tanggal->toDateString() : now()->toDateString()) }}" required {{ $editable ? '' : 'disabled' }} />
+                </x-form.group>
+                <x-form.group label="Catatan (opsional)">
+                    <x-form.input type="text" name="catatan" value="{{ old('catatan', $pr->catatan ?? '') }}" placeholder="Mis. stok Flexi Korea tinggal 15 m2" {{ $editable ? '' : 'disabled' }} />
+                </x-form.group>
+            </div>
+        </x-card>
+
+        <x-table>
+            <thead>
+                <tr>
+                    <th class="px-6 py-4 text-left">Bahan</th>
+                    <th class="px-4 py-4 text-right w-40">Qty</th>
+                    <th class="px-4 py-4 text-left w-64">Catatan</th>
+                    @if($editable)<th class="px-4 py-4 w-12"></th>@endif
+                </tr>
+            </thead>
+            <tbody id="item-rows" class="divide-y divide-slate-50">
+                @foreach($rows as $i => $r)
+                <tr data-row>
+                    <td class="px-6 py-3">
+                        <select name="items[{{ $i }}][id_bahan]" class="w-full rounded-xl border-slate-200 text-sm p-2" required {{ $editable ? '' : 'disabled' }}>
+                            <option value="">-- Pilih Bahan --</option>
+                            @foreach($bahanList as $b)
+                                <option value="{{ $b->id_bahan }}" {{ ($r['id_bahan'] ?? '') == $b->id_bahan ? 'selected' : '' }}>{{ $b->nama_bahan }} (stok {{ number_format($b->stok, 2) }} {{ $b->satuan_stok }})</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'disabled' }}></td>
+                    <td class="px-4 py-3"><input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" {{ $editable ? '' : 'disabled' }}></td>
+                    @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>@endif
+                </tr>
+                @endforeach
+            </tbody>
+        </x-table>
+
+        @if($editable)
+        <div class="mt-4">
+            <x-button type="button" variant="outline" size="sm" onclick="tambahBaris()"><i class="fas fa-plus"></i> Tambah Item</x-button>
+        </div>
+        <div class="mt-8 flex flex-wrap gap-3 justify-end">
+            @if($pr)
+                <x-button type="submit" form="form-hapus-pr" variant="danger"><i class="fas fa-trash"></i> Hapus</x-button>
+            @endif
+            <x-button type="submit" variant="secondary"><i class="fas fa-save"></i> Simpan Draft</x-button>
+            @if($pr)
+                <x-button type="submit" form="form-ajukan-pr" variant="primary"><i class="fas fa-paper-plane"></i> Ajukan untuk Persetujuan</x-button>
+            @endif
+        </div>
+        @endif
+    </form>
+
+    @if($pr && $editable)
+        <form id="form-ajukan-pr" method="POST" action="{{ route('purchase-request.ajukan', $pr->id) }}">@csrf @method('PATCH')</form>
+        <form id="form-hapus-pr" method="POST" action="{{ route('purchase-request.destroy', $pr->id) }}" onsubmit="return confirm('Hapus Purchase Request ini?');">@csrf @method('DELETE')</form>
+    @endif
+
+    <template id="row-template">
+        <tr data-row>
+            <td class="px-6 py-3">
+                <select name="items[__I__][id_bahan]" class="w-full rounded-xl border-slate-200 text-sm p-2" required>
+                    <option value="">-- Pilih Bahan --</option>
+                    @foreach($bahanList as $b)
+                        <option value="{{ $b->id_bahan }}">{{ $b->nama_bahan }} (stok {{ number_format($b->stok, 2) }} {{ $b->satuan_stok }})</option>
+                    @endforeach
+                </select>
+            </td>
+            <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required></td>
+            <td class="px-4 py-3"><input type="text" maxlength="255" name="items[__I__][catatan]" class="w-full rounded-xl border-slate-200 text-xs p-2"></td>
+            <td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>
+        </tr>
+    </template>
+</div>
+
+@push('scripts')
+<script>
+    let nextIndex = {{ count($rows) + 100 }};
+    function tambahBaris() {
+        const html = document.getElementById('row-template').innerHTML.replaceAll('__I__', nextIndex++);
+        document.getElementById('item-rows').insertAdjacentHTML('beforeend', html);
+    }
+</script>
+@endpush
+@endsection

@@ -229,6 +229,7 @@
         $grpProduksiVisible = $cekAkses(1) || $cekAkses(20) || $cekAkses(17) || $cekAkses(22) || $cekAkses(23) || $cekAkses(24) || $cekAkses(15) || $cekAkses(31) || $cekAkses(30) || $cekAkses(10) || $cekAkses(27) || $cekAkses(33);
         $grpProduksiAktif = Request::is('bahan-baku*') || Request::is('kartu-stok*') || Request::is('stock-opname*')
             || Request::is('pembelian-bahan*') || Request::is('kedatangan-bahan*')
+            || Request::is('purchase-request*') || Request::is('purchase-order*')
             || request()->routeIs('spk.*') || request()->routeIs('produksi.*') || request()->routeIs('collecting.*')
             || request()->routeIs('kategori.*') || Request::is('jenis-bahan*') || Request::is('merk*')
             || Request::is('satuan*') || Request::is('mesin*') || Request::is('gudang*');
@@ -271,6 +272,20 @@
                 d="M9 14l6-6m0 0l-6-6m6 6H3" />
         </svg>
         <span class="text-sm font-medium">Pembelian Bahan</span>
+    </a>
+    @endif
+    @if($cekAkses(20))
+    <a href="{{ url('/purchase-request') }}" class="{{ $menuClass }} {{ Request::is('purchase-request*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-request*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6m-6 4h4" />
+        </svg>
+        <span class="text-sm font-medium">Purchase Request</span>
+    </a>
+    <a href="{{ url('/purchase-order') }}" class="{{ $menuClass }} {{ Request::is('purchase-order*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-order*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span class="text-sm font-medium">Purchase Order</span>
     </a>
     @endif
     @if($cekAkses(17))

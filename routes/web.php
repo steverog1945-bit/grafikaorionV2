@@ -456,6 +456,25 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::patch('/stock-opname/{stockOpname}/ajukan', [\App\Http\Controllers\StockOpnameController::class, 'ajukan'])->name('stock-opname.ajukan');
     Route::delete('/stock-opname/{stockOpname}', [\App\Http\Controllers\StockOpnameController::class, 'destroy'])->name('stock-opname.destroy');
 
+    // Siklus Purchasing (roadmap LEVEL 1): Purchase Request -> Purchase Order.
+    // Persetujuan PR lewat /approval (tipe_aksi purchase_request).
+    Route::get('/purchase-request', [\App\Http\Controllers\PurchaseRequestController::class, 'index'])->name('purchase-request.index');
+    Route::get('/purchase-request/create', [\App\Http\Controllers\PurchaseRequestController::class, 'create'])->name('purchase-request.create');
+    Route::post('/purchase-request', [\App\Http\Controllers\PurchaseRequestController::class, 'store'])->name('purchase-request.store');
+    Route::get('/purchase-request/{purchaseRequest}/edit', [\App\Http\Controllers\PurchaseRequestController::class, 'edit'])->name('purchase-request.edit');
+    Route::patch('/purchase-request/{purchaseRequest}', [\App\Http\Controllers\PurchaseRequestController::class, 'update'])->name('purchase-request.update');
+    Route::patch('/purchase-request/{purchaseRequest}/ajukan', [\App\Http\Controllers\PurchaseRequestController::class, 'ajukan'])->name('purchase-request.ajukan');
+    Route::delete('/purchase-request/{purchaseRequest}', [\App\Http\Controllers\PurchaseRequestController::class, 'destroy'])->name('purchase-request.destroy');
+
+    Route::get('/purchase-order', [\App\Http\Controllers\PurchaseOrderController::class, 'index'])->name('purchase-order.index');
+    Route::get('/purchase-order/create', [\App\Http\Controllers\PurchaseOrderController::class, 'create'])->name('purchase-order.create');
+    Route::post('/purchase-order', [\App\Http\Controllers\PurchaseOrderController::class, 'store'])->name('purchase-order.store');
+    Route::get('/purchase-order/{purchaseOrder}/edit', [\App\Http\Controllers\PurchaseOrderController::class, 'edit'])->name('purchase-order.edit');
+    Route::patch('/purchase-order/{purchaseOrder}', [\App\Http\Controllers\PurchaseOrderController::class, 'update'])->name('purchase-order.update');
+    Route::patch('/purchase-order/{purchaseOrder}/terbitkan', [\App\Http\Controllers\PurchaseOrderController::class, 'terbitkan'])->name('purchase-order.terbitkan');
+    Route::patch('/purchase-order/{purchaseOrder}/batalkan', [\App\Http\Controllers\PurchaseOrderController::class, 'batalkan'])->name('purchase-order.batalkan');
+    Route::delete('/purchase-order/{purchaseOrder}', [\App\Http\Controllers\PurchaseOrderController::class, 'destroy'])->name('purchase-order.destroy');
+
     Route::get('/harga-promo', [HargaPromoController::class, 'index'])->name('harga-promo.index');
     Route::post('/harga-promo', [HargaPromoController::class, 'store'])->name('harga-promo.store');
     Route::put('/harga-promo/{id}', [HargaPromoController::class, 'update'])->name('harga-promo.update');

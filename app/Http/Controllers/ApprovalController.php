@@ -79,6 +79,7 @@ class ApprovalController extends Controller
         match ($req->tipe_aksi) {
             'batalkan_nota' => app(PenjualanController::class)->eksekusiPembatalanNota((int) $req->referensi_id, $payload),
             'stock_opname' => \App\Services\StockOpnameService::eksekusiAdjustment((int) $req->referensi_id),
+            'purchase_request' => \App\Services\PurchaseRequestService::eksekusiPersetujuan((int) $req->referensi_id),
             default => throw new \RuntimeException("Tipe aksi '{$req->tipe_aksi}' tidak dikenali - belum ada logic eksekusinya di ApprovalController::eksekusi()."),
         };
     }
@@ -94,6 +95,7 @@ class ApprovalController extends Controller
     {
         match ($req->tipe_aksi) {
             'stock_opname' => \App\Services\StockOpnameService::eksekusiPenolakan((int) $req->referensi_id),
+            'purchase_request' => \App\Services\PurchaseRequestService::eksekusiPenolakan((int) $req->referensi_id),
             default => null,
         };
     }

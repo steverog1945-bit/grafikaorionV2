@@ -74,6 +74,10 @@ return [
         'mesin' => [27],
 
         'pembelian-bahan' => [20],
+        // Purchase Request & Purchase Order - sama level akses dengan
+        // pembelian-bahan (persetujuan PR tetap lewat /approval, admin-only).
+        'purchase-request' => [20],
+        'purchase-order' => [20],
         'finishing' => [21],
         'spk' => [22],
         'produksi' => [23],
