@@ -101,6 +101,7 @@ return [
         // untuk role lain juga).
         'log-aktivitas' => [],
         'approval' => [],
+        'accounting-period' => [],
 
         // Sama pola dengan 'penjualan' di atas: 'jersey/master' &
         // 'jersey/keuangan' HANYA [38] (bukan ikut [42]). Route mutasi

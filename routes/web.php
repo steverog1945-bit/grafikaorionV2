@@ -436,6 +436,12 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::patch('/approval/{approvalRequest}/approve', [\App\Http\Controllers\ApprovalController::class, 'approve'])->name('approval.approve');
     Route::patch('/approval/{approvalRequest}/reject', [\App\Http\Controllers\ApprovalController::class, 'reject'])->name('approval.reject');
 
+    // Accounting Period (roadmap LEVEL 1) - khusus Administrator, kunci
+    // periode supaya jurnal bulan lalu tidak bisa diposting/diubah lagi.
+    Route::get('/accounting-period', [\App\Http\Controllers\AccountingPeriodController::class, 'index'])->name('accounting-period.index');
+    Route::patch('/accounting-period/tutup', [\App\Http\Controllers\AccountingPeriodController::class, 'tutup'])->name('accounting-period.tutup');
+    Route::patch('/accounting-period/buka', [\App\Http\Controllers\AccountingPeriodController::class, 'buka'])->name('accounting-period.buka');
+
     Route::get('/harga-promo', [HargaPromoController::class, 'index'])->name('harga-promo.index');
     Route::post('/harga-promo', [HargaPromoController::class, 'store'])->name('harga-promo.store');
     Route::put('/harga-promo/{id}', [HargaPromoController::class, 'update'])->name('harga-promo.update');

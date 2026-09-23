@@ -70,6 +70,15 @@ class AccountingService
             return;
         }
 
+        // Accounting Period (roadmap LEVEL 1) - postJournal() adalah
+        // satu-satunya jalur tulis jurnal_umum, jadi ini satu-satunya titik
+        // yang perlu menolak posting ke periode yang sudah ditutup.
+        if (\App\Services\AccountingPeriodService::isClosed($tglJurnal)) {
+            throw new \RuntimeException(
+                "Periode akuntansi untuk tanggal {$tglJurnal} sudah ditutup (Closed) - tidak bisa memposting jurnal baru ke periode ini."
+            );
+        }
+
         $now = now();
         $baris = [];
 
