@@ -229,7 +229,7 @@
         $grpProduksiVisible = $cekAkses(1) || $cekAkses(20) || $cekAkses(17) || $cekAkses(22) || $cekAkses(23) || $cekAkses(24) || $cekAkses(15) || $cekAkses(31) || $cekAkses(30) || $cekAkses(10) || $cekAkses(27) || $cekAkses(33);
         $grpProduksiAktif = Request::is('bahan-baku*') || Request::is('kartu-stok*') || Request::is('stock-opname*')
             || Request::is('pembelian-bahan*') || Request::is('kedatangan-bahan*')
-            || Request::is('purchase-request*') || Request::is('purchase-order*')
+            || Request::is('purchase-request*') || Request::is('purchase-order*') || Request::is('qc*')
             || request()->routeIs('spk.*') || request()->routeIs('produksi.*') || request()->routeIs('collecting.*')
             || request()->routeIs('kategori.*') || Request::is('jenis-bahan*') || Request::is('merk*')
             || Request::is('satuan*') || Request::is('mesin*') || Request::is('gudang*');
@@ -328,6 +328,15 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V8l-6-6H6a2 2 0 00-2 2v16a2 2 0 002 2h11a2 2 0 002-2zM8 12h8m-8 4h5" />
         </svg>
         <span class="text-sm font-medium">Produksi</span>
+    </a>
+    @endif
+
+    @if($cekAkses(23))
+    <a href="{{ url('/qc') }}" class="{{ $menuClass }} {{ Request::is('qc*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('qc*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span class="text-sm font-medium">QC & Rework</span>
     </a>
     @endif
 

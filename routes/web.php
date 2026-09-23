@@ -475,6 +475,12 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/purchase-order/{purchaseOrder}/edit', [\App\Http\Controllers\PurchaseOrderController::class, 'edit'])->name('purchase-order.edit');
     Route::patch('/purchase-order/{purchaseOrder}', [\App\Http\Controllers\PurchaseOrderController::class, 'update'])->name('purchase-order.update');
     Route::patch('/purchase-order/{purchaseOrder}/terbitkan', [\App\Http\Controllers\PurchaseOrderController::class, 'terbitkan'])->name('purchase-order.terbitkan');
+    // QC & Rework (LEVEL 2) - operator produksi / desain (menu produksi [23]).
+    Route::get('/qc', [\App\Http\Controllers\QcController::class, 'index'])->name('qc.index');
+    Route::get('/qc/create', [\App\Http\Controllers\QcController::class, 'create'])->name('qc.create');
+    Route::post('/qc', [\App\Http\Controllers\QcController::class, 'store'])->name('qc.store');
+    Route::post('/qc/rework/{id}/proses', [\App\Http\Controllers\QcController::class, 'prosesRework'])->name('qc.rework.proses');
+
     Route::post('/purchase-order/{purchaseOrder}/kedatangan', [\App\Http\Controllers\PurchaseOrderController::class, 'catatKedatangan'])->name('purchase-order.kedatangan');
     Route::patch('/purchase-order/{purchaseOrder}/batalkan', [\App\Http\Controllers\PurchaseOrderController::class, 'batalkan'])->name('purchase-order.batalkan');
     Route::delete('/purchase-order/{purchaseOrder}', [\App\Http\Controllers\PurchaseOrderController::class, 'destroy'])->name('purchase-order.destroy');

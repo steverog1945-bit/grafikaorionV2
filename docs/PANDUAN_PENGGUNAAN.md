@@ -60,7 +60,7 @@ Purchase Order berstatus Dipesan/Draft bisa dibatalkan selama belum ada barang y
   2. Isi **stok fisik** hasil hitung. Bahan yang selisih wajib diberi alasan.
   3. **Ajukan untuk Persetujuan**. Stok belum berubah.
   4. Administrator menyetujui di Approval Workflow; barulah stok disesuaikan ke hasil hitung fisik dan tercatat sebagai penyesuaian di Kartu Stok.
-- Stok berkurang otomatis saat produksi berjalan (sesuai BOM) dan kembali otomatis saat nota atau SPK dibatalkan.
+- Stok bahan baku berkurang otomatis saat **nota dibuat** (Input Order), sesuai BOM produk, dan kembali otomatis saat nota atau SPK dibatalkan. Bahan yang terpakai untuk rework dikeluarkan terpisah lewat QC & Rework (bagian 6).
 
 ## 6. Alur Penjualan dan Produksi
 
@@ -70,7 +70,8 @@ Input Order -> SPK -> Produksi -> Pembayaran di Kasir -> Collecting (serah baran
 
 1. **Input Order** (Kasir atau Operator Desain): pilih atau tambah konsumen, pilih produk/jasa/finishing, isi ukuran dan qty, tentukan urgensi. Nomor nota dibuat server. Nota dapat berstatus Belum Bayar, DP, atau Lunas.
 2. **SPK** (Operator Produksi): antrean kerja per item, status Antre, Desain, Cetak, Selesai (atau Pending/Batal).
-3. **Produksi:** operator mencatat qty hasil, menyelesaikan, atau membatalkan item. Stok bahan berkurang sesuai BOM.
+3. **Produksi:** operator mencatat qty hasil, menyelesaikan, atau membatalkan item.
+3a. **QC & Rework** (menu Produksi & Logistik > QC & Rework): periksa hasil cetak per item (status Cetak/Selesai). Isi qty diperiksa, qty reject, dan centang poin bermasalah (ukuran, warna, posisi desain, jumlah, finishing, cacat cetak). Jika ada reject, **Rework otomatis dibuka**. Klik **Proses Rework** saat pengerjaan ulang dimulai: material tambahan sesuai BOM dikeluarkan dari stok, tercatat di Kartu Stok, dan dijurnal sebagai Beban Rework & Susut Bahan (akun 5200). Unit hasil rework dapat di-QC ulang setelah rework diproses. Stok yang tidak cukup untuk rework menggagalkan proses tanpa efek samping.
 4. **Kasir:** pembayaran diterima lewat menu Kasir (Monitoring Kasir): tunai, transfer bank, atau deposit konsumen; DP dan cicilan didukung. Piutang dapat dilihat di Laporan Piutang.
 5. **Collecting:** daftar pesanan siap diambil. Kasir menandai **Sudah Diambil** saat barang diserahkan.
 6. **Penjualan Barang:** menjual bahan baku langsung (khusus Kasir), otomatis masuk nota dan jurnal.

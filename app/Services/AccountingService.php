@@ -235,6 +235,23 @@ class AccountingService
     }
 
     /**
+     * Beban rework & susut bahan (QcService, WasteService): material yang
+     * keluar dari gudang tanpa menjadi barang terjual. Dr Beban Rework &
+     * Susut Bahan (5200) / Cr Persediaan Bahan Baku.
+     */
+    public static function postBebanRework(string $noReferensi, string $keterangan, float $nominal): void
+    {
+        if ($nominal <= 0) {
+            return;
+        }
+
+        self::postJournal(now()->toDateString(), $noReferensi, $keterangan, [
+            ['kode_akun' => '5200', 'debet' => $nominal],
+            ['kode_akun' => self::AKUN_PERSEDIAAN_BAHAN, 'kredit' => $nominal],
+        ]);
+    }
+
+    /**
      * Pengakuan/koreksi pendapatan Order Jersey (JerseyAccountingService).
      * $selisih positif = pendapatan bertambah (Dr Piutang / Cr Pendapatan
      * Jersey), negatif = berkurang (dibalik). Pendapatan Jersey memakai
