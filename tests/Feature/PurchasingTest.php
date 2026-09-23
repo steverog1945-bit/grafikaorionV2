@@ -35,7 +35,7 @@ class PurchasingTest extends TestCase
 
     private function buatSupplier(): int
     {
-        return DB::table('supplier')->insertGetId(['nama_supplier' => 'PT Supplier', 'alamat' => '-', 'telepon' => '0800']);
+        return DB::table('supplier')->insertGetId(['nama_supplier' => 'PT Supplier', 'alamat' => '-', 'kontak' => '0800']);
     }
 
     private function buatPrDisetujui(User $admin, int $idBahan): PurchaseRequest
