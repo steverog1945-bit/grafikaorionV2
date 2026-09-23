@@ -219,6 +219,22 @@ class AccountingService
     }
 
     /**
+     * Pembayaran (cicilan/pelunasan) hutang pembelian lewat
+     * PembayaranHutangService. Referensi jurnal dibuat unik per pembayaran
+     * (mis. "FAK-001/BYR-7") supaya bisa di-void sendiri tanpa ikut
+     * membalik jurnal faktur atau pembayaran lain. Tunai -> Kas, Transfer -> Bank.
+     */
+    public static function postPembayaranHutang(string $noReferensi, string $noFaktur, float $nominal, string $metode): void
+    {
+        $akunKeluar = $metode === 'Transfer' ? self::AKUN_BANK : self::AKUN_KAS;
+
+        self::postJournal(now()->toDateString(), $noReferensi, "Pembayaran hutang {$noFaktur} ({$metode})", [
+            ['kode_akun' => self::AKUN_HUTANG_USAHA, 'debet' => $nominal],
+            ['kode_akun' => $akunKeluar, 'kredit' => $nominal],
+        ]);
+    }
+
+    /**
      * Setoran deposit konsumen diterima (KonsumenDepositController::store).
      * Uang benar-benar masuk (Kas/Bank), tapi belum jadi pendapatan - masih
      * kewajiban (Hutang Deposit Konsumen) sampai dipakai bayar nota.

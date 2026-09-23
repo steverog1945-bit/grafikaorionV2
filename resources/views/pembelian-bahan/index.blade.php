@@ -96,6 +96,9 @@
                             <div class="text-[9px] text-slate-400 font-semibold italic mt-1">{{ \Carbon\Carbon::parse($item->tgl_pelunasan)->format('d/m/y') }}</div>
                         @else
                             <x-badge variant="warning">Hutang</x-badge>
+                            @if($item->sisa_hutang < $item->grand_total)
+                                <div class="text-[9px] text-rose-500 font-bold mt-1">Sisa Rp {{ number_format($item->sisa_hutang, 0, ',', '.') }}</div>
+                            @endif
                         @endif
                     </td>
                     <td class="px-4 py-5 text-center text-sm">
@@ -118,7 +121,7 @@
                     <td class="px-8 py-5 text-center">
                         <div class="flex items-center justify-center gap-2">
                             @if($item->status_pembayaran == 'Hutang')
-                                <x-button type="button" size="icon" variant="ghost" onclick="confirmPayment('{{ $item->id_pembelian }}')" class="bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white" title="Lunasi Faktur">
+                                <x-button type="button" size="icon" variant="ghost" onclick="confirmPayment('{{ $item->id_pembelian }}', {{ $item->sisa_hutang }})" class="bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white" title="Bayar Hutang">
                                     <i class="fas fa-money-bill-wave text-xs"></i>
                                 </x-button>
                             @endif
@@ -188,42 +191,65 @@
         }
     }
 
-    function confirmPayment(id) {
+    // Bayar hutang: nominal default = sisa (pelunasan penuh), bisa dikurangi
+    // untuk cicilan. Server tetap memvalidasi nominal <= sisa.
+    function confirmPayment(id, sisa) {
         Swal.fire({
-            title: 'Konfirmasi Pelunasan',
-            text: "Pastikan pembayaran faktur ini sudah diselesaikan.",
-            icon: 'info',
+            title: 'Bayar Hutang Faktur',
+            html: `
+                <div style="text-align:left;font-size:13px">
+                    <label style="font-weight:700">Nominal (sisa Rp ${new Intl.NumberFormat('id-ID').format(sisa)})</label>
+                    <input id="swal-nominal" type="number" step="0.01" min="0.01" max="${sisa}" value="${sisa}" class="swal2-input" style="margin:6px 0 14px;width:100%">
+                    <label style="font-weight:700">Metode</label>
+                    <select id="swal-metode" class="swal2-input" style="margin:6px 0 0;width:100%"><option value="Tunai">Tunai (Kas)</option><option value="Transfer">Transfer (Bank)</option></select>
+                </div>`,
             showCancelButton: true,
             confirmButtonColor: '#10b981',
-            confirmButtonText: 'Ya, Sudah Lunas',
-            customClass: { popup: 'rounded-[2rem]' }
+            confirmButtonText: 'Catat Pembayaran',
+            customClass: { popup: 'rounded-[2rem]' },
+            preConfirm: () => {
+                const nominal = parseFloat(document.getElementById('swal-nominal').value);
+                if (!nominal || nominal <= 0 || nominal > sisa + 0.01) {
+                    Swal.showValidationMessage('Nominal harus lebih dari 0 dan tidak melebihi sisa hutang.');
+                    return false;
+                }
+                return { nominal, metode: document.getElementById('swal-metode').value };
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = `{{ url('pembelian-bahan/pelunasan') }}/${id}`;
-                form.innerHTML = `@csrf @method('PATCH')`;
+                form.innerHTML = `@csrf @method('PATCH')
+                    <input type="hidden" name="nominal" value="${result.value.nominal}">
+                    <input type="hidden" name="metode" value="${result.value.metode}">`;
                 document.body.appendChild(form);
                 form.submit();
             }
         });
     }
 
+    // Menghapus faktur = MENGAJUKAN pembatalan (jurnal dibalik setelah
+    // Administrator menyetujui lewat menu Approval Workflow).
     function singleDelete(id) {
         Swal.fire({
-            title: 'Hapus data pembelian?',
-            text: "Data yang dihapus tidak dapat dikembalikan.",
+            title: 'Ajukan pembatalan faktur?',
+            text: 'Faktur baru dibatalkan setelah disetujui Administrator; jurnal akuntansinya akan dibalik.',
+            input: 'textarea',
+            inputPlaceholder: 'Alasan pembatalan (wajib)',
+            inputValidator: (v) => !v ? 'Alasan wajib diisi' : null,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
-            confirmButtonText: 'Ya, Hapus',
+            confirmButtonText: 'Ajukan Pembatalan',
             customClass: { popup: 'rounded-[2rem]' }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = `{{ url('pembelian-bahan') }}/${id}`;
-                form.innerHTML = `@csrf @method('DELETE')`;
+                form.innerHTML = `@csrf @method('DELETE')<input type="hidden" name="alasan">`;
+                form.querySelector('[name=alasan]').value = result.value;
                 document.body.appendChild(form);
                 form.submit();
             }
@@ -232,11 +258,12 @@
 
     bulkBtn?.addEventListener('click', function() {
         Swal.fire({
-            title: 'Hapus Massal?',
+            title: 'Ajukan pembatalan semua faktur terpilih?',
+            text: 'Tiap faktur diajukan ke Approval Workflow; tidak ada yang langsung dihapus.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
-            confirmButtonText: 'Ya, Hapus Semua',
+            confirmButtonText: 'Ya, Ajukan Semua',
             customClass: { popup: 'rounded-[2rem]' }
         }).then((result) => {
             if (result.isConfirmed) {

@@ -12,7 +12,7 @@
         <x-card class="mb-8">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <x-form.group label="No. Faktur Vendor" name="no_faktur" required>
-                    <x-form.input type="text" name="no_faktur" value="{{ $pembelian->no_faktur }}" required />
+                    <x-form.input type="text" name="no_faktur" value="{{ $pembelian->no_faktur }}" readonly class="opacity-60 cursor-not-allowed" title="Nomor faktur tidak bisa diubah karena dipakai sebagai referensi jurnal akuntansi" />
                 </x-form.group>
 
                 <x-form.group label="Tanggal Transaksi" name="tgl_transaksi" required>

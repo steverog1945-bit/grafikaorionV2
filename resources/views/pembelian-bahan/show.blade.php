@@ -67,6 +67,32 @@
         </div>
     </div>
 
+    <div class="mt-8 bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Riwayat Pembayaran Hutang</h3>
+            <span class="text-xs font-bold {{ $sisa > 0 ? 'text-rose-500' : 'text-emerald-600' }}">Sisa hutang: Rp {{ number_format($sisa, 0, ',', '.') }}</span>
+        </div>
+        @forelse($pembayaran as $b)
+            <div class="flex flex-wrap items-center justify-between gap-3 py-3 border-t border-slate-50 text-sm {{ $b->voided_at ? 'opacity-50' : '' }}">
+                <div>
+                    <span class="font-bold text-slate-700 {{ $b->voided_at ? 'line-through' : '' }}">Rp {{ number_format($b->nominal, 0, ',', '.') }}</span>
+                    <span class="text-xs text-slate-400 ml-2">{{ \Carbon\Carbon::parse($b->tanggal)->format('d M Y') }} - {{ $b->metode }}</span>
+                    @if($b->keterangan)<div class="text-[11px] text-slate-400">{{ $b->keterangan }}</div>@endif
+                    @if($b->voided_at)<div class="text-[11px] text-rose-500">Di-void: {{ $b->void_alasan }}</div>@endif
+                </div>
+                @if(!$b->voided_at && !$b->bagian_faktur)
+                    <form method="POST" action="{{ route('pembelian.void-pembayaran', $b->id) }}" onsubmit="const a = prompt('Alasan void pembayaran ini (wajib):'); if (!a) return false; this.alasan.value = a; return true;">
+                        @csrf
+                        <input type="hidden" name="alasan">
+                        <button type="submit" class="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:underline">Ajukan Void</button>
+                    </form>
+                @endif
+            </div>
+        @empty
+            <p class="text-xs text-slate-400 italic">Belum ada pembayaran tercatat.</p>
+        @endforelse
+    </div>
+
     <div class="mt-8 flex justify-between items-center">
         <a href="{{ route('pembelian-bahan.index') }}" class="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors">
             <i class="fas fa-arrow-left mr-2"></i> Kembali ke List

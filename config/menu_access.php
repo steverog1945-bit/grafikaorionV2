@@ -86,6 +86,7 @@ return [
         'laporan/produksi' => [26],
         'laporan/kas' => [29],
         'laporan/belanja-bahan' => [40],
+        'laporan/hutang' => [40],
         'laporan/order-jersey' => [43],
         'laporan/piutang' => [44],
         'laporan/stok-bahan' => [46],

@@ -265,8 +265,11 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
             ->name('pembelian-bahan.bulk-delete');
         // Contoh Route Pelunasan
         // Menggunakan match agar bisa POST maupun PATCH
-Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBahanController::class, 'pelunasan'])
+Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBahanController::class, 'pelunasan'])
       ->name('pembelian.pelunasan');
+        Route::post('/pembelian-bahan/pembayaran/{idPembayaran}/void', [PembelianBahanController::class, 'ajukanVoidPembayaran'])
+            ->name('pembelian.void-pembayaran');
+        Route::get('/laporan/hutang', [LaporanController::class, 'hutang'])->name('laporan.hutang');
         // HANYA GUNAKAN SATU ROUTE INI UNTUK AJAX
         Route::get('pembelian-bahan/kedatangan-detail', [PembelianBahanController::class, 'kedatanganDetail'])
             ->name('pembelian-bahan.kedatangan-detail');

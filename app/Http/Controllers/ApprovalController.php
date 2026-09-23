@@ -80,6 +80,8 @@ class ApprovalController extends Controller
             'batalkan_nota' => app(PenjualanController::class)->eksekusiPembatalanNota((int) $req->referensi_id, $payload),
             'stock_opname' => \App\Services\StockOpnameService::eksekusiAdjustment((int) $req->referensi_id),
             'purchase_request' => \App\Services\PurchaseRequestService::eksekusiPersetujuan((int) $req->referensi_id),
+            'batalkan_pembelian' => \App\Services\PembayaranHutangService::batalkanFaktur((int) $req->referensi_id, $payload['alasan'] ?? '-'),
+            'void_pembayaran_hutang' => \App\Services\PembayaranHutangService::voidPembayaran((int) $req->referensi_id, $payload['alasan'] ?? '-'),
             default => throw new \RuntimeException("Tipe aksi '{$req->tipe_aksi}' tidak dikenali - belum ada logic eksekusinya di ApprovalController::eksekusi()."),
         };
     }

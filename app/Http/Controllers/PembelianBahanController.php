@@ -41,6 +41,19 @@ class PembelianBahanController extends Controller
 
         $data = $query->orderBy('id_pembelian', 'desc')->paginate(20)->withQueryString();
 
+        // Sisa hutang per faktur (grand_total - pembayaran aktif) untuk
+        // ditampilkan di daftar & dipakai dialog pembayaran.
+        $dibayar = DB::table('pembayaran_hutang')
+            ->whereIn('id_pembelian', $data->pluck('id_pembelian'))
+            ->whereNull('voided_at')
+            ->groupBy('id_pembelian')
+            ->selectRaw('id_pembelian, SUM(nominal) as total')
+            ->pluck('total', 'id_pembelian');
+
+        $data->getCollection()->each(function ($item) use ($dibayar) {
+            $item->sisa_hutang = max(0, round((float) $item->grand_total - (float) ($dibayar[$item->id_pembelian] ?? 0), 2));
+        });
+
         return view('pembelian-bahan.index', compact('data'));
 
     }
@@ -186,6 +199,10 @@ public function kedatanganDetail(Request $request)
 
             AccountingService::postPembelianBahan($request->no_faktur, $grandTotal, $request->tipe_pembelian);
 
+            if ($request->tipe_pembelian == 'Cash') {
+                \App\Services\PembayaranHutangService::catatPembayaranAwal($pembelian->id_pembelian, round($grandTotal, 2), $request->tgl_transaksi);
+            }
+
             DB::commit();
 
             return redirect()->route('pembelian-bahan.index')
@@ -201,6 +218,11 @@ public function kedatanganDetail(Request $request)
 
     }
 
+    /**
+     * Hapus massal = MENGAJUKAN pembatalan tiap faktur lewat Approval
+     * Workflow (bukan menghapus langsung) - pembatalan faktur harus
+     * membalik jurnal & dikontrol (bagian 28 dokumen audit).
+     */
     public function bulkDelete(Request $request)
     {
         $ids = $request->ids;
@@ -209,24 +231,24 @@ public function kedatanganDetail(Request $request)
             return back()->with('error', 'Tidak ada data dipilih');
         }
 
-        DB::beginTransaction();
+        $request->validate(['alasan' => 'nullable|string|max:500']);
 
-        try {
-            // CATATAN: sama seperti destroy() tunggal - stok TIDAK disentuh di
-            // sini, karena store() tidak lagi menambah stok (lihat catatan di
-            // atas). Menghapus faktur pembelian secara massal tidak mengubah
-            // barang yang secara fisik sudah ada di gudang.
-            PembelianBahanDetail::whereIn('id_pembelian', $ids)->delete();
-            PembelianBahan::whereIn('id_pembelian', $ids)->delete();
+        $diajukan = 0;
+        $dilewati = [];
 
-            DB::commit();
-
-            return back()->with('success', count($ids) . ' data pembelian berhasil dihapus');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
+        foreach ($ids as $id) {
+            $hasil = $this->ajukanPembatalan((int) $id, $request->input('alasan') ?: 'Pembatalan massal');
+            $hasil === true ? $diajukan++ : $dilewati[] = $hasil;
         }
+
+        $pesan = "{$diajukan} pengajuan pembatalan faktur dikirim untuk persetujuan.";
+        if ($dilewati) {
+            $pesan .= ' Dilewati: ' . implode('; ', array_slice($dilewati, 0, 3));
+        }
+
+        return back()->with($diajukan > 0 ? 'success' : 'error', $pesan);
     }
+
     public function bahan()
 {
     return $this->belongsTo(BahanBaku::class, 'id_bahan');
@@ -239,35 +261,87 @@ public function show($id)
         'detail.bahan'
     ])->findOrFail($id);
 
-    return view('pembelian-bahan.show', compact('pembelian'));
+    $pembayaran = DB::table('pembayaran_hutang')->where('id_pembelian', $id)->orderBy('id')->get();
+    $sisa = \App\Services\PembayaranHutangService::sisa((object) $pembelian->getAttributes());
+
+    return view('pembelian-bahan.show', compact('pembelian', 'pembayaran', 'sisa'));
 }
 
-    public function destroy($id)
+    /**
+     * Mengajukan pembatalan faktur ke Approval Workflow (tipe_aksi
+     * 'batalkan_pembelian'). Faktur baru benar-benar dibatalkan (jurnal
+     * dibalik, soft-delete) saat disetujui - lihat PembayaranHutangService.
+     *
+     * @return true|string  true kalau diajukan, atau alasan singkat kenapa dilewati
+     */
+    private function ajukanPembatalan(int $id, string $alasan)
     {
+        $p = PembelianBahan::find($id);
 
-        DB::beginTransaction();
-
-        try{
-
-            $data = PembelianBahan::findOrFail($id);
-
-            // CATATAN: stok TIDAK dikurangi di sini, karena store() di atas tidak
-            // lagi menambah stok (stok sudah ditambahkan saat Kedatangan Bahan
-            // divalidasi). Menghapus faktur pembelian tidak mengubah barang yang
-            // secara fisik sudah ada di gudang.
-            $data->delete();
-
-            DB::commit();
-
-            return back()->with('success','Data berhasil dihapus');
-
-        }catch(\Exception $e){
-
-            DB::rollBack();
-            return back()->with('error',$e->getMessage());
-
+        if (!$p) {
+            return "faktur #{$id} tidak ditemukan";
         }
 
+        $sudahAda = \App\Models\ApprovalRequest::where('tipe_aksi', 'batalkan_pembelian')
+            ->where('referensi_type', 'pembelian_bahan')->where('referensi_id', $id)->where('status', 'Menunggu')->exists();
+
+        if ($sudahAda) {
+            return "{$p->no_faktur} sudah punya pengajuan pembatalan yang menunggu";
+        }
+
+        \App\Services\ApprovalService::ajukan(
+            'batalkan_pembelian',
+            'pembelian_bahan',
+            $id,
+            ['alasan' => $alasan],
+            "Batalkan faktur pembelian {$p->no_faktur} (Rp " . number_format($p->grand_total, 0, ',', '.') . ')',
+            $alasan
+        );
+
+        return true;
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $request->validate(['alasan' => 'nullable|string|max:500']);
+
+        $hasil = $this->ajukanPembatalan((int) $id, $request->input('alasan') ?: 'Pembatalan faktur');
+
+        return $hasil === true
+            ? back()->with('success', 'Pengajuan pembatalan faktur dikirim untuk persetujuan Administrator.')
+            : back()->with('error', ucfirst($hasil) . '.');
+    }
+
+    /** Mengajukan void satu pembayaran hutang (tipe_aksi 'void_pembayaran_hutang'). */
+    public function ajukanVoidPembayaran(Request $request, $idPembayaran)
+    {
+        $request->validate(['alasan' => 'required|string|max:255']);
+
+        $bayar = DB::table('pembayaran_hutang')->where('id', $idPembayaran)->first();
+
+        if (!$bayar || $bayar->voided_at || $bayar->bagian_faktur) {
+            return back()->with('error', 'Pembayaran ini tidak bisa di-void (sudah di-void atau merupakan pembayaran awal faktur).');
+        }
+
+        $sudahAda = \App\Models\ApprovalRequest::where('tipe_aksi', 'void_pembayaran_hutang')
+            ->where('referensi_id', $idPembayaran)->where('status', 'Menunggu')->exists();
+
+        if ($sudahAda) {
+            return back()->with('error', 'Pembayaran ini sudah punya pengajuan void yang menunggu.');
+        }
+
+        $faktur = DB::table('pembelian_bahan')->where('id_pembelian', $bayar->id_pembelian)->value('no_faktur');
+
+        \App\Services\ApprovalService::ajukan(
+            'void_pembayaran_hutang',
+            'pembayaran_hutang',
+            (int) $idPembayaran,
+            ['alasan' => $request->alasan],
+            "Void pembayaran hutang {$faktur} (Rp " . number_format($bayar->nominal, 0, ',', '.') . ')',
+            $request->alasan
+        );
+
+        return back()->with('success', 'Pengajuan void pembayaran dikirim untuk persetujuan Administrator.');
     }
 
 // Menampilkan form edit (Terbatas pada data non-stok seperti No Faktur/Tanggal)
@@ -277,52 +351,58 @@ public function edit($id)
     return view('pembelian-bahan.edit', compact('pembelian'));
 }
 
-// Update data dasar
+// Update data dasar. no_faktur SENGAJA tidak bisa diubah: seluruh jurnal
+// akuntansi merujuk nomor ini (no_referensi) - mengganti nomor setelah
+// diposting memutus hubungan faktur dengan jurnalnya dan membuat
+// pembatalan/pembalikan tidak menemukan baris jurnal aslinya lagi.
 public function update(Request $request, $id)
 {
     $request->validate([
-        'no_faktur' => 'required',
-        'tgl_transaksi' => 'required'
+        'tgl_transaksi' => 'required|date'
     ]);
 
     $pembelian = PembelianBahan::findOrFail($id);
-    $pembelian->update($request->only('no_faktur', 'tgl_transaksi'));
+    $pembelian->update($request->only('tgl_transaksi'));
 
     return redirect()->route('pembelian-bahan.index')->with('success', 'Faktur berhasil diperbarui');
 }
 
-// Fitur Aksi Pelunasan (ERP Style)
+/**
+ * Membayar hutang faktur (cicilan atau pelunasan). Nominal default = sisa
+ * hutang (pelunasan penuh, perilaku tombol lama). Route tetap
+ * pembelian.pelunasan supaya tautan lama tidak putus.
+ */
 public function pelunasan(Request $request, $id)
 {
-    DB::beginTransaction();
+    $request->validate([
+        'nominal' => 'nullable|numeric|min:0.01',
+        'metode' => 'nullable|in:Tunai,Transfer',
+        'tanggal' => 'nullable|date',
+        'keterangan' => 'nullable|string|max:255',
+    ]);
+
     try {
-        // lockForUpdate() + cek status DI DALAM transaction (bukan sebelum
-        // beginTransaction()) - sebelumnya klik ganda tombol "Lunaskan"
-        // bisa membuat dua request sama-sama lolos cek "belum Lunas" lalu
-        // dua-duanya posting jurnal pelunasan untuk faktur yang sama.
-        $pembelian = DB::table('pembelian_bahan')->where('id_pembelian', $id)->lockForUpdate()->first();
+        $pembelian = DB::table('pembelian_bahan')->where('id_pembelian', $id)->whereNull('deleted_at')->first();
 
         if (!$pembelian) {
-            throw new \Exception('Data pembelian dengan ID ' . $id . ' tidak ditemukan.');
+            throw new \RuntimeException('Data pembelian dengan ID ' . $id . ' tidak ditemukan.');
         }
 
-        if ($pembelian->status_pembayaran === 'Lunas') {
-            throw new \Exception('Faktur ini sudah lunas.');
-        }
+        $nominal = $request->filled('nominal')
+            ? (float) $request->nominal
+            : \App\Services\PembayaranHutangService::sisa($pembelian);
 
-        DB::table('pembelian_bahan')->where('id_pembelian', $id)->update([
-            'status_pembayaran' => 'Lunas',
-            'tgl_pelunasan'     => now(),
-            'updated_at'        => now()
-        ]);
+        \App\Services\PembayaranHutangService::bayar(
+            (int) $id,
+            $nominal,
+            $request->input('metode', 'Tunai'),
+            $request->input('tanggal'),
+            $request->input('keterangan')
+        );
 
-        AccountingService::postPelunasanHutang($pembelian->no_faktur, (float) $pembelian->grand_total);
-
-        DB::commit();
-        return redirect()->back()->with('success', 'Pembayaran berhasil dilunaskan!');
+        return redirect()->back()->with('success', 'Pembayaran hutang Rp ' . number_format($nominal, 0, ',', '.') . ' berhasil dicatat.');
     } catch (\Exception $e) {
-        DB::rollBack();
-        return redirect()->back()->with('error', 'Gagal melunaskan: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Gagal membayar: ' . $e->getMessage());
     }
 }
 public function getKedatanganDetail(Request $request)

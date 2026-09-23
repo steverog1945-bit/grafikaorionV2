@@ -466,6 +466,59 @@ class LaporanController extends Controller
      * makanya paginasi juga dibangun manual dari koleksi yang sudah
      * difilter, bukan ->paginate() langsung dari query builder.
      */
+    /**
+     * Laporan Hutang Supplier (Accounts Payable aging): sisa hutang tiap
+     * faktur (grand_total - pembayaran aktif) dikelompokkan per supplier dan
+     * per umur keterlambatan terhadap jatuh tempo.
+     */
+    public function hutang(Request $request)
+    {
+        $hariIni = now()->startOfDay();
+
+        $faktur = DB::table('pembelian_bahan as p')
+            ->leftJoin('kedatangan_bahan as k', 'k.id_kedatangan', '=', 'p.id_kedatangan')
+            ->leftJoin('supplier as s', 's.id_supplier', '=', 'k.id_supplier')
+            ->whereNull('p.deleted_at')
+            ->selectRaw('p.id_pembelian, p.no_faktur, p.tgl_transaksi, p.jatuh_tempo_tgl, p.grand_total, s.id_supplier, s.nama_supplier,
+                (SELECT COALESCE(SUM(h.nominal), 0) FROM pembayaran_hutang h WHERE h.id_pembelian = p.id_pembelian AND h.voided_at IS NULL) as dibayar')
+            ->orderBy('p.tgl_transaksi')
+            ->get()
+            ->map(function ($f) use ($hariIni) {
+                $f->sisa = round((float) $f->grand_total - (float) $f->dibayar, 2);
+                $acuan = \Carbon\Carbon::parse($f->jatuh_tempo_tgl ?: $f->tgl_transaksi)->startOfDay();
+                $f->hari_telat = $acuan->lt($hariIni) ? $acuan->diffInDays($hariIni) : 0;
+                $f->bucket = match (true) {
+                    $f->hari_telat === 0 => 'belum',
+                    $f->hari_telat <= 30 => 'b30',
+                    $f->hari_telat <= 60 => 'b60',
+                    default => 'b60plus',
+                };
+
+                return $f;
+            })
+            ->filter(fn ($f) => $f->sisa > 0.01)
+            ->values();
+
+        $perSupplier = $faktur->groupBy(fn ($f) => $f->nama_supplier ?? 'Supplier Umum')->map(function ($rows, $nama) {
+            $row = ['nama' => $nama, 'total' => round($rows->sum('sisa'), 2), 'faktur' => $rows];
+            foreach (['belum', 'b30', 'b60', 'b60plus'] as $b) {
+                $row[$b] = round($rows->where('bucket', $b)->sum('sisa'), 2);
+            }
+
+            return $row;
+        })->sortByDesc('total')->values();
+
+        $total = [
+            'total' => round($faktur->sum('sisa'), 2),
+            'belum' => round($faktur->where('bucket', 'belum')->sum('sisa'), 2),
+            'b30' => round($faktur->where('bucket', 'b30')->sum('sisa'), 2),
+            'b60' => round($faktur->where('bucket', 'b60')->sum('sisa'), 2),
+            'b60plus' => round($faktur->where('bucket', 'b60plus')->sum('sisa'), 2),
+        ];
+
+        return view('laporan.hutang', compact('perSupplier', 'total'));
+    }
+
     public function piutang(Request $request)
     {
         $query = DB::table('transaksi')

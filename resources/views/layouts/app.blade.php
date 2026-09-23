@@ -606,7 +606,7 @@
         // render (yatim tanpa header). Ditambahkan di sini.
         $grpLaporanVisible = $cekAkses(25) || $cekAkses(26) || $cekAkses(29) || $cekAkses(40) || $cekAkses(43) || $cekAkses(44) || $cekAkses(46) || $cekAkses(47);
         $grpLaporanAktif = request()->routeIs('laporan.order') || request()->routeIs('laporan.produksi')
-            || request()->routeIs('laporan.kas') || request()->routeIs('laporan.belanja-bahan')
+            || request()->routeIs('laporan.kas') || request()->routeIs('laporan.belanja-bahan') || request()->routeIs('laporan.hutang')
             || request()->routeIs('laporan.order-jersey') || request()->routeIs('laporan.piutang')
             || request()->routeIs('laporan.stok-bahan') || request()->routeIs('laporan.hpp');
     @endphp
@@ -652,6 +652,12 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 7h16M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7M9 7v11m6-11v11" />
         </svg>
         <span class="text-sm font-medium">Laporan Belanja Bahan</span>
+    </a>
+    <a href="{{ route('laporan.hutang') }}" class="{{ $menuClass }} {{ request()->routeIs('laporan.hutang') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.hutang') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m9-8a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Hutang Supplier</span>
     </a>
     @endif
 
