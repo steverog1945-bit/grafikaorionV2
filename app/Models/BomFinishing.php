@@ -18,4 +18,9 @@ class BomFinishing extends Model
     {
         return $this->belongsTo(Finishing::class,'id_finishing');
     }
+
+    public function produk()
+    {
+        return $this->belongsTo(Produk::class, 'id_produk', 'id_produk');
+    }
 }

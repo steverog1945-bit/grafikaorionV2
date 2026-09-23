@@ -455,6 +455,13 @@ public function getHarga($id_produk, $id_golongan, $qty) {
 
         $depositTerpakai = null;
         if ($grand_total > 0 && $bolehBayarDenganKasIni) {
+            // Lock baris konsumen sebagai mutex sebelum hitung saldo - sama
+            // seperti catatan di KasirController::prosesBayar() metode Deposit,
+            // supaya order lain untuk konsumen yang sama yang dibuat nyaris
+            // bersamaan tidak bisa sama-sama membaca saldo lama yang sama dan
+            // menyebabkan deposit terpakai melebihi yang disetor.
+            DB::table('konsumen')->where('id_konsumen', $request->id_konsumen)->lockForUpdate()->first();
+
             $saldoDeposit = KonsumenDepositController::saldoUntuk((int) $request->id_konsumen);
 
             if ($saldoDeposit > 0) {

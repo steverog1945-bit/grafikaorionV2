@@ -122,7 +122,10 @@ public function validateStatus($id)
 {
     return DB::transaction(function () use ($id) {
         // Ambil data kedatangan beserta itemnya
-        $kedatangan = KedatanganBahan::with('detail')->findOrFail($id);
+        // lockForUpdate() (konsisten dengan update()/bulkDelete()/destroy() di file ini)
+        // supaya klik ganda atau dua kedatangan untuk id_bahan yang sama tidak
+        // menyebabkan lost-update pada bahan_baku.stok / validasi dobel.
+        $kedatangan = KedatanganBahan::with('detail')->lockForUpdate()->findOrFail($id);
 
         if ($kedatangan->status == 'Selesai') {
             return back()->with('error', 'Peringatan: Data ini sudah divalidasi sebelumnya.');
@@ -130,7 +133,7 @@ public function validateStatus($id)
 
         foreach ($kedatangan->detail as $item) {
             // Ambil stok terakhir bahan baku
-            $bahan = BahanBaku::where('id_bahan', $item->id_bahan)->first();
+            $bahan = BahanBaku::where('id_bahan', $item->id_bahan)->lockForUpdate()->first();
             
             $stokAwal = $bahan->stok;
             $stokAkhir = $stokAwal + $item->qty;

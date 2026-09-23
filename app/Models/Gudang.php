@@ -11,7 +11,10 @@ class Gudang extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'nama_gudang'
+        'nama_gudang',
+        'alamat',
+        'penanggung_jawab',
+        'telepon',
     ];
 
     public function kedatangans()

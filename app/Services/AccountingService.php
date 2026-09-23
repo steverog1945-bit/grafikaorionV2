@@ -15,9 +15,14 @@ use Illuminate\Support\Facades\DB;
  *
  * Dipanggil dari DALAM DB::transaction() yang sudah ada di controller
  * masing-masing (PenjualanController::store, KasirController::prosesBayar,
- * PembelianBahanController::store/pelunasan) - service ini sendiri tidak
- * membuka transaction baru supaya jurnal selalu atomik dengan perubahan
- * data yang memicunya.
+ * PembelianBahanController::store/pelunasan). postJournal() SENDIRI juga
+ * membungkus loop insert baris debet/kreditnya dengan DB::transaction()
+ * (pakai SAVEPOINT kalau dipanggil dari dalam transaction controller yang
+ * sudah aktif - tidak mengubah perilaku atomicity gabungan dengan data
+ * pemicunya, savepoint tetap ikut roll back kalau transaction luar gagal)
+ * supaya jurnal tetap balance (tidak ada baris debet tanpa pasangan
+ * kreditnya) bahkan kalau suatu saat method ini dipanggil tanpa transaction
+ * pembungkus dari luar.
  */
 class AccountingService
 {
@@ -66,25 +71,27 @@ class AccountingService
 
         $now = now();
 
-        foreach ($lines as $line) {
-            $debet = (float) ($line['debet'] ?? 0);
-            $kredit = (float) ($line['kredit'] ?? 0);
+        DB::transaction(function () use ($lines, $tglJurnal, $noReferensi, $keterangan, $now) {
+            foreach ($lines as $line) {
+                $debet = (float) ($line['debet'] ?? 0);
+                $kredit = (float) ($line['kredit'] ?? 0);
 
-            if ($debet <= 0 && $kredit <= 0) {
-                continue;
+                if ($debet <= 0 && $kredit <= 0) {
+                    continue;
+                }
+
+                DB::table('jurnal_umum')->insert([
+                    'tgl_jurnal'    => $tglJurnal,
+                    'no_referensi'  => $noReferensi,
+                    'keterangan'    => $keterangan,
+                    'kode_akun'     => $line['kode_akun'],
+                    'debet'         => $debet,
+                    'kredit'        => $kredit,
+                    'created_at'    => $now,
+                    'updated_at'    => $now,
+                ]);
             }
-
-            DB::table('jurnal_umum')->insert([
-                'tgl_jurnal'    => $tglJurnal,
-                'no_referensi'  => $noReferensi,
-                'keterangan'    => $keterangan,
-                'kode_akun'     => $line['kode_akun'],
-                'debet'         => $debet,
-                'kredit'        => $kredit,
-                'created_at'    => $now,
-                'updated_at'    => $now,
-            ]);
-        }
+        });
     }
 
     /**

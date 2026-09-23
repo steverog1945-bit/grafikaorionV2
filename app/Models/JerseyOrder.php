@@ -59,6 +59,11 @@ class JerseyOrder extends Model
         return $this->hasMany(JerseyOrderPayment::class, 'jersey_order_id');
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id_user');
+    }
+
     /**
      * Total order = jumlah subtotal semua line + biaya tambahan - diskon -
      * dipanggil ulang tiap line berubah (tambah/edit/hapus) supaya total

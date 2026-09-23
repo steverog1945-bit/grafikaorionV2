@@ -30,63 +30,77 @@ class StokReversalService
      */
     public static function kembalikan(object $detail, string $referensi, string $keterangan): array
     {
-        $ringkasan = [];
-
         if (!$detail->id_produk) {
-            return $ringkasan;
+            return [];
         }
 
         $produk = DB::table('produk')->where('id_produk', $detail->id_produk)->first();
         if (!$produk) {
+            return [];
+        }
+
+        // Dibungkus DB::transaction() sendiri (bukan cuma mengandalkan
+        // transaction milik pemanggil) - dua alasan: (1) lockForUpdate() di
+        // bawah TIDAK berarti apa-apa di MySQL kalau dipanggil di luar
+        // transaksi aktif (row lock cuma berlaku selama transaksi
+        // berjalan), dan (2) method ini loop per-bahan BOM melakukan UPDATE
+        // bahan_baku + INSERT kartu_stok berpasangan - tanpa transaction,
+        // pemanggil baru di masa depan yang lupa membungkusnya sendiri bisa
+        // meninggalkan stok berubah tanpa jejak kartu_stok kalau gagal di
+        // tengah loop (multi-bahan). DB::transaction() Laravel aman
+        // di-nest (pakai SAVEPOINT) kalau pemanggil sudah py transaction
+        // sendiri, jadi ini tidak mengubah perilaku 3 pemanggil yang ada
+        // sekarang.
+        return DB::transaction(function () use ($detail, $referensi, $keterangan) {
+            $ringkasan = [];
+
+            $boms = DB::table('bom_detail')->where('id_produk', $detail->id_produk)->get();
+
+            foreach ($boms as $bom) {
+                $qtyPakai = BomCalculationService::hitungQtyPakai(
+                    $bom->cara_hitung_pemakaian,
+                    (float) $detail->p_ukuran,
+                    (float) $detail->l_ukuran,
+                    (float) $detail->qty
+                );
+                if ($qtyPakai <= 0) {
+                    continue;
+                }
+
+                $bahan = DB::table('bahan_baku')->where('id_bahan', $bom->id_bahan)->lockForUpdate()->first();
+                if (!$bahan) {
+                    continue;
+                }
+
+                $nilaiKonversi = (float) ($bahan->nilai_konversi ?: 1);
+                if ($nilaiKonversi <= 0) {
+                    $nilaiKonversi = 1;
+                }
+                $qtyKembali = $qtyPakai / $nilaiKonversi;
+
+                $stokSebelum = (float) $bahan->stok;
+                $stokSesudah = $stokSebelum + $qtyKembali;
+
+                DB::table('bahan_baku')->where('id_bahan', $bom->id_bahan)->update(['stok' => $stokSesudah]);
+
+                DB::table('kartu_stok')->insert([
+                    'id_bahan'     => $bom->id_bahan,
+                    'tanggal'      => now(),
+                    'tipe'         => 'IN',
+                    'qty'          => $qtyKembali,
+                    'stok_sebelum' => $stokSebelum,
+                    'stok_sesudah' => $stokSesudah,
+                    'referensi'    => $referensi,
+                    'keterangan'   => $keterangan,
+                    'created_by'   => Auth::id(),
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
+
+                $ringkasan[] = $bahan->nama_bahan . ' +' . number_format($qtyKembali, 2);
+            }
+
             return $ringkasan;
-        }
-
-        $boms = DB::table('bom_detail')->where('id_produk', $detail->id_produk)->get();
-
-        foreach ($boms as $bom) {
-            $qtyPakai = BomCalculationService::hitungQtyPakai(
-                $bom->cara_hitung_pemakaian,
-                (float) $detail->p_ukuran,
-                (float) $detail->l_ukuran,
-                (float) $detail->qty
-            );
-            if ($qtyPakai <= 0) {
-                continue;
-            }
-
-            $bahan = DB::table('bahan_baku')->where('id_bahan', $bom->id_bahan)->lockForUpdate()->first();
-            if (!$bahan) {
-                continue;
-            }
-
-            $nilaiKonversi = (float) ($bahan->nilai_konversi ?: 1);
-            if ($nilaiKonversi <= 0) {
-                $nilaiKonversi = 1;
-            }
-            $qtyKembali = $qtyPakai / $nilaiKonversi;
-
-            $stokSebelum = (float) $bahan->stok;
-            $stokSesudah = $stokSebelum + $qtyKembali;
-
-            DB::table('bahan_baku')->where('id_bahan', $bom->id_bahan)->update(['stok' => $stokSesudah]);
-
-            DB::table('kartu_stok')->insert([
-                'id_bahan'     => $bom->id_bahan,
-                'tanggal'      => now(),
-                'tipe'         => 'IN',
-                'qty'          => $qtyKembali,
-                'stok_sebelum' => $stokSebelum,
-                'stok_sesudah' => $stokSesudah,
-                'referensi'    => $referensi,
-                'keterangan'   => $keterangan,
-                'created_by'   => Auth::id(),
-                'created_at'   => now(),
-                'updated_at'   => now(),
-            ]);
-
-            $ringkasan[] = $bahan->nama_bahan . ' +' . number_format($qtyKembali, 2);
-        }
-
-        return $ringkasan;
+        });
     }
 }

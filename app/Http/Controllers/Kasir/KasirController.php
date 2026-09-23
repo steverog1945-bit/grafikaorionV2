@@ -315,6 +315,15 @@ class KasirController extends Controller
                 $nomorNota = $transaksiRow->nomor_nota ?? null;
 
                 if ($metode === 'Deposit') {
+                    // Lock baris konsumen sebagai mutex SEBELUM hitung saldo -
+                    // saldoUntuk() cuma SUM() atas baris konsumen_deposit (tidak
+                    // ada satu baris "saldo" yang bisa di-lockForUpdate langsung),
+                    // jadi tanpa ini dua pembayaran Deposit yang hampir bersamaan
+                    // untuk konsumen yang sama bisa sama-sama membaca saldo lama
+                    // yang sama sebelum salah satu insert 'Pemakaian'-nya commit -
+                    // deposit bisa terpakai melebihi yang disetor (double-spend).
+                    DB::table('konsumen')->where('id_konsumen', $transaksiRow->id_konsumen)->lockForUpdate()->first();
+
                     // Bukan uang tunai/transfer baru - ini menarik saldo deposit
                     // yang sudah disetor sebelumnya (lihat KonsumenDepositController).
                     // Validasi saldo di sini juga (bukan cuma client-side) supaya
@@ -545,35 +554,47 @@ class KasirController extends Controller
     // pertanggungjawaban uang fisik per kasir. Sekarang dicek GLOBAL: kas
     // aktif milik siapa pun (termasuk diri sendiri) memblokir open saldo
     // baru sampai sesi itu di-closing.
-    $kasAktifSiapaPun = DB::table('kas_harian')
-        ->where('tgl_kas', now()->format('Y-m-d'))
-        ->where('status_lock', 'open')
-        ->first();
+    // Cek + insert di atas dibungkus transaksi, dan sebelum cek dilakukan
+    // kita lockForUpdate() baris app_settings (selalu ada persis 1 baris)
+    // sebagai "mutex" global. Tanpa ini, dua request storeKas() yang hampir
+    // bersamaan bisa sama-sama lolos SELECT "belum ada kas aktif" sebelum
+    // salah satu sempat INSERT - hasilnya dua sesi kas open sekaligus,
+    // padahal baris di atas justru menegaskan itu harus eksklusif. Karena
+    // belum ada baris kas_harian yang bisa di-lock (sesi barunya belum
+    // ada), app_settings dipakai sebagai baris pengganti untuk lock.
+    return DB::transaction(function () use ($nominal) {
+        DB::table('app_settings')->lockForUpdate()->first();
 
-    if ($kasAktifSiapaPun) {
-        if ((int) $kasAktifSiapaPun->id_user === (int) auth()->id()) {
-            return redirect()->route('kasir.kelola')->with('error', 'Anda sudah membuka sesi kas hari ini.');
+        $kasAktifSiapaPun = DB::table('kas_harian')
+            ->where('tgl_kas', now()->format('Y-m-d'))
+            ->where('status_lock', 'open')
+            ->first();
+
+        if ($kasAktifSiapaPun) {
+            if ((int) $kasAktifSiapaPun->id_user === (int) auth()->id()) {
+                return redirect()->route('kasir.kelola')->with('error', 'Anda sudah membuka sesi kas hari ini.');
+            }
+            $namaKasirAktif = DB::table('users')
+                ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
+                ->where('users.id_user', $kasAktifSiapaPun->id_user)
+                ->select(DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama'))
+                ->value('nama') ?? 'pengguna lain';
+            return redirect()->route('kasir.kelola')->with('error', "Sesi kas hari ini sudah dibuka oleh {$namaKasirAktif}. Hanya satu sesi kas yang boleh aktif dalam satu waktu - tunggu sesi tersebut di-closing dulu sebelum membuka sesi baru.");
         }
-        $namaKasirAktif = DB::table('users')
-            ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
-            ->where('users.id_user', $kasAktifSiapaPun->id_user)
-            ->select(DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama'))
-            ->value('nama') ?? 'pengguna lain';
-        return redirect()->route('kasir.kelola')->with('error', "Sesi kas hari ini sudah dibuka oleh {$namaKasirAktif}. Hanya satu sesi kas yang boleh aktif dalam satu waktu - tunggu sesi tersebut di-closing dulu sebelum membuka sesi baru.");
-    }
 
-    DB::table('kas_harian')->insert([
-        'tgl_kas'     => now()->format('Y-m-d'),
-        'id_user'     => auth()->id(),
-        'saldo_awal'  => $nominal,
-        'saldo_akhir' => $nominal, 
-        'status_lock' => 'open',
-        'created_at'  => now(),
-        'updated_at'  => now()
-    ]);
+        DB::table('kas_harian')->insert([
+            'tgl_kas'     => now()->format('Y-m-d'),
+            'id_user'     => auth()->id(),
+            'saldo_awal'  => $nominal,
+            'saldo_akhir' => $nominal,
+            'status_lock' => 'open',
+            'created_at'  => now(),
+            'updated_at'  => now()
+        ]);
 
-    // Setelah simpan, lempar ke halaman monitoring
-    return redirect()->route('kasir.index')->with('success', 'Kas Berhasil Dibuka!');
+        // Setelah simpan, lempar ke halaman monitoring
+        return redirect()->route('kasir.index')->with('success', 'Kas Berhasil Dibuka!');
+    });
 }
 /**
  * Rombak total mengikuti referensi "Closing Alur Kas Kasir" milik pemilik

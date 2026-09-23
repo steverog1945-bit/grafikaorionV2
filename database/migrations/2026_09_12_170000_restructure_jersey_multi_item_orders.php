@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use App\Support\Concerns\SafelyDropsForeignKeys;
 
 /**
  * Rombak modul jersey berdasarkan masukan langsung setelah demo Fase 5:
@@ -24,17 +25,17 @@ use Illuminate\Support\Facades\DB;
  */
 return new class extends Migration
 {
+    use SafelyDropsForeignKeys;
+
     public function up(): void
     {
         // 1. Lepas kolom/FK lama di jersey_orders yang pindah ke level line,
         // ganti jersey_customer_id -> id_konsumen (tabel konsumen asli).
         if (Schema::hasColumn('jersey_orders', 'jersey_customer_id')) {
-            Schema::table('jersey_orders', function (Blueprint $table) {
-                $table->dropForeign(['jersey_customer_id']);
-                $table->dropForeign(['jersey_product_type_id']);
-                $table->dropForeign(['jersey_category_id']);
-                $table->dropForeign(['jersey_price_setting_id']);
-            });
+            $this->dropForeignIfExists('jersey_orders', 'jersey_orders_jersey_customer_id_foreign');
+            $this->dropForeignIfExists('jersey_orders', 'jersey_orders_jersey_product_type_id_foreign');
+            $this->dropForeignIfExists('jersey_orders', 'jersey_orders_jersey_category_id_foreign');
+            $this->dropForeignIfExists('jersey_orders', 'jersey_orders_jersey_price_setting_id_foreign');
             Schema::table('jersey_orders', function (Blueprint $table) {
                 $table->dropColumn([
                     'jersey_customer_id',

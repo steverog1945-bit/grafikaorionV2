@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Support\Concerns\SafelyDropsForeignKeys;
 
 /**
  * fk_kartu_stok_bahan sebelumnya ON DELETE CASCADE - satu-satunya dari 4 FK
@@ -18,11 +19,11 @@ use Illuminate\Support\Facades\Schema;
  */
 return new class extends Migration
 {
+    use SafelyDropsForeignKeys;
+
     public function up(): void
     {
-        Schema::table('kartu_stok', function ($table) {
-            $table->dropForeign('fk_kartu_stok_bahan');
-        });
+        $this->dropForeignIfExists('kartu_stok', 'fk_kartu_stok_bahan');
 
         DB::statement('ALTER TABLE kartu_stok ADD CONSTRAINT fk_kartu_stok_bahan FOREIGN KEY (id_bahan) REFERENCES bahan_baku (id_bahan) ON DELETE RESTRICT');
     }

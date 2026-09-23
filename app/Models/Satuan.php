@@ -14,7 +14,8 @@ class Satuan extends Model
     
     protected $fillable = [
         'nama_satuan',
-        'tipe_satuan'
+        'tipe_satuan',
+        'nilai_konversi',
     ];
 
     public function bahanBakuStok()

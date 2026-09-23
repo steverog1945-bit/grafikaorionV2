@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Support\Concerns\SafelyDropsForeignKeys;
 
 /**
  * kedatangan_bahan.id_gudang ternyata TIDAK PERNAH punya foreign key
@@ -30,9 +31,19 @@ use Illuminate\Support\Facades\Schema;
  */
 return new class extends Migration
 {
+    use SafelyDropsForeignKeys;
+
     public function up(): void
     {
         DB::statement('ALTER TABLE gudang MODIFY id_gudang BIGINT UNSIGNED NOT NULL AUTO_INCREMENT');
+
+        // dropIfExists dulu - migrasi 2026_09_10_210000 (lebih awal) pada
+        // instalasi fresh sudah lebih dulu berhasil membuat FK bernama
+        // sama ini dengan ON DELETE SET NULL; di sini SENGAJA diganti ke
+        // RESTRICT (semantik yang lebih benar, lihat catatan panjang di
+        // atas) - tanpa drop dulu, ADD di bawah gagal "duplicate key"
+        // karena nama constraint sudah dipakai.
+        $this->dropForeignIfExists('kedatangan_bahan', 'kedatangan_bahan_id_gudang_foreign');
 
         Schema::table('kedatangan_bahan', function ($table) {
             $table->foreign('id_gudang', 'kedatangan_bahan_id_gudang_foreign')

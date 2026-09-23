@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Karyawan extends Model
 {
+    use HasFactory;
+
     protected $table = 'karyawan';
     
     // INI KUNCINYA: Laravel harus tahu primary key-nya bukan 'id'

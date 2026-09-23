@@ -43,26 +43,31 @@ class UserController extends Controller
             'id_role' => 'required'
         ]);
 
-        User::create([
+        // password & id_role sengaja diisi lewat assignment eksplisit (bukan
+        // mass-assignment) - keduanya bukan lagi $fillable di model User
+        // supaya tidak bisa ke-mass-assign dari endpoint lain yang ceroboh.
+        $user = new User([
             'id_karyawan' => $request->id_karyawan,
             'username' => $request->username,
-            'password' => Hash::make($request->password),
-            'id_role' => $request->id_role,
         ]);
+        $user->password = Hash::make($request->password);
+        $user->id_role = $request->id_role;
+        $user->save();
 
         return back()->with('success', 'User berhasil dibuat!');
     }
     public function update(Request $request, $id)
 {
     $user = User::findOrFail($id);
-    $data = ['id_role' => $request->id_role, 'username' => $request->username];
-    
+    $user->username = $request->username;
+    $user->id_role = $request->id_role;
+
     // Hanya update password jika diisi
     if ($request->filled('password')) {
-        $data['password'] = Hash::make($request->password);
+        $user->password = Hash::make($request->password);
     }
-    
-    $user->update($data);
+
+    $user->save();
     return back()->with('success', 'Akun user berhasil diperbarui!');
 }
 

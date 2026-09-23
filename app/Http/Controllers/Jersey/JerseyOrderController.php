@@ -521,11 +521,16 @@ class JerseyOrderController extends Controller
             ? JerseyDesigner::find($data['jersey_designer_id'])?->name
             : null;
 
-        $order->update($data);
-        // Diskon/Biaya Tambahan bisa berubah di sini - total & status
-        // pembayaran harus ikut dihitung ulang (bisa saja order yang
-        // tadinya Lunas jadi DP lagi kalau totalnya naik, atau sebaliknya).
-        $order->recalculateTotal();
+        // Dibungkus transaction - update() dan recalculateTotal() (yang juga
+        // memanggil recalculatePembayaran(), total 3 statement UPDATE
+        // terpisah ke jersey_orders) sebelumnya tidak dibungkus apapun.
+        // Kalau recalculateTotal() gagal di tengah setelah update() sukses,
+        // discount/additional_charge sudah berubah tapi total & status
+        // pembayaran belum ikut disesuaikan - order jadi tidak konsisten.
+        DB::transaction(function () use ($order, $data) {
+            $order->update($data);
+            $order->recalculateTotal();
+        });
 
         return back()->with('success', 'Order jersey berhasil diperbarui.');
     }

@@ -8,7 +8,17 @@ class Produk extends Model
 {
     protected $table = 'produk';
     protected $primaryKey = 'id_produk';
-    protected $fillable = ['nama_produk', 'id_mesin', 'metode_hitung', 'barcode'];
+    protected $fillable = [
+        'nama_produk',
+        'id_mesin',
+        'metode_hitung',
+        'barcode',
+        'min_order',
+        'min_panjang',
+        'min_lebar',
+        'keterangan',
+        'status',
+    ];
 
     // Relasi Many-to-Many ke Bahan Baku
     public function mesin()

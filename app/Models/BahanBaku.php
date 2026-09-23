@@ -8,7 +8,22 @@ class BahanBaku extends Model
 {
     protected $table = 'bahan_baku';
     protected $primaryKey = 'id_bahan';
-    public $timestamps = false; // Karena di SQL Dump tidak ada created_at
+    // $timestamps=false SEBELUMNYA di sini dengan komentar "karena di SQL
+    // Dump tidak ada created_at" - sudah tidak benar, migration
+    // 2026_02_25_112610_add_missing_erp_tables.php sudah menambahkan kolom
+    // created_at/updated_at, dan BahanBakuController bahkan sort default-nya
+    // pakai created_at. Tanpa Eloquent mengelola timestamps, updated_at
+    // selalu NULL selamanya (tidak ada DEFAULT di kolomnya) tiap kali bahan
+    // diedit lewat update() di controller.
+
+    protected $casts = [
+        'stok'             => 'decimal:4',
+        'stok_minimal'     => 'decimal:3',
+        'nilai_konversi'   => 'decimal:3',
+        'lebar_roll'       => 'decimal:3',
+        'panjang_roll'     => 'decimal:3',
+        'harga_rata_rata'  => 'decimal:2',
+    ];
 
     protected $fillable = [
     'nama_bahan', 

@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Support\Concerns\SafelyDropsForeignKeys;
 
 /**
  * konsumen_deposit_id_konsumen_foreign ternyata ON DELETE CASCADE - persis
@@ -21,11 +22,11 @@ use Illuminate\Support\Facades\Schema;
  */
 return new class extends Migration
 {
+    use SafelyDropsForeignKeys;
+
     public function up(): void
     {
-        Schema::table('konsumen_deposit', function ($table) {
-            $table->dropForeign('konsumen_deposit_id_konsumen_foreign');
-        });
+        $this->dropForeignIfExists('konsumen_deposit', 'konsumen_deposit_id_konsumen_foreign');
 
         DB::statement('ALTER TABLE konsumen_deposit ADD CONSTRAINT konsumen_deposit_id_konsumen_foreign FOREIGN KEY (id_konsumen) REFERENCES konsumen (id_konsumen) ON DELETE RESTRICT');
     }

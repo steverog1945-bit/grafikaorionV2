@@ -10,7 +10,9 @@ class KedatanganBahan extends Model
     protected $primaryKey = 'id_kedatangan';
     public $timestamps = false;
 
-    protected $guarded = [];
+    // Sebelumnya $guarded=[] dan $fillable dideklarasikan sekaligus - kontradiktif,
+    // karena $guarded=[] membuat SEMUA kolom bisa di-mass-assign (whitelist
+    // $fillable jadi tidak berfungsi). Sekarang cuma $fillable yang dipakai.
     protected $fillable = [
         'no_surat_jalan',
         'id_supplier',

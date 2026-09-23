@@ -18,4 +18,9 @@ class KartuStok extends Model
     public function bahan() {
         return $this->belongsTo(BahanBaku::class, 'id_bahan');
     }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id_user');
+    }
 }

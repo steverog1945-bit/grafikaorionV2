@@ -10,7 +10,11 @@ class Supplier extends Model
     protected $primaryKey = 'id_supplier';
     public $timestamps = false;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'nama_supplier',
+        'alamat',
+        'kontak',
+    ];
 
     public function kedatanganBahan()
     {
