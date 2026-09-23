@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+<x-polling-notifikasi :url="route('collecting.cek-antrian-baru')" :jumlah-awal="$jumlahSiapDiambilAwal" pesan="Ada nota baru siap diambil." />
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Collecting">

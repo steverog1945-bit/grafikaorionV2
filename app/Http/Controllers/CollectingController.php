@@ -85,7 +85,16 @@ class CollectingController extends Controller
 
         $collecting = $query->orderByDesc('transaksi.id_transaksi')->paginate(20)->withQueryString();
 
-        return view('collecting.index', compact('collecting'));
+        $jumlahSiapDiambilAwal = DB::table('transaksi')
+            ->leftJoin('transaksi_detail', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
+            ->where('transaksi.status_collecting', 'Belum Diambil')
+            ->groupBy('transaksi.id_transaksi')
+            ->select('transaksi.id_transaksi')
+            ->havingRaw('COUNT(transaksi_detail.id_detail) > 0 AND SUM(CASE WHEN transaksi_detail.status_spk IN (\'Selesai\',\'Batal\') THEN 1 ELSE 0 END) = COUNT(transaksi_detail.id_detail)')
+            ->get()
+            ->count();
+
+        return view('collecting.index', compact('collecting', 'jumlahSiapDiambilAwal'));
     }
 
     /**
@@ -131,5 +140,28 @@ class CollectingController extends Controller
 
             return back()->with('success', "Nota {$transaksi->nomor_nota} ditandai sudah diambil.");
         });
+    }
+
+    /**
+     * Polling notifikasi "ada nota siap diambil" - kasir/bagian collecting
+     * tahu ada nota yang baru selesai dikerjakan (semua item Selesai/Batal)
+     * & belum diambil customer, tanpa manual refresh.
+     */
+    public function cekAntrianBaru()
+    {
+        // ->select() eksplisit WAJIB sebelum groupBy() di sini - tanpa itu
+        // MySQL/MariaDB (mode ONLY_FULL_GROUP_BY, default aktif) menolak
+        // query karena secara implisit SELECT * menyertakan kolom yang
+        // tidak ada di GROUP BY maupun agregat (ditemukan lewat test).
+        $total = DB::table('transaksi')
+            ->leftJoin('transaksi_detail', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
+            ->where('transaksi.status_collecting', 'Belum Diambil')
+            ->groupBy('transaksi.id_transaksi')
+            ->select('transaksi.id_transaksi')
+            ->havingRaw('COUNT(transaksi_detail.id_detail) > 0 AND SUM(CASE WHEN transaksi_detail.status_spk IN (\'Selesai\',\'Batal\') THEN 1 ELSE 0 END) = COUNT(transaksi_detail.id_detail)')
+            ->get()
+            ->count();
+
+        return response()->json(['total' => $total]);
     }
 }

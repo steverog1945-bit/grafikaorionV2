@@ -408,14 +408,17 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::patch('/spk/{id}/ambil', [SpkController::class, 'ambilPekerjaan'])->name('spk.ambil');
     Route::patch('/spk/{id}/resolve-pending', [SpkController::class, 'resolvePending'])->name('spk.resolve-pending');
     Route::get('/spk/{id}/print/{format?}', [SpkController::class, 'printSpk'])->name('spk.print');
+    Route::get('/spk/cek-antrian-baru', [SpkController::class, 'cekAntrianBaru'])->name('spk.cek-antrian-baru');
 
     Route::get('/produksi', [ProduksiController::class, 'index'])->name('produksi.index');
     Route::patch('/produksi/{id}/simpan-qty', [ProduksiController::class, 'simpanQty'])->name('produksi.simpan-qty');
     Route::patch('/produksi/{id}/selesai', [ProduksiController::class, 'selesai'])->name('produksi.selesai');
     Route::patch('/produksi/{id}/cancel', [ProduksiController::class, 'cancel'])->name('produksi.cancel');
+    Route::get('/produksi/cek-antrian-baru', [ProduksiController::class, 'cekAntrianBaru'])->name('produksi.cek-antrian-baru');
 
     Route::get('/collecting', [CollectingController::class, 'index'])->name('collecting.index');
     Route::patch('/collecting/{id}/proses', [CollectingController::class, 'proses'])->name('collecting.proses');
+    Route::get('/collecting/cek-antrian-baru', [CollectingController::class, 'cekAntrianBaru'])->name('collecting.cek-antrian-baru');
 
     Route::get('/laporan/order', [LaporanController::class, 'order'])->name('laporan.order');
     Route::get('/laporan/produksi', [LaporanController::class, 'produksi'])->name('laporan.produksi');

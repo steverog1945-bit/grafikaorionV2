@@ -99,7 +99,16 @@ class SpkController extends Controller
             ->orderBy('mesin.nama_mesin')
             ->get();
 
-        return view('spk.index', compact('spk', 'divisis'));
+        // Jumlah SAAT halaman dimuat - pembanding untuk x-polling-notifikasi,
+        // pakai query PERSIS sama dengan cekAntrianBaru() supaya banner
+        // tidak salah muncul di awal (lihat catatan di komponennya).
+        $jumlahAntreAwal = DB::table('transaksi_detail')
+            ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
+            ->where('transaksi_detail.status_spk', 'Antre')
+            ->where('transaksi.status_nota', 'Aktif')
+            ->count();
+
+        return view('spk.index', compact('spk', 'divisis', 'jumlahAntreAwal'));
     }
 
     public function toggleUrgent($id)
@@ -260,5 +269,20 @@ class SpkController extends Controller
         }
 
         return view('spk.print', compact('detail', 'format'));
+    }
+
+    /**
+     * Polling notifikasi "ada SPK baru" - dipakai x-polling-notifikasi di
+     * spk/index.blade.php supaya operator tahu ada order baru masuk
+     * antrian dari divisi lain (Input Order) tanpa manual refresh.
+     */
+    public function cekAntrianBaru()
+    {
+        $total = DB::table('transaksi_detail')
+            ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
+            ->where('transaksi_detail.status_spk', 'Antre')
+            ->where('transaksi.status_nota', 'Aktif')
+            ->count();
+        return response()->json(['total' => $total]);
     }
 }

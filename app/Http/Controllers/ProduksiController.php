@@ -85,7 +85,9 @@ class ProduksiController extends Controller
 
         $produksi = $query->orderByDesc('transaksi_detail.id_detail')->paginate(20)->withQueryString();
 
-        return view('produksi.index', compact('produksi'));
+        $jumlahAntreAwal = DB::table('transaksi_detail')->whereIn('status_spk', ['Desain', 'Cetak'])->count();
+
+        return view('produksi.index', compact('produksi', 'jumlahAntreAwal'));
     }
 
     public function simpanQty(Request $request, $id)
@@ -241,5 +243,16 @@ class ProduksiController extends Controller
         }
 
         return back()->with('success', $pesan);
+    }
+
+    /**
+     * Polling notifikasi "ada item baru masuk Produksi" - operator produksi
+     * tahu ada pekerjaan baru (dipindah dari SPK lewat "Ambil Pekerjaan")
+     * tanpa manual refresh.
+     */
+    public function cekAntrianBaru()
+    {
+        $total = DB::table('transaksi_detail')->whereIn('status_spk', ['Desain', 'Cetak'])->count();
+        return response()->json(['total' => $total]);
     }
 }

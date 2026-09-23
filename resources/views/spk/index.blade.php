@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+<x-polling-notifikasi :url="route('spk.cek-antrian-baru')" :jumlah-awal="$jumlahAntreAwal" pesan="Ada SPK baru masuk antrian." />
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="SPK - Surat Perintah Kerja">
