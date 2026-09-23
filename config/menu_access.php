@@ -100,6 +100,7 @@ return [
         // baris ini murni jaring pengaman kalau suatu saat perlu dibuka
         // untuk role lain juga).
         'log-aktivitas' => [],
+        'approval' => [],
 
         // Sama pola dengan 'penjualan' di atas: 'jersey/master' &
         // 'jersey/keuangan' HANYA [38] (bukan ikut [42]). Route mutasi

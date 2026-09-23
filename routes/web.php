@@ -431,6 +431,11 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     // Administrator (lihat config/menu_access.php).
     Route::get('/log-aktivitas', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('audit-log.index');
 
+    // Approval Workflow (roadmap LEVEL 1) - khusus Administrator.
+    Route::get('/approval', [\App\Http\Controllers\ApprovalController::class, 'index'])->name('approval.index');
+    Route::patch('/approval/{approvalRequest}/approve', [\App\Http\Controllers\ApprovalController::class, 'approve'])->name('approval.approve');
+    Route::patch('/approval/{approvalRequest}/reject', [\App\Http\Controllers\ApprovalController::class, 'reject'])->name('approval.reject');
+
     Route::get('/harga-promo', [HargaPromoController::class, 'index'])->name('harga-promo.index');
     Route::post('/harga-promo', [HargaPromoController::class, 'store'])->name('harga-promo.store');
     Route::put('/harga-promo/{id}', [HargaPromoController::class, 'update'])->name('harga-promo.update');

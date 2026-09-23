@@ -684,6 +684,16 @@ public function show($id)
  * tangan konsumen, pembatalan di titik itu harus lewat proses retur
  * manual, bukan tombol ini.
  */
+/**
+ * Sesuai roadmap Approval Workflow ("Cancel Invoice" - jangan pakai
+ * delete/perubahan langsung untuk transaksi keuangan): method ini
+ * SEKARANG cuma MENGAJUKAN pembatalan, tidak lagi mengeksekusinya
+ * langsung. Validasi cepat (nota valid, belum dibatalkan, dst) tetap di
+ * sini supaya pengajuan yang jelas tidak valid ditolak seketika - tidak
+ * perlu membebani approver dengan pengajuan yang pasti gagal. Eksekusi
+ * SUNGGUHAN (lihat eksekusiPembatalanNota() di bawah) baru terjadi
+ * setelah Administrator menyetujui lewat ApprovalController.
+ */
 public function batalkanNota(Request $request, $id)
 {
     $request->validate([
@@ -711,44 +721,72 @@ public function batalkanNota(Request $request, $id)
         return back()->with('error', 'Nota ini tidak bisa dibatalkan - ada item ("' . $sudahSelesai->nama_file . '") yang sudah Selesai diproduksi. Gunakan proses retur manual kalau memang diperlukan.');
     }
 
-    $kembalikanStok = $request->boolean('kembalikan_stok');
-    $ringkasanStok = [];
-
-    DB::transaction(function () use ($request, $id, $items, $kembalikanStok, &$ringkasanStok) {
-        foreach ($items as $item) {
-            if ($item->status_spk === 'Batal') {
-                continue;
-            }
-
-            DB::table('transaksi_detail')->where('id_detail', $item->id_detail)->update([
-                'status_spk' => 'Batal',
-            ]);
-
-            if ($kembalikanStok) {
-                $ringkasanStok = array_merge($ringkasanStok, StokReversalService::kembalikan(
-                    $item,
-                    'BATAL-NOTA-' . $id,
-                    'Pembatalan nota #' . $id . ' - stok dikembalikan'
-                ));
-            }
-        }
-
-        DB::table('transaksi')->where('id_transaksi', $id)->update([
-            'status_nota' => 'Dibatalkan',
-            'alasan_batal_nota' => $request->input('alasan'),
-            'tgl_dibatalkan_nota' => now(),
-            'id_user_pembatal_nota' => Auth::id(),
-        ]);
-    });
-
-    $pesan = 'Nota dibatalkan. Seluruh item SPK di dalamnya ikut ditandai Batal.';
-    if ($kembalikanStok) {
-        $pesan .= !empty($ringkasanStok)
-            ? ' Stok dikembalikan: ' . implode(', ', $ringkasanStok) . '.'
-            : ' Tidak ada bahan BOM untuk dikembalikan pada nota ini.';
+    // Cegah pengajuan dobel - kalau sudah ada pengajuan Menunggu untuk
+    // nota yang sama, tidak perlu diajukan ulang.
+    $sudahAda = \App\Models\ApprovalRequest::where('tipe_aksi', 'batalkan_nota')
+        ->where('referensi_type', 'transaksi')
+        ->where('referensi_id', $id)
+        ->where('status', 'Menunggu')
+        ->exists();
+    if ($sudahAda) {
+        return back()->with('error', 'Sudah ada pengajuan pembatalan untuk nota ini yang masih menunggu persetujuan.');
     }
 
-    return redirect()->route('penjualan.show', $id)->with('success', $pesan);
+    \App\Services\ApprovalService::ajukan(
+        tipeAksi: 'batalkan_nota',
+        referensiType: 'transaksi',
+        referensiId: (int) $id,
+        payload: [
+            'alasan' => $request->input('alasan'),
+            'kembalikan_stok' => $request->boolean('kembalikan_stok'),
+        ],
+        ringkasan: "Batalkan nota {$transaksi->nomor_nota}",
+        alasanPengajuan: $request->input('alasan'),
+    );
+
+    return redirect()->route('penjualan.show', $id)
+        ->with('success', 'Pengajuan pembatalan nota terkirim, menunggu persetujuan Administrator.');
+}
+
+/**
+ * Eksekusi SUNGGUHAN pembatalan nota - dipanggil ApprovalController
+ * setelah Administrator menyetujui pengajuan dari batalkanNota() di
+ * atas. Isinya PERSIS logic yang dulu langsung jalan di batalkanNota().
+ *
+ * @return array<int, string> Ringkasan stok yang dikembalikan (kalau ada)
+ */
+public function eksekusiPembatalanNota(int $id, array $payload): array
+{
+    $items = DB::table('transaksi_detail')->where('id_transaksi', $id)->get();
+    $kembalikanStok = (bool) ($payload['kembalikan_stok'] ?? false);
+    $ringkasanStok = [];
+
+    foreach ($items as $item) {
+        if ($item->status_spk === 'Batal') {
+            continue;
+        }
+
+        DB::table('transaksi_detail')->where('id_detail', $item->id_detail)->update([
+            'status_spk' => 'Batal',
+        ]);
+
+        if ($kembalikanStok) {
+            $ringkasanStok = array_merge($ringkasanStok, StokReversalService::kembalikan(
+                $item,
+                'BATAL-NOTA-' . $id,
+                'Pembatalan nota #' . $id . ' - stok dikembalikan'
+            ));
+        }
+    }
+
+    DB::table('transaksi')->where('id_transaksi', $id)->update([
+        'status_nota' => 'Dibatalkan',
+        'alasan_batal_nota' => $payload['alasan'] ?? null,
+        'tgl_dibatalkan_nota' => now(),
+        'id_user_pembatal_nota' => Auth::id(),
+    ]);
+
+    return $ringkasanStok;
 }
 
 /**
