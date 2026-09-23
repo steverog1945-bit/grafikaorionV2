@@ -140,6 +140,45 @@
         @endif
     @endif
 
+    @if($po && in_array($po->status, ['Dipesan', 'Diterima Sebagian', 'Selesai']))
+    <x-card class="mt-8">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Penerimaan Barang</h3>
+
+        @if($po->kedatangan->isNotEmpty())
+        <div class="mb-6 space-y-2">
+            @foreach($po->kedatangan as $k)
+                <div class="flex items-center justify-between text-sm p-3 rounded-xl bg-slate-50">
+                    <span class="font-semibold text-slate-700">SJ {{ $k->no_surat_jalan }} - {{ $k->tgl_datang?->format('d M Y') }}</span>
+                    <span class="flex items-center gap-3">
+                        <x-badge :status="$k->status" :variant="$k->status === 'Selesai' ? 'success' : 'info'" />
+                        <a href="{{ route('kedatangan-bahan.edit', $k->id_kedatangan) }}" class="text-indigo-600 text-xs font-bold uppercase">Buka</a>
+                    </span>
+                </div>
+            @endforeach
+        </div>
+        @endif
+
+        @if($po->status !== 'Selesai')
+        <form method="POST" action="{{ route('purchase-order.kedatangan', $po->id) }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            @csrf
+            <x-form.group label="No. Surat Jalan">
+                <x-form.input type="text" name="no_surat_jalan" required placeholder="SJ-001" />
+            </x-form.group>
+            <x-form.group label="Tanggal Datang">
+                <x-form.input type="date" name="tgl_datang" value="{{ now()->toDateString() }}" required />
+            </x-form.group>
+            <x-form.group label="Gudang">
+                <x-form.select name="id_gudang">
+                    @foreach($gudangList as $g)<option value="{{ $g->id_gudang }}">{{ $g->nama_gudang }}</option>@endforeach
+                </x-form.select>
+            </x-form.group>
+            <x-button type="submit" variant="success"><i class="fas fa-truck-loading"></i> Catat Kedatangan</x-button>
+        </form>
+        <p class="text-[11px] text-slate-400 mt-3">Kedatangan dibuat sebagai Draft berisi sisa qty yang belum diterima. Stok baru bertambah setelah kedatangan divalidasi.</p>
+        @endif
+    </x-card>
+    @endif
+
     <template id="row-template">
         <tr data-row>
             <td class="px-6 py-3">

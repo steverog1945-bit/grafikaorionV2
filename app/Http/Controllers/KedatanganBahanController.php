@@ -157,6 +157,7 @@ public function validateStatus($id)
 
         // 3. Update Status Kedatangan
         $kedatangan->update(['status' => 'Selesai']);
+        \App\Services\PurchaseOrderService::sinkronPenerimaan($kedatangan->id_purchase_order);
 
         return back()->with('success', 'Berhasil! Stok telah diperbarui dan tercatat di Kartu Stok.');
     });
@@ -227,7 +228,9 @@ public function bulkDelete(Request $request)
             $kedatangan->detail()->delete();
 
             // Hapus header
+            $idPo = $kedatangan->id_purchase_order;
             $kedatangan->delete();
+            \App\Services\PurchaseOrderService::sinkronPenerimaan($idPo);
         }
     });
 
@@ -326,6 +329,8 @@ public function bulkDelete(Request $request)
                 }
             }
         }
+
+        \App\Services\PurchaseOrderService::sinkronPenerimaan($kedatangan->id_purchase_order);
     });
 
     return redirect()->route('kedatangan-bahan.index')
@@ -387,6 +392,7 @@ public function ajaxBahan(Request $request)
 
         $kedatangan->detail()->delete();
         $kedatangan->delete();
+        \App\Services\PurchaseOrderService::sinkronPenerimaan($kedatangan->id_purchase_order);
     });
 
     return redirect()->route('kedatangan-bahan.index')

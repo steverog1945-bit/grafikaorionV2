@@ -19,7 +19,8 @@ class KedatanganBahan extends Model
         'id_gudang',
         'tgl_datang',
         'status',
-        'keterangan'
+        'keterangan',
+        'id_purchase_order',
     ];
 protected $casts = [
         'tgl_datang' => 'date',

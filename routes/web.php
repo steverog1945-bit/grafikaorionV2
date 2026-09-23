@@ -472,6 +472,7 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::get('/purchase-order/{purchaseOrder}/edit', [\App\Http\Controllers\PurchaseOrderController::class, 'edit'])->name('purchase-order.edit');
     Route::patch('/purchase-order/{purchaseOrder}', [\App\Http\Controllers\PurchaseOrderController::class, 'update'])->name('purchase-order.update');
     Route::patch('/purchase-order/{purchaseOrder}/terbitkan', [\App\Http\Controllers\PurchaseOrderController::class, 'terbitkan'])->name('purchase-order.terbitkan');
+    Route::post('/purchase-order/{purchaseOrder}/kedatangan', [\App\Http\Controllers\PurchaseOrderController::class, 'catatKedatangan'])->name('purchase-order.kedatangan');
     Route::patch('/purchase-order/{purchaseOrder}/batalkan', [\App\Http\Controllers\PurchaseOrderController::class, 'batalkan'])->name('purchase-order.batalkan');
     Route::delete('/purchase-order/{purchaseOrder}', [\App\Http\Controllers\PurchaseOrderController::class, 'destroy'])->name('purchase-order.destroy');
 

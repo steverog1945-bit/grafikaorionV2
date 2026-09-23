@@ -97,7 +97,7 @@ class PurchaseOrderController extends Controller
 
     public function edit(PurchaseOrder $purchaseOrder)
     {
-        $purchaseOrder->load('details.bahan', 'supplier', 'purchaseRequest');
+        $purchaseOrder->load('details.bahan', 'supplier', 'purchaseRequest', 'kedatangan');
 
         return view('purchase-order.form', $this->dataForm($purchaseOrder) + ['prefill' => []]);
     }
@@ -170,6 +170,64 @@ class PurchaseOrderController extends Controller
         });
 
         return $galat ? back()->with('error', $galat) : back()->with('success', "Purchase Order {$purchaseOrder->nomor} dibatalkan.");
+    }
+
+    /**
+     * Buat Kedatangan Bahan (Draft) dari sisa qty PO yang belum diterima.
+     * Stok baru bertambah saat kedatangan itu divalidasi (alur lama di
+     * KedatanganBahanController) - qty_diterima & status PO ikut tersinkron
+     * lewat PurchaseOrderService::sinkronPenerimaan().
+     */
+    public function catatKedatangan(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $v = $request->validate([
+            'no_surat_jalan' => 'required|string|max:255|unique:kedatangan_bahan,no_surat_jalan',
+            'tgl_datang' => 'required|date',
+            'id_gudang' => 'nullable|exists:gudang,id_gudang',
+        ]);
+
+        $hasil = DB::transaction(function () use ($purchaseOrder, $v) {
+            $po = PurchaseOrder::whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
+
+            if (!in_array($po->status, ['Dipesan', 'Diterima Sebagian'], true)) {
+                return ['error' => "Purchase Order berstatus {$po->status} tidak bisa menerima barang."];
+            }
+
+            $sisa = $po->details()->whereRaw('qty > qty_diterima')->get();
+
+            if ($sisa->isEmpty()) {
+                return ['error' => 'Semua item Purchase Order ini sudah diterima lengkap.'];
+            }
+
+            $kedatangan = \App\Models\KedatanganBahan::create([
+                'no_surat_jalan' => $v['no_surat_jalan'],
+                'id_supplier' => $po->id_supplier,
+                'id_gudang' => $v['id_gudang'] ?? DB::table('gudang')->value('id_gudang'),
+                'tgl_datang' => $v['tgl_datang'],
+                'status' => 'Draft',
+                'keterangan' => "Penerimaan dari {$po->nomor}",
+                'id_purchase_order' => $po->id,
+            ]);
+
+            $satuan = DB::table('bahan_baku')->whereIn('id_bahan', $sisa->pluck('id_bahan'))->pluck('satuan_stok', 'id_bahan');
+
+            DB::table('kedatangan_bahan_detail')->insert($sisa->map(fn ($d) => [
+                'id_kedatangan' => $kedatangan->id_kedatangan,
+                'id_bahan' => $d->id_bahan,
+                'qty' => $d->qty - $d->qty_diterima,
+                'satuan' => $satuan[$d->id_bahan] ?? '',
+                'status' => 'OK',
+            ])->all());
+
+            return ['id' => $kedatangan->id_kedatangan];
+        });
+
+        if (isset($hasil['error'])) {
+            return back()->with('error', $hasil['error']);
+        }
+
+        return redirect()->route('kedatangan-bahan.edit', $hasil['id'])
+            ->with('success', 'Kedatangan Draft dibuat dari sisa PO. Cek qty fisik, lalu validasi supaya stok bertambah.');
     }
 
     public function destroy(PurchaseOrder $purchaseOrder)
@@ -248,6 +306,7 @@ class PurchaseOrderController extends Controller
     {
         return [
             'po' => $po,
+            'gudangList' => DB::table('gudang')->orderBy('id_gudang')->get(),
             'supplierList' => DB::table('supplier')->orderBy('nama_supplier')->get(),
             'bahanList' => DB::table('bahan_baku')->where('status', 'aktif')->orderBy('nama_bahan')->get(['id_bahan', 'nama_bahan', 'satuan_stok']),
         ];
