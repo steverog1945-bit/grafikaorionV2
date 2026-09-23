@@ -39,6 +39,24 @@ class SchemaDriftTest extends TestCase
         $this->assertFalse(Schema::hasColumn('setting_harga', 'satuan_berlaku'));
     }
 
+    public function test_kolom_yang_dipakai_controller_ada(): void
+    {
+        $harus = [
+            'harga_promo' => ['status_promo'],
+            'kategori' => ['kode_kategori', 'created_at'],
+            'golongan_konsumen' => ['keterangan'],
+            'konsumen' => ['nama_konsumen_manual'],
+            'transaksi' => ['metode_pembayaran'],
+            'bom_detail' => ['created_at', 'updated_at'],
+            'kedatangan_bahan' => ['updated_at'],
+        ];
+        foreach ($harus as $tabel => $kolom) {
+            foreach ($kolom as $k) {
+                $this->assertTrue(Schema::hasColumn($tabel, $k), "$tabel.$k");
+            }
+        }
+    }
+
     public function test_produk_bisa_disimpan_seperti_produk_controller(): void
     {
         $id = DB::table('produk')->insertGetId([
