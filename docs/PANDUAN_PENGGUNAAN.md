@@ -60,6 +60,7 @@ Purchase Order berstatus Dipesan/Draft bisa dibatalkan selama belum ada barang y
   2. Isi **stok fisik** hasil hitung. Bahan yang selisih wajib diberi alasan.
   3. **Ajukan untuk Persetujuan**. Stok belum berubah.
   4. Administrator menyetujui di Approval Workflow; barulah stok disesuaikan ke hasil hitung fisik dan tercatat sebagai penyesuaian di Kartu Stok.
+- **Waste Management** (Produksi & Logistik > Waste Management): catat susut bahan di luar pemakaian normal BOM. **Normal** (susut wajar, mis. sisa potongan) langsung mengurangi stok dan dijurnal sebagai beban. **Abnormal** (rusak, salah potong, hilang) hanya diajukan; stok baru berkurang setelah Administrator menyetujui. Pilih item order terkait bila ada, supaya biayanya masuk Job Costing order itu.
 - Stok bahan baku berkurang otomatis saat **nota dibuat** (Input Order), sesuai BOM produk, dan kembali otomatis saat nota atau SPK dibatalkan. Bahan yang terpakai untuk rework dikeluarkan terpisah lewat QC & Rework (bagian 6).
 
 ## 6. Alur Penjualan dan Produksi
@@ -86,7 +87,7 @@ Input Order -> SPK -> Produksi -> Pembayaran di Kasir -> Collecting (serah baran
 - **Buka/Tutup Kas:** kas harian dibuka satu orang saja per hari (eksklusif). Saldo awal, transaksi tunai, dan kas manual dicatat di sesi itu. Hari Minggu libur kas jika diaktifkan di Pengaturan Aplikasi. Di akhir hari lakukan **Closing** dan cetak laporannya.
 - **Kas Kecil:** catat pengeluaran kecil per kategori (Kategori Kas Kecil menentukan akun beban di jurnal). Membatalkan catatan hanya berupa pengajuan ke Approval Workflow; jurnalnya dibalik setelah disetujui.
 - **Deposit Konsumen:** setoran deposit dicatat sebagai kewajiban dan dapat dipakai membayar nota.
-- **Laporan:** Order, Produksi, Kas Utama, Belanja Bahan, Hutang Supplier, Piutang, Stok Bahan Baku, HPP & Margin, Order Jersey, dan Laporan Keuangan (Akuntansi).
+- **Laporan:** Order, Produksi, Kas Utama, Belanja Bahan, Hutang Supplier, Piutang, Stok Bahan Baku, HPP & Margin, **Job Costing** (biaya aktual per nota = HPP material + rework + waste terkait, dibanding omzet; tenaga kerja, mesin, dan overhead belum tercatat), Order Jersey, dan Laporan Keuangan (Akuntansi).
 
 ## 8. Order Jersey
 
@@ -106,7 +107,7 @@ Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) 
 
 ## 10. Administrasi sistem (Administrator)
 
-- **Approval Workflow:** daftar pengajuan Menunggu. Setujui untuk mengeksekusi, atau Tolak dengan alasan. Jenis pengajuan saat ini: pembatalan nota, Stock Opname, Purchase Request, pembatalan faktur pembelian, void pembayaran hutang, void pembayaran Jersey, pembatalan order Jersey, dan pembatalan catatan Kas Kecil.
+- **Approval Workflow:** daftar pengajuan Menunggu. Setujui untuk mengeksekusi, atau Tolak dengan alasan. Jenis pengajuan saat ini: pembatalan nota, Stock Opname, Purchase Request, pembatalan faktur pembelian, void pembayaran hutang, void pembayaran Jersey, pembatalan order Jersey, pembatalan catatan Kas Kecil, dan Waste Abnormal.
 - **Log Aktivitas:** telusuri perubahan data, filter menurut jenis, kejadian, dan tanggal.
 - **Backup & Recovery:** backup otomatis harian, mingguan, dan bulanan (retensi 7/4/12) dan tombol backup manual. Otomatis hanya berjalan jika scheduler aktif (lihat panduan deploy). File backup di `storage/app/backups/` berisi data konsumen; simpan salinannya di lokasi lain juga.
 - **Manajemen User dan Setting Akses:** buat akun per karyawan, atur menu per peran.

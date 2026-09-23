@@ -628,7 +628,7 @@
         $grpLaporanAktif = request()->routeIs('laporan.order') || request()->routeIs('laporan.produksi')
             || request()->routeIs('laporan.kas') || request()->routeIs('laporan.belanja-bahan') || request()->routeIs('laporan.hutang')
             || request()->routeIs('laporan.order-jersey') || request()->routeIs('laporan.piutang')
-            || request()->routeIs('laporan.stok-bahan') || request()->routeIs('laporan.hpp');
+            || request()->routeIs('laporan.stok-bahan') || request()->routeIs('laporan.hpp') || request()->routeIs('laporan.job-costing');
     @endphp
     @if($grpLaporanVisible)
     <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] hover:text-slate-300 transition-colors">
@@ -714,6 +714,12 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 4h4m-2-8a9 9 0 100 18 9 9 0 000-18zM9.5 15.5c.5 1 1.5 1.5 2.5 1.5s2-.5 2.5-1.5M9.5 9c.5-1 1.5-1.5 2.5-1.5s2 .5 2.5 1.5" />
         </svg>
         <span class="text-sm font-medium">Laporan HPP & Margin</span>
+    </a>
+    <a href="{{ route('laporan.job-costing') }}" class="{{ $menuClass }} {{ request()->routeIs('laporan.job-costing') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.job-costing') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Job Costing</span>
     </a>
     @endif
     @if($grpLaporanVisible)

@@ -677,6 +677,51 @@ class LaporanController extends Controller
      * di halaman laporannya sendiri supaya tidak disalahpahami sebagai
      * laba bersih riil.
      */
+    /**
+     * Job Costing (LEVEL 2, bagian 24 dokumen audit): biaya aktual per nota =
+     * HPP material saat order (hpp_snapshot) + biaya rework yang sudah
+     * diproses + biaya waste terkait item nota itu. Belum mencakup tenaga
+     * kerja, mesin, dan overhead karena aplikasi belum mencatatnya.
+     */
+    public function jobCosting(Request $request)
+    {
+        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->startOfMonth()->format('Y-m-d');
+        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+
+        $data = DB::table('transaksi as t')
+            ->join('transaksi_detail as d', 'd.id_transaksi', '=', 't.id_transaksi')
+            ->leftJoin('konsumen as k', 'k.id_konsumen', '=', 't.id_konsumen')
+            ->where('t.status_nota', '!=', 'Dibatalkan')
+            ->whereDate('t.tgl_order', '>=', $tglDari)
+            ->whereDate('t.tgl_order', '<=', $tglSampai)
+            ->groupBy('t.id_transaksi', 't.nomor_nota', 't.tgl_order', 'k.nama_konsumen')
+            ->selectRaw("t.id_transaksi, t.nomor_nota, t.tgl_order, k.nama_konsumen,
+                SUM(d.subtotal) as omzet, SUM(d.hpp_snapshot) as hpp,
+                (SELECT COALESCE(SUM(r.biaya_material), 0) FROM rework r JOIN transaksi_detail d2 ON d2.id_detail = r.id_detail
+                    WHERE d2.id_transaksi = t.id_transaksi AND r.status = 'Selesai') as biaya_rework,
+                (SELECT COALESCE(SUM(w.biaya), 0) FROM waste_log w JOIN transaksi_detail d3 ON d3.id_detail = w.id_detail
+                    WHERE d3.id_transaksi = t.id_transaksi AND w.status = 'Diterapkan') as biaya_waste")
+            ->orderByDesc('t.tgl_order')
+            ->get()
+            ->map(function ($r) {
+                $r->biaya_aktual = round((float) $r->hpp + (float) $r->biaya_rework + (float) $r->biaya_waste, 2);
+                $r->laba = round((float) $r->omzet - $r->biaya_aktual, 2);
+                $r->margin = (float) $r->omzet > 0 ? round($r->laba / (float) $r->omzet * 100, 1) : 0;
+                $r->margin_estimasi = (float) $r->omzet > 0 ? round(((float) $r->omzet - (float) $r->hpp) / (float) $r->omzet * 100, 1) : 0;
+
+                return $r;
+            });
+
+        $total = [
+            'omzet' => $data->sum('omzet'), 'hpp' => $data->sum('hpp'),
+            'rework' => $data->sum('biaya_rework'), 'waste' => $data->sum('biaya_waste'),
+            'aktual' => $data->sum('biaya_aktual'), 'laba' => $data->sum('laba'),
+        ];
+        $total['margin'] = $total['omzet'] > 0 ? round($total['laba'] / $total['omzet'] * 100, 1) : 0;
+
+        return view('laporan.job-costing', compact('data', 'total', 'tglDari', 'tglSampai'));
+    }
+
     public function hpp(Request $request)
     {
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');

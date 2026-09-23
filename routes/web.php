@@ -270,6 +270,7 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
         Route::post('/pembelian-bahan/pembayaran/{idPembayaran}/void', [PembelianBahanController::class, 'ajukanVoidPembayaran'])
             ->name('pembelian.void-pembayaran');
         Route::get('/laporan/hutang', [LaporanController::class, 'hutang'])->name('laporan.hutang');
+        Route::get('/laporan/job-costing', [LaporanController::class, 'jobCosting'])->name('laporan.job-costing');
         // HANYA GUNAKAN SATU ROUTE INI UNTUK AJAX
         Route::get('pembelian-bahan/kedatangan-detail', [PembelianBahanController::class, 'kedatanganDetail'])
             ->name('pembelian-bahan.kedatangan-detail');

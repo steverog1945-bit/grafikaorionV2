@@ -97,6 +97,7 @@ return [
         'laporan/piutang' => [44],
         'laporan/stok-bahan' => [46],
         'laporan/hpp' => [47],
+        'laporan/job-costing' => [47],
         'harga-promo' => [28],
 
         'kas-kecil' => [39],

@@ -167,6 +167,32 @@ class QcReworkTest extends TestCase
         $this->assertEquals('Selesai', DB::table('rework')->value('status'));
     }
 
+    public function test_job_costing_menggabungkan_hpp_rework_dan_waste_terkait_order(): void
+    {
+        DB::table('transaksi_detail')->where('id_detail', $this->idDetail)->update(['hpp_snapshot' => 200000]);
+        $r = QcService::catat($this->idDetail, 100, 5, [], null);
+        QcService::prosesRework($r['id_rework']);                                            // 5 x 10.000 = 50.000
+        \App\Services\WasteService::catat($this->idBahan, 1, 'Normal', 'Sisa', $this->idDetail); // 10.000
+        \App\Services\WasteService::catat($this->idBahan, 1, 'Normal', 'Tanpa order');           // tidak ikut order ini
+
+        $response = $this->get('/laporan/job-costing?tgl_dari=' . now()->subDay()->toDateString() . '&tgl_sampai=' . now()->addDay()->toDateString());
+
+        $response->assertOk()->assertSee('INV-QC-001');
+        $baris = $response->viewData('data')->first();
+        $this->assertEquals(
+            [500000.0, 200000.0, 50000.0, 10000.0, 260000.0, 240000.0, 48.0],
+            [(float) $baris->omzet, (float) $baris->hpp, (float) $baris->biaya_rework, (float) $baris->biaya_waste, $baris->biaya_aktual, $baris->laba, (float) $baris->margin]
+        );
+    }
+
+    public function test_job_costing_mengabaikan_nota_dibatalkan(): void
+    {
+        DB::table('transaksi')->update(['status_nota' => 'Dibatalkan']);
+
+        $this->get('/laporan/job-costing?tgl_dari=' . now()->subDay()->toDateString() . '&tgl_sampai=' . now()->addDay()->toDateString())
+            ->assertOk()->assertDontSee('INV-QC-001');
+    }
+
     public function test_akses_qc_sesuai_menu_produksi(): void
     {
         $roleOp = Role::factory()->create(['nama_role' => 'Operator Produksi']);

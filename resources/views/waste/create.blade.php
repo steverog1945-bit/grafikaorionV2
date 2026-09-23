@@ -36,6 +36,15 @@
                 </x-form.group>
             </div>
 
+            <x-form.group label="Terkait Item Order (opsional - masuk biaya Job Costing order itu)">
+                <x-form.select name="id_detail" id="id_detail">
+                    <option value="">-- Tidak terkait order tertentu --</option>
+                    @foreach($items as $i)
+                        <option value="{{ $i->id_detail }}" {{ old('id_detail') == $i->id_detail ? 'selected' : '' }}>{{ $i->nomor_nota }} - {{ $i->nama_file }}</option>
+                    @endforeach
+                </x-form.select>
+            </x-form.group>
+
             <x-form.group label="Alasan">
                 <x-form.input type="text" name="alasan" maxlength="255" value="{{ old('alasan') }}" placeholder="Mis. sisa potongan roll, basah kena air" required />
             </x-form.group>

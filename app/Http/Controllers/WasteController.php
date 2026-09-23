@@ -39,6 +39,9 @@ class WasteController extends Controller
     public function create()
     {
         return view('waste.create', [
+            'items' => DB::table('transaksi_detail as d')->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+                ->where('t.status_nota', 'Aktif')->whereIn('d.status_spk', ['Cetak', 'Selesai'])
+                ->orderByDesc('d.id_detail')->limit(300)->get(['d.id_detail', 'd.nama_file', 't.nomor_nota']),
             'bahanList' => DB::table('bahan_baku')->where('status', 'aktif')->orderBy('nama_bahan')->get(['id_bahan', 'nama_bahan', 'satuan_stok', 'stok']),
         ]);
     }
@@ -50,10 +53,11 @@ class WasteController extends Controller
             'qty' => 'required|numeric|min:0.0001',
             'jenis' => 'required|in:Normal,Abnormal',
             'alasan' => 'required|string|max:255',
+            'id_detail' => 'nullable|exists:transaksi_detail,id_detail',
         ]);
 
         try {
-            $hasil = WasteService::catat((int) $data['id_bahan'], (float) $data['qty'], $data['jenis'], $data['alasan']);
+            $hasil = WasteService::catat((int) $data['id_bahan'], (float) $data['qty'], $data['jenis'], $data['alasan'], $request->filled('id_detail') ? (int) $data['id_detail'] : null);
         } catch (\RuntimeException $e) {
             return back()->withInput()->with('error', $e->getMessage());
         }
