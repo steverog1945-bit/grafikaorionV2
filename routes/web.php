@@ -424,6 +424,10 @@ Route::match(['get', 'post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [Pembe
     Route::get('/laporan/stok-bahan', [LaporanController::class, 'stokBahan'])->name('laporan.stok-bahan');
     Route::get('/laporan/hpp', [LaporanController::class, 'hpp'])->name('laporan.hpp');
 
+    // Log Aktivitas (Audit Trail, roadmap LEVEL 1) - baca-saja, khusus
+    // Administrator (lihat config/menu_access.php).
+    Route::get('/log-aktivitas', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('audit-log.index');
+
     Route::get('/harga-promo', [HargaPromoController::class, 'index'])->name('harga-promo.index');
     Route::post('/harga-promo', [HargaPromoController::class, 'store'])->name('harga-promo.store');
     Route::put('/harga-promo/{id}', [HargaPromoController::class, 'update'])->name('harga-promo.update');

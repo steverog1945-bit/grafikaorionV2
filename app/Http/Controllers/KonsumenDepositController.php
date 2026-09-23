@@ -73,7 +73,7 @@ class KonsumenDepositController extends Controller
         try {
             $noReferensi = 'DEP-' . now()->format('YmdHis') . '-' . $request->id_konsumen;
 
-            DB::table('konsumen_deposit')->insert([
+            $dataDeposit = [
                 'id_konsumen'  => $request->id_konsumen,
                 'tipe'         => 'Setoran',
                 'nominal'      => $request->nominal,
@@ -83,7 +83,13 @@ class KonsumenDepositController extends Controller
                 'id_user'      => Auth::id(),
                 'created_at'   => now(),
                 'updated_at'   => now(),
-            ]);
+            ];
+            $idDeposit = DB::table('konsumen_deposit')->insertGetId($dataDeposit);
+
+            // Contoh pola audit trail untuk jalur DB::table() murni (tabel
+            // ini tidak dikelola lewat Eloquent sama sekali di controller
+            // ini - lihat catatan di App\Services\AuditLogger).
+            \App\Services\AuditLogger::log('created', 'konsumen_deposit', $idDeposit, null, $dataDeposit, "Setoran deposit {$noReferensi}");
 
             AccountingService::postSetoranDeposit($noReferensi, (float) $request->nominal, $request->metode_bayar);
 

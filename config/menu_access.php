@@ -94,6 +94,12 @@ return [
 
         'akun' => [35],
         'akuntansi' => [36],
+        // Log Aktivitas (Audit Trail) - khusus Administrator, tidak ada
+        // id_menu lain yang diberi akses (Administrator selalu lolos
+        // CheckMenuAccess tanpa perlu masuk daftar ini sama sekali, jadi
+        // baris ini murni jaring pengaman kalau suatu saat perlu dibuka
+        // untuk role lain juga).
+        'log-aktivitas' => [],
 
         // Sama pola dengan 'penjualan' di atas: 'jersey/master' &
         // 'jersey/keuangan' HANYA [38] (bukan ikut [42]). Route mutasi

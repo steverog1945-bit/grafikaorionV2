@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
+use App\Services\AuditLogger;
 
 /**
  * Satu-satunya jalur penulisan ke jurnal_umum (double-entry ledger).
@@ -70,8 +71,9 @@ class AccountingService
         }
 
         $now = now();
+        $baris = [];
 
-        DB::transaction(function () use ($lines, $tglJurnal, $noReferensi, $keterangan, $now) {
+        DB::transaction(function () use ($lines, $tglJurnal, $noReferensi, $keterangan, $now, &$baris) {
             foreach ($lines as $line) {
                 $debet = (float) ($line['debet'] ?? 0);
                 $kredit = (float) ($line['kredit'] ?? 0);
@@ -90,8 +92,20 @@ class AccountingService
                     'created_at'    => $now,
                     'updated_at'    => $now,
                 ]);
+
+                $baris[] = ['kode_akun' => $line['kode_akun'], 'debet' => $debet, 'kredit' => $kredit];
             }
         });
+
+        // Satu titik pencatatan Audit Trail untuk SEMUA posting akuntansi di
+        // seluruh aplikasi (postJournal() adalah satu-satunya jalur tulis
+        // jurnal_umum - lihat docblock class ini) - lebih efisien &
+        // menjamin cakupan penuh dibanding memanggil AuditLogger di tiap
+        // controller yang memicu postingan (PenjualanController,
+        // KasirController, PembelianBahanController, dst).
+        if (!empty($baris)) {
+            AuditLogger::log('created', 'jurnal_umum', null, null, ['no_referensi' => $noReferensi, 'lines' => $baris], $keterangan);
+        }
     }
 
     /**

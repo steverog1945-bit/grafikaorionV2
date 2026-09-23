@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Support\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PembelianBahan extends Model
 {
     use SoftDeletes;
+    use Auditable;
 
     protected $table = 'pembelian_bahan';
     protected $primaryKey = 'id_pembelian';

@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Support\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class KasKecil extends Model
 {
     use SoftDeletes;
+    use Auditable;
 
     protected $table = 'kas_kecil';
 
