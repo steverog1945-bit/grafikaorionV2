@@ -80,6 +80,7 @@ class ApprovalController extends Controller
             'batalkan_nota' => app(PenjualanController::class)->eksekusiPembatalanNota((int) $req->referensi_id, $payload),
             'stock_opname' => \App\Services\StockOpnameService::eksekusiAdjustment((int) $req->referensi_id),
             'purchase_request' => \App\Services\PurchaseRequestService::eksekusiPersetujuan((int) $req->referensi_id),
+            'waste_abnormal' => \App\Services\WasteService::terapkan((int) $req->referensi_id),
             'batalkan_kas_kecil' => \App\Services\KasKecilService::batalkan((int) $req->referensi_id),
             'void_pembayaran_jersey' => \App\Services\JerseyAccountingService::voidPembayaran((int) $req->referensi_id, $payload['alasan'] ?? '-'),
             'batalkan_order_jersey' => \App\Services\JerseyAccountingService::batalkanOrder((int) $req->referensi_id, $payload['alasan'] ?? '-'),
@@ -101,6 +102,7 @@ class ApprovalController extends Controller
         match ($req->tipe_aksi) {
             'stock_opname' => \App\Services\StockOpnameService::eksekusiPenolakan((int) $req->referensi_id),
             'purchase_request' => \App\Services\PurchaseRequestService::eksekusiPenolakan((int) $req->referensi_id),
+            'waste_abnormal' => \App\Services\WasteService::tolak((int) $req->referensi_id),
             default => null,
         };
     }

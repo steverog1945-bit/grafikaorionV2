@@ -479,6 +479,11 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/qc', [\App\Http\Controllers\QcController::class, 'index'])->name('qc.index');
     Route::get('/qc/create', [\App\Http\Controllers\QcController::class, 'create'])->name('qc.create');
     Route::post('/qc', [\App\Http\Controllers\QcController::class, 'store'])->name('qc.store');
+    // Waste Management (LEVEL 2) - abnormal waste lewat Approval Workflow.
+    Route::get('/waste', [\App\Http\Controllers\WasteController::class, 'index'])->name('waste.index');
+    Route::get('/waste/create', [\App\Http\Controllers\WasteController::class, 'create'])->name('waste.create');
+    Route::post('/waste', [\App\Http\Controllers\WasteController::class, 'store'])->name('waste.store');
+
     Route::post('/qc/rework/{id}/proses', [\App\Http\Controllers\QcController::class, 'prosesRework'])->name('qc.rework.proses');
 
     Route::post('/purchase-order/{purchaseOrder}/kedatangan', [\App\Http\Controllers\PurchaseOrderController::class, 'catatKedatangan'])->name('purchase-order.kedatangan');
