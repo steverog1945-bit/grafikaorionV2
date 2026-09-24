@@ -30,8 +30,21 @@ tidak memuat body/lengan/kerah.
   Dirapikan menjadi naik bertahap 0,05 m per ukuran.
 - Lengan panjang 3XL yang turun ke 0,48 m dinaikkan mengikuti tren (0,70 m).
 - Gram tidak diubah sama sekali.
-- Tipe Kerah masih kosong; kerah sudah terwakili komponen Rib. Isi tipe kerah
-  di Master hanya bila memang ada kain kerah terpisah yang beda per model.
+- Estimasi Kerah per tipe (meter / gram per pcs, sama untuk semua ukuran;
+  gram naik di ukuran besar):
+
+  | Tipe Kerah | Meter | Gram (S-L / XL-2XL / 3XL-5XL) |
+  |---|---|---|
+  | Oneck | 0,08 m | 7 / 8 / 10 |
+  | Vneck | 0,10 m | 8 / 10 / 12 |
+  | Wangki | 0,12 m | 10 / 12 / 15 |
+  | Shanghai Zip | 0,24 m | 20 / 24 / 30 |
+
+  Wangki memakai angka Rib Wangki yang Anda input dulu; tipe lain diturunkan
+  darinya (Shanghai Zip dua kali lipat karena ada plaket/ritsleting). Komponen
+  Rib (0,03 m) tetap terpisah untuk rib selain kerah, jadi tidak dobel.
+- Matriks Lengan masih menyimpan angka untuk 2 tipe lengan lama yang sudah
+  tidak ada di daftar (id 5 dan 6). Tidak dipakai; abaikan atau hapus.
 
 ## Cara verifikasi riil (disarankan, sekali saja per tipe)
 
