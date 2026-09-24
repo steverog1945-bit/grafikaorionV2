@@ -206,3 +206,12 @@ Setelah menarik kode terbaru atau mengubah tampilan, jalankan `npm install` (sek
 **Logo sidebar dapat diatur:** Pengaturan Aplikasi > Umum > "Tampilan Logo di Sidebar" - ukuran (kecil/sedang/besar), gaya latar
 (polos dengan kilau lembut, kaca transparan, atau kotak putih), cara logo tampil saat sidebar diringkas (potong lambang kiri otomatis atau
 logo penuh diperkecil), serta Logo Ikon persegi opsional. Ada pratinjau langsung di latar sidebar.
+
+## Lembar Evaluasi Master (Cetak Harian/Bulanan)
+
+Menu Laporan > **Lembar Evaluasi Master** (akses sama dengan Laporan HPP). Memuat dalam satu lembar:
+- **A. Bahan Baku:** stok, stok minimal, harga rata-rata, nilai persediaan, penanda stok menipis dan harga kosong, serta kolom **Stok Fisik / Selisih** untuk cek harian (bisa dimatikan).
+- **B. BOM per Produk:** pemakaian dan biaya tiap bahan untuk 1 satuan jual (1 m² atau 1 pcs) beserta HPP bahan.
+- **C. Harga Produk:** semua tier per golongan dengan rentang masing-masing, beserta margin terhadap HPP bahan (merah bila di bawah 20%) dan penanda promo.
+
+Pilih isi lembar (semua atau salah satu), untuk evaluasi Harian/Bulanan, mesin, dan kategori; klik **Cetak** (A4 lanskap, kop perusahaan, kolom tanda tangan) atau **Unduh CSV** untuk Excel. Angka HPP baru lengkap setelah harga rata-rata semua bahan dan BOM terisi.

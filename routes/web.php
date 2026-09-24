@@ -491,7 +491,8 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/eksekutif', [\App\Http\Controllers\AnalisisController::class, 'dashboard'])->name('eksekutif.dashboard');
     Route::get('/laporan/profitabilitas', [\App\Http\Controllers\AnalisisController::class, 'profitabilitas'])->name('laporan.profitabilitas');
     Route::get('/laporan/pemakaian-bahan', [\App\Http\Controllers\AnalisisController::class, 'pemakaianBahan'])->name('laporan.pemakaian-bahan');
-    Route::get('/laporan/biaya-tinta', [\App\Http\Controllers\AnalisisController::class, 'biayaTinta'])->name('laporan.biaya-tinta');
+    Route::get('/laporan/evaluasi-master', [\App\Http\Controllers\LembarEvaluasiController::class, 'index'])->name('laporan.evaluasi-master');
+    route::get('/laporan/biaya-tinta', [\App\Http\Controllers\AnalisisController::class, 'biayaTinta'])->name('laporan.biaya-tinta');
     Route::post('/laporan/biaya-tinta/pengaturan', [\App\Http\Controllers\AnalisisController::class, 'simpanPemakaianTinta'])->name('laporan.biaya-tinta.simpan');
     Route::delete('/laporan/biaya-tinta/pengaturan/{id}', [\App\Http\Controllers\AnalisisController::class, 'hapusPemakaianTinta'])->whereNumber('id')->name('laporan.biaya-tinta.hapus');
 

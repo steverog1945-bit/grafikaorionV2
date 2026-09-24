@@ -106,6 +106,7 @@ return [
         'laporan/profitabilitas' => [47],
         'laporan/pemakaian-bahan' => [46],
         'laporan/biaya-tinta' => [47],
+        'laporan/evaluasi-master' => [47],
         // Dashboard Eksekutif: khusus Administrator (owner) - berisi angka laba & kas.
         'eksekutif' => [],
         'harga-promo' => [28],
