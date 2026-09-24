@@ -45,7 +45,7 @@
 
             <div class="w-full md:w-44">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Harga (HPP)</label>
-                <select name="harga" onchange="this.form.submit()"
+                <select name="harga"
                         class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
                     <option value="">Semua</option>
                     <option value="kosong" {{ request('harga') == 'kosong' ? 'selected' : '' }}>Belum ada harga</option>
@@ -54,9 +54,9 @@
 
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Urutan</label>
-                <select name="sort" onchange="this.form.submit()"
+                <select name="sort"
                         class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-indigo-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
-                    <option value="nama_bahan" {{ request('sort') == 'nama_bahan' ? 'selected' : '' }}>Abjad (A-Z)</option>
+                    <option value="nama_bahan" {{ request('sort', 'nama_bahan') == 'nama_bahan' ? 'selected' : '' }}>Abjad (A-Z)</option>
                     <option value="stok" {{ request('sort') == 'stok' ? 'selected' : '' }}>Stok Terendah</option>
                     <option value="created_at" {{ request('sort') == 'created_at' ? 'selected' : '' }}>Terbaru</option>
                 </select>
@@ -308,9 +308,7 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $('.select2-filter').select2({ width: '100%' }).on('change', function() {
-            $(this).closest('form').submit();
-        });
+        .select2({ width: '100%' }); // filter otomatis diterapkan oleh skrip global layout
     });
 
     function openTambahModal() {

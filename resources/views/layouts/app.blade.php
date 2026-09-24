@@ -1123,6 +1123,19 @@
         })();
     </script>
     <script>
+        // Filter konsisten di SELURUH aplikasi: memilih nilai pada dropdown di dalam form GET (filter/pencarian)
+        // langsung menerapkan filter - tidak perlu klik tombol atau memilih dua kali. Termasuk dropdown select2
+        // (memakai event jQuery). Nonaktifkan per form/dropdown dengan atribut data-no-autosubmit.
+        $(document).on('change', 'select', function () {
+            const form = this.form;
+            if (!form || (form.getAttribute('method') || '').toLowerCase() !== 'get') return;
+            if (form.hasAttribute('data-no-autosubmit') || this.hasAttribute('data-no-autosubmit')) return;
+            if (form.__terkirim) return;
+            form.__terkirim = true;
+            setTimeout(() => { form.requestSubmit ? form.requestSubmit() : form.submit(); }, 0);
+        });
+    </script>
+    <script>
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',

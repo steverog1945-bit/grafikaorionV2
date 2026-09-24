@@ -100,4 +100,23 @@ class BahanHargaAwalTest extends TestCase
         $this->get('/bahan-baku')->assertOk()->assertSee('Belum ada harga')->assertSee('Tanpa Harga')->assertSee('Berharga');
         $this->get('/bahan-baku?harga=kosong')->assertOk()->assertSee('Tanpa Harga')->assertDontSee('Berharga');
     }
+
+    public function test_urutan_bawaan_daftar_bahan_adalah_abjad_dan_pilihan_abjad_terpilih(): void
+    {
+        foreach ([["Zeta", "Z-1"], ["Alfa", "A-1"], ["Metro", "M-1"]] as [$nama, $kode]) {
+            $this->registrasi(["nama_bahan" => $nama, "kode_bahan" => $kode])->assertSessionHas("success");
+        }
+
+        $res = $this->get("/bahan-baku")->assertOk();
+        $urut = $res->viewData("bahan")->pluck("nama_bahan")->all();
+        $this->assertSame(["Alfa", "Metro", "Zeta"], $urut);
+        $res->assertSee('value="nama_bahan" selected', false);
+
+        $this->get("/bahan-baku?sort=stok")->assertOk();
+    }
+
+    public function test_dropdown_filter_form_get_otomatis_menerapkan_filter(): void
+    {
+        $this->get("/dashboard")->assertOk()->assertSee("form.__terkirim", false);
+    }
 }

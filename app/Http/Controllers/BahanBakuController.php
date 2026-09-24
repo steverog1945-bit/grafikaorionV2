@@ -46,13 +46,16 @@ class BahanBakuController extends Controller
             });
         }
 
-        $sortBy = $request->get('sort', 'created_at');
+        // Urutan bawaan = abjad, sama dengan pilihan yang tampil di filter
+        // (sebelumnya bawaannya "terbaru" padahal dropdown menampilkan Abjad,
+        // sehingga memilih Abjad tidak memicu apa pun).
+        $sortBy = $request->get('sort', 'nama_bahan');
         if ($sortBy == 'stok') {
-            $query->orderBy('stok', 'asc');
-        } elseif ($sortBy == 'nama_bahan') {
-            $query->orderBy('nama_bahan', 'asc');
-        } else {
+            $query->orderBy('stok', 'asc')->orderBy('nama_bahan', 'asc');
+        } elseif ($sortBy == 'created_at') {
             $query->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy('nama_bahan', 'asc');
         }
 
         $bahan = $query->paginate(20);
