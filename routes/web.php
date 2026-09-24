@@ -483,6 +483,13 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/qc', [\App\Http\Controllers\QcController::class, 'index'])->name('qc.index');
     Route::get('/qc/create', [\App\Http\Controllers\QcController::class, 'create'])->name('qc.create');
     Route::post('/qc', [\App\Http\Controllers\QcController::class, 'store'])->name('qc.store');
+    // Design Proof / Approval / Revisi (LEVEL 3) - akses seperti Produksi & Input Order.
+    Route::get('/design-proof', [\App\Http\Controllers\DesignProofController::class, 'index'])->name('design-proof.index');
+    Route::get('/design-proof/{idDetail}', [\App\Http\Controllers\DesignProofController::class, 'show'])->whereNumber('idDetail')->name('design-proof.show');
+    Route::post('/design-proof/{idDetail}/unggah', [\App\Http\Controllers\DesignProofController::class, 'unggah'])->whereNumber('idDetail')->name('design-proof.unggah');
+    Route::post('/design-proof/{idDetail}/ajukan-revisi', [\App\Http\Controllers\DesignProofController::class, 'ajukanRevisi'])->whereNumber('idDetail')->name('design-proof.ajukan-revisi');
+    Route::patch('/design-proof/proof/{idProof}/keputusan', [\App\Http\Controllers\DesignProofController::class, 'keputusan'])->whereNumber('idProof')->name('design-proof.keputusan');
+
     // Quotation / Penawaran (LEVEL 2) - akses seperti Input Order.
     Route::get('/quotation', [\App\Http\Controllers\QuotationController::class, 'index'])->name('quotation.index');
     Route::get('/quotation/create', [\App\Http\Controllers\QuotationController::class, 'create'])->name('quotation.create');

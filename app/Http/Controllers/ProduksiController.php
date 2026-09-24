@@ -115,6 +115,14 @@ class ProduksiController extends Controller
                 return;
             }
 
+            // Design Proof (LEVEL 3): item yang SUDAH memakai proses proof tidak
+            // boleh naik cetak/selesai sebelum proof terakhirnya disetujui
+            // pelanggan. Item tanpa proof tidak terpengaruh (alur lama).
+            if (\App\Services\DesignProofService::butuhPersetujuan((int) $id)) {
+                $pesanError = 'Desain belum disetujui pelanggan (lihat menu Design Proof).';
+                return;
+            }
+
             DB::table('transaksi_detail')->where('id_detail', $id)->update([
                 'qty_cetak' => $request->qty_cetak,
                 'catatan_produksi' => $request->catatan_produksi,
@@ -148,6 +156,14 @@ class ProduksiController extends Controller
 
             if (in_array($detail->status_spk, ['Selesai', 'Batal'])) {
                 $pesanError = 'Item ini sudah ' . $detail->status_spk . '.';
+                return;
+            }
+
+            // Design Proof (LEVEL 3): item yang SUDAH memakai proses proof tidak
+            // boleh naik cetak/selesai sebelum proof terakhirnya disetujui
+            // pelanggan. Item tanpa proof tidak terpengaruh (alur lama).
+            if (\App\Services\DesignProofService::butuhPersetujuan((int) $id)) {
+                $pesanError = 'Desain belum disetujui pelanggan (lihat menu Design Proof).';
                 return;
             }
 

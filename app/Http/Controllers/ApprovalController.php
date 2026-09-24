@@ -81,6 +81,7 @@ class ApprovalController extends Controller
             'stock_opname' => \App\Services\StockOpnameService::eksekusiAdjustment((int) $req->referensi_id),
             'purchase_request' => \App\Services\PurchaseRequestService::eksekusiPersetujuan((int) $req->referensi_id),
             'waste_abnormal' => \App\Services\WasteService::terapkan((int) $req->referensi_id),
+            'buka_revisi_desain' => \App\Services\DesignProofService::eksekusiBukaRevisi((int) $req->referensi_id),
             'batalkan_kas_kecil' => \App\Services\KasKecilService::batalkan((int) $req->referensi_id),
             'void_pembayaran_jersey' => \App\Services\JerseyAccountingService::voidPembayaran((int) $req->referensi_id, $payload['alasan'] ?? '-'),
             'batalkan_order_jersey' => \App\Services\JerseyAccountingService::batalkanOrder((int) $req->referensi_id, $payload['alasan'] ?? '-'),
