@@ -43,6 +43,15 @@
                 </select>
             </div>
 
+            <div class="w-full md:w-44">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Harga (HPP)</label>
+                <select name="harga" onchange="this.form.submit()"
+                        class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                    <option value="">Semua</option>
+                    <option value="kosong" {{ request('harga') == 'kosong' ? 'selected' : '' }}>Belum ada harga</option>
+                </select>
+            </div>
+
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Urutan</label>
                 <select name="sort" onchange="this.form.submit()"
@@ -117,6 +126,15 @@
                             <span class="text-base font-bold {{ $b->stok <= $b->stok_minimal ? 'text-rose-500' : 'text-slate-700' }}" title="Stok minimal: {{ number_format($b->stok_minimal, 2, ',', '.') }}">
                                 {{ number_format($b->stok, 0, ',', '.') }}
                             </span>
+                            <button type="button" onclick='koreksiHarga({{ $b->id_bahan }}, @json($b->nama_bahan), {{ (float) $b->harga_rata_rata }}, @json($b->satuan_stok))'
+                                    class="mt-1 text-[10px] font-bold {{ (float) $b->harga_rata_rata > 0 ? 'text-slate-400 hover:text-indigo-600' : 'text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md hover:bg-amber-100' }}"
+                                    title="Ubah harga rata-rata (dasar HPP)">
+                                @if((float) $b->harga_rata_rata > 0)
+                                    Rp {{ number_format($b->harga_rata_rata, 0, ',', '.') }}/{{ $b->satuan_stok }}
+                                @else
+                                    <i class="fas fa-exclamation-triangle"></i> Belum ada harga
+                                @endif
+                            </button>
                             @if($b->satuanHitung && $b->id_satuan_stok !== $b->id_satuan_hitung && $b->nilai_konversi > 1)
                                 <div class="text-[10px] text-slate-400 font-semibold mt-1">
                                     ≈ {{ number_format($b->stok * $b->nilai_konversi, 0, ',', '.') }} {{ $b->satuanHitung->nama_satuan }}
@@ -303,6 +321,19 @@
                                 supaya tercatat jejaknya.
                             </p>
                         </div>
+                        <div id="blok_harga_awal" class="col-span-2 order-last bg-emerald-50/50 border border-emerald-100 rounded-2xl p-4">
+                            <label class="block text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-2 ml-1">Harga Beli per Satuan Stok (opsional)</label>
+                            <input type="number" step="0.01" min="0" name="harga_beli" id="input_harga_beli" placeholder="0"
+                                   class="w-full bg-white border border-emerald-100 rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-emerald-500/20">
+                            <p class="mt-2 ml-1 text-[10px] text-slate-500 leading-relaxed">
+                                Menjadi harga rata-rata awal (dasar HPP). Bila Stok Awal juga diisi, nilainya (stok &times; harga) dicatat sebagai saldo awal persediaan di akuntansi.
+                            </p>
+                            <label class="mt-2 flex items-center gap-2 text-[11px] font-semibold text-slate-600">
+                                <input type="hidden" name="catat_jurnal" value="0">
+                                <input type="checkbox" name="catat_jurnal" value="1" checked class="rounded border-slate-300 text-emerald-600">
+                                Catat jurnal saldo awal persediaan (hilangkan centang bila saldo awal akuntansi akan diisi sekaligus lewat <code>akuntansi:saldo-awal</code>)
+                            </label>
+                        </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Stok Minimal</label>
                             <input type="number" step="0.001" name="stok_minimal" id="input_stok_minimal" required value="0"
@@ -344,6 +375,8 @@
         // ini dikunci saat mode edit.
         document.getElementById('input_stok').disabled = false;
         document.getElementById('stok_locked_hint').classList.add('hidden');
+        document.getElementById('blok_harga_awal').classList.remove('hidden');
+        document.getElementById('input_harga_beli').disabled = false;
 
         document.getElementById('modalBahan').classList.remove('hidden');
     }
@@ -371,6 +404,9 @@
         document.getElementById('input_stok').value = data.stok;
         document.getElementById('input_stok').disabled = true;
         document.getElementById('stok_locked_hint').classList.remove('hidden');
+        // Harga awal hanya untuk registrasi; harga bahan yang sudah ada diubah lewat tombol harga di daftar.
+        document.getElementById('blok_harga_awal').classList.add('hidden');
+        document.getElementById('input_harga_beli').disabled = true;
 
         document.getElementById('input_stok_minimal').value = data.stok_minimal;
         document.getElementById('input_id_merk').value = data.id_merk || '';
@@ -450,6 +486,39 @@
                 document.body.appendChild(form);
                 form.submit();
             }
+        });
+    }
+
+    function koreksiHarga(id, nama, hargaSekarang, satuan) {
+        Swal.fire({
+            title: 'Harga rata-rata bahan',
+            html: `<div class="text-left text-sm"><b>${escapeHtml(nama)}</b><br><span class="text-slate-400 text-xs">Nilai per ${escapeHtml(satuan)}. Dasar HPP/margin ke depan; tidak mengubah stok dan tidak membuat jurnal.</span></div>
+                   <input id="swal-harga" type="number" step="0.01" min="0" class="swal2-input" placeholder="Harga per ${escapeHtml(satuan)}" value="${hargaSekarang > 0 ? hargaSekarang : ''}">
+                   <input id="swal-alasan" type="text" class="swal2-input" placeholder="Alasan (wajib), mis. isi harga awal">`,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Simpan',
+            cancelButtonText: 'Batal',
+            preConfirm: () => {
+                const harga = document.getElementById('swal-harga').value;
+                const alasan = document.getElementById('swal-alasan').value.trim();
+                if (harga === '' || Number(harga) < 0) { Swal.showValidationMessage('Isi harga (boleh 0).'); return false; }
+                if (!alasan) { Swal.showValidationMessage('Alasan wajib diisi.'); return false; }
+                return { harga, alasan };
+            }
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `{{ url('/bahan-baku') }}/${id}/harga`;
+            form.innerHTML = `@csrf @method('PATCH')`;
+            [['harga_rata_rata', result.value.harga], ['alasan', result.value.alasan]].forEach(([n, v]) => {
+                const i = document.createElement('input');
+                i.type = 'hidden'; i.name = n; i.value = v;
+                form.appendChild(i);
+            });
+            document.body.appendChild(form);
+            form.submit();
         });
     }
 

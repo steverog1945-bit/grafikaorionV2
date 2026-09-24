@@ -10,6 +10,8 @@ use App\Models\Mesin;
 use App\Models\Satuan;
 use App\Models\Merk;
 use App\Models\JenisBahan;
+use App\Services\AccountingService;
+use App\Services\AuditLogger;
 
 class BahanBakuController extends Controller
 {
@@ -38,6 +40,12 @@ class BahanBakuController extends Controller
             $query->where('status', $statusFilter);
         }
 
+        if ($request->get('harga') === 'kosong') {
+            $query->where(function ($q) {
+                $q->whereNull('harga_rata_rata')->orWhere('harga_rata_rata', '<=', 0);
+            });
+        }
+
         $sortBy = $request->get('sort', 'created_at');
         if ($sortBy == 'stok') {
             $query->orderBy('stok', 'asc');
@@ -57,6 +65,35 @@ class BahanBakuController extends Controller
         return view('master/bahan.index', compact('bahan', 'kategori', 'mesin', 'satuan', 'merk', 'jenisBahan'));
     }
 
+    /**
+     * Koreksi harga rata-rata (nilai per satuan stok) bahan yang SUDAH ada -
+     * mis. bahan lama yang belum punya harga sehingga HPP/margin nol. Hanya
+     * mengubah dasar biaya HPP ke depan; tidak membuat jurnal dan tidak
+     * menyentuh stok. Alasan wajib dan perubahan tercatat di log aktivitas.
+     */
+    public function updateHarga(Request $request, $id_bahan)
+    {
+        $data = $request->validate([
+            'harga_rata_rata' => 'required|numeric|min:0',
+            'alasan' => 'required|string|max:255',
+        ]);
+
+        $bahan = BahanBaku::findOrFail($id_bahan);
+        $lama = (float) $bahan->harga_rata_rata;
+        $baru = round((float) $data['harga_rata_rata'], 2);
+
+        if ($lama === $baru) {
+            return back()->with('error', 'Harga tidak berubah.');
+        }
+
+        DB::transaction(function () use ($bahan, $lama, $baru, $data) {
+            DB::table('bahan_baku')->where('id_bahan', $bahan->id_bahan)->update(['harga_rata_rata' => $baru, 'updated_at' => now()]);
+            AuditLogger::log('updated', 'bahan_baku', (int) $bahan->id_bahan, ['harga_rata_rata' => $lama], ['harga_rata_rata' => $baru], 'Koreksi harga rata-rata: ' . $data['alasan']);
+        });
+
+        return back()->with('success', "Harga rata-rata {$bahan->nama_bahan} diperbarui menjadi Rp " . number_format($baru, 0, ',', '.') . '.');
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -73,6 +110,7 @@ class BahanBakuController extends Controller
             'id_jenis_bahan'    => 'nullable|exists:jenis_bahan,id_jenis_bahan',
             'lebar_roll'        => 'nullable|numeric|min:0',
             'panjang_roll'      => 'nullable|numeric|min:0',
+            'harga_beli'        => 'nullable|numeric|min:0',
         ]);
 
         try {
@@ -96,6 +134,7 @@ class BahanBakuController extends Controller
                     'panjang_roll'     => $request->panjang_roll ?: null,
                     'stok'             => $request->stok,
                     'stok_minimal'     => $request->stok_minimal,
+                    'harga_rata_rata'  => (float) $request->harga_beli > 0 ? round((float) $request->harga_beli, 2) : 0,
                     'satuan_stok'      => $namaSatuanStok,
                     'id_merk'          => $request->id_merk ?: null,
                     'id_jenis_bahan'   => $request->id_jenis_bahan ?: null,
@@ -120,6 +159,24 @@ class BahanBakuController extends Controller
                         'created_at'   => now(),
                         'updated_at'   => now(),
                     ]);
+                }
+
+                // Harga beli per satuan stok (opsional) = modal awal HPP bahan ini
+                // (harga_rata_rata), dan - bila stok awal > 0 - dijurnal sebagai
+                // saldo awal persediaan (Dr Persediaan / Cr Modal) kecuali
+                // dimatikan (mis. saldo awal akuntansi akan ditetapkan sekaligus
+                // lewat akuntansi:saldo-awal supaya tidak dobel).
+                $hargaBeli = (float) $request->harga_beli;
+                $nilaiStokAwal = round((float) $request->stok * $hargaBeli, 2);
+                if ($hargaBeli > 0) {
+                    AuditLogger::log('updated', 'bahan_baku', (int) $bahan->id_bahan, null, ['harga_rata_rata' => round($hargaBeli, 2)], 'Harga beli awal saat registrasi bahan');
+                }
+                if ($nilaiStokAwal > 0 && $request->boolean('catat_jurnal', true)) {
+                    AccountingService::postSaldoAwalPersediaan(
+                        'STOK-AWAL-' . $bahan->kode_bahan,
+                        "Saldo awal persediaan {$bahan->nama_bahan} ({$request->stok} {$namaSatuanStok} x Rp " . number_format($hargaBeli, 0, ',', '.') . ')',
+                        $nilaiStokAwal
+                    );
                 }
 
                 return back()->with('success', 'Bahan baku dengan logika konversi berhasil disimpan!');

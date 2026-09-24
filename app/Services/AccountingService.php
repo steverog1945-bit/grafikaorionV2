@@ -33,6 +33,7 @@ class AccountingService
     private const AKUN_PERSEDIAAN_BAHAN = '1200';
     private const AKUN_HUTANG_USAHA = '2000';
     private const AKUN_HUTANG_DEPOSIT = '2100';
+    private const AKUN_MODAL = '3000';
     private const AKUN_PENDAPATAN_PENJUALAN = '4000';
     private const AKUN_PENDAPATAN_JASA = '4100';
     private const AKUN_PENDAPATAN_LAIN_LAIN = '4200';
@@ -280,6 +281,20 @@ class AccountingService
         self::postJournal(now()->toDateString(), $noReferensi, "Pembayaran order jersey {$noOrder} ({$metode})", [
             ['kode_akun' => $akunMasuk, 'debet' => $nominal],
             ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'kredit' => $nominal],
+        ]);
+    }
+
+    /**
+     * Saldo awal persediaan saat bahan baku baru didaftarkan dengan stok awal
+     * DAN harga beli (BahanBakuController::store): Dr Persediaan Bahan Baku /
+     * Cr Modal. Barang sudah ada secara fisik tanpa dibeli lewat faktur, jadi
+     * lawannya modal pemilik, sama seperti saldo awal di akuntansi:saldo-awal.
+     */
+    public static function postSaldoAwalPersediaan(string $noReferensi, string $keterangan, float $nominal): void
+    {
+        self::postJournal(now()->toDateString(), $noReferensi, $keterangan, [
+            ['kode_akun' => self::AKUN_PERSEDIAAN_BAHAN, 'debet' => $nominal],
+            ['kode_akun' => self::AKUN_MODAL, 'kredit' => $nominal],
         ]);
     }
 

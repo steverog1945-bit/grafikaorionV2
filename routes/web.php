@@ -396,6 +396,10 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
         [BahanBakuController::class, 'bulkDelete'])
         ->name('bahan.bulk-delete');
 
+    Route::patch('/bahan-baku/{id_bahan}/harga',
+        [BahanBakuController::class, 'updateHarga'])
+        ->name('bahan.update-harga');
+
     Route::patch('/bahan-baku/{id_bahan}/toggle-status',
         [BahanBakuController::class, 'toggleStatus'])
         ->name('bahan.toggle-status');
