@@ -64,7 +64,7 @@
                 $satuanRentangRow = $p->metode_hitung === 'ukuran' ? 'm²' : 'Pcs';
                 // rtrim ganda: buang nol desimal berlebih (2.00 -> 2, 0.50 -> 0.5)
                 // supaya tier bilangan bulat tetap tampil bersih, bukan "2.00".
-                $fmtRentang = fn ($v) => rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
+                $fmtRentang = fn ($v) => angka_polos((float) $v, 2);
             @endphp
             <tr class="group hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-3.5 text-center text-[11px] text-slate-400">{{ $produk->firstItem() + $i }}</td>
@@ -133,7 +133,7 @@
         $satuanRentang = $p->metode_hitung === 'ukuran' ? 'm²' : 'Pcs';
         $stepRentang = $p->metode_hitung === 'ukuran' ? '0.01' : '1';
         $defaultMin = $p->metode_hitung === 'ukuran' ? '0.01' : '1';
-        $fmtNilai = fn ($v) => rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
+        $fmtNilai = fn ($v) => angka_polos((float) $v, 2);
     @endphp
     {{-- maxWidth 6xl (bukan 4xl) - modal ini padat secara horizontal (tab
          golongan + baris tier 3 kolom + tombol aksi), melebarkan modal

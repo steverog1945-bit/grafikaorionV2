@@ -52,7 +52,7 @@ class WasteService
 
             ApprovalService::ajukan(
                 'waste_abnormal', 'waste_log', $id, [],
-                "Waste abnormal {$nomor}: {$namaBahan} " . rtrim(rtrim(number_format($qty, 4, '.', ''), '0'), '.'),
+                "Waste abnormal {$nomor}: {$namaBahan} " . angka($qty, 4),
                 $alasan
             );
 

@@ -101,7 +101,7 @@
                     @endif
                 </td>
                 <td class="px-4 py-5 text-center">
-                    <span class="text-[13px] font-bold text-slate-700">{{ $item->qty }}</span>
+                    <span class="text-[13px] font-bold text-slate-700">{{ angka($item->qty, 4) }}</span>
                 </td>
                 <td class="px-4 py-5 text-center">
                     @if(in_array($item->status_spk, ['Selesai', 'Batal', 'Pending']))

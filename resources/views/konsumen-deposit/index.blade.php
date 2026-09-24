@@ -170,8 +170,8 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Nominal Deposit</label>
-                        <input type="number" step="0.01" min="1" name="nominal" placeholder="0" required
-                               class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
+                        <input type="text" inputmode="numeric" autocomplete="off" name="nominal" placeholder="0" required
+                               class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner format-ribuan">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>

@@ -59,14 +59,14 @@
                     <span class="text-[13px] font-bold text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $b->nama_bahan }}</span>
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[13px] font-bold text-slate-800">{{ number_format($b->stok, 2) }}</span>
+                    <span class="text-[13px] font-bold text-slate-800">{{ angka($b->stok, 2) }}</span>
                 </td>
                 <td class="px-8 py-5 text-center">
                     <div class="flex items-center justify-center gap-2">
                         <x-button href="{{ url('/kartu-stok/'.$b->id_bahan) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat Kartu Stok">
                             <i class="fas fa-book text-xs"></i>
                         </x-button>
-                        <x-button type="button" size="icon" variant="ghost" onclick="openPenyesuaian({{ $b->id_bahan }}, {{ json_encode($b->nama_bahan) }}, {{ $b->stok }})" class="border border-slate-100 hover:text-amber-500" title="Penyesuaian Stok">
+                        <x-button type="button" size="icon" variant="ghost" onclick="openPenyesuaian({{ $b->id_bahan }}, {{ json_encode($b->nama_bahan) }}, {{ angka($b->stok, 4) }})" class="border border-slate-100 hover:text-amber-500" title="Penyesuaian Stok">
                             <i class="fas fa-sliders-h text-xs"></i>
                         </x-button>
                     </div>
@@ -90,7 +90,7 @@
                 <x-form.select name="id_bahan" id="adj_id_bahan" required>
                     <option value="">-- Pilih Bahan --</option>
                     @foreach($bahan as $b)
-                        <option value="{{ $b->id_bahan }}" data-stok="{{ $b->stok }}" data-nama="{{ $b->nama_bahan }}">{{ $b->nama_bahan }} ({{ $b->kode_bahan }})</option>
+                        <option value="{{ $b->id_bahan }}" data-stok="{{ angka($b->stok, 4) }}" data-nama="{{ $b->nama_bahan }}">{{ $b->nama_bahan }} ({{ $b->kode_bahan }})</option>
                     @endforeach
                 </x-form.select>
             </x-form.group>

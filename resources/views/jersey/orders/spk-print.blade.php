@@ -165,7 +165,7 @@
                     <div class="item"><span>Tanggal Masuk</span><strong>{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</strong></div>
                     <div class="item"><span>Tanggal Beres</span><strong>{{ $order->deadline ? \Carbon\Carbon::parse($order->deadline)->format('d/m/Y') : '-' }}</strong></div>
                     <div class="item"><span>Desainer</span><strong>{{ $order->designer_name ?? '-' }}</strong></div>
-                    <div class="item"><span>Total Qty</span><strong class="accent">{{ $line->qty }} pcs</strong></div>
+                    <div class="item"><span>Total Qty</span><strong class="accent">{{ angka($line->qty, 4) }} pcs</strong></div>
                 </div>
             </div>
         </div>
@@ -187,7 +187,7 @@
                     <span class="chip-qty">{{ $qtyUkuran }}</span>
                 </div>
                 @endforeach
-                <div class="chip-total">TOTAL {{ $line->qty }} PCS</div>
+                <div class="chip-total">TOTAL {{ angka($line->qty, 4) }} PCS</div>
             </div>
             @else
             <p class="empty-note">Belum ada rincian ukuran untuk barang ini.</p>

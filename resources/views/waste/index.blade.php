@@ -59,7 +59,7 @@
             <tr>
                 <td class="px-8 py-4"><span class="text-[13px] font-bold text-slate-700">{{ $w->nomor }}</span><div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($w->tanggal)->format('d M Y') }} - {{ $w->username }}</div></td>
                 <td class="px-6 py-4 text-sm font-semibold text-slate-600">{{ $w->nama_bahan }}</td>
-                <td class="px-6 py-4 text-right text-sm">{{ rtrim(rtrim(number_format($w->qty, 4, ',', '.'), '0'), ',') }} {{ $w->satuan_stok }}</td>
+                <td class="px-6 py-4 text-right text-sm">{{ angka($w->qty, 4) }} {{ $w->satuan_stok }}</td>
                 <td class="px-6 py-4 text-center"><x-badge :status="$w->jenis" :variant="$w->jenis === 'Normal' ? 'warning' : 'danger'" /></td>
                 <td class="px-6 py-4 text-xs text-slate-500">{{ $w->alasan }}</td>
                 <td class="px-6 py-4 text-right text-sm">{{ $w->status === 'Diterapkan' ? 'Rp ' . number_format($w->biaya, 0, ',', '.') : '-' }}</td>

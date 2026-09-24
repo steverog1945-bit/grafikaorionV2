@@ -41,11 +41,11 @@
             <tbody>
                 @foreach($items as $item)
                 <tr>
-                    <td>{{ rtrim(rtrim(number_format($item->qty, 2, ',', ''), '0'), ',') }}x</td>
+                    <td>{{ angka($item->qty, 2) }}x</td>
                     <td class="item-nama" title="{{ $item->nama_file }}">
                         {{ $item->nama_file }}
                         @if($item->p_ukuran > 0 && $item->l_ukuran > 0)
-                            <br><span class="item-ukuran">[{{ rtrim(rtrim(number_format($item->p_ukuran, 1, ',', ''), '0'), ',') }}x{{ rtrim(rtrim(number_format($item->l_ukuran, 1, ',', ''), '0'), ',') }} cm]</span>
+                            <br><span class="item-ukuran">[{{ angka($item->p_ukuran, 1) }}x{{ angka($item->l_ukuran, 1) }} cm]</span>
                         @endif
                     </td>
                     <td class="right">{{ number_format($item->subtotal, 0, ',', '.') }}</td>

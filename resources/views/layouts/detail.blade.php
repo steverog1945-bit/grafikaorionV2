@@ -4,7 +4,7 @@
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Kartu Stok: {{ $bahan->nama_bahan }}"
-                   subtitle="Stok saat ini: {{ number_format($bahan->stok, 2) }}">
+                   subtitle="Stok saat ini: {{ angka($bahan->stok, 2) }}">
         <x-slot:actions>
             <x-button href="{{ url('/kartu-stok') }}" variant="outline">Kembali</x-button>
         </x-slot:actions>
@@ -35,9 +35,9 @@
                         <x-badge variant="warning">ADJ</x-badge>
                     @endif
                 </td>
-                <td class="px-6 py-5 text-right font-semibold text-slate-700">{{ number_format($k->qty, 2) }}</td>
-                <td class="px-6 py-5 text-right text-slate-500">{{ number_format($k->stok_sebelum, 2) }}</td>
-                <td class="px-6 py-5 text-right text-slate-500">{{ number_format($k->stok_sesudah, 2) }}</td>
+                <td class="px-6 py-5 text-right font-semibold text-slate-700">{{ angka($k->qty, 2) }}</td>
+                <td class="px-6 py-5 text-right text-slate-500">{{ angka($k->stok_sebelum, 2) }}</td>
+                <td class="px-6 py-5 text-right text-slate-500">{{ angka($k->stok_sesudah, 2) }}</td>
                 <td class="px-6 py-5">{{ $k->referensi }}</td>
                 <td class="px-6 py-5 text-slate-500">{{ $k->keterangan }}</td>
             </tr>

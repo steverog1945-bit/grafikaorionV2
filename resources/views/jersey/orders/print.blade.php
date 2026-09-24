@@ -40,7 +40,7 @@
                 <tr>
                     <td>{{ $line->nama_barang }}</td>
                     <td>{{ $line->productType->name ?? '-' }} / {{ $line->category->name ?? '-' }}</td>
-                    <td class="right">{{ $line->qty }}</td>
+                    <td class="right">{{ angka($line->qty, 4) }}</td>
                     <td class="right">{{ number_format($line->subtotal, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
@@ -54,7 +54,7 @@
             <tbody>
                 @foreach($order->lines as $line)
                     @if($line->materials->isNotEmpty())
-                    <tr><td colspan="3"><strong>{{ $line->nama_barang }}</strong> ({{ $line->qty }} pcs)</td></tr>
+                    <tr><td colspan="3"><strong>{{ $line->nama_barang }}</strong> ({{ angka($line->qty, 4) }} pcs)</td></tr>
                     @foreach($line->materials as $m)
                     <tr>
                         <td>&nbsp;&nbsp;{{ $m->nama_barang }}</td>

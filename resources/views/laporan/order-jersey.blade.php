@@ -216,7 +216,7 @@
                     <tr>
                         <td class="px-3 py-1.5 text-slate-400">{{ $i + 1 }}</td>
                         <td class="px-3 py-1.5 text-slate-700">{{ $line->nama_barang }}</td>
-                        <td class="px-3 py-1.5 text-right text-slate-600">{{ $line->qty }}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-600">{{ angka($line->qty, 4) }}</td>
                         <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($line->harga_satuan, 0, ',', '.') }}</td>
                         <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($line->size_surcharge_total + $line->sleeve_collar_surcharge_total, 0, ',', '.') }}</td>
                         <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($line->subtotal, 0, ',', '.') }}</td>
@@ -287,7 +287,7 @@
                     <tr>
                         <td data-label="#" class="p-3 text-slate-400">{{ $i + 1 }}</td>
                         <td data-label="Nama Barang" class="p-3 font-semibold text-slate-700">{{ $line->nama_barang }}</td>
-                        <td data-label="Qty" class="p-3 text-right text-slate-500">{{ $line->qty }}</td>
+                        <td data-label="Qty" class="p-3 text-right text-slate-500">{{ angka($line->qty, 4) }}</td>
                         <td data-label="Harga Satuan" class="p-3 text-right text-slate-500">{{ number_format($line->harga_satuan, 0, ',', '.') }}</td>
                         <td data-label="Tambahan" class="p-3 text-right text-slate-500">{{ number_format($line->size_surcharge_total + $line->sleeve_collar_surcharge_total, 0, ',', '.') }}</td>
                         <td data-label="Subtotal" class="p-3 text-right font-bold text-slate-800">{{ number_format($line->subtotal, 0, ',', '.') }}</td>

@@ -22,7 +22,7 @@ class RunBackupCommand extends Command
 
         try {
             $log = BackupService::run($tipe);
-            $this->info("Backup {$tipe} berhasil: {$log->file_path} (" . number_format($log->ukuran_bytes / 1024, 1) . " KB)");
+            $this->info("Backup {$tipe} berhasil: {$log->file_path} (" . angka($log->ukuran_bytes / 1024, 1) . " KB)");
             return self::SUCCESS;
         } catch (\Throwable $e) {
             $this->error("Backup {$tipe} gagal: {$e->getMessage()}");

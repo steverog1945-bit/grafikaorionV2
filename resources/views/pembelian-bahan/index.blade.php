@@ -198,8 +198,8 @@
             title: 'Bayar Hutang Faktur',
             html: `
                 <div style="text-align:left;font-size:13px">
-                    <label style="font-weight:700">Nominal (sisa Rp ${new Intl.NumberFormat('id-ID').format(sisa)})</label>
-                    <input id="swal-nominal" type="number" step="0.01" min="0.01" max="${sisa}" value="${sisa}" class="swal2-input" style="margin:6px 0 14px;width:100%">
+                    <label style="font-weight:700">Nominal (sisa Rp ${angkaId(sisa, 2)})</label>
+                    <input id="swal-nominal" type="text" inputmode="decimal" autocomplete="off" value="${formatUangDariAngka(sisa)}" class="swal2-input format-ribuan-desimal" style="margin:6px 0 14px;width:100%">
                     <label style="font-weight:700">Metode</label>
                     <select id="swal-metode" class="swal2-input" style="margin:6px 0 0;width:100%"><option value="Tunai">Tunai (Kas)</option><option value="Transfer">Transfer (Bank)</option></select>
                 </div>`,
@@ -208,7 +208,7 @@
             confirmButtonText: 'Catat Pembayaran',
             customClass: { popup: 'rounded-[2rem]' },
             preConfirm: () => {
-                const nominal = parseFloat(document.getElementById('swal-nominal').value);
+                const nominal = cleanUangDesimal(document.getElementById('swal-nominal').value);
                 if (!nominal || nominal <= 0 || nominal > sisa + 0.01) {
                     Swal.showValidationMessage('Nominal harus lebih dari 0 dan tidak melebihi sisa hutang.');
                     return false;

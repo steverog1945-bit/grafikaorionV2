@@ -21,7 +21,7 @@
 </style>
 
 @php
-    $n = fn ($v, $d = 2) => rtrim(rtrim(number_format((float) $v, $d, ',', '.'), '0'), ',');
+    $n = fn ($v, $d = 2) => angka((float) $v, $d);
     $rp = fn ($v) => number_format((float) $v, 0, ',', '.');
     $dicetak = now()->translatedFormat('d F Y, H:i');
     $judul = 'Lembar Evaluasi ' . $periode;

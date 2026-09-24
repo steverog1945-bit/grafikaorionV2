@@ -26,7 +26,7 @@
         <div class="flex items-center justify-between pt-4 border-t border-slate-50">
             <div>
                 <p class="text-[9px] font-black text-slate-400 uppercase">Estimasi Tagihan</p>
-                <p class="text-lg font-black text-slate-800">Rp {{ number_format($t->total_bayar) }}</p>
+                <p class="text-lg font-black text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</p>
             </div>
             <a href="{{ url('/kasir/bayar-form/'.$t->id_transaksi) }}" class="bg-slate-900 group-hover:bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-lg shadow-slate-200">
                 <span class="text-xl">💰</span>

@@ -97,7 +97,7 @@
                                             </div>
                                         </td>
                                         <td class="px-2 py-2">
-                                            <input type="number" name="qty[]" step="0.01" value="{{ $d->qty }}"
+                                            <input type="number" name="qty[]" step="0.01" value="{{ angka_polos($d->qty, 4) }}"
                                                 class="w-full bg-slate-50 border-transparent rounded-xl p-4 font-bold text-slate-700 text-center text-[11px] focus:bg-white focus:ring-2 focus:ring-indigo-500/20 transition-all" required>
                                         </td>
                                         <td class="px-2 py-2 text-center">

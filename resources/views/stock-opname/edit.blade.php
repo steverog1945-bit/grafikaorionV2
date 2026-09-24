@@ -39,7 +39,7 @@
                         <div class="text-[11px] text-slate-400">{{ $d->bahan->satuan_stok ?? '' }}</div>
                     </td>
                     <td class="px-6 py-5 text-right">
-                        <span class="text-sm font-semibold text-slate-600" data-sistem="{{ $d->stok_sistem }}">{{ number_format($d->stok_sistem, 2) }}</span>
+                        <span class="text-sm font-semibold text-slate-600" data-sistem="{{ angka($d->stok_sistem, 4) }}">{{ angka($d->stok_sistem, 2) }}</span>
                     </td>
                     <td class="px-6 py-5">
                         <input type="number" step="0.01" name="detail[{{ $d->id }}][stok_fisik]" data-fisik
@@ -96,7 +96,7 @@
             }
 
             const selisih = fisik - sistem;
-            selisihEl.textContent = (selisih > 0 ? '+' : '') + selisih.toFixed(2);
+            selisihEl.textContent = (selisih > 0 ? '+' : '') + angkaId(selisih, 2);
             selisihEl.className = 'text-sm font-bold ' + (selisih === 0 ? 'text-slate-400' : (selisih > 0 ? 'text-emerald-600' : 'text-rose-500'));
         });
     }

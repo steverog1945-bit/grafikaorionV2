@@ -251,9 +251,9 @@
         <div class="tier-row-jasa flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2" data-id="{{ $t->id_jasa_harga }}">
             <form action="{{ route('jasa.harga.update', $t->id_jasa_harga) }}" class="tier-edit-form-jasa flex items-center gap-2 flex-1">
                 @csrf
-                <input type="number" name="range_min" value="{{ $t->range_min }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                <input type="number" name="range_min" value="{{ angka_polos($t->range_min, 4) }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                 <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                <input type="number" name="range_max" value="{{ $t->range_max }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                <input type="number" name="range_max" value="{{ angka_polos($t->range_max, 4) }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                 <span class="text-[10px] text-slate-400">=</span>
                 <span class="text-[10px] text-slate-400">Rp</span>
                 <input type="text" inputmode="numeric" name="harga" value="{{ number_format((int) $t->harga, 0, '', '.') }}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">

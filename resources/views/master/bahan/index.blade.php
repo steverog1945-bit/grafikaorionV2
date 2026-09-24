@@ -124,7 +124,7 @@
                         </td>
                         <td class="px-6 py-5 text-center">
                             @php
-                                $angka = fn ($v, $d = 2) => rtrim(rtrim(number_format((float) $v, $d, ',', '.'), '0'), ',');
+                                $angka = fn ($v, $d = 2) => angka((float) $v, $d);
                                 $stokHabis = (float) $b->stok <= (float) $b->stok_minimal;
                                 $rasio = (float) $b->stok_minimal > 0 ? min(1, (float) $b->stok / ((float) $b->stok_minimal * 3)) : ((float) $b->stok > 0 ? 1 : 0);
                                 $warnaBar = $stokHabis ? 'bg-rose-400' : ($rasio < 0.5 ? 'bg-amber-400' : 'bg-emerald-400');
@@ -284,7 +284,7 @@
             </x-form.group>
             <div id="blok_harga_awal">
                 <x-form.group label="Harga Beli / Satuan Stok" help="Opsional. Menjadi harga rata-rata awal (dasar HPP).">
-                    <x-form.input type="number" step="0.01" min="0" name="harga_beli" id="input_harga_beli" placeholder="0" />
+                    <x-form.input class="format-ribuan-desimal" type="text" inputmode="decimal" autocomplete="off" name="harga_beli" id="input_harga_beli" placeholder="0" />
                 </x-form.group>
             </div>
         </div>
@@ -442,16 +442,17 @@
         Swal.fire({
             title: 'Harga rata-rata bahan',
             html: `<div class="text-left text-sm"><b>${escapeHtml(nama)}</b><br><span class="text-slate-400 text-xs">Nilai per ${escapeHtml(satuan)}. Dasar HPP/margin ke depan; tidak mengubah stok dan tidak membuat jurnal.</span></div>
-                   <input id="swal-harga" type="number" step="0.01" min="0" class="swal2-input" placeholder="Harga per ${escapeHtml(satuan)}" value="${hargaSekarang > 0 ? hargaSekarang : ''}">
+                   <input id="swal-harga" type="text" inputmode="decimal" autocomplete="off" class="swal2-input format-ribuan-desimal" placeholder="Harga per ${escapeHtml(satuan)}" value="${hargaSekarang > 0 ? formatUangDariAngka(hargaSekarang) : ''}">
                    <input id="swal-alasan" type="text" class="swal2-input" placeholder="Alasan (wajib), mis. isi harga awal">`,
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Simpan',
             cancelButtonText: 'Batal',
             preConfirm: () => {
-                const harga = document.getElementById('swal-harga').value;
+                const teksHarga = document.getElementById('swal-harga').value.trim();
+                const harga = cleanUangDesimal(teksHarga);
                 const alasan = document.getElementById('swal-alasan').value.trim();
-                if (harga === '' || Number(harga) < 0) { Swal.showValidationMessage('Isi harga (boleh 0).'); return false; }
+                if (teksHarga === '') { Swal.showValidationMessage('Isi harga (boleh 0).'); return false; }
                 if (!alasan) { Swal.showValidationMessage('Alasan wajib diisi.'); return false; }
                 return { harga, alasan };
             }

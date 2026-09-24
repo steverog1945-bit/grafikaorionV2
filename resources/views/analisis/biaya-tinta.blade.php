@@ -2,7 +2,7 @@
 
 @section('content')
 @php
-    $n = fn ($v, $d = 2) => rtrim(rtrim(number_format($v, $d, ',', '.'), '0'), ',');
+    $n = fn ($v, $d = 2) => angka($v, $d);
     $rp = fn ($v) => 'Rp ' . number_format($v, 0, ',', '.');
 @endphp
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1500px] mx-auto">

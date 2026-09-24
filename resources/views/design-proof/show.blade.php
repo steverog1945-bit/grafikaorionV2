@@ -10,7 +10,7 @@
     <x-page-header title="Design Proof - {{ $detail->nomor_nota }}">
         <x-slot:subtitle>
             <i class="fas fa-pencil-ruler text-amber-400"></i>
-            {{ $detail->nama_file }} - {{ $detail->qty }} pcs - {{ $detail->nama_konsumen ?? 'tanpa pelanggan' }}
+            {{ $detail->nama_file }} - {{ angka($detail->qty, 4) }} pcs - {{ $detail->nama_konsumen ?? 'tanpa pelanggan' }}
         </x-slot:subtitle>
         <x-slot:actions>
             @if($terkunci)
@@ -75,7 +75,7 @@
                         <span class="text-base font-extrabold text-slate-700">Revisi #{{ $p->revisi_no }}</span>
                         <x-badge :status="$p->status" :variant="$variantMap[$p->status] ?? 'info'" />
                     </div>
-                    <div class="text-xs text-slate-400">{{ $p->nama_file_asli }} - {{ number_format($p->ukuran_bytes / 1024, 0) }} KB - diunggah {{ \Carbon\Carbon::parse($p->created_at)->format('d M Y H:i') }} oleh {{ $p->pengunggah ?? '-' }}</div>
+                    <div class="text-xs text-slate-400">{{ $p->nama_file_asli }} - {{ number_format($p->ukuran_bytes / 1024, 0, ',', '.') }} KB - diunggah {{ \Carbon\Carbon::parse($p->created_at)->format('d M Y H:i') }} oleh {{ $p->pengunggah ?? '-' }}</div>
                     @if($p->catatan)<div class="text-sm text-slate-600 mt-2">Catatan desainer: {{ $p->catatan }}</div>@endif
 
                     @if($p->keputusan_at)

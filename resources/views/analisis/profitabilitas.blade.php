@@ -41,11 +41,11 @@
             <tr class="hover:bg-slate-50/30">
                 <td class="px-8 py-4 text-[13px] font-bold text-slate-700">{{ $r->nama }}</td>
                 <td class="px-4 py-4 text-right text-sm">{{ $r->jumlah_nota }}</td>
-                <td class="px-4 py-4 text-right text-sm">{{ rtrim(rtrim(number_format($r->qty, 2, ',', '.'), '0'), ',') }}</td>
+                <td class="px-4 py-4 text-right text-sm">{{ angka($r->qty, 2) }}</td>
                 <td class="px-4 py-4 text-right text-sm">{{ number_format($r->omzet, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-right text-sm text-slate-500">{{ number_format($r->hpp, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-right text-sm font-bold {{ $r->laba < 0 ? 'text-rose-600' : 'text-emerald-600' }}">{{ number_format($r->laba, 0, ',', '.') }}</td>
-                <td class="px-8 py-4 text-right text-sm font-semibold {{ $r->margin < 20 ? 'text-amber-600' : 'text-slate-600' }}">{{ $r->margin }}%</td>
+                <td class="px-8 py-4 text-right text-sm font-semibold {{ $r->margin < 20 ? 'text-amber-600' : 'text-slate-600' }}">{{ angka($r->margin, 1) }}%</td>
             </tr>
             @empty
             <tr><td colspan="7"><x-empty-state title="Tidak ada data pada periode ini" /></td></tr>
