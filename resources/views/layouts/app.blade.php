@@ -1165,6 +1165,41 @@
             icon.classList.toggle('rotate-180');
         }
     </script>
+    {{-- Angka desimal DB (mis. 226.000) ditampilkan rapi (226) di SEMUA input number, termasuk saat modal edit
+         diisi lewat JS (input.value = ...), baris yang ditambah dinamis, dan value bawaan server. Nilai numerik
+         tidak berubah; hanya nol di belakang koma yang dibuang. --}}
+    <script>
+    (function () {
+        const rapikan = (v) => (typeof v === 'string' && /^-?\d+\.\d+$/.test(v))
+            ? v.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
+            : v;
+
+        const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+        Object.defineProperty(HTMLInputElement.prototype, 'value', {
+            configurable: true,
+            get() { return desc.get.call(this); },
+            set(v) {
+                if (this.type === 'number' && v !== null && v !== undefined) v = rapikan(String(v));
+                desc.set.call(this, v);
+            },
+        });
+
+        const perbaiki = (el) => {
+            const awal = el.getAttribute('value');
+            if (awal === null) return;
+            const baru = rapikan(awal);
+            if (baru !== awal) el.setAttribute('value', baru);
+        };
+        const semua = (root) => root.querySelectorAll('input[type="number"]').forEach(perbaiki);
+
+        document.addEventListener('DOMContentLoaded', () => semua(document));
+        new MutationObserver((daftar) => daftar.forEach((m) => m.addedNodes.forEach((n) => {
+            if (n.nodeType !== 1) return;
+            if (n.matches && n.matches('input[type="number"]')) perbaiki(n);
+            if (n.querySelectorAll) semua(n);
+        }))).observe(document.documentElement, { childList: true, subtree: true });
+    })();
+    </script>
     @stack('scripts')
 </body>
 </html>

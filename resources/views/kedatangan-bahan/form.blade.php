@@ -54,7 +54,7 @@
                                     @endforeach
                                 </select>
                             </td>
-                            <td><input type="number" name="qty[]" class="form-control" value="{{ $d->qty }}" required></td>
+                            <td><input type="number" step="0.01" min="0.01" name="qty[]" class="form-control" value="{{ $d->qty }}" required></td>
                             <td><input type="text" name="satuan[]" class="form-control" value="{{ $d->satuan }}" required></td>
                             <td><button type="button" class="btn btn-sm btn-danger remove-row">-</button></td>
                         </tr>
@@ -69,7 +69,7 @@
                                     @endforeach
                                 </select>
                             </td>
-                            <td><input type="number" name="qty[]" class="form-control" required></td>
+                            <td><input type="number" step="0.01" min="0.01" name="qty[]" class="form-control" required></td>
                             <td><input type="text" name="satuan[]" class="form-control" required></td>
                             <td><button type="button" class="btn btn-sm btn-danger remove-row">-</button></td>
                         </tr>
@@ -98,7 +98,7 @@
                     @endforeach
                 </select>
             </td>
-            <td><input type="number" name="qty[]" class="form-control" required></td>
+            <td><input type="number" step="0.01" min="0.01" name="qty[]" class="form-control" required></td>
             <td><input type="text" name="satuan[]" class="form-control" required></td>
             <td><button type="button" class="btn btn-sm btn-danger remove-row">-</button></td>
         `;

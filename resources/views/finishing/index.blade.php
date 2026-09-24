@@ -109,9 +109,9 @@
             <div class="tier-row-finishing flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2" data-id="{{ $t->id_finishing_harga }}">
                 <form action="{{ route('finishing.harga.update', $t->id_finishing_harga) }}" class="tier-edit-form-finishing flex items-center gap-2 flex-1">
                     @csrf
-                    <input type="number" name="range_min" value="{{ $t->range_min }}" min="0.01" step="{{ $stepRentangFinishing }}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <input type="number" name="range_min" value="{{ $t->range_min }}" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                    <input type="number" name="range_max" value="{{ $t->range_max }}" min="0.01" step="{{ $stepRentangFinishing }}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <input type="number" name="range_max" value="{{ $t->range_max }}" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentangFinishing }}</span>
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>
@@ -129,9 +129,9 @@
 
         <form action="{{ route('finishing.harga.store', $d->id_finishing) }}" class="tier-add-form-finishing flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-finishing="{{ $d->id_finishing }}" data-satuan-rentang="{{ $satuanRentangFinishing }}">
             @csrf
-            <input type="number" name="range_min" placeholder="Min" min="0.01" step="{{ $stepRentangFinishing }}" required class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
+            <input type="number" name="range_min" placeholder="Min" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" required class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
             <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-            <input type="number" name="range_max" placeholder="~" min="0.01" step="{{ $stepRentangFinishing }}" class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
+            <input type="number" name="range_max" placeholder="~" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
             <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentangFinishing }}</span>
             <span class="text-[10px] text-slate-400">=</span>
             <span class="text-[10px] text-slate-400">Rp</span>
@@ -283,9 +283,9 @@
             <div class="tier-row-finishing flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2" data-id="${t.id_finishing_harga}">
                 <form action="{{ url('/finishing-harga') }}/${t.id_finishing_harga}" class="tier-edit-form-finishing flex items-center gap-2 flex-1">
                     <input type="hidden" name="_token" value="${csrfToken}">
-                    <input type="number" name="range_min" value="${t.range_min}" min="0.01" step="${stepRentang}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <input type="number" name="range_min" value="${t.range_min}" min="${stepRentang}" step="${stepRentang}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[10px] text-slate-300 font-bold">s/d</span>
-                    <input type="number" name="range_max" value="${t.range_max ?? ''}" min="0.01" step="${stepRentang}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <input type="number" name="range_max" value="${t.range_max ?? ''}" min="${stepRentang}" step="${stepRentang}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[9px] text-slate-400 uppercase shrink-0">${satuanRentang}</span>
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>

@@ -184,11 +184,11 @@
                     <input type="hidden" name="id_golongan" value="{{ $g->id_golongan }}">
                     <div>
                         <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Min ({{ $satuanRentang }})</label>
-                        <input type="number" name="range_min" placeholder="Min" value="{{ $defaultMin }}" min="0.01" step="{{ $stepRentang }}" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm">
+                        <input type="number" name="range_min" placeholder="Min" value="{{ $defaultMin }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm">
                     </div>
                     <div>
                         <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Max ({{ $satuanRentang }})</label>
-                        <input type="number" name="range_max" placeholder="~ (tak terbatas)" min="0.01" step="{{ $stepRentang }}" class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm">
+                        <input type="number" name="range_max" placeholder="~ (tak terbatas)" min="{{ $stepRentang }}" step="{{ $stepRentang }}" class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm">
                     </div>
                     <div>
                         <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Harga (Rp)</label>
@@ -244,8 +244,8 @@
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
                                     <form id="tier-edit-form-{{ $t->id_harga }}" action="{{ route('setting-harga.tier.update', $t->id_harga) }}" class="tier-edit-form-produk grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
                                         @csrf
-                                        <input type="number" name="range_min" value="{{ $fmtNilai($t->range_min) }}" min="0.01" step="{{ $stepRentang }}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
-                                        <input type="number" name="range_max" value="{{ $t->range_max !== null ? $fmtNilai($t->range_max) : '' }}" min="0.01" step="{{ $stepRentang }}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
+                                        <input type="number" name="range_min" value="{{ $fmtNilai($t->range_min) }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
+                                        <input type="number" name="range_max" value="{{ $t->range_max !== null ? $fmtNilai($t->range_max) : '' }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
                                         <div class="relative">
                                             <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
                                             <input type="text" inputmode="numeric" name="harga_jual" value="{{ number_format((int) $t->harga_jual, 0, '', '.') }}" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
@@ -351,8 +351,8 @@
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
                         <form id="${formId}" action="{{ url('/setting-harga-tier') }}/${t.id_harga}" class="tier-edit-form-produk grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
                             <input type="hidden" name="_token" value="${csrfTokenHarga}">
-                            <input type="number" name="range_min" value="${t.range_min}" min="0.01" step="${stepRentang}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
-                            <input type="number" name="range_max" value="${t.range_max ?? ''}" min="0.01" step="${stepRentang}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
+                            <input type="number" name="range_min" value="${t.range_min}" min="${stepRentang}" step="${stepRentang}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
+                            <input type="number" name="range_max" value="${t.range_max ?? ''}" min="${stepRentang}" step="${stepRentang}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
                             <div class="relative">
                                 <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
                                 <input type="text" inputmode="numeric" name="harga_jual" value="${formatRupiah(parseInt(t.harga_jual))}" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
