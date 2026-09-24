@@ -136,3 +136,17 @@ Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) 
 | Tombol Bayar Hutang menolak nominal | Nominal tidak boleh melebihi sisa hutang. |
 | Kas tidak bisa dibuka | Kas hanya boleh aktif satu sesi; pastikan sesi lain sudah closing. |
 | Stok tidak sesuai fisik | Lakukan Stock Opname, jangan mengubah lewat database. |
+
+## Data Dummy untuk Uji Coba
+
+Untuk menguji seluruh alur tanpa mengetik manual, jalankan di terminal proyek:
+
+```
+php artisan demo:isi
+```
+
+- Membuat: 8 pelanggan "DEMO ...", sesi kas hari ini, ~9 nota dengan status SPK bervariasi, pembayaran (lunas/DP/belum), serah terima, design proof, QC + rework, waste, 3 quotation, PR/PO/kedatangan/faktur tempo/cicilan hutang, kas kecil, deposit, dan 2 order jersey.
+- Semua lewat jalur aplikasi sungguhan, sehingga stok dan jurnal tetap konsisten.
+- Data riil (bahan baku, mesin, kategori, supplier, jasa, produk) hanya dibaca, tidak diubah.
+- Otomatis membuat backup dulu; menolak jalan di production; menolak bila data DEMO sudah ada (kecuali `--tambah`).
+- Data dummy ini dibersihkan saat persiapan go-live (reset data uji dilakukan terpisah dengan konfirmasi).
