@@ -67,8 +67,6 @@
     body.sidebar-collapsed aside .sidebar-text-label { display: none; }
     body.sidebar-collapsed aside .sidebar-kas-status { justify-content: center; }
     body.sidebar-collapsed aside #sidebarBrandHeader { padding: 18px 10px; }
-    body.sidebar-collapsed aside .sidebar-logo { height: 66px; width: 68px; min-width: 0; padding: 6px; border-radius: 18px; }
-    body.sidebar-collapsed aside .sidebar-logo img { max-height: 54px; max-width: 56px; }
     body.sidebar-collapsed aside #sidebarCollapseToggle i { transform: rotate(180deg); }
 
     /* Ikon grup (hanya tampil pada rel ringkas) */
@@ -115,14 +113,41 @@
         box-shadow: 0 10px 30px rgba(2,6,23,0.4); border: 1px solid rgba(255,255,255,0.1); white-space: nowrap; pointer-events: none;
     }
 
-    /* Logo perusahaan (tile terang supaya logo gelap/berwarna tetap terbaca di latar gelap) */
-    aside .sidebar-logo {
-        display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 20px;
-        padding: 10px 16px; height: 84px; min-width: 84px; max-width: 100%;
-        box-shadow: 0 10px 30px rgba(2,6,23,0.35), inset 0 0 0 1px rgba(255,255,255,0.4);
-        transition: all .3s ease;
+    /* Logo perusahaan - diatur dari Pengaturan Aplikasi (ukuran, gaya latar, mode ringkas) */
+    .sidebar-logo { position: relative; display: flex; align-items: center; justify-content: center; max-width: 100%; text-decoration: none; transition: transform .35s ease, background .3s ease; }
+    .sidebar-logo .logo-full { display: block; width: auto; height: auto; object-fit: contain; transition: transform .35s ease, filter .35s ease; }
+    .sidebar-logo .logo-icon { display: none; }
+    .sidebar-logo.logo-kecil .logo-full { max-height: 34px; max-width: 150px; }
+    .sidebar-logo.logo-sedang .logo-full { max-height: 46px; max-width: 190px; }
+    .sidebar-logo.logo-besar .logo-full { max-height: 60px; max-width: 220px; }
+    .sidebar-logo:hover { transform: translateY(-1px); }
+    .sidebar-logo:hover .logo-full { transform: scale(1.03); }
+
+    /* Gaya polos: tanpa kotak; kilau lembut di belakang + garis tipis terang supaya tepi logo gelap tetap terbaca */
+    .sidebar-logo.logo-gaya-polos { padding: 8px 12px; }
+    .sidebar-logo.logo-gaya-polos::before {
+        content: ''; position: absolute; inset: -6px -14px; z-index: 0; pointer-events: none;
+        background: radial-gradient(closest-side, rgba(129,140,248,0.30), rgba(129,140,248,0) 72%);
     }
-    aside .sidebar-logo img { max-height: 64px; max-width: 200px; width: auto; height: auto; object-fit: contain; }
+    .sidebar-logo.logo-gaya-polos img { position: relative; z-index: 1; filter: drop-shadow(0 0 1px rgba(255,255,255,0.95)) drop-shadow(0 6px 14px rgba(2,6,23,0.45)); }
+    /* Gaya kaca */
+    .sidebar-logo.logo-gaya-kaca { padding: 10px 16px; border-radius: 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 30px rgba(2,6,23,0.25); backdrop-filter: blur(6px); }
+    .sidebar-logo.logo-gaya-kaca img { filter: drop-shadow(0 4px 10px rgba(2,6,23,0.35)); }
+    /* Gaya putih */
+    .sidebar-logo.logo-gaya-putih { padding: 10px 16px; border-radius: 18px; background: #fff; box-shadow: 0 10px 30px rgba(2,6,23,0.35); }
+
+    /* Mode ringkas */
+    body.sidebar-collapsed aside .sidebar-logo .logo-full { display: none; }
+    body.sidebar-collapsed aside .sidebar-logo .logo-icon { display: block; }
+    body.sidebar-collapsed aside .sidebar-logo .logo-ikon-file { width: 52px; height: 52px; object-fit: contain; }
+    /* Potong otomatis: tampilkan bagian kiri logo (biasanya lambang) */
+    body.sidebar-collapsed aside .sidebar-logo .logo-crop { display: block; width: 46px; height: 54px; overflow: hidden; position: relative; z-index: 1; }
+    body.sidebar-collapsed aside .sidebar-logo .logo-crop img { height: 54px; width: auto; max-width: none; display: block; }
+    body.sidebar-collapsed aside .sidebar-logo .logo-penuh { max-width: 60px; max-height: 46px; object-fit: contain; }
+    body.sidebar-collapsed aside .sidebar-logo.logo-gaya-polos img,
+    body.sidebar-collapsed aside .sidebar-logo .logo-icon img { filter: drop-shadow(0 0 1px rgba(255,255,255,0.95)) drop-shadow(0 6px 12px rgba(2,6,23,0.45)); }
+    body.sidebar-collapsed aside .sidebar-logo.logo-gaya-kaca,
+    body.sidebar-collapsed aside .sidebar-logo.logo-gaya-putih { padding: 8px; border-radius: 16px; }
 
     /* MAIN - satu-satunya definisi (sebelumnya didefinisikan ulang & bentrok
        di style block kedua di bagian bawah file ini) */
@@ -217,12 +242,28 @@
 
     <div class="flex min-h-screen">
         <aside id="mainSidebar">
-            <div id="sidebarBrandHeader" class="relative px-5 py-6 border-b border-white/10 flex items-center justify-center">
-                <a href="{{ url('/dashboard') }}" class="sidebar-logo" title="{{ $appSetting->nama_aplikasi }}">
-                    @if($appSetting->logo_path)
-                        <img src="{{ asset('storage/' . $appSetting->logo_path) }}" alt="Logo {{ $appSetting->nama_aplikasi }}">
+            <div id="sidebarBrandHeader" class="relative px-5 py-5 border-b border-white/10 flex items-center justify-center">
+                @php
+                    $logoUkuran = in_array($appSetting->logo_ukuran, ['kecil', 'sedang', 'besar'], true) ? $appSetting->logo_ukuran : 'sedang';
+                    $logoGaya = in_array($appSetting->logo_gaya, ['polos', 'kaca', 'putih'], true) ? $appSetting->logo_gaya : 'polos';
+                    $logoRingkas = $appSetting->logo_ringkas === 'penuh' ? 'penuh' : 'potong';
+                    $urlLogo = $appSetting->logo_path ? asset('storage/' . $appSetting->logo_path) : null;
+                @endphp
+                <a href="{{ url('/dashboard') }}" class="sidebar-logo logo-{{ $logoUkuran }} logo-gaya-{{ $logoGaya }}" title="{{ $appSetting->nama_aplikasi }}">
+                    @if($urlLogo)
+                        <img class="logo-full" src="{{ $urlLogo }}" alt="Logo {{ $appSetting->nama_aplikasi }}">
+                        <span class="logo-icon">
+                            @if($appSetting->logo_ikon_path)
+                                <img class="logo-ikon-file" src="{{ asset('storage/' . $appSetting->logo_ikon_path) }}" alt="">
+                            @elseif($logoRingkas === 'potong')
+                                <span class="logo-crop"><img src="{{ $urlLogo }}" alt=""></span>
+                            @else
+                                <img class="logo-penuh" src="{{ $urlLogo }}" alt="">
+                            @endif
+                        </span>
                     @else
-                        <span class="text-4xl leading-none">🖨️</span>
+                        <span class="logo-full text-4xl leading-none">🖨️</span>
+                        <span class="logo-icon text-3xl leading-none">🖨️</span>
                     @endif
                 </a>
                 <button onclick="toggleMobileMenu()" class="lg:hidden absolute top-3 right-3 w-9 h-9 rounded-full bg-white/10 text-slate-200 hover:bg-white/20 sidebar-brand-text" aria-label="Tutup menu">

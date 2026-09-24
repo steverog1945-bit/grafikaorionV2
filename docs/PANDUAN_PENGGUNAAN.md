@@ -202,3 +202,7 @@ Pemakaian per mesin bisa diubah di bagian bawah halaman ("Pengaturan Pemakaian p
 
 **Catatan teknis untuk server mana pun:** tampilan memakai aset yang dibangun oleh Vite (folder `public/build`, tidak masuk git).
 Setelah menarik kode terbaru atau mengubah tampilan, jalankan `npm install` (sekali) lalu `npm run build`; tanpa itu kelas tampilan baru tidak termuat dan halaman terlihat berantakan.
+
+**Logo sidebar dapat diatur:** Pengaturan Aplikasi > Umum > "Tampilan Logo di Sidebar" - ukuran (kecil/sedang/besar), gaya latar
+(polos dengan kilau lembut, kaca transparan, atau kotak putih), cara logo tampil saat sidebar diringkas (potong lambang kiri otomatis atau
+logo penuh diperkecil), serta Logo Ikon persegi opsional. Ada pratinjau langsung di latar sidebar.

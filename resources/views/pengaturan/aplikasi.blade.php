@@ -48,6 +48,69 @@
                     </x-form.group>
                 </div>
 
+
+                {{-- TAMPILAN LOGO DI SIDEBAR --}}
+                @php
+                    $lg = [
+                        'ukuran' => in_array($setting->logo_ukuran, ['kecil', 'sedang', 'besar'], true) ? $setting->logo_ukuran : 'sedang',
+                        'gaya' => in_array($setting->logo_gaya, ['polos', 'kaca', 'putih'], true) ? $setting->logo_gaya : 'polos',
+                        'ringkas' => $setting->logo_ringkas === 'penuh' ? 'penuh' : 'potong',
+                    ];
+                @endphp
+                <div class="rounded-2xl border border-slate-100 p-5 space-y-5">
+                    <div class="text-[11px] font-black text-slate-400 uppercase tracking-widest"><i class="fas fa-swatchbook mr-1.5"></i> Tampilan Logo di Sidebar</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-5">
+                            <x-form.group label="Ukuran Logo" name="logo_ukuran">
+                                <x-form.select name="logo_ukuran" id="opt-logo-ukuran">
+                                    <option value="kecil" @selected($lg['ukuran'] === 'kecil')>Kecil</option>
+                                    <option value="sedang" @selected($lg['ukuran'] === 'sedang')>Sedang (disarankan)</option>
+                                    <option value="besar" @selected($lg['ukuran'] === 'besar')>Besar</option>
+                                </x-form.select>
+                            </x-form.group>
+                            <x-form.group label="Gaya Latar Logo" name="logo_gaya" help="Polos = tanpa kotak, dengan kilau lembut. Kaca = kotak transparan. Putih = kotak putih (untuk logo gelap).">
+                                <x-form.select name="logo_gaya" id="opt-logo-gaya">
+                                    <option value="polos" @selected($lg['gaya'] === 'polos')>Polos (tanpa kotak)</option>
+                                    <option value="kaca" @selected($lg['gaya'] === 'kaca')>Kaca (transparan)</option>
+                                    <option value="putih" @selected($lg['gaya'] === 'putih')>Kotak putih</option>
+                                </x-form.select>
+                            </x-form.group>
+                            <x-form.group label="Saat Sidebar Diringkas" name="logo_ringkas" help="Potong = tampilkan lambang di sisi kiri logo. Penuh = logo utuh diperkecil. Jika Logo Ikon diunggah, ikon itu yang dipakai.">
+                                <x-form.select name="logo_ringkas" id="opt-logo-ringkas">
+                                    <option value="potong" @selected($lg['ringkas'] === 'potong')>Potong otomatis (lambang kiri)</option>
+                                    <option value="penuh" @selected($lg['ringkas'] === 'penuh')>Logo penuh diperkecil</option>
+                                </x-form.select>
+                            </x-form.group>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Pratinjau (latar sidebar)</div>
+                                <div class="rounded-2xl px-6 py-8 flex items-center justify-center min-h-[130px]" style="background:linear-gradient(180deg,#0f172a,#17223b)">
+                                    @if($setting->logo_path)
+                                        <div id="pratinjau-logo" class="sidebar-logo logo-{{ $lg['ukuran'] }} logo-gaya-{{ $lg['gaya'] }}">
+                                            <img id="pratinjau-logo-img" class="logo-full" src="{{ asset('storage/' . $setting->logo_path) }}" alt="Pratinjau logo">
+                                        </div>
+                                    @else
+                                        <span class="text-sm text-slate-400">Unggah logo untuk melihat pratinjau.</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <x-form.group label="Logo Ikon (opsional, persegi)" name="logo_ikon" help="Dipakai saat sidebar diringkas. PNG/JPG/WEBP, maks 1MB.">
+                                <input type="file" name="logo_ikon" accept="image/png,image/jpeg,image/webp"
+                                    class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-xs font-semibold text-slate-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white">
+                            </x-form.group>
+                            @if($setting->logo_ikon_path)
+                                <div class="flex items-center gap-3 ml-2">
+                                    <img src="{{ asset('storage/' . $setting->logo_ikon_path) }}" alt="Logo ikon" class="w-10 h-10 rounded-lg object-contain bg-slate-800 p-1">
+                                    <label class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                                        <input type="checkbox" name="hapus_logo_ikon" value="1" class="rounded border-slate-300 text-indigo-600"> Hapus logo ikon
+                                    </label>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
                 <x-form.group label="Nama Aplikasi" name="nama_aplikasi" required>
                     <x-form.input type="text" name="nama_aplikasi" value="{{ old('nama_aplikasi', $setting->nama_aplikasi) }}" required />
                 </x-form.group>
@@ -194,11 +257,23 @@
 
 @push('scripts')
 <script>
+    ['opt-logo-ukuran', 'opt-logo-gaya'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('change', () => {
+            const p = document.getElementById('pratinjau-logo');
+            if (!p) return;
+            p.className = 'sidebar-logo logo-' + document.getElementById('opt-logo-ukuran').value + ' logo-gaya-' + document.getElementById('opt-logo-gaya').value;
+        });
+    });
+
     function previewLogoAplikasi(input) {
         if (!input.files || !input.files[0]) return;
         const img = document.getElementById('preview-logo');
         const placeholder = document.getElementById('preview-logo-placeholder');
         img.src = URL.createObjectURL(input.files[0]);
+        const pratinjau = document.getElementById("pratinjau-logo-img");
+        if (pratinjau) pratinjau.src = img.src;
         img.classList.remove('hidden');
         if (placeholder) placeholder.classList.add('hidden');
         perbaruiPreviewNota();

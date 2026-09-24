@@ -24,6 +24,11 @@ class SettingAplikasiController extends Controller
             'email' => 'nullable|email|max:255',
             'website' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
+            'logo_ikon' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:1024',
+            'hapus_logo_ikon' => 'nullable|boolean',
+            'logo_ukuran' => 'nullable|in:kecil,sedang,besar',
+            'logo_gaya' => 'nullable|in:polos,kaca,putih',
+            'logo_ringkas' => 'nullable|in:potong,penuh',
             'libur_kas_minggu' => 'nullable|boolean',
             'format_nota' => 'nullable|in:thermal,a4,continuous',
             'nomor_nota_prefix' => 'nullable|string|max:20|regex:/^[A-Za-z0-9\-]+$/',
@@ -45,6 +50,9 @@ class SettingAplikasiController extends Controller
             'nomor_nota_prefix' => $data['nomor_nota_prefix'] ?? 'INV',
             'nota_footer_text' => $this->sanitizeFooterHtml($data['nota_footer_text'] ?? null),
             'pembulatan_nota' => $data['pembulatan_nota'] ?? 'tidak',
+            'logo_ukuran' => $data['logo_ukuran'] ?? $setting->logo_ukuran ?? 'sedang',
+            'logo_gaya' => $data['logo_gaya'] ?? $setting->logo_gaya ?? 'polos',
+            'logo_ringkas' => $data['logo_ringkas'] ?? $setting->logo_ringkas ?? 'potong',
         ];
 
         if ($request->hasFile('logo')) {
@@ -52,6 +60,13 @@ class SettingAplikasiController extends Controller
                 Storage::disk('public')->delete($setting->logo_path);
             }
             $updateData['logo_path'] = $request->file('logo')->store('company_logo', 'public');
+        }
+
+        if ($request->hasFile('logo_ikon') || $request->boolean('hapus_logo_ikon')) {
+            if ($setting->logo_ikon_path && Storage::disk('public')->exists($setting->logo_ikon_path)) {
+                Storage::disk('public')->delete($setting->logo_ikon_path);
+            }
+            $updateData['logo_ikon_path'] = $request->hasFile('logo_ikon') ? $request->file('logo_ikon')->store('company_logo', 'public') : null;
         }
 
         $setting->update($updateData);
