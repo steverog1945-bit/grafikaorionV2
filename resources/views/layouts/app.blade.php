@@ -19,21 +19,22 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-    :root { --sidebar-width: 280px; --sidebar-width-collapsed: 84px; }
+    :root { --sidebar-width: 288px; --sidebar-width-collapsed: 96px; }
     body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; background-color: #f5f7fa; overflow-x: hidden; }
 
     /* SIDEBAR CORE (Tetap Dipertahankan) */
     aside {
         width: var(--sidebar-width);
-        background: #151e2c;
-        color: #f8fafc;
+        background: linear-gradient(180deg, #0f172a 0%, #131d33 55%, #17223b 100%);
+        color: #f1f5f9;
         position: fixed;
         top: 0; bottom: 0; left: 0;
         z-index: 50;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
         display: flex;
         flex-direction: column;
-        box-shadow: 4px 0 12px rgba(0,0,0,0.1);
+        border-right: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 8px 0 32px rgba(15,23,42,0.18);
     }
 
     @media (max-width: 1023px) {
@@ -52,14 +53,76 @@
        div label group pakai tracking-[0.2em]).) */
     body.sidebar-collapsed aside { width: var(--sidebar-width-collapsed); }
     body.sidebar-collapsed main { margin-left: var(--sidebar-width-collapsed); }
-    body.sidebar-collapsed aside nav a { justify-content: center; }
-    body.sidebar-collapsed aside nav a span,
-    body.sidebar-collapsed aside nav .tracking-\[0\.2em\],
+    body.sidebar-collapsed aside nav { padding-left: 14px; padding-right: 14px; }
+    body.sidebar-collapsed aside nav > a,
+    body.sidebar-collapsed aside .menu-group-toggle { justify-content: center; }
+    body.sidebar-collapsed aside nav > a { padding: 14px 0; }
+    body.sidebar-collapsed aside nav > a span { display: none; }
+    body.sidebar-collapsed aside nav > a svg { width: 26px; height: 26px; }
+    body.sidebar-collapsed aside .menu-group-items { display: none !important; }
+    body.sidebar-collapsed aside .menu-group-toggle > span,
+    body.sidebar-collapsed aside .menu-group-toggle > i.fa-chevron-down { display: none; }
+    body.sidebar-collapsed aside .menu-group-toggle { padding: 14px 0; margin-top: 6px; border-radius: 14px; border-top: 1px solid rgba(255,255,255,0.07); border-radius: 0; }
     body.sidebar-collapsed aside .sidebar-brand-text,
     body.sidebar-collapsed aside .sidebar-text-label { display: none; }
     body.sidebar-collapsed aside .sidebar-kas-status { justify-content: center; }
-    body.sidebar-collapsed aside #sidebarBrandHeader { justify-content: center; }
+    body.sidebar-collapsed aside #sidebarBrandHeader { padding: 18px 10px; }
+    body.sidebar-collapsed aside .sidebar-logo { height: 66px; width: 68px; min-width: 0; padding: 6px; border-radius: 18px; }
+    body.sidebar-collapsed aside .sidebar-logo img { max-height: 54px; max-width: 56px; }
     body.sidebar-collapsed aside #sidebarCollapseToggle i { transform: rotate(180deg); }
+
+    /* Ikon grup (hanya tampil pada rel ringkas) */
+    aside .menu-group-toggle .rail-icon { display: none; }
+    body.sidebar-collapsed aside .menu-group-toggle .rail-icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 52px; height: 52px; border-radius: 16px; font-size: 21px;
+        color: #cbd5e1; background: rgba(255,255,255,0.05);
+        transition: background .2s, color .2s, transform .2s;
+    }
+    body.sidebar-collapsed aside .menu-group-toggle:hover .rail-icon,
+    body.sidebar-collapsed aside .menu-group-toggle.flyout-open .rail-icon { background: rgba(255,255,255,0.14); color: #fff; transform: translateY(-1px); }
+    body.sidebar-collapsed aside .menu-group-toggle.has-active .rail-icon {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+    }
+
+    /* Tampilan lebar: penanda grup yang berisi halaman aktif */
+    aside .menu-group-toggle.has-active > span { color: #fff; }
+    aside .menu-group-toggle.has-active > span::after {
+        content: ''; display: inline-block; width: 6px; height: 6px; margin-left: 8px; border-radius: 999px;
+        background: #818cf8; vertical-align: middle;
+    }
+    aside nav > a.sb-active::before {
+        content: ''; position: absolute; left: -14px; top: 22%; bottom: 22%; width: 4px; border-radius: 0 4px 4px 0; background: #a5b4fc;
+    }
+    body.sidebar-collapsed aside nav > a.sb-active::before { left: -14px; }
+    aside .menu-group-items a.sb-active::before { content: none; }
+
+    /* Flyout grup & tooltip untuk rel ringkas */
+    #railFlyout, #railTip { position: fixed; z-index: 70; display: none; }
+    #railFlyout {
+        min-width: 250px; max-width: 300px; max-height: 78vh; overflow-y: auto; padding: 10px;
+        background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 18px;
+        box-shadow: 0 24px 60px rgba(2,6,23,0.45);
+    }
+    #railFlyout .fly-title { padding: 6px 12px 10px; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #94a3b8; }
+    #railFlyout a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: #e2e8f0; font-size: 14px; font-weight: 500; text-decoration: none; }
+    #railFlyout a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    #railFlyout a.fly-active { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: #fff; }
+    #railFlyout a svg { width: 20px; height: 20px; flex-shrink: 0; color: #94a3b8; }
+    #railFlyout a:hover svg, #railFlyout a.fly-active svg { color: #fff; }
+    #railTip {
+        padding: 8px 14px; border-radius: 10px; background: #0f172a; color: #fff; font-size: 13px; font-weight: 600;
+        box-shadow: 0 10px 30px rgba(2,6,23,0.4); border: 1px solid rgba(255,255,255,0.1); white-space: nowrap; pointer-events: none;
+    }
+
+    /* Logo perusahaan (tile terang supaya logo gelap/berwarna tetap terbaca di latar gelap) */
+    aside .sidebar-logo {
+        display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 20px;
+        padding: 10px 16px; height: 84px; min-width: 84px; max-width: 100%;
+        box-shadow: 0 10px 30px rgba(2,6,23,0.35), inset 0 0 0 1px rgba(255,255,255,0.4);
+        transition: all .3s ease;
+    }
+    aside .sidebar-logo img { max-height: 64px; max-width: 200px; width: auto; height: auto; object-fit: contain; }
 
     /* MAIN - satu-satunya definisi (sebelumnya didefinisikan ulang & bentrok
        di style block kedua di bagian bawah file ini) */
@@ -154,40 +217,36 @@
 
     <div class="flex min-h-screen">
         <aside id="mainSidebar">
-            <div id="sidebarBrandHeader" class="p-6 border-b border-slate-800/50 flex justify-between items-center">
-                <div class="sidebar-brand-text">
-                    <h4 class="text-xl font-extrabold tracking-tighter text-indigo-400 flex items-center gap-2">
-                        @if($appSetting->logo_path)
-                            <img src="{{ asset('storage/' . $appSetting->logo_path) }}" alt="Logo" class="w-8 h-8 rounded-lg object-contain bg-indigo-500/20 p-1">
-                        @else
-                            <span class="bg-indigo-500/20 p-1.5 rounded-lg text-lg">🖨️</span>
-                        @endif
-                        {{ $appSetting->nama_aplikasi }}
-                    </h4>
-                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">v1.0 Printing System</p>
-                </div>
-                <button onclick="toggleMobileMenu()" class="lg:hidden text-slate-400 sidebar-brand-text">
+            <div id="sidebarBrandHeader" class="relative px-5 py-6 border-b border-white/10 flex items-center justify-center">
+                <a href="{{ url('/dashboard') }}" class="sidebar-logo" title="{{ $appSetting->nama_aplikasi }}">
+                    @if($appSetting->logo_path)
+                        <img src="{{ asset('storage/' . $appSetting->logo_path) }}" alt="Logo {{ $appSetting->nama_aplikasi }}">
+                    @else
+                        <span class="text-4xl leading-none">🖨️</span>
+                    @endif
+                </a>
+                <button onclick="toggleMobileMenu()" class="lg:hidden absolute top-3 right-3 w-9 h-9 rounded-full bg-white/10 text-slate-200 hover:bg-white/20 sidebar-brand-text" aria-label="Tutup menu">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-{{-- Tambahan Status Kas --}}
-<div class="mt-4 px-2">
+{{-- Status Kas --}}
+<div class="mt-5 px-4">
     @if($kasAktif)
-        <div class="sidebar-kas-status bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2 flex items-center gap-2" title="Kasir: Open">
-            <span class="relative flex h-2 w-2 shrink-0">
+        <div class="sidebar-kas-status bg-emerald-500/15 border border-emerald-400/30 rounded-xl px-3 py-2.5 flex items-center gap-2.5" title="Kasir: Open">
+            <span class="relative flex h-2.5 w-2.5 shrink-0">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
             </span>
-            <span class="text-[10px] font-bold text-emerald-400 uppercase sidebar-text-label">Kasir: Open</span>
+            <span class="text-xs font-bold text-emerald-300 uppercase tracking-wider sidebar-text-label">Kasir Open</span>
         </div>
     @else
-        <div class="sidebar-kas-status bg-rose-500/10 border border-rose-500/20 rounded-lg p-2 flex items-center gap-2" title="Kasir: Standby">
-            <span class="h-2 w-2 rounded-full bg-rose-500 shrink-0"></span>
-            <span class="text-[10px] font-bold text-rose-400 uppercase sidebar-text-label">Kasir: Standby</span>
+        <div class="sidebar-kas-status bg-rose-500/15 border border-rose-400/30 rounded-xl px-3 py-2.5 flex items-center gap-2.5" title="Kasir: Standby">
+            <span class="h-2.5 w-2.5 rounded-full bg-rose-400 shrink-0"></span>
+            <span class="text-xs font-bold text-rose-300 uppercase tracking-wider sidebar-text-label">Kasir Standby</span>
         </div>
     @endif
 </div>
-            <nav class="mt-6 px-4 pb-20 space-y-1">
+            <nav class="mt-5 px-4 pb-24 space-y-1.5">
     @php
         $userAkses = DB::table('role_permissions')
                         ->where('id_role', Auth::user()->id_role)
@@ -207,13 +266,13 @@
         };
 
         // Helper untuk styling menu agar konsisten
-        $menuClass = "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all group ";
-        $activeClass = "bg-indigo-500/10 text-indigo-400";
-        $nonActiveClass = "text-slate-400 hover:bg-slate-800 hover:text-white";
+        $menuClass = "flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative ";
+        $activeClass = "sb-active bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-950/40";
+        $nonActiveClass = "text-slate-300 hover:bg-white/10 hover:text-white";
         
-        $iconClass = "h-5 w-5 transition-colors ";
-        $iconActive = "text-indigo-400";
-        $iconNonActive = "text-slate-500 group-hover:text-white";
+        $iconClass = "h-[22px] w-[22px] shrink-0 transition-colors ";
+        $iconActive = "text-white";
+        $iconNonActive = "text-slate-400 group-hover:text-white";
     @endphp
 
     {{-- DASHBOARD --}}
@@ -244,9 +303,9 @@
             || Request::is('satuan*') || Request::is('mesin*') || Request::is('gudang*');
     @endphp
     @if($grpProduksiVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] hover:text-slate-300 transition-colors">
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
         <span>Produksi & Logistik</span>
-        <i class="fas fa-chevron-down text-[8px] transition-transform {{ $grpProduksiAktif ? 'rotate-180' : '' }}"></i>
+        <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpProduksiAktif ? 'rotate-180' : '' }}"></i>
     </button>
     <div class="menu-group-items space-y-1 {{ $grpProduksiAktif ? '' : 'hidden' }}">
     @endif
@@ -442,9 +501,9 @@
             || Request::is('kasir/kelola-kas*');
     @endphp
     @if($grpRelasiVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] hover:text-slate-300 transition-colors">
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
         <span>Relasi Bisnis</span>
-        <i class="fas fa-chevron-down text-[8px] transition-transform {{ $grpRelasiAktif ? 'rotate-180' : '' }}"></i>
+        <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpRelasiAktif ? 'rotate-180' : '' }}"></i>
     </button>
     <div class="menu-group-items space-y-1 {{ $grpRelasiAktif ? '' : 'hidden' }}">
     @endif
@@ -561,9 +620,9 @@
             || Request::is('bank*') || Request::is('karyawan*');
     @endphp
     @if($grpFinanceVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] hover:text-slate-300 transition-colors">
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
         <span>Finance & HR</span>
-        <i class="fas fa-chevron-down text-[8px] transition-transform {{ $grpFinanceAktif ? 'rotate-180' : '' }}"></i>
+        <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpFinanceAktif ? 'rotate-180' : '' }}"></i>
     </button>
     <div class="menu-group-items space-y-1 {{ $grpFinanceAktif ? '' : 'hidden' }}">
     @endif
@@ -658,9 +717,9 @@
             || request()->routeIs('laporan.stok-bahan') || request()->routeIs('laporan.hpp') || request()->routeIs('laporan.job-costing') || request()->routeIs('laporan.profitabilitas') || request()->routeIs('laporan.pemakaian-bahan') || request()->routeIs('laporan.biaya-tinta');
     @endphp
     @if($grpLaporanVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] hover:text-slate-300 transition-colors">
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
         <span>Laporan</span>
-        <i class="fas fa-chevron-down text-[8px] transition-transform {{ $grpLaporanAktif ? 'rotate-180' : '' }}"></i>
+        <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpLaporanAktif ? 'rotate-180' : '' }}"></i>
     </button>
     <div class="menu-group-items space-y-1 {{ $grpLaporanAktif ? '' : 'hidden' }}">
     @endif
@@ -780,9 +839,9 @@
         $grpAkuntansiAktif = Request::is('akun*') || Request::is('akuntansi*') || Request::is('accounting-period*');
     @endphp
     @if($grpAkuntansiVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] hover:text-slate-300 transition-colors">
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
         <span>Akuntansi</span>
-        <i class="fas fa-chevron-down text-[8px] transition-transform {{ $grpAkuntansiAktif ? 'rotate-180' : '' }}"></i>
+        <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpAkuntansiAktif ? 'rotate-180' : '' }}"></i>
     </button>
     <div class="menu-group-items space-y-1 {{ $grpAkuntansiAktif ? '' : 'hidden' }}">
     @endif
@@ -819,9 +878,9 @@
 
     @php $grpJerseyAktif = Request::is('jersey*'); @endphp
     @if($cekAkses(38) || $cekAkses(42))
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] hover:text-slate-300 transition-colors">
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
         <span>Order Jersey</span>
-        <i class="fas fa-chevron-down text-[8px] transition-transform {{ $grpJerseyAktif ? 'rotate-180' : '' }}"></i>
+        <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpJerseyAktif ? 'rotate-180' : '' }}"></i>
     </button>
     <div class="menu-group-items space-y-1 {{ $grpJerseyAktif ? '' : 'hidden' }}">
     @if($cekAkses(38))
@@ -868,9 +927,9 @@
             || Request::is('approval*') || Request::is('log-aktivitas*') || Request::is('backup*');
     @endphp
     @if($grpSystemVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] hover:text-slate-300 transition-colors">
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
         <span>System Control</span>
-        <i class="fas fa-chevron-down text-[8px] transition-transform {{ $grpSystemAktif ? 'rotate-180' : '' }}"></i>
+        <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpSystemAktif ? 'rotate-180' : '' }}"></i>
     </button>
     <div class="menu-group-items space-y-1 {{ $grpSystemAktif ? '' : 'hidden' }}">
     @endif
@@ -1159,11 +1218,95 @@
         // sama saja - lebih sederhana daripada sinkronisasi localStorage
         // per grup untuk manfaat yang tipis.
         function toggleMenuGroup(btn) {
+            // Rel ringkas (sidebar dilipat): grup membuka flyout, bukan accordion.
+            if (window.railAktif && window.railAktif()) { window.railBukaFlyout(btn, true); return; }
             const items = btn.nextElementSibling;
-            const icon = btn.querySelector('i');
+            const icon = btn.querySelector('i.fa-chevron-down');
             items.classList.toggle('hidden');
-            icon.classList.toggle('rotate-180');
+            if (icon) icon.classList.toggle('rotate-180');
         }
+
+        // ===== Rel ikon (sidebar ringkas): ikon grup + flyout + tooltip =====
+        (function () {
+            const ikonGrup = [
+                [/produksi|logistik/i, 'fa-industry'], [/relasi|bisnis/i, 'fa-handshake'], [/finance|hr|keuangan/i, 'fa-wallet'],
+                [/laporan/i, 'fa-chart-line'], [/akuntansi/i, 'fa-scale-balanced'], [/jersey/i, 'fa-shirt'], [/system|sistem/i, 'fa-gear'],
+                [/penjualan|kasir/i, 'fa-cash-register'], [/master/i, 'fa-database'],
+            ];
+            const pilihIkon = (teks) => (ikonGrup.find(([re]) => re.test(teks)) || [null, 'fa-layer-group'])[1];
+            const rail = () => document.body.classList.contains('sidebar-collapsed') && window.innerWidth >= 1024;
+            window.railAktif = rail;
+
+            let fly, tip, tutupTimer, tombolAktif = null;
+            const buat = () => {
+                fly = document.createElement('div'); fly.id = 'railFlyout';
+                tip = document.createElement('div'); tip.id = 'railTip';
+                document.body.append(fly, tip);
+                fly.addEventListener('mouseenter', () => clearTimeout(tutupTimer));
+                fly.addEventListener('mouseleave', () => tutupFlyout());
+            };
+            const tutupFlyout = (segera) => {
+                clearTimeout(tutupTimer);
+                const tutup = () => { fly.style.display = 'none'; if (tombolAktif) tombolAktif.classList.remove('flyout-open'); tombolAktif = null; };
+                segera ? tutup() : (tutupTimer = setTimeout(tutup, 180));
+            };
+            window.railBukaFlyout = (btn, klik) => {
+                if (!rail()) return;
+                clearTimeout(tutupTimer);
+                tip.style.display = 'none';
+                                if (tombolAktif) tombolAktif.classList.remove('flyout-open');
+                tombolAktif = btn; btn.classList.add('flyout-open');
+
+                const wadah = btn.nextElementSibling;
+                const judul = (btn.dataset.label || '').replace(/</g, '&lt;');
+                fly.innerHTML = '<div class="fly-title">' + judul + '</div>';
+                wadah.querySelectorAll('a').forEach((a) => {
+                    const item = document.createElement('a');
+                    item.href = a.href;
+                    if (a.classList.contains('sb-active')) item.classList.add('fly-active');
+                    const svg = a.querySelector('svg');
+                    if (svg) { const c = svg.cloneNode(true); c.removeAttribute('class'); item.appendChild(c); }
+                    const label = document.createElement('span');
+                    label.textContent = (a.querySelector('span') || a).textContent.trim();
+                    item.appendChild(label);
+                    fly.appendChild(item);
+                });
+                fly.style.display = 'block';
+                const r = btn.getBoundingClientRect();
+                const tinggi = fly.offsetHeight;
+                fly.style.left = (r.right + 10) + 'px';
+                fly.style.top = Math.max(12, Math.min(r.top, window.innerHeight - tinggi - 12)) + 'px';
+            };
+            const tampilTip = (el, teks) => {
+                if (!rail()) return;
+                tip.textContent = teks; tip.style.display = 'block';
+                const r = el.getBoundingClientRect();
+                tip.style.left = (r.right + 12) + 'px';
+                tip.style.top = (r.top + r.height / 2 - tip.offsetHeight / 2) + 'px';
+            };
+
+            document.addEventListener('DOMContentLoaded', () => {
+                buat();
+                document.querySelectorAll('#mainSidebar .menu-group-toggle').forEach((btn) => {
+                    const label = (btn.querySelector('span') || btn).textContent.trim();
+                    btn.dataset.label = label;
+                    const ikon = document.createElement('i');
+                    ikon.className = 'rail-icon fas ' + pilihIkon(label);
+                    btn.insertBefore(ikon, btn.firstChild);
+                    if (btn.nextElementSibling && btn.nextElementSibling.querySelector('.sb-active')) btn.classList.add('has-active');
+                    btn.addEventListener('mouseenter', () => window.railBukaFlyout(btn, false));
+                    btn.addEventListener('mouseleave', () => { if (rail()) tutupFlyout(); });
+                });
+                document.querySelectorAll('#mainSidebar nav > a').forEach((a) => {
+                    const label = (a.querySelector('span') || a).textContent.trim();
+                    a.addEventListener('mouseenter', () => tampilTip(a, label));
+                    a.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+                });
+                document.addEventListener('click', (e) => { if (fly && !fly.contains(e.target) && !e.target.closest('.menu-group-toggle')) tutupFlyout(true); });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && fly) tutupFlyout(true); });
+                window.addEventListener('resize', () => { if (!rail() && fly) tutupFlyout(true); });
+            });
+        })();
     </script>
     {{-- Angka desimal DB (mis. 226.000) ditampilkan rapi (226) di SEMUA input number, termasuk saat modal edit
          diisi lewat JS (input.value = ...), baris yang ditambah dinamis, dan value bawaan server. Nilai numerik

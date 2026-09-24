@@ -194,3 +194,11 @@ Cara hitung: luas cetak dari pesanan (panjang × lebar × qty, nota dibatalkan d
 harga rata-rata bahan tinta (sudah dikonversi dari satuan hitung ke satuan stok). Perkiraan; tidak mengubah stok maupun HPP order.
 Pemakaian per mesin bisa diubah di bagian bawah halaman ("Pengaturan Pemakaian per Mesin"); angka awal adalah acuan
 (`docs/ACUAN_PEMAKAIAN_TINTA.md`). Bahan tinta yang harganya masih kosong diberi peringatan dan dihitung Rp 0.
+
+## Tampilan Sidebar
+
+- **Mode lebar:** logo perusahaan besar di bagian atas (tanpa nama, karena sudah ada di top bar), menu berwarna kontras tinggi, halaman aktif ditandai gradasi ungu, dan grup yang berisi halaman aktif diberi titik penanda.
+- **Mode ringkas (tombol ☰ di top bar):** berupa rel ikon besar per grup. Arahkan kursor (atau klik) ikon grup untuk melihat daftar menunya dalam panel melayang; ikon menu tunggal menampilkan tooltip nama. Pilihan mode diingat di browser.
+
+**Catatan teknis untuk server mana pun:** tampilan memakai aset yang dibangun oleh Vite (folder `public/build`, tidak masuk git).
+Setelah menarik kode terbaru atau mengubah tampilan, jalankan `npm install` (sekali) lalu `npm run build`; tanpa itu kelas tampilan baru tidak termuat dan halaman terlihat berantakan.
