@@ -47,6 +47,27 @@
             </tbody>
         </table>
 
+        @if($order->lines->contains(fn ($l) => $l->materials->isNotEmpty()))
+        <div class="divider divider-tight"></div>
+        <table>
+            <thead><tr><th>Kebutuhan Bahan (estimasi)</th><th class="right">Meter</th><th class="right">Berat</th></tr></thead>
+            <tbody>
+                @foreach($order->lines as $line)
+                    @if($line->materials->isNotEmpty())
+                    <tr><td colspan="3"><strong>{{ $line->nama_barang }}</strong> ({{ $line->qty }} pcs)</td></tr>
+                    @foreach($line->materials as $m)
+                    <tr>
+                        <td>&nbsp;&nbsp;{{ $m->nama_barang }}</td>
+                        <td class="right">{{ $m->penggunaan_meter !== null ? number_format($m->penggunaan_meter, 2, ',', '.') . ' m' : '-' }}</td>
+                        <td class="right">{{ $m->penggunaan_kg !== null ? \App\Services\JerseyMaterialEstimationService::formatBeratGram($m->penggunaan_kg * 1000) : '-' }}</td>
+                    </tr>
+                    @endforeach
+                    @endif
+                @endforeach
+            </tbody>
+        </table>
+        @endif
+
         @php
             $totalBeratKg = $order->lines->flatMap->materials->sum('penggunaan_kg');
 

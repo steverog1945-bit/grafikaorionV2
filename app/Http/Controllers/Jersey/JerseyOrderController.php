@@ -430,14 +430,16 @@ class JerseyOrderController extends Controller
                 'penggunaan_kg' => $estimasi['total_weight_gram'] > 0 ? round($estimasi['total_weight_gram'] / 1000, 2) : null,
             ]);
         }
-        foreach (JerseyMaterialEstimationService::hitungEstimasiLengan($h['qtyPerSizeSleeveType']) as $estimasi) {
+        // Lengan & Kerah hanya untuk tipe produk yang memilikinya (Celana tidak).
+        $punyaLenganKerah = JerseyMaterialEstimationService::tipeMemilikiLenganKerah(!empty($lineData['jersey_product_type_id']) ? (int) $lineData['jersey_product_type_id'] : null);
+        foreach (JerseyMaterialEstimationService::hitungEstimasiLengan($punyaLenganKerah ? $h['qtyPerSizeSleeveType'] : []) as $estimasi) {
             $line->materials()->create([
                 'nama_barang' => 'Lengan ' . $estimasi['component']->name,
                 'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,
                 'penggunaan_kg' => $estimasi['total_weight_gram'] > 0 ? round($estimasi['total_weight_gram'] / 1000, 2) : null,
             ]);
         }
-        foreach (JerseyMaterialEstimationService::hitungEstimasiKerah($h['qtyPerSizeCollarType']) as $estimasi) {
+        foreach (JerseyMaterialEstimationService::hitungEstimasiKerah($punyaLenganKerah ? $h['qtyPerSizeCollarType'] : []) as $estimasi) {
             $line->materials()->create([
                 'nama_barang' => 'Kerah ' . $estimasi['component']->name,
                 'penggunaan_meter' => $estimasi['total_meter'] > 0 ? round($estimasi['total_meter'], 2) : null,

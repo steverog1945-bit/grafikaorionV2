@@ -35,6 +35,8 @@ class JerseyMaterialEstimationService
             return [];
         }
 
+        $punyaLenganKerah = self::tipeMemilikiLenganKerah($productTypeId);
+
         $usages = JerseySizeComponentUsage::with('component')
             ->whereIn('jersey_size_id', array_keys($qtyPerSize))
             ->where(function ($q) {
@@ -59,6 +61,11 @@ class JerseyMaterialEstimationService
             if ($component->jersey_category_id && $component->jersey_category_id != $categoryId) {
                 continue;
             }
+            // Komponen tanpa cakupan (Body, Rib, dst) tidak relevan untuk tipe
+            // produk tanpa lengan/kerah (mis. Celana) - jangan ikut tampil.
+            if (!$component->jersey_product_type_id && !$punyaLenganKerah) {
+                continue;
+            }
             $qty = $qtyPerSize[$usage->jersey_size_id] ?? 0;
             if ($qty <= 0) {
                 continue;
@@ -67,6 +74,22 @@ class JerseyMaterialEstimationService
         }
 
         return self::urutkanTotal($totals);
+    }
+
+    /**
+     * Apakah tipe produk ini punya lengan/kerah. Tipe kosong/tidak dikenal
+     * dianggap punya (perilaku lama). Dipakai supaya estimasi Lengan, Kerah,
+     * dan komponen umum tidak muncul untuk barang seperti Celana.
+     */
+    public static function tipeMemilikiLenganKerah(?int $productTypeId): bool
+    {
+        if (!$productTypeId) {
+            return true;
+        }
+
+        $nilai = \Illuminate\Support\Facades\DB::table('jersey_product_types')->where('id', $productTypeId)->value('has_sleeve_collar');
+
+        return $nilai === null ? true : (bool) $nilai;
     }
 
     /**
