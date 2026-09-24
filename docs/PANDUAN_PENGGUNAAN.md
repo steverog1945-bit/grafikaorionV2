@@ -176,3 +176,9 @@ Setelah itu XAMPP Control Panel tidak dipakai lagi.
 - Shutdown atau restart Windows biasa sudah aman.
 - Kembali ke cara lama: `orion_uninstall_service.bat` (Run as administrator); data tidak disentuh.
 - Tanpa service, gunakan `orion_start.bat` dan `orion_stop.bat` (selalu matikan lewat orion_stop.bat).
+
+## Harga Awal Bahan Baku & Koreksi Harga
+
+- **Registrasi bahan baru:** isi "Harga Beli per Satuan Stok" (opsional). Menjadi harga rata-rata awal (dasar HPP). Bila Stok Awal juga diisi, nilainya dijurnal sebagai saldo awal persediaan (Dr Persediaan / Cr Modal); centang bisa dimatikan bila saldo awal akuntansi akan diisi sekaligus lewat `akuntansi:saldo-awal`.
+- **Bahan yang sudah ada tanpa harga:** di Master Bahan Baku, klik tulisan "Belum ada harga" (atau filter Harga = Belum ada harga) lalu isi harga dan alasan. Hanya mengubah dasar HPP ke depan; tidak mengubah stok dan tidak membuat jurnal. Tercatat di Log Aktivitas.
+- **Tinta/toner:** sudah didaftarkan per mesin (stok 0, harga kosong). Acuan pemakaian per m2 ada di `docs/ACUAN_PEMAKAIAN_TINTA.md`.
