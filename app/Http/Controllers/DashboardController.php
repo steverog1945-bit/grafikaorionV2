@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\KasSesiService;
+
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -83,11 +85,8 @@ class DashboardController extends Controller
         $piutangCount = DB::table('transaksi')->where('status_pembayaran', '!=', 'Lunas')->where('status_nota', '!=', 'Dibatalkan')->count();
         $kasMasukHariIni = DB::table('pembayaran_riwayat')->whereDate('tgl_bayar', $today)->sum('nominal');
 
-        $kasAktif = DB::table('kas_harian')
-            ->where('tgl_kas', $today)
-            ->where('status_lock', 'open')
-            ->where('id_user', auth()->id())
-            ->first();
+        $kasAktifSemua = KasSesiService::aktif();
+        $kasAktif = ($kasAktifSemua && (int) $kasAktifSemua->id_user === (int) auth()->id()) ? $kasAktifSemua : null;
 
         $urgentList = DB::table('transaksi_detail')
             ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')

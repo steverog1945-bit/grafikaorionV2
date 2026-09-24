@@ -26,11 +26,9 @@ class AppServiceProvider extends ServiceProvider
     view()->composer('*', function ($view) {
         if (auth()->check()) {
             // Mengambil kas harian yang dibuka oleh user manapun hari ini yang masih 'open'
-            $kas = \DB::table('kas_harian')
-                ->where('tgl_kas', date('Y-m-d'))
-                ->where('status_lock', 'open')
-                ->first();
+            $kas = \App\Services\KasSesiService::aktif();
             $view->with('kasAktif', $kas);
+            $view->with('kasBasi', \App\Services\KasSesiService::basi($kas));
         }
     });
     }

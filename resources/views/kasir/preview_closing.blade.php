@@ -9,7 +9,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Closing Alur Kas Kasir" subtitle="Rekap satu hari penuh sebelum menutup & mengunci sesi kas.">
+    <x-page-header title="Closing Alur Kas Kasir" subtitle="Rekap sesi kas sejak {{ $mulaiSesi->translatedFormat('d F Y, H:i') }} sebelum menutup & mengunci sesi.">
         <x-slot:actions>
             <x-button href="{{ route('kasir.kelola') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali
@@ -17,6 +17,12 @@
         </x-slot:actions>
     </x-page-header>
 
+@if($tutupPaksa)
+    <div class="max-w-4xl mx-auto mb-4 flex items-start gap-3 bg-rose-50 border-2 border-rose-200 rounded-2xl px-5 py-4 text-sm font-semibold text-rose-700">
+        <i class="fas fa-user-shield mt-0.5"></i>
+        <span>Tutup paksa: sesi kas ini milik kasir lain. Isi <b>alasan</b> pada kolom keterangan; tindakan ini dicatat di Log Aktivitas.</span>
+    </div>
+@endif
 <div class="max-w-4xl mx-auto p-6 bg-white rounded-3xl shadow-xl">
 
     {{-- REKAP TRANSAKSI - nota Order yang tgl_order-nya HARI INI, dipecah per

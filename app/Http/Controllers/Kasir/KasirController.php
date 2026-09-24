@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Kasir;
 
+use App\Services\KasSesiService;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -298,10 +300,7 @@ class KasirController extends Controller
 
             // 2. Catat Pembayaran (Hanya jika uang > 0)
             if ($uangDiterimaSekarang > 0) {
-                $kas = DB::table('kas_harian')
-                        ->where('tgl_kas', date('Y-m-d'))
-                        ->where('status_lock', 'open')
-                        ->first();
+                $kas = KasSesiService::aktifUntukTransaksi();
 
                 if (!$kas) {
                     throw new \Exception("Kasir belum dibuka! Silakan buka kas terlebih dahulu.");
@@ -424,13 +423,20 @@ class KasirController extends Controller
         }
     }
 
+    /** Pemilik sesi atau Administrator boleh closing. */
+    private static function bolehTutup(object $kas): bool
+    {
+        return (int) $kas->id_user === (int) auth()->id() || optional(auth()->user()->role)->nama_role === 'Administrator';
+    }
+
     /**
      * Manajemen Kas Harian
      */
     public function kelolaKas()
     {
         $hari_ini = date('Y-m-d');
-        $kasAktif = DB::table('kas_harian')->where('tgl_kas', $hari_ini)->where('status_lock', 'open')->first();
+        $kasAktif = KasSesiService::aktif();
+        $mulaiSesi = $kasAktif ? KasSesiService::mulai($kasAktif) : now()->startOfDay();
 
         // "Status Rolling Saldo Akhir" - kalau sesi kas yang PALING BARU
         // ditutup (tanggal berapa pun sebelum hari ini, bukan cuma kemarin
@@ -453,7 +459,7 @@ class KasirController extends Controller
         $mutasi = DB::table('pembayaran_riwayat')
             ->join('transaksi', 'pembayaran_riwayat.id_transaksi', '=', 'transaksi.id_transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
-            ->whereDate('pembayaran_riwayat.tgl_bayar', $hari_ini)
+            ->where('pembayaran_riwayat.tgl_bayar', '>=', $mulaiSesi)
             ->select('pembayaran_riwayat.*', 'transaksi.nomor_nota', 'transaksi.status_pembayaran', 'konsumen.nama_konsumen')
             ->orderBy('pembayaran_riwayat.tgl_bayar', 'desc')
             ->get();
@@ -465,7 +471,7 @@ class KasirController extends Controller
         // ada isinya untuk baris ini.
         $mutasiManual = DB::table('kas_manual')
             ->join('users', 'kas_manual.id_user', '=', 'users.id_user')
-            ->whereDate('kas_manual.waktu', $hari_ini)
+            ->when($kasAktif, fn ($q) => $q->where('kas_manual.id_kas', $kasAktif->id_kas), fn ($q) => $q->where('kas_manual.waktu', '>=', $mulaiSesi))
             ->select('kas_manual.*', 'users.username as dicatat_oleh')
             ->orderBy('kas_manual.waktu', 'desc')
             ->get();
@@ -499,13 +505,10 @@ class KasirController extends Controller
 
         DB::beginTransaction();
         try {
-            $kas = DB::table('kas_harian')
-                ->where('tgl_kas', now()->format('Y-m-d'))
-                ->where('status_lock', 'open')
-                ->first();
+            $kas = KasSesiService::aktifUntukTransaksi();
 
             if (!$kas) {
-                throw new \Exception('Kasir belum dibuka! Silakan buka kas terlebih dahulu.');
+                throw new \Exception(KasSesiService::alasanTerblokir() ?? 'Kasir belum dibuka! Silakan buka kas terlebih dahulu.');
             }
 
             // Sama seperti prosesBayar() - kas manual (mutasi tunai di luar
@@ -570,21 +573,19 @@ class KasirController extends Controller
     return DB::transaction(function () use ($nominal) {
         DB::table('app_settings')->lockForUpdate()->first();
 
-        $kasAktifSiapaPun = DB::table('kas_harian')
-            ->where('tgl_kas', now()->format('Y-m-d'))
-            ->where('status_lock', 'open')
-            ->first();
+        $kasAktifSiapaPun = KasSesiService::aktif();
 
         if ($kasAktifSiapaPun) {
+            $tglBuka = \Carbon\Carbon::parse($kasAktifSiapaPun->tgl_kas)->format('d/m/Y');
             if ((int) $kasAktifSiapaPun->id_user === (int) auth()->id()) {
-                return redirect()->route('kasir.kelola')->with('error', 'Anda sudah membuka sesi kas hari ini.');
+                return redirect()->route('kasir.kelola')->with('error', "Sesi kas Anda (dibuka {$tglBuka}) masih berjalan dan belum di-closing. Lakukan closing kas dulu sebelum membuka sesi baru.");
             }
             $namaKasirAktif = DB::table('users')
                 ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
                 ->where('users.id_user', $kasAktifSiapaPun->id_user)
                 ->select(DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama'))
                 ->value('nama') ?? 'pengguna lain';
-            return redirect()->route('kasir.kelola')->with('error', "Sesi kas hari ini sudah dibuka oleh {$namaKasirAktif}. Hanya satu sesi kas yang boleh aktif dalam satu waktu - tunggu sesi tersebut di-closing dulu sebelum membuka sesi baru.");
+            return redirect()->route('kasir.kelola')->with('error', "Sesi kas milik {$namaKasirAktif} (dibuka {$tglBuka}) belum di-closing. Hanya satu sesi kas yang boleh aktif dalam satu waktu - closing dulu sebelum membuka sesi baru (Administrator dapat menutup paksa).");
         }
 
         DB::table('kas_harian')->insert([
@@ -618,16 +619,20 @@ class KasirController extends Controller
 public function previewClosing()
 {
     $hari_ini = date('Y-m-d');
-    $kas = DB::table('kas_harian')
-        ->where('tgl_kas', $hari_ini)
-        ->where('status_lock', 'open')
-        ->where('id_user', auth()->id())
-        ->first();
+    $kas = KasSesiService::aktif();
 
     // Proteksi: Tidak bisa closing jika tidak ada kas aktif
     if (!$kas) {
         return redirect()->route('kasir.kelola')->with('error', 'Tidak ada alur kas aktif yang bisa ditutup!');
     }
+
+    // Closing: pemilik sesi, atau Administrator (tutup paksa, mis. kasir lupa closing).
+    if (!self::bolehTutup($kas)) {
+        return redirect()->route('kasir.kelola')->with('error', 'Sesi kas ini milik kasir lain. Hanya pemilik sesi atau Administrator yang dapat melakukan closing.');
+    }
+    $mulaiSesi = KasSesiService::mulai($kas);
+    $akhirSesi = KasSesiService::akhir($kas);
+    $tutupPaksa = (int) $kas->id_user !== (int) auth()->id();
 
     // REKAP TRANSAKSI - nota yang ORDER-nya dibuat hari ini (tgl_order),
     // dipecah per Mesin/Divisi produk (Jasa & produk tanpa mesin masuk
@@ -636,7 +641,7 @@ public function previewClosing()
         ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
         ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
         ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
-        ->whereDate('transaksi.tgl_order', $hari_ini)
+        ->where('transaksi.tgl_order', '>=', $mulaiSesi)
         ->where('transaksi.status_nota', '!=', 'Dibatalkan')
         ->select(
             DB::raw("COALESCE(mesin.nama_mesin, 'Jasa / Lain-lain') as kategori"),
@@ -651,7 +656,7 @@ public function previewClosing()
     // Piutang Nota Order - sisa tagihan (belum dibayar) KHUSUS dari nota
     // yang order-nya dibuat hari ini (bukan seluruh piutang lama).
     $notaHariIni = DB::table('transaksi')
-        ->whereDate('tgl_order', $hari_ini)
+        ->where('tgl_order', '>=', $mulaiSesi)
         ->where('status_nota', '!=', 'Dibatalkan')
         ->select('id_transaksi', 'total_bayar')
         ->get();
@@ -667,16 +672,19 @@ public function previewClosing()
     // bayarnya sama-sama hari ini).
     $pembayaranHariIni = DB::table('pembayaran_riwayat')
         ->join('transaksi', 'pembayaran_riwayat.id_transaksi', '=', 'transaksi.id_transaksi')
-        ->whereDate('pembayaran_riwayat.tgl_bayar', $hari_ini)
-        ->select('pembayaran_riwayat.nominal', 'pembayaran_riwayat.metode', DB::raw('DATE(transaksi.tgl_order) as tgl_order_date'))
+        ->where('pembayaran_riwayat.tgl_bayar', '>=', $mulaiSesi)
+        ->where('pembayaran_riwayat.tgl_bayar', '<=', $akhirSesi)
+        ->select('pembayaran_riwayat.nominal', 'pembayaran_riwayat.metode', 'transaksi.tgl_order')
         ->get();
-    $bayarPelunasan = (float) $pembayaranHariIni->where('tgl_order_date', '!=', $hari_ini)->sum('nominal');
-    $bayarHariIni = (float) $pembayaranHariIni->where('tgl_order_date', $hari_ini)->sum('nominal');
+    // Pelunasan = nota yang dibuat SEBELUM sesi ini dimulai; sisanya transaksi sesi ini.
+    $bayarPelunasan = (float) $pembayaranHariIni->filter(fn ($p) => \Carbon\Carbon::parse($p->tgl_order)->lt($mulaiSesi))->sum('nominal');
+    $bayarHariIni = (float) $pembayaranHariIni->filter(fn ($p) => !\Carbon\Carbon::parse($p->tgl_order)->lt($mulaiSesi))->sum('nominal');
 
     // Hitung Rincian Pemasukan dari Riwayat Pembayaran (per metode, seluruh
     // pembayaran hari ini apa pun tanggal order-nya - dipakai utk mutasi laci).
     $pemasukan = DB::table('pembayaran_riwayat')
-        ->whereDate('tgl_bayar', $hari_ini)
+        ->where('tgl_bayar', '>=', $mulaiSesi)
+        ->where('tgl_bayar', '<=', $akhirSesi)
         ->select(
             DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
             DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk"),
@@ -702,7 +710,7 @@ public function previewClosing()
     return view('kasir.preview_closing', compact(
         'kas', 'pemasukan', 'pengeluaran_tunai', 'saldo_akhir_sistem',
         'rekapKategori', 'totalNotaOrder', 'piutangNotaOrder', 'totalPendapatan',
-        'bayarPelunasan', 'bayarHariIni', 'manualMasuk'
+        'bayarPelunasan', 'bayarHariIni', 'manualMasuk', 'mulaiSesi', 'tutupPaksa'
     ));
 }
 
@@ -712,12 +720,8 @@ public function simpanClosing(Request $request)
         'status_rolling' => 'required|in:Rolling,Tidak Rolling',
     ]);
 
-    // Sama seperti storeKas() - hari Minggu kas libur, closing juga ikut
-    // diblokir (bukan cuma open saldo) supaya konsisten: sekali "libur",
-    // tidak ada aktivitas kas sama sekali hari itu.
-    if (\App\Models\AppSetting::current()->libur_kas_minggu && now()->isSunday()) {
-        return back()->with('error', 'Hari Minggu kas libur - Closing Kas tidak bisa dilakukan. Ubah pengaturan ini di Pengaturan Aplikasi kalau toko memang buka hari Minggu.');
-    }
+    // Closing SELALU boleh (termasuk hari Minggu libur): sesi kas tetap open
+    // sampai di-closing, jadi sesi yang dibuka hari Sabtu harus bisa ditutup.
 
     $id_kas = $request->id_kas;
     $saldo_fisik = (float) str_replace('.', '', $request->saldo_fisik ?? 0);
@@ -738,13 +742,22 @@ public function simpanClosing(Request $request)
         if ($kas->status_lock === 'closed') {
             throw new \Exception('Sesi kas ini sudah ditutup sebelumnya.');
         }
+        if (!self::bolehTutup($kas)) {
+            throw new \Exception('Hanya pemilik sesi kas atau Administrator yang dapat melakukan closing.');
+        }
+        $tutupPaksa = (int) $kas->id_user !== (int) auth()->id();
+        if ($tutupPaksa && trim((string) $request->keterangan) === '') {
+            throw new \Exception('Tutup paksa sesi kas milik kasir lain wajib disertai alasan pada kolom keterangan.');
+        }
+        $mulaiSesi = KasSesiService::mulai($kas);
 
         // Total pemasukan DIHITUNG ULANG dari pembayaran_riwayat di server
         // (bukan dipercaya dari hidden field), sama seperti previewClosing() -
         // supaya laporan yang tersimpan permanen tidak bisa diselipi angka
         // yang tidak sesuai riwayat pembayaran sesungguhnya.
         $pemasukan = DB::table('pembayaran_riwayat')
-            ->whereDate('tgl_bayar', $kas->tgl_kas)
+            ->where('tgl_bayar', '>=', $mulaiSesi)
+            ->where('tgl_bayar', '<=', now())
             ->select(
                 DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
                 DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk"),
@@ -782,6 +795,10 @@ public function simpanClosing(Request $request)
             'status_rolling' => $request->status_rolling,
             'updated_at' => now()
         ]);
+
+        if ($tutupPaksa) {
+            \App\Services\AuditLogger::log('updated', 'kas_harian', (int) $id_kas, ['status_lock' => 'open'], ['status_lock' => 'closed'], 'Tutup paksa sesi kas milik user #' . $kas->id_user . ': ' . $request->keterangan);
+        }
 
         DB::commit();
         return redirect()->route('kasir.kelola')->with('success', 'Kas Berhasil Ditutup dan Dikunci. Selisih: Rp ' . number_format($selisih, 0, ',', '.'));

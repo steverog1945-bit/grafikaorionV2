@@ -84,6 +84,27 @@
     @endif
 </div>
 
+@if($kasAktif)
+    @php
+        $mulaiTampil = \App\Services\KasSesiService::mulai($kasAktif);
+        $umurJam = \App\Services\KasSesiService::umurJam($kasAktif);
+        $pemilikSesi = DB::table('users')->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')->where('users.id_user', $kasAktif->id_user)->value(DB::raw('COALESCE(karyawan.nama_karyawan, users.username)'));
+        $saya = (int) $kasAktif->id_user === (int) auth()->id();
+    @endphp
+    <div class="mb-6 flex flex-wrap items-center gap-3 rounded-2xl px-5 py-4 border-2 {{ $kasBasi ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-100' }}">
+        <i class="fas {{ $kasBasi ? 'fa-triangle-exclamation text-amber-500' : 'fa-clock text-slate-400' }} text-lg"></i>
+        <div class="text-sm font-semibold {{ $kasBasi ? 'text-amber-800' : 'text-slate-600' }}">
+            Sesi kas dibuka <b>{{ $mulaiTampil->translatedFormat('d F Y, H:i') }}</b> oleh <b>{{ $pemilikSesi }}</b> ({{ $umurJam }} jam).
+            @if($kasBasi)
+                Sesi ini sudah lebih dari 24 jam dan <b>belum di-closing</b> - lakukan closing supaya uang laci direkonsiliasi
+                @if(!$saya) (Administrator dapat menutup paksa dengan alasan)@endif.
+            @else
+                Kas tetap berjalan sampai closing dilakukan, walau melewati pergantian tanggal.
+            @endif
+        </div>
+    </div>
+@endif
+
 {{-- SALDO ROLLING - kas kemarin (atau sesi terakhir sebelum hari ini)
      ditutup dengan status "Rolling", saldonya jadi saran saldo awal hari
      ini. Ditampilkan HANYA saat kasir belum dibuka - begitu dibuka, saran

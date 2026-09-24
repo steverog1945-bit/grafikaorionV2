@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\KasSesiService;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Konsumen;
@@ -60,11 +62,10 @@ public function storeAjax(Request $request)
     // modul Kasir). Sebelumnya kode ini mengecek tabel kas_sesi, yang tidak pernah
     // diisi data oleh bagian manapun dari aplikasi, sehingga pengecekan ini selalu
     // gagal walau kasir sudah membuka sesi kas hari itu.
-    $sesi = DB::table('kas_harian')
-        ->where('tgl_kas', date('Y-m-d'))
-        ->where('status_lock', 'open')
-        ->where('id_user', auth()->id())
-        ->first();
+    $sesi = KasSesiService::aktifUntukTransaksi();
+    if ($sesi && (int) $sesi->id_user !== (int) auth()->id()) {
+        $sesi = null;
+    }
 
     if (!$sesi) {
         return response()->json([

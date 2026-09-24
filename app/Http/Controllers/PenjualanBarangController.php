@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\KasSesiService;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -72,10 +74,7 @@ class PenjualanBarangController extends Controller
         // "buka" (ada kas aktif hari ini, siapa pun pemiliknya) - guard yang
         // SAMA PERSIS dengan PenjualanController::store(), supaya penjualan
         // barang juga tidak bisa terjadi di luar jam operasional kas.
-        $kasHariIni = DB::table('kas_harian')
-            ->where('tgl_kas', date('Y-m-d'))
-            ->where('status_lock', 'open')
-            ->first();
+        $kasHariIni = KasSesiService::aktifUntukTransaksi();
 
         if (!$kasHariIni) {
             return redirect()->back()->with('error', 'Kasir belum dibuka! Buka kas terlebih dahulu sebelum membuat order baru.')->withInput();

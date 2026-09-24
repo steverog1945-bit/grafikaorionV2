@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\KasSesiService;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -99,10 +101,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
     // hari ini (kas_harian berstatus open). Sebelum ini tidak ada guard sama
     // sekali di sini - order/SPK bisa terbentuk kapan pun tanpa sesi kas yang
     // menaunginya. Guard yang sama persis dengan KasirController::prosesBayar().
-    $kasHariIni = DB::table('kas_harian')
-        ->where('tgl_kas', date('Y-m-d'))
-        ->where('status_lock', 'open')
-        ->first();
+    $kasHariIni = KasSesiService::aktifUntukTransaksi();
 
     if (!$kasHariIni) {
         return response()->json(['status' => 'error', 'msg' => 'Kasir belum dibuka! Buka kas terlebih dahulu sebelum membuat order baru.'], 400);
