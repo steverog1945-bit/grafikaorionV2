@@ -188,130 +188,157 @@
 </div>
 
 {{-- MODAL CRUD --}}
-<div id="modalBahan" class="hidden fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm">
-    <div class="flex items-center justify-center h-full p-3 sm:p-6">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col overflow-hidden border border-slate-100">
-            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+<div id="modalBahan" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
+    <div class="flex items-center justify-center min-h-screen px-4 py-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
+            <div class="px-6 py-3.5 border-b border-slate-50 flex justify-between items-center">
                 <h3 id="modalTitle" class="text-base font-bold text-slate-800">Registrasi Material</h3>
-                <button type="button" onclick="closeModalBahan()" class="text-slate-400 hover:text-rose-500 transition-colors" title="Tutup">
+                <button onclick="closeModalBahan()" class="text-slate-400 hover:text-rose-500 transition-colors">
                     <i class="fas fa-times-circle text-xl"></i>
                 </button>
             </div>
 
-            <form id="formBahan" method="POST" class="flex flex-col min-h-0">
+            <form id="formBahan" method="POST" class="px-6 py-4">
                 @csrf
                 <div id="methodField"></div>
-
-                @php
-                    $lbl = 'block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ml-0.5';
-                    $inp = 'w-full bg-slate-50 border-none rounded-lg py-2.5 px-3 text-[13px] font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner';
-                    $sel = $inp . ' appearance-none cursor-pointer';
-                @endphp
-
-                <div class="overflow-y-auto px-6 py-5 grid grid-cols-6 gap-x-3 gap-y-3.5">
-                    {{-- IDENTITAS --}}
-                    <div class="col-span-6 sm:col-span-4">
-                        <label class="{{ $lbl }}">Nama Bahan</label>
-                        <input type="text" name="nama_bahan" id="input_nama_bahan" required class="{{ $inp }}">
-                    </div>
-                    <div class="col-span-6 sm:col-span-2">
-                        <label class="{{ $lbl }}">Kode SKU</label>
-                        <input type="text" name="kode_bahan" id="input_kode_bahan" required class="{{ $inp }}">
-                    </div>
-                    <div class="col-span-6 sm:col-span-3">
-                        <label class="{{ $lbl }}">Mesin Alokasi</label>
-                        <select name="id_mesin" id="input_id_mesin" required class="{{ $sel }}">
-                            @foreach($mesin as $m)<option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>@endforeach
-                        </select>
-                    </div>
-                    <div class="col-span-6 sm:col-span-3">
-                        <label class="{{ $lbl }}">Kategori</label>
-                        <select name="id_kategori" id="input_id_kategori" required class="{{ $sel }}">
-                            @foreach($kategori as $k)<option value="{{ $k->id_kategori }}">{{ $k->nama_kategori }}</option>@endforeach
-                        </select>
-                    </div>
-                    <div class="col-span-6 sm:col-span-3">
-                        <label class="{{ $lbl }}">Merk <span class="normal-case font-medium">(opsional)</span></label>
-                        <select name="id_merk" id="input_id_merk" class="{{ $sel }}">
-                            <option value="">- Tanpa Merk -</option>
-                            @foreach($merk as $m)<option value="{{ $m->id_merk }}">{{ $m->nama_merk }}</option>@endforeach
-                        </select>
-                    </div>
-                    <div class="col-span-6 sm:col-span-3">
-                        <label class="{{ $lbl }}">Jenis Bahan <span class="normal-case font-medium">(opsional)</span></label>
-                        <select name="id_jenis_bahan" id="input_id_jenis_bahan" class="{{ $sel }}">
-                            <option value="">- Tanpa Jenis -</option>
-                            @foreach($jenisBahan as $j)<option value="{{ $j->id_jenis_bahan }}">{{ $j->nama_jenis }}</option>@endforeach
-                        </select>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Nama Bahan</label>
+                        <input type="text" name="nama_bahan" id="input_nama_bahan" required
+                               class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     </div>
 
-                    {{-- SATUAN & KONVERSI --}}
-                    <p class="col-span-6 text-[10px] font-black text-indigo-500 uppercase tracking-widest pt-2 border-t border-slate-100">Satuan &amp; Konversi</p>
-                    <div class="col-span-6 sm:col-span-2">
-                        <label class="{{ $lbl }}">Satuan Stok (Beli)</label>
-                        <select name="id_satuan_stok" id="input_id_satuan_stok" required class="{{ $sel }}">
-                            <option value="">Pilih</option>
-                            @foreach($satuan as $s)<option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>@endforeach
-                        </select>
-                    </div>
-                    <div class="col-span-6 sm:col-span-2">
-                        <label class="{{ $lbl }}">Satuan Hitung (Pakai)</label>
-                        <select name="id_satuan_hitung" id="input_id_satuan_hitung" required class="{{ $sel }}">
-                            <option value="">Pilih</option>
-                            @foreach($satuan as $s)<option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>@endforeach
-                        </select>
-                    </div>
-                    <div class="col-span-6 sm:col-span-2">
-                        <label class="{{ $lbl }}" title="1 Satuan Stok = berapa Satuan Hitung. Contoh: 1 rim = 500 lembar, isi 500.">Konversi (1 stok = ? hitung) <i class="far fa-question-circle"></i></label>
-                        <input type="number" step="0.001" name="nilai_konversi" id="input_nilai_konversi" required value="1" class="{{ $inp }}">
-                    </div>
-
-                    <div id="wrapper_dimensi_roll" class="col-span-6 grid grid-cols-6 items-end gap-x-3 gap-y-2 p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl"
-                         title="Khusus bahan roll berunit m&sup2;: Lebar &times; Panjang mengisi Konversi otomatis (HPP & pengurangan stok jadi akurat).">
-                        <p class="col-span-6 sm:col-span-2 text-[10px] font-black text-indigo-500 uppercase tracking-widest leading-tight">
-                            <i class="fas fa-ruler-combined mr-1"></i> Dimensi Roll<br><span class="normal-case font-medium text-indigo-400">opsional, bahan roll m&sup2;</span>
-                        </p>
-                        <div class="col-span-3 sm:col-span-2">
-                            <label class="{{ $lbl }}">Lebar (m)</label>
-                            <input type="number" step="0.01" name="lebar_roll" id="input_lebar_roll" oninput="hitungNilaiKonversiRoll()" placeholder="1.5" class="{{ $inp }} !bg-white">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Kode SKU</label>
+                            <input type="text" name="kode_bahan" id="input_kode_bahan" required
+                                   class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                         </div>
-                        <div class="col-span-3 sm:col-span-2">
-                            <label class="{{ $lbl }}">Panjang (m)</label>
-                            <input type="number" step="0.01" name="panjang_roll" id="input_panjang_roll" oninput="hitungNilaiKonversiRoll()" placeholder="50" class="{{ $inp }} !bg-white">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Mesin Alokasi</label>
+                            <select name="id_mesin" id="input_id_mesin" required class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                                @foreach($mesin as $m)
+                                    <option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
-                    {{-- STOK & HARGA --}}
-                    <p class="col-span-6 text-[10px] font-black text-emerald-600 uppercase tracking-widest pt-2 border-t border-slate-100">Stok &amp; Harga</p>
-                    <div class="col-span-6 sm:col-span-2">
-                        <label class="{{ $lbl }}">Stok Awal</label>
-                        <input type="number" step="0.001" name="stok" id="input_stok" required value="0" class="{{ $inp }} disabled:opacity-60 disabled:cursor-not-allowed">
-                        <p id="stok_locked_hint" class="hidden mt-1 text-[10px] text-slate-400 leading-snug">
-                            <i class="fas fa-lock"></i> Terkunci. Ubah lewat
-                            <a href="{{ route('kartu-stok.index') }}" class="text-indigo-500 font-bold hover:underline" target="_blank">Kartu Stok &rsaquo; Penyesuaian</a>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Kategori</label>
+                        <select name="id_kategori" id="input_id_kategori" required class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                            @foreach($kategori as $k)
+                                <option value="{{ $k->id_kategori }}">{{ $k->nama_kategori }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Merk (Opsional)</label>
+                            <select name="id_merk" id="input_id_merk" class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                                <option value="">-- Tanpa Merk --</option>
+                                @foreach($merk as $m)
+                                    <option value="{{ $m->id_merk }}">{{ $m->nama_merk }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Jenis Bahan (Opsional)</label>
+                            <select name="id_jenis_bahan" id="input_id_jenis_bahan" class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                                <option value="">-- Tanpa Jenis --</option>
+                                @foreach($jenisBahan as $j)
+                                    <option value="{{ $j->id_jenis_bahan }}">{{ $j->nama_jenis }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-50">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 mb-0">Konversi Satuan &amp; Stok</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Satuan Stok (Beli)</label>
+                            <select name="id_satuan_stok" id="input_id_satuan_stok" required class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                                <option value="">Pilih Satuan</option>
+                                @foreach($satuan as $s)
+                                    <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Satuan Hitung (Pakai)</label>
+                            <select name="id_satuan_hitung" id="input_id_satuan_hitung" required class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                                <option value="">Pilih Satuan</option>
+                                @foreach($satuan as $s)
+                                    <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="wrapper_dimensi_roll" class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-2">
+                        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">
+                            <i class="fas fa-ruler-combined mr-1"></i> Dimensi Roll (opsional, bahan roll m²)
                         </p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Lebar Roll (m)</label>
+                                <input type="number" step="0.01" name="lebar_roll" id="input_lebar_roll" oninput="hitungNilaiKonversiRoll()" placeholder="Contoh: 1.5"
+                                       class="w-full bg-white border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Panjang Roll (m)</label>
+                                <input type="number" step="0.01" name="panjang_roll" id="input_panjang_roll" oninput="hitungNilaiKonversiRoll()" placeholder="Contoh: 50"
+                                       class="w-full bg-white border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-indigo-400">Lebar × Panjang otomatis mengisi Nilai Konversi.</p>
                     </div>
-                    <div class="col-span-6 sm:col-span-2">
-                        <label class="{{ $lbl }}">Stok Minimal</label>
-                        <input type="number" step="0.001" name="stok_minimal" id="input_stok_minimal" required value="0" class="{{ $inp }}">
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Nilai Konversi (1 Satuan Stok = ? Satuan Hitung)</label>
+                        <input type="number" step="0.001" name="nilai_konversi" id="input_nilai_konversi" required value="1"
+                               class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                        <p class="mt-1 ml-1 text-[10px] text-slate-400">Contoh: 1 Rim = 500 Lembar → isi <b>500</b>.</p>
                     </div>
-                    <div id="blok_harga_awal" class="col-span-6 sm:col-span-2">
-                        <label class="{{ $lbl }} !text-emerald-600" title="Harga beli per satuan stok. Menjadi harga rata-rata awal (dasar HPP); bila Stok Awal diisi, nilainya dijurnal sebagai saldo awal persediaan.">Harga Beli / Satuan Stok <i class="far fa-question-circle"></i></label>
-                        <input type="number" step="0.01" min="0" name="harga_beli" id="input_harga_beli" placeholder="opsional" class="{{ $inp }} !bg-emerald-50/60">
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Stok Awal</label>
+                            <input type="number" step="0.001" name="stok" id="input_stok" required value="0"
+                                   class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner disabled:opacity-60 disabled:cursor-not-allowed">
+                            <p id="stok_locked_hint" class="hidden mt-1 ml-1 text-[10px] text-slate-400"><i class="fas fa-lock mr-0.5"></i> Ubah lewat <a href="{{ route('kartu-stok.index') }}" class="text-indigo-500 font-bold hover:underline" target="_blank">Kartu Stok &rarr; Penyesuaian</a></p>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Stok Minimal</label>
+                            <input type="number" step="0.001" name="stok_minimal" id="input_stok_minimal" required value="0"
+                                   class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                        </div>
                     </div>
-                    <label id="blok_jurnal" class="col-span-6 flex items-center gap-2 text-[11px] font-semibold text-slate-500 -mt-1"
-                           title="Hilangkan centang bila saldo awal akuntansi akan diisi sekaligus lewat akuntansi:saldo-awal, supaya tidak tercatat dua kali.">
-                        <input type="hidden" name="catat_jurnal" value="0">
-                        <input type="checkbox" name="catat_jurnal" value="1" checked class="rounded border-slate-300 text-emerald-600">
-                        Catat saldo awal persediaan ke akuntansi <i class="far fa-question-circle text-slate-300"></i>
-                    </label>
+
+                    <div id="blok_harga_awal">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1"
+                               title="Menjadi harga rata-rata awal (dasar HPP). Bila Stok Awal diisi, nilainya dijurnal sebagai saldo awal persediaan.">Harga Beli per Satuan Stok (opsional) <i class="far fa-question-circle"></i></label>
+                        <input type="number" step="0.01" min="0" name="harga_beli" id="input_harga_beli" placeholder="0"
+                               class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                        <label id="blok_jurnal" class="mt-1.5 ml-1 flex items-center gap-2 text-[11px] font-semibold text-slate-500"
+                               title="Hilangkan centang bila saldo awal akuntansi akan diisi sekaligus lewat akuntansi:saldo-awal, supaya tidak tercatat dua kali.">
+                            <input type="hidden" name="catat_jurnal" value="0">
+                            <input type="checkbox" name="catat_jurnal" value="1" checked class="rounded border-slate-300 text-indigo-600">
+                            Catat saldo awal persediaan ke akuntansi
+                        </label>
+                    </div>
                 </div>
 
-                <div class="px-6 py-4 border-t border-slate-100 flex gap-3 shrink-0 bg-white">
-                    <button type="button" onclick="closeModalBahan()" class="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-200 transition-all">
+                <div class="pt-3 flex gap-3">
+                    <button type="button" onclick="closeModalBahan()" class="flex-1 py-2.5 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-100 transition-all">
                         Batal
                     </button>
-                    <button type="submit" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
+                    <button type="submit" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
                         Simpan Data
                     </button>
                 </div>
