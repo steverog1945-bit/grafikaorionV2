@@ -182,3 +182,15 @@ Setelah itu XAMPP Control Panel tidak dipakai lagi.
 - **Registrasi bahan baru:** isi "Harga Beli per Satuan Stok" (opsional). Menjadi harga rata-rata awal (dasar HPP). Bila Stok Awal juga diisi, nilainya dijurnal sebagai saldo awal persediaan (Dr Persediaan / Cr Modal); centang bisa dimatikan bila saldo awal akuntansi akan diisi sekaligus lewat `akuntansi:saldo-awal`.
 - **Bahan yang sudah ada tanpa harga:** di Master Bahan Baku, klik tulisan "Belum ada harga" (atau filter Harga = Belum ada harga) lalu isi harga dan alasan. Hanya mengubah dasar HPP ke depan; tidak mengubah stok dan tidak membuat jurnal. Tercatat di Log Aktivitas.
 - **Tinta/toner:** sudah didaftarkan per mesin (stok 0, harga kosong). Acuan pemakaian per m2 ada di `docs/ACUAN_PEMAKAIAN_TINTA.md`.
+
+## Laporan Biaya Tinta
+
+Menu Laporan > **Biaya Tinta** (akses sama dengan Laporan HPP). Memilih periode, lalu menampilkan:
+- Kartu ringkas: total biaya tinta, total luas cetak, biaya tinta per m².
+- Pemakaian per bahan tinta (volume cetak, jumlah terpakai, biaya).
+- Biaya tinta per produk: luas, omzet, biaya, biaya per m², dan persen dari omzet.
+
+Cara hitung: luas cetak dari pesanan (panjang × lebar × qty, nota dibatalkan dikecualikan) × pemakaian per m² (atau per lembar untuk toner) ×
+harga rata-rata bahan tinta (sudah dikonversi dari satuan hitung ke satuan stok). Perkiraan; tidak mengubah stok maupun HPP order.
+Pemakaian per mesin bisa diubah di bagian bawah halaman ("Pengaturan Pemakaian per Mesin"); angka awal adalah acuan
+(`docs/ACUAN_PEMAKAIAN_TINTA.md`). Bahan tinta yang harganya masih kosong diberi peringatan dan dihitung Rp 0.

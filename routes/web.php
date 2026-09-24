@@ -491,6 +491,9 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/eksekutif', [\App\Http\Controllers\AnalisisController::class, 'dashboard'])->name('eksekutif.dashboard');
     Route::get('/laporan/profitabilitas', [\App\Http\Controllers\AnalisisController::class, 'profitabilitas'])->name('laporan.profitabilitas');
     Route::get('/laporan/pemakaian-bahan', [\App\Http\Controllers\AnalisisController::class, 'pemakaianBahan'])->name('laporan.pemakaian-bahan');
+    Route::get('/laporan/biaya-tinta', [\App\Http\Controllers\AnalisisController::class, 'biayaTinta'])->name('laporan.biaya-tinta');
+    Route::post('/laporan/biaya-tinta/pengaturan', [\App\Http\Controllers\AnalisisController::class, 'simpanPemakaianTinta'])->name('laporan.biaya-tinta.simpan');
+    Route::delete('/laporan/biaya-tinta/pengaturan/{id}', [\App\Http\Controllers\AnalisisController::class, 'hapusPemakaianTinta'])->whereNumber('id')->name('laporan.biaya-tinta.hapus');
 
     // Berkas Order (LEVEL 3) - kumpulan berkas per nota; unggah Production File/QC Photo/Lainnya.
     Route::get('/berkas-order/{idTransaksi}', [\App\Http\Controllers\BerkasOrderController::class, 'show'])->whereNumber('idTransaksi')->name('berkas-order.show');
