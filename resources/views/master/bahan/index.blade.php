@@ -82,7 +82,7 @@
                         <th class="px-8 py-5 text-left">Identitas Material</th>
                         <th class="px-6 py-5 text-center">Spesifikasi</th>
                         <th class="px-6 py-5 text-center">Volume Stok</th>
-                        <th class="px-6 py-5 text-center">Satuan</th>
+                        <th class="px-6 py-5 text-center">Harga Rata-rata</th>
                         <th class="px-8 py-5 text-right">Manajemen</th>
                     </tr>
                 </thead>
@@ -123,28 +123,39 @@
                             </div>
                         </td>
                         <td class="px-6 py-5 text-center">
-                            <span class="text-base font-bold {{ $b->stok <= $b->stok_minimal ? 'text-rose-500' : 'text-slate-700' }}" title="Stok minimal: {{ number_format($b->stok_minimal, 2, ',', '.') }}">
-                                {{ number_format($b->stok, 0, ',', '.') }}
-                            </span>
-                            <button type="button" onclick='koreksiHarga({{ $b->id_bahan }}, @json($b->nama_bahan), {{ (float) $b->harga_rata_rata }}, @json($b->satuan_stok))'
-                                    class="mt-1 text-[10px] font-bold {{ (float) $b->harga_rata_rata > 0 ? 'text-slate-400 hover:text-indigo-600' : 'text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md hover:bg-amber-100' }}"
-                                    title="Ubah harga rata-rata (dasar HPP)">
-                                @if((float) $b->harga_rata_rata > 0)
-                                    Rp {{ number_format($b->harga_rata_rata, 0, ',', '.') }}/{{ $b->satuan_stok }}
-                                @else
-                                    <i class="fas fa-exclamation-triangle"></i> Belum ada harga
-                                @endif
-                            </button>
-                            @if($b->satuanHitung && $b->id_satuan_stok !== $b->id_satuan_hitung && $b->nilai_konversi > 1)
-                                <div class="text-[10px] text-slate-400 font-semibold mt-1">
-                                    ≈ {{ number_format($b->stok * $b->nilai_konversi, 0, ',', '.') }} {{ $b->satuanHitung->nama_satuan }}
+                            @php
+                                $angka = fn ($v, $d = 2) => rtrim(rtrim(number_format((float) $v, $d, ',', '.'), '0'), ',');
+                                $stokHabis = (float) $b->stok <= (float) $b->stok_minimal;
+                                $rasio = (float) $b->stok_minimal > 0 ? min(1, (float) $b->stok / ((float) $b->stok_minimal * 3)) : ((float) $b->stok > 0 ? 1 : 0);
+                                $warnaBar = $stokHabis ? 'bg-rose-400' : ($rasio < 0.5 ? 'bg-amber-400' : 'bg-emerald-400');
+                            @endphp
+                            <div class="inline-flex flex-col items-center gap-1.5" title="Stok minimal: {{ $angka($b->stok_minimal) }} {{ $b->satuan_stok }}">
+                                <div class="flex items-baseline gap-1.5">
+                                    <span class="text-[15px] font-bold tabular-nums {{ $stokHabis ? 'text-rose-600' : 'text-slate-700' }}">{{ $angka($b->stok) }}</span>
+                                    <span class="text-xs font-semibold text-slate-400">{{ $b->satuan_stok }}</span>
                                 </div>
-                            @endif
+                                <div class="w-20 h-1 rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full rounded-full {{ $warnaBar }}" style="width: {{ max(4, round($rasio * 100)) }}%"></div>
+                                </div>
+                                @if($stokHabis)
+                                    <span class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Stok menipis</span>
+                                @elseif($b->satuanHitung && $b->id_satuan_stok !== $b->id_satuan_hitung && $b->nilai_konversi > 1)
+                                    <span class="text-[11px] font-medium text-slate-400">≈ {{ $angka($b->stok * $b->nilai_konversi, 0) }} {{ $b->satuanHitung->nama_satuan }}</span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-6 py-5 text-center">
-                            <span class="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-3 py-1.5 rounded-lg uppercase">
-                                {{ $b->satuan_stok }}
-                            </span>
+                            <button type="button" onclick='koreksiHarga({{ $b->id_bahan }}, @json($b->nama_bahan), {{ (float) $b->harga_rata_rata }}, @json($b->satuan_stok))'
+                                    class="group/harga inline-flex items-baseline gap-1.5 px-3 py-1.5 rounded-lg transition-colors {{ (float) $b->harga_rata_rata > 0 ? 'hover:bg-slate-100' : 'bg-amber-50 hover:bg-amber-100' }}"
+                                    title="Ubah harga rata-rata (dasar HPP)">
+                                @if((float) $b->harga_rata_rata > 0)
+                                    <span class="text-[13px] font-bold tabular-nums text-slate-700">Rp {{ number_format($b->harga_rata_rata, 0, ',', '.') }}</span>
+                                    <span class="text-xs font-semibold text-slate-400">/ {{ $b->satuan_stok }}</span>
+                                    <i class="fas fa-pen text-[10px] text-slate-300 opacity-0 group-hover/harga:opacity-100 transition-opacity self-center"></i>
+                                @else
+                                    <span class="text-xs font-bold text-amber-600"><i class="fas fa-exclamation-triangle mr-1"></i>Belum ada harga</span>
+                                @endif
+                            </button>
                         </td>
                         <td class="px-8 py-5 text-right">
                             <div class="flex justify-end gap-2">
