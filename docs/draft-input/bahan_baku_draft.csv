@@ -1,0 +1,70 @@
+Mesin;Nama di dokumen;Padanan di aplikasi;Satuan beli;Satuan jual/hitung;Harga beli dokumen;Harga di aplikasi sekarang;Keyakinan;Catatan
+KONICA MINOLTA (A3);AC 210gsm;AC 210gr (AC210);Rim;Pcs (lembar);370000;265000;Tinggi;Harga beda dengan aplikasi
+KONICA MINOLTA (A3);AC 260gsm;AC 260gr (AC260);Rim;Pcs (lembar);460000;281057;Tinggi;Harga beda dengan aplikasi
+KONICA MINOLTA (A3);AP 150gsm;AP150;Rim;Pcs (lembar);280000;0;Tinggi;Di aplikasi satuannya roll, di dokumen Rim
+KONICA MINOLTA (A3);AP 120gsm;AP120;Rim;Pcs (lembar);240000;0;Tinggi;
+KONICA MINOLTA (A3);Bontax;BONTAX;Rim;Pcs (lembar);530000;395000;Tinggi;Harga beda dengan aplikasi
+KONICA MINOLTA (A3);Vinil Susu;A3 VINIL SUSU;Rim;Pcs (lembar);520000;0;Tinggi;
+KONICA MINOLTA (A3);Vinil Bening;A3 TRANSPARAN;Rim;Pcs (lembar);515000;0;Cek;Apakah Vinil Bening = A3 Transparan?
+KONICA MINOLTA (A3);Linen;A3 LINEN;Rim;Pcs (lembar);750000;0;Tinggi;
+KONICA MINOLTA (A3);Hologram;A3 HOLOGRAM;Rim;Pcs (lembar);650000;0;Tinggi;
+KONICA MINOLTA (A3);HVS A3 75gsm;HVS A3 75gsm;Rim;Pcs (lembar);98000;95000;Tinggi;
+KONICA MINOLTA (A3);Laminasi doff/glossy;Laminasi Doff dan Laminasi Glossy;Roll;Pcs;125000;125000;Tinggi;Sama dengan aplikasi
+KONICA MINOLTA (A3);Box Kartu Nama;BOX KARTU NAMA;Pcs;Pcs;2000;0;Cek;Urutan baris dokumen bergeser
+KONICA MINOLTA (A3);Toner Cyan Magenta Yellow Black;TONER KONICA MINOLTA;Botol;Pcs;1300000;0;Cek;Tertulis @Rp 1.300.000 - per botol per warna?
+KONICA MINOLTA (A3);Spiral;Spiral;Roll;Pcs;1350000;1300000;Cek;
+KONICA MINOLTA (A3);PVC ID Card;PVC ID Card;Dus;Pcs;820000;750000;Tinggi;Sama dengan harga ID Card PVC di tabel Lain-lain
+CENTURY STAR;Tinta CMYK;TINTA DIRECT PRINT CENTURY STAR;Liter/Botol;-;260000;0;Cek;Harga per liter atau per botol?
+CENTURY STAR;TC Textile Import (110cm dan 120cm);TC Textile Import;Roll;M2;1750000;0;Cek;Dokumen menyebut 2 lebar (110 dan 120cm); aplikasi baru punya 1 bahan
+EPSON F7270 (Sublime);Sublime Paper;SUBLIME PAPER / PAPER SUBLIME;Roll;M2;650000;0;Cek;Di aplikasi ada 2 bahan serupa (SUBLIME PAPER dan PAPER SUBLIME)
+EPSON F7270 (Sublime);Lanyard 20mm;LANYARD 20mm;Roll;Pcs;150000;80000;Tinggi;Harga beda dengan aplikasi
+EPSON S80670 (Indoor);Albatros 90cm;ALBATROS;Roll;M2;750000;0;Tinggi;
+EPSON S80670 (Indoor);Camel Glossy 125, 106, 155 (3 ukuran);STIKER CAMEL;Roll;M2;1290000;0;Cek;3 ukuran, 1 harga - apakah semua sama?
+EPSON S80670 (Indoor);Canvas 90cm;CANVAS;Roll;M2;1800000;3500000;Cek;Harga beda jauh dengan aplikasi
+EPSON S80670 (Indoor);Exilo 106, 153;STIKER EXILO;Roll;M2;1200000;0;Cek;2 ukuran, 1 harga
+EPSON S80670 (Indoor);Photopaper 90cm;PHOTOPAPER;Roll;M2;780000;650000;Cek;Harga beda dengan aplikasi
+EPSON S80670 (Indoor);Laminasi dingin doff/glossy 152cm;BARU;Roll;M2;650000;-;Cek;Bahan belum ada di aplikasi
+EPSON S80670 (Indoor);JASA PRINT;BARU (jasa?);-;M2;35000/m;-;Cek;Kemungkinan tarif jasa, bukan bahan
+EPSON S80670 (Indoor);Inflex 153cm;STIKER INFLEX;Roll;M2;1950000;0;Cek;
+EPSON S80670 (Indoor);Luster 90cm;BARU;Roll;M2;1350000;-;Cek;Bahan belum ada di aplikasi
+EPSON S80670 (Indoor);Roll Up;BARU;Pcs;Pcs;180000;-;Cek;
+EPSON S80670 (Indoor);Sunblast;BARU;Roll;M2;1800000;-;Cek;
+EPSON S80670 (Indoor);Tinta Indoor (Cyan LightCyan Magenta LightMagenta Black LightBlack Red Orange Yellow);TINTA ECO-SOLVENT EPSON S80670;Liter/Botol;-;650000;0;Cek;10 warna - satu harga?
+EPSON S80670 (Indoor);Cleaner;BARU;Botol;-;450000;-;Cek;
+EPSON S80670 (Indoor);Wallpaper;BARU;Roll;M2;950000;-;Cek;
+FLORA (Outdoor);FLS 280gram 3,2m;FRONTLITE 280gr 3.2m;Roll;M2;1340000;1384000;Tinggi;
+FLORA (Outdoor);FLS 280gram 2,6m;FRONTLITE 280gr 2.6m;Roll;M2;(kosong);0;Tinggi;Harga tidak tertulis di dokumen
+FLORA (Outdoor);FLS 280gram 2,2m;FRONTLITE 280gr 2.2m;Roll;M2;1039500;0;Tinggi;
+FLORA (Outdoor);FLS 280gram 1,6m;FRONTLITE 280gr 1.6m;Roll;M2;(kosong);0;Tinggi;Harga tidak tertulis di dokumen
+FLORA (Outdoor);FLS 280gram 1,1m;FRONTLITE 280gr 1.1m;Roll;M2;940000;0;Tinggi;
+FLORA (Outdoor);Ring Mata Ayam;BARU;Pack;Pcs;90000;-;Cek;
+FLORA (Outdoor);Oneway vision;STIKER ONEWAY VISION;Roll;M2;970000;0;Tinggi;
+FLORA (Outdoor);Jasa Pasang stiker;BARU (jasa?);-;-;50000/m;-;Cek;Kemungkinan tarif jasa
+FLORA (Outdoor);Rangka XBanner;BARU;Pcs;Pcs;24000;-;Cek;
+FLORA (Outdoor);Tinta CMYK Solvent;TINTA SOLVENT FLORA OUTDOOR;Liter/Botol;-;780000;0;Cek;
+FLORA (Outdoor);Solvent (pembersih);BARU;Liter/Botol;-;650000;-;Cek;
+FLORA (Outdoor);Lem China;BARU;Pack;Pcs;320000;-;Cek;
+RHINO DTF;Pet Film;PET FILM DTF;Roll;M2;650000;640000;Tinggi;
+RHINO DTF;Tinta CMYK;TINTA DTF CMYK;Liter/Botol;-;260000;0;Tinggi;
+RHINO DTF;Tinta White;TINTA DTF WHITE;Liter/Botol;-;230000;0;Tinggi;
+RHINO DTF;Powder;POWDER DTF;Kg;-;80000;0;Tinggi;
+LAIN-LAIN;Amplop 104;BARU;Dus;Pcs;19000;-;Cek;Urutan baris tabel bergeser
+LAIN-LAIN;Amplop Dinas 22x11cm;AMPLOP COKLAT DINAS 12cm;Dus;Pcs;27000;0;Cek;Ukuran beda (22x11 vs 12cm)
+LAIN-LAIN;Amplop Buklet uang;AMPLOP BUKLET PUTIH;Dus;Pcs;23000;0;Cek;
+LAIN-LAIN;Buku Register;BARU;Pcs;Pcs;25000;-;Cek;
+LAIN-LAIN;Figura;BARU;Pcs;Pcs;tergantung ukuran;-;Cek;
+LAIN-LAIN;Gantungan Kunci 44mm;BARU;Pack;Pcs;250000;-;Cek;
+LAIN-LAIN;Gantungan Kunci 54mm;BARU;Pack;Pcs;280000;-;Cek;
+LAIN-LAIN;HVS A4/F4 75gsm;BARU;Rim;Pcs;48000;-;Cek;
+LAIN-LAIN;ID Card PVC;PVC ID Card;Dus;Pcs;820000;750000;Tinggi;
+LAIN-LAIN;Karangan Bunga;BARU;-;-;(kosong);-;Cek;
+LAIN-LAIN;Keplek;BARU;-;-;(kosong);-;Cek;
+LAIN-LAIN;Linen A4;BARU;-;-;(kosong);-;Cek;
+LAIN-LAIN;Map;BARU;-;-;(kosong);-;Cek;
+LAIN-LAIN;Paperbag;BARU;-;-;(kosong);-;Cek;
+LAIN-LAIN;Pin 44mm;BARU;Pcs;Pcs;1300;-;Cek;
+LAIN-LAIN;Pin 55mm;BARU;Pcs;Pcs;1200;-;Cek;
+LAIN-LAIN;Spiral;Spiral;-;Pcs;(kosong);1300000;Cek;
+LAIN-LAIN;SPPD;BARU;-;-;(kosong);-;Cek;
+LAIN-LAIN;XBanner;BARU;-;Pcs;(kosong);-;Cek;
+LAIN-LAIN;Tripod Banner;BARU;-;Pcs;(kosong);-;Cek;Kemungkinan Rp 24.000 atau Rp 180.000 - tidak jelas mana

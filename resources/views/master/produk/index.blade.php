@@ -270,7 +270,10 @@
                                 <option value="Q">Quantity (1:1) - [Satuan]</option>
                                 <option value="2*(P+L)/100">Keliling (m) - [2*(P+L)/100]</option>
                                 <option value="(P*L)/10000*2">Bolak Balik (x2)</option>
+                                <option value="Q/N">Bagi per lembar - [Q/N] (isi N barang per lembar)</option>
+                                <option value="Q*K">Kali faktor - [Q*K] (K bahan per barang)</option>
                             </select>
+                            <input type="number" id="temp_faktor" step="0.0001" min="0.0001" placeholder="Angka N atau K" class="hidden mt-2 w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
                         </div>
                         <div class="md:col-span-1 flex items-end">
                             <x-button type="button" variant="success" onclick="addBahanToTable()" class="w-full !py-2.5">
@@ -524,6 +527,11 @@
         const namaBahan = optionSelected.getAttribute('data-nama');
         const satuan = optionSelected.getAttribute('data-satuan');
         let rumus = selectRumus.value;
+        if (rumus === 'Q/N' || rumus === 'Q*K') {
+            const faktor = parseFloat(document.getElementById('temp_faktor').value);
+            if (!(faktor > 0)) { Swal.fire('Info', 'Isi angka N atau K untuk rumus ini.', 'info'); return; }
+            rumus = rumus.replace(rumus === 'Q/N' ? 'N' : 'K', String(faktor));
+        }
 
         if (namaBahan.toLowerCase().includes('jahit')) {
             rumus = "2*(P+L)/100";
@@ -532,6 +540,10 @@
         renderBahanRow(idBahan, namaBahan, rumus, satuan);
         selectBahan.value = "";
     }
+
+    document.getElementById('temp_rumus')?.addEventListener('change', function () {
+        document.getElementById('temp_faktor').classList.toggle('hidden', !(this.value === 'Q/N' || this.value === 'Q*K'));
+    });
 
     function renderBahanRow(id, nama, rumus, satuan) {
         const tbody = document.getElementById('bom_table_body');
