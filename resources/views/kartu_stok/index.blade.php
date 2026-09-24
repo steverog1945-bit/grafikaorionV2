@@ -123,7 +123,7 @@
 
             <div class="pt-4 flex gap-3">
                 <x-button type="button" variant="secondary" onclick="closeModal('penyesuaian-stok')" class="flex-1">Batalkan</x-button>
-                <x-button type="submit" variant="warning" class="flex-1">Simpan Penyesuaian</x-button>
+                <x-button type="submit" variant="warning" class="flex-1">Ajukan Penyesuaian</x-button>
             </div>
         </form>
     </x-modal>

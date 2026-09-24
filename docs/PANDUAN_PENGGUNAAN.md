@@ -61,6 +61,7 @@ Purchase Order berstatus Dipesan/Draft bisa dibatalkan selama belum ada barang y
   3. **Ajukan untuk Persetujuan**. Stok belum berubah.
   4. Administrator menyetujui di Approval Workflow; barulah stok disesuaikan ke hasil hitung fisik dan tercatat sebagai penyesuaian di Kartu Stok.
 - **Waste Management** (Produksi & Logistik > Waste Management): catat susut bahan di luar pemakaian normal BOM. **Normal** (susut wajar, mis. sisa potongan) langsung mengurangi stok dan dijurnal sebagai beban. **Abnormal** (rusak, salah potong, hilang) hanya diajukan; stok baru berkurang setelah Administrator menyetujui. Pilih item order terkait bila ada, supaya biayanya masuk Job Costing order itu.
+- **Penyesuaian stok manual satu bahan** (Kartu Stok): jalur cepat untuk mengeluarkan atau merevisi stok satu bahan. Sama seperti Stock Opname, ini hanya **mengajukan**; stok baru berubah setelah Administrator menyetujui, dan persetujuan gagal aman kalau stok sudah tidak cukup.
 - Stok bahan baku berkurang otomatis saat **nota dibuat** (Input Order), sesuai BOM produk, dan kembali otomatis saat nota atau SPK dibatalkan. Bahan yang terpakai untuk rework dikeluarkan terpisah lewat QC & Rework (bagian 6).
 
 ## 6. Alur Penjualan dan Produksi
@@ -116,7 +117,7 @@ Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) 
 
 ## 10. Administrasi sistem (Administrator)
 
-- **Approval Workflow:** daftar pengajuan Menunggu. Setujui untuk mengeksekusi, atau Tolak dengan alasan. Jenis pengajuan saat ini: pembatalan nota, Stock Opname, Purchase Request, pembatalan faktur pembelian, void pembayaran hutang, void pembayaran Jersey, pembatalan order Jersey, pembatalan catatan Kas Kecil, Waste Abnormal, dan pembukaan revisi desain yang sudah terkunci.
+- **Approval Workflow:** daftar pengajuan Menunggu. Setujui untuk mengeksekusi, atau Tolak dengan alasan. Jenis pengajuan saat ini: pembatalan nota, Stock Opname, Purchase Request, pembatalan faktur pembelian, void pembayaran hutang, void pembayaran Jersey, pembatalan order Jersey, pembatalan catatan Kas Kecil, Waste Abnormal, pembukaan revisi desain yang sudah terkunci, dan penyesuaian stok manual.
 - **Log Aktivitas:** telusuri perubahan data, filter menurut jenis, kejadian, dan tanggal.
 - **Backup & Recovery:** backup otomatis harian, mingguan, dan bulanan (retensi 7/4/12) dan tombol backup manual. Otomatis hanya berjalan jika scheduler aktif (lihat panduan deploy). File backup di `storage/app/backups/` berisi data konsumen; simpan salinannya di lokasi lain juga.
 - **Manajemen User dan Setting Akses:** buat akun per karyawan, atur menu per peran.
@@ -124,7 +125,6 @@ Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) 
 ## 11. Hal yang belum tercakup (saat ini)
 
 - **Stock Transfer antar gudang:** ditunda karena stok masih satu angka global dan hanya ada satu gudang aktif.
-- **Penyesuaian stok manual satu bahan** di Kartu Stok sedang dikaji agar ikut melalui persetujuan seperti Stock Opname.
 
 ## 12. Bila ada masalah
 

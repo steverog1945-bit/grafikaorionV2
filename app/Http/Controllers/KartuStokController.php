@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ApprovalService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -63,12 +64,10 @@ class KartuStokController extends Controller
     }
 
     /**
-     * Penyesuaian stok manual - sebelum ini SATU-SATUNYA cara mengurangi atau
-     * mengoreksi stok bahan baku (di luar konsumsi otomatis dari BOM order)
-     * adalah lewat query SQL langsung, tidak ada jalur resmi untuk kasus
-     * seperti bahan rusak/hilang atau hasil stock opname fisik. Memakai
-     * tabel kartu_stok yang sudah ada (tipe OUT/ADJUSTMENT sudah didukung
-     * skemanya) - tidak ada tabel baru.
+     * Penyesuaian stok manual satu-bahan (jalur cepat). Stok TIDAK diubah di
+     * sini - sama seperti Stock Opname, cuma DIAJUKAN lewat ApprovalService
+     * (tipe_aksi 'penyesuaian_stok_manual'); stok baru berubah saat approver
+     * menyetujui (lihat PenyesuaianStokService::eksekusi).
      */
     public function storeAdjustment(Request $request)
     {
@@ -80,59 +79,36 @@ class KartuStokController extends Controller
             'keterangan'  => 'required|string|max:255',
         ]);
 
-        return DB::transaction(function () use ($validated) {
-            $bahan = DB::table('bahan_baku')
-                ->where('id_bahan', $validated['id_bahan'])
-                ->lockForUpdate()
-                ->first();
+        $bahan = DB::table('bahan_baku')->where('id_bahan', $validated['id_bahan'])->first();
+        $stok = (float) $bahan->stok;
 
-            if (!$bahan) {
-                return back()->with('error', 'Bahan tidak ditemukan.');
-            }
+        // Cek awal supaya pengaju langsung tahu kalau mustahil; dicek ulang
+        // saat eksekusi karena stok bisa berubah selama menunggu approval.
+        if ($validated['tipe'] === 'OUT' && (float) $validated['qty'] > $stok) {
+            return back()->withInput()->with('error',
+                "Gagal: stok {$bahan->nama_bahan} tersisa " . number_format($stok, 2) .
+                ", tidak bisa dikeluarkan " . number_format((float) $validated['qty'], 2) . '.');
+        }
 
-            $stokSebelum = (float) $bahan->stok;
+        $ringkasan = $validated['tipe'] === 'OUT'
+            ? "Keluar {$bahan->nama_bahan}: " . number_format((float) $validated['qty'], 2)
+            : "Revisi stok {$bahan->nama_bahan}: " . number_format($stok, 2) . ' -> ' . number_format((float) $validated['stok_baru'], 2);
 
-            if ($validated['tipe'] === 'OUT') {
-                $qty = (float) $validated['qty'];
+        ApprovalService::ajukan(
+            'penyesuaian_stok_manual',
+            'bahan_baku',
+            (int) $bahan->id_bahan,
+            [
+                'id_bahan'   => (int) $bahan->id_bahan,
+                'tipe'       => $validated['tipe'],
+                'qty'        => $validated['qty'] ?? null,
+                'stok_baru'  => $validated['stok_baru'] ?? null,
+                'keterangan' => $validated['keterangan'],
+            ],
+            $ringkasan,
+            $validated['keterangan']
+        );
 
-                if ($qty > $stokSebelum) {
-                    return back()->withInput()->with('error',
-                        "Gagal: stok {$bahan->nama_bahan} tersisa " . number_format($stokSebelum, 2) .
-                        ", tidak bisa dikeluarkan " . number_format($qty, 2) . '.');
-                }
-
-                $stokSesudah = $stokSebelum - $qty;
-                $tipe = 'OUT';
-            } else {
-                // ADJUSTMENT: operator memasukkan hasil hitung fisik yang
-                // sebenarnya (stok opname), bukan delta - lebih sesuai alur
-                // kerja stock opname nyata daripada minta operator menghitung
-                // selisihnya sendiri.
-                $stokBaru = (float) $validated['stok_baru'];
-                $qty = abs($stokBaru - $stokSebelum);
-                $stokSesudah = $stokBaru;
-                $tipe = 'ADJUSTMENT';
-            }
-
-            DB::table('bahan_baku')
-                ->where('id_bahan', $validated['id_bahan'])
-                ->update(['stok' => $stokSesudah]);
-
-            DB::table('kartu_stok')->insert([
-                'id_bahan'     => $validated['id_bahan'],
-                'tanggal'      => now(),
-                'tipe'         => $tipe,
-                'qty'          => $qty,
-                'stok_sebelum' => $stokSebelum,
-                'stok_sesudah' => $stokSesudah,
-                'referensi'    => $tipe === 'OUT' ? 'MANUAL-KELUAR' : 'STOCK-OPNAME',
-                'keterangan'   => $validated['keterangan'],
-                'created_by'   => Auth::id(),
-                'created_at'   => now(),
-                'updated_at'   => now(),
-            ]);
-
-            return back()->with('success', 'Penyesuaian stok berhasil dicatat.');
-        });
+        return back()->with('success', 'Penyesuaian stok diajukan untuk persetujuan - stok berubah setelah disetujui.');
     }
 }
