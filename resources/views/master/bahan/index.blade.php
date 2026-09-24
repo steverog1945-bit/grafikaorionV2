@@ -188,164 +188,110 @@
 </div>
 
 {{-- MODAL CRUD --}}
-<div id="modalBahan" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-    <div class="flex items-center justify-center min-h-screen px-4 py-4">
-        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
-            <div class="px-6 py-3.5 border-b border-slate-50 flex justify-between items-center">
-                <h3 id="modalTitle" class="text-base font-bold text-slate-800">Registrasi Material</h3>
-                <button onclick="closeModalBahan()" class="text-slate-400 hover:text-rose-500 transition-colors">
-                    <i class="fas fa-times-circle text-xl"></i>
-                </button>
-            </div>
+<x-modal id="bahan" title="Registrasi Material" maxWidth="2xl">
+    <form id="formBahan" method="POST" class="space-y-5">
+        @csrf
+        <div id="methodField"></div>
 
-            <form id="formBahan" method="POST" class="px-6 py-4">
-                @csrf
-                <div id="methodField"></div>
-                
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Nama Bahan</label>
-                        <input type="text" name="nama_bahan" id="input_nama_bahan" required
-                               class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Kode SKU</label>
-                            <input type="text" name="kode_bahan" id="input_kode_bahan" required
-                                   class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Mesin Alokasi</label>
-                            <select name="id_mesin" id="input_id_mesin" required class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
-                                @foreach($mesin as $m)
-                                    <option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Kategori</label>
-                        <select name="id_kategori" id="input_id_kategori" required class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
-                            @foreach($kategori as $k)
-                                <option value="{{ $k->id_kategori }}">{{ $k->nama_kategori }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Merk (Opsional)</label>
-                            <select name="id_merk" id="input_id_merk" class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
-                                <option value="">-- Tanpa Merk --</option>
-                                @foreach($merk as $m)
-                                    <option value="{{ $m->id_merk }}">{{ $m->nama_merk }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Jenis Bahan (Opsional)</label>
-                            <select name="id_jenis_bahan" id="input_id_jenis_bahan" class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
-                                <option value="">-- Tanpa Jenis --</option>
-                                @foreach($jenisBahan as $j)
-                                    <option value="{{ $j->id_jenis_bahan }}">{{ $j->nama_jenis }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="pt-2 border-t border-slate-50">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 mb-0">Konversi Satuan &amp; Stok</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Satuan Stok (Beli)</label>
-                            <select name="id_satuan_stok" id="input_id_satuan_stok" required class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
-                                <option value="">Pilih Satuan</option>
-                                @foreach($satuan as $s)
-                                    <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Satuan Hitung (Pakai)</label>
-                            <select name="id_satuan_hitung" id="input_id_satuan_hitung" required class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
-                                <option value="">Pilih Satuan</option>
-                                @foreach($satuan as $s)
-                                    <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="wrapper_dimensi_roll" class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-2">
-                        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">
-                            <i class="fas fa-ruler-combined mr-1"></i> Dimensi Roll (opsional, bahan roll m²)
-                        </p>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Lebar Roll (m)</label>
-                                <input type="number" step="0.01" name="lebar_roll" id="input_lebar_roll" oninput="hitungNilaiKonversiRoll()" placeholder="Contoh: 1.5"
-                                       class="w-full bg-white border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Panjang Roll (m)</label>
-                                <input type="number" step="0.01" name="panjang_roll" id="input_panjang_roll" oninput="hitungNilaiKonversiRoll()" placeholder="Contoh: 50"
-                                       class="w-full bg-white border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-indigo-400">Lebar × Panjang otomatis mengisi Nilai Konversi.</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Nilai Konversi (1 Satuan Stok = ? Satuan Hitung)</label>
-                        <input type="number" step="0.001" name="nilai_konversi" id="input_nilai_konversi" required value="1"
-                               class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                        <p class="mt-1 ml-1 text-[10px] text-slate-400">Contoh: 1 Rim = 500 Lembar → isi <b>500</b>.</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Stok Awal</label>
-                            <input type="number" step="0.001" name="stok" id="input_stok" required value="0"
-                                   class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner disabled:opacity-60 disabled:cursor-not-allowed">
-                            <p id="stok_locked_hint" class="hidden mt-1 ml-1 text-[10px] text-slate-400"><i class="fas fa-lock mr-0.5"></i> Ubah lewat <a href="{{ route('kartu-stok.index') }}" class="text-indigo-500 font-bold hover:underline" target="_blank">Kartu Stok &rarr; Penyesuaian</a></p>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Stok Minimal</label>
-                            <input type="number" step="0.001" name="stok_minimal" id="input_stok_minimal" required value="0"
-                                   class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                        </div>
-                    </div>
-
-                    <div id="blok_harga_awal">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1"
-                               title="Menjadi harga rata-rata awal (dasar HPP). Bila Stok Awal diisi, nilainya dijurnal sebagai saldo awal persediaan.">Harga Beli per Satuan Stok (opsional) <i class="far fa-question-circle"></i></label>
-                        <input type="number" step="0.01" min="0" name="harga_beli" id="input_harga_beli" placeholder="0"
-                               class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                        <label id="blok_jurnal" class="mt-1.5 ml-1 flex items-center gap-2 text-[11px] font-semibold text-slate-500"
-                               title="Hilangkan centang bila saldo awal akuntansi akan diisi sekaligus lewat akuntansi:saldo-awal, supaya tidak tercatat dua kali.">
-                            <input type="hidden" name="catat_jurnal" value="0">
-                            <input type="checkbox" name="catat_jurnal" value="1" checked class="rounded border-slate-300 text-indigo-600">
-                            Catat saldo awal persediaan ke akuntansi
-                        </label>
-                    </div>
-                </div>
-
-                <div class="pt-3 flex gap-3">
-                    <button type="button" onclick="closeModalBahan()" class="flex-1 py-2.5 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-100 transition-all">
-                        Batal
-                    </button>
-                    <button type="submit" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
-                        Simpan Data
-                    </button>
-                </div>
-            </form>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <x-form.group label="Nama Bahan" required class="sm:col-span-2">
+                <x-form.input type="text" name="nama_bahan" id="input_nama_bahan" required />
+            </x-form.group>
+            <x-form.group label="Kode SKU" required>
+                <x-form.input type="text" name="kode_bahan" id="input_kode_bahan" required />
+            </x-form.group>
         </div>
-    </div>
-</div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <x-form.group label="Mesin Alokasi" required>
+                <x-form.select name="id_mesin" id="input_id_mesin" required>
+                    @foreach($mesin as $m)<option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>@endforeach
+                </x-form.select>
+            </x-form.group>
+            <x-form.group label="Kategori" required>
+                <x-form.select name="id_kategori" id="input_id_kategori" required>
+                    @foreach($kategori as $k)<option value="{{ $k->id_kategori }}">{{ $k->nama_kategori }}</option>@endforeach
+                </x-form.select>
+            </x-form.group>
+            <x-form.group label="Merk (Opsional)">
+                <x-form.select name="id_merk" id="input_id_merk">
+                    <option value="">-- Tanpa Merk --</option>
+                    @foreach($merk as $m)<option value="{{ $m->id_merk }}">{{ $m->nama_merk }}</option>@endforeach
+                </x-form.select>
+            </x-form.group>
+            <x-form.group label="Jenis Bahan (Opsional)">
+                <x-form.select name="id_jenis_bahan" id="input_id_jenis_bahan">
+                    <option value="">-- Tanpa Jenis --</option>
+                    @foreach($jenisBahan as $j)<option value="{{ $j->id_jenis_bahan }}">{{ $j->nama_jenis }}</option>@endforeach
+                </x-form.select>
+            </x-form.group>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5 border-t border-slate-100">
+            <x-form.group label="Satuan Stok (Beli)" required>
+                <x-form.select name="id_satuan_stok" id="input_id_satuan_stok" required>
+                    <option value="">Pilih Satuan</option>
+                    @foreach($satuan as $s)<option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>@endforeach
+                </x-form.select>
+            </x-form.group>
+            <x-form.group label="Satuan Hitung (Pakai)" required>
+                <x-form.select name="id_satuan_hitung" id="input_id_satuan_hitung" required>
+                    <option value="">Pilih Satuan</option>
+                    @foreach($satuan as $s)<option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>@endforeach
+                </x-form.select>
+            </x-form.group>
+        </div>
+
+        <div id="wrapper_dimensi_roll" class="p-4 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-3">
+            <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">
+                <i class="fas fa-ruler-combined mr-1"></i> Dimensi Roll (Opsional - bahan roll m²)
+            </p>
+            <div class="grid grid-cols-2 gap-4">
+                <x-form.group label="Lebar Roll (m)">
+                    <x-form.input type="number" step="0.01" name="lebar_roll" id="input_lebar_roll" oninput="hitungNilaiKonversiRoll()" placeholder="Contoh: 1.5" class="!bg-white" />
+                </x-form.group>
+                <x-form.group label="Panjang Roll (m)">
+                    <x-form.input type="number" step="0.01" name="panjang_roll" id="input_panjang_roll" oninput="hitungNilaiKonversiRoll()" placeholder="Contoh: 50" class="!bg-white" />
+                </x-form.group>
+            </div>
+        </div>
+
+        <x-form.group label="Nilai Konversi (1 Satuan Stok = ? Satuan Hitung)" required help="Contoh: 1 Rim = 500 Lembar, isi 500. Bahan roll terisi otomatis dari dimensi di atas.">
+            <x-form.input type="number" step="0.001" name="nilai_konversi" id="input_nilai_konversi" required value="1" />
+        </x-form.group>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-5 border-t border-slate-100">
+            <x-form.group label="Stok Awal" required>
+                <x-form.input type="number" step="0.001" name="stok" id="input_stok" required value="0" class="disabled:opacity-60 disabled:cursor-not-allowed" />
+                <p id="stok_locked_hint" class="hidden mt-1.5 ml-2 text-xs text-slate-400">
+                    <i class="fas fa-lock mr-0.5"></i> Ubah lewat
+                    <a href="{{ route('kartu-stok.index') }}" class="text-indigo-500 font-bold hover:underline" target="_blank">Kartu Stok &rarr; Penyesuaian</a>
+                </p>
+            </x-form.group>
+            <x-form.group label="Stok Minimal" required>
+                <x-form.input type="number" step="0.001" name="stok_minimal" id="input_stok_minimal" required value="0" />
+            </x-form.group>
+            <div id="blok_harga_awal">
+                <x-form.group label="Harga Beli / Satuan Stok" help="Opsional. Menjadi harga rata-rata awal (dasar HPP).">
+                    <x-form.input type="number" step="0.01" min="0" name="harga_beli" id="input_harga_beli" placeholder="0" />
+                </x-form.group>
+            </div>
+        </div>
+
+        <label id="blok_jurnal" class="flex items-center gap-2 ml-2 text-xs font-semibold text-slate-500"
+               title="Hilangkan centang bila saldo awal akuntansi akan diisi sekaligus lewat akuntansi:saldo-awal, supaya tidak tercatat dua kali.">
+            <input type="hidden" name="catat_jurnal" value="0">
+            <input type="checkbox" name="catat_jurnal" value="1" checked class="rounded border-slate-300 text-indigo-600">
+            Catat saldo awal persediaan ke akuntansi
+        </label>
+
+        <div class="pt-4 flex gap-3">
+            <x-button type="button" variant="secondary" onclick="closeModalBahan()" class="flex-1">Batalkan</x-button>
+            <x-button type="submit" class="flex-1">Simpan Data</x-button>
+        </div>
+    </form>
+</x-modal>
+
 @endsection
 
 @push('scripts')
@@ -357,7 +303,7 @@
     });
 
     function openTambahModal() {
-        document.getElementById('modalTitle').innerText = "Registrasi Material Baru";
+        document.getElementById('modal-bahan-title').innerText = "Registrasi Material Baru";
         document.getElementById('formBahan').action = "{{ route('bahan.store') }}";
         document.getElementById('methodField').innerHTML = '';
         document.getElementById('formBahan').reset();
@@ -371,11 +317,11 @@
         document.getElementById('blok_jurnal').classList.remove('hidden');
         document.getElementById('input_harga_beli').disabled = false;
 
-        document.getElementById('modalBahan').classList.remove('hidden');
+        openModal('bahan');
     }
 
     function editBahan(data) {
-        document.getElementById('modalTitle').innerText = "Update Spesifikasi Material";
+        document.getElementById('modal-bahan-title').innerText = "Update Spesifikasi Material";
         const form = document.getElementById('formBahan');
         form.action = `{{ url('/bahan-baku') }}/${data.id_bahan}`;
         document.getElementById('methodField').innerHTML = '@method("PUT")';
@@ -408,11 +354,11 @@
         document.getElementById('input_lebar_roll').value = data.lebar_roll || '';
         document.getElementById('input_panjang_roll').value = data.panjang_roll || '';
 
-        document.getElementById('modalBahan').classList.remove('hidden');
+        openModal('bahan');
     }
 
     function closeModalBahan() {
-        document.getElementById('modalBahan').classList.add('hidden');
+        closeModal('bahan');
     }
 
     // Lebar x Panjang roll (meter) = total m2 per roll = Nilai Konversi
