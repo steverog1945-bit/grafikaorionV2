@@ -483,6 +483,11 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/qc', [\App\Http\Controllers\QcController::class, 'index'])->name('qc.index');
     Route::get('/qc/create', [\App\Http\Controllers\QcController::class, 'create'])->name('qc.create');
     Route::post('/qc', [\App\Http\Controllers\QcController::class, 'store'])->name('qc.store');
+    // LEVEL 4: Dashboard Eksekutif (khusus Administrator), Profitabilitas, Pemakaian Bahan.
+    Route::get('/eksekutif', [\App\Http\Controllers\AnalisisController::class, 'dashboard'])->name('eksekutif.dashboard');
+    Route::get('/laporan/profitabilitas', [\App\Http\Controllers\AnalisisController::class, 'profitabilitas'])->name('laporan.profitabilitas');
+    Route::get('/laporan/pemakaian-bahan', [\App\Http\Controllers\AnalisisController::class, 'pemakaianBahan'])->name('laporan.pemakaian-bahan');
+
     // Design Proof / Approval / Revisi (LEVEL 3) - akses seperti Produksi & Input Order.
     Route::get('/design-proof', [\App\Http\Controllers\DesignProofController::class, 'index'])->name('design-proof.index');
     Route::get('/design-proof/{idDetail}', [\App\Http\Controllers\DesignProofController::class, 'show'])->whereNumber('idDetail')->name('design-proof.show');

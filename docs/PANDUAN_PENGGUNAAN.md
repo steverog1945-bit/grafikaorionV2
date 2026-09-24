@@ -93,6 +93,10 @@ Input Order -> SPK -> Produksi -> Pembayaran di Kasir -> Collecting (serah baran
 - **Deposit Konsumen:** setoran deposit dicatat sebagai kewajiban dan dapat dipakai membayar nota.
 - **Laporan:** Order, Produksi, Kas Utama, Belanja Bahan, Hutang Supplier, Piutang, Stok Bahan Baku, HPP & Margin, **Job Costing** (biaya aktual per nota = HPP material + rework + waste terkait, dibanding omzet; tenaga kerja, mesin, dan overhead belum tercatat), Order Jersey, dan Laporan Keuangan (Akuntansi).
 
+**Dashboard Eksekutif (khusus Administrator, sidebar di bawah Dashboard):** ringkasan periode (default bulan berjalan): omzet, biaya aktual, laba kotor dan margin, omzet Jersey; saldo Kas, Bank, Piutang, dan Hutang dari buku besar; grafik omzet 6 bulan; top 5 pelanggan dan produk; peringatan (pengajuan menunggu, bahan di bawah stok minimal, PO lewat estimasi, faktur hutang jatuh tempo, nota belum lunas > 7 hari, rework menunggu); dan **Estimasi Bulan Depan** (rata-rata 3 bulan penuh, acuan kasar, bukan prediksi). **Cara membaca:** laba kotor = omzet - (HPP material + rework + waste); tenaga kerja, mesin, overhead, dan beban operasional belum tercatat sehingga bukan laba bersih, dan akurasinya bergantung pada BOM serta harga rata-rata bahan yang terisi benar.
+
+**Laporan Profitabilitas:** laba kotor dan margin per produk/jasa, pelanggan, atau mesin/divisi untuk rentang tanggal. **Analisis Pemakaian Bahan:** stok keluar per bahan dipisah pemakaian order, rework, dan waste, dengan persentase dan nilai susut.
+
 ## 8. Order Jersey
 
 Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) memiliki modul sendiri untuk order, komponen, ukuran, dan pembayaran, dan **terhubung ke akuntansi**:

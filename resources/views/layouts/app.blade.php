@@ -225,6 +225,15 @@
         <span class="text-sm font-medium">Dashboard</span>
     </a>
 
+    @if($isAdministrator)
+    <a href="{{ route('eksekutif.dashboard') }}" class="{{ $menuClass }} {{ Request::is('eksekutif*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('eksekutif*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+        </svg>
+        <span class="text-sm font-medium">Dashboard Eksekutif</span>
+    </a>
+    @endif
+
     @php
         $grpProduksiVisible = $cekAkses(1) || $cekAkses(20) || $cekAkses(17) || $cekAkses(22) || $cekAkses(23) || $cekAkses(24) || $cekAkses(15) || $cekAkses(31) || $cekAkses(30) || $cekAkses(10) || $cekAkses(27) || $cekAkses(33);
         $grpProduksiAktif = Request::is('bahan-baku*') || Request::is('kartu-stok*') || Request::is('stock-opname*')
@@ -646,7 +655,7 @@
         $grpLaporanAktif = request()->routeIs('laporan.order') || request()->routeIs('laporan.produksi')
             || request()->routeIs('laporan.kas') || request()->routeIs('laporan.belanja-bahan') || request()->routeIs('laporan.hutang')
             || request()->routeIs('laporan.order-jersey') || request()->routeIs('laporan.piutang')
-            || request()->routeIs('laporan.stok-bahan') || request()->routeIs('laporan.hpp') || request()->routeIs('laporan.job-costing');
+            || request()->routeIs('laporan.stok-bahan') || request()->routeIs('laporan.hpp') || request()->routeIs('laporan.job-costing') || request()->routeIs('laporan.profitabilitas') || request()->routeIs('laporan.pemakaian-bahan');
     @endphp
     @if($grpLaporanVisible)
     <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-4 pb-2 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] hover:text-slate-300 transition-colors">
@@ -724,6 +733,12 @@
         </svg>
         <span class="text-sm font-medium">Laporan Stok Bahan Baku</span>
     </a>
+    <a href="{{ route('laporan.pemakaian-bahan') }}" class="{{ $menuClass }} {{ request()->routeIs('laporan.pemakaian-bahan') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.pemakaian-bahan') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+        </svg>
+        <span class="text-sm font-medium">Analisis Pemakaian Bahan</span>
+    </a>
     @endif
 
     @if($cekAkses(47))
@@ -738,6 +753,12 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
         <span class="text-sm font-medium">Laporan Job Costing</span>
+    </a>
+    <a href="{{ route('laporan.profitabilitas') }}" class="{{ $menuClass }} {{ request()->routeIs('laporan.profitabilitas') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.profitabilitas') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Profitabilitas</span>
     </a>
     @endif
     @if($grpLaporanVisible)
