@@ -54,7 +54,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Stok Saat Ini</p>
-                    <h3 class="text-3xl font-black text-slate-900 mt-1">{{ number_format($bahan->stok, 2) }} <span class="text-base font-bold text-slate-400">{{ $bahan->nama_satuan_stok ?? $bahan->satuan_stok }}</span></h3>
+                    <h3 class="text-3xl font-black text-slate-900 mt-1">{{ angka($bahan->stok, 2) }} <span class="text-base font-bold text-slate-400">{{ $bahan->nama_satuan_stok ?? $bahan->satuan_stok }}</span></h3>
                 </div>
                 <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl">
                     <i class="fas fa-box"></i>
@@ -67,7 +67,7 @@
                 <div>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estimasi dalam {{ $bahan->nama_satuan_hitung }}</p>
                     <h3 class="text-3xl font-black text-slate-900 mt-1">≈ {{ number_format($bahan->stok * $bahan->nilai_konversi, 0, ',', '.') }} <span class="text-base font-bold text-slate-400">{{ $bahan->nama_satuan_hitung }}</span></h3>
-                    <p class="text-[10px] text-slate-400 mt-1">Dihitung dari {{ number_format($bahan->stok, 2) }} {{ $bahan->nama_satuan_stok }} × {{ number_format($bahan->nilai_konversi, 0, ',', '.') }} {{ $bahan->nama_satuan_hitung }}/{{ $bahan->nama_satuan_stok }}</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Dihitung dari {{ angka($bahan->stok, 2) }} {{ $bahan->nama_satuan_stok }} × {{ number_format($bahan->nilai_konversi, 0, ',', '.') }} {{ $bahan->nama_satuan_hitung }}/{{ $bahan->nama_satuan_stok }}</p>
                 </div>
                 <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl">
                     <i class="fas fa-ruler-combined"></i>
@@ -93,7 +93,7 @@
         <tbody class="divide-y divide-slate-50">
             <tr class="bg-slate-50/40">
                 <td colspan="5" class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Saldo Awal ({{ \Carbon\Carbon::parse($awal)->format('d M Y') }})</td>
-                <td class="px-4 py-3 text-right text-sm font-bold text-slate-700">{{ number_format($saldoAwal, 2) }}</td>
+                <td class="px-4 py-3 text-right text-sm font-bold text-slate-700">{{ angka($saldoAwal, 2) }}</td>
                 <td colspan="2"></td>
             </tr>
             @forelse($kartu as $i => $k)
@@ -112,13 +112,13 @@
                     @endif
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[13px] font-bold text-slate-800">{{ number_format($k->qty, 2) }}</span>
+                    <span class="text-[13px] font-bold text-slate-800">{{ angka($k->qty, 2) }}</span>
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[12px] text-slate-500 font-semibold">{{ number_format($k->stok_sebelum, 2) }}</span>
+                    <span class="text-[12px] text-slate-500 font-semibold">{{ angka($k->stok_sebelum, 2) }}</span>
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[12px] text-slate-700 font-bold">{{ number_format($k->stok_sesudah, 2) }}</span>
+                    <span class="text-[12px] text-slate-700 font-bold">{{ angka($k->stok_sesudah, 2) }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] font-semibold text-slate-600">{{ $k->referensi ?? '-' }}</span>

@@ -55,7 +55,7 @@
                 <td class="px-4 py-4 text-right text-sm {{ $r->biaya_rework > 0 ? 'text-rose-500 font-semibold' : 'text-slate-300' }}">{{ number_format($r->biaya_rework, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-right text-sm {{ $r->biaya_waste > 0 ? 'text-rose-500 font-semibold' : 'text-slate-300' }}">{{ number_format($r->biaya_waste, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-right text-sm font-semibold">{{ number_format($r->biaya_aktual, 0, ',', '.') }}</td>
-                <td class="px-4 py-4 text-right text-sm font-bold {{ $r->laba < 0 ? 'text-rose-600' : 'text-emerald-600' }}">{{ number_format($r->laba, 0, ',', '.') }} <span class="text-[10px] text-slate-400">({{ $r->margin }}%)</span></td>
+                <td class="px-4 py-4 text-right text-sm font-bold {{ $r->laba < 0 ? 'text-rose-600' : 'text-emerald-600' }}">{{ number_format($r->laba, 0, ',', '.') }} <span class="text-[10px] text-slate-400">({{ angka($r->margin, 1) }}%)</span></td>
                 <td class="px-8 py-4 text-right text-xs text-slate-400">{{ $r->margin_estimasi }}%</td>
             </tr>
             @empty

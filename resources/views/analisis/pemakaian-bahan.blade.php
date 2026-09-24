@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-@php $n = fn ($v) => rtrim(rtrim(number_format($v, 2, ',', '.'), '0'), ','); @endphp
+@php $n = fn ($v) => angka($v, 2); @endphp
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1500px] mx-auto">
 
     <x-page-header title="Analisis Pemakaian Bahan">

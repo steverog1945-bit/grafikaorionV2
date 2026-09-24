@@ -52,7 +52,7 @@
                         <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-100">🔥 Urgent</span>
                     @endif
                 </div>
-                <div class="text-[11px] text-slate-400">{{ $s->nomor_nota }} &middot; {{ $s->nama_konsumen }} &middot; {{ $s->divisi }} &middot; Qty {{ $s->qty }}</div>
+                <div class="text-[11px] text-slate-400">{{ $s->nomor_nota }} &middot; {{ $s->nama_konsumen }} &middot; {{ $s->divisi }} &middot; Qty {{ angka($s->qty, 4) }}</div>
             </div>
             <x-badge :status="$s->status_spk" />
         </div>

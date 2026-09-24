@@ -86,13 +86,13 @@ class KartuStokController extends Controller
         // saat eksekusi karena stok bisa berubah selama menunggu approval.
         if ($validated['tipe'] === 'OUT' && (float) $validated['qty'] > $stok) {
             return back()->withInput()->with('error',
-                "Gagal: stok {$bahan->nama_bahan} tersisa " . number_format($stok, 2) .
-                ", tidak bisa dikeluarkan " . number_format((float) $validated['qty'], 2) . '.');
+                "Gagal: stok {$bahan->nama_bahan} tersisa " . angka($stok, 2) .
+                ", tidak bisa dikeluarkan " . angka((float) $validated['qty'], 2) . '.');
         }
 
         $ringkasan = $validated['tipe'] === 'OUT'
-            ? "Keluar {$bahan->nama_bahan}: " . number_format((float) $validated['qty'], 2)
-            : "Revisi stok {$bahan->nama_bahan}: " . number_format($stok, 2) . ' -> ' . number_format((float) $validated['stok_baru'], 2);
+            ? "Keluar {$bahan->nama_bahan}: " . angka((float) $validated['qty'], 2)
+            : "Revisi stok {$bahan->nama_bahan}: " . angka($stok, 2) . ' -> ' . angka((float) $validated['stok_baru'], 2);
 
         ApprovalService::ajukan(
             'penyesuaian_stok_manual',

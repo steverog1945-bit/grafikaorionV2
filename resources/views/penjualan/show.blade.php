@@ -105,12 +105,12 @@
                 </td>
                 <td class="px-6 py-4 text-xs text-slate-500">
                     @if($item->p_ukuran > 0 || $item->l_ukuran > 0)
-                        {{ number_format($item->p_ukuran, 0) }} x {{ number_format($item->l_ukuran, 0) }} cm
+                        {{ number_format($item->p_ukuran, 0, ',', '.') }} x {{ number_format($item->l_ukuran, 0, ',', '.') }} cm
                     @else
                         -
                     @endif
                 </td>
-                <td class="px-4 py-4 text-center text-sm font-bold text-slate-700">{{ $item->qty }}</td>
+                <td class="px-4 py-4 text-center text-sm font-bold text-slate-700">{{ angka($item->qty, 4) }}</td>
                 <td class="px-4 py-4 text-center">
                     <x-badge :status="$item->status_urgensi ?? 'Normal'" :variant="($item->status_urgensi ?? 'Normal') === 'Very Urgent' ? 'danger' : (($item->status_urgensi ?? 'Normal') === 'Urgent' ? 'warning' : 'info')" />
                 </td>

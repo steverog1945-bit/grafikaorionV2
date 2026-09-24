@@ -82,9 +82,9 @@
                         </select>
                     </td>
                     <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" data-qty class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'disabled' }}></td>
-                    <td class="px-4 py-3"><input type="number" step="0.01" min="0" name="items[{{ $i }}][harga]" value="{{ $r['harga'] ?? '' }}" data-harga class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'disabled' }}></td>
+                    <td class="px-4 py-3"><input type="text" inputmode="decimal" autocomplete="off" name="items[{{ $i }}][harga]" value="{{ ($r['harga'] ?? '') === '' ? '' : angka_input($r['harga'], 2) }}" data-harga class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" required {{ $editable ? '' : 'disabled' }}></td>
                     <td class="px-4 py-3 text-right"><span class="text-sm font-bold text-slate-700" data-subtotal>0</span></td>
-                    @if($po && !$editable)<td class="px-4 py-3 text-right text-sm text-slate-500">{{ number_format($r['qty_diterima'] ?? 0, 2) }}</td>@endif
+                    @if($po && !$editable)<td class="px-4 py-3 text-right text-sm text-slate-500">{{ angka($r['qty_diterima'] ?? 0, 2) }}</td>@endif
                     @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove(); hitungTotal()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>@endif
                 </tr>
                 @endforeach
@@ -105,11 +105,11 @@
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span class="font-bold" id="t-subtotal">0</span></div>
                     <div class="flex justify-between items-center gap-4"><span class="text-slate-500">Diskon (Rp)</span>
-                        <input type="number" step="0.01" min="0" name="diskon" id="in-diskon" value="{{ old('diskon', $po->diskon ?? 0) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
+                        <input type="text" inputmode="decimal" autocomplete="off" name="diskon" id="in-diskon" value="{{ angka_input(old('diskon', $po->diskon ?? 0), 2) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
                     <div class="flex justify-between items-center gap-4"><span class="text-slate-500">Pajak (%)</span>
                         <input type="number" step="0.01" min="0" max="100" name="pajak_persen" id="in-pajak" value="{{ old('pajak_persen', $po->pajak_persen ?? 0) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
                     <div class="flex justify-between items-center gap-4"><span class="text-slate-500">Ongkir (Rp)</span>
-                        <input type="number" step="0.01" min="0" name="ongkir" id="in-ongkir" value="{{ old('ongkir', $po->ongkir ?? 0) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
+                        <input type="text" inputmode="decimal" autocomplete="off" name="ongkir" id="in-ongkir" value="{{ angka_input(old('ongkir', $po->ongkir ?? 0), 2) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
                     <div class="flex justify-between pt-3 border-t border-slate-100 text-base"><span class="font-bold text-slate-700">Total</span><span class="font-extrabold text-indigo-600" id="t-total">0</span></div>
                 </div>
             </x-card>
@@ -188,7 +188,7 @@
                 </select>
             </td>
             <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" data-qty class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required></td>
-            <td class="px-4 py-3"><input type="number" step="0.01" min="0" name="items[__I__][harga]" data-harga class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required></td>
+            <td class="px-4 py-3"><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][harga]" data-harga class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" required></td>
             <td class="px-4 py-3 text-right"><span class="text-sm font-bold text-slate-700" data-subtotal>0</span></td>
             <td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove(); hitungTotal()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>
         </tr>
@@ -204,13 +204,13 @@
     function hitungTotal() {
         let subtotal = 0;
         document.querySelectorAll('[data-row]').forEach(row => {
-            const s = (parseFloat(row.querySelector('[data-qty]').value) || 0) * (parseFloat(row.querySelector('[data-harga]').value) || 0);
+            const s = (parseFloat(row.querySelector('[data-qty]').value) || 0) * cleanUangDesimal(row.querySelector('[data-harga]').value);
             row.querySelector('[data-subtotal]').textContent = rp(s);
             subtotal += s;
         });
-        const diskon = parseFloat(document.getElementById('in-diskon').value) || 0;
+        const diskon = cleanUangDesimal(document.getElementById('in-diskon').value);
         const pajak = (subtotal - diskon) * (parseFloat(document.getElementById('in-pajak').value) || 0) / 100;
-        const ongkir = parseFloat(document.getElementById('in-ongkir').value) || 0;
+        const ongkir = cleanUangDesimal(document.getElementById('in-ongkir').value);
         document.getElementById('t-subtotal').textContent = rp(subtotal);
         document.getElementById('t-total').textContent = 'Rp ' + rp(subtotal - diskon + pajak + ongkir);
     }

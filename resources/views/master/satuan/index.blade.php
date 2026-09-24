@@ -83,11 +83,11 @@
                             </div>
                         </td>
                         <td class="px-6 py-5 text-center">
-                            <span class="text-[11px] font-semibold text-slate-400">{{ number_format($s->nilai_konversi, 2) }}</span>
+                            <span class="text-[11px] font-semibold text-slate-400">{{ angka($s->nilai_konversi, 2) }}</span>
                         </td>
                         <td class="px-8 py-5 text-right">
                             <div class="flex justify-end gap-2">
-                                <button onclick="openEditModal({{ $s->id_satuan }}, '{{ $s->nama_satuan }}', {{ $s->nilai_konversi }})"
+                                <button onclick="openEditModal({{ $s->id_satuan }}, '{{ $s->nama_satuan }}', {{ angka($s->nilai_konversi, 4) }})"
                                         class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all">
                                     <i class="fas fa-edit text-sm"></i>
                                 </button>

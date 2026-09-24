@@ -219,7 +219,7 @@
                 <td data-label="Divisi" class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $d->divisi ?? '-' }}</span></td>
                 <td data-label="Desainer" class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $d->desainer ?? '-' }}</span></td>
                 <td data-label="Ukuran" class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $d->p_ukuran > 0 && $d->l_ukuran > 0 ? number_format($d->p_ukuran, 0, ',', '.') . 'x' . number_format($d->l_ukuran, 0, ',', '.') . ' cm' : '-' }}</span></td>
-                <td data-label="Qty Order" class="px-4 py-5 text-center"><span class="text-[13px] font-bold text-slate-700">{{ $d->qty }}</span></td>
+                <td data-label="Qty Order" class="px-4 py-5 text-center"><span class="text-[13px] font-bold text-slate-700">{{ angka($d->qty, 4) }}</span></td>
                 <td data-label="Qty Cetak" class="px-4 py-5 text-center"><span class="text-[13px] font-bold text-slate-700">{{ $d->qty_cetak ?? '-' }}</span></td>
                 <td data-label="m&sup2;" class="px-4 py-5 text-center"><span class="text-[13px] font-bold text-indigo-600">{{ $m2Baris !== null ? number_format($m2Baris, 2, ',', '.') : '-' }}</span></td>
                 <td data-label="Status" class="px-8 py-5 text-center"><x-badge :status="$d->status_spk" /></td>
@@ -248,7 +248,7 @@
                 <td class="px-3 py-1.5 text-slate-600">{{ $d->divisi ?? '-' }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $d->desainer ?? '-' }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $d->p_ukuran > 0 && $d->l_ukuran > 0 ? number_format($d->p_ukuran, 0, ',', '.') . 'x' . number_format($d->l_ukuran, 0, ',', '.') . ' cm' : '-' }}</td>
-                <td class="px-3 py-1.5 text-right text-slate-600">{{ $d->qty }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ angka($d->qty, 4) }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ $d->qty_cetak ?? '-' }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ $m2BarisPrint !== null ? number_format($m2BarisPrint, 2, ',', '.') : '-' }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $d->status_spk }}</td>

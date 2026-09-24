@@ -34,8 +34,8 @@ class PenyesuaianStokService
 
                 if ($qty > $stokSebelum) {
                     throw new \RuntimeException(
-                        "Stok {$bahan->nama_bahan} tersisa " . number_format($stokSebelum, 2) .
-                        ", tidak bisa dikeluarkan " . number_format($qty, 2) . '.'
+                        "Stok {$bahan->nama_bahan} tersisa " . angka($stokSebelum, 2) .
+                        ", tidak bisa dikeluarkan " . angka($qty, 2) . '.'
                     );
                 }
 

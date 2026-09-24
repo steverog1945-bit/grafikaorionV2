@@ -28,7 +28,7 @@ class StokKeluarService
         $stokSebelum = (float) $bahan->stok;
 
         if ($qty > $stokSebelum + 0.0001) {
-            throw new \RuntimeException("Stok {$bahan->nama_bahan} tidak cukup (tersisa " . number_format($stokSebelum, 2) . ", dibutuhkan " . number_format($qty, 2) . ').');
+            throw new \RuntimeException("Stok {$bahan->nama_bahan} tidak cukup (tersisa " . angka($stokSebelum, 2) . ", dibutuhkan " . angka($qty, 2) . ').');
         }
 
         $stokSesudah = $stokSebelum - $qty;

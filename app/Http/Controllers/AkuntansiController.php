@@ -251,11 +251,11 @@ class AkuntansiController extends Controller
         if ($totalKewajiban > 0.01) {
             $rasioLancar = $totalAset / $totalKewajiban;
             if ($rasioLancar >= 2) {
-                $butir[] = ['tone' => 'positif', 'teks' => 'Rasio Lancar ' . number_format($rasioLancar, 2) . 'x - sangat sehat, aset yang tersedia mampu menutupi kewajiban lebih dari dua kali lipat.'];
+                $butir[] = ['tone' => 'positif', 'teks' => 'Rasio Lancar ' . angka($rasioLancar, 2) . 'x - sangat sehat, aset yang tersedia mampu menutupi kewajiban lebih dari dua kali lipat.'];
             } elseif ($rasioLancar >= 1) {
-                $butir[] = ['tone' => 'info', 'teks' => 'Rasio Lancar ' . number_format($rasioLancar, 2) . 'x - aset yang tersedia masih mencukupi untuk menutupi seluruh kewajiban.'];
+                $butir[] = ['tone' => 'info', 'teks' => 'Rasio Lancar ' . angka($rasioLancar, 2) . 'x - aset yang tersedia masih mencukupi untuk menutupi seluruh kewajiban.'];
             } else {
-                $butir[] = ['tone' => 'peringatan', 'teks' => 'Rasio Lancar ' . number_format($rasioLancar, 2) . 'x - aset yang tersedia BELUM cukup menutupi kewajiban, arus kas perlu diperhatikan.'];
+                $butir[] = ['tone' => 'peringatan', 'teks' => 'Rasio Lancar ' . angka($rasioLancar, 2) . 'x - aset yang tersedia BELUM cukup menutupi kewajiban, arus kas perlu diperhatikan.'];
             }
         } else {
             $butir[] = ['tone' => 'info', 'teks' => 'Tidak ada kewajiban tercatat per tanggal ini - seluruh aset murni dibiayai modal sendiri.'];
@@ -265,11 +265,11 @@ class AkuntansiController extends Controller
         if ($totalEkuitas > 0.01) {
             $der = $totalKewajiban / $totalEkuitas;
             if ($der < 0.5) {
-                $butir[] = ['tone' => 'positif', 'teks' => 'Struktur permodalan konservatif (utang ' . number_format($der * 100, 0) . '% dari ekuitas) - mayoritas usaha dibiayai modal sendiri, bukan utang.'];
+                $butir[] = ['tone' => 'positif', 'teks' => 'Struktur permodalan konservatif (utang ' . number_format($der * 100, 0, ',', '.') . '% dari ekuitas) - mayoritas usaha dibiayai modal sendiri, bukan utang.'];
             } elseif ($der <= 1) {
-                $butir[] = ['tone' => 'info', 'teks' => 'Struktur permodalan cukup seimbang antara utang (' . number_format($der * 100, 0) . '% dari ekuitas) dan modal sendiri.'];
+                $butir[] = ['tone' => 'info', 'teks' => 'Struktur permodalan cukup seimbang antara utang (' . number_format($der * 100, 0, ',', '.') . '% dari ekuitas) dan modal sendiri.'];
             } else {
-                $butir[] = ['tone' => 'peringatan', 'teks' => 'Kewajiban (' . number_format($der * 100, 0) . '% dari ekuitas) lebih besar dibanding modal sendiri - ketergantungan pada utang perlu diwaspadai.'];
+                $butir[] = ['tone' => 'peringatan', 'teks' => 'Kewajiban (' . number_format($der * 100, 0, ',', '.') . '% dari ekuitas) lebih besar dibanding modal sendiri - ketergantungan pada utang perlu diwaspadai.'];
             }
         } elseif ($totalEkuitas < -0.01) {
             $butir[] = ['tone' => 'peringatan', 'teks' => 'Ekuitas berada di posisi NEGATIF (' . $fmt($totalEkuitas) . ') - modal sudah tergerus rugi berjalan, kondisi ini perlu perhatian serius.'];
@@ -289,14 +289,14 @@ class AkuntansiController extends Controller
         $asetTerbesar = $aset->sortByDesc('jumlah')->first();
         if ($asetTerbesar && $totalAset > 0.01) {
             $persenAset = ($asetTerbesar->jumlah / $totalAset) * 100;
-            $butir[] = ['tone' => 'info', 'teks' => 'Komponen aset terbesar adalah ' . $asetTerbesar->nama_akun . ' sebesar ' . $fmt($asetTerbesar->jumlah) . ' (' . number_format($persenAset, 0) . '% dari total aset' . ($asetNegatif->isNotEmpty() ? ', persentase melebihi 100% karena ada akun aset lain yang bersaldo minus seperti disebutkan di atas' : '') . ').'];
+            $butir[] = ['tone' => 'info', 'teks' => 'Komponen aset terbesar adalah ' . $asetTerbesar->nama_akun . ' sebesar ' . $fmt($asetTerbesar->jumlah) . ' (' . number_format($persenAset, 0, ',', '.') . '% dari total aset' . ($asetNegatif->isNotEmpty() ? ', persentase melebihi 100% karena ada akun aset lain yang bersaldo minus seperti disebutkan di atas' : '') . ').'];
         }
 
         // 6. Kondisi laba/rugi berjalan.
         if ($labaBerjalan > 0.01) {
             $persenEkuitas = $totalEkuitas > 0.01 ? ($labaBerjalan / $totalEkuitas) * 100 : null;
             $butir[] = ['tone' => 'positif', 'teks' => 'Mencatatkan LABA berjalan ' . $fmt($labaBerjalan) . ' sampai tanggal ini'
-                . ($persenEkuitas !== null ? ', berkontribusi ' . number_format($persenEkuitas, 0) . '% terhadap total ekuitas.' : '.')];
+                . ($persenEkuitas !== null ? ', berkontribusi ' . number_format($persenEkuitas, 0, ',', '.') . '% terhadap total ekuitas.' : '.')];
         } elseif ($labaBerjalan < -0.01) {
             $butir[] = ['tone' => 'peringatan', 'teks' => 'Mencatatkan RUGI berjalan ' . $fmt($labaBerjalan) . ' sampai tanggal ini, mengurangi ekuitas perusahaan.'];
         }

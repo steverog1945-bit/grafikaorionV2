@@ -19,7 +19,7 @@
                 <x-form.select name="id_bahan" id="id_bahan" required>
                     <option value="">-- Pilih Bahan --</option>
                     @foreach($bahanList as $b)
-                        <option value="{{ $b->id_bahan }}" {{ old('id_bahan') == $b->id_bahan ? 'selected' : '' }}>{{ $b->nama_bahan }} (stok {{ number_format($b->stok, 2) }} {{ $b->satuan_stok }})</option>
+                        <option value="{{ $b->id_bahan }}" {{ old('id_bahan') == $b->id_bahan ? 'selected' : '' }}>{{ $b->nama_bahan }} (stok {{ angka($b->stok, 2) }} {{ $b->satuan_stok }})</option>
                     @endforeach
                 </x-form.select>
             </x-form.group>

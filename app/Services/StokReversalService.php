@@ -97,7 +97,7 @@ class StokReversalService
                     'updated_at'   => now(),
                 ]);
 
-                $ringkasan[] = $bahan->nama_bahan . ' +' . number_format($qtyKembali, 2);
+                $ringkasan[] = $bahan->nama_bahan . ' +' . angka($qtyKembali, 2);
             }
 
             return $ringkasan;

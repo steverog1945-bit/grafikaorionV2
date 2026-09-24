@@ -30,7 +30,7 @@
             <tr>
                 <td class="px-8 py-4 text-[13px] font-bold text-slate-700">{{ $r->nomor }}</td>
                 <td class="px-6 py-4 text-xs text-slate-500">{{ $r->nomor_nota }} - {{ $r->nama_file }}</td>
-                <td class="px-6 py-4 text-right text-sm font-semibold">{{ $r->qty_rework }}</td>
+                <td class="px-6 py-4 text-right text-sm font-semibold">{{ angka($r->qty_rework, 4) }}</td>
                 <td class="px-6 py-4 text-right text-sm">{{ $r->status === 'Selesai' ? 'Rp ' . number_format($r->biaya_material, 0, ',', '.') : '-' }}</td>
                 <td class="px-6 py-4 text-center"><x-badge :status="$r->status" :variant="$r->status === 'Selesai' ? 'success' : 'warning'" /></td>
                 <td class="px-8 py-4 text-right">
@@ -70,9 +70,9 @@
             <tr>
                 <td class="px-8 py-4"><span class="text-[13px] font-bold text-slate-700">{{ $q->nomor }}</span><div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($q->tanggal)->format('d M Y') }} - {{ $q->username }}</div></td>
                 <td class="px-6 py-4 text-xs text-slate-500">{{ $q->nomor_nota }} - {{ $q->nama_file }}</td>
-                <td class="px-6 py-4 text-right text-sm">{{ $q->qty_diperiksa }}</td>
+                <td class="px-6 py-4 text-right text-sm">{{ angka($q->qty_diperiksa, 4) }}</td>
                 <td class="px-6 py-4 text-right text-sm text-emerald-600 font-semibold">{{ $q->qty_lolos }}</td>
-                <td class="px-6 py-4 text-right text-sm text-rose-500 font-semibold">{{ $q->qty_reject }}</td>
+                <td class="px-6 py-4 text-right text-sm text-rose-500 font-semibold">{{ angka($q->qty_reject, 4) }}</td>
                 <td class="px-6 py-4 text-center"><x-badge :status="$q->hasil" :variant="$q->hasil === 'Lulus' ? 'success' : 'danger'" /></td>
                 <td class="px-8 py-4 text-xs text-slate-500">{{ $cek ?: '-' }}{{ $q->catatan ? ' | ' . $q->catatan : '' }}</td>
             </tr>

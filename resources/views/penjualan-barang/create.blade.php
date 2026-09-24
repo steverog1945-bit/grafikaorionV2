@@ -70,7 +70,7 @@
                         <select id="select_bahan" class="select2-bahan-barang w-full" disabled>
                             <option value="">-- Ketik Nama Bahan --</option>
                             @foreach($bahan as $b)
-                                <option value="{{ $b->id_bahan }}" data-kategori="{{ $b->id_kategori }}" data-nama="{{ $b->nama_bahan }}" data-satuan="{{ $b->nama_satuan }}" data-stok="{{ $b->stok }}">{{ $b->nama_bahan }} ({{ number_format($b->stok, 2, ',', '.') }} {{ $b->nama_satuan }})</option>
+                                <option value="{{ $b->id_bahan }}" data-kategori="{{ $b->id_kategori }}" data-nama="{{ $b->nama_bahan }}" data-satuan="{{ $b->nama_satuan }}" data-stok="{{ angka($b->stok, 4) }}">{{ $b->nama_bahan }} ({{ number_format($b->stok, 2, ',', '.') }} {{ $b->nama_satuan }})</option>
                             @endforeach
                         </select>
                         <p id="hint_kunci_bahan" class="text-[11px] text-amber-600 mt-1.5 ml-2">

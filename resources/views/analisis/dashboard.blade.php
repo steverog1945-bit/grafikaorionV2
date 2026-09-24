@@ -28,7 +28,7 @@
         @foreach($peringatan as $p)
         <a href="{{ $p['url'] }}" class="flex items-center justify-between p-4 rounded-2xl bg-amber-50 border border-amber-100 hover:bg-amber-100 transition">
             <span class="text-sm font-semibold text-amber-800"><i class="fas fa-exclamation-triangle mr-2"></i>{{ $p['label'] }}</span>
-            <span class="text-lg font-extrabold text-amber-700">{{ $p['jumlah'] }}</span>
+            <span class="text-lg font-extrabold text-amber-700">{{ angka($p['jumlah'], 4) }}</span>
         </a>
         @endforeach
     </div>
@@ -89,7 +89,7 @@
         <x-card>
             <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Top 5 Produk / Jasa</h3>
             @forelse($topProduk as $p)
-                <div class="flex justify-between py-2 border-b border-slate-50 text-sm"><span class="text-slate-600">{{ $p->nama }} <span class="text-[11px] text-slate-400">({{ rtrim(rtrim(number_format($p->qty, 2, ',', '.'), '0'), ',') }})</span></span><b>{{ $rp($p->omzet) }}</b></div>
+                <div class="flex justify-between py-2 border-b border-slate-50 text-sm"><span class="text-slate-600">{{ $p->nama }} <span class="text-[11px] text-slate-400">({{ angka($p->qty, 2) }})</span></span><b>{{ $rp($p->omzet) }}</b></div>
             @empty<p class="text-xs text-slate-400 italic">Belum ada transaksi pada periode ini.</p>@endforelse
         </x-card>
     </div>

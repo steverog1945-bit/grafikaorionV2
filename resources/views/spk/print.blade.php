@@ -23,9 +23,9 @@
             <tr><td>Nama File</td><td class="right">{{ $detail->nama_file }}</td></tr>
             <tr><td>Produk</td><td class="right">{{ $detail->nama_produk }}</td></tr>
             @if($detail->metode_hitung === 'ukuran')
-            <tr><td>Ukuran</td><td class="right">{{ $detail->p_ukuran }} x {{ $detail->l_ukuran }} cm</td></tr>
+            <tr><td>Ukuran</td><td class="right">{{ angka($detail->p_ukuran, 4) }} x {{ angka($detail->l_ukuran, 4) }} cm</td></tr>
             @endif
-            <tr><td>Qty Order</td><td class="right">{{ $detail->qty }}</td></tr>
+            <tr><td>Qty Order</td><td class="right">{{ angka($detail->qty, 4) }}</td></tr>
             <tr><td>Qty Cetak</td><td class="right">{{ $detail->qty_cetak ?? '-' }}</td></tr>
             @if($detail->nama_finishing)
             <tr><td colspan="2" style="font-weight:bold; padding-top:6px;">Finishing: {{ $detail->nama_finishing }}</td></tr>

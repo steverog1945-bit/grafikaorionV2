@@ -57,7 +57,7 @@
                         <select name="items[{{ $i }}][id_bahan]" class="w-full rounded-xl border-slate-200 text-sm p-2" required {{ $editable ? '' : 'disabled' }}>
                             <option value="">-- Pilih Bahan --</option>
                             @foreach($bahanList as $b)
-                                <option value="{{ $b->id_bahan }}" {{ ($r['id_bahan'] ?? '') == $b->id_bahan ? 'selected' : '' }}>{{ $b->nama_bahan }} (stok {{ number_format($b->stok, 2) }} {{ $b->satuan_stok }})</option>
+                                <option value="{{ $b->id_bahan }}" {{ ($r['id_bahan'] ?? '') == $b->id_bahan ? 'selected' : '' }}>{{ $b->nama_bahan }} (stok {{ angka($b->stok, 2) }} {{ $b->satuan_stok }})</option>
                             @endforeach
                         </select>
                     </td>
@@ -96,7 +96,7 @@
                 <select name="items[__I__][id_bahan]" class="w-full rounded-xl border-slate-200 text-sm p-2" required>
                     <option value="">-- Pilih Bahan --</option>
                     @foreach($bahanList as $b)
-                        <option value="{{ $b->id_bahan }}">{{ $b->nama_bahan }} (stok {{ number_format($b->stok, 2) }} {{ $b->satuan_stok }})</option>
+                        <option value="{{ $b->id_bahan }}">{{ $b->nama_bahan }} (stok {{ angka($b->stok, 2) }} {{ $b->satuan_stok }})</option>
                     @endforeach
                 </select>
             </td>

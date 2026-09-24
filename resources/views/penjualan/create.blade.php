@@ -15,7 +15,7 @@
                 @foreach($quotationRef->items as $it)
                 <li>&bull; <b>{{ $it->nama_item }}</b>
                     {{ $it->tipe === 'Produk' && $it->p_ukuran > 0 ? rtrim(rtrim($it->p_ukuran, '0'), '.') . ' x ' . rtrim(rtrim($it->l_ukuran, '0'), '.') . ' cm' : '' }}
-                    &times; {{ rtrim(rtrim(number_format($it->qty, 2, ',', '.'), '0'), ',') }}
+                    &times; {{ angka($it->qty, 2) }}
                     = Rp {{ number_format($it->subtotal, 0, ',', '.') }}{{ $it->catatan ? ' - ' . $it->catatan : '' }}</li>
                 @endforeach
             </ul>
@@ -1244,7 +1244,7 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
-                        <span class="text-xs font-bold text-slate-400">Qty ${item.qty_hitung.toFixed(2)}</span>
+                        <span class="text-xs font-bold text-slate-400">Qty ${angkaId(item.qty_hitung, 2)}</span>
                         <span class="text-sm font-bold text-slate-900">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(item.subtotal))}</span>
                     </div>
                 </div>`;

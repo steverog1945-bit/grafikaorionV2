@@ -224,3 +224,10 @@ Kas kasir **tetap Open sampai di-closing**, bukan otomatis standby saat ganti ta
 - Sesi Open lebih dari **24 jam** ditandai amber ("Kasir Open >24 jam") di sidebar dan Kelola Kas sebagai pengingat closing.
 - Sesi baru tidak bisa dibuka selama sesi lama belum di-closing. **Administrator dapat tutup paksa** sesi kasir lain (alasan wajib, tercatat di Log Aktivitas).
 - Hari Minggu libur (bila diaktifkan) memblokir transaksi dan pembukaan sesi baru, tetapi **closing tetap boleh** supaya sesi hari Sabtu bisa ditutup.
+
+## Format Angka (Aturan Tunggal)
+
+- **Tampilan** (tabel, laporan, kartu, pesan) selalu format Indonesia: titik = ribuan, koma = desimal (`200.000`, `12,5`, `Rp 1.300.000`). Nol hanya dipotong dari pecahan (`12,50` menjadi `12,5`), tidak pernah dari bilangan bulat. Di kode gunakan `angka()`, `rupiah()`, `angka_polos()`, `angka_input()` (lihat `app/Support/Angka.php`); jangan menulis `number_format` bergaya Amerika atau `rtrim` pemotong nol.
+- **Input uang** memakai pemisah ribuan **hanya saat mengetik**: `format-ribuan` (rupiah utuh) atau `format-ribuan-desimal` (boleh koma desimal, mis. `281.057,64`). Yang terkirim ke server selalu angka polos tanpa pemisah (`281057.64`), termasuk saat form dikirim lewat `form.submit()` dan saat kolom dibiarkan kosong (tetap kosong).
+- **Input jumlah/ukuran** (stok, qty, konversi, lebar, panjang) tetap `type=number` tanpa pemisah ribuan supaya tidak rancu dengan titik desimal; nol di belakang koma dibuang otomatis (`226.000` tampil `226`).
+- Penjaga otomatis di `tests/Feature/FormatAngkaTest.php`: menolak `number_format` gaya Amerika, pemotong nol yang salah, dan input uang tanpa pemisah ribuan.

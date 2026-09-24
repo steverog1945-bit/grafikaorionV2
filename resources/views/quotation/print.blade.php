@@ -42,7 +42,7 @@
                 <td>{{ $i + 1 }}</td>
                 <td><b>{{ $it->nama_item }}</b>@if($it->tipe === 'Produk' && $it->p_ukuran > 0) <span class="muted">{{ rtrim(rtrim($it->p_ukuran, '0'), '.') }} x {{ rtrim(rtrim($it->l_ukuran, '0'), '.') }} cm</span>@endif
                     @if($it->catatan)<div class="muted">{{ $it->catatan }}</div>@endif</td>
-                <td class="r">{{ rtrim(rtrim(number_format($it->qty, 2, ',', '.'), '0'), ',') }}</td>
+                <td class="r">{{ angka($it->qty, 2) }}</td>
                 <td class="r">{{ number_format($it->harga_satuan, 0, ',', '.') }}</td>
                 <td class="r">{{ $it->biaya_finishing > 0 ? number_format($it->biaya_finishing, 0, ',', '.') : '-' }}</td>
                 <td class="r">{{ $it->biaya_desain > 0 ? number_format($it->biaya_desain, 0, ',', '.') : '-' }}</td>

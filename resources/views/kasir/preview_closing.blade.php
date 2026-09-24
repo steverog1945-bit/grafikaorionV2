@@ -38,12 +38,12 @@
     <div class="rounded-2xl border border-slate-200 overflow-hidden mb-6">
         <div class="grid grid-cols-2 bg-emerald-50 border-b border-slate-200">
             <div class="px-5 py-3 text-xs font-black text-emerald-800 uppercase">Nota Order Cetak</div>
-            <div class="px-5 py-3 text-sm font-bold text-slate-700 text-right">Rp {{ number_format($totalNotaOrder, 0, ',', '.') }}</div>
+            <div class="px-5 py-3 text-sm font-bold text-slate-700 text-right">Rp {{ rupiah($totalNotaOrder, false) }}</div>
         </div>
         @forelse($rekapKategori as $rk)
         <div class="grid grid-cols-2 border-b border-slate-100 bg-sky-50/40">
             <div class="px-5 py-2.5 text-xs font-bold text-slate-600 pl-8">{{ $rk->kategori }}</div>
-            <div class="px-5 py-2.5 text-xs font-semibold text-slate-500 text-right">Rp {{ number_format($rk->total, 0, ',', '.') }}</div>
+            <div class="px-5 py-2.5 text-xs font-semibold text-slate-500 text-right">Rp {{ rupiah($rk->total, false) }}</div>
         </div>
         @empty
         <div class="px-5 py-4 text-xs text-slate-400 italic text-center">Belum ada nota order hari ini.</div>
@@ -51,12 +51,12 @@
 
         <div class="grid grid-cols-2 bg-rose-50 border-b border-t border-slate-200">
             <div class="px-5 py-3 text-xs font-black text-rose-700 uppercase">Piutang Nota Order</div>
-            <div class="px-5 py-3 text-sm font-bold text-rose-600 text-right">Rp {{ number_format($piutangNotaOrder, 0, ',', '.') }}</div>
+            <div class="px-5 py-3 text-sm font-bold text-rose-600 text-right">Rp {{ rupiah($piutangNotaOrder, false) }}</div>
         </div>
 
         <div class="grid grid-cols-2 bg-indigo-600">
             <div class="px-5 py-4 text-xs font-black text-white uppercase tracking-widest">Total Pendapatan</div>
-            <div class="px-5 py-4 text-base font-black text-white text-right">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</div>
+            <div class="px-5 py-4 text-base font-black text-white text-right">Rp {{ rupiah($totalPendapatan, false) }}</div>
         </div>
     </div>
 
@@ -71,11 +71,11 @@
     <div class="rounded-2xl border border-slate-200 overflow-hidden mb-6">
         <div class="grid grid-cols-2 border-b border-slate-100 bg-sky-50/40">
             <div class="px-5 py-3 text-xs font-bold text-slate-600">Bayar Pelunasan (nota hari sebelumnya)</div>
-            <div class="px-5 py-3 text-sm font-bold text-slate-700 text-right">Rp {{ number_format($bayarPelunasan, 0, ',', '.') }}</div>
+            <div class="px-5 py-3 text-sm font-bold text-slate-700 text-right">Rp {{ rupiah($bayarPelunasan, false) }}</div>
         </div>
         <div class="grid grid-cols-2 bg-emerald-50/60">
             <div class="px-5 py-3 text-xs font-black text-emerald-700 uppercase">Bayar Transaksi Hari Ini</div>
-            <div class="px-5 py-3 text-sm font-bold text-emerald-700 text-right">Rp {{ number_format($bayarHariIni, 0, ',', '.') }}</div>
+            <div class="px-5 py-3 text-sm font-bold text-emerald-700 text-right">Rp {{ rupiah($bayarHariIni, false) }}</div>
         </div>
     </div>
 
@@ -83,14 +83,14 @@
         <div class="p-6 bg-emerald-50 rounded-2xl border-2 border-emerald-100">
             <h3 class="font-bold text-emerald-800 mb-4">ALUR KAS TUNAI (LACI)</h3>
             <div class="space-y-2 text-sm">
-                <div class="flex justify-between"><span>Saldo Awal (Modal)</span> <b>Rp {{ number_format($kas->saldo_awal) }}</b></div>
-                <div class="flex justify-between text-emerald-600"><span>Pemasukan Tunai Nota (+)</span> <b>Rp {{ number_format($pemasukan->tunai_masuk) }}</b></div>
-                <div class="flex justify-between text-emerald-600"><span>Kas Tidak Terduga Masuk (+)</span> <b>Rp {{ number_format($manualMasuk) }}</b></div>
-                <div class="flex justify-between text-red-500"><span>Kas Tidak Terduga Keluar (-)</span> <b>Rp {{ number_format($pengeluaran_tunai) }}</b></div>
+                <div class="flex justify-between"><span>Saldo Awal (Modal)</span> <b>Rp {{ rupiah($kas->saldo_awal, false) }}</b></div>
+                <div class="flex justify-between text-emerald-600"><span>Pemasukan Tunai Nota (+)</span> <b>Rp {{ rupiah($pemasukan->tunai_masuk, false) }}</b></div>
+                <div class="flex justify-between text-emerald-600"><span>Kas Tidak Terduga Masuk (+)</span> <b>Rp {{ rupiah($manualMasuk, false) }}</b></div>
+                <div class="flex justify-between text-red-500"><span>Kas Tidak Terduga Keluar (-)</span> <b>Rp {{ rupiah($pengeluaran_tunai, false) }}</b></div>
                 <hr class="border-emerald-200">
                 <div class="flex justify-between text-lg font-black text-emerald-900">
                     <span>SALDO AKHIR LACI</span>
-                    <span>Rp {{ number_format($saldo_akhir_sistem) }}</span>
+                    <span>Rp {{ rupiah($saldo_akhir_sistem, false) }}</span>
                 </div>
             </div>
         </div>
@@ -98,9 +98,9 @@
         <div class="p-6 bg-blue-50 rounded-2xl border-2 border-blue-100">
             <h3 class="font-bold text-blue-800 mb-4">LAPORAN NON-TUNAI (NON-LACI)</h3>
             <div class="space-y-2 text-sm">
-                <div class="flex justify-between"><span>Total Masuk Transfer</span> <b>Rp {{ number_format($pemasukan->transfer_masuk) }}</b></div>
-                <div class="flex justify-between"><span>Total Masuk Debit</span> <b>Rp {{ number_format($pemasukan->debit_masuk ?? 0) }}</b></div>
-                <div class="flex justify-between"><span>Total Masuk Deposit</span> <b>Rp {{ number_format($pemasukan->deposit_masuk ?? 0) }}</b></div>
+                <div class="flex justify-between"><span>Total Masuk Transfer</span> <b>Rp {{ rupiah($pemasukan->transfer_masuk, false) }}</b></div>
+                <div class="flex justify-between"><span>Total Masuk Debit</span> <b>Rp {{ rupiah($pemasukan->debit_masuk ?? 0, false) }}</b></div>
+                <div class="flex justify-between"><span>Total Masuk Deposit</span> <b>Rp {{ rupiah($pemasukan->deposit_masuk ?? 0, false) }}</b></div>
                 {{-- Ditegaskan eksplisit sesuai arahan pemilik aplikasi: Transfer
                      (juga Debit & Deposit) TIDAK pernah ikut closing kas -
                      murni laporan keuangan, tidak menyentuh keadaan fisik laci
@@ -124,7 +124,7 @@
              manual di laci) - nama disamakan konsepnya, cuma label mengikuti
              yang sudah dipakai sebelumnya di app ini supaya konsisten. --}}
         <label class="block text-center text-sm font-bold text-slate-400 mb-2 uppercase">Saldo Revisi (Uang Fisik di Laci)</label>
-        <input type="number" name="saldo_fisik" id="input-saldo-fisik" oninput="hitungSelisihLive()" class="w-full bg-transparent text-center text-4xl font-black text-white border-b-2 border-slate-700 focus:outline-none focus:border-emerald-500 mb-2" placeholder="0" required>
+        <input type="text" inputmode="numeric" autocomplete="off" name="saldo_fisik" id="input-saldo-fisik" oninput="hitungSelisihLive()" class="w-full bg-transparent text-center text-4xl font-black text-white border-b-2 border-slate-700 focus:outline-none focus:border-emerald-500 mb-2 format-ribuan" placeholder="0" required>
 
         {{-- Selisih DIHITUNG LIVE di browser (saldo fisik yang diketik vs
              SALDO AKHIR LACI sistem) - operator langsung tahu kurang/lebih
@@ -160,7 +160,7 @@
     const saldoAkhirSistemJs = {{ (float) $saldo_akhir_sistem }};
 
     function hitungSelisihLive() {
-        const fisik = parseFloat(document.getElementById('input-saldo-fisik').value) || 0;
+        const fisik = cleanRupiah(document.getElementById('input-saldo-fisik').value);
         const selisih = fisik - saldoAkhirSistemJs;
         const fmt = new Intl.NumberFormat('id-ID');
         const el = document.getElementById('display-selisih-live');

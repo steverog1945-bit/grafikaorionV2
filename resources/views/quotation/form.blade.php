@@ -105,16 +105,16 @@
                     <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Qty</label>
                         <input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" required class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
                     <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Harga satuan (kosong = otomatis)</label>
-                        <input type="number" step="0.01" min="0" name="items[{{ $i }}][harga_satuan]" value="{{ $r['harga_satuan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
+                        <input type="text" inputmode="decimal" autocomplete="off" name="items[{{ $i }}][harga_satuan]" value="{{ ($r['harga_satuan'] ?? '') === '' ? '' : angka_input($r['harga_satuan'], 2) }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
                     <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Finishing</label>
                         <select name="items[{{ $i }}][id_finishing]" class="w-full rounded-xl border-slate-200 text-sm p-2" {{ $editable ? '' : 'disabled' }}>
                             <option value="">-</option>
                             @foreach($finishingList as $f)<option value="{{ $f->id_finishing }}" {{ ($r['id_finishing'] ?? '') == $f->id_finishing ? 'selected' : '' }}>{{ $f->nama_finishing }}</option>@endforeach
                         </select></div>
                     <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Biaya finishing</label>
-                        <input type="number" step="0.01" min="0" name="items[{{ $i }}][biaya_finishing]" value="{{ ($r['biaya_finishing'] ?? 0) ?: '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
+                        <input type="text" inputmode="decimal" autocomplete="off" name="items[{{ $i }}][biaya_finishing]" value="{{ ($r['biaya_finishing'] ?? 0) ? angka_input($r['biaya_finishing'], 2) : '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
                     <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Biaya desain</label>
-                        <input type="number" step="0.01" min="0" name="items[{{ $i }}][biaya_desain]" value="{{ ($r['biaya_desain'] ?? 0) ?: '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
+                        <input type="text" inputmode="decimal" autocomplete="off" name="items[{{ $i }}][biaya_desain]" value="{{ ($r['biaya_desain'] ?? 0) ? angka_input($r['biaya_desain'], 2) : '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
                     <div class="col-span-2 md:col-span-2"><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Catatan baris</label>
                         <input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" {{ $editable ? '' : 'disabled' }}></div>
                     <div class="text-right">
@@ -140,7 +140,7 @@
                 <div class="space-y-3 text-sm">
                     @if($quotation)<div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span class="font-bold">Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</span></div>@endif
                     <div class="flex justify-between items-center gap-4"><span class="text-slate-500">Diskon (Rp)</span>
-                        <input type="number" step="0.01" min="0" name="diskon" value="{{ old('diskon', $quotation->diskon ?? 0) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
+                        <input type="text" inputmode="decimal" autocomplete="off" name="diskon" value="{{ angka_input(old('diskon', $quotation->diskon ?? 0), 2) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
                     @if($quotation)<div class="flex justify-between pt-3 border-t border-slate-100 text-base"><span class="font-bold text-slate-700">Total</span><span class="font-extrabold text-indigo-600">Rp {{ number_format($quotation->total, 0, ',', '.') }}</span></div>
                     @else<p class="text-[11px] text-slate-400">Subtotal & total dihitung server setelah disimpan.</p>@endif
                 </div>
@@ -202,11 +202,11 @@
                 <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">P (cm)</label><input type="number" step="0.01" min="0" name="items[__I__][p]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
                 <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">L (cm)</label><input type="number" step="0.01" min="0" name="items[__I__][l]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
                 <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Qty</label><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" required class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
-                <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Harga satuan (kosong = otomatis)</label><input type="number" step="0.01" min="0" name="items[__I__][harga_satuan]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Harga satuan (kosong = otomatis)</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][harga_satuan]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
                 <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Finishing</label>
                     <select name="items[__I__][id_finishing]" class="w-full rounded-xl border-slate-200 text-sm p-2"><option value="">-</option>@foreach($finishingList as $f)<option value="{{ $f->id_finishing }}">{{ $f->nama_finishing }}</option>@endforeach</select></div>
-                <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Biaya finishing</label><input type="number" step="0.01" min="0" name="items[__I__][biaya_finishing]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
-                <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Biaya desain</label><input type="number" step="0.01" min="0" name="items[__I__][biaya_desain]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
+                <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Biaya finishing</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][biaya_finishing]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
+                <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Biaya desain</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][biaya_desain]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
                 <div class="col-span-2 md:col-span-2"><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Catatan baris</label><input type="text" maxlength="255" name="items[__I__][catatan]" class="w-full rounded-xl border-slate-200 text-xs p-2"></div>
                 <div class="text-right"><button type="button" onclick="this.closest('[data-row]').remove()" class="text-slate-300 hover:text-rose-500 text-xs"><i class="fas fa-trash-alt"></i> Hapus baris</button></div>
             </div>

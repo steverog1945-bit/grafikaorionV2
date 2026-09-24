@@ -113,7 +113,7 @@
                         <span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->format('d M Y') }}</span>
                     </td>
                     <td class="px-4 py-5 text-center">
-                        <span class="text-[13px] font-bold text-slate-700">{{ $item->qty }}</span>
+                        <span class="text-[13px] font-bold text-slate-700">{{ angka($item->qty, 4) }}</span>
                     </td>
                     <td class="px-4 py-5 text-center">
                         <button type="button" onclick="toggleUrgent({{ $item->id_detail }})"

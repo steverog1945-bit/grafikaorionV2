@@ -128,9 +128,9 @@
                             <td class="py-3 px-2 text-center text-slate-500">
                                 @if($item->metode_hitung == 'ukuran')
                                     {{ number_format($item->qty_hitung, 2, ',', '.') }} m²
-                                    <div class="text-[10px] text-slate-300">{{ $item->qty }} pcs</div>
+                                    <div class="text-[10px] text-slate-300">{{ angka($item->qty, 4) }} pcs</div>
                                 @else
-                                    {{ $item->qty }} {{ $item->id_jasa ? 'Jasa' : ($item->id_bahan ? 'Bahan' : 'Pcs') }}
+                                    {{ angka($item->qty, 4) }} {{ $item->id_jasa ? 'Jasa' : ($item->id_bahan ? 'Bahan' : 'Pcs') }}
                                 @endif
                             </td>
                             <td class="py-3 pl-2 text-right disp-subtotal font-black text-slate-800">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>

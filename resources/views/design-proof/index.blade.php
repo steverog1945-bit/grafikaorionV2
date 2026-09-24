@@ -44,7 +44,7 @@
             @forelse($daftar as $d)
             <tr class="hover:bg-slate-50/30">
                 <td class="px-8 py-4"><span class="text-[13px] font-bold text-slate-700">{{ $d->nomor_nota }}</span><div class="text-[11px] text-slate-400">{{ $d->nama_file }}</div></td>
-                <td class="px-6 py-4 text-right text-sm">{{ $d->qty }}</td>
+                <td class="px-6 py-4 text-right text-sm">{{ angka($d->qty, 4) }}</td>
                 <td class="px-6 py-4 text-center text-xs text-slate-500">{{ $d->status_spk }}</td>
                 <td class="px-6 py-4 text-center">
                     @if($d->status_proof)

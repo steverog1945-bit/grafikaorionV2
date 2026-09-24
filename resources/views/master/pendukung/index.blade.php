@@ -22,7 +22,7 @@
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-500 uppercase ml-1">Biaya/m</label>
-                    <input type="number" name="biaya_per_meter" placeholder="5000" class="w-full mt-1 rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 transition">
+                    <input type="text" inputmode="numeric" autocomplete="off" name="biaya_per_meter" placeholder="5000" class="w-full mt-1 rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 transition format-ribuan">
                 </div>
             </div>
             <button type="submit" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition shadow-lg">Simpan Mesin</button>

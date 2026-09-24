@@ -1128,6 +1128,7 @@
             });
         })();
     </script>
+    @include('partials.rupiah-format-script')
     <script>
         // Filter konsisten di SELURUH aplikasi: memilih nilai pada dropdown di dalam form GET (filter/pencarian)
         // langsung menerapkan filter - tidak perlu klik tombol atau memilih dua kali. Termasuk dropdown select2

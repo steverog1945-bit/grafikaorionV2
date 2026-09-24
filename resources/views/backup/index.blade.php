@@ -19,7 +19,7 @@
                 <x-badge :status="$b->status" :variant="$b->status === 'Sukses' ? 'success' : 'danger'" />
                 <div class="text-sm font-semibold text-slate-700 mt-2">{{ $b->started_at?->format('d M Y H:i') }}</div>
                 <div class="text-xs text-slate-400 mt-1">
-                    {{ $b->ukuran_bytes ? number_format($b->ukuran_bytes / 1024, 1) . ' KB' : '-' }}
+                    {{ $b->ukuran_bytes ? angka($b->ukuran_bytes / 1024, 1) . ' KB' : '-' }}
                 </div>
             @else
                 <div class="text-sm text-slate-400 italic">Belum pernah ada backup {{ $label }}</div>
@@ -58,7 +58,7 @@
                     <x-badge :status="$r->status" :variant="$r->status === 'Sukses' ? 'success' : 'danger'" />
                 </td>
                 <td class="px-6 py-5">
-                    <span class="text-xs text-slate-500">{{ $r->ukuran_bytes ? number_format($r->ukuran_bytes / 1024, 1) . ' KB' : '-' }}</span>
+                    <span class="text-xs text-slate-500">{{ $r->ukuran_bytes ? angka($r->ukuran_bytes / 1024, 1) . ' KB' : '-' }}</span>
                 </td>
                 <td class="px-6 py-5">
                     <span class="text-xs text-slate-500">{{ $r->started_at?->format('d M Y H:i:s') }}</span>

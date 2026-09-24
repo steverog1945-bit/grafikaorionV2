@@ -98,7 +98,7 @@
                         </h3>
                         <p class="text-[11px] text-slate-400">{{ $line->productType->name ?? '-' }} &middot; {{ $line->category->name ?? '-' }} &middot; {{ $line->bahan ?? '-' }} @if($line->sleeveType) &middot; {{ $line->sleeveType->name }} @endif @if($line->collarType) &middot; {{ $line->collarType->name }} @endif</p>
                         <p class="text-[11px] text-slate-400">
-                            {{ $line->qty }} pcs &times; Rp {{ number_format($line->harga_satuan, 0, ',', '.') }}
+                            {{ angka($line->qty, 4) }} pcs &times; Rp {{ number_format($line->harga_satuan, 0, ',', '.') }}
                             @if($line->size_surcharge_total > 0)
                                 + Rp {{ number_format($line->size_surcharge_total, 0, ',', '.') }} <span class="text-amber-500 font-semibold">(tambahan ukuran)</span>
                             @endif

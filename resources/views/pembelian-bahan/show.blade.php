@@ -46,7 +46,7 @@
                             <p class="text-[10px] text-slate-400 font-bold tracking-widest">{{ $item->bahan->kode_bahan }}</p>
                         </td>
                         <td class="px-4 py-6 text-center font-bold text-slate-600 text-sm">
-                            {{ number_format($item->qty, 2) }}
+                            {{ angka($item->qty, 2) }}
                         </td>
                         <td class="px-4 py-6 text-right font-bold text-slate-600 text-sm">
                             {{ number_format($item->harga, 0, ',', '.') }}

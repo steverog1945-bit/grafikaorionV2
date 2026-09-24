@@ -40,7 +40,7 @@
                         <div class="text-xs font-bold text-indigo-500">{{ $t->nama_konsumen }}</div>
                     </td>
                     <td class="p-6 text-xs font-bold text-slate-500">{{ date('H:i', strtotime($t->tgl_order)) }}</td>
-                    <td class="p-6 text-right font-black text-slate-800">Rp {{ number_format($t->total_bayar) }}</td>
+                    <td class="p-6 text-right font-black text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</td>
                     <td class="p-6 text-center">
                         <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase {{ $t->status_pembayaran == 'Lunas' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600' }}">
                             {{ $t->status_pembayaran }}
