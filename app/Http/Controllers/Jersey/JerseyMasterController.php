@@ -17,6 +17,7 @@ use App\Models\JerseySizeSleeveUsage;
 use App\Models\JerseySleeveType;
 use App\Services\JerseyMaterialEstimationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Semua master data modul jersey (desainer, tipe produk, kategori, ukuran,
@@ -398,6 +399,58 @@ class JerseyMasterController extends Controller
         ]);
         $row = JerseyPriceSetting::create($data)->load(['productType', 'category', 'material']);
         return response()->json(['success' => true, 'message' => 'Tier harga berhasil ditambahkan.', 'row' => $row]);
+    }
+
+    /**
+     * Input cepat: simpan SEMUA tier qty untuk satu Tipe Produk (+ Bahan
+     * opsional) sekaligus, berlaku untuk semua kategori. Tier lama pada
+     * cakupan yang sama (tipe + bahan + kategori kosong) diganti - tier
+     * yang dibatasi ke kategori tertentu tidak disentuh.
+     */
+    public function bulkPriceSettings(Request $request)
+    {
+        $data = $request->validate([
+            'jersey_product_type_id' => 'required|exists:jersey_product_types,id',
+            'jersey_material_id' => 'nullable|exists:jersey_materials,id',
+            'tiers' => 'required|array|min:1|max:20',
+            'tiers.*.qty_min' => 'required|integer|min:1',
+            'tiers.*.qty_max' => 'nullable|integer|gte:tiers.*.qty_min',
+            'tiers.*.price' => 'required|numeric|min:0',
+        ]);
+
+        $tiers = collect($data['tiers'])->sortBy('qty_min')->values();
+        foreach ($tiers as $i => $tier) {
+            $sebelumnya = $tiers[$i - 1] ?? null;
+            if ($sebelumnya && (($sebelumnya['qty_max'] ?? null) === null || (int) $tier['qty_min'] <= (int) $sebelumnya['qty_max'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Rentang qty tumpang tindih: mulai {$tier['qty_min']} bertabrakan dengan tier sebelumnya.",
+                ], 422);
+            }
+        }
+
+        $materialId = $data['jersey_material_id'] ?? null;
+
+        DB::transaction(function () use ($data, $tiers, $materialId) {
+            JerseyPriceSetting::where('jersey_product_type_id', $data['jersey_product_type_id'])
+                ->whereNull('jersey_category_id')
+                ->where(fn ($q) => $materialId === null ? $q->whereNull('jersey_material_id') : $q->where('jersey_material_id', $materialId))
+                ->delete();
+
+            foreach ($tiers as $tier) {
+                JerseyPriceSetting::create([
+                    'jersey_product_type_id' => $data['jersey_product_type_id'],
+                    'jersey_category_id' => null,
+                    'jersey_material_id' => $materialId,
+                    'qty_min' => (int) $tier['qty_min'],
+                    'qty_max' => isset($tier['qty_max']) && $tier['qty_max'] !== '' ? (int) $tier['qty_max'] : null,
+                    'price' => $tier['price'],
+                    'is_active' => true,
+                ]);
+            }
+        });
+
+        return response()->json(['success' => true, 'message' => $tiers->count() . ' tier harga tersimpan.']);
     }
 
     public function updatePriceSetting(Request $request, JerseyPriceSetting $priceSetting)

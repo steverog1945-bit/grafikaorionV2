@@ -150,3 +150,17 @@ php artisan demo:isi
 - Data riil (bahan baku, mesin, kategori, supplier, jasa, produk) hanya dibaca, tidak diubah.
 - Otomatis membuat backup dulu; menolak jalan di production; menolak bila data DEMO sudah ada (kecuali `--tambah`).
 - Data dummy ini dibersihkan saat persiapan go-live (reset data uji dilakukan terpisah dengan konfirmasi).
+
+## Input Harga Jersey Cepat (per Tipe Produk)
+
+Master Jersey > tab **Tier Harga** > kotak hijau **Input Cepat per Tipe Produk**:
+
+1. Pilih Tipe Produk (bahan boleh dikosongkan = harga umum semua bahan).
+2. Tier yang sudah ada langsung terisi. Ubah, tambah baris, atau klik **Pita standar (lusin)** untuk 1-11, 12-23, 24-49, 50+.
+3. Klik **Simpan Semua Tier**. Berlaku untuk semua kategori, tanpa memilih kategori.
+
+Harga tier khusus bahan (mis. Brazil) selalu didahulukan; bila tidak ada, dipakai tier umum tipe itu.
+Tier yang dibatasi ke kategori tertentu tidak diubah oleh Input Cepat. Rentang qty tidak boleh tumpang tindih.
+
+Master jersey sudah dilengkapi: tipe Celana Panjang, Kaos Kiper, Polo; kategori Jersey Sablon DTF & Bordir;
+bahan Benzema, Dryfit, Jacquard, Lacoste Pique; serta harga umum acuan per tipe (sesuaikan dengan harga Anda).

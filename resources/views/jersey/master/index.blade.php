@@ -352,6 +352,34 @@
     <div id="tab-panel-harga" class="jersey-tab-panel hidden">
         <x-card>
             <p class="text-xs text-slate-400 mb-4">Harga sekarang berpusat pada <b class="text-slate-500">Bahan</b> - tiap bahan bisa punya tier qty & harga sendiri karena selisih harga belanja antar bahan bisa sangat jauh. Kosongkan Bahan/Tipe Produk/Kategori untuk membuat tier "berlaku umum" (fallback kalau tidak ada tier spesifik yang cocok). Pencarian harga otomatis memilih tier paling spesifik yang cocok dengan bahan & qty tiap baris barang.</p>
+            <div id="input-cepat-harga" class="mb-6 bg-emerald-50/40 p-4 rounded-2xl border border-emerald-100">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <h3 class="text-xs font-black text-emerald-700 uppercase tracking-widest"><i class="fas fa-bolt mr-1"></i> Input Cepat per Tipe Produk</h3>
+                    <span class="text-[10px] text-slate-400">Pilih tipe produk, isi semua tier sekaligus. Berlaku untuk semua kategori.</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
+                        <select id="cepat-tipe" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
+                            <option value="">-- Pilih Tipe Produk --</option>
+                            @foreach($productTypes->where('is_active', true) as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Bahan (opsional)</label>
+                        <select id="cepat-bahan" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
+                            <option value="">-- Semua Bahan (harga umum) --</option>
+                            @foreach($materials->where('is_active', true) as $m)<option value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
+                        </select>
+                    </div>
+                </div>
+                <div id="cepat-baris" class="space-y-2 mb-3"></div>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="tambahBarisCepat()" class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-500 hover:text-emerald-600"><i class="fas fa-plus"></i> Baris</button>
+                    <button type="button" onclick="isiPitaStandar()" class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-500 hover:text-emerald-600" title="1-11, 12-23, 24-49, 50+">Pita standar (lusin)</button>
+                    <button type="button" onclick="simpanCepat()" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-emerald-700"><i class="fas fa-save"></i> Simpan Semua Tier</button>
+                </div>
+            </div>
             <form id="form-add-harga" class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <div class="md:col-span-2">
                     <label class="block text-[9px] font-black text-indigo-600 uppercase tracking-widest mb-1.5">Bahan</label>
@@ -1107,6 +1135,78 @@
             if (data) tampilkanToastJersey(data.message);
         }, 400);
     }
+
+    // ---- Input Cepat Tier Harga per Tipe Produk ----
+    @php
+        $tierHargaUmum = $priceSettings->whereNull('jersey_category_id')->map(function ($p) {
+            return ['tipe' => $p->jersey_product_type_id, 'bahan' => $p->jersey_material_id, 'qty_min' => $p->qty_min, 'qty_max' => $p->qty_max, 'price' => (float) $p->price];
+        })->values();
+    @endphp
+    const tierHargaAda = {!! json_encode($tierHargaUmum) !!};
+
+    function barisCepatHtml(t) {
+        const v = (x) => (x === null || x === undefined) ? '' : x;
+        return `<div class="cepat-row grid grid-cols-3 gap-2 items-center">
+            <input type="number" min="1" placeholder="Qty min" value="${v(t.qty_min)}" class="cepat-min w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600">
+            <input type="number" min="1" placeholder="Qty max (kosong = ~)" value="${v(t.qty_max)}" class="cepat-max w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600">
+            <div class="flex gap-2">
+                <input type="text" inputmode="numeric" placeholder="Harga/pcs" value="${t.price ? Number(t.price).toLocaleString('id-ID') : ''}" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.')" class="cepat-harga w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600">
+                <button type="button" onclick="this.closest('.cepat-row').remove()" class="w-10 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Hapus baris"><i class="far fa-trash-alt text-xs"></i></button>
+            </div>
+        </div>`;
+    }
+
+    function muatTierCepat() {
+        const tipe = document.getElementById('cepat-tipe').value;
+        const bahan = document.getElementById('cepat-bahan').value;
+        const wadah = document.getElementById('cepat-baris');
+        wadah.innerHTML = '';
+        if (!tipe) return;
+        const ada = tierHargaAda
+            .filter(t => String(t.tipe) === tipe && String(t.bahan ?? '') === bahan)
+            .sort((a, b) => a.qty_min - b.qty_min);
+        (ada.length ? ada : [{}]).forEach(t => wadah.insertAdjacentHTML('beforeend', barisCepatHtml(t)));
+    }
+
+    function tambahBarisCepat() {
+        if (!document.getElementById('cepat-tipe').value) { tampilkanToastJersey('Pilih Tipe Produk dulu.', false); return; }
+        const rows = document.querySelectorAll('#cepat-baris .cepat-row');
+        const terakhir = rows[rows.length - 1];
+        const maxTerakhir = terakhir ? parseInt(terakhir.querySelector('.cepat-max').value || '0', 10) : 0;
+        document.getElementById('cepat-baris').insertAdjacentHTML('beforeend', barisCepatHtml({ qty_min: maxTerakhir ? maxTerakhir + 1 : 1 }));
+    }
+
+    function isiPitaStandar() {
+        if (!document.getElementById('cepat-tipe').value) { tampilkanToastJersey('Pilih Tipe Produk dulu.', false); return; }
+        const wadah = document.getElementById('cepat-baris');
+        const hargaAwal = wadah.querySelector('.cepat-harga')?.value || '';
+        wadah.innerHTML = '';
+        [[1, 11], [12, 23], [24, 49], [50, null]].forEach(([min, max]) => {
+            wadah.insertAdjacentHTML('beforeend', barisCepatHtml({ qty_min: min, qty_max: max }));
+        });
+        if (hargaAwal) wadah.querySelectorAll('.cepat-harga').forEach(i => { i.value = hargaAwal; });
+    }
+
+    async function simpanCepat() {
+        const tipe = document.getElementById('cepat-tipe').value;
+        if (!tipe) { tampilkanToastJersey('Pilih Tipe Produk dulu.', false); return; }
+        const tiers = [...document.querySelectorAll('#cepat-baris .cepat-row')].map(r => ({
+            qty_min: r.querySelector('.cepat-min').value,
+            qty_max: r.querySelector('.cepat-max').value || null,
+            price: cleanRupiah(r.querySelector('.cepat-harga').value),
+        })).filter(t => t.qty_min !== '' && t.price !== '');
+        if (!tiers.length) { tampilkanToastJersey('Isi minimal satu tier (qty min & harga).', false); return; }
+        const data = await kirimJson('{{ url("/jersey/master/price-settings/bulk") }}', 'POST', {
+            jersey_product_type_id: tipe, jersey_material_id: document.getElementById('cepat-bahan').value || null, tiers,
+        });
+        if (!data) return;
+        tampilkanToastJersey(data.message);
+        setTimeout(() => { sessionStorage.setItem('jerseyTabAktif', 'harga'); location.reload(); }, 600);
+    }
+
+    document.getElementById('cepat-tipe').addEventListener('change', muatTierCepat);
+    document.getElementById('cepat-bahan').addEventListener('change', muatTierCepat);
+    try { const tab = sessionStorage.getItem('jerseyTabAktif'); if (tab) { sessionStorage.removeItem('jerseyTabAktif'); switchJerseyTab(tab); } } catch (e) {}
 
     // ---- Tier Harga ----
     document.getElementById('form-add-harga').addEventListener('submit', async (e) => {
