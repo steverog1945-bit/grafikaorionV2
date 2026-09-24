@@ -83,6 +83,8 @@ Input Order -> SPK -> Produksi -> Pembayaran di Kasir -> Collecting (serah baran
 - **Batalkan nota:** dari Riwayat Penjualan, ajukan pembatalan dengan alasan. Setelah Administrator menyetujui, nota berstatus Dibatalkan, stok dikembalikan, dan jurnal dibalik.
 - **Edit nota:** ajukan permintaan edit dari Riwayat Penjualan; setelah disetujui Administrator, edit diterapkan dan jurnal dikoreksi.
 
+**Timeline Pelanggan:** di Data Konsumen, tombol ikon garis waktu pada baris pelanggan membuka ringkasan hubungan bisnis (total omzet, sudah dibayar, piutang, saldo deposit, order terakhir, nota belum diambil) dan riwayat berurut waktu: penawaran, nota, pembayaran, deposit, dan order Jersey. Halaman ini hanya untuk dibaca; nota dan penawaran di dalamnya bisa diklik. Nota yang dibatalkan tampil merah dan tidak dihitung ke omzet/piutang.
+
 ## 7. Kas dan keuangan harian
 
 - **Buka/Tutup Kas:** kas harian dibuka satu orang saja per hari (eksklusif). Saldo awal, transaksi tunai, dan kas manual dicatat di sesi itu. Hari Minggu libur kas jika diaktifkan di Pengaturan Aplikasi. Di akhir hari lakukan **Closing** dan cetak laporannya.

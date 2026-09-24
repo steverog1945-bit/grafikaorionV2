@@ -96,7 +96,10 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::patch('/jasa-harga/{id}', [\App\Http\Controllers\JasaHargaController::class, 'update'])->name('jasa.harga.update');
     Route::delete('/jasa-harga/{id}', [\App\Http\Controllers\JasaHargaController::class, 'destroy'])->name('jasa.harga.destroy');
     Route::resource('gudang', \App\Http\Controllers\GudangController::class)->except(['create', 'edit', 'show']);
-    Route::get('/konsumen-deposit', [\App\Http\Controllers\KonsumenDepositController::class, 'index'])->name('konsumen-deposit.index');
+    // Customer Timeline (LEVEL 2) - akses mengikuti menu Data Konsumen [7].
+    Route::get('/konsumen/{id}/timeline', [\App\Http\Controllers\KonsumenTimelineController::class, 'show'])
+        ->whereNumber('id')->name('konsumen.timeline');
+    Route::get('/konsumen-deposit',[\App\Http\Controllers\KonsumenDepositController::class, 'index'])->name('konsumen-deposit.index');
     Route::post('/konsumen-deposit', [\App\Http\Controllers\KonsumenDepositController::class, 'store'])->name('konsumen-deposit.store');
 
     Route::get('/kas-kecil', [\App\Http\Controllers\KasKecilController::class, 'index'])->name('kas-kecil.index');
