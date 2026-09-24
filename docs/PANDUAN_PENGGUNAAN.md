@@ -164,3 +164,15 @@ Tier yang dibatasi ke kategori tertentu tidak diubah oleh Input Cepat. Rentang q
 
 Master jersey sudah dilengkapi: tipe Celana Panjang, Kaos Kiper, Polo; kategori Jersey Sablon DTF & Bordir;
 bahan Benzema, Dryfit, Jacquard, Lacoste Pique; serta harga umum acuan per tipe (sesuaikan dengan harga Anda).
+
+## Menjalankan Server Tanpa XAMPP Control Panel (pemakaian bersama)
+
+Sekali saja, di komputer server: klik kanan `C:\xampp\orion_install_service.bat` > **Run as administrator**.
+Skrip memasang MariaDB dan Apache sebagai Windows Service (start otomatis saat boot, restart sendiri bila mati,
+dimatikan rapi oleh Windows saat shutdown/restart, port tetap 80 dan 3306, firewall lokal terbuka).
+Setelah itu XAMPP Control Panel tidak dipakai lagi.
+
+- Alamat untuk komputer lain: `http://IP-SERVER/percetakan-app` (beri IP tetap/reservasi DHCP di router).
+- Shutdown atau restart Windows biasa sudah aman.
+- Kembali ke cara lama: `orion_uninstall_service.bat` (Run as administrator); data tidak disentuh.
+- Tanpa service, gunakan `orion_start.bat` dan `orion_stop.bat` (selalu matikan lewat orion_stop.bat).
