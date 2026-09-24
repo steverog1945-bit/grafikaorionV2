@@ -308,7 +308,7 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        .select2({ width: '100%' }); // filter otomatis diterapkan oleh skrip global layout
+        $('.select2-filter').select2({ width: '100%' }); // filter otomatis diterapkan oleh skrip global layout
     });
 
     function openTambahModal() {
