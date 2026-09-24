@@ -488,6 +488,10 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/laporan/profitabilitas', [\App\Http\Controllers\AnalisisController::class, 'profitabilitas'])->name('laporan.profitabilitas');
     Route::get('/laporan/pemakaian-bahan', [\App\Http\Controllers\AnalisisController::class, 'pemakaianBahan'])->name('laporan.pemakaian-bahan');
 
+    // Berkas Order (LEVEL 3) - kumpulan berkas per nota; unggah Production File/QC Photo/Lainnya.
+    Route::get('/berkas-order/{idTransaksi}', [\App\Http\Controllers\BerkasOrderController::class, 'show'])->whereNumber('idTransaksi')->name('berkas-order.show');
+    Route::post('/berkas-order/{idTransaksi}/unggah', [\App\Http\Controllers\BerkasOrderController::class, 'unggah'])->whereNumber('idTransaksi')->name('berkas-order.unggah');
+
     // Design Proof / Approval / Revisi (LEVEL 3) - akses seperti Produksi & Input Order.
     Route::get('/design-proof', [\App\Http\Controllers\DesignProofController::class, 'index'])->name('design-proof.index');
     Route::get('/design-proof/{idDetail}', [\App\Http\Controllers\DesignProofController::class, 'show'])->whereNumber('idDetail')->name('design-proof.show');

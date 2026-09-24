@@ -173,25 +173,55 @@
             return;
         }
 
+        // Serah terima dicatat: siapa penerima & (opsional) foto bukti.
         Swal.fire({
-            title: 'Tandai Sudah Diambil?',
-            html: `Nota <b>${nomorNota}</b> akan ditandai sudah diambil customer dan status ini tidak dimaksudkan untuk dibatalkan sembarangan. Lanjutkan?`,
+            title: 'Serah Terima Barang',
+            html: `
+                <div style="text-align:left;font-size:13px">
+                    <p style="margin-bottom:10px">Nota <b>${nomorNota}</b> akan ditandai sudah diserahkan. Status ini tidak dimaksudkan untuk dibatalkan sembarangan.</p>
+                    <label style="font-weight:700">Jenis</label>
+                    <select id="sw-jenis" class="swal2-input" style="margin:6px 0 12px;width:100%">
+                        <option value="Diambil Sendiri">Diambil sendiri oleh pelanggan</option>
+                        <option value="Diambil Perwakilan">Diambil perwakilan</option>
+                        <option value="Dikirim">Dikirim</option>
+                    </select>
+                    <label style="font-weight:700">Nama penerima (wajib untuk perwakilan/dikirim)</label>
+                    <input id="sw-nama" class="swal2-input" style="margin:6px 0 12px;width:100%" maxlength="150">
+                    <label style="font-weight:700">Catatan</label>
+                    <input id="sw-catatan" class="swal2-input" style="margin:6px 0 12px;width:100%" maxlength="1000">
+                    <label style="font-weight:700">Foto bukti (opsional)</label>
+                    <input id="sw-bukti" type="file" accept="image/*" style="margin-top:6px;width:100%">
+                </div>`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#10b981',
             cancelButtonColor: '#f8fafc',
-            confirmButtonText: 'Ya, Sudah Diambil',
+            confirmButtonText: 'Ya, Sudah Diserahkan',
             cancelButtonText: 'Batal',
             customClass: {
                 confirmButton: 'rounded-lg px-6 py-2.5',
                 cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600'
+            },
+            preConfirm: () => {
+                const jenis = document.getElementById('sw-jenis').value;
+                const nama = document.getElementById('sw-nama').value.trim();
+                if (jenis !== 'Diambil Sendiri' && !nama) {
+                    Swal.showValidationMessage('Nama penerima wajib diisi untuk perwakilan/dikirim.');
+                    return false;
+                }
+                return { jenis, nama, catatan: document.getElementById('sw-catatan').value, bukti: document.getElementById('sw-bukti') };
             }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');
                 form.method = 'POST';
+                form.enctype = 'multipart/form-data';
                 form.action = `{{ url('/collecting') }}/${idTransaksi}/proses`;
                 form.innerHTML = `@csrf @method('PATCH')`;
+                [['jenis', result.value.jenis], ['nama_penerima', result.value.nama], ['catatan_serah', result.value.catatan]].forEach(([n, v]) => {
+                    const i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = v; form.appendChild(i);
+                });
+                if (result.value.bukti.files.length) { result.value.bukti.name = 'bukti'; form.appendChild(result.value.bukti); }
                 document.body.appendChild(form);
                 form.submit();
             }

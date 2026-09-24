@@ -73,6 +73,12 @@ class KonsumenTimelineController extends Controller
                 'nominal' => (float) $p->nominal, 'url' => null]);
         }
 
+        foreach (DB::table('pengambilan')->whereIn('id_transaksi', $nota->pluck('id_transaksi'))->get() as $g) {
+            $kejadian->push(['waktu' => Carbon::parse($g->created_at), 'jenis' => 'Pengambilan', 'ikon' => 'box-open', 'warna' => 'emerald',
+                'judul' => 'Serah terima ' . ($nomorNota[$g->id_transaksi] ?? ''), 'detail' => $g->jenis . ($g->nama_penerima ? " - {$g->nama_penerima}" : ''),
+                'nominal' => 0.0, 'url' => route('berkas-order.show', $g->id_transaksi)]);
+        }
+
         foreach ($deposit as $d) {
             $kejadian->push(['waktu' => Carbon::parse($d->tgl_deposit), 'jenis' => 'Deposit', 'ikon' => 'wallet', 'warna' => 'sky',
                 'judul' => $d->tipe . ' deposit', 'detail' => $d->keterangan ?: ($d->metode_bayar ?: ''),

@@ -5,6 +5,9 @@
 
     <x-page-header title="Detail Transaksi {{ $transaksi->nomor_nota }}" subtitle="Tampilan baca saja • edit tersimpan belum didukung untuk menjaga integritas stok & jurnal akuntansi">
         <x-slot:actions>
+            <x-button href="{{ route('berkas-order.show', $transaksi->id_transaksi) }}" variant="outline">
+                <i class="fas fa-folder-open"></i> Berkas Order
+            </x-button>
             <x-button href="{{ route('penjualan.riwayat') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali ke Riwayat
             </x-button>

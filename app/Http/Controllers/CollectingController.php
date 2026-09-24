@@ -103,9 +103,22 @@ class CollectingController extends Controller
      * satu-satunya penjaga sesungguhnya supaya nota dengan item yang masih
      * Antre/Desain/Cetak tidak bisa ditandai selesai diambil.
      */
-    public function proses($id)
+    public function proses(Request $request, $id)
     {
-        return DB::transaction(function () use ($id) {
+        // Catatan serah terima (Pickup/Delivery Management) - semua OPSIONAL
+        // supaya panggilan lama tanpa field ini tetap jalan; kalau jenisnya
+        // perwakilan/dikirim, nama penerima wajib.
+        $request->validate([
+            'jenis' => 'nullable|in:Diambil Sendiri,Diambil Perwakilan,Dikirim',
+            'nama_penerima' => 'nullable|string|max:150|required_if:jenis,Diambil Perwakilan,Dikirim',
+            'catatan_serah' => 'nullable|string|max:1000',
+            'bukti' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:10240',
+        ]);
+
+        $buktiPath = null;
+
+        try {
+            return DB::transaction(function () use ($id, $request, &$buktiPath) {
             $transaksi = DB::table('transaksi')->where('id_transaksi', $id)->lockForUpdate()->first();
 
             if (!$transaksi) {
@@ -138,8 +151,30 @@ class CollectingController extends Controller
                 'updated_at'          => now(),
             ]);
 
+            if ($request->hasFile('bukti')) {
+                $buktiPath = $request->file('bukti')->store("bukti_serah_terima/{$id}", 'public');
+            }
+
+            DB::table('pengambilan')->insert([
+                'id_transaksi' => $id,
+                'jenis' => $request->input('jenis', 'Diambil Sendiri'),
+                'nama_penerima' => $request->input('nama_penerima'),
+                'catatan' => $request->input('catatan_serah'),
+                'bukti_path' => $buktiPath,
+                'id_user' => Auth::id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
             return back()->with('success', "Nota {$transaksi->nomor_nota} ditandai sudah diambil.");
-        });
+            });
+        } catch (\Throwable $e) {
+            if ($buktiPath) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($buktiPath);
+            }
+
+            throw $e;
+        }
     }
 
     /**
