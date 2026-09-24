@@ -105,7 +105,7 @@ public function index(Request $request)
                     $bomData[] = [
                         'id_produk'             => $id_produk,
                         'id_bahan'              => $val_id_bahan,
-                        'cara_hitung_pemakaian' => $request->cara_hitung_pemakaian[$key] ?? 'Q',
+                        'cara_hitung_pemakaian' => \App\Services\BomCalculationService::rumusValid((string) ($request->cara_hitung_pemakaian[$key] ?? 'Q')) ? $request->cara_hitung_pemakaian[$key] : 'Q',
                         'created_at'            => now(),
                         'updated_at'            => now(),
                     ];
@@ -212,7 +212,7 @@ public function show($id)
                         $bomData[] = [
                             'id_produk'             => $id,
                             'id_bahan'              => $val_id_bahan,
-                            'cara_hitung_pemakaian' => $request->cara_hitung_pemakaian[$key] ?? 'Q',
+                            'cara_hitung_pemakaian' => \App\Services\BomCalculationService::rumusValid((string) ($request->cara_hitung_pemakaian[$key] ?? 'Q')) ? $request->cara_hitung_pemakaian[$key] : 'Q',
                             'created_at'            => now(),
                             'updated_at'            => now(),
                         ];
