@@ -273,12 +273,12 @@
 {{-- Status Kas --}}
 <div class="mt-5 px-4">
     @if($kasAktif)
-        <div class="sidebar-kas-status bg-emerald-500/15 border border-emerald-400/30 rounded-xl px-3 py-2.5 flex items-center gap-2.5" title="Kasir: Open">
+        <div class="sidebar-kas-status {{ $kasBasi ? 'bg-amber-500/15 border-amber-400/40' : 'bg-emerald-500/15 border-emerald-400/30' }} border rounded-xl px-3 py-2.5 flex items-center gap-2.5" title="{{ $kasBasi ? 'Kasir Open lebih dari 24 jam - belum di-closing' : 'Kasir: Open' }}">
             <span class="relative flex h-2.5 w-2.5 shrink-0">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
             </span>
-            <span class="text-xs font-bold text-emerald-300 uppercase tracking-wider sidebar-text-label">Kasir Open</span>
+            <span class="text-xs font-bold {{ $kasBasi ? 'text-amber-300' : 'text-emerald-300' }} uppercase tracking-wider sidebar-text-label">{{ $kasBasi ? 'Kasir Open >24 jam' : 'Kasir Open' }}</span>
         </div>
     @else
         <div class="sidebar-kas-status bg-rose-500/15 border border-rose-400/30 rounded-xl px-3 py-2.5 flex items-center gap-2.5" title="Kasir: Standby">

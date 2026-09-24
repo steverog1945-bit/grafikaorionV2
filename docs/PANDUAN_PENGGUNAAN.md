@@ -215,3 +215,12 @@ Menu Laporan > **Lembar Evaluasi Master** (akses sama dengan Laporan HPP). Memua
 - **C. Harga Produk:** semua tier per golongan dengan rentang masing-masing, beserta margin terhadap HPP bahan (merah bila di bawah 20%) dan penanda promo.
 
 Pilih isi lembar (semua atau salah satu), untuk evaluasi Harian/Bulanan, mesin, dan kategori; klik **Cetak** (A4 lanskap, kop perusahaan, kolom tanda tangan) atau **Unduh CSV** untuk Excel. Angka HPP baru lengkap setelah harga rata-rata semua bahan dan BOM terisi.
+
+## Sesi Kas: Tetap Open Sampai Closing
+
+Kas kasir **tetap Open sampai di-closing**, bukan otomatis standby saat ganti tanggal:
+- Sidebar dan semua transaksi (order, pembayaran, kas tidak terduga) memakai sesi yang masih Open, walau dibuka kemarin.
+- Rekap closing dan pembayaran dihitung dari **waktu sesi dibuka sampai closing**, jadi pembayaran setelah tengah malam ikut terhitung.
+- Sesi Open lebih dari **24 jam** ditandai amber ("Kasir Open >24 jam") di sidebar dan Kelola Kas sebagai pengingat closing.
+- Sesi baru tidak bisa dibuka selama sesi lama belum di-closing. **Administrator dapat tutup paksa** sesi kasir lain (alasan wajib, tercatat di Log Aktivitas).
+- Hari Minggu libur (bila diaktifkan) memblokir transaksi dan pembukaan sesi baru, tetapi **closing tetap boleh** supaya sesi hari Sabtu bisa ditutup.
