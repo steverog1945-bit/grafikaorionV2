@@ -188,11 +188,11 @@
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama komponen baru (mis. Kerah)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <select name="jersey_product_type_id" class="sm:w-44 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">-- Semua Tipe Produk --</option>
-                    @foreach($productTypes->where('is_active', true) as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                    @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                 </select>
                 <select name="jersey_category_id" class="sm:w-44 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">-- Semua Kategori --</option>
-                    @foreach($categories->where('is_active', true) as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                    @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                 </select>
                 <x-button type="submit" variant="success">Tambah Komponen</x-button>
             </form>
@@ -362,14 +362,14 @@
                         <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
                         <select id="cepat-tipe" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
                             <option value="">-- Pilih Tipe Produk --</option>
-                            @foreach($productTypes->where('is_active', true) as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                            @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                         </select>
                     </div>
                     <div>
                         <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Bahan (opsional)</label>
                         <select id="cepat-bahan" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
                             <option value="">-- Semua Bahan (harga umum) --</option>
-                            @foreach($materials->where('is_active', true) as $m)<option value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
+                            @foreach($materials->where('is_active', true) as $m)<option class="opsi-bahan" value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
                         </select>
                     </div>
                 </div>
@@ -385,21 +385,21 @@
                     <label class="block text-[9px] font-black text-indigo-600 uppercase tracking-widest mb-1.5">Bahan</label>
                     <select name="jersey_material_id" id="harga-select-bahan" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                         <option value="">-- Semua Bahan --</option>
-                        @foreach($materials->where('is_active', true) as $m)<option value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
+                        @foreach($materials->where('is_active', true) as $m)<option class="opsi-bahan" value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
                     </select>
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
                     <select name="jersey_product_type_id" id="harga-select-tipe" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                         <option value="">-- Semua Tipe --</option>
-                        @foreach($productTypes->where('is_active', true) as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                        @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                     </select>
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Kategori</label>
                     <select name="jersey_category_id" id="harga-select-kategori" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                         <option value="">-- Semua Kategori --</option>
-                        @foreach($categories->where('is_active', true) as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                        @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                     </select>
                 </div>
                 <div>
@@ -423,15 +423,15 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                 <select id="filter-harga-bahan" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">Semua Bahan</option>
-                    @foreach($materials as $m)<option value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
+                    @foreach($materials->where('is_active', true) as $m)<option class="opsi-bahan" value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
                 </select>
                 <select id="filter-harga-tipe" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">Semua Tipe</option>
-                    @foreach($productTypes as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                    @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                 </select>
                 <select id="filter-harga-kategori" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">Semua Kategori</option>
-                    @foreach($categories as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                    @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                 </select>
                 <button type="button" onclick="resetFilterHarga()" class="flex items-center justify-center gap-2 bg-slate-100 text-slate-500 rounded-xl py-2.5 px-3 text-xs font-bold uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-all">
                     <i class="fas fa-undo-alt text-[10px]"></i> Reset Filter
@@ -484,14 +484,14 @@
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
                 <select id="edit-komponen-scope-tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Semua Tipe Produk --</option>
-                    @foreach($productTypes->where('is_active', true) as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                    @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                 </select>
             </div>
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kategori</label>
                 <select id="edit-komponen-scope-kategori" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Semua Kategori --</option>
-                    @foreach($categories->where('is_active', true) as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                    @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                 </select>
             </div>
             <div class="pt-2 flex gap-3">
@@ -530,7 +530,7 @@
                 <label class="block text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-2">Bahan</label>
                 <select id="edit-harga-bahan" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Semua Bahan --</option>
-                    @foreach($materials->where('is_active', true) as $m)<option value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
+                    @foreach($materials->where('is_active', true) as $m)<option class="opsi-bahan" value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
                 </select>
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -538,14 +538,14 @@
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
                     <select id="edit-harga-tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                         <option value="">-- Semua --</option>
-                        @foreach($productTypes->where('is_active', true) as $pt)<option value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                        @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                     </select>
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kategori</label>
                     <select id="edit-harga-kategori" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                         <option value="">-- Semua --</option>
-                        @foreach($categories->where('is_active', true) as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                        @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                     </select>
                 </div>
             </div>
@@ -722,10 +722,7 @@
             // Tipe Produk/Kategori baru langsung muncul di dropdown tier
             // harga TANPA reload - sebelumnya harus reload dulu baru
             // kelihatan (keluhan langsung dari user).
-            if (cfg.selectTarget) {
-                document.getElementById(cfg.selectTarget)
-                    .insertAdjacentHTML('beforeend', `<option value="${data.row.id}">${escapeHtmlJersey(data.row.name)}</option>`);
-            }
+            sinkronOpsiSelect(entity, data.row.id, data.row.name, true);
 
             // Tipe Lengan/Kerah baru langsung jadi kolom baru di matriks
             // Estimasi Lengan/Kerah TANPA reload - sama seperti "Tambah
@@ -813,14 +810,27 @@
         if (!data) return;
         const row = document.querySelector(`#${cfg.tbody} tr[data-id="${id}"]`);
         if (row) row.outerHTML = baseRowHtml(entity, data.row);
-        if (cfg.selectTarget) {
-            const opt = document.querySelector(`#${cfg.selectTarget} option[value="${id}"]`);
-            if (opt) opt.textContent = data.row.name;
-        }
+        sinkronOpsiSelect(entity, id, data.row.name, !!data.row.is_active);
         closeModal('edit-simple');
         tampilkanToastJersey(data.message);
         terapkanFilterEntitas(entity);
     });
+
+    // Semua dropdown Tipe Produk/Kategori/Bahan (tier harga, input cepat, edit,
+    // filter, estimasi) ditandai kelas opsi-*; satu fungsi menyinkronkan semuanya
+    // saat entitas ditambah, diubah nama, atau di-nonaktifkan/diaktifkan.
+    const kelasOpsiEntitas = { 'product-types': 'opsi-tipe', categories: 'opsi-kategori', materials: 'opsi-bahan' };
+    function sinkronOpsiSelect(entity, id, nama, aktif) {
+        const kelas = kelasOpsiEntitas[entity];
+        if (!kelas) return;
+        document.querySelectorAll(`option.${kelas}[value="${id}"]`).forEach(o => { aktif ? (o.textContent = nama) : o.remove(); });
+        if (!aktif) return;
+        document.querySelectorAll('select').forEach(sel => {
+            if (sel.querySelector(`option.${kelas}`) && !sel.querySelector(`option.${kelas}[value="${id}"]`)) {
+                sel.insertAdjacentHTML('beforeend', `<option class="${kelas}" value="${id}">${escapeHtmlJersey(nama)}</option>`);
+            }
+        });
+    }
 
     async function toggleEntitas(entity, id) {
         const cfg = entityConfig[entity];
@@ -831,14 +841,7 @@
         // Tipe/Kategori yang dinonaktifkan langsung hilang dari pilihan tier
         // harga (sebelumnya tetap muncul walau sudah nonaktif - keluhan
         // langsung dari user), yang diaktifkan lagi langsung muncul lagi.
-        if (cfg.selectTarget) {
-            const existing = document.querySelector(`#${cfg.selectTarget} option[value="${id}"]`);
-            if (data.row.is_active && !existing) {
-                document.getElementById(cfg.selectTarget).insertAdjacentHTML('beforeend', `<option value="${id}">${escapeHtmlJersey(data.row.name)}</option>`);
-            } else if (!data.row.is_active && existing) {
-                existing.remove();
-            }
-        }
+        sinkronOpsiSelect(entity, id, data.row.name, !!data.row.is_active);
         tampilkanToastJersey(data.message);
         terapkanFilterEntitas(entity);
 
@@ -1271,9 +1274,19 @@
 
     function bukaEditHarga(row) {
         document.getElementById('edit-harga-id').value = row.id;
-        document.getElementById('edit-harga-bahan').value = row.jersey_material_id ?? '';
-        document.getElementById('edit-harga-tipe').value = row.jersey_product_type_id ?? '';
-        document.getElementById('edit-harga-kategori').value = row.jersey_category_id ?? '';
+        // Tier lama milik tipe/kategori/bahan yang sudah nonaktif: tampilkan
+        // sementara (bertanda nonaktif) supaya tersimpan ulang tidak berubah jadi "Semua".
+        const pilihDenganNonaktif = (idSelect, nilai, kelas) => {
+            const sel = document.getElementById(idSelect);
+            sel.querySelectorAll('option.opsi-sementara').forEach(o => o.remove());
+            if (nilai && !sel.querySelector(`option[value="${nilai}"]`)) {
+                sel.insertAdjacentHTML('beforeend', `<option class="opsi-sementara" value="${nilai}">(nonaktif) #${nilai}</option>`);
+            }
+            sel.value = nilai ?? '';
+        };
+        pilihDenganNonaktif('edit-harga-bahan', row.jersey_material_id);
+        pilihDenganNonaktif('edit-harga-tipe', row.jersey_product_type_id);
+        pilihDenganNonaktif('edit-harga-kategori', row.jersey_category_id);
         document.getElementById('edit-harga-qty-min').value = row.qty_min;
         document.getElementById('edit-harga-qty-max').value = row.qty_max ?? '';
         document.getElementById('edit-harga-price').value = formatRupiah(Math.round(parseFloat(row.price)));

@@ -81,4 +81,15 @@ class JerseyInputCepatHargaTest extends TestCase
         $this->postJson('/jersey/master/price-settings/bulk', ['tiers' => [['qty_min' => 1, 'price' => 1]]])->assertStatus(422);
         $this->bulk([])->assertStatus(422);
     }
+
+    public function test_tipe_produk_nonaktif_tidak_muncul_di_dropdown_tier_harga(): void
+    {
+        DB::table("jersey_product_types")->updateOrInsert(["name" => "Tipe Mati Uji"], ["is_active" => 0, "created_at" => now(), "updated_at" => now()]);
+
+        $html = $this->get("/jersey/master")->assertOk()->getContent();
+
+        // Boleh muncul di tabel daftar tipe (untuk diaktifkan kembali), tapi tidak sebagai <option> pilihan.
+        $this->assertStringNotContainsString(">Tipe Mati Uji</option>", $html);
+        $this->assertStringContainsString(">Jersey Uji</option>", $html);
+    }
 }
