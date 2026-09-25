@@ -54,16 +54,16 @@ class StokReversalService
         return DB::transaction(function () use ($detail, $referensi, $keterangan) {
             $ringkasan = [];
 
-            $boms = DB::table('bom_detail')->where('id_produk', $detail->id_produk)->get();
+            $noNota = DB::table('transaksi')->where('id_transaksi', $detail->id_transaksi ?? 0)->value('nomor_nota');
 
-            foreach ($boms as $bom) {
-                $qtyPakai = BomCalculationService::hitungQtyPakai(
-                    $bom->cara_hitung_pemakaian,
-                    (float) $detail->p_ukuran,
-                    (float) $detail->l_ukuran,
-                    (float) $detail->qty
-                );
+            foreach (BomCalculationService::komponen((int) $detail->id_produk, (float) $detail->p_ukuran, (float) $detail->l_ukuran, (float) $detail->qty) as $bom) {
+                $qtyPakai = $bom->qty_pakai;
                 if ($qtyPakai <= 0) {
+                    continue;
+                }
+
+                // Tinta baru ikut dipotong sejak fitur potong-tinta aktif: nota lama (tanpa catatan OUT tinta) tidak dikembalikan.
+                if ($bom->is_tinta && !DB::table('kartu_stok')->where('id_bahan', $bom->id_bahan)->where('tipe', 'OUT')->where('referensi', $noNota)->exists()) {
                     continue;
                 }
 

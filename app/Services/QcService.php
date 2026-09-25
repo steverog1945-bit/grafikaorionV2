@@ -105,10 +105,8 @@ class QcService
             $total = 0.0;
 
             if ($detail && $detail->id_produk) {
-                foreach (DB::table('bom_detail')->where('id_produk', $detail->id_produk)->get() as $bom) {
-                    $qtyPakai = BomCalculationService::hitungQtyPakai(
-                        $bom->cara_hitung_pemakaian, (float) $detail->p_ukuran, (float) $detail->l_ukuran, (float) $rw->qty_rework
-                    );
+                foreach (BomCalculationService::komponen((int) $detail->id_produk, (float) $detail->p_ukuran, (float) $detail->l_ukuran, (float) $rw->qty_rework) as $bom) {
+                    $qtyPakai = $bom->qty_pakai;
 
                     if ($qtyPakai <= 0) {
                         continue;

@@ -382,20 +382,16 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                 'harga_jual_snapshot' => $item['subtotal'],
             ]);
 
-            $boms = DB::table('bom_detail')
-                ->where('id_produk', $item['id_produk'])
-                ->get();
+            // BOM + tinta/toner mesin produk (lihat BomCalculationService::komponen).
+            $boms = \App\Services\BomCalculationService::komponen(
+                (int) $item['id_produk'], (float) $item['p'], (float) $item['l'], (float) $jumlah_order
+            );
 
             $hppItemIni = 0;
 
             foreach ($boms as $bom) {
 
-                $qty_pakai = \App\Services\BomCalculationService::hitungQtyPakai(
-                    $bom->cara_hitung_pemakaian,
-                    (float) $item['p'],
-                    (float) $item['l'],
-                    $jumlah_order
-                );
+                $qty_pakai = $bom->qty_pakai;
 
                 if ($qty_pakai > 0) {
                     // Baca stok_sebelum dengan lock supaya aman dari order

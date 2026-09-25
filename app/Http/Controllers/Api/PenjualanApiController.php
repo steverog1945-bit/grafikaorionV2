@@ -90,12 +90,12 @@ class PenjualanApiController extends Controller
             return response()->json(['cukup' => true, 'detail' => []]);
         }
 
-        $boms = DB::table('bom_detail')->where('id_produk', $idProduk)->get();
+        $boms = \App\Services\BomCalculationService::komponen($idProduk, $p, $l, $qtyInput);
         $detail = [];
         $cukup = true;
 
         foreach ($boms as $bom) {
-            $qtyPakai = \App\Services\BomCalculationService::hitungQtyPakai($bom->cara_hitung_pemakaian, $p, $l, $qtyInput);
+            $qtyPakai = $bom->qty_pakai;
             if ($qtyPakai <= 0) {
                 continue;
             }
