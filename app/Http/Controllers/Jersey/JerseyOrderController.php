@@ -324,7 +324,32 @@ class JerseyOrderController extends Controller
             $material?->id,
             $qty
         );
-        $hargaSatuan = (float) ($tier->price ?? 0);
+        $hargaDewasa = (float) ($tier->price ?? 0);
+
+        // Ukuran ANAK memakai tier harga kelompok 'anak' bila ada (dicari dengan qty total barang yang sama),
+        // kalau tidak ada tier anak jatuh ke harga dewasa (selisih persen per ukuran tetap berlaku).
+        $tierAnak = JerseyOrderPricingService::cariTierHarga(
+            $lineData['jersey_product_type_id'] ?? null,
+            $lineData['jersey_category_id'] ?? null,
+            $material?->id,
+            $qty,
+            'anak'
+        );
+        $hargaAnak = $tierAnak ? (float) $tierAnak->price : $hargaDewasa;
+        $kelompokBySizeId = $this->cacheMaster['kelompokBySizeId'] ??= JerseySize::pluck('kelompok', 'id');
+        $hargaSatuanPerSize = [];
+        $totalDasar = 0.0;
+        foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
+            $hargaSatuanPerSize[$sizeId] = ($kelompokBySizeId[$sizeId] ?? 'dewasa') === 'anak' ? $hargaAnak : $hargaDewasa;
+            $totalDasar += $hargaSatuanPerSize[$sizeId] * $qtyUkuran;
+        }
+        // Qty dari daftar pemain dengan ukuran tak dikenal (tidak ada di qtyPerSizeId) tetap dihargai dewasa.
+        $qtyTerpetakan = array_sum($qtyPerSizeId);
+        if ($qty > $qtyTerpetakan) {
+            $totalDasar += $hargaDewasa * ($qty - $qtyTerpetakan);
+        }
+        // Harga satuan yang disimpan/ditampilkan = rata-rata tertimbang (sama dengan harga dewasa bila tak ada ukuran anak).
+        $hargaSatuan = $qty > 0 ? round($totalDasar / $qty, 2) : 0.0;
 
         // Tambahan harga per ukuran (mis. 2XL-5XL lebih mahal, diatur di
         // Master Data > Ukuran) - dijumlahkan per ukuran x qty ukuran itu
@@ -333,7 +358,7 @@ class JerseyOrderController extends Controller
         $surchargeTotal = 0.0;
         foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
             // Selisih per ukuran = nominal tetap + persen dari harga tier (persen negatif = diskon, mis. ukuran anak).
-            $selisihPerPcs = (float) ($surchargeBySizeId[$sizeId] ?? 0) + $hargaSatuan * (float) ($percentBySizeId[$sizeId] ?? 0) / 100;
+            $selisihPerPcs = (float) ($surchargeBySizeId[$sizeId] ?? 0) + ($hargaSatuanPerSize[$sizeId] ?? $hargaSatuan) * (float) ($percentBySizeId[$sizeId] ?? 0) / 100;
             $surchargeTotal += $selisihPerPcs * $qtyUkuran;
         }
 
@@ -354,7 +379,7 @@ class JerseyOrderController extends Controller
             }
         }
 
-        $subtotal = ($hargaSatuan * $qty) + $surchargeTotal + $sleeveCollarSurchargeTotal;
+        $subtotal = $totalDasar + $surchargeTotal + $sleeveCollarSurchargeTotal;
 
         return [
             'items' => $items,

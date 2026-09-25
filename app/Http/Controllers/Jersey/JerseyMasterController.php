@@ -404,7 +404,9 @@ class JerseyMasterController extends Controller
             'qty_min' => 'required|integer|min:1',
             'qty_max' => 'nullable|integer|gte:qty_min',
             'price' => 'required|numeric|min:0',
+            'kelompok' => 'nullable|in:dewasa,anak',
         ]);
+        $data['kelompok'] = $data['kelompok'] ?? 'dewasa';
         $row = JerseyPriceSetting::create($data)->load(['productType', 'category', 'material']);
         return response()->json(['success' => true, 'message' => 'Tier harga berhasil ditambahkan.', 'row' => $row]);
     }
@@ -420,6 +422,7 @@ class JerseyMasterController extends Controller
         $data = $request->validate([
             'jersey_product_type_id' => 'required|exists:jersey_product_types,id',
             'jersey_material_id' => 'nullable|exists:jersey_materials,id',
+            'kelompok' => 'nullable|in:dewasa,anak',
             'tiers' => 'required|array|min:1|max:20',
             'tiers.*.qty_min' => 'required|integer|min:1',
             'tiers.*.qty_max' => 'nullable|integer|gte:tiers.*.qty_min',
@@ -438,9 +441,11 @@ class JerseyMasterController extends Controller
         }
 
         $materialId = $data['jersey_material_id'] ?? null;
+        $kelompok = $data['kelompok'] ?? 'dewasa';
 
-        DB::transaction(function () use ($data, $tiers, $materialId) {
+        DB::transaction(function () use ($data, $tiers, $materialId, $kelompok) {
             JerseyPriceSetting::where('jersey_product_type_id', $data['jersey_product_type_id'])
+                ->where('kelompok', $kelompok)
                 ->whereNull('jersey_category_id')
                 ->where(fn ($q) => $materialId === null ? $q->whereNull('jersey_material_id') : $q->where('jersey_material_id', $materialId))
                 ->delete();
@@ -454,11 +459,12 @@ class JerseyMasterController extends Controller
                     'qty_max' => isset($tier['qty_max']) && $tier['qty_max'] !== '' ? (int) $tier['qty_max'] : null,
                     'price' => $tier['price'],
                     'is_active' => true,
+                    'kelompok' => $kelompok,
                 ]);
             }
         });
 
-        return response()->json(['success' => true, 'message' => $tiers->count() . ' tier harga tersimpan.']);
+        return response()->json(['success' => true, 'message' => $tiers->count() . ' tier harga ' . ($kelompok === 'anak' ? 'ukuran anak ' : '') . 'tersimpan.']);
     }
 
     public function updatePriceSetting(Request $request, JerseyPriceSetting $priceSetting)

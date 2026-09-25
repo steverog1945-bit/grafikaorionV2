@@ -16,6 +16,7 @@ class JerseyPriceSetting extends Model
         'qty_max',
         'price',
         'is_active',
+        'kelompok',
     ];
 
     protected $casts = [
