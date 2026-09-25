@@ -313,7 +313,9 @@
     });
 
     function prosesKodeBarcode(kode) {
-        const cocok = /^TRX(\d+)$/i.exec((kode || '').trim());
+        // Kode bisa "TRX123" (barcode lama / ketik manual) atau ALAMAT pembayaran dari QR (.../kasir/bayar-form/123).
+        const teks = (kode || '').trim();
+        const cocok = /^TRX(\d+)$/i.exec(teks) || /\/kasir\/bayar-form\/(\d+)\/?(?:[?#].*)?$/i.exec(teks);
         if (!cocok) {
             Swal.fire('Kode Tidak Dikenali', 'Barcode ini bukan barcode SPK/Nota yang valid dari aplikasi.', 'error');
             document.getElementById('input-scan-manual').value = '';

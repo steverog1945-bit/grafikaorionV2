@@ -51,8 +51,10 @@
              tidak perlu endpoint pencarian baru). Dirender client-side
              (JsBarcode) supaya tidak perlu tambahan library PHP baru di
              composer. --}}
-        <div class="center" style="margin: 8px 0;">
-            <svg id="barcode-spk"></svg>
+        <div class="center" style="margin: 8px 0; text-align:center;">
+            <div id="qr-spk" style="display:inline-block"></div>
+            <div style="font-size:10px; letter-spacing:1px; margin-top:2px;">TRX{{ $detail->id_transaksi }}</div>
+            <div style="font-size:9px; color:#64748b;">Scan dengan kamera HP untuk membuka pembayaran</div>
         </div>
 
         @if($detail->catatan_produksi)
@@ -78,16 +80,16 @@
         <button onclick="window.print()">🖨️ Cetak</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script>
-        JsBarcode("#barcode-spk", "TRX{{ $detail->id_transaksi }}", {
-            format: "CODE128",
-            width: {{ $format === 'thermal' ? 1.3 : 1.8 }},
-            height: {{ $format === 'thermal' ? 40 : 50 }},
-            fontSize: {{ $format === 'thermal' ? 10 : 12 }},
-            margin: 4,
-            displayValue: true,
-        });
+        // QR berisi ALAMAT halaman pembayaran nota: dipindai kamera HP biasa langsung membuka form bayar (login dulu bila belum).
+        (function () {
+            const qr = qrcode(0, 'M');
+            qr.addData(@json(\App\Models\AppSetting::urlAkses() . '/kasir/bayar-form/' . $detail->id_transaksi));
+            qr.make();
+            document.getElementById('qr-spk').innerHTML = qr.createSvgTag({ cellSize: {{ $format === 'thermal' ? 3 : 4 }}, margin: 2, scalable: true });
+            const svg = document.querySelector('#qr-spk svg'); if (svg) { svg.style.width = '{{ $format === 'thermal' ? 120 : 150 }}px'; svg.style.height = '{{ $format === 'thermal' ? 120 : 150 }}px'; }
+        })();
     </script>
 </body>
 </html>

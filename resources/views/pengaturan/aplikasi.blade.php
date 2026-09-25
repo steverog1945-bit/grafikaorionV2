@@ -135,6 +135,11 @@
                     <x-form.group label="Website" name="website">
                         <x-form.input type="text" name="website" value="{{ old('website', $setting->website) }}" placeholder="http://perusahaan.com" />
                     </x-form.group>
+
+                    <x-form.group label="Alamat Akses Aplikasi (untuk QR di HP)" name="url_akses">
+                        <x-form.input type="text" name="url_akses" value="{{ old('url_akses', $setting->url_akses) }}" placeholder="http://192.168.1.10/percetakan-app/public" />
+                        <p class="text-[11px] text-slate-400 mt-1.5 ml-2">Alamat yang bisa dibuka dari HP (satu Wi-Fi dengan komputer kasir, atau alamat internet bila sudah online). Dipakai pada QR di cetakan SPK. Kosong = alamat halaman saat ini.</p>
+                    </x-form.group>
                 </div>
 
                 <div class="pt-4 flex justify-end border-t border-slate-100">

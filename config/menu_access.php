@@ -27,7 +27,7 @@ return [
         // (staff gudang yang menghitung fisik). Persetujuan hasil hitung
         // (baru benar-benar mengubah stok) tetap lewat /approval yang
         // sudah khusus Administrator - bukan di sini.
-        'stock-opname' => [1],
+        'stock-opname' => [1, 53],
 
         // 'penjualan/riwayat' & 'penjualan/edit-nota' sengaja HANYA [3]
         // (bukan ikut [41]) - role yang cuma dikasih id_menu 41 ("input
@@ -39,15 +39,15 @@ return [
         // dipisah lewat prefix di sini sama sekali (id ada SEBELUM segmen
         // pembeda) - itu digembok lewat middleware restrict.input-only
         // langsung di route-nya (lihat routes/web.php).
-        'penjualan/riwayat' => [3],
+        'penjualan/riwayat' => [3, 61],
         'penjualan/edit-nota' => [3],
         'penjualan' => [3, 41],
         // Penjualan Barang HANYA Kasir (3) - beda dari Input Order biasa
         // yang juga dibuka untuk Operator Desain (41), jual bahan baku
         // langsung bukan bagian dari alur kerja desainer.
-        'penjualan-barang' => [3],
+        'penjualan-barang' => [3, 48],
         // Quotation: kasir (3) & operator input order (41), sama seperti Input Order.
-        'quotation' => [3, 41],
+        'quotation' => [3, 41, 58],
         // 'api/penjualan/produk/{id}' dipanggil AJAX oleh halaman Kasir
         // Utama sendiri (ambil detail harga produk saat dipilih) - WAJIB
         // ikut [41], kalau tidak pemilihan produk gagal total untuk role
@@ -58,7 +58,7 @@ return [
 
         'setting-akses' => [4],
         'menu-editor' => [4],
-        'pengaturan-jam-kerja' => [37],
+        'pengaturan-jam-kerja' => [37, 63],
         'karyawan' => [5],
         'users' => [6],
         'konsumen' => [7],
@@ -66,7 +66,7 @@ return [
         // Tambah supplier cepat dari form Kedatangan (17) / PO & Pembelian (20) - sama pola dengan konsumen/store-ajax.
         'supplier/store-ajax' => [9, 17, 20],
         'supplier' => [9],
-        'platform-belanja' => [9],
+        'platform-belanja' => [9, 62],
         'satuan' => [10],
         'bank' => [11],
         'produk' => [13],
@@ -85,18 +85,18 @@ return [
         // maupun pembelian [20] - alur di dokumen audit: gudang meminta,
         // owner menyetujui lewat /approval (admin-only), baru pembelian
         // membuat PO. Purchase Order sendiri tetap khusus pembelian [20].
-        'purchase-request' => [1, 20],
-        'purchase-order' => [20],
+        'purchase-request' => [1, 20, 54],
+        'purchase-order' => [20, 55],
         'finishing' => [21],
         'spk' => [22],
         // SPK Desain (lengkap): operator desain / input order, tanpa perlu menu SPK produksi.
-        'spk-desain' => [3, 22, 23, 41],
+        'spk-desain' => [3, 22, 23, 41, 64],
         'produksi' => [23],
         // QC & Rework (LEVEL 2): operator produksi/desain yang punya menu produksi.
-        'qc' => [23],
+        'qc' => [23, 56],
         'berkas-order' => [3, 23, 41],
         // Waste Management: staf gudang (bahan-baku [1]) atau produksi [23].
-        'waste' => [1, 23],
+        'waste' => [1, 23, 57],
         'collecting' => [24],
         'laporan/order' => [25],
         'laporan/produksi' => [26],
@@ -134,10 +134,10 @@ return [
         // CheckMenuAccess tanpa perlu masuk daftar ini sama sekali, jadi
         // baris ini murni jaring pengaman kalau suatu saat perlu dibuka
         // untuk role lain juga).
-        'log-aktivitas' => [60],
-        'approval' => [],
-        'accounting-period' => [],
-        'backup' => [],
+        'log-aktivitas' => [60, 49],
+        'approval' => [50],
+        'accounting-period' => [51],
+        'backup' => [52],
 
         // Sama pola dengan 'penjualan' di atas: 'jersey/master' &
         // 'jersey/keuangan' HANYA [38] (bukan ikut [42]). Route mutasi
