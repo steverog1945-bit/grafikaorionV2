@@ -65,4 +65,14 @@ class DivisiOtomatisTest extends TestCase
 
         $this->actingAs($admin)->get('/produksi')->assertOk()->assertSee('Belum di-closing');
     }
+
+    public function test_mesin_pendukung_tidak_tampil_sebagai_divisi(): void
+    {
+        $admin = User::factory()->create(['id_role' => Role::factory()->create(['nama_role' => 'Administrator'])->id_role]);
+        DB::table('mesin')->insert(['nama_mesin' => 'MESIN-PRODUKSI-OK', 'tipe_mesin' => 'x', 'tampil_divisi' => 1]);
+        DB::table('mesin')->insert(['nama_mesin' => 'ROLAND-PENDUKUNG', 'tipe_mesin' => 'Cutting Plotter', 'tampil_divisi' => 0]);
+
+        $this->actingAs($admin)->get('/spk')->assertOk()->assertSee('MESIN-PRODUKSI-OK')->assertDontSee('ROLAND-PENDUKUNG');
+        $this->actingAs($admin)->get('/produksi')->assertOk()->assertDontSee('ROLAND-PENDUKUNG');
+    }
 }

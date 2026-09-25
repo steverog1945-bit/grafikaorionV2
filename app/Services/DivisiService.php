@@ -23,7 +23,7 @@ class DivisiService
             ->whereIn('d.status_spk', $statusAktif)->where('t.status_nota', '!=', 'Dibatalkan')
             ->groupBy('p.id_mesin')->selectRaw('p.id_mesin, COUNT(*) c')->pluck('c', 'id_mesin');
 
-        $daftar = DB::table('mesin')
+        $daftar = DB::table('mesin')->where('tampil_divisi', true)
             ->when($mesinDiizinkan, fn ($q) => $q->whereIn('id_mesin', $mesinDiizinkan))
             ->orderBy('nama_mesin')->get(['id_mesin', 'nama_mesin'])
             ->map(function ($m) use ($jumlah) {

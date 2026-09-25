@@ -137,6 +137,12 @@
                         <input type="text" name="tipe_mesin" value="{{ $m->tipe_mesin }}" required
                                class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 transition-all shadow-inner text-center">
                     </div>
+                    <div class="max-w-[85%] mx-auto text-left">
+                        <label class="flex items-start gap-3 cursor-pointer rounded-2xl bg-slate-50 px-5 py-4">
+                            <input type="checkbox" name="tampil_divisi" value="1" {{ $m->tampil_divisi ? 'checked' : '' }} class="mt-0.5 w-5 h-5 rounded accent-amber-500">
+                            <span><span class="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">Tampil sebagai divisi produksi</span><span class="block text-[11px] text-slate-400">Hilangkan centang untuk mesin pendukung (mis. cutter) agar tidak jadi tab divisi di SPK/Produksi.</span></span>
+                        </label>
+                    </div>
                 </div>
 
                 {{-- Footer Buttons: Stacked & Centered --}}
@@ -183,6 +189,10 @@
                     <input type="text" name="tipe_mesin" placeholder="Contoh: Eco-Solvent" required
                            class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 </div>
+                <label class="flex items-start gap-3 cursor-pointer rounded-xl bg-slate-50 px-4 py-3">
+                    <input type="checkbox" name="tampil_divisi" value="1" checked class="mt-0.5 w-4 h-4 rounded accent-indigo-600">
+                    <span><span class="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">Tampil sebagai divisi produksi</span><span class="block text-[11px] text-slate-400">Hilangkan centang untuk mesin pendukung (mis. cutter).</span></span>
+                </label>
                 <div class="pt-5 flex gap-3">
                     <button type="button" onclick="toggleModal('tambahMesin')" class="flex-1 py-3.5 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-100 transition-all">Batal</button>
                     <button type="submit" class="flex-1 py-3.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">Daftarkan Mesin</button>

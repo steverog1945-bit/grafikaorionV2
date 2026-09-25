@@ -31,6 +31,7 @@ class MesinController extends Controller
             'nama_mesin' => 'required|string|max:100',
             'tipe_mesin' => 'required|string|max:50',
         ]);
+        $data['tampil_divisi'] = $request->boolean('tampil_divisi');
         Mesin::create($data);
         return back()->with('success', 'Mesin berhasil ditambah!');
     }
@@ -41,6 +42,7 @@ class MesinController extends Controller
             'nama_mesin' => 'required|string|max:100',
             'tipe_mesin' => 'required|string|max:50',
         ]);
+        $data['tampil_divisi'] = $request->boolean('tampil_divisi');
         $mesin = Mesin::findOrFail($id);
         $mesin->update($data);
         return back()->with('success', 'Mesin berhasil diubah!');
