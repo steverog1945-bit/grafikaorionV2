@@ -63,6 +63,8 @@ return [
         'users' => [6],
         'konsumen' => [7],
         'golongan' => [8, 12, 18],
+        // Tambah supplier cepat dari form Kedatangan (17) / PO & Pembelian (20) - sama pola dengan konsumen/store-ajax.
+        'supplier/store-ajax' => [9, 17, 20],
         'supplier' => [9],
         'platform-belanja' => [9],
         'satuan' => [10],

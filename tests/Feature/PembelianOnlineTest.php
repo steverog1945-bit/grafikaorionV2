@@ -97,4 +97,28 @@ class PembelianOnlineTest extends TestCase
         $this->assertEquals(15000, (float) $p->ongkir);
         $this->assertEquals(7000, (float) $p->voucher);
     }
+
+    public function test_tambah_supplier_cepat_dari_form_kedatangan(): void
+    {
+        $r = $this->actingAs($this->admin)->postJson('/supplier/store-ajax', ['nama_supplier' => 'PT Baru Jaya', 'kontak' => '0812', 'alamat' => 'Jl. A'])->assertOk()->assertJson(['status' => 'success']);
+        $this->assertEquals('PT Baru Jaya', DB::table('supplier')->where('id_supplier', $r->json('data.id_supplier'))->value('nama_supplier'));
+
+        // Nama sama (huruf besar/kecil berbeda) ditolak, tidak dobel.
+        $this->actingAs($this->admin)->postJson('/supplier/store-ajax', ['nama_supplier' => 'pt baru jaya', 'kontak' => '0812'])->assertStatus(422);
+        $this->assertEquals(1, DB::table('supplier')->where('nama_supplier', 'PT Baru Jaya')->count());
+
+        $this->actingAs($this->admin)->get('/kedatangan-bahan/create')->assertOk()->assertSee('supplier-baru', false)->assertSee('SIMPAN SUPPLIER');
+    }
+
+    public function test_petugas_kedatangan_tanpa_menu_supplier_tetap_bisa_tambah_supplier_cepat(): void
+    {
+        $role = Role::factory()->create(['nama_role' => 'Gudang']);
+        DB::table('menus')->insertOrIgnore(['id_menu' => 17, 'nama_menu' => 'Kedatangan Bahan', 'url_link' => 'kedatangan-bahan', 'parent_id' => 0]);
+        DB::table('role_permissions')->insert(['id_role' => $role->id_role, 'id_menu' => 17]);
+        $gudang = User::factory()->create(['id_role' => $role->id_role]);
+
+        $this->actingAs($gudang)->postJson('/supplier/store-ajax', ['nama_supplier' => 'CV Gudang', 'kontak' => '081'])->assertOk();
+        // Tapi tetap tidak boleh membuka master supplier lengkap.
+        $this->actingAs($gudang)->get('/supplier')->assertForbidden();
+    }
 }
