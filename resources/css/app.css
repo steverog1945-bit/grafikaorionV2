@@ -297,3 +297,40 @@
 h1, h2, h3, h4 {
     font-family: 'Inter', sans-serif;
 }
+
+/* ===================================================================
+   SELECT / DROPDOWN LEMBUT - satu aturan untuk SEMUA <select> native di
+   seluruh halaman & modal (termasuk yang tidak memakai x-form.select):
+   bobot medium, warna lembut, panah seragam, fokus halus, opsi ringan.
+   Dikecualikan: multi-select, select2 (sudah diatur di atas), dan select
+   di atas latar gelap (kelas text-white).
+   =================================================================== */
+select:not([multiple]):not([size]):not(.select2-hidden-accessible):not([class*="text-white"]) {
+    font-weight: 500 !important;
+    color: #475569;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    background-size: 1rem 1rem;
+    padding-right: 2.25rem !important;
+    transition: box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
+    cursor: pointer;
+}
+select:not([multiple]):not([size]):not(.select2-hidden-accessible):not([class*="text-white"]):focus {
+    outline: none;
+    border-color: #c7d2fe;
+    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.14);
+}
+select:not([class*="text-white"]) option { font-weight: 400; color: #475569; background-color: #fff; }
+select option:disabled { color: #cbd5e1; }
+select.border, select[class*="border-slate-200"] { border-color: #e6ebf2; }
+
+/* Dropdown Select2 selalu di atas modal & muncul dengan halus */
+.select2-container { z-index: 99990; }
+.select2-container--open .select2-dropdown { z-index: 99999; animation: dropdownMasuk .14s ease-out; }
+@keyframes dropdownMasuk { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.select2-container--default .select2-selection--single .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent; }
+.select2-container--default .select2-selection--multiple { border: none !important; background: #f8fafc !important; border-radius: .75rem !important; box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05); min-height: 48px; }
+.select2-container--default .select2-selection--multiple .select2-selection__choice { background: #eef2ff; border: none; color: #4f46e5; border-radius: .5rem; font-weight: 500; font-size: .8125rem; }
