@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
  * Daftar "pekerjaan yang menunggu" per role (lonceng notifikasi + badge di sidebar).
  * Hanya item yang halaman tujuannya boleh dibuka role tersebut yang ikut tampil,
  * dan angka dihitung dari data yang sudah ada (tidak ada tabel baru).
- * Hasil di-cache 10 detik per role - semua pengguna dengan role sama berbagi hitungan.
+ * Hasil di-cache 10 detik per pengguna.
  */
 class NotifikasiService
 {
@@ -22,9 +22,9 @@ class NotifikasiService
             return ['total' => 0, 'items' => []];
         }
 
-        return Cache::remember('notif_role_' . $user->id_role, 10, function () use ($user) {
+        return Cache::remember('notif_user_' . $user->id_user, 10, function () use ($user) {
             $items = [];
-            foreach (self::definisi() as $d) {
+            foreach (self::definisi($user) as $d) {
                 $url = self::urlBisa($d['routes']);
                 if (!$url) {
                     continue;
@@ -55,7 +55,7 @@ class NotifikasiService
     }
 
     /** Definisi notifikasi: key, label, route tujuan, warna (rose = mendesak, amber = perlu perhatian, indigo = info), penghitung. */
-    private static function definisi(): array
+    private static function definisi(User $user): array
     {
         $hariIni = now()->toDateString();
 
@@ -102,7 +102,13 @@ class NotifikasiService
                 'hitung' => fn () => DB::table('jersey_orders')->whereNotNull('deadline')->whereBetween('deadline', [$hariIni, now()->addDays(3)->toDateString()])
                     ->whereNotIn(DB::raw('LOWER(status)'), ['selesai', 'batal', 'dibatalkan', 'diambil'])->count()],
             ['key' => 'kas-basi', 'label' => 'Kas belum ditutup lebih dari 24 jam', 'routes' => ['kasir.kelola'], 'tone' => 'rose',
-                'hitung' => fn () => KasSesiService::basi(KasSesiService::aktif()) ? 1 : 0],
+                'hitung' => function () use ($user) {
+                    // Hanya Administrator dan kasir yang membuka saldo sesi itu yang perlu diingatkan.
+                    $kas = KasSesiService::aktif();
+                    $berhak = $kas && (optional($user->role)->nama_role === 'Administrator' || (int) $kas->id_user === (int) $user->id_user);
+
+                    return $berhak && KasSesiService::basi($kas) ? 1 : 0;
+                }],
         ];
     }
 }

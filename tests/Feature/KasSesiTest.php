@@ -80,7 +80,7 @@ class KasSesiTest extends TestCase
         Carbon::setTestNow(Carbon::parse('2026-09-24 09:00:00')); // 35 jam kemudian
 
         $this->assertTrue(KasSesiService::basi(KasSesiService::aktif()));
-        $this->actingAs($this->kasir)->get('/dashboard')->assertOk()->assertSee('Kasir Open &gt;24 jam', false);
+        $this->actingAs($this->kasir)->get('/dashboard')->assertOk()->assertSee('Belum di-closing');
         $this->actingAs($this->kasir)->get('/kasir/kelola-kas')->assertOk()->assertSee('belum di-closing');
     }
 
