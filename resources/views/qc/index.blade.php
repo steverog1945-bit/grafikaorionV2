@@ -20,7 +20,7 @@
                 <th class="px-8 py-4 text-left">Rework</th>
                 <th class="px-6 py-4 text-left">Nota / Item</th>
                 <th class="px-6 py-4 text-right">Qty</th>
-                <th class="px-6 py-4 text-right">Biaya Material</th>
+                @bolehHarga<th class="px-6 py-4 text-right">Biaya Material</th>@endbolehHarga
                 <th class="px-6 py-4 text-center">Status</th>
                 <th class="px-8 py-4 text-right">Aksi</th>
             </tr>
@@ -31,7 +31,7 @@
                 <td class="px-8 py-4 text-[13px] font-bold text-slate-700">{{ $r->nomor }}</td>
                 <td class="px-6 py-4 text-xs text-slate-500">{{ $r->nomor_nota }} - {{ $r->nama_file }}</td>
                 <td class="px-6 py-4 text-right text-sm font-semibold">{{ angka($r->qty_rework, 4) }}</td>
-                <td class="px-6 py-4 text-right text-sm">{{ $r->status === 'Selesai' ? 'Rp ' . number_format($r->biaya_material, 0, ',', '.') : '-' }}</td>
+                @bolehHarga<td class="px-6 py-4 text-right text-sm">{{ $r->status === 'Selesai' ? 'Rp ' . number_format($r->biaya_material, 0, ',', '.') : '-' }}</td>@endbolehHarga
                 <td class="px-6 py-4 text-center"><x-badge :status="$r->status" :variant="$r->status === 'Selesai' ? 'success' : 'warning'" /></td>
                 <td class="px-8 py-4 text-right">
                     @if($r->status === 'Dibuka')

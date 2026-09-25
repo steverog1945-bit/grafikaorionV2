@@ -21,6 +21,29 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
+                    <tr class="bg-amber-50/60">
+                        <td class="p-5 border-r border-amber-100">
+                            <div class="flex items-center">
+                                <span class="text-lg mr-3">💰</span>
+                                <div>
+                                    <span class="font-bold text-slate-800">Boleh melihat &amp; mengubah harga</span>
+                                    <div class="text-[11px] text-slate-500 font-medium">Kosongkan untuk role yang hanya input nota &amp; produksi: halaman/kolom harga (Finishing, Quotation, biaya waste &amp; QC, dst) ditutup.</div>
+                                </div>
+                            </div>
+                        </td>
+                        @foreach($roles as $role)
+                        <td class="p-5 text-center border-r border-amber-100 last:border-0">
+                            @if($role->nama_role === 'Administrator')
+                                <span class="text-xs font-bold text-emerald-600">Selalu</span>
+                            @else
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="lihat_harga[]" value="{{ $role->id_role }}" {{ $role->boleh_lihat_harga ? 'checked' : '' }}
+                                           class="w-6 h-6 rounded-lg border-amber-300 text-amber-600 focus:ring-amber-500 focus:ring-offset-2 transition-all cursor-pointer">
+                                </label>
+                            @endif
+                        </td>
+                        @endforeach
+                    </tr>
                     @foreach($menus as $menu)
                     <tr class="hover:bg-indigo-50/50 transition-colors group">
                         <td class="p-5 border-r border-slate-100">

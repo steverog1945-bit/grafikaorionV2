@@ -155,6 +155,15 @@ return [
         'jersey' => [38, 42],
     ],
 
+    // Halaman yang memuat harga/nilai uang - ditutup (403) untuk role dengan boleh_lihat_harga = 0.
+    // Pola: awalan path, atau wildcard fnmatch.
+    'khusus_harga' => [
+        'finishing',
+        'finishing-harga',
+        'quotation',
+        'konsumen/*/timeline',
+    ],
+
     'always_allow' => [
         'dashboard',
         'logout',

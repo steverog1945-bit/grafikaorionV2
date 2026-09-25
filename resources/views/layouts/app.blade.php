@@ -302,7 +302,16 @@
         // bypass duluan, jadi menu yang "hilang" itu cuma ilusi UI.
         $isAdministrator = optional(Auth::user()->role)->nama_role === 'Administrator';
 
-        $cekAkses = function($idMenu) use ($userAkses, $isAdministrator) {
+        // Menu yang isinya harga/nilai uang disembunyikan untuk role tanpa hak lihat harga
+        // (Finishing Produk = 21, Quotation = 58), walau menunya tercentang di Hak Akses.
+        $menuBerharga = [21, 58];
+        $bolehLihatHargaSidebar = \App\Support\AksesHarga::bolehLihat();
+
+        $cekAkses = function($idMenu) use ($userAkses, $isAdministrator, $menuBerharga, $bolehLihatHargaSidebar) {
+            if (!$bolehLihatHargaSidebar && in_array($idMenu, $menuBerharga, true)) {
+                return false;
+            }
+
             return $isAdministrator || in_array($idMenu, $userAkses);
         };
 
