@@ -167,6 +167,9 @@
        "topbar" tidak dipakai di manapun selain di sini) - burger icon &
        judul cuma numpang di elemen tanpa padding/tinggi/alignment eksplisit,
        jadinya terlihat "nempel asal" alih-alih menyatu dengan header. */
+    .notif-badge { margin-left: auto; min-width: 1.25rem; height: 1.25rem; padding: 0 .375rem; border-radius: 9999px; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-badge.rose { background: #f43f5e; } .notif-badge.amber { background: #f59e0b; } .notif-badge.indigo { background: #6366f1; }
+    body.sidebar-collapsed .notif-badge { position: absolute; top: 2px; right: 4px; margin: 0; min-width: 1rem; height: 1rem; font-size: 9px; }
     .topbar {
         display: flex;
         align-items: center;
@@ -1035,7 +1038,6 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <span class="text-sm font-medium">Approval Workflow</span>
-    <span id="badge-approval" class="hidden ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-rose-500 text-white text-[11px] font-bold items-center justify-center"></span>
 </a>
 <a href="{{ route('audit-log.index') }}" class="{{ $menuClass }} {{ Request::is('log-aktivitas*') ? $activeClass : $nonActiveClass }}">
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('log-aktivitas*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1066,6 +1068,20 @@
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+            @php $notifAwal = \App\Services\NotifikasiService::untuk(Auth::user()); @endphp
+            <div class="relative">
+                <button type="button" id="notif-btn" onclick="toggleNotif(event)" class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Notifikasi & pekerjaan masuk">
+                    <i class="fas fa-bell"></i>
+                    <span id="notif-total" class="hidden absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold items-center justify-center ring-2 ring-white"></span>
+                </button>
+                <div id="notif-panel" class="hidden absolute right-0 mt-2 w-80 max-w-[90vw] bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                        <span class="text-sm font-black text-slate-700">Pekerjaan masuk</span>
+                        <span id="notif-total-teks" class="text-[11px] font-bold text-slate-400"></span>
+                    </div>
+                    <div id="notif-list" class="max-h-[60vh] overflow-y-auto divide-y divide-slate-50"></div>
+                </div>
+            </div>
             @php $namaTampil = optional(Auth::user()->karyawan)->nama_karyawan ?? Auth::user()->username; @endphp
             <div class="hidden sm:flex flex-col items-end leading-tight">
                 <span class="text-[13px] font-bold text-slate-700">{{ $namaTampil }}</span>
@@ -1256,6 +1272,45 @@
     @endif
     </script>
     <script>
+    // Notifikasi: lonceng di topbar + badge angka di menu sidebar (per role, dari /sinyal).
+    function renderNotif(d) {
+        const items = d.items || [];
+        const tot = document.getElementById('notif-total');
+        if (tot) { tot.textContent = d.total > 99 ? '99+' : d.total; tot.classList.toggle('hidden', !(d.total > 0)); tot.classList.toggle('inline-flex', d.total > 0); }
+        const tt = document.getElementById('notif-total-teks');
+        if (tt) tt.textContent = d.total > 0 ? d.total + ' tugas' : '';
+        const warna = { rose: 'bg-rose-500', amber: 'bg-amber-500', indigo: 'bg-indigo-500' };
+        const list = document.getElementById('notif-list');
+        if (list) {
+            list.innerHTML = items.length ? items.map(i => `<a href="${i.url}" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-all">
+                <span class="notif-badge ${i.tone}" style="margin-left:0">${i.count}</span>
+                <span class="text-[13px] font-semibold text-slate-600 leading-snug">${i.label}</span></a>`).join('')
+                : '<div class="px-4 py-8 text-center text-sm text-slate-400"><i class="fas fa-check-circle text-emerald-400 text-2xl mb-2 block"></i>Tidak ada pekerjaan yang menunggu.</div>';
+        }
+        // Badge di menu sidebar: cocokkan lewat alamat tujuan (gabungkan bila beberapa notifikasi ke halaman yang sama).
+        document.querySelectorAll('#mainSidebar .notif-badge').forEach(el => el.remove());
+        const perUrl = {};
+        items.forEach(i => { const k = new URL(i.url, location.origin).pathname; (perUrl[k] = perUrl[k] || { n: 0, tone: i.tone }).n += i.count; if (i.tone === 'rose') perUrl[k].tone = 'rose'; });
+        document.querySelectorAll('#mainSidebar a[href]').forEach(a => {
+            let k; try { k = new URL(a.href, location.origin).pathname; } catch (e) { return; }
+            if (perUrl[k]) { const b = document.createElement('span'); b.className = 'notif-badge ' + perUrl[k].tone; b.textContent = perUrl[k].n > 99 ? '99+' : perUrl[k].n; a.appendChild(b); }
+        });
+        badgeGrup();
+    }
+    // Ringkasan di judul grup menu (berguna saat grup sedang dilipat).
+    function badgeGrup() {
+        document.querySelectorAll('#mainSidebar .notif-grup').forEach(el => el.remove());
+        document.querySelectorAll('#mainSidebar .menu-group-items').forEach(g => {
+            const n = [...g.querySelectorAll('.notif-badge')].reduce((t, b) => t + (parseInt(b.textContent) || 0), 0);
+            const h = g.previousElementSibling;
+            if (n > 0 && h) { const b = document.createElement('span'); b.className = 'notif-badge notif-grup indigo'; b.textContent = n > 99 ? '99+' : n; b.style.marginLeft = '.5rem'; h.insertBefore(b, h.querySelector('i.fa-chevron-down')); }
+        });
+    }
+    function toggleNotif(e) { e.stopPropagation(); document.getElementById('notif-panel').classList.toggle('hidden'); }
+    document.addEventListener('click', e => { const p = document.getElementById('notif-panel'); if (p && !p.contains(e.target)) p.classList.add('hidden'); });
+    renderNotif(@json($notifAwal));
+    </script>
+    <script>
     // Refresh otomatis ringan: cek "sidik jari" perubahan data tiap 30 detik, HANYA saat tab terlihat
     // (tab latar tidak membebani server). Bila berubah: halaman daftar-pantau (daftar putih) yang idle dimuat ulang sendiri; bila user
     // sedang mengetik / modal terbuka / halaman form, cukup munculkan tombol "Muat ulang".
@@ -1294,8 +1349,7 @@
                 if (!r.ok) throw new Error(r.status);
                 const d = await r.json();
                 jeda = 30000;
-                const bd = document.getElementById('badge-approval');
-                if (bd && d.approval !== null) { bd.textContent = d.approval; bd.classList.toggle('hidden', d.approval < 1); bd.classList.toggle('inline-flex', d.approval >= 1); }
+                if (d.notif) renderNotif(d.notif);
                 if (basis === null) basis = d.v;
                 else if (d.v !== basis) { aman() ? location.reload() : pill(); }
             } catch (e) { jeda = Math.min(jeda * 2, 300000); }
