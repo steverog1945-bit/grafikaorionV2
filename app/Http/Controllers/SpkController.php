@@ -74,9 +74,7 @@ class SpkController extends Controller
             }
         }
 
-        if ($request->filled('divisi')) {
-            $query->where('produk.id_mesin', $request->divisi);
-        }
+        \App\Services\DivisiService::saring($query, $request->divisi);
 
         if ($request->filled('status_spk')) {
             $query->where('transaksi_detail.status_spk', $request->status_spk);
@@ -90,14 +88,7 @@ class SpkController extends Controller
 
         // Divisi diambil dari data master mesin yang benar-benar dipakai produk,
         // bukan hard-code. Submenu akan otomatis bertambah kalau ada mesin/divisi baru.
-        $divisis = DB::table('mesin')
-            ->join('produk', 'produk.id_mesin', '=', 'mesin.id_mesin')
-            ->join('transaksi_detail', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
-            ->when($mesinDiizinkan, fn ($q) => $q->whereIn('mesin.id_mesin', $mesinDiizinkan))
-            ->select('mesin.id_mesin', 'mesin.nama_mesin')
-            ->distinct()
-            ->orderBy('mesin.nama_mesin')
-            ->get();
+        $divisis = \App\Services\DivisiService::daftar($mesinDiizinkan, ['Antre']);
 
         // Jumlah SAAT halaman dimuat - pembanding untuk x-polling-notifikasi,
         // pakai query PERSIS sama dengan cekAntrianBaru() supaya banner

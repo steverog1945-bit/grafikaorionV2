@@ -83,11 +83,14 @@ class ProduksiController extends Controller
             $query->whereIn('transaksi_detail.status_spk', ['Desain', 'Cetak']);
         }
 
+        \App\Services\DivisiService::saring($query, $request->divisi);
+        $divisis = \App\Services\DivisiService::daftar(null, ['Antre', 'Desain', 'Cetak']);
+
         $produksi = $query->orderByDesc('transaksi_detail.id_detail')->paginate(20)->withQueryString();
 
         $jumlahAntreAwal = DB::table('transaksi_detail')->whereIn('status_spk', ['Desain', 'Cetak'])->count();
 
-        return view('produksi.index', compact('produksi', 'jumlahAntreAwal'));
+        return view('produksi.index', compact('produksi', 'jumlahAntreAwal', 'divisis'));
     }
 
     public function simpanQty(Request $request, $id)
