@@ -36,7 +36,8 @@ class KasKecilBukuKasTest extends TestCase
             'keterangan' => 'Jual kardus bekas', 'nominal' => 75000,
         ])->assertSessionHas('success');
 
-        $this->assertEquals(75000, $this->saldo('1000'));
+        $this->assertEquals(75000, $this->saldo('1005'));
+        $this->assertEquals(0, $this->saldo('1000'), 'laci tidak tersentuh');
         $this->assertEquals(-75000, $this->saldo('4200'));
         $this->get('/kas-kecil')->assertOk()->assertSee('Jual kardus bekas')->assertSee('Pemasukan Tunai');
     }
@@ -64,7 +65,7 @@ class KasKecilBukuKasTest extends TestCase
         $this->assertSame('Transfer', $baris->metode);
         $this->assertEquals(200000, (float) $baris->nominal);
         $this->assertEquals(200000, $this->saldo('1010'), 'jurnal hanya dari pembayaran jersey (Bank), tidak dobel');
-        $this->assertEquals(0, $this->saldo('1000'));
+        $this->assertEquals(0, $this->saldo('1005'));
 
         // Tidak bisa dibatalkan dari Kas Kecil.
         $this->delete("/kas-kecil/{$baris->id}")->assertSessionHas('error');
@@ -74,5 +75,34 @@ class KasKecilBukuKasTest extends TestCase
         $idBayar = DB::table('jersey_order_payments')->value('id');
         \App\Services\JerseyAccountingService::voidPembayaran($idBayar, 'salah input');
         $this->assertSame(0, DB::table('kas_kecil')->where('sumber', 'jersey')->count());
+    }
+
+    public function test_isi_kas_kecil_dari_laci_memindahkan_saldo_dan_mengurangi_laci_tanpa_beban(): void
+    {
+        $kat = DB::table('kategori_kas_kecil')->where('nama_kategori', 'Isi dari Kas Laci')->first();
+        $payload = ['tanggal' => now()->toDateString(), 'jenis' => 'Masuk', 'id_kategori' => $kat->id_kategori_kas_kecil, 'keterangan' => 'Modal kas kecil', 'nominal' => 200000];
+
+        // Tanpa sesi kas aktif -> ditolak.
+        $this->post('/kas-kecil', $payload)->assertSessionHas('error');
+        $this->assertSame(0, DB::table('kas_kecil')->count());
+
+        $idKas = DB::table('kas_harian')->insertGetId(['tgl_kas' => now()->toDateString(), 'id_user' => auth()->id(), 'saldo_awal' => 500000, 'status_lock' => 'open', 'created_at' => now(), 'updated_at' => now()]);
+        $this->post('/kas-kecil', $payload)->assertSessionHas('success');
+
+        $this->assertEquals(200000, $this->saldo('1005'));
+        $this->assertEquals(-200000, $this->saldo('1000'));
+        $this->assertEquals(0, $this->saldo('5100') + $this->saldo('4200'), 'bukan beban/pendapatan');
+        $manual = DB::table('kas_manual')->where('id_kas', $idKas)->first();
+        $this->assertSame('Keluar', $manual->status);
+        $this->assertEquals(200000, (float) $manual->nominal);
+
+        // Pembatalan (approval) mengembalikan laci dan membalik jurnal.
+        $kk = DB::table('kas_kecil')->first();
+        $this->delete("/kas-kecil/{$kk->id}", ['alasan' => 'salah'])->assertSessionHas('success');
+        $req = ApprovalRequest::where('tipe_aksi', 'batalkan_kas_kecil')->firstOrFail();
+        $this->patch("/approval/{$req->id}/approve", ['catatan' => 'OK']);
+        $this->assertSame(0, DB::table('kas_manual')->count());
+        $this->assertEquals(0.0, $this->saldo('1005') + 0);
+        $this->assertEquals(0.0, $this->saldo('1000') + 0);
     }
 }

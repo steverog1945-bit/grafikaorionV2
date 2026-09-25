@@ -28,6 +28,8 @@ use App\Services\AuditLogger;
 class AccountingService
 {
     private const AKUN_KAS = '1000';
+    /** Kas Kecil = uang di LUAR laci kasir; dibukukan terpisah dari Kas (1000) milik laci. */
+    private const AKUN_KAS_KECIL = '1005';
     private const AKUN_BANK = '1010';
     private const AKUN_PIUTANG_USAHA = '1100';
     private const AKUN_PERSEDIAAN_BAHAN = '1200';
@@ -290,7 +292,8 @@ class AccountingService
     /** Pembayaran Order Jersey: Tunai -> Kas, metode lain (Transfer/QRIS/Lainnya) -> Bank. */
     public static function postPembayaranJersey(string $noReferensi, string $noOrder, float $nominal, string $metode): void
     {
-        $akunMasuk = $metode === 'Tunai' ? self::AKUN_KAS : self::AKUN_BANK;
+        // Pelunasan jersey tunai diterima di luar laci -> masuk Kas Kecil (1005), bukan Kas laci.
+        $akunMasuk = $metode === 'Tunai' ? self::AKUN_KAS_KECIL : self::AKUN_BANK;
 
         self::postJournal(now()->toDateString(), $noReferensi, "Pembayaran order jersey {$noOrder} ({$metode})", [
             ['kode_akun' => $akunMasuk, 'debet' => $nominal],
@@ -371,7 +374,7 @@ class AccountingService
 
         self::postJournal(now()->toDateString(), $noReferensi, "Pengeluaran Kas Kecil {$noReferensi}", [
             ['kode_akun' => $kodeAkunBeban, 'debet' => $nominal],
-            ['kode_akun' => self::AKUN_KAS, 'kredit' => $nominal],
+            ['kode_akun' => self::AKUN_KAS_KECIL, 'kredit' => $nominal],
         ]);
     }
 
@@ -383,7 +386,7 @@ class AccountingService
         }
 
         self::postJournal(now()->toDateString(), $noReferensi, "Pemasukan Kas Kecil {$noReferensi}", [
-            ['kode_akun' => self::AKUN_KAS, 'debet' => $nominal],
+            ['kode_akun' => self::AKUN_KAS_KECIL, 'debet' => $nominal],
             ['kode_akun' => $kodeAkunLawan, 'kredit' => $nominal],
         ]);
     }

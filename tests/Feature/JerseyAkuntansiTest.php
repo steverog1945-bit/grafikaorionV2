@@ -92,7 +92,7 @@ class JerseyAkuntansiTest extends TestCase
         $this->bayar($o, 400000, 'Tunai')->assertSessionHas('success');
         $this->bayar($o, 600000, 'QRIS')->assertSessionHas('success');
 
-        $this->assertEquals(400000, $this->saldo('1000'));
+        $this->assertEquals(400000, $this->saldo('1005'));
         $this->assertEquals(600000, $this->saldo('1010'));
         $this->assertEquals(0.0, $this->saldo('1100') + 0);
         $this->assertEquals('Lunas', $o->fresh()->status_pembayaran);
@@ -107,12 +107,12 @@ class JerseyAkuntansiTest extends TestCase
 
         $this->delete("/jersey/keuangan/bayar/{$idBayar}", ['alasan' => 'Salah input'])->assertSessionHas('success');
         $this->assertNull(DB::table('jersey_order_payments')->where('id', $idBayar)->value('deleted_at'));
-        $this->assertEquals(1000000, $this->saldo('1000'));
+        $this->assertEquals(1000000, $this->saldo('1005'));
 
         $this->approve('void_pembayaran_jersey');
 
         $this->assertNotNull(DB::table('jersey_order_payments')->where('id', $idBayar)->value('deleted_at'));
-        $this->assertEquals(0.0, $this->saldo('1000') + 0);
+        $this->assertEquals(0.0, $this->saldo('1005') + 0);
         $this->assertEquals(1000000, $this->saldo('1100'));
         $this->assertEquals('Belum Bayar', $o->fresh()->status_pembayaran);
     }

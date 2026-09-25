@@ -38,7 +38,8 @@ class KategoriKasKecilController extends Controller
         $akunBeban = DB::table('bag_akun')
             ->where('is_active', 1)
             ->where(fn ($q) => $q->where(fn ($b) => $b->where('tipe_akun', 'Beban')->where('kode_akun', '!=', '5000'))
-                ->orWhere(fn ($m) => $m->whereIn('tipe_akun', ['Pendapatan', 'Modal'])->whereNotIn('kode_akun', ['4000', '4300'])))
+                ->orWhere(fn ($m) => $m->whereIn('tipe_akun', ['Pendapatan', 'Modal'])->whereNotIn('kode_akun', ['4000', '4300']))
+                ->orWhere('kode_akun', '1000'))
             ->orderBy('kode_akun')
             ->get();
 
