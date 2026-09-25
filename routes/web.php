@@ -77,6 +77,8 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
 
     Route::resource('kategori', KategoriController::class);
     Route::resource('kategori-kas-kecil', KategoriKasKecilController::class)->except(['show', 'create', 'edit']);
+    // Harus SEBELUM resource('supplier') agar tidak tertangkap {supplier}.
+    Route::post('/supplier/store-ajax', [SupplierController::class, 'storeAjax'])->name('supplier.store-ajax');
     Route::resource('supplier', SupplierController::class);
 
     // Platform belanja online (Tokopedia, Shopee, ...) - dikelola pengguna, satu akses dengan Supplier.

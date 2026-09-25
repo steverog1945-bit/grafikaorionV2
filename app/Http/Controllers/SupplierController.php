@@ -36,6 +36,25 @@ class SupplierController extends Controller
         return redirect()->back()->with('success', 'Supplier berhasil ditambahkan.');
     }
 
+    /** Tambah supplier dari dalam form lain (Kedatangan, PO) lewat modal - pola sama dengan konsumen/store-ajax. */
+    public function storeAjax(Request $request)
+    {
+        $request->validate([
+            'nama_supplier' => 'required|max:255',
+            'kontak' => 'required|max:255',
+            'alamat' => 'nullable|max:1000',
+        ]);
+
+        $nama = trim($request->nama_supplier);
+        if (DB::table('supplier')->whereRaw('LOWER(nama_supplier) = ?', [mb_strtolower($nama)])->exists()) {
+            return response()->json(['status' => 'error', 'message' => 'Supplier dengan nama ini sudah terdaftar - pilih dari daftar.'], 422);
+        }
+
+        $id = DB::table('supplier')->insertGetId(['nama_supplier' => $nama, 'alamat' => $request->alamat, 'kontak' => $request->kontak]);
+
+        return response()->json(['status' => 'success', 'data' => ['id_supplier' => $id, 'nama_supplier' => $nama]]);
+    }
+
     public function update(Request $request, $id) {
         $request->validate([
             'nama_supplier' => 'required|max:255',

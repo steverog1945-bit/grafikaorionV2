@@ -39,7 +39,15 @@
 
         <x-card class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <x-form.group label="Supplier">
+                <x-form.group>
+                    <div class="flex items-center justify-between mb-2 ml-2 mr-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supplier</label>
+                        @if($editable)
+                        <button type="button" onclick="openModal('supplier-baru')" class="text-indigo-600 hover:text-indigo-700 font-bold text-[11px] flex items-center gap-1">
+                            <i class="fas fa-plus text-[9px]"></i> Baru
+                        </button>
+                        @endif
+                    </div>
                     <x-form.select name="id_supplier" id="id_supplier" required :disabled="! $editable">
                         <option value="">-- Pilih Supplier --</option>
                         @foreach($supplierList as $s)
@@ -224,4 +232,7 @@
     hitungTotal();
 </script>
 @endpush
+@if($editable)
+@include('partials.supplier-baru-modal', ['selectId' => 'id_supplier'])
+@endif
 @endsection

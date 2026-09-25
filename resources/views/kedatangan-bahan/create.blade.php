@@ -37,7 +37,13 @@
                             </x-form.select>
                         </x-form.group>
 
-                        <x-form.group label="Supplier">
+                        <x-form.group>
+                            <div class="flex items-center justify-between mb-2 ml-2 mr-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supplier</label>
+                                <button type="button" onclick="openModal('supplier-baru')" class="text-indigo-600 hover:text-indigo-700 font-bold text-[11px] flex items-center gap-1">
+                                    <i class="fas fa-plus text-[9px]"></i> Baru
+                                </button>
+                            </div>
                             <select name="id_supplier" id="id_supplier" class="select2-elegant" required>
                                 <option value="">-- Pilih Supplier --</option>
                                 @foreach($suppliers as $s)
@@ -149,6 +155,8 @@
         </div>
     </form>
 </div>
+
+@include('partials.supplier-baru-modal', ['selectId' => 'id_supplier'])
 
 {{-- Template Row --}}
 <template id="row-template">
