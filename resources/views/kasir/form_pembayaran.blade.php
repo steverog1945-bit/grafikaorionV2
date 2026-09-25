@@ -83,7 +83,13 @@
                              Harga hasil bagi-mundur akan salah kali lipat & tidak cocok
                              dengan Price List kalau dipakai. --}}
                         @php
-                            $hargaSatuan = ($item->qty_hitung > 0) ? ($item->subtotal + $item->potongan - $item->biaya_cetak - $item->biaya_desain - $item->biaya_finishing) / $item->qty_hitung : 0;
+                            // Harga per satuan (informasi) = Biaya Cetak / qty hitung. Sejak Biaya Cetak jadi komponen
+                            // utama subtotal, rumus lama (subtotal - cetak - desain - finishing) selalu berujung 0.
+                            // Baris jasa/bahan (tanpa Biaya Cetak) memakai sisa subtotal setelah desain & finishing.
+                            $dasarHarga = (float) $item->biaya_cetak > 0
+                                ? (float) $item->biaya_cetak
+                                : ((float) $item->subtotal + (float) $item->potongan - (float) $item->biaya_desain - (float) $item->biaya_finishing);
+                            $hargaSatuan = ($item->qty_hitung > 0) ? $dasarHarga / $item->qty_hitung : 0;
                             // Cetak/Desain/Finishing/Potongan TIDAK lagi masing-masing jadi
                             // kolom sendiri (dulu 10 kolom, tabel jadi sempit & ramai) -
                             // dirangkum jadi satu baris kecil di bawah Deskripsi, sama
@@ -144,7 +150,7 @@
                                  modal Custom Harga (bukan inline) supaya kelima komponen
                                  (harga/cetak/desain/finishing/potongan) selalu disesuaikan
                                  bersamaan & konsisten, tidak ada yang kelewat. --}}
-                            <input type="hidden" class="inp-harga" name="items[{{ $item->id_detail }}][harga]" value="{{ round($hargaSatuan) }}">
+                            <input type="hidden" class="inp-harga" name="items[{{ $item->id_detail }}][harga]" value="0">
                             <input type="hidden" class="inp-cetak" name="items[{{ $item->id_detail }}][biaya_cetak]" value="{{ (int) $item->biaya_cetak }}">
                             <input type="hidden" class="inp-desain" name="items[{{ $item->id_detail }}][biaya_desain]" value="{{ (int) $item->biaya_desain }}">
                             <input type="hidden" class="inp-finishing" name="items[{{ $item->id_detail }}][biaya_finishing]" value="{{ (int) $item->biaya_finishing }}">
@@ -763,7 +769,7 @@
         row.querySelector('.inp-finishing').value = finishing;
         row.querySelector('.inp-potongan').value = potongan;
 
-        row.querySelector('.disp-harga').innerText = 'Rp 0';
+        tampilHargaSatuan(row, cetak);
         // Cetak/Desain/Finishing/Potongan tidak lagi kolom terpisah - dirangkum
         // jadi satu baris kecil di bawah Deskripsi (lihat buildBiayaTambahanText),
         // sama seperti dulu dirender server-side saat halaman pertama dimuat.
@@ -815,6 +821,12 @@
     // dibuka lewat modal) sekali di awal, SEBELUM form sempat disubmit sama
     // sekali - supaya hidden input yang terkirim selalu sudah benar apa pun
     // yang kasir lakukan setelahnya.
+    // Kolom Harga = Biaya Cetak / qty hitung (informasi saja; nilai yang dikirim tetap dari Cetak/Desain/Finishing).
+    function tampilHargaSatuan(row, cetak) {
+        const qty = parseFloat(row.querySelector('.inp-qty').value) || 0;
+        row.querySelector('.disp-harga').innerText = 'Rp ' + formatRupiah(qty > 0 ? Math.round(cetak / qty) : 0);
+    }
+
     function reconcileSemuaBiayaCetak() {
         document.querySelectorAll('.item-row').forEach(row => {
             const qty = parseFloat(row.querySelector('.inp-qty').value) || 0;
@@ -824,7 +836,7 @@
             if (cetakLama <= 0 && hargaLama > 0 && qty > 0) {
                 row.querySelector('.inp-cetak').value = Math.round(hargaLama * qty);
                 row.querySelector('.inp-harga').value = 0;
-                row.querySelector('.disp-harga').innerText = 'Rp 0';
+                tampilHargaSatuan(row, Math.round(hargaLama * qty));
             }
         });
     }
