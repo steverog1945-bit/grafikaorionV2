@@ -22,6 +22,7 @@ class AppSetting extends Model
         'logo_ringkas',
         'logo_ikon_path',
         'libur_kas_minggu',
+        'batasi_jam_kerja',
         'format_nota',
         'nomor_nota_prefix',
         'nota_footer_text',

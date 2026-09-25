@@ -1,89 +1,43 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1200px] mx-auto">
 
-    <x-page-header title="Pengaturan Hak Akses" subtitle="Tentukan menu apa saja yang boleh dibuka oleh setiap Role." />
+    <x-page-header title="Pengaturan Hak Akses" subtitle="Tentukan per role: modul apa yang boleh dilihat, ditambah, dikelola (diubah), dan dihapus." />
 
-<form action="{{ route('akses.update') }}" method="POST">
-    @csrf
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-900 text-white">
-                        <th class="p-5 text-sm font-semibold uppercase tracking-wider border-r border-slate-800">Menu / Fitur</th>
-                        @foreach($roles as $role)
-                            <th class="p-5 text-sm font-semibold uppercase tracking-wider text-center border-r border-slate-800 last:border-0">
-                                {{ $role->nama_role }}
-                            </th>
-                        @endforeach
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    <tr class="bg-amber-50/60">
-                        <td class="p-5 border-r border-amber-100">
-                            <div class="flex items-center">
-                                <span class="text-lg mr-3">💰</span>
-                                <div>
-                                    <span class="font-bold text-slate-800">Boleh melihat &amp; mengubah harga</span>
-                                    <div class="text-[11px] text-slate-500 font-medium">Kosongkan untuk role yang hanya input nota &amp; produksi: harga hanya tampil (tidak bisa diubah) di Input Nota; halaman/kolom harga lain (Finishing, Quotation, detail nota, jersey, waste &amp; QC) ditutup.</div>
-                                </div>
-                            </div>
-                        </td>
-                        @foreach($roles as $role)
-                        <td class="p-5 text-center border-r border-amber-100 last:border-0">
-                            @if($role->nama_role === 'Administrator')
-                                <span class="text-xs font-bold text-emerald-600">Selalu</span>
-                            @else
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="lihat_harga[]" value="{{ $role->id_role }}" {{ $role->boleh_lihat_harga ? 'checked' : '' }}
-                                           class="w-6 h-6 rounded-lg border-amber-300 text-amber-600 focus:ring-amber-500 focus:ring-offset-2 transition-all cursor-pointer">
-                                </label>
-                            @endif
-                        </td>
-                        @endforeach
-                    </tr>
-                    @foreach($menus as $menu)
-                    <tr class="hover:bg-indigo-50/50 transition-colors group">
-                        <td class="p-5 border-r border-slate-100">
-                            <div class="flex items-center">
-                                <span class="text-lg mr-3 group-hover:scale-120 transition-transform">📂</span>
-                                <span class="font-bold text-slate-700">{{ $menu->nama_menu }}</span>
-                            </div>
-                        </td>
-                        
-                        @foreach($roles as $role)
-                        <td class="p-5 text-center border-r border-slate-100 last:border-0">
-                            @php
-                                $cek = DB::table('role_permissions')
-                                        ->where('id_role', $role->id_role)
-                                        ->where('id_menu', $menu->id_menu)
-                                        ->exists();
-                            @endphp
-                            
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" 
-                                       name="permissions[{{ $role->id_role }}][]" 
-                                       value="{{ $menu->id_menu }}"
-                                       {{ $cek ? 'checked' : '' }}
-                                       class="w-6 h-6 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-2 transition-all cursor-pointer">
-                            </label>
-                        </td>
-                        @endforeach
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+    {{-- Pilih role --}}
+    <div class="flex flex-wrap gap-2 mb-6">
+        @foreach($roles as $r)
+        <a href="{{ route('akses.index', ['role' => $r->id_role]) }}"
+           class="px-4 py-2 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all {{ $r->id_role === $role->id_role ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400' }}">
+            {{ $r->nama_role }}
+        </a>
+        @endforeach
+    </div>
+
+    @if($role->nama_role === 'Administrator')
+        <div class="p-5 rounded-2xl bg-emerald-50 text-emerald-700 text-sm font-semibold">Administrator selalu memiliki semua akses pada semua modul dan tidak bisa dibatasi.</div>
+    @else
+    <form action="{{ route('akses.update') }}" method="POST">
+        @csrf
+        <input type="hidden" name="role_id" value="{{ $role->id_role }}">
+
+        <div class="mb-5 p-5 rounded-2xl bg-amber-50/70 border border-amber-100 flex items-start gap-4">
+            <input type="checkbox" name="boleh_lihat_harga" value="1" id="cek-harga" {{ $role->boleh_lihat_harga ? 'checked' : '' }} class="mt-1 w-6 h-6 rounded-lg border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer">
+            <label for="cek-harga" class="cursor-pointer">
+                <div class="font-bold text-slate-800">Boleh melihat &amp; mengubah harga</div>
+                <div class="text-[11px] text-slate-500 font-medium">Kosongkan untuk role yang hanya input nota &amp; produksi: harga hanya tampil (tidak bisa diubah) di Input Nota; halaman/kolom harga lain (Finishing, Quotation, detail nota, jersey, waste &amp; QC) ditutup.</div>
+            </label>
         </div>
-    </div>
 
-    <div class="mt-8 flex justify-end">
-        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-indigo-100 transition-all flex items-center gap-2 group active:scale-95">
-            <span>💾</span> Simpan Seluruh Perubahan Akses
-        </button>
-    </div>
-</form>
+        @include('akses._matriks', ['menus' => $menus, 'izin' => $izin])
 
+        <div class="mt-6 flex gap-3">
+            <x-button type="submit" variant="primary"><i class="fas fa-save"></i> Simpan Hak Akses {{ $role->nama_role }}</x-button>
+        </div>
+    </form>
+    @endif
+
+    <p class="mt-8 text-xs text-slate-400">Butuh pengecualian untuk satu orang saja? Buka <b>Data User</b> lalu pilih tombol Hak Akses pada user tersebut.</p>
 </div>
 @endsection

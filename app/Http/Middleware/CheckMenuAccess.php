@@ -65,13 +65,16 @@ class CheckMenuAccess
             abort(403, 'Rute ini belum terdaftar di peta akses. Hubungi Administrator.');
         }
 
-        $hasAccess = DB::table('role_permissions')
-            ->where('id_role', $user->id_role)
-            ->whereIn('id_menu', $rules[$matchedPrefix])
-            ->exists();
+        // Aksi dari metode HTTP: GET = lihat, POST = tambah, PUT/PATCH = kelola (ubah), DELETE = hapus.
+        // POST yang sebenarnya hanya "membaca" (pratinjau/cek) didaftarkan di menu_access.post_baca.
+        $aksi = \App\Support\Izin::aksiDariMetode($request->method());
+        if ($aksi === 'add' && in_array($path, config('menu_access.post_baca', []), true)) {
+            $aksi = 'view';
+        }
 
-        if (!$hasAccess) {
-            abort(403, 'Anda tidak memiliki akses ke halaman ini. Hubungi Administrator untuk meminta akses.');
+        if (!\App\Support\Izin::boleh($user, $rules[$matchedPrefix], $aksi)) {
+            $label = ['view' => 'melihat', 'add' => 'menambah data di', 'edit' => 'mengubah/mengelola data di', 'delete' => 'menghapus data di'][$aksi];
+            abort(403, "Anda tidak memiliki izin untuk {$label} modul ini. Hubungi Administrator untuk meminta akses.");
         }
 
         return $next($request);

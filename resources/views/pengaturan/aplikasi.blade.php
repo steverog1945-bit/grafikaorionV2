@@ -238,13 +238,9 @@
         <div id="tab-panel-kas" class="tab-panel-pengaturan hidden">
             <x-card class="space-y-6">
                 <div class="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-                    <label class="flex items-start gap-3 cursor-pointer">
-                        <input type="checkbox" name="libur_kas_minggu" value="1" @checked(old('libur_kas_minggu', $setting->libur_kas_minggu)) class="mt-1 w-4 h-4 rounded accent-indigo-600">
-                        <span>
-                            <span class="block text-sm font-bold text-slate-700">Kas Libur di Hari Minggu</span>
-                            <span class="block text-xs text-slate-400 mt-0.5">Kalau diaktifkan, Open Saldo & Closing Kas tidak bisa dilakukan setiap hari Minggu (toko dianggap tutup).</span>
-                        </span>
-                    </label>
+                    <span class="block text-sm font-bold text-slate-700">Hari libur &amp; jam kerja kas</span>
+                    <span class="block text-xs text-slate-400 mt-0.5 mb-3">Hari tutup dan jam buka kini diatur per hari (Senin-Minggu) di halaman Jam Kerja.</span>
+                    <a href="{{ route('jam-kerja.index') }}" class="inline-flex px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700"><i class="fas fa-clock mr-2"></i> Atur Jam Kerja</a>
                 </div>
 
                 <div class="pt-4 flex justify-end border-t border-slate-100">

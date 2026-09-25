@@ -561,11 +561,24 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     */
 
     Route::get('/setting-akses',
-        [AksesController::class, 'index']);
+        [AksesController::class, 'index'])->name('akses.index');
 
     Route::post('/setting-akses/update',
         [AksesController::class, 'update'])
         ->name('akses.update');
+
+    // Pengecualian hak akses per user (di bawah prefix users = menu Data User).
+    Route::get('/users/{id}/akses', [AksesController::class, 'userIndex'])->whereNumber('id')->name('akses.user');
+    Route::post('/users/{id}/akses', [AksesController::class, 'userUpdate'])->whereNumber('id')->name('akses.user.update');
+    Route::post('/users/{id}/akses/reset', [AksesController::class, 'userReset'])->whereNumber('id')->name('akses.user.reset');
+
+    Route::get('/pengaturan-jam-kerja', [\App\Http\Controllers\JamKerjaController::class, 'index'])->name('jam-kerja.index');
+    Route::post('/pengaturan-jam-kerja', [\App\Http\Controllers\JamKerjaController::class, 'update'])->name('jam-kerja.update');
+
+    Route::get('/menu-editor', [\App\Http\Controllers\MenuEditorController::class, 'index'])->name('menu-editor.index');
+    Route::post('/menu-editor', [\App\Http\Controllers\MenuEditorController::class, 'update'])->name('menu-editor.update');
+    Route::post('/menu-editor/tambah', [\App\Http\Controllers\MenuEditorController::class, 'store'])->name('menu-editor.store');
+    Route::delete('/menu-editor/{id}', [\App\Http\Controllers\MenuEditorController::class, 'destroy'])->whereNumber('id')->name('menu-editor.destroy');
 
     /*
     |--------------------------------------------------------------------------

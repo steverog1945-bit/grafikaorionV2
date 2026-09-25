@@ -57,6 +57,8 @@ return [
         'konsumen/store-ajax' => [3, 41],
 
         'setting-akses' => [4],
+        'menu-editor' => [4],
+        'pengaturan-jam-kerja' => [37],
         'karyawan' => [5],
         'users' => [6],
         'konsumen' => [7],
@@ -166,6 +168,12 @@ return [
 
     // Role yang HANYA boleh membaca: semua request selain GET/HEAD ditolak (403) di CheckMenuAccess.
     'roles_baca_saja' => ['Owner'],
+
+    // POST yang hanya membaca/menghitung (bukan menyimpan) - diperlakukan sebagai "lihat".
+    'post_baca' => [
+        'jersey/cek-kelengkapan',
+        'jersey/preview-harga',
+    ],
 
     'always_allow' => [
         'sinyal',
