@@ -240,6 +240,20 @@ class AccountingService
      * keluar dari gudang tanpa menjadi barang terjual. Dr Beban Rework &
      * Susut Bahan (5200) / Cr Persediaan Bahan Baku.
      */
+    /** HPP kain order jersey (Dr HPP / Cr Persediaan); nilai negatif = pembalikan (stok dikembalikan). */
+    public static function postHppJersey(string $noOrder, float $biaya): void
+    {
+        if ($biaya == 0.0) {
+            return;
+        }
+        $abs = abs($biaya);
+        $lines = $biaya > 0
+            ? [['kode_akun' => self::AKUN_HPP, 'debet' => $abs], ['kode_akun' => self::AKUN_PERSEDIAAN_BAHAN, 'kredit' => $abs]]
+            : [['kode_akun' => self::AKUN_PERSEDIAAN_BAHAN, 'debet' => $abs], ['kode_akun' => self::AKUN_HPP, 'kredit' => $abs]];
+
+        self::postJournal(now()->toDateString(), $noOrder, ($biaya > 0 ? 'HPP kain jersey ' : 'Pembalikan HPP kain jersey ') . $noOrder, $lines);
+    }
+
     public static function postBebanRework(string $noReferensi, string $keterangan, float $nominal): void
     {
         if ($nominal <= 0) {

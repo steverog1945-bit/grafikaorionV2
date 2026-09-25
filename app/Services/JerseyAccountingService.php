@@ -83,6 +83,7 @@ class JerseyAccountingService
             }
 
             AccountingService::postPendapatanJersey($order->order_number, -1 * (float) $order->total_terjurnal);
+            JerseyStokService::kembalikan($order); // stok kain kembali bila sudah dipotong
 
             $order->delete();
         });
