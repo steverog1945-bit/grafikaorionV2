@@ -43,6 +43,13 @@ class JerseyAccountingService
         AccountingService::postPembayaranJersey($ref, $order->order_number, (float) $payment->jumlah, $payment->metode_bayar);
 
         DB::table('jersey_order_payments')->where('id', $payment->id)->update(['no_referensi_jurnal' => $ref]);
+
+        // Cermin di buku Kas Kecil (pemasukan sumber 'jersey'); jurnalnya sudah dibuat di atas, jadi tidak dijurnal lagi.
+        DB::table('kas_kecil')->insert([
+            'tanggal' => $payment->tanggal_bayar, 'jenis' => 'Masuk', 'sumber' => 'jersey', 'id_referensi' => $payment->id, 'metode' => $payment->metode_bayar,
+            'id_kategori' => null, 'keterangan' => "Pembayaran order jersey {$order->order_number}", 'nominal' => $payment->jumlah,
+            'id_user' => $payment->created_by ?? \Illuminate\Support\Facades\Auth::id(), 'created_at' => now(), 'updated_at' => now(),
+        ]);
     }
 
     /** Dipanggil lewat approval 'void_pembayaran_jersey'. */
@@ -64,6 +71,7 @@ class JerseyAccountingService
             $order = $payment->order;
             $payment->update(['keterangan' => trim(($payment->keterangan ? $payment->keterangan . ' | ' : '') . 'Di-void: ' . $alasan)]);
             $payment->delete();
+            DB::table('kas_kecil')->where('sumber', 'jersey')->where('id_referensi', $idPembayaran)->delete();
             $order->recalculatePembayaran();
         });
     }

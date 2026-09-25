@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
-    <x-page-header title="Kategori Kas Kecil" subtitle="Daftar kategori pengeluaran kas kecil - dipakai sebagai pilihan tetap saat mencatat pengeluaran">
+    <x-page-header title="Kategori Kas Kecil" subtitle="Daftar kategori pemasukan &amp; pengeluaran kas kecil - dipakai sebagai pilihan tetap saat mencatat">
         <x-slot:actions>
             <x-button onclick="openTambahModalKategoriKasKecil()">
                 <i class="fas fa-tags"></i>
@@ -36,7 +36,8 @@
             <tr>
                 <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-8 py-5 text-left">Nama Kategori</th>
-                <th class="px-6 py-5 text-left">Akun Beban Terkait</th>
+                <th class="px-4 py-5 text-left">Jenis</th>
+                <th class="px-6 py-5 text-left">Akun Terkait</th>
                 <th class="px-8 py-5 text-right">Manajemen</th>
             </tr>
         </thead>
@@ -48,6 +49,9 @@
                     <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
                         {{ $kat->nama_kategori }}
                     </div>
+                </td>
+                <td class="px-4 py-5">
+                    <span class="text-[10px] font-bold uppercase rounded px-2 py-1 {{ $kat->jenis === 'Masuk' ? 'text-emerald-600 bg-emerald-50' : 'text-rose-500 bg-rose-50' }}">{{ $kat->jenis === 'Masuk' ? 'Pemasukan' : 'Pengeluaran' }}</span>
                 </td>
                 <td class="px-6 py-5">
                     @if($kat->kode_akun)
@@ -79,7 +83,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="4" class="py-24 text-center">
+                <td colspan="5" class="py-24 text-center">
                     <div class="flex flex-col items-center">
                         <i class="fas fa-folder-open text-slate-100 text-6xl mb-4"></i>
                         <p class="text-slate-300 font-medium text-sm">Belum ada kategori yang terdaftar.</p>
@@ -119,15 +123,24 @@
                 </div>
 
                 <div class="max-w-[85%] mx-auto">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Akun Beban Terkait</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Jenis</label>
+                    <select name="jenis" id="inputJenisKategoriKasKecil" onchange="saringAkunKategoriKasKecil()"
+                           class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center">
+                        <option value="Keluar">Pengeluaran</option>
+                        <option value="Masuk">Pemasukan</option>
+                    </select>
+                </div>
+
+                <div class="max-w-[85%] mx-auto">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Akun Terkait</label>
                     <select name="kode_akun" id="inputKodeAkunKategoriKasKecil"
                            class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center">
                         <option value="">-- Belum Dipetakan --</option>
                         @foreach($akunBeban as $akun)
-                            <option value="{{ $akun->kode_akun }}">{{ $akun->kode_akun }} - {{ $akun->nama_akun }}</option>
+                            <option value="{{ $akun->kode_akun }}" data-jenis="{{ $akun->tipe_akun === 'Beban' ? 'Keluar' : 'Masuk' }}">{{ $akun->kode_akun }} - {{ $akun->nama_akun }}</option>
                         @endforeach
                     </select>
-                    <p class="text-[10px] text-slate-400 mt-2 text-center">Menentukan akun Beban mana yang otomatis tercatat di jurnal & Laba Rugi tiap kali kategori ini dipakai mencatat pengeluaran Kas Kecil.</p>
+                    <p class="text-[10px] text-slate-400 mt-2 text-center">Pengeluaran dipetakan ke akun Beban, pemasukan ke akun Pendapatan/Modal - otomatis tercatat di jurnal & Laba Rugi tiap kali kategori ini dipakai di Kas Kecil.</p>
                 </div>
 
                 <div class="flex flex-col items-center gap-3 pt-4 max-w-[70%] mx-auto">
@@ -160,6 +173,8 @@
         formKategoriKasKecil.action = "{{ route('kategori-kas-kecil.store') }}";
         document.getElementById('methodFieldKategoriKasKecil').innerHTML = '';
         formKategoriKasKecil.reset();
+        document.getElementById('inputJenisKategoriKasKecil').value = 'Keluar';
+        saringAkunKategoriKasKecil();
         document.getElementById('inputKodeAkunKategoriKasKecil').value = '';
         modalKategoriKasKecil.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -175,9 +190,19 @@
         formKategoriKasKecil.action = `{{ url('/kategori-kas-kecil') }}/${data.id_kategori_kas_kecil}`;
         document.getElementById('methodFieldKategoriKasKecil').innerHTML = '@method("PUT")';
         document.getElementById('inputNamaKategoriKasKecil').value = data.nama_kategori;
+        document.getElementById('inputJenisKategoriKasKecil').value = data.jenis || 'Keluar';
+        saringAkunKategoriKasKecil();
         document.getElementById('inputKodeAkunKategoriKasKecil').value = data.kode_akun || '';
         modalKategoriKasKecil.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
+    }
+
+    // Pilihan akun mengikuti jenis: pengeluaran -> Beban, pemasukan -> Pendapatan/Modal.
+    function saringAkunKategoriKasKecil() {
+        const jenis = document.getElementById('inputJenisKategoriKasKecil').value;
+        const sel = document.getElementById('inputKodeAkunKategoriKasKecil');
+        [...sel.options].forEach(o => { if (o.value) { const cocok = o.dataset.jenis === jenis; o.hidden = !cocok; o.disabled = !cocok; } });
+        if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = '';
     }
 
     function closeModalKategoriKasKecil() {

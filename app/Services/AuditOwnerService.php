@@ -54,7 +54,7 @@ class AuditOwnerService
         $bayarHutang = (float) DB::table('pembayaran_hutang')->whereNull('voided_at')->whereBetween('tanggal', $tgl)->sum('nominal');
 
         $kasKecil = DB::table('kas_kecil as k')->leftJoin('kategori_kas_kecil as c', 'c.id_kategori_kas_kecil', '=', 'k.id_kategori')
-            ->whereNull('k.deleted_at')->whereBetween('k.tanggal', $tgl)
+            ->whereNull('k.deleted_at')->where('k.jenis', 'Keluar')->whereBetween('k.tanggal', $tgl)
             ->selectRaw("COALESCE(c.nama_kategori, 'Tanpa kategori') as kategori, COUNT(*) as jumlah, SUM(k.nominal) as total")
             ->groupBy('kategori')->orderByDesc('total')->get();
 

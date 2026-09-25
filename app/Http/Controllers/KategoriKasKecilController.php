@@ -34,10 +34,11 @@ class KategoriKasKecilController extends Controller
         // pilihan - HPP punya jalur pencatatan otomatisnya sendiri dari
         // BOM x harga_rata_rata bahan (AccountingService::postPenjualan),
         // tidak pernah dipetakan manual dari kategori kas kecil.
+        // Pemasukan dipetakan ke akun Pendapatan/Modal (kecuali Penjualan/Jersey yang punya jalur otomatis sendiri).
         $akunBeban = DB::table('bag_akun')
-            ->where('tipe_akun', 'Beban')
-            ->where('kode_akun', '!=', '5000')
             ->where('is_active', 1)
+            ->where(fn ($q) => $q->where(fn ($b) => $b->where('tipe_akun', 'Beban')->where('kode_akun', '!=', '5000'))
+                ->orWhere(fn ($m) => $m->whereIn('tipe_akun', ['Pendapatan', 'Modal'])->whereNotIn('kode_akun', ['4000', '4300'])))
             ->orderBy('kode_akun')
             ->get();
 
@@ -48,6 +49,7 @@ class KategoriKasKecilController extends Controller
     {
         $request->validate([
             'nama_kategori' => 'required|string|max:100|unique:kategori_kas_kecil,nama_kategori',
+            'jenis' => 'required|in:Keluar,Masuk',
             'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun',
         ], [
             'nama_kategori.unique' => 'Nama kategori sudah ada!',
@@ -55,6 +57,7 @@ class KategoriKasKecilController extends Controller
 
         KategoriKasKecil::create([
             'nama_kategori' => $request->nama_kategori,
+            'jenis' => $request->jenis,
             'kode_akun' => $request->kode_akun ?: null,
         ]);
 
@@ -65,6 +68,7 @@ class KategoriKasKecilController extends Controller
     {
         $request->validate([
             'nama_kategori' => 'required|string|max:100|unique:kategori_kas_kecil,nama_kategori,' . $kategoriKasKecil->id_kategori_kas_kecil . ',id_kategori_kas_kecil',
+            'jenis' => 'required|in:Keluar,Masuk',
             'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun',
         ], [
             'nama_kategori.unique' => 'Nama kategori sudah ada!',
@@ -72,6 +76,7 @@ class KategoriKasKecilController extends Controller
 
         $kategoriKasKecil->update([
             'nama_kategori' => $request->nama_kategori,
+            'jenis' => $request->jenis,
             'kode_akun' => $request->kode_akun ?: null,
         ]);
 
