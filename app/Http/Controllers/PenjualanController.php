@@ -230,27 +230,53 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         // ke foreign key transaksi_detail.id_finishing. biaya_finishing input
         // manual operator sama seperti biaya_desain (harga_default di master
         // Finishing cuma starting point, bukan harga final).
-        $idFinishing = !empty($item['id_finishing']) ? (int) $item['id_finishing'] : null;
-        if ($idFinishing && !DB::table('finishing')->where('id_finishing', $idFinishing)->exists()) {
-            return response()->json(['status' => 'error', 'msg' => 'Finishing pada baris ' . ($index + 1) . ' tidak ditemukan.'], 422);
+        // Finishing: DAFTAR (boleh lebih dari satu, mis. Laminasi + Kisscut). Bentuk lama (id_finishing tunggal)
+        // tetap diterima dan diubah menjadi daftar satu elemen.
+        $daftarFinishingMentah = is_array($item['finishing'] ?? null) ? $item['finishing'] : [];
+        if (!$daftarFinishingMentah && !empty($item['id_finishing'])) {
+            $daftarFinishingMentah = [[
+                'id_finishing' => $item['id_finishing'], 'status_finishing' => $item['status_finishing'] ?? 'Standar',
+                'biaya' => $item['biaya_finishing'] ?? 0, 'qty_pakai' => null, 'catatan' => null,
+            ]];
         }
-        $biayaFinishing = max(0, (float) ($item['biaya_finishing'] ?? 0));
+        if (count($daftarFinishingMentah) > 5) {
+            return response()->json(['status' => 'error', 'msg' => 'Maksimal 5 finishing per item (baris ' . ($index + 1) . ').'], 422);
+        }
+        $daftarFinishing = [];
+        $biayaFinishing = 0.0;
+        foreach ($daftarFinishingMentah as $fin) {
+            $idF = !empty($fin['id_finishing']) ? (int) $fin['id_finishing'] : null;
+            $rowF = $idF ? DB::table('finishing')->where('id_finishing', $idF)->first() : null;
+            if (!$rowF) {
+                return response()->json(['status' => 'error', 'msg' => 'Finishing pada baris ' . ($index + 1) . ' tidak ditemukan.'], 422);
+            }
+            $statusF = ($fin['status_finishing'] ?? $fin['status'] ?? 'Standar') === 'Custom' ? 'Custom' : 'Standar';
+            $qtyPakai = isset($fin['qty_pakai']) && (float) $fin['qty_pakai'] > 0 ? (float) $fin['qty_pakai'] : null;
 
-        // Role tanpa hak ubah harga: SEMUA komponen biaya dihitung server dari master
-        // (kiriman client diabaikan). Biaya desain tidak bisa diisi role ini (0) - diisi kasir/admin.
+            // Qty acuan tarif finishing menurut metode_hitung finishing itu sendiri (sama dengan hitungan di form).
+            $qtyF = match ($rowF->metode_hitung) {
+                'luas' => $qtyHitung,
+                'keliling' => $produk->metode_hitung === 'ukuran' ? (2 * ($p + $l) / 100) * $qtyInput : $qtyInput,
+                default => $qtyPakai ?? $qtyInput,
+            };
+            $standar = $qtyF > 0 ? round(HargaService::getHargaFinishingEfektif($idF, $qtyF) * $qtyF) : 0.0;
+
+            // Standar (atau role tanpa hak ubah harga) = SELALU dihitung server dari master; hanya Custom oleh role berhak
+            // yang boleh menentukan biaya sendiri.
+            $biayaF = ($statusF === 'Standar' || $hargaTerkunci) ? $standar : max(0, (float) ($fin['biaya'] ?? 0));
+
+            $daftarFinishing[] = [
+                'id_finishing' => $idF, 'status_finishing' => $statusF, 'qty_pakai' => $rowF->metode_hitung === 'quantity' ? ($qtyPakai ?? $qtyInput) : null,
+                'biaya' => $biayaF, 'catatan' => isset($fin['catatan']) && trim((string) $fin['catatan']) !== '' ? mb_substr(trim((string) $fin['catatan']), 0, 255) : null,
+            ];
+            $biayaFinishing += $biayaF;
+        }
+        $idFinishing = $daftarFinishing[0]['id_finishing'] ?? null;
+
+        // Role tanpa hak ubah harga: biaya cetak & desain juga dihitung server (finishing sudah dihitung di atas).
         if ($hargaTerkunci) {
             $biayaCetak = round($hargaSatuan * $qtyHitung);
             $biayaDesain = 0;
-            $biayaFinishing = 0;
-            if ($idFinishing) {
-                $metodeF = DB::table('finishing')->where('id_finishing', $idFinishing)->value('metode_hitung');
-                $qtyF = match ($metodeF) {
-                    'luas' => $qtyHitung,
-                    'keliling' => $produk->metode_hitung === 'ukuran' ? (2 * ($p + $l) / 100) * $qtyInput : $qtyInput,
-                    default => $qtyInput,
-                };
-                $biayaFinishing = $qtyF > 0 ? round(HargaService::getHargaFinishingEfektif($idFinishing, $qtyF) * $qtyF) : 0;
-            }
         }
 
         $statusUrgensi = in_array($item['status_urgensi'] ?? null, ['Normal', 'Urgent', 'Very Urgent'])
@@ -282,11 +308,12 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             'qty_input' => $qtyInput,
             'qty_hitung' => $qtyHitung,
             'id_finishing' => $idFinishing,
+            'finishing_list' => $daftarFinishing,
             'biaya_finishing' => $biayaFinishing,
             'biaya_cetak' => $biayaCetak,
             'biaya_desain' => $biayaDesain,
             'status_urgensi' => $statusUrgensi,
-            'status_finishing' => $statusFinishing,
+            'status_finishing' => collect($daftarFinishing)->contains('status_finishing', 'Custom') ? 'Custom' : $statusFinishing,
             'subtotal' => $biayaCetak + $biayaDesain + $biayaFinishing,
         ];
     }
@@ -381,6 +408,15 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                 // karena baru diketahui setelah menjumlah biaya tiap bahan.
                 'harga_jual_snapshot' => $item['subtotal'],
             ]);
+
+            // Rincian finishing per item (boleh lebih dari satu).
+            foreach ($item['finishing_list'] ?? [] as $fin) {
+                DB::table('transaksi_detail_finishing')->insert([
+                    'id_detail' => $id_detail, 'id_finishing' => $fin['id_finishing'], 'status_finishing' => $fin['status_finishing'],
+                    'qty_pakai' => $fin['qty_pakai'], 'biaya' => $fin['biaya'], 'catatan' => $fin['catatan'],
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
 
             // BOM + tinta/toner mesin produk (lihat BomCalculationService::komponen).
             $boms = \App\Services\BomCalculationService::komponen(
@@ -707,7 +743,9 @@ public function show($id)
         )
         ->get();
 
-    return view('penjualan.show', compact('transaksi', 'items'));
+    $finishingItems = \App\Services\FinishingItemService::untukDetail($items->pluck('id_detail'));
+
+    return view('penjualan.show', compact('transaksi', 'items', 'finishingItems'));
 }
 
 /**

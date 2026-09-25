@@ -159,15 +159,15 @@
                     <div id="wrapper_ukuran" class="hidden grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3">
                         <div class="space-y-1.5">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Panjang (cm)</span>
-                            <input type="number" id="input_p" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center">
+                            <input type="number" id="input_p" onchange="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center">
                         </div>
                         <div class="space-y-1.5">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Lebar (cm)</span>
-                            <input type="number" id="input_l" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center">
+                            <input type="number" id="input_l" onchange="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center">
                         </div>
                         <div class="space-y-1.5">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Qty</span>
-                            <input type="number" id="input_qty_ukuran" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center" value="1">
+                            <input type="number" id="input_qty_ukuran" onchange="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center" value="1">
                         </div>
                     </div>
                     <p id="note_ukuran" class="hidden text-xs font-medium text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5 mb-4 leading-relaxed">
@@ -177,7 +177,7 @@
 
                     <div id="wrapper_qty" class="hidden mb-4">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Jumlah Unit</label>
-                        <input type="number" id="input_qty_biasa" oninput="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-3 text-2xl font-black text-center" value="1">
+                        <input type="number" id="input_qty_biasa" onchange="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-3 text-2xl font-black text-center" value="1">
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -229,6 +229,7 @@
                             <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1">Harga Estimasi</p>
                             <h2 id="display_subtotal" class="text-3xl font-black text-white tracking-tight">Rp 0</h2>
                             <p id="display_harga" class="text-indigo-400 text-[10px] font-bold mt-1">Rp 0 /unit</p>
+                            <p id="status_hitung" class="hidden text-amber-300 text-[10px] font-bold mt-1"><i class="fas fa-circle-notch fa-spin mr-1"></i> Menghitung...</p>
                             <span id="badge_promo" hidden class="mt-2 px-3 py-1 bg-rose-500 text-white text-xs font-bold uppercase tracking-widest rounded-full">🔥 Harga Promo Aktif</span>
                         </div>
                         <div class="flex flex-wrap items-center justify-center gap-4">
@@ -243,10 +244,14 @@
                             </div>
                             <div class="text-right">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Spek Finishing</p>
-                                <select id="input_status_finishing" disabled class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed">
+                                <select id="input_status_finishing" onchange="onStatusFinishingChange()" disabled class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed">
                                     <option value="Standar">Standar</option>
                                     <option value="Custom">Custom</option>
                                 </select>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Catatan Finishing</p>
+                                <input type="text" id="input_catatan_finishing" maxlength="255" placeholder="mis. Doff" class="w-32 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-medium text-xs focus:outline-none placeholder-indigo-300/50">
                             </div>
                             {{-- Biaya Cetak SEKARANG komponen UTAMA subtotal (Subtotal =
                                  Cetak + Desain + Finishing, lihat hitungSubtotal()) -
@@ -258,7 +263,7 @@
                                  dipakai Biaya Finishing (finishingBiayaManualEdit). --}}
                             <div class="text-right">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Cetak</p>
-                                <input type="text" inputmode="numeric" id="input_cetak" @unlessbolehHarga readonly @endbolehHarga oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
+                                <input type="text" inputmode="numeric" id="input_cetak" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
                             </div>
                             {{-- Jumlah Pcs Finishing HANYA untuk finishing metode 'quantity'
                                  (mis. Pasang Mata Ayam, Pemasangan Tali) - jumlah pcs finishing
@@ -271,7 +276,7 @@
                                  refreshFinishingBiayaSuggestion()). --}}
                             <div id="wrapper_qty_finishing" class="text-right hidden">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Jumlah Pcs Finishing</p>
-                                <input type="number" min="1" id="input_qty_finishing" oninput="onQtyFinishingManualChange()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="1">
+                                <input type="number" min="1" id="input_qty_finishing" onchange="onQtyFinishingManualChange()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="1">
                             </div>
                             {{-- Biaya Finishing hanya relevan begitu jenis Finishing
                                  dipilih di dropdown sebelahnya - disembunyikan selama
@@ -280,15 +285,18 @@
                                  bermakna. --}}
                             <div id="wrapper_biaya_finishing" class="text-right hidden">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Finishing</p>
-                                <input type="text" inputmode="numeric" id="input_finishing_biaya" @unlessbolehHarga readonly @endbolehHarga oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
+                                <input type="text" inputmode="numeric" id="input_finishing_biaya" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
                             </div>
+                            <button type="button" id="btn_tambah_finishing" onclick="tambahFinishingKeDaftar()" class="hidden bg-sky-500 hover:bg-sky-400 text-white h-10 px-4 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all">
+                                <i class="fas fa-plus"></i> Tambah Finishing
+                            </button>
                             {{-- Biaya Desain TIDAK punya penanda "sedang dipakai/tidak"
                                  bawaan seperti finishing - disembunyikan default, baru
                                  muncul lewat tombol "+ Desain" (tampilkanBiayaDesain())
                                  kalau memang ada biaya desain yang perlu ditambahkan. --}}
                             <div id="wrapper_biaya_desain" class="text-right hidden">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Desain</p>
-                                <input type="text" inputmode="numeric" id="input_desain" @unlessbolehHarga readonly @endbolehHarga oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
+                                <input type="text" inputmode="numeric" id="input_desain" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
                             </div>
                             <button type="button" id="btn_tambah_desain" @unlessbolehHarga hidden @endbolehHarga onclick="tampilkanBiayaDesain()" class="text-indigo-300 hover:text-white text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
                                 <i class="fas fa-plus-circle"></i> Biaya Desain
@@ -297,6 +305,15 @@
                                 Tambah
                             </button>
                         </div>
+                    </div>
+
+                    {{-- Daftar finishing untuk item ini (boleh lebih dari satu, mis. Laminasi + Kisscut) --}}
+                    <div id="finishing_list_box" class="hidden mt-3 rounded-2xl border border-slate-100 bg-white overflow-hidden">
+                        <div class="px-4 py-2.5 bg-slate-50 flex items-center justify-between">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Finishing item ini</span>
+                            <span class="text-xs font-bold text-slate-600">Total Finishing: <b id="finishing_list_total" class="text-slate-900">Rp 0</b></span>
+                        </div>
+                        <div id="finishing_list_rows" class="divide-y divide-slate-50"></div>
                     </div>
                 </x-card>
 
@@ -829,6 +846,8 @@
         // sini secara terpisah, supaya tidak ada dua fetch berjalan
         // bersamaan yang bisa saling menimpa (race condition).
         finishingBiayaManualEdit = false;
+        document.getElementById('btn_tambah_finishing').classList.toggle('hidden', !sel.value);
+        terapkanModeBiayaFinishing();
         await hitungSubtotal();
     }
 
@@ -906,7 +925,125 @@
         } catch (e) {}
     }
 
+
+    // ===================== FINISHING GANDA (Laminasi + Kisscut, dst) =====================
+    // finishingList = finishing yang SUDAH ditambahkan untuk item yang sedang diisi. Kontrol finishing di bar biru adalah
+    // baris isian; "Tambah Finishing" memasukkannya ke daftar. Subtotal memakai TOTAL daftar. Finishing Standar dihitung ulang
+    // otomatis bila ukuran/qty berubah; Custom memakai biaya manual.
+    let finishingList = [];
+    const BOLEH_UBAH_HARGA = {{ \App\Support\AksesHarga::bolehLihat() ? 'true' : 'false' }};
+
+    function totalFinishingList() {
+        return finishingList.reduce((t, f) => t + (parseFloat(f.biaya) || 0), 0);
+    }
+
+    // Qty acuan tarif per metode finishing (luas m2 / keliling m / jumlah pakai) - rumus sama dengan server.
+    function qtyAcuanFinishing(metode, qtyPakai) {
+        if (!currentProduk) return 0;
+        const p = parseFloat(document.getElementById('input_p').value) || 0;
+        const l = parseFloat(document.getElementById('input_l').value) || 0;
+        const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
+        const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
+        const pcs = currentProduk.metode_hitung === 'ukuran' ? qU : qB;
+        if (metode === 'luas') return currentProduk.metode_hitung === 'ukuran' ? (p * l / 10000) * qU : pcs;
+        if (metode === 'keliling') return currentProduk.metode_hitung === 'ukuran' ? (2 * (p + l) / 100) * qU : pcs;
+        return parseFloat(qtyPakai) || pcs;
+    }
+
+    async function hargaStandarFinishing(idFinishing, metode, qtyPakai) {
+        const q = qtyAcuanFinishing(metode, qtyPakai);
+        if (q <= 0) return 0;
+        try {
+            const res = await fetch(`{{ url('/api/penjualan/get-harga-finishing') }}/${idFinishing}/${q}`);
+            const data = await res.json();
+            return Math.round((parseFloat(data.harga) || 0) * q);
+        } catch (e) { return 0; }
+    }
+
+    async function hitungUlangFinishingStandar() {
+        const hasil = await Promise.all(finishingList.map(f => f.status === 'Standar' ? hargaStandarFinishing(f.id_finishing, f.metode, f.qty_pakai) : Promise.resolve(f.biaya)));
+        finishingList.forEach((f, i) => { f.biaya = hasil[i]; });
+        renderFinishingList();
+    }
+
+    function renderFinishingList() {
+        const box = document.getElementById('finishing_list_box');
+        const rows = document.getElementById('finishing_list_rows');
+        box.classList.toggle('hidden', finishingList.length === 0);
+        document.getElementById('finishing_list_total').innerText = 'Rp ' + Math.round(totalFinishingList()).toLocaleString('id-ID');
+        rows.innerHTML = finishingList.map((f, i) => `
+            <div class="px-4 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <span class="w-6 text-xs font-bold text-slate-400">${i + 1}</span>
+                <div class="flex-1 min-w-[160px]">
+                    <p class="text-sm font-semibold text-slate-700">${escapeHtml(f.nama)} <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase ${f.status === 'Custom' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600'}">${f.status}</span></p>
+                    ${f.catatan ? `<p class="text-[11px] text-slate-400">${escapeHtml(f.catatan)}</p>` : ''}
+                </div>
+                <span class="text-xs text-slate-500 w-24 text-center">${f.metode === 'quantity' ? angkaId(parseFloat(f.qty_pakai) || 0, 2) + ' pakai' : (f.metode === 'luas' ? 'per m²' : 'per meter')}</span>
+                <span class="text-sm font-bold text-slate-800 w-28 text-right">Rp ${Math.round(f.biaya).toLocaleString('id-ID')}</span>
+                <button type="button" onclick="hapusFinishingDariDaftar(${i})" class="text-rose-400 hover:text-rose-600" title="Hapus finishing ini"><i class="fas fa-times"></i></button>
+            </div>`).join('');
+    }
+
+    function hapusFinishingDariDaftar(i) {
+        finishingList.splice(i, 1);
+        renderFinishingList();
+        hitungSubtotal();
+    }
+
+    // Isian finishing (bar biru) -> daftar. silent=true dipakai saat "Tambah" item ke keranjang (tanpa peringatan).
+    async function tambahFinishingKeDaftar(silent = false) {
+        const sel = document.getElementById('select_finishing');
+        if (!sel.value) { if (!silent) Swal.fire('Finishing', 'Pilih jenis finishing dulu.', 'warning'); return false; }
+        if (finishingList.length >= 5) { if (!silent) Swal.fire('Finishing', 'Maksimal 5 finishing per item.', 'warning'); return false; }
+        if (finishingList.some(f => String(f.id_finishing) === String(sel.value))) { if (!silent) Swal.fire('Finishing', 'Finishing ini sudah ada di daftar. Hapus dulu bila ingin mengubahnya.', 'info'); return false; }
+
+        const metode = sel.selectedOptions[0]?.dataset.metode;
+        const status = document.getElementById('input_status_finishing').value === 'Custom' ? 'Custom' : 'Standar';
+        const qtyPakai = metode === 'quantity' ? (parseFloat(document.getElementById('input_qty_finishing').value) || 0) : null;
+        let biaya;
+        if (status === 'Custom' && BOLEH_UBAH_HARGA) biaya = cleanRupiah(document.getElementById('input_finishing_biaya').value);
+        else biaya = await hargaStandarFinishing(sel.value, metode, qtyPakai);
+
+        finishingList.push({
+            id_finishing: parseInt(sel.value), nama: sel.options[sel.selectedIndex].text, metode, status, qty_pakai: qtyPakai, biaya,
+            catatan: document.getElementById('input_catatan_finishing').value.trim(),
+        });
+
+        // kosongkan baris isian
+        sel.value = '';
+        document.getElementById('input_catatan_finishing').value = '';
+        onFinishingChange();
+        renderFinishingList();
+        return true;
+    }
+
+    // Standar = biaya otomatis (terkunci); Custom = biaya boleh diketik (hanya role yang berhak mengubah harga).
+    function terapkanModeBiayaFinishing() {
+        const custom = document.getElementById('input_status_finishing').value === 'Custom';
+        const el = document.getElementById('input_finishing_biaya');
+        el.readOnly = !(custom && BOLEH_UBAH_HARGA);
+        el.classList.toggle('opacity-70', el.readOnly);
+    }
+
+    function onStatusFinishingChange() {
+        finishingBiayaManualEdit = document.getElementById('input_status_finishing').value === 'Custom';
+        if (!finishingBiayaManualEdit) refreshFinishingBiayaSuggestion();
+        terapkanModeBiayaFinishing();
+    }
+
+    // Indikator "Menghitung..." selama perhitungan berjalan (dipicu saat pindah field / tab).
+    let hitungBerjalan = 0;
     async function hitungSubtotal() {
+        hitungBerjalan++;
+        document.getElementById('status_hitung').classList.remove('hidden');
+        try { return await hitungSubtotalInti(); }
+        finally {
+            hitungBerjalan--;
+            if (hitungBerjalan <= 0) document.getElementById('status_hitung').classList.add('hidden');
+        }
+    }
+
+    async function hitungSubtotalInti() {
         if (!currentProduk) return null;
         const idGol = document.getElementById('id_golongan').value;
         const p = parseFloat(document.getElementById('input_p').value) || 0;
@@ -931,7 +1068,8 @@
         // nilai lama dari sebelum qty berubah (kalau dipanggil belakangan
         // tanpa di-await, hasilnya selalu telat satu langkah/race condition).
         await refreshFinishingBiayaSuggestion();
-        const biayaFinishing = cleanRupiah(document.getElementById('input_finishing_biaya').value);
+        await hitungUlangFinishingStandar();
+        const biayaFinishing = totalFinishingList();
 
         try {
             const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${qtyCari}`;
@@ -1037,6 +1175,9 @@
             return;
         }
 
+        // Finishing yang sudah dipilih di baris isian tapi belum ditekan "Tambah Finishing" ikut dimasukkan otomatis.
+        if (document.getElementById('select_finishing').value) await tambahFinishingKeDaftar(true);
+
         const res = await hitungSubtotal();
         if (!res || res.harga_satuan <= 0) return Swal.fire('Opps!', 'Detail belum lengkap.', 'error');
 
@@ -1057,9 +1198,8 @@
             return;
         }
 
-        const selFinishing = document.getElementById('select_finishing');
-        const idFinishing = selFinishing.value || null;
-        const namaFinishing = idFinishing ? selFinishing.options[selFinishing.selectedIndex].text : null;
+        const idFinishing = finishingList.length ? finishingList[0].id_finishing : null;
+        const namaFinishing = finishingList.length ? finishingList.map(f => f.nama).join(' + ') : null;
 
         const itemData = {
             id_produk: currentProduk.id_produk,
@@ -1074,9 +1214,10 @@
             biaya_cetak: cleanRupiah(document.getElementById('input_cetak').value),
             id_finishing: idFinishing,
             nama_finishing: namaFinishing,
-            biaya_finishing: cleanRupiah(document.getElementById('input_finishing_biaya').value),
+            finishing: finishingList.map(f => ({ ...f })),
+            biaya_finishing: totalFinishingList(),
             status_urgensi: document.getElementById('input_status_urgensi').value,
-            status_finishing: document.getElementById('input_status_finishing').value,
+            status_finishing: finishingList.some(f => f.status === 'Custom') ? 'Custom' : 'Standar',
             catatan_produksi: document.getElementById('input_catatan_produksi').value.trim(),
             subtotal: res.subtotal,
             id_kategori: $('#filter_kategori').val()
@@ -1236,7 +1377,8 @@
                             <p class="text-sm font-bold text-slate-800 leading-tight truncate">${escapeHtml(item.nama_produk)}</p>
                             <p class="text-xs text-slate-500 mt-0.5 truncate">${escapeHtml(item.nama_file)}</p>
                             <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                                ${item.id_finishing ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600">${escapeHtml(item.nama_finishing)} &middot; ${escapeHtml(item.status_finishing || 'Standar')}</span>` : ''}
+                                ${(item.finishing && item.finishing.length ? item.finishing : []).map(f => `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${f.status === 'Custom' ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}">${escapeHtml(f.nama)}</span>`).join('')}
+                                ${(!item.finishing || !item.finishing.length) && item.id_finishing ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600">${escapeHtml(item.nama_finishing)} &middot; ${escapeHtml(item.status_finishing || 'Standar')}</span>` : ''}
                                 ${urgensi ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${urgensiChip[urgensi]}">${urgensi}</span>` : ''}
                             </div>
                             ${biayaTambahan ? `<p class="text-xs text-slate-400 mt-1.5">${biayaTambahan}</p>` : ''}
@@ -1313,11 +1455,18 @@
             document.getElementById('input_qty_biasa').value = item.qty_input;
             document.getElementById('input_desain').value = formatRupiah(item.biaya_desain || 0);
             document.getElementById('input_cetak').value = formatRupiah(item.biaya_cetak || 0);
-            document.getElementById('select_finishing').value = item.id_finishing || '';
-            document.getElementById('input_finishing_biaya').value = formatRupiah(item.biaya_finishing || 0);
+            // Finishing item lama: pulihkan ke DAFTAR (baris isian dikosongkan). Bentuk lama (tunggal) dijadikan satu elemen.
+            finishingList = (item.finishing && item.finishing.length ? item.finishing : (item.id_finishing ? [{
+                id_finishing: item.id_finishing, nama: item.nama_finishing, metode: document.querySelector(`#select_finishing option[value="${item.id_finishing}"]`)?.dataset.metode || 'luas',
+                status: item.status_finishing || 'Standar', qty_pakai: null, biaya: item.biaya_finishing || 0, catatan: '',
+            }] : [])).map(f => ({ ...f }));
+            renderFinishingList();
+            document.getElementById('select_finishing').value = '';
+            document.getElementById('input_finishing_biaya').value = '0';
             document.getElementById('input_status_urgensi').value = item.status_urgensi || 'Normal';
-            document.getElementById('input_status_finishing').disabled = !item.id_finishing;
-            document.getElementById('input_status_finishing').value = item.status_finishing || 'Standar';
+            document.getElementById('input_status_finishing').disabled = true;
+            document.getElementById('input_status_finishing').value = 'Standar';
+            document.getElementById('btn_tambah_finishing').classList.add('hidden');
             document.getElementById('input_catatan_produksi').value = item.catatan_produksi || '';
 
             // Biaya Desain/Finishing muncul otomatis kalau item yang sedang
@@ -1326,7 +1475,7 @@
             // ditambahkan.
             document.getElementById('wrapper_biaya_desain').classList.toggle('hidden', !(item.biaya_desain > 0));
             document.getElementById('btn_tambah_desain').classList.toggle('hidden', item.biaya_desain > 0);
-            document.getElementById('wrapper_biaya_finishing').classList.toggle('hidden', !item.id_finishing);
+            document.getElementById('wrapper_biaya_finishing').classList.add('hidden');
             // Item lama tidak pernah menyimpan "jumlah pcs finishing" secara
             // terpisah (biaya_finishing tersimpan sebagai total jadi, bukan
             // rate+qty) - field ini cuma alat bantu hitung ulang, diisi
@@ -1334,7 +1483,7 @@
             // supaya TIDAK diam-diam menghitung ulang & menimpa biaya_finishing
             // historis yang sudah final di atas.
             const metodeFinishingItem = document.querySelector(`#select_finishing option[value="${item.id_finishing}"]`)?.dataset.metode;
-            document.getElementById('wrapper_qty_finishing').classList.toggle('hidden', !item.id_finishing || metodeFinishingItem !== 'quantity');
+            document.getElementById('wrapper_qty_finishing').classList.add('hidden');
             document.getElementById('input_qty_finishing').value = item.qty_input || 1;
             qtyFinishingManualEdit = true;
             currentThumbnail = item.thumbnail || null;
@@ -1356,6 +1505,10 @@
     }
 
     function resetInputProduk() {
+        finishingList = [];
+        renderFinishingList();
+        document.getElementById('input_catatan_finishing').value = '';
+        document.getElementById('btn_tambah_finishing').classList.add('hidden');
         document.getElementById('nama_file').value = "";
         document.getElementById('input_p').value = "";
         document.getElementById('input_l').value = "";

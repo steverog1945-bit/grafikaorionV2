@@ -27,7 +27,10 @@
             @endif
             <tr><td>Qty Order</td><td class="right">{{ angka($detail->qty, 4) }}</td></tr>
             <tr><td>Qty Cetak</td><td class="right">{{ $detail->qty_cetak ?? '-' }}</td></tr>
-            @if($detail->nama_finishing)
+            @foreach($finishingItems as $fin)
+            <tr><td colspan="2" style="font-weight:bold; padding-top:6px;">Finishing: {{ $fin->nama_finishing }} ({{ $fin->status_finishing }}){{ $fin->metode_hitung === 'quantity' && $fin->qty_pakai ? ' x ' . angka((float) $fin->qty_pakai, 2) : '' }}{{ $fin->catatan ? ' - ' . $fin->catatan : '' }}</td></tr>
+            @endforeach
+            @if($finishingItems->isEmpty() && $detail->nama_finishing)
             <tr><td colspan="2" style="font-weight:bold; padding-top:6px;">Finishing: {{ $detail->nama_finishing }}</td></tr>
             @endif
             @if($detail->status_urgent)

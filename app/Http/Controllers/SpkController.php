@@ -259,7 +259,9 @@ class SpkController extends Controller
             abort(404, 'Item SPK tidak ditemukan.');
         }
 
-        return view('spk.print', compact('detail', 'format'));
+        $finishingItems = \App\Services\FinishingItemService::untukDetail([$id])[$id] ?? collect();
+
+        return view('spk.print', compact('detail', 'format', 'finishingItems'));
     }
 
     /**
