@@ -296,6 +296,12 @@ class KasirController extends Controller
                 throw new \Exception("Diskon tidak boleh lebih besar dari total nota.");
             }
 
+            // Pengaman salah ketik: diskon yang menghabiskan SELURUH total nota (tagihan jadi Rp 0) hampir selalu salah
+            // input dan membuat total nota tampil Rp 0 di Monitoring Kasir. Nota gratis dibuat lewat potongan item / nominal wajar.
+            if ($totalNotaBaru > 0 && $diskon >= $totalNotaBaru) {
+                throw new \Exception("Diskon sama dengan total nota - tagihan akan menjadi Rp 0. Periksa kembali nominal diskon.");
+            }
+
             $grandTotalFinal = $totalNotaBaru - $diskon;
 
             // 2. Catat Pembayaran (Hanya jika uang > 0)
