@@ -62,6 +62,11 @@
                     <x-form.input type="text" name="no_faktur" required placeholder="Contoh: INV/9910" />
                 </x-form.group>
 
+                <div id="info-online-faktur" class="hidden md:col-span-4 rounded-2xl bg-orange-50 border border-orange-100 px-5 py-3 text-sm font-semibold text-orange-700"></div>
+                <x-form.group label="Ongkir (Rp)"><x-form.input type="text" inputmode="numeric" name="ongkir" id="ongkir" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
+                <x-form.group label="Biaya Layanan (Rp)"><x-form.input type="text" inputmode="numeric" name="biaya_layanan" id="biaya_layanan" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
+                <x-form.group label="Voucher / Diskon Platform (Rp)"><x-form.input type="text" inputmode="numeric" name="voucher" id="voucher" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
+
                 <x-form.group label="Opsi Pajak">
                     <div class="bg-slate-50 rounded-xl p-3 flex items-center justify-between shadow-inner h-[46px]">
                         <span class="text-xs font-bold text-slate-500 uppercase">PPN 11%</span>
@@ -188,6 +193,11 @@
             const data = await response.json();
 
             document.getElementById('display_supplier').value = data.supplier || 'UMUM';
+            const boxOnline = document.getElementById('info-online-faktur');
+            if (data.online) {
+                boxOnline.innerHTML = `<i class="fas fa-shopping-bag mr-2"></i>Pembelian online: <b>${data.online.platform || '-'}</b>${data.online.toko ? ' &middot; toko ' + data.online.toko : ''}${data.online.no_pesanan ? ' &middot; pesanan ' + data.online.no_pesanan : ''}${data.online.resi ? ' &middot; resi ' + data.online.resi : ''}`;
+                boxOnline.classList.remove('hidden');
+            } else { boxOnline.classList.add('hidden'); }
 
             if (data.detail && data.detail.length > 0) {
                 tbody.innerHTML = '';
@@ -277,6 +287,8 @@
 
         const isTaxed = document.getElementById('tax_toggle').checked;
         if (isTaxed) total *= 1.11;
+        // Biaya belanja online: ongkir + biaya layanan - voucher (sama dengan hitungan server).
+        total = Math.max(0, total + cleanRupiah(document.getElementById('ongkir').value) + cleanRupiah(document.getElementById('biaya_layanan').value) - cleanRupiah(document.getElementById('voucher').value));
 
         const formatted = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(total);
         document.getElementById('total-header').innerText = formatted;

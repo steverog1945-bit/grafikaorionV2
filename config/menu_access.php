@@ -64,6 +64,7 @@ return [
         'konsumen' => [7],
         'golongan' => [8, 12, 18],
         'supplier' => [9],
+        'platform-belanja' => [9],
         'satuan' => [10],
         'bank' => [11],
         'produk' => [13],

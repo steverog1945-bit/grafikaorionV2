@@ -48,6 +48,24 @@
                             </select>
                         </x-form.group>
                     </div>
+
+                    {{-- SUMBER PEMBELIAN: langsung ke supplier, atau lewat platform toko online (daftar dari Master Platform Belanja) --}}
+                    <div class="mt-6 pt-6 border-t border-slate-100">
+                        <x-form.group label="Sumber Pembelian">
+                            <select name="id_platform" id="id_platform" onchange="toggleInfoOnline()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 shadow-inner">
+                                <option value="">Langsung / Offline (supplier)</option>
+                                @foreach($platforms as $pl)
+                                    <option value="{{ $pl->id }}" {{ (old('id_platform') ?? ($kedatangan->id_platform ?? '')) == $pl->id ? 'selected' : '' }}>{{ $pl->nama }}{{ $pl->aktif ? '' : ' (nonaktif)' }}</option>
+                                @endforeach
+                            </select>
+                        </x-form.group>
+                        <div id="info-online" class="hidden mt-4 grid grid-cols-1 gap-4">
+                            <x-form.group label="Nama Toko / Seller"><x-form.input type="text" name="nama_toko_online" value="{{ old('nama_toko_online', $kedatangan->nama_toko_online ?? '') }}" placeholder="mis. Toko Kain Jaya" /></x-form.group>
+                            <x-form.group label="No. Pesanan"><x-form.input type="text" name="no_pesanan_online" value="{{ old('no_pesanan_online', $kedatangan->no_pesanan_online ?? '') }}" placeholder="mis. 2510XXXXXXXX" /></x-form.group>
+                            <x-form.group label="No. Resi Pengiriman"><x-form.input type="text" name="no_resi" value="{{ old('no_resi', $kedatangan->no_resi ?? '') }}" /></x-form.group>
+                            <p class="text-[11px] text-slate-400">Platform lain (Lazada, TikTok Shop, dst) bisa ditambah di menu Platform Belanja Online.</p>
+                        </div>
+                    </div>
                 </x-card>
 
                 <button type="submit" id="btn-submit" disabled
@@ -437,5 +455,11 @@ $('#next-page').on('click', function() {
     currentPage++;
     loadBahan();
 });
+    function toggleInfoOnline() {
+        const ada = document.getElementById('id_platform').value !== '';
+        document.getElementById('info-online').classList.toggle('hidden', !ada);
+    }
+    document.addEventListener('DOMContentLoaded', toggleInfoOnline);
+    toggleInfoOnline();
 </script>
 @endpush

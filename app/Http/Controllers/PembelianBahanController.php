@@ -77,6 +77,12 @@ public function kedatanganDetail(Request $request)
 
     return response()->json([
         'supplier' => $kedatangan->supplier->nama_supplier ?? 'Supplier Umum',
+        'online' => $kedatangan->id_platform ? [
+            'platform' => optional($kedatangan->platform)->nama,
+            'toko' => $kedatangan->nama_toko_online,
+            'no_pesanan' => $kedatangan->no_pesanan_online,
+            'resi' => $kedatangan->no_resi,
+        ] : null,
         'detail' => $kedatangan->detail->map(function($item) {
             return [
                 'id_bahan' => $item->id_bahan,
@@ -101,6 +107,9 @@ public function kedatanganDetail(Request $request)
             'harga'=>'required|array|min:1',
             'qty.*'=>'required|numeric|min:0.01',
             'harga.*'=>'required|numeric|min:0',
+            'ongkir'=>'nullable|numeric|min:0',
+            'biaya_layanan'=>'nullable|numeric|min:0',
+            'voucher'=>'nullable|numeric|min:0',
         ]);
 
         DB::beginTransaction();
@@ -116,6 +125,9 @@ public function kedatanganDetail(Request $request)
                 'tipe_pembelian'=>$request->tipe_pembelian,
                 'include_pajak'=>$includePajak,
                 'jatuh_tempo_hari'=>$request->tempo_hari,
+                'ongkir'=>(float) ($request->ongkir ?? 0),
+                'biaya_layanan'=>(float) ($request->biaya_layanan ?? 0),
+                'voucher'=>(float) ($request->voucher ?? 0),
                 'grand_total'=>0
             ]);
 
@@ -183,6 +195,10 @@ public function kedatanganDetail(Request $request)
             if ($includePajak) {
                 $grandTotal *= 1.11;
             }
+
+            // Biaya belanja online: ongkir & biaya layanan menambah tagihan, voucher/diskon platform menguranginya
+            // (setelah PPN - dihitung sama persis dengan form). Total tidak boleh negatif.
+            $grandTotal = max(0, $grandTotal + (float) ($request->ongkir ?? 0) + (float) ($request->biaya_layanan ?? 0) - (float) ($request->voucher ?? 0));
 
             if ($request->tipe_pembelian == 'Cash') {
                 $pembelian->status_pembayaran = 'Lunas';

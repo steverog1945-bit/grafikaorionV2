@@ -23,7 +23,10 @@ class PembelianBahan extends Model
         'jatuh_tempo_tgl',
         'status_pajak',
         'include_pajak',
-        'grand_total'
+        'grand_total',
+        'ongkir',
+        'biaya_layanan',
+        'voucher',
     ];
 
     public function detail()
