@@ -35,6 +35,12 @@ class CheckMenuAccess
             }
         }
 
+        // Halaman yang memuat harga/nilai uang ditutup untuk role tanpa hak lihat harga
+        // (Operator Desain/Produksi), APA PUN menu yang diberikan padanya.
+        if (!\App\Support\AksesHarga::bolehLihat($user) && \App\Support\AksesHarga::pathKhususHarga($path)) {
+            abort(403, 'Role Anda tidak diizinkan melihat atau mengubah harga. Halaman ini khusus role yang berhak.');
+        }
+
         $rules = config('menu_access.rules', []);
         $matchedPrefix = null;
 

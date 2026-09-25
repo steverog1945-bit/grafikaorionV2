@@ -17,7 +17,7 @@
         @foreach(['Normal' => 'text-amber-500', 'Abnormal' => 'text-rose-600'] as $jenis => $warna)
         <x-card>
             <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Waste {{ $jenis }} bulan ini</div>
-            <div class="text-lg font-extrabold {{ $warna }}">Rp {{ number_format($ringkasan[$jenis]->biaya ?? 0, 0, ',', '.') }}</div>
+            @bolehHarga<div class="text-lg font-extrabold {{ $warna }}">Rp {{ number_format($ringkasan[$jenis]->biaya ?? 0, 0, ',', '.') }}</div>@endbolehHarga
             <div class="text-xs text-slate-400">{{ $ringkasan[$jenis]->jumlah ?? 0 }} catatan diterapkan</div>
         </x-card>
         @endforeach
@@ -50,7 +50,7 @@
                 <th class="px-6 py-4 text-right">Qty</th>
                 <th class="px-6 py-4 text-center">Jenis</th>
                 <th class="px-6 py-4 text-left">Alasan</th>
-                <th class="px-6 py-4 text-right">Biaya</th>
+                @bolehHarga<th class="px-6 py-4 text-right">Biaya</th>@endbolehHarga
                 <th class="px-6 py-4 text-center">Status</th>
             </tr>
         </thead>
@@ -62,7 +62,7 @@
                 <td class="px-6 py-4 text-right text-sm">{{ angka($w->qty, 4) }} {{ $w->satuan_stok }}</td>
                 <td class="px-6 py-4 text-center"><x-badge :status="$w->jenis" :variant="$w->jenis === 'Normal' ? 'warning' : 'danger'" /></td>
                 <td class="px-6 py-4 text-xs text-slate-500">{{ $w->alasan }}</td>
-                <td class="px-6 py-4 text-right text-sm">{{ $w->status === 'Diterapkan' ? 'Rp ' . number_format($w->biaya, 0, ',', '.') : '-' }}</td>
+                @bolehHarga<td class="px-6 py-4 text-right text-sm">{{ $w->status === 'Diterapkan' ? 'Rp ' . number_format($w->biaya, 0, ',', '.') : '-' }}</td>@endbolehHarga
                 <td class="px-6 py-4 text-center">
                     <x-badge :status="$w->status" :variant="['Diterapkan' => 'success', 'Menunggu' => 'warning', 'Ditolak' => 'danger'][$w->status] ?? 'info'" />
                 </td>

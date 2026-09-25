@@ -22,7 +22,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useTailwind();
-        
+
+        // @bolehHarga ... @else ... @endbolehHarga : tampilkan hanya untuk role yang berhak melihat harga/nilai uang.
+        \Illuminate\Support\Facades\Blade::if('bolehHarga', fn () => \App\Support\AksesHarga::bolehLihat());
+
         // Berbagi status kas ke semua View
     view()->composer('*', function ($view) {
         if (auth()->check()) {

@@ -41,6 +41,13 @@ class AksesController extends Controller
             // 3. Masukkan data baru secara massal
             DB::table('role_permissions')->insert($dataToInsert);
         }
+
+        // 4. Hak "boleh melihat & mengubah harga" per role (Administrator selalu boleh).
+        $bolehLihat = collect($request->input('lihat_harga', []))->map(fn ($id) => (int) $id)->all();
+        foreach (Role::all() as $role) {
+            $role->boleh_lihat_harga = $role->nama_role === 'Administrator' || in_array((int) $role->id_role, $bolehLihat, true);
+            $role->save();
+        }
     });
 
     return back()->with('success', 'Hak akses seluruh role berhasil disinkronkan!');
