@@ -16,21 +16,8 @@
         </x-slot:actions>
     </x-page-header>
 
-    {{-- DIVISI (dinamis dari master mesin yang benar-benar dipakai) --}}
-    @if($divisis->isNotEmpty())
-    <div class="flex flex-wrap gap-2 mb-6">
-        <a href="{{ route('spk.index', request()->except(['divisi', 'page'])) }}"
-           class="px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all {{ !request('divisi') ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400' }}">
-            Semua Divisi
-        </a>
-        @foreach($divisis as $d)
-        <a href="{{ route('spk.index', array_merge(request()->except('page'), ['divisi' => $d->id_mesin])) }}"
-           class="px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all {{ (string) request('divisi') === (string) $d->id_mesin ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400' }}">
-            {{ $d->nama_mesin }}
-        </a>
-        @endforeach
-    </div>
-    @endif
+    {{-- DIVISI: otomatis dari master mesin --}}
+    @include('partials.divisi-tabs', ['routeName' => 'spk.index'])
 
     {{-- FILTER & SEARCH --}}
     <x-card class="mb-6">

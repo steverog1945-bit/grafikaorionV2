@@ -16,9 +16,13 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- DIVISI: otomatis dari master mesin --}}
+    @include('partials.divisi-tabs', ['routeName' => 'produksi.index'])
+
     {{-- FILTER --}}
     <x-card class="mb-6">
         <form method="GET" action="{{ route('produksi.index') }}" class="flex flex-wrap items-end gap-4">
+            <input type="hidden" name="divisi" value="{{ request('divisi') }}">
             <div class="flex-1 min-w-[220px]">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
                 <x-form.input type="text" name="konsumen" value="{{ request('konsumen') }}" placeholder="Nama konsumen..." />
