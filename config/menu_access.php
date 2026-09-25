@@ -106,7 +106,9 @@ return [
         'laporan/biaya-tinta' => [47],
         'laporan/evaluasi-master' => [47],
         // Dashboard Eksekutif: khusus Administrator (owner) - berisi angka laba & kas.
-        'eksekutif' => [],
+        'eksekutif' => [60],
+        // Audit Bulanan Owner (baca-saja) - role Owner (menu 60) & Administrator.
+        'audit-owner' => [60],
         'harga-promo' => [28],
 
         'kas-kecil' => [39],
@@ -125,7 +127,7 @@ return [
         // CheckMenuAccess tanpa perlu masuk daftar ini sama sekali, jadi
         // baris ini murni jaring pengaman kalau suatu saat perlu dibuka
         // untuk role lain juga).
-        'log-aktivitas' => [],
+        'log-aktivitas' => [60],
         'approval' => [],
         'accounting-period' => [],
         'backup' => [],
@@ -161,6 +163,9 @@ return [
         'quotation',
         'konsumen/*/timeline',
     ],
+
+    // Role yang HANYA boleh membaca: semua request selain GET/HEAD ditolak (403) di CheckMenuAccess.
+    'roles_baca_saja' => ['Owner'],
 
     'always_allow' => [
         'sinyal',

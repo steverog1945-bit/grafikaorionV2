@@ -86,6 +86,7 @@
                 <th class="px-4 py-5 text-right">Qty</th>
                 <th class="px-4 py-5 text-right">Stok Sebelum</th>
                 <th class="px-4 py-5 text-right">Stok Sesudah</th>
+                <th class="px-4 py-5 text-left">Satuan</th>
                 <th class="px-4 py-5 text-left">Referensi</th>
                 <th class="px-6 py-5 text-left">Keterangan</th>
             </tr>
@@ -120,6 +121,7 @@
                 <td class="px-4 py-5 text-right">
                     <span class="text-[12px] text-slate-700 font-bold">{{ angka($k->stok_sesudah, 2) }}</span>
                 </td>
+                <td class="px-4 py-5"><span class="inline-flex px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase">{{ $bahan->nama_satuan_stok ?? $bahan->satuan_stok }}</span></td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] font-semibold text-slate-600">{{ $k->referensi ?? '-' }}</span>
                 </td>

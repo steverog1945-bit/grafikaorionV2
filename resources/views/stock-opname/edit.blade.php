@@ -26,7 +26,7 @@
                 <tr>
                     <th class="px-8 py-5 text-left">Bahan</th>
                     <th class="px-6 py-5 text-right">Stok Sistem</th>
-                    <th class="px-6 py-5 text-right w-40">Stok Fisik</th>
+                    <th class="px-6 py-5 text-right w-56">Stok Fisik (+ satuan)</th>
                     <th class="px-6 py-5 text-right">Selisih</th>
                     <th class="px-8 py-5 text-left w-72">Alasan (wajib kalau selisih)</th>
                 </tr>
@@ -39,12 +39,15 @@
                         <div class="text-[11px] text-slate-400">{{ $d->bahan->satuan_stok ?? '' }}</div>
                     </td>
                     <td class="px-6 py-5 text-right">
-                        <span class="text-sm font-semibold text-slate-600" data-sistem="{{ angka($d->stok_sistem, 4) }}">{{ angka($d->stok_sistem, 2) }}</span>
+                        <span class="text-sm font-semibold text-slate-600" data-sistem="{{ angka($d->stok_sistem, 4) }}">{{ angka($d->stok_sistem, 2) }}</span> <span class="text-[10px] font-black text-indigo-600 uppercase">{{ $d->bahan->satuan_stok ?? '' }}</span>
                     </td>
                     <td class="px-6 py-5">
-                        <input type="number" step="0.01" name="detail[{{ $d->id }}][stok_fisik]" data-fisik
-                            value="{{ old('detail.' . $d->id . '.stok_fisik', $d->stok_fisik) }}"
-                            class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}>
+                        <div class="flex items-center gap-2">
+                            <input type="number" step="0.01" name="detail[{{ $d->id }}][stok_fisik]" data-fisik
+                                value="{{ old('detail.' . $d->id . '.stok_fisik', $d->stok_fisik) }}"
+                                class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}>
+                            <span class="shrink-0 px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase">{{ $d->bahan->satuan_stok ?? '-' }}</span>
+                        </div>
                     </td>
                     <td class="px-6 py-5 text-right">
                         <span class="text-sm font-bold" data-selisih>-</span>

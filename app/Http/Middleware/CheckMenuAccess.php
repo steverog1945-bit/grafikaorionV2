@@ -29,6 +29,11 @@ class CheckMenuAccess
 
         $path = trim($request->path(), '/');
 
+        // Role baca-saja (Owner): tidak boleh mengubah data apa pun, walau tombolnya terlihat.
+        if (!$request->isMethodSafe() && in_array(optional($user->role)->nama_role, config('menu_access.roles_baca_saja', []), true)) {
+            abort(403, 'Role Anda bersifat baca-saja (audit). Perubahan data dilakukan oleh Administrator/staf terkait.');
+        }
+
         foreach (config('menu_access.always_allow', []) as $prefix) {
             if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
                 return $next($request);
