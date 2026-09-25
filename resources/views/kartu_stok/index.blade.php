@@ -45,6 +45,7 @@
                 <th class="px-6 py-5 text-left">Kode</th>
                 <th class="px-4 py-5 text-left">Nama Bahan</th>
                 <th class="px-4 py-5 text-right">Stok Saat Ini</th>
+                <th class="px-4 py-5 text-left">Satuan</th>
                 <th class="px-8 py-5 text-center">Aksi</th>
             </tr>
         </thead>
@@ -60,6 +61,9 @@
                 </td>
                 <td class="px-4 py-5 text-right">
                     <span class="text-[13px] font-bold text-slate-800">{{ angka($b->stok, 2) }}</span>
+                </td>
+                <td class="px-4 py-5">
+                    <span class="inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] font-black uppercase tracking-wide">{{ $b->nama_satuan_stok ?? $b->satuan_stok ?? '-' }}</span>
                 </td>
                 <td class="px-8 py-5 text-center">
                     <div class="flex items-center justify-center gap-2">
@@ -90,12 +94,12 @@
                 <x-form.select name="id_bahan" id="adj_id_bahan" required>
                     <option value="">-- Pilih Bahan --</option>
                     @foreach($bahan as $b)
-                        <option value="{{ $b->id_bahan }}" data-stok="{{ angka($b->stok, 4) }}" data-nama="{{ $b->nama_bahan }}">{{ $b->nama_bahan }} ({{ $b->kode_bahan }})</option>
+                        <option value="{{ $b->id_bahan }}" data-stok="{{ angka($b->stok, 4) }}" data-satuan="{{ $b->nama_satuan_stok ?? $b->satuan_stok }}" data-nama="{{ $b->nama_bahan }}">{{ $b->nama_bahan }} ({{ $b->kode_bahan }})</option>
                     @endforeach
                 </x-form.select>
             </x-form.group>
 
-            <p class="text-[11px] text-slate-400 -mt-3 ml-1">Stok saat ini: <span id="adj_stok_display" class="font-bold text-slate-600">-</span></p>
+            <p class="text-[11px] text-slate-400 -mt-3 ml-1">Stok saat ini: <span id="adj_stok_display" class="font-bold text-slate-600">-</span> <span id="adj_satuan_display" class="inline-flex px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase"></span></p>
 
             <x-form.group label="Jenis Penyesuaian" name="tipe" required>
                 <x-form.select name="tipe" id="adj_tipe" onchange="toggleAdjTipe()" required>
@@ -105,14 +109,14 @@
             </x-form.group>
 
             <div id="adj_wrapper_qty">
-                <x-form.group label="Qty Keluar" name="qty">
-                    <x-form.input type="number" name="qty" id="adj_qty" step="0.01" min="0.01" />
+                <x-form.group label="Qty Keluar (dalam satuan stok)" name="qty">
+                    <div class="flex items-center gap-2"><x-form.input type="number" name="qty" id="adj_qty" step="0.01" min="0.01" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black uppercase">-</span></div>
                 </x-form.group>
             </div>
 
             <div id="adj_wrapper_stok_baru" class="hidden">
                 <x-form.group label="Stok Sebenarnya (Hasil Hitung Fisik)" name="stok_baru">
-                    <x-form.input type="number" name="stok_baru" id="adj_stok_baru" step="0.01" min="0" />
+                    <div class="flex items-center gap-2"><x-form.input type="number" name="stok_baru" id="adj_stok_baru" step="0.01" min="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black uppercase">-</span></div>
                 </x-form.group>
             </div>
 
@@ -142,11 +146,35 @@
         const opt = this.options[this.selectedIndex];
         const stok = opt.getAttribute('data-stok');
         document.getElementById('adj_stok_display').textContent = stok ? parseFloat(stok).toLocaleString('id-ID', {minimumFractionDigits: 2}) : '-';
+        tampilSatuanAdj(opt.getAttribute('data-satuan') || '');
+    });
+
+    function tampilSatuanAdj(satuan) {
+        document.getElementById('adj_satuan_display').textContent = satuan;
+        document.querySelectorAll('.adj-unit').forEach(el => el.textContent = satuan || '-');
+    }
+
+    // Konfirmasi sebelum diajukan: tampilkan angka + SATUAN-nya supaya tidak salah input (mis. 5 dus vs 5 pcs).
+    document.getElementById('formPenyesuaian').addEventListener('submit', function (e) {
+        if (this.__ok) return;
+        e.preventDefault();
+        const sel = document.getElementById('adj_id_bahan');
+        const opt = sel.options[sel.selectedIndex];
+        const satuan = opt.getAttribute('data-satuan') || '';
+        const tipe = document.getElementById('adj_tipe').value;
+        const nilai = parseFloat(tipe === 'OUT' ? document.getElementById('adj_qty').value : document.getElementById('adj_stok_baru').value);
+        if (!(nilai >= 0)) { this.reportValidity(); return; }
+        const teks = tipe === 'OUT'
+            ? `Keluarkan <b>${nilai.toLocaleString('id-ID')} ${satuan}</b> dari <b>${opt.dataset.nama}</b>?`
+            : `Set stok <b>${opt.dataset.nama}</b> menjadi <b>${nilai.toLocaleString('id-ID')} ${satuan}</b>?`;
+        Swal.fire({ title: 'Cek satuan sebelum lanjut', html: teks + `<br><small class="text-slate-400">Satuan stok bahan ini: ${satuan}. Pastikan angka BUKAN dalam satuan lain.</small>`, icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, benar', cancelButtonText: 'Periksa lagi' })
+            .then(r => { if (r.isConfirmed) { this.__ok = true; this.requestSubmit(); } });
     });
 
     function openPenyesuaian(idBahan, namaBahan, stok) {
         document.getElementById('adj_id_bahan').value = idBahan;
         document.getElementById('adj_stok_display').textContent = parseFloat(stok).toLocaleString('id-ID', {minimumFractionDigits: 2});
+        tampilSatuanAdj(document.getElementById('adj_id_bahan').selectedOptions[0]?.getAttribute('data-satuan') || '');
         document.getElementById('adj_tipe').value = 'OUT';
         toggleAdjTipe();
         openModal('penyesuaian-stok');

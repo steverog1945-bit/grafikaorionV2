@@ -34,6 +34,10 @@ class DashboardController extends Controller
         $user = auth()->user();
         $namaRole = optional($user->role)->nama_role;
 
+        if ($namaRole === 'Owner') {
+            return redirect()->route('audit-owner.index');
+        }
+
         return match ($namaRole) {
             'Operator Desain' => $this->dashboardDesain(),
             'Operator Produksi' => $this->dashboardProduksi($user),

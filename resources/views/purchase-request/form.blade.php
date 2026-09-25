@@ -57,11 +57,11 @@
                         <select name="items[{{ $i }}][id_bahan]" class="w-full rounded-xl border-slate-200 text-sm p-2" required {{ $editable ? '' : 'disabled' }}>
                             <option value="">-- Pilih Bahan --</option>
                             @foreach($bahanList as $b)
-                                <option value="{{ $b->id_bahan }}" {{ ($r['id_bahan'] ?? '') == $b->id_bahan ? 'selected' : '' }}>{{ $b->nama_bahan }} (stok {{ angka($b->stok, 2) }} {{ $b->satuan_stok }})</option>
+                                <option value="{{ $b->id_bahan }}" data-satuan="{{ $b->satuan_stok }}" {{ ($r['id_bahan'] ?? '') == $b->id_bahan ? 'selected' : '' }}>{{ $b->nama_bahan }} (stok {{ angka($b->stok, 2) }} {{ $b->satuan_stok }})</option>
                             @endforeach
                         </select>
                     </td>
-                    <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'disabled' }}></td>
+                    <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'disabled' }}><span class="pr-unit block mt-1 text-right text-[10px] font-black text-indigo-600 uppercase"></span></td>
                     <td class="px-4 py-3"><input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" {{ $editable ? '' : 'disabled' }}></td>
                     @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>@endif
                 </tr>
@@ -96,11 +96,11 @@
                 <select name="items[__I__][id_bahan]" class="w-full rounded-xl border-slate-200 text-sm p-2" required>
                     <option value="">-- Pilih Bahan --</option>
                     @foreach($bahanList as $b)
-                        <option value="{{ $b->id_bahan }}">{{ $b->nama_bahan }} (stok {{ angka($b->stok, 2) }} {{ $b->satuan_stok }})</option>
+                        <option value="{{ $b->id_bahan }}" data-satuan="{{ $b->satuan_stok }}">{{ $b->nama_bahan }} (stok {{ angka($b->stok, 2) }} {{ $b->satuan_stok }})</option>
                     @endforeach
                 </select>
             </td>
-            <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required></td>
+            <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required><span class="pr-unit block mt-1 text-right text-[10px] font-black text-indigo-600 uppercase"></span></td>
             <td class="px-4 py-3"><input type="text" maxlength="255" name="items[__I__][catatan]" class="w-full rounded-xl border-slate-200 text-xs p-2"></td>
             <td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>
         </tr>
@@ -109,6 +109,13 @@
 
 @push('scripts')
 <script>
+    // Satuan di bawah kolom qty mengikuti bahan yang dipilih pada baris itu.
+    function segarkanSatuanPR(sel) {
+        const u = sel.closest('tr').querySelector('.pr-unit');
+        if (u) u.textContent = sel.selectedOptions[0]?.dataset.satuan || '';
+    }
+    document.addEventListener('change', e => { if (e.target.matches('select[name$="[id_bahan]"]')) segarkanSatuanPR(e.target); });
+    document.querySelectorAll('select[name$="[id_bahan]"]').forEach(segarkanSatuanPR);
     let nextIndex = {{ count($rows) + 100 }};
     function tambahBaris() {
         const html = document.getElementById('row-template').innerHTML.replaceAll('__I__', nextIndex++);

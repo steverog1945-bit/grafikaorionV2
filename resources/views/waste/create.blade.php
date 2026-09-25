@@ -19,14 +19,14 @@
                 <x-form.select name="id_bahan" id="id_bahan" required>
                     <option value="">-- Pilih Bahan --</option>
                     @foreach($bahanList as $b)
-                        <option value="{{ $b->id_bahan }}" {{ old('id_bahan') == $b->id_bahan ? 'selected' : '' }}>{{ $b->nama_bahan }} (stok {{ angka($b->stok, 2) }} {{ $b->satuan_stok }})</option>
+                        <option value="{{ $b->id_bahan }}" data-satuan="{{ $b->satuan_stok }}" {{ old('id_bahan') == $b->id_bahan ? 'selected' : '' }}>{{ $b->nama_bahan }} (stok {{ angka($b->stok, 2) }} {{ $b->satuan_stok }})</option>
                     @endforeach
                 </x-form.select>
             </x-form.group>
 
             <div class="grid grid-cols-2 gap-5">
                 <x-form.group label="Qty Waste (satuan stok)">
-                    <x-form.input type="number" step="0.0001" min="0.0001" name="qty" value="{{ old('qty') }}" required />
+                    <div class="flex items-center gap-2"><x-form.input type="number" step="0.0001" min="0.0001" name="qty" value="{{ old('qty') }}" required /><span id="waste-unit" class="shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black uppercase">-</span></div>
                 </x-form.group>
                 <x-form.group label="Jenis">
                     <x-form.select name="jenis" required>
@@ -55,4 +55,11 @@
         </form>
     </x-card>
 </div>
+@push('scripts')
+<script>
+    const wSel = document.getElementById('id_bahan');
+    function segarkanSatuanWaste() { document.getElementById('waste-unit').textContent = wSel.selectedOptions[0]?.dataset.satuan || '-'; }
+    wSel.addEventListener('change', segarkanSatuanWaste); segarkanSatuanWaste();
+</script>
+@endpush
 @endsection

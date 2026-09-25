@@ -490,6 +490,8 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/qc/create', [\App\Http\Controllers\QcController::class, 'create'])->name('qc.create');
     Route::post('/qc', [\App\Http\Controllers\QcController::class, 'store'])->name('qc.store');
     // LEVEL 4: Dashboard Eksekutif (khusus Administrator), Profitabilitas, Pemakaian Bahan.
+    Route::get('/audit-owner', [\App\Http\Controllers\AuditOwnerController::class, 'index'])->name('audit-owner.index');
+    Route::get('/audit-owner/csv', [\App\Http\Controllers\AuditOwnerController::class, 'csv'])->name('audit-owner.csv');
     Route::get('/eksekutif', [\App\Http\Controllers\AnalisisController::class, 'dashboard'])->name('eksekutif.dashboard');
     Route::get('/laporan/profitabilitas', [\App\Http\Controllers\AnalisisController::class, 'profitabilitas'])->name('laporan.profitabilitas');
     Route::get('/laporan/pemakaian-bahan', [\App\Http\Controllers\AnalisisController::class, 'pemakaianBahan'])->name('laporan.pemakaian-bahan');
