@@ -1248,15 +1248,23 @@
     </script>
     <script>
     // Refresh otomatis ringan: cek "sidik jari" perubahan data tiap 30 detik, HANYA saat tab terlihat
-    // (tab latar tidak membebani server). Bila berubah: halaman idle dimuat ulang sendiri; bila user
+    // (tab latar tidak membebani server). Bila berubah: halaman daftar-pantau (daftar putih) yang idle dimuat ulang sendiri; bila user
     // sedang mengetik / modal terbuka / halaman form, cukup munculkan tombol "Muat ulang".
     (function () {
         let basis = null, sibuk = false, kotor = false, jeda = 30000, timer = null;
-        const halamanForm = /\/(create|edit|input|bayar|preview-closing|kelola)(\/|$)/.test(location.pathname);
+        // DAFTAR PUTIH: hanya halaman pantau/daftar (tanpa input) yang boleh dimuat ulang otomatis.
+        // Semua halaman lain (input nota, jersey, kasir bayar, master, dst) TIDAK PERNAH di-reload
+        // otomatis - hanya menampilkan tombol - agar keranjang/isian tidak hilang.
+        const bolehOtomatis = /^\/(dashboard|kasir\/monitoring|spk|produksi|approval)\/?$/.test(location.pathname.replace(/^\/percetakan-app\/public/, ''));
         document.addEventListener('input', () => { kotor = true; }, true);
+        document.addEventListener('change', () => { kotor = true; }, true);
         function aman() {
-            if (kotor || halamanForm) return false;
-            if (document.querySelector('.swal2-popup:not(.swal2-toast), [role=dialog]:not(.hidden), .modal-open, dialog[open]')) return false;
+            if (!bolehOtomatis || kotor) return false;
+            // Lapis kedua: ada field isian terlihat di form non-GET (mis. modal terbuka) = jangan reload.
+            const fieldTerlihat = [...document.querySelectorAll('form:not([method=get]):not([method=GET]) :is(input:not([type=hidden]):not([type=checkbox]),textarea,select)')]
+                .some(el => el.offsetParent !== null);
+            if (fieldTerlihat) return false;
+            if (document.querySelector('.swal2-popup:not(.swal2-toast), dialog[open]')) return false;
             const a = document.activeElement;
             return !(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
         }
