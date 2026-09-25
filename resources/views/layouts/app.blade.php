@@ -1338,6 +1338,84 @@
     @endif
     </script>
     <script>
+    // Alur input cepat: (1) saat halaman/modal form dibuka, kursor langsung ke isian pertama;
+    // (2) setelah memilih satu opsi dropdown, kursor pindah ke isian berikutnya. Dinonaktifkan di layar sentuh
+    // (agar keyboard tidak muncul sendiri) dan bisa dimatikan per elemen/form dengan atribut data-no-autofocus.
+    (function () {
+        if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+
+        const bisaDifokus = el => el && !el.disabled && !el.readOnly && el.type !== 'hidden' && el.type !== 'file'
+            && !el.hasAttribute('data-no-autofocus') && !el.closest('[data-no-autofocus]') && !el.closest('.hidden')
+            && (el.offsetParent !== null || el.tagName === 'SELECT') && el.getClientRects().length > 0;
+        const isian = 'input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=file]), textarea, select';
+
+        function fokus(el) {
+            if (!el) return;
+            if (el.tagName === 'SELECT' && window.jQuery && jQuery(el).data('select2')) { jQuery(el).select2('open'); return; }
+            el.focus({ preventScroll: false });
+            if (/^(text|number|search|tel|email)$/.test(el.type || '') && el.value !== '') { try { el.select(); } catch (e) {} }
+        }
+        function daftar(akar) { return [...akar.querySelectorAll(isian)].filter(bisaDifokus); }
+
+        // (1) Kursor ke isian pertama: form data (bukan filter GET) pertama di halaman.
+        function fokusAwal(akar, formData) {
+            const form = formData
+                ? [...akar.querySelectorAll('form')].find(f => (f.getAttribute('method') || 'get').toLowerCase() !== 'get' && daftar(f).length)
+                : akar;
+            if (!form) return;
+            const first = daftar(form)[0];
+            if (first && first.tagName !== 'SELECT') fokus(first);
+            else if (first) fokus(first);
+        }
+        window.addEventListener('load', () => {
+            if (document.querySelector('[autofocus]') || document.activeElement?.matches?.(isian)) return;
+            setTimeout(() => fokusAwal(document.querySelector('.content-wrapper') || document, true), 150);
+        });
+
+        // Modal yang baru terbuka (kelas 'hidden' dilepas) -> isian pertama di dalamnya.
+        new MutationObserver(muts => muts.forEach(m => {
+            const el = m.target;
+            if (m.attributeName !== 'class' || !(el instanceof HTMLElement)) return;
+            const sebelum = (m.oldValue || '').split(/\s+/).includes('hidden');
+            if (sebelum && !el.classList.contains('hidden') && (el.id?.startsWith('modal-') || /\bfixed\b/.test(el.className) && /inset-0/.test(el.className))) {
+                setTimeout(() => { const f = daftar(el)[0]; if (f) fokus(f); }, 80);
+            }
+        })).observe(document.body, { attributes: true, attributeOldValue: true, subtree: true, attributeFilter: ['class'] });
+
+        // (2) Pindah ke isian berikutnya setelah memilih dropdown.
+        function berikutnya(sel) {
+            const form = sel.closest('form') || sel.closest('.content-wrapper') || document;
+            if ((form.getAttribute?.('method') || 'post').toLowerCase() === 'get') return null; // filter GET: langsung memuat ulang
+            const semua = daftar(form.tagName ? form : document);
+            const i = semua.indexOf(sel);
+            for (let k = i + 1; k < semua.length; k++) {
+                const el = semua[k];
+                if (el.closest('.select2-container')) continue;
+                return el;
+            }
+            return null;
+        }
+        // select2 (dropdown dengan pencarian): 'select2:select' hanya menyala saat pengguna memilih.
+        if (window.jQuery) {
+            jQuery(document).on('select2:select', 'select', function () {
+                if (this.hasAttribute('data-no-advance') || this.closest('[data-no-autofocus]')) return;
+                const nx = berikutnya(this); if (nx) setTimeout(() => fokus(nx), 30);
+            });
+        }
+        // Dropdown biasa: hanya bila dipilih dengan mouse (panah keyboard tidak melompat).
+        let cara = new WeakMap();
+        document.addEventListener('pointerdown', e => { if (e.target.tagName === 'SELECT') cara.set(e.target, 'pointer'); }, true);
+        document.addEventListener('keydown', e => { if (e.target.tagName === 'SELECT' && !['Tab', 'Enter'].includes(e.key)) cara.set(e.target, 'key'); }, true);
+        document.addEventListener('change', e => {
+            const el = e.target;
+            if (el.tagName !== 'SELECT' || el.hasAttribute('data-no-advance') || el.closest('[data-no-autofocus]')) return;
+            if (window.jQuery && jQuery(el).data('select2')) return; // ditangani select2:select
+            if (cara.get(el) !== 'pointer') return;
+            const nx = berikutnya(el); if (nx) setTimeout(() => fokus(nx), 30);
+        });
+    })();
+    </script>
+    <script>
     // Notifikasi: lonceng di topbar + badge angka di menu sidebar (per role, dari /sinyal).
     function renderNotif(d) {
         const items = d.items || [];
