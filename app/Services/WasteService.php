@@ -14,6 +14,23 @@ use Illuminate\Support\Facades\DB;
  */
 class WasteService
 {
+    /**
+     * Cara mengisi qty waste untuk sebuah bahan: 'luas' (Panjang x Lebar, satuan hitung m2/cm2),
+     * 'hitung' (jumlah dalam satuan hitung, mis. pcs/lembar/meter), atau 'stok' (langsung satuan stok).
+     */
+    public static function modeInput(object $bahan): string
+    {
+        $hitung = strtolower(trim((string) ($bahan->satuan_hitung ?? '')));
+        $adaKonversi = (float) ($bahan->nilai_konversi ?? 0) > 0
+            && !empty($bahan->id_satuan_hitung) && (int) $bahan->id_satuan_hitung !== (int) ($bahan->id_satuan_stok ?? 0);
+
+        if (!$adaKonversi || $hitung === '') {
+            return 'stok';
+        }
+
+        return in_array($hitung, ['m2', 'm²', 'cm2', 'cm²'], true) ? 'luas' : 'hitung';
+    }
+
     /** @return array{id:int, nomor:string, status:string} */
     public static function catat(int $idBahan, float $qty, string $jenis, string $alasan, ?int $idDetail = null, ?string $tanggal = null): array
     {
