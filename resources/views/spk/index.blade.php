@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@php $bisaUbah = \App\Support\Izin::boleh(auth()->user(), [22], 'edit'); @endphp
 <x-polling-notifikasi :url="route('spk.cek-antrian-baru')" :jumlah-awal="$jumlahAntreAwal" pesan="Ada SPK baru masuk antrian." />
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
@@ -65,7 +66,7 @@
             <thead>
                 <tr>
                     <th class="px-6 py-5 w-12 text-center">
-                        <input type="checkbox" id="checkAll" class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
+                        @if($bisaUbah)<input type="checkbox" id="checkAll" class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">@endif
                     </th>
                     <th class="px-4 py-5 text-center w-10">#</th>
                     <th class="px-4 py-5 text-left">Nama File</th>
@@ -119,7 +120,9 @@
                     </td>
                     <td class="px-8 py-5 text-center">
                         <div class="flex items-center justify-center gap-2">
-                            @if($item->status_spk === 'Antre')
+                            @if(!$bisaUbah)
+                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Hanya lihat</span>
+                            @elseif($item->status_spk === 'Antre')
                                 <x-button type="button" size="icon" variant="ghost" onclick="ambilPekerjaan({{ $item->id_detail }})" class="border border-slate-100 hover:text-emerald-600" title="Ambil Pekerjaan (pindah ke Produksi)">
                                     <i class="fas fa-hand-paper text-xs"></i>
                                 </x-button>
@@ -150,6 +153,7 @@
             </tbody>
         </x-table>
 
+        @if($bisaUbah)
         <div class="mt-4 flex gap-3">
             <x-button type="button" id="btn-bulk-ambil" variant="success" class="opacity-0 pointer-events-none" disabled>
                 <i class="fas fa-hand-paper"></i>
@@ -160,6 +164,7 @@
                 Tandai Urgent (<span id="count-checked">0</span>)
             </x-button>
         </div>
+        @endif
     </form>
 
     <x-table.pagination :paginator="$spk" />

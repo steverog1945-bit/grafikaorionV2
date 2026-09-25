@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@php $bisaUbah = \App\Support\Izin::boleh(auth()->user(), [23], 'edit'); @endphp
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="QC & Rework">
@@ -9,7 +10,7 @@
             Pemeriksaan hasil cetak per item order - item yang ditolak otomatis membuka Rework
         </x-slot:subtitle>
         <x-slot:actions>
-            <x-button :href="route('qc.create')" variant="primary"><i class="fas fa-plus"></i> QC Baru</x-button>
+            @if($bisaUbah)<x-button :href="route('qc.create')" variant="primary"><i class="fas fa-plus"></i> QC Baru</x-button>@endif
         </x-slot:actions>
     </x-page-header>
 
@@ -34,7 +35,7 @@
                 @bolehHarga<td class="px-6 py-4 text-right text-sm">{{ $r->status === 'Selesai' ? 'Rp ' . number_format($r->biaya_material, 0, ',', '.') : '-' }}</td>@endbolehHarga
                 <td class="px-6 py-4 text-center"><x-badge :status="$r->status" :variant="$r->status === 'Selesai' ? 'success' : 'warning'" /></td>
                 <td class="px-8 py-4 text-right">
-                    @if($r->status === 'Dibuka')
+                    @if($r->status === 'Dibuka' && $bisaUbah)
                     <form method="POST" action="{{ route('qc.rework.proses', $r->id) }}" onsubmit="return confirm('Proses rework? Material tambahan sesuai BOM akan dikeluarkan dari stok dan dijurnal sebagai beban.');">
                         @csrf
                         <x-button type="submit" size="sm" variant="success"><i class="fas fa-tools"></i> Proses Rework</x-button>

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@php $bisaUbah = \App\Support\Izin::boleh(auth()->user(), [23], 'edit'); @endphp
 <x-polling-notifikasi :url="route('produksi.cek-antrian-baru')" :jumlah-awal="$jumlahAntreAwal" pesan="Ada item baru masuk Produksi." />
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
@@ -108,8 +109,8 @@
                     <span class="text-[13px] font-bold text-slate-700">{{ angka($item->qty, 4) }}</span>
                 </td>
                 <td class="px-4 py-5 text-center">
-                    @if(in_array($item->status_spk, ['Selesai', 'Batal', 'Pending']))
-                        <span class="text-[13px] font-bold text-slate-700">{{ $item->qty_cetak ?? '-' }}</span>
+                    @if(in_array($item->status_spk, ['Selesai', 'Batal', 'Pending']) || !$bisaUbah)
+                        <span class="text-[13px] font-bold text-slate-700">{{ $item->qty_cetak ?? $item->qty }}</span>
                     @else
                         <form method="POST" action="{{ route('produksi.simpan-qty', $item->id_detail) }}" class="flex items-center justify-center gap-1">
                             @csrf @method('PATCH')
@@ -138,7 +139,7 @@
                             <x-button href="{{ route('spk.index', ['status_spk' => 'Pending']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-amber-600" title="Selesaikan keputusan di halaman SPK">
                                 <i class="fas fa-clipboard-list text-xs"></i>
                             </x-button>
-                        @elseif(!in_array($item->status_spk, ['Selesai', 'Batal']))
+                        @elseif($bisaUbah && !in_array($item->status_spk, ['Selesai', 'Batal']))
                             <x-button type="button" size="icon" variant="ghost" onclick="selesaiProduksi({{ $item->id_detail }})" class="border border-slate-100 hover:text-emerald-600" title="Tandai Selesai">
                                 <i class="fas fa-check text-xs"></i>
                             </x-button>

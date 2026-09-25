@@ -66,6 +66,13 @@ class Izin
         if (self::adalahAdmin($user)) {
             return true;
         }
+        // Role "hanya lihat" pada modul tertentu (mis. Operator Desain di modul produksi): aksi selain Lihat ditolak
+        // APA PUN isi matriks hak aksesnya - lapisan pengaman tambahan.
+        if ($aksi !== 'view') {
+            $terkunci = (array) config('menu_access.hanya_lihat.' . optional($user->role)->nama_role, []);
+            $idMenus = array_values(array_filter($idMenus, fn ($id) => !in_array((int) $id, $terkunci, true)));
+        }
+
         $peta = self::peta($user);
         foreach ($idMenus as $id) {
             $h = $peta[(int) $id] ?? null;

@@ -71,6 +71,10 @@ class CheckMenuAccess
         if ($aksi === 'add' && in_array($path, config('menu_access.post_baca', []), true)) {
             $aksi = 'view';
         }
+        // Halaman form (GET .../create atau .../edit) mensyaratkan hak Tambah / Kelola, bukan sekadar Lihat.
+        if ($aksi === 'view' && preg_match('#(^|/)(create|edit)(/|$)#', $path, $mm)) {
+            $aksi = $mm[2] === 'create' ? 'add' : 'edit';
+        }
 
         if (!\App\Support\Izin::boleh($user, $rules[$matchedPrefix], $aksi)) {
             $label = ['view' => 'melihat', 'add' => 'menambah data di', 'edit' => 'mengubah/mengelola data di', 'delete' => 'menghapus data di'][$aksi];

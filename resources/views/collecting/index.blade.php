@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@php $bisaUbah = \App\Support\Izin::boleh(auth()->user(), [24], 'edit'); @endphp
 <x-polling-notifikasi :url="route('collecting.cek-antrian-baru')" :jumlah-awal="$jumlahSiapDiambilAwal" pesan="Ada nota baru siap diambil." />
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
@@ -134,7 +135,7 @@
                         <x-button href="{{ route('produksi.index', ['konsumen' => $item->nama_konsumen, 'status_produksi' => 'semua']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat progres di Produksi">
                             <i class="fas fa-eye text-xs"></i>
                         </x-button>
-                        @if($item->status_collecting !== 'Sudah Diambil' && $item->status_nota !== 'Dibatalkan')
+                        @if($bisaUbah && $item->status_collecting !== 'Sudah Diambil' && $item->status_nota !== 'Dibatalkan')
                             <x-button type="button" size="icon" variant="ghost"
                                 onclick="prosesCollecting('{{ $item->id_transaksi }}', {{ json_encode($item->nomor_nota) }}, {{ $lengkap ? 'true' : 'false' }})"
                                 class="border border-slate-100 {{ $lengkap ? 'hover:text-emerald-600' : 'text-slate-200 cursor-not-allowed' }}"

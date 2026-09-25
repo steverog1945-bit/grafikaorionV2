@@ -169,6 +169,12 @@ return [
     // Role yang HANYA boleh membaca: semua request selain GET/HEAD ditolak (403) di CheckMenuAccess.
     'roles_baca_saja' => ['Owner'],
 
+    // Role yang HANYA boleh melihat pada modul (id menu) berikut - tambah/kelola/hapus ditolak walau hak aksesnya dicentang.
+    // Operator Desain: modul produksi (SPK, Produksi, Collecting, QC, Waste) hanya untuk dipantau, tidak boleh mengganggu tim produksi.
+    'hanya_lihat' => [
+        'Operator Desain' => [22, 23, 24, 56, 57, 1],
+    ],
+
     // POST yang hanya membaca/menghitung (bukan menyimpan) - diperlakukan sebagai "lihat".
     'post_baca' => [
         'jersey/cek-kelengkapan',
