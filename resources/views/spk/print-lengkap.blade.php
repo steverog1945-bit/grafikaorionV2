@@ -94,7 +94,7 @@
             </table>
         </div>
 
-        <div class="center" style="margin: 8px 0; text-align:center;"><svg id="barcode-spk"></svg></div>
+        <div style="margin: 8px 0; text-align:center;"><div id="qr-spk" style="display:inline-block"></div><div style="font-size:10px; letter-spacing:1px; margin-top:2px;">TRX{{ $detail->id_transaksi }}</div><div style="font-size:9px; color:#64748b;">Scan dengan kamera HP untuk membuka pembayaran</div></div>
 
         <div class="footer-strip">
             <span class="dot"></span>
@@ -112,9 +112,16 @@
         <button onclick="window.print()">🖨️ Cetak SPK</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script>
-        JsBarcode("#barcode-spk", "TRX{{ $detail->id_transaksi }}", { format: "CODE128", width: 1.8, height: 46, fontSize: 12, margin: 4, displayValue: true });
+        // QR berisi ALAMAT halaman pembayaran nota: dipindai kamera HP biasa langsung membuka form bayar (login dulu bila belum).
+        (function () {
+            const qr = qrcode(0, 'M');
+            qr.addData(@json(\App\Models\AppSetting::urlAkses() . '/kasir/bayar-form/' . $detail->id_transaksi));
+            qr.make();
+            document.getElementById('qr-spk').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+            const svg = document.querySelector('#qr-spk svg'); if (svg) { svg.style.width = '150px'; svg.style.height = '150px'; }
+        })();
     </script>
 </body>
 </html>

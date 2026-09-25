@@ -31,7 +31,7 @@ class BerkasOrderController extends Controller
 
         $items = DB::table('transaksi_detail')->where('id_transaksi', $idTransaksi)->get();
         $namaItem = $items->pluck('nama_file', 'id_detail');
-        $url = fn (?string $path) => $path ? Storage::disk('public')->url($path) : null;
+        $url = fn (?string $path) => $path ? asset('storage/' . ltrim($path, '/')) : null; // asset() mengikuti alamat akses (subfolder XAMPP / domain VPS)
         $berkas = collect();
 
         foreach ($items as $it) {

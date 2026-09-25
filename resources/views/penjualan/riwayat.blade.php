@@ -116,7 +116,7 @@
                             <i class="far fa-eye"></i> Lihat
                         </a>
 
-                        @if($t->status_nota !== 'Dibatalkan')
+                        @if($t->status_nota !== 'Dibatalkan' && \App\Support\Izin::boleh(auth()->user(), [3], 'edit'))
                             @if($t->edit_request_status === 'Menunggu')
                                 <span class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-amber-600 bg-amber-50" title="Menunggu persetujuan Administrator">
                                     <i class="far fa-clock"></i> Menunggu

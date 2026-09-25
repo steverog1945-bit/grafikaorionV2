@@ -16,6 +16,7 @@ class AppSetting extends Model
         'fax',
         'email',
         'website',
+        'url_akses',
         'logo_path',
         'logo_ukuran',
         'logo_gaya',
@@ -67,5 +68,11 @@ class AppSetting extends Model
         }
 
         return round($nominal / $kelipatan) * $kelipatan;
+    }
+
+    /** Alamat dasar aplikasi untuk QR yang dipindai dari HP (pengaturan url_akses, atau alamat saat ini). */
+    public static function urlAkses(): string
+    {
+        return rtrim(static::current()->url_akses ?: url('/'), '/');
     }
 }

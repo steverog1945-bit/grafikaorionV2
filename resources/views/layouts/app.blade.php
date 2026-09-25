@@ -423,6 +423,8 @@
         </svg>
         <span class="text-sm font-medium">Kartu Stok</span>
     </a>
+    @endif
+    @if($cekAkses(1) || $cekAkses(53))
     <a href="{{ route('stock-opname.index') }}" class="{{ $menuClass }} {{ request()->routeIs('stock-opname.*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('stock-opname.*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-7 9l2 2 4-4" />
@@ -442,7 +444,7 @@
         <span class="text-sm font-medium">Pembelian Bahan</span>
     </a>
     @endif
-    @if($cekAkses(1) || $cekAkses(20))
+    @if($cekAkses(1) || $cekAkses(20) || $cekAkses(54))
     <a href="{{ url('/purchase-request') }}" class="{{ $menuClass }} {{ Request::is('purchase-request*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-request*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6m-6 4h4" />
@@ -450,7 +452,7 @@
         <span class="text-sm font-medium">Purchase Request</span>
     </a>
     @endif
-    @if($cekAkses(20))
+    @if($cekAkses(20) || $cekAkses(55))
     <a href="{{ url('/purchase-order') }}" class="{{ $menuClass }} {{ Request::is('purchase-order*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-order*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -500,7 +502,7 @@
     @endif
 
 
-    @if($cekAkses(23))
+    @if($cekAkses(23) || $cekAkses(56))
     <a href="{{ url('/qc') }}" class="{{ $menuClass }} {{ Request::is('qc*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('qc*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -509,7 +511,7 @@
     </a>
     @endif
 
-    @if($cekAkses(1) || $cekAkses(23))
+    @if($cekAkses(1) || $cekAkses(23) || $cekAkses(57))
     <a href="{{ url('/waste') }}" class="{{ $menuClass }} {{ Request::is('waste*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('waste*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -681,6 +683,8 @@
         </svg>
         <span class="text-sm font-medium">Supplier</span>
     </a>
+    @endif
+    @if($cekAkses(9) || $cekAkses(62))
     <a href="{{ route('platform-belanja.index') }}" class="{{ $menuClass }} {{ Request::is('platform-belanja*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('platform-belanja*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
         <span class="text-sm font-medium">Platform Belanja Online</span>
@@ -734,7 +738,7 @@
     @endif
 
     {{-- Quotation memuat harga: disembunyikan untuk role tanpa hak lihat harga (Operator Desain/Produksi) --}}
-    @if(($cekAkses(3) || $cekAkses(41)) && $bolehLihatHargaSidebar)
+    @if(($cekAkses(3) || $cekAkses(41) || $cekAkses(58)) && $bolehLihatHargaSidebar)
     <a href="{{ url('/quotation') }}" class="{{ $menuClass }} {{ Request::is('quotation*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('quotation*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -753,7 +757,7 @@
     </a>
     @endif
 
-    @if($cekAkses(3))
+    @if($cekAkses(3) || $cekAkses(61))
     <a href="{{ route('penjualan.riwayat') }}"
        class="{{ $menuClass }} {{ Request::is('penjualan/riwayat*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('penjualan/riwayat*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -955,7 +959,7 @@
         // 'accounting-period' => [] - tidak ada id_menu yang bisa
         // menggrant-nya lewat role_permissions), jadi dicek $isAdministrator
         // langsung, bukan $cekAkses(N).
-        $grpAkuntansiVisible = $cekAkses(35) || $cekAkses(36) || $isAdministrator;
+        $grpAkuntansiVisible = $cekAkses(35) || $cekAkses(36) || $cekAkses(51) || $isAdministrator;
         $grpAkuntansiAktif = Request::is('akun*') || Request::is('akuntansi*') || Request::is('accounting-period*');
     @endphp
     @if($grpAkuntansiVisible)
@@ -984,7 +988,7 @@
     </a>
     @endif
 
-    @if($isAdministrator)
+    @if($isAdministrator || $cekAkses(51))
     <a href="{{ route('accounting-period.index') }}" class="{{ $menuClass }} {{ Request::is('accounting-period*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('accounting-period*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -1042,7 +1046,7 @@
         // diakses Administrator (menu_access.php rule-nya [] kosong - tidak
         // ada id_menu yang bisa menggrant lewat role_permissions), jadi
         // dicek $isAdministrator langsung, sama seperti Accounting Period.
-        $grpSystemVisible = $cekAkses(6) || $cekAkses(4) || $cekAkses(37) || $isAdministrator;
+        $grpSystemVisible = $cekAkses(6) || $cekAkses(4) || $cekAkses(37) || $cekAkses(63) || $cekAkses(49) || $cekAkses(50) || $cekAkses(52) || $isAdministrator;
         $grpSystemAktif = Request::is('users*') || Request::is('setting-akses*') || Request::is('pengaturan-aplikasi*') || Request::is('pengaturan-jam-kerja*') || Request::is('menu-editor*')
             || Request::is('approval*') || Request::is('log-aktivitas*') || Request::is('backup*');
     @endphp
@@ -1083,7 +1087,7 @@
     <span class="text-sm font-medium">Pengaturan Aplikasi</span>
 </a>
 
-@if($cekAkses(37))
+@if($cekAkses(37) || $cekAkses(63))
 <a href="{{ route('jam-kerja.index') }}" class="{{ $menuClass }} {{ Request::is('pengaturan-jam-kerja*') ? $activeClass : $nonActiveClass }}">
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('pengaturan-jam-kerja*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1102,19 +1106,23 @@
 @endif
 @endif
 
-@if($isAdministrator)
+@if($isAdministrator || $cekAkses(50))
 <a href="{{ route('approval.index') }}" class="{{ $menuClass }} {{ Request::is('approval*') ? $activeClass : $nonActiveClass }}">
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('approval*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <span class="text-sm font-medium">Approval Workflow</span>
 </a>
+@endif
+@if($isAdministrator || $cekAkses(49))
 <a href="{{ route('audit-log.index') }}" class="{{ $menuClass }} {{ Request::is('log-aktivitas*') ? $activeClass : $nonActiveClass }}">
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('log-aktivitas*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <span class="text-sm font-medium">Log Aktivitas</span>
 </a>
+@endif
+@if($isAdministrator || $cekAkses(52))
 <a href="{{ route('backup.index') }}" class="{{ $menuClass }} {{ Request::is('backup*') ? $activeClass : $nonActiveClass }}">
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('backup*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7c0 1.657 3.582 3 8 3s8-1.343 8-3m-16 0c0-1.657 3.582-3 8-3s8 1.343 8 3m-16 0v10c0 1.657 3.582 3 8 3s8-1.343 8-3V7" />
