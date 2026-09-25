@@ -170,8 +170,14 @@
        "topbar" tidak dipakai di manapun selain di sini) - burger icon &
        judul cuma numpang di elemen tanpa padding/tinggi/alignment eksplisit,
        jadinya terlihat "nempel asal" alih-alih menyatu dengan header. */
-    .notif-badge { margin-left: auto; min-width: 1.25rem; height: 1.25rem; padding: 0 .375rem; border-radius: 9999px; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-badge { margin-left: auto; min-width: 1.5rem; height: 1.25rem; padding: 0 .375rem; line-height: 1; border-radius: 9999px; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .notif-badge.rose { background: #f43f5e; } .notif-badge.amber { background: #f59e0b; } .notif-badge.indigo { background: #6366f1; }
+    /* Badge selalu rata di kolom kanan yang sama: link menu (badge) & judul grup (badge + panah). */
+    aside .menu-group-toggle { justify-content: flex-start; padding-right: .875rem; }
+    aside .menu-group-toggle > i.fa-chevron-down { margin-left: auto; width: 1.5rem; text-align: center; }
+    aside .menu-group-toggle > .notif-badge { margin-left: auto; margin-right: .25rem; }
+    aside .menu-group-toggle > .notif-badge + i.fa-chevron-down { margin-left: 0; }
+    #badge-notif { min-width: 1.5rem; text-align: center; padding: 0 .375rem !important; height: 1.25rem; line-height: 1.25rem; animation: none !important; }
     body.sidebar-collapsed .notif-badge { position: absolute; top: 2px; right: 4px; margin: 0; min-width: 1rem; height: 1rem; font-size: 9px; }
     .topbar {
         display: flex;
@@ -1459,7 +1465,7 @@
         document.querySelectorAll('#mainSidebar .menu-group-items').forEach(g => {
             const n = [...g.querySelectorAll('.notif-badge')].reduce((t, b) => t + (parseInt(b.textContent) || 0), 0);
             const h = g.previousElementSibling;
-            if (n > 0 && h) { const b = document.createElement('span'); b.className = 'notif-badge notif-grup indigo'; b.textContent = n > 99 ? '99+' : n; b.style.marginLeft = '.5rem'; h.insertBefore(b, h.querySelector('i.fa-chevron-down')); }
+            if (n > 0 && h) { const b = document.createElement('span'); b.className = 'notif-badge notif-grup indigo'; b.textContent = n > 99 ? '99+' : n; h.insertBefore(b, h.querySelector('i.fa-chevron-down')); }
         });
     }
     // Role dengan sedikit menu: tampilkan menu langsung tanpa harus membuka grup. Berlaku bila total menu <= 8,
