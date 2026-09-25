@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto pb-20">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1500px] mx-auto pb-24">
 
     <x-page-header title="Input Pembayaran">
         <x-slot:actions>
@@ -11,92 +11,53 @@
         </x-slot:actions>
     </x-page-header>
 
-    {{-- LOCK KASIR - $kasAktif dibagikan global ke semua view lewat
-         AppServiceProvider (view composer '*'), jadi tersedia di sini tanpa
-         perlu dioper eksplisit dari KasirController::bayarForm(). Sebelumnya
-         TIDAK ada peringatan sama sekali di halaman ini - kasir baru tahu
-         kas belum dibuka SETELAH mengisi form lengkap & klik Bayar (pesan
-         error muncul dari validasi server di prosesBayar()). Sekarang
-         dikunci dari awal: tombol Bayar dinonaktifkan kalau kas belum
-         dibuka, supaya waktu kasir tidak terbuang mengisi form yang pasti
-         ditolak. Tombol "Simpan" (tanpa uang masuk, cuma menyimpan status
-         DP/antrean) TETAP aktif - tidak menyentuh kas sama sekali. --}}
+    {{-- Kas belum dibuka: pembayaran dikunci, nota tetap bisa disimpan sebagai antrean --}}
     @if(!$kasAktif)
-    <div class="mb-5 flex items-center gap-3 bg-amber-50 border-2 border-amber-200 rounded-2xl px-5 py-4">
-        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-lg">
-            <i class="fas fa-exclamation-triangle"></i>
-        </div>
+    <div class="mb-6 flex items-center gap-4 rounded-3xl bg-gradient-to-r from-amber-50 to-orange-50/40 border border-amber-100 px-6 py-4">
+        <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="fas fa-exclamation-triangle"></i></div>
         <div class="flex-1">
-            <p class="text-sm font-black text-amber-800 uppercase tracking-wide">Kas Kasir Belum Dibuka</p>
-            <p class="text-xs text-amber-600 mt-0.5">Anda tidak bisa mencatat pembayaran sebelum membuka saldo kas hari ini. Nota tetap bisa disimpan sebagai antrean (tanpa uang masuk).</p>
+            <p class="text-sm font-bold text-amber-800">Kas kasir belum dibuka</p>
+            <p class="text-xs text-amber-600/90 mt-0.5">Pembayaran belum bisa dicatat sebelum saldo kas hari ini dibuka. Nota tetap bisa disimpan sebagai antrean (tanpa uang masuk).</p>
         </div>
-        <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0">
-            <i class="fas fa-wallet"></i> Buka Kas
-        </x-button>
+        <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0"><i class="fas fa-wallet"></i> Buka Kas</x-button>
     </div>
     @endif
-
-    {{-- INFO NOTA & KONSUMEN - satu baris ringkas (nama konsumen, nomor
-         nota, golongan). Thumbnail acuan order TIDAK lagi ditampilkan di
-         sini - sebelumnya cuma menampilkan foto item PERTAMA seolah itu
-         "foto konsumen", padahal satu nota bisa berisi banyak item dengan
-         file acuan yang berbeda-beda. Sekarang tiap item di Rincian Barang
-         menampilkan thumbnail-nya masing-masing (lihat kolom Deskripsi di
-         bawah), supaya kasir tahu persis gambar acuan SETIAP barang. --}}
-    <div class="flex items-center gap-4 bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-5">
-        <div class="w-11 h-11 rounded-xl bg-indigo-50 border border-indigo-100 shrink-0 flex items-center justify-center text-indigo-400">
-            <i class="fas fa-user text-lg"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-            <p class="font-bold text-slate-800 truncate">{{ $transaksi->nama_konsumen }}</p>
-            <p class="text-xs text-slate-400">Nota #{{ $transaksi->nomor_nota }} &middot; {{ \Carbon\Carbon::parse($transaksi->tgl_order)->format('d M Y H:i') }}</p>
-        </div>
-        <span class="shrink-0 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold uppercase tracking-wide">{{ $transaksi->nama_golongan ?? '-' }}</span>
-    </div>
 
     <form action="{{ url('/kasir/proses-bayar') }}" method="POST" id="form-pembayaran">
         @csrf
         <input type="hidden" name="id_transaksi" value="{{ $transaksi->id_transaksi }}">
 
-        {{-- BAGIAN 1: RINCIAN BARANG --}}
-        <x-card class="mb-5">
-            <h4 class="font-black text-xs uppercase text-slate-400 tracking-widest mb-4 pb-3 border-b border-slate-50">Rincian Barang &amp; Penyesuaian Harga</h4>
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-100">
-                            <th class="text-left py-2 pr-2 w-8">#</th>
-                            <th class="text-left py-2 px-2">Deskripsi</th>
-                            <th class="text-right py-2 px-2">Harga</th>
-                            <th class="text-center py-2 px-2">Qty</th>
-                            <th class="text-right py-2 pl-2">Subtotal</th>
-                            <th class="w-10"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
+            {{-- ===================== KOLOM KIRI: nota, barang, metode ===================== --}}
+            <div class="xl:col-span-8 space-y-6">
+
+                {{-- Info nota & konsumen --}}
+                <div class="flex flex-wrap items-center gap-4 rounded-3xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] px-6 py-5">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-400 flex items-center justify-center shrink-0"><i class="fas fa-user text-lg"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-lg font-bold text-slate-800 truncate">{{ $transaksi->nama_konsumen }}</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Nota <span class="font-semibold text-slate-500">#{{ $transaksi->nomor_nota }}</span> &middot; {{ \Carbon\Carbon::parse($transaksi->tgl_order)->format('d M Y, H:i') }}</p>
+                    </div>
+                    <span class="px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-500 text-[11px] font-semibold tracking-wide">{{ $transaksi->nama_golongan ?? '-' }}</span>
+                </div>
+
+                {{-- Rincian barang: kartu lembut per item --}}
+                <div class="rounded-3xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] p-6">
+                    <div class="flex items-center justify-between mb-5">
+                        <h4 class="text-sm font-semibold text-slate-700">Rincian Barang</h4>
+                        <span class="text-[11px] text-slate-400">Ubah harga per item lewat ikon pensil</span>
+                    </div>
+
+                    <div class="space-y-3">
                         @foreach($items as $i => $item)
-                        {{-- Harga per satuan hitung = m² untuk produk metode 'ukuran',
-                             pcs untuk 'quantity'/jasa. Pakai qty_hitung (dihitung di
-                             KasirController::bayarForm), BUKAN $item->qty mentah - untuk
-                             produk 'ukuran', qty mentah itu jumlah pcs bukan luas, jadi
-                             Harga hasil bagi-mundur akan salah kali lipat & tidak cocok
-                             dengan Price List kalau dipakai. --}}
                         @php
-                            // Harga per satuan (informasi) = Biaya Cetak / qty hitung. Sejak Biaya Cetak jadi komponen
-                            // utama subtotal, rumus lama (subtotal - cetak - desain - finishing) selalu berujung 0.
-                            // Baris jasa/bahan (tanpa Biaya Cetak) memakai sisa subtotal setelah desain & finishing.
+                            // Harga per satuan (informasi) = Biaya Cetak / qty hitung. Baris jasa/bahan (tanpa Biaya Cetak)
+                            // memakai sisa subtotal setelah desain & finishing.
                             $dasarHarga = (float) $item->biaya_cetak > 0
                                 ? (float) $item->biaya_cetak
                                 : ((float) $item->subtotal + (float) $item->potongan - (float) $item->biaya_desain - (float) $item->biaya_finishing);
                             $hargaSatuan = ($item->qty_hitung > 0) ? $dasarHarga / $item->qty_hitung : 0;
-                            // Cetak/Desain/Finishing/Potongan TIDAK lagi masing-masing jadi
-                            // kolom sendiri (dulu 10 kolom, tabel jadi sempit & ramai) -
-                            // dirangkum jadi satu baris kecil di bawah Deskripsi, sama
-                            // seperti pola "Cetak x • Desain y" di kartu keranjang Kasir
-                            // Utama. Detail lengkapnya tetap bisa diedit satu-satu lewat
-                            // modal Custom Harga (ikon pensil) - cuma tidak lagi makan
-                            // tempat sebagai kolom terpisah di tabel utama.
                             $bagianBiaya = collect(['Cetak' => $item->biaya_cetak, 'Desain' => $item->biaya_desain, 'Finishing' => $item->biaya_finishing])
                                 ->filter(fn ($v) => $v > 0)
                                 ->map(fn ($v, $k) => $k . ' ' . number_format($v, 0, ',', '.'))
@@ -105,203 +66,111 @@
                                 $bagianBiaya .= ($bagianBiaya ? ' &bull; ' : '') . '-Rp ' . number_format($item->potongan, 0, ',', '.') . ' Potongan';
                             }
                         @endphp
-                        <tr class="item-row" data-id="{{ $item->id_detail }}">
-                            <td class="py-3 pr-2 text-slate-400">{{ $i + 1 }}</td>
-                            <td class="py-3 px-2">
-                                <div class="flex items-center gap-2.5">
-                                    @if($item->thumbnail)
-                                        <img src="{{ asset('storage/'.$item->thumbnail) }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 shrink-0">
-                                    @else
-                                        <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 shrink-0 flex items-center justify-center text-slate-300">
-                                            <i class="far fa-image text-sm"></i>
-                                        </div>
-                                    @endif
-                                    <div class="min-w-0">
-                                        <div class="font-bold text-slate-700 uppercase truncate">{{ $item->nama_produk ?? $item->nama_jasa ?? $item->nama_file }}</div>
-                                        {{-- Baris Penjualan Barang (id_bahan) tidak punya nama_produk/
-                                             nama_jasa - nama_file SUDAH tampil di baris judul di atas
-                                             (fallback ke-3), jadi baris italic kedua ini cuma diulang
-                                             kalau memang ada nama_produk/nama_jasa yang berbeda dari
-                                             nama_file (kasus normal produk/jasa). --}}
-                                        @if($item->nama_produk || $item->nama_jasa)
-                                            <div class="text-xs text-slate-400 italic truncate">{{ $item->nama_file }}</div>
-                                        @endif
-                                        <div class="disp-biaya-tambahan text-[10px] text-slate-400 mt-0.5">{!! $bagianBiaya !!}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-3 px-2 text-right disp-harga font-bold text-slate-700">Rp {{ number_format($hargaSatuan, 0, ',', '.') }}</td>
-                            <td class="py-3 px-2 text-center text-slate-500">
-                                @if($item->metode_hitung == 'ukuran')
-                                    {{ number_format($item->qty_hitung, 2, ',', '.') }} m²
-                                    <div class="text-[10px] text-slate-300">{{ angka($item->qty, 4) }} pcs</div>
-                                @else
-                                    {{ angka($item->qty, 4) }} {{ $item->id_jasa ? 'Jasa' : ($item->id_bahan ? 'Bahan' : 'Pcs') }}
-                                @endif
-                            </td>
-                            <td class="py-3 pl-2 text-right disp-subtotal font-black text-slate-800">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
-                            <td class="py-3 text-center">
-                                <button type="button" onclick="openCustomHarga({{ $item->id_detail }})" class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all" title="Custom Harga">
-                                    <i class="far fa-edit text-xs"></i>
-                                </button>
-                            </td>
+                        <div class="item-row group flex flex-wrap items-center gap-4 rounded-2xl bg-slate-50/60 hover:bg-slate-50 border border-transparent hover:border-slate-100 px-4 py-3.5 transition-all" data-id="{{ $item->id_detail }}">
+                            <span class="w-6 text-xs font-medium text-slate-300">{{ $i + 1 }}</span>
+                            @if($item->thumbnail)
+                                <img src="{{ asset('storage/'.$item->thumbnail) }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0">
+                            @else
+                                <div class="w-12 h-12 rounded-xl bg-white border border-slate-100 shrink-0 flex items-center justify-center text-slate-300"><i class="far fa-image"></i></div>
+                            @endif
 
-                            {{-- Nilai efektif dikirim lewat hidden input, diedit HANYA lewat
-                                 modal Custom Harga (bukan inline) supaya kelima komponen
-                                 (harga/cetak/desain/finishing/potongan) selalu disesuaikan
-                                 bersamaan & konsisten, tidak ada yang kelewat. --}}
+                            <div class="flex-1 min-w-[180px]">
+                                <p class="text-sm font-semibold text-slate-700 truncate">{{ $item->nama_produk ?? $item->nama_jasa ?? $item->nama_file }}</p>
+                                @if($item->nama_produk || $item->nama_jasa)
+                                    <p class="text-xs text-slate-400 truncate">{{ $item->nama_file }}</p>
+                                @endif
+                                <p class="disp-biaya-tambahan text-[11px] text-slate-400 mt-1">{!! $bagianBiaya !!}</p>
+                            </div>
+
+                            <div class="text-right w-28">
+                                <p class="text-[10px] text-slate-300 font-medium uppercase tracking-wide">Harga</p>
+                                <p class="disp-harga text-sm font-semibold text-slate-600">Rp {{ number_format($hargaSatuan, 0, ',', '.') }}</p>
+                            </div>
+
+                            <div class="text-center w-24">
+                                <p class="text-[10px] text-slate-300 font-medium uppercase tracking-wide">Qty</p>
+                                <p class="text-sm font-semibold text-slate-600">
+                                    @if($item->metode_hitung == 'ukuran')
+                                        {{ number_format($item->qty_hitung, 2, ',', '.') }} m²
+                                        <span class="block text-[10px] text-slate-300 font-normal">{{ angka($item->qty, 4) }} pcs</span>
+                                    @else
+                                        {{ angka($item->qty, 4) }} <span class="text-[11px] text-slate-400 font-normal">{{ $item->id_jasa ? 'Jasa' : ($item->id_bahan ? 'Bahan' : 'Pcs') }}</span>
+                                    @endif
+                                </p>
+                            </div>
+
+                            <div class="text-right w-32">
+                                <p class="text-[10px] text-slate-300 font-medium uppercase tracking-wide">Subtotal</p>
+                                <p class="disp-subtotal text-base font-bold text-slate-800">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</p>
+                            </div>
+
+                            <button type="button" onclick="openCustomHarga({{ $item->id_detail }})" class="w-9 h-9 inline-flex items-center justify-center rounded-xl bg-white text-slate-300 hover:text-indigo-500 hover:shadow-sm border border-slate-100 transition-all" title="Ubah harga item ini">
+                                <i class="far fa-edit text-xs"></i>
+                            </button>
+
+                            {{-- Nilai efektif dikirim lewat hidden input, diedit HANYA lewat modal Custom Harga --}}
                             <input type="hidden" class="inp-harga" name="items[{{ $item->id_detail }}][harga]" value="0">
                             <input type="hidden" class="inp-cetak" name="items[{{ $item->id_detail }}][biaya_cetak]" value="{{ (int) $item->biaya_cetak }}">
                             <input type="hidden" class="inp-desain" name="items[{{ $item->id_detail }}][biaya_desain]" value="{{ (int) $item->biaya_desain }}">
                             <input type="hidden" class="inp-finishing" name="items[{{ $item->id_detail }}][biaya_finishing]" value="{{ (int) $item->biaya_finishing }}">
                             <input type="hidden" class="inp-potongan" name="items[{{ $item->id_detail }}][potongan]" value="{{ (int) $item->potongan }}">
-                            {{-- inp-qty menyimpan qty_hitung (satuan hitung harga - m² atau
-                                 pcs), BUKAN string berformat Rupiah, jadi dibaca dengan
-                                 parseFloat() biasa di JS (lihat calculateInvoice), tidak lewat
-                                 cleanRupiah() yang akan salah membuang titik desimalnya. --}}
                             <input type="hidden" class="inp-qty" value="{{ number_format($item->qty_hitung, 4, '.', '') }}" data-satuan="{{ $item->metode_hitung == 'ukuran' ? 'm²' : ($item->id_jasa ? 'jasa' : 'pcs') }}">
-                        </tr>
+                        </div>
                         @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            {{-- TOTAL & DISKON - dimampatkan (dulu p-8 dgn grand total text-4xl,
-                 sekarang lebih ringkas) supaya "Rincian Barang" di atas jadi
-                 proporsi utama halaman, bukan kotak total yang paling menonjol. --}}
-            <div class="mt-5 bg-slate-900 rounded-2xl p-5 text-white relative overflow-hidden">
-                @if($totalTerbayar > 0)
-                <div class="absolute top-0 right-0 bg-amber-500 text-slate-900 px-4 py-1.5 rounded-bl-xl font-black text-[10px] uppercase tracking-widest">
-                    Piutang: Rp {{ number_format($totalTerbayar, 0, ',', '.') }}
-                </div>
-                @endif
-
-                <div class="flex justify-between items-center mb-2 opacity-70 text-xs">
-                    <span class="font-bold uppercase tracking-widest">Total Nota</span>
-                    <span id="total-kotor" class="text-white">Rp 0</span>
-                </div>
-
-                <div class="flex justify-between items-center mb-3">
-                    <span class="text-xs font-bold uppercase tracking-widest text-indigo-300">Diskon (Nota)</span>
-                    <div class="relative">
-                        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/50 font-bold text-[11px]">Rp</span>
-                        <input type="text" id="input-diskon" name="diskon" value="0"
-                            class="format-ribuan w-32 h-8 bg-white/10 border-none rounded-lg text-right text-sm text-white font-bold focus:ring-2 focus:ring-indigo-400 pl-8">
                     </div>
                 </div>
 
-                @if($totalTerbayar > 0)
-                <div class="flex justify-between items-center mb-2 text-emerald-400 border-t border-white/10 pt-2 text-xs">
-                    <span class="font-bold uppercase tracking-widest">Sudah Dibayar</span>
-                    <span class="font-bold">- Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</span>
-                </div>
-                <input type="hidden" id="total_terbayar_hidden" value="{{ $totalTerbayar }}">
-                @else
-                <input type="hidden" id="total_terbayar_hidden" value="0">
-                @endif
+                {{-- Jenis & metode pembayaran --}}
+                <div class="rounded-3xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] p-6">
+                    @if($saldoDeposit > 0)
+                    <div class="mb-5 flex items-center gap-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 px-4 py-3">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><i class="fas fa-wallet text-sm"></i></div>
+                        <div class="flex-1">
+                            <p class="text-xs font-semibold text-emerald-700">Deposit tersedia Rp {{ number_format($saldoDeposit, 0, ',', '.') }}</p>
+                            <p class="text-[11px] text-emerald-600/80 mt-0.5">Otomatis diterapkan. Ganti Metode Pembayaran jika ingin pakai Tunai/Transfer.</p>
+                        </div>
+                    </div>
+                    @elseif($depositSudahHabis)
+                    <div class="mb-5 flex items-center gap-3 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3">
+                        <div class="w-9 h-9 rounded-xl bg-slate-200/70 text-slate-400 flex items-center justify-center shrink-0"><i class="fas fa-ban text-sm"></i></div>
+                        <div class="flex-1">
+                            <p class="text-xs font-semibold text-slate-500">Deposit sudah habis terpakai</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Konsumen ini pernah setor deposit, tapi saldonya sudah habis - tidak bisa dipakai lagi sampai ada setoran baru.</p>
+                        </div>
+                    </div>
+                    @endif
 
-                <div class="border-t border-white/20 pt-3 flex justify-between items-center">
-                    <span class="text-sm font-black italic tracking-tighter uppercase text-indigo-400">
-                        {{ $totalTerbayar > 0 ? 'Sisa Tagihan' : 'Grand Total' }}
-                    </span>
-                    <input type="hidden" id="grand_total_hidden" name="total_akhir" value="0">
-                    <span id="display-grand-total" class="text-2xl font-black">Rp 0</span>
-                </div>
-            </div>
-        </x-card>
-
-        {{-- BAGIAN 2: VALIDASI PEMBAYARAN --}}
-        <x-card>
-            @if($saldoDeposit > 0)
-            {{-- Notifikasi deposit - murni informasi + auto-fill lewat JS
-                 (autoTerapkanDeposit), BUKAN kuncian. Kasir tetap bebas ganti
-                 ke Tunai/Transfer atau ubah nominal kapan saja - selaras
-                 dengan prinsip "warn don't block" yang dipakai di seluruh
-                 halaman ini. --}}
-            <div class="mb-5 flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
-                <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0 text-sm">
-                    <i class="fas fa-wallet"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="text-xs font-black text-emerald-700 uppercase tracking-wide">Deposit tersedia Rp {{ number_format($saldoDeposit, 0, ',', '.') }}</p>
-                    <p class="text-[11px] text-emerald-600 mt-0.5">Otomatis diterapkan. Ganti Metode Pembayaran jika ingin pakai Tunai/Transfer.</p>
-                </div>
-            </div>
-            @elseif($depositSudahHabis)
-            {{-- Konsumen ini PERNAH setor deposit (beda dari yang memang
-                 tidak pernah punya sama sekali) tapi saldonya sekarang 0 -
-                 supaya kasir tidak bingung kenapa opsi Deposit di bawah
-                 terkunci/tidak otomatis terisi padahal pelanggan ini
-                 langganan pakai deposit. --}}
-            <div class="mb-5 flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                <div class="w-8 h-8 rounded-lg bg-slate-300 text-white flex items-center justify-center shrink-0 text-sm">
-                    <i class="fas fa-ban"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="text-xs font-black text-slate-500 uppercase tracking-wide">Deposit Sudah Habis Terpakai</p>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Konsumen ini pernah setor deposit, tapi saldonya sudah habis - tidak bisa dipakai lagi sampai ada setoran baru.</p>
-                </div>
-            </div>
-            @endif
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-4">
-                    {{-- Jenis Pembayaran & Metode Pembayaran sekarang berdampingan
-                         (dulu masing-masing selebar penuh & bertumpuk, makan tempat
-                         vertikal dua kali lipat) - keduanya sama-sama grup pilihan
-                         singkat, wajar disandingkan dalam satu baris. --}}
-                    <div class="grid grid-cols-2 gap-3">
-                        {{-- Sebelumnya status DP/Lunas cuma DISIMPULKAN diam-diam dari
-                             angka yang diketik - toggle ini murni bantuan UX supaya
-                             niatnya jelas dari awal. Status akhir yang TERSIMPAN tetap
-                             dihitung server dari nominal vs sisa tagihan, bukan dari
-                             pilihan toggle ini. --}}
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Jenis Pembayaran</label>
-                            {{-- grid-cols-1 - 2 pilihan bertumpuk ke bawah, masing-masing
-                                 selebar penuh kolomnya. --}}
-                            <div class="grid grid-cols-1 gap-1.5">
-                                <label class="tipe-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-black text-[10px] uppercase cursor-pointer transition-all">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-2.5">Jenis Pembayaran</label>
+                            <div class="grid grid-cols-2 md:grid-cols-1 gap-2">
+                                <label class="tipe-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold text-xs cursor-pointer transition-all">
                                     <input type="radio" name="tipe_bayar" value="lunas" class="sr-only" checked onchange="onTipeBayarChange()">
                                     <i class="fas fa-check-circle"></i> Lunas
                                 </label>
-                                <label class="tipe-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all">
+                                <label class="tipe-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-semibold text-xs cursor-pointer transition-all hover:border-slate-200">
                                     <input type="radio" name="tipe_bayar" value="dp" class="sr-only" onchange="onTipeBayarChange()">
                                     <i class="fas fa-hand-holding-usd"></i> DP
                                 </label>
                             </div>
                         </div>
 
-                        {{-- Metode Pembayaran disederhanakan dari <select> polos jadi
-                             pill-button minimalist - TANPA mengurangi fungsi:
-                             Tunai/Debit/Transfer/Deposit keempatnya tetap ada &
-                             tetap men-submit field metode_pembayaran seperti
-                             sebelumnya (Debit ditambahkan - lihat migrasi
-                             2026_09_11_250000: kartu debit sebelumnya tidak
-                             punya opsi sendiri, kasir terpaksa mencatatnya
-                             sebagai Transfer padahal beda sumber uang). --}}
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Metode Pembayaran</label>
-                            {{-- grid-cols-2 SENGAJA dipertahankan (bukan grid-cols-4/
-                                 sebaris) - CSS grid membagi tiap kolom SAMA RATA (1fr),
-                                 jadi keempat pill (Tunai/Debit/Transfer/Deposit) otomatis
-                                 punya lebar identik apa pun panjang teksnya, tidak ada yang
-                                 lebih panjang dari yang lain. grid-cols-4 sebaris akan
-                                 membuat teks "Transfer" mepet/terpotong di layar sempit. --}}
-                            <div class="grid grid-cols-2 gap-1.5">
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-black text-[10px] uppercase cursor-pointer transition-all">
+                        <div class="md:col-span-3">
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-2.5">Metode Pembayaran</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold text-xs cursor-pointer transition-all">
                                     <input type="radio" name="metode_pembayaran" id="metode-tunai" value="Tunai" class="sr-only" checked onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-money-bill-wave"></i> Tunai
                                 </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all">
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-semibold text-xs cursor-pointer transition-all hover:border-slate-200">
                                     <input type="radio" name="metode_pembayaran" value="Debit" class="sr-only" onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-credit-card"></i> Debit
                                 </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all">
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-semibold text-xs cursor-pointer transition-all hover:border-slate-200">
                                     <input type="radio" name="metode_pembayaran" value="Transfer" class="sr-only" onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-university"></i> Transfer
                                 </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase cursor-pointer transition-all {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}"
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-semibold text-xs cursor-pointer transition-all hover:border-slate-200 {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}"
                                     title="{{ $saldoDeposit > 0 ? '' : ($depositSudahHabis ? 'Deposit konsumen ini sudah habis terpakai, tidak bisa dipakai lagi.' : 'Konsumen ini belum pernah setor deposit.') }}">
                                     <input type="radio" name="metode_pembayaran" value="Deposit" class="sr-only" {{ $saldoDeposit <= 0 ? 'disabled' : '' }} onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-wallet"></i> Deposit
@@ -309,64 +178,100 @@
                             </div>
                         </div>
                     </div>
-                    <div id="wrapper-bank" class="hidden">
-                        <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">Rekening Tujuan</label>
-                        <select name="id_bank" id="input-bank" class="w-full h-11 rounded-xl border-slate-200 text-sm font-bold focus:ring-4 focus:ring-indigo-100 transition-all">
+
+                    <div id="wrapper-bank" class="hidden mt-5">
+                        <label class="block text-[11px] font-semibold text-slate-400 mb-2">Rekening Tujuan</label>
+                        <select name="id_bank" id="input-bank" class="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-sm font-medium text-slate-600 shadow-inner focus:ring-2 focus:ring-indigo-500/20">
                             <option value="">-- Pilih Rekening --</option>
                             @foreach($banks as $b)
                                 <option value="{{ $b->id_bank }}">{{ $b->nama_bank }} - {{ $b->nomor_rekening }} ({{ $b->atas_nama }})</option>
                             @endforeach
                         </select>
                     </div>
-                    <div id="wrapper-deposit-info" class="hidden bg-indigo-50 border border-indigo-100 rounded-xl p-3">
-                        <p class="text-[11px] font-bold text-indigo-600 uppercase tracking-wide">
-                            Saldo deposit: Rp {{ number_format($saldoDeposit, 0, ',', '.') }}
-                        </p>
-                        <p class="text-[10px] text-indigo-400 mt-0.5">Jumlah bayar tidak boleh melebihi saldo ini.</p>
+                    <div id="wrapper-deposit-info" class="hidden mt-5 rounded-2xl bg-indigo-50/60 border border-indigo-100 px-4 py-3">
+                        <p class="text-xs font-semibold text-indigo-600">Saldo deposit: Rp {{ number_format($saldoDeposit, 0, ',', '.') }}</p>
+                        <p class="text-[11px] text-indigo-400 mt-0.5">Jumlah bayar tidak boleh melebihi saldo ini.</p>
                     </div>
-                    <div>
-                        <label id="label-uang-diterima" class="block text-[10px] font-black text-slate-500 uppercase mb-2">Uang Diterima</label>
+
+                    <div class="mt-6">
+                        <label id="label-uang-diterima" class="block text-[11px] font-semibold text-slate-400 mb-2">Uang Diterima</label>
                         <div class="relative">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-lg">Rp</span>
+                            <span class="absolute left-5 top-1/2 -translate-y-1/2 font-semibold text-slate-300 text-lg">Rp</span>
                             <input type="text" id="input-bayar-mask"
-                                   class="format-ribuan w-full h-12 pl-12 rounded-xl border-2 border-slate-100 bg-white text-lg font-black text-indigo-600 focus:border-indigo-500 transition-all"
+                                   class="format-ribuan w-full h-14 pl-14 pr-4 rounded-2xl border border-slate-100 bg-slate-50/60 text-xl font-bold text-indigo-600 focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50 transition-all"
                                    placeholder="0">
                             <input type="hidden" name="jumlah_bayar" id="input-bayar-asli">
                         </div>
-                        <div class="mt-2 flex justify-end">
-                            <button type="button" id="btn-bayar-pas" onclick="setUangPas()" class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-[11px] font-black uppercase transition-all border border-indigo-100 shadow-sm">
+                        <div class="mt-2.5 flex justify-end">
+                            <button type="button" id="btn-bayar-pas" onclick="setUangPas()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-500 text-[11px] font-semibold transition-all">
                                 <i class="fas fa-bolt"></i> Bayar Sisa Tagihan
                             </button>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {{-- Status, kalkulasi, & tombol aksi digabung dalam SATU kotak -
-                     sebelumnya tombol "Simpan Ke Monitoring"/"Bayar Sekarang"
-                     terpisah di bawah kartu ini (baris sendiri di paling bawah
-                     halaman), sekarang jadi satu unit dengan status supaya tidak
-                     perlu scroll jauh untuk menemukan aksi finalnya. --}}
-                <div class="bg-indigo-600 rounded-2xl p-5 text-white shadow-xl flex flex-col relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 text-5xl"><i class="fas fa-cash-register"></i></div>
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="text-[10px] font-black uppercase tracking-widest opacity-70">Status</span>
-                        <span id="status-label" class="bg-white/20 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter">MENUNGGU...</span>
+            {{-- ===================== KOLOM KANAN: ringkasan & aksi (menempel saat scroll) ===================== --}}
+            <div class="xl:col-span-4 xl:sticky xl:top-6 space-y-6">
+                <div class="rounded-3xl bg-gradient-to-br from-indigo-50 via-white to-violet-50/60 border border-indigo-100/70 shadow-[0_8px_30px_rgba(79,70,229,0.08)] p-6 relative overflow-hidden">
+                    @if($totalTerbayar > 0)
+                    <span class="absolute top-4 right-4 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold">Sudah dibayar Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</span>
+                    @endif
+
+                    <h4 class="text-sm font-semibold text-slate-700 mb-5">Ringkasan Tagihan</h4>
+
+                    <div class="flex justify-between items-center text-sm mb-3">
+                        <span class="text-slate-400">Total Nota</span>
+                        <span id="total-kotor" class="font-semibold text-slate-700">Rp 0</span>
                     </div>
-                    <div class="h-px bg-white/10 w-full mb-3"></div>
-                    <span id="label-selisih" class="text-[10px] font-black italic uppercase opacity-70 block mb-1">Kalkulasi</span>
-                    <div id="display-selisih" class="text-2xl font-black mb-4">Rp 0</div>
 
-                    <div class="mt-auto grid grid-cols-2 gap-2 relative">
-                        <button type="button" onclick="simpanSaja()" class="flex items-center justify-center gap-1.5 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold text-[11px] uppercase tracking-wide transition-all">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm text-slate-400">Diskon (Nota)</span>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 font-medium text-[11px]">Rp</span>
+                            <input type="text" id="input-diskon" name="diskon" value="0"
+                                class="format-ribuan w-36 h-9 bg-white border border-slate-100 rounded-xl text-right text-sm text-slate-700 font-semibold focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 pl-9">
+                        </div>
+                    </div>
+
+                    @if($totalTerbayar > 0)
+                    <div class="flex justify-between items-center text-sm mb-3 text-emerald-600">
+                        <span>Sudah Dibayar</span>
+                        <span class="font-semibold">- Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</span>
+                    </div>
+                    <input type="hidden" id="total_terbayar_hidden" value="{{ $totalTerbayar }}">
+                    @else
+                    <input type="hidden" id="total_terbayar_hidden" value="0">
+                    @endif
+
+                    <div class="h-px bg-indigo-100/70 my-4"></div>
+
+                    <div class="flex justify-between items-end">
+                        <span class="text-xs font-semibold text-indigo-400">{{ $totalTerbayar > 0 ? 'Sisa Tagihan' : 'Grand Total' }}</span>
+                        <input type="hidden" id="grand_total_hidden" name="total_akhir" value="0">
+                        <span id="display-grand-total" class="text-3xl font-bold text-slate-800 tracking-tight">Rp 0</span>
+                    </div>
+
+                    <div class="mt-6 rounded-2xl bg-white/80 border border-white px-4 py-3.5">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[11px] font-medium text-slate-400">Status</span>
+                            <span id="status-label" class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-semibold">MENUNGGU...</span>
+                        </div>
+                        <span id="label-selisih" class="block text-[11px] text-slate-400 mt-2">Kalkulasi</span>
+                        <div id="display-selisih" class="text-xl font-bold text-slate-700">Rp 0</div>
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-2 gap-3">
+                        <button type="button" onclick="simpanSaja()" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white border border-slate-100 hover:border-indigo-200 text-slate-500 hover:text-indigo-600 font-semibold text-xs transition-all">
                             <i class="fas fa-inbox"></i> Simpan
                         </button>
-                        <button type="submit" {{ !$kasAktif ? 'disabled title="Kas belum dibuka - lihat peringatan di atas"' : '' }} class="flex items-center justify-center gap-1.5 py-3 bg-white text-indigo-600 hover:bg-indigo-50 rounded-xl font-bold text-[11px] uppercase tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white">
+                        <button type="submit" {{ !$kasAktif ? 'disabled title="Kas belum dibuka - lihat peringatan di atas"' : '' }} class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-semibold text-xs shadow-lg shadow-indigo-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
                             <i class="fas fa-cash-register"></i> Bayar
                         </button>
                     </div>
                 </div>
             </div>
-        </x-card>
+        </div>
     </form>
 
     {{-- MODAL CUSTOM HARGA - satu modal dipakai bergantian untuk semua item
@@ -518,17 +423,17 @@
 
         if (bayar <= 0) {
             statusLabel.innerText = "BELUM BAYAR";
-            statusLabel.className = "bg-red-500 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase";
+            statusLabel.className = "px-2.5 py-1 rounded-full bg-rose-50 text-rose-500 text-[10px] font-semibold";
             labelSelisih.innerText = "SISA PIUTANG";
             displaySelisih.innerText = 'Rp ' + formatRupiah(Math.abs(sisaTagihan));
         } else if (bayar < sisaTagihan) {
             statusLabel.innerText = "PIUTANG / DP";
-            statusLabel.className = "bg-amber-400 text-slate-900 px-3 py-1 rounded-lg text-[10px] font-black uppercase";
+            statusLabel.className = "px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-semibold";
             labelSelisih.innerText = "KEKURANGAN";
             displaySelisih.innerText = 'Rp ' + formatRupiah(Math.abs(selisih));
         } else {
             statusLabel.innerText = "LUNAS";
-            statusLabel.className = "bg-emerald-400 text-slate-900 px-3 py-1 rounded-lg text-[10px] font-black uppercase";
+            statusLabel.className = "px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold";
             labelSelisih.innerText = "KEMBALIAN";
             displaySelisih.innerText = 'Rp ' + formatRupiah(selisih);
         }
