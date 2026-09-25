@@ -2,54 +2,172 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
 use App\Models\Menu;
+use App\Models\Role;
+use App\Models\User;
+use App\Services\AuditLogger;
+use App\Support\Izin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Hak akses per modul dengan 4 aksi (lihat / tambah / kelola / hapus): per role di sini,
+ * dan pengecualian per user di userIndex/userUpdate (menang atas role).
+ */
 class AksesController extends Controller
 {
-    public function index()
+    /** @return array<int, array{view:bool,add:bool,edit:bool,delete:bool}> */
+    private function izinRole(int $idRole): array
     {
-        $roles = Role::all();
-        $menus = Menu::all();
-        return view('akses.index', compact('roles', 'menus'));
+        $izin = [];
+        foreach (DB::table('role_permissions')->where('id_role', $idRole)->get() as $r) {
+            $izin[(int) $r->id_menu] = ['view' => (bool) $r->can_view, 'add' => (bool) $r->can_add, 'edit' => (bool) $r->can_edit, 'delete' => (bool) $r->can_delete];
+        }
+
+        return $izin;
+    }
+
+    /** Baca isian matriks izin[menu][aksi] -> array id_menu => flag (add/edit/delete otomatis menyalakan view). */
+    private function bacaMatriks(Request $request): array
+    {
+        $hasil = [];
+        foreach (Menu::pluck('id_menu') as $idMenu) {
+            $in = (array) $request->input("izin.{$idMenu}", []);
+            $f = ['view' => isset($in['view']), 'add' => isset($in['add']), 'edit' => isset($in['edit']), 'delete' => isset($in['delete'])];
+            if ($f['add'] || $f['edit'] || $f['delete']) {
+                $f['view'] = true;
+            }
+            $hasil[(int) $idMenu] = $f;
+        }
+
+        return $hasil;
+    }
+
+    public function index(Request $request)
+    {
+        $roles = Role::orderBy('id_role')->get();
+        $role = $roles->firstWhere('id_role', (int) $request->query('role'))
+            ?? $roles->first(fn ($r) => $r->nama_role !== 'Administrator')
+            ?? $roles->first();
+
+        return view('akses.index', [
+            'roles' => $roles,
+            'role' => $role,
+            'menus' => Menu::orderBy('urutan')->orderBy('id_menu')->get(),
+            'izin' => $this->izinRole((int) $role->id_role),
+        ]);
     }
 
     public function update(Request $request)
-{
-    // Kita gunakan Transaction agar jika satu gagal, semua batal (Data Integrity)
-    DB::transaction(function () use ($request) {
-        
-        // 1. Bersihkan semua izin lama agar tidak duplikat
-        DB::table('role_permissions')->delete();
+    {
+        // Jalur lama (satu form untuk semua role): permissions[id_role][] = id_menu -> semua aksi diberikan.
+        if ($request->has('permissions') || !$request->has('role_id')) {
+            return $this->updateLama($request);
+        }
 
-        // 2. Ambil data dari checkbox (Array permissions[id_role][])
-        $allPermissions = $request->input('permissions');
+        $role = Role::findOrFail((int) $request->input('role_id'));
+        $matriks = $this->bacaMatriks($request);
 
-        if ($allPermissions) {
-            $dataToInsert = [];
-            foreach ($allPermissions as $roleId => $menuIds) {
-                foreach ($menuIds as $menuId) {
-                    $dataToInsert[] = [
-                        'id_role' => $roleId,
-                        'id_menu' => $menuId
-                    ];
+        DB::transaction(function () use ($role, $matriks, $request) {
+            DB::table('role_permissions')->where('id_role', $role->id_role)->delete();
+            $baris = [];
+            foreach ($matriks as $idMenu => $f) {
+                if ($f['view']) {
+                    $baris[] = ['id_role' => $role->id_role, 'id_menu' => $idMenu, 'can_view' => 1, 'can_add' => (int) $f['add'], 'can_edit' => (int) $f['edit'], 'can_delete' => (int) $f['delete']];
                 }
             }
-            
-            // 3. Masukkan data baru secara massal
-            DB::table('role_permissions')->insert($dataToInsert);
-        }
-
-        // 4. Hak "boleh melihat & mengubah harga" per role (Administrator selalu boleh).
-        $bolehLihat = collect($request->input('lihat_harga', []))->map(fn ($id) => (int) $id)->all();
-        foreach (Role::all() as $role) {
-            $role->boleh_lihat_harga = $role->nama_role === 'Administrator' || in_array((int) $role->id_role, $bolehLihat, true);
+            if ($baris) {
+                DB::table('role_permissions')->insert($baris);
+            }
+            $role->boleh_lihat_harga = $role->nama_role === 'Administrator' || $request->boolean('boleh_lihat_harga');
             $role->save();
-        }
-    });
+        });
 
-    return back()->with('success', 'Hak akses seluruh role berhasil disinkronkan!');
-}
+        Izin::lupakan();
+        AuditLogger::log('updated', 'role_permissions', (int) $role->id_role, null, ['role' => $role->nama_role], "Hak akses role {$role->nama_role} diperbarui (matriks lihat/tambah/kelola/hapus)");
+
+        return redirect()->route('akses.index', ['role' => $role->id_role])->with('success', "Hak akses role {$role->nama_role} disimpan.");
+    }
+
+    private function updateLama(Request $request)
+    {
+        DB::transaction(function () use ($request) {
+            DB::table('role_permissions')->delete();
+            $dataToInsert = [];
+            foreach ((array) $request->input('permissions', []) as $roleId => $menuIds) {
+                foreach ($menuIds as $menuId) {
+                    $dataToInsert[] = ['id_role' => $roleId, 'id_menu' => $menuId, 'can_view' => 1, 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1];
+                }
+            }
+            if ($dataToInsert) {
+                DB::table('role_permissions')->insert($dataToInsert);
+            }
+
+            $bolehLihat = collect($request->input('lihat_harga', []))->map(fn ($id) => (int) $id)->all();
+            foreach (Role::all() as $role) {
+                $role->boleh_lihat_harga = $role->nama_role === 'Administrator' || in_array((int) $role->id_role, $bolehLihat, true);
+                $role->save();
+            }
+        });
+        Izin::lupakan();
+
+        return back()->with('success', 'Hak akses seluruh role berhasil disinkronkan!');
+    }
+
+    // ---------- pengecualian per user ----------
+
+    public function userIndex(int $id)
+    {
+        $user = User::with('role')->findOrFail($id);
+        $izinRole = $this->izinRole((int) $user->id_role);
+        $override = DB::table('user_permissions')->where('id_user', $user->id_user)->get()->keyBy('id_menu');
+
+        $izin = $izinRole;
+        foreach ($override as $idMenu => $o) {
+            $izin[(int) $idMenu] = ['view' => (bool) $o->can_view, 'add' => (bool) $o->can_add, 'edit' => (bool) $o->can_edit, 'delete' => (bool) $o->can_delete];
+        }
+
+        return view('akses.user', [
+            'user' => $user, 'izin' => $izin, 'izinRole' => $izinRole, 'override' => $override,
+            'menus' => Menu::orderBy('urutan')->orderBy('id_menu')->get(),
+        ]);
+    }
+
+    public function userUpdate(Request $request, int $id)
+    {
+        $user = User::findOrFail($id);
+        $izinRole = $this->izinRole((int) $user->id_role);
+        $matriks = $this->bacaMatriks($request);
+        $kosong = ['view' => false, 'add' => false, 'edit' => false, 'delete' => false];
+
+        DB::transaction(function () use ($user, $matriks, $izinRole, $kosong) {
+            DB::table('user_permissions')->where('id_user', $user->id_user)->delete();
+            $baris = [];
+            foreach ($matriks as $idMenu => $f) {
+                // Simpan HANYA yang berbeda dari hak role-nya; yang sama tetap "ikut role".
+                if (($izinRole[$idMenu] ?? $kosong) === $f) {
+                    continue;
+                }
+                $baris[] = ['id_user' => $user->id_user, 'id_menu' => $idMenu, 'can_view' => (int) $f['view'], 'can_add' => (int) $f['add'], 'can_edit' => (int) $f['edit'], 'can_delete' => (int) $f['delete'], 'created_at' => now(), 'updated_at' => now()];
+            }
+            if ($baris) {
+                DB::table('user_permissions')->insert($baris);
+            }
+        });
+
+        Izin::lupakan();
+        AuditLogger::log('updated', 'user_permissions', (int) $user->id_user, null, ['user' => $user->username], "Pengecualian hak akses user {$user->username} diperbarui");
+
+        return redirect()->route('akses.user', $user->id_user)->with('success', 'Hak akses khusus user disimpan.');
+    }
+
+    public function userReset(int $id)
+    {
+        $user = User::findOrFail($id);
+        DB::table('user_permissions')->where('id_user', $user->id_user)->delete();
+        Izin::lupakan();
+        AuditLogger::log('updated', 'user_permissions', (int) $user->id_user, null, ['user' => $user->username], "Pengecualian hak akses user {$user->username} dihapus (kembali ikut role)");
+
+        return redirect()->route('akses.user', $user->id_user)->with('success', 'Hak akses user dikembalikan mengikuti role.');
+    }
 }

@@ -57,8 +57,11 @@ class KasSesiService
     /** Alasan transaksi kas diblokir (mis. libur Minggu), atau null bila boleh. */
     public static function alasanTerblokir(): ?string
     {
-        if (AppSetting::current()->libur_kas_minggu && now()->isSunday()) {
-            return 'Hari Minggu kas libur - transaksi tidak bisa dicatat. Closing kas tetap bisa dilakukan; ubah aturan ini di Pengaturan Aplikasi bila toko buka hari Minggu.';
+        // Jam kerja (Pengaturan > Jam Kerja): hari tutup selalu memblokir transaksi baru; di luar jam buka
+        // hanya memblokir bila "batasi transaksi di luar jam kerja" diaktifkan. Closing kas tetap boleh.
+        $alasanJam = JamKerjaService::alasanTutup();
+        if ($alasanJam) {
+            return $alasanJam;
         }
 
         return null;

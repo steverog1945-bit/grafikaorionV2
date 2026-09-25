@@ -292,10 +292,9 @@
 </div>
             <nav class="mt-5 px-4 pb-24 space-y-1.5">
     @php
-        $userAkses = DB::table('role_permissions')
-                        ->where('id_role', Auth::user()->id_role)
-                        ->pluck('id_menu')
-                        ->toArray();
+        $userAkses = \App\Support\Izin::menuTerlihat(Auth::user());
+        // Menu yang dinonaktifkan lewat Menu Editor disembunyikan dari sidebar untuk semua role.
+        $menuNonaktif = DB::table('menus')->where('aktif', false)->pluck('id_menu')->map(fn ($i) => (int) $i)->all();
 
         // Administrator selalu lolos di sini juga, sama seperti bypass di
         // CheckMenuAccess middleware. Tanpa ini, menu sidebar Administrator
@@ -310,7 +309,11 @@
         $menuBerharga = [21, 58];
         $bolehLihatHargaSidebar = \App\Support\AksesHarga::bolehLihat();
 
-        $cekAkses = function($idMenu) use ($userAkses, $isAdministrator, $menuBerharga, $bolehLihatHargaSidebar) {
+        $cekAkses = function($idMenu) use ($userAkses, $isAdministrator, $menuBerharga, $bolehLihatHargaSidebar, $menuNonaktif) {
+            if (in_array($idMenu, $menuNonaktif, true)) {
+                return false;
+            }
+
             if (!$bolehLihatHargaSidebar && in_array($idMenu, $menuBerharga, true)) {
                 return false;
             }
@@ -899,6 +902,23 @@
     @endif
 
     @php
+        $menuKustom = DB::table('menus')->where('jenis', 'kustom')->where('aktif', true)->orderBy('urutan')->orderBy('id_menu')->get()
+            ->filter(fn ($m) => $cekAkses((int) $m->id_menu));
+    @endphp
+    @if($menuKustom->isNotEmpty())
+    <div class="pt-5 pb-2 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">Menu Tambahan</div>
+    <div class="space-y-1">
+        @foreach($menuKustom as $mk)
+        @php $luar = preg_match('#^https?://#i', $mk->url_link); @endphp
+        <a href="{{ $luar ? $mk->url_link : url($mk->url_link) }}" @if($luar) target="_blank" rel="noopener" @endif class="{{ $menuClass }} {{ $nonActiveClass }}">
+            <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+            <span class="text-sm font-medium">{{ $mk->label_kustom ?: $mk->nama_menu }}</span>
+        </a>
+        @endforeach
+    </div>
+    @endif
+
+    @php
         // Accounting Period cuma bisa diakses Administrator (menu_access.php
         // 'accounting-period' => [] - tidak ada id_menu yang bisa
         // menggrant-nya lewat role_permissions), jadi dicek $isAdministrator
@@ -991,7 +1011,7 @@
         // ada id_menu yang bisa menggrant lewat role_permissions), jadi
         // dicek $isAdministrator langsung, sama seperti Accounting Period.
         $grpSystemVisible = $cekAkses(6) || $cekAkses(4) || $cekAkses(37) || $isAdministrator;
-        $grpSystemAktif = Request::is('users*') || Request::is('setting-akses*') || Request::is('pengaturan-aplikasi*')
+        $grpSystemAktif = Request::is('users*') || Request::is('setting-akses*') || Request::is('pengaturan-aplikasi*') || Request::is('pengaturan-jam-kerja*') || Request::is('menu-editor*')
             || Request::is('approval*') || Request::is('log-aktivitas*') || Request::is('backup*');
     @endphp
     @if($grpSystemVisible)
@@ -1030,6 +1050,24 @@
     </svg>
     <span class="text-sm font-medium">Pengaturan Aplikasi</span>
 </a>
+
+@if($cekAkses(37))
+<a href="{{ route('jam-kerja.index') }}" class="{{ $menuClass }} {{ Request::is('pengaturan-jam-kerja*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('pengaturan-jam-kerja*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span class="text-sm font-medium">Jam Kerja</span>
+</a>
+@endif
+
+@if($cekAkses(4))
+<a href="{{ route('menu-editor.index') }}" class="{{ $menuClass }} {{ Request::is('menu-editor*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('menu-editor*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+    </svg>
+    <span class="text-sm font-medium">Menu Editor</span>
+</a>
+@endif
 @endif
 
 @if($isAdministrator)

@@ -548,8 +548,8 @@ class KasirController extends Controller
     // Aplikasi) - dicek PALING AWAL sebelum guard eksklusivitas di bawah,
     // supaya pesannya jelas menunjuk alasan hari libur, bukan "sudah dibuka
     // orang lain" yang membingungkan.
-    if (\App\Models\AppSetting::current()->libur_kas_minggu && now()->isSunday()) {
-        return redirect()->route('kasir.kelola')->with('error', 'Hari Minggu kas libur - Open Saldo tidak bisa dilakukan. Ubah pengaturan ini di Pengaturan Aplikasi kalau toko memang buka hari Minggu.');
+    if ($alasanLibur = \App\Services\JamKerjaService::alasanTutup()) {
+        return redirect()->route('kasir.kelola')->with('error', 'Open Saldo tidak bisa dilakukan. ' . $alasanLibur);
     }
 
     // Open saldo bersifat EKSKLUSIF - hanya SATU sesi kas boleh aktif dalam

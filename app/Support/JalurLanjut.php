@@ -53,6 +53,6 @@ class JalurLanjut
             return false;
         }
 
-        return DB::table('role_permissions')->where('id_role', $user->id_role)->whereIn('id_menu', $rules[$cocok])->exists();
+        return Izin::boleh($user, $rules[$cocok], 'view');
     }
 }
