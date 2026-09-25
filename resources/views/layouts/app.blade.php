@@ -1026,6 +1026,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <span class="text-sm font-medium">Approval Workflow</span>
+    <span id="badge-approval" class="hidden ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-rose-500 text-white text-[11px] font-bold items-center justify-center"></span>
 </a>
 <a href="{{ route('audit-log.index') }}" class="{{ $menuClass }} {{ Request::is('log-aktivitas*') ? $activeClass : $nonActiveClass }}">
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('log-aktivitas*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1161,7 +1162,20 @@
         });
 
         @if(session('success'))
-            Toast.fire({ icon: 'success', title: "{{ session('success') }}" });
+            @php $lanjut = session('lanjut'); @endphp
+            @if($lanjut)
+                {{-- Jalan pintas: beri tahu ke mana proses berlanjut setelah aksi ini. --}}
+                Swal.fire({
+                    toast: true, position: 'top-end', icon: 'success', timer: 9000, timerProgressBar: true,
+                    title: @json(session('success')),
+                    text: @json($lanjut['teks'] ?? ''),
+                    showConfirmButton: {{ !empty($lanjut['url']) ? 'true' : 'false' }},
+                    confirmButtonText: @json(($lanjut['tombol'] ?? 'Lanjut') . ' →'),
+                    confirmButtonColor: '#4f46e5', showCloseButton: true
+                }).then(r => { if (r.isConfirmed) window.location.href = @json($lanjut['url'] ?? '#'); });
+            @else
+                Toast.fire({ icon: 'success', title: "{{ session('success') }}" });
+            @endif
         @endif
         @if(session('error'))
             Swal.fire({ icon: 'error', title: 'Opps!', text: "{{ session('error') }}", customClass: { popup: 'rounded-3xl' } });
@@ -1231,6 +1245,49 @@
     @if(auth()->check() && $cekAkses(16))
         setInterval(checkTransactions, 10000);
     @endif
+    </script>
+    <script>
+    // Refresh otomatis ringan: cek "sidik jari" perubahan data tiap 30 detik, HANYA saat tab terlihat
+    // (tab latar tidak membebani server). Bila berubah: halaman idle dimuat ulang sendiri; bila user
+    // sedang mengetik / modal terbuka / halaman form, cukup munculkan tombol "Muat ulang".
+    (function () {
+        let basis = null, sibuk = false, kotor = false, jeda = 30000, timer = null;
+        const halamanForm = /\/(create|edit|input|bayar|preview-closing|kelola)(\/|$)/.test(location.pathname);
+        document.addEventListener('input', () => { kotor = true; }, true);
+        function aman() {
+            if (kotor || halamanForm) return false;
+            if (document.querySelector('.swal2-popup:not(.swal2-toast), [role=dialog]:not(.hidden), .modal-open, dialog[open]')) return false;
+            const a = document.activeElement;
+            return !(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
+        }
+        function pill() {
+            if (document.getElementById('pill-segarkan')) return;
+            const b = document.createElement('button');
+            b.id = 'pill-segarkan'; b.type = 'button';
+            b.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] px-5 py-2.5 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow-xl hover:bg-indigo-700';
+            b.textContent = 'Data diperbarui di tab/pengguna lain — Muat ulang';
+            b.onclick = () => location.reload();
+            document.body.appendChild(b);
+        }
+        async function cek() {
+            if (document.hidden || sibuk) return;
+            sibuk = true;
+            try {
+                const r = await fetch(@json(url('/sinyal')), { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
+                if (!r.ok) throw new Error(r.status);
+                const d = await r.json();
+                jeda = 30000;
+                const bd = document.getElementById('badge-approval');
+                if (bd && d.approval !== null) { bd.textContent = d.approval; bd.classList.toggle('hidden', d.approval < 1); bd.classList.toggle('inline-flex', d.approval >= 1); }
+                if (basis === null) basis = d.v;
+                else if (d.v !== basis) { aman() ? location.reload() : pill(); }
+            } catch (e) { jeda = Math.min(jeda * 2, 300000); }
+            finally { sibuk = false; jadwal(); }
+        }
+        function jadwal() { clearTimeout(timer); timer = setTimeout(cek, jeda); }
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) cek(); });
+        cek();
+    })();
     </script>
     <script>
         // Toggle Sidebar Desktop - collapse ke ICON-ONLY (bukan hilang total,

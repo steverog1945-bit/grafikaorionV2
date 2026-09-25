@@ -27,7 +27,7 @@ class ApprovalService
         string $ringkasan,
         ?string $alasanPengajuan = null
     ): ApprovalRequest {
-        return ApprovalRequest::create([
+        $req = ApprovalRequest::create([
             'tipe_aksi' => $tipeAksi,
             'referensi_type' => $referensiType,
             'referensi_id' => $referensiId,
@@ -37,6 +37,11 @@ class ApprovalService
             'alasan_pengajuan' => $alasanPengajuan,
             'status' => 'Menunggu',
         ]);
+
+        // Jalan pintas di toast berikutnya: beri tahu ke mana proses berlanjut.
+        session()->flash('lanjut', ['teks' => 'Menunggu persetujuan Administrator', 'url' => optional(Auth::user()->role)->nama_role === 'Administrator' ? route('approval.index') : null, 'tombol' => 'Lihat Antrian Persetujuan']);
+
+        return $req;
     }
 
     /**

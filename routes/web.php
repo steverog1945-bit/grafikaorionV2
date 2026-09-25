@@ -55,6 +55,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 |--------------------------------------------------------------------------
 */
 
+Route::middleware(['auth'])->get('/sinyal', [\App\Http\Controllers\SinyalController::class, 'index'])->name('sinyal');
+
 Route::middleware(['auth', 'menu.access'])->group(function () {
 
     /*
