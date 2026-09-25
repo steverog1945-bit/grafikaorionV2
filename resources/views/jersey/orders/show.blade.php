@@ -308,6 +308,7 @@
 </template>
 
 @push('scripts')
+@include('jersey.orders._size-helper')
 <script>
     function togglePrintMenuRingkasan(event) {
         event.stopPropagation();

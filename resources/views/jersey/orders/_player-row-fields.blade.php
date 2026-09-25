@@ -5,7 +5,11 @@
     <td class="p-1"><input type="text" name="{{ $prefix }}[items][{{ $itemIdx }}][player_number]" value="{{ $item->player_number ?? '' }}" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-semibold"></td>
     <td class="p-1">
         <select name="{{ $prefix }}[items][{{ $itemIdx }}][size]" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-semibold">
-            @foreach($sizes as $s)<option value="{{ $s->name }}" @selected(($item->size ?? null) === $s->name)>{{ $s->name }}</option>@endforeach
+            @foreach($sizes->groupBy(fn ($sz) => ($sz->kelompok ?? 'dewasa') === 'anak' ? 'anak' : 'dewasa') as $kel => $grupSize)
+            <optgroup label="{{ $kel === 'anak' ? 'Anak' : 'Dewasa' }}">
+                @foreach($grupSize as $s)<option value="{{ $s->name }}" @selected(($item->size ?? null) === $s->name)>{{ $s->name }}</option>@endforeach
+            </optgroup>
+            @endforeach
         </select>
     </td>
     <td class="p-1">

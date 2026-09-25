@@ -82,6 +82,7 @@
 </template>
 
 @push('scripts')
+@include('jersey.orders._size-helper')
 <script>
     // jerseyLineIndex dimulai dari angka besar (timestamp) supaya barang
     // BARU yang ditambah lewat "+ Tambah Jenis Barang" di halaman edit ini

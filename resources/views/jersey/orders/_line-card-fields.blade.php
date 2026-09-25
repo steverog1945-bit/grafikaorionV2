@@ -103,15 +103,27 @@
     </div>
 
     <div class="wrapper-qty-ukuran {{ $otIsi === 'player_list' ? 'hidden' : '' }}">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Qty per Ukuran</p>
-        <div class="grid grid-cols-3 md:grid-cols-8 gap-2">
-            @foreach($sizes as $s)
-            <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase text-center mb-1">{{ $s->name }}</label>
-                <input type="number" name="lines[{{ $idx }}][size_quantities][{{ $s->id }}]" min="0" value="{{ $sizeQtyMap[$s->id] ?? 0 }}" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500/20">
-            </div>
-            @endforeach
+        <div class="flex items-center justify-between mb-2">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Qty per Ukuran</p>
+            <span class="px-3 py-1 rounded-full bg-indigo-600 text-white text-[11px] font-black">Total: <span class="qty-total-line">0</span> pcs</span>
         </div>
+        @foreach($sizes->groupBy(fn ($sz) => ($sz->kelompok ?? 'dewasa') === 'anak' ? 'anak' : 'dewasa') as $kelompok => $daftarSize)
+        <div class="mb-3 rounded-2xl border {{ $kelompok === 'anak' ? 'border-amber-100 bg-amber-50/40' : 'border-slate-100 bg-slate-50/50' }} p-3 grup-ukuran" data-kelompok="{{ $kelompok }}">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-widest {{ $kelompok === 'anak' ? 'text-amber-600' : 'text-slate-500' }}"><i class="fas {{ $kelompok === 'anak' ? 'fa-child' : 'fa-user' }} mr-1"></i>{{ $kelompok === 'anak' ? 'Ukuran Anak' : 'Ukuran Dewasa' }}</span>
+                <span class="text-[10px] font-bold text-slate-400"><span class="qty-total-grup">0</span> pcs</span>
+            </div>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                @foreach($daftarSize as $s)
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase text-center mb-1">{{ $s->name }}@if((float) ($s->price_percent ?? 0) < 0)<span class="block text-[8px] text-emerald-500 normal-case font-bold">{{ angka((float) $s->price_percent, 0) }}%</span>@endif</label>
+                    <input type="number" inputmode="numeric" name="lines[{{ $idx }}][size_quantities][{{ $s->id }}]" min="0" value="{{ $sizeQtyMap[$s->id] ?? 0 }}" onfocus="this.select()" class="input-qty-ukuran w-full bg-white border border-slate-100 rounded-lg p-2 text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300">
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endforeach
+        <p class="text-[10px] text-slate-400">Tekan <b>Enter</b> untuk pindah ke ukuran berikutnya. Ukuran anak otomatis memakai selisih harga yang diatur di Master Data.</p>
     </div>
 
     <div class="wrapper-daftar-pemain {{ $otIsi === 'quantity_only' ? 'hidden' : '' }}">

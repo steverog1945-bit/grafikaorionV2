@@ -246,20 +246,18 @@ class JerseyOrderController extends Controller
      * jalur itu tidak pernah punya rumus yang beda sendiri-sendiri.
      * Return null kalau baris kosong (belum diisi qty/pemain sama sekali).
      */
+    /** Cache master per instance controller (= per request), bukan static, agar tidak basi antar-request/tes. */
+    private array $cacheMaster = [];
+
     private function hitungHargaBaris(array $lineData): ?array
     {
-        static $sizeIdByName = null;
-        static $surchargeBySizeId = null;
-        static $sleeveNameById = null;
-        static $collarNameById = null;
-        static $sleeveSurchargeById = null;
-        static $collarSurchargeById = null;
-        $sizeIdByName ??= JerseySize::pluck('id', 'name');
-        $surchargeBySizeId ??= JerseySize::pluck('price_surcharge', 'id');
-        $sleeveNameById ??= JerseySleeveType::pluck('name', 'id');
-        $collarNameById ??= JerseyCollarType::pluck('name', 'id');
-        $sleeveSurchargeById ??= JerseySleeveType::pluck('price_surcharge', 'id');
-        $collarSurchargeById ??= JerseyCollarType::pluck('price_surcharge', 'id');
+        $sizeIdByName = $this->cacheMaster['sizeIdByName'] ??= JerseySize::pluck('id', 'name');
+        $surchargeBySizeId = $this->cacheMaster['surchargeBySizeId'] ??= JerseySize::pluck('price_surcharge', 'id');
+        $percentBySizeId = $this->cacheMaster['percentBySizeId'] ??= JerseySize::pluck('price_percent', 'id');
+        $sleeveNameById = $this->cacheMaster['sleeveNameById'] ??= JerseySleeveType::pluck('name', 'id');
+        $collarNameById = $this->cacheMaster['collarNameById'] ??= JerseyCollarType::pluck('name', 'id');
+        $sleeveSurchargeById = $this->cacheMaster['sleeveSurchargeById'] ??= JerseySleeveType::pluck('price_surcharge', 'id');
+        $collarSurchargeById = $this->cacheMaster['collarSurchargeById'] ??= JerseyCollarType::pluck('price_surcharge', 'id');
 
         $items = array_values(array_filter($lineData['items'] ?? [], fn ($i) => trim($i['player_name'] ?? '') !== ''));
         $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
@@ -334,7 +332,9 @@ class JerseyOrderController extends Controller
         // satu baris barang tentu punya surcharge yang sama.
         $surchargeTotal = 0.0;
         foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
-            $surchargeTotal += (float) ($surchargeBySizeId[$sizeId] ?? 0) * $qtyUkuran;
+            // Selisih per ukuran = nominal tetap + persen dari harga tier (persen negatif = diskon, mis. ukuran anak).
+            $selisihPerPcs = (float) ($surchargeBySizeId[$sizeId] ?? 0) + $hargaSatuan * (float) ($percentBySizeId[$sizeId] ?? 0) / 100;
+            $surchargeTotal += $selisihPerPcs * $qtyUkuran;
         }
 
         // Tambahan harga per Tipe Lengan/Kerah (mis. lengan panjang lebih
