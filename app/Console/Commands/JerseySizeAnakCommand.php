@@ -30,6 +30,14 @@ class JerseySizeAnakCommand extends Command
         'Anak 2XL (14-15 th)' => [0.93, -10, 'Anak 14'],
     ];
 
+    /** Tier harga anak = harga tier dewasa x faktor ini (dibulatkan ke Rp500). Bisa diubah di Master Data > Tier Harga. */
+    private const FAKTOR_HARGA_ANAK = 0.80;
+
+    /** Selisih % antar usia relatif terhadap tier anak (usia lebih kecil sedikit lebih murah, lebih besar sedikit lebih mahal). */
+    private const PERSEN_USIA = ['Anak XS (4-5 th)' => -10, 'Anak S (6-7 th)' => -6, 'Anak M (8-9 th)' => -3, 'Anak L (10-11 th)' => 0, 'Anak XL (12-13 th)' => 4, 'Anak 2XL (14-15 th)' => 8];
+    /** Persen versi awal (relatif ke harga dewasa) - hanya baris yang masih memakai nilai ini yang diganti. */
+    private const PERSEN_LAMA = ['Anak XS (4-5 th)' => -35, 'Anak S (6-7 th)' => -30, 'Anak M (8-9 th)' => -25, 'Anak L (10-11 th)' => -20, 'Anak XL (12-13 th)' => -15, 'Anak 2XL (14-15 th)' => -10];
+
     public function handle(): int
     {
         if (!$this->option('simulasi') && !$this->option('tanpa-backup')) {
@@ -49,6 +57,7 @@ class JerseySizeAnakCommand extends Command
 
         $baru = 0;
         $estimasi = 0;
+        $tierBaru = 0;
 
         DB::beginTransaction();
         try {
@@ -92,6 +101,27 @@ class JerseySizeAnakCommand extends Command
                 }
             }
 
+            // Tier harga kelompok ANAK: salinan tier dewasa yang aktif x faktor (baris yang sudah ada tidak ditimpa).
+            foreach (DB::table('jersey_price_settings')->where('kelompok', 'dewasa')->where('is_active', 1)->get() as $t) {
+                $ada = DB::table('jersey_price_settings')->where('kelompok', 'anak')
+                    ->where('jersey_product_type_id', $t->jersey_product_type_id)->where('jersey_category_id', $t->jersey_category_id)
+                    ->where('jersey_material_id', $t->jersey_material_id)->where('qty_min', $t->qty_min)->exists();
+                if ($ada) {
+                    continue;
+                }
+                DB::table('jersey_price_settings')->insert([
+                    'jersey_product_type_id' => $t->jersey_product_type_id, 'jersey_category_id' => $t->jersey_category_id, 'jersey_material_id' => $t->jersey_material_id,
+                    'qty_min' => $t->qty_min, 'qty_max' => $t->qty_max, 'price' => round((float) $t->price * self::FAKTOR_HARGA_ANAK / 500) * 500,
+                    'is_active' => 1, 'kelompok' => 'anak', 'created_at' => now(), 'updated_at' => now(),
+                ]);
+                $tierBaru++;
+            }
+
+            // Selisih persen antar usia (relatif ke tier anak) - hanya menggantikan nilai bawaan versi awal.
+            foreach (self::PERSEN_USIA as $nama => $persen) {
+                DB::table('jersey_sizes')->where('name', $nama)->where('price_percent', self::PERSEN_LAMA[$nama])->update(['price_percent' => $persen, 'updated_at' => now()]);
+            }
+
             if ($this->option('simulasi')) {
                 DB::rollBack();
                 $this->warn('SIMULASI - dibatalkan.');
@@ -105,7 +135,7 @@ class JerseySizeAnakCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info("Ukuran anak baru: {$baru}; baris estimasi bahan ditambah: {$estimasi}.");
+        $this->info("Ukuran anak baru: {$baru}; baris estimasi bahan ditambah: {$estimasi}; tier harga anak baru: {$tierBaru}.");
 
         return self::SUCCESS;
     }

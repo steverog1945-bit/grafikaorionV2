@@ -59,4 +59,23 @@ class JerseySizeAnakTest extends TestCase
 
         $this->actingAs($this->admin)->postJson('/jersey/master/sizes', ['name' => 'Anak 98', 'price_percent' => -95])->assertStatus(422);
     }
+
+    public function test_tier_harga_khusus_anak_dipakai_untuk_ukuran_anak(): void
+    {
+        [$m, $anak] = $this->sizes();
+        DB::table('jersey_sizes')->where('id', $anak)->update(['price_percent' => 0]);
+        $tipe = DB::table('jersey_product_types')->insertGetId(['name' => 'JerseyUji2', 'has_sleeve_collar' => 0, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('jersey_price_settings')->insert([
+            ['jersey_product_type_id' => $tipe, 'qty_min' => 1, 'qty_max' => 100, 'price' => 100000, 'is_active' => 1, 'kelompok' => 'dewasa', 'created_at' => now(), 'updated_at' => now()],
+            ['jersey_product_type_id' => $tipe, 'qty_min' => 1, 'qty_max' => 100, 'price' => 80000, 'is_active' => 1, 'kelompok' => 'anak', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        $res = $this->actingAs($this->admin)->postJson('/jersey/preview-harga', ['lines' => [[
+            'nama_barang' => 'X', 'order_type' => 'quantity_only', 'jersey_product_type_id' => $tipe, 'size_quantities' => [$m => 2, $anak => 3],
+        ]]])->assertOk();
+
+        // 2 x 100.000 + 3 x 80.000 = 440.000; harga satuan rata-rata tertimbang 88.000
+        $this->assertEquals(440000, (float) $res->json('lines.0.subtotal'));
+        $this->assertEquals(88000, (float) $res->json('lines.0.harga_satuan'));
+    }
 }

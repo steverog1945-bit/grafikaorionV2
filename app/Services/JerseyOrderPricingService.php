@@ -19,7 +19,7 @@ use App\Models\JerseyPriceSetting;
  */
 class JerseyOrderPricingService
 {
-    public static function cariTierHarga(?int $productTypeId, ?int $categoryId, ?int $materialId, int $qty): ?JerseyPriceSetting
+    public static function cariTierHarga(?int $productTypeId, ?int $categoryId, ?int $materialId, int $qty, string $kelompok = 'dewasa'): ?JerseyPriceSetting
     {
         $kombinasiTipeKategori = [
             [$productTypeId, $categoryId],
@@ -34,6 +34,7 @@ class JerseyOrderPricingService
             foreach ($kombinasiTipeKategori as [$pt, $cat]) {
                 $tier = JerseyPriceSetting::query()
                     ->where('is_active', true)
+                    ->where('kelompok', $kelompok)
                     ->where('jersey_product_type_id', $pt)
                     ->where('jersey_category_id', $cat)
                     ->where('jersey_material_id', $mat)

@@ -359,7 +359,14 @@
                     <h3 class="text-xs font-black text-emerald-700 uppercase tracking-widest"><i class="fas fa-bolt mr-1"></i> Input Cepat per Tipe Produk</h3>
                     <span class="text-[10px] text-slate-400">Pilih tipe produk, isi semua tier sekaligus. Berlaku untuk semua kategori.</span>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                    <div>
+                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Untuk Ukuran</label>
+                        <select id="cepat-kelompok" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
+                            <option value="dewasa">Dewasa (harga umum)</option>
+                            <option value="anak">Anak (harga khusus ukuran anak)</option>
+                        </select>
+                    </div>
                     <div>
                         <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
                         <select id="cepat-tipe" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
@@ -1160,7 +1167,7 @@
     // ---- Input Cepat Tier Harga per Tipe Produk ----
     @php
         $tierHargaUmum = $priceSettings->whereNull('jersey_category_id')->map(function ($p) {
-            return ['tipe' => $p->jersey_product_type_id, 'bahan' => $p->jersey_material_id, 'qty_min' => $p->qty_min, 'qty_max' => $p->qty_max, 'price' => (float) $p->price];
+            return ['tipe' => $p->jersey_product_type_id, 'bahan' => $p->jersey_material_id, 'kelompok' => $p->kelompok ?? 'dewasa', 'qty_min' => $p->qty_min, 'qty_max' => $p->qty_max, 'price' => (float) $p->price];
         })->values();
     @endphp
     const tierHargaAda = {!! json_encode($tierHargaUmum) !!};
@@ -1184,7 +1191,7 @@
         wadah.innerHTML = '';
         if (!tipe) return;
         const ada = tierHargaAda
-            .filter(t => String(t.tipe) === tipe && String(t.bahan ?? '') === bahan)
+            .filter(t => String(t.tipe) === tipe && String(t.bahan ?? '') === bahan && t.kelompok === document.getElementById('cepat-kelompok').value)
             .sort((a, b) => a.qty_min - b.qty_min);
         (ada.length ? ada : [{}]).forEach(t => wadah.insertAdjacentHTML('beforeend', barisCepatHtml(t)));
     }
@@ -1218,7 +1225,7 @@
         })).filter(t => t.qty_min !== '' && t.price !== '');
         if (!tiers.length) { tampilkanToastJersey('Isi minimal satu tier (qty min & harga).', false); return; }
         const data = await kirimJson('{{ url("/jersey/master/price-settings/bulk") }}', 'POST', {
-            jersey_product_type_id: tipe, jersey_material_id: document.getElementById('cepat-bahan').value || null, tiers,
+            jersey_product_type_id: tipe, jersey_material_id: document.getElementById('cepat-bahan').value || null, kelompok: document.getElementById('cepat-kelompok').value, tiers,
         });
         if (!data) return;
         tampilkanToastJersey(data.message);
@@ -1227,6 +1234,7 @@
 
     document.getElementById('cepat-tipe').addEventListener('change', muatTierCepat);
     document.getElementById('cepat-bahan').addEventListener('change', muatTierCepat);
+    document.getElementById('cepat-kelompok').addEventListener('change', muatTierCepat);
     try { const tab = sessionStorage.getItem('jerseyTabAktif'); if (tab) { sessionStorage.removeItem('jerseyTabAktif'); switchJerseyTab(tab); } } catch (e) {}
 
     // ---- Tier Harga ----
@@ -1276,7 +1284,7 @@
     function rowHargaHtml(row) {
         return `
         <tr data-id="${row.id}" data-material-id="${row.jersey_material_id ?? ''}" data-type-id="${row.jersey_product_type_id ?? ''}" data-category-id="${row.jersey_category_id ?? ''}">
-            <td class="p-2.5 font-semibold text-indigo-600">${row.material ? escapeHtmlJersey(row.material.name) : 'Semua Bahan'}</td>
+            <td class="p-2.5 font-semibold text-indigo-600">${row.material ? escapeHtmlJersey(row.material.name) : 'Semua Bahan'}${row.kelompok === 'anak' ? '<span class="ml-2 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-black uppercase">Anak</span>' : ''}</td>
             <td class="p-2.5">${row.product_type ? escapeHtmlJersey(row.product_type.name) : 'Semua'}</td>
             <td class="p-2.5">${row.category ? escapeHtmlJersey(row.category.name) : 'Semua'}</td>
             <td class="p-2.5 text-center">${row.qty_min} - ${row.qty_max ?? '∞'}</td>
