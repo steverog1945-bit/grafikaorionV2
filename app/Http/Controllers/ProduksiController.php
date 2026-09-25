@@ -83,8 +83,13 @@ class ProduksiController extends Controller
             $query->whereIn('transaksi_detail.status_spk', ['Desain', 'Cetak']);
         }
 
+        // Operator hanya melihat divisi (mesin) yang jadi tanggung jawabnya, sama seperti SPK.
+        $mesinDiizinkan = \App\Services\DivisiService::mesinDiizinkan($request->user());
+        if ($mesinDiizinkan) {
+            $query->whereIn('produk.id_mesin', $mesinDiizinkan);
+        }
         \App\Services\DivisiService::saring($query, $request->divisi);
-        $divisis = \App\Services\DivisiService::daftar(null, ['Antre', 'Desain', 'Cetak']);
+        $divisis = \App\Services\DivisiService::daftar($mesinDiizinkan, ['Antre', 'Desain', 'Cetak']);
 
         $produksi = $query->orderByDesc('transaksi_detail.id_detail')->paginate(20)->withQueryString();
 

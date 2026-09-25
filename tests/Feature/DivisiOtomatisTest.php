@@ -36,4 +36,33 @@ class DivisiOtomatisTest extends TestCase
 
         $this->actingAs($admin)->get("/produksi?divisi={$m1}")->assertOk()->assertSee('FILE-SATU')->assertDontSee('FILE-DUA');
     }
+
+    public function test_operator_di_produksi_hanya_melihat_divisinya_dan_kas_open_tidak_muncul_untuknya(): void
+    {
+        $admin = User::factory()->create(['id_role' => Role::factory()->create(['nama_role' => 'Administrator'])->id_role]);
+        $mA = DB::table('mesin')->insertGetId(['nama_mesin' => 'DIV-A', 'tipe_mesin' => 'x']);
+        $mB = DB::table('mesin')->insertGetId(['nama_mesin' => 'DIV-B', 'tipe_mesin' => 'x']);
+        $g = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
+        $k = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'P', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $g]);
+        $t = DB::table('transaksi')->insertGetId(['nomor_nota' => 'N-9', 'tipe_order' => 'Reguler', 'id_konsumen' => $k, 'id_user_kasir' => $admin->id_user, 'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif']);
+        foreach ([[$mA, 'FILE-A'], [$mB, 'FILE-B']] as [$m, $n]) {
+            $p = DB::table('produk')->insertGetId(['nama_produk' => "P{$m}", 'metode_hitung' => 'quantity', 'status' => 'Aktif', 'id_mesin' => $m]);
+            DB::table('transaksi_detail')->insert(['id_transaksi' => $t, 'id_produk' => $p, 'nama_file' => $n, 'p_ukuran' => 0, 'l_ukuran' => 0, 'qty' => 1, 'subtotal' => 1, 'status_spk' => 'Cetak']);
+        }
+        // Kas dibuka admin lebih dari 24 jam lalu.
+        DB::table('kas_harian')->insert(['tgl_kas' => now()->subDays(3)->toDateString(), 'id_user' => $admin->id_user, 'saldo_awal' => 0, 'status_lock' => 'open', 'created_at' => now()->subDays(3), 'updated_at' => now()->subDays(3)]);
+
+        $kar = DB::table('karyawan')->insertGetId(['nama_karyawan' => 'Op', 'bagian' => 'Produksi', 'telepon' => '1', 'status_aktif' => 1]);
+        DB::table('karyawan_mesin')->insert(['id_karyawan' => $kar, 'id_mesin' => $mA]);
+        $role = Role::factory()->create(['nama_role' => 'Operator Produksi']);
+        $op = User::factory()->create(['id_role' => $role->id_role, 'id_karyawan' => $kar]);
+        DB::table('menus')->insertOrIgnore(['id_menu' => 23, 'nama_menu' => 'Produksi', 'url_link' => 'produksi', 'parent_id' => 0]);
+        DB::table('role_permissions')->insert(['id_role' => $role->id_role, 'id_menu' => 23]);
+
+        $this->actingAs($op)->get('/produksi')->assertOk()
+            ->assertSee('FILE-A')->assertDontSee('FILE-B')->assertDontSee('DIV-B')->assertSee('Divisi Anda')
+            ->assertDontSee('Kasir Open')->assertDontSee('Belum di-closing');
+
+        $this->actingAs($admin)->get('/produksi')->assertOk()->assertSee('Belum di-closing');
+    }
 }

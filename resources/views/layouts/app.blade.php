@@ -273,23 +273,47 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-{{-- Status Kas --}}
+{{-- Status Kas: hanya untuk Administrator, kasir pembuka saldo, dan role kasir (menu Kasir) - operator lain tidak melihatnya. --}}
+@php
+    $adminSb = optional(Auth::user()->role)->nama_role === 'Administrator';
+    $pembukaSb = $kasAktif && (int) $kasAktif->id_user === (int) Auth::id();
+    $punyaKasirSb = in_array(16, \App\Support\Izin::menuTerlihat(Auth::user()), true);
+    $tampilKasSb = $adminSb || $pembukaSb || $punyaKasirSb;
+@endphp
+@if($tampilKasSb)
 <div class="mt-5 px-4">
     @if($kasAktif)
-        <div class="sidebar-kas-status {{ $kasBasi ? 'bg-amber-500/15 border-amber-400/40' : 'bg-emerald-500/15 border-emerald-400/30' }} border rounded-xl px-3 py-2.5 flex items-center gap-2.5" title="{{ $kasBasi ? 'Kasir Open lebih dari 24 jam - belum di-closing' : 'Kasir: Open' }}">
-            <span class="relative flex h-2.5 w-2.5 shrink-0">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+        @php
+            $mulaiSb = \App\Services\KasSesiService::mulai($kasAktif);
+            $umurSb = \App\Services\KasSesiService::umurJam($kasAktif);
+            $pemilikSb = $pembukaSb ? 'Anda' : (DB::table('users')->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')->where('users.id_user', $kasAktif->id_user)->value(DB::raw('COALESCE(karyawan.nama_karyawan, users.username)')) ?? '-');
+            $umurTeks = $umurSb >= 1 ? floor($umurSb) . ' jam' : 'baru dibuka';
+        @endphp
+        <div class="sidebar-kas-status group rounded-2xl px-3 py-2.5 flex items-center gap-3 border backdrop-blur-sm {{ $kasBasi ? 'bg-gradient-to-br from-amber-500/25 to-orange-500/10 border-amber-400/40' : 'bg-gradient-to-br from-emerald-500/20 to-teal-500/5 border-emerald-400/25' }}"
+             title="{{ $kasBasi ? 'Kasir Open lebih dari 24 jam - belum di-closing' : 'Kasir: Open' }}">
+            <span class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $kasBasi ? 'bg-amber-400/20 text-amber-300' : 'bg-emerald-400/20 text-emerald-300' }}">
+                <i class="fas {{ $kasBasi ? 'fa-triangle-exclamation' : 'fa-cash-register' }} text-sm"></i>
+                <span class="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $kasBasi ? 'bg-amber-400' : 'bg-emerald-400' }} opacity-70"></span>
+                    <span class="relative inline-flex h-2.5 w-2.5 rounded-full {{ $kasBasi ? 'bg-amber-400' : 'bg-emerald-400' }} ring-2 ring-slate-900"></span>
+                </span>
             </span>
-            <span class="text-xs font-bold {{ $kasBasi ? 'text-amber-300' : 'text-emerald-300' }} uppercase tracking-wider sidebar-text-label">{{ $kasBasi ? 'Kasir Open >24 jam' : 'Kasir Open' }}</span>
+            <span class="min-w-0 leading-tight sidebar-text-label">
+                <span class="block text-[11px] font-black uppercase tracking-wider {{ $kasBasi ? 'text-amber-200' : 'text-emerald-200' }}">{{ $kasBasi ? 'Belum di-closing' : 'Kasir Open' }}</span>
+                <span class="block text-[10px] font-medium text-slate-400 truncate">{{ $mulaiSb ? $mulaiSb->format('d/m H:i') : '' }} &middot; {{ $umurTeks }} &middot; {{ $pemilikSb }}</span>
+            </span>
         </div>
     @else
-        <div class="sidebar-kas-status bg-rose-500/15 border border-rose-400/30 rounded-xl px-3 py-2.5 flex items-center gap-2.5" title="Kasir: Standby">
-            <span class="h-2.5 w-2.5 rounded-full bg-rose-400 shrink-0"></span>
-            <span class="text-xs font-bold text-rose-300 uppercase tracking-wider sidebar-text-label">Kasir Standby</span>
+        <div class="sidebar-kas-status rounded-2xl px-3 py-2.5 flex items-center gap-3 border border-white/10 bg-white/5" title="Kasir: Standby">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-400/15 text-slate-400"><i class="fas fa-moon text-sm"></i></span>
+            <span class="min-w-0 leading-tight sidebar-text-label">
+                <span class="block text-[11px] font-black uppercase tracking-wider text-slate-300">Kasir Standby</span>
+                <span class="block text-[10px] font-medium text-slate-500">Belum ada saldo dibuka</span>
+            </span>
         </div>
     @endif
 </div>
+@endif
             <nav class="mt-5 px-4 pb-24 space-y-1.5">
     @php
         $userAkses = \App\Support\Izin::menuTerlihat(Auth::user());
