@@ -52,7 +52,10 @@ class NotaHargaTerkunciTest extends TestCase
     public function test_role_berhak_masih_bisa_menimpa_harga(): void
     {
         [$user, $idK, $idGol, $idProduk] = $this->siapkan('Kasir', true);
-        $this->actingAs($user)->postJson('/penjualan/store', $this->payload($idK, $idGol, $idProduk))->assertOk();
+        $idFin = DB::table('finishing')->insertGetId(['nama_finishing' => 'Finishing Uji', 'harga_default' => 100, 'metode_hitung' => 'quantity']);
+        $payload = $this->payload($idK, $idGol, $idProduk);
+        $payload['items'][0]['finishing'] = [['id_finishing' => $idFin, 'status_finishing' => 'Custom', 'biaya' => 888888]];
+        $this->actingAs($user)->postJson('/penjualan/store', $payload)->assertOk();
 
         $this->assertEquals(1 + 999999 + 888888, (float) DB::table('transaksi')->value('total_bayar'));
     }

@@ -99,9 +99,13 @@
                 <td class="px-6 py-4">
                     <p class="text-sm font-bold text-slate-700">{{ $item->nama_file }}</p>
                     <p class="text-xs text-slate-400">{{ $item->nama_produk ?? ($item->nama_jasa ? '🔧 ' . $item->nama_jasa : '-') }}</p>
-                    @if($item->nama_finishing)
+                    @forelse(($finishingItems[$item->id_detail] ?? collect()) as $fin)
+                        <p class="text-[11px] text-indigo-500 font-bold mt-1">✨ {{ $fin->nama_finishing }} ({{ $fin->status_finishing }}){{ $fin->metode_hitung === 'quantity' && $fin->qty_pakai ? ' × ' . angka((float) $fin->qty_pakai, 2) : '' }}@bolehHarga <span class="text-slate-400 font-semibold">&middot; Rp {{ number_format($fin->biaya, 0, ',', '.') }}</span>@endbolehHarga @if($fin->catatan)<span class="text-slate-400 font-medium">&middot; {{ $fin->catatan }}</span>@endif</p>
+                    @empty
+                        @if($item->nama_finishing)
                         <p class="text-[11px] text-indigo-500 font-bold mt-1">✨ {{ $item->nama_finishing }} ({{ $item->status_finishing ?? 'Standar' }})</p>
-                    @endif
+                        @endif
+                    @endforelse
                 </td>
                 <td class="px-6 py-4 text-xs text-slate-500">
                     @if($item->p_ukuran > 0 || $item->l_ukuran > 0)
