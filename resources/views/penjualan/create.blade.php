@@ -755,6 +755,7 @@
             // untuk produk yang baru dipilih - kembali ke auto-default dari
             // Price List produk ini.
             cetakManualEdit = false;
+            finishingBiayaManualEdit = false;
             setTimeout(() => {
                 if (metode === 'ukuran') { $('#input_p').focus().select(); }
                 else { $('#input_qty_biasa').focus().select(); }
@@ -1104,12 +1105,18 @@
         jasaHargaManualEdit = true;
     });
 
+    let ketJasaOtomatis = '';
     async function onJasaChange() {
         const sel = document.getElementById('select_jasa');
         const namaJasa = sel.value ? sel.options[sel.selectedIndex].dataset.nama : '';
         const ketInput = document.getElementById('jasa_keterangan');
-        if (namaJasa && !ketInput.value) {
+        // Isi otomatis nama jasa; ikut berganti saat jasa diganti, KECUALI kasir sudah menulis keterangan sendiri.
+        if (namaJasa && (!ketInput.value || ketInput.value === ketJasaOtomatis)) {
             ketInput.value = namaJasa;
+            ketJasaOtomatis = namaJasa;
+        } else if (!namaJasa && ketInput.value === ketJasaOtomatis) {
+            ketInput.value = '';
+            ketJasaOtomatis = '';
         }
 
         jasaHargaManualEdit = false;
@@ -1118,7 +1125,8 @@
 
     async function refreshJasaHargaSuggestion() {
         const idJasa = document.getElementById('select_jasa').value;
-        if (!idJasa || jasaHargaManualEdit) return;
+        if (!idJasa) { document.getElementById('input_jasa_harga').value = ''; return; }
+        if (jasaHargaManualEdit) return;
 
         const qty = parseFloat(document.getElementById('input_jasa_qty').value) || 1;
 
@@ -1129,9 +1137,8 @@
             // supaya fetch yang telat nyampe tidak menimpa balik angka yang
             // sudah keburu diketik manual selama fetch berjalan.
             if (jasaHargaManualEdit) return;
-            if (data.harga > 0) {
-                document.getElementById('input_jasa_harga').value = formatRupiahDariAngka(data.harga);
-            }
+            // Jasa tanpa harga acuan: kosongkan, jangan biarkan harga jasa sebelumnya terbawa.
+            document.getElementById('input_jasa_harga').value = data.harga > 0 ? formatRupiahDariAngka(data.harga) : '';
         } catch (e) {}
     }
 
