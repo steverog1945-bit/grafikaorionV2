@@ -116,8 +116,17 @@
             <div class="grid grid-cols-3 sm:grid-cols-4 {{ $kelompok === 'anak' ? 'md:grid-cols-6' : 'md:grid-cols-6 lg:grid-cols-8' }} gap-2">
                 @foreach($daftarSize as $s)
                 <div>
-                    @php [$namaUkuran, $usiaUkuran] = array_pad(explode(' (', rtrim($s->name, ')'), 2), 2, null); @endphp
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase text-center mb-1 leading-tight">{{ $namaUkuran }}@if($usiaUkuran)<span class="block text-[9px] text-amber-600 normal-case font-semibold">{{ $usiaUkuran }}</span>@endif@if((float) ($s->price_percent ?? 0) < 0)<span class="block text-[8px] text-emerald-500 normal-case font-bold">{{ angka((float) $s->price_percent, 0) }}%</span>@endif</label>
+                    @php
+                        $bagianNama = explode(' (', rtrim($s->name, ')'), 2);
+                        $namaUkuran = $bagianNama[0];
+                        $usiaUkuran = $bagianNama[1] ?? null;
+                        $persenUkuran = (float) ($s->price_percent ?? 0);
+                    @endphp
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase text-center mb-1 leading-tight">
+                        {{ $namaUkuran }}
+                        @if($usiaUkuran)<span class="block text-[9px] text-amber-600 normal-case font-semibold">{{ $usiaUkuran }}</span>@endif
+                        @if($persenUkuran < 0)<span class="block text-[8px] text-emerald-500 normal-case font-bold">{{ angka($persenUkuran, 0) }}%</span>@endif
+                    </label>
                     <input type="number" inputmode="numeric" name="lines[{{ $idx }}][size_quantities][{{ $s->id }}]" min="0" value="{{ $sizeQtyMap[$s->id] ?? 0 }}" onfocus="this.select()" class="input-qty-ukuran w-full bg-white border border-slate-100 rounded-lg p-2 text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300">
                 </div>
                 @endforeach
