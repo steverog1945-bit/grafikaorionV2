@@ -62,7 +62,9 @@
     function hitung() { document.getElementById('qty-lolos').textContent = Math.max(0, (parseInt(dik.value) || 0) - (parseInt(rej.value) || 0)); }
     sel.addEventListener('change', function () {
         const q = this.selectedOptions[0]?.dataset.qty;
-        if (q && !dik.value) dik.value = q;
+        // Selalu ikuti qty item yang baru dipilih (sebelumnya hanya terisi untuk pilihan pertama).
+        dik.value = q ? parseFloat(q) : '';
+        rej.value = 0;
         hitung();
     });
     dik.addEventListener('input', hitung); rej.addEventListener('input', hitung); hitung();
