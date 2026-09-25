@@ -30,6 +30,47 @@ class BomCalculationService
 {
     private const ANGKA = '(\d+(?:\.\d+)?)';
 
+    /**
+     * Semua bahan yang terpakai untuk sebuah produk: komponen BOM + tinta/toner mesin produk itu
+     * (tabel pemakaian_tinta: ml per m2 atau per lembar, satuan HITUNG bahan). Tinta yang sudah ada
+     * di BOM produk tidak dihitung dua kali. Dipakai bersama oleh potong stok order, pengembalian
+     * stok, rework, dan cek stok supaya semuanya konsisten.
+     *
+     * @return array<int, object{id_bahan:int, qty_pakai:float, is_tinta:bool}>
+     */
+    public static function komponen(int $idProduk, float $p, float $l, float $qty): array
+    {
+        $hasil = [];
+        $idDiBom = [];
+
+        foreach (\Illuminate\Support\Facades\DB::table('bom_detail')->where('id_produk', $idProduk)->get() as $bom) {
+            $idDiBom[(int) $bom->id_bahan] = true;
+            $hasil[] = (object) [
+                'id_bahan' => (int) $bom->id_bahan,
+                'qty_pakai' => self::hitungQtyPakai($bom->cara_hitung_pemakaian, $p, $l, $qty),
+                'is_tinta' => false,
+            ];
+        }
+
+        $produk = \Illuminate\Support\Facades\DB::table('produk')->where('id_produk', $idProduk)->first(['id_mesin', 'metode_hitung']);
+        if ($produk && $produk->id_mesin) {
+            $m2 = $produk->metode_hitung === 'ukuran' ? ($p * $l / 10000) * $qty : 0.0;
+            $tinta = \Illuminate\Support\Facades\DB::table('pemakaian_tinta')->where('id_mesin', $produk->id_mesin)->where('is_active', true)->get();
+            foreach ($tinta as $t) {
+                if (isset($idDiBom[(int) $t->id_bahan])) {
+                    continue;
+                }
+                $dasar = $t->dasar === 'm2' ? $m2 : $qty;
+                $pakai = $dasar * (float) $t->pemakaian;
+                if ($pakai > 0) {
+                    $hasil[] = (object) ['id_bahan' => (int) $t->id_bahan, 'qty_pakai' => $pakai, 'is_tinta' => true];
+                }
+            }
+        }
+
+        return $hasil;
+    }
+
     public static function hitungQtyPakai(string $rumus, float $panjang, float $lebar, float $qty): float
     {
         $rumus = str_replace(' ', '', $rumus);
