@@ -89,6 +89,7 @@ public function index(Request $request)
                 'id_mesin'      => $request->id_mesin,
                 'metode_hitung' => $request->metode_hitung,
                 'barcode'       => $request->barcode, // Pastikan barcode masuk
+                'spk_lengkap'   => $request->boolean('spk_lengkap'),
                 'min_order'     => $minOrderValue,
                 'min_panjang'   => $minPanjang,
                 'min_lebar'     => $minLebar,
@@ -200,6 +201,7 @@ public function show($id)
                 'id_mesin'      => $request->id_mesin,
                 'metode_hitung' => $request->metode_hitung,
                 'barcode'       => $request->barcode,
+                'spk_lengkap'   => $request->boolean('spk_lengkap'),
                 'min_order'     => $minOrderValue,
                 'min_panjang'   => $minPanjang,
                 'min_lebar'     => $minLebar,

@@ -226,6 +226,11 @@
                     </x-form.group>
                 </div>
 
+                <label class="flex items-start gap-3 cursor-pointer rounded-xl bg-white shadow-sm px-4 py-3 mb-4">
+                    <input type="checkbox" name="spk_lengkap" value="1" id="input_spk_lengkap" class="mt-0.5 w-4 h-4 rounded accent-indigo-600">
+                    <span><span class="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">Cetak SPK lengkap</span><span class="block text-[11px] text-slate-400">SPK memuat gambar, konsumen, desainer, kebutuhan bahan, dan finishing (seperti SPK order jersey) - untuk cetakan tertentu mis. Century + bahan TC yang ada finishing jahit.</span></span>
+                </label>
+
                 <x-form.group label="Keterangan">
                     <textarea name="keterangan" rows="2" placeholder="Catatan tambahan produk (opsional)" class="w-full bg-white shadow-sm rounded-xl border-none text-xs font-semibold p-2.5 focus:ring-2 focus:ring-indigo-500/20"></textarea>
                 </x-form.group>
@@ -440,6 +445,7 @@
             document.getElementById('input_id_mesin').value = data.produk.id_mesin || '';
             form.querySelector('select[name="metode_hitung"]').value = data.produk.metode_hitung;
             form.querySelector('input[name="barcode"]').value = data.produk.barcode || '';
+            document.getElementById('input_spk_lengkap').checked = !!Number(data.produk.spk_lengkap);
             form.querySelector('input[name="min_p"]').value = data.produk.min_panjang || '';
             form.querySelector('input[name="min_l"]').value = data.produk.min_lebar || '';
             form.querySelector('input[name="min_order_qty"]').value = data.produk.metode_hitung === 'quantity' ? (data.produk.min_order || '') : '';

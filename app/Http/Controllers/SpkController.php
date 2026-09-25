@@ -42,6 +42,7 @@ class SpkController extends Controller
                 'transaksi.status_pembayaran',
                 'konsumen.nama_konsumen',
                 'produk.id_mesin',
+                'produk.spk_lengkap',
                 'mesin.nama_mesin as divisi',
                 DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as pembuat_nota')
             );
@@ -234,7 +235,7 @@ class SpkController extends Controller
      */
     public function printSpk(Request $request, $id, $format = 'a4')
     {
-        $format = $format === 'thermal' ? 'thermal' : 'a4';
+        $format = in_array($format, ['thermal', 'lengkap'], true) ? $format : 'a4';
 
         $detail = DB::table('transaksi_detail')
             ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
@@ -250,8 +251,12 @@ class SpkController extends Controller
                 'konsumen.nama_konsumen',
                 'produk.nama_produk',
                 'produk.metode_hitung',
+                'produk.spk_lengkap',
+                'konsumen.telepon as telepon_konsumen',
                 'mesin.nama_mesin as divisi',
-                'finishing.nama_finishing'
+                'finishing.nama_finishing',
+                DB::raw('(SELECT COALESCE(k.nama_karyawan, u.username) FROM users u LEFT JOIN karyawan k ON k.id_karyawan = u.id_karyawan WHERE u.id_user = transaksi.id_user_kasir) as pembuat_nota'),
+                DB::raw('(SELECT r.nama_role FROM users u JOIN roles r ON r.id_role = u.id_role WHERE u.id_user = transaksi.id_user_kasir) as role_pembuat')
             )
             ->first();
 
@@ -260,6 +265,23 @@ class SpkController extends Controller
         }
 
         $finishingItems = \App\Services\FinishingItemService::untukDetail([$id])[$id] ?? collect();
+
+        if ($format === 'lengkap') {
+            // Kebutuhan bahan dari BOM produk (tanpa tinta): pemakaian dalam satuan hitung bahan, plus perkiraan panjang bahan
+            // gulungan bila lebar roll diketahui (mis. kain TC 120 cm).
+            $bahan = collect(\App\Services\BomCalculationService::komponen((int) $detail->id_produk, (float) $detail->p_ukuran, (float) $detail->l_ukuran, (float) $detail->qty))
+                ->reject(fn ($k) => $k->is_tinta || $k->qty_pakai <= 0)
+                ->map(function ($k) {
+                    $b = DB::table('bahan_baku as b')->leftJoin('satuan as sh', 'sh.id_satuan', '=', 'b.id_satuan_hitung')->where('b.id_bahan', $k->id_bahan)
+                        ->first(['b.nama_bahan', 'b.lebar_roll', 'sh.nama_satuan as satuan_hitung']);
+                    $satuan = $b->satuan_hitung ?? '';
+                    $panjang = ($satuan === 'm2' && (float) $b->lebar_roll > 0) ? $k->qty_pakai / (float) $b->lebar_roll : null;
+
+                    return (object) ['nama' => $b->nama_bahan ?? '-', 'qty' => $k->qty_pakai, 'satuan' => $satuan, 'panjang_m' => $panjang];
+                })->values();
+
+            return view('spk.print-lengkap', compact('detail', 'finishingItems', 'bahan'));
+        }
 
         return view('spk.print', compact('detail', 'format', 'finishingItems'));
     }

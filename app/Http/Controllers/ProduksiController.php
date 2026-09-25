@@ -34,6 +34,7 @@ class ProduksiController extends Controller
                 'transaksi.tgl_order',
                 'konsumen.nama_konsumen',
                 'produk.nama_produk',
+                'produk.spk_lengkap',
                 'mesin.nama_mesin as divisi'
             );
 

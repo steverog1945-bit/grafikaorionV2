@@ -134,7 +134,7 @@
                                     <i class="fas fa-ban text-xs"></i>
                                 </x-button>
                             @endif
-                            <x-button href="{{ route('spk.print', ['id' => $item->id_detail, 'format' => 'thermal']) }}" target="_blank" size="icon" variant="ghost" class="border border-slate-100 hover:text-slate-800" title="Cetak SPK (Thermal)">
+                            <x-button href="{{ route('spk.print', ['id' => $item->id_detail, 'format' => $item->spk_lengkap ? 'lengkap' : 'thermal']) }}" target="_blank" size="icon" variant="ghost" class="border border-slate-100 hover:text-slate-800" title="Cetak SPK (Thermal)">
                                 <i class="fas fa-print text-xs"></i>
                             </x-button>
                             <x-button href="{{ route('produksi.index', ['id_spk' => $item->id_detail, 'status_produksi' => 'semua']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat di Produksi">
