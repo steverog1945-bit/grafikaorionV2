@@ -558,12 +558,19 @@ class JerseyOrderController extends Controller
         // Kalau recalculateTotal() gagal di tengah setelah update() sukses,
         // discount/additional_charge sudah berubah tapi total & status
         // pembayaran belum ikut disesuaikan - order jadi tidak konsisten.
-        DB::transaction(function () use ($order, $data) {
+        $peringatan = [];
+        $statusLama = $order->status;
+        DB::transaction(function () use ($order, $data, &$peringatan, $statusLama) {
             $order->update($data);
             $order->recalculateTotal();
+            // Hanya saat STATUS berubah: proses/selesai/diambil = kain dipotong dari stok; kembali ke "baru" = stok dikembalikan.
+            // (Order lama yang sudah berstatus proses tidak dipotong mendadak hanya karena data lain diubah.)
+            if ($statusLama !== $order->status) {
+                $peringatan = \App\Services\JerseyStokService::selaraskan($order);
+            }
         });
 
-        return back()->with('success', 'Order jersey berhasil diperbarui.');
+        return back()->with('success', 'Order jersey berhasil diperbarui.' . ($peringatan ? ' ' . implode(' ', $peringatan) : ''));
     }
 
     /**
@@ -639,6 +646,7 @@ class JerseyOrderController extends Controller
             }
 
             $order->recalculateTotal();
+            \App\Services\JerseyStokService::segarkan($order); // estimasi kain berubah -> potongan stok disesuaikan
 
             DB::commit();
 
@@ -703,6 +711,7 @@ class JerseyOrderController extends Controller
             }
 
             $order->recalculateTotal();
+            \App\Services\JerseyStokService::segarkan($order); // barang susulan menambah kebutuhan kain
 
             DB::commit();
 
@@ -742,7 +751,10 @@ class JerseyOrderController extends Controller
             return back()->with('success', 'Pengajuan pembatalan order dikirim untuk persetujuan Administrator.');
         }
 
-        $order->delete();
+        DB::transaction(function () use ($order) {
+            \App\Services\JerseyStokService::kembalikan($order);
+            $order->delete();
+        });
         return redirect()->route('jersey.orders.index')->with('success', 'Order jersey berhasil dihapus.');
     }
 
