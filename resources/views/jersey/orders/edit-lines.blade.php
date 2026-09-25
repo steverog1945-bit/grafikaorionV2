@@ -31,6 +31,7 @@
 
     <form action="{{ route('jersey.orders.update-lines', $order->id) }}" method="POST" id="jersey-order-form">
         @csrf @method('PUT')
+        @versi($order)
 
         {{-- Total & tombol Simpan dipindah ke kolom kanan STICKY - selalu
              kelihatan tanpa perlu scroll ke paling bawah, sama seperti

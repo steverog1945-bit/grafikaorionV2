@@ -14,6 +14,7 @@
     @else
     <form action="{{ route('akses.user.update', $user->id_user) }}" method="POST">
         @csrf
+        <input type="hidden" name="_versi" value="{{ $versi }}">
         @include('akses._matriks', ['menus' => $menus, 'izin' => $izin, 'izinRole' => $izinRole, 'override' => $override])
         <div class="mt-6 flex flex-wrap gap-3">
             <x-button type="submit" variant="primary"><i class="fas fa-save"></i> Simpan Hak Akses User</x-button>

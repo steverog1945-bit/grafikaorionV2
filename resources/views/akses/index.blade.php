@@ -21,6 +21,7 @@
     <form action="{{ route('akses.update') }}" method="POST">
         @csrf
         <input type="hidden" name="role_id" value="{{ $role->id_role }}">
+        <input type="hidden" name="_versi" value="{{ $versi }}">
 
         <div class="mb-5 p-5 rounded-2xl bg-amber-50/70 border border-amber-100 flex items-start gap-4">
             <input type="checkbox" name="boleh_lihat_harga" value="1" id="cek-harga" {{ $role->boleh_lihat_harga ? 'checked' : '' }} class="mt-1 w-6 h-6 rounded-lg border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer">

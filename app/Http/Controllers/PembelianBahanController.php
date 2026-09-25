@@ -362,6 +362,9 @@ public function update(Request $request, $id)
     ]);
 
     $pembelian = PembelianBahan::findOrFail($id);
+    if (\App\Support\VersiBaris::bentrok($request, $pembelian)) {
+        return back()->withInput()->with('error', \App\Support\VersiBaris::pesan($pembelian));
+    }
     $pembelian->update($request->only('tgl_transaksi'));
 
     return redirect()->route('pembelian-bahan.index')->with('success', 'Faktur berhasil diperbarui');

@@ -244,6 +244,7 @@
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
                                     <form id="tier-edit-form-{{ $t->id_harga }}" action="{{ route('setting-harga.tier.update', $t->id_harga) }}" class="tier-edit-form-produk grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
                                         @csrf
+                                        <input type="hidden" name="_versi" value="{{ \App\Support\VersiBaris::token($t) }}">
                                         <input type="number" name="range_min" value="{{ $fmtNilai($t->range_min) }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
                                         <input type="number" name="range_max" value="{{ $t->range_max !== null ? $fmtNilai($t->range_max) : '' }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
                                         <div class="relative">
@@ -351,6 +352,7 @@
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
                         <form id="${formId}" action="{{ url('/setting-harga-tier') }}/${t.id_harga}" class="tier-edit-form-produk grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
                             <input type="hidden" name="_token" value="${csrfTokenHarga}">
+                            <input type="hidden" name="_versi" value="${t.updated_at || ''}">
                             <input type="number" name="range_min" value="${t.range_min}" min="${stepRentang}" step="${stepRentang}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
                             <input type="number" name="range_max" value="${t.range_max ?? ''}" min="${stepRentang}" step="${stepRentang}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
                             <div class="relative">
@@ -482,6 +484,9 @@
             const tbody = row.closest('tbody');
             const data = await submitHargaTierFormAjax(e.target, 'PATCH');
             if (!data) return;
+            // Versi baru untuk simpan berikutnya di halaman yang sama (agar tidak dianggap bentrok dengan diri sendiri).
+            const inputVersi = e.target.querySelector('[name="_versi"]');
+            if (inputVersi && data.versi) inputVersi.value = data.versi;
             refreshHargaSummary(tbody.dataset.idProduk, tbody.dataset.idGolongan);
             perbaruiSaranMinTier(tbody.dataset.idProduk, tbody.dataset.idGolongan);
             Toast.fire({ icon: 'success', title: data.message });

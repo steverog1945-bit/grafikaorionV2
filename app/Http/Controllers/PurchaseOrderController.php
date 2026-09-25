@@ -54,6 +54,10 @@ class PurchaseOrderController extends Controller
 
     public function store(Request $request)
     {
+        if (\App\Support\VersiBaris::bentrok($request, $purchaseOrder->fresh())) {
+            return back()->withInput()->with('error', \App\Support\VersiBaris::pesan($purchaseOrder->fresh()));
+        }
+
         $validated = $this->validasi($request);
         $hitung = $this->hitung($validated);
 

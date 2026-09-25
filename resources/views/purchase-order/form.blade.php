@@ -34,7 +34,7 @@
 
     <form id="form-po" method="POST" action="{{ $po ? route('purchase-order.update', $po->id) : route('purchase-order.store') }}">
         @csrf
-        @if($po) @method('PATCH') @endif
+        @if($po) @method('PATCH') @versi($po) @endif
         @if($idPr && !$po)<input type="hidden" name="id_purchase_request" value="{{ $idPr }}">@endif
 
         <x-card class="mb-6">
