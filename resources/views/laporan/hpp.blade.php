@@ -63,8 +63,8 @@
         </form>
     </x-card>
 
-    {{-- RESUME --}}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    {{-- RESUME - kartu berwarna di layar, tabel standar polos khusus cetak. --}}
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Omzet</p>
             <h3 class="text-xl font-bold text-slate-900 mt-1">Rp {{ number_format($totalOmzet, 0, ',', '.') }}</h3>
@@ -83,9 +83,18 @@
         </div>
     </div>
 
+    <div class="hidden print:block">
+        <x-laporan.resume-table title="Resume" :rows="[
+            'Total Omzet' => 'Rp ' . number_format($totalOmzet, 0, ',', '.'),
+            'Total HPP Bahan' => 'Rp ' . number_format($totalHpp, 0, ',', '.'),
+            'Margin Kotor' => 'Rp ' . number_format($totalMargin, 0, ',', '.'),
+            'Margin %' => number_format($marginPersen, 1, ',', '.') . '%',
+        ]" />
+    </div>
+
     {{-- BREAKDOWN PER DIVISI --}}
     @if($breakdownDivisi->isNotEmpty())
-    <x-card class="mb-6">
+    <x-card class="mb-6 print:hidden">
         <h3 class="text-sm font-bold text-slate-800 mb-4">Ringkasan per Divisi</h3>
         <x-table bare>
             <thead>
@@ -110,9 +119,25 @@
             </tbody>
         </x-table>
     </x-card>
+    <div class="hidden print:block break-inside-avoid">
+        <x-laporan.print-table title="Ringkasan per Divisi" :headers="['Divisi', 'Omzet', 'HPP Bahan', 'Margin', 'Margin %']" :align="['left', 'right', 'right', 'right', 'right']">
+            @foreach($breakdownDivisi as $d)
+            <tr>
+                <td class="px-3 py-1.5 font-semibold text-slate-700 uppercase">{{ $d->divisi }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($d->total_omzet, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($d->total_hpp, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-800">{{ number_format($d->margin, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-800">{{ number_format($d->margin_persen, 1, ',', '.') }}%</td>
+            </tr>
+            @endforeach
+        </x-laporan.print-table>
+    </div>
     @endif
 
+    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Per Item</div>
+
     {{-- DETAIL PER ITEM --}}
+    <div class="print:hidden">
     <x-table>
         <thead>
             <tr>
@@ -150,8 +175,33 @@
             @endforelse
         </tbody>
     </x-table>
+    </div>
 
-    <x-table.pagination :paginator="$data" />
+    <div class="hidden print:block">
+        <x-laporan.print-table title="Detail Per Item" :headers="['#', 'Nota', 'Tanggal', 'Item', 'Divisi', 'Qty', 'Omzet', 'HPP Bahan', 'Margin']" :align="['center', 'left', 'left', 'left', 'left', 'center', 'right', 'right', 'right']">
+            @forelse($data as $i => $row)
+            <tr>
+                <td class="px-3 py-1.5 text-center text-slate-400">{{ $data->firstItem() + $i }}</td>
+                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $row->nomor_nota }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ \Carbon\Carbon::parse($row->tgl_order)->format('d/m/Y') }}</td>
+                <td class="px-3 py-1.5 text-slate-700">{{ $row->nama_item }}</td>
+                <td class="px-3 py-1.5 text-slate-600 uppercase">{{ $row->divisi }}</td>
+                <td class="px-3 py-1.5 text-center text-slate-600">{{ number_format($row->qty, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($row->subtotal, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($row->hpp_snapshot, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($row->subtotal - $row->hpp_snapshot, 0, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="9">Tidak ada transaksi pada rentang tanggal yang dipilih.</td>
+            </tr>
+            @endforelse
+        </x-laporan.print-table>
+    </div>
+
+    <div class="no-print">
+        <x-table.pagination :paginator="$data" />
+    </div>
 
 </div>
 @endsection
