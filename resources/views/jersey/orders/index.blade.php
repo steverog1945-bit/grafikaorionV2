@@ -43,7 +43,7 @@
                 <th class="px-4 py-3 text-center">Deadline</th>
                 <th class="px-4 py-3 text-center">Status</th>
                 <th class="px-4 py-3 text-center">Bayar</th>
-                <th class="px-4 py-3 text-right">Total</th>
+                @bolehHarga<th class="px-4 py-3 text-right">Total</th>@endbolehHarga
                 <th class="px-4 py-3 text-center w-24">Aksi</th>
             </tr>
         </thead>
@@ -63,7 +63,7 @@
                 <td class="px-4 py-3 text-center text-xs">{{ $o->deadline ? \Carbon\Carbon::parse($o->deadline)->format('d/m/Y') : '-' }}</td>
                 <td class="px-4 py-3 text-center"><x-badge :status="$o->status" /></td>
                 <td class="px-4 py-3 text-center"><x-badge :status="$o->status_pembayaran" /></td>
-                <td class="px-4 py-3 text-right font-bold">Rp {{ number_format($o->total, 0, ',', '.') }}</td>
+                @bolehHarga<td class="px-4 py-3 text-right font-bold">Rp {{ number_format($o->total, 0, ',', '.') }}</td>@endbolehHarga
                 <td class="px-4 py-3 text-center">
                     <x-button href="{{ route('jersey.orders.show', $o->id) }}" size="icon" variant="ghost" class="hover:text-slate-700" title="Detail">
                         <i class="fas fa-eye text-xs"></i>

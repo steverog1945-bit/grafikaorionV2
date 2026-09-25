@@ -94,7 +94,6 @@ class IsiDataDemoCommand extends Command
         $this->bagian('Order + SPK', fn () => $this->order());
         $this->bagian('Progres produksi', fn () => $this->progresProduksi());
         $this->bagian('Pembayaran & serah terima', fn () => $this->pembayaran());
-        $this->bagian('Design Proof', fn () => $this->designProof());
         $this->bagian('QC & Rework', fn () => $this->qcRework());
         $this->bagian('Waste', fn () => $this->waste());
         $this->bagian('Quotation', fn () => $this->quotation());

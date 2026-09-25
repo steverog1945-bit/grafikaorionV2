@@ -87,8 +87,6 @@ return [
         'produksi' => [23],
         // QC & Rework (LEVEL 2): operator produksi/desain yang punya menu produksi.
         'qc' => [23],
-        // Design Proof: operator desain/produksi [23] dan input order [3, 41].
-        'design-proof' => [3, 23, 41],
         'berkas-order' => [3, 23, 41],
         // Waste Management: staf gudang (bahan-baku [1]) atau produksi [23].
         'waste' => [1, 23],

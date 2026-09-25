@@ -135,6 +135,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
     // menggunakan hanya input mentah yang tidak bisa "dipalsukan" jadi lebih murah
     // (p, l, qty) - harga per unit dan subtotal akhir murni hasil hitungan server.
     $itemsTervalidasi = [];
+    $hargaTerkunci = !\App\Support\AksesHarga::bolehLihat(Auth::user());
 
     foreach ($request->items as $index => $item) {
 
@@ -148,7 +149,10 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             }
 
             $qtyJasa = (float) ($item['qty_input'] ?? 0);
-            $hargaJasa = max(0, (float) ($item['harga_satuan'] ?? 0));
+            // Role tanpa hak ubah harga (Operator Desain/Produksi): harga jasa SELALU dari master, kiriman client diabaikan.
+            $hargaJasa = $hargaTerkunci
+                ? (float) HargaService::getHargaJasaEfektif((int) $jasa->id_jasa, $qtyJasa)
+                : max(0, (float) ($item['harga_satuan'] ?? 0));
 
             if ($qtyJasa <= 0) {
                 return response()->json(['status' => 'error', 'msg' => 'Qty jasa pada baris ' . ($index + 1) . ' tidak valid.'], 422);
@@ -231,6 +235,23 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             return response()->json(['status' => 'error', 'msg' => 'Finishing pada baris ' . ($index + 1) . ' tidak ditemukan.'], 422);
         }
         $biayaFinishing = max(0, (float) ($item['biaya_finishing'] ?? 0));
+
+        // Role tanpa hak ubah harga: SEMUA komponen biaya dihitung server dari master
+        // (kiriman client diabaikan). Biaya desain tidak bisa diisi role ini (0) - diisi kasir/admin.
+        if ($hargaTerkunci) {
+            $biayaCetak = round($hargaSatuan * $qtyHitung);
+            $biayaDesain = 0;
+            $biayaFinishing = 0;
+            if ($idFinishing) {
+                $metodeF = DB::table('finishing')->where('id_finishing', $idFinishing)->value('metode_hitung');
+                $qtyF = match ($metodeF) {
+                    'luas' => $qtyHitung,
+                    'keliling' => $produk->metode_hitung === 'ukuran' ? (2 * ($p + $l) / 100) * $qtyInput : $qtyInput,
+                    default => $qtyInput,
+                };
+                $biayaFinishing = $qtyF > 0 ? round(HargaService::getHargaFinishingEfektif($idFinishing, $qtyF) * $qtyF) : 0;
+            }
+        }
 
         $statusUrgensi = in_array($item['status_urgensi'] ?? null, ['Normal', 'Urgent', 'Very Urgent'])
             ? $item['status_urgensi'] : 'Normal';
@@ -540,6 +561,9 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                 report($e);
             }
         }
+
+        session()->flash('success', "Nota {$noNota} berhasil dibuat.");
+        \App\Support\JalurLanjut::set('Langkah berikut: pembayaran/validasi di Kasir', 'kasir.index', 'Buka Monitoring Kasir');
 
         return response()->json([
             'status' => 'success',

@@ -415,6 +415,7 @@ class KasirController extends Controller
             DB::table('transaksi')->where('id_transaksi', $id_transaksi)->update($updateData);
 
             DB::commit();
+            \App\Support\JalurLanjut::set('Pekerjaan masuk antrian produksi', 'spk.index', 'Lihat Antrian SPK');
             return redirect()->route('kasir.index')->with('success', 'Transaksi berhasil diproses ke Monitoring.');
 
         } catch (\Exception $e) {

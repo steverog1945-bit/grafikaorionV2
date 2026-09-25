@@ -159,6 +159,7 @@ public function validateStatus($id)
         $kedatangan->update(['status' => 'Selesai']);
         \App\Services\PurchaseOrderService::sinkronPenerimaan($kedatangan->id_purchase_order);
 
+        \App\Support\JalurLanjut::set('Berikutnya: catat faktur/tagihan supplier', 'pembelian-bahan.index', 'Buka Pembelian Bahan');
         return back()->with('success', 'Berhasil! Stok telah diperbarui dan tercatat di Kartu Stok.');
     });
 }
