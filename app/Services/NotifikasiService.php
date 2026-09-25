@@ -1,0 +1,108 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\User;
+use App\Support\JalurLanjut;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Daftar "pekerjaan yang menunggu" per role (lonceng notifikasi + badge di sidebar).
+ * Hanya item yang halaman tujuannya boleh dibuka role tersebut yang ikut tampil,
+ * dan angka dihitung dari data yang sudah ada (tidak ada tabel baru).
+ * Hasil di-cache 10 detik per role - semua pengguna dengan role sama berbagi hitungan.
+ */
+class NotifikasiService
+{
+    /** @return array{total:int, items:array<int,array{key:string,label:string,count:int,url:string,tone:string}>} */
+    public static function untuk(?User $user): array
+    {
+        if (!$user) {
+            return ['total' => 0, 'items' => []];
+        }
+
+        return Cache::remember('notif_role_' . $user->id_role, 10, function () use ($user) {
+            $items = [];
+            foreach (self::definisi() as $d) {
+                $url = self::urlBisa($d['routes']);
+                if (!$url) {
+                    continue;
+                }
+                // Item yang halamannya tidak boleh dibuka role ini dilewati.
+                if (!JalurLanjut::bolehUntuk($user, $url)) {
+                    continue;
+                }
+                $n = (int) ($d['hitung'])();
+                if ($n > 0) {
+                    $items[] = ['key' => $d['key'], 'label' => $d['label'], 'count' => $n, 'url' => $url, 'tone' => $d['tone']];
+                }
+            }
+
+            return ['total' => (int) array_sum(array_column($items, 'count')), 'items' => $items];
+        });
+    }
+
+    private static function urlBisa(array $routes): ?string
+    {
+        foreach ($routes as $r) {
+            if (\Illuminate\Support\Facades\Route::has($r)) {
+                return route($r);
+            }
+        }
+
+        return null;
+    }
+
+    /** Definisi notifikasi: key, label, route tujuan, warna (rose = mendesak, amber = perlu perhatian, indigo = info), penghitung. */
+    private static function definisi(): array
+    {
+        $hariIni = now()->toDateString();
+
+        return [
+            ['key' => 'approval', 'label' => 'Pengajuan menunggu persetujuan', 'routes' => ['approval.index'], 'tone' => 'rose',
+                'hitung' => fn () => DB::table('approval_requests')->where('status', 'Menunggu')->count()],
+            ['key' => 'kasir-bayar', 'label' => 'Nota belum dibayar', 'routes' => ['kasir.index'], 'tone' => 'amber',
+                'hitung' => fn () => DB::table('transaksi')->where('status_pembayaran', 'Belum Bayar')->where('status_nota', '!=', 'Dibatalkan')->count()],
+            ['key' => 'spk-antre', 'label' => 'SPK antre dikerjakan', 'routes' => ['spk.index'], 'tone' => 'amber',
+                'hitung' => fn () => DB::table('transaksi_detail as d')->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+                    ->where('d.status_spk', 'Antre')->where('t.status_nota', '!=', 'Dibatalkan')->count()],
+            ['key' => 'produksi', 'label' => 'Item sedang diproses (desain/cetak)', 'routes' => ['produksi.index'], 'tone' => 'indigo',
+                'hitung' => fn () => DB::table('transaksi_detail as d')->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+                    ->whereIn('d.status_spk', ['Desain', 'Cetak'])->where('t.status_nota', '!=', 'Dibatalkan')->count()],
+            ['key' => 'collecting', 'label' => 'Nota siap diambil/diserahkan', 'routes' => ['collecting.index'], 'tone' => 'indigo',
+                'hitung' => fn () => DB::table('transaksi as t')
+                    ->join('transaksi_detail as d', 'd.id_transaksi', '=', 't.id_transaksi')
+                    ->where('t.status_collecting', 'Belum Diambil')->where('t.status_nota', '!=', 'Dibatalkan')
+                    ->groupBy('t.id_transaksi')
+                    ->havingRaw("SUM(CASE WHEN d.status_spk IN ('Selesai','Batal') THEN 1 ELSE 0 END) = COUNT(d.id_detail)")
+                    ->select('t.id_transaksi')->get()->count()],
+            ['key' => 'rework', 'label' => 'Rework belum selesai', 'routes' => ['qc.index'], 'tone' => 'rose',
+                'hitung' => fn () => DB::table('rework')->where('status', 'Dibuka')->count()],
+            ['key' => 'waste', 'label' => 'Waste menunggu persetujuan', 'routes' => ['waste.index'], 'tone' => 'amber',
+                'hitung' => fn () => DB::table('waste_log')->where('status', 'Menunggu')->count()],
+            ['key' => 'stok', 'label' => 'Bahan habis / di bawah stok minimal', 'routes' => ['laporan.stok-bahan', 'kartu-stok.index'], 'tone' => 'rose',
+                'hitung' => fn () => DB::table('bahan_baku')->where('status', 'aktif')->where('stok_minimal', '>', 0)->whereColumn('stok', '<=', 'stok_minimal')->count()],
+            ['key' => 'pr-po', 'label' => 'PR disetujui, belum dibuat PO', 'routes' => ['purchase-order.index'], 'tone' => 'amber',
+                'hitung' => fn () => DB::table('purchase_requests')->where('status', 'Disetujui')->count()],
+            ['key' => 'po-datang', 'label' => 'PO menunggu barang datang', 'routes' => ['purchase-order.index'], 'tone' => 'indigo',
+                'hitung' => fn () => DB::table('purchase_orders')->whereIn('status', ['Dipesan', 'Diterima Sebagian'])->count()],
+            ['key' => 'kedatangan', 'label' => 'Kedatangan draft belum divalidasi', 'routes' => ['kedatangan-bahan.index'], 'tone' => 'amber',
+                'hitung' => fn () => DB::table('kedatangan_bahan')->where('status', 'Draft')->count()],
+            ['key' => 'opname', 'label' => 'Stock opname belum selesai', 'routes' => ['stock-opname.index'], 'tone' => 'indigo',
+                'hitung' => fn () => DB::table('stock_opnames')->whereIn('status', ['Draft', 'Diajukan'])->count()],
+            ['key' => 'hutang', 'label' => 'Faktur hutang jatuh tempo (7 hari)', 'routes' => ['pembelian-bahan.index'], 'tone' => 'rose',
+                'hitung' => fn () => DB::table('pembelian_bahan')->whereNull('deleted_at')->where('status_pembayaran', 'Hutang')
+                    ->whereNotNull('jatuh_tempo_tgl')->where('jatuh_tempo_tgl', '<=', now()->addDays(7)->toDateString())->count()],
+            ['key' => 'piutang', 'label' => 'Nota belum lunas (DP/belum bayar)', 'routes' => ['laporan.piutang'], 'tone' => 'indigo',
+                'hitung' => fn () => DB::table('transaksi')->where('status_nota', '!=', 'Dibatalkan')->whereIn('status_pembayaran', ['DP', 'Belum Bayar'])->count()],
+            ['key' => 'quotation', 'label' => 'Quotation menunggu jawaban pelanggan', 'routes' => ['quotation.index'], 'tone' => 'indigo',
+                'hitung' => fn () => DB::table('quotations')->where('status', 'Terkirim')->count()],
+            ['key' => 'jersey', 'label' => 'Order jersey deadline 3 hari', 'routes' => ['jersey.orders.index'], 'tone' => 'rose',
+                'hitung' => fn () => DB::table('jersey_orders')->whereNotNull('deadline')->whereBetween('deadline', [$hariIni, now()->addDays(3)->toDateString()])
+                    ->whereNotIn(DB::raw('LOWER(status)'), ['selesai', 'batal', 'dibatalkan', 'diambil'])->count()],
+            ['key' => 'kas-basi', 'label' => 'Kas belum ditutup lebih dari 24 jam', 'routes' => ['kasir.kelola'], 'tone' => 'rose',
+                'hitung' => fn () => KasSesiService::basi(KasSesiService::aktif()) ? 1 : 0],
+        ];
+    }
+}

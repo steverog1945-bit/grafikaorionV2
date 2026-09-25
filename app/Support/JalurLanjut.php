@@ -24,7 +24,11 @@ class JalurLanjut
 
     public static function boleh(string $url): bool
     {
-        $user = auth()->user();
+        return self::bolehUntuk(auth()->user(), $url);
+    }
+
+    public static function bolehUntuk($user, string $url): bool
+    {
         if (!$user) {
             return false;
         }

@@ -44,6 +44,7 @@ class SinyalController extends Controller
         return response()->json([
             'v' => $data['v'],
             'approval' => $adm ? $data['approval'] : null,
+            'notif' => \App\Services\NotifikasiService::untuk($user),
         ]);
     }
 }
