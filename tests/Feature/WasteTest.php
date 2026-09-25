@@ -132,4 +132,42 @@ class WasteTest extends TestCase
         $this->actingAs($gudang)->get('/waste')->assertOk();
         $this->actingAs($kasir)->get('/waste')->assertForbidden();
     }
+
+    private function bahanBerSatuanHitung(string $namaHitung, float $konversi): void
+    {
+        $idRoll = DB::table('satuan')->insertGetId(['nama_satuan' => 'roll-uji', 'nilai_konversi' => 1]);
+        $idHitung = DB::table('satuan')->insertGetId(['nama_satuan' => $namaHitung, 'nilai_konversi' => 1]);
+        DB::table('bahan_baku')->where('id_bahan', $this->idBahan)->update([
+            'satuan_stok' => 'roll', 'stok' => 2, 'id_satuan_stok' => $idRoll, 'id_satuan_hitung' => $idHitung, 'nilai_konversi' => $konversi,
+        ]);
+    }
+
+    public function test_waste_satuan_luas_diisi_panjang_lebar_dan_hanya_mengurangi_sebesar_luasnya(): void
+    {
+        // Roll = 45 m2. Rusak 30 x 90 cm = 0,27 m2 -> 0,006 roll (bukan 1 roll).
+        $this->bahanBerSatuanHitung('m2', 45);
+
+        $this->post('/waste', ['id_bahan' => $this->idBahan, 'panjang' => 30, 'lebar' => 90, 'jumlah' => 1, 'jenis' => 'Normal', 'alasan' => 'Salah cetak'])
+            ->assertRedirect(route('waste.index'));
+
+        $this->assertEqualsWithDelta(1.994, $this->stok(), 0.00001);
+    }
+
+    public function test_waste_satuan_pcs_diisi_jumlah_pcs(): void
+    {
+        // 1 dus = 100 pcs; waste 5 pcs = 0,05 dus.
+        $this->bahanBerSatuanHitung('pcs-uji', 100);
+
+        $this->post('/waste', ['id_bahan' => $this->idBahan, 'qty' => 5, 'jenis' => 'Normal', 'alasan' => 'Rusak'])->assertRedirect(route('waste.index'));
+
+        $this->assertEqualsWithDelta(1.95, $this->stok(), 0.00001);
+    }
+
+    public function test_waste_satuan_luas_tanpa_panjang_lebar_ditolak_dan_stok_tetap(): void
+    {
+        $this->bahanBerSatuanHitung('m2', 45);
+
+        $this->post('/waste', ['id_bahan' => $this->idBahan, 'jenis' => 'Normal', 'alasan' => 'x'])->assertSessionHas('error');
+        $this->assertEqualsWithDelta(2.0, $this->stok(), 0.00001);
+    }
 }
