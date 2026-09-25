@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@php $bisaUbah = \App\Support\Izin::boleh(auth()->user(), [1, 23], 'edit'); @endphp
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Waste Management">
@@ -9,7 +10,7 @@
             Catat susut bahan - Normal langsung mengurangi stok, Abnormal menunggu persetujuan
         </x-slot:subtitle>
         <x-slot:actions>
-            <x-button :href="route('waste.create')" variant="primary"><i class="fas fa-plus"></i> Catat Waste</x-button>
+            @if($bisaUbah)<x-button :href="route('waste.create')" variant="primary"><i class="fas fa-plus"></i> Catat Waste</x-button>@endif
         </x-slot:actions>
     </x-page-header>
 
