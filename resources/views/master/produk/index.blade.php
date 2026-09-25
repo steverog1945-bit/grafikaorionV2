@@ -432,7 +432,8 @@
 
             const form = document.getElementById('formProduk');
             form.action = `{{ url('/produk') }}/${id}`;
-            document.getElementById('methodField').innerHTML = '<input type="hidden" name="_method" value="PUT">';
+            // _versi = updated_at saat form dibuka (optimistic locking, lihat VersiBaris) - ditolak bila ada yang mengubah lebih dulu.
+            document.getElementById('methodField').innerHTML = '<input type="hidden" name="_method" value="PUT"><input type="hidden" name="_versi" value="' + (data.produk.updated_at || '') + '">';
 
             document.getElementById('modal-produk-title').innerText = "Edit: " + data.produk.nama_produk;
             document.getElementById('input_nama_produk').value = data.produk.nama_produk;

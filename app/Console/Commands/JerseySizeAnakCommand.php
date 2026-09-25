@@ -15,16 +15,19 @@ use Illuminate\Support\Facades\DB;
 class JerseySizeAnakCommand extends Command
 {
     protected $signature = 'jersey:size-anak {--simulasi : Jalankan lalu batalkan (rollback)} {--tanpa-backup : Lewati backup otomatis}';
-    protected $description = 'Tambah ukuran anak (Anak 4-14) + estimasi bahan + selisih harga persen';
+    protected $description = 'Tambah ukuran anak (Anak XS 4-5 th s/d Anak 2XL 14-15 th) + estimasi bahan + selisih harga persen';
 
-    /** nama => [faktor pemakaian bahan terhadap dewasa S, selisih harga %] */
+    /**
+     * nama lengkap (ukuran + peruntukan usia) => [faktor pemakaian bahan terhadap dewasa S, selisih harga %, nama lama]
+     * Nama lama dipakai untuk mengganti nama baris yang sudah terlanjur dibuat dengan versi sebelumnya.
+     */
     private const SIZE_ANAK = [
-        'Anak 4' => [0.50, -35],
-        'Anak 6' => [0.58, -30],
-        'Anak 8' => [0.66, -25],
-        'Anak 10' => [0.75, -20],
-        'Anak 12' => [0.84, -15],
-        'Anak 14' => [0.93, -10],
+        'Anak XS (4-5 th)' => [0.50, -35, 'Anak 4'],
+        'Anak S (6-7 th)' => [0.58, -30, 'Anak 6'],
+        'Anak M (8-9 th)' => [0.66, -25, 'Anak 8'],
+        'Anak L (10-11 th)' => [0.75, -20, 'Anak 10'],
+        'Anak XL (12-13 th)' => [0.84, -15, 'Anak 12'],
+        'Anak 2XL (14-15 th)' => [0.93, -10, 'Anak 14'],
     ];
 
     public function handle(): int
@@ -53,7 +56,9 @@ class JerseySizeAnakCommand extends Command
             DB::table('jersey_sizes')->where('kelompok', 'dewasa')->where('sort_order', '<', 10)->increment('sort_order', 10);
 
             $urut = 1;
-            foreach (self::SIZE_ANAK as $nama => [$faktor, $persen]) {
+            foreach (self::SIZE_ANAK as $nama => [$faktor, $persen, $namaLama]) {
+                // Ganti nama versi lama (mis. "Anak 4") menjadi nama lengkap dengan peruntukan usia.
+                DB::table('jersey_sizes')->where('name', $namaLama)->where('kelompok', 'anak')->update(['name' => $nama, 'updated_at' => now()]);
                 $ada = DB::table('jersey_sizes')->where('name', $nama)->first();
                 if ($ada) {
                     $idSize = $ada->id;

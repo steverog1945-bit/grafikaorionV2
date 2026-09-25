@@ -183,6 +183,11 @@ public function show($id)
     public function update(Request $request, $id)
     {
         return DB::transaction(function () use ($request, $id) {
+            $terkini = DB::table('produk')->where('id_produk', $id)->lockForUpdate()->first();
+            if ($terkini && \App\Support\VersiBaris::bentrok($request, $terkini)) {
+                return redirect()->back()->withInput()->with('error', \App\Support\VersiBaris::pesan($terkini));
+            }
+
             $minPanjang = (float) ($request->min_p ?? 0);
             $minLebar = (float) ($request->min_l ?? 0);
             $minOrderValue = ($request->metode_hitung == 'ukuran')

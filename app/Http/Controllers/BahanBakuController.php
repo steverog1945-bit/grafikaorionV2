@@ -82,6 +82,9 @@ class BahanBakuController extends Controller
         ]);
 
         $bahan = BahanBaku::findOrFail($id_bahan);
+        if (\App\Support\VersiBaris::bentrok($request, $bahan)) {
+            return back()->with('error', \App\Support\VersiBaris::pesan($bahan));
+        }
         $lama = (float) $bahan->harga_rata_rata;
         $baru = round((float) $data['harga_rata_rata'], 2);
 
@@ -205,6 +208,9 @@ class BahanBakuController extends Controller
         ]);
 
         $bahan = BahanBaku::findOrFail($id_bahan);
+        if (\App\Support\VersiBaris::bentrok($request, $bahan)) {
+            return back()->withInput()->with('error', \App\Support\VersiBaris::pesan($bahan));
+        }
 
         // 'stok' SENGAJA tidak lagi diterima di sini (sebelumnya ada di
         // validasi & fillable, jadi form edit bahan biasa - buat perbaiki

@@ -26,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
         // @bolehHarga ... @else ... @endbolehHarga : tampilkan hanya untuk role yang berhak melihat harga/nilai uang.
         \Illuminate\Support\Facades\Blade::if('bolehHarga', fn () => \App\Support\AksesHarga::bolehLihat());
 
+        // @versi($row) : kolom tersembunyi versi baris untuk optimistic locking (lihat App\Support\VersiBaris).
+        \Illuminate\Support\Facades\Blade::directive('versi', fn ($e) => "<?php echo \App\Support\VersiBaris::field({$e}); ?>");
+
         // Berbagi status kas ke semua View
     view()->composer('*', function ($view) {
         if (auth()->check()) {

@@ -201,7 +201,7 @@
     <x-card>
         <h3 class="text-sm font-bold text-slate-700 mb-4">Update Data Order</h3>
         <form action="{{ route('jersey.orders.update', $order->id) }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            @csrf @method('PUT')
+            @csrf @method('PUT') @versi($order)
             <x-form.group label="Status Order">
                 <x-form.select name="status">
                     @foreach(['baru' => 'Baru', 'proses' => 'Proses', 'selesai' => 'Selesai', 'diambil' => 'Diambil'] as $val => $label)

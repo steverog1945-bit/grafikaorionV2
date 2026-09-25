@@ -505,6 +505,10 @@ class JerseyOrderController extends Controller
 
     public function update(Request $request, JerseyOrder $order)
     {
+        if (\App\Support\VersiBaris::bentrok($request, $order->fresh())) {
+            return back()->withInput()->with('error', \App\Support\VersiBaris::pesan($order->fresh()));
+        }
+
         // status_pembayaran TIDAK lagi diisi manual di sini - sekarang
         // dihitung otomatis dari ledger Keuangan Jersey (lihat
         // JerseyOrder::recalculatePembayaran(), dipanggil dari
@@ -563,6 +567,10 @@ class JerseyOrderController extends Controller
      */
     public function updateLines(Request $request, JerseyOrder $order)
     {
+        if (\App\Support\VersiBaris::bentrok($request, $order->fresh())) {
+            return back()->withInput()->with('error', \App\Support\VersiBaris::pesan($order->fresh()));
+        }
+
         $data = $request->validate([
             'lines' => 'required|array|min:1',
             'lines.*.nama_barang' => 'required|string|max:255',

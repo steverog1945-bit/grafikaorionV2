@@ -110,6 +110,11 @@ class SettingHargaController extends Controller
             return response()->json(['success' => false, 'message' => 'Tier harga tidak ditemukan.'], 404);
         }
 
+        // Optimistic locking: tier ini sudah diubah orang lain sejak halaman dimuat -> jangan menimpa.
+        if (\App\Support\VersiBaris::bentrok($request, $row)) {
+            return response()->json(['success' => false, 'message' => \App\Support\VersiBaris::pesan($row)], 409);
+        }
+
         // integer utk Pcs, numeric/pecahan utk m² - lihat catatan di storeRow().
         $metodeHitung = DB::table('produk')->where('id_produk', $row->id_produk)->value('metode_hitung');
         $isPcs = $metodeHitung !== 'ukuran';
@@ -127,10 +132,10 @@ class SettingHargaController extends Controller
             'range_min'  => $request->range_min,
             'range_max'  => $request->range_max ?: null,
             'harga_jual' => $request->harga_jual,
-            'updated_at' => now(),
+            'updated_at' => $sekarang = now(),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Tier harga diperbarui.']);
+        return response()->json(['success' => true, 'message' => 'Tier harga diperbarui.', 'versi' => $sekarang->format('Y-m-d H:i:s')]);
     }
 
     public function destroyRow($id)

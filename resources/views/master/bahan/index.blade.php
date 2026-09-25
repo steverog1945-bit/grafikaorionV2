@@ -145,7 +145,7 @@
                             </div>
                         </td>
                         <td class="px-6 py-5 text-center">
-                            <button type="button" onclick='koreksiHarga({{ $b->id_bahan }}, @json($b->nama_bahan), {{ (float) $b->harga_rata_rata }}, @json($b->satuan_stok))'
+                            <button type="button" onclick='koreksiHarga({{ $b->id_bahan }}, @json($b->nama_bahan), {{ (float) $b->harga_rata_rata }}, @json($b->satuan_stok), @json(\App\Support\VersiBaris::token($b)))'
                                     class="group/harga inline-flex items-baseline gap-1.5 px-3 py-1.5 rounded-lg transition-colors {{ (float) $b->harga_rata_rata > 0 ? 'hover:bg-slate-100' : 'bg-amber-50 hover:bg-amber-100' }}"
                                     title="Ubah harga rata-rata (dasar HPP)">
                                 @if((float) $b->harga_rata_rata > 0)
@@ -159,7 +159,7 @@
                         </td>
                         <td class="px-8 py-5 text-right">
                             <div class="flex justify-end gap-2">
-                                <button type="button" onclick='editBahan(@json($b))' class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
+                                <button type="button" onclick='editBahan(@json($b), @json(\App\Support\VersiBaris::token($b)))' class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
                                     <i class="far fa-edit text-sm"></i>
                                 </button>
                                 <button type="button" onclick="toggleStatus('{{ $b->id_bahan }}', '{{ $b->status }}', {{ json_encode($b->nama_bahan) }})"
@@ -329,11 +329,12 @@
         openModal('bahan');
     }
 
-    function editBahan(data) {
+    function editBahan(data, versi) {
         document.getElementById('modal-bahan-title').innerText = "Update Spesifikasi Material";
         const form = document.getElementById('formBahan');
         form.action = `{{ url('/bahan-baku') }}/${data.id_bahan}`;
-        document.getElementById('methodField').innerHTML = '@method("PUT")';
+        // _versi = updated_at saat halaman dimuat (optimistic locking) - simpan ditolak bila bahan ini sudah diubah orang lain.
+        document.getElementById('methodField').innerHTML = '@method("PUT")<input type="hidden" name="_versi" value="' + (versi || '') + '">';
 
         document.getElementById('input_nama_bahan').value = data.nama_bahan;
         document.getElementById('input_kode_bahan').value = data.kode_bahan;
@@ -438,7 +439,7 @@
         });
     }
 
-    function koreksiHarga(id, nama, hargaSekarang, satuan) {
+    function koreksiHarga(id, nama, hargaSekarang, satuan, versi) {
         Swal.fire({
             title: 'Harga rata-rata bahan',
             html: `<div class="text-left text-sm"><b>${escapeHtml(nama)}</b><br><span class="text-slate-400 text-xs">Nilai per ${escapeHtml(satuan)}. Dasar HPP/margin ke depan; tidak mengubah stok dan tidak membuat jurnal.</span></div>
@@ -462,7 +463,7 @@
             form.method = 'POST';
             form.action = `{{ url('/bahan-baku') }}/${id}/harga`;
             form.innerHTML = `@csrf @method('PATCH')`;
-            [['harga_rata_rata', result.value.harga], ['alasan', result.value.alasan]].forEach(([n, v]) => {
+            [['harga_rata_rata', result.value.harga], ['alasan', result.value.alasan], ['_versi', versi || '']].forEach(([n, v]) => {
                 const i = document.createElement('input');
                 i.type = 'hidden'; i.name = n; i.value = v;
                 form.appendChild(i);

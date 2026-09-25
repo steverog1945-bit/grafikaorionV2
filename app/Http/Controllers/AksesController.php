@@ -27,6 +27,19 @@ class AksesController extends Controller
         return $izin;
     }
 
+    /** Sidik jari hak akses satu role / satu user (dipakai sebagai "versi" - optimistic locking, tanpa kolom updated_at). */
+    public function versiRole(int $idRole): string
+    {
+        $baris = DB::table('role_permissions')->where('id_role', $idRole)->orderBy('id_menu')->get()->map(fn ($r) => (array) $r)->all();
+
+        return md5(json_encode([$baris, (int) DB::table('roles')->where('id_role', $idRole)->value('boleh_lihat_harga')]));
+    }
+
+    public function versiUser(int $idUser): string
+    {
+        return md5(json_encode(DB::table('user_permissions')->where('id_user', $idUser)->orderBy('id_menu')->get(['id_menu', 'can_view', 'can_add', 'can_edit', 'can_delete'])->map(fn ($r) => (array) $r)->all()));
+    }
+
     /** Baca isian matriks izin[menu][aksi] -> array id_menu => flag (add/edit/delete otomatis menyalakan view). */
     private function bacaMatriks(Request $request): array
     {
@@ -55,6 +68,7 @@ class AksesController extends Controller
             'role' => $role,
             'menus' => Menu::orderBy('urutan')->orderBy('id_menu')->get(),
             'izin' => $this->izinRole((int) $role->id_role),
+            'versi' => $this->versiRole((int) $role->id_role),
         ]);
     }
 
@@ -66,6 +80,10 @@ class AksesController extends Controller
         }
 
         $role = Role::findOrFail((int) $request->input('role_id'));
+        // Optimistic locking: hak role ini sudah diubah admin lain sejak halaman dibuka -> jangan menimpa.
+        if ($request->filled('_versi') && $request->input('_versi') !== $this->versiRole((int) $role->id_role)) {
+            return redirect()->route('akses.index', ['role' => $role->id_role])->with('error', 'Hak akses role ini sudah diubah oleh admin lain sejak Anda membukanya, jadi perubahan Anda TIDAK disimpan. Halaman sudah dimuat ulang dengan data terbaru - ulangi perubahan Anda.');
+        }
         $matriks = $this->bacaMatriks($request);
 
         DB::transaction(function () use ($role, $matriks, $request) {
@@ -130,12 +148,16 @@ class AksesController extends Controller
         return view('akses.user', [
             'user' => $user, 'izin' => $izin, 'izinRole' => $izinRole, 'override' => $override,
             'menus' => Menu::orderBy('urutan')->orderBy('id_menu')->get(),
+            'versi' => $this->versiUser((int) $user->id_user),
         ]);
     }
 
     public function userUpdate(Request $request, int $id)
     {
         $user = User::findOrFail($id);
+        if ($request->filled('_versi') && $request->input('_versi') !== $this->versiUser((int) $user->id_user)) {
+            return redirect()->route('akses.user', $user->id_user)->with('error', 'Hak akses user ini sudah diubah admin lain sejak Anda membukanya, jadi perubahan Anda TIDAK disimpan. Halaman sudah dimuat ulang dengan data terbaru.');
+        }
         $izinRole = $this->izinRole((int) $user->id_role);
         $matriks = $this->bacaMatriks($request);
         $kosong = ['view' => false, 'add' => false, 'edit' => false, 'delete' => false];
