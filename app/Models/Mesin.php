@@ -10,7 +10,9 @@ class Mesin extends Model
     protected $primaryKey = 'id_mesin';
     public $timestamps = false;
 
-    protected $fillable = ['nama_mesin', 'tipe_mesin'];
+    protected $fillable = ['nama_mesin', 'tipe_mesin', 'tampil_divisi'];
+
+    protected $casts = ['tampil_divisi' => 'boolean'];
 
     public function bahanBaku()
     {

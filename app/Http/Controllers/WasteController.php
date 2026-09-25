@@ -77,7 +77,7 @@ class WasteController extends Controller
             'bahanList' => $bahanList,
             'terbatas' => $terbatas,
             'divisiAktif' => $mesin ? DB::table('mesin')->whereIn('id_mesin', $mesin)->pluck('nama_mesin')->implode(', ') : null,
-            'daftarMesin' => DB::table('mesin')->orderBy('nama_mesin')->get(['id_mesin', 'nama_mesin']),
+            'daftarMesin' => DB::table('mesin')->where('tampil_divisi', true)->orderBy('nama_mesin')->get(['id_mesin', 'nama_mesin']),
         ]);
     }
 
