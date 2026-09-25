@@ -55,6 +55,9 @@
     body.sidebar-collapsed main { margin-left: var(--sidebar-width-collapsed); }
     body.sidebar-collapsed aside nav { padding-left: 14px; padding-right: 14px; }
     body.sidebar-collapsed aside nav > a,
+    /* Grup menu "datar": judul grup disembunyikan & isinya selalu terbuka (role dengan sedikit menu). Mode rel ikon tidak terpengaruh. */
+    body:not(.sidebar-collapsed) aside .grup-datar-header { display: none !important; }
+    body:not(.sidebar-collapsed) aside .menu-group-items.grup-datar { display: block !important; }
     body.sidebar-collapsed aside .menu-group-toggle { justify-content: center; }
     body.sidebar-collapsed aside nav > a { padding: 14px 0; }
     body.sidebar-collapsed aside nav > a span { display: none; }
@@ -1369,6 +1372,22 @@
             if (n > 0 && h) { const b = document.createElement('span'); b.className = 'notif-badge notif-grup indigo'; b.textContent = n > 99 ? '99+' : n; b.style.marginLeft = '.5rem'; h.insertBefore(b, h.querySelector('i.fa-chevron-down')); }
         });
     }
+    // Role dengan sedikit menu: tampilkan menu langsung tanpa harus membuka grup. Berlaku bila total menu <= 8,
+    // atau untuk grup yang isinya cuma satu menu. Administrator (banyak menu) tetap memakai grup lipat.
+    function ratakanSidebar() {
+        const nav = document.querySelector('#mainSidebar nav'); if (!nav) return;
+        const grup = [...nav.querySelectorAll('.menu-group-items')];
+        const hitung = g => g.querySelectorAll('a[href]').length;
+        const dalamGrup = grup.reduce((t, g) => t + hitung(g), 0);
+        const luarGrup = [...nav.querySelectorAll('a[href]')].filter(a => !a.closest('.menu-group-items')).length;
+        const sedikit = (dalamGrup + luarGrup) <= 8;
+        grup.forEach(g => {
+            const h = g.previousElementSibling;
+            if (!h || !h.classList.contains('menu-group-toggle')) return;
+            if (sedikit || hitung(g) === 1) { g.classList.add('grup-datar'); h.classList.add('grup-datar-header'); }
+        });
+    }
+    ratakanSidebar();
     function toggleNotif(e) { e.stopPropagation(); document.getElementById('notif-panel').classList.toggle('hidden'); }
     document.addEventListener('click', e => { const p = document.getElementById('notif-panel'); if (p && !p.contains(e.target)) p.classList.add('hidden'); });
     renderNotif(@json($notifAwal));
