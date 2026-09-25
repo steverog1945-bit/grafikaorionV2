@@ -131,9 +131,14 @@
                             <i class="fas fa-eye text-xs"></i>
                         </x-button>
 
-                        <x-button href="{{ route('spk.print', ['id' => $item->id_detail, 'format' => $item->spk_lengkap ? 'lengkap' : 'thermal']) }}" target="_blank" size="icon" variant="ghost" class="border border-slate-100 hover:text-slate-800" title="Cetak SPK (Thermal)">
+                        <x-button href="{{ route('spk.print', ['id' => $item->id_detail, 'format' => 'thermal']) }}" target="_blank" size="icon" variant="ghost" class="border border-slate-100 hover:text-slate-800" title="Cetak SPK (Thermal)">
                             <i class="fas fa-print text-xs"></i>
                         </x-button>
+                        @if($item->spk_lengkap && in_array(optional(auth()->user()->role)->nama_role, ['Operator Desain', 'Administrator'], true))
+                        <x-button href="{{ route('spk.desain', $item->id_detail) }}" target="_blank" size="icon" variant="ghost" class="border border-indigo-100 text-indigo-500 hover:text-indigo-700" title="Cetak SPK Desain (gambar, konsumen, bahan, finishing)">
+                            <i class="fas fa-file-image text-xs"></i>
+                        </x-button>
+                        @endif
 
                         @if($item->status_spk === 'Pending')
                             <x-button href="{{ route('spk.index', ['status_spk' => 'Pending']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-amber-600" title="Selesaikan keputusan di halaman SPK">

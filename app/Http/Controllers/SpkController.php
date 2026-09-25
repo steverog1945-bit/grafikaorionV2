@@ -233,6 +233,15 @@ class SpkController extends Controller
      * Satu view melayani kedua kebutuhan karena datanya sama, hanya status
      * yang beda.
      */
+    /** SPK lengkap (dicetak desainer) - hanya untuk produk yang ditandai 'Cetak SPK lengkap'. */
+    public function printDesain(Request $request, $id)
+    {
+        $ok = DB::table('transaksi_detail as d')->join('produk as p', 'p.id_produk', '=', 'd.id_produk')->where('d.id_detail', $id)->where('p.spk_lengkap', true)->exists();
+        abort_unless($ok, 404, 'Produk ini tidak memakai SPK lengkap.');
+
+        return $this->printSpk($request, $id, 'lengkap');
+    }
+
     public function printSpk(Request $request, $id, $format = 'a4')
     {
         $format = in_array($format, ['thermal', 'lengkap'], true) ? $format : 'a4';

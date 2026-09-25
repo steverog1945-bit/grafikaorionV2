@@ -430,6 +430,8 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::patch('/spk/{id}/ambil', [SpkController::class, 'ambilPekerjaan'])->name('spk.ambil');
     Route::patch('/spk/{id}/resolve-pending', [SpkController::class, 'resolvePending'])->name('spk.resolve-pending');
     Route::get('/spk/{id}/print/{format?}', [SpkController::class, 'printSpk'])->name('spk.print');
+    // SPK lengkap untuk DESAINER (gambar, konsumen, bahan, finishing) - tim produksi tetap memakai SPK thermal di atas.
+    Route::get('/spk-desain/{id}', [SpkController::class, 'printDesain'])->whereNumber('id')->name('spk.desain');
     Route::get('/spk/cek-antrian-baru', [SpkController::class, 'cekAntrianBaru'])->name('spk.cek-antrian-baru');
 
     Route::get('/produksi', [ProduksiController::class, 'index'])->name('produksi.index');

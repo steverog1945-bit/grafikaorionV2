@@ -123,6 +123,11 @@
                 @bolehHarga<td class="px-6 py-4 text-right text-sm font-bold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>@endbolehHarga
                 <td class="px-6 py-4 text-center">
                     <x-badge :status="$item->status_spk" />
+                    @if($item->spk_lengkap && in_array(optional(auth()->user()->role)->nama_role, ['Operator Desain', 'Administrator'], true))
+                        <a href="{{ route('spk.desain', $item->id_detail) }}" target="_blank" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[11px] font-semibold transition-all" title="Cetak SPK lengkap untuk desainer">
+                            <i class="fas fa-file-image"></i> SPK Desain
+                        </a>
+                    @endif
                 </td>
             </tr>
             @endforeach
