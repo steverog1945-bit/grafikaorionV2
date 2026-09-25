@@ -55,17 +55,37 @@ class SpkLengkapTest extends TestCase
         $this->actingAs($this->admin)->get("/spk/{$this->idDetail}/print/lengkap")->assertOk()->assertSee('4 m')->assertSee('4,8');
     }
 
-    public function test_tombol_cetak_di_daftar_spk_memakai_format_lengkap_untuk_produk_bertanda(): void
+    public function test_tim_produksi_tetap_thermal_dan_desainer_punya_tombol_spk_desain(): void
     {
         $html = $this->actingAs($this->admin)->get('/spk')->assertOk()->getContent();
-        $this->assertStringContainsString("/spk/{$this->idDetail}/print/lengkap", $html);
-        $this->assertStringNotContainsString("/spk/{$this->idDetail}/print/thermal", $html);
+        $this->assertStringContainsString("/spk/{$this->idDetail}/print/thermal", $html);      // thermal untuk produksi selalu ada
+        $this->assertStringNotContainsString("/spk/{$this->idDetail}/print/lengkap", $html);
+        $this->assertStringContainsString("/spk-desain/{$this->idDetail}", $html);              // tombol SPK Desain (admin/desainer)
     }
 
-    public function test_produk_tanpa_tanda_tetap_thermal(): void
+    public function test_operator_desain_bisa_cetak_spk_desain_tanpa_menu_spk_dan_operator_produksi_tidak_melihat_tombolnya(): void
+    {
+        $role = Role::factory()->create(['nama_role' => 'Operator Desain']);
+        foreach ([41, 23] as $id) {
+            DB::table('menus')->insertOrIgnore(['id_menu' => $id, 'nama_menu' => "M{$id}", 'url_link' => "m{$id}", 'parent_id' => 0]);
+            DB::table('role_permissions')->insert(['id_role' => $role->id_role, 'id_menu' => $id]);
+        }
+        $desain = User::factory()->create(['id_role' => $role->id_role]);
+
+        $this->actingAs($desain)->get("/spk-desain/{$this->idDetail}")->assertOk()->assertSee('Konsumen Uji SPK')->assertSee('Desainer / Petugas Input');
+        $this->actingAs($desain)->get("/produksi?status_produksi=semua")->assertOk()->assertSee("/spk-desain/{$this->idDetail}", false);
+
+        $rolePro = Role::factory()->create(['nama_role' => 'Operator Produksi']);
+        DB::table('role_permissions')->insert(['id_role' => $rolePro->id_role, 'id_menu' => 23]);
+        $produksi = User::factory()->create(['id_role' => $rolePro->id_role]);
+        $this->actingAs($produksi)->get("/produksi?status_produksi=semua")->assertOk()->assertDontSee("/spk-desain/{$this->idDetail}", false)->assertSee("/spk/{$this->idDetail}/print/thermal", false);
+    }
+
+    public function test_produk_tanpa_tanda_tidak_punya_spk_desain(): void
     {
         DB::table('produk')->update(['spk_lengkap' => 0]);
+        $this->actingAs($this->admin)->get("/spk-desain/{$this->idDetail}")->assertNotFound();
         $html = $this->actingAs($this->admin)->get('/spk')->assertOk()->getContent();
-        $this->assertStringContainsString("/spk/{$this->idDetail}/print/thermal", $html);
+        $this->assertStringNotContainsString('/spk-desain/', $html);
     }
 }

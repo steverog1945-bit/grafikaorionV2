@@ -89,6 +89,8 @@ return [
         'purchase-order' => [20],
         'finishing' => [21],
         'spk' => [22],
+        // SPK Desain (lengkap): operator desain / input order, tanpa perlu menu SPK produksi.
+        'spk-desain' => [3, 22, 23, 41],
         'produksi' => [23],
         // QC & Rework (LEVEL 2): operator produksi/desain yang punya menu produksi.
         'qc' => [23],

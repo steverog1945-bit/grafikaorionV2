@@ -738,6 +738,7 @@ public function show($id)
         ->select(
             'transaksi_detail.*',
             'produk.nama_produk',
+            'produk.spk_lengkap',
             'jasa.nama_jasa',
             'finishing.nama_finishing'
         )
