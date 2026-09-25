@@ -48,6 +48,10 @@ class ApprovalController extends Controller
             return back()->with('error', 'Gagal menyetujui: ' . $e->getMessage());
         }
 
+        if ($approvalRequest->tipe_aksi === 'purchase_request') {
+            \App\Support\JalurLanjut::set('PR disetujui - lanjutkan dengan membuat Purchase Order ke supplier', 'purchase-order.create', 'Buat Purchase Order');
+        }
+
         return back()->with('success', 'Pengajuan disetujui & dieksekusi.');
     }
 

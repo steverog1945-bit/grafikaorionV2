@@ -27,7 +27,7 @@
                                 <span class="text-lg mr-3">💰</span>
                                 <div>
                                     <span class="font-bold text-slate-800">Boleh melihat &amp; mengubah harga</span>
-                                    <div class="text-[11px] text-slate-500 font-medium">Kosongkan untuk role yang hanya input nota &amp; produksi: halaman/kolom harga (Finishing, Quotation, biaya waste &amp; QC, dst) ditutup.</div>
+                                    <div class="text-[11px] text-slate-500 font-medium">Kosongkan untuk role yang hanya input nota &amp; produksi: harga hanya tampil (tidak bisa diubah) di Input Nota; halaman/kolom harga lain (Finishing, Quotation, detail nota, jersey, waste &amp; QC) ditutup.</div>
                                 </div>
                             </div>
                         </td>

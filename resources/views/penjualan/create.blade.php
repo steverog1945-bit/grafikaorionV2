@@ -258,7 +258,7 @@
                                  dipakai Biaya Finishing (finishingBiayaManualEdit). --}}
                             <div class="text-right">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Cetak</p>
-                                <input type="text" inputmode="numeric" id="input_cetak" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
+                                <input type="text" inputmode="numeric" id="input_cetak" @unlessbolehHarga readonly @endbolehHarga oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
                             </div>
                             {{-- Jumlah Pcs Finishing HANYA untuk finishing metode 'quantity'
                                  (mis. Pasang Mata Ayam, Pemasangan Tali) - jumlah pcs finishing
@@ -280,7 +280,7 @@
                                  bermakna. --}}
                             <div id="wrapper_biaya_finishing" class="text-right hidden">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Finishing</p>
-                                <input type="text" inputmode="numeric" id="input_finishing_biaya" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
+                                <input type="text" inputmode="numeric" id="input_finishing_biaya" @unlessbolehHarga readonly @endbolehHarga oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
                             </div>
                             {{-- Biaya Desain TIDAK punya penanda "sedang dipakai/tidak"
                                  bawaan seperti finishing - disembunyikan default, baru
@@ -288,9 +288,9 @@
                                  kalau memang ada biaya desain yang perlu ditambahkan. --}}
                             <div id="wrapper_biaya_desain" class="text-right hidden">
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Desain</p>
-                                <input type="text" inputmode="numeric" id="input_desain" oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
+                                <input type="text" inputmode="numeric" id="input_desain" @unlessbolehHarga readonly @endbolehHarga oninput="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
                             </div>
-                            <button type="button" id="btn_tambah_desain" onclick="tampilkanBiayaDesain()" class="text-indigo-300 hover:text-white text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
+                            <button type="button" id="btn_tambah_desain" @unlessbolehHarga hidden @endbolehHarga onclick="tampilkanBiayaDesain()" class="text-indigo-300 hover:text-white text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
                                 <i class="fas fa-plus-circle"></i> Biaya Desain
                             </button>
                             <button onclick="tambahKeKeranjang()" class="bg-emerald-500 hover:bg-emerald-400 text-white h-12 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
@@ -329,7 +329,7 @@
                                 <x-form.input type="number" id="input_jasa_qty" value="1" oninput="refreshJasaHargaSuggestion()" />
                             </x-form.group>
                             <x-form.group label="Harga Satuan (Rp)">
-                                <x-form.input type="text" inputmode="numeric" id="input_jasa_harga" placeholder="0" class="format-ribuan" />
+                                <x-form.input type="text" inputmode="numeric" id="input_jasa_harga" placeholder="0" :readonly="!\App\Support\AksesHarga::bolehLihat()" class="format-ribuan" />
                             </x-form.group>
                         </div>
 

@@ -226,6 +226,7 @@ class PurchaseOrderController extends Controller
             return back()->with('error', $hasil['error']);
         }
 
+        \App\Support\JalurLanjut::set('Cek qty fisik lalu validasi agar stok bertambah', 'kedatangan-bahan.edit', 'Buka Kedatangan', [$hasil['id']]);
         return redirect()->route('kedatangan-bahan.edit', $hasil['id'])
             ->with('success', 'Kedatangan Draft dibuat dari sisa PO. Cek qty fisik, lalu validasi supaya stok bertambah.');
     }

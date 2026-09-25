@@ -108,7 +108,7 @@
                     @endif
                 </td>
                 <td class="px-6 py-5 text-right">
-                    <span class="text-[14px] font-bold text-indigo-600">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>
+                    @bolehHarga<span class="text-[14px] font-bold text-indigo-600">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>@endbolehHarga
                 </td>
                 <td class="px-8 py-5 text-right">
                     <div class="flex items-center justify-end gap-1.5">

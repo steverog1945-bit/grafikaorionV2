@@ -66,7 +66,7 @@
                     <x-badge status="Dibatalkan" variant="danger" />
                 @endif
             </div>
-            <p class="text-2xl font-black {{ $transaksi->status_nota === 'Dibatalkan' ? 'text-slate-400 line-through' : 'text-indigo-600' }} mt-2">Rp {{ number_format($transaksi->total_bayar, 0, ',', '.') }}</p>
+            @bolehHarga<p class="text-2xl font-black {{ $transaksi->status_nota === 'Dibatalkan' ? 'text-slate-400 line-through' : 'text-indigo-600' }} mt-2">Rp {{ number_format($transaksi->total_bayar, 0, ',', '.') }}</p>@endbolehHarga
         </x-card>
     </div>
 
@@ -79,9 +79,9 @@
                 <th class="px-6 py-5 text-left">Info Ukuran</th>
                 <th class="px-4 py-5 text-center">Qty</th>
                 <th class="px-4 py-5 text-center">Urgensi</th>
-                <th class="px-6 py-5 text-right">Biaya Cetak</th>
-                <th class="px-6 py-5 text-right">Biaya Finishing</th>
-                <th class="px-6 py-5 text-right">Subtotal</th>
+                @bolehHarga<th class="px-6 py-5 text-right">Biaya Cetak</th>@endbolehHarga
+                @bolehHarga<th class="px-6 py-5 text-right">Biaya Finishing</th>@endbolehHarga
+                @bolehHarga<th class="px-6 py-5 text-right">Subtotal</th>@endbolehHarga
                 <th class="px-6 py-5 text-center">Status SPK</th>
             </tr>
         </thead>
@@ -114,9 +114,9 @@
                 <td class="px-4 py-4 text-center">
                     <x-badge :status="$item->status_urgensi ?? 'Normal'" :variant="($item->status_urgensi ?? 'Normal') === 'Very Urgent' ? 'danger' : (($item->status_urgensi ?? 'Normal') === 'Urgent' ? 'warning' : 'info')" />
                 </td>
-                <td class="px-6 py-4 text-right text-sm text-slate-600">{{ number_format($item->biaya_cetak ?? 0, 0, ',', '.') }}</td>
-                <td class="px-6 py-4 text-right text-sm text-slate-600">{{ number_format($item->biaya_finishing ?? 0, 0, ',', '.') }}</td>
-                <td class="px-6 py-4 text-right text-sm font-bold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                @bolehHarga<td class="px-6 py-4 text-right text-sm text-slate-600">{{ number_format($item->biaya_cetak ?? 0, 0, ',', '.') }}</td>@endbolehHarga
+                @bolehHarga<td class="px-6 py-4 text-right text-sm text-slate-600">{{ number_format($item->biaya_finishing ?? 0, 0, ',', '.') }}</td>@endbolehHarga
+                @bolehHarga<td class="px-6 py-4 text-right text-sm font-bold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>@endbolehHarga
                 <td class="px-6 py-4 text-center">
                     <x-badge :status="$item->status_spk" />
                 </td>
@@ -125,8 +125,8 @@
         </tbody>
         <tfoot>
             <tr class="bg-slate-50/70 border-t-2 border-slate-100">
-                <td colspan="8" class="px-6 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
-                <td class="px-6 py-4 text-right text-sm font-black text-slate-800">{{ number_format($transaksi->total_bayar, 0, ',', '.') }}</td>
+                @bolehHarga<td colspan="8" class="px-6 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
+                <td class="px-6 py-4 text-right text-sm font-black text-slate-800">{{ number_format($transaksi->total_bayar, 0, ',', '.') }}</td>@endbolehHarga
                 <td></td>
             </tr>
         </tfoot>

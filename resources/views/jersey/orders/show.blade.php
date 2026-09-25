@@ -61,6 +61,7 @@
                 <h3 class="text-sm font-bold text-slate-700">Ringkasan Biaya</h3>
                 <x-badge :status="$order->status_pembayaran" />
             </div>
+            @bolehHarga
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between"><span class="text-slate-400">Subtotal Barang</span><span>Rp {{ number_format($order->lines->sum('subtotal'), 0, ',', '.') }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Diskon</span><span>Rp {{ number_format($order->discount, 0, ',', '.') }}</span></div>
@@ -69,6 +70,7 @@
                 <div class="flex justify-between text-emerald-600"><span class="text-slate-400">Sudah Dibayar</span><span class="font-semibold">Rp {{ number_format($order->deposit, 0, ',', '.') }}</span></div>
                 <div class="flex justify-between border-t border-slate-100 pt-2 font-bold text-base text-rose-600"><span>Sisa Tagihan</span><span>Rp {{ number_format($order->sisa_tagihan, 0, ',', '.') }}</span></div>
             </div>
+            @endbolehHarga
             @if($order->sisa_tagihan > 0)
                 <x-button type="button" variant="success" class="w-full mt-4" onclick="openModal('tambah-pembayaran')">
                     <i class="fas fa-hand-holding-usd"></i> Catat Pembayaran
@@ -97,6 +99,7 @@
                             @endif
                         </h3>
                         <p class="text-[11px] text-slate-400">{{ $line->productType->name ?? '-' }} &middot; {{ $line->category->name ?? '-' }} &middot; {{ $line->bahan ?? '-' }} @if($line->sleeveType) &middot; {{ $line->sleeveType->name }} @endif @if($line->collarType) &middot; {{ $line->collarType->name }} @endif</p>
+                        @bolehHarga
                         <p class="text-[11px] text-slate-400">
                             {{ angka($line->qty, 4) }} pcs &times; Rp {{ number_format($line->harga_satuan, 0, ',', '.') }}
                             @if($line->size_surcharge_total > 0)
@@ -107,6 +110,7 @@
                             @endif
                             = <span class="font-bold text-slate-600">Rp {{ number_format($line->subtotal, 0, ',', '.') }}</span>
                         </p>
+                        @endbolehHarga
                     </div>
                 </div>
                 <x-button href="{{ route('jersey.orders.lines.spk', [$order->id, $line->id]) }}" size="sm" variant="secondary" target="_blank">
@@ -171,7 +175,7 @@
                             <td class="p-2">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[10px] font-bold uppercase">{{ $p->metode_bayar }}</span>
                             </td>
-                            <td class="p-2 text-right font-bold text-emerald-600">Rp {{ number_format($p->jumlah, 0, ',', '.') }}</td>
+                            @bolehHarga<td class="p-2 text-right font-bold text-emerald-600">Rp {{ number_format($p->jumlah, 0, ',', '.') }}</td>@endbolehHarga
                             <td class="p-2 text-slate-400">{{ $p->keterangan ?? '-' }}</td>
                             <td class="p-2 text-center">
                                 @if($p->bukti_path)
