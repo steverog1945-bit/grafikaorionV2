@@ -1,0 +1,62 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
+
+class JerseySizeAnakTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private User $admin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->admin = User::factory()->create(['id_role' => Role::factory()->create(['nama_role' => 'Administrator'])->id_role]);
+    }
+
+    private function sizes(): array
+    {
+        $now = now();
+        DB::table('jersey_sizes')->updateOrInsert(['name' => 'M'], ['sort_order' => 12, 'is_active' => 1, 'price_surcharge' => 0, 'kelompok' => 'dewasa', 'price_percent' => 0, 'created_at' => $now, 'updated_at' => $now]);
+        DB::table('jersey_sizes')->updateOrInsert(['name' => 'Anak 8'], ['sort_order' => 3, 'is_active' => 1, 'price_surcharge' => 0, 'kelompok' => 'anak', 'price_percent' => -25, 'created_at' => $now, 'updated_at' => $now]);
+
+        return [(int) DB::table('jersey_sizes')->where('name', 'M')->value('id'), (int) DB::table('jersey_sizes')->where('name', 'Anak 8')->value('id')];
+    }
+
+    public function test_ukuran_anak_diskon_persen_dari_harga_tier(): void
+    {
+        [$m, $anak] = $this->sizes();
+        $tipe = DB::table('jersey_product_types')->insertGetId(['name' => 'JerseyUji', 'has_sleeve_collar' => 0, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('jersey_price_settings')->insert(['jersey_product_type_id' => $tipe, 'qty_min' => 1, 'qty_max' => 100, 'price' => 100000, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()]);
+
+        $res = $this->actingAs($this->admin)->postJson('/jersey/preview-harga', ['lines' => [[
+            'nama_barang' => 'X', 'order_type' => 'quantity_only', 'jersey_product_type_id' => $tipe,
+            'size_quantities' => [$m => 2, $anak => 2],
+        ]]])->assertOk();
+
+        // 4 pcs x 100.000 + 2 anak x (-25% = -25.000) = 350.000
+        $this->assertEquals(350000, (float) $res->json('lines.0.subtotal'));
+    }
+
+    public function test_form_order_menampilkan_kelompok_anak_dan_dewasa_terpisah(): void
+    {
+        $this->sizes();
+        $this->actingAs($this->admin)->get('/jersey/create')->assertOk()->assertSee('Ukuran Anak')->assertSee('Ukuran Dewasa')->assertSee('Anak 8')->assertSee('qty-total-line', false);
+    }
+
+    public function test_master_bisa_menyimpan_kelompok_dan_persen(): void
+    {
+        $this->actingAs($this->admin)->postJson('/jersey/master/sizes', ['name' => 'Anak 99', 'kelompok' => 'anak', 'price_percent' => -12.5])->assertOk();
+        $row = DB::table('jersey_sizes')->where('name', 'Anak 99')->first();
+        $this->assertEquals('anak', $row->kelompok);
+        $this->assertEquals(-12.5, (float) $row->price_percent);
+
+        $this->actingAs($this->admin)->postJson('/jersey/master/sizes', ['name' => 'Anak 98', 'price_percent' => -95])->assertStatus(422);
+    }
+}

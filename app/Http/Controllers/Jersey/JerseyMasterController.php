@@ -159,11 +159,15 @@ class JerseyMasterController extends Controller
             'name' => 'required|string|max:20|unique:jersey_sizes,name',
             'sort_order' => 'nullable|integer|min:0',
             'price_surcharge' => 'nullable|numeric|min:0',
+            'kelompok' => 'nullable|in:dewasa,anak',
+            'price_percent' => 'nullable|numeric|between:-90,100',
         ]);
         $row = JerseySize::create([
             'name' => $data['name'],
             'sort_order' => $data['sort_order'] ?? 0,
             'price_surcharge' => $data['price_surcharge'] ?? 0,
+            'kelompok' => $data['kelompok'] ?? 'dewasa',
+            'price_percent' => $data['price_percent'] ?? 0,
         ]);
         return response()->json(['success' => true, 'message' => 'Ukuran berhasil ditambahkan.', 'row' => $row]);
     }
@@ -174,11 +178,15 @@ class JerseyMasterController extends Controller
             'name' => 'required|string|max:20|unique:jersey_sizes,name,' . $size->id,
             'sort_order' => 'nullable|integer|min:0',
             'price_surcharge' => 'nullable|numeric|min:0',
+            'kelompok' => 'nullable|in:dewasa,anak',
+            'price_percent' => 'nullable|numeric|between:-90,100',
         ]);
         $size->update([
             'name' => $data['name'],
             'sort_order' => $data['sort_order'] ?? 0,
             'price_surcharge' => $data['price_surcharge'] ?? 0,
+            'kelompok' => $data['kelompok'] ?? $size->kelompok,
+            'price_percent' => $data['price_percent'] ?? 0,
         ]);
         return response()->json(['success' => true, 'message' => 'Ukuran berhasil diperbarui.', 'row' => $size]);
     }

@@ -92,20 +92,22 @@
     {{-- UKURAN --}}
     <div id="tab-panel-ukuran" class="jersey-tab-panel hidden">
         <x-card>
-            <form id="form-add-ukuran" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
+            <form id="form-add-ukuran" class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <input type="text" name="name" required placeholder="Nama ukuran (mis. XXL)" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                 <input type="number" name="sort_order" placeholder="Urutan tampil" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                <select name="kelompok" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"><option value="dewasa">Dewasa</option><option value="anak">Anak</option></select>
                 <input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                <input type="number" step="0.5" min="-90" max="100" name="selisih_persen" placeholder="Selisih harga % (mis. -20)" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                 <x-button type="submit" variant="success">Tambah Ukuran</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-ukuran', 'statusId' => 'filter-status-ukuran', 'placeholder' => 'Cari nama ukuran...'])
             <x-table bare>
-                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center">Urutan</th><th class="p-2.5 text-right">Tambahan Harga</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
-                <tbody class="divide-y divide-slate-50" id="tbody-ukuran" data-empty-colspan="4" data-empty-text="Belum ada ukuran">
+                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center">Kelompok</th><th class="p-2.5 text-center">Urutan</th><th class="p-2.5 text-right">Tambahan Harga</th><th class="p-2.5 text-right">Selisih %</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
+                <tbody class="divide-y divide-slate-50" id="tbody-ukuran" data-empty-colspan="6" data-empty-text="Belum ada ukuran">
                     @forelse($sizes as $s)
                         @include('jersey.master._row-size', ['row' => $s])
                     @empty
-                    <tr class="row-empty"><td colspan="4"><x-empty-state title="Belum ada ukuran" /></td></tr>
+                    <tr class="row-empty"><td colspan="6"><x-empty-state title="Belum ada ukuran" /></td></tr>
                     @endforelse
                 </tbody>
             </x-table>
@@ -513,6 +515,14 @@
                 <input type="number" id="edit-ukuran-sort" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kelompok</label>
+                <select id="edit-ukuran-kelompok" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"><option value="dewasa">Dewasa</option><option value="anak">Anak</option></select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Selisih Harga (%) dari harga tier</label>
+                <input type="number" step="0.5" min="-90" max="100" id="edit-ukuran-percent" placeholder="mis. -20 untuk diskon 20%" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            </div>
+            <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tambahan Harga (Rp)</label>
                 <input type="text" inputmode="numeric" id="edit-ukuran-surcharge" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
@@ -864,6 +874,8 @@
         const payload = {
             name: form.querySelector('[name="name"]').value.trim(),
             sort_order: form.querySelector('[name="sort_order"]').value || 0,
+            kelompok: form.querySelector('[name="kelompok"]').value,
+            price_percent: form.querySelector('[name="selisih_persen"]').value || 0,
             price_surcharge: cleanRupiah(form.querySelector('[name="price_surcharge"]').value),
         };
         if (!payload.name) return;
@@ -894,8 +906,10 @@
         return `
         <tr data-id="${row.id}" class="${row.is_active ? '' : 'opacity-50'}">
             <td class="p-2.5 font-semibold">${escapeHtmlJersey(row.name)}</td>
+            <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${row.kelompok === 'anak' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}">${row.kelompok === 'anak' ? 'Anak' : 'Dewasa'}</span></td>
             <td class="p-2.5 text-center">${row.sort_order}</td>
             <td class="p-2.5 text-right">Rp ${formatRupiah(Math.round(parseFloat(row.price_surcharge)))}</td>
+            <td class="p-2.5 text-right ${parseFloat(row.price_percent) < 0 ? 'text-emerald-600 font-bold' : ''}">${parseFloat(row.price_percent) ? (parseFloat(row.price_percent) > 0 ? '+' : '') + parseFloat(row.price_percent) + '%' : '-'}</td>
             <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
                     <button type="button" onclick="bukaEditUkuran(${JSON.stringify(row).replace(/"/g, '&quot;')})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
@@ -909,6 +923,8 @@
         document.getElementById('edit-ukuran-id').value = row.id;
         document.getElementById('edit-ukuran-name').value = row.name;
         document.getElementById('edit-ukuran-sort').value = row.sort_order;
+        document.getElementById('edit-ukuran-kelompok').value = row.kelompok || 'dewasa';
+        document.getElementById('edit-ukuran-percent').value = parseFloat(row.price_percent) || 0;
         document.getElementById('edit-ukuran-surcharge').value = formatRupiah(Math.round(parseFloat(row.price_surcharge)));
         openModal('edit-ukuran');
     }
@@ -919,6 +935,8 @@
         const payload = {
             name: document.getElementById('edit-ukuran-name').value.trim(),
             sort_order: document.getElementById('edit-ukuran-sort').value || 0,
+            kelompok: document.getElementById('edit-ukuran-kelompok').value,
+            price_percent: document.getElementById('edit-ukuran-percent').value || 0,
             price_surcharge: cleanRupiah(document.getElementById('edit-ukuran-surcharge').value),
         };
         const data = await kirimJson(`{{ url("/jersey/master/sizes") }}/${id}`, 'PUT', payload);
