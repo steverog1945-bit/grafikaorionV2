@@ -375,6 +375,19 @@ class AccountingService
         ]);
     }
 
+    /** Pemasukan manual di Kas Kecil: Dr Kas / Cr akun pendapatan (atau modal) sesuai kategorinya. */
+    public static function postKasKecilMasuk(string $noReferensi, string $kodeAkunLawan, float $nominal): void
+    {
+        if ($nominal <= 0) {
+            return;
+        }
+
+        self::postJournal(now()->toDateString(), $noReferensi, "Pemasukan Kas Kecil {$noReferensi}", [
+            ['kode_akun' => self::AKUN_KAS, 'debet' => $nominal],
+            ['kode_akun' => $kodeAkunLawan, 'kredit' => $nominal],
+        ]);
+    }
+
     /**
      * Versi generik dari reversePenjualan() (nama lama dipertahankan apa
      * adanya supaya alur Edit Nota yang sudah ada tidak perlu disentuh) -

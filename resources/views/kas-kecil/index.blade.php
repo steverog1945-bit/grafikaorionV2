@@ -16,7 +16,7 @@
     <div class="print:hidden">
         <x-page-header title="Kas Kecil">
             <x-slot:subtitle>
-                Pencatatan belanja kebutuhan non-bahan-utama bernilai kecil (ATK, konsumsi, ongkos kirim, dst) - terpisah dari Kas Utama, Belanja Bahan, &amp; Keuangan Jersey
+                Buku kas kecil: pengeluaran kebutuhan kecil (ATK, konsumsi, ongkos kirim, dst) &amp; pemasukan - pembayaran order jersey masuk otomatis, pemasukan lain dicatat manual
             </x-slot:subtitle>
             <x-slot:actions>
                 <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
@@ -42,15 +42,21 @@
     <x-card class="mb-6 no-print">
         <form method="POST" action="{{ route('kas-kecil.store') }}" id="form-kas-kecil">
             @csrf
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <x-form.group label="Jenis" required>
+                    <x-form.select name="jenis" id="kk-jenis" required>
+                        <option value="Keluar" {{ old('jenis', 'Keluar') === 'Keluar' ? 'selected' : '' }}>Pengeluaran</option>
+                        <option value="Masuk" {{ old('jenis') === 'Masuk' ? 'selected' : '' }}>Pemasukan</option>
+                    </x-form.select>
+                </x-form.group>
                 <x-form.group label="Tanggal" required>
                     <x-form.input type="date" name="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}" required />
                 </x-form.group>
                 <x-form.group label="Kategori" required>
-                    <x-form.select name="id_kategori" required>
+                    <x-form.select name="id_kategori" id="kk-kategori" required>
                         <option value="">-- Pilih Kategori --</option>
                         @foreach($kategoriList as $kat)
-                            <option value="{{ $kat->id_kategori_kas_kecil }}" {{ (string) old('id_kategori') === (string) $kat->id_kategori_kas_kecil ? 'selected' : '' }}>{{ $kat->nama_kategori }}</option>
+                            <option value="{{ $kat->id_kategori_kas_kecil }}" data-jenis="{{ $kat->jenis }}" {{ (string) old('id_kategori') === (string) $kat->id_kategori_kas_kecil ? 'selected' : '' }}>{{ $kat->nama_kategori }}</option>
                         @endforeach
                     </x-form.select>
                     <a href="{{ route('kategori-kas-kecil.index') }}" class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest hover:underline ml-2 mt-1 inline-block">
@@ -62,7 +68,7 @@
                 </x-form.group>
                 <div class="flex items-end">
                     <x-button type="submit" class="w-full">
-                        <i class="fas fa-plus"></i> Catat Pengeluaran
+                        <i class="fas fa-plus"></i> Catat
                     </x-button>
                 </div>
             </div>
@@ -83,6 +89,14 @@
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
                 <x-form.input type="date" name="tgl_sampai" value="{{ $tglSampai }}" />
             </div>
+            <div class="w-full md:w-44">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Jenis</label>
+                <x-form.select name="jenis">
+                    <option value="">-- Semua --</option>
+                    <option value="Masuk" {{ request('jenis') === 'Masuk' ? 'selected' : '' }}>Pemasukan</option>
+                    <option value="Keluar" {{ request('jenis') === 'Keluar' ? 'selected' : '' }}>Pengeluaran</option>
+                </x-form.select>
+            </div>
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
                 <x-form.select name="id_kategori">
@@ -98,7 +112,7 @@
                 Filter
             </x-button>
 
-            @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'id_kategori']))
+            @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'id_kategori', 'jenis']))
                 <a href="{{ route('kas-kecil.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
@@ -108,20 +122,31 @@
 
     {{-- RESUME - kartu berwarna di layar (tidak diubah), tabel standar
          polos khusus cetak. --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 print:hidden">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Catatan</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($data->total(), 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pemasukan Tunai</p>
+            <h3 class="text-2xl font-bold text-emerald-600 mt-1">Rp {{ number_format($masukTunai, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Pengeluaran (sesuai filter)</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pemasukan Non-Tunai</p>
+            <h3 class="text-2xl font-bold text-slate-700 mt-1">Rp {{ number_format($masukNonTunai, 0, ',', '.') }}</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Pengeluaran</p>
             <h3 class="text-2xl font-bold text-rose-500 mt-1">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo Tunai (sesuai filter)</p>
+            <h3 class="text-2xl font-bold text-slate-900 mt-1">Rp {{ number_format($masukTunai - $totalPengeluaran, 0, ',', '.') }}</h3>
         </div>
     </div>
     <div class="hidden print:block">
         <x-laporan.resume-table title="Resume" :rows="[
             'Jumlah Catatan' => number_format($data->total(), 0, ',', '.'),
-            'Total Pengeluaran (sesuai filter)' => 'Rp ' . number_format($totalPengeluaran, 0, ',', '.'),
+            'Pemasukan Tunai' => 'Rp ' . number_format($masukTunai, 0, ',', '.'),
+            'Pemasukan Non-Tunai' => 'Rp ' . number_format($masukNonTunai, 0, ',', '.'),
+            'Total Pengeluaran' => 'Rp ' . number_format($totalPengeluaran, 0, ',', '.'),
+            'Saldo Tunai (sesuai filter)' => 'Rp ' . number_format($masukTunai - $totalPengeluaran, 0, ',', '.'),
         ]" />
     </div>
 
@@ -131,6 +156,7 @@
             <tr>
                 <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">Tanggal</th>
+                <th class="px-4 py-5 text-left">Jenis</th>
                 <th class="px-4 py-5 text-left">Kategori</th>
                 <th class="px-4 py-5 text-left">Keterangan</th>
                 <th class="px-4 py-5 text-left">Dicatat Oleh</th>
@@ -146,7 +172,11 @@
                     <span class="text-[13px] font-bold text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d M Y') }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[11px] font-bold uppercase text-indigo-600 bg-indigo-50 rounded px-2 py-1">{{ $k->kategori->nama_kategori ?? '-' }}</span>
+                    <span class="text-[10px] font-bold uppercase rounded px-2 py-1 {{ $k->jenis === 'Masuk' ? 'text-emerald-600 bg-emerald-50' : 'text-rose-500 bg-rose-50' }}">{{ $k->jenis === 'Masuk' ? 'Masuk' : 'Keluar' }}</span>
+                    @if($k->metode !== 'Tunai')<span class="text-[10px] font-bold uppercase text-slate-500 bg-slate-100 rounded px-2 py-1 ml-1">{{ $k->metode }}</span>@endif
+                </td>
+                <td class="px-4 py-5">
+                    <span class="text-[11px] font-bold uppercase text-indigo-600 bg-indigo-50 rounded px-2 py-1">{{ $k->sumber === 'jersey' ? 'Order Jersey' : ($k->kategori->nama_kategori ?? '-') }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] text-slate-600">{{ $k->keterangan }}</span>
@@ -155,18 +185,22 @@
                     <span class="text-[12px] text-slate-400">{{ $k->user->username ?? '-' }}</span>
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[12px] text-rose-500 font-bold">Rp {{ number_format($k->nominal, 0, ',', '.') }}</span>
+                    <span class="text-[12px] font-bold {{ $k->jenis === 'Masuk' ? 'text-emerald-600' : 'text-rose-500' }}">{{ $k->jenis === 'Masuk' ? '+' : '-' }} Rp {{ number_format($k->nominal, 0, ',', '.') }}</span>
                 </td>
                 <td class="px-4 py-5 text-center no-print">
+                    @if($k->sumber === 'jersey')
+                    <span class="text-slate-300" title="Otomatis dari pembayaran order jersey"><i class="fas fa-link text-xs"></i></span>
+                    @else
                     <form method="POST" action="{{ route('kas-kecil.destroy', $k->id) }}" onsubmit="return konfirmasiHapusKasKecil(event, this)">
                         @csrf @method('DELETE')
                         <button type="submit" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
                     </form>
+                    @endif
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     <x-empty-state title="Belum ada catatan kas kecil" description="Sesuaikan filter tanggal, atau catat pengeluaran baru lewat form di atas." />
                 </td>
             </tr>
@@ -178,25 +212,26 @@
     {{-- Versi cetak: tabel polos sederhana, gaya visual sama dengan
          laporan lain (font 10/11px konsisten, tanpa padding lega UI). --}}
     <div class="hidden print:block">
-        <x-laporan.print-table title="Detail Kas Kecil" :headers="['#', 'Tanggal', 'Kategori', 'Keterangan', 'Dicatat Oleh', 'Nominal']" :align="['center', 'left', 'left', 'left', 'left', 'right']">
+        <x-laporan.print-table title="Detail Kas Kecil" :headers="['#', 'Tanggal', 'Jenis', 'Kategori', 'Keterangan', 'Dicatat Oleh', 'Nominal']" :align="['center', 'left', 'left', 'left', 'left', 'left', 'right']">
             @forelse($data as $i => $k)
             <tr>
                 <td class="px-3 py-1.5 text-center text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-3 py-1.5 font-semibold text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d/m/Y') }}</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ $k->kategori->nama_kategori ?? '-' }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $k->jenis === 'Masuk' ? 'Masuk' : 'Keluar' }}{{ $k->metode !== 'Tunai' ? ' (' . $k->metode . ')' : '' }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $k->sumber === 'jersey' ? 'Order Jersey' : ($k->kategori->nama_kategori ?? '-') }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->keterangan }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->user->username ?? '-' }}</td>
-                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($k->nominal, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ $k->jenis === 'Masuk' ? '' : '-' }}{{ number_format($k->nominal, 0, ',', '.') }}</td>
             </tr>
             @empty
             <tr>
-                <td class="px-3 py-1.5 text-slate-400 italic" colspan="6">Belum ada catatan kas kecil.</td>
+                <td class="px-3 py-1.5 text-slate-400 italic" colspan="7">Belum ada catatan kas kecil.</td>
             </tr>
             @endforelse
             @if($data->isNotEmpty())
             <tr class="bg-slate-50 border-t border-slate-200">
-                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="5">Total Pengeluaran (halaman ini)</td>
-                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($data->sum('nominal'), 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="6">Selisih Masuk - Keluar (halaman ini)</td>
+                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($data->where('jenis', 'Masuk')->sum('nominal') - $data->where('jenis', 'Keluar')->sum('nominal'), 0, ',', '.') }}</td>
             </tr>
             @endif
         </x-laporan.print-table>
@@ -210,6 +245,18 @@
 
 @push('scripts')
 <script>
+    // Pilihan kategori pada form mengikuti jenis (pemasukan / pengeluaran).
+    function saringKategoriKasKecil() {
+        const jenis = document.getElementById('kk-jenis').value;
+        const sel = document.getElementById('kk-kategori');
+        [...sel.options].forEach(o => { if (o.value) { const cocok = o.dataset.jenis === jenis; o.hidden = !cocok; o.disabled = !cocok; } });
+        if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = '';
+        if (window.jQuery && jQuery(sel).data('select2')) jQuery(sel).trigger('change.select2');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        const j = document.getElementById('kk-jenis');
+        if (j) { j.addEventListener('change', saringKategoriKasKecil); saringKategoriKasKecil(); }
+    });
     function konfirmasiHapusKasKecil(e, form) {
         e.preventDefault();
         Swal.fire({

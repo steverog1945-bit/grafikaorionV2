@@ -13,7 +13,7 @@ class KasKecil extends Model
 
     protected $table = 'kas_kecil';
 
-    protected $fillable = ['tanggal', 'id_kategori', 'keterangan', 'nominal', 'bukti_path', 'id_user'];
+    protected $fillable = ['tanggal', 'jenis', 'sumber', 'id_referensi', 'metode', 'id_kategori', 'keterangan', 'nominal', 'bukti_path', 'id_user'];
 
     protected $casts = [
         'tanggal' => 'date',

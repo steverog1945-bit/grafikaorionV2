@@ -135,7 +135,7 @@ class DashboardEksekutifService
         $belanja = (float) DB::table('pembelian_bahan')->whereNull('deleted_at')->where('tgl_transaksi', '>=', $awal->toDateString())->where('tgl_transaksi', '<', $akhir->toDateString())->sum('grand_total');
         $kasMasuk = (float) DB::table('pembayaran_riwayat')->where('metode', '!=', 'Deposit')->where('tgl_bayar', '>=', $awal)->where('tgl_bayar', '<', $akhir)->sum('nominal');
         $kasKeluar = (float) DB::table('pembayaran_hutang')->whereNull('voided_at')->where('tanggal', '>=', $awal->toDateString())->where('tanggal', '<', $akhir->toDateString())->sum('nominal')
-            + (float) DB::table('kas_kecil')->whereNull('deleted_at')->where('tanggal', '>=', $awal->toDateString())->where('tanggal', '<', $akhir->toDateString())->sum('nominal');
+            + (float) DB::table('kas_kecil')->whereNull('deleted_at')->where('jenis', 'Keluar')->where('tanggal', '>=', $awal->toDateString())->where('tanggal', '<', $akhir->toDateString())->sum('nominal');
 
         return [
             'omzet' => round($omzet / 3, 2),

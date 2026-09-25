@@ -30,26 +30,36 @@ class KasKecilController extends Controller
             $query->where('id_kategori', $request->id_kategori);
         }
 
-        $totalPengeluaran = (clone $query)->sum('nominal');
+        if ($request->filled('jenis')) {
+            $query->where('jenis', $request->jenis);
+        }
+
+        // Ringkasan buku kas: pemasukan tunai (kas fisik), pemasukan non-tunai (mis. transfer jersey) & pengeluaran.
+        $totalPengeluaran = (float) (clone $query)->where('jenis', 'Keluar')->sum('nominal');
+        $masukTunai = (float) (clone $query)->where('jenis', 'Masuk')->where('metode', 'Tunai')->sum('nominal');
+        $masukNonTunai = (float) (clone $query)->where('jenis', 'Masuk')->where('metode', '!=', 'Tunai')->sum('nominal');
         $data = $query->paginate(20)->withQueryString();
 
         // Kategori sekarang tabel referensi tetap (dropdown), bukan lagi
         // isian bebas - lihat migrasi create_kategori_kas_kecil_table.
         $kategoriList = KategoriKasKecil::orderBy('nama_kategori')->get();
 
-        return view('kas-kecil.index', compact('data', 'tglDari', 'tglSampai', 'totalPengeluaran', 'kategoriList'));
+        return view('kas-kecil.index', compact('data', 'tglDari', 'tglSampai', 'totalPengeluaran', 'masukTunai', 'masukNonTunai', 'kategoriList'));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
             'tanggal' => 'required|date',
+            'jenis' => 'required|in:Keluar,Masuk',
             'id_kategori' => 'required|integer|exists:kategori_kas_kecil,id_kategori_kas_kecil',
             'keterangan' => 'required|string|max:500',
             'nominal' => 'required|numeric|min:1',
             'bukti_path' => 'nullable|string|max:255',
         ]);
         $data['id_user'] = Auth::id();
+        $data['sumber'] = 'manual';
+        $data['metode'] = 'Tunai';
 
         // Setiap pengeluaran kas kecil SEKARANG ikut masuk jurnal akuntansi
         // (sebelumnya berdiri sendiri, tidak pernah muncul di Laba Rugi) -
@@ -61,21 +71,27 @@ class KasKecilController extends Controller
         // dan bisa dilengkapi lewat menu Kategori Kas Kecil.
         $kategori = KategoriKasKecil::findOrFail($data['id_kategori']);
 
+        if ($kategori->jenis !== $data['jenis']) {
+            return back()->withInput()->withErrors(['id_kategori' => "Kategori \"{$kategori->nama_kategori}\" adalah kategori " . ($kategori->jenis === 'Masuk' ? 'pemasukan' : 'pengeluaran') . ', tidak cocok dengan jenis yang dipilih.']);
+        }
+
         $kasKecil = DB::transaction(function () use ($data, $kategori) {
             $kk = KasKecil::create($data);
 
             if ($kategori->kode_akun) {
-                AccountingService::postKasKecil('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal);
+                $data['jenis'] === 'Masuk'
+                    ? AccountingService::postKasKecilMasuk('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal)
+                    : AccountingService::postKasKecil('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal);
             }
 
             return $kk;
         });
 
         if (!$kategori->kode_akun) {
-            return back()->with('error', "Pengeluaran tersimpan, TAPI kategori \"{$kategori->nama_kategori}\" belum dihubungkan ke akun Beban manapun - nominal ini belum ikut terhitung di Laba Rugi. Lengkapi pemetaan akunnya lewat menu Kategori Kas Kecil.");
+            return back()->with('error', "Catatan tersimpan, TAPI kategori \"{$kategori->nama_kategori}\" belum dihubungkan ke akun manapun - nominal ini belum ikut terhitung di jurnal/Laba Rugi. Lengkapi pemetaan akunnya lewat menu Kategori Kas Kecil.");
         }
 
-        return back()->with('success', 'Pengeluaran kas kecil berhasil dicatat & masuk ke jurnal akuntansi.');
+        return back()->with('success', ($data['jenis'] === 'Masuk' ? 'Pemasukan' : 'Pengeluaran') . ' kas kecil berhasil dicatat & masuk ke jurnal akuntansi.');
     }
 
     /**
@@ -85,6 +101,10 @@ class KasKecilController extends Controller
      */
     public function destroy(Request $request, KasKecil $kasKecil)
     {
+        if ($kasKecil->sumber === 'jersey') {
+            return back()->with('error', 'Pemasukan ini berasal dari pembayaran order jersey - batalkan lewat Keuangan Jersey (void pembayaran), bukan dari sini.');
+        }
+
         $sudahAda = \App\Models\ApprovalRequest::where('tipe_aksi', 'batalkan_kas_kecil')
             ->where('referensi_id', $kasKecil->id)->where('status', 'Menunggu')->exists();
 
