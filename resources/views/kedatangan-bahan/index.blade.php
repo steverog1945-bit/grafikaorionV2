@@ -92,6 +92,7 @@
 
                     <td class="px-4 py-5">
                         <span class="text-[12px] font-bold text-slate-700 uppercase block leading-tight">{{ $k->supplier->nama_supplier ?? 'VENDOR UMUM' }}</span>
+                        @if($k->platform)<span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-orange-50 text-orange-600 text-[10px] font-black uppercase"><i class="fas fa-shopping-bag"></i> {{ $k->platform->nama }}@if($k->no_pesanan_online) &middot; {{ $k->no_pesanan_online }}@endif</span>@endif
                         <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1 mt-0.5">
                             <i class="fas fa-warehouse text-[9px]"></i> {{ $k->gudang->nama_gudang ?? 'UTAMA' }}
                         </span>

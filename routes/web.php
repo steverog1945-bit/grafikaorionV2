@@ -78,6 +78,13 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::resource('kategori', KategoriController::class);
     Route::resource('kategori-kas-kecil', KategoriKasKecilController::class)->except(['show', 'create', 'edit']);
     Route::resource('supplier', SupplierController::class);
+
+    // Platform belanja online (Tokopedia, Shopee, ...) - dikelola pengguna, satu akses dengan Supplier.
+    Route::get('/platform-belanja', [\App\Http\Controllers\PlatformBelanjaController::class, 'index'])->name('platform-belanja.index');
+    Route::post('/platform-belanja', [\App\Http\Controllers\PlatformBelanjaController::class, 'store'])->name('platform-belanja.store');
+    Route::put('/platform-belanja/{id}', [\App\Http\Controllers\PlatformBelanjaController::class, 'update'])->whereNumber('id')->name('platform-belanja.update');
+    Route::patch('/platform-belanja/{id}/toggle', [\App\Http\Controllers\PlatformBelanjaController::class, 'toggle'])->whereNumber('id')->name('platform-belanja.toggle');
+    Route::delete('/platform-belanja/{id}', [\App\Http\Controllers\PlatformBelanjaController::class, 'destroy'])->whereNumber('id')->name('platform-belanja.destroy');
     Route::resource('bank', BankController::class);
     Route::resource('konsumen', KonsumenController::class);
     Route::resource('golongan', GolonganController::class);

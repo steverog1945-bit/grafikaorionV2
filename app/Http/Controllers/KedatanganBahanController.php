@@ -67,10 +67,11 @@ class KedatanganBahanController extends Controller
     public function create()
     {
         $suppliers = Supplier::orderBy('nama_supplier')->get();
+        $platforms = \App\Models\PlatformBelanja::where('aktif', true)->orderBy('urutan')->orderBy('nama')->get();
         $bahans = BahanBaku::where('status', 'aktif')->orderBy('nama_bahan')->get();
 
         $gudangs = $this->getGudangList();
-        return view('kedatangan-bahan.create', compact('suppliers', 'bahans', 'gudangs'));
+        return view('kedatangan-bahan.create', compact('suppliers', 'bahans', 'gudangs', 'platforms'));
     }
 
   public function store(Request $request)
@@ -79,6 +80,7 @@ class KedatanganBahanController extends Controller
     $request->validate([
         'no_surat_jalan' => 'required|unique:kedatangan_bahan,no_surat_jalan',
         'id_supplier'    => 'required|exists:supplier,id_supplier',
+        'id_platform'    => 'nullable|exists:platform_belanja,id',
         'tgl_datang'     => 'required|date',
         'id_bahan'       => 'required|array|min:1',
         'qty'            => 'required|array|min:1',
@@ -95,6 +97,10 @@ class KedatanganBahanController extends Controller
     'tgl_datang'     => $request->tgl_datang,
     'id_gudang'      => $request->id_gudang, // Tambahkan ini
     'keterangan'     => $request->keterangan,
+    'id_platform'       => $request->filled('id_platform') ? (int) $request->id_platform : null,
+    'nama_toko_online'  => $request->filled('id_platform') ? $request->nama_toko_online : null,
+    'no_pesanan_online' => $request->filled('id_platform') ? $request->no_pesanan_online : null,
+    'no_resi'           => $request->filled('id_platform') ? $request->no_resi : null,
 ]);
 
         // 3. Simpan Detail (Looping Array)
@@ -167,11 +173,12 @@ public function validateStatus($id)
     {
         $kedatangan = KedatanganBahan::with('detail.bahan')->findOrFail($id);
         $suppliers = Supplier::orderBy('nama_supplier')->get();
+        $platforms = \App\Models\PlatformBelanja::where(fn ($q) => $q->where('aktif', true)->orWhere('id', $kedatangan->id_platform))->orderBy('urutan')->orderBy('nama')->get();
         $bahans = BahanBaku::where('status', 'aktif')->orderBy('nama_bahan')->get();
 
         $gudangs = $this->getGudangList();
 
-        return view('kedatangan-bahan.create', compact('kedatangan', 'suppliers', 'bahans', 'gudangs'));
+        return view('kedatangan-bahan.create', compact('kedatangan', 'suppliers', 'bahans', 'gudangs', 'platforms'));
     }
 public function bulkDelete(Request $request)
 {
@@ -288,6 +295,10 @@ public function bulkDelete(Request $request)
             'id_gudang'      => $request->id_gudang ?? 1,
             'status'         => $request->status ?? 'Draft',
                 'keterangan'     => $request->keterangan,
+            'id_platform'       => $request->filled('id_platform') ? (int) $request->id_platform : null,
+            'nama_toko_online'  => $request->filled('id_platform') ? $request->nama_toko_online : null,
+            'no_pesanan_online' => $request->filled('id_platform') ? $request->no_pesanan_online : null,
+            'no_resi'           => $request->filled('id_platform') ? $request->no_resi : null,
 
         ]);
 

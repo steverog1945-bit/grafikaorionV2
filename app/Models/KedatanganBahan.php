@@ -21,11 +21,20 @@ class KedatanganBahan extends Model
         'status',
         'keterangan',
         'id_purchase_order',
+        'id_platform',
+        'nama_toko_online',
+        'no_pesanan_online',
+        'no_resi',
     ];
+
 protected $casts = [
         'tgl_datang' => 'date',
         'created_at' => 'datetime', 
     ];
+    public function platform() {
+        return $this->belongsTo(PlatformBelanja::class, 'id_platform');
+    }
+
     public function supplier() {
     return $this->belongsTo(Supplier::class, 'id_supplier', 'id_supplier');
 }
