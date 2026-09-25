@@ -8,7 +8,13 @@ class JerseyMaterial extends Model
 {
     protected $table = 'jersey_materials';
 
-    protected $fillable = ['name', 'is_active'];
+    protected $fillable = ['name', 'is_active', 'id_bahan'];
 
     protected $casts = ['is_active' => 'boolean'];
+
+    /** Bahan baku (gudang) yang disinkronkan dengan bahan jersey ini. */
+    public function bahan()
+    {
+        return $this->belongsTo(BahanBaku::class, 'id_bahan', 'id_bahan');
+    }
 }

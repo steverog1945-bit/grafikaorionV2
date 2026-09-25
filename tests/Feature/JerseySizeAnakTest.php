@@ -78,4 +78,21 @@ class JerseySizeAnakTest extends TestCase
         $this->assertEquals(440000, (float) $res->json('lines.0.subtotal'));
         $this->assertEquals(88000, (float) $res->json('lines.0.harga_satuan'));
     }
+
+    public function test_bahan_jersey_bisa_disinkronkan_dengan_master_bahan_baku(): void
+    {
+        $mesin = DB::table('mesin')->insertGetId(['nama_mesin' => 'M', 'tipe_mesin' => 'x']);
+        $kat = DB::table('kategori')->insertGetId(['nama_kategori' => 'K']);
+        $bahan = DB::table('bahan_baku')->insertGetId(['kode_bahan' => 'KB1', 'nama_bahan' => 'Kain Brazil Uji', 'id_mesin' => $mesin, 'id_kategori' => $kat, 'stok' => 25.35, 'harga_rata_rata' => 58000, 'nilai_konversi' => 1, 'satuan_stok' => 'kg', 'status' => 'aktif']);
+        $mat = DB::table('jersey_materials')->insertGetId(['name' => 'Brazil Uji', 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()]);
+
+        $r = $this->actingAs($this->admin)->patchJson("/jersey/master/materials/{$mat}/bahan", ['id_bahan' => $bahan])->assertOk();
+        $this->assertEquals(58000, $r->json('bahan.harga'));
+        $this->assertEquals($bahan, DB::table('jersey_materials')->where('id', $mat)->value('id_bahan'));
+
+        $this->actingAs($this->admin)->get('/jersey/master')->assertOk()->assertSee('Sinkron dengan Master Bahan Baku')->assertSee('Kain Brazil Uji');
+
+        $this->actingAs($this->admin)->patchJson("/jersey/master/materials/{$mat}/bahan", ['id_bahan' => null])->assertOk();
+        $this->assertNull(DB::table('jersey_materials')->where('id', $mat)->value('id_bahan'));
+    }
 }

@@ -35,7 +35,8 @@ class JerseyMasterController extends Controller
         $productTypes = JerseyProductType::orderBy('name')->get();
         $categories = JerseyCategory::orderBy('name')->get();
         $sizes = JerseySize::orderBy('sort_order')->get();
-        $materials = JerseyMaterial::orderBy('name')->get();
+        $materials = JerseyMaterial::with('bahan')->orderBy('name')->get();
+        $bahanGudang = \Illuminate\Support\Facades\DB::table('bahan_baku')->where('status', 'aktif')->orderBy('nama_bahan')->get(['id_bahan', 'kode_bahan', 'nama_bahan', 'satuan_stok', 'stok', 'harga_rata_rata']);
         $components = JerseyComponent::with(['productType', 'category'])->orderBy('sort_order')->get();
         $sleeveTypes = JerseySleeveType::orderBy('sort_order')->get();
         $collarTypes = JerseyCollarType::orderBy('sort_order')->get();
@@ -82,7 +83,7 @@ class JerseyMasterController extends Controller
         }
 
         return view('jersey.master.index', compact(
-            'designers', 'productTypes', 'categories', 'sizes', 'materials', 'components', 'sleeveTypes', 'collarTypes',
+            'designers', 'productTypes', 'categories', 'sizes', 'materials', 'bahanGudang', 'components', 'sleeveTypes', 'collarTypes',
             'priceSettings', 'usageMatrix', 'sleeveUsageMatrix', 'collarUsageMatrix', 'totalPerSize'
         ));
     }
@@ -198,6 +199,20 @@ class JerseyMasterController extends Controller
     }
 
     // ---- Bahan ----
+    /** Hubungkan bahan jersey (mis. Brazil) ke bahan baku gudang (kosong = lepas sinkron). */
+    public function sinkronMaterial(Request $request, JerseyMaterial $material)
+    {
+        $data = $request->validate(['id_bahan' => 'nullable|integer|exists:bahan_baku,id_bahan']);
+        $material->update(['id_bahan' => $data['id_bahan'] ?? null]);
+        $b = $material->fresh()->bahan;
+
+        return response()->json([
+            'success' => true,
+            'message' => $b ? "{$material->name} tersinkron dengan {$b->nama_bahan}." : "Sinkron {$material->name} dilepas.",
+            'bahan' => $b ? ['stok' => (float) $b->stok, 'satuan' => $b->satuan_stok, 'harga' => (float) $b->harga_rata_rata] : null,
+        ]);
+    }
+
     public function storeMaterial(Request $request)
     {
         $data = $request->validate(['name' => 'required|string|max:255|unique:jersey_materials,name']);

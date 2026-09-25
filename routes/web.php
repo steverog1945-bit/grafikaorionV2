@@ -673,6 +673,7 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
         Route::delete('/master/price-settings/{priceSetting}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'destroyPriceSetting'])->name('master.price-settings.destroy');
 
         Route::post('/master/materials', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeMaterial'])->name('master.materials.store');
+        Route::patch('/master/materials/{material}/bahan', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'sinkronMaterial'])->name('master.materials.sinkron');
         Route::put('/master/materials/{material}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'updateMaterial'])->name('master.materials.update');
         Route::patch('/master/materials/{material}/toggle', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'toggleMaterial'])->name('master.materials.toggle');
 

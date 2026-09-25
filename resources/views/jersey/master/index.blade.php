@@ -134,6 +134,30 @@
                 </tbody>
             </x-table>
         </x-card>
+
+        {{-- SINKRON dengan Master Bahan Baku: stok & harga per kg satu sumber --}}
+        <x-card class="mt-6">
+            <h3 class="text-sm font-semibold text-slate-700 mb-1">Sinkron dengan Master Bahan Baku</h3>
+            <p class="text-xs text-slate-400 mb-4">Hubungkan tiap bahan jersey ke bahan baku di gudang, sehingga stok dan harga beli per kg mengikuti Master Bahan (satu sumber).</p>
+            <div class="divide-y divide-slate-100">
+                @foreach($materials as $m)
+                <div class="py-3 flex flex-wrap items-center gap-3 {{ $m->is_active ? '' : 'opacity-50' }}">
+                    <span class="w-40 text-sm font-semibold text-slate-700">{{ $m->name }}</span>
+                    <select onchange="sinkronBahanJersey({{ $m->id }}, this.value)" class="flex-1 min-w-[240px] bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm shadow-inner">
+                        <option value="">- Belum disinkronkan -</option>
+                        @foreach($bahanGudang as $bg)
+                            <option value="{{ $bg->id_bahan }}" {{ (int) $m->id_bahan === (int) $bg->id_bahan ? 'selected' : '' }}>{{ $bg->nama_bahan }} ({{ $bg->kode_bahan }})</option>
+                        @endforeach
+                    </select>
+                    <span id="info-sinkron-{{ $m->id }}" class="text-xs text-slate-500 min-w-[220px]">
+                        @if($m->bahan)
+                            Stok <b>{{ angka((float) $m->bahan->stok, 2) }} {{ $m->bahan->satuan_stok }}</b> &middot; Rp {{ number_format((float) $m->bahan->harga_rata_rata, 0, ',', '.') }}/{{ $m->bahan->satuan_stok }}
+                        @endif
+                    </span>
+                </div>
+                @endforeach
+            </div>
+        </x-card>
     </div>
 
     {{-- TIPE LENGAN --}}
@@ -872,6 +896,15 @@
                 hapusKolomEstimasiTipe(jenis, id);
             }
         }
+    }
+
+    // ---- Sinkron bahan jersey <-> Master Bahan Baku ----
+    async function sinkronBahanJersey(idMaterial, idBahan) {
+        const data = await kirimJson(`{{ url('/jersey/master/materials') }}/${idMaterial}/bahan`, 'PATCH', { id_bahan: idBahan || null });
+        if (!data) return;
+        const info = document.getElementById('info-sinkron-' + idMaterial);
+        info.innerHTML = data.bahan ? `Stok <b>${data.bahan.stok.toLocaleString('id-ID')} ${data.bahan.satuan}</b> &middot; Rp ${Math.round(data.bahan.harga).toLocaleString('id-ID')}/${data.bahan.satuan}` : '';
+        tampilkanToastJersey(data.message);
     }
 
     // ---- Ukuran ----
