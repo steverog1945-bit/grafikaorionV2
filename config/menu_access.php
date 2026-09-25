@@ -165,6 +165,7 @@ return [
     ],
 
     'always_allow' => [
+        'sinyal',
         'dashboard',
         'logout',
         'storage',
