@@ -50,7 +50,7 @@ class PenjualanController extends Controller
     // Order dari penawaran: tampilkan rincian penawaran sebagai acuan di
     // layar Input Order (item tetap diinput operator seperti biasa).
     $quotationRef = null;
-    if (request()->filled('quotation')) {
+    if (request()->filled('quotation') && \App\Support\AksesHarga::bolehLihat(auth()->user())) { // rincian penawaran memuat harga
         $q = \App\Models\Quotation::with('items')->find(request('quotation'));
         if ($q && in_array($q->status, ['Terkirim', 'Disetujui'], true)) {
             $quotationRef = $q;

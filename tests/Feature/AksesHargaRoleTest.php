@@ -81,4 +81,13 @@ class AksesHargaRoleTest extends TestCase
         $this->assertTrue(AksesHarga::bolehLihat($admin->fresh()));
         $this->actingAs($op->fresh())->get('/finishing')->assertOk();
     }
+
+    public function test_link_quotation_tidak_tampil_di_sidebar_operator_desain_tapi_tampil_untuk_kasir(): void
+    {
+        $od = $this->user('Operator Desain', false, [3, 41]);
+        $kasir = $this->user('Kasir', true, [3, 41]);
+
+        $this->actingAs($od)->get('/penjualan/kasir')->assertOk()->assertDontSee("href=\"" . url('/quotation') . "\"", false);
+        $this->actingAs($kasir)->get('/penjualan/kasir')->assertOk()->assertSee("href=\"" . url('/quotation') . "\"", false);
+    }
 }
