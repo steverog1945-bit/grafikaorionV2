@@ -40,6 +40,20 @@ class DivisiService
         return $daftar;
     }
 
+    /**
+     * Mesin/divisi yang jadi tanggung jawab karyawan pemilik akun. null = tanpa batasan
+     * (Administrator, atau karyawan yang belum ditugaskan ke mesin mana pun).
+     */
+    public static function mesinDiizinkan($user)
+    {
+        if (!$user || optional($user->role)->nama_role === 'Administrator' || !$user->karyawan) {
+            return null;
+        }
+        $ids = $user->karyawan->mesin()->pluck('mesin.id_mesin');
+
+        return $ids->isNotEmpty() ? $ids : null;
+    }
+
     /** Terapkan filter divisi (id mesin, atau 0 = tanpa divisi) ke query yang sudah join produk. */
     public static function saring($query, $divisi): void
     {

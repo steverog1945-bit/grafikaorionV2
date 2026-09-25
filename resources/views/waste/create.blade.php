@@ -11,6 +11,18 @@
         </div>
     @endif
 
+    @if($terbatas)
+        <div class="mb-4 px-4 py-3 rounded-xl bg-indigo-50 text-indigo-700 text-sm font-semibold"><i class="fas fa-industry mr-2"></i>Divisi Anda: {{ $divisiAktif }} - hanya bahan dan cetakan divisi ini yang ditampilkan.</div>
+    @else
+        <form method="GET" action="{{ route('waste.create') }}" class="mb-4 flex items-center gap-3">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Divisi</label>
+            <select name="divisi" class="rounded-xl border-slate-200 text-sm p-2 w-64">
+                <option value="">Semua divisi</option>
+                @foreach($daftarMesin as $m)<option value="{{ $m->id_mesin }}" {{ (string) request('divisi') === (string) $m->id_mesin ? 'selected' : '' }}>{{ $m->nama_mesin }}</option>@endforeach
+            </select>
+        </form>
+    @endif
+
     <x-card>
         <form method="POST" action="{{ route('waste.store') }}" class="space-y-5">
             @csrf
@@ -58,7 +70,7 @@
                 <x-form.select name="id_detail" id="id_detail">
                     <option value="">-- Tidak terkait order tertentu --</option>
                     @foreach($items as $i)
-                        <option value="{{ $i->id_detail }}" {{ old('id_detail') == $i->id_detail ? 'selected' : '' }}>{{ $i->nomor_nota }} - {{ $i->nama_file }}</option>
+                        <option value="{{ $i->id_detail }}" {{ old('id_detail') == $i->id_detail ? 'selected' : '' }}>{{ $i->nomor_nota }} - {{ $i->nama_file }} ({{ $i->nama_produk }})</option>
                     @endforeach
                 </x-form.select>
             </x-form.group>

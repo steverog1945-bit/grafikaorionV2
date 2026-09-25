@@ -170,4 +170,31 @@ class WasteTest extends TestCase
         $this->post('/waste', ['id_bahan' => $this->idBahan, 'jenis' => 'Normal', 'alasan' => 'x'])->assertSessionHas('error');
         $this->assertEqualsWithDelta(2.0, $this->stok(), 0.00001);
     }
+
+    public function test_operator_hanya_melihat_bahan_dan_item_divisinya_dan_tidak_bisa_waste_divisi_lain(): void
+    {
+        $mesinA = DB::table('bahan_baku')->where('id_bahan', $this->idBahan)->value('id_mesin');
+        $mesinB = DB::table('mesin')->insertGetId(['nama_mesin' => 'MESIN-B', 'tipe_mesin' => 'x']);
+        $kat = DB::table('kategori')->value('id_kategori');
+        $bahanB = DB::table('bahan_baku')->insertGetId([
+            'kode_bahan' => 'BHN-B', 'nama_bahan' => 'Bahan Divisi B', 'stok' => 10, 'harga_rata_rata' => 1000, 'nilai_konversi' => 1,
+            'id_mesin' => $mesinB, 'id_kategori' => $kat, 'satuan_stok' => 'pcs', 'status' => 'aktif', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $kar = DB::table('karyawan')->insertGetId(['nama_karyawan' => 'Op A', 'bagian' => 'Produksi', 'telepon' => '1', 'status_aktif' => 1]);
+        DB::table('karyawan_mesin')->insert(['id_karyawan' => $kar, 'id_mesin' => $mesinA]);
+        $role = Role::factory()->create(['nama_role' => 'Operator Produksi']);
+        $op = User::factory()->create(['id_role' => $role->id_role, 'id_karyawan' => $kar]);
+        DB::table('menus')->insertOrIgnore(['id_menu' => 23, 'nama_menu' => 'Produksi', 'url_link' => 'produksi', 'parent_id' => 0]);
+        DB::table('role_permissions')->insert(['id_role' => $role->id_role, 'id_menu' => 23]);
+
+        $this->actingAs($op)->get('/waste/create')->assertOk()->assertSee('Flexi Korea')->assertDontSee('Bahan Divisi B');
+
+        $this->actingAs($op)->post('/waste', ['id_bahan' => $bahanB, 'qty' => 1, 'jenis' => 'Normal', 'alasan' => 'x'])->assertSessionHas('error');
+        $this->assertEquals(10.0, (float) DB::table('bahan_baku')->where('id_bahan', $bahanB)->value('stok'));
+
+        // Administrator melihat semua dan bisa memfilter satu divisi.
+        $this->actingAs($this->admin)->get('/waste/create')->assertSee('Flexi Korea')->assertSee('Bahan Divisi B');
+        $this->actingAs($this->admin)->get("/waste/create?divisi={$mesinB}")->assertSee('Bahan Divisi B')->assertDontSee('Flexi Korea');
+    }
 }

@@ -36,14 +36,48 @@ class WasteController extends Controller
         return view('waste.index', compact('daftar', 'ringkasan'));
     }
 
-    public function create()
+    /**
+     * Mesin/divisi yang berlaku untuk pengguna ini: operator hanya divisinya sendiri; Administrator (atau yang belum
+     * ditugaskan) boleh semua atau memilih satu divisi lewat ?divisi=. null = semua divisi.
+     */
+    private function mesinBerlaku(Request $request)
     {
+        $diizinkan = \App\Services\DivisiService::mesinDiizinkan($request->user());
+        if ($diizinkan !== null) {
+            return $diizinkan;
+        }
+
+        return $request->filled('divisi') ? collect([(int) $request->divisi]) : null;
+    }
+
+    public function create(Request $request)
+    {
+        $mesin = $this->mesinBerlaku($request);
+        $terbatas = \App\Services\DivisiService::mesinDiizinkan($request->user()) !== null;
+
+        // Item order: hanya cetakan yang sedang masuk di divisi ini (sedang dicetak, atau selesai 2 hari terakhir).
+        $items = DB::table('transaksi_detail as d')->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+            ->join('produk as p', 'p.id_produk', '=', 'd.id_produk')
+            ->where('t.status_nota', 'Aktif')
+            ->where(function ($q) {
+                $q->where('d.status_spk', 'Cetak')->orWhere(fn ($w) => $w->where('d.status_spk', 'Selesai')->where('t.updated_at', '>=', now()->subDays(2)));
+            })
+            ->when($mesin, fn ($q) => $q->whereIn('p.id_mesin', $mesin))
+            ->orderByDesc('d.id_detail')->limit(300)->get(['d.id_detail', 'd.nama_file', 't.nomor_nota', 'p.nama_produk']);
+
+        // Bahan: hanya yang terkait mesin/divisinya.
+        $bahanList = DB::table('bahan_baku as b')->leftJoin('satuan as sh', 'sh.id_satuan', '=', 'b.id_satuan_hitung')
+            ->where('b.status', 'aktif')
+            ->when($mesin, fn ($q) => $q->whereIn('b.id_mesin', $mesin))
+            ->orderBy('b.nama_bahan')
+            ->get(['b.id_bahan', 'b.nama_bahan', 'b.satuan_stok', 'b.stok', 'b.nilai_konversi', 'b.id_satuan_hitung', 'b.id_satuan_stok', 'sh.nama_satuan as satuan_hitung']);
+
         return view('waste.create', [
-            'items' => DB::table('transaksi_detail as d')->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
-                ->where('t.status_nota', 'Aktif')->whereIn('d.status_spk', ['Cetak', 'Selesai'])
-                ->orderByDesc('d.id_detail')->limit(300)->get(['d.id_detail', 'd.nama_file', 't.nomor_nota']),
-            'bahanList' => DB::table('bahan_baku as b')->leftJoin('satuan as sh', 'sh.id_satuan', '=', 'b.id_satuan_hitung')->where('b.status', 'aktif')->orderBy('b.nama_bahan')
-                ->get(['b.id_bahan', 'b.nama_bahan', 'b.satuan_stok', 'b.stok', 'b.nilai_konversi', 'b.id_satuan_hitung', 'b.id_satuan_stok', 'sh.nama_satuan as satuan_hitung']),
+            'items' => $items,
+            'bahanList' => $bahanList,
+            'terbatas' => $terbatas,
+            'divisiAktif' => $mesin ? DB::table('mesin')->whereIn('id_mesin', $mesin)->pluck('nama_mesin')->implode(', ') : null,
+            'daftarMesin' => DB::table('mesin')->orderBy('nama_mesin')->get(['id_mesin', 'nama_mesin']),
         ]);
     }
 
@@ -59,6 +93,22 @@ class WasteController extends Controller
             'alasan' => 'required|string|max:255',
             'id_detail' => 'nullable|exists:transaksi_detail,id_detail',
         ]);
+
+        // Operator hanya boleh mencatat waste bahan & item order dari divisinya sendiri (server menjaga, bukan hanya tampilan).
+        $diizinkan = \App\Services\DivisiService::mesinDiizinkan($request->user());
+        if ($diizinkan !== null) {
+            $mesinBahan = (int) DB::table('bahan_baku')->where('id_bahan', $data['id_bahan'])->value('id_mesin');
+            if (!$diizinkan->contains($mesinBahan)) {
+                return back()->withInput()->with('error', 'Bahan ini bukan bagian dari divisi Anda.');
+            }
+            if ($request->filled('id_detail')) {
+                $mesinItem = DB::table('transaksi_detail as d')->join('produk as p', 'p.id_produk', '=', 'd.id_produk')
+                    ->where('d.id_detail', $request->id_detail)->value('p.id_mesin');
+                if (!$diizinkan->contains((int) $mesinItem)) {
+                    return back()->withInput()->with('error', 'Item order ini bukan dari divisi Anda.');
+                }
+            }
+        }
 
         // Qty waste diisi menurut SATUAN HITUNG bahan (bukan satuan stok):
         //  - satuan luas (m2/cm2): isi Panjang x Lebar (cm) x jumlah -> luas -> dibagi nilai_konversi = satuan stok
