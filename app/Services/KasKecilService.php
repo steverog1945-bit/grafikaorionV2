@@ -18,6 +18,8 @@ class KasKecilService
             }
 
             AccountingService::reverseByReferensi('KK-' . $kasKecil->id);
+            // Setoran dari laci: baris cerminnya di Kas Tak Terduga ikut dibatalkan (laci kembali).
+            DB::table('kas_manual')->where('keterangan', 'like', "%[KK-{$kasKecil->id}]%")->delete();
             $kasKecil->delete();
         });
     }

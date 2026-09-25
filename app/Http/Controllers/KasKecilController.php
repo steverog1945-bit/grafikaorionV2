@@ -75,8 +75,23 @@ class KasKecilController extends Controller
             return back()->withInput()->withErrors(['id_kategori' => "Kategori \"{$kategori->nama_kategori}\" adalah kategori " . ($kategori->jenis === 'Masuk' ? 'pemasukan' : 'pengeluaran') . ', tidak cocok dengan jenis yang dipilih.']);
         }
 
-        $kasKecil = DB::transaction(function () use ($data, $kategori) {
+        // Kategori pemasukan berakun 1000 = uang diambil dari LACI kasir untuk mengisi Kas Kecil: butuh sesi kas aktif,
+        // dan laci berkurang (baris cermin di Kas Tak Terduga, tanpa jurnal kedua - jurnalnya satu: Dr 1005 / Cr 1000).
+        $dariLaci = $data['jenis'] === 'Masuk' && $kategori->kode_akun === '1000';
+        $sesi = $dariLaci ? \App\Services\KasSesiService::aktif() : null;
+        if ($dariLaci && !$sesi) {
+            return back()->withInput()->with('error', 'Kas kasir belum dibuka - buka kas dulu, karena uang pengisi Kas Kecil diambil dari laci.');
+        }
+
+        $kasKecil = DB::transaction(function () use ($data, $kategori, $dariLaci, $sesi) {
             $kk = KasKecil::create($data);
+
+            if ($dariLaci) {
+                DB::table('kas_manual')->insert([
+                    'id_kas' => $sesi->id_kas, 'waktu' => now(), 'keterangan' => "Setor ke Kas Kecil [KK-{$kk->id}] - {$data['keterangan']}",
+                    'status' => 'Keluar', 'nominal' => $data['nominal'], 'id_user' => Auth::id(), 'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
 
             if ($kategori->kode_akun) {
                 $data['jenis'] === 'Masuk'

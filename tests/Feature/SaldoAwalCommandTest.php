@@ -14,6 +14,7 @@ class SaldoAwalCommandTest extends TestCase
     {
         $this->artisan('akuntansi:saldo-awal')
             ->expectsQuestion('Kas (1000)', '5000000')
+            ->expectsQuestion('Kas Kecil (1005)', '0')
             ->expectsQuestion('Bank (1010)', '10000000')
             ->expectsQuestion('Piutang Usaha (1100)', '0')
             ->expectsQuestion('Persediaan Bahan Baku (1200)', '2000000')
@@ -62,6 +63,7 @@ class SaldoAwalCommandTest extends TestCase
     {
         $this->artisan('akuntansi:saldo-awal')
             ->expectsQuestion('Kas (1000)', '1000000')
+            ->expectsQuestion('Kas Kecil (1005)', '0')
             ->expectsQuestion('Bank (1010)', '0')
             ->expectsQuestion('Piutang Usaha (1100)', '0')
             ->expectsQuestion('Persediaan Bahan Baku (1200)', '0')

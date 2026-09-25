@@ -30,6 +30,7 @@ class SaldoAwalCommand extends Command
 
     private const AKUN_ASET = [
         '1000' => 'Kas',
+        '1005' => 'Kas Kecil',
         '1010' => 'Bank',
         '1100' => 'Piutang Usaha',
         '1200' => 'Persediaan Bahan Baku',
