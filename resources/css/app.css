@@ -639,8 +639,9 @@ html.dark [style*="border:1px solid #e2e8f0"] { border-color: #22304a !important
 /* ===================================================================
    INFO & PANDUAN (postingan): tipografi isi + editor Quill
    =================================================================== */
-.prose-post { font-size: 1.0625rem; line-height: 1.85; color: #334155; word-wrap: break-word; }
-.prose-post > * + * { margin-top: 1.1em; }
+.prose-post { font-size: 1.0625rem; line-height: 1.75; color: #334155; word-wrap: break-word; }
+.prose-post > * + * { margin-top: .65em; }
+.prose-post p:has(> br:only-child) { display: none; } /* Enter ganda hasil tempel tidak jadi jarak besar */
 .prose-post h2 { font-size: 1.6rem; font-weight: 700; color: #0f172a; line-height: 1.3; margin-top: 1.9em; }
 .prose-post h3 { font-size: 1.3rem; font-weight: 700; color: #1e293b; line-height: 1.35; margin-top: 1.6em; }
 .prose-post h4 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-top: 1.4em; }
@@ -666,7 +667,7 @@ html.dark .prose-post img { box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
 #editor-postingan { min-height: 380px; font-size: 1rem; }
 .ql-toolbar.ql-snow { border: 0 !important; border-top: 1px solid #eef1f4 !important; border-bottom: 1px solid #eef1f4 !important; background: #f8fafc; padding: 10px 16px !important; }
 .ql-container.ql-snow { border: 0 !important; font-family: inherit; }
-.ql-editor { min-height: 380px; padding: 24px 28px; line-height: 1.8; color: #334155; }
+.ql-editor { min-height: 380px; padding: 24px 28px; line-height: 1.7; color: #334155; }
 .ql-editor img { max-width: 100%; border-radius: 1rem; }
 .ql-editor.ql-blank::before { color: #94a3b8; font-style: normal; left: 28px; }
 html.dark .ql-toolbar.ql-snow { background: #17223b; border-color: #22304a !important; }

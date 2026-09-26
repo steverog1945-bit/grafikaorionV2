@@ -119,6 +119,12 @@
         },
     });
 
+    // Paragraf kosong hasil tempel (Enter ganda dari Word/web) tidak ikut masuk
+    quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
+        const Delta = Quill.import('delta');
+        return (node.tagName === 'P' && !node.textContent.replace(/[\s ]/g, '') && !node.querySelector('img')) ? new Delta() : delta;
+    });
+
     function hitungKata() {
         const t = quill.getText().trim();
         document.getElementById('hitung-kata').textContent = (t ? t.split(/\s+/).length : 0) + ' kata';
