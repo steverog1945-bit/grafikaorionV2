@@ -83,6 +83,8 @@
                         <th class="px-6 py-5 text-center">Spesifikasi</th>
                         <th class="px-6 py-5 text-center">Volume Stok</th>
                         <th class="px-6 py-5 text-center">Harga Rata-rata</th>
+                        <th class="px-6 py-5 text-center" title="Harga satuan pada faktur pembelian terbaru bahan ini">Harga Beli Terakhir</th>
+                        <th class="px-6 py-5 text-center" title="Selisih harga beli terakhir terhadap harga rata-rata: naik = merah (biaya bahan naik), turun = hijau">Selisih</th>
                         <th class="px-8 py-5 text-right">Manajemen</th>
                     </tr>
                 </thead>
@@ -157,6 +159,32 @@
                                 @endif
                             </button>
                         </td>
+                        @php
+                            $bt = $beliTerakhir[$b->id_bahan] ?? null;
+                            $rata = (float) $b->harga_rata_rata;
+                            $selisihRp = $bt ? (float) $bt->harga - $rata : 0;
+                            $selisihPersen = ($bt && $rata > 0) ? $selisihRp / $rata * 100 : null;
+                        @endphp
+                        <td class="px-6 py-5 text-center">
+                            @if($bt)
+                                <span class="text-[13px] font-bold tabular-nums text-slate-700">Rp {{ number_format($bt->harga, 0, ',', '.') }}</span>
+                                <span class="block text-[10px] font-semibold text-slate-400 mt-0.5" title="Faktur {{ $bt->no_faktur }}">{{ \Carbon\Carbon::parse($bt->tgl_transaksi)->format('d M Y') }}</span>
+                            @else
+                                <span class="text-[11px] font-semibold text-slate-300 italic" title="Belum ada faktur pembelian untuk bahan ini">Belum pernah dibeli</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-5 text-center">
+                            @if($selisihPersen === null)
+                                <span class="text-slate-300">-</span>
+                            @elseif(abs($selisihRp) < 0.5)
+                                <span class="text-[11px] font-bold text-slate-400" title="Harga beli terakhir sama dengan harga rata-rata">Sama</span>
+                            @else
+                                <span class="inline-flex flex-col items-center px-2.5 py-1 rounded-lg {{ $selisihRp > 0 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600' }}" title="Harga beli terakhir {{ $selisihRp > 0 ? 'lebih mahal' : 'lebih murah' }} Rp {{ number_format(abs($selisihRp), 0, ',', '.') }} dari harga rata-rata">
+                                    <span class="text-[12px] font-bold tabular-nums">{{ $selisihRp > 0 ? '▲' : '▼' }} {{ angka(abs($selisihPersen), 1) }}%</span>
+                                    <span class="text-[10px] font-semibold tabular-nums">{{ $selisihRp > 0 ? '+' : '-' }}Rp {{ number_format(abs($selisihRp), 0, ',', '.') }}</span>
+                                </span>
+                            @endif
+                        </td>
                         <td class="px-8 py-5 text-right">
                             <div class="flex justify-end gap-2">
                                 <button type="button" onclick='editBahan(@json($b), @json(\App\Support\VersiBaris::token($b)))' class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
@@ -175,7 +203,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="py-20 text-center text-slate-400 font-medium italic">Data tidak ditemukan.</td>
+                        <td colspan="9" class="py-20 text-center text-slate-400 font-medium italic">Data tidak ditemukan.</td>
                     </tr>
                     @endforelse
                 </tbody>
