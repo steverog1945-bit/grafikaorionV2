@@ -65,7 +65,15 @@ class BahanBakuController extends Controller
         $merk = Merk::orderBy('nama_merk')->get();
         $jenisBahan = JenisBahan::orderBy('nama_jenis')->get();
 
-        return view('master/bahan.index', compact('bahan', 'kategori', 'mesin', 'satuan', 'merk', 'jenisBahan'));
+        // Pembanding harga: harga beli terakhir per bahan (dari faktur pembelian aktif) vs harga rata-rata.
+        $beliTerakhir = \Illuminate\Support\Facades\DB::table('pembelian_bahan_detail as d')
+            ->join('pembelian_bahan as p', 'p.id_pembelian', '=', 'd.id_pembelian')
+            ->whereNull('p.deleted_at')->whereIn('d.id_bahan', $bahan->pluck('id_bahan'))
+            ->orderByDesc('p.tgl_transaksi')->orderByDesc('p.id_pembelian')
+            ->get(['d.id_bahan', 'd.harga', 'p.tgl_transaksi', 'p.no_faktur'])
+            ->unique('id_bahan')->keyBy('id_bahan');
+
+        return view('master/bahan.index', compact('bahan', 'kategori', 'mesin', 'satuan', 'merk', 'jenisBahan', 'beliTerakhir'));
     }
 
     /**
