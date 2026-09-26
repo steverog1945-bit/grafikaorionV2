@@ -97,9 +97,23 @@
         <a href="{{ route('pembelian-bahan.index') }}" class="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors">
             <i class="fas fa-arrow-left mr-2"></i> Kembali ke List
         </a>
-        <button onclick="window.print()" class="px-8 py-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-sm hover:bg-slate-50 transition-all">
-            <i class="fas fa-print mr-2 text-indigo-500"></i> Cetak Faktur
-        </button>
+        {{-- Pilihan format cetak: A4 atau Continuous Form --}}
+        <div class="relative" id="menu-cetak">
+            <button type="button" onclick="document.getElementById('menu-cetak-daftar').classList.toggle('hidden')" title="Pilih format kertas lalu cetak faktur" class="px-8 py-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-sm hover:bg-slate-50 transition-all">
+                <i class="fas fa-print mr-2 text-indigo-500"></i> Cetak Faktur <i class="fas fa-chevron-up ml-2 text-[9px] text-slate-400"></i>
+            </button>
+            <div id="menu-cetak-daftar" class="hidden absolute right-0 bottom-full mb-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-20">
+                <a href="{{ route('pembelian-bahan.cetak', [$pembelian->id_pembelian, 'a4']) }}" target="_blank" class="flex items-start gap-3 px-5 py-4 hover:bg-indigo-50 transition-all">
+                    <i class="far fa-file-alt text-indigo-500 mt-0.5"></i>
+                    <span><span class="block text-xs font-black text-slate-700 uppercase tracking-widest">Kertas A4</span><span class="block text-[11px] text-slate-400 font-medium">Invoice kertas biasa 210 x 297 mm</span></span>
+                </a>
+                <a href="{{ route('pembelian-bahan.cetak', [$pembelian->id_pembelian, 'continuous']) }}" target="_blank" class="flex items-start gap-3 px-5 py-4 hover:bg-indigo-50 transition-all border-t border-slate-50">
+                    <i class="fas fa-scroll text-indigo-500 mt-0.5"></i>
+                    <span><span class="block text-xs font-black text-slate-700 uppercase tracking-widest">Continuous Form</span><span class="block text-[11px] text-slate-400 font-medium">Kertas sambung dot-matrix 9,5 x 11 inci</span></span>
+                </a>
+            </div>
+        </div>
+        <script>document.addEventListener('click', e => { const m = document.getElementById('menu-cetak'); if (m && !m.contains(e.target)) document.getElementById('menu-cetak-daftar').classList.add('hidden'); });</script>
     </div>
 </div>
 @endsection

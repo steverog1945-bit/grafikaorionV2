@@ -285,6 +285,7 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
             ->name('pembelian.void-pembayaran');
         Route::get('/laporan/hutang', [LaporanController::class, 'hutang'])->name('laporan.hutang');
         Route::get('/laporan/job-costing', [LaporanController::class, 'jobCosting'])->name('laporan.job-costing');
+        Route::get('pembelian-bahan/{id}/cetak/{format?}', [PembelianBahanController::class, 'cetak'])->whereNumber('id')->name('pembelian-bahan.cetak');
         // HANYA GUNAKAN SATU ROUTE INI UNTUK AJAX
         Route::get('pembelian-bahan/kedatangan-detail', [PembelianBahanController::class, 'kedatanganDetail'])
             ->name('pembelian-bahan.kedatangan-detail');

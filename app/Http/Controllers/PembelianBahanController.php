@@ -284,6 +284,21 @@ public function show($id)
 }
 
     /**
+     * Cetak faktur pembelian mengikuti aturan cetak aplikasi: pilihan A4 atau Continuous Form (9,5 x 11 inci).
+     * Tanpa parameter format = ikut format global Pengaturan Aplikasi (thermal dianggap A4, karena faktur bukan struk).
+     */
+    public function cetak($id, $format = null)
+    {
+        $pembelian = PembelianBahan::with(['kedatangan.supplier', 'detail.bahan'])->findOrFail($id);
+        $sisa = \App\Services\PembayaranHutangService::sisa((object) $pembelian->getAttributes());
+
+        $global = \App\Models\AppSetting::current()->format_nota ?? 'a4';
+        $format = in_array($format, ['a4', 'continuous'], true) ? $format : ($global === 'continuous' ? 'continuous' : 'a4');
+
+        return view('pembelian-bahan.print', compact('pembelian', 'sisa', 'format'));
+    }
+
+    /**
      * Mengajukan pembatalan faktur ke Approval Workflow (tipe_aksi
      * 'batalkan_pembelian'). Faktur baru benar-benar dibatalkan (jurnal
      * dibalik, soft-delete) saat disetujui - lihat PembayaranHutangService.
