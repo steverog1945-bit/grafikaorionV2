@@ -376,16 +376,16 @@
 
     {{-- DASHBOARD --}}
     <a href="{{ url('/dashboard') }}" 
-       class="{{ $menuClass }} {{ Request::is('dashboard*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('dashboard*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+       class="{{ $menuClass }} {{ Request::is('dashboard', 'dashboard/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('dashboard', 'dashboard/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
         </svg>
         <span class="text-sm font-medium">Dashboard</span>
     </a>
 
     @if($isAdministrator || $cekAkses(60))
-    <a href="{{ route('eksekutif.dashboard') }}" class="{{ $menuClass }} {{ Request::is('eksekutif*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('eksekutif*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ route('eksekutif.dashboard') }}" class="{{ $menuClass }} {{ Request::is('eksekutif', 'eksekutif/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('eksekutif', 'eksekutif/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
         </svg>
         <span class="text-sm font-medium">Dashboard Eksekutif</span>
@@ -393,15 +393,15 @@
     @endif
 
     @if($isAdministrator || $cekAkses(60))
-    <a href="{{ route('audit-owner.index') }}" class="{{ $menuClass }} {{ Request::is('audit-owner*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('audit-owner*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ route('audit-owner.index') }}" class="{{ $menuClass }} {{ Request::is('audit-owner', 'audit-owner/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('audit-owner', 'audit-owner/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
         </svg>
         <span class="text-sm font-medium">Audit Bulanan</span>
     </a>
     @if(!$isAdministrator)
-    <a href="{{ route('audit-log.index') }}" class="{{ $menuClass }} {{ Request::is('log-aktivitas*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('log-aktivitas*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ route('audit-log.index') }}" class="{{ $menuClass }} {{ Request::is('log-aktivitas', 'log-aktivitas/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('log-aktivitas', 'log-aktivitas/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <span class="text-sm font-medium">Log Aktivitas</span>
@@ -411,12 +411,12 @@
 
     @php
         $grpProduksiVisible = $cekAkses(1) || $cekAkses(20) || $cekAkses(17) || $cekAkses(22) || $cekAkses(23) || $cekAkses(24) || $cekAkses(15) || $cekAkses(31) || $cekAkses(30) || $cekAkses(10) || $cekAkses(27) || $cekAkses(33);
-        $grpProduksiAktif = Request::is('bahan-baku*') || Request::is('kartu-stok*') || Request::is('stock-opname*')
-            || Request::is('pembelian-bahan*') || Request::is('kedatangan-bahan*')
-            || Request::is('purchase-request*') || Request::is('purchase-order*') || Request::is('qc*') || Request::is('waste*')
+        $grpProduksiAktif = Request::is('bahan-baku', 'bahan-baku/*') || Request::is('kartu-stok', 'kartu-stok/*') || Request::is('stock-opname', 'stock-opname/*')
+            || Request::is('pembelian-bahan', 'pembelian-bahan/*') || Request::is('kedatangan-bahan', 'kedatangan-bahan/*')
+            || Request::is('purchase-request', 'purchase-request/*') || Request::is('purchase-order', 'purchase-order/*') || Request::is('qc', 'qc/*') || Request::is('waste', 'waste/*')
             || request()->routeIs('spk.*') || request()->routeIs('produksi.*') || request()->routeIs('collecting.*')
-            || request()->routeIs('kategori.*') || Request::is('jenis-bahan*') || Request::is('merk*')
-            || Request::is('satuan*') || Request::is('mesin*') || Request::is('gudang*');
+            || request()->routeIs('kategori.*') || Request::is('jenis-bahan', 'jenis-bahan/*') || Request::is('merk', 'merk/*')
+            || Request::is('satuan', 'satuan/*') || Request::is('mesin', 'mesin/*') || Request::is('gudang', 'gudang/*');
     @endphp
     @if($grpProduksiVisible)
     <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
@@ -427,14 +427,14 @@
     @endif
 
     @if($cekAkses(1))
-    <a href="{{ url('/bahan-baku') }}" class="{{ $menuClass }} {{ Request::is('bahan-baku*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('bahan-baku*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/bahan-baku') }}" class="{{ $menuClass }} {{ Request::is('bahan-baku', 'bahan-baku/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('bahan-baku', 'bahan-baku/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
         <span class="text-sm font-medium">Bahan Baku</span>
     </a>
-    <a href="{{ url('/kartu-stok') }}" class="{{ $menuClass }} {{ Request::is('kartu-stok*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('kartu-stok*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/kartu-stok') }}" class="{{ $menuClass }} {{ Request::is('kartu-stok', 'kartu-stok/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('kartu-stok', 'kartu-stok/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h4m0 0l-3-3m3 3l-3 3M5 7v10a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2h-4l-2-2H7a2 2 0 00-2 2z" />
         </svg>
         <span class="text-sm font-medium">Kartu Stok</span>
@@ -450,9 +450,9 @@
     @endif
     @if($cekAkses(20))
     <a href="{{ route('pembelian-bahan.index') }}"
-    class="{{ $menuClass }} {{ Request::is('pembelian-bahan*') ? $activeClass : $nonActiveClass }}">
+    class="{{ $menuClass }} {{ Request::is('pembelian-bahan', 'pembelian-bahan/*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg"
-            class="{{ $iconClass }} {{ Request::is('pembelian-bahan*') ? $iconActive : $iconNonActive }}"
+            class="{{ $iconClass }} {{ Request::is('pembelian-bahan', 'pembelian-bahan/*') ? $iconActive : $iconNonActive }}"
             fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 14l6-6m0 0l-6-6m6 6H3" />
@@ -461,16 +461,16 @@
     </a>
     @endif
     @if($cekAkses(1) || $cekAkses(20) || $cekAkses(54))
-    <a href="{{ url('/purchase-request') }}" class="{{ $menuClass }} {{ Request::is('purchase-request*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-request*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/purchase-request') }}" class="{{ $menuClass }} {{ Request::is('purchase-request', 'purchase-request/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-request', 'purchase-request/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6m-6 4h4" />
         </svg>
         <span class="text-sm font-medium">Purchase Request</span>
     </a>
     @endif
     @if($cekAkses(20) || $cekAkses(55))
-    <a href="{{ url('/purchase-order') }}" class="{{ $menuClass }} {{ Request::is('purchase-order*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-order*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/purchase-order') }}" class="{{ $menuClass }} {{ Request::is('purchase-order', 'purchase-order/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-order', 'purchase-order/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
         <span class="text-sm font-medium">Purchase Order</span>
@@ -479,10 +479,10 @@
     @if($cekAkses(17))
 <a href="{{ url('/kedatangan-bahan') }}" 
    id="menu-kedatangan-bahan"
-   class="{{ $menuClass }} {{ Request::is('kedatangan-bahan*') ? $activeClass : $nonActiveClass }}">
+   class="{{ $menuClass }} {{ Request::is('kedatangan-bahan', 'kedatangan-bahan/*') ? $activeClass : $nonActiveClass }}">
 
     <svg xmlns="http://www.w3.org/2000/svg"
-         class="{{ $iconClass }} {{ Request::is('kedatangan-bahan*') ? $iconActive : $iconNonActive }}"
+         class="{{ $iconClass }} {{ Request::is('kedatangan-bahan', 'kedatangan-bahan/*') ? $iconActive : $iconNonActive }}"
          fill="none"
          viewBox="0 0 24 24"
          stroke="currentColor">
@@ -519,8 +519,8 @@
 
 
     @if($cekAkses(23) || $cekAkses(56))
-    <a href="{{ url('/qc') }}" class="{{ $menuClass }} {{ Request::is('qc*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('qc*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/qc') }}" class="{{ $menuClass }} {{ Request::is('qc', 'qc/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('qc', 'qc/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
         <span class="text-sm font-medium">QC & Rework</span>
@@ -528,8 +528,8 @@
     @endif
 
     @if($cekAkses(1) || $cekAkses(23) || $cekAkses(57))
-    <a href="{{ url('/waste') }}" class="{{ $menuClass }} {{ Request::is('waste*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('waste*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/waste') }}" class="{{ $menuClass }} {{ Request::is('waste', 'waste/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('waste', 'waste/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
         <span class="text-sm font-medium">Waste Management</span>
@@ -555,8 +555,8 @@
     @endif
 
     @if($cekAkses(31))
-    <a href="{{ route('jenis-bahan.index') }}" class="{{ $menuClass }} {{ Request::is('jenis-bahan*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jenis-bahan*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ route('jenis-bahan.index') }}" class="{{ $menuClass }} {{ Request::is('jenis-bahan', 'jenis-bahan/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jenis-bahan', 'jenis-bahan/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
         </svg>
         <span class="text-sm font-medium">Jenis Bahan</span>
@@ -564,8 +564,8 @@
     @endif
 
     @if($cekAkses(30))
-    <a href="{{ route('merk.index') }}" class="{{ $menuClass }} {{ Request::is('merk*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('merk*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ route('merk.index') }}" class="{{ $menuClass }} {{ Request::is('merk', 'merk/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('merk', 'merk/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
         </svg>
         <span class="text-sm font-medium">Merk</span>
@@ -573,8 +573,8 @@
     @endif
 
     @if($cekAkses(10))
-    <a href="{{ url('/satuan') }}" class="{{ $menuClass }} {{ Request::is('satuan*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('satuan*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/satuan') }}" class="{{ $menuClass }} {{ Request::is('satuan', 'satuan/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('satuan', 'satuan/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
         </svg>
         <span class="text-sm font-medium">Satuan & Konversi</span>
@@ -582,8 +582,8 @@
     @endif
 
     @if($cekAkses(27))
-    <a href="{{ url('/mesin') }}" class="{{ $menuClass }} {{ Request::is('mesin*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('mesin*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/mesin') }}" class="{{ $menuClass }} {{ Request::is('mesin', 'mesin/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('mesin', 'mesin/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
@@ -592,8 +592,8 @@
     @endif
 
     @if($cekAkses(33))
-    <a href="{{ route('gudang.index') }}" class="{{ $menuClass }} {{ Request::is('gudang*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('gudang*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ route('gudang.index') }}" class="{{ $menuClass }} {{ Request::is('gudang', 'gudang/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('gudang', 'gudang/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
         <span class="text-sm font-medium">Gudang</span>
@@ -605,10 +605,10 @@
 
     @php
         $grpRelasiVisible = $cekAkses(7) || $cekAkses(34) || $cekAkses(18) || $cekAkses(13) || $cekAkses(21) || $cekAkses(32) || $cekAkses(14) || $cekAkses(28) || $cekAkses(9) || $cekAkses(16);
-        $grpRelasiAktif = Request::is('konsumen*') || Request::is('golongan*') || Request::is('produk*')
-            || Request::is('finishing*') || Request::is('jasa*') || Request::is('setting-harga*')
-            || Request::is('harga-promo*') || Request::is('supplier*') || Request::is('platform-belanja*') || Request::is('kasir/monitoring*')
-            || Request::is('kasir/kelola-kas*');
+        $grpRelasiAktif = Request::is('konsumen', 'konsumen/*') || Request::is('golongan', 'golongan/*') || Request::is('produk', 'produk/*')
+            || Request::is('finishing', 'finishing/*') || Request::is('jasa', 'jasa/*') || Request::is('setting-harga', 'setting-harga/*')
+            || Request::is('harga-promo', 'harga-promo/*') || Request::is('supplier', 'supplier/*') || Request::is('platform-belanja', 'platform-belanja/*') || Request::is('kasir/monitoring', 'kasir/monitoring/*')
+            || Request::is('kasir/kelola-kas', 'kasir/kelola-kas/*');
     @endphp
     @if($grpRelasiVisible)
     <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
@@ -619,8 +619,8 @@
     @endif
 
     @if($cekAkses(7))
-    <a href="{{ url('/konsumen') }}" class="{{ $menuClass }} {{ Request::is('konsumen*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('konsumen*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/konsumen') }}" class="{{ $menuClass }} {{ Request::is('konsumen', 'konsumen/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('konsumen', 'konsumen/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
         <span class="text-sm font-medium">Data Konsumen</span>
@@ -628,8 +628,8 @@
     @endif
 
     @if($cekAkses(34))
-    <a href="{{ route('konsumen-deposit.index') }}" class="{{ $menuClass }} {{ Request::is('konsumen-deposit*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('konsumen-deposit*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ route('konsumen-deposit.index') }}" class="{{ $menuClass }} {{ Request::is('konsumen-deposit', 'konsumen-deposit/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('konsumen-deposit', 'konsumen-deposit/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3v-1m-3 1v-5m11-4V6a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2h1" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 17a5 5 0 100-10 5 5 0 000 10z" />
         </svg>
@@ -639,8 +639,8 @@
 
     @if($cekAkses(18))
 <a href="{{ route('golongan.index') }}" 
-   class="{{ $menuClass }} {{ Request::is('golongan*') ? $activeClass : $nonActiveClass }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('golongan*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+   class="{{ $menuClass }} {{ Request::is('golongan', 'golongan/*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('golongan', 'golongan/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
     </svg>
     <span class="text-sm font-medium">Golongan</span>
@@ -648,8 +648,8 @@
 @endif
 
     @if($cekAkses(13))
-    <a href="{{ url('/produk') }}" class="{{ $menuClass }} {{ Request::is('produk*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('produk*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/produk') }}" class="{{ $menuClass }} {{ Request::is('produk', 'produk/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('produk', 'produk/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
         </svg>
         <span class="text-sm font-medium">Produk & BOM</span>
@@ -657,8 +657,8 @@
     @endif
 
     @if($cekAkses(21))
-    <a href="{{ url('/finishing') }}" class="{{ $menuClass }} {{ Request::is('finishing*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('finishing*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/finishing') }}" class="{{ $menuClass }} {{ Request::is('finishing', 'finishing/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('finishing', 'finishing/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
         </svg>
         <span class="text-sm font-medium">Finishing Produk</span>
@@ -666,8 +666,8 @@
     @endif
 
     @if($cekAkses(32))
-    <a href="{{ route('jasa.index') }}" class="{{ $menuClass }} {{ Request::is('jasa*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jasa*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ route('jasa.index') }}" class="{{ $menuClass }} {{ Request::is('jasa', 'jasa/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jasa', 'jasa/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
         </svg>
         <span class="text-sm font-medium">Jasa</span>
@@ -675,8 +675,8 @@
     @endif
 
     @if($cekAkses(14))
-    <a href="{{ url('/setting-harga') }}" class="{{ $menuClass }} {{ Request::is('setting-harga*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('setting-harga*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/setting-harga') }}" class="{{ $menuClass }} {{ Request::is('setting-harga', 'setting-harga/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('setting-harga', 'setting-harga/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
         <span class="text-sm font-medium">Price List & Level</span>
@@ -684,8 +684,8 @@
     @endif
 
     @if($cekAkses(28))
-    <a href="{{ url('/harga-promo') }}" class="{{ $menuClass }} {{ Request::is('harga-promo*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('harga-promo*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/harga-promo') }}" class="{{ $menuClass }} {{ Request::is('harga-promo', 'harga-promo/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('harga-promo', 'harga-promo/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5.586a1 1 0 01.707.293l7.414 7.414a1 1 0 010 1.414l-7.586 7.586a1 1 0 01-1.414 0L4.293 12.293A1 1 0 014 11.586V6a3 3 0 013-3z" />
         </svg>
         <span class="text-sm font-medium">Harga Promo</span>
@@ -693,24 +693,24 @@
     @endif
 
     @if($cekAkses(9))
-    <a href="{{ url('/supplier') }}" class="{{ $menuClass }} {{ Request::is('supplier*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('supplier*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/supplier') }}" class="{{ $menuClass }} {{ Request::is('supplier', 'supplier/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('supplier', 'supplier/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
         <span class="text-sm font-medium">Supplier</span>
     </a>
     @endif
     @if($cekAkses(9) || $cekAkses(62))
-    <a href="{{ route('platform-belanja.index') }}" class="{{ $menuClass }} {{ Request::is('platform-belanja*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('platform-belanja*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+    <a href="{{ route('platform-belanja.index') }}" class="{{ $menuClass }} {{ Request::is('platform-belanja', 'platform-belanja/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('platform-belanja', 'platform-belanja/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
         <span class="text-sm font-medium">Platform Belanja Online</span>
     </a>
     @endif
 @if($cekAkses(16))
 <a href="{{ url('/kasir/monitoring') }}" 
 
-   class="{{ $menuClass }} {{ Request::is('kasir/monitoring*') ? 'bg-emerald-500/10 text-emerald-400' : $nonActiveClass }} {{ !$kasAktif ? 'opacity-50' : '' }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('kasir/monitoring*') ? 'text-emerald-400' : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+   class="{{ $menuClass }} {{ Request::is('kasir/monitoring', 'kasir/monitoring/*') ? 'bg-emerald-500/10 text-emerald-400' : $nonActiveClass }} {{ !$kasAktif ? 'opacity-50' : '' }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('kasir/monitoring', 'kasir/monitoring/*') ? 'text-emerald-400' : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
     </svg>
     <span class="text-sm font-medium">Monitoring Kasir</span>
@@ -718,8 +718,8 @@
 </a>
 
 <a href="{{ url('/kasir/kelola-kas') }}" 
-   class="{{ $menuClass }} {{ Request::is('kasir/kelola-kas*') ? $activeClass : $nonActiveClass }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('kasir/kelola-kas*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+   class="{{ $menuClass }} {{ Request::is('kasir/kelola-kas', 'kasir/kelola-kas/*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('kasir/kelola-kas', 'kasir/kelola-kas/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
     </svg>
     <span class="text-sm font-medium">Buka/Tutup Kas</span>
@@ -731,9 +731,9 @@
 
     @php
         $grpFinanceVisible = $cekAkses(3) || $cekAkses(41) || $cekAkses(39) || $cekAkses(45) || $cekAkses(11) || $cekAkses(5) || $cekAkses(48);
-        $grpFinanceAktif = Request::is('quotation*') || Request::is('penjualan/kasir*') || Request::is('penjualan-barang*') || Request::is('penjualan/riwayat*')
+        $grpFinanceAktif = Request::is('quotation', 'quotation/*') || Request::is('penjualan/kasir', 'penjualan/kasir/*') || Request::is('penjualan-barang', 'penjualan-barang/*') || Request::is('penjualan/riwayat', 'penjualan/riwayat/*')
             || request()->routeIs('kas-kecil.*') || request()->routeIs('kategori-kas-kecil.*')
-            || Request::is('bank*') || Request::is('karyawan*');
+            || Request::is('bank', 'bank/*') || Request::is('karyawan', 'karyawan/*');
     @endphp
     @if($grpFinanceVisible)
     <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
@@ -745,8 +745,8 @@
 
     @if($cekAkses(3) || $cekAkses(41))
     <a href="{{ route('penjualan.create') }}"
-       class="{{ $menuClass }} {{ Request::is('penjualan/kasir*') ? 'bg-emerald-500/10 text-emerald-400' : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('penjualan/kasir*') ? 'text-emerald-400' : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+       class="{{ $menuClass }} {{ Request::is('penjualan/kasir', 'penjualan/kasir/*') ? 'bg-emerald-500/10 text-emerald-400' : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('penjualan/kasir', 'penjualan/kasir/*') ? 'text-emerald-400' : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
         <span class="text-sm font-medium">Input Order</span>
@@ -755,8 +755,8 @@
 
     {{-- Quotation memuat harga: disembunyikan untuk role tanpa hak lihat harga (Operator Desain/Produksi) --}}
     @if(($cekAkses(3) || $cekAkses(41) || $cekAkses(58)) && $bolehLihatHargaSidebar)
-    <a href="{{ url('/quotation') }}" class="{{ $menuClass }} {{ Request::is('quotation*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('quotation*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/quotation') }}" class="{{ $menuClass }} {{ Request::is('quotation', 'quotation/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('quotation', 'quotation/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
         <span class="text-sm font-medium">Quotation</span>
@@ -765,8 +765,8 @@
 
     @if($cekAkses(48))
     <a href="{{ route('penjualan-barang.create') }}"
-       class="{{ $menuClass }} {{ Request::is('penjualan-barang*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('penjualan-barang*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+       class="{{ $menuClass }} {{ Request::is('penjualan-barang', 'penjualan-barang/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('penjualan-barang', 'penjualan-barang/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
         <span class="text-sm font-medium">Penjualan Barang</span>
@@ -775,8 +775,8 @@
 
     @if($cekAkses(3) || $cekAkses(61))
     <a href="{{ route('penjualan.riwayat') }}"
-       class="{{ $menuClass }} {{ Request::is('penjualan/riwayat*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('penjualan/riwayat*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+       class="{{ $menuClass }} {{ Request::is('penjualan/riwayat', 'penjualan/riwayat/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('penjualan/riwayat', 'penjualan/riwayat/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <span class="text-sm font-medium">Riwayat Penjualan</span>
@@ -802,8 +802,8 @@
     @endif
 
     @if($cekAkses(11))
-    <a href="{{ url('/bank') }}" class="{{ $menuClass }} {{ Request::is('bank*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('bank*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/bank') }}" class="{{ $menuClass }} {{ Request::is('bank', 'bank/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('bank', 'bank/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
         </svg>
         <span class="text-sm font-medium">Bank Perusahaan</span>
@@ -811,8 +811,8 @@
     @endif
 
     @if($cekAkses(5))
-    <a href="{{ url('/karyawan') }}" class="{{ $menuClass }} {{ Request::is('karyawan*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('karyawan*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/karyawan') }}" class="{{ $menuClass }} {{ Request::is('karyawan', 'karyawan/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('karyawan', 'karyawan/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
         </svg>
         <span class="text-sm font-medium">Data Karyawan</span>
@@ -984,7 +984,7 @@
         // menggrant-nya lewat role_permissions), jadi dicek $isAdministrator
         // langsung, bukan $cekAkses(N).
         $grpAkuntansiVisible = $cekAkses(35) || $cekAkses(36) || $cekAkses(51) || $isAdministrator;
-        $grpAkuntansiAktif = Request::is('akun*') || Request::is('akuntansi*') || Request::is('accounting-period*');
+        $grpAkuntansiAktif = Request::is('akun', 'akun/*') || Request::is('akuntansi', 'akuntansi/*') || Request::is('accounting-period', 'accounting-period/*');
     @endphp
     @if($grpAkuntansiVisible)
     <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
@@ -995,8 +995,8 @@
     @endif
 
     @if($cekAkses(35))
-    <a href="{{ route('akun.index') }}" class="{{ $menuClass }} {{ Request::is('akun*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('akun*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ route('akun.index') }}" class="{{ $menuClass }} {{ Request::is('akun', 'akun/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('akun', 'akun/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
         <span class="text-sm font-medium">Chart of Accounts</span>
@@ -1004,8 +1004,8 @@
     @endif
 
     @if($cekAkses(36))
-    <a href="{{ route('akuntansi.jurnal') }}" class="{{ $menuClass }} {{ Request::is('akuntansi*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('akuntansi*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ route('akuntansi.jurnal') }}" class="{{ $menuClass }} {{ Request::is('akuntansi', 'akuntansi/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('akuntansi', 'akuntansi/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
         <span class="text-sm font-medium">Laporan Keuangan</span>
@@ -1013,8 +1013,8 @@
     @endif
 
     @if($isAdministrator || $cekAkses(51))
-    <a href="{{ route('accounting-period.index') }}" class="{{ $menuClass }} {{ Request::is('accounting-period*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('accounting-period*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ route('accounting-period.index') }}" class="{{ $menuClass }} {{ Request::is('accounting-period', 'accounting-period/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('accounting-period', 'accounting-period/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
         <span class="text-sm font-medium">Accounting Period</span>
@@ -1024,7 +1024,7 @@
     </div>
     @endif
 
-    @php $grpJerseyAktif = Request::is('jersey*'); @endphp
+    @php $grpJerseyAktif = Request::is('jersey', 'jersey/*'); @endphp
     @if($cekAkses(38) || $cekAkses(42))
     <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
         <span>Order Jersey</span>
@@ -1032,8 +1032,8 @@
     </button>
     <div class="menu-group-items space-y-1 {{ $grpJerseyAktif ? '' : 'hidden' }}">
     @if($cekAkses(38))
-    <a href="{{ url('/jersey') }}" class="{{ $menuClass }} {{ (Request::is('jersey*') && !Request::is('jersey/master*') && !Request::is('jersey/keuangan*') && !Request::is('jersey/create')) ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ (Request::is('jersey*') && !Request::is('jersey/master*') && !Request::is('jersey/keuangan*') && !Request::is('jersey/create')) ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/jersey') }}" class="{{ $menuClass }} {{ (Request::is('jersey', 'jersey/*') && !Request::is('jersey/master', 'jersey/master/*') && !Request::is('jersey/keuangan', 'jersey/keuangan/*') && !Request::is('jersey/create')) ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ (Request::is('jersey', 'jersey/*') && !Request::is('jersey/master', 'jersey/master/*') && !Request::is('jersey/keuangan', 'jersey/keuangan/*') && !Request::is('jersey/create')) ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 7h16M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7M9 7v11m6-11v11" />
         </svg>
         <span class="text-sm font-medium">Daftar Order</span>
@@ -1055,8 +1055,8 @@
         </svg>
         <span class="text-sm font-medium">Master Data Jersey</span>
     </a>
-    <a href="{{ url('/jersey/keuangan') }}" class="{{ $menuClass }} {{ Request::is('jersey/keuangan*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jersey/keuangan*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/jersey/keuangan') }}" class="{{ $menuClass }} {{ Request::is('jersey/keuangan', 'jersey/keuangan/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jersey/keuangan', 'jersey/keuangan/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
         <span class="text-sm font-medium">Keuangan Jersey</span>
@@ -1071,8 +1071,8 @@
         // ada id_menu yang bisa menggrant lewat role_permissions), jadi
         // dicek $isAdministrator langsung, sama seperti Accounting Period.
         $grpSystemVisible = $cekAkses(6) || $cekAkses(4) || $cekAkses(37) || $cekAkses(63) || $cekAkses(66) || $cekAkses(49) || $cekAkses(50) || $cekAkses(52) || $isAdministrator;
-        $grpSystemAktif = Request::is('users*') || Request::is('setting-akses*') || Request::is('pengaturan-aplikasi*') || Request::is('pengaturan-jam-kerja*') || Request::is('pengaturan-desainer*') || Request::is('menu-editor*')
-            || Request::is('approval*') || Request::is('log-aktivitas*') || Request::is('backup*');
+        $grpSystemAktif = Request::is('users', 'users/*') || Request::is('setting-akses', 'setting-akses/*') || Request::is('pengaturan-aplikasi', 'pengaturan-aplikasi/*') || Request::is('pengaturan-jam-kerja', 'pengaturan-jam-kerja/*') || Request::is('pengaturan-desainer', 'pengaturan-desainer/*') || Request::is('menu-editor', 'menu-editor/*')
+            || Request::is('approval', 'approval/*') || Request::is('log-aktivitas', 'log-aktivitas/*') || Request::is('backup', 'backup/*');
     @endphp
     @if($grpSystemVisible)
     <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
@@ -1083,8 +1083,8 @@
     @endif
 
     @if($cekAkses(6))
-    <a href="{{ url('/users') }}" class="{{ $menuClass }} {{ Request::is('users*') ? $activeClass : $nonActiveClass }}">
-        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('users*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="{{ url('/users') }}" class="{{ $menuClass }} {{ Request::is('users', 'users/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('users', 'users/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
         <span class="text-sm font-medium">Manajemen User</span>
@@ -1093,8 +1093,8 @@
     
 @if($cekAkses(4))
 <a href="{{ url('/setting-akses') }}" 
-   class="{{ $menuClass }} {{ Request::is('setting-akses*') ? $activeClass : $nonActiveClass }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('setting-akses*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+   class="{{ $menuClass }} {{ Request::is('setting-akses', 'setting-akses/*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('setting-akses', 'setting-akses/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
     <span class="text-sm font-medium">Setting Akses</span>
@@ -1103,8 +1103,8 @@
 
 @if($cekAkses(37))
 <a href="{{ url('/pengaturan-aplikasi') }}"
-   class="{{ $menuClass }} {{ Request::is('pengaturan-aplikasi*') ? $activeClass : $nonActiveClass }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('pengaturan-aplikasi*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+   class="{{ $menuClass }} {{ Request::is('pengaturan-aplikasi', 'pengaturan-aplikasi/*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('pengaturan-aplikasi', 'pengaturan-aplikasi/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
@@ -1112,8 +1112,8 @@
 </a>
 
 @if($cekAkses(66))
-<a href="{{ route('desainer.pengaturan') }}" title="Kelas desainer dan persen bagi hasil komisi desain" class="{{ $menuClass }} {{ Request::is('pengaturan-desainer*') ? $activeClass : $nonActiveClass }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('pengaturan-desainer*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<a href="{{ route('desainer.pengaturan') }}" title="Kelas desainer dan persen bagi hasil komisi desain" class="{{ $menuClass }} {{ Request::is('pengaturan-desainer', 'pengaturan-desainer/*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('pengaturan-desainer', 'pengaturan-desainer/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
     <span class="text-sm font-medium">Bagi Hasil Desainer</span>
@@ -1121,8 +1121,8 @@
 @endif
 
 @if($cekAkses(37) || $cekAkses(63))
-<a href="{{ route('jam-kerja.index') }}" class="{{ $menuClass }} {{ Request::is('pengaturan-jam-kerja*') ? $activeClass : $nonActiveClass }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('pengaturan-jam-kerja*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<a href="{{ route('jam-kerja.index') }}" class="{{ $menuClass }} {{ Request::is('pengaturan-jam-kerja', 'pengaturan-jam-kerja/*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('pengaturan-jam-kerja', 'pengaturan-jam-kerja/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <span class="text-sm font-medium">Jam Kerja</span>
@@ -1130,8 +1130,8 @@
 @endif
 
 @if($cekAkses(4))
-<a href="{{ route('menu-editor.index') }}" class="{{ $menuClass }} {{ Request::is('menu-editor*') ? $activeClass : $nonActiveClass }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('menu-editor*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<a href="{{ route('menu-editor.index') }}" class="{{ $menuClass }} {{ Request::is('menu-editor', 'menu-editor/*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('menu-editor', 'menu-editor/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
     </svg>
     <span class="text-sm font-medium">Menu Editor</span>
@@ -1140,24 +1140,24 @@
 @endif
 
 @if($isAdministrator || $cekAkses(50))
-<a href="{{ route('approval.index') }}" class="{{ $menuClass }} {{ Request::is('approval*') ? $activeClass : $nonActiveClass }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('approval*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<a href="{{ route('approval.index') }}" class="{{ $menuClass }} {{ Request::is('approval', 'approval/*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('approval', 'approval/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <span class="text-sm font-medium">Approval Workflow</span>
 </a>
 @endif
 @if($isAdministrator || $cekAkses(49))
-<a href="{{ route('audit-log.index') }}" class="{{ $menuClass }} {{ Request::is('log-aktivitas*') ? $activeClass : $nonActiveClass }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('log-aktivitas*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<a href="{{ route('audit-log.index') }}" class="{{ $menuClass }} {{ Request::is('log-aktivitas', 'log-aktivitas/*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('log-aktivitas', 'log-aktivitas/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <span class="text-sm font-medium">Log Aktivitas</span>
 </a>
 @endif
 @if($isAdministrator || $cekAkses(52))
-<a href="{{ route('backup.index') }}" class="{{ $menuClass }} {{ Request::is('backup*') ? $activeClass : $nonActiveClass }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('backup*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<a href="{{ route('backup.index') }}" class="{{ $menuClass }} {{ Request::is('backup', 'backup/*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('backup', 'backup/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7c0 1.657 3.582 3 8 3s8-1.343 8-3m-16 0c0-1.657 3.582-3 8-3s8 1.343 8 3m-16 0v10c0 1.657 3.582 3 8 3s8-1.343 8-3V7" />
     </svg>
     <span class="text-sm font-medium">Backup & Recovery</span>
