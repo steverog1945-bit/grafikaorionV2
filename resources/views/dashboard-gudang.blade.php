@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 <div class="mb-8">
     <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Gudang</h1>
     <p class="text-slate-500 text-sm">Kondisi stok bahan baku saat ini, {{ now()->translatedFormat('d F Y') }} &middot; {{ Auth::user()->username }}</p>
@@ -75,4 +76,5 @@
     </div>
 </div>
 
+</div>
 @endsection

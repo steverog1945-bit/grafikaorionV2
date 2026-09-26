@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
         <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Produksi</h1>
@@ -91,4 +92,5 @@
 
 @include('partials.dashboard-finishing-panduan')
 
+</div>
 @endsection

@@ -21,14 +21,18 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class RestrictInputOnlyRoles
 {
-    private array $rolesDibatasi = ['Operator Desain'];
+    private const ROLES_DIBATASI = ['Operator Desain'];
+
+    public static function dibatasi($user): bool
+    {
+        $namaRole = optional(optional($user)->role)->nama_role;
+
+        return $namaRole && in_array($namaRole, self::ROLES_DIBATASI, true);
+    }
 
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
-        $namaRole = optional(optional($user)->role)->nama_role;
-
-        if ($namaRole && in_array($namaRole, $this->rolesDibatasi, true)) {
+        if (self::dibatasi($request->user())) {
             abort(403, 'Role Anda hanya diizinkan untuk input order baru, bukan mengubah/menghapus data yang sudah ada.');
         }
 
