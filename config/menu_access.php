@@ -107,6 +107,8 @@ return [
         'laporan/piutang' => [44],
         'laporan/stok-bahan' => [46],
         'laporan/hpp' => [47],
+        'laporan/biaya-desain' => [65],
+        'pengaturan-desainer' => [66],
         'laporan/job-costing' => [47],
         'laporan/profitabilitas' => [47],
         'laporan/pemakaian-bahan' => [46],
@@ -177,7 +179,7 @@ return [
     // Role yang HANYA boleh melihat pada modul (id menu) berikut - tambah/kelola/hapus ditolak walau hak aksesnya dicentang.
     // Operator Desain: modul produksi (SPK, Produksi, Collecting, QC, Waste) hanya untuk dipantau, tidak boleh mengganggu tim produksi.
     'hanya_lihat' => [
-        'Operator Desain' => [22, 23, 24, 56, 57, 1],
+        'Operator Desain' => [22, 23, 24, 56, 57, 1, 65],
     ],
 
     // POST yang hanya membaca/menghitung (bukan menyimpan) - diperlakukan sebagai "lihat".

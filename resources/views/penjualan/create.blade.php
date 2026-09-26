@@ -298,6 +298,16 @@
                                 <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Desain</p>
                                 <input type="text" inputmode="numeric" id="input_desain" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
                             </div>
+                            {{-- Desainer yang menerapkan biaya desain (untuk monitoring & komisi/bagi hasil) --}}
+                            <div id="wrapper_desainer" class="text-right hidden" title="Operator desain yang mengerjakan desain ini - dipakai untuk laporan biaya &amp; komisi desain">
+                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Desainer</p>
+                                <select id="input_desainer" class="w-32 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none">
+                                    <option value="">-- Tanpa Desainer --</option>
+                                    @foreach($desainerList as $ds)
+                                        <option value="{{ $ds->id_user }}" {{ (int) $desainerDefault === (int) $ds->id_user ? 'selected' : '' }}>{{ $ds->nama }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <button type="button" id="btn_tambah_desain" @unlessbolehHarga hidden @endbolehHarga onclick="tampilkanBiayaDesain()" class="text-indigo-300 hover:text-white text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
                                 <i class="fas fa-plus-circle"></i> Biaya Desain
                             </button>
@@ -793,6 +803,7 @@
 
     function tampilkanBiayaDesain() {
         document.getElementById('wrapper_biaya_desain').classList.remove('hidden');
+        document.getElementById('wrapper_desainer').classList.remove('hidden');
         document.getElementById('btn_tambah_desain').classList.add('hidden');
         document.getElementById('input_desain').focus();
     }
@@ -1211,6 +1222,7 @@
             qty_hitung: res.qty_hitung,
             harga_satuan: res.harga_satuan,
             biaya_desain: cleanRupiah(document.getElementById('input_desain').value),
+            id_desainer: document.getElementById('input_desainer').value,
             biaya_cetak: cleanRupiah(document.getElementById('input_cetak').value),
             id_finishing: idFinishing,
             nama_finishing: namaFinishing,
@@ -1454,6 +1466,8 @@
             document.getElementById('input_qty_ukuran').value = item.qty_input;
             document.getElementById('input_qty_biasa').value = item.qty_input;
             document.getElementById('input_desain').value = formatRupiah(item.biaya_desain || 0);
+            document.getElementById('input_desainer').value = item.id_desainer || '';
+            document.getElementById('wrapper_desainer').classList.toggle('hidden', !(item.biaya_desain > 0));
             document.getElementById('input_cetak').value = formatRupiah(item.biaya_cetak || 0);
             // Finishing item lama: pulihkan ke DAFTAR (baris isian dikosongkan). Bentuk lama (tunggal) dijadikan satu elemen.
             finishingList = (item.finishing && item.finishing.length ? item.finishing : (item.id_finishing ? [{
@@ -1522,6 +1536,8 @@
         finishingBiayaManualEdit = false;
         cetakManualEdit = false;
         document.getElementById('wrapper_biaya_desain').classList.add('hidden');
+        document.getElementById('wrapper_desainer').classList.add('hidden');
+        document.getElementById('input_desainer').value = "{{ $desainerDefault }}";
         document.getElementById('btn_tambah_desain').classList.remove('hidden');
         document.getElementById('wrapper_biaya_finishing').classList.add('hidden');
         document.getElementById('wrapper_qty_finishing').classList.add('hidden');

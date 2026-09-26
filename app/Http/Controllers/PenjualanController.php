@@ -57,7 +57,10 @@ class PenjualanController extends Controller
         }
     }
 
-    return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef'));
+    $desainerList = \App\Services\DesainKomisiService::daftarDesainer();
+    $desainerDefault = \App\Services\DesainKomisiService::tentukanDesainer(null);
+
+    return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef', 'desainerList', 'desainerDefault'));
 }
 
 public function getHarga($id_produk, $id_golongan, $qty) {
@@ -312,6 +315,8 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             'biaya_finishing' => $biayaFinishing,
             'biaya_cetak' => $biayaCetak,
             'biaya_desain' => $biayaDesain,
+            // Desainer yang menerapkan biaya desain + komisi menurut kelasnya (snapshot saat nota dibuat).
+            'id_desainer' => $biayaDesain > 0 ? \App\Services\DesainKomisiService::tentukanDesainer(isset($item['id_desainer']) ? (int) $item['id_desainer'] : null) : null,
             'status_urgensi' => $statusUrgensi,
             'status_finishing' => collect($daftarFinishing)->contains('status_finishing', 'Custom') ? 'Custom' : $statusFinishing,
             'subtotal' => $biayaCetak + $biayaDesain + $biayaFinishing,
@@ -379,6 +384,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             $totalProdukSemua += $item['subtotal'];
 
             $jumlah_order = $item['qty_input'];
+            $komisiDesain = \App\Services\DesainKomisiService::hitung($item['id_desainer'], (float) $item['biaya_desain']);
 
             $id_detail = DB::table('transaksi_detail')->insertGetId([
                 'id_transaksi'     => $id_transaksi,
@@ -393,6 +399,10 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                 'biaya_finishing'  => $item['biaya_finishing'],
                 'biaya_cetak'      => $item['biaya_cetak'],
                 'biaya_desain'     => $item['biaya_desain'],
+                'id_desainer'      => $item['id_desainer'],
+                'komisi_desain_persen' => $komisiDesain['persen'],
+                'komisi_desain'    => $komisiDesain['komisi'],
+                'komisi_status'    => $komisiDesain['komisi'] > 0 ? 'Belum' : null,
                 'status_urgensi'   => $item['status_urgensi'],
                 // status_urgent (kolom lama, tinyint) tetap diisi supaya
                 // layar SPK yang sudah ada (toggleUrgent/bulkUrgent, sorting
