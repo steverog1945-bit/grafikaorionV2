@@ -12,18 +12,80 @@ class KartuStokController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $status = $request->get('status', 'aktif');          // aktif | nonaktif | semua
+        $statusStok = $request->get('status_stok');          // habis | menipis | aman | tanpa_batas
+        $urut = $request->get('urut', 'nama');               // nama | kode | stok_asc | stok_desc | mutasi
+        $dari = $request->get('dari');
+        $sampai = $request->get('sampai');
+        $tipe = $request->get('tipe');                       // IN | OUT | ADJUSTMENT (mutasi pada rentang tanggal)
 
-        $bahan = DB::table('bahan_baku')
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($qq) use ($search) {
-                    $qq->where('nama_bahan', 'like', "%{$search}%")
-                       ->orWhere('kode_bahan', 'like', "%{$search}%");
+        $mutasiTerakhir = DB::table('kartu_stok')->selectRaw('id_bahan, MAX(tanggal) as terakhir, COUNT(*) as jumlah')->groupBy('id_bahan');
+
+        $q = DB::table('bahan_baku')
+            ->leftJoin('kategori', 'kategori.id_kategori', '=', 'bahan_baku.id_kategori')
+            ->leftJoin('mesin', 'mesin.id_mesin', '=', 'bahan_baku.id_mesin')
+            ->leftJoin('satuan as satuan_stok_ref', 'satuan_stok_ref.id_satuan', '=', 'bahan_baku.id_satuan_stok')
+            ->leftJoinSub($mutasiTerakhir, 'mt', 'mt.id_bahan', '=', 'bahan_baku.id_bahan')
+            ->select('bahan_baku.*', 'kategori.nama_kategori', 'mesin.nama_mesin', 'satuan_stok_ref.nama_satuan as nama_satuan_stok', 'mt.terakhir as mutasi_terakhir', 'mt.jumlah as jumlah_mutasi')
+            ->when($search, function ($qq) use ($search) {
+                $qq->where(function ($w) use ($search) {
+                    $w->where('bahan_baku.nama_bahan', 'like', "%{$search}%")->orWhere('bahan_baku.kode_bahan', 'like', "%{$search}%");
                 });
             })
-            ->orderBy('nama_bahan')
-            ->get();
+            ->when($request->filled('kategori'), fn ($qq) => $qq->where('bahan_baku.id_kategori', (int) $request->kategori))
+            ->when($request->filled('mesin'), fn ($qq) => $qq->where('bahan_baku.id_mesin', (int) $request->mesin))
+            ->when($request->filled('satuan'), fn ($qq) => $qq->where('bahan_baku.id_satuan_stok', (int) $request->satuan))
+            ->when(in_array($status, ['aktif', 'nonaktif'], true), fn ($qq) => $qq->where('bahan_baku.status', $status));
 
-        return view('kartu_stok.index', compact('bahan', 'search'));
+        // Status stok (definisi sama dengan dashboard Gudang & Laporan Stok Bahan).
+        if ($statusStok === 'habis') {
+            $q->where('bahan_baku.stok', '<=', 0);
+        } elseif ($statusStok === 'menipis') {
+            $q->where('bahan_baku.stok', '>', 0)->where('bahan_baku.stok_minimal', '>', 0)->whereColumn('bahan_baku.stok', '<=', 'bahan_baku.stok_minimal');
+        } elseif ($statusStok === 'aman') {
+            $q->where('bahan_baku.stok', '>', 0)->where(fn ($w) => $w->where('bahan_baku.stok_minimal', '<=', 0)->orWhereColumn('bahan_baku.stok', '>', 'bahan_baku.stok_minimal'));
+        } elseif ($statusStok === 'tanpa_batas') {
+            $q->where('bahan_baku.stok_minimal', '<=', 0);
+        }
+
+        // Hanya bahan yang bergerak pada rentang tanggal / tipe mutasi tertentu.
+        if ($dari || $sampai || $tipe) {
+            $q->whereExists(function ($e) use ($dari, $sampai, $tipe) {
+                $e->select(DB::raw(1))->from('kartu_stok as ks')->whereColumn('ks.id_bahan', 'bahan_baku.id_bahan')
+                    ->when($dari, fn ($x) => $x->whereDate('ks.tanggal', '>=', $dari))
+                    ->when($sampai, fn ($x) => $x->whereDate('ks.tanggal', '<=', $sampai))
+                    ->when(in_array($tipe, ['IN', 'OUT', 'ADJUSTMENT'], true), fn ($x) => $x->where('ks.tipe', $tipe));
+            });
+        }
+
+        match ($urut) {
+            'kode' => $q->orderBy('bahan_baku.kode_bahan'),
+            'stok_asc' => $q->orderBy('bahan_baku.stok')->orderBy('bahan_baku.nama_bahan'),
+            'stok_desc' => $q->orderByDesc('bahan_baku.stok')->orderBy('bahan_baku.nama_bahan'),
+            'mutasi' => $q->orderByDesc('mt.terakhir')->orderBy('bahan_baku.nama_bahan'),
+            default => $q->orderBy('bahan_baku.nama_bahan'),
+        };
+
+        $bahan = $q->get()->map(function ($b) {
+            $b->status_stok = match (true) {
+                (float) $b->stok <= 0 => 'Habis',
+                (float) $b->stok_minimal > 0 && (float) $b->stok <= (float) $b->stok_minimal => 'Menipis',
+                (float) $b->stok_minimal <= 0 => 'Tanpa Batas',
+                default => 'Aman',
+            };
+
+            return $b;
+        });
+
+        $ringkas = [
+            'total' => $bahan->count(), 'habis' => $bahan->where('status_stok', 'Habis')->count(), 'menipis' => $bahan->where('status_stok', 'Menipis')->count(),
+        ];
+
+        $kategoriList = DB::table('kategori')->orderBy('nama_kategori')->get(['id_kategori', 'nama_kategori']);
+        $mesinList = DB::table('mesin')->orderBy('nama_mesin')->get(['id_mesin', 'nama_mesin']);
+        $satuanList = DB::table('satuan')->orderBy('nama_satuan')->get(['id_satuan', 'nama_satuan']);
+
+        return view('kartu_stok.index', compact('bahan', 'search', 'status', 'statusStok', 'urut', 'dari', 'sampai', 'tipe', 'ringkas', 'kategoriList', 'mesinList', 'satuanList'));
     }
 
     public function detail(Request $request, $id)
@@ -38,6 +100,9 @@ class KartuStokController extends Controller
         $awal = $request->get('awal', now()->startOfMonth()->toDateString());
         $akhir = $request->get('akhir', now()->toDateString());
         $tipe = $request->get('tipe');
+        $cari = trim((string) $request->get('cari', ''));   // referensi / keterangan
+        $oleh = $request->get('oleh');                       // id_user pencatat
+        $urutDetail = $request->get('urut', 'lama');         // lama | baru
 
         // Saldo sebelum periode - dipakai sebagai baris "Saldo Awal" supaya
         // baris pertama yang tampil tidak muncul begitu saja tanpa konteks
@@ -52,15 +117,29 @@ class KartuStokController extends Controller
         $saldoAwal = $saldoAwal !== null ? (float) $saldoAwal : 0.0;
 
         $kartu = DB::table('kartu_stok')
-            ->where('id_bahan', $id)
-            ->whereDate('tanggal', '>=', $awal)
-            ->whereDate('tanggal', '<=', $akhir)
-            ->when($tipe, fn ($q) => $q->where('tipe', $tipe))
-            ->orderBy('tanggal', 'asc')
-            ->orderBy('id', 'asc')
+            ->leftJoin('users', 'users.id_user', '=', 'kartu_stok.created_by')
+            ->leftJoin('karyawan', 'karyawan.id_karyawan', '=', 'users.id_karyawan')
+            ->where('kartu_stok.id_bahan', $id)
+            ->whereDate('kartu_stok.tanggal', '>=', $awal)
+            ->whereDate('kartu_stok.tanggal', '<=', $akhir)
+            ->when($tipe, fn ($q) => $q->where('kartu_stok.tipe', $tipe))
+            ->when($cari !== '', fn ($q) => $q->where(fn ($w) => $w->where('kartu_stok.referensi', 'like', "%{$cari}%")->orWhere('kartu_stok.keterangan', 'like', "%{$cari}%")))
+            ->when($request->filled('oleh'), fn ($q) => $q->where('kartu_stok.created_by', (int) $oleh))
+            ->orderBy('kartu_stok.tanggal', $urutDetail === 'baru' ? 'desc' : 'asc')
+            ->orderBy('kartu_stok.id', $urutDetail === 'baru' ? 'desc' : 'asc')
+            ->select('kartu_stok.*', DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama_pencatat'))
             ->get();
 
-        return view('kartu_stok.detail', compact('bahan', 'kartu', 'awal', 'akhir', 'tipe', 'saldoAwal'));
+        // Ringkasan periode (setelah semua filter): total masuk, keluar, dan selisih penyesuaian.
+        $totalMasuk = (float) $kartu->where('tipe', 'IN')->sum('qty');
+        $totalKeluar = (float) $kartu->where('tipe', 'OUT')->sum('qty');
+        $totalAdj = (float) $kartu->where('tipe', 'ADJUSTMENT')->sum(fn ($k) => (float) $k->stok_sesudah - (float) $k->stok_sebelum);
+
+        $pencatatList = DB::table('kartu_stok')->leftJoin('users', 'users.id_user', '=', 'kartu_stok.created_by')->leftJoin('karyawan', 'karyawan.id_karyawan', '=', 'users.id_karyawan')
+            ->where('kartu_stok.id_bahan', $id)->whereNotNull('kartu_stok.created_by')->distinct()
+            ->get(['kartu_stok.created_by as id_user', DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama')]);
+
+        return view('kartu_stok.detail', compact('bahan', 'kartu', 'awal', 'akhir', 'tipe', 'saldoAwal', 'cari', 'oleh', 'urutDetail', 'totalMasuk', 'totalKeluar', 'totalAdj', 'pencatatList'));
     }
 
     /**

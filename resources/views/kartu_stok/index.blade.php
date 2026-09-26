@@ -15,10 +15,11 @@
         </x-slot:actions>
     </x-page-header>
 
-    {{-- FILTER & SEARCH --}}
+    {{-- FILTER LENGKAP --}}
+    @php $adaFilter = request()->anyFilled(['search', 'kategori', 'mesin', 'satuan', 'status_stok', 'dari', 'sampai', 'tipe']) || request('status', 'aktif') !== 'aktif' || request('urut', 'nama') !== 'nama'; @endphp
     <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6">
-        <form method="GET" action="{{ route('kartu-stok.index') }}" class="flex flex-wrap items-end gap-4">
-            <div class="flex-1 min-w-[280px]">
+        <form method="GET" action="{{ route('kartu-stok.index') }}" class="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <div class="col-span-2">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Bahan</label>
                 <div class="relative">
                     <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
@@ -27,15 +28,86 @@
                            placeholder="Ketik SKU atau Nama Bahan...">
                 </div>
             </div>
-            <button type="submit" class="h-[46px] px-6 flex items-center justify-center bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all">
-                <i class="fas fa-filter mr-1"></i> Tampilkan
-            </button>
-            @if($search)
-                <a href="{{ route('kartu-stok.index') }}" class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
-                    <i class="fas fa-undo-alt text-sm"></i>
-                </a>
-            @endif
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
+                <x-form.select name="kategori">
+                    <option value="">Semua Kategori</option>
+                    @foreach($kategoriList as $kt)<option value="{{ $kt->id_kategori }}" {{ (string) request('kategori') === (string) $kt->id_kategori ? 'selected' : '' }}>{{ $kt->nama_kategori }}</option>@endforeach
+                </x-form.select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin / Divisi</label>
+                <x-form.select name="mesin">
+                    <option value="">Semua Mesin</option>
+                    @foreach($mesinList as $m)<option value="{{ $m->id_mesin }}" {{ (string) request('mesin') === (string) $m->id_mesin ? 'selected' : '' }}>{{ $m->nama_mesin }}</option>@endforeach
+                </x-form.select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Satuan Stok</label>
+                <x-form.select name="satuan">
+                    <option value="">Semua Satuan</option>
+                    @foreach($satuanList as $sa)<option value="{{ $sa->id_satuan }}" {{ (string) request('satuan') === (string) $sa->id_satuan ? 'selected' : '' }}>{{ $sa->nama_satuan }}</option>@endforeach
+                </x-form.select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Stok</label>
+                <x-form.select name="status_stok">
+                    <option value="">Semua</option>
+                    <option value="habis" {{ $statusStok === 'habis' ? 'selected' : '' }}>Habis (0 / minus)</option>
+                    <option value="menipis" {{ $statusStok === 'menipis' ? 'selected' : '' }}>Menipis (&le; stok minimal)</option>
+                    <option value="aman" {{ $statusStok === 'aman' ? 'selected' : '' }}>Aman</option>
+                    <option value="tanpa_batas" {{ $statusStok === 'tanpa_batas' ? 'selected' : '' }}>Belum ada batas minimal</option>
+                </x-form.select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Bahan</label>
+                <x-form.select name="status">
+                    <option value="aktif" {{ $status === 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="nonaktif" {{ $status === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                    <option value="semua" {{ $status === 'semua' ? 'selected' : '' }}>Semua</option>
+                </x-form.select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Urutkan</label>
+                <x-form.select name="urut">
+                    <option value="nama" {{ $urut === 'nama' ? 'selected' : '' }}>Nama (A-Z)</option>
+                    <option value="kode" {{ $urut === 'kode' ? 'selected' : '' }}>Kode / SKU</option>
+                    <option value="stok_asc" {{ $urut === 'stok_asc' ? 'selected' : '' }}>Stok terendah</option>
+                    <option value="stok_desc" {{ $urut === 'stok_desc' ? 'selected' : '' }}>Stok tertinggi</option>
+                    <option value="mutasi" {{ $urut === 'mutasi' ? 'selected' : '' }}>Mutasi terbaru</option>
+                </x-form.select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2" title="Tampilkan hanya bahan yang punya mutasi stok pada rentang ini">Mutasi Dari</label>
+                <x-form.input type="date" name="dari" value="{{ $dari }}" />
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Mutasi Sampai</label>
+                <x-form.input type="date" name="sampai" value="{{ $sampai }}" />
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Jenis Mutasi</label>
+                <x-form.select name="tipe">
+                    <option value="">Semua Jenis</option>
+                    <option value="IN" {{ $tipe === 'IN' ? 'selected' : '' }}>Masuk (IN)</option>
+                    <option value="OUT" {{ $tipe === 'OUT' ? 'selected' : '' }}>Keluar (OUT)</option>
+                    <option value="ADJUSTMENT" {{ $tipe === 'ADJUSTMENT' ? 'selected' : '' }}>Penyesuaian</option>
+                </x-form.select>
+            </div>
+            <div class="col-span-2 lg:col-span-1 flex items-center gap-3">
+                <x-button type="submit" title="Terapkan filter"><i class="fas fa-filter"></i> Tampilkan</x-button>
+                @if($adaFilter)
+                    <a href="{{ route('kartu-stok.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline" title="Kembalikan semua filter ke awal">Reset</a>
+                @endif
+            </div>
         </form>
+    </div>
+
+    {{-- RINGKASAN HASIL FILTER --}}
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bahan Tampil</p><p class="text-2xl font-bold text-slate-800 mt-1">{{ $ringkas['total'] }}</p></div>
+        <a href="{{ route('kartu-stok.index', array_merge(request()->except('status_stok'), ['status_stok' => 'habis'])) }}" title="Saring bahan yang stoknya habis" class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 hover:shadow-md transition-all"><p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Habis</p><p class="text-2xl font-bold text-rose-600 mt-1">{{ $ringkas['habis'] }}</p></a>
+        <a href="{{ route('kartu-stok.index', array_merge(request()->except('status_stok'), ['status_stok' => 'menipis'])) }}" title="Saring bahan yang stoknya menipis" class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 hover:shadow-md transition-all"><p class="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Menipis</p><p class="text-2xl font-bold text-amber-600 mt-1">{{ $ringkas['menipis'] }}</p></a>
     </div>
 
     <x-table>
@@ -44,8 +116,11 @@
                 <th class="px-4 py-5 text-center w-10">#</th>
                 <th class="px-6 py-5 text-left">Kode</th>
                 <th class="px-4 py-5 text-left">Nama Bahan</th>
+                <th class="px-4 py-5 text-left">Kategori / Mesin</th>
                 <th class="px-4 py-5 text-right">Stok Saat Ini</th>
                 <th class="px-4 py-5 text-left">Satuan</th>
+                <th class="px-4 py-5 text-center">Status Stok</th>
+                <th class="px-4 py-5 text-left">Mutasi Terakhir</th>
                 <th class="px-8 py-5 text-center">Aksi</th>
             </tr>
         </thead>
@@ -59,11 +134,26 @@
                 <td class="px-4 py-5">
                     <span class="text-[13px] font-bold text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $b->nama_bahan }}</span>
                 </td>
+                <td class="px-4 py-5">
+                    <span class="block text-[12px] font-semibold text-slate-600">{{ $b->nama_kategori ?? '-' }}</span>
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase">{{ $b->nama_mesin ?? '-' }}</span>
+                </td>
                 <td class="px-4 py-5 text-right">
                     <span class="text-[13px] font-bold text-slate-800">{{ angka($b->stok, 2) }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <span class="inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] font-black uppercase tracking-wide">{{ $b->nama_satuan_stok ?? $b->satuan_stok ?? '-' }}</span>
+                </td>
+                <td class="px-4 py-5 text-center">
+                    <x-badge :variant="['Habis' => 'danger', 'Menipis' => 'warning', 'Aman' => 'success'][$b->status_stok] ?? 'info'">{{ $b->status_stok }}</x-badge>
+                </td>
+                <td class="px-4 py-5">
+                    @if($b->mutasi_terakhir)
+                        <span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($b->mutasi_terakhir)->format('d M Y') }}</span>
+                        <span class="block text-[10px] text-slate-400">{{ $b->jumlah_mutasi }} mutasi</span>
+                    @else
+                        <span class="text-[11px] text-slate-300 italic">Belum ada</span>
+                    @endif
                 </td>
                 <td class="px-8 py-5 text-center">
                     <div class="flex items-center justify-center gap-2">
@@ -78,8 +168,8 @@
             </tr>
             @empty
             <tr>
-                <td colspan="5">
-                    <x-empty-state :title="$search ? 'Tidak ada bahan yang cocok dengan pencarian' : 'Belum ada data bahan baku'" />
+                <td colspan="9">
+                    <x-empty-state :title="$adaFilter ? 'Tidak ada bahan yang cocok dengan filter' : 'Belum ada data bahan baku'" :description="$adaFilter ? 'Ubah atau reset filter untuk melihat bahan lain.' : null" />
                 </td>
             </tr>
             @endforelse

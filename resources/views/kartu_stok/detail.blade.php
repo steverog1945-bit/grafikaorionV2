@@ -35,6 +35,30 @@
                     <option value="ADJUSTMENT" {{ $tipe == 'ADJUSTMENT' ? 'selected' : '' }}>Penyesuaian</option>
                 </select>
             </div>
+            <div class="w-full md:w-56">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Referensi / Keterangan</label>
+                <x-form.input type="text" name="cari" value="{{ $cari }}" placeholder="No. SJ, nota, catatan..." />
+            </div>
+            <div class="w-full md:w-48">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dicatat Oleh</label>
+                <x-form.select name="oleh">
+                    <option value="">Semua Pencatat</option>
+                    @foreach($pencatatList as $pc)<option value="{{ $pc->id_user }}" {{ (string) $oleh === (string) $pc->id_user ? 'selected' : '' }}>{{ $pc->nama }}</option>@endforeach
+                </x-form.select>
+            </div>
+            <div class="w-full md:w-40">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Urutan</label>
+                <x-form.select name="urut">
+                    <option value="lama" {{ $urutDetail === 'lama' ? 'selected' : '' }}>Terlama dulu</option>
+                    <option value="baru" {{ $urutDetail === 'baru' ? 'selected' : '' }}>Terbaru dulu</option>
+                </x-form.select>
+            </div>
+            <div class="w-full flex flex-wrap items-center gap-2" title="Pilihan cepat rentang tanggal">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">Rentang cepat:</span>
+                @foreach([['Hari ini', now()->toDateString(), now()->toDateString()], ['7 hari', now()->subDays(6)->toDateString(), now()->toDateString()], ['Bulan ini', now()->startOfMonth()->toDateString(), now()->toDateString()], ['Bulan lalu', now()->subMonthNoOverflow()->startOfMonth()->toDateString(), now()->subMonthNoOverflow()->endOfMonth()->toDateString()], ['Tahun ini', now()->startOfYear()->toDateString(), now()->toDateString()], ['Semua', '2000-01-01', now()->toDateString()]] as [$lbl, $a1, $a2])
+                    <a href="{{ url('/kartu-stok/'.$bahan->id_bahan) }}?{{ http_build_query(array_merge(request()->except(['awal', 'akhir']), ['awal' => $a1, 'akhir' => $a2])) }}" class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest {{ $awal === $a1 && $akhir === $a2 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' }}">{{ $lbl }}</a>
+                @endforeach
+            </div>
             <button type="submit" class="h-[46px] px-6 flex items-center justify-center bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all">
                 <i class="fas fa-filter mr-1"></i> Tampilkan
             </button>
@@ -77,6 +101,14 @@
         @endif
     </div>
 
+    {{-- RINGKASAN PERIODE (mengikuti filter yang aktif) --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo Awal Periode</p><p class="text-xl font-bold text-slate-800 mt-1">{{ angka($saldoAwal, 2) }}</p></div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Total Masuk (IN)</p><p class="text-xl font-bold text-emerald-600 mt-1">+ {{ angka($totalMasuk, 2) }}</p></div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Total Keluar (OUT)</p><p class="text-xl font-bold text-rose-600 mt-1">- {{ angka($totalKeluar, 2) }}</p></div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Selisih Penyesuaian</p><p class="text-xl font-bold text-amber-600 mt-1">{{ $totalAdj >= 0 ? '+' : '-' }} {{ angka(abs($totalAdj), 2) }}</p></div>
+    </div>
+
     <x-table>
         <thead>
             <tr>
@@ -88,6 +120,7 @@
                 <th class="px-4 py-5 text-right">Stok Sesudah</th>
                 <th class="px-4 py-5 text-left">Satuan</th>
                 <th class="px-4 py-5 text-left">Referensi</th>
+                <th class="px-4 py-5 text-left">Dicatat Oleh</th>
                 <th class="px-6 py-5 text-left">Keterangan</th>
             </tr>
         </thead>
@@ -95,7 +128,7 @@
             <tr class="bg-slate-50/40">
                 <td colspan="5" class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Saldo Awal ({{ \Carbon\Carbon::parse($awal)->format('d M Y') }})</td>
                 <td class="px-4 py-3 text-right text-sm font-bold text-slate-700">{{ angka($saldoAwal, 2) }}</td>
-                <td colspan="2"></td>
+                <td colspan="4"></td>
             </tr>
             @forelse($kartu as $i => $k)
             <tr class="hover:bg-slate-50/50 transition-all">
@@ -125,14 +158,17 @@
                 <td class="px-4 py-5">
                     <span class="text-[12px] font-semibold text-slate-600">{{ $k->referensi ?? '-' }}</span>
                 </td>
+                <td class="px-4 py-5">
+                    <span class="text-[12px] text-slate-500">{{ $k->nama_pencatat ?? '-' }}</span>
+                </td>
                 <td class="px-6 py-5">
                     <span class="text-[12px] text-slate-500">{{ $k->keterangan ?? '-' }}</span>
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="8">
-                    <x-empty-state title="Tidak ada transaksi pada rentang filter ini" description="Coba perlebar rentang tanggal atau reset filter tipe." />
+                <td colspan="10">
+                    <x-empty-state title="Tidak ada transaksi pada rentang filter ini" description="Coba perlebar rentang tanggal atau reset filter." />
                 </td>
             </tr>
             @endforelse
