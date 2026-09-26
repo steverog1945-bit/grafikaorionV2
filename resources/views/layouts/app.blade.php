@@ -1530,7 +1530,7 @@
             if (sedikit || hitung(g) === 1) { g.classList.add('grup-datar'); h.classList.add('grup-datar-header'); }
         });
     }
-    ratakanSidebar();
+    // Sidebar semua role memakai grup menu yang sama seperti Administrator (tidak diratakan).
     // Mode gelap / terang
     function terapkanIkonTema() {
         const gelap = document.documentElement.classList.contains('dark');
