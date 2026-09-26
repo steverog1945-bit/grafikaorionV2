@@ -40,14 +40,18 @@ class PembelianBahanController extends Controller
         }
 
         // Filter jatuh tempo: telat / jatuh tempo <= 7 hari (hanya faktur yang masih berhutang).
-        if (in_array($request->jt, ['telat', '7hari'], true)) {
+        if (in_array($request->jt, ['telat', '7hari', 'aman'], true)) {
             $query->where('status_pembayaran', 'Hutang');
             $batas = $request->jt === 'telat' ? now()->startOfDay() : now()->startOfDay()->addDays(7);
             // Sama dengan hitungan ringkasan: faktur tanpa tanggal jatuh tempo memakai tanggal transaksinya.
             $tglJt = 'DATE(COALESCE(jatuh_tempo_tgl, tgl_transaksi))';
-            $request->jt === 'telat'
-                ? $query->whereRaw("{$tglJt} < ?", [$batas->toDateString()])
-                : $query->whereRaw("{$tglJt} >= ?", [now()->startOfDay()->toDateString()])->whereRaw("{$tglJt} <= ?", [$batas->toDateString()]);
+            if ($request->jt === 'telat') {
+                $query->whereRaw("{$tglJt} < ?", [$batas->toDateString()]);
+            } elseif ($request->jt === '7hari') {
+                $query->whereRaw("{$tglJt} >= ?", [now()->startOfDay()->toDateString()])->whereRaw("{$tglJt} <= ?", [$batas->toDateString()]);
+            } else { // aman: jatuh tempo lebih dari 7 hari lagi
+                $query->whereRaw("{$tglJt} > ?", [now()->startOfDay()->addDays(7)->toDateString()]);
+            }
         }
 
         $data = $query->orderBy('id_pembelian', 'desc')->paginate(20)->withQueryString();
