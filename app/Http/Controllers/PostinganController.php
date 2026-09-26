@@ -157,7 +157,7 @@ class PostinganController extends Controller
         }
 
         $tags = collect(explode(',', (string) ($data['tags'] ?? '')))->map(fn ($t) => Str::limit(trim($t), 30, ''))->filter()->unique()->take(8)->implode(', ');
-        $ringkasan = trim((string) ($data['ringkasan'] ?? '')) ?: Str::limit(trim(preg_replace('/\s+/', ' ', strip_tags($isi))), 160);
+        $ringkasan = trim((string) ($data['ringkasan'] ?? '')) ?: Str::limit(trim(preg_replace('/\s+/', ' ', strip_tags(preg_replace('#</(p|h[1-6]|li|blockquote)>#i', ' ', $isi)))), 160);
 
         $terbitAt = null;
         if ($data['status'] === 'terbit') {
