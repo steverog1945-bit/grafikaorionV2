@@ -11,6 +11,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}"> {{-- Tambahkan Meta CSRF --}}
     <title>{{ $appSetting->nama_aplikasi }}</title>
+    <script>
+        // Tema terang/gelap: pilihan tersimpan (localStorage 'tema'), bila belum ada ikut pengaturan perangkat.
+        (function () {
+            try {
+                var t = localStorage.getItem('tema');
+                if (!t) t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                if (t === 'dark') document.documentElement.classList.add('dark');
+            } catch (e) {}
+        })();
+    </script>
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -1169,6 +1179,10 @@
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+            {{-- Tombol mode gelap / terang --}}
+            <button type="button" id="tema-toggle" onclick="ubahTema()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Ganti ke mode gelap" aria-label="Ganti mode gelap atau terang">
+                <i class="fas fa-moon" id="tema-ikon"></i>
+            </button>
             @php $notifAwal = \App\Services\NotifikasiService::untuk(Auth::user()); @endphp
             <div class="relative">
                 <button type="button" id="notif-btn" onclick="toggleNotif(event)" class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Notifikasi & pekerjaan masuk">
@@ -1502,6 +1516,25 @@
         });
     }
     ratakanSidebar();
+    // Mode gelap / terang
+    function terapkanIkonTema() {
+        const gelap = document.documentElement.classList.contains('dark');
+        const ikon = document.getElementById('tema-ikon'), btn = document.getElementById('tema-toggle');
+        if (ikon) ikon.className = 'fas ' + (gelap ? 'fa-sun' : 'fa-moon');
+        if (btn) { btn.title = gelap ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'; }
+    }
+    function ubahTema() {
+        const gelap = document.documentElement.classList.toggle('dark');
+        try { localStorage.setItem('tema', gelap ? 'dark' : 'light'); } catch (e) {}
+        terapkanIkonTema();
+    }
+    terapkanIkonTema();
+    // Cetak selalu terang.
+    (function () {
+        let tadiGelap = false;
+        window.addEventListener('beforeprint', () => { tadiGelap = document.documentElement.classList.contains('dark'); document.documentElement.classList.remove('dark'); });
+        window.addEventListener('afterprint', () => { if (tadiGelap) document.documentElement.classList.add('dark'); });
+    })();
     function toggleNotif(e) { e.stopPropagation(); document.getElementById('notif-panel').classList.toggle('hidden'); }
     document.addEventListener('click', e => { const p = document.getElementById('notif-panel'); if (p && !p.contains(e.target)) p.classList.add('hidden'); });
     renderNotif(@json($notifAwal));

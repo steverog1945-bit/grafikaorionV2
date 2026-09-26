@@ -153,7 +153,7 @@ SVG,
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5" id="grid-finishing">
         @foreach($kartu as $k)
         <article data-grup="{{ $k['grup'] }}" class="kartu-finishing bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
-            <div class="bg-gradient-to-br from-slate-50 to-indigo-50/40 px-4 pt-4 pb-2">
+            <div class="panel-ilustrasi bg-gradient-to-br from-slate-50 to-indigo-50/40 px-4 pt-4 pb-2">
                 <div class="w-full aspect-[8/5]">{!! $k['svg'] !!}</div>
             </div>
             <div class="p-5">

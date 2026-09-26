@@ -22,6 +22,17 @@ class JalurLanjut
         ]);
     }
 
+    private static function routeDibatasi(string $url): bool
+    {
+        try {
+            $route = app('router')->getRoutes()->match(\Illuminate\Http\Request::create($url, 'GET'));
+
+            return in_array('restrict.input-only', $route->gatherMiddleware(), true);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
     public static function boleh(string $url): bool
     {
         return self::bolehUntuk(auth()->user(), $url);
@@ -34,6 +45,12 @@ class JalurLanjut
         }
         if (optional($user->role)->nama_role === 'Administrator') {
             return true;
+        }
+
+        // Halaman yang dijaga middleware 'restrict.input-only' (role hanya boleh input baru) tidak boleh ditawarkan
+        // sebagai tujuan - membukanya pasti 403.
+        if (\App\Http\Middleware\RestrictInputOnlyRoles::dibatasi($user) && self::routeDibatasi($url)) {
+            return false;
         }
 
         $path = trim(parse_url($url, PHP_URL_PATH) ?? '', '/');
