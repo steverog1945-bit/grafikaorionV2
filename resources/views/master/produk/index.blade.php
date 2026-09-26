@@ -75,7 +75,7 @@
                     <div class="font-bold text-slate-800 text-[14px] flex items-center gap-2">
                         {{ $p->nama_produk }}
                         @if($p->status === 'nonaktif')
-                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-400 text-[9px] font-black uppercase tracking-widest">Nonaktif</span>
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-400 text-[9px] font-bold uppercase tracking-widest">Nonaktif</span>
                         @endif
                     </div>
                     <div class="text-[10px] text-indigo-500 font-bold mt-1 uppercase tracking-widest flex items-center gap-1.5">
@@ -165,7 +165,7 @@
                  (padding/radius/jarak antar-field diturunkan) mengikuti gaya
                  field di halaman Input Order - bukan lagi kartu besar berjarak lega. --}}
             <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3 mb-5">
-                <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                <p class="text-[11px] font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2">
                     <i class="fas fa-info-circle"></i> Info Produk
                 </p>
 
@@ -232,7 +232,7 @@
                 </label>
 
                 <x-form.group label="Keterangan">
-                    <textarea name="keterangan" rows="2" placeholder="Catatan tambahan produk (opsional)" class="w-full bg-white shadow-sm rounded-xl border-none text-xs font-semibold p-2.5 focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                    <textarea name="keterangan" rows="2" placeholder="Catatan tambahan produk (opsional)" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20"></textarea>
                 </x-form.group>
             </div>
 
@@ -244,19 +244,19 @@
                  syncBomFinishing() di ProdukController, bukan panggilan terpisah). --}}
             <div class="bg-white rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden">
                 <div class="flex border-b border-slate-100">
-                    <button type="button" onclick="switchBomTab('bahan')" id="tab-btn-bahan" class="flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition-all bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500">
+                    <button type="button" onclick="switchBomTab('bahan')" id="tab-btn-bahan" class="flex-1 py-3 text-[11px] font-bold uppercase tracking-widest transition-all bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500">
                         <i class="fas fa-boxes mr-2"></i> Bahan Baku Penyusun
                     </button>
-                    <button type="button" onclick="switchBomTab('finishing')" id="tab-btn-finishing" class="flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition-all text-slate-400 border-b-2 border-transparent hover:text-slate-600">
+                    <button type="button" onclick="switchBomTab('finishing')" id="tab-btn-finishing" class="flex-1 py-3 text-[11px] font-bold uppercase tracking-widest transition-all text-slate-400 border-b-2 border-transparent hover:text-slate-600">
                         <i class="fas fa-magic mr-2"></i> Finishing Penyusun
                     </button>
                 </div>
 
                 <div id="tab-panel-bahan" class="p-5">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                         <div class="md:col-span-1">
-                            <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Pilih Bahan</label>
-                            <select id="temp_id_bahan" class="w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Pilih Bahan</label>
+                            <select id="temp_id_bahan" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
                                 <option value="">-- Pilih Bahan --</option>
                                 @foreach($bahan_baku as $bb)
                                     <option value="{{ $bb->id_bahan }}"
@@ -269,8 +269,8 @@
                             </select>
                         </div>
                         <div class="md:col-span-1">
-                            <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Cara Hitung Pemakaian</label>
-                            <select id="temp_rumus" class="w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cara Hitung Pemakaian</label>
+                            <select id="temp_rumus" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
                                 <option value="(P*L)/10000">Luas (m²) - [P*L/10000]</option>
                                 <option value="Q">Quantity (1:1) - [Satuan]</option>
                                 <option value="2*(P+L)/100">Keliling (m) - [2*(P+L)/100]</option>
@@ -278,10 +278,10 @@
                                 <option value="Q/N">Bagi per lembar - [Q/N] (isi N barang per lembar)</option>
                                 <option value="Q*K">Kali faktor - [Q*K] (K bahan per barang)</option>
                             </select>
-                            <input type="number" id="temp_faktor" step="0.0001" min="0.0001" placeholder="Angka N atau K" class="hidden mt-2 w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
+                            <input type="number" id="temp_faktor" step="0.0001" min="0.0001" placeholder="Angka N atau K" class="hidden mt-2 w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
                         </div>
                         <div class="md:col-span-1 flex items-end">
-                            <x-button type="button" variant="success" onclick="addBahanToTable()" class="w-full !py-2.5">
+                            <x-button type="button" variant="success" onclick="addBahanToTable()" class="w-full">
                                 <i class="fas fa-plus"></i> Tambahkan
                             </x-button>
                         </div>
@@ -306,10 +306,10 @@
                 </div>
 
                 <div id="tab-panel-finishing" class="p-5 hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-4 bg-purple-50/50 p-4 rounded-2xl border border-purple-100">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                         <div class="md:col-span-1">
-                            <label class="block text-[9px] font-black text-purple-700 uppercase mb-1.5">Pilih Finishing</label>
-                            <select id="temp_id_finishing" class="w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Pilih Finishing</label>
+                            <select id="temp_id_finishing" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
                                 <option value="">-- Pilih Finishing --</option>
                                 @foreach($finishing as $f)
                                     <option value="{{ $f->id_finishing }}" data-nama="{{ $f->nama_finishing }}">{{ $f->nama_finishing }}</option>
@@ -317,11 +317,11 @@
                             </select>
                         </div>
                         <div class="md:col-span-1">
-                            <label class="block text-[9px] font-black text-purple-700 uppercase mb-1.5">Qty per Produk</label>
-                            <input type="number" id="temp_finishing_qty" value="1" min="0.01" step="0.01" class="w-full border-none rounded-xl py-2.5 px-3 text-xs font-bold shadow-sm">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Qty per Produk</label>
+                            <input type="number" id="temp_finishing_qty" value="1" min="0.01" step="0.01" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
                         </div>
                         <div class="md:col-span-1 flex items-end">
-                            <x-button type="button" variant="success" onclick="addFinishingToTable()" class="w-full !py-2.5">
+                            <x-button type="button" variant="success" onclick="addFinishingToTable()" class="w-full">
                                 <i class="fas fa-plus"></i> Tambahkan
                             </x-button>
                         </div>
@@ -396,8 +396,8 @@
 
         const aktif = 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500';
         const nonaktif = 'text-slate-400 border-b-2 border-transparent hover:text-slate-600';
-        document.getElementById('tab-btn-bahan').className = 'flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition-all ' + (tab === 'bahan' ? aktif : nonaktif);
-        document.getElementById('tab-btn-finishing').className = 'flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition-all ' + (tab === 'finishing' ? aktif : nonaktif);
+        document.getElementById('tab-btn-bahan').className = 'flex-1 py-3 text-[11px] font-bold uppercase tracking-widest transition-all ' + (tab === 'bahan' ? aktif : nonaktif);
+        document.getElementById('tab-btn-finishing').className = 'flex-1 py-3 text-[11px] font-bold uppercase tracking-widest transition-all ' + (tab === 'finishing' ? aktif : nonaktif);
     }
 
     // Tampilkan input Min Order sesuai metode_hitung: Panjang/Lebar (m²) untuk

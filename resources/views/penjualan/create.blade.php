@@ -2,412 +2,387 @@
 @section('content')
 @include('partials.rupiah-format-script')
 @include('partials.image-compress-script')
-<div class="min-h-screen bg-[#f3f4f6] p-4 lg:p-8">
-    <div class="max-w-[1600px] mx-auto">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-        @if(!empty($quotationRef))
-        <div class="mb-6 p-5 rounded-2xl bg-amber-50 border border-amber-200">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                <div class="text-sm font-bold text-amber-800"><i class="fas fa-file-signature"></i> Order dari Penawaran {{ $quotationRef->nomor }} - {{ $quotationRef->nama_pelanggan }}</div>
-                <div class="text-sm font-extrabold text-amber-800">Total penawaran Rp {{ number_format($quotationRef->total, 0, ',', '.') }}{{ $quotationRef->diskon > 0 ? ' (sudah diskon Rp ' . number_format($quotationRef->diskon, 0, ',', '.') . ')' : '' }}</div>
-            </div>
-            <ul class="text-xs text-amber-900 space-y-1">
-                @foreach($quotationRef->items as $it)
-                <li>&bull; <b>{{ $it->nama_item }}</b>
-                    {{ $it->tipe === 'Produk' && $it->p_ukuran > 0 ? rtrim(rtrim($it->p_ukuran, '0'), '.') . ' x ' . rtrim(rtrim($it->l_ukuran, '0'), '.') . ' cm' : '' }}
-                    &times; {{ angka($it->qty, 2) }}
-                    = Rp {{ number_format($it->subtotal, 0, ',', '.') }}{{ $it->catatan ? ' - ' . $it->catatan : '' }}</li>
-                @endforeach
-            </ul>
-            <p class="text-[11px] text-amber-700 mt-3">Input item di bawah sesuai penawaran ini. Setelah order tersimpan, penawaran otomatis berstatus "Menjadi Order".</p>
+    @if(!empty($quotationRef))
+    <div class="mb-6 p-5 rounded-2xl bg-amber-50 border border-amber-200">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div class="text-sm font-bold text-amber-800"><i class="fas fa-file-signature"></i> Order dari Penawaran {{ $quotationRef->nomor }} - {{ $quotationRef->nama_pelanggan }}</div>
+            <div class="text-sm font-extrabold text-amber-800">Total penawaran Rp {{ number_format($quotationRef->total, 0, ',', '.') }}{{ $quotationRef->diskon > 0 ? ' (sudah diskon Rp ' . number_format($quotationRef->diskon, 0, ',', '.') . ')' : '' }}</div>
         </div>
-        @endif
+        <ul class="text-xs text-amber-900 space-y-1">
+            @foreach($quotationRef->items as $it)
+            <li>&bull; <b>{{ $it->nama_item }}</b>
+                {{ $it->tipe === 'Produk' && $it->p_ukuran > 0 ? rtrim(rtrim($it->p_ukuran, '0'), '.') . ' x ' . rtrim(rtrim($it->l_ukuran, '0'), '.') . ' cm' : '' }}
+                &times; {{ angka($it->qty, 2) }}
+                = Rp {{ number_format($it->subtotal, 0, ',', '.') }}{{ $it->catatan ? ' - ' . $it->catatan : '' }}</li>
+            @endforeach
+        </ul>
+        <p class="text-[11px] text-amber-700 mt-3">Input item di bawah sesuai penawaran ini. Setelah order tersimpan, penawaran otomatis berstatus "Menjadi Order".</p>
+    </div>
+    @endif
 
-        <x-page-header>
-            <x-slot:title>INPUT <span class="text-indigo-600">ORDER</span></x-slot:title>
-            <x-slot:subtitle>
-                <span class="flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                Order Cetak Reguler &bull; {{ date('d M Y') }}
-            </x-slot:subtitle>
-            <x-slot:actions>
-                <x-button href="{{ route('penjualan.riwayat') }}" variant="outline">
-                    <i class="fas fa-receipt"></i> Riwayat Nota
-                </x-button>
-                <div class="bg-white shadow-sm border border-slate-100 rounded-2xl px-5 sm:px-8 py-4 flex items-center gap-4 sm:gap-6 max-w-full">
-                    <div class="text-right border-r border-slate-100 pr-4 sm:pr-6 min-w-0">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nomor Nota</p>
-                        <p id="no_nota_display" class="text-base sm:text-xl font-black text-slate-800 tracking-tight truncate">{{ $no_nota }}</p>
-                    </div>
-                    <svg class="w-8 h-8 text-indigo-100 hidden sm:block shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"></path></svg>
+    <x-page-header>
+        <x-slot:title>INPUT <span class="text-indigo-600">ORDER</span></x-slot:title>
+        <x-slot:subtitle>
+            <span class="flex h-2 w-2 rounded-full bg-emerald-500"></span>
+            Order Cetak Reguler &bull; {{ date('d M Y') }}
+        </x-slot:subtitle>
+        <x-slot:actions>
+            <x-button href="{{ route('penjualan.riwayat') }}" variant="outline">
+                <i class="fas fa-receipt"></i> Riwayat Nota
+            </x-button>
+            <div class="bg-white shadow-sm border border-slate-100 rounded-2xl px-5 sm:px-8 py-3.5 flex items-center gap-4 sm:gap-6 max-w-full">
+                <div class="text-right min-w-0">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nomor Nota</p>
+                    <p id="no_nota_display" class="text-base sm:text-xl font-bold text-indigo-600 tracking-tight truncate">{{ $no_nota }}</p>
                 </div>
-            </x-slot:actions>
-        </x-page-header>
-
-        <div class="flex flex-col lg:flex-row gap-5 items-start">
-
-            <div class="w-full lg:w-[58%] space-y-5">
-                {{-- DATA PELANGGAN --}}
-                <x-card>
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-800">Data Pelanggan</h3>
-                    </div>
-
-                    {{-- md:grid-cols-4 (bukan grid-cols-3 rata) - Cari Pelanggan ambil
-                         2 kolom, Nomor Telepon & Tipe Harga masing-masing 1. Sengaja
-                         BUKAN 3-kolom rata: breakpoint "md" bereaksi ke lebar VIEWPORT
-                         penuh, bukan lebar kartu ini - begitu sidebar + panel Keranjang
-                         di kanan aktif (viewport sekitar 1000-1100px), kartu ini
-                         kenyataannya cuma ~494px, dan 3-kolom rata bikin select2
-                         Cari Pelanggan mengecil drastis (nama panjang terpotong jelek).
-                         Nomor Telepon & Tipe Harga isinya pendek (nomor HP, label
-                         golongan) jadi aman diberi porsi lebih kecil. --}}
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <x-form.group class="md:col-span-2">
-                            <div class="flex items-center justify-between mb-2 ml-2 mr-1">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cari Pelanggan</label>
-                                <button type="button" onclick="openModal('konsumen-baru')" class="text-indigo-600 hover:text-indigo-700 font-bold text-[11px] flex items-center gap-1">
-                                    <i class="fas fa-plus text-[9px]"></i> Baru
-                                </button>
-                            </div>
-                            <select id="id_konsumen" name="id_konsumen" class="select2-konsumen">
-                                <option value="">Cari Nama...</option>
-                                @foreach($konsumen as $k)
-                                    <option value="{{ $k->id_konsumen }}"
-                                            data-nama="{{ $k->nama_konsumen }}"
-                                            data-telp="{{ $k->telepon }}"
-                                            data-golongan="{{ $k->id_golongan }}">
-                                        {{ $k->nama_konsumen }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </x-form.group>
-
-                        <x-form.group label="Nomor Telepon">
-                            <input type="text" id="display_telp" class="w-full rounded-xl border-slate-200 bg-slate-50 p-3 text-sm font-bold text-slate-500" readonly placeholder="-">
-                        </x-form.group>
-
-                        <x-form.group label="Tipe Harga">
-                            <x-form.select id="id_golongan">
-                                @foreach($golongan as $g)
-                                    <option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>
-                                @endforeach
-                            </x-form.select>
-                        </x-form.group>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                        <x-form.group label="Tipe Order">
-                            <div class="flex gap-2">
-                                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-2.5 text-xs font-bold cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500">
-                                    <input type="radio" name="tipe_order" value="Reguler" checked onchange="onTipeOrderChange()" class="accent-indigo-600"> Reguler
-                                </label>
-                                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-2.5 text-xs font-bold cursor-pointer has-[:checked]:bg-amber-50 has-[:checked]:border-amber-300 has-[:checked]:text-amber-600 text-slate-500">
-                                    <input type="radio" name="tipe_order" value="PO" onchange="onTipeOrderChange()" class="accent-amber-600"> PO
-                                </label>
-                            </div>
-                        </x-form.group>
-                        <x-form.group label="No. PO" id="wrapper_no_po" class="hidden">
-                            <x-form.input type="text" id="no_po" placeholder="Nomor PO dari konsumen" />
-                        </x-form.group>
-                        <x-form.group label="Tanggal Order">
-                            <x-form.input type="date" id="tgl_order" value="{{ date('Y-m-d') }}" />
-                        </x-form.group>
-                    </div>
-                </x-card>
-
-                {{-- DETAIL PESANAN --}}
-                <x-card>
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-800">Detail Pesanan</h3>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <x-form.group label="Kategori">
-                            <x-form.select id="filter_kategori" onchange="filterProduk(this.value)">
-                                <option value="all">Semua Kategori</option>
-                                @foreach($kategori as $kat)
-                                    <option value="{{ $kat->id_kategori }}">{{ $kat->nama_kategori }}</option>
-                                @endforeach
-                            </x-form.select>
-                        </x-form.group>
-                        <x-form.group label="Pilih Produk">
-                            <select id="select_produk" onchange="getDetailProduk()" class="select2-produk w-full" disabled>
-                                <option value="">-- Ketik Nama Produk --</option>
-                                @foreach($produk as $p)
-                                    <option value="{{ $p->id_produk }}" data-kategori="{{ $p->id_kategori }}" data-metode="{{ $p->metode_hitung }}">{{ $p->nama_produk }}</option>
-                                @endforeach
-                            </select>
-                            {{-- Produk sengaja TERKUNCI sampai Kategori sungguhan dipilih
-                                 (bukan "Semua Kategori") - mencegah kasir asal pilih produk
-                                 tanpa sadar kategorinya dulu. Lihat filterProduk(). --}}
-                            <p id="hint_kunci_produk" class="text-[11px] text-amber-600 mt-1.5 ml-2">
-                                <i class="fas fa-lock text-[10px]"></i> Pilih Kategori dulu untuk mengaktifkan pilihan produk.
-                            </p>
-                        </x-form.group>
-                    </div>
-
-                    <x-form.group label="Nama File / Deskripsi" class="mb-4">
-                        <x-form.input type="text" id="nama_file" placeholder="Contoh: Banner Spanduk 3x1m" />
-                    </x-form.group>
-
-                    <div id="wrapper_ukuran" class="hidden grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3">
-                        <div class="space-y-1.5">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Panjang (cm)</span>
-                            <input type="number" id="input_p" onchange="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center">
-                        </div>
-                        <div class="space-y-1.5">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Lebar (cm)</span>
-                            <input type="number" id="input_l" onchange="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center">
-                        </div>
-                        <div class="space-y-1.5">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Qty</span>
-                            <input type="number" id="input_qty_ukuran" onchange="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-2.5 text-sm font-black text-center" value="1">
-                        </div>
-                    </div>
-                    <p id="note_ukuran" class="hidden text-xs font-medium text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5 mb-4 leading-relaxed">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Ukuran untuk menghitung harga bukan ukuran file asli. Silakan ubah ukuran jika bahan memerlukan penyesuaian.
-                    </p>
-
-                    <div id="wrapper_qty" class="hidden mb-4">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Jumlah Unit</label>
-                        <input type="number" id="input_qty_biasa" onchange="hitungSubtotal()" class="w-full rounded-xl border-slate-200 p-3 text-2xl font-black text-center" value="1">
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <x-form.group label="Status Urgensi">
-                            <x-form.select id="input_status_urgensi">
-                                <option value="Normal">Normal</option>
-                                <option value="Urgent">Urgent</option>
-                                <option value="Very Urgent">Very Urgent</option>
-                            </x-form.select>
-                        </x-form.group>
-                        <x-form.group label="Thumbnail Gambar" required>
-                            <div class="flex items-center gap-2">
-                                <input type="file" id="input_thumbnail" accept="image/png,image/jpeg,image/webp" onchange="uploadThumbnail(this)" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-indigo-50 file:text-indigo-600">
-                                <img id="thumbnail_preview" class="hidden w-11 h-11 rounded-lg object-cover border border-slate-200">
-                            </div>
-                        </x-form.group>
-                    </div>
-
-                    <x-form.group label="Catatan Produksi" class="mb-4">
-                        <textarea id="input_catatan_produksi" rows="2" placeholder="Catatan khusus untuk tim produksi (opsional)" class="w-full rounded-xl border-slate-200 p-2.5 text-sm"></textarea>
-                    </x-form.group>
-
-                    {{-- Indikator stok BOM - PERINGATAN saja, tidak memblokir order
-                         (lihat catatan keputusan: workflow percetakan biasa order
-                         dulu, restock belakangan sebelum naik cetak) --}}
-                    <div id="stok_warning" hidden class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
-                        <i class="fas fa-exclamation-triangle text-amber-500 mt-0.5"></i>
-                        <div>
-                            <p class="text-xs font-bold text-amber-700 uppercase tracking-wide">Stok bahan tidak cukup</p>
-                            <p id="stok_warning_detail" class="text-xs text-amber-600 mt-1"></p>
-                        </div>
-                    </div>
-
-                    {{-- Indikator di bawah ukuran/qty minimum produk (Master Produk
-                         punya field Min Panjang/Lebar/Order yang sebelumnya
-                         dikumpulkan tapi tidak pernah dibaca di mana pun - PERINGATAN
-                         saja seperti stok BOM, kasir yang putuskan tetap lanjut atau
-                         tidak, mis. kalau memang ada kesepakatan khusus ke konsumen). --}}
-                    <div id="min_order_warning" hidden class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
-                        <i class="fas fa-ruler-combined text-amber-500 mt-0.5"></i>
-                        <div>
-                            <p class="text-xs font-bold text-amber-700 uppercase tracking-wide">Di bawah minimum order produk ini</p>
-                            <p id="min_order_warning_detail" class="text-xs text-amber-600 mt-1"></p>
-                        </div>
-                    </div>
-
-                    <div class="bg-indigo-900 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div class="text-center md:text-left">
-                            <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1">Harga Estimasi</p>
-                            <h2 id="display_subtotal" class="text-3xl font-black text-white tracking-tight">Rp 0</h2>
-                            <p id="display_harga" class="text-indigo-400 text-[10px] font-bold mt-1">Rp 0 /unit</p>
-                            <p id="status_hitung" class="hidden text-amber-300 text-[10px] font-bold mt-1"><i class="fas fa-circle-notch fa-spin mr-1"></i> Menghitung...</p>
-                            <span id="badge_promo" hidden class="mt-2 px-3 py-1 bg-rose-500 text-white text-xs font-bold uppercase tracking-widest rounded-full">🔥 Harga Promo Aktif</span>
-                        </div>
-                        <div class="flex flex-wrap items-center justify-center gap-4">
-                            <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Finishing</p>
-                                <select id="select_finishing" onchange="onFinishingChange()" class="w-32 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none">
-                                    <option value="">-- Tanpa Finishing --</option>
-                                    @foreach($finishing as $f)
-                                        <option value="{{ $f->id_finishing }}" data-harga="{{ $f->harga_default ?? 0 }}" data-metode="{{ $f->metode_hitung }}" data-kategori="{{ $f->id_kategori ?? '' }}">{{ $f->nama_finishing }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Spek Finishing</p>
-                                <select id="input_status_finishing" onchange="onStatusFinishingChange()" disabled class="w-28 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed">
-                                    <option value="Standar">Standar</option>
-                                    <option value="Custom">Custom</option>
-                                </select>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Catatan Finishing</p>
-                                <input type="text" id="input_catatan_finishing" maxlength="255" placeholder="mis. Doff" class="w-32 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-medium text-xs focus:outline-none placeholder-indigo-300/50">
-                            </div>
-                            {{-- Biaya Cetak SEKARANG komponen UTAMA subtotal (Subtotal =
-                                 Cetak + Desain + Finishing, lihat hitungSubtotal()) -
-                                 bukan lagi tambahan di atas Harga x Qty. Defaultnya
-                                 otomatis mengikuti Harga Price List x Qty setiap kali
-                                 produk/ukuran/qty/golongan berubah, TAPI berhenti
-                                 mengikuti begitu operator mengetik manual sendiri
-                                 (cetakManualEdit) - sama seperti pola yang sudah
-                                 dipakai Biaya Finishing (finishingBiayaManualEdit). --}}
-                            <div class="text-right">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Cetak</p>
-                                <input type="text" inputmode="numeric" id="input_cetak" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
-                            </div>
-                            {{-- Jumlah Pcs Finishing HANYA untuk finishing metode 'quantity'
-                                 (mis. Pasang Mata Ayam, Pemasangan Tali) - jumlah pcs finishing
-                                 yang dibutuhkan TIDAK SELALU sama dengan qty cetak produknya
-                                 (mis. 1 banner butuh 4 mata ayam, qty 2 banner = 8 mata ayam,
-                                 bukan otomatis 2) - defaultnya diisi tebakan qty produk, tapi
-                                 kasir wajib cek/sesuaikan sendiri. Finishing metode 'luas' &
-                                 'keliling' TIDAK butuh field ini - dihitung otomatis dari
-                                 Panjang/Lebar & Qty produk yang sudah diisi di atas (lihat
-                                 refreshFinishingBiayaSuggestion()). --}}
-                            <div id="wrapper_qty_finishing" class="text-right hidden">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Jumlah Pcs Finishing</p>
-                                <input type="number" min="1" id="input_qty_finishing" onchange="onQtyFinishingManualChange()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none" value="1">
-                            </div>
-                            {{-- Biaya Finishing hanya relevan begitu jenis Finishing
-                                 dipilih di dropdown sebelahnya - disembunyikan selama
-                                 belum ada finishing dipilih (lihat onFinishingChange()),
-                                 bukan lagi selalu tampil dengan angka 0 yang tidak
-                                 bermakna. --}}
-                            <div id="wrapper_biaya_finishing" class="text-right hidden">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Finishing</p>
-                                <input type="text" inputmode="numeric" id="input_finishing_biaya" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
-                            </div>
-                            <button type="button" id="btn_tambah_finishing" onclick="tambahFinishingKeDaftar()" class="hidden bg-sky-500 hover:bg-sky-400 text-white h-10 px-4 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all">
-                                <i class="fas fa-plus"></i> Tambah Finishing
-                            </button>
-                            {{-- Biaya Desain TIDAK punya penanda "sedang dipakai/tidak"
-                                 bawaan seperti finishing - disembunyikan default, baru
-                                 muncul lewat tombol "+ Desain" (tampilkanBiayaDesain())
-                                 kalau memang ada biaya desain yang perlu ditambahkan. --}}
-                            <div id="wrapper_biaya_desain" class="text-right hidden">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Biaya Desain</p>
-                                <input type="text" inputmode="numeric" id="input_desain" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-24 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs text-right focus:outline-none format-ribuan" value="0">
-                            </div>
-                            {{-- Desainer yang menerapkan biaya desain (untuk monitoring & komisi/bagi hasil) --}}
-                            <div id="wrapper_desainer" class="text-right hidden" title="Operator desain yang mengerjakan desain ini - dipakai untuk laporan biaya &amp; komisi desain">
-                                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">Desainer</p>
-                                <select id="input_desainer" class="w-32 bg-indigo-800/50 border border-indigo-400/30 rounded-lg p-2 text-white font-bold text-xs focus:outline-none">
-                                    <option value="">-- Tanpa Desainer --</option>
-                                    @foreach($desainerList as $ds)
-                                        <option value="{{ $ds->id_user }}" {{ (int) $desainerDefault === (int) $ds->id_user ? 'selected' : '' }}>{{ $ds->nama }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <button type="button" id="btn_tambah_desain" @unlessbolehHarga hidden @endbolehHarga onclick="tampilkanBiayaDesain()" class="text-indigo-300 hover:text-white text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
-                                <i class="fas fa-plus-circle"></i> Biaya Desain
-                            </button>
-                            <button onclick="tambahKeKeranjang()" class="bg-emerald-500 hover:bg-emerald-400 text-white h-12 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
-                                Tambah
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- Daftar finishing untuk item ini (boleh lebih dari satu, mis. Laminasi + Kisscut) --}}
-                    <div id="finishing_list_box" class="hidden mt-3 rounded-2xl border border-slate-100 bg-white overflow-hidden">
-                        <div class="px-4 py-2.5 bg-slate-50 flex items-center justify-between">
-                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Finishing item ini</span>
-                            <span class="text-xs font-bold text-slate-600">Total Finishing: <b id="finishing_list_total" class="text-slate-900">Rp 0</b></span>
-                        </div>
-                        <div id="finishing_list_rows" class="divide-y divide-slate-50"></div>
-                    </div>
-                </x-card>
-
-                {{-- TAMBAH JASA (layanan non-material, harga manual - lihat Master Jasa).
-                     Accordion, TERTUTUP secara default - jasa dipakai jauh lebih jarang
-                     dibanding produk cetak, jadi bentuk kartu penuh yang selalu terbuka
-                     cuma memakan tempat vertikal tanpa dipakai kebanyakan order. Dibuka
-                     lewat klik header, isinya tidak berubah sama sekali. --}}
-                <x-card :padding="false">
-                    <button type="button" onclick="toggleTambahJasa()" class="w-full flex items-center gap-3 p-5 text-left">
-                        <div class="p-2 bg-purple-50 rounded-lg text-purple-600 shrink-0">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-800">Tambah Jasa</h3>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">(Layanan non-material)</span>
-                        <i id="icon_toggle_jasa" class="fas fa-chevron-down text-slate-300 ml-auto transition-transform"></i>
-                    </button>
-
-                    <div id="wrapper_tambah_jasa" class="hidden px-5 pb-5">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <x-form.group label="Pilih Jasa">
-                                <select id="select_jasa" onchange="onJasaChange()" class="select2-produk w-full">
-                                    <option value="">-- Ketik Nama Jasa --</option>
-                                    @foreach($jasa as $j)
-                                        <option value="{{ $j->id_jasa }}" data-nama="{{ $j->nama_jasa }}">{{ $j->nama_jasa }}{{ $j->nama_satuan ? ' ('.$j->nama_satuan.')' : '' }}</option>
-                                    @endforeach
-                                </select>
-                            </x-form.group>
-                            <x-form.group label="Qty">
-                                <x-form.input type="number" id="input_jasa_qty" value="1" oninput="refreshJasaHargaSuggestion()" />
-                            </x-form.group>
-                            <x-form.group label="Harga Satuan (Rp)">
-                                <x-form.input type="text" inputmode="numeric" id="input_jasa_harga" placeholder="0" :readonly="!\App\Support\AksesHarga::bolehLihat()" class="format-ribuan" />
-                            </x-form.group>
-                        </div>
-
-                        <x-form.group label="Keterangan" class="mb-4">
-                            <x-form.input type="text" id="jasa_keterangan" placeholder="Contoh: Instalasi banner outdoor" />
-                        </x-form.group>
-
-                        <div class="flex justify-end">
-                            <button onclick="tambahJasaKeKeranjang()" class="bg-purple-500 hover:bg-purple-400 text-white h-12 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
-                                Tambah Jasa
-                            </button>
-                        </div>
-                    </div>
-                </x-card>
+                <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 hidden sm:flex items-center justify-center shrink-0"><i class="fas fa-file-invoice"></i></span>
             </div>
+        </x-slot:actions>
+    </x-page-header>
 
-            {{-- KERANJANG - sticky supaya Total & tombol Simpan selalu kelihatan di
-                 layar berapa pun tingginya form Detail Pesanan di sebelah kiri,
-                 tidak perlu scroll sampai bawah untuk menemukannya. Tinggi kartu
-                 sendiri dibatasi setinggi viewport (dikurangi jarak dari atas),
-                 daftar item di dalamnya yang scroll sendiri kalau melebihi. --}}
-            <div class="w-full lg:w-[42%] flex flex-col lg:sticky lg:top-4 lg:self-start">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden lg:max-h-[calc(100vh-2rem)]">
-                    <div class="p-5 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="text-lg font-bold text-slate-800">Keranjang Pesanan</h3>
-                        <div id="item_count_badge" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-bold">0 Items</div>
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
+
+        <div class="w-full lg:w-[58%] space-y-6">
+            {{-- ============ DATA PELANGGAN ============ --}}
+            <x-card>
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><i class="fas fa-user"></i></span>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Data Pelanggan</h3>
+                        <p class="text-[11px] text-slate-400">Siapa pemesan dan jenis ordernya</p>
                     </div>
+                </div>
 
-                    <div class="flex-grow overflow-y-auto custom-scrollbar p-0 min-h-[120px]">
-                        <div id="cart_body" class="divide-y divide-slate-50 text-slate-600">
-                            <div class="py-16 text-center opacity-30">
-                                <i class="fas fa-receipt text-2xl mb-2 block"></i>
-                                <p class="text-xs font-bold uppercase tracking-widest">Belum Ada Pesanan</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-auto p-5 bg-slate-900 rounded-b-2xl shrink-0">
-                        <div class="flex justify-between items-center mb-5">
-                            <div>
-                                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Pembayaran</p>
-                                <h2 id="grand_total" class="text-3xl font-black text-white tracking-tight leading-none">Rp 0</h2>
-                            </div>
-                            <button onclick="resetCart()" class="p-2.5 bg-slate-800 text-slate-500 hover:text-red-400 rounded-xl transition-all">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                {{-- md:grid-cols-4: Cari Pelanggan 2 kolom, Nomor Telepon & Tipe Harga masing-masing 1
+                     (kartu ini sempit saat keranjang di kanan aktif, jadi select2 pelanggan diberi porsi terbesar). --}}
+                {{-- Lebar tata letak mengikuti lebar KARTU (container query), bukan lebar layar: Cari Pelanggan selalu satu baris penuh
+                     agar tetap besar & jelas; pasangan kolom hanya dipakai bila kartu cukup lebar, sehingga tidak saling bertabrakan. --}}
+                <div class="@container space-y-4">
+                    <x-form.group>
+                        <div class="flex items-center justify-between mb-2 ml-2 mr-1">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cari Pelanggan</label>
+                            <button type="button" onclick="openModal('konsumen-baru')" title="Daftarkan pelanggan baru" class="text-indigo-600 hover:text-indigo-700 font-bold text-[11px] flex items-center gap-1">
+                                <i class="fas fa-plus text-[9px]"></i> Baru
                             </button>
                         </div>
-                        <button onclick="simpanTransaksi()" class="w-full py-4 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
-                            Simpan & Cetak Nota
+                        <select id="id_konsumen" name="id_konsumen" class="select2-konsumen">
+                            <option value="">Cari Nama...</option>
+                            @foreach($konsumen as $k)
+                                <option value="{{ $k->id_konsumen }}"
+                                        data-nama="{{ $k->nama_konsumen }}"
+                                        data-telp="{{ $k->telepon }}"
+                                        data-golongan="{{ $k->id_golongan }}">
+                                    {{ $k->nama_konsumen }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </x-form.group>
+
+                    <div class="grid grid-cols-1 @md:grid-cols-2 gap-4">
+                        <x-form.group label="Nomor Telepon">
+                        <input type="text" id="display_telp" class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-500 shadow-inner" readonly placeholder="-">
+                    </x-form.group>
+
+                    <x-form.group label="Tipe Harga">
+                        <x-form.select id="id_golongan">
+                            @foreach($golongan as $g)
+                                <option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>
+                            @endforeach
+                        </x-form.select>
+                    </x-form.group>
+                    </div>
+
+                    <x-form.group label="Tipe Order">
+                        <div class="flex gap-2">
+                            <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-bold cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500 transition-all">
+                                <input type="radio" name="tipe_order" value="Reguler" checked onchange="onTipeOrderChange()" class="accent-indigo-600"> Reguler
+                            </label>
+                            <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-bold cursor-pointer has-[:checked]:bg-amber-50 has-[:checked]:border-amber-300 has-[:checked]:text-amber-600 text-slate-500 transition-all">
+                                <input type="radio" name="tipe_order" value="PO" onchange="onTipeOrderChange()" class="accent-amber-600"> PO
+                            </label>
+                        </div>
+                    </x-form.group>
+
+                    <div class="grid grid-cols-1 @md:grid-cols-2 gap-4">
+                        <x-form.group label="No. PO" id="wrapper_no_po" class="hidden">
+                        <x-form.input type="text" id="no_po" placeholder="Nomor PO dari konsumen" />
+                    </x-form.group>
+                    <x-form.group label="Tanggal Order">
+                        <x-form.input type="date" id="tgl_order" value="{{ date('Y-m-d') }}" />
+                    </x-form.group>
+                    </div>
+                </div>
+            </x-card>
+
+            {{-- ============ DETAIL PESANAN ============ --}}
+            <x-card class="@container">
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fas fa-box-open"></i></span>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Detail Pesanan</h3>
+                        <p class="text-[11px] text-slate-400">Produk, ukuran, finishing, dan biaya item</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 @md:grid-cols-2 gap-4 mb-4">
+                    <x-form.group label="Kategori">
+                        <x-form.select id="filter_kategori" onchange="filterProduk(this.value)">
+                            <option value="all">Semua Kategori</option>
+                            @foreach($kategori as $kat)
+                                <option value="{{ $kat->id_kategori }}">{{ $kat->nama_kategori }}</option>
+                            @endforeach
+                        </x-form.select>
+                    </x-form.group>
+                    <x-form.group label="Pilih Produk">
+                        <select id="select_produk" onchange="getDetailProduk()" class="select2-produk w-full" disabled>
+                            <option value="">-- Ketik Nama Produk --</option>
+                            @foreach($produk as $p)
+                                <option value="{{ $p->id_produk }}" data-kategori="{{ $p->id_kategori }}" data-metode="{{ $p->metode_hitung }}">{{ $p->nama_produk }}</option>
+                            @endforeach
+                        </select>
+                        {{-- Produk TERKUNCI sampai Kategori sungguhan dipilih (bukan "Semua Kategori"). Lihat filterProduk(). --}}
+                        <p id="hint_kunci_produk" class="text-[11px] text-amber-600 mt-1.5 ml-2">
+                            <i class="fas fa-lock text-[10px]"></i> Pilih Kategori dulu untuk mengaktifkan pilihan produk.
+                        </p>
+                    </x-form.group>
+                </div>
+
+                <x-form.group label="Nama File / Deskripsi" class="mb-4">
+                    <x-form.input type="text" id="nama_file" placeholder="Contoh: Banner Spanduk 3x1m" />
+                </x-form.group>
+
+                <div id="wrapper_ukuran" class="hidden grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Panjang (cm)</label>
+                        <input type="number" id="input_p" onchange="hitungSubtotal()" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Lebar (cm)</label>
+                        <input type="number" id="input_l" onchange="hitungSubtotal()" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Qty</label>
+                        <input type="number" id="input_qty_ukuran" onchange="hitungSubtotal()" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20" value="1">
+                    </div>
+                </div>
+                <p id="note_ukuran" class="hidden text-xs font-medium text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5 mb-4 leading-relaxed">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Ukuran untuk menghitung harga bukan ukuran file asli. Silakan ubah ukuran jika bahan memerlukan penyesuaian.
+                </p>
+
+                <div id="wrapper_qty" class="hidden mb-4">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Jumlah Unit</label>
+                    <input type="number" id="input_qty_biasa" onchange="hitungSubtotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-xl font-bold text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20" value="1">
+                </div>
+
+                <div class="grid grid-cols-1 @md:grid-cols-2 gap-4 mb-4">
+                    <x-form.group label="Status Urgensi">
+                        <x-form.select id="input_status_urgensi">
+                            <option value="Normal">Normal</option>
+                            <option value="Urgent">Urgent</option>
+                            <option value="Very Urgent">Very Urgent</option>
+                        </x-form.select>
+                    </x-form.group>
+                    <x-form.group label="Thumbnail Gambar" required>
+                        <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 shadow-inner">
+                            <input type="file" id="input_thumbnail" accept="image/png,image/jpeg,image/webp" onchange="uploadThumbnail(this)" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-indigo-50 file:text-indigo-600">
+                            <img id="thumbnail_preview" class="hidden w-11 h-11 rounded-lg object-cover border border-slate-200">
+                        </div>
+                    </x-form.group>
+                </div>
+
+                <x-form.group label="Catatan Produksi" class="mb-4">
+                    <textarea id="input_catatan_produksi" rows="2" placeholder="Catatan khusus untuk tim produksi (opsional)" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
+                </x-form.group>
+
+                {{-- Indikator stok BOM - PERINGATAN saja, tidak memblokir order --}}
+                <div id="stok_warning" hidden class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
+                    <i class="fas fa-exclamation-triangle text-amber-500 mt-0.5"></i>
+                    <div>
+                        <p class="text-xs font-bold text-amber-700 uppercase tracking-wide">Stok bahan tidak cukup</p>
+                        <p id="stok_warning_detail" class="text-xs text-amber-600 mt-1"></p>
+                    </div>
+                </div>
+
+                {{-- Indikator di bawah ukuran/qty minimum produk - PERINGATAN saja --}}
+                <div id="min_order_warning" hidden class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
+                    <i class="fas fa-ruler-combined text-amber-500 mt-0.5"></i>
+                    <div>
+                        <p class="text-xs font-bold text-amber-700 uppercase tracking-wide">Di bawah minimum order produk ini</p>
+                        <p id="min_order_warning_detail" class="text-xs text-amber-600 mt-1"></p>
+                    </div>
+                </div>
+
+                {{-- ---------- ESTIMASI HARGA ---------- --}}
+                <div class="rounded-3xl bg-indigo-50 border border-indigo-100 px-6 py-5 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Harga Estimasi</p>
+                        <h2 id="display_subtotal" class="text-3xl font-bold text-indigo-600 tracking-tight mt-1">Rp 0</h2>
+                    </div>
+                    <div class="sm:text-right">
+                        <p id="display_harga" class="text-indigo-400 text-xs font-semibold">Rp 0 /unit</p>
+                        <p id="status_hitung" class="hidden text-amber-600 text-xs font-semibold mt-1"><i class="fas fa-circle-notch fa-spin mr-1"></i> Menghitung...</p>
+                        <span id="badge_promo" hidden class="inline-block mt-2 px-3 py-1 bg-rose-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-full">🔥 Harga Promo Aktif</span>
+                    </div>
+                </div>
+
+                {{-- ---------- FINISHING & BIAYA ---------- --}}
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Finishing &amp; Biaya</p>
+                <div class="grid grid-cols-2 @xl:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Finishing</label>
+                        <select id="select_finishing" onchange="onFinishingChange()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                            <option value="">-- Tanpa Finishing --</option>
+                            @foreach($finishing as $f)
+                                <option value="{{ $f->id_finishing }}" data-harga="{{ $f->harga_default ?? 0 }}" data-metode="{{ $f->metode_hitung }}" data-kategori="{{ $f->id_kategori ?? '' }}">{{ $f->nama_finishing }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Spek Finishing</label>
+                        <select id="input_status_finishing" onchange="onStatusFinishingChange()" disabled class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner disabled:opacity-40 disabled:cursor-not-allowed">
+                            <option value="Standar">Standar</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Catatan Finishing</label>
+                        <input type="text" id="input_catatan_finishing" maxlength="255" placeholder="mis. Doff" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    </div>
+                    {{-- Biaya Cetak = komponen UTAMA subtotal (Cetak + Desain + Finishing, lihat hitungSubtotal()). Mengikuti Harga x Qty
+                         sampai operator mengetik manual (cetakManualEdit). --}}
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Biaya Cetak (Rp)</label>
+                        <input type="text" inputmode="numeric" id="input_cetak" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 text-right focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan" value="0">
+                    </div>
+                    {{-- Jumlah pcs finishing hanya untuk finishing metode 'quantity' (mis. Pasang Mata Ayam) - kasir wajib cek/sesuaikan. --}}
+                    <div id="wrapper_qty_finishing" class="hidden">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Jumlah Pcs Finishing</label>
+                        <input type="number" min="1" id="input_qty_finishing" onchange="onQtyFinishingManualChange()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 text-right focus:ring-2 focus:ring-indigo-500/20 shadow-inner" value="1">
+                    </div>
+                    {{-- Biaya Finishing hanya muncul begitu jenis Finishing dipilih (lihat onFinishingChange()). --}}
+                    <div id="wrapper_biaya_finishing" class="hidden">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Biaya Finishing (Rp)</label>
+                        <input type="text" inputmode="numeric" id="input_finishing_biaya" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 text-right focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan" value="0">
+                    </div>
+                    {{-- Biaya Desain disembunyikan default; muncul lewat tombol "+ Biaya Desain" (tampilkanBiayaDesain()). --}}
+                    <div id="wrapper_biaya_desain" class="hidden">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Biaya Desain (Rp)</label>
+                        <input type="text" inputmode="numeric" id="input_desain" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 text-right focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan" value="0">
+                    </div>
+                    {{-- Desainer yang menerapkan biaya desain (untuk monitoring & komisi/bagi hasil) --}}
+                    <div id="wrapper_desainer" class="hidden" title="Operator desain yang mengerjakan desain ini - dipakai untuk laporan biaya &amp; komisi desain">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Desainer</label>
+                        <select id="input_desainer" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                            <option value="">-- Tanpa Desainer --</option>
+                            @foreach($desainerList as $ds)
+                                <option value="{{ $ds->id_user }}" {{ (int) $desainerDefault === (int) $ds->id_user ? 'selected' : '' }}>{{ $ds->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t border-slate-100">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button type="button" id="btn_tambah_finishing" onclick="tambahFinishingKeDaftar()" class="hidden inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-sky-100 transition-all">
+                            <i class="fas fa-plus"></i> Tambah Finishing
+                        </button>
+                        <button type="button" id="btn_tambah_desain" @unlessbolehHarga hidden @endbolehHarga onclick="tampilkanBiayaDesain()" class="text-indigo-500 hover:text-indigo-700 text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
+                            <i class="fas fa-plus-circle"></i> Biaya Desain
                         </button>
                     </div>
+                    <button onclick="tambahKeKeranjang()" class="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-100 transition-all active:scale-95">
+                        Tambah
+                    </button>
+                </div>
+
+                {{-- Daftar finishing untuk item ini (boleh lebih dari satu, mis. Laminasi + Kisscut) --}}
+                <div id="finishing_list_box" class="hidden mt-4 rounded-2xl border border-slate-100 bg-white overflow-hidden">
+                    <div class="px-4 py-2.5 bg-slate-50 flex items-center justify-between">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Finishing item ini</span>
+                        <span class="text-xs font-bold text-slate-600">Total Finishing: <b id="finishing_list_total" class="text-slate-900">Rp 0</b></span>
+                    </div>
+                    <div id="finishing_list_rows" class="divide-y divide-slate-50"></div>
+                </div>
+            </x-card>
+
+            {{-- ============ TAMBAH JASA (accordion, tertutup default; isi tidak berubah) ============ --}}
+            <x-card :padding="false" class="@container">
+                <button type="button" onclick="toggleTambahJasa()" class="w-full flex items-center gap-3 p-6 text-left">
+                    <span class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"><i class="fas fa-hand-holding-heart"></i></span>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Tambah Jasa</h3>
+                        <p class="text-[11px] text-slate-400">Layanan non-material, harga manual</p>
+                    </div>
+                    <i id="icon_toggle_jasa" class="fas fa-chevron-down text-slate-300 ml-auto transition-transform"></i>
+                </button>
+
+                <div id="wrapper_tambah_jasa" class="hidden px-6 pb-6">
+                    <div class="grid grid-cols-1 @md:grid-cols-3 gap-4 mb-4">
+                        <x-form.group label="Pilih Jasa">
+                            <select id="select_jasa" onchange="onJasaChange()" class="select2-produk w-full">
+                                <option value="">-- Ketik Nama Jasa --</option>
+                                @foreach($jasa as $j)
+                                    <option value="{{ $j->id_jasa }}" data-nama="{{ $j->nama_jasa }}">{{ $j->nama_jasa }}{{ $j->nama_satuan ? ' ('.$j->nama_satuan.')' : '' }}</option>
+                                @endforeach
+                            </select>
+                        </x-form.group>
+                        <x-form.group label="Qty">
+                            <x-form.input type="number" id="input_jasa_qty" value="1" oninput="refreshJasaHargaSuggestion()" />
+                        </x-form.group>
+                        <x-form.group label="Harga Satuan (Rp)">
+                            <x-form.input type="text" inputmode="numeric" id="input_jasa_harga" placeholder="0" :readonly="!\App\Support\AksesHarga::bolehLihat()" class="format-ribuan" />
+                        </x-form.group>
+                    </div>
+
+                    <x-form.group label="Keterangan" class="mb-4">
+                        <x-form.input type="text" id="jasa_keterangan" placeholder="Contoh: Instalasi banner outdoor" />
+                    </x-form.group>
+
+                    <div class="flex justify-end">
+                        <button onclick="tambahJasaKeKeranjang()" class="inline-flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-purple-100 transition-all active:scale-95">
+                            Tambah Jasa
+                        </button>
+                    </div>
+                </div>
+            </x-card>
+        </div>
+
+        {{-- ============ KERANJANG - sticky agar Total & tombol Simpan selalu terlihat; daftar item scroll sendiri ============ --}}
+        <div class="w-full lg:w-[42%] flex flex-col lg:sticky lg:top-24 lg:self-start">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden lg:max-h-[calc(100vh-8rem)]">
+                <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><i class="fas fa-shopping-basket"></i></span>
+                        <h3 class="text-base font-bold text-slate-800">Keranjang Pesanan</h3>
+                    </div>
+                    <div id="item_count_badge" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider">0 Items</div>
+                </div>
+
+                <div class="flex-grow overflow-y-auto custom-scrollbar p-0 min-h-[120px]">
+                    <div id="cart_body" class="divide-y divide-slate-50 text-slate-600">
+                        <div class="py-16 text-center opacity-30">
+                            <i class="fas fa-receipt text-2xl mb-2 block"></i>
+                            <p class="text-xs font-bold uppercase tracking-widest">Belum Ada Pesanan</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-auto p-6 bg-slate-50 border-t border-slate-100 shrink-0">
+                    <div class="flex justify-between items-center mb-5">
+                        <div>
+                            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Pembayaran</p>
+                            <h2 id="grand_total" class="text-3xl font-bold text-indigo-600 tracking-tight leading-none">Rp 0</h2>
+                        </div>
+                        <button onclick="resetCart()" title="Kosongkan keranjang" class="w-11 h-11 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 rounded-xl transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                    <button onclick="simpanTransaksi()" class="w-full inline-flex items-center justify-center gap-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-100 transition-all active:scale-95">
+                        <i class="fas fa-print"></i> Simpan &amp; Cetak Nota
+                    </button>
                 </div>
             </div>
         </div>
@@ -670,7 +645,7 @@
 
         const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
         btn.innerText = "Tambah";
-        btn.className = "bg-emerald-500 hover:bg-emerald-400 text-white h-16 px-10 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all";
+        btn.className = "inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-100 transition-all active:scale-95";
     }
 
     // 2. MODAL FUNCTIONS
@@ -1511,7 +1486,7 @@
 
             const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
             btn.innerText = "UPDATE ITEM";
-            btn.classList.replace('bg-emerald-500', 'bg-amber-500');
+            btn.classList.replace('bg-emerald-500', 'bg-amber-500'); btn.classList.replace('hover:bg-emerald-600', 'hover:bg-amber-600'); btn.classList.replace('shadow-emerald-100', 'shadow-amber-100');
 
             hitungSubtotal();
             document.getElementById('nama_file').focus();
@@ -1565,7 +1540,7 @@
 
         const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
         btn.innerText = "TAMBAH";
-        btn.classList.replace('bg-amber-500', 'bg-emerald-500');
+        btn.classList.replace('bg-amber-500', 'bg-emerald-500'); btn.classList.replace('hover:bg-amber-600', 'hover:bg-emerald-600'); btn.classList.replace('shadow-amber-100', 'shadow-emerald-100');
 
         document.getElementById('nama_file').focus();
     }
