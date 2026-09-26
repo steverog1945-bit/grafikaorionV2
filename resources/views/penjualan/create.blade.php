@@ -547,8 +547,14 @@
             width: '100%',
             matcher: function (params, data) {
                 const el = data.element;
+                // Sumber kebenaran = nilai kolom Kategori yang sedang tampil. Bila belum ada kategori sungguhan terpilih,
+                // TIDAK ada produk yang boleh muncul; produk hanya lolos bila kategorinya sama persis.
+                const katAktif = document.getElementById('filter_kategori').value;
+                if (data.id === '' || data.id === undefined) {
+                    return data; // baris placeholder
+                }
                 const katId = el ? el.getAttribute('data-kategori') : null;
-                if (katId !== null && currentKategoriFilter !== 'all' && katId != currentKategoriFilter) {
+                if (!katAktif || katAktif === 'all' || katId === null || String(katId) !== String(katAktif)) {
                     return null;
                 }
                 if (!params.term || params.term.trim() === '') {
@@ -1151,6 +1157,14 @@
 
         if (!idKonsumen) return Swal.fire('Opps', 'Pilih pelanggan dulu', 'error');
         if (!currentProduk) return Swal.fire('Opps!', 'Pilih produk dulu.', 'warning');
+        {
+            const katAktif = document.getElementById('filter_kategori').value;
+            const katProduk = $('#select_produk').find(':selected').data('kategori');
+            if (!katAktif || katAktif === 'all' || String(katProduk) !== String(katAktif)) {
+                $('#select_produk').val('').trigger('change');
+                return Swal.fire('Kategori tidak cocok', 'Produk yang dipilih bukan dari kategori yang sedang aktif. Pilih ulang produknya.', 'warning');
+            }
+        }
         if (!currentThumbnail) {
             Swal.fire('Upload Gambar Dulu', 'Unggah gambar/thumbnail acuan order sebelum menambahkannya ke keranjang.', 'warning');
             document.getElementById('input_thumbnail').focus();
@@ -1360,7 +1374,7 @@
             container.innerHTML += `
                 <div class="group p-4 hover:bg-slate-50/70 transition-colors">
                     <div class="flex items-start gap-3">
-                        ${item.thumbnail ? `<img src="/storage/${item.thumbnail}" class="w-11 h-11 rounded-lg object-cover border border-slate-100 shrink-0">` : `<div class="w-11 h-11 rounded-lg bg-slate-50 border border-slate-100 shrink-0 flex items-center justify-center text-slate-300"><i class="far fa-image text-sm"></i></div>`}
+                        ${item.thumbnail ? `<img src="{{ asset('storage') }}/${item.thumbnail}" class="w-11 h-11 rounded-lg object-cover border border-slate-100 shrink-0">` : `<div class="w-11 h-11 rounded-lg bg-slate-50 border border-slate-100 shrink-0 flex items-center justify-center text-slate-300"><i class="far fa-image text-sm"></i></div>`}
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold text-slate-800 leading-tight truncate">${escapeHtml(item.nama_produk)}</p>
                             <p class="text-xs text-slate-500 mt-0.5 truncate">${escapeHtml(item.nama_file)}</p>
@@ -1479,7 +1493,7 @@
             currentThumbnail = item.thumbnail || null;
             const preview = document.getElementById('thumbnail_preview');
             if (currentThumbnail) {
-                preview.src = `/storage/${currentThumbnail}`;
+                preview.src = `{{ asset('storage') }}/${currentThumbnail}`;
                 preview.classList.remove('hidden');
             } else {
                 preview.classList.add('hidden');
