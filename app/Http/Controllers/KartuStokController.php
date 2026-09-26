@@ -146,7 +146,7 @@ class KartuStokController extends Controller
      * Penyesuaian stok manual satu-bahan (jalur cepat). Stok TIDAK diubah di
      * sini - sama seperti Stock Opname, cuma DIAJUKAN lewat ApprovalService
      * (tipe_aksi 'penyesuaian_stok_manual'); stok baru berubah saat approver
-     * menyetujui (lihat PenyesuaianStokService::eksekusi).
+     * menyetujui (lihat PenyesuaianStokService::eksekusi). Diajukan Administrator = langsung disetujui otomatis.
      */
     public function storeAdjustment(Request $request)
     {
@@ -173,7 +173,7 @@ class KartuStokController extends Controller
             ? "Keluar {$bahan->nama_bahan}: " . angka((float) $validated['qty'], 2)
             : "Revisi stok {$bahan->nama_bahan}: " . angka($stok, 2) . ' -> ' . angka((float) $validated['stok_baru'], 2);
 
-        ApprovalService::ajukan(
+        $pengajuan = ApprovalService::ajukan(
             'penyesuaian_stok_manual',
             'bahan_baku',
             (int) $bahan->id_bahan,
@@ -188,6 +188,21 @@ class KartuStokController extends Controller
             $validated['keterangan']
         );
 
-        return back()->with('success', 'Penyesuaian stok diajukan untuk persetujuan - stok berubah setelah disetujui.');
+        // Administrator = satu-satunya penyetuju, jadi pengajuannya langsung disetujui & dijalankan (tetap tercatat di
+        // Approval Workflow + Kartu Stok sebagai jejak audit). Role lain tetap menunggu persetujuan Administrator.
+        if (optional(Auth::user()->role)->nama_role === 'Administrator') {
+            try {
+                ApprovalService::setujui($pengajuan, fn (array $payload) => \App\Services\PenyesuaianStokService::eksekusi($payload), 'Disetujui otomatis (diajukan oleh Administrator)');
+            } catch (\Throwable $e) {
+                ApprovalService::tolak($pengajuan, 'Gagal dijalankan otomatis: ' . $e->getMessage());
+
+                return back()->withInput()->with('error', 'Penyesuaian gagal: ' . $e->getMessage());
+            }
+            session()->flash('lanjut', ['teks' => 'Stok sudah diperbarui - lihat riwayatnya di kartu stok bahan', 'url' => url('/kartu-stok/' . $bahan->id_bahan), 'tombol' => 'Buka Kartu Stok']);
+
+            return back()->with('success', 'Penyesuaian stok berhasil - stok bahan sudah diperbarui.');
+        }
+
+        return back()->with('success', 'Penyesuaian stok diajukan untuk persetujuan Administrator - stok berubah setelah disetujui.');
     }
 }

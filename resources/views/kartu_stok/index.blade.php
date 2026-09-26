@@ -217,7 +217,8 @@
 
             <div class="pt-4 flex gap-3">
                 <x-button type="button" variant="secondary" onclick="closeModal('penyesuaian-stok')" class="flex-1">Batalkan</x-button>
-                <x-button type="submit" variant="warning" class="flex-1">Ajukan Penyesuaian</x-button>
+                @php $langsung = optional(auth()->user()->role)->nama_role === 'Administrator'; @endphp
+                <x-button type="submit" variant="warning" class="flex-1" title="{{ $langsung ? 'Stok bahan langsung diperbarui dan tercatat di kartu stok' : 'Diajukan ke Administrator; stok berubah setelah disetujui' }}">{{ $langsung ? 'Terapkan Penyesuaian' : 'Ajukan Penyesuaian' }}</x-button>
             </div>
         </form>
     </x-modal>

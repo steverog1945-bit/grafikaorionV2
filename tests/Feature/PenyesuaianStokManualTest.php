@@ -19,6 +19,16 @@ class PenyesuaianStokManualTest extends TestCase
         return User::factory()->create(['id_role' => $role->id_role]);
     }
 
+    /** Pengaju non-Administrator (Administrator otomatis disetujui). */
+    private function petugasGudang(): User
+    {
+        $role = Role::factory()->create(['nama_role' => 'Gudang']);
+        DB::table('menus')->insertOrIgnore(['id_menu' => 1, 'nama_menu' => 'Bahan Baku', 'url_link' => 'bahan-baku', 'parent_id' => 0]);
+        DB::table('role_permissions')->insert(['id_role' => $role->id_role, 'id_menu' => 1, 'can_view' => 1, 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 0]);
+
+        return User::factory()->create(['id_role' => $role->id_role]);
+    }
+
     private function buatBahan(float $stok = 100): int
     {
         $idMesin = DB::table('mesin')->insertGetId(['nama_mesin' => 'Mesin ' . uniqid(), 'tipe_mesin' => 'Digital']);
@@ -33,7 +43,7 @@ class PenyesuaianStokManualTest extends TestCase
 
     private function ajukanKeluar(User $admin, int $idBahan, float $qty): void
     {
-        $this->actingAs($admin)->post('/kartu-stok/adjustment', [
+        $this->actingAs($this->petugasGudang())->post('/kartu-stok/adjustment', [
             'id_bahan' => $idBahan, 'tipe' => 'OUT', 'qty' => $qty, 'keterangan' => 'Rusak',
         ]);
     }
@@ -72,7 +82,7 @@ class PenyesuaianStokManualTest extends TestCase
     {
         $admin = $this->admin();
         $idBahan = $this->buatBahan(100);
-        $this->actingAs($admin)->post('/kartu-stok/adjustment', [
+        $this->actingAs($this->petugasGudang())->post('/kartu-stok/adjustment', [
             'id_bahan' => $idBahan, 'tipe' => 'ADJUSTMENT', 'stok_baru' => 90, 'keterangan' => 'Hitung fisik',
         ]);
 
@@ -122,5 +132,23 @@ class PenyesuaianStokManualTest extends TestCase
         $response->assertSessionHas('error');
         $this->assertEquals(20, DB::table('bahan_baku')->where('id_bahan', $idBahan)->value('stok'));
         $this->assertEquals('Menunggu', $req->fresh()->status);
+    }
+
+    public function test_penyesuaian_oleh_administrator_langsung_berlaku_dan_tetap_tercatat(): void
+    {
+        $admin = $this->admin();
+        $idBahan = $this->buatBahan(100);
+
+        $this->actingAs($admin)->post('/kartu-stok/adjustment', [
+            'id_bahan' => $idBahan, 'tipe' => 'OUT', 'qty' => 5, 'keterangan' => 'Rusak',
+        ])->assertSessionHas('success');
+
+        $this->assertEquals(95, DB::table('bahan_baku')->where('id_bahan', $idBahan)->value('stok'));
+        $this->assertEquals(1, DB::table('kartu_stok')->where('id_bahan', $idBahan)->where('tipe', 'OUT')->count());
+        $this->assertDatabaseHas('approval_requests', ['tipe_aksi' => 'penyesuaian_stok_manual', 'referensi_id' => $idBahan, 'status' => 'Disetujui']);
+
+        // Revisi stok (hasil opname) juga langsung berlaku.
+        $this->post('/kartu-stok/adjustment', ['id_bahan' => $idBahan, 'tipe' => 'ADJUSTMENT', 'stok_baru' => 80, 'keterangan' => 'Opname'])->assertSessionHas('success');
+        $this->assertEquals(80, DB::table('bahan_baku')->where('id_bahan', $idBahan)->value('stok'));
     }
 }
