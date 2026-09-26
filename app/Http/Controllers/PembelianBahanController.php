@@ -43,9 +43,11 @@ class PembelianBahanController extends Controller
         if (in_array($request->jt, ['telat', '7hari'], true)) {
             $query->where('status_pembayaran', 'Hutang');
             $batas = $request->jt === 'telat' ? now()->startOfDay() : now()->startOfDay()->addDays(7);
+            // Sama dengan hitungan ringkasan: faktur tanpa tanggal jatuh tempo memakai tanggal transaksinya.
+            $tglJt = 'DATE(COALESCE(jatuh_tempo_tgl, tgl_transaksi))';
             $request->jt === 'telat'
-                ? $query->whereDate('jatuh_tempo_tgl', '<', $batas)
-                : $query->whereDate('jatuh_tempo_tgl', '>=', now()->startOfDay())->whereDate('jatuh_tempo_tgl', '<=', $batas);
+                ? $query->whereRaw("{$tglJt} < ?", [$batas->toDateString()])
+                : $query->whereRaw("{$tglJt} >= ?", [now()->startOfDay()->toDateString()])->whereRaw("{$tglJt} <= ?", [$batas->toDateString()]);
         }
 
         $data = $query->orderBy('id_pembelian', 'desc')->paginate(20)->withQueryString();
@@ -98,7 +100,15 @@ public function kedatanganDetail(Request $request)
 
     if (!$kedatangan) return response()->json(['detail' => []]);
 
+    // Usulan tempo: durasi faktur tempo terakhir dari supplier yang sama (bila ada), selain default 30 hari.
+    $tempoTerakhir = $kedatangan->id_supplier
+        ? DB::table('pembelian_bahan as pb')->join('kedatangan_bahan as k', 'k.id_kedatangan', '=', 'pb.id_kedatangan')
+            ->where('k.id_supplier', $kedatangan->id_supplier)->where('pb.tipe_pembelian', 'Tempo')->whereNotNull('pb.jatuh_tempo_hari')->whereNull('pb.deleted_at')
+            ->orderByDesc('pb.id_pembelian')->value('pb.jatuh_tempo_hari')
+        : null;
+
     return response()->json([
+        'tempo_terakhir' => $tempoTerakhir ? (int) $tempoTerakhir : null,
         'supplier' => $kedatangan->supplier->nama_supplier ?? 'Supplier Umum',
         'online' => $kedatangan->id_platform ? [
             'platform' => optional($kedatangan->platform)->nama,
@@ -147,7 +157,7 @@ public function kedatanganDetail(Request $request)
                 'tgl_transaksi'=>$request->tgl_transaksi,
                 'tipe_pembelian'=>$request->tipe_pembelian,
                 'include_pajak'=>$includePajak,
-                'jatuh_tempo_hari'=>$request->tempo_hari,
+                'jatuh_tempo_hari'=>$request->tipe_pembelian == 'Tempo' ? max(1, (int) ($request->tempo_hari ?: 30)) : null,
                 'ongkir'=>(float) ($request->ongkir ?? 0),
                 'biaya_layanan'=>(float) ($request->biaya_layanan ?? 0),
                 'voucher'=>(float) ($request->voucher ?? 0),
@@ -228,7 +238,9 @@ public function kedatanganDetail(Request $request)
                 $pembelian->tgl_pelunasan = $request->tgl_transaksi;
             } else {
                 $pembelian->status_pembayaran = 'Hutang';
-                $pembelian->jatuh_tempo_tgl = $request->jatuh_tempo_tgl;
+                // Tempo TIDAK PERNAH tanpa jatuh tempo: kosong -> default 30 hari setelah tanggal transaksi.
+                $pembelian->jatuh_tempo_tgl = $request->jatuh_tempo_tgl
+                    ?: \Carbon\Carbon::parse($request->tgl_transaksi)->addDays(max(1, (int) ($request->tempo_hari ?: 30)))->toDateString();
             }
 
             $pembelian->save();

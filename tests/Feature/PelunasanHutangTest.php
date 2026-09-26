@@ -92,4 +92,35 @@ class PelunasanHutangTest extends TestCase
         $this->get('/pembelian-bahan')->assertOk()->assertSee('Telat 4 hari')->assertSee('3 hari lagi')->assertSee('Telat Jatuh Tempo');
         $this->get('/pembelian-bahan?jt=telat')->assertOk()->assertSee('F-TELAT')->assertDontSee('F-SEGERA');
     }
+
+    public function test_faktur_tempo_tanpa_jatuh_tempo_otomatis_30_hari_dan_usulan_termin_supplier(): void
+    {
+        $idMesin = DB::table('mesin')->insertGetId(['nama_mesin' => 'M', 'tipe_mesin' => 'D']);
+        $idKat = DB::table('kategori')->insertGetId(['nama_kategori' => 'K']);
+        $idBahan = DB::table('bahan_baku')->insertGetId(['kode_bahan' => 'T1', 'nama_bahan' => 'Kertas', 'id_mesin' => $idMesin, 'id_kategori' => $idKat, 'nilai_konversi' => 1, 'stok' => 5, 'harga_rata_rata' => 0, 'satuan_stok' => 'rim', 'status' => 'aktif']);
+        $idGudang = DB::table('gudang')->insertGetId(['nama_gudang' => 'Utama']);
+        $idKed = DB::table('kedatangan_bahan')->insertGetId(['no_surat_jalan' => 'SJ-T', 'id_supplier' => $this->idSup, 'id_gudang' => $idGudang, 'tgl_datang' => now()->toDateString(), 'status' => 'Selesai']);
+        DB::table('kedatangan_bahan_detail')->insert(['id_kedatangan' => $idKed, 'id_bahan' => $idBahan, 'qty' => 2, 'status' => 'OK']);
+
+        // Tanpa tempo_hari & jatuh_tempo_tgl -> default 30 hari.
+        $this->post('/pembelian-bahan', [
+            'id_kedatangan' => $idKed, 'no_faktur' => 'F-T1', 'tgl_transaksi' => '2026-09-01', 'tipe_pembelian' => 'Tempo',
+            'id_bahan' => [$idBahan], 'qty' => [2], 'harga' => ['100000'], 'diskon' => ['0'], 'potongan' => ['0'], 'subtotal' => [200000], 'grand_total' => 200000,
+        ])->assertSessionHas('success');
+        $p = DB::table('pembelian_bahan')->where('no_faktur', 'F-T1')->first();
+        $this->assertSame('2026-10-01', $p->jatuh_tempo_tgl);
+        $this->assertSame(30, (int) $p->jatuh_tempo_hari);
+
+        // Usulan termin supplier ini ikut di data detail kedatangan lain.
+        $idKed2 = DB::table('kedatangan_bahan')->insertGetId(['no_surat_jalan' => 'SJ-T2', 'id_supplier' => $this->idSup, 'id_gudang' => $idGudang, 'tgl_datang' => now()->toDateString(), 'status' => 'Selesai']);
+        $this->getJson("/pembelian-bahan/kedatangan-detail?id_kedatangan={$idKed2}")->assertOk()->assertJsonPath('tempo_terakhir', 30);
+    }
+
+    public function test_filter_telat_mencakup_faktur_tanpa_tanggal_jatuh_tempo_memakai_tanggal_transaksi(): void
+    {
+        $id = $this->faktur('F-NULL', 300000, now()->addDays(9)->toDateString());
+        DB::table('pembelian_bahan')->where('id_pembelian', $id)->update(['jatuh_tempo_tgl' => null, 'tgl_transaksi' => now()->subDays(12)->toDateString()]);
+
+        $this->get('/pembelian-bahan?jt=telat')->assertOk()->assertSee('F-NULL');
+    }
 }

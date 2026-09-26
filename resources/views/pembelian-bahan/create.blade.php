@@ -86,8 +86,15 @@
 
                 <div id="tempo_group" class="hidden">
                     <x-form.group label="Durasi Tempo (Hari)">
-                        <input type="number" name="tempo_hari" id="tempo_hari" oninput="calculateDueDate()"
+                        <input type="number" name="tempo_hari" id="tempo_hari" min="1" max="365" value="30" oninput="calculateDueDate(); tandaiPilihanTempo()"
                             class="w-full bg-rose-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-rose-500/30 shadow-inner" placeholder="30">
+                        {{-- Pilihan cepat termin pembayaran; angka bebas tetap bisa diketik --}}
+                        <div class="flex flex-wrap gap-1.5 mt-2" id="pilihan-tempo">
+                            @foreach([7, 14, 30, 45, 60] as $h)
+                                <button type="button" data-hari="{{ $h }}" onclick="setTempo({{ $h }})" title="Jatuh tempo {{ $h }} hari setelah tanggal transaksi" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600">{{ $h }} hari</button>
+                            @endforeach
+                        </div>
+                        <p class="text-[11px] font-semibold text-slate-400 mt-1.5 ml-1 hidden" id="usulan-tempo"></p>
                     </x-form.group>
                 </div>
 
@@ -208,6 +215,14 @@
             const data = await response.json();
 
             document.getElementById('display_supplier').value = data.supplier || 'UMUM';
+            // Usulan termin dari faktur tempo terakhir supplier ini.
+            window.tempoUsulan = data.tempo_terakhir || 30;
+            const usulan = document.getElementById('usulan-tempo');
+            if (data.tempo_terakhir) {
+                usulan.textContent = `Termin terakhir dengan supplier ini: ${data.tempo_terakhir} hari`;
+                usulan.classList.remove('hidden');
+                if (document.getElementById('tipe_pembelian').value === 'Tempo') setTempo(data.tempo_terakhir);
+            } else { usulan.classList.add('hidden'); }
             const boxOnline = document.getElementById('info-online-faktur');
             if (data.online) {
                 boxOnline.innerHTML = `<i class="fas fa-shopping-bag mr-2"></i>Pembelian online: <b>${data.online.platform || '-'}</b>${data.online.toko ? ' &middot; toko ' + data.online.toko : ''}${data.online.no_pesanan ? ' &middot; pesanan ' + data.online.no_pesanan : ''}${data.online.resi ? ' &middot; resi ' + data.online.resi : ''}`;
@@ -267,12 +282,32 @@
         if (tipe === 'Tempo') {
             tempoGroup.classList.remove('hidden');
             dueGroup.classList.remove('hidden');
+            // Jangan pernah tanpa nilai: default usulan (30 hari, atau termin terakhir supplier ini).
+            const t = document.getElementById('tempo_hari');
+            if (!t.value || parseInt(t.value) < 1) t.value = window.tempoUsulan || 30;
+            calculateDueDate();
+            tandaiPilihanTempo();
         } else {
             tempoGroup.classList.add('hidden');
             dueGroup.classList.add('hidden');
             document.getElementById('tempo_hari').value = '';
             document.getElementById('jatuh_tempo_tgl').value = '';
         }
+    }
+
+    function setTempo(hari) {
+        document.getElementById('tempo_hari').value = hari;
+        calculateDueDate();
+        tandaiPilihanTempo();
+    }
+
+    function tandaiPilihanTempo() {
+        const v = parseInt(document.getElementById('tempo_hari').value) || 0;
+        document.querySelectorAll('#pilihan-tempo button').forEach(b => {
+            const aktif = parseInt(b.dataset.hari) === v;
+            b.classList.toggle('bg-indigo-600', aktif); b.classList.toggle('text-white', aktif);
+            b.classList.toggle('bg-slate-100', !aktif); b.classList.toggle('text-slate-500', !aktif);
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
