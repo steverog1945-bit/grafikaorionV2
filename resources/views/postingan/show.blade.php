@@ -6,7 +6,7 @@
     $izinEdit = \App\Support\Izin::boleh(auth()->user(), [67], 'edit');
     $izinHapus = \App\Support\Izin::boleh(auth()->user(), [67], 'delete');
 @endphp
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
 <div class="cetak-halaman w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1100px] mx-auto">
 
     <a href="{{ $pengelola ? route('postingan.index') : route('dashboard', ['tab' => 'info']) }}" class="no-print inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-indigo-600 mb-5" title="Kembali ke daftar postingan"><i class="fas fa-arrow-left"></i> Info &amp; Panduan</a>

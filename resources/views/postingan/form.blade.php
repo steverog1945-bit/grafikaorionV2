@@ -6,7 +6,6 @@
     $terbitAtInput = old('terbit_at', optional($post->terbit_at)->format('Y-m-d\TH:i'));
 @endphp
 <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1300px] mx-auto">
 
     <x-page-header :title="$edit ? 'Edit Postingan' : 'Tulis Postingan'">
@@ -159,6 +158,7 @@
 
     // ---- Tempel: hanya format standar yang lolos. h1 -> Judul Bagian, h5/h6 -> Judul Kecil, spasi keras (nbsp) & spasi ganda dibuang.
     quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
+        if (node.tagName === 'P' && !node.textContent.replace(/[\s\u00a0]/g, '') && !node.querySelector('img')) return new Delta();   // paragraf kosong tidak ikut
         const out = new Delta();
         delta.ops.forEach(op => {
             const at = op.attributes ? { ...op.attributes } : null;
@@ -230,8 +230,22 @@
     // Dokumen kosong lalu ditempel isi panjang -> rapikan otomatis (menghindari lompatan kursor saat menyisipkan di tengah tulisan)
     quill.root.addEventListener('paste', () => {
         const kosongSebelum = quill.getText().trim() === '';
-        setTimeout(() => { if (kosongSebelum && quill.getText().trim().length > 80) rapikan(true); }, 60);
+        setTimeout(() => { if (kosongSebelum && quill.getText().trim().length > 80) rapikan(true); else hapusBarisKosong(); }, 60);
     });
+    // Baris kosong beruntun hasil tempel (Enter ganda dari Word/web/teks polos) dibuang: jarak antarparagraf diatur gaya, bukan Enter.
+    function hapusBarisKosong() {
+        let idx = 0, awalBaris = true; const hapus = [];
+        const akhir = quill.getLength() - 1;
+        quill.getContents().ops.forEach(op => {
+            if (typeof op.insert !== 'string') { idx += 1; awalBaris = false; return; }
+            for (const c of op.insert) {
+                if (c === '\n') { if (awalBaris && !op.attributes && idx !== akhir) hapus.push(idx); awalBaris = true; }
+                else awalBaris = false;
+                idx += 1;
+            }
+        });
+        hapus.reverse().forEach(i => quill.deleteText(i, 1, 'user'));
+    }
     document.getElementById('btn-rapikan').addEventListener('click', () => rapikan(false));
     document.getElementById('btn-undo').addEventListener('click', () => quill.history.undo());
     document.getElementById('btn-redo').addEventListener('click', () => quill.history.redo());
