@@ -639,12 +639,9 @@ html.dark [style*="border:1px solid #e2e8f0"] { border-color: #22304a !important
 /* ===================================================================
    INFO & PANDUAN (postingan): tipografi isi + editor Quill
    =================================================================== */
-.prose-post, .ql-editor { --spasi-baris: 1.75; --spasi-para: .7em; }
-.prose-post { font-family: 'Nunito', 'Inter', sans-serif; font-size: 1.0625rem; line-height: var(--spasi-baris); color: #334155; word-wrap: break-word; -webkit-font-smoothing: antialiased; letter-spacing: .005em; }
-.prose-post > * + * { margin-top: var(--spasi-para); }
+.prose-post { font-size: 1.0625rem; line-height: 1.85; color: #334155; word-wrap: break-word; }
+.prose-post > * + * { margin-top: 1.1em; }
 .prose-post p:has(> br:only-child) { display: none; } /* Enter ganda hasil tempel tidak jadi jarak besar */
-.prose-post h2, .prose-post h3, .prose-post h4, .editor-kartu .ql-editor h2, .editor-kartu .ql-editor h3, .editor-kartu .ql-editor h4 { font-family: 'Nunito', 'Inter', sans-serif; letter-spacing: 0; }
-.prose-post strong, .prose-post b { font-weight: 700; color: #1e293b; }
 .prose-post h2 { font-size: 1.6rem; font-weight: 700; color: #0f172a; line-height: 1.3; margin-top: 1.9em; }
 .prose-post h3 { font-size: 1.3rem; font-weight: 700; color: #1e293b; line-height: 1.35; margin-top: 1.6em; }
 .prose-post h4 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-top: 1.4em; }
@@ -667,52 +664,12 @@ html.dark .prose-post :not(pre) > code { background: #1e2b47; }
 html.dark .prose-post hr { border-top-color: #22304a; }
 html.dark .prose-post img { box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
 
-/* Kelas tata letak dari editor: dipakai di halaman baca DAN di dalam editor, supaya tampilan sama */
-.prose-post .ql-align-center, .ql-editor .ql-align-center { text-align: center; }
-.prose-post .ql-align-right, .ql-editor .ql-align-right { text-align: right; }
-.prose-post .ql-align-justify, .ql-editor .ql-align-justify { text-align: justify; hyphens: auto; }
-.prose-post .ql-spasi-rapat, .ql-editor .ql-spasi-rapat { line-height: 1.5; margin-top: .5em !important; }
-.prose-post .ql-spasi-longgar, .ql-editor .ql-spasi-longgar { line-height: 2.1; margin-top: 1.5em !important; }
-.prose-post .ql-spasi-lega, .ql-editor .ql-spasi-lega { line-height: 2.4; margin-top: 2em !important; }
-.prose-post li.ql-indent-1, .ql-editor li.ql-indent-1 { margin-left: 1.5em; } .prose-post li.ql-indent-2, .ql-editor li.ql-indent-2 { margin-left: 3em; } .prose-post li.ql-indent-3, .ql-editor li.ql-indent-3 { margin-left: 4.5em; }
-.prose-post p.ql-indent-1, .ql-editor p.ql-indent-1 { padding-left: 3em; } .prose-post p.ql-indent-2, .ql-editor p.ql-indent-2 { padding-left: 6em; } .prose-post p.ql-indent-3, .ql-editor p.ql-indent-3 { padding-left: 9em; }
-
-/* Editor: kartu tanpa overflow-hidden agar toolbar sticky; toolbar menempel di bawah topbar */
-.editor-kartu { overflow: visible !important; }
-#editor-postingan { min-height: 420px; font-size: 1rem; }
-.toolbar-postingan.ql-toolbar.ql-snow { position: sticky; top: calc(var(--tinggi-topbar, 78px) + 8px); z-index: 20; border: 0 !important; border-top: 1px solid #eef1f4 !important; border-bottom: 1px solid #e2e8f0 !important; background: rgba(248, 250, 252, .97); backdrop-filter: blur(6px); padding: 8px 14px !important; display: flex; flex-wrap: wrap; align-items: center; row-gap: 4px; box-shadow: 0 6px 14px -10px rgba(15, 23, 42, .25); }
-.toolbar-postingan .ql-formats { margin-right: 10px !important; display: inline-flex; align-items: center; padding-right: 10px; border-right: 1px solid #e2e8f0; }
-.toolbar-postingan .ql-formats:last-child { border-right: 0; }
-.toolbar-postingan button { border-radius: 8px; }
-.toolbar-postingan button:hover { background: #eef2ff; }
-.toolbar-postingan .btn-rapikan { width: auto !important; padding: 0 12px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #4f46e5; background: #eef2ff; display: inline-flex; align-items: center; gap: 6px; }
-.toolbar-postingan .btn-rapikan:hover { background: #e0e7ff; }
-.toolbar-postingan .ql-spasi { width: 92px; }
-.toolbar-postingan .ql-spasi .ql-picker-label::before { content: 'Jarak'; }
-.toolbar-postingan .ql-spasi .ql-picker-label[data-value="rapat"]::before, .toolbar-postingan .ql-spasi .ql-picker-item[data-value="rapat"]::before { content: 'Rapat'; }
-.toolbar-postingan .ql-spasi .ql-picker-label[data-value="longgar"]::before, .toolbar-postingan .ql-spasi .ql-picker-item[data-value="longgar"]::before { content: 'Longgar'; }
-.toolbar-postingan .ql-spasi .ql-picker-label[data-value="lega"]::before, .toolbar-postingan .ql-spasi .ql-picker-item[data-value="lega"]::before { content: 'Lega'; }
-.toolbar-postingan .ql-spasi .ql-picker-item:not([data-value])::before { content: 'Normal'; }
-.toolbar-postingan .ql-header { width: 150px; }
-.toolbar-postingan .ql-header .ql-picker-label::before, .toolbar-postingan .ql-header .ql-picker-item::before { content: 'Paragraf' !important; }
-.toolbar-postingan .ql-header .ql-picker-label[data-value="2"]::before, .toolbar-postingan .ql-header .ql-picker-item[data-value="2"]::before { content: 'Judul Bagian' !important; }
-.toolbar-postingan .ql-header .ql-picker-label[data-value="3"]::before, .toolbar-postingan .ql-header .ql-picker-item[data-value="3"]::before { content: 'Sub Judul' !important; }
-.toolbar-postingan .ql-header .ql-picker-label[data-value="4"]::before, .toolbar-postingan .ql-header .ql-picker-item[data-value="4"]::before { content: 'Judul Kecil' !important; }
-.ql-container.ql-snow { border: 0 !important; font-family: 'Nunito', 'Inter', sans-serif; }
-.editor-kartu .ql-editor { min-height: 420px; padding: 26px 32px; font-size: 1.0625rem; line-height: 1.7; color: #334155; letter-spacing: .005em; -webkit-font-smoothing: antialiased; }
-.editor-kartu .ql-editor p, .ql-editor ul, .ql-editor ol, .ql-editor blockquote { margin: 0 0 .55em; }
-.editor-kartu .ql-editor h2 { font-size: 1.6rem; font-weight: 800; color: #0f172a; margin: 1.5em 0 .5em; line-height: 1.3; }
-.editor-kartu .ql-editor h3 { font-size: 1.3rem; font-weight: 700; color: #1e293b; margin: 1.3em 0 .45em; line-height: 1.35; }
-.editor-kartu .ql-editor h4 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 1.2em 0 .4em; }
-.editor-kartu .ql-editor blockquote { border-left: 4px solid #a5b4fc; background: #eef2ff; padding: 1em 1.3em; border-radius: 0 1rem 1rem 0; color: #4338ca; font-style: italic; }
-.editor-kartu .ql-editor img { max-width: 100%; border-radius: 1rem; }
-.editor-kartu .ql-editor.ql-blank::before { color: #94a3b8; font-style: normal; left: 32px; }
-html.dark .toolbar-postingan.ql-toolbar.ql-snow { background: rgba(23, 34, 59, .97); border-color: #22304a !important; box-shadow: 0 6px 14px -10px rgba(0, 0, 0, .6); }
-html.dark .toolbar-postingan .ql-formats { border-right-color: #22304a; }
-html.dark .toolbar-postingan button:hover { background: #22304a; }
-html.dark .toolbar-postingan .btn-rapikan { background: rgba(99, 102, 241, .18); color: #c7d2fe; }
-html.dark .editor-kartu .ql-editor h2, html.dark .ql-editor h3, html.dark .ql-editor h4 { color: #f1f5f9; }
-html.dark .editor-kartu .ql-editor blockquote { background: rgba(99, 102, 241, .14); color: #c7d2fe; border-left-color: #6366f1; }
+#editor-postingan { min-height: 380px; font-size: 1rem; }
+.ql-toolbar.ql-snow { border: 0 !important; border-top: 1px solid #eef1f4 !important; border-bottom: 1px solid #eef1f4 !important; background: #f8fafc; padding: 10px 16px !important; }
+.ql-container.ql-snow { border: 0 !important; font-family: inherit; }
+.ql-editor { min-height: 380px; padding: 24px 28px; line-height: 1.8; color: #334155; }
+.ql-editor img { max-width: 100%; border-radius: 1rem; }
+.ql-editor.ql-blank::before { color: #94a3b8; font-style: normal; left: 28px; }
 html.dark .ql-toolbar.ql-snow { background: #17223b; border-color: #22304a !important; }
 html.dark .ql-snow .ql-stroke { stroke: #94a3b8; }
 html.dark .ql-snow .ql-fill { fill: #94a3b8; }
@@ -720,8 +677,8 @@ html.dark .ql-snow .ql-picker { color: #94a3b8; }
 html.dark .ql-snow .ql-picker-options { background: #111a2e; border-color: #22304a !important; }
 html.dark .ql-snow .ql-tooltip { background: #111a2e; color: #e2e8f0; border-color: #22304a; box-shadow: none; }
 html.dark .ql-snow .ql-tooltip input[type=text] { background: #17223b; color: #e2e8f0; border-color: #22304a; }
-html.dark .editor-kartu .ql-editor { color: #cbd5e1; }
-html.dark .editor-kartu .ql-editor.ql-blank::before { color: #5c6a8a; }
+html.dark .ql-editor { color: #cbd5e1; }
+html.dark .ql-editor.ql-blank::before { color: #5c6a8a; }
 html.dark .hero-postingan { box-shadow: none; }
 /* ===================================================================
    CETAK POSTINGAN - tata letak ala majalah/media cetak (A4): kop (masthead) + judul display Playfair,
