@@ -529,6 +529,16 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
 
 
     // Quotation / Penawaran (LEVEL 2) - akses seperti Input Order.
+    // Info & Panduan (postingan internal ala blog)
+    Route::get('/postingan', [\App\Http\Controllers\PostinganController::class, 'index'])->name('postingan.index');
+    Route::get('/postingan/create', [\App\Http\Controllers\PostinganController::class, 'create'])->name('postingan.create');
+    Route::post('/postingan', [\App\Http\Controllers\PostinganController::class, 'store'])->name('postingan.store');
+    Route::post('/postingan/unggah-gambar', [\App\Http\Controllers\PostinganController::class, 'unggahGambar'])->name('postingan.unggah');
+    Route::get('/postingan/{id}/edit', [\App\Http\Controllers\PostinganController::class, 'edit'])->whereNumber('id')->name('postingan.edit');
+    Route::put('/postingan/{id}', [\App\Http\Controllers\PostinganController::class, 'update'])->whereNumber('id')->name('postingan.update');
+    Route::delete('/postingan/{id}', [\App\Http\Controllers\PostinganController::class, 'destroy'])->whereNumber('id')->name('postingan.destroy');
+    Route::get('/postingan/{slug}', [\App\Http\Controllers\PostinganController::class, 'show'])->where('slug', '^(?!create$)[a-z0-9-]+$')->name('postingan.show');
+
     Route::get('/quotation', [\App\Http\Controllers\QuotationController::class, 'index'])->name('quotation.index');
     Route::get('/quotation/create', [\App\Http\Controllers\QuotationController::class, 'create'])->name('quotation.create');
     Route::post('/quotation', [\App\Http\Controllers\QuotationController::class, 'store'])->name('quotation.store');

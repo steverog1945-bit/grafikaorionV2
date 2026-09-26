@@ -108,6 +108,7 @@ return [
         'laporan/stok-bahan' => [46],
         'laporan/hpp' => [47],
         'laporan/biaya-desain' => [65],
+        'postingan' => [67],
         'pengaturan-desainer' => [66],
         'laporan/job-costing' => [47],
         'laporan/profitabilitas' => [47],
