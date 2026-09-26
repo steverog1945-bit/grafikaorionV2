@@ -176,7 +176,7 @@
                     @if($k->metode !== 'Tunai')<span class="text-[10px] font-bold uppercase text-slate-500 bg-slate-100 rounded px-2 py-1 ml-1">{{ $k->metode }}</span>@endif
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[11px] font-bold uppercase text-indigo-600 bg-indigo-50 rounded px-2 py-1">{{ $k->sumber === 'jersey' ? 'Order Jersey' : ($k->kategori->nama_kategori ?? '-') }}</span>
+                    <span class="text-[11px] font-bold uppercase text-indigo-600 bg-indigo-50 rounded px-2 py-1">{{ $k->sumber === 'jersey' ? 'Order Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Supplier' : ($k->kategori->nama_kategori ?? '-')) }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] text-slate-600">{{ $k->keterangan }}</span>
@@ -188,8 +188,8 @@
                     <span class="text-[12px] font-bold {{ $k->jenis === 'Masuk' ? 'text-emerald-600' : 'text-rose-500' }}">{{ $k->jenis === 'Masuk' ? '+' : '-' }} Rp {{ number_format($k->nominal, 0, ',', '.') }}</span>
                 </td>
                 <td class="px-4 py-5 text-center no-print">
-                    @if($k->sumber === 'jersey')
-                    <span class="text-slate-300" title="Otomatis dari pembayaran order jersey"><i class="fas fa-link text-xs"></i></span>
+                    @if($k->sumber !== 'manual')
+                    <span class="text-slate-300" title="Otomatis dari {{ $k->sumber === 'hutang' ? 'pembayaran hutang supplier' : 'pembayaran order jersey' }}"><i class="fas fa-link text-xs"></i></span>
                     @else
                     <form method="POST" action="{{ route('kas-kecil.destroy', $k->id) }}" onsubmit="return konfirmasiHapusKasKecil(event, this)">
                         @csrf @method('DELETE')
@@ -218,7 +218,7 @@
                 <td class="px-3 py-1.5 text-center text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-3 py-1.5 font-semibold text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d/m/Y') }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->jenis === 'Masuk' ? 'Masuk' : 'Keluar' }}{{ $k->metode !== 'Tunai' ? ' (' . $k->metode . ')' : '' }}</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ $k->sumber === 'jersey' ? 'Order Jersey' : ($k->kategori->nama_kategori ?? '-') }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $k->sumber === 'jersey' ? 'Order Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Supplier' : ($k->kategori->nama_kategori ?? '-')) }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->keterangan }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->user->username ?? '-' }}</td>
                 <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ $k->jenis === 'Masuk' ? '' : '-' }}{{ number_format($k->nominal, 0, ',', '.') }}</td>

@@ -229,7 +229,8 @@ class AccountingService
      */
     public static function postPembayaranHutang(string $noReferensi, string $noFaktur, float $nominal, string $metode): void
     {
-        $akunKeluar = $metode === 'Transfer' ? self::AKUN_BANK : self::AKUN_KAS;
+        // Kas Kecil = simpanan darurat (akun 1005), dipakai hanya bila dipilih.
+        $akunKeluar = $metode === 'Transfer' ? self::AKUN_BANK : ($metode === 'Kas Kecil' ? self::AKUN_KAS_KECIL : self::AKUN_KAS);
 
         self::postJournal(now()->toDateString(), $noReferensi, "Pembayaran hutang {$noFaktur} ({$metode})", [
             ['kode_akun' => self::AKUN_HUTANG_USAHA, 'debet' => $nominal],

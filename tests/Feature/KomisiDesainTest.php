@@ -44,7 +44,7 @@ class KomisiDesainTest extends TestCase
 
     private function setKelas(float $persen): void
     {
-        $id = DB::table('kelas_desainer')->insertGetId(['nama_kelas' => 'Senior', 'persen_komisi' => $persen, 'created_at' => now(), 'updated_at' => now()]);
+        $id = DB::table('kelas_desainer')->insertGetId(['nama_kelas' => 'Kelas Uji', 'persen_komisi' => $persen, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('users')->where('id_user', $this->desain->id_user)->update(['id_kelas_desainer' => $id]);
     }
 

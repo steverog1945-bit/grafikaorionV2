@@ -150,6 +150,10 @@ class PurchaseOrderController extends Controller
             return true;
         });
 
+        if ($ok) {
+            \App\Support\JalurLanjut::set('Saat barang tiba, catat kedatangannya dari PO ini', 'purchase-order.edit', 'Buka PO', [$purchaseOrder->id]);
+        }
+
         return $ok
             ? back()->with('success', "Purchase Order {$purchaseOrder->nomor} diterbitkan ke supplier.")
             : back()->with('error', 'Purchase Order harus berstatus Draft untuk diterbitkan.');

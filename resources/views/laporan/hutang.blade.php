@@ -60,7 +60,11 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($perSupplier as $s)
             <tr class="bg-slate-50/60">
-                <td class="px-8 py-4 font-bold text-slate-700 uppercase text-[13px]">{{ $s['nama'] }}</td>
+                <td class="px-8 py-4 font-bold text-slate-700 uppercase text-[13px]">{{ $s['nama'] }}
+                    @if($s['id_supplier'])
+                    <button type="button" onclick="bukaPelunasan('supplier', {{ $s['id_supplier'] }})" title="Bayar hutang semua faktur supplier ini sekaligus (dibagi ke faktur paling lama dulu)" class="no-print ml-2 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-[10px] font-bold uppercase tracking-widest normal-case"><i class="fas fa-hand-holding-dollar"></i> Bayar</button>
+                    @endif
+                </td>
                 @foreach(['belum', 'b30', 'b60', 'b60plus'] as $b)
                     <td class="px-4 py-4 text-right text-sm font-semibold text-slate-600">{{ $s[$b] ? number_format($s[$b], 0, ',', '.') : '-' }}</td>
                 @endforeach
@@ -70,6 +74,7 @@
             <tr class="hover:bg-slate-50/30">
                 <td class="px-8 py-3 pl-14">
                     <a href="{{ route('pembelian-bahan.show', $f->id_pembelian) }}" class="text-[12px] font-semibold text-slate-600 hover:text-indigo-600">{{ $f->no_faktur }}</a>
+                    <button type="button" onclick="bukaPelunasan('faktur', {{ $f->id_pembelian }})" title="Bayar / cicil faktur ini" class="no-print ml-2 text-slate-300 hover:text-indigo-600"><i class="fas fa-money-bill-wave text-[11px]"></i></button>
                     <div class="text-[10px] text-slate-400">Jatuh tempo {{ \Carbon\Carbon::parse($f->jatuh_tempo_tgl ?: $f->tgl_transaksi)->format('d M Y') }}{{ $f->hari_telat ? ' - telat ' . $f->hari_telat . ' hari' : '' }}</div>
                 </td>
                 @foreach(['belum', 'b30', 'b60', 'b60plus'] as $b)
@@ -112,4 +117,6 @@
         </x-laporan.print-table>
     </div>
 </div>
+
+@include('partials.modal-pelunasan-hutang')
 @endsection

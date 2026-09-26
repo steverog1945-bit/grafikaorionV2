@@ -33,6 +33,26 @@ class PembayaranHutangService
         return max(0.0, round((float) $pembelian->grand_total - self::totalDibayar((int) $pembelian->id_pembelian), 2));
     }
 
+    /** Saldo Kas Kecil (akun 1005) menurut jurnal - simpanan darurat di luar laci. */
+    public static function saldoKasKecil(): float
+    {
+        return round((float) DB::table('jurnal_umum')->where('kode_akun', '1005')->sum(DB::raw('debet - kredit')), 2);
+    }
+
+    /** Ringkasan satu faktur untuk layar pelunasan. */
+    public static function ringkasan(object $pembelian): array
+    {
+        $jatuhTempo = $pembelian->jatuh_tempo_tgl ?: $pembelian->tgl_transaksi;
+        $sisa = self::sisa($pembelian);
+        $telat = $sisa > 0 && $jatuhTempo ? max(0, (int) \Carbon\Carbon::parse($jatuhTempo)->startOfDay()->diffInDays(now()->startOfDay(), false)) : 0;
+
+        return [
+            'id' => (int) $pembelian->id_pembelian, 'no_faktur' => $pembelian->no_faktur, 'total' => (float) $pembelian->grand_total,
+            'dibayar' => round((float) $pembelian->grand_total - $sisa, 2), 'sisa' => $sisa,
+            'jatuh_tempo' => $jatuhTempo ? \Carbon\Carbon::parse($jatuhTempo)->format('d M Y') : '-', 'telat_hari' => $telat,
+        ];
+    }
+
     /** Pembelian Cash: uang langsung keluar saat faktur dibuat (jurnal sudah di referensi faktur). */
     public static function catatPembayaranAwal(int $idPembelian, float $nominal, string $tanggal): void
     {
@@ -51,6 +71,10 @@ class PembayaranHutangService
 
     public static function bayar(int $idPembelian, float $nominal, string $metode, ?string $tanggal = null, ?string $keterangan = null): void
     {
+        if (!in_array($metode, ['Tunai', 'Transfer', 'Kas Kecil'], true)) {
+            throw new \RuntimeException('Sumber pembayaran tidak dikenal.');
+        }
+
         DB::transaction(function () use ($idPembelian, $nominal, $metode, $tanggal, $keterangan) {
             $pembelian = DB::table('pembelian_bahan')->where('id_pembelian', $idPembelian)->whereNull('deleted_at')->lockForUpdate()->first();
 
@@ -73,6 +97,10 @@ class PembayaranHutangService
                 throw new \RuntimeException('Nominal melebihi sisa hutang (Rp ' . number_format($sisa, 0, ',', '.') . ').');
             }
 
+            if ($metode === 'Kas Kecil' && $nominal > self::saldoKasKecil() + self::TOLERANSI) {
+                throw new \RuntimeException('Saldo Kas Kecil (Rp ' . number_format(max(0, self::saldoKasKecil()), 0, ',', '.') . ') tidak cukup untuk pembayaran ini.');
+            }
+
             $idPembayaran = DB::table('pembayaran_hutang')->insertGetId([
                 'id_pembelian' => $idPembelian,
                 'tanggal' => $tanggal ?: now()->toDateString(),
@@ -89,7 +117,59 @@ class PembayaranHutangService
 
             AccountingService::postPembayaranHutang($ref, $pembelian->no_faktur, $nominal, $metode);
 
+            // Dari Kas Kecil: catat juga di buku Kas Kecil (baris cermin, jurnalnya sudah di atas - tidak dijurnal ulang).
+            if ($metode === 'Kas Kecil') {
+                $supplier = DB::table('kedatangan_bahan as k')->leftJoin('supplier as s', 's.id_supplier', '=', 'k.id_supplier')
+                    ->where('k.id_kedatangan', $pembelian->id_kedatangan)->value('s.nama_supplier');
+                DB::table('kas_kecil')->insert([
+                    'tanggal' => $tanggal ?: now()->toDateString(), 'jenis' => 'Keluar', 'sumber' => 'hutang', 'id_referensi' => $idPembayaran, 'metode' => 'Tunai',
+                    'id_kategori' => null, 'keterangan' => "Bayar hutang {$pembelian->no_faktur}" . ($supplier ? " ke {$supplier}" : ''), 'nominal' => $nominal,
+                    'id_user' => Auth::id(), 'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+
             self::sinkronStatus($idPembelian);
+        });
+    }
+
+    /** Faktur berhutang milik satu supplier, urut paling lama jatuh tempo dulu. */
+    public static function fakturBerhutang(int $idSupplier)
+    {
+        return DB::table('pembelian_bahan as pb')->join('kedatangan_bahan as k', 'k.id_kedatangan', '=', 'pb.id_kedatangan')
+            ->where('k.id_supplier', $idSupplier)->whereNull('pb.deleted_at')->where('pb.status_pembayaran', 'Hutang')
+            ->orderByRaw('COALESCE(pb.jatuh_tempo_tgl, pb.tgl_transaksi)')->orderBy('pb.id_pembelian')->select('pb.*')->get();
+    }
+
+    /** Bayar hutang satu supplier sekaligus: nominal dibagi ke faktur paling lama dulu. @return array<int,array{no_faktur:string,nominal:float}> */
+    public static function bayarSupplier(int $idSupplier, float $nominal, string $metode, ?string $tanggal = null, ?string $keterangan = null): array
+    {
+        $daftar = self::fakturBerhutang($idSupplier);
+        $totalSisa = round((float) $daftar->sum(fn ($p) => self::sisa($p)), 2);
+        if ($daftar->isEmpty() || $totalSisa <= self::TOLERANSI) {
+            throw new \RuntimeException('Supplier ini tidak punya hutang yang belum lunas.');
+        }
+        $nominal = round($nominal, 2);
+        if ($nominal <= 0 || $nominal > $totalSisa + self::TOLERANSI) {
+            throw new \RuntimeException('Nominal harus lebih dari 0 dan tidak melebihi total hutang (Rp ' . number_format($totalSisa, 0, ',', '.') . ').');
+        }
+
+        return DB::transaction(function () use ($daftar, $nominal, $metode, $tanggal, $keterangan) {
+            $sisaBayar = $nominal;
+            $hasil = [];
+            foreach ($daftar as $p) {
+                if ($sisaBayar <= self::TOLERANSI) {
+                    break;
+                }
+                $porsi = round(min($sisaBayar, self::sisa($p)), 2);
+                if ($porsi <= 0) {
+                    continue;
+                }
+                self::bayar((int) $p->id_pembelian, $porsi, $metode, $tanggal, $keterangan);
+                $hasil[] = ['no_faktur' => $p->no_faktur, 'nominal' => $porsi];
+                $sisaBayar = round($sisaBayar - $porsi, 2);
+            }
+
+            return $hasil;
         });
     }
 
@@ -115,6 +195,7 @@ class PembayaranHutangService
             DB::table('pembelian_bahan')->where('id_pembelian', $bayar->id_pembelian)->lockForUpdate()->first();
 
             AccountingService::reverseByReferensi($bayar->no_referensi_jurnal);
+            DB::table('kas_kecil')->where('sumber', 'hutang')->where('id_referensi', $idPembayaran)->delete();
 
             DB::table('pembayaran_hutang')->where('id', $idPembayaran)->update([
                 'voided_at' => now(),
