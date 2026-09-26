@@ -615,7 +615,7 @@
     @php
         $grpRelasiVisible = $cekAkses(7) || $cekAkses(34) || $cekAkses(18) || $cekAkses(13) || $cekAkses(21) || $cekAkses(32) || $cekAkses(14) || $cekAkses(28) || $cekAkses(9) || $cekAkses(16);
         $grpRelasiAktif = Request::is('konsumen', 'konsumen/*') || Request::is('golongan', 'golongan/*') || Request::is('produk', 'produk/*')
-            || Request::is('finishing', 'finishing/*') || Request::is('jasa', 'jasa/*') || Request::is('setting-harga', 'setting-harga/*')
+            || Request::is('finishing', 'finishing/*') || Request::is('jasa', 'jasa/*') || Request::is('setting-harga', 'setting-harga/*') || Request::is('harga-siap-cetak', 'harga-siap-cetak/*')
             || Request::is('harga-promo', 'harga-promo/*') || Request::is('supplier', 'supplier/*') || Request::is('platform-belanja', 'platform-belanja/*') || Request::is('kasir/monitoring', 'kasir/monitoring/*')
             || Request::is('kasir/kelola-kas', 'kasir/kelola-kas/*');
     @endphp
@@ -689,6 +689,12 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
         <span class="text-sm font-medium">Price List & Level</span>
+    </a>
+    <a href="{{ route('harga-siap-cetak.index') }}" title="Harga khusus order dengan file siap cetak dari pelanggan" class="{{ $menuClass }} {{ Request::is('harga-siap-cetak', 'harga-siap-cetak/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('harga-siap-cetak', 'harga-siap-cetak/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+        <span class="text-sm font-medium">Harga File Siap Cetak</span>
     </a>
     @endif
 

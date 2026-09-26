@@ -6,6 +6,7 @@
     $terbitAtInput = old('terbit_at', optional($post->terbit_at)->format('Y-m-d\TH:i'));
 @endphp
 <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1300px] mx-auto">
 
     <x-page-header :title="$edit ? 'Edit Postingan' : 'Tulis Postingan'">
@@ -38,12 +39,40 @@
                     </x-form.group>
                 </x-card>
 
-                <x-card :padding="false" class="overflow-hidden">
+                {{-- Tanpa overflow-hidden agar toolbar bisa menempel (sticky) saat halaman digulir --}}
+                <x-card :padding="false" class="editor-kartu">
                     <div class="px-6 pt-5 pb-3 flex items-center justify-between">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Isi Postingan <span class="text-rose-500">*</span></label>
                         <span class="text-[11px] text-slate-400" id="hitung-kata">0 kata</span>
                     </div>
+                    <div id="toolbar-postingan" class="toolbar-postingan">
+                        <span class="ql-formats">
+                            <select class="ql-header" title="Gaya paragraf"><option value="2">Judul Bagian</option><option value="3">Sub Judul</option><option value="4">Judul Kecil</option><option selected>Paragraf</option></select>
+                            <select class="ql-spasi" title="Jarak baris &amp; paragraf"><option value="rapat">Rapat</option><option value="" selected>Normal</option><option value="longgar">Longgar</option><option value="lega">Lega</option></select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-bold" title="Tebal (Ctrl+B)"></button><button class="ql-italic" title="Miring (Ctrl+I)"></button><button class="ql-underline" title="Garis bawah (Ctrl+U)"></button><button class="ql-strike" title="Coret"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-align" value="" title="Rata kiri"></button><button class="ql-align" value="center" title="Rata tengah"></button><button class="ql-align" value="right" title="Rata kanan"></button><button class="ql-align" value="justify" title="Rata kiri-kanan"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-list" value="ordered" title="Daftar bernomor"></button><button class="ql-list" value="bullet" title="Daftar poin"></button>
+                            <button class="ql-indent" value="-1" title="Kurangi menjorok"></button><button class="ql-indent" value="+1" title="Tambah menjorok"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-blockquote" title="Kutipan / catatan penting"></button><button class="ql-link" title="Tautan"></button><button class="ql-image" title="Sisipkan gambar"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button type="button" id="btn-undo" title="Urungkan (Ctrl+Z)"><i class="fas fa-rotate-left text-[11px]"></i></button><button type="button" id="btn-redo" title="Ulangi (Ctrl+Y)"><i class="fas fa-rotate-right text-[11px]"></i></button>
+                            <button class="ql-clean" title="Hapus format teks terpilih"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button type="button" id="btn-rapikan" class="btn-rapikan" title="Rapikan otomatis: hapus spasi &amp; baris kosong berlebih, ubah '-' / '1.' menjadi daftar, deteksi judul, sambung baris terpotong"><i class="fas fa-wand-magic-sparkles"></i> Rapikan</button>
+                        </span>
+                    </div>
                     <div id="editor-postingan">{!! \App\Support\HtmlBersih::bersihkan(old('isi', $post->isi_html)) !!}</div>
+                    <div class="px-6 py-3 text-[11px] text-slate-400 border-t border-slate-100">Isi yang ditempel dari Word/web/PDF otomatis dibersihkan ke format standar (font, warna, dan ukuran asal dibuang). Tempel tanpa format sama sekali: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>.</div>
                 </x-card>
             </div>
 
@@ -108,16 +137,104 @@
     const URL_UNGGAH = @json(route('postingan.unggah'));
     const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
+    // Toolbar sticky menempel tepat di bawah topbar (tingginya berbeda di desktop/mobile)
+    const ukurTopbar = () => document.documentElement.style.setProperty('--tinggi-topbar', (document.querySelector('.topbar')?.offsetHeight || 78) + 'px');
+    ukurTopbar(); window.addEventListener('resize', ukurTopbar);
+
+    // ---- Format kustom: jarak baris/paragraf (kelas ql-spasi-*, lolos daftar putih server)
+    const Parchment = Quill.import('parchment');
+    Quill.register(new Parchment.Attributor.Class('spasi', 'ql-spasi', { scope: Parchment.Scope.BLOCK, whitelist: ['rapat', 'longgar', 'lega'] }), true);
+    Quill.register(Quill.import('attributors/class/align'), true);
+    const Delta = Quill.import('delta');
+
     const quill = new Quill('#editor-postingan', {
         theme: 'snow',
         placeholder: 'Tulis isi postingan di sini... (bisa tempel atau seret gambar)',
+        formats: ['header', 'bold', 'italic', 'underline', 'strike', 'list', 'indent', 'align', 'spasi', 'blockquote', 'link', 'image'],
         modules: {
-            toolbar: {
-                container: [[{ header: [2, 3, false] }], ['bold', 'italic', 'underline', 'strike'], [{ list: 'ordered' }, { list: 'bullet' }], ['blockquote', 'link', 'image'], ['clean']],
-                handlers: { image: pilihGambar },
-            },
+            toolbar: { container: '#toolbar-postingan', handlers: { image: pilihGambar } },
+            history: { delay: 800, maxStack: 200, userOnly: true },
         },
     });
+
+    // ---- Tempel: hanya format standar yang lolos. h1 -> Judul Bagian, h5/h6 -> Judul Kecil, spasi keras (nbsp) & spasi ganda dibuang.
+    quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
+        const out = new Delta();
+        delta.ops.forEach(op => {
+            const at = op.attributes ? { ...op.attributes } : null;
+            if (at && at.header) { at.header = at.header <= 2 ? 2 : (at.header === 3 ? 3 : 4); }
+            if (at) { delete at.color; delete at.background; delete at.font; delete at.size; }
+            out.push(at && Object.keys(at).length ? { insert: op.insert, attributes: at } : { insert: op.insert });
+        });
+        return out;
+    });
+    quill.clipboard.addMatcher(Node.TEXT_NODE, (node, delta) => {
+        const out = new Delta();
+        delta.ops.forEach(op => out.push(typeof op.insert === 'string' ? { ...op, insert: op.insert.replace(/[\u00a0\u2007\u202f]/g, ' ').replace(/ {2,}/g, ' ') } : op));
+        return out;
+    });
+
+    // ---- Rapikan: normalisasi isi ke "format standar" (tanpa baris kosong sebagai spasi, daftar, judul, baris terpotong)
+    const KODE_POIN = /^[\-\u2022\u25cf\u25aa\u25e6\u2013*\u2192>]\s+/;
+    const KODE_NOMOR = /^(\d{1,2}|[a-zA-Z])[.)]\s+/;
+    function rapikanHtml(html) {
+        const wadah = document.createElement('div'); wadah.innerHTML = html;
+        const hasil = [];
+        const teksDari = el => el.textContent.replace(/[\u00a0\u2007\u202f]/g, ' ').replace(/\s+/g, ' ').trim();
+        let daftar = null;
+
+        [...wadah.children].forEach(el => {
+            const tag = el.tagName;
+            if (tag !== 'P') { daftar = null; hasil.push(el); return; }
+            if (el.querySelector('img')) { daftar = null; hasil.push(el); return; }
+            if (teksDari(el) === '') { daftar = null; return; }                              // baris kosong dibuang: jarak diatur gaya
+            el.innerHTML = el.innerHTML.replace(/&nbsp;/g, ' ').replace(/ {2,}/g, ' ').trim().replace(/(<br\s*\/?>\s*)+$/i, '');
+
+            const t = teksDari(el);
+            const poin = KODE_POIN.test(t), nomor = KODE_NOMOR.test(t);
+            if (poin || nomor) {                                                              // "- a", "1. a" -> daftar sungguhan
+                const jenis = poin ? 'UL' : 'OL';
+                if (!daftar || daftar.tagName !== jenis) { daftar = document.createElement(jenis); hasil.push(daftar); }
+                const li = document.createElement('li');
+                li.innerHTML = el.innerHTML.replace(poin ? KODE_POIN : KODE_NOMOR, '');
+                daftar.appendChild(li);
+                return;
+            }
+            daftar = null;
+            const sebelum = hasil[hasil.length - 1];
+            const semuaTebal = el.children.length === 1 && /^(STRONG|B)$/.test(el.firstElementChild.tagName) && teksDari(el.firstElementChild) === t;
+            if (t.length <= 70 && !/[.,;:!?]$/.test(t) && (semuaTebal || (t.length >= 4 && t === t.toUpperCase() && /[A-Z]/.test(t)))) {
+                const h = document.createElement(semuaTebal ? 'h3' : 'h2');                   // judul terdeteksi
+                h.textContent = t; hasil.push(h); return;
+            }
+            // baris terpotong (hasil salin PDF/e-mail): sambung ke paragraf sebelumnya
+            if (sebelum && sebelum.tagName === 'P' && teksDari(sebelum).length > 40 && !/[.!?:;)"\u201d]$/.test(teksDari(sebelum)) && /^[a-z]/.test(t) && !el.className) {
+                sebelum.innerHTML += ' ' + el.innerHTML; return;
+            }
+            hasil.push(el);
+        });
+        return hasil.map(e => e.outerHTML).join('');
+    }
+    function rapikan(senyap) {
+        const sebelum = quill.root.innerHTML;
+        const sesudah = rapikanHtml(sebelum);
+        if (sesudah === sebelum) { if (!senyap) toast('Sudah rapi, tidak ada yang perlu diperbaiki', 'info'); return; }
+        // Quill menyisipkan baris kosong di antara paragraf & daftar saat konversi - dibuang agar hasilnya stabil
+        const delta = quill.clipboard.convert(sesudah), bersih = new Delta();
+        delta.ops.forEach(op => bersih.push(typeof op.insert === 'string' && !op.attributes ? { insert: op.insert.replace(/\n{2,}/g, '\n') } : op));
+        quill.setContents(bersih, 'user');
+        toast(senyap ? 'Hasil tempel dirapikan otomatis (urungkan dengan Ctrl+Z)' : 'Format dirapikan', 'success');
+    }
+    function toast(t, ikon) { Swal.fire({ toast: true, position: 'top-end', icon: ikon, title: t, timer: 2400, showConfirmButton: false }); }
+
+    // Dokumen kosong lalu ditempel isi panjang -> rapikan otomatis (menghindari lompatan kursor saat menyisipkan di tengah tulisan)
+    quill.root.addEventListener('paste', () => {
+        const kosongSebelum = quill.getText().trim() === '';
+        setTimeout(() => { if (kosongSebelum && quill.getText().trim().length > 80) rapikan(true); }, 60);
+    });
+    document.getElementById('btn-rapikan').addEventListener('click', () => rapikan(false));
+    document.getElementById('btn-undo').addEventListener('click', () => quill.history.undo());
+    document.getElementById('btn-redo').addEventListener('click', () => quill.history.redo());
 
     function hitungKata() {
         const t = quill.getText().trim();

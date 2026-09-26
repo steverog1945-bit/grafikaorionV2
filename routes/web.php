@@ -319,6 +319,11 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     |--------------------------------------------------------------------------
     */
 
+    // Harga File Siap Cetak (harga tersendiri per produk)
+    Route::get('/harga-siap-cetak', [\App\Http\Controllers\HargaSiapCetakController::class, 'index'])->name('harga-siap-cetak.index');
+    Route::get('/harga-siap-cetak/{idProduk}', [\App\Http\Controllers\HargaSiapCetakController::class, 'tampil'])->whereNumber('idProduk')->name('harga-siap-cetak.tampil');
+    Route::post('/harga-siap-cetak/{idProduk}', [\App\Http\Controllers\HargaSiapCetakController::class, 'simpan'])->whereNumber('idProduk')->name('harga-siap-cetak.simpan');
+
     Route::get('/setting-harga',
         [SettingHargaController::class, 'index'])
         ->name('setting-harga.index');

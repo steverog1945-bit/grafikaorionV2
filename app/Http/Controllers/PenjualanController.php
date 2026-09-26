@@ -60,7 +60,9 @@ class PenjualanController extends Controller
     $desainerList = \App\Services\DesainKomisiService::daftarDesainer();
     $desainerDefault = \App\Services\DesainKomisiService::tentukanDesainer(null);
 
-    return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef', 'desainerList', 'desainerDefault'));
+    $produkSiapCetak = \App\Services\HargaService::produkDenganHargaSiapCetak();
+
+    return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef', 'desainerList', 'desainerDefault', 'produkSiapCetak'));
 }
 
 public function getHarga($id_produk, $id_golongan, $qty) {
@@ -207,12 +209,15 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         // ditambahkan ke subtotal (lihat catatan biaya_cetak di bawah),
         // murni jadi SARAN nilai default untuk Biaya Cetak yang dikirim
         // client dari hitungSubtotal() di penjualan/create.blade.php.
-        $hargaSatuan = HargaService::getHargaEfektif($produk->id_produk, (int) $request->id_golongan, $qtyHitung)['harga_jual'];
+        $siapCetak = filter_var($item['siap_cetak'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $hargaSatuan = HargaService::getHargaEfektif($produk->id_produk, (int) $request->id_golongan, $qtyHitung, $siapCetak)['harga_jual'];
 
         if ($hargaSatuan <= 0) {
             return response()->json([
                 'status' => 'error',
-                'msg' => 'Harga untuk "' . $produk->nama_produk . '" belum diatur di Price List untuk golongan konsumen ini.',
+                'msg' => $siapCetak
+                    ? 'Harga File Siap Cetak untuk "' . $produk->nama_produk . '" belum diatur (menu Harga File Siap Cetak) untuk golongan konsumen ini.'
+                    : 'Harga untuk "' . $produk->nama_produk . '" belum diatur di Price List untuk golongan konsumen ini.',
             ], 422);
         }
 
@@ -225,7 +230,8 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         // tapi operator bebas menimpa - sama persis tingkat kepercayaan yang
         // sudah berlaku untuk desain/finishing, cuma dipastikan tidak
         // negatif supaya tidak bisa dipakai mengurangi total.
-        $biayaDesain = max(0, (float) ($item['biaya_desain'] ?? 0));
+        // File Siap Cetak = tanpa campur tangan tim desain: tidak ada biaya desain & tidak ada desainer/komisi.
+        $biayaDesain = $siapCetak ? 0.0 : max(0, (float) ($item['biaya_desain'] ?? 0));
         $biayaCetak = max(0, (float) ($item['biaya_cetak'] ?? 0));
 
         // id_finishing opsional (produk boleh tanpa finishing). Divalidasi ke
@@ -299,6 +305,10 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         }
 
         $catatanProduksi = trim((string) ($item['catatan_produksi'] ?? ''));
+        if ($siapCetak) {
+            // Penanda ikut tercetak di SPK & tampil di daftar produksi tanpa mengubah layar-layar itu.
+            $catatanProduksi = trim('[FILE SIAP CETAK - dari pelanggan, tanpa desain tim] ' . $catatanProduksi);
+        }
 
         $itemsTervalidasi[] = [
             'is_jasa' => false,
@@ -315,6 +325,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             'biaya_finishing' => $biayaFinishing,
             'biaya_cetak' => $biayaCetak,
             'biaya_desain' => $biayaDesain,
+            'file_siap_cetak' => $siapCetak,
             // Desainer yang menerapkan biaya desain + komisi menurut kelasnya (snapshot saat nota dibuat).
             'id_desainer' => $biayaDesain > 0 ? \App\Services\DesainKomisiService::tentukanDesainer(isset($item['id_desainer']) ? (int) $item['id_desainer'] : null) : null,
             'status_urgensi' => $statusUrgensi,
@@ -399,6 +410,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                 'biaya_finishing'  => $item['biaya_finishing'],
                 'biaya_cetak'      => $item['biaya_cetak'],
                 'biaya_desain'     => $item['biaya_desain'],
+                'file_siap_cetak'  => $item['file_siap_cetak'] ? 1 : 0,
                 'id_desainer'      => $item['id_desainer'],
                 'komisi_desain_persen' => $komisiDesain['persen'],
                 'komisi_desain'    => $komisiDesain['komisi'],

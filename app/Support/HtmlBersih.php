@@ -10,6 +10,8 @@ class HtmlBersih
 {
     private const TAG = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'pre', 'code', 'hr', 'figure', 'figcaption'];
 
+    private const TAG_BLOK = ['p', 'h2', 'h3', 'h4', 'li', 'ul', 'ol', 'blockquote'];
+
     public static function bersihkan(?string $html): string
     {
         $html = trim((string) $html);
@@ -65,6 +67,7 @@ class HtmlBersih
                 continue;
             }
 
+            $kelasAsal = (string) $anak->getAttribute('class');
             foreach (iterator_to_array($anak->attributes) as $atr) {
                 $nama = strtolower($atr->name);
                 $nilai = trim($atr->value);
@@ -74,6 +77,10 @@ class HtmlBersih
                 if (!$boleh) {
                     $anak->removeAttribute($atr->name);
                 }
+            }
+            // Kelas tata letak dari editor (rata teks, indentasi, jarak) - hanya yang ada di daftar putih.
+            if (in_array($tag, self::TAG_BLOK, true) && ($kelas = self::kelasAman($kelasAsal)) !== '') {
+                $anak->setAttribute('class', $kelas);
             }
             if ($tag === 'a') {
                 $anak->setAttribute('target', '_blank');
@@ -89,6 +96,13 @@ class HtmlBersih
             }
             self::saring($anak);
         }
+    }
+
+    private static function kelasAman(string $kelas): string
+    {
+        $lolos = array_filter(preg_split('/\s+/', trim($kelas)) ?: [], fn ($k) => preg_match('/^ql-(align-(center|right|justify)|indent-[1-8]|spasi-(rapat|longgar|lega))$/', $k));
+
+        return implode(' ', $lolos);
     }
 
     private static function urlAman(string $url, bool $gambar): bool

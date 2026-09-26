@@ -24,10 +24,10 @@ class PenjualanApiController extends Controller
         }
     }
 
-    public function getHarga($id_produk, $id_golongan, $qty)
+    public function getHarga(Request $request, $id_produk, $id_golongan, $qty)
     {
         try {
-            $hasil = HargaService::getHargaEfektif((int) $id_produk, (int) $id_golongan, (float) $qty);
+            $hasil = HargaService::getHargaEfektif((int) $id_produk, (int) $id_golongan, (float) $qty, $request->boolean('siap_cetak'));
 
             return response()->json($hasil);
         } catch (\Exception $e) {
