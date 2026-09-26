@@ -76,5 +76,6 @@
     </div>
 </div>
 
+@include('partials.dashboard-info-terbaru')
 </div>
 @endsection

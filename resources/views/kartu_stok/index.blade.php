@@ -180,11 +180,13 @@
     <x-modal id="penyesuaian-stok" title="Penyesuaian Stok" maxWidth="md">
         <form id="formPenyesuaian" action="{{ route('kartu-stok.adjustment') }}" method="POST" class="space-y-5">
             @csrf
+            {{-- Optimistic locking: stok yang terlihat saat formulir dibuka; ditolak server bila sudah berubah. --}}
+            <input type="hidden" name="stok_dibuka" id="adj_stok_dibuka" value="">
             <x-form.group label="Bahan" name="id_bahan" required>
                 <x-form.select name="id_bahan" id="adj_id_bahan" required>
                     <option value="">-- Pilih Bahan --</option>
                     @foreach($bahan as $b)
-                        <option value="{{ $b->id_bahan }}" data-stok="{{ angka($b->stok, 4) }}" data-satuan="{{ $b->nama_satuan_stok ?? $b->satuan_stok }}" data-nama="{{ $b->nama_bahan }}">{{ $b->nama_bahan }} ({{ $b->kode_bahan }})</option>
+                        <option value="{{ $b->id_bahan }}" data-stok-raw="{{ (float) $b->stok }}" data-stok="{{ angka($b->stok, 4) }}" data-satuan="{{ $b->nama_satuan_stok ?? $b->satuan_stok }}" data-nama="{{ $b->nama_bahan }}">{{ $b->nama_bahan }} ({{ $b->kode_bahan }})</option>
                     @endforeach
                 </x-form.select>
             </x-form.group>
@@ -200,13 +202,13 @@
 
             <div id="adj_wrapper_qty">
                 <x-form.group label="Qty Keluar (dalam satuan stok)" name="qty">
-                    <div class="flex items-center gap-2"><x-form.input type="number" name="qty" id="adj_qty" step="0.01" min="0.01" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black uppercase">-</span></div>
+                    <div class="flex items-center gap-2"><x-form.input type="text" inputmode="decimal" name="qty" id="adj_qty" class="input-desimal" autocomplete="off" placeholder="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black uppercase">-</span></div>
                 </x-form.group>
             </div>
 
             <div id="adj_wrapper_stok_baru" class="hidden">
                 <x-form.group label="Stok Sebenarnya (Hasil Hitung Fisik)" name="stok_baru">
-                    <div class="flex items-center gap-2"><x-form.input type="number" name="stok_baru" id="adj_stok_baru" step="0.01" min="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black uppercase">-</span></div>
+                    <div class="flex items-center gap-2"><x-form.input type="text" inputmode="decimal" name="stok_baru" id="adj_stok_baru" class="input-desimal" autocomplete="off" placeholder="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black uppercase">-</span></div>
                 </x-form.group>
             </div>
 
@@ -245,6 +247,24 @@
         document.querySelectorAll('.adj-unit').forEach(el => el.textContent = satuan || '-');
     }
 
+    // Kotak angka: hanya digit dan satu pemisah desimal (titik/koma); huruf, tanda, dan "e" langsung dibuang.
+    document.querySelectorAll('input.input-desimal').forEach(el => {
+        el.addEventListener('input', () => {
+            let v = el.value.replace(/[^0-9.,]/g, '');
+            const i = v.search(/[.,]/);
+            if (i >= 0) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/[.,]/g, '');
+            if (v !== el.value) el.value = v;
+        });
+    });
+    const angkaAdj = (id) => parseFloat((document.getElementById(id).value || '').replace(',', '.'));
+
+    // Simpan stok yang terlihat saat pilihan bahan berubah / formulir dibuka (dasar optimistic locking).
+    function catatStokDibuka() {
+        const opt = document.getElementById('adj_id_bahan').selectedOptions[0];
+        document.getElementById('adj_stok_dibuka').value = opt ? (opt.getAttribute('data-stok-raw') || '') : '';
+    }
+    document.getElementById('adj_id_bahan').addEventListener('change', catatStokDibuka);
+
     // Konfirmasi sebelum diajukan: tampilkan angka + SATUAN-nya supaya tidak salah input (mis. 5 dus vs 5 pcs).
     document.getElementById('formPenyesuaian').addEventListener('submit', function (e) {
         if (this.__ok) return;
@@ -253,8 +273,11 @@
         const opt = sel.options[sel.selectedIndex];
         const satuan = opt.getAttribute('data-satuan') || '';
         const tipe = document.getElementById('adj_tipe').value;
-        const nilai = parseFloat(tipe === 'OUT' ? document.getElementById('adj_qty').value : document.getElementById('adj_stok_baru').value);
-        if (!(nilai >= 0)) { this.reportValidity(); return; }
+        const nilai = angkaAdj(tipe === 'OUT' ? 'adj_qty' : 'adj_stok_baru');
+        if (!(nilai >= 0) || (tipe === 'OUT' && !(nilai > 0))) { Swal.fire('Angka tidak valid', 'Isi angka yang benar (hanya digit dan satu tanda desimal).', 'warning'); return; }
+        // titik/koma desimal dikirim sebagai angka baku
+        document.getElementById('adj_qty').value = tipe === 'OUT' ? String(nilai) : document.getElementById('adj_qty').value;
+        document.getElementById('adj_stok_baru').value = tipe !== 'OUT' ? String(nilai) : document.getElementById('adj_stok_baru').value;
         const teks = tipe === 'OUT'
             ? `Keluarkan <b>${nilai.toLocaleString('id-ID')} ${satuan}</b> dari <b>${opt.dataset.nama}</b>?`
             : `Set stok <b>${opt.dataset.nama}</b> menjadi <b>${nilai.toLocaleString('id-ID')} ${satuan}</b>?`;
@@ -268,6 +291,7 @@
         tampilSatuanAdj(document.getElementById('adj_id_bahan').selectedOptions[0]?.getAttribute('data-satuan') || '');
         document.getElementById('adj_tipe').value = 'OUT';
         toggleAdjTipe();
+        catatStokDibuka();
         openModal('penyesuaian-stok');
     }
 </script>

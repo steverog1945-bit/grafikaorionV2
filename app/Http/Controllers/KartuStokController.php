@@ -156,10 +156,19 @@ class KartuStokController extends Controller
             'qty'         => 'required_if:tipe,OUT|nullable|numeric|min:0.01',
             'stok_baru'   => 'required_if:tipe,ADJUSTMENT|nullable|numeric|min:0',
             'keterangan'  => 'required|string|max:255',
+            'stok_dibuka' => 'nullable|numeric',
         ]);
 
         $bahan = DB::table('bahan_baku')->where('id_bahan', $validated['id_bahan'])->first();
         $stok = (float) $bahan->stok;
+
+        // Optimistic locking: stok saat formulir dibuka harus masih sama dengan stok sekarang - kalau sudah berubah
+        // (nota, kedatangan, penyesuaian pengguna lain), angka yang Anda lihat sudah usang dan ditolak.
+        if (isset($validated['stok_dibuka']) && abs($stok - (float) $validated['stok_dibuka']) > 0.0001) {
+            return back()->withInput()->with('error',
+                "Stok {$bahan->nama_bahan} sudah berubah sejak formulir dibuka (dibuka: " . angka((float) $validated['stok_dibuka'], 2) .
+                ', sekarang: ' . angka($stok, 2) . '). Periksa angka terbaru lalu ulangi penyesuaian.');
+        }
 
         // Cek awal supaya pengaju langsung tahu kalau mustahil; dicek ulang
         // saat eksekusi karena stok bisa berubah selama menunggu approval.

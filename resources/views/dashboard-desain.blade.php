@@ -107,6 +107,8 @@
     </div>
 </div>
 
+@include('partials.dashboard-info-terbaru')
+
 @include('partials.dashboard-finishing-panduan')
 
 </div>

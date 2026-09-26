@@ -151,4 +151,30 @@ class PenyesuaianStokManualTest extends TestCase
         $this->post('/kartu-stok/adjustment', ['id_bahan' => $idBahan, 'tipe' => 'ADJUSTMENT', 'stok_baru' => 80, 'keterangan' => 'Opname'])->assertSessionHas('success');
         $this->assertEquals(80, DB::table('bahan_baku')->where('id_bahan', $idBahan)->value('stok'));
     }
+
+    public function test_optimistic_locking_menolak_penyesuaian_bila_stok_sudah_berubah_sejak_formulir_dibuka(): void
+    {
+        $admin = $this->admin();
+        $idBahan = $this->buatBahan(100);
+        $this->actingAs($admin);
+
+        // Formulir dibuka saat stok 100, lalu pengguna lain mengubah stok menjadi 90.
+        DB::table('bahan_baku')->where('id_bahan', $idBahan)->update(['stok' => 90]);
+        $this->post('/kartu-stok/adjustment', ['id_bahan' => $idBahan, 'tipe' => 'OUT', 'qty' => 5, 'keterangan' => 'Rusak', 'stok_dibuka' => 100])->assertSessionHas('error');
+        $this->assertEquals(90, DB::table('bahan_baku')->where('id_bahan', $idBahan)->value('stok'));
+        $this->assertDatabaseCount('approval_requests', 0);
+
+        // Dengan stok terbaru diketahui, penyesuaian berjalan normal.
+        $this->post('/kartu-stok/adjustment', ['id_bahan' => $idBahan, 'tipe' => 'OUT', 'qty' => 5, 'keterangan' => 'Rusak', 'stok_dibuka' => 90])->assertSessionHas('success');
+        $this->assertEquals(85, DB::table('bahan_baku')->where('id_bahan', $idBahan)->value('stok'));
+    }
+
+    public function test_qty_bukan_angka_ditolak_server(): void
+    {
+        $admin = $this->admin();
+        $idBahan = $this->buatBahan(100);
+
+        $this->actingAs($admin)->post('/kartu-stok/adjustment', ['id_bahan' => $idBahan, 'tipe' => 'OUT', 'qty' => 'abc', 'keterangan' => 'x'])->assertSessionHasErrors('qty');
+        $this->assertEquals(100, DB::table('bahan_baku')->where('id_bahan', $idBahan)->value('stok'));
+    }
 }
