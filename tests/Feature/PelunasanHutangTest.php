@@ -123,4 +123,14 @@ class PelunasanHutangTest extends TestCase
 
         $this->get('/pembelian-bahan?jt=telat')->assertOk()->assertSee('F-NULL');
     }
+
+    public function test_filter_belum_jatuh_tempo_tidak_memuat_yang_telat_dan_ada_opsi_semua(): void
+    {
+        $this->faktur('F-TELAT2', 100000, now()->subDays(3)->toDateString());
+        $this->faktur('F-DEKAT', 100000, now()->addDays(4)->toDateString());
+        $this->faktur('F-JAUH', 100000, now()->addDays(25)->toDateString());
+
+        $this->get('/pembelian-bahan?jt=aman')->assertOk()->assertSee('F-JAUH')->assertDontSee('F-TELAT2')->assertDontSee('F-DEKAT')->assertSee('Tampilkan semua');
+        $this->get('/pembelian-bahan')->assertOk()->assertSee('F-JAUH')->assertSee('F-TELAT2')->assertSee('F-DEKAT');
+    }
 }

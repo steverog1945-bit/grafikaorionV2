@@ -34,12 +34,22 @@
                 <x-form.input type="date" name="to" value="{{ request('to') }}" />
             </div>
 
+            <div class="w-full md:w-52">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Jatuh Tempo</label>
+                <x-form.select name="jt">
+                    <option value="">Tampilkan semua</option>
+                    <option value="telat" {{ request('jt') === 'telat' ? 'selected' : '' }}>Telat jatuh tempo</option>
+                    <option value="7hari" {{ request('jt') === '7hari' ? 'selected' : '' }}>Jatuh tempo &le; 7 hari</option>
+                    <option value="aman" {{ request('jt') === 'aman' ? 'selected' : '' }}>Belum jatuh tempo (&gt; 7 hari)</option>
+                </x-form.select>
+            </div>
+
             <x-button type="submit">
                 <i class="fas fa-filter"></i>
                 Filter
             </x-button>
 
-            @if(request()->anyFilled(['search', 'from', 'to']))
+            @if(request()->anyFilled(['search', 'from', 'to', 'jt']))
                 <a href="{{ route('pembelian-bahan.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset Filter
                 </a>
@@ -59,15 +69,15 @@
             <p class="text-2xl font-bold text-amber-600 mt-1">{{ $ringkasJt['minggu']['n'] }} <span class="text-xs font-semibold text-slate-400">faktur</span></p>
             <p class="text-xs font-semibold text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['minggu']['nilai'], 0, ',', '.') }}</p>
         </a>
-        <a href="{{ route('pembelian-bahan.index') }}" title="Faktur berhutang dengan jatuh tempo lebih dari 7 hari lagi (klik untuk menampilkan semua)" class="rounded-3xl border border-slate-100 bg-white p-5 transition-all hover:shadow-md">
+        <a href="{{ route('pembelian-bahan.index', ['jt' => 'aman']) }}" title="Faktur berhutang dengan jatuh tempo lebih dari 7 hari lagi" class="rounded-3xl border p-5 transition-all hover:shadow-md {{ request('jt') === 'aman' ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-100' }}">
             <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Belum Jatuh Tempo</p>
             <p class="text-2xl font-bold text-emerald-600 mt-1">{{ $ringkasJt['aman']['n'] }} <span class="text-xs font-semibold text-slate-400">faktur</span></p>
             <p class="text-xs font-semibold text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['aman']['nilai'], 0, ',', '.') }}</p>
         </a>
     </div>
     @if(request()->filled('jt'))
-        <div class="mb-4 text-xs font-semibold text-slate-500">Menyaring: <b>{{ request('jt') === 'telat' ? 'faktur telat jatuh tempo' : 'faktur jatuh tempo dalam 7 hari' }}</b>
-            <a href="{{ route('pembelian-bahan.index') }}" class="text-rose-500 font-bold uppercase tracking-widest ml-2 hover:underline">Hapus penyaring</a></div>
+        <div class="mb-4 text-xs font-semibold text-slate-500">Menyaring: <b>{{ ['telat' => 'faktur telat jatuh tempo', '7hari' => 'faktur jatuh tempo dalam 7 hari', 'aman' => 'faktur belum jatuh tempo (lebih dari 7 hari)'][request('jt')] ?? '' }}</b>
+            <a href="{{ route('pembelian-bahan.index', request()->except(['jt', 'page'])) }}" title="Kembali menampilkan semua faktur" class="text-indigo-600 font-bold uppercase tracking-widest ml-2 hover:underline">Tampilkan semua</a></div>
     @endif
 
     <form id="bulk-delete-form" method="POST" action="{{ route('pembelian-bahan.bulk-delete') }}">
