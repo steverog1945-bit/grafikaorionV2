@@ -57,6 +57,17 @@ class PostinganTest extends TestCase
         $this->assertStringNotContainsString('style=', $bersih);
     }
 
+    public function test_format_font_ukuran_warna_lolos_dan_yang_lain_dibuang(): void
+    {
+        $bersih = HtmlBersih::bersihkan('<p><span class="ql-font-lora ql-size-large ql-color-red ql-bg-yellow ql-color-hack" style="color:red">a</span> H<sub>2</sub>O x<sup>2</sup></p>');
+
+        $this->assertStringContainsString('class="ql-font-lora ql-size-large ql-color-red ql-bg-yellow"', $bersih);
+        $this->assertStringNotContainsString('ql-color-hack', $bersih);
+        $this->assertStringNotContainsString('style=', $bersih);
+        $this->assertStringContainsString('<sub>2</sub>', $bersih);
+        $this->assertStringContainsString('<sup>2</sup>', $bersih);
+    }
+
     public function test_admin_membuat_mengedit_dan_menghapus_postingan_dengan_sampul_dan_gambar_isi(): void
     {
         Storage::fake('public');

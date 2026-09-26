@@ -8,9 +8,9 @@ namespace App\Support;
  */
 class HtmlBersih
 {
-    private const TAG = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'pre', 'code', 'hr', 'figure', 'figcaption'];
+    private const TAG = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'pre', 'code', 'hr', 'figure', 'figcaption', 'span', 'sub', 'sup'];
 
-    private const TAG_BLOK = ['p', 'h2', 'h3', 'h4', 'li', 'ul', 'ol', 'blockquote'];
+    private const TAG_BLOK = ['p', 'h2', 'h3', 'h4', 'li', 'ul', 'ol', 'blockquote', 'span'];
 
     public static function bersihkan(?string $html): string
     {
@@ -100,7 +100,7 @@ class HtmlBersih
 
     private static function kelasAman(string $kelas): string
     {
-        $lolos = array_filter(preg_split('/\s+/', trim($kelas)) ?: [], fn ($k) => preg_match('/^ql-(align-(center|right|justify)|indent-[1-8]|spasi-(rapat|longgar|lega))$/', $k));
+        $lolos = array_filter(preg_split('/\s+/', trim($kelas)) ?: [], fn ($k) => preg_match('/^ql-(align-(center|right|justify)|indent-[1-8]|spasi-(rapat|longgar|lega)|font-(nunito|inter|lora|playfair|mono)|size-(small|large|huge)|color-(red|orange|green|blue|purple|gray)|bg-(yellow|lightgreen|lightblue|pink))$/', $k));
 
         return implode(' ', $lolos);
     }
