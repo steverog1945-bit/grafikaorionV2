@@ -108,4 +108,16 @@ class HargaSiapCetakTest extends TestCase
         $this->assertEquals(0, $d->file_siap_cetak);
         $this->assertEquals(20000, (float) $d->biaya_desain);
     }
+
+    public function test_role_tanpa_hak_lihat_harga_ditolak_walau_menu_price_list_dicentang(): void
+    {
+        $r = Role::factory()->create(['nama_role' => 'Operator Desain']);
+        DB::table('roles')->where('id_role', $r->id_role)->update(['boleh_lihat_harga' => false]);
+        DB::table('menus')->insertOrIgnore(['id_menu' => 14, 'nama_menu' => 'Price List', 'url_link' => 'setting-harga', 'parent_id' => 0]);
+        DB::table('role_permissions')->insert(['id_role' => $r->id_role, 'id_menu' => 14, 'can_view' => 1, 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1]);
+        $u = User::factory()->create(['id_role' => $r->id_role]);
+
+        $this->actingAs($u)->get('/harga-siap-cetak')->assertForbidden();
+        $this->postJson("/harga-siap-cetak/{$this->idProduk}", ['tier' => []])->assertForbidden();
+    }
 }

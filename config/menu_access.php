@@ -172,6 +172,7 @@ return [
         'finishing',
         'finishing-harga',
         'quotation',
+        'harga-siap-cetak',
         'konsumen/*/timeline',
     ],
 
