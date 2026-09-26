@@ -7,7 +7,7 @@
     $garis = 'stroke="#64748b" stroke-width="1.5"';
     $kartu = [
         [
-            'judul' => 'Mata Ayam', 'grup' => 'banner', 'tag' => 'Banner',
+            'judul' => 'Mata Ayam', 'foto' => ['file' => 'mata-ayam.jpg', 'nama' => 'Grommets of a New Zealand flag', 'oleh' => 'Panamitsu', 'lisensi' => 'CC BY-SA 4.0', 'url' => 'https://commons.wikimedia.org/wiki/File:Grommets_of_a_New_Zealand_flag.jpg'], 'grup' => 'banner', 'tag' => 'Banner',
             'apa' => 'Cincin logam (eyelet) yang dipasang di tepi banner sebagai lubang untuk tali atau pengait gantung.',
             'cocok' => 'Spanduk & banner outdoor yang digantung atau diikat.',
             'catatan' => 'Jarak antar lubang dibuat merata (umumnya sekitar 40-60 cm) dan sisakan lebihan bahan di tepi supaya tidak sobek.',
@@ -26,7 +26,7 @@
 SVG,
         ],
         [
-            'judul' => 'Kisscut', 'grup' => 'stiker', 'tag' => 'Stiker',
+            'judul' => 'Kisscut', 'foto' => ['file' => 'kisscut-stiker.png', 'nama' => 'FreeBSD Sticker Sheet (16 stickers) - contoh lembar stiker', 'oleh' => 'FAndrey', 'lisensi' => 'CC BY 2.0', 'url' => 'https://commons.wikimedia.org/wiki/File:FreeBSD_Sticker_Sheet_(16_stickers)_(44107423534).png'], 'grup' => 'stiker', 'tag' => 'Stiker',
             'apa' => 'Potong setengah: hanya lapisan stiker yang terpotong, kertas alas (backing) tetap utuh sehingga stiker mudah dikelupas satuan.',
             'cocok' => 'Stiker label, stiker kemasan, lembaran stiker banyak bentuk.',
             'catatan' => 'Dikerjakan mesin cutting; pastikan garis potong (cutline) ada di file desain dan kedalaman potong pas.',
@@ -43,7 +43,7 @@ SVG,
 SVG,
         ],
         [
-            'judul' => 'Laminasi Panas', 'grup' => 'laminasi', 'tag' => 'Laminasi',
+            'judul' => 'Laminasi Panas', 'foto' => ['file' => 'laminasi-panas.jpg', 'nama' => 'GBC Fusion 1000L Laminator', 'oleh' => 'TaurusEmerald', 'lisensi' => 'CC BY-SA 4.0', 'url' => 'https://commons.wikimedia.org/wiki/File:GBC_Fusion_1000L_Laminator.jpg'], 'grup' => 'laminasi', 'tag' => 'Laminasi',
             'apa' => 'Lapisan film pelindung yang direkatkan dengan roller panas (hot roll) sehingga menyatu kuat dengan hasil cetak.',
             'cocok' => 'Kertas: poster, foto, kartu, brosur - butuh perlindungan dan tampilan glossy/doff yang awet.',
             'catatan' => 'Hindari bahan yang tidak tahan panas. Mesin harus pemanasan dulu, jadi cocok untuk jumlah banyak.',
@@ -153,9 +153,23 @@ SVG,
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5" id="grid-finishing">
         @foreach($kartu as $k)
         <article data-grup="{{ $k['grup'] }}" class="kartu-finishing bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
+            @if(!empty($k['foto']))
+            <div class="relative bg-slate-100 kartu-foto">
+                <img src="{{ asset('img/finishing/' . $k['foto']['file']) }}" alt="{{ $k['judul'] }} - {{ $k['foto']['nama'] }}" loading="lazy" class="w-full aspect-[8/5] object-cover">
+                <span class="absolute left-3 bottom-3 max-w-[85%] text-[10px] leading-tight px-2 py-1 rounded-md bg-slate-900/70 text-white">
+                    Foto: <a href="{{ $k['foto']['url'] }}" target="_blank" rel="noopener" class="underline" title="Sumber foto di Wikimedia Commons">{{ $k['foto']['nama'] }}</a> &middot; {{ $k['foto']['oleh'] }} &middot; {{ $k['foto']['lisensi'] }}
+                </span>
+                <button type="button" onclick="gantiGambarFinishing(this)" title="Tampilkan ilustrasi cara kerja" class="absolute right-3 top-3 px-2.5 py-1.5 rounded-lg bg-white/90 text-slate-600 text-[10px] font-bold uppercase tracking-widest hover:bg-white shadow-sm">Ilustrasi</button>
+            </div>
+            <div class="panel-ilustrasi hidden bg-gradient-to-br from-slate-50 to-indigo-50/40 px-4 pt-4 pb-2 relative kartu-ilustrasi">
+                <div class="w-full aspect-[8/5]">{!! $k['svg'] !!}</div>
+                <button type="button" onclick="gantiGambarFinishing(this)" title="Kembali ke foto" class="absolute right-3 top-3 px-2.5 py-1.5 rounded-lg bg-white text-slate-600 text-[10px] font-bold uppercase tracking-widest shadow-sm">Foto</button>
+            </div>
+            @else
             <div class="panel-ilustrasi bg-gradient-to-br from-slate-50 to-indigo-50/40 px-4 pt-4 pb-2">
                 <div class="w-full aspect-[8/5]">{!! $k['svg'] !!}</div>
             </div>
+            @endif
             <div class="p-5">
                 <div class="flex items-center justify-between gap-2 mb-2">
                     <h3 class="text-sm font-bold text-slate-800">{{ $k['judul'] }}</h3>
@@ -191,10 +205,16 @@ SVG,
             </table>
         </div>
     </div>
-    <p class="text-[10px] text-slate-400 mt-3">Gambar berupa ilustrasi (bukan foto produk). Daftar & tarif finishing tetap diatur di menu Finishing.</p>
+    <p class="text-[10px] text-slate-400 mt-3">Kartu ber-tombol "Ilustrasi" memuat foto dari Wikimedia Commons (lisensi terbuka, sumber & pembuat tertera pada foto); finishing lain berupa ilustrasi buatan sendiri. Daftar & tarif finishing tetap diatur di menu Finishing.</p>
 </section>
 
 <script>
+    // Ganti tampilan kartu antara foto dan ilustrasi
+    function gantiGambarFinishing(btn) {
+        const kartu = btn.closest('article');
+        kartu.querySelector('.kartu-foto').classList.toggle('hidden');
+        kartu.querySelector('.kartu-ilustrasi').classList.toggle('hidden');
+    }
     function saringFinishing(grup) {
         document.querySelectorAll('#grid-finishing .kartu-finishing').forEach(el => el.classList.toggle('hidden', grup !== 'semua' && el.dataset.grup !== grup));
         const tabel = document.querySelector('[data-grup-tabel="laminasi"]');

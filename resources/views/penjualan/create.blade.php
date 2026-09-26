@@ -59,8 +59,12 @@
                      (kartu ini sempit saat keranjang di kanan aktif, jadi select2 pelanggan diberi porsi terbesar). --}}
                 {{-- Lebar tata letak mengikuti lebar KARTU (container query), bukan lebar layar: Cari Pelanggan selalu satu baris penuh
                      agar tetap besar & jelas; pasangan kolom hanya dipakai bila kartu cukup lebar, sehingga tidak saling bertabrakan. --}}
-                <div class="@container space-y-4">
-                    <x-form.group>
+                {{-- Dua kolom rapat agar tidak perlu scroll: Cari Pelanggan selebar baris; Nomor Telepon | Tipe Harga; Tipe Order | Tanggal Order
+                     (tanggal tepat di bawah Tipe Harga); No. PO muncul selebar baris hanya bila tipe order = PO. Tetap satu kolom bila kartu sangat sempit. --}}
+                <div class="@container">
+                    <div class="grid grid-cols-1 @md:grid-cols-2 gap-x-4 gap-y-3.5">
+                        <div class="@md:col-span-2">
+                            <x-form.group>
                         <div class="flex items-center justify-between mb-2 ml-2 mr-1">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cari Pelanggan</label>
                             <button type="button" onclick="openModal('konsumen-baru')" title="Daftarkan pelanggan baru" class="text-indigo-600 hover:text-indigo-700 font-bold text-[11px] flex items-center gap-1">
@@ -79,22 +83,18 @@
                             @endforeach
                         </select>
                     </x-form.group>
-
-                    <div class="grid grid-cols-1 @md:grid-cols-2 gap-4">
+                        </div>
                         <x-form.group label="Nomor Telepon">
                         <input type="text" id="display_telp" class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-500 shadow-inner" readonly placeholder="-">
                     </x-form.group>
-
-                    <x-form.group label="Tipe Harga">
+                        <x-form.group label="Tipe Harga">
                         <x-form.select id="id_golongan">
                             @foreach($golongan as $g)
                                 <option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>
                             @endforeach
                         </x-form.select>
                     </x-form.group>
-                    </div>
-
-                    <x-form.group label="Tipe Order">
+                        <x-form.group label="Tipe Order">
                         <div class="flex gap-2">
                             <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-bold cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500 transition-all">
                                 <input type="radio" name="tipe_order" value="Reguler" checked onchange="onTipeOrderChange()" class="accent-indigo-600"> Reguler
@@ -104,13 +104,11 @@
                             </label>
                         </div>
                     </x-form.group>
-
-                    <div class="grid grid-cols-1 @md:grid-cols-2 gap-4">
-                        <x-form.group label="No. PO" id="wrapper_no_po" class="hidden">
-                        <x-form.input type="text" id="no_po" placeholder="Nomor PO dari konsumen" />
-                    </x-form.group>
-                    <x-form.group label="Tanggal Order">
+                        <x-form.group label="Tanggal Order">
                         <x-form.input type="date" id="tgl_order" value="{{ date('Y-m-d') }}" />
+                    </x-form.group>
+                        <x-form.group label="No. PO" id="wrapper_no_po" class="hidden @md:col-span-2">
+                        <x-form.input type="text" id="no_po" placeholder="Nomor PO dari konsumen" />
                     </x-form.group>
                     </div>
                 </div>
@@ -126,7 +124,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 @md:grid-cols-2 gap-4 mb-4">
+                <div class="grid grid-cols-2 gap-3.5 mb-3.5">
                     <x-form.group label="Kategori">
                         <x-form.select id="filter_kategori" onchange="filterProduk(this.value)">
                             <option value="all">Semua Kategori</option>
@@ -149,9 +147,17 @@
                     </x-form.group>
                 </div>
 
-                <x-form.group label="Nama File / Deskripsi" class="mb-4">
+                <div class="grid grid-cols-2 gap-3.5 mb-3.5">
+                    <x-form.group label="Nama File / Deskripsi">
                     <x-form.input type="text" id="nama_file" placeholder="Contoh: Banner Spanduk 3x1m" />
                 </x-form.group>
+                    <x-form.group label="Thumbnail Gambar" required>
+                        <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 shadow-inner">
+                            <input type="file" id="input_thumbnail" accept="image/png,image/jpeg,image/webp" onchange="uploadThumbnail(this)" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-indigo-50 file:text-indigo-600">
+                            <img id="thumbnail_preview" class="hidden w-11 h-11 rounded-lg object-cover border border-slate-200">
+                        </div>
+                    </x-form.group>
+                </div>
 
                 <div id="wrapper_ukuran" class="hidden grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3">
                     <div>
@@ -177,7 +183,7 @@
                     <input type="number" id="input_qty_biasa" onchange="hitungSubtotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-xl font-bold text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20" value="1">
                 </div>
 
-                <div class="grid grid-cols-1 @md:grid-cols-2 gap-4 mb-4">
+                <div class="grid grid-cols-2 gap-3.5 mb-4">
                     <x-form.group label="Status Urgensi">
                         <x-form.select id="input_status_urgensi">
                             <option value="Normal">Normal</option>
@@ -185,17 +191,12 @@
                             <option value="Very Urgent">Very Urgent</option>
                         </x-form.select>
                     </x-form.group>
-                    <x-form.group label="Thumbnail Gambar" required>
-                        <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 shadow-inner">
-                            <input type="file" id="input_thumbnail" accept="image/png,image/jpeg,image/webp" onchange="uploadThumbnail(this)" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-indigo-50 file:text-indigo-600">
-                            <img id="thumbnail_preview" class="hidden w-11 h-11 rounded-lg object-cover border border-slate-200">
-                        </div>
-                    </x-form.group>
+                    <x-form.group label="Catatan Produksi">
+                    <textarea id="input_catatan_produksi" rows="1" placeholder="Catatan khusus untuk tim produksi (opsional)" class="w-full min-h-[46px] resize-none bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
+                </x-form.group>
                 </div>
 
-                <x-form.group label="Catatan Produksi" class="mb-4">
-                    <textarea id="input_catatan_produksi" rows="2" placeholder="Catatan khusus untuk tim produksi (opsional)" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
-                </x-form.group>
+                
 
                 {{-- Indikator stok BOM - PERINGATAN saja, tidak memblokir order --}}
                 <div id="stok_warning" hidden class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
