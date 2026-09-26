@@ -66,7 +66,7 @@
         @if(count($post->daftar_tag))
         <div class="no-print mt-10 pt-6 border-t border-slate-100 flex flex-wrap items-center gap-2">
             @foreach($post->daftar_tag as $tg)
-                <a href="{{ route('postingan.index', ['tag' => $tg]) }}" class="px-3 py-1.5 rounded-full bg-slate-50 text-[11px] font-semibold text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all">#{{ $tg }}</a>
+                <a href="{{ route('postingan.index', ['tag' => $tg]) }}" class="tag-post px-3 py-1.5 rounded-full bg-slate-50 text-[11px] font-semibold text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all">#{{ $tg }}</a>
             @endforeach
         </div>
         @endif
