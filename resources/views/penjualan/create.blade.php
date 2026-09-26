@@ -137,7 +137,7 @@
                         <select id="select_produk" onchange="getDetailProduk()" class="select2-produk w-full" disabled>
                             <option value="">-- Ketik Nama Produk --</option>
                             @foreach($produk as $p)
-                                <option value="{{ $p->id_produk }}" data-kategori="{{ $p->id_kategori }}" data-metode="{{ $p->metode_hitung }}">{{ $p->nama_produk }}</option>
+                                <option value="{{ $p->id_produk }}" data-kategori="{{ $p->id_kategori }}" data-metode="{{ $p->metode_hitung }}" data-siap-cetak="{{ in_array((int) $p->id_produk, $produkSiapCetak, true) ? 1 : 0 }}">{{ $p->nama_produk }}</option>
                             @endforeach
                         </select>
                         {{-- Produk TERKUNCI sampai Kategori sungguhan dipilih (bukan "Semua Kategori"). Lihat filterProduk(). --}}
@@ -145,6 +145,19 @@
                             <i class="fas fa-lock text-[10px]"></i> Pilih Kategori dulu untuk mengaktifkan pilihan produk.
                         </p>
                     </x-form.group>
+                </div>
+
+                {{-- Jenis Pengerjaan: hanya tampil untuk produk yang punya Harga File Siap Cetak (menu Master > Harga File Siap Cetak) --}}
+                <div id="wrapper_siap_cetak" class="hidden mb-3.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Jenis Pengerjaan</label>
+                    <div class="flex gap-2">
+                        <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-bold cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500 transition-all" title="Harga Price List biasa; boleh ditambah biaya desain">
+                            <input type="radio" name="jenis_pengerjaan" value="desain" checked onchange="setSiapCetak(false)" class="accent-indigo-600"> Dengan Desain
+                        </label>
+                        <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-bold cursor-pointer has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-300 has-[:checked]:text-emerald-600 text-slate-500 transition-all" title="File sudah jadi dari pelanggan: memakai harga File Siap Cetak tersendiri, tanpa biaya desain &amp; komisi desainer">
+                            <input type="radio" name="jenis_pengerjaan" value="siap" onchange="setSiapCetak(true)" class="accent-emerald-600"> File Siap Cetak
+                        </label>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3.5 mb-3.5">
@@ -752,6 +765,8 @@
         const selectedOption = $('#select_produk').find(':selected');
         const metode = selectedOption.data('metode');
         filterFinishingByKategori(selectedOption.data('kategori'));
+        setSiapCetak(false, true);
+        document.getElementById('wrapper_siap_cetak').classList.toggle('hidden', String(selectedOption.data('siap-cetak')) !== '1');
         $('#wrapper_ukuran').toggleClass('hidden', metode !== 'ukuran');
         $('#note_ukuran').toggleClass('hidden', metode !== 'ukuran');
         $('#wrapper_qty').toggleClass('hidden', metode !== 'quantity');
@@ -782,6 +797,23 @@
     document.getElementById('input_cetak').addEventListener('input', () => {
         cetakManualEdit = true;
     });
+
+    // ---- File Siap Cetak: harga tersendiri per produk, tanpa biaya desain & desainer
+    let siapCetak = false;
+    function setSiapCetak(v, tanpaHitung) {
+        siapCetak = !!v;
+        document.querySelector(`input[name="jenis_pengerjaan"][value="${siapCetak ? 'siap' : 'desain'}"]`).checked = true;
+        const tombolDesain = document.getElementById('btn_tambah_desain');
+        if (siapCetak) {
+            document.getElementById('input_desain').value = '0';
+            document.getElementById('wrapper_biaya_desain').classList.add('hidden');
+            document.getElementById('wrapper_desainer').classList.add('hidden');
+            tombolDesain.classList.add('hidden');
+        } else {
+            tombolDesain.classList.remove('hidden');
+        }
+        if (!tanpaHitung) { cetakManualEdit = false; hitungSubtotal(); }
+    }
 
     function tampilkanBiayaDesain() {
         document.getElementById('wrapper_biaya_desain').classList.remove('hidden');
@@ -1043,7 +1075,7 @@
         const l = parseFloat(document.getElementById('input_l').value) || 0;
         const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
         const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
-        const biayaDesain = cleanRupiah(document.getElementById('input_desain').value);
+        const biayaDesain = siapCetak ? 0 : cleanRupiah(document.getElementById('input_desain').value);
 
         // Jumlah Pcs Finishing ikut mengikuti qty produk SELAMA belum
         // disentuh manual (qtyFinishingManualEdit) - pola sama seperti Biaya
@@ -1065,7 +1097,7 @@
         const biayaFinishing = totalFinishingList();
 
         try {
-            const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${qtyCari}`;
+            const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${qtyCari}${siapCetak ? '?siap_cetak=1' : ''}`;
             const response = await fetch(url);
             const data = await response.json();
             const hargaJual = parseFloat(data.harga_jual) || 0;
@@ -1211,8 +1243,9 @@
             qty_input: res.qty_input,
             qty_hitung: res.qty_hitung,
             harga_satuan: res.harga_satuan,
-            biaya_desain: cleanRupiah(document.getElementById('input_desain').value),
-            id_desainer: document.getElementById('input_desainer').value,
+            biaya_desain: siapCetak ? 0 : cleanRupiah(document.getElementById('input_desain').value),
+            id_desainer: siapCetak ? '' : document.getElementById('input_desainer').value,
+            siap_cetak: siapCetak,
             biaya_cetak: cleanRupiah(document.getElementById('input_cetak').value),
             id_finishing: idFinishing,
             nama_finishing: namaFinishing,
@@ -1381,6 +1414,7 @@
                             <div class="flex flex-wrap items-center gap-1.5 mt-2">
                                 ${(item.finishing && item.finishing.length ? item.finishing : []).map(f => `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${f.status === 'Custom' ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}">${escapeHtml(f.nama)}</span>`).join('')}
                                 ${(!item.finishing || !item.finishing.length) && item.id_finishing ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600">${escapeHtml(item.nama_finishing)} &middot; ${escapeHtml(item.status_finishing || 'Standar')}</span>` : ''}
+                                ${item.siap_cetak ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600" title="Harga File Siap Cetak, tanpa desain tim">File Siap Cetak</span>` : ''}
                                 ${urgensi ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${urgensiChip[urgensi]}">${urgensi}</span>` : ''}
                             </div>
                             ${biayaTambahan ? `<p class="text-xs text-slate-400 mt-1.5">${biayaTambahan}</p>` : ''}
@@ -1458,6 +1492,7 @@
             document.getElementById('input_desain').value = formatRupiah(item.biaya_desain || 0);
             document.getElementById('input_desainer').value = item.id_desainer || '';
             document.getElementById('wrapper_desainer').classList.toggle('hidden', !(item.biaya_desain > 0));
+            setSiapCetak(!!item.siap_cetak, true);
             document.getElementById('input_cetak').value = formatRupiah(item.biaya_cetak || 0);
             // Finishing item lama: pulihkan ke DAFTAR (baris isian dikosongkan). Bentuk lama (tunggal) dijadikan satu elemen.
             finishingList = (item.finishing && item.finishing.length ? item.finishing : (item.id_finishing ? [{
@@ -1478,7 +1513,7 @@
             // "muncul ketika ada penambahan biaya", bukan cuma saat pertama
             // ditambahkan.
             document.getElementById('wrapper_biaya_desain').classList.toggle('hidden', !(item.biaya_desain > 0));
-            document.getElementById('btn_tambah_desain').classList.toggle('hidden', item.biaya_desain > 0);
+            document.getElementById('btn_tambah_desain').classList.toggle('hidden', item.biaya_desain > 0 || !!item.siap_cetak);
             document.getElementById('wrapper_biaya_finishing').classList.add('hidden');
             // Item lama tidak pernah menyimpan "jumlah pcs finishing" secara
             // terpisah (biaya_finishing tersimpan sebagai total jadi, bukan
@@ -1525,6 +1560,9 @@
         document.getElementById('input_finishing_biaya').value = "0";
         finishingBiayaManualEdit = false;
         cetakManualEdit = false;
+        siapCetak = false;
+        document.querySelector('input[name="jenis_pengerjaan"][value="desain"]').checked = true;
+        document.getElementById('wrapper_siap_cetak').classList.add('hidden');
         document.getElementById('wrapper_biaya_desain').classList.add('hidden');
         document.getElementById('wrapper_desainer').classList.add('hidden');
         document.getElementById('input_desainer').value = "{{ $desainerDefault }}";

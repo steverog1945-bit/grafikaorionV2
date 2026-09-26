@@ -45,6 +45,18 @@ class PostinganTest extends TestCase
         $this->assertStringContainsString('href="https://contoh.id"', $bersih);
     }
 
+    public function test_kelas_tata_letak_editor_lolos_hanya_dari_daftar_putih(): void
+    {
+        $bersih = HtmlBersih::bersihkan('<p class="ql-align-center ql-spasi-longgar evil-x">a</p><li class="ql-indent-2">b</li><h2 class="ql-align-justify" style="color:red">c</h2><p class="ql-indent-99 bebas">d</p>');
+
+        $this->assertStringContainsString('class="ql-align-center ql-spasi-longgar"', $bersih);
+        $this->assertStringContainsString('class="ql-indent-2"', $bersih);
+        $this->assertStringContainsString('<h2 class="ql-align-justify">c</h2>', $bersih);
+        $this->assertStringNotContainsString('evil-x', $bersih);
+        $this->assertStringNotContainsString('bebas', $bersih);
+        $this->assertStringNotContainsString('style=', $bersih);
+    }
+
     public function test_admin_membuat_mengedit_dan_menghapus_postingan_dengan_sampul_dan_gambar_isi(): void
     {
         Storage::fake('public');

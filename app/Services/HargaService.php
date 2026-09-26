@@ -21,8 +21,19 @@ class HargaService
      * harga otomatis kembali ke setting_harga tanpa perlu ubah apa pun di
      * sana - harga normal tidak pernah disentuh oleh promo.
      */
-    public static function getHargaEfektif(int $idProduk, int $idGolongan, float $qty): array
+    public static function getHargaEfektif(int $idProduk, int $idGolongan, float $qty, bool $siapCetak = false): array
     {
+        // File Siap Cetak: harga tersendiri per produk (tier & golongan sendiri), tanpa promo.
+        if ($siapCetak) {
+            $tier = DB::table('harga_siap_cetak')
+                ->where('id_produk', $idProduk)->where('id_golongan', $idGolongan)
+                ->where('range_min', '<=', $qty)
+                ->where(fn ($q) => $q->whereNull('range_max')->orWhere('range_max', '>=', $qty))
+                ->orderBy('range_min', 'desc')->first();
+
+            return ['harga_jual' => $tier ? (float) $tier->harga_jual : 0, 'is_promo' => false, 'promo_selesai' => null, 'siap_cetak' => true];
+        }
+
         $promo = self::promoAktif($idProduk);
 
         if ($promo) {
@@ -48,6 +59,12 @@ class HargaService
             'is_promo' => false,
             'promo_selesai' => null,
         ];
+    }
+
+    /** Id produk yang punya harga File Siap Cetak (opsi ini hanya ditawarkan untuk produk tersebut). */
+    public static function produkDenganHargaSiapCetak(): array
+    {
+        return DB::table('harga_siap_cetak')->distinct()->pluck('id_produk')->map(fn ($v) => (int) $v)->all();
     }
 
     /**

@@ -71,6 +71,7 @@ return [
         'bank' => [11],
         'produk' => [13],
         'setting-harga' => [14],
+        'harga-siap-cetak' => [14],
         'kategori' => [15],
 
         'kasir' => [16],
