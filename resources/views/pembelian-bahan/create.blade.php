@@ -44,14 +44,14 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <x-form.group label="No. Surat Jalan">
                     <div class="relative group cursor-pointer" onclick="openModal('sj-picker')">
-                        <input type="text" id="display_no_sj" readonly class="w-full bg-slate-50 border-2 border-transparent group-hover:border-indigo-300 rounded-xl p-3 text-sm font-bold transition-all cursor-pointer shadow-inner" placeholder="Pilih SJ...">
+                        <input type="text" id="display_no_sj" readonly class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner pr-11 cursor-pointer" placeholder="Pilih SJ...">
                         <input type="hidden" name="id_kedatangan" id="id_kedatangan">
                         <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-hover:text-indigo-500"></i>
                     </div>
                 </x-form.group>
 
                 <x-form.group label="Supplier">
-                    <input type="text" id="display_supplier" readonly class="w-full bg-slate-100 border-none rounded-xl p-3 text-sm font-bold text-slate-500 shadow-inner" placeholder="-">
+                    <input type="text" id="display_supplier" readonly class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-500 shadow-inner" placeholder="-">
                 </x-form.group>
 
                 <x-form.group label="Tgl Transaksi">
@@ -87,14 +87,14 @@
                 <div id="tempo_group" class="hidden">
                     <x-form.group label="Durasi Tempo (Hari)">
                         <input type="number" name="tempo_hari" id="tempo_hari" oninput="calculateDueDate()"
-                            class="w-full bg-rose-50 border-none rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-rose-500/30 shadow-inner" placeholder="30">
+                            class="w-full bg-rose-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-rose-500/30 shadow-inner" placeholder="30">
                     </x-form.group>
                 </div>
 
                 <div id="due_date_group" class="hidden">
                     <x-form.group label="Tgl Jatuh Tempo">
                         <input type="date" name="jatuh_tempo_tgl" id="jatuh_tempo_tgl" readonly
-                            class="w-full bg-slate-100 border-none rounded-xl p-3 text-sm font-bold text-slate-500 shadow-inner cursor-not-allowed">
+                            class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-500 shadow-inner cursor-not-allowed">
                     </x-form.group>
                 </div>
             </div>
@@ -103,11 +103,11 @@
         <x-table>
             <thead>
                 <tr>
-                    <th class="px-10 py-6 text-left">Nama Bahan</th>
-                    <th class="px-4 py-6 text-center w-32">Qty (SJ)</th>
-                    <th class="px-4 py-6 text-left w-48">Harga Satuan</th>
-                    <th class="px-4 py-6 text-left w-40">Diskon/Pot</th>
-                    <th class="px-10 py-6 text-right">Subtotal</th>
+                    <th class="px-6 py-6 text-left">Nama Bahan</th>
+                    <th class="px-3 py-6 text-center w-28">Qty (SJ)</th>
+                    <th class="px-4 py-6 text-left w-44">Harga Satuan (Rp)</th>
+                    <th class="px-4 py-6 text-left w-44">Diskon &amp; Potongan (Rp)</th>
+                    <th class="px-6 py-6 text-right">Subtotal</th>
                 </tr>
             </thead>
             <tbody id="table-body" class="divide-y divide-slate-50">
@@ -118,14 +118,27 @@
                     </td>
                 </tr>
             </tbody>
-            <tfoot>
-                <tr class="bg-slate-900 text-white">
-                    <td colspan="4" class="px-10 py-8 text-right text-[10px] font-bold uppercase tracking-widest">Net Total Faktur</td>
-                    <td class="px-10 py-8 text-right font-bold text-2xl" id="total-footer">Rp 0</td>
-                </tr>
-            </tfoot>
         </x-table>
         <input type="hidden" name="grand_total" id="input_grand_total">
+
+        {{-- RINGKASAN FAKTUR - kartu putih senada modal & kartu lain (sebelumnya baris gelap yang tulisannya tidak terbaca) --}}
+        <x-card class="mt-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-2.5 text-sm">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Rincian Perhitungan</p>
+                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Subtotal item (setelah diskon &amp; potongan)</span><span class="font-semibold text-slate-700" id="rincian-subtotal">Rp 0</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500 font-medium">PPN 11%</span><span class="font-semibold text-slate-700" id="rincian-ppn">Rp 0</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Ongkir</span><span class="font-semibold text-slate-700" id="rincian-ongkir">Rp 0</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Biaya layanan</span><span class="font-semibold text-slate-700" id="rincian-layanan">Rp 0</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Voucher / diskon platform</span><span class="font-semibold text-rose-500" id="rincian-voucher">- Rp 0</span></div>
+                </div>
+                <div class="rounded-3xl bg-indigo-50 border border-indigo-100 px-8 py-6 text-right">
+                    <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Net Total Faktur</p>
+                    <p class="text-4xl font-bold text-indigo-600 mt-1" id="total-footer">Rp 0</p>
+                    <p class="text-[11px] font-semibold text-indigo-300 mt-1">Jumlah yang harus dibayar ke supplier</p>
+                </div>
+            </div>
+        </x-card>
 
         <div class="mt-10 flex justify-end">
             <x-button type="submit" size="default" class="!px-12 !py-5">
@@ -205,27 +218,30 @@
                 data.detail.forEach(item => {
                     tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/50 transition-colors">
-                        <td class="px-10 py-6">
+                        <td class="px-6 py-6">
                             <p class="font-bold text-slate-700 text-xs uppercase">${item.nama_bahan}</p>
                             <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">${item.kode_bahan}</p>
                             <input type="hidden" name="id_bahan[]" value="${item.id_bahan}">
                         </td>
                         <td class="px-4 py-6 text-center">
-                            <input type="number" name="qty[]" step="0.01" value="${item.qty}" oninput="calculateGrandTotal()" class="w-20 bg-transparent text-center font-bold text-slate-700 border-b border-slate-200 focus:border-indigo-500 outline-none">
-                            <p class="text-[9px] font-bold text-slate-300 mt-1 uppercase">${item.satuan || 'Pcs'}</p>
+                            <input type="number" name="qty[]" step="0.01" value="${item.qty}" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner w-24 text-center">
+                            <p class="text-[10px] font-bold text-slate-400 mt-1.5 uppercase tracking-widest">${item.satuan || 'Pcs'}</p>
                         </td>
                         <td class="px-4 py-6">
-                            <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-2 shadow-inner">
-                                <span class="text-[10px] font-bold text-slate-300 uppercase">Harga</span>
-                                <input type="text" inputmode="numeric" name="harga[]" value="" oninput="calculateGrandTotal()" class="w-full bg-transparent font-bold text-sm text-slate-700 outline-none format-ribuan">
+                            <input type="text" inputmode="numeric" name="harga[]" value="" placeholder="0" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan">
+                        </td>
+                        <td class="px-4 py-6 space-y-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Diskon</label>
+                                <input type="text" inputmode="numeric" name="diskon[]" placeholder="0" value="" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Potongan</label>
+                                <input type="text" inputmode="numeric" name="potongan[]" placeholder="0" value="" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan">
                             </div>
                         </td>
-                        <td class="px-4 py-6 space-y-1">
-                            <input type="text" inputmode="numeric" name="diskon[]" placeholder="Disc Rp" value="" oninput="calculateGrandTotal()" class="w-full text-[10px] font-bold bg-slate-50 rounded-lg p-2 outline-none border border-transparent focus:border-rose-200 format-ribuan">
-                            <input type="text" inputmode="numeric" name="potongan[]" placeholder="Pot Rp" value="" oninput="calculateGrandTotal()" class="w-full text-[10px] font-bold bg-slate-50 rounded-lg p-2 outline-none border border-transparent focus:border-rose-200 format-ribuan">
-                        </td>
-                        <td class="px-10 py-6 text-right">
-                            <p class="subtotal-text font-bold text-slate-800">Rp 0</p>
+                        <td class="px-6 py-6 text-right">
+                            <p class="subtotal-text text-base font-bold text-slate-700">Rp 0</p>
                             <input type="hidden" name="subtotal[]" class="subtotal-input">
                         </td>
                     </tr>`;
@@ -270,6 +286,7 @@
     }
 
     function calculateGrandTotal() {
+        const rp = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
         let total = 0;
         document.querySelectorAll('#table-body tr').forEach(row => {
             const qtyInput = row.querySelector('[name="qty[]"]');
@@ -286,10 +303,20 @@
             total += sub;
         });
 
+        const subtotalItem = total;
         const isTaxed = document.getElementById('tax_toggle').checked;
-        if (isTaxed) total *= 1.11;
+        const ppn = isTaxed ? subtotalItem * 0.11 : 0;
         // Biaya belanja online: ongkir + biaya layanan - voucher (sama dengan hitungan server).
-        total = Math.max(0, total + cleanRupiah(document.getElementById('ongkir').value) + cleanRupiah(document.getElementById('biaya_layanan').value) - cleanRupiah(document.getElementById('voucher').value));
+        const ongkir = cleanRupiah(document.getElementById('ongkir').value);
+        const layanan = cleanRupiah(document.getElementById('biaya_layanan').value);
+        const voucher = cleanRupiah(document.getElementById('voucher').value);
+        total = Math.max(0, subtotalItem + ppn + ongkir + layanan - voucher);
+
+        document.getElementById('rincian-subtotal').innerText = rp(subtotalItem);
+        document.getElementById('rincian-ppn').innerText = rp(ppn);
+        document.getElementById('rincian-ongkir').innerText = rp(ongkir);
+        document.getElementById('rincian-layanan').innerText = rp(layanan);
+        document.getElementById('rincian-voucher').innerText = '- ' + rp(voucher);
 
         const formatted = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(total);
         document.getElementById('total-header').innerText = formatted;
