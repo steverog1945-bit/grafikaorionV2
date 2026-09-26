@@ -20,6 +20,8 @@ class KasKecilService
             AccountingService::reverseByReferensi('KK-' . $kasKecil->id);
             // Setoran dari laci: baris cerminnya di Kas Tak Terduga ikut dibatalkan (laci kembali).
             DB::table('kas_manual')->where('keterangan', 'like', "%[KK-{$kasKecil->id}]%")->delete();
+            // Pembayaran komisi desainer dibatalkan -> komisi kembali Belum dibayar.
+            DB::table('transaksi_detail')->where('id_kas_kecil_komisi', $kasKecil->id)->update(['komisi_status' => 'Belum', 'komisi_dibayar_at' => null, 'id_kas_kecil_komisi' => null]);
             $kasKecil->delete();
         });
     }

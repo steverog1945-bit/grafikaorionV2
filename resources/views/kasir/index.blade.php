@@ -68,7 +68,7 @@
     
     setInterval(async () => {
         try {
-            const res = await fetch(`/api/cek-order-baru/${lastId}`);
+            const res = await fetch(`{{ url('/api/cek-order-baru') }}/${lastId}`);
             const data = await res.json();
             if(data.jumlah > 0) {
                 document.getElementById('notif-baru').classList.remove('hidden');
@@ -88,7 +88,7 @@
         });
 
         if (isConfirmed) {
-            const res = await fetch('/kasir/bayar', {
+            const res = await fetch('{{ url('/kasir/bayar') }}', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',

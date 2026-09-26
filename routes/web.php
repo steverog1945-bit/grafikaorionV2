@@ -451,6 +451,15 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/laporan/stok-bahan', [LaporanController::class, 'stokBahan'])->name('laporan.stok-bahan');
     Route::get('/laporan/hpp', [LaporanController::class, 'hpp'])->name('laporan.hpp');
 
+    // Biaya Desain per operator + komisi/bagi hasil (Operator Desain hanya melihat miliknya).
+    Route::get('/laporan/biaya-desain', [\App\Http\Controllers\DesainerKomisiController::class, 'laporan'])->name('laporan.biaya-desain');
+    Route::post('/laporan/biaya-desain/bayar', [\App\Http\Controllers\DesainerKomisiController::class, 'bayar'])->name('laporan.biaya-desain.bayar');
+    Route::get('/pengaturan-desainer', [\App\Http\Controllers\DesainerKomisiController::class, 'pengaturan'])->name('desainer.pengaturan');
+    Route::post('/pengaturan-desainer/kelas', [\App\Http\Controllers\DesainerKomisiController::class, 'simpanKelas'])->name('desainer.kelas.store');
+    Route::put('/pengaturan-desainer/kelas/{id}', [\App\Http\Controllers\DesainerKomisiController::class, 'updateKelas'])->whereNumber('id')->name('desainer.kelas.update');
+    Route::delete('/pengaturan-desainer/kelas/{id}', [\App\Http\Controllers\DesainerKomisiController::class, 'hapusKelas'])->whereNumber('id')->name('desainer.kelas.destroy');
+    Route::post('/pengaturan-desainer/anggota/{idUser}', [\App\Http\Controllers\DesainerKomisiController::class, 'tetapkanKelas'])->whereNumber('idUser')->name('desainer.anggota');
+
     // Log Aktivitas (Audit Trail, roadmap LEVEL 1) - baca-saja, khusus
     // Administrator (lihat config/menu_access.php).
     Route::get('/log-aktivitas', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('audit-log.index');

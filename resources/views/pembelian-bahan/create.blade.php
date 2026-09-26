@@ -189,7 +189,8 @@
         tbody.innerHTML = `<tr><td colspan="5" class="py-20 text-center"><i class="fas fa-circle-notch fa-spin text-indigo-500 text-2xl"></i></td></tr>`;
 
         try {
-            const response = await fetch(`/pembelian-bahan/kedatangan-detail?id_kedatangan=${id}`);
+            const response = await fetch(`{{ url('/pembelian-bahan/kedatangan-detail') }}?id_kedatangan=${id}`, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
             const data = await response.json();
 
             document.getElementById('display_supplier').value = data.supplier || 'UMUM';

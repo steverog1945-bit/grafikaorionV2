@@ -817,11 +817,11 @@
         // ini - kalau suatu role cuma dikasih akses id_menu 47 saja, header
         // "Laporan" tidak pernah muncul padahal link HPP-nya sendiri tetap
         // render (yatim tanpa header). Ditambahkan di sini.
-        $grpLaporanVisible = $cekAkses(25) || $cekAkses(26) || $cekAkses(29) || $cekAkses(40) || $cekAkses(43) || $cekAkses(44) || $cekAkses(46) || $cekAkses(47);
+        $grpLaporanVisible = $cekAkses(25) || $cekAkses(26) || $cekAkses(29) || $cekAkses(40) || $cekAkses(43) || $cekAkses(44) || $cekAkses(46) || $cekAkses(47) || $cekAkses(65);
         $grpLaporanAktif = request()->routeIs('laporan.order') || request()->routeIs('laporan.produksi')
             || request()->routeIs('laporan.kas') || request()->routeIs('laporan.belanja-bahan') || request()->routeIs('laporan.hutang')
             || request()->routeIs('laporan.order-jersey') || request()->routeIs('laporan.piutang')
-            || request()->routeIs('laporan.stok-bahan') || request()->routeIs('laporan.hpp') || request()->routeIs('laporan.job-costing') || request()->routeIs('laporan.profitabilitas') || request()->routeIs('laporan.pemakaian-bahan') || request()->routeIs('laporan.biaya-tinta') || request()->routeIs('laporan.evaluasi-master');
+            || request()->routeIs('laporan.stok-bahan') || request()->routeIs('laporan.hpp') || request()->routeIs('laporan.job-costing') || request()->routeIs('laporan.profitabilitas') || request()->routeIs('laporan.pemakaian-bahan') || request()->routeIs('laporan.biaya-tinta') || request()->routeIs('laporan.evaluasi-master') || request()->routeIs('laporan.biaya-desain*');
     @endphp
     @if($grpLaporanVisible)
     <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
@@ -920,6 +920,14 @@
         </svg>
         <span class="text-sm font-medium">Biaya Tinta</span>
     </a>
+    @if($cekAkses(65))
+    <a href="{{ route('laporan.biaya-desain') }}" title="Biaya desain per operator desain beserta komisi/bagi hasilnya" class="{{ $menuClass }} {{ request()->routeIs('laporan.biaya-desain*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.biaya-desain*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.83a4 4 0 01-1.414.94L7 17l.23-3.414a4 4 0 01.94-1.414z" />
+        </svg>
+        <span class="text-sm font-medium">Biaya &amp; Komisi Desain</span>
+    </a>
+    @endif
     <a href="{{ route('laporan.hpp') }}" class="{{ $menuClass }} {{ request()->routeIs('laporan.hpp') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.hpp') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 4h4m-2-8a9 9 0 100 18 9 9 0 000-18zM9.5 15.5c.5 1 1.5 1.5 2.5 1.5s2-.5 2.5-1.5M9.5 9c.5-1 1.5-1.5 2.5-1.5s2 .5 2.5 1.5" />
@@ -1052,8 +1060,8 @@
         // diakses Administrator (menu_access.php rule-nya [] kosong - tidak
         // ada id_menu yang bisa menggrant lewat role_permissions), jadi
         // dicek $isAdministrator langsung, sama seperti Accounting Period.
-        $grpSystemVisible = $cekAkses(6) || $cekAkses(4) || $cekAkses(37) || $cekAkses(63) || $cekAkses(49) || $cekAkses(50) || $cekAkses(52) || $isAdministrator;
-        $grpSystemAktif = Request::is('users*') || Request::is('setting-akses*') || Request::is('pengaturan-aplikasi*') || Request::is('pengaturan-jam-kerja*') || Request::is('menu-editor*')
+        $grpSystemVisible = $cekAkses(6) || $cekAkses(4) || $cekAkses(37) || $cekAkses(63) || $cekAkses(66) || $cekAkses(49) || $cekAkses(50) || $cekAkses(52) || $isAdministrator;
+        $grpSystemAktif = Request::is('users*') || Request::is('setting-akses*') || Request::is('pengaturan-aplikasi*') || Request::is('pengaturan-jam-kerja*') || Request::is('pengaturan-desainer*') || Request::is('menu-editor*')
             || Request::is('approval*') || Request::is('log-aktivitas*') || Request::is('backup*');
     @endphp
     @if($grpSystemVisible)
@@ -1092,6 +1100,15 @@
     </svg>
     <span class="text-sm font-medium">Pengaturan Aplikasi</span>
 </a>
+
+@if($cekAkses(66))
+<a href="{{ route('desainer.pengaturan') }}" title="Kelas desainer dan persen bagi hasil komisi desain" class="{{ $menuClass }} {{ Request::is('pengaturan-desainer*') ? $activeClass : $nonActiveClass }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('pengaturan-desainer*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+    <span class="text-sm font-medium">Bagi Hasil Desainer</span>
+</a>
+@endif
 
 @if($cekAkses(37) || $cekAkses(63))
 <a href="{{ route('jam-kerja.index') }}" class="{{ $menuClass }} {{ Request::is('pengaturan-jam-kerja*') ? $activeClass : $nonActiveClass }}">
