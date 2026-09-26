@@ -2,6 +2,11 @@
 
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+@php $tabInfo = request('tab') === 'info' && \App\Support\Izin::boleh(auth()->user(), [67], 'view'); @endphp
+@include('partials.dashboard-tab', ['tabInfo' => $tabInfo])
+@if($tabInfo)
+    @include('postingan._daftar', array_merge(\App\Http\Controllers\PostinganController::dataDaftar(request(), route('dashboard')), ['basisUrl' => route('dashboard'), 'paramTetap' => ['tab' => 'info']]))
+@else
 <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
         <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Produksi</h1>
@@ -94,5 +99,6 @@
 
 @include('partials.dashboard-finishing-panduan')
 
+@endif
 </div>
 @endsection

@@ -8,7 +8,7 @@
 @endphp
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1100px] mx-auto">
 
-    <a href="{{ route('postingan.index') }}" class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-indigo-600 mb-5" title="Kembali ke daftar postingan"><i class="fas fa-arrow-left"></i> Info &amp; Panduan</a>
+    <a href="{{ $pengelola ? route('postingan.index') : route('dashboard', ['tab' => 'info']) }}" class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-indigo-600 mb-5" title="Kembali ke daftar postingan"><i class="fas fa-arrow-left"></i> Info &amp; Panduan</a>
 
     {{-- ================= HERO ================= --}}
     <header class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br {{ $gradasi }} min-h-[300px] sm:min-h-[400px] flex items-end shadow-xl">
