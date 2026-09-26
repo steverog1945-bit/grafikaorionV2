@@ -26,7 +26,14 @@ class PostinganController extends Controller
 
     public function index(Request $request)
     {
-        $pengelola = $this->pengelola();
+        return view('postingan.index', self::dataDaftar($request, route('postingan.index')));
+    }
+
+    /** Data daftar bersama (halaman /postingan dan tab Info di Dashboard). $basisUrl = alamat dasar link pagination. */
+    public static function dataDaftar(Request $request, string $basisUrl): array
+    {
+        $pengelola = Izin::boleh(Auth::user(), [67], 'add') || Izin::boleh(Auth::user(), [67], 'edit');
+
         $kategoriSlug = $request->get('kategori');
         $tag = trim((string) $request->get('tag', ''));
         $cari = trim((string) $request->get('cari', ''));
@@ -49,14 +56,15 @@ class PostinganController extends Controller
 
         $posts = $dasar->when($unggulan, fn ($q) => $q->where('id', '!=', $unggulan->id))
             ->orderByDesc('disematkan')->orderByDesc('terbit_at')->orderByDesc('id')
-            ->paginate(self::PER_HALAMAN)->withQueryString();
+            ->paginate(self::PER_HALAMAN)->withQueryString()->withPath($basisUrl);
 
         $kategoriList = PostKategori::withCount(['posts' => fn ($q) => $q->terbit()])->orderBy('nama')->get();
         $tagPopuler = Post::terbit()->whereNotNull('tags')->pluck('tags')->flatMap(fn ($t) => array_map('trim', explode(',', $t)))->filter()
             ->countBy()->sortDesc()->take(12)->keys();
 
-        return view('postingan.index', compact('posts', 'unggulan', 'kategoriList', 'tagPopuler', 'pengelola', 'kategoriSlug', 'tag', 'cari', 'status'));
+        return compact('posts', 'unggulan', 'kategoriList', 'tagPopuler', 'pengelola', 'kategoriSlug', 'tag', 'cari', 'status');
     }
+
 
     public function show(string $slug)
     {
