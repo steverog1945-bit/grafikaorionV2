@@ -500,7 +500,7 @@ class LaporanController extends Controller
             ->values();
 
         $perSupplier = $faktur->groupBy(fn ($f) => $f->nama_supplier ?? 'Supplier Umum')->map(function ($rows, $nama) {
-            $row = ['nama' => $nama, 'total' => round($rows->sum('sisa'), 2), 'faktur' => $rows];
+            $row = ['nama' => $nama, 'id_supplier' => $rows->first()->id_supplier, 'total' => round($rows->sum('sisa'), 2), 'faktur' => $rows];
             foreach (['belum', 'b30', 'b60', 'b60plus'] as $b) {
                 $row[$b] = round($rows->where('bucket', $b)->sum('sisa'), 2);
             }

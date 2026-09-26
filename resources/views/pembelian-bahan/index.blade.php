@@ -47,6 +47,29 @@
         </form>
     </x-card>
 
+    {{-- HITUNGAN JATUH TEMPO (seluruh faktur berhutang) - klik untuk menyaring --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <a href="{{ route('pembelian-bahan.index', ['jt' => 'telat']) }}" title="Faktur yang sudah lewat jatuh tempo dan belum lunas" class="rounded-3xl border p-5 transition-all hover:shadow-md {{ request('jt') === 'telat' ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-100' }}">
+            <p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Telat Jatuh Tempo</p>
+            <p class="text-2xl font-bold text-rose-600 mt-1">{{ $ringkasJt['telat']['n'] }} <span class="text-xs font-semibold text-slate-400">faktur</span></p>
+            <p class="text-xs font-semibold text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['telat']['nilai'], 0, ',', '.') }}</p>
+        </a>
+        <a href="{{ route('pembelian-bahan.index', ['jt' => '7hari']) }}" title="Faktur yang jatuh tempo dalam 7 hari ke depan" class="rounded-3xl border p-5 transition-all hover:shadow-md {{ request('jt') === '7hari' ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100' }}">
+            <p class="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Jatuh Tempo &le; 7 Hari</p>
+            <p class="text-2xl font-bold text-amber-600 mt-1">{{ $ringkasJt['minggu']['n'] }} <span class="text-xs font-semibold text-slate-400">faktur</span></p>
+            <p class="text-xs font-semibold text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['minggu']['nilai'], 0, ',', '.') }}</p>
+        </a>
+        <a href="{{ route('pembelian-bahan.index') }}" title="Faktur berhutang dengan jatuh tempo lebih dari 7 hari lagi (klik untuk menampilkan semua)" class="rounded-3xl border border-slate-100 bg-white p-5 transition-all hover:shadow-md">
+            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Belum Jatuh Tempo</p>
+            <p class="text-2xl font-bold text-emerald-600 mt-1">{{ $ringkasJt['aman']['n'] }} <span class="text-xs font-semibold text-slate-400">faktur</span></p>
+            <p class="text-xs font-semibold text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['aman']['nilai'], 0, ',', '.') }}</p>
+        </a>
+    </div>
+    @if(request()->filled('jt'))
+        <div class="mb-4 text-xs font-semibold text-slate-500">Menyaring: <b>{{ request('jt') === 'telat' ? 'faktur telat jatuh tempo' : 'faktur jatuh tempo dalam 7 hari' }}</b>
+            <a href="{{ route('pembelian-bahan.index') }}" class="text-rose-500 font-bold uppercase tracking-widest ml-2 hover:underline">Hapus penyaring</a></div>
+    @endif
+
     <form id="bulk-delete-form" method="POST" action="{{ route('pembelian-bahan.bulk-delete') }}">
         @csrf
 
@@ -103,10 +126,20 @@
                     </td>
                     <td class="px-4 py-5 text-center text-sm">
                         @if($item->status_pembayaran == 'Hutang')
-                            <span class="text-rose-500 font-semibold text-xs">
-                                <i class="fas fa-calendar-exclamation mr-1"></i>
-                                {{ \Carbon\Carbon::parse($item->jatuh_tempo_tgl)->format('d/m/Y') }}
-                            </span>
+                            @php
+                                $jt = \Carbon\Carbon::parse($item->jatuh_tempo_tgl ?: $item->tgl_transaksi)->startOfDay();
+                                $selisihHari = (int) now()->startOfDay()->diffInDays($jt, false); // negatif = sudah lewat
+                            @endphp
+                            <span class="block text-xs font-semibold text-slate-600">{{ $jt->format('d/m/Y') }}</span>
+                            @if($selisihHari < 0)
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-[10px] font-bold uppercase" title="Sudah lewat jatuh tempo">Telat {{ abs($selisihHari) }} hari</span>
+                            @elseif($selisihHari === 0)
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-[10px] font-bold uppercase" title="Jatuh tempo hari ini">Hari ini</span>
+                            @elseif($selisihHari <= 7)
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-[10px] font-bold uppercase" title="Segera jatuh tempo">{{ $selisihHari }} hari lagi</span>
+                            @else
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase" title="Masih ada waktu">{{ $selisihHari }} hari lagi</span>
+                            @endif
                         @else
                             <span class="text-slate-400 italic text-xs">Lunas</span>
                         @endif
@@ -121,7 +154,7 @@
                     <td class="px-8 py-5 text-center">
                         <div class="flex items-center justify-center gap-2">
                             @if($item->status_pembayaran == 'Hutang')
-                                <x-button type="button" size="icon" variant="ghost" onclick="confirmPayment('{{ $item->id_pembelian }}', {{ $item->sisa_hutang }})" class="bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white" title="Bayar Hutang">
+                                <x-button type="button" size="icon" variant="ghost" onclick="bukaPelunasan('faktur', {{ $item->id_pembelian }})" class="bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white" title="Bayar / cicil hutang faktur ini">
                                     <i class="fas fa-money-bill-wave text-xs"></i>
                                 </x-button>
                             @endif
@@ -157,6 +190,8 @@
     </form>
 
     <x-table.pagination :paginator="$data" />
+
+    @include('partials.modal-pelunasan-hutang')
 
 </div>
 @endsection

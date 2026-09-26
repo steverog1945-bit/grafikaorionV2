@@ -116,6 +116,7 @@ class KedatanganBahanController extends Controller
         }
 
         \DB::commit();
+        session()->flash('lanjut', ['teks' => 'Berikutnya: cek qty fisik, lalu klik Validasi agar stok bertambah', 'url' => null, 'tombol' => '']);
         return redirect()->route('kedatangan-bahan.index')
                          ->with('success', 'Data berhasil disimpan!');
 
@@ -165,7 +166,7 @@ public function validateStatus($id)
         $kedatangan->update(['status' => 'Selesai']);
         \App\Services\PurchaseOrderService::sinkronPenerimaan($kedatangan->id_purchase_order);
 
-        \App\Support\JalurLanjut::set('Berikutnya: catat faktur/tagihan supplier', 'pembelian-bahan.index', 'Buka Pembelian Bahan');
+        \App\Support\JalurLanjut::set('Berikutnya: catat faktur/tagihan supplier', 'pembelian-bahan.create', 'Buat Faktur Pembelian');
         return back()->with('success', 'Berhasil! Stok telah diperbarui dan tercatat di Kartu Stok.');
     });
 }
@@ -344,6 +345,12 @@ public function bulkDelete(Request $request)
 
         \App\Services\PurchaseOrderService::sinkronPenerimaan($kedatangan->id_purchase_order);
     });
+
+    if (($request->status ?? 'Draft') === 'Selesai') {
+        \App\Support\JalurLanjut::set('Berikutnya: catat faktur/tagihan supplier', 'pembelian-bahan.create', 'Buat Faktur Pembelian');
+    } else {
+        session()->flash('lanjut', ['teks' => 'Berikutnya: cek qty fisik, lalu klik Validasi agar stok bertambah', 'url' => null, 'tombol' => '']);
+    }
 
     return redirect()->route('kedatangan-bahan.index')
         ->with('success', 'Data berhasil diperbarui.');

@@ -94,6 +94,10 @@ class QuotationController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
+        if ($request->keputusan === 'Disetujui') {
+            \App\Support\JalurLanjut::set('Pelanggan setuju - buat nota dari penawaran ini', 'penjualan.create', 'Buat Nota', ['quotation' => $quotation->id]);
+        }
+
         return back()->with('success', "Tanggapan pelanggan dicatat: {$request->keputusan}.");
     }
 

@@ -119,6 +119,9 @@ class KasKecilController extends Controller
         if ($kasKecil->sumber === 'jersey') {
             return back()->with('error', 'Pemasukan ini berasal dari pembayaran order jersey - batalkan lewat Keuangan Jersey (void pembayaran), bukan dari sini.');
         }
+        if ($kasKecil->sumber === 'hutang') {
+            return back()->with('error', 'Pengeluaran ini berasal dari pembayaran hutang supplier - batalkan lewat void pembayaran di Pembelian Bahan, bukan dari sini.');
+        }
 
         $sudahAda = \App\Models\ApprovalRequest::where('tipe_aksi', 'batalkan_kas_kecil')
             ->where('referensi_id', $kasKecil->id)->where('status', 'Menunggu')->exists();

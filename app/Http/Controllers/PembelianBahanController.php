@@ -39,6 +39,15 @@ class PembelianBahanController extends Controller
             $query->whereDate('tgl_transaksi', '<=', $request->to);
         }
 
+        // Filter jatuh tempo: telat / jatuh tempo <= 7 hari (hanya faktur yang masih berhutang).
+        if (in_array($request->jt, ['telat', '7hari'], true)) {
+            $query->where('status_pembayaran', 'Hutang');
+            $batas = $request->jt === 'telat' ? now()->startOfDay() : now()->startOfDay()->addDays(7);
+            $request->jt === 'telat'
+                ? $query->whereDate('jatuh_tempo_tgl', '<', $batas)
+                : $query->whereDate('jatuh_tempo_tgl', '>=', now()->startOfDay())->whereDate('jatuh_tempo_tgl', '<=', $batas);
+        }
+
         $data = $query->orderBy('id_pembelian', 'desc')->paginate(20)->withQueryString();
 
         // Sisa hutang per faktur (grand_total - pembayaran aktif) untuk
@@ -54,7 +63,21 @@ class PembelianBahanController extends Controller
             $item->sisa_hutang = max(0, round((float) $item->grand_total - (float) ($dibayar[$item->id_pembelian] ?? 0), 2));
         });
 
-        return view('pembelian-bahan.index', compact('data'));
+        // Ringkasan jatuh tempo seluruh faktur berhutang (bukan hanya halaman ini).
+        $ringkasJt = ['telat' => ['n' => 0, 'nilai' => 0.0], 'minggu' => ['n' => 0, 'nilai' => 0.0], 'aman' => ['n' => 0, 'nilai' => 0.0]];
+        $hariIni = now()->startOfDay();
+        foreach (DB::table('pembelian_bahan')->whereNull('deleted_at')->where('status_pembayaran', 'Hutang')->get() as $p) {
+            $sisa = \App\Services\PembayaranHutangService::sisa($p);
+            if ($sisa <= 0) {
+                continue;
+            }
+            $jt = \Carbon\Carbon::parse($p->jatuh_tempo_tgl ?: $p->tgl_transaksi)->startOfDay();
+            $kunci = $jt->lt($hariIni) ? 'telat' : ($jt->lte($hariIni->copy()->addDays(7)) ? 'minggu' : 'aman');
+            $ringkasJt[$kunci]['n']++;
+            $ringkasJt[$kunci]['nilai'] += $sisa;
+        }
+
+        return view('pembelian-bahan.index', compact('data', 'ringkasJt'));
 
     }
 
@@ -220,6 +243,12 @@ public function kedatanganDetail(Request $request)
             }
 
             DB::commit();
+
+            if ($request->tipe_pembelian == 'Tempo') {
+                \App\Support\JalurLanjut::set('Faktur tempo tercatat - pantau jatuh tempo & bayar hutangnya', 'pembelian-bahan.index', 'Buka Pembelian Bahan');
+            } else {
+                \App\Support\JalurLanjut::set('Faktur tunai sudah lunas - cetak atau lihat rinciannya', 'pembelian-bahan.show', 'Lihat Faktur', [$pembelian->id_pembelian]);
+            }
 
             return redirect()->route('pembelian-bahan.index')
                 ->with('success','Pembelian berhasil disimpan');
@@ -410,7 +439,7 @@ public function pelunasan(Request $request, $id)
 {
     $request->validate([
         'nominal' => 'nullable|numeric|min:0.01',
-        'metode' => 'nullable|in:Tunai,Transfer',
+        'metode' => 'nullable|in:Tunai,Transfer,Kas Kecil',
         'tanggal' => 'nullable|date',
         'keterangan' => 'nullable|string|max:255',
     ]);
@@ -439,6 +468,57 @@ public function pelunasan(Request $request, $id)
         return redirect()->back()->with('error', 'Gagal membayar: ' . $e->getMessage());
     }
 }
+/** Data untuk layar pelunasan: ?faktur=ID (satu faktur) atau ?supplier=ID (semua hutang supplier). */
+public function pelunasanInfo(Request $request)
+{
+    $service = \App\Services\PembayaranHutangService::class;
+    $saldoKasKecil = max(0, $service::saldoKasKecil());
+
+    if ($request->filled('faktur')) {
+        $p = DB::table('pembelian_bahan')->where('id_pembelian', (int) $request->faktur)->whereNull('deleted_at')->first();
+        abort_if(!$p, 404);
+        $supplier = DB::table('kedatangan_bahan as k')->leftJoin('supplier as s', 's.id_supplier', '=', 'k.id_supplier')->where('k.id_kedatangan', $p->id_kedatangan)->value('s.nama_supplier');
+        $r = $service::ringkasan($p);
+
+        return response()->json([
+            'mode' => 'faktur', 'judul' => $p->no_faktur, 'supplier' => $supplier ?? 'Umum', 'total' => $r['total'], 'dibayar' => $r['dibayar'], 'sisa' => $r['sisa'],
+            'fakturs' => [$r], 'saldo_kas_kecil' => $saldoKasKecil, 'action' => route('pembelian.pelunasan', $p->id_pembelian),
+            'riwayat' => DB::table('pembayaran_hutang')->where('id_pembelian', $p->id_pembelian)->whereNull('voided_at')->orderBy('tanggal')->orderBy('id')
+                ->get(['tanggal', 'nominal', 'metode', 'keterangan'])->map(fn ($b) => [
+                    'tanggal' => \Carbon\Carbon::parse($b->tanggal)->format('d M Y'), 'nominal' => (float) $b->nominal, 'metode' => $b->metode, 'keterangan' => $b->keterangan,
+                ]),
+        ]);
+    }
+
+    $idSupplier = (int) $request->supplier;
+    $sup = DB::table('supplier')->where('id_supplier', $idSupplier)->first();
+    abort_if(!$sup, 404);
+    $fakturs = $service::fakturBerhutang($idSupplier)->map(fn ($p) => $service::ringkasan($p))->filter(fn ($r) => $r['sisa'] > 0)->values();
+
+    return response()->json([
+        'mode' => 'supplier', 'judul' => $sup->nama_supplier, 'supplier' => $sup->nama_supplier, 'total' => $fakturs->sum('total'), 'dibayar' => $fakturs->sum('dibayar'),
+        'sisa' => round($fakturs->sum('sisa'), 2), 'fakturs' => $fakturs, 'saldo_kas_kecil' => $saldoKasKecil, 'riwayat' => [],
+        'action' => route('pembelian.bayar-supplier', $idSupplier),
+    ]);
+}
+
+/** Bayar hutang semua faktur satu supplier sekaligus (dibagi ke faktur paling lama dulu). */
+public function bayarSupplier(Request $request, $idSupplier)
+{
+    $data = $request->validate([
+        'nominal' => 'required|numeric|min:0.01', 'metode' => 'required|in:Tunai,Transfer,Kas Kecil',
+        'tanggal' => 'nullable|date', 'keterangan' => 'nullable|string|max:255',
+    ]);
+
+    try {
+        $hasil = \App\Services\PembayaranHutangService::bayarSupplier((int) $idSupplier, (float) $data['nominal'], $data['metode'], $data['tanggal'] ?? null, $data['keterangan'] ?? null);
+    } catch (\Exception $e) {
+        return back()->with('error', 'Gagal membayar: ' . $e->getMessage());
+    }
+
+    return back()->with('success', 'Pembayaran hutang Rp ' . number_format((float) $data['nominal'], 0, ',', '.') . ' dibagi ke ' . count($hasil) . ' faktur: ' . collect($hasil)->map(fn ($h) => "{$h['no_faktur']} (Rp " . number_format($h['nominal'], 0, ',', '.') . ')')->implode(', ') . '.');
+}
+
 public function getKedatanganDetail(Request $request)
 {
     $id = $request->id_kedatangan;
