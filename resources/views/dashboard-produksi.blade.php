@@ -89,4 +89,6 @@
     </a>
 </div>
 
+@include('partials.dashboard-finishing-panduan')
+
 @endsection

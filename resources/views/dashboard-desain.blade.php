@@ -106,4 +106,6 @@
     </div>
 </div>
 
+@include('partials.dashboard-finishing-panduan')
+
 @endsection

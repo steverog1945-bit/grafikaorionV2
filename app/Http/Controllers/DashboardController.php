@@ -109,7 +109,26 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // Pembanding hari kemarin + tren 7 hari terakhir (jumlah order & kas masuk per hari).
+        $kemarin = now()->subDay()->format('Y-m-d');
+        $orderKemarin = DB::table('transaksi')->whereDate('tgl_order', $kemarin)->where('status_nota', '!=', 'Dibatalkan')->count();
+        $kasMasukKemarin = (float) DB::table('pembayaran_riwayat')->whereDate('tgl_bayar', $kemarin)->sum('nominal');
+        $awal7 = now()->subDays(6)->startOfDay();
+        $orderPerHari = DB::table('transaksi')->where('tgl_order', '>=', $awal7)->where('status_nota', '!=', 'Dibatalkan')
+            ->selectRaw('DATE(tgl_order) as tgl, COUNT(*) as n')->groupBy('tgl')->pluck('n', 'tgl');
+        $kasPerHari = DB::table('pembayaran_riwayat')->where('tgl_bayar', '>=', $awal7)
+            ->selectRaw('DATE(tgl_bayar) as tgl, SUM(nominal) as total')->groupBy('tgl')->pluck('total', 'tgl');
+        $tren = collect(range(6, 0))->map(function ($i) use ($orderPerHari, $kasPerHari) {
+            $d = now()->subDays($i);
+
+            return ['label' => $d->translatedFormat('D'), 'tgl' => $d->format('d M'), 'order' => (int) ($orderPerHari[$d->format('Y-m-d')] ?? 0), 'kas' => (float) ($kasPerHari[$d->format('Y-m-d')] ?? 0)];
+        });
+
+        // Pekerjaan yang menunggu tindakan (sama dengan lonceng notifikasi, khusus role ini).
+        $perluTindakan = \App\Services\NotifikasiService::untuk(auth()->user())['items'];
+
         return view('dashboard', compact(
+            'orderKemarin', 'kasMasukKemarin', 'tren', 'perluTindakan',
             'orderHariIni', 'nilaiOrderHariIni',
             'spkAntre', 'spkProses', 'spkSelesai', 'urgentAktif',
             'notaLengkap', 'notaBelumLengkap',
