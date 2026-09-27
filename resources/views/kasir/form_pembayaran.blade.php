@@ -13,13 +13,13 @@
 
     {{-- Kas belum dibuka: pembayaran dikunci, nota tetap bisa disimpan sebagai antrean --}}
     @if(!$kasAktif)
-    <div class="mb-6 flex items-center gap-4 rounded-3xl bg-gradient-to-r from-amber-50 to-orange-50/40 border border-amber-100 px-6 py-4">
+    <div class="mb-6 flex flex-wrap items-center gap-4 rounded-3xl bg-gradient-to-r from-amber-50 to-orange-50/40 border border-amber-100 px-6 py-4">
         <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="fas fa-exclamation-triangle"></i></div>
-        <div class="flex-1">
+        <div class="flex-1 min-w-[200px]">
             <p class="text-sm font-bold text-amber-800">Kas kasir belum dibuka</p>
             <p class="text-xs text-amber-600/90 mt-0.5">Pembayaran belum bisa dicatat sebelum saldo kas hari ini dibuka. Nota tetap bisa disimpan sebagai antrean (tanpa uang masuk).</p>
         </div>
-        <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0"><i class="fas fa-wallet"></i> Buka Kas</x-button>
+        <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0 w-full sm:w-auto"><i class="fas fa-wallet"></i> Buka Kas</x-button>
     </div>
     @endif
 
