@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -119,6 +120,17 @@ public function index(Request $request)
 
             $this->syncBomFinishing($id_produk, $request);
 
+            // Hardening P0-3: BOM (bom_detail) menentukan qty bahan baku yang
+            // dipotong tiap order DAN dipakai ulang saat reversal stok (lihat
+            // BomCalculationService/StokReversalService) - sebelumnya tidak
+            // ada jejak sama sekali kapan/oleh siapa/dari-ke-apa BOM sebuah
+            // produk berubah. Dicatat di sini, bukan lewat trait Auditable,
+            // karena controller ini menulis lewat DB::table() (Eloquent tidak
+            // pernah terlibat).
+            AuditLogger::log('created', 'produk', (int) $id_produk, null, [
+                'nama_produk' => $request->nama_produk, 'metode_hitung' => $request->metode_hitung, 'bom' => $bomData,
+            ], 'Produk baru dibuat beserta BOM-nya');
+
             return redirect()->back()->with('success', 'Master Produk & Engineering BOM berhasil disimpan!');
         });
     }
@@ -195,6 +207,10 @@ public function show($id)
                 ? ($minPanjang * $minLebar) / 10000
                 : ($request->min_order_qty ?? $request->min_order ?? 0);
 
+            // BOM lama diambil SEBELUM delete&re-insert supaya bisa dicatat
+            // ke audit_logs (lihat catatan di bawah, dekat AuditLogger::log).
+            $bomLama = DB::table('bom_detail')->where('id_produk', $id)->get(['id_bahan', 'cara_hitung_pemakaian'])->toArray();
+
             // 1. Update Produk
             DB::table('produk')->where('id_produk', $id)->update([
                 'nama_produk'   => $request->nama_produk,
@@ -232,6 +248,18 @@ public function show($id)
 
             $this->syncBomFinishing((int) $id, $request);
 
+            // Hardening P0-3 (lihat catatan sama di store()). Selalu dicatat
+            // setiap kali form disimpan (bukan cuma saat terdeteksi beda) -
+            // form ini SELALU delete&re-insert seluruh bom_detail, jadi
+            // pembanding "apakah benar-benar berubah" gampang keliru kalau
+            // tipe data request (string) vs kolom DB (int) tidak persis sama;
+            // lebih aman audit_logs sesekali mencatat baris yang isinya
+            // identik daripada sampai ada perubahan BOM yang lolos tak tercatat.
+            $bomBaruUntukLog = collect($request->id_bahan ?? [])->filter()
+                ->map(fn ($v, $k) => ['id_bahan' => $v, 'cara_hitung_pemakaian' => $request->cara_hitung_pemakaian[$k] ?? 'Q'])
+                ->values()->all();
+            AuditLogger::log('updated', 'produk', (int) $id, ['bom' => $bomLama], ['bom' => $bomBaruUntukLog], 'BOM produk diperbarui (atau disimpan ulang tanpa perubahan)');
+
             return redirect()->back()->with('success', 'Update Produk & Engineering Berhasil.');
         });
     }
@@ -254,11 +282,13 @@ public function show($id)
 
         try {
             DB::transaction(function () use ($id) {
+                $produkLama = DB::table('produk')->where('id_produk', $id)->first();
                 DB::table('setting_harga')->where('id_produk', $id)->delete();
                 DB::table('bom_detail')->where('id_produk', $id)->delete();
                 DB::table('bom_finishing')->where('id_produk', $id)->delete();
                 DB::table('harga_promo')->where('id_produk', $id)->delete();
                 DB::table('produk')->where('id_produk', $id)->delete();
+                AuditLogger::log('deleted', 'produk', (int) $id, ['nama_produk' => $produkLama->nama_produk ?? null], null, 'Produk dihapus permanen beserta BOM & harga terkait');
             });
         } catch (\Illuminate\Database\QueryException $e) {
             return redirect()->back()->with('error', 'Produk masih terikat data lain dan tidak bisa dihapus. Gunakan tombol Nonaktifkan sebagai gantinya.');

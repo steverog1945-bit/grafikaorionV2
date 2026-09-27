@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -41,6 +42,9 @@ class FinishingHargaController extends Controller
 
         $row = DB::table('finishing_harga')->where('id_finishing_harga', $id)->first();
 
+        // Hardening P0-3: lihat catatan yang sama di ProdukController/SettingHargaController.
+        AuditLogger::log('created', 'finishing_harga', (int) $id, null, (array) $row, 'Tier harga finishing baru untuk finishing #' . $idFinishing);
+
         return response()->json(['success' => true, 'message' => 'Tier harga ditambahkan.', 'row' => $row]);
     }
 
@@ -52,6 +56,8 @@ class FinishingHargaController extends Controller
             'harga'     => 'required|numeric|min:0',
         ]);
 
+        $lama = DB::table('finishing_harga')->where('id_finishing_harga', $id)->first();
+
         DB::table('finishing_harga')->where('id_finishing_harga', $id)->update([
             'range_min'  => $request->range_min,
             'range_max'  => $request->range_max ?: null,
@@ -59,12 +65,24 @@ class FinishingHargaController extends Controller
             'updated_at' => now(),
         ]);
 
+        if ($lama) {
+            AuditLogger::log('updated', 'finishing_harga', (int) $id,
+                ['range_min' => $lama->range_min, 'range_max' => $lama->range_max, 'harga' => $lama->harga],
+                ['range_min' => $request->range_min, 'range_max' => $request->range_max ?: null, 'harga' => $request->harga],
+                'Tier harga finishing diperbarui');
+        }
+
         return response()->json(['success' => true, 'message' => 'Tier harga diperbarui.']);
     }
 
     public function destroy($id)
     {
+        $row = DB::table('finishing_harga')->where('id_finishing_harga', $id)->first();
         DB::table('finishing_harga')->where('id_finishing_harga', $id)->delete();
+
+        if ($row) {
+            AuditLogger::log('deleted', 'finishing_harga', (int) $id, (array) $row, null, 'Tier harga finishing dihapus');
+        }
 
         return response()->json(['success' => true, 'message' => 'Tier harga dihapus.']);
     }

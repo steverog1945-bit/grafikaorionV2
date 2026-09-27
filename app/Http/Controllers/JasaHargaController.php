@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -35,6 +36,9 @@ class JasaHargaController extends Controller
 
         $row = DB::table('jasa_harga')->where('id_jasa_harga', $id)->first();
 
+        // Hardening P0-3: lihat catatan yang sama di ProdukController/SettingHargaController.
+        AuditLogger::log('created', 'jasa_harga', (int) $id, null, (array) $row, 'Tier harga jasa baru untuk jasa #' . $idJasa);
+
         return response()->json(['success' => true, 'message' => 'Tier harga ditambahkan.', 'row' => $row]);
     }
 
@@ -46,6 +50,8 @@ class JasaHargaController extends Controller
             'harga'     => 'required|numeric|min:0',
         ]);
 
+        $lama = DB::table('jasa_harga')->where('id_jasa_harga', $id)->first();
+
         DB::table('jasa_harga')->where('id_jasa_harga', $id)->update([
             'range_min'  => $request->range_min,
             'range_max'  => $request->range_max ?: null,
@@ -53,12 +59,24 @@ class JasaHargaController extends Controller
             'updated_at' => now(),
         ]);
 
+        if ($lama) {
+            AuditLogger::log('updated', 'jasa_harga', (int) $id,
+                ['range_min' => $lama->range_min, 'range_max' => $lama->range_max, 'harga' => $lama->harga],
+                ['range_min' => $request->range_min, 'range_max' => $request->range_max ?: null, 'harga' => $request->harga],
+                'Tier harga jasa diperbarui');
+        }
+
         return response()->json(['success' => true, 'message' => 'Tier harga diperbarui.']);
     }
 
     public function destroy($id)
     {
+        $row = DB::table('jasa_harga')->where('id_jasa_harga', $id)->first();
         DB::table('jasa_harga')->where('id_jasa_harga', $id)->delete();
+
+        if ($row) {
+            AuditLogger::log('deleted', 'jasa_harga', (int) $id, (array) $row, null, 'Tier harga jasa dihapus');
+        }
 
         return response()->json(['success' => true, 'message' => 'Tier harga dihapus.']);
     }

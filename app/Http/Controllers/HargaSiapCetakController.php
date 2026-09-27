@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -88,10 +89,13 @@ class HargaSiapCetakController extends Controller
         }
 
         DB::transaction(function () use ($idProduk, $rows) {
+            $lama = DB::table('harga_siap_cetak')->where('id_produk', $idProduk)->get()->toArray();
             DB::table('harga_siap_cetak')->where('id_produk', $idProduk)->delete();
             if ($rows) {
                 DB::table('harga_siap_cetak')->insert($rows);
             }
+            // Hardening P0-3: lihat catatan yang sama di ProdukController/SettingHargaController.
+            AuditLogger::log('updated', 'harga_siap_cetak', $idProduk, ['tier' => $lama], ['tier' => $rows], 'Harga File Siap Cetak produk #' . $idProduk . ' disimpan ulang');
         });
 
         return response()->json(['status' => 'ok', 'jumlah_tier' => collect($rows)->unique(fn ($r) => $r['range_min'] . '|' . $r['range_max'])->count()]);
