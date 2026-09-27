@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\BackupLog;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Process\Process;
 
 /**
@@ -35,10 +36,14 @@ class BackupService
 
             self::terapkanRetensi($dir, $tipe);
 
+            [$offsiteStatus, $offsiteError] = self::salinKeLokasiKedua($dump, $tipe, $filename);
+
             $log->update([
                 'file_path' => $filePath,
                 'ukuran_bytes' => $size,
                 'status' => 'Sukses',
+                'offsite_status' => $offsiteStatus,
+                'offsite_error' => $offsiteError,
                 'finished_at' => now(),
             ]);
         } catch (\Throwable $e) {
@@ -79,6 +84,32 @@ class BackupService
         $process->mustRun();
 
         return $process->getOutput();
+    }
+
+    /**
+     * Salin dump ke disk KEDUA yang terpisah dari server ini (lihat catatan
+     * di config/backup.php). Kegagalan di sini SENGAJA tidak melempar
+     * exception - backup lokal yang sudah berhasil tidak boleh ikut
+     * ditandai gagal gara-gara lokasi kedua bermasalah (mis. koneksi
+     * jaringan ke S3 sedang putus); statusnya dicatat terpisah supaya tetap
+     * terlihat & bisa memicu notifikasi (lihat NotifikasiService).
+     *
+     * @return array{0: ?string, 1: ?string} [offsite_status, offsite_error]
+     */
+    private static function salinKeLokasiKedua(string $dump, string $tipe, string $filename): array
+    {
+        $disk = config('backup.secondary_disk');
+        if (!$disk) {
+            return [null, null];
+        }
+
+        try {
+            Storage::disk($disk)->put($tipe . '/' . $filename, $dump);
+
+            return ['Sukses', null];
+        } catch (\Throwable $e) {
+            return ['Gagal', $e->getMessage()];
+        }
     }
 
     private static function terapkanRetensi(string $dir, string $tipe): void

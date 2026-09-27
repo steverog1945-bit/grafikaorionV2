@@ -101,6 +101,9 @@ class NotifikasiService
             ['key' => 'jersey', 'label' => 'Order jersey deadline 3 hari', 'routes' => ['jersey.orders.index'], 'tone' => 'rose',
                 'hitung' => fn () => DB::table('jersey_orders')->whereNotNull('deadline')->whereBetween('deadline', [$hariIni, now()->addDays(3)->toDateString()])
                     ->whereNotIn(DB::raw('LOWER(status)'), ['selesai', 'batal', 'dibatalkan', 'diambil'])->count()],
+            ['key' => 'backup-gagal', 'label' => 'Backup bermasalah (gagal / belum tersalin ke lokasi kedua)', 'routes' => ['backup.index'], 'tone' => 'rose',
+                'hitung' => fn () => DB::table('backup_logs')->where('started_at', '>=', now()->subDays(3))
+                    ->where(fn ($q) => $q->where('status', 'Gagal')->orWhere('offsite_status', 'Gagal'))->count()],
             ['key' => 'kas-basi', 'label' => 'Kas belum ditutup lebih dari 24 jam', 'routes' => ['kasir.kelola'], 'tone' => 'rose',
                 'hitung' => function () use ($user) {
                     // Hanya Administrator dan kasir yang membuka saldo sesi itu yang perlu diingatkan.
