@@ -42,6 +42,7 @@
             <tr>
                 <th class="px-8 py-5 text-left">Tipe</th>
                 <th class="px-6 py-5 text-center">Status</th>
+                <th class="px-6 py-5 text-center" title="Salinan di luar server ini - lihat Pengaturan > BACKUP_SECONDARY_DISK">Lokasi Kedua</th>
                 <th class="px-6 py-5 text-left">Ukuran</th>
                 <th class="px-6 py-5 text-left">Waktu Mulai</th>
                 <th class="px-6 py-5 text-left">Waktu Selesai</th>
@@ -56,6 +57,13 @@
                 </td>
                 <td class="px-6 py-5 text-center">
                     <x-badge :status="$r->status" :variant="$r->status === 'Sukses' ? 'success' : 'danger'" />
+                </td>
+                <td class="px-6 py-5 text-center">
+                    @if($r->offsite_status === null)
+                        <span class="text-[10px] text-slate-300 italic" title="BACKUP_SECONDARY_DISK belum diatur di .env">Tidak diatur</span>
+                    @else
+                        <x-badge :status="$r->offsite_status" :variant="$r->offsite_status === 'Sukses' ? 'success' : 'danger'" />
+                    @endif
                 </td>
                 <td class="px-6 py-5">
                     <span class="text-xs text-slate-500">{{ $r->ukuran_bytes ? angka($r->ukuran_bytes / 1024, 1) . ' KB' : '-' }}</span>
@@ -72,11 +80,14 @@
                     @else
                         <span class="text-[11px] text-slate-400 font-mono truncate block">{{ $r->file_path }}</span>
                     @endif
+                    @if($r->offsite_status === 'Gagal')
+                        <span class="text-xs text-red-500 block mt-1"><i class="fas fa-triangle-exclamation"></i> Salinan kedua gagal: {{ $r->offsite_error }}</span>
+                    @endif
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="6">
+                <td colspan="7">
                     <x-empty-state title="Belum ada riwayat backup" />
                 </td>
             </tr>
