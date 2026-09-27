@@ -119,7 +119,7 @@ Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) 
 
 - **Approval Workflow:** daftar pengajuan Menunggu. Setujui untuk mengeksekusi, atau Tolak dengan alasan. Jenis pengajuan saat ini: pembatalan nota, Stock Opname, Purchase Request, pembatalan faktur pembelian, void pembayaran hutang, void pembayaran Jersey, pembatalan order Jersey, pembatalan catatan Kas Kecil, Waste Abnormal, pembukaan revisi desain yang sudah terkunci, dan penyesuaian stok manual.
 - **Log Aktivitas:** telusuri perubahan data, filter menurut jenis, kejadian, dan tanggal.
-- **Backup & Recovery:** backup otomatis harian, mingguan, dan bulanan (retensi 7/4/12) dan tombol backup manual. Otomatis hanya berjalan jika scheduler aktif (lihat panduan deploy). File backup di `storage/app/backups/` berisi data konsumen; simpan salinannya di lokasi lain juga.
+- **Backup & Recovery:** backup otomatis harian, mingguan, dan bulanan (retensi 7/4/12) dan tombol backup manual. Otomatis hanya berjalan jika scheduler aktif (lihat "Sebelum Deploy ke Server/VPS" di bawah). File backup di `storage/app/backups/` berisi data konsumen - berada di disk yang sama dengan aplikasi, jadi atur `BACKUP_SECONDARY_DISK` di `.env` (lihat `config/backup.php`) supaya setiap backup otomatis tersalin ke lokasi kedua di luar server; kalau belum diatur, salin manual secara berkala. Kolom "Lokasi Kedua" di halaman Backup menunjukkan status salinannya.
 - **Manajemen User dan Setting Akses:** buat akun per karyawan, atur menu per peran.
 
 ## 11. Hal yang belum tercakup (saat ini)
@@ -231,3 +231,20 @@ Kas kasir **tetap Open sampai di-closing**, bukan otomatis standby saat ganti ta
 - **Input uang** memakai pemisah ribuan **hanya saat mengetik**: `format-ribuan` (rupiah utuh) atau `format-ribuan-desimal` (boleh koma desimal, mis. `281.057,64`). Yang terkirim ke server selalu angka polos tanpa pemisah (`281057.64`), termasuk saat form dikirim lewat `form.submit()` dan saat kolom dibiarkan kosong (tetap kosong).
 - **Input jumlah/ukuran** (stok, qty, konversi, lebar, panjang) tetap `type=number` tanpa pemisah ribuan supaya tidak rancu dengan titik desimal; nol di belakang koma dibuang otomatis (`226.000` tampil `226`).
 - Penjaga otomatis di `tests/Feature/FormatAngkaTest.php`: menolak `number_format` gaya Amerika, pemotong nol yang salah, dan input uang tanpa pemisah ribuan.
+
+## Sebelum Deploy ke Server/VPS
+
+Checklist teknis - hanya dijalankan setelah aplikasi dinyatakan sempurna dan siap online (lihat memori proyek):
+
+1. **`.env` produksi:** `APP_ENV=production`, `APP_DEBUG=false` (sebelum ini, error apa pun tampil lengkap ke pengunjung - kebocoran informasi). `SESSION_SECURE_COOKIE=true` bila situs sudah HTTPS.
+2. **Cache konfigurasi & rute** - dijalankan ulang setiap kali `.env`/route/config berubah setelahnya (`config:clear` dulu sebelum edit `.env`, baru `config:cache` lagi):
+   ```
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   ```
+3. **Scheduler benar-benar berjalan** - jadwal `Schedule::command(...)` di `routes/console.php` (backup harian/mingguan/bulanan) tidak aktif dengan sendirinya. Perlu cron (`* * * * * php artisan schedule:run`) atau Windows Task Scheduler tiap menit.
+4. **`BACKUP_SECONDARY_DISK`** diatur ke disk di luar server (lihat bagian Backup & Recovery di atas) - backup yang hanya ada di server yang sama tidak melindungi dari kerusakan server itu sendiri.
+5. **Build aset produksi:** `npm install && npm run build` di server (folder `public/build` tidak ikut git).
+6. **Backup database dulu** sebelum migrasi pertama di server baru, dan reset data uji (bukan data riil) bila belum dilakukan.
+7. **`akuntansi:saldo-awal`** dijalankan dengan angka saldo awal yang sudah disepakati, kalau belum dilakukan sebelumnya.
