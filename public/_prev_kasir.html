@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><base href="http://localhost/percetakan-app/public/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="K4KtGztphcOXGoOHITpzwqPb88c1Bpp61RwONS18"> 
+    <title>ORION GRAFIKA</title>
+    <script>
+        // Tema terang/gelap: pilihan tersimpan (localStorage 'tema'), bila belum ada ikut pengaturan perangkat.
+        (function () {
+            try {
+                var t = localStorage.getItem('tema');
+                if (!t) t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                if (t === 'dark') document.documentElement.classList.add('dark');
+            } catch (e) {}
+        })();
+    </script>
+    
+    <link rel="preload" as="style" href="http://localhost/percetakan-app/public/build/assets/app-X55lUO6Y.css" /><link rel="modulepreload" as="script" href="http://localhost/percetakan-app/public/build/assets/app-NBbaXTWu.js" /><link rel="stylesheet" href="http://localhost/percetakan-app/public/build/assets/app-X55lUO6Y.css" /><script type="module" src="http://localhost/percetakan-app/public/build/assets/app-NBbaXTWu.js"></script>    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+    :root { --sidebar-width: 288px; --sidebar-width-collapsed: 96px; }
+    body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; background-color: #f5f7fa; overflow-x: hidden; }
+
+    /* SIDEBAR CORE (Tetap Dipertahankan) */
+    aside {
+        width: var(--sidebar-width);
+        background: linear-gradient(180deg, #0f172a 0%, #131d33 55%, #17223b 100%);
+        color: #f1f5f9;
+        position: fixed;
+        top: 0; bottom: 0; left: 0;
+        z-index: 50;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 8px 0 32px rgba(15,23,42,0.18);
+    }
+
+    @media (max-width: 1023px) {
+        aside { transform: translateX(-100%); }
+        aside.mobile-open { transform: translateX(0); }
+        main { margin-left: 0 !important; }
+    }
+
+    /* Collapse desktop = ICON-ONLY, bukan sidebar hilang total (dulu
+       translateX(-100%) penuh - melanggar prinsip "sidebar tetap harus
+       terlihat, minimal ikonnya"). Teks menu/group-header/subtitle brand
+       disembunyikan lewat selector generik (bukan nambah class di setiap
+       baris menu - menu di file ini ada puluhan baris, nambah class satu-
+       satu terlalu berisiko salah satu kelewat) - dipilih berdasarkan
+       struktur HTML yang memang sudah konsisten (span di dalam <a> nav,
+       div label group pakai tracking-[0.2em]).) */
+    body.sidebar-collapsed aside { width: var(--sidebar-width-collapsed); }
+    body.sidebar-collapsed main { margin-left: var(--sidebar-width-collapsed); }
+    body.sidebar-collapsed aside nav { padding-left: 14px; padding-right: 14px; }
+    body.sidebar-collapsed aside nav > a,
+    /* Grup menu "datar": judul grup disembunyikan & isinya selalu terbuka (role dengan sedikit menu). Mode rel ikon tidak terpengaruh. */
+    body:not(.sidebar-collapsed) aside .grup-datar-header { display: none !important; }
+    body:not(.sidebar-collapsed) aside .menu-group-items.grup-datar { display: block !important; }
+    body.sidebar-collapsed aside .menu-group-toggle { justify-content: center; }
+    body.sidebar-collapsed aside nav > a { padding: 14px 0; }
+    body.sidebar-collapsed aside nav > a span { display: none; }
+    body.sidebar-collapsed aside nav > a svg { width: 26px; height: 26px; }
+    body.sidebar-collapsed aside .menu-group-items { display: none !important; }
+    body.sidebar-collapsed aside .menu-group-toggle > span,
+    body.sidebar-collapsed aside .menu-group-toggle > i.fa-chevron-down { display: none; }
+    body.sidebar-collapsed aside .menu-group-toggle { padding: 14px 0; margin-top: 6px; border-radius: 14px; border-top: 1px solid rgba(255,255,255,0.07); border-radius: 0; }
+    body.sidebar-collapsed aside .sidebar-brand-text,
+    body.sidebar-collapsed aside .sidebar-text-label { display: none; }
+    body.sidebar-collapsed aside .sidebar-kas-status { justify-content: center; }
+    body.sidebar-collapsed aside #sidebarBrandHeader { padding: 18px 10px; }
+    body.sidebar-collapsed aside #sidebarCollapseToggle i { transform: rotate(180deg); }
+
+    /* Ikon grup (hanya tampil pada rel ringkas) */
+    aside .menu-group-toggle .rail-icon { display: none; }
+    body.sidebar-collapsed aside .menu-group-toggle .rail-icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 52px; height: 52px; border-radius: 16px; font-size: 21px;
+        color: #cbd5e1; background: rgba(255,255,255,0.05);
+        transition: background .2s, color .2s, transform .2s;
+    }
+    body.sidebar-collapsed aside .menu-group-toggle:hover .rail-icon,
+    body.sidebar-collapsed aside .menu-group-toggle.flyout-open .rail-icon { background: rgba(255,255,255,0.14); color: #fff; transform: translateY(-1px); }
+    body.sidebar-collapsed aside .menu-group-toggle.has-active .rail-icon {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+    }
+
+    /* Tampilan lebar: penanda grup yang berisi halaman aktif */
+    aside .menu-group-toggle.has-active > span { color: #fff; }
+    aside .menu-group-toggle.has-active > span::after {
+        content: ''; display: inline-block; width: 6px; height: 6px; margin-left: 8px; border-radius: 999px;
+        background: #818cf8; vertical-align: middle;
+    }
+    aside nav > a.sb-active::before {
+        content: ''; position: absolute; left: -14px; top: 22%; bottom: 22%; width: 4px; border-radius: 0 4px 4px 0; background: #a5b4fc;
+    }
+    body.sidebar-collapsed aside nav > a.sb-active::before { left: -14px; }
+    aside .menu-group-items a.sb-active::before { content: none; }
+
+    /* Flyout grup & tooltip untuk rel ringkas */
+    #railFlyout, #railTip { position: fixed; z-index: 70; display: none; }
+    #railFlyout {
+        min-width: 250px; max-width: 300px; max-height: 78vh; overflow-y: auto; padding: 10px;
+        background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 18px;
+        box-shadow: 0 24px 60px rgba(2,6,23,0.45);
+    }
+    #railFlyout .fly-title { padding: 6px 12px 10px; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #94a3b8; }
+    #railFlyout a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: #e2e8f0; font-size: 14px; font-weight: 500; text-decoration: none; }
+    #railFlyout a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    #railFlyout a.fly-active { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: #fff; }
+    #railFlyout a svg { width: 20px; height: 20px; flex-shrink: 0; color: #94a3b8; }
+    #railFlyout a:hover svg, #railFlyout a.fly-active svg { color: #fff; }
+    #railTip {
+        padding: 8px 14px; border-radius: 10px; background: #0f172a; color: #fff; font-size: 13px; font-weight: 600;
+        box-shadow: 0 10px 30px rgba(2,6,23,0.4); border: 1px solid rgba(255,255,255,0.1); white-space: nowrap; pointer-events: none;
+    }
+
+    /* Logo perusahaan - diatur dari Pengaturan Aplikasi (ukuran, gaya latar, mode ringkas) */
+    .sidebar-logo { position: relative; display: flex; align-items: center; justify-content: center; max-width: 100%; text-decoration: none; transition: transform .35s ease, background .3s ease; }
+    .sidebar-logo .logo-full { display: block; width: auto; height: auto; object-fit: contain; transition: transform .35s ease, filter .35s ease; }
+    .sidebar-logo .logo-icon { display: none; }
+    .sidebar-logo.logo-kecil .logo-full { max-height: 34px; max-width: 150px; }
+    .sidebar-logo.logo-sedang .logo-full { max-height: 46px; max-width: 190px; }
+    .sidebar-logo.logo-besar .logo-full { max-height: 60px; max-width: 220px; }
+    .sidebar-logo:hover { transform: translateY(-1px); }
+    .sidebar-logo:hover .logo-full { transform: scale(1.03); }
+
+    /* Gaya polos: tanpa kotak; kilau lembut di belakang + garis tipis terang supaya tepi logo gelap tetap terbaca */
+    .sidebar-logo.logo-gaya-polos { padding: 8px 12px; }
+    .sidebar-logo.logo-gaya-polos::before {
+        content: ''; position: absolute; inset: -6px -14px; z-index: 0; pointer-events: none;
+        background: radial-gradient(closest-side, rgba(129,140,248,0.30), rgba(129,140,248,0) 72%);
+    }
+    .sidebar-logo.logo-gaya-polos img { position: relative; z-index: 1; filter: drop-shadow(0 0 1px rgba(255,255,255,0.95)) drop-shadow(0 6px 14px rgba(2,6,23,0.45)); }
+    /* Gaya kaca */
+    .sidebar-logo.logo-gaya-kaca { padding: 10px 16px; border-radius: 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 30px rgba(2,6,23,0.25); backdrop-filter: blur(6px); }
+    .sidebar-logo.logo-gaya-kaca img { filter: drop-shadow(0 4px 10px rgba(2,6,23,0.35)); }
+    /* Gaya putih */
+    .sidebar-logo.logo-gaya-putih { padding: 10px 16px; border-radius: 18px; background: #fff; box-shadow: 0 10px 30px rgba(2,6,23,0.35); }
+
+    /* Mode ringkas */
+    body.sidebar-collapsed aside .sidebar-logo .logo-full { display: none; }
+    body.sidebar-collapsed aside .sidebar-logo .logo-icon { display: block; }
+    body.sidebar-collapsed aside .sidebar-logo .logo-ikon-file { width: 52px; height: 52px; object-fit: contain; }
+    /* Potong otomatis: tampilkan bagian kiri logo (biasanya lambang) */
+    body.sidebar-collapsed aside .sidebar-logo .logo-crop { display: block; width: 46px; height: 54px; overflow: hidden; position: relative; z-index: 1; }
+    body.sidebar-collapsed aside .sidebar-logo .logo-crop img { height: 54px; width: auto; max-width: none; display: block; }
+    body.sidebar-collapsed aside .sidebar-logo .logo-penuh { max-width: 60px; max-height: 46px; object-fit: contain; }
+    body.sidebar-collapsed aside .sidebar-logo.logo-gaya-polos img,
+    body.sidebar-collapsed aside .sidebar-logo .logo-icon img { filter: drop-shadow(0 0 1px rgba(255,255,255,0.95)) drop-shadow(0 6px 12px rgba(2,6,23,0.45)); }
+    body.sidebar-collapsed aside .sidebar-logo.logo-gaya-kaca,
+    body.sidebar-collapsed aside .sidebar-logo.logo-gaya-putih { padding: 8px; border-radius: 16px; }
+
+    /* MAIN - satu-satunya definisi (sebelumnya didefinisikan ulang & bentrok
+       di style block kedua di bagian bawah file ini) */
+    main {
+        margin-left: var(--sidebar-width);
+        min-height: 100vh;
+        padding: 32px 24px;
+        background: #f5f7fa;
+        transition: margin-left 0.3s ease, all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        width: 100%;
+    }
+
+    /* Topbar sebelumnya tidak pernah punya definisi CSS sama sekali (class
+       "topbar" tidak dipakai di manapun selain di sini) - burger icon &
+       judul cuma numpang di elemen tanpa padding/tinggi/alignment eksplisit,
+       jadinya terlihat "nempel asal" alih-alih menyatu dengan header. */
+    .notif-badge { margin-left: auto; min-width: 1.5rem; height: 1.25rem; padding: 0 .375rem; line-height: 1; border-radius: 9999px; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-badge.rose { background: #f43f5e; } .notif-badge.amber { background: #f59e0b; } .notif-badge.indigo { background: #6366f1; }
+    /* Badge selalu rata di kolom kanan yang sama: link menu (badge) & judul grup (badge + panah). */
+    aside .menu-group-toggle { justify-content: flex-start; padding-right: .875rem; }
+    aside .menu-group-toggle > i.fa-chevron-down { margin-left: auto; width: 1.5rem; text-align: center; }
+    aside .menu-group-toggle > .notif-badge { margin-left: auto; margin-right: .25rem; }
+    aside .menu-group-toggle > .notif-badge + i.fa-chevron-down { margin-left: 0; }
+    #badge-notif { min-width: 1.5rem; text-align: center; padding: 0 .375rem !important; height: 1.25rem; line-height: 1.25rem; animation: none !important; }
+    body.sidebar-collapsed .notif-badge { position: absolute; top: 2px; right: 4px; margin: 0; min-width: 1rem; height: 1rem; font-size: 9px; }
+    .topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 24px;
+        border-bottom: 1px solid #e2e8f0;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* Topbar mobile - sebelumnya sama persis dengan desktop (padding 18px
+       24px, nama aplikasi full text tanpa batas lebar) - di layar sempit
+       ini gampang mepet/tabrakan dengan avatar & tombol logout di kanan.
+       Dirapatkan + judul dibatasi lebar & dipotong elipsis supaya topbar
+       tetap satu baris rapi di HP sekecil apa pun. */
+    @media (max-width: 639px) {
+        .topbar { padding: 12px 16px; gap: 8px; }
+        .topbar-app-name { font-size: 13px; max-width: 38vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .topbar-burger { width: 36px; height: 36px; }
+    }
+
+    /* Wadah konten halaman. Sengaja TIDAK diberi warna/card/shadow di sini -
+       setiap halaman sudah membangun container & card putihnya sendiri,
+       jadi wrapper ini murni pengatur lebar, bukan pembungkus visual. */
+    .content-wrapper {
+        width: 100%;
+        max-width: 100vw;
+        margin: 0 auto;
+    }
+
+    /* Sisa design tokens (.modern-table, .card, .chip-*, .modern-nav, dst)
+       dipindahkan ke resources/css/app.css supaya diproses satu jalur oleh
+       Tailwind (beberapa rule di sana memakai @apply yang HANYA berfungsi
+       lewat pipeline itu, tidak bisa jalan dari <style> inline seperti ini). */
+
+    /* SIDEBAR SCROLL FIX: aside punya tinggi tetap (top:0;bottom:0) dan nav
+       di dalamnya sekarang berisi puluhan menu (SPK, Produksi, Collecting,
+       Laporan, Harga Promo, dst semuanya ditambahkan seiring waktu) - tanpa
+       overflow di sini, menu-menu di bagian bawah (System Control, Laporan,
+       bahkan Logout) terpotong habis oleh viewport dan sama sekali tidak
+       bisa dijangkau, oleh role manapun termasuk Administrator. nav diberi
+       flex:1 supaya mengisi sisa tinggi aside (setelah header & status kas),
+       lalu overflow-y:auto supaya sisanya bisa discroll di dalam sidebar
+       sendiri tanpa menggeser halaman utama. */
+    #mainSidebar nav {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
+    #mainSidebar nav::-webkit-scrollbar { width: 6px; }
+    #mainSidebar nav::-webkit-scrollbar-track { background: transparent; }
+    #mainSidebar nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 999px; }
+    #mainSidebar nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+</style>
+    
+</head>
+<body class="text-slate-900">
+    <script>
+        // Terapkan state collapse SEBELUM sidebar dirender (bukan nunggu
+        // DOMContentLoaded) supaya tidak ada kedipan "kebuka lebar dulu baru
+        // menyempit" tiap pindah halaman (app ini full page reload antar
+        // route, jadi state collapse harus dipasang secepat mungkin di
+        // setiap load, bukan cuma sekali di SPA).
+        try {
+            if (window.innerWidth >= 1024 && localStorage.getItem('sidebarCollapsed') === '1') {
+                document.body.classList.add('sidebar-collapsed');
+            }
+        } catch (e) {}
+    </script>
+
+    <div id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+
+    <div class="flex min-h-screen">
+        <aside id="mainSidebar">
+            <div id="sidebarBrandHeader" class="relative px-5 py-5 border-b border-white/10 flex items-center justify-center">
+                                <a href="http://localhost/dashboard" class="sidebar-logo logo-sedang logo-gaya-polos" title="ORION GRAFIKA">
+                                            <img class="logo-full" src="http://localhost/storage/company_logo/TQuRE7SCpMfI5Ryfac28qypqAk6wVD3T4phfJiXl.png" alt="Logo ORION GRAFIKA">
+                        <span class="logo-icon">
+                                                            <span class="logo-crop"><img src="http://localhost/storage/company_logo/TQuRE7SCpMfI5Ryfac28qypqAk6wVD3T4phfJiXl.png" alt=""></span>
+                                                    </span>
+                                    </a>
+                <button onclick="toggleMobileMenu()" class="lg:hidden absolute top-3 right-3 w-9 h-9 rounded-full bg-white/10 text-slate-200 hover:bg-white/20 sidebar-brand-text" aria-label="Tutup menu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+<div class="mt-5 px-4">
+            <div class="sidebar-kas-status rounded-2xl px-3 py-2.5 flex items-center gap-3 border border-white/10 bg-white/5" title="Kasir: Standby">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-400/15 text-slate-400"><i class="fas fa-moon text-sm"></i></span>
+            <span class="min-w-0 leading-tight sidebar-text-label">
+                <span class="block text-[11px] font-black uppercase tracking-wider text-slate-300">Kasir Standby</span>
+                <span class="block text-[10px] font-medium text-slate-500">Belum ada saldo dibuka</span>
+            </span>
+        </div>
+    </div>
+            <nav class="mt-5 px-4 pb-24 space-y-1.5">
+    
+    
+    <a href="http://localhost/dashboard" 
+       class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+        </svg>
+        <span class="text-sm font-medium">Dashboard</span>
+    </a>
+
+        <a href="http://localhost/postingan" title="Tulis dan kelola postingan Info &amp; Panduan" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+        </svg>
+        <span class="text-sm font-medium">Kelola Postingan</span>
+    </a>
+    
+        <a href="http://localhost/eksekutif" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+        </svg>
+        <span class="text-sm font-medium">Dashboard Eksekutif</span>
+    </a>
+    
+        <a href="http://localhost/audit-owner" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+        <span class="text-sm font-medium">Audit Bulanan</span>
+    </a>
+        
+            <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+        <span>Produksi & Logistik</span>
+        <i class="fas fa-chevron-down text-[10px] transition-transform "></i>
+    </button>
+    <div class="menu-group-items space-y-1 hidden">
+    
+        <a href="http://localhost/bahan-baku" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+        <span class="text-sm font-medium">Bahan Baku</span>
+    </a>
+    <a href="http://localhost/kartu-stok" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h4m0 0l-3-3m3 3l-3 3M5 7v10a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2h-4l-2-2H7a2 2 0 00-2 2z" />
+        </svg>
+        <span class="text-sm font-medium">Kartu Stok</span>
+    </a>
+            <a href="http://localhost/stock-opname" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-7 9l2 2 4-4" />
+        </svg>
+        <span class="text-sm font-medium">Stock Opname</span>
+    </a>
+            <a href="http://localhost/pembelian-bahan"
+    class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg"
+            class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 14l6-6m0 0l-6-6m6 6H3" />
+        </svg>
+        <span class="text-sm font-medium">Pembelian Bahan</span>
+    </a>
+            <a href="http://localhost/purchase-request" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6m-6 4h4" />
+        </svg>
+        <span class="text-sm font-medium">Purchase Request</span>
+    </a>
+            <a href="http://localhost/purchase-order" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span class="text-sm font-medium">Purchase Order</span>
+    </a>
+        <a href="http://localhost/kedatangan-bahan" 
+   id="menu-kedatangan-bahan"
+   class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white"
+         fill="none"
+         viewBox="0 0 24 24"
+         stroke="currentColor">
+
+        <path stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 17l4 4 4-4m0-5l-4-4-4 4m-4 5h16" />
+    </svg>
+
+    <span class="text-sm font-medium">
+        Kedatangan Bahan
+    </span>
+</a>
+
+        <a href="http://localhost/spk" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span class="text-sm font-medium">SPK</span>
+    </a>
+    
+        <a href="http://localhost/produksi" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V8l-6-6H6a2 2 0 00-2 2v16a2 2 0 002 2h11a2 2 0 002-2zM8 12h8m-8 4h5" />
+        </svg>
+        <span class="text-sm font-medium">Produksi</span>
+    </a>
+    
+
+        <a href="http://localhost/qc" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span class="text-sm font-medium">QC & Rework</span>
+    </a>
+    
+        <a href="http://localhost/waste" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        <span class="text-sm font-medium">Waste Management</span>
+    </a>
+    
+        <a href="http://localhost/collecting" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span class="text-sm font-medium">Collecting</span>
+    </a>
+    
+        <a href="http://localhost/kategori" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+        <span class="text-sm font-medium">Kategori Bahan</span>
+    </a>
+    
+        <a href="http://localhost/jenis-bahan" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+        <span class="text-sm font-medium">Jenis Bahan</span>
+    </a>
+    
+        <a href="http://localhost/merk" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+        <span class="text-sm font-medium">Merk</span>
+    </a>
+    
+        <a href="http://localhost/satuan" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+        </svg>
+        <span class="text-sm font-medium">Satuan & Konversi</span>
+    </a>
+    
+        <a href="http://localhost/mesin" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="text-sm font-medium">Aset Mesin</span>
+    </a>
+    
+        <a href="http://localhost/gudang" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        <span class="text-sm font-medium">Gudang</span>
+    </a>
+            </div>
+    
+            <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+        <span>Relasi Bisnis</span>
+        <i class="fas fa-chevron-down text-[10px] transition-transform rotate-180"></i>
+    </button>
+    <div class="menu-group-items space-y-1 ">
+    
+        <a href="http://localhost/konsumen" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <span class="text-sm font-medium">Data Konsumen</span>
+    </a>
+    
+        <a href="http://localhost/konsumen-deposit" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3v-1m-3 1v-5m11-4V6a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2h1" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 17a5 5 0 100-10 5 5 0 000 10z" />
+        </svg>
+        <span class="text-sm font-medium">Deposit Konsumen</span>
+    </a>
+    
+    <a href="http://localhost/golongan" 
+   class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+    <span class="text-sm font-medium">Golongan</span>
+</a>
+
+        <a href="http://localhost/produk" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+        </svg>
+        <span class="text-sm font-medium">Produk & BOM</span>
+    </a>
+    
+        <a href="http://localhost/finishing" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
+        </svg>
+        <span class="text-sm font-medium">Finishing Produk</span>
+    </a>
+    
+        <a href="http://localhost/jasa" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+        </svg>
+        <span class="text-sm font-medium">Jasa</span>
+    </a>
+    
+        <a href="http://localhost/setting-harga" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        <span class="text-sm font-medium">Price List & Level</span>
+    </a>
+    <a href="http://localhost/harga-siap-cetak" title="Harga khusus order dengan file siap cetak dari pelanggan" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+        <span class="text-sm font-medium">Harga File Siap Cetak</span>
+    </a>
+    
+        <a href="http://localhost/harga-promo" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5.586a1 1 0 01.707.293l7.414 7.414a1 1 0 010 1.414l-7.586 7.586a1 1 0 01-1.414 0L4.293 12.293A1 1 0 014 11.586V6a3 3 0 013-3z" />
+        </svg>
+        <span class="text-sm font-medium">Harga Promo</span>
+    </a>
+    
+        <a href="http://localhost/supplier" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+        <span class="text-sm font-medium">Supplier</span>
+    </a>
+            <a href="http://localhost/platform-belanja" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+        <span class="text-sm font-medium">Platform Belanja Online</span>
+    </a>
+    <a href="http://localhost/kasir/monitoring" 
+
+   class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  bg-emerald-500/10 text-emerald-400 opacity-50">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+    <span class="text-sm font-medium">Monitoring Kasir</span>
+    <span id="badge-notif" class="hidden ml-auto bg-rose-500 text-white text-[10px] px-2 py-0.5 rounded-full animate-bounce">0</span>
+</a>
+
+<a href="http://localhost/kasir/kelola-kas" 
+   class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+    <span class="text-sm font-medium">Buka/Tutup Kas</span>
+</a>
+        </div>
+    
+            <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+        <span>Finance & HR</span>
+        <i class="fas fa-chevron-down text-[10px] transition-transform "></i>
+    </button>
+    <div class="menu-group-items space-y-1 hidden">
+    
+        <a href="http://localhost/penjualan/kasir"
+       class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <span class="text-sm font-medium">Input Order</span>
+    </a>
+    
+    
+        <a href="http://localhost/quotation" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span class="text-sm font-medium">Quotation</span>
+    </a>
+    
+        <a href="http://localhost/penjualan-barang"
+       class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+        <span class="text-sm font-medium">Penjualan Barang</span>
+    </a>
+    
+        <a href="http://localhost/penjualan/riwayat"
+       class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-sm font-medium">Riwayat Penjualan</span>
+    </a>
+    
+        <a href="http://localhost/kas-kecil" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m9-8a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-sm font-medium">Kas Kecil</span>
+    </a>
+    
+        <a href="http://localhost/kategori-kas-kecil" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-5 5a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 9V4a1 1 0 011-1z" />
+        </svg>
+        <span class="text-sm font-medium">Kategori Kas Kecil</span>
+    </a>
+    
+        <a href="http://localhost/bank" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        </svg>
+        <span class="text-sm font-medium">Bank Perusahaan</span>
+    </a>
+    
+        <a href="http://localhost/karyawan" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+        </svg>
+        <span class="text-sm font-medium">Data Karyawan</span>
+    </a>
+            </div>
+    
+            <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+        <span>Laporan</span>
+        <i class="fas fa-chevron-down text-[10px] transition-transform "></i>
+    </button>
+    <div class="menu-group-items space-y-1 hidden">
+    
+        <a href="http://localhost/laporan/order" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Order</span>
+    </a>
+    
+        <a href="http://localhost/laporan/produksi" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Produksi</span>
+    </a>
+    
+        <a href="http://localhost/laporan/kas" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Kas Utama</span>
+    </a>
+    
+        <a href="http://localhost/laporan/belanja-bahan" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 7h16M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7M9 7v11m6-11v11" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Belanja Bahan</span>
+    </a>
+    <a href="http://localhost/laporan/hutang" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m9-8a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Hutang Supplier</span>
+    </a>
+    
+        <a href="http://localhost/laporan/order-jersey" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 7h16M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7M9 7v11m6-11v11" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Order Jersey</span>
+    </a>
+    
+        <a href="http://localhost/laporan/piutang" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m9-8a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Piutang</span>
+    </a>
+    
+        <a href="http://localhost/laporan/stok-bahan" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Stok Bahan Baku</span>
+    </a>
+    <a href="http://localhost/laporan/pemakaian-bahan" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+        </svg>
+        <span class="text-sm font-medium">Analisis Pemakaian Bahan</span>
+    </a>
+    
+        <a href="http://localhost/laporan/evaluasi-master" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+        <span class="text-sm font-medium">Lembar Evaluasi Master</span>
+    </a>
+    <a href="http://localhost/laporan/biaya-tinta" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3c3.5 4.2 6 7 6 10a6 6 0 11-12 0c0-3 2.5-5.8 6-10z" />
+        </svg>
+        <span class="text-sm font-medium">Biaya Tinta</span>
+    </a>
+        <a href="http://localhost/laporan/biaya-desain" title="Biaya desain per operator desain beserta komisi/bagi hasilnya" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.83a4 4 0 01-1.414.94L7 17l.23-3.414a4 4 0 01.94-1.414z" />
+        </svg>
+        <span class="text-sm font-medium">Biaya &amp; Komisi Desain</span>
+    </a>
+        <a href="http://localhost/laporan/hpp" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 4h4m-2-8a9 9 0 100 18 9 9 0 000-18zM9.5 15.5c.5 1 1.5 1.5 2.5 1.5s2-.5 2.5-1.5M9.5 9c.5-1 1.5-1.5 2.5-1.5s2 .5 2.5 1.5" />
+        </svg>
+        <span class="text-sm font-medium">Laporan HPP & Margin</span>
+    </a>
+    <a href="http://localhost/laporan/job-costing" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Job Costing</span>
+    </a>
+    <a href="http://localhost/laporan/profitabilitas" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Profitabilitas</span>
+    </a>
+            </div>
+    
+        
+            <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+        <span>Akuntansi</span>
+        <i class="fas fa-chevron-down text-[10px] transition-transform "></i>
+    </button>
+    <div class="menu-group-items space-y-1 hidden">
+    
+        <a href="http://localhost/akun" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        <span class="text-sm font-medium">Chart of Accounts</span>
+    </a>
+    
+        <a href="http://localhost/akuntansi/jurnal" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        <span class="text-sm font-medium">Laporan Keuangan</span>
+    </a>
+    
+        <a href="http://localhost/accounting-period" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span class="text-sm font-medium">Accounting Period</span>
+    </a>
+            </div>
+    
+            <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+        <span>Order Jersey</span>
+        <i class="fas fa-chevron-down text-[10px] transition-transform "></i>
+    </button>
+    <div class="menu-group-items space-y-1 hidden">
+        <a href="http://localhost/jersey" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 7h16M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7M9 7v11m6-11v11" />
+        </svg>
+        <span class="text-sm font-medium">Daftar Order</span>
+    </a>
+                <a href="http://localhost/jersey/master" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="text-sm font-medium">Master Data Jersey</span>
+    </a>
+    <a href="http://localhost/jersey/keuangan" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <span class="text-sm font-medium">Keuangan Jersey</span>
+    </a>
+        </div>
+    
+            <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+        <span>System Control</span>
+        <i class="fas fa-chevron-down text-[10px] transition-transform "></i>
+    </button>
+    <div class="menu-group-items space-y-1 hidden">
+    
+        <a href="http://localhost/users" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <span class="text-sm font-medium">Manajemen User</span>
+    </a>
+        
+<a href="http://localhost/setting-akses" 
+   class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+    <span class="text-sm font-medium">Setting Akses</span>
+</a>
+
+<a href="http://localhost/pengaturan-aplikasi"
+   class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+    <span class="text-sm font-medium">Pengaturan Aplikasi</span>
+</a>
+
+<a href="http://localhost/pengaturan-desainer" title="Kelas desainer dan persen bagi hasil komisi desain" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+    <span class="text-sm font-medium">Bagi Hasil Desainer</span>
+</a>
+
+<a href="http://localhost/pengaturan-jam-kerja" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span class="text-sm font-medium">Jam Kerja</span>
+</a>
+
+<a href="http://localhost/menu-editor" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+    </svg>
+    <span class="text-sm font-medium">Menu Editor</span>
+</a>
+
+<a href="http://localhost/approval" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span class="text-sm font-medium">Approval Workflow</span>
+</a>
+<a href="http://localhost/log-aktivitas" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span class="text-sm font-medium">Log Aktivitas</span>
+</a>
+<a href="http://localhost/backup" class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative  text-slate-300 hover:bg-white/10 hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-[22px] w-[22px] shrink-0 transition-colors  text-slate-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7c0 1.657 3.582 3 8 3s8-1.343 8-3m-16 0c0-1.657 3.582-3 8-3s8 1.343 8 3m-16 0v10c0 1.657 3.582 3 8 3s8-1.343 8-3V7" />
+    </svg>
+    <span class="text-sm font-medium">Backup & Recovery</span>
+</a>
+</div>
+</nav>
+        </aside>
+
+        <main id="mainContent" class="transition-all duration-300">
+    <div class="topbar sticky top-0 shadow-sm z-30 justify-between">
+        <div class="flex items-center gap-3 min-w-0">
+            <button id="sidebarCollapseToggle" onclick="toggleSidebar()" class="topbar-burger w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all shrink-0" title="Sembunyikan/tampilkan menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="topbar-app-name font-bold text-slate-700 truncate">ORION GRAFIKA</span>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+            
+            <button type="button" id="tema-toggle" onclick="ubahTema()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Ganti ke mode gelap" aria-label="Ganti mode gelap atau terang">
+                <i class="fas fa-moon" id="tema-ikon"></i>
+            </button>
+                        <div class="relative">
+                <button type="button" id="notif-btn" onclick="toggleNotif(event)" class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Notifikasi & pekerjaan masuk">
+                    <i class="fas fa-bell"></i>
+                    <span id="notif-total" class="hidden absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold items-center justify-center ring-2 ring-white"></span>
+                </button>
+                <div id="notif-panel" class="hidden absolute right-0 mt-2 w-80 max-w-[90vw] bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                        <span class="text-sm font-black text-slate-700">Pekerjaan masuk</span>
+                        <span id="notif-total-teks" class="text-[11px] font-bold text-slate-400"></span>
+                    </div>
+                    <div id="notif-list" class="max-h-[60vh] overflow-y-auto divide-y divide-slate-50"></div>
+                </div>
+            </div>
+                        <div class="hidden sm:flex flex-col items-end leading-tight">
+                <span class="text-[13px] font-bold text-slate-700">Admin Utama</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Administrator</span>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0 ring-2 ring-indigo-50">
+                A
+            </div>
+            <form action="http://localhost/logout" method="POST">
+                <input type="hidden" name="_token" value="K4KtGztphcOXGoOHITpzwqPb88c1Bpp61RwONS18" autocomplete="off">                <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all" title="Keluar Sistem">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+         <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+    <div>
+        <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Monitoring Kasir</h1>
+                    <p class="text-slate-400 font-medium mt-1 text-xs uppercase tracking-wider flex items-center gap-2">Pantau pembayaran, cetak nota, dan riwayat proses pesanan.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3"><button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs px-6 py-3" onclick="bukaScanBarcode()">
+        <i class="fas fa-barcode"></i>
+                Scan Barcode
+    </button>
+            <a href="http://localhost/kasir/waiting-list" class="inline-flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-100 text-xs px-6 py-3 relative">
+        <i class="fas fa-inbox"></i>
+                Antrean Baru
+    </a></div>
+    </div>
+
+    <div id="new-data-alert" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[100]">
+        <button onclick="location.reload()" class="bg-indigo-600 text-white px-6 py-3 rounded-full shadow-2xl font-bold text-sm flex items-center gap-3 border-4 border-white">
+            <i class="fas fa-bell"></i> Ada transaksi baru masuk - klik untuk tampilkan
+        </button>
+    </div>
+
+    
+        <div class="mb-6 flex flex-wrap items-center gap-3 bg-amber-50 border-2 border-amber-200 rounded-2xl px-5 py-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-lg">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="flex-1 min-w-[180px]">
+            <p class="text-sm font-black text-amber-800 uppercase tracking-wide">Kas Kasir Belum Dibuka</p>
+            <p class="text-xs text-amber-600 mt-0.5">Pencatatan pembayaran baru terkunci sampai saldo kas hari ini dibuka.</p>
+        </div>
+        <a href="http://localhost/kasir/kelola-kas" class="inline-flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-100 text-xs px-6 py-3 shrink-0 w-full sm:w-auto">
+        <i class="fas fa-wallet"></i> Buka Kas Sekarang
+    </a>
+    </div>
+    
+    
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm mb-6">
+    
+    <div class="p-6">
+        <form method="GET" action="http://localhost/kasir/monitoring" class="flex flex-wrap items-end gap-4">
+            
+            <input type="hidden" name="status_filtered" value="1">
+
+            <div class="w-full md:w-40">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
+                <input class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner" type="date" name="tgl_mulai" value="">
+            </div>
+
+            <div class="w-full md:w-40">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Sampai</label>
+                <input class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner" type="date" name="tgl_selesai" value="">
+            </div>
+
+            <div class="w-full md:w-56">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
+                <select name="id_konsumen" class="select2-filter w-full">
+                    <option value="">-- Semua Konsumen --</option>
+                                    </select>
+            </div>
+
+            <div class="w-full md:w-44">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">No. Nota</label>
+                <input class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner" type="text" name="nomor_nota" value="" placeholder="INV-...">
+            </div>
+
+            <div class="w-full md:w-44">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Transaksi</label>
+                <select class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer" name="status_bayar">
+    <option value="">-- Semua Status --</option>
+                    <option value="Belum Bayar" >Belum Bayar</option>
+                    <option value="DP" >DP / Panjar</option>
+                    <option value="Lunas" >Lunas</option>
+</select>
+            </div>
+
+            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 text-xs px-6 py-3">
+        <i class="fas fa-filter"></i>
+                Filter
+    </button>
+
+                    </form>
+    </div>
+</div>
+
+    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+        <div class="modern-table-wrapper">
+            <table class="modern-table">
+                <thead>
+            <tr>
+                <th class="px-4 py-5 text-center w-12">#</th>
+                <th class="px-4 py-5 text-left">Waktu</th>
+                <th class="px-4 py-5 text-center">Tipe</th>
+                <th class="px-4 py-5 text-left">No. Nota</th>
+                <th class="px-4 py-5 text-left">Konsumen</th>
+                <th class="px-6 py-5 text-right">Total</th>
+                <th class="px-4 py-5 text-center">Status</th>
+                <th class="px-8 py-5 text-center">Aksi</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+                        <tr>
+                <td colspan="8">
+                    <div class="empty-state">
+    
+    <p class="font-semibold text-slate-400">Tidak ada transaksi</p>
+
+            <p class="text-xs text-slate-300 mt-1">Sesuaikan filter, atau tunggu order baru diproses dari antrean SPK/Kasir.</p>
+    </div>
+                </td>
+            </tr>
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-100">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                            Tidak ada data
+                    </p>
+
+        <div class="flex flex-col sm:flex-row items-center gap-3">
+            
+            
+            
+                    </div>
+    </div>
+
+</div>
+
+
+<div id="modal-scan-barcode" class="hidden fixed inset-0 z-[60] items-center justify-center p-4">
+    
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeModal('scan-barcode')"></div>
+
+    
+    <div class="relative bg-white w-full max-w-md rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                <h3 id="modal-scan-barcode-title" class="text-base font-bold text-slate-800">Scan Barcode SPK / Nota</h3>
+                <button type="button" onclick="closeModal('scan-barcode')" class="text-slate-400 hover:text-rose-500 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        
+        <div class="p-6">
+            <div class="space-y-5">
+        <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Scan pakai alat scanner</label>
+            <input type="text" id="input-scan-manual" placeholder="Arahkan scanner ke sini lalu tembak..." autocomplete="off"
+                class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-center tracking-widest focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <p class="text-[11px] text-slate-400 mt-1.5 ml-2">Kolom ini otomatis aktif - tinggal scan, tidak perlu klik dulu.</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="flex-1 h-px bg-slate-100"></div>
+            <span class="text-[10px] font-bold text-slate-300 uppercase">Atau</span>
+            <div class="flex-1 h-px bg-slate-100"></div>
+        </div>
+
+        <div>
+            <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs px-6 py-3 w-full" id="btn-buka-kamera-scan" onclick="mulaiScanKamera()">
+        <i class="fas fa-camera"></i> Scan Pakai Kamera HP/Laptop
+    </button>
+            <div id="reader-barcode" class="hidden mt-4 rounded-xl overflow-hidden"></div>
+            <p id="status-kamera-scan" class="text-[11px] text-slate-400 mt-2 text-center"></p>
+        </div>
+    </div>
+        </div>
+
+            </div>
+</div>
+
+    </div>
+</main>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        // Refresh opsi select2 saat dibuka - opsi umumnya dirender server
+        // sekali saat halaman dimuat, jadi data yang baru ditambah di halaman
+        // lain (konsumen, bahan, supplier, dst) tidak muncul tanpa reload.
+        // Cara kerja: saat select2 dibuka, ambil ulang halaman yang sama
+        // (satu fetch dibagi semua select, di-throttle 4 detik), cari
+        // <select> yang sama lewat id/name, dan kalau daftar opsinya
+        // berbeda, ganti opsi (pilihan terpilih dipertahankan) lalu buka
+        // ulang dropdown. Lewati select yang opsinya dibangun client
+        // (ajax/data-no-refresh) atau tidak ditemukan di halaman segar.
+        (function () {
+            let lastFetch = 0, pending = null, refreshing = false;
+
+            function fetchFreshDoc() {
+                const now = Date.now();
+                if (pending && now - lastFetch < 4000) return pending;
+                lastFetch = now;
+                pending = fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+                    .then(r => r.ok ? r.text() : null)
+                    .then(html => html ? new DOMParser().parseFromString(html, 'text/html') : null)
+                    .catch(() => null);
+                return pending;
+            }
+
+            function findFresh(doc, el) {
+                if (el.id) return doc.getElementById(el.id);
+                if (el.name) return doc.querySelector('select[name="' + el.name.replace(/"/g, '\\"') + '"]');
+                return null;
+            }
+
+            $(document).on('select2:opening', 'select', function () {
+                if (refreshing || this.hasAttribute('data-no-refresh') || $(this).data('select2')?.options?.options?.ajax) return;
+                const el = this, $el = $(this);
+                if (!el.id && !el.name) return;
+
+                fetchFreshDoc().then(function (doc) {
+                    if (!doc) return;
+                    const fresh = findFresh(doc, el);
+                    if (!fresh) return;
+
+                    const sig = s => Array.from(s.options).map(o => o.value + '|' + o.textContent.trim()).join('\n');
+                    if (sig(fresh) === sig(el)) return;
+
+                    const selected = $el.val();
+                    el.innerHTML = fresh.innerHTML;
+                    $el.val(selected);
+                    refreshing = true;
+                    $el.trigger('change.select2');
+                    if ($el.data('select2') && $el.data('select2').isOpen()) {
+                        $el.select2('close');
+                        $el.select2('open');
+                    }
+                    refreshing = false;
+                });
+            });
+        })();
+    </script>
+    <script>
+    function formatRupiah(angka) {
+        let string = angka.toString().replace(/[^0-9]/g, "");
+        return string.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    // Dipakai khusus untuk populate field edit dari nilai mentah DB/JSON
+    // (mis. data.harga_promo dari json_encode($model), atau hasil fetch API)
+    // - parseFloat dulu supaya ".00" desimal terbaca benar sebagai pecahan
+    // (dibuang, bukan disambung jadi digit), baru dibulatkan ke rupiah utuh.
+    function formatRupiahDariAngka(nilai) {
+        return formatRupiah(Math.round(parseFloat(nilai) || 0));
+    }
+
+    function cleanRupiah(string) {
+        if (!string) return 0;
+        return parseFloat(string.toString().replace(/\./g, '')) || 0;
+    }
+
+    // ---- Kolom uang yang boleh berdesimal (mis. harga beli Rp 281.057,64): class "format-ribuan-desimal".
+    // Saat mengetik: titik = pemisah ribuan otomatis, KOMA = desimal (maks. data-desimal, bawaan 2).
+    // Yang terkirim ke server selalu angka polos "281057.64" (lihat listener submit di bawah).
+    function formatUangDesimal(teks, maksDesimal) {
+        maksDesimal = maksDesimal === undefined ? 2 : maksDesimal;
+        let s = String(teks).replace(/[^0-9,]/g, '');
+        const i = s.indexOf(',');
+        let bulat = i === -1 ? s : s.slice(0, i);
+        let desimal = i === -1 ? null : s.slice(i + 1).replace(/,/g, '').slice(0, maksDesimal);
+        bulat = bulat.replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return desimal === null ? bulat : bulat + ',' + desimal;
+    }
+
+    // "281.057,64" -> 281057.64 (angka). Aman untuk teks kosong.
+    function cleanUangDesimal(teks) {
+        if (!teks) return 0;
+        return parseFloat(String(teks).replace(/\./g, '').replace(',', '.')) || 0;
+    }
+
+    // Isi awal kolom dari nilai mentah DB/JSON ("281057.64" atau 281057.64) -> "281.057,64" (nol pecahan dibuang).
+    function formatUangDariAngka(nilai, maksDesimal) {
+        const n = parseFloat(nilai);
+        if (isNaN(n)) return '';
+        return new Intl.NumberFormat('id-ID', { maximumFractionDigits: maksDesimal === undefined ? 2 : maksDesimal }).format(n);
+    }
+
+    // Tampilan angka (bukan input) berformat Indonesia, nol pecahan dipotong: angkaId(200000, 0) = "200.000", angkaId(12.5) = "12,5".
+    function angkaId(nilai, maksDesimal) {
+        const n = parseFloat(nilai);
+        if (isNaN(n)) return '0';
+        return new Intl.NumberFormat('id-ID', { maximumFractionDigits: maksDesimal === undefined ? 2 : maksDesimal }).format(n);
+    }
+
+    document.addEventListener('input', function (e) {
+        if (!e.target.matches) return;
+        if (e.target.matches('input.format-ribuan')) {
+            e.target.value = formatRupiah(e.target.value);
+        } else if (e.target.matches('input.format-ribuan-desimal')) {
+            const max = e.target.dataset.desimal !== undefined ? parseInt(e.target.dataset.desimal, 10) : 2;
+            e.target.value = formatUangDesimal(e.target.value, max);
+        }
+    });
+
+    // Jaring pengaman terakhir sebelum form dikirim - pastikan nilai yang benar-benar terkirim ke server
+    // selalu angka polos, tanpa pemisah ribuan (titik) dan tanpa koma desimal.
+    // Berlaku untuk submit biasa (event submit) DAN form.submit() lewat kode (yang tidak memicu event).
+    // Kolom berdesimal dipulihkan ke tampilan berformat setelah nilai terkirim, supaya halaman/modal
+    // yang tetap terbuka (AJAX) tidak menampilkan angka polos yang membingungkan.
+    function bersihkanFormUang(form) {
+        form.querySelectorAll('input.format-ribuan').forEach(function (input) {
+            input.value = cleanRupiah(input.value);
+        });
+        form.querySelectorAll('input.format-ribuan-desimal').forEach(function (input) {
+            if (input.value.trim() === '') return;
+            if (input.dataset.bersih !== undefined && input.value === input.dataset.bersih) return; // sudah bersih (hindari dobel)
+            const tampilan = input.value;
+            const bersih = String(cleanUangDesimal(tampilan));
+            input.value = bersih;
+            input.dataset.bersih = bersih;
+            setTimeout(function () { if (input.value === bersih) input.value = tampilan; }, 0);
+        });
+    }
+
+    document.addEventListener('submit', function (e) {
+        if (e.target instanceof HTMLFormElement) bersihkanFormUang(e.target);
+    });
+
+    const submitAsli = HTMLFormElement.prototype.submit;
+    HTMLFormElement.prototype.submit = function () {
+        bersihkanFormUang(this);
+        return submitAsli.call(this);
+    };
+</script>
+    <style>
+    #app-tooltip { position: fixed; z-index: 100000; max-width: 280px; padding: 6px 10px; border-radius: 8px; background: #1e293b; color: #f8fafc; font-size: 11px; font-weight: 500; line-height: 1.4; pointer-events: none; opacity: 0; transform: translateY(2px); transition: opacity .12s ease, transform .12s ease; box-shadow: 0 6px 18px rgba(15, 23, 42, .25); }
+    #app-tooltip.show { opacity: 1; transform: translateY(0); }
+    @media print { #app-tooltip { display: none !important; } }
+</style>
+<script>
+(function () {
+    // ikon (kelas FontAwesome) -> penjelasan
+    const IKON = [
+        [/fa-(trash|trash-alt|trash-can)\b/, 'Hapus'], [/fa-(edit|pen|pen-to-square|pencil|pencil-alt)\b/, 'Ubah / edit'],
+        [/fa-(times|xmark|times-circle|circle-xmark)\b/, 'Tutup'], [/fa-(search|magnifying-glass)\b/, 'Cari'],
+        [/fa-print\b/, 'Cetak'], [/fa-(eye|eye-open)\b/, 'Lihat detail'], [/fa-eye-slash\b/, 'Sembunyikan'],
+        [/fa-(plus|plus-circle|circle-plus)\b/, 'Tambah'], [/fa-(save|floppy-disk|check|check-circle|circle-check)\b/, 'Simpan / setujui'],
+        [/fa-(undo|undo-alt|rotate-left|redo|rotate-right)\b/, 'Kembalikan / reset'], [/fa-(sync|sync-alt|rotate|arrows-rotate)\b/, 'Muat ulang'],
+        [/fa-(download|file-download)\b/, 'Unduh'], [/fa-(upload|file-upload|cloud-upload-alt)\b/, 'Unggah berkas'],
+        [/fa-(copy|clone)\b/, 'Salin'], [/fa-(info|info-circle|circle-info|question-circle|circle-question)\b/, 'Informasi'],
+        [/fa-(bell)\b/, 'Notifikasi'], [/fa-(exclamation-triangle|triangle-exclamation)\b/, 'Perhatian'],
+        [/fa-(arrow-right-to-bracket|sign-in-alt)\b/, 'Buka / lanjut'], [/fa-(right-from-bracket|sign-out-alt)\b/, 'Keluar'],
+        [/fa-(filter)\b/, 'Terapkan filter'], [/fa-(ban)\b/, 'Batalkan / tolak'], [/fa-(lock)\b/, 'Terkunci'], [/fa-(unlock)\b/, 'Buka kunci'],
+        [/fa-(qrcode|barcode)\b/, 'Pindai kode'], [/fa-(camera)\b/, 'Kamera / foto'], [/fa-(image|images)\b/, 'Gambar'],
+        [/fa-(link)\b/, 'Tautan'], [/fa-(external-link-alt|up-right-from-square)\b/, 'Buka di tab baru'],
+        [/fa-(chevron-left|angle-left|arrow-left)\b/, 'Sebelumnya / kembali'], [/fa-(chevron-right|angle-right|arrow-right)\b/, 'Berikutnya'],
+        [/fa-(history|clock-rotate-left)\b/, 'Riwayat'], [/fa-(cog|gear)\b/, 'Pengaturan'], [/fa-(ellipsis|ellipsis-v|ellipsis-h)\b/, 'Menu lainnya'],
+        [/fa-(file-invoice|file-invoice-dollar|receipt)\b/, 'Nota / faktur'], [/fa-(file-pdf)\b/, 'Berkas PDF'], [/fa-(hand-holding-dollar)\b/, 'Bayar'],
+    ];
+    // isi onclick/aksi -> penjelasan (untuk tombol berikon svg / tanpa kelas ikon)
+    const AKSI = [
+        [/(hapus|remove|delete|destroy)/i, 'Hapus'], [/(edit|ubah)/i, 'Ubah / edit'], [/(close|tutup|toggleModal|dismiss)/i, 'Tutup'],
+        [/(reset|kosongkan|clear)/i, 'Kosongkan / reset'], [/(print|cetak)/i, 'Cetak'], [/(cari|search)/i, 'Cari'], [/(simpan|save|submit)/i, 'Simpan'],
+    ];
+    // singkatan umum -> arti (judul kolom & label)
+    const SINGKATAN = {
+        'hpp': 'Harga Pokok Penjualan - biaya bahan/produksi per item', 'dp': 'Down Payment - uang muka', 'po': 'Purchase Order - pesanan pembelian ke supplier',
+        'pr': 'Purchase Request - permintaan pembelian', 'bom': 'Bill of Materials - daftar bahan yang dipakai sebuah produk', 'spk': 'Surat Perintah Kerja untuk produksi',
+        'qc': 'Quality Control - pemeriksaan mutu hasil', 'sj': 'Surat Jalan barang datang', 'no. sj': 'Nomor Surat Jalan', 'tempo': 'Pembelian dibayar nanti (kredit) sampai jatuh tempo',
+        'piutang': 'Tagihan yang belum dibayar konsumen', 'hutang': 'Kewajiban yang belum dibayar ke supplier', 'margin': 'Selisih harga jual dan HPP', 'margin %': 'Persentase selisih harga jual dan HPP',
+        'krg. bayar': 'Kurang bayar - sisa tagihan', 'closing': 'Penutupan sesi kas dan pencocokan uang fisik', 'saldo awal': 'Saldo pada saat mulai dicatat',
+        'stok minimal': 'Batas stok - di bawah angka ini bahan dianggap menipis', 'konversi': 'Berapa satuan hitung dalam 1 satuan stok', 'nilai konversi': '1 satuan stok = berapa satuan hitung',
+        'satuan stok': 'Satuan saat membeli/menyimpan bahan', 'satuan hitung': 'Satuan saat bahan dipakai produksi', 'harga rata-rata': 'Harga rata-rata tertimbang dari semua pembelian bahan',
+        'rework': 'Pengerjaan ulang karena hasil tidak lolos QC', 'waste': 'Bahan terbuang/rusak saat produksi', 'collecting': 'Pengumpulan/serah terima hasil ke konsumen',
+        'urgent': 'Order diprioritaskan', 'very urgent': 'Order paling diprioritaskan', 'stock opname': 'Penghitungan stok fisik untuk mencocokkan dengan sistem',
+        'kartu stok': 'Riwayat keluar-masuk stok per bahan', 'jurnal': 'Catatan akuntansi debet-kredit', 'debet': 'Sisi kiri jurnal (menambah aset/beban)', 'kredit': 'Sisi kanan jurnal (menambah pendapatan/hutang)',
+        'periode': 'Rentang tanggal laporan', 'kelas': 'Tingkat desainer yang menentukan persen komisi', 'komisi': 'Bagian desainer dari biaya desain',
+        'tier': 'Tingkat harga berdasarkan jumlah/ukuran order', 'golongan': 'Kelompok konsumen dengan harga khusus', 'urgensi': 'Tingkat prioritas pengerjaan',
+        'divisi': 'Bagian produksi/mesin yang mengerjakan', 'thumbnail': 'Gambar kecil sebagai acuan desain', 'no. po': 'Nomor Purchase Order dari konsumen',
+    };
+
+    function teksLangsung(el) { return (el.textContent || '').replace(/\s+/g, ' ').trim(); }
+
+    function tebakIkon(el) {
+        const ikon = el.querySelector('i[class*="fa-"]');
+        if (ikon) {
+            for (const [re, teks] of IKON) if (re.test(ikon.className)) return teks;
+        }
+        const aksi = (el.getAttribute('onclick') || '') + ' ' + (el.getAttribute('href') || '') + ' ' + (el.className || '');
+        for (const [re, teks] of AKSI) if (re.test(aksi)) return teks;
+        if (el.getAttribute('type') === 'submit') return 'Simpan';
+        return null;
+    }
+
+    function pasang(el, teks) {
+        el.setAttribute('title', teks);
+        if (!el.getAttribute('aria-label')) el.setAttribute('aria-label', teks);
+    }
+
+    function proses(root) {
+        // 1) tombol/tautan tanpa teks (hanya ikon)
+        root.querySelectorAll('button:not([title]):not([aria-label]):not([data-no-tip]):not([data-tip]), a:not([title]):not([aria-label]):not([data-no-tip]):not([data-tip]), [role="button"]:not([title]):not([aria-label]):not([data-tip])').forEach(el => {
+            if (teksLangsung(el) !== '' || el.closest('.select2-container, .swal2-container')) return;
+            if (!el.querySelector('i, svg')) return;
+            const t = tebakIkon(el);
+            if (t) pasang(el, t);
+        });
+        // 2) singkatan pada judul kolom & label kecil
+        root.querySelectorAll('th:not([title]):not([data-tip]), label:not([title]):not([data-tip])').forEach(el => {
+            const k = teksLangsung(el).toLowerCase().replace(/\s*\*$/, '');
+            if (k && k.length <= 22 && SINGKATAN[k]) el.setAttribute('title', SINGKATAN[k]);
+        });
+    }
+
+    // tampilan tooltip
+    let tip, timer, target;
+    function elTip() {
+        if (!tip) { tip = document.createElement('div'); tip.id = 'app-tooltip'; tip.setAttribute('role', 'tooltip'); document.body.appendChild(tip); }
+        return tip;
+    }
+    function sembunyi() { clearTimeout(timer); if (tip) tip.classList.remove('show'); if (target && target.dataset.tip) { target.setAttribute('title', target.dataset.tip); delete target.dataset.tip; } target = null; }
+    function tampil(el) {
+        const teks = el.dataset.tip; if (!teks) return;
+        const t = elTip(); t.textContent = teks; t.classList.remove('show'); t.style.left = '0px'; t.style.top = '0px';
+        const r = el.getBoundingClientRect(), w = t.offsetWidth, h = t.offsetHeight;
+        let x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8);
+        let y = r.top - h - 8; if (y < 8) y = r.bottom + 8;
+        t.style.left = x + 'px'; t.style.top = y + 'px';
+        requestAnimationFrame(() => t.classList.add('show'));
+    }
+    document.addEventListener('mouseover', function (e) {
+        const el = e.target.closest ? e.target.closest('[title]') : null;
+        if (!el || el === target) return;
+        if (el.tagName === 'IFRAME' || el.tagName === 'HTML' || el.tagName === 'BODY') return;
+        sembunyi();
+        target = el; el.dataset.tip = el.getAttribute('title'); el.removeAttribute('title');
+        timer = setTimeout(() => tampil(el), 250);
+    });
+    document.addEventListener('mouseout', function (e) { if (target && !target.contains(e.relatedTarget)) sembunyi(); });
+    ['click', 'scroll', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, sembunyi, true));
+
+    function mulai() {
+        proses(document);
+        let jadwal = null;
+        new MutationObserver(function () { clearTimeout(jadwal); jadwal = setTimeout(() => proses(document), 250); })
+            .observe(document.body, { childList: true, subtree: true });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mulai); else mulai();
+})();
+</script>
+    <script>
+        // Filter konsisten di SELURUH aplikasi: memilih nilai pada dropdown di dalam form GET (filter/pencarian)
+        // langsung menerapkan filter - tidak perlu klik tombol atau memilih dua kali. Termasuk dropdown select2
+        // (memakai event jQuery). Nonaktifkan per form/dropdown dengan atribut data-no-autosubmit.
+        $(document).on('change', 'select', function () {
+            const form = this.form;
+            if (!form || (form.getAttribute('method') || '').toLowerCase() !== 'get') return;
+            if (form.hasAttribute('data-no-autosubmit') || this.hasAttribute('data-no-autosubmit')) return;
+            if (form.__terkirim) return;
+            form.__terkirim = true;
+            setTimeout(() => { form.requestSubmit ? form.requestSubmit() : form.submit(); }, 0);
+        });
+    </script>
+    <script>
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+
+                    </script>
+    <script>
+    let currentTransactionCount = null;
+
+    function checkTransactions() {
+        fetch("http://localhost/kasir/check-pembayaran")
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('badge-notif');
+                if(data.total > 0) {
+                    badge.innerText = data.total;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+                // Jika ini pengecekan pertama, set jumlah awal
+                if (currentTransactionCount === null) {
+                    currentTransactionCount = data.total;
+                    return;
+                }
+
+                // Jika jumlah transaksi bertambah dari sebelumnya
+                if (data.total > currentTransactionCount) {
+                    currentTransactionCount = data.total;
+                    
+                    // Mainkan suara notifikasi (Opsional)
+                    // let audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3');
+                    // audio.play();
+
+                    Swal.fire({
+                        title: 'NOTA BARU!',
+                        text: `Ada ${data.total} transaksi menunggu divalidasi.`,
+                        icon: 'info',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Lihat List',
+                        confirmButtonColor: '#4f46e5',
+                        timer: 10000,
+                        timerProgressBar: true,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "http://localhost/kasir/monitoring";
+                        }
+                    });
+                } else {
+                    currentTransactionCount = data.total;
+                }
+            })
+            .catch(error => console.error('Error checking transactions:', error));
+    }
+
+    // Jalankan pengecekan setiap 10 detik - HANYA untuk role yang benar-benar
+    // punya akses ke endpoint-nya sendiri. /kasir/check-pembayaran ada di
+    // bawah prefix "kasir" yang di config/menu_access.php dijaga id_menu 16
+    // (BUKAN 3/41 - itu gate untuk prefix "penjualan"/Input Order, beda
+    // modul). Sebelumnya jalan untuk SEMUA user login tanpa
+    // syarat, jadi role tanpa id_menu 16 (termasuk Operator Desain yang
+    // cuma punya akses input-order) tetap polling endpoint ini tiap 10
+    // detik selamanya dan SELALU dapat 403 (dijaga CheckMenuAccess) -
+    // percuma membebani server & memenuhi console dengan error "Unexpected
+    // token '<'" (403 balikannya HTML, bukan JSON).
+            setInterval(checkTransactions, 10000);
+        </script>
+    <script>
+    // Alur input cepat: (1) saat halaman/modal form dibuka, kursor langsung ke isian pertama;
+    // (2) setelah memilih satu opsi dropdown, kursor pindah ke isian berikutnya. Dinonaktifkan di layar sentuh
+    // (agar keyboard tidak muncul sendiri) dan bisa dimatikan per elemen/form dengan atribut data-no-autofocus.
+    (function () {
+        if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+
+        const bisaDifokus = el => el && !el.disabled && !el.readOnly && el.type !== 'hidden' && el.type !== 'file'
+            && !el.hasAttribute('data-no-autofocus') && !el.closest('[data-no-autofocus]') && !el.closest('.hidden')
+            && (el.offsetParent !== null || el.tagName === 'SELECT') && el.getClientRects().length > 0;
+        const isian = 'input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=file]), textarea, select';
+
+        function fokus(el) {
+            if (!el) return;
+            if (el.tagName === 'SELECT' && window.jQuery && jQuery(el).data('select2')) { jQuery(el).select2('open'); return; }
+            el.focus({ preventScroll: false });
+            if (/^(text|number|search|tel|email)$/.test(el.type || '') && el.value !== '') { try { el.select(); } catch (e) {} }
+        }
+        function daftar(akar) { return [...akar.querySelectorAll(isian)].filter(bisaDifokus); }
+
+        // (1) Kursor ke isian pertama: form data (bukan filter GET) pertama di halaman.
+        function fokusAwal(akar, formData) {
+            const form = formData
+                ? [...akar.querySelectorAll('form')].find(f => (f.getAttribute('method') || 'get').toLowerCase() !== 'get' && daftar(f).length)
+                : akar;
+            if (!form) return;
+            const first = daftar(form)[0];
+            if (first && first.tagName !== 'SELECT') fokus(first);
+            else if (first) fokus(first);
+        }
+        window.addEventListener('load', () => {
+            if (document.querySelector('[autofocus]') || document.activeElement?.matches?.(isian)) return;
+            setTimeout(() => fokusAwal(document.querySelector('.content-wrapper') || document, true), 150);
+        });
+
+        // Modal yang baru terbuka (kelas 'hidden' dilepas) -> isian pertama di dalamnya.
+        new MutationObserver(muts => muts.forEach(m => {
+            const el = m.target;
+            if (m.attributeName !== 'class' || !(el instanceof HTMLElement)) return;
+            const sebelum = (m.oldValue || '').split(/\s+/).includes('hidden');
+            if (sebelum && !el.classList.contains('hidden') && (el.id?.startsWith('modal-') || /\bfixed\b/.test(el.className) && /inset-0/.test(el.className))) {
+                setTimeout(() => { const f = daftar(el)[0]; if (f) fokus(f); }, 80);
+            }
+        })).observe(document.body, { attributes: true, attributeOldValue: true, subtree: true, attributeFilter: ['class'] });
+
+        // (2) Pindah ke isian berikutnya setelah memilih dropdown.
+        function berikutnya(sel) {
+            const form = sel.closest('form') || sel.closest('.content-wrapper') || document;
+            if ((form.getAttribute?.('method') || 'post').toLowerCase() === 'get') return null; // filter GET: langsung memuat ulang
+            const semua = daftar(form.tagName ? form : document);
+            const i = semua.indexOf(sel);
+            for (let k = i + 1; k < semua.length; k++) {
+                const el = semua[k];
+                if (el.closest('.select2-container')) continue;
+                return el;
+            }
+            return null;
+        }
+        // select2 (dropdown dengan pencarian): 'select2:select' hanya menyala saat pengguna memilih.
+        if (window.jQuery) {
+            jQuery(document).on('select2:select', 'select', function () {
+                if (this.hasAttribute('data-no-advance') || this.closest('[data-no-autofocus]')) return;
+                const nx = berikutnya(this); if (nx) setTimeout(() => fokus(nx), 30);
+            });
+        }
+        // Dropdown biasa: hanya bila dipilih dengan mouse (panah keyboard tidak melompat).
+        let cara = new WeakMap();
+        document.addEventListener('pointerdown', e => { if (e.target.tagName === 'SELECT') cara.set(e.target, 'pointer'); }, true);
+        document.addEventListener('keydown', e => { if (e.target.tagName === 'SELECT' && !['Tab', 'Enter'].includes(e.key)) cara.set(e.target, 'key'); }, true);
+        document.addEventListener('change', e => {
+            const el = e.target;
+            if (el.tagName !== 'SELECT' || el.hasAttribute('data-no-advance') || el.closest('[data-no-autofocus]')) return;
+            if (window.jQuery && jQuery(el).data('select2')) return; // ditangani select2:select
+            if (cara.get(el) !== 'pointer') return;
+            const nx = berikutnya(el); if (nx) setTimeout(() => fokus(nx), 30);
+        });
+    })();
+    </script>
+    <script>
+    // Notifikasi: lonceng di topbar + badge angka di menu sidebar (per role, dari /sinyal).
+    function renderNotif(d) {
+        const items = d.items || [];
+        const tot = document.getElementById('notif-total');
+        if (tot) { tot.textContent = d.total > 99 ? '99+' : d.total; tot.classList.toggle('hidden', !(d.total > 0)); tot.classList.toggle('inline-flex', d.total > 0); }
+        const tt = document.getElementById('notif-total-teks');
+        if (tt) tt.textContent = d.total > 0 ? d.total + ' tugas' : '';
+        const warna = { rose: 'bg-rose-500', amber: 'bg-amber-500', indigo: 'bg-indigo-500' };
+        const list = document.getElementById('notif-list');
+        if (list) {
+            list.innerHTML = items.length ? items.map(i => `<a href="${i.url}" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-all">
+                <span class="notif-badge ${i.tone}" style="margin-left:0">${i.count}</span>
+                <span class="text-[13px] font-semibold text-slate-600 leading-snug">${i.label}</span></a>`).join('')
+                : '<div class="px-4 py-8 text-center text-sm text-slate-400"><i class="fas fa-check-circle text-emerald-400 text-2xl mb-2 block"></i>Tidak ada pekerjaan yang menunggu.</div>';
+        }
+        // Badge di menu sidebar: cocokkan lewat alamat tujuan (gabungkan bila beberapa notifikasi ke halaman yang sama).
+        document.querySelectorAll('#mainSidebar .notif-badge').forEach(el => el.remove());
+        const perUrl = {};
+        items.forEach(i => { const k = new URL(i.url, location.origin).pathname; (perUrl[k] = perUrl[k] || { n: 0, tone: i.tone }).n += i.count; if (i.tone === 'rose') perUrl[k].tone = 'rose'; });
+        document.querySelectorAll('#mainSidebar a[href]').forEach(a => {
+            let k; try { k = new URL(a.href, location.origin).pathname; } catch (e) { return; }
+            if (perUrl[k]) { const b = document.createElement('span'); b.className = 'notif-badge ' + perUrl[k].tone; b.textContent = perUrl[k].n > 99 ? '99+' : perUrl[k].n; a.appendChild(b); }
+        });
+        badgeGrup();
+    }
+    // Ringkasan di judul grup menu (berguna saat grup sedang dilipat).
+    function badgeGrup() {
+        document.querySelectorAll('#mainSidebar .notif-grup').forEach(el => el.remove());
+        document.querySelectorAll('#mainSidebar .menu-group-items').forEach(g => {
+            const n = [...g.querySelectorAll('.notif-badge')].reduce((t, b) => t + (parseInt(b.textContent) || 0), 0);
+            const h = g.previousElementSibling;
+            if (n > 0 && h) { const b = document.createElement('span'); b.className = 'notif-badge notif-grup indigo'; b.textContent = n > 99 ? '99+' : n; h.insertBefore(b, h.querySelector('i.fa-chevron-down')); }
+        });
+    }
+    // Role dengan sedikit menu: tampilkan menu langsung tanpa harus membuka grup. Berlaku bila total menu <= 8,
+    // atau untuk grup yang isinya cuma satu menu. Administrator (banyak menu) tetap memakai grup lipat.
+    function ratakanSidebar() {
+        const nav = document.querySelector('#mainSidebar nav'); if (!nav) return;
+        const grup = [...nav.querySelectorAll('.menu-group-items')];
+        const hitung = g => g.querySelectorAll('a[href]').length;
+        const dalamGrup = grup.reduce((t, g) => t + hitung(g), 0);
+        const luarGrup = [...nav.querySelectorAll('a[href]')].filter(a => !a.closest('.menu-group-items')).length;
+        const sedikit = (dalamGrup + luarGrup) <= 8;
+        grup.forEach(g => {
+            const h = g.previousElementSibling;
+            if (!h || !h.classList.contains('menu-group-toggle')) return;
+            if (sedikit || hitung(g) === 1) { g.classList.add('grup-datar'); h.classList.add('grup-datar-header'); }
+        });
+    }
+    // Sidebar semua role memakai grup menu yang sama seperti Administrator (tidak diratakan).
+    // Mode gelap / terang
+    function terapkanIkonTema() {
+        const gelap = document.documentElement.classList.contains('dark');
+        const ikon = document.getElementById('tema-ikon'), btn = document.getElementById('tema-toggle');
+        if (ikon) ikon.className = 'fas ' + (gelap ? 'fa-sun' : 'fa-moon');
+        if (btn) { btn.title = gelap ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'; }
+    }
+    function ubahTema() {
+        const gelap = document.documentElement.classList.toggle('dark');
+        try { localStorage.setItem('tema', gelap ? 'dark' : 'light'); } catch (e) {}
+        terapkanIkonTema();
+    }
+    terapkanIkonTema();
+    // Cetak selalu terang.
+    (function () {
+        let tadiGelap = false;
+        window.addEventListener('beforeprint', () => { tadiGelap = document.documentElement.classList.contains('dark'); document.documentElement.classList.remove('dark'); });
+        window.addEventListener('afterprint', () => { if (tadiGelap) document.documentElement.classList.add('dark'); });
+    })();
+    function toggleNotif(e) { e.stopPropagation(); document.getElementById('notif-panel').classList.toggle('hidden'); }
+    document.addEventListener('click', e => { const p = document.getElementById('notif-panel'); if (p && !p.contains(e.target)) p.classList.add('hidden'); });
+    renderNotif({"total":39,"items":[{"key":"stok","label":"Bahan habis \/ di bawah stok minimal","count":36,"url":"http:\/\/localhost\/laporan\/stok-bahan","tone":"rose"},{"key":"hutang","label":"Faktur hutang jatuh tempo (7 hari)","count":3,"url":"http:\/\/localhost\/pembelian-bahan","tone":"rose"}]});
+    </script>
+    <script>
+    // Refresh otomatis ringan: cek "sidik jari" perubahan data tiap 30 detik, HANYA saat tab terlihat
+    // (tab latar tidak membebani server). Bila berubah: halaman daftar-pantau (daftar putih) yang idle dimuat ulang sendiri; bila user
+    // sedang mengetik / modal terbuka / halaman form, cukup munculkan tombol "Muat ulang".
+    (function () {
+        let basis = null, sibuk = false, kotor = false, jeda = 30000, timer = null;
+        // DAFTAR PUTIH: hanya halaman pantau/daftar (tanpa input) yang boleh dimuat ulang otomatis.
+        // Semua halaman lain (input nota, jersey, kasir bayar, master, dst) TIDAK PERNAH di-reload
+        // otomatis - hanya menampilkan tombol - agar keranjang/isian tidak hilang.
+        const bolehOtomatis = /^\/(dashboard|kasir\/monitoring|spk|produksi|approval)\/?$/.test(location.pathname.replace(/^\/percetakan-app\/public/, ''));
+        document.addEventListener('input', () => { kotor = true; }, true);
+        document.addEventListener('change', () => { kotor = true; }, true);
+        function aman() {
+            if (!bolehOtomatis || kotor) return false;
+            // Lapis kedua: ada field isian terlihat di form non-GET (mis. modal terbuka) = jangan reload.
+            const fieldTerlihat = [...document.querySelectorAll('form:not([method=get]):not([method=GET]) :is(input:not([type=hidden]):not([type=checkbox]),textarea,select)')]
+                .some(el => el.offsetParent !== null);
+            if (fieldTerlihat) return false;
+            if (document.querySelector('.swal2-popup:not(.swal2-toast), dialog[open]')) return false;
+            const a = document.activeElement;
+            return !(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
+        }
+        function pill() {
+            if (document.getElementById('pill-segarkan')) return;
+            const b = document.createElement('button');
+            b.id = 'pill-segarkan'; b.type = 'button';
+            b.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] px-5 py-2.5 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow-xl hover:bg-indigo-700';
+            b.textContent = 'Data diperbarui di tab/pengguna lain — Muat ulang';
+            b.onclick = () => location.reload();
+            document.body.appendChild(b);
+        }
+        async function cek() {
+            if (document.hidden || sibuk) return;
+            sibuk = true;
+            try {
+                const r = await fetch("http:\/\/localhost\/sinyal", { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
+                if (!r.ok) throw new Error(r.status);
+                const d = await r.json();
+                jeda = 30000;
+                if (d.notif) renderNotif(d.notif);
+                if (basis === null) basis = d.v;
+                else if (d.v !== basis) { aman() ? location.reload() : pill(); }
+            } catch (e) { jeda = Math.min(jeda * 2, 300000); }
+            finally { sibuk = false; jadwal(); }
+        }
+        function jadwal() { clearTimeout(timer); timer = setTimeout(cek, jeda); }
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) cek(); });
+        cek();
+    })();
+    </script>
+    <script>
+        // Toggle Sidebar Desktop - collapse ke ICON-ONLY (bukan hilang total,
+        // lihat rule body.sidebar-collapsed di <style>), disimpan ke
+        // localStorage supaya pilihan user tidak reset tiap pindah halaman
+        // (aplikasi ini full page reload antar route, bukan SPA).
+        function toggleSidebar() {
+            if (window.innerWidth >= 1024) {
+                const collapsed = document.body.classList.toggle('sidebar-collapsed');
+                try { localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0'); } catch (e) {}
+            } else {
+                toggleMobileMenu();
+            }
+        }
+
+        // Toggle Sidebar Mobile
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('mainSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            if (sidebar.classList.contains('mobile-open')) {
+                sidebar.classList.remove('mobile-open');
+                $(overlay).fadeOut();
+            } else {
+                sidebar.classList.add('mobile-open');
+                $(overlay).fadeIn();
+            }
+        }
+
+        // Tooltip native (title) di tiap link menu - satu-satunya cara tahu
+        // nama menu saat ikon-only tanpa mengetik ulang ratusan baris label
+        // secara manual di semua menu yang sudah ada (state collapse sendiri
+        // sudah dipasang lebih awal, lihat script tepat setelah <body>).
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('#mainSidebar nav a').forEach(function(a) {
+                const span = a.querySelector('span');
+                if (span && span.textContent.trim()) {
+                    a.setAttribute('title', span.textContent.trim());
+                }
+            });
+        });
+
+        // Sembunyikan sidebar otomatis jika layar diresize ke kecil
+        window.addEventListener('resize', function() {
+            if (window.innerWidth < 1024) {
+                document.body.classList.remove('sidebar-collapsed');
+            }
+        });
+
+        // Accordion grup menu sidebar - state buka/tutup TIDAK disimpan ke
+        // localStorage (sengaja): tiap halaman full reload, dan grup yang
+        // berisi link aktif sudah otomatis terbuka lewat variable $grpXAktif
+        // yang dihitung di server (lihat blok masing-masing grup), jadi
+        // state manual user cukup bertahan selama sesi klik di halaman yang
+        // sama saja - lebih sederhana daripada sinkronisasi localStorage
+        // per grup untuk manfaat yang tipis.
+        function toggleMenuGroup(btn) {
+            // Rel ringkas (sidebar dilipat): grup membuka flyout, bukan accordion.
+            if (window.railAktif && window.railAktif()) { window.railBukaFlyout(btn, true); return; }
+            const items = btn.nextElementSibling;
+            const icon = btn.querySelector('i.fa-chevron-down');
+            items.classList.toggle('hidden');
+            if (icon) icon.classList.toggle('rotate-180');
+        }
+
+        // ===== Rel ikon (sidebar ringkas): ikon grup + flyout + tooltip =====
+        (function () {
+            const ikonGrup = [
+                [/produksi|logistik/i, 'fa-industry'], [/relasi|bisnis/i, 'fa-handshake'], [/finance|hr|keuangan/i, 'fa-wallet'],
+                [/laporan/i, 'fa-chart-line'], [/akuntansi/i, 'fa-scale-balanced'], [/jersey/i, 'fa-shirt'], [/system|sistem/i, 'fa-gear'],
+                [/penjualan|kasir/i, 'fa-cash-register'], [/master/i, 'fa-database'],
+            ];
+            const pilihIkon = (teks) => (ikonGrup.find(([re]) => re.test(teks)) || [null, 'fa-layer-group'])[1];
+            const rail = () => document.body.classList.contains('sidebar-collapsed') && window.innerWidth >= 1024;
+            window.railAktif = rail;
+
+            let fly, tip, tutupTimer, tombolAktif = null;
+            const buat = () => {
+                fly = document.createElement('div'); fly.id = 'railFlyout';
+                tip = document.createElement('div'); tip.id = 'railTip';
+                document.body.append(fly, tip);
+                fly.addEventListener('mouseenter', () => clearTimeout(tutupTimer));
+                fly.addEventListener('mouseleave', () => tutupFlyout());
+            };
+            const tutupFlyout = (segera) => {
+                clearTimeout(tutupTimer);
+                const tutup = () => { fly.style.display = 'none'; if (tombolAktif) tombolAktif.classList.remove('flyout-open'); tombolAktif = null; };
+                segera ? tutup() : (tutupTimer = setTimeout(tutup, 180));
+            };
+            window.railBukaFlyout = (btn, klik) => {
+                if (!rail()) return;
+                clearTimeout(tutupTimer);
+                tip.style.display = 'none';
+                                if (tombolAktif) tombolAktif.classList.remove('flyout-open');
+                tombolAktif = btn; btn.classList.add('flyout-open');
+
+                const wadah = btn.nextElementSibling;
+                const judul = (btn.dataset.label || '').replace(/</g, '&lt;');
+                fly.innerHTML = '<div class="fly-title">' + judul + '</div>';
+                wadah.querySelectorAll('a').forEach((a) => {
+                    const item = document.createElement('a');
+                    item.href = a.href;
+                    if (a.classList.contains('sb-active')) item.classList.add('fly-active');
+                    const svg = a.querySelector('svg');
+                    if (svg) { const c = svg.cloneNode(true); c.removeAttribute('class'); item.appendChild(c); }
+                    const label = document.createElement('span');
+                    label.textContent = (a.querySelector('span') || a).textContent.trim();
+                    item.appendChild(label);
+                    fly.appendChild(item);
+                });
+                fly.style.display = 'block';
+                const r = btn.getBoundingClientRect();
+                const tinggi = fly.offsetHeight;
+                fly.style.left = (r.right + 10) + 'px';
+                fly.style.top = Math.max(12, Math.min(r.top, window.innerHeight - tinggi - 12)) + 'px';
+            };
+            const tampilTip = (el, teks) => {
+                if (!rail()) return;
+                tip.textContent = teks; tip.style.display = 'block';
+                const r = el.getBoundingClientRect();
+                tip.style.left = (r.right + 12) + 'px';
+                tip.style.top = (r.top + r.height / 2 - tip.offsetHeight / 2) + 'px';
+            };
+
+            document.addEventListener('DOMContentLoaded', () => {
+                buat();
+                document.querySelectorAll('#mainSidebar .menu-group-toggle').forEach((btn) => {
+                    const label = (btn.querySelector('span') || btn).textContent.trim();
+                    btn.dataset.label = label;
+                    const ikon = document.createElement('i');
+                    ikon.className = 'rail-icon fas ' + pilihIkon(label);
+                    btn.insertBefore(ikon, btn.firstChild);
+                    if (btn.nextElementSibling && btn.nextElementSibling.querySelector('.sb-active')) btn.classList.add('has-active');
+                    btn.addEventListener('mouseenter', () => window.railBukaFlyout(btn, false));
+                    btn.addEventListener('mouseleave', () => { if (rail()) tutupFlyout(); });
+                });
+                document.querySelectorAll('#mainSidebar nav > a').forEach((a) => {
+                    const label = (a.querySelector('span') || a).textContent.trim();
+                    a.addEventListener('mouseenter', () => tampilTip(a, label));
+                    a.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+                });
+                document.addEventListener('click', (e) => { if (fly && !fly.contains(e.target) && !e.target.closest('.menu-group-toggle')) tutupFlyout(true); });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && fly) tutupFlyout(true); });
+                window.addEventListener('resize', () => { if (!rail() && fly) tutupFlyout(true); });
+            });
+        })();
+    </script>
+    
+    <script>
+    (function () {
+        const rapikan = (v) => (typeof v === 'string' && /^-?\d+\.\d+$/.test(v))
+            ? v.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
+            : v;
+
+        const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+        Object.defineProperty(HTMLInputElement.prototype, 'value', {
+            configurable: true,
+            get() { return desc.get.call(this); },
+            set(v) {
+                if (this.type === 'number' && v !== null && v !== undefined) v = rapikan(String(v));
+                desc.set.call(this, v);
+            },
+        });
+
+        const perbaiki = (el) => {
+            const awal = el.getAttribute('value');
+            if (awal === null) return;
+            const baru = rapikan(awal);
+            if (baru !== awal) el.setAttribute('value', baru);
+        };
+        const semua = (root) => root.querySelectorAll('input[type="number"]').forEach(perbaiki);
+
+        document.addEventListener('DOMContentLoaded', () => semua(document));
+        new MutationObserver((daftar) => daftar.forEach((m) => m.addedNodes.forEach((n) => {
+            if (n.nodeType !== 1) return;
+            if (n.matches && n.matches('input[type="number"]')) perbaiki(n);
+            if (n.querySelectorAll) semua(n);
+        }))).observe(document.documentElement, { childList: true, subtree: true });
+    })();
+    </script>
+    <script>
+    $(document).ready(function() {
+        $('.select2-filter').select2({ width: '100%', placeholder: '-- Semua Konsumen --', allowClear: true });
+    });
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+
+    async function showHistory(id) {
+        Swal.fire({ title: 'Memuat...', didOpen: () => Swal.showLoading() });
+
+        try {
+            const res = await fetch(`http://localhost/kasir/history/${id}`);
+            const data = await res.json();
+
+            if (data.status !== 'success') {
+                return Swal.fire('Gagal', data.msg || 'Data tidak ditemukan.', 'error');
+            }
+
+            const itemRows = data.items.map(it =>
+                `<tr>
+                    <td class="py-1 pr-2">${escapeHtml(it.nama_file)}</td>
+                    <td class="py-1 pr-2 text-center">${it.qty}${it.qty_cetak !== null ? ' / ' + it.qty_cetak : ''}</td>
+                    <td class="py-1 text-right font-bold">${it.status_spk}</td>
+                </tr>`
+            ).join('');
+
+            const bayarRows = data.pembayaran.length
+                ? data.pembayaran.map(p =>
+                    `<tr>
+                        <td class="py-1 pr-2">${new Date(p.tgl_bayar).toLocaleString('id-ID')}</td>
+                        <td class="py-1 pr-2">${p.metode}</td>
+                        <td class="py-1 text-right font-bold">Rp ${new Intl.NumberFormat('id-ID').format(p.nominal)}</td>
+                    </tr>`
+                  ).join('')
+                : '<tr><td colspan="3" class="py-2 text-slate-400 italic">Belum ada pembayaran tercatat.</td></tr>';
+
+            Swal.fire({
+                title: 'Nota ' + data.nomor_nota,
+                width: 480,
+                html: `
+                    <div class="text-left text-xs">
+                        <p class="text-slate-500 mb-3">Order: ${new Date(data.tgl_order).toLocaleString('id-ID')} &middot; Status: <b>${data.status_pembayaran}</b></p>
+                        <p class="font-bold uppercase text-[10px] text-slate-400 mb-1">Item &amp; Status SPK (qty order / qty cetak)</p>
+                        <table class="w-full mb-4">${itemRows}</table>
+                        <p class="font-bold uppercase text-[10px] text-slate-400 mb-1">Riwayat Pembayaran</p>
+                        <table class="w-full">${bayarRows}</table>
+                    </div>
+                `,
+                icon: undefined,
+                customClass: { popup: 'rounded-[2rem]' }
+            });
+        } catch (e) {
+            Swal.fire('Error', 'Gagal memuat history.', 'error');
+        }
+    }
+
+    // Polling notifikasi transaksi baru masuk ke antrean (Belum Bayar) -
+    // dipertahankan dari versi sebelumnya, cuma tampilan banner-nya diubah.
+    let initialWaitingCount = 0;
+
+    function checkNewTransaction() {
+        fetch("http://localhost/kasir/check-pembayaran")
+            .then(res => res.json())
+            .then(data => {
+                if (data.total > initialWaitingCount) {
+                    document.getElementById('new-data-alert').classList.remove('hidden');
+                }
+            });
+    }
+    setInterval(checkNewTransaction, 10000);
+
+    // SCAN BARCODE (lihat catatan di atas modal "scan-barcode") - barcode
+    // berisi "TRX"+id_transaksi, kode lain (mis. barcode produk pihak
+    // ketiga yang kebetulan ikut terpindai) ditolak dengan pesan jelas
+    // alih-alih diam-diam redirect ke URL yang salah.
+    function bukaScanBarcode() {
+        openModal('scan-barcode');
+        document.getElementById('input-scan-manual').value = '';
+        setTimeout(() => document.getElementById('input-scan-manual').focus(), 150);
+    }
+
+    document.getElementById('input-scan-manual').addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        prosesKodeBarcode(this.value);
+    });
+
+    function prosesKodeBarcode(kode) {
+        // Kode bisa "TRX123" (barcode lama / ketik manual) atau ALAMAT pembayaran dari QR (.../kasir/bayar-form/123).
+        const teks = (kode || '').trim();
+        const cocok = /^TRX(\d+)$/i.exec(teks) || /\/kasir\/bayar-form\/(\d+)\/?(?:[?#].*)?$/i.exec(teks);
+        if (!cocok) {
+            Swal.fire('Kode Tidak Dikenali', 'Barcode ini bukan barcode SPK/Nota yang valid dari aplikasi.', 'error');
+            document.getElementById('input-scan-manual').value = '';
+            document.getElementById('input-scan-manual').focus();
+            return;
+        }
+        window.location.href = `http://localhost/kasir/bayar-form/${cocok[1]}`;
+    }
+
+    // Kamera dimuat MALAS (lazy) - library html5-qrcode (CDN) baru
+    // diambil begitu tombol "Scan Pakai Kamera" pertama kali ditekan,
+    // bukan di setiap kunjungan halaman Monitoring Kasir yang notabene
+    // dibuka berkali-kali sehari.
+    let html5QrcodeScannerAktif = null;
+    let libHtml5QrcodeSudahDimuat = false;
+
+    function muatLibHtml5Qrcode() {
+        return new Promise((resolve, reject) => {
+            if (libHtml5QrcodeSudahDimuat) return resolve();
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
+            script.onload = () => { libHtml5QrcodeSudahDimuat = true; resolve(); };
+            script.onerror = () => reject(new Error('Gagal memuat library kamera.'));
+            document.head.appendChild(script);
+        });
+    }
+
+    async function mulaiScanKamera() {
+        const statusEl = document.getElementById('status-kamera-scan');
+        const readerEl = document.getElementById('reader-barcode');
+        statusEl.textContent = 'Memuat kamera...';
+        try {
+            await muatLibHtml5Qrcode();
+        } catch (e) {
+            statusEl.textContent = 'Gagal memuat library kamera - cek koneksi internet.';
+            return;
+        }
+
+        readerEl.classList.remove('hidden');
+        if (html5QrcodeScannerAktif) return;
+
+        html5QrcodeScannerAktif = new Html5Qrcode('reader-barcode', {
+            formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128],
+        });
+
+        try {
+            await html5QrcodeScannerAktif.start(
+                { facingMode: 'environment' },
+                { fps: 10, qrbox: { width: 260, height: 120 } },
+                (kodeTerbaca) => {
+                    statusEl.textContent = 'Terbaca: ' + kodeTerbaca;
+                    html5QrcodeScannerAktif.stop().then(() => {
+                        html5QrcodeScannerAktif = null;
+                        prosesKodeBarcode(kodeTerbaca);
+                    });
+                },
+                () => { /* frame tanpa barcode - abaikan, ini dipanggil terus tiap frame */ }
+            );
+            statusEl.textContent = 'Arahkan kamera ke barcode...';
+        } catch (e) {
+            statusEl.textContent = 'Tidak bisa mengakses kamera - pastikan izin kamera diberikan.';
+            html5QrcodeScannerAktif = null;
+        }
+    }
+</script>
+</body>
+</html>
