@@ -31,15 +31,15 @@
          siapa pun yang membuka Monitoring langsung tahu kondisinya tanpa
          perlu masuk ke halaman lain dulu. --}}
     @if(!$kasAktif)
-    <div class="mb-6 flex items-center gap-3 bg-amber-50 border-2 border-amber-200 rounded-2xl px-5 py-4">
+    <div class="mb-6 flex flex-wrap items-center gap-3 bg-amber-50 border-2 border-amber-200 rounded-2xl px-5 py-4">
         <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-lg">
             <i class="fas fa-exclamation-triangle"></i>
         </div>
-        <div class="flex-1">
+        <div class="flex-1 min-w-[180px]">
             <p class="text-sm font-black text-amber-800 uppercase tracking-wide">Kas Kasir Belum Dibuka</p>
             <p class="text-xs text-amber-600 mt-0.5">Pencatatan pembayaran baru terkunci sampai saldo kas hari ini dibuka.</p>
         </div>
-        <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0">
+        <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0 w-full sm:w-auto">
             <i class="fas fa-wallet"></i> Buka Kas Sekarang
         </x-button>
     </div>
