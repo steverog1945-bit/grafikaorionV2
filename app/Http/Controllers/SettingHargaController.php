@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Satuan;
@@ -100,6 +101,11 @@ class SettingHargaController extends Controller
 
         $row = DB::table('setting_harga')->where('id_harga', $id)->first();
 
+        // Hardening P0-3: perubahan harga jual (Price List) sebelumnya tidak
+        // pernah tercatat di audit_logs sama sekali - lihat catatan yang
+        // sama di ProdukController.
+        AuditLogger::log('created', 'setting_harga', (int) $id, null, (array) $row, 'Tier harga baru untuk produk #' . $idProduk);
+
         return response()->json(['success' => true, 'message' => 'Tier harga ditambahkan.', 'row' => $row]);
     }
 
@@ -135,12 +141,22 @@ class SettingHargaController extends Controller
             'updated_at' => $sekarang = now(),
         ]);
 
+        AuditLogger::log('updated', 'setting_harga', (int) $id,
+            ['range_min' => $row->range_min, 'range_max' => $row->range_max, 'harga_jual' => $row->harga_jual],
+            ['range_min' => $request->range_min, 'range_max' => $request->range_max ?: null, 'harga_jual' => $request->harga_jual],
+            'Tier harga diperbarui');
+
         return response()->json(['success' => true, 'message' => 'Tier harga diperbarui.', 'versi' => $sekarang->format('Y-m-d H:i:s')]);
     }
 
     public function destroyRow($id)
     {
+        $row = DB::table('setting_harga')->where('id_harga', $id)->first();
         DB::table('setting_harga')->where('id_harga', $id)->delete();
+
+        if ($row) {
+            AuditLogger::log('deleted', 'setting_harga', (int) $id, (array) $row, null, 'Tier harga dihapus');
+        }
 
         return response()->json(['success' => true, 'message' => 'Tier harga dihapus.']);
     }
@@ -200,6 +216,8 @@ class SettingHargaController extends Controller
             if (!empty($baris)) {
                 DB::table('setting_harga')->insert($baris);
             }
+
+            AuditLogger::log('updated', 'setting_harga', (int) $idProduk, null, ['dari_golongan' => $idSumber, 'ke_golongan' => $golonganLain->all(), 'jumlah_tier' => count($baris)], 'Harga disalin ke semua golongan lain');
         });
 
         // Kembalikan SELURUH tier produk ini (semua golongan) yang sudah
