@@ -72,18 +72,7 @@ class DashboardController extends Controller
             ->whereNotIn('status_spk', ['Selesai', 'Batal'])
             ->count();
 
-        $collectingRaw = DB::table('transaksi')
-            ->join('transaksi_detail', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
-            ->select(
-                'transaksi.id_transaksi',
-                DB::raw('COUNT(transaksi_detail.id_detail) as total_item'),
-                DB::raw("SUM(CASE WHEN transaksi_detail.status_spk IN ('Selesai','Batal') THEN 1 ELSE 0 END) as item_kelar")
-            )
-            ->groupBy('transaksi.id_transaksi')
-            ->get();
-
-        $notaLengkap = $collectingRaw->filter(fn ($r) => $r->total_item > 0 && $r->item_kelar == $r->total_item)->count();
-        $notaBelumLengkap = $collectingRaw->count() - $notaLengkap;
+        [$notaLengkap, $notaBelumLengkap] = $this->ringkasanCollecting();
 
         $piutang = DB::table('transaksi')->where('status_pembayaran', '!=', 'Lunas')->where('status_nota', '!=', 'Dibatalkan')->sum('total_bayar');
         $piutangCount = DB::table('transaksi')->where('status_pembayaran', '!=', 'Lunas')->where('status_nota', '!=', 'Dibatalkan')->count();
@@ -163,17 +152,7 @@ class DashboardController extends Controller
             ->whereNotIn('status_spk', ['Selesai', 'Batal'])
             ->count();
 
-        $collectingRaw = DB::table('transaksi')
-            ->join('transaksi_detail', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
-            ->select(
-                'transaksi.id_transaksi',
-                DB::raw('COUNT(transaksi_detail.id_detail) as total_item'),
-                DB::raw("SUM(CASE WHEN transaksi_detail.status_spk IN ('Selesai','Batal') THEN 1 ELSE 0 END) as item_kelar")
-            )
-            ->groupBy('transaksi.id_transaksi')
-            ->get();
-
-        $notaLengkap = $collectingRaw->filter(fn ($r) => $r->total_item > 0 && $r->item_kelar == $r->total_item)->count();
+        [$notaLengkap] = $this->ringkasanCollecting();
 
         $urgentList = DB::table('transaksi_detail')
             ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
@@ -315,5 +294,43 @@ class DashboardController extends Controller
             'jumlahBahan', 'jumlahHabis', 'jumlahMenipis', 'jumlahBelumAdaBatas',
             'bahanPerluPerhatian', 'kedatanganTerbaru'
         ));
+    }
+
+    /**
+     * Hardening P0-5: dulunya query ini JOIN transaksi+transaksi_detail lalu
+     * GROUP BY id_transaksi TANPA batas tanggal/status sama sekali, hasilnya
+     * di-fetch PENUH (satu baris per nota SEJAK HARI PERTAMA aplikasi
+     * dipakai) ke Collection PHP hanya untuk dihitung jadi 2 angka - padahal
+     * ini query yang paling sering dijalankan di seluruh aplikasi (Dashboard,
+     * dibuka setiap login/refresh oleh semua role). Waktu muatnya memburuk
+     * terus seiring bertambahnya total nota sepanjang umur bisnis. Diganti
+     * agregat SQL 2-tingkat (subquery group-by lalu dijumlah) supaya yang
+     * dikirim dari database ke PHP cuma 2 angka, bukan N baris - angka yang
+     * dihasilkan PERSIS sama seperti rumus lama:
+     * notaLengkap = jumlah nota yang item_kelar-nya == total_item;
+     * notaBelumLengkap = sisanya. Tidak ada JOIN ke tabel transaksi sama
+     * sekali karena id_transaksi sudah ada langsung di transaksi_detail -
+     * join lama ke transaksi tidak pernah dipakai kolomnya, murni overhead.
+     *
+     * @return array{0: int, 1: int} [notaLengkap, notaBelumLengkap]
+     */
+    private function ringkasanCollecting(): array
+    {
+        $perNota = DB::table('transaksi_detail')
+            ->select(
+                'id_transaksi',
+                DB::raw('COUNT(*) as total_item'),
+                DB::raw("SUM(CASE WHEN status_spk IN ('Selesai','Batal') THEN 1 ELSE 0 END) as item_kelar")
+            )
+            ->groupBy('id_transaksi');
+
+        $ringkas = DB::query()->fromSub($perNota, 'per_nota')
+            ->selectRaw('COUNT(*) as total_nota, SUM(CASE WHEN total_item = item_kelar THEN 1 ELSE 0 END) as lengkap')
+            ->first();
+
+        $totalNota = (int) ($ringkas->total_nota ?? 0);
+        $notaLengkap = (int) ($ringkas->lengkap ?? 0);
+
+        return [$notaLengkap, $totalNota - $notaLengkap];
     }
 }
