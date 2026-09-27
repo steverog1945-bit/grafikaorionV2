@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,6 +25,20 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useTailwind();
+
+        // Hardening P0-4: batasi percobaan login (per kombinasi username+IP,
+        // BUKAN per IP saja - supaya satu IP kantor/warnet dengan banyak user
+        // tidak saling mengunci) - sebelumnya endpoint /login sama sekali
+        // tidak dibatasi, terbuka untuk brute-force password tanpa batas
+        // begitu aplikasi online.
+        RateLimiter::for('login', function (Request $request) {
+            $kunci = \Illuminate\Support\Str::lower((string) $request->input('username')) . '|' . $request->ip();
+
+            return Limit::perMinute(5)->by($kunci)->response(function (Request $request, array $headers) {
+                return back()->withInput($request->only('username'))
+                    ->withErrors(['username' => 'Terlalu banyak percobaan login. Coba lagi dalam beberapa saat.']);
+            });
+        });
 
         // @bolehHarga ... @else ... @endbolehHarga : tampilkan hanya untuk role yang berhak melihat harga/nilai uang.
         \Illuminate\Support\Facades\Blade::if('bolehHarga', fn () => \App\Support\AksesHarga::bolehLihat());
