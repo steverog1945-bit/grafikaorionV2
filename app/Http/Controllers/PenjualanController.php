@@ -504,6 +504,19 @@ public function getHarga($id_produk, $id_golongan, $qty) {
                         'updated_at'    => now(),
                     ]);
 
+                    // Hardening P0-1: snapshot qty_pakai PER BARIS ITEM (bukan
+                    // dihitung ulang dari BOM live saat reversal - lihat
+                    // catatan lengkap di migrasi transaksi_detail_bahan_pakai
+                    // dan StokReversalService).
+                    DB::table('transaksi_detail_bahan_pakai')->insert([
+                        'id_detail'  => $id_detail,
+                        'id_bahan'   => $bom->id_bahan,
+                        'qty_pakai'  => $qtyPakaiSatuanStok,
+                        'is_tinta'   => $bom->is_tinta,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
                     $hppItemIni += $qtyPakaiSatuanStok * (float) ($bahan->harga_rata_rata ?? 0);
                 }
             }

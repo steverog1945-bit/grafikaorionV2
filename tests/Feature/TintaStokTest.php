@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\BomCalculationService;
 use App\Services\StokReversalService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -23,6 +24,11 @@ class TintaStokTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Dipatok ke hari kerja (Senin) - toko tutup hari Minggu (lihat
+        // JamKerjaService) menolak SEMUA transaksi baru terlepas dari
+        // kas_harian, jadi tes ini tidak boleh bergantung pada hari
+        // sungguhan saat suite dijalankan.
+        Carbon::setTestNow(Carbon::parse('2026-09-28 10:00:00'));
         $role = Role::factory()->create(['nama_role' => 'Administrator']);
         $this->admin = User::factory()->create(['id_role' => $role->id_role]);
 
@@ -39,6 +45,12 @@ class TintaStokTest extends TestCase
         $this->idKonsumen = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $this->idGol]);
         DB::table('setting_harga')->insert(['id_produk' => $this->idProduk, 'id_golongan' => $this->idGol, 'range_min' => 0, 'harga_jual' => 20000]);
         DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'saldo_awal' => 0, 'status_lock' => 'open']);
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
     }
 
     public function test_komponen_menyertakan_tinta_mesin_produk_dalam_satuan_hitung(): void
