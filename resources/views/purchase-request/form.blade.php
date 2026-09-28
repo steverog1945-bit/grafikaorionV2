@@ -5,6 +5,12 @@
     $editable = !$pr || $pr->status === 'Draft';
     $rows = old('items', $pr ? $pr->details->map(fn ($d) => ['id_bahan' => $d->id_bahan, 'qty' => $d->qty, 'catatan' => $d->catatan])->all() : [['id_bahan' => '', 'qty' => '', 'catatan' => '']]);
     $variantMap = ['Draft' => 'info', 'Diajukan' => 'warning', 'Disetujui' => 'success', 'Ditolak' => 'danger', 'Diproses PO' => 'success'];
+    $statusInfo = [
+        'Diajukan'     => 'Sedang menunggu persetujuan di Approval Workflow.',
+        'Disetujui'    => 'Sudah disetujui - lanjutkan dengan menekan tombol Buat PO di daftar Purchase Request.',
+        'Ditolak'      => 'Ditolak oleh persetujuan. Buat Purchase Request baru bila masih diperlukan.',
+        'Diproses PO'  => 'Sudah dijadikan Purchase Order - ubah qty/harga lewat PO-nya.',
+    ][$pr->status ?? ''] ?? null;
 @endphp
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1100px] mx-auto">
 
@@ -26,17 +32,24 @@
         </div>
     @endif
 
+    @if(!$editable && $statusInfo)
+        <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-700 text-sm font-semibold flex items-start gap-3">
+            <i class="fas fa-lock mt-0.5"></i>
+            <span>Document ini hanya-baca karena berstatus <b>{{ $pr->status }}</b>. {{ $statusInfo }}</span>
+        </div>
+    @endif
+
     <form id="form-pr" method="POST" action="{{ $pr ? route('purchase-request.update', $pr->id) : route('purchase-request.store') }}">
         @csrf
         @if($pr) @method('PATCH') @endif
 
         <x-card class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <x-form.group label="Tanggal">
-                    <x-form.input type="date" name="tanggal" value="{{ old('tanggal', $pr ? $pr->tanggal->toDateString() : now()->toDateString()) }}" required {{ $editable ? '' : 'disabled' }} />
+                <x-form.group label="Tanggal" name="tanggal">
+                    <x-form.input type="date" name="tanggal" value="{{ old('tanggal', $pr ? $pr->tanggal->toDateString() : now()->toDateString()) }}" required {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
-                <x-form.group label="Catatan (opsional)">
-                    <x-form.input type="text" name="catatan" value="{{ old('catatan', $pr->catatan ?? '' ) }}" placeholder="Mis. stok Flexi Korea tinggal 15 m2" {{ $editable ? '' : 'disabled' }} />
+                <x-form.group label="Catatan (opsional)" name="catatan">
+                    <x-form.input type="text" name="catatan" value="{{ old('catatan', $pr->catatan ?? '') }}" placeholder="Mis. stok Flexi Korea tinggal 15 m2" {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
             </div>
         </x-card>
@@ -60,9 +73,10 @@
                                 <option value="{{ $b->id_bahan }}" data-satuan="{{ $b->satuan_stok }}" {{ ($r['id_bahan'] ?? '') == $b->id_bahan ? 'selected' : '' }}>{{ $b->nama_bahan }} (stok {{ angka($b->stok, 2) }} {{ $b->satuan_stok }})</option>
                             @endforeach
                         </select>
+                        @if(!$editable)<input type="hidden" name="items[{{ $i }}][id_bahan]" value="{{ $r['id_bahan'] }}">{{-- nilai tetap terkirim meski select disabled --}}@endif
                     </td>
-                    <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'disabled' }}><span class="pr-unit block mt-1 text-right text-[10px] font-black text-indigo-600 uppercase"></span></td>
-                    <td class="px-4 py-3"><input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" {{ $editable ? '' : 'disabled' }}></td>
+                    <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'readonly' }}><span class="pr-unit block mt-1 text-right text-[10px] font-black text-indigo-600 uppercase"></span></td>
+                    <td class="px-4 py-3"><input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" {{ $editable ? '' : 'readonly' }}></td>
                     @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>@endif
                 </tr>
                 @endforeach

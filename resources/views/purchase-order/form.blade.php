@@ -10,6 +10,12 @@
     $nomorPr = $po?->purchaseRequest?->nomor ?? ($prefill['nomor_pr'] ?? null);
     $labelPr = $nomorPr ? "Dari {$nomorPr} - " : '';
     $variantMap = ['Draft' => 'info', 'Dipesan' => 'warning', 'Diterima Sebagian' => 'warning', 'Selesai' => 'success', 'Dibatalkan' => 'danger'];
+    $statusInfo = [
+        'Dipesan'           => 'Sudah diterbitkan ke supplier - tunggu barang datang, lalu catat kedatangannya di bawah.',
+        'Diterima Sebagian' => 'Sebagian barang sudah diterima - catat sisa kedatangan di bawah sampai lengkap.',
+        'Selesai'           => 'Semua item sudah diterima.',
+        'Dibatalkan'        => 'PO ini dibatalkan - buat PO baru bila masih diperlukan.',
+    ][$po->status ?? ''] ?? null;
 @endphp
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1200px] mx-auto">
 
@@ -29,6 +35,13 @@
     @if($errors->any())
         <div class="mb-6 p-4 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold">
             @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
+        </div>
+    @endif
+
+    @if($po && !$editable && $statusInfo)
+        <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-700 text-sm font-semibold flex items-start gap-3">
+            <i class="fas fa-lock mt-0.5"></i>
+            <span>Purchase Order ini hanya-baca karena berstatus <b>{{ $po->status }}</b>. {{ $statusInfo }}</span>
         </div>
     @endif
 
@@ -55,14 +68,14 @@
                         @endforeach
                     </x-form.select>
                 </x-form.group>
-                <x-form.group label="Tanggal PO">
-                    <x-form.input type="date" name="tanggal" value="{{ old('tanggal', $po ? $po->tanggal->toDateString() : now()->toDateString()) }}" required {{ $editable ? '' : 'disabled' }} />
+                <x-form.group label="Tanggal PO" name="tanggal">
+                    <x-form.input type="date" name="tanggal" value="{{ old('tanggal', $po ? $po->tanggal->toDateString() : now()->toDateString()) }}" required {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
-                <x-form.group label="Estimasi Kedatangan">
-                    <x-form.input type="date" name="tgl_pengiriman_estimasi" value="{{ old('tgl_pengiriman_estimasi', $po?->tgl_pengiriman_estimasi?->toDateString()) }}" {{ $editable ? '' : 'disabled' }} />
+                <x-form.group label="Estimasi Kedatangan" name="tgl_pengiriman_estimasi">
+                    <x-form.input type="date" name="tgl_pengiriman_estimasi" value="{{ old('tgl_pengiriman_estimasi', $po?->tgl_pengiriman_estimasi?->toDateString()) }}" {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
-                <x-form.group label="Termin Pembayaran">
-                    <x-form.input type="text" name="termin_pembayaran" value="{{ old('termin_pembayaran', $po->termin_pembayaran ?? '') }}" placeholder="Mis. Net 30 / Tunai" {{ $editable ? '' : 'disabled' }} />
+                <x-form.group label="Termin Pembayaran" name="termin_pembayaran">
+                    <x-form.input type="text" name="termin_pembayaran" value="{{ old('termin_pembayaran', $po->termin_pembayaran ?? '') }}" placeholder="Mis. Net 30 / Tunai" {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
             </div>
         </x-card>
@@ -90,10 +103,10 @@
                             @endforeach
                         </select>
                     </td>
-                    <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" data-qty class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'disabled' }}></td>
-                    <td class="px-4 py-3"><input type="text" inputmode="decimal" autocomplete="off" name="items[{{ $i }}][harga]" value="{{ ($r['harga'] ?? '') === '' ? '' : angka_input($r['harga'], 2) }}" data-harga class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" required {{ $editable ? '' : 'disabled' }}></td>
+                    <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" data-qty class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'readonly' }}></td>
+                    <td class="px-4 py-3"><input type="text" inputmode="decimal" autocomplete="off" name="items[{{ $i }}][harga]" value="{{ ($r['harga'] ?? '') === '' ? '' : angka_input($r['harga'], 2) }}" data-harga class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" required {{ $editable ? '' : 'readonly' }}></td>
                     <td class="px-4 py-3 text-right"><span class="text-sm font-bold text-slate-700" data-subtotal>0</span></td>
-                    <td class="px-4 py-3"><input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" placeholder="mis. merk sama dengan PR" {{ $editable ? '' : 'disabled' }}></td>
+                    <td class="px-4 py-3"><input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" placeholder="mis. merk sama dengan PR" {{ $editable ? '' : 'readonly' }}></td>
                     @if($po && !$editable)<td class="px-4 py-3 text-right text-sm text-slate-500">{{ angka($r['qty_diterima'] ?? 0, 2) }}</td>@endif
                     @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove(); hitungTotal()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>@endif
                 </tr>
@@ -108,18 +121,18 @@
         <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
             <x-card>
                 <x-form.group label="Catatan (opsional)">
-                    <textarea name="catatan" rows="4" class="w-full rounded-xl border-slate-200 text-sm p-3" {{ $editable ? '' : 'disabled' }}>{{ old('catatan', $po->catatan ?? '') }}</textarea>
+                    <textarea name="catatan" rows="4" class="w-full rounded-xl border-slate-200 text-sm p-3" {{ $editable ? '' : 'readonly' }}>{{ old('catatan', $po->catatan ?? '') }}</textarea>
                 </x-form.group>
             </x-card>
             <x-card>
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span class="font-bold" id="t-subtotal">0</span></div>
                     <div class="flex justify-between items-center gap-4"><span class="text-slate-500">Diskon (Rp)</span>
-                        <input type="text" inputmode="decimal" autocomplete="off" name="diskon" id="in-diskon" value="{{ angka_input(old('diskon', $po->diskon ?? 0), 2) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
+                        <input type="text" inputmode="decimal" autocomplete="off" name="diskon" id="in-diskon" value="{{ angka_input(old('diskon', $po->diskon ?? 0), 2) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'readonly' }}></div>
                     <div class="flex justify-between items-center gap-4"><span class="text-slate-500">Pajak (%)</span>
-                        <input type="number" step="0.01" min="0" max="100" name="pajak_persen" id="in-pajak" value="{{ old('pajak_persen', $po->pajak_persen ?? 0) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
+                        <input type="number" step="0.01" min="0" max="100" name="pajak_persen" id="in-pajak" value="{{ old('pajak_persen', $po->pajak_persen ?? 0) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'readonly' }}></div>
                     <div class="flex justify-between items-center gap-4"><span class="text-slate-500">Ongkir (Rp)</span>
-                        <input type="text" inputmode="decimal" autocomplete="off" name="ongkir" id="in-ongkir" value="{{ angka_input(old('ongkir', $po->ongkir ?? 0), 2) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
+                        <input type="text" inputmode="decimal" autocomplete="off" name="ongkir" id="in-ongkir" value="{{ angka_input(old('ongkir', $po->ongkir ?? 0), 2) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'readonly' }}></div>
                     <div class="flex justify-between pt-3 border-t border-slate-100 text-base"><span class="font-bold text-slate-700">Total</span><span class="font-extrabold text-indigo-600" id="t-total">0</span></div>
                 </div>
             </x-card>
