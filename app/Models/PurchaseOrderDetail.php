@@ -8,7 +8,7 @@ class PurchaseOrderDetail extends Model
 {
     protected $table = 'purchase_order_details';
 
-    protected $fillable = ['id_purchase_order', 'id_bahan', 'qty', 'harga', 'subtotal', 'qty_diterima'];
+    protected $fillable = ['id_purchase_order', 'id_bahan', 'qty', 'harga', 'subtotal', 'catatan', 'qty_diterima'];
 
     public function bahan()
     {

@@ -46,6 +46,7 @@ class PurchaseRequestController extends Controller
             $pr = PurchaseRequest::create([
                 'nomor' => DocumentNumberService::generate('PR'),
                 'tanggal' => $validated['tanggal'],
+                'tgl_dibutuhkan' => $validated['tgl_dibutuhkan'] ?? null,
                 'status' => 'Draft',
                 'catatan' => $validated['catatan'] ?? null,
                 'id_user_pembuat' => Auth::id(),
@@ -78,7 +79,11 @@ class PurchaseRequestController extends Controller
         $validated = $this->validasi($request);
 
         DB::transaction(function () use ($validated, $purchaseRequest) {
-            $purchaseRequest->update(['tanggal' => $validated['tanggal'], 'catatan' => $validated['catatan'] ?? null]);
+            $purchaseRequest->update([
+                'tanggal' => $validated['tanggal'],
+                'tgl_dibutuhkan' => $validated['tgl_dibutuhkan'] ?? null,
+                'catatan' => $validated['catatan'] ?? null,
+            ]);
             $purchaseRequest->details()->delete();
             $this->simpanBaris($purchaseRequest, $validated['items']);
         });
@@ -94,6 +99,10 @@ class PurchaseRequestController extends Controller
 
         if ($purchaseRequest->details()->count() === 0) {
             return back()->with('error', 'Purchase Request belum punya item.');
+        }
+
+        if (empty($purchaseRequest->tgl_dibutuhkan)) {
+            return back()->with('error', 'Tanggal dibutuhkan belum diisi - pembeli butuh ini untuk menetapkan prioritas pembelian.');
         }
 
         DB::transaction(function () use ($purchaseRequest) {
@@ -127,6 +136,7 @@ class PurchaseRequestController extends Controller
     {
         return $request->validate([
             'tanggal' => 'required|date',
+            'tgl_dibutuhkan' => 'nullable|date|after_or_equal:tanggal',
             'catatan' => 'nullable|string|max:1000',
             'items' => 'required|array|min:1',
             'items.*.id_bahan' => 'required|exists:bahan_baku,id_bahan',

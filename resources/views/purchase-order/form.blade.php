@@ -5,8 +5,8 @@
     $editable = !$po || $po->status === 'Draft';
     $idPr = old('id_purchase_request', $po->id_purchase_request ?? ($prefill['id_purchase_request'] ?? null));
     $rows = old('items', $po
-        ? $po->details->map(fn ($d) => ['id_bahan' => $d->id_bahan, 'qty' => $d->qty, 'harga' => $d->harga, 'qty_diterima' => $d->qty_diterima])->all()
-        : ($prefill['items'] ?? [['id_bahan' => '', 'qty' => '', 'harga' => '']]));
+        ? $po->details->map(fn ($d) => ['id_bahan' => $d->id_bahan, 'qty' => $d->qty, 'harga' => $d->harga, 'catatan' => $d->catatan, 'qty_diterima' => $d->qty_diterima])->all()
+        : ($prefill['items'] ?? [['id_bahan' => '', 'qty' => '', 'harga' => '', 'catatan' => '']]));
     $nomorPr = $po?->purchaseRequest?->nomor ?? ($prefill['nomor_pr'] ?? null);
     $labelPr = $nomorPr ? "Dari {$nomorPr} - " : '';
     $variantMap = ['Draft' => 'info', 'Dipesan' => 'warning', 'Diterima Sebagian' => 'warning', 'Selesai' => 'success', 'Dibatalkan' => 'danger'];
@@ -59,7 +59,8 @@
                     <x-form.input type="date" name="tanggal" value="{{ old('tanggal', $po ? $po->tanggal->toDateString() : now()->toDateString()) }}" required {{ $editable ? '' : 'disabled' }} />
                 </x-form.group>
                 <x-form.group label="Estimasi Kedatangan">
-                    <x-form.input type="date" name="tgl_pengiriman_estimasi" value="{{ old('tgl_pengiriman_estimasi', $po?->tgl_pengiriman_estimasi?->toDateString()) }}" {{ $editable ? '' : 'disabled' }} />
+                    {{-- Default: tgl dibutuhkan dari PR asal (kalau PO dibuat dari PR) - pembeli tinggal menyesuaikan. --}}
+                    <x-form.input type="date" name="tgl_pengiriman_estimasi" value="{{ old('tgl_pengiriman_estimasi', $po?->tgl_pengiriman_estimasi?->toDateString() ?? ($prefill['tgl_dibutuhkan'] ?? null)) }}" {{ $editable ? '' : 'disabled' }} />
                 </x-form.group>
                 <x-form.group label="Termin Pembayaran">
                     <x-form.input type="text" name="termin_pembayaran" value="{{ old('termin_pembayaran', $po->termin_pembayaran ?? '') }}" placeholder="Mis. Net 30 / Tunai" {{ $editable ? '' : 'disabled' }} />
@@ -74,6 +75,7 @@
                     <th class="px-4 py-4 text-right w-32">Qty</th>
                     <th class="px-4 py-4 text-right w-44">Harga Satuan</th>
                     <th class="px-4 py-4 text-right w-44">Subtotal</th>
+                    <th class="px-4 py-4 text-left w-56">Catatan</th>
                     @if($po && !$editable)<th class="px-4 py-4 text-right w-28">Diterima</th>@endif
                     @if($editable)<th class="px-4 py-4 w-12"></th>@endif
                 </tr>
@@ -92,6 +94,7 @@
                     <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" data-qty class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'disabled' }}></td>
                     <td class="px-4 py-3"><input type="text" inputmode="decimal" autocomplete="off" name="items[{{ $i }}][harga]" value="{{ ($r['harga'] ?? '') === '' ? '' : angka_input($r['harga'], 2) }}" data-harga class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" required {{ $editable ? '' : 'disabled' }}></td>
                     <td class="px-4 py-3 text-right"><span class="text-sm font-bold text-slate-700" data-subtotal>0</span></td>
+                    <td class="px-4 py-3"><input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" placeholder="mis. merk sama dengan PR" {{ $editable ? '' : 'disabled' }}></td>
                     @if($po && !$editable)<td class="px-4 py-3 text-right text-sm text-slate-500">{{ angka($r['qty_diterima'] ?? 0, 2) }}</td>@endif
                     @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove(); hitungTotal()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>@endif
                 </tr>
@@ -198,6 +201,7 @@
             <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" data-qty class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required></td>
             <td class="px-4 py-3"><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][harga]" data-harga class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" required></td>
             <td class="px-4 py-3 text-right"><span class="text-sm font-bold text-slate-700" data-subtotal>0</span></td>
+            <td class="px-4 py-3"><input type="text" maxlength="255" name="items[__I__][catatan]" class="w-full rounded-xl border-slate-200 text-xs p-2" placeholder="mis. merk sama dengan PR"></td>
             <td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove(); hitungTotal()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>
         </tr>
     </template>
