@@ -73,9 +73,16 @@ function csvPemainBacaMaster(selectEl) {
 }
 
 function csvPemainMasterDariTemplate() {
-    const opsiSize = document.querySelector('#template_baris_pemain_jersey select[name$="[size]"]');
-    const opsiSleeve = document.querySelector('#template_baris_pemain_jersey select[name$="[jersey_sleeve_type_id]"]');
-    const opsiCollar = document.querySelector('#template_baris_pemain_jersey select[name$="[jersey_collar_type_id]"]');
+    // PENTING: isi <template> berada di template.content (DocumentFragment
+    // terpisah), BUKAN child DOM biasa - querySelector dijalankan langsung
+    // pada elemen template SELALU null. Itulah sebabnya import CSV pernah
+    // selalu gagal dengan "Template baris pemain tidak ditemukan".
+    const tpl = document.getElementById('template_baris_pemain_jersey');
+    const root = tpl ? (tpl.content || tpl) : null;
+    if (!root) return null;
+    const opsiSize = root.querySelector('select[name$="[size]"]');
+    const opsiSleeve = root.querySelector('select[name$="[jersey_sleeve_type_id]"]');
+    const opsiCollar = root.querySelector('select[name$="[jersey_collar_type_id]"]');
     if (!opsiSize || !opsiSleeve || !opsiCollar) return null;
     return {
         size: csvPemainBacaMaster(opsiSize),
