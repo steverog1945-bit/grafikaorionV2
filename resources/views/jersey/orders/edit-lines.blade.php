@@ -142,20 +142,16 @@
     }
 
     // Lengan/Kerah default (level barang) tidak relevan untuk mode Daftar
-    // Pemain (selalu pakai pilihan tiap pemain), dan kolom Lengan/Kerah di
-    // tabel Daftar Pemain tidak relevan kalau Tipe Produk-nya memang tidak
-    // punya lengan/kerah (mis. Celana) - dikelola lewat checkbox "Punya
-    // Lengan & Kerah" di Master Data Tipe Produk, bukan hardcode nama.
+    // Pemain (selalu pakai pilihan tiap pemain). Dropdown Lengan/Kerah
+    // TIDAK lagi disembunyikan untuk tipe produk tanpa lengan/kerah (mis.
+    // Celana) - master "Tanpa Lengan"/"Tanpa Kerah" WAJIB dipilih eksplisit
+    // supaya selalu tercatat di database, sama seperti di create.blade.php.
     function perbaruiVisibilitasLenganKerah(source) {
         const card = source.closest ? source.closest('.jersey-line-card') : source;
         if (!card) return;
-        const ptSelect = card.querySelector('select[name$="[jersey_product_type_id]"]');
-        const opsiTerpilih = ptSelect ? ptSelect.options[ptSelect.selectedIndex] : null;
-        const punyaLenganKerah = !opsiTerpilih || opsiTerpilih.value === '' || opsiTerpilih.dataset.hasSleeveCollar !== '0';
         const orderType = card.querySelector('input[name$="[order_type]"]:checked')?.value || 'quantity_only';
-        const tampilkanDefault = punyaLenganKerah && orderType !== 'player_list';
+        const tampilkanDefault = orderType !== 'player_list';
         card.querySelectorAll('.wrapper-lengan-kerah-default').forEach(el => el.classList.toggle('hidden', !tampilkanDefault));
-        card.querySelectorAll('.col-lengan-kerah').forEach(el => el.classList.toggle('hidden', !punyaLenganKerah));
     }
 
     // ---- Thumbnail: upload via klik-pilih-file ATAU tempel (Ctrl+V) ----
@@ -360,6 +356,54 @@
         const cards = document.querySelectorAll('.jersey-line-card');
         if (cards.length === 0) {
             Swal.fire('Belum Ada Barang', 'Order harus punya minimal 1 jenis barang.', 'warning');
+            return;
+        }
+
+        // Audit kelengkapan (sama seperti create.blade.php): dropdown wajib
+        // + ukuran pemain + qty minimal - blokir simpan dengan daftar
+        // kekurangan & tandai field kosong.
+        const kurang = [];
+        document.querySelectorAll('.jersey-line-card').forEach(card => {
+            card.querySelectorAll('input, select').forEach(el => el.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40'));
+            const nomor = card.querySelector('.line-number').textContent;
+            const namaBarang = card.querySelector('[name*="[nama_barang]"]').value.trim() || `Barang #${nomor}`;
+
+            const wajibPilih = [
+                ['[name*="[jersey_product_type_id]"]', 'Tipe Produk'],
+                ['[name*="[jersey_category_id]"]', 'Kategori'],
+                ['[name*="[jersey_material_id]"]', 'Bahan'],
+            ];
+            for (const [selector, label] of wajibPilih) {
+                const el = card.querySelector(selector);
+                if (el && !el.value) {
+                    kurang.push(`${namaBarang}: ${label} belum dipilih`);
+                    el.classList.add('ring-2', 'ring-rose-400', 'bg-rose-50/40');
+                }
+            }
+
+            const tipe = card.querySelector('input.line-type-option:checked')?.value || 'quantity_only';
+            const adaQtyUkuran = [...card.querySelectorAll('.input-qty-ukuran')].some(i => parseInt(i.value) > 0);
+            const pemain = [...card.querySelectorAll('.baris-pemain')].filter(r => r.querySelector('[name*="player_name"]').value.trim() !== '');
+            const pemainTanpaUkuran = pemain.filter(r => !r.querySelector('[name*="[size]"]').value);
+            pemainTanpaUkuran.forEach(r => r.querySelector('[name*="[size]"]').classList.add('ring-2', 'ring-rose-400', 'bg-rose-50/40'));
+
+            if (pemain.length > 0 && pemainTanpaUkuran.length > 0) {
+                kurang.push(`${namaBarang}: ${pemainTanpaUkuran.length} pemain belum memilih Ukuran`);
+            }
+            if (tipe !== 'player_list' && !adaQtyUkuran && pemain.length === 0) {
+                kurang.push(`${namaBarang}: belum ada qty ukuran maupun daftar pemain`);
+            }
+        });
+
+        if (kurang.length > 0) {
+            const daftar = kurang.map(k => `<li>${k}</li>`).join('');
+            Swal.fire({
+                title: 'Lengkapi Data Pesanan Lebih Dulu',
+                html: `<ul style="text-align:left; font-size:12.5px; padding-left:1.2em;">${daftar}</ul>`,
+                icon: 'warning',
+                confirmButtonText: 'Ya, Saya Lengkapi',
+                customClass: { confirmButton: 'rounded-lg px-6 py-2.5' },
+            });
             return;
         }
 

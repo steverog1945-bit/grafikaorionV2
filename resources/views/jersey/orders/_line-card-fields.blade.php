@@ -26,21 +26,21 @@
         </div>
         <div>
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
-            <select name="lines[{{ $idx }}][jersey_product_type_id]" onchange="perbaruiVisibilitasLenganKerah(this)" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <select name="lines[{{ $idx }}][jersey_product_type_id]" required onchange="perbaruiVisibilitasLenganKerah(this)" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 <option value="">-- Pilih --</option>
                 @foreach($productTypes as $pt)<option value="{{ $pt->id }}" data-has-sleeve-collar="{{ $pt->has_sleeve_collar ? 1 : 0 }}" @selected(($line->jersey_product_type_id ?? null) == $pt->id)>{{ $pt->name }}</option>@endforeach
             </select>
         </div>
         <div>
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Kategori</label>
-            <select name="lines[{{ $idx }}][jersey_category_id]" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <select name="lines[{{ $idx }}][jersey_category_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 <option value="">-- Pilih --</option>
                 @foreach($categories as $cat)<option value="{{ $cat->id }}" @selected(($line->jersey_category_id ?? null) == $cat->id)>{{ $cat->name }}</option>@endforeach
             </select>
         </div>
         <div>
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Bahan</label>
-            <select name="lines[{{ $idx }}][jersey_material_id]" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <select name="lines[{{ $idx }}][jersey_material_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 <option value="">-- Pilih Bahan --</option>
                 @foreach($materials as $m)<option value="{{ $m->id }}" @selected(($line->jersey_material_id ?? null) == $m->id)>{{ $m->name }}</option>@endforeach
             </select>
@@ -50,15 +50,15 @@
         </div>
         <div class="wrapper-lengan-kerah-default md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Lengan (default)</label>
-                <select name="lines[{{ $idx }}][jersey_sleeve_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Lengan (default) <span class="text-rose-500">*</span></label>
+                <select name="lines[{{ $idx }}][jersey_sleeve_type_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Pilih --</option>
                     @foreach($sleeveTypes as $st)<option value="{{ $st->id }}" @selected(($line->jersey_sleeve_type_id ?? null) == $st->id)>{{ $st->name }}</option>@endforeach
                 </select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Kerah (default)</label>
-                <select name="lines[{{ $idx }}][jersey_collar_type_id]" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Kerah (default) <span class="text-rose-500">*</span></label>
+                <select name="lines[{{ $idx }}][jersey_collar_type_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Pilih --</option>
                     @foreach($collarTypes as $ct)<option value="{{ $ct->id }}" @selected(($line->jersey_collar_type_id ?? null) == $ct->id)>{{ $ct->name }}</option>@endforeach
                 </select>

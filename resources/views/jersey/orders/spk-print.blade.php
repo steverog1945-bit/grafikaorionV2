@@ -202,7 +202,16 @@
                     <tr><th>No</th><th>Nama</th><th>No. Punggung</th><th>Ukuran</th><th>Gender</th><th>Lengan</th><th>Kerah</th></tr>
                 </thead>
                 <tbody>
-                    @foreach($line->items as $i => $item)
+                    @php
+                        // Urutkan sesuai sort_order master ukuran (S, M, L, XL, ...)
+                        // alih-alih urutan input - konsisten dengan tabel pemain di
+                        // halaman show; fallback urutan AB bila master tidak ada.
+                        $itemsSorted = $line->items->sortBy([
+                            ['sort_size_order', 'asc'],
+                            ['player_name', 'asc'],
+                        ], SORT_NATURAL | SORT_FLAG_CASE)->values();
+                    @endphp
+                    @foreach($itemsSorted as $i => $item)
                     <tr>
                         <td class="num">{{ $i + 1 }}</td>
                         <td>{{ $item->player_name }}</td>

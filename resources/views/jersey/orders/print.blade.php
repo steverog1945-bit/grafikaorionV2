@@ -16,19 +16,32 @@
     <style>
         .ringkasan-jersey .print-header { margin-bottom: 8px; }
         .ringkasan-jersey .signature { margin-top: 20px; }
+
+        {{-- Info order rapat: label & nilai duduk BERDAMPINGAN dalam satu
+             aliran baca kiri ("Pelanggan: Budi"), bukan label nempel kiri
+             + nilai terdorong ke tepi kanan yang memaksa mata bolak-balik -
+             permintaan langsung user supaya mudah dibaca. --}}
+        .info-rapat td { padding: 1.5px 4px; vertical-align: top; }
+        .info-rapat .lbl { white-space: nowrap; color: #475569; font-weight: 600; padding-right: 6px; }
     </style>
 </head>
 <body>
     <div class="sheet ringkasan-jersey">
         @include('partials.print-header', ['docTitle' => 'Ringkasan Order Jersey'])
 
-        <table class="table-compact">
-            <tr><td>No. Order</td><td class="right">{{ $order->order_number }}</td></tr>
-            <tr><td>Tanggal</td><td class="right">{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</td></tr>
-            <tr><td>Pelanggan</td><td class="right">{{ $order->konsumen->nama_konsumen ?? $order->customer_name }}</td></tr>
-            <tr><td>Tim</td><td class="right">{{ $order->team_name ?? '-' }}</td></tr>
-            <tr><td>Deadline</td><td class="right">{{ $order->deadline ? \Carbon\Carbon::parse($order->deadline)->format('d/m/Y') : '-' }}</td></tr>
-            <tr><td>Desainer</td><td class="right">{{ $order->designer_name ?? '-' }}</td></tr>
+        {{-- Info order rapat kiri: pelanggan paling atas (paling sering
+             dicari), label & nilainya bersebelahan supaya terbaca sekali
+             jalan. Tetap satu kolom sempit, muat di A4. --}}
+        <table class="table-compact info-rapat">
+            <tr>
+                <td class="lbl">Pelanggan:</td>
+                <td><strong>{{ $order->konsumen->nama_konsumen ?? $order->customer_name }}</strong>@if($order->konsumen?->telepon) &middot; {{ $order->konsumen->telepon }}@endif</td>
+            </tr>
+            <tr><td class="lbl">No. Order:</td><td>{{ $order->order_number }}</td></tr>
+            <tr><td class="lbl">Tanggal:</td><td>{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</td></tr>
+            <tr><td class="lbl">Tim:</td><td>{{ $order->team_name ?? '-' }}</td></tr>
+            <tr><td class="lbl">Desainer:</td><td>{{ $order->designer_name ?? '-' }}</td></tr>
+            <tr><td class="lbl">Deadline:</td><td>{{ $order->deadline ? \Carbon\Carbon::parse($order->deadline)->format('d/m/Y') : '-' }}</td></tr>
         </table>
 
         <div class="divider divider-tight"></div>

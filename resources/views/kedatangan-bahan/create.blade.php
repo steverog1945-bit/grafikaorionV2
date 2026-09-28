@@ -28,7 +28,7 @@
                         </x-form.group>
 
                         <x-form.group label="Gudang Tujuan">
-                            <x-form.select name="id_gudang">
+                            <x-form.select name="id_gudang" required>
                                 @foreach($gudangs as $g)
                                     <option value="{{ $g->id_gudang }}" {{ (old('id_gudang') ?? ($kedatangan->id_gudang ?? '')) == $g->id_gudang ? 'selected' : '' }}>
                                         {{ $g->nama_gudang }}
