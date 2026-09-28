@@ -64,12 +64,22 @@ function csvPemainKey(s) {
 }
 
 function csvPemainBacaMaster(selectEl) {
-    const map = new Map();
+    // PENTING: untuk lengan/kerah, option.value adalah ID angka - nama yang
+    // ditulis di CSV harus dicocokkan ke option TEXT, bukan value. (Bug lama:
+    // dipetakan dari value sehingga SEMUA nama lengan/kerah "tidak ada di
+    // master" walau ditulis benar.) Ukuran memakai name sebagai value, jadi
+    // tetap benar - kini seragam lewat text.
+    const map = new Map();   // kunci nama (lowercase, spasi rapat) -> value option
+    const label = new Map(); // kunci nama -> teks tampilan (untuk pesan error)
     selectEl.querySelectorAll('option').forEach(op => {
+        const nama = (op.textContent || '').trim();
         const v = (op.value || '').trim();
-        if (v && !op.disabled) map.set(csvPemainKey(v), v);
+        if (v && nama && !op.disabled) {
+            map.set(csvPemainKey(nama), v);
+            label.set(csvPemainKey(nama), nama);
+        }
     });
-    return map;
+    return { map, label };
 }
 
 function csvPemainMasterDariTemplate() {
@@ -129,8 +139,11 @@ function csvPemainParse(text, master) {
         if (nama === '') { gagal('nama pemain kosong.'); return; }
         if (nomor !== '' && !/^\d{1,3}$/.test(nomor)) { gagal(`nomor punggung "${nomor}" tidak valid (isi angka, mis. 10).`); return; }
 
-        const ukuranFix = master.size.get(csvPemainKey(ukuran));
-        if (!ukuranFix) { gagal(`ukuran "${ukuran}" tidak ada di Master Data Ukuran.`); return; }
+        const ukuranFix = master.size.map.get(csvPemainKey(ukuran));
+        if (!ukuranFix) {
+            gagal(`ukuran "${ukuran}" tidak ada di Master Ukuran. Pilihan: ${[...master.size.label.values()].join(', ')}.`);
+            return;
+        }
 
         let gender = 'L';
         if (genderRaw !== '') {
@@ -139,10 +152,16 @@ function csvPemainParse(text, master) {
             else if (g !== 'l') { gagal(`gender "${genderRaw}" harus L atau P.`); return; }
         }
 
-        const lenganFix = master.sleeve.get(csvPemainKey(lenganRaw));
-        if (!lenganFix) { gagal(`lengan "${lenganRaw}" tidak ada di Master Tipe Lengan.`); return; }
-        const kerahFix = master.collar.get(csvPemainKey(kerahRaw));
-        if (!kerahFix) { gagal(`kerah "${kerahRaw}" tidak ada di Master Tipe Kerah.`); return; }
+        const lenganFix = master.sleeve.map.get(csvPemainKey(lenganRaw));
+        if (!lenganFix) {
+            gagal(`lengan "${lenganRaw}" tidak ada di Master Tipe Lengan. Pilihan: ${[...master.sleeve.label.values()].join(', ')}.`);
+            return;
+        }
+        const kerahFix = master.collar.map.get(csvPemainKey(kerahRaw));
+        if (!kerahFix) {
+            gagal(`kerah "${kerahRaw}" tidak ada di Master Tipe Kerah. Pilihan: ${[...master.collar.label.values()].join(', ')}.`);
+            return;
+        }
 
         hasil.push({ nama, nomor, ukuran: ukuranFix, gender, lengan: lenganFix, kerah: kerahFix });
     });
