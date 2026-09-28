@@ -11,9 +11,9 @@ class PurchaseRequest extends Model
 
     protected $table = 'purchase_requests';
 
-    protected $fillable = ['nomor', 'tanggal', 'status', 'catatan', 'id_user_pembuat'];
+    protected $fillable = ['nomor', 'tanggal', 'tgl_dibutuhkan', 'status', 'catatan', 'id_user_pembuat'];
 
-    protected $casts = ['tanggal' => 'date'];
+    protected $casts = ['tanggal' => 'date', 'tgl_dibutuhkan' => 'date'];
 
     public function details()
     {

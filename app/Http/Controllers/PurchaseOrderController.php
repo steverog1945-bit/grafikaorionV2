@@ -45,7 +45,10 @@ class PurchaseOrderController extends Controller
             $prefill = [
                 'id_purchase_request' => $pr->id,
                 'nomor_pr' => $pr->nomor,
-                'items' => $pr->details->map(fn ($d) => ['id_bahan' => $d->id_bahan, 'qty' => $d->qty, 'harga' => 0])->all(),
+                'tgl_dibutuhkan' => $pr->tgl_dibutuhkan?->toDateString(),
+                // Catatan per item PR ikut terbawa ke item PO (qty belum
+                // dikurangi sisa PR yang sudah jadi PO - lihat catatan create()).
+                'items' => $pr->details->map(fn ($d) => ['id_bahan' => $d->id_bahan, 'qty' => $d->qty, 'harga' => 0, 'catatan' => $d->catatan])->all(),
             ];
         }
 
@@ -265,6 +268,7 @@ class PurchaseOrderController extends Controller
             'items.*.id_bahan' => 'required|exists:bahan_baku,id_bahan',
             'items.*.qty' => 'required|numeric|min:0.01',
             'items.*.harga' => 'required|numeric|min:0',
+            'items.*.catatan' => 'nullable|string|max:255',
         ]);
     }
 
@@ -276,6 +280,7 @@ class PurchaseOrderController extends Controller
             'qty' => (float) $i['qty'],
             'harga' => (float) $i['harga'],
             'subtotal' => round((float) $i['qty'] * (float) $i['harga'], 2),
+            'catatan' => $i['catatan'] ?? null,
         ])->all();
 
         $subtotal = round(array_sum(array_column($items, 'subtotal')), 2);

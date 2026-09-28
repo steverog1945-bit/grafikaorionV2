@@ -31,12 +31,16 @@
         @if($pr) @method('PATCH') @endif
 
         <x-card class="mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <x-form.group label="Tanggal">
                     <x-form.input type="date" name="tanggal" value="{{ old('tanggal', $pr ? $pr->tanggal->toDateString() : now()->toDateString()) }}" required {{ $editable ? '' : 'disabled' }} />
                 </x-form.group>
+                <x-form.group label="Dibutuhkan Tanggal" name="tgl_dibutuhkan">
+                    {{-- Dipakai pembeli sebagai prioritas saat membuat PO; wajib terisi saat PR diajukan (server menolak ajukan tanpa ini). --}}
+                    <x-form.input type="date" name="tgl_dibutuhkan" value="{{ old('tgl_dibutuhkan', $pr?->tgl_dibutuhkan?->toDateString()) }}" min="{{ $pr?->tanggal?->toDateString() ?? now()->toDateString() }}" {{ $editable ? '' : 'disabled' }} />
+                </x-form.group>
                 <x-form.group label="Catatan (opsional)">
-                    <x-form.input type="text" name="catatan" value="{{ old('catatan', $pr->catatan ?? '') }}" placeholder="Mis. stok Flexi Korea tinggal 15 m2" {{ $editable ? '' : 'disabled' }} />
+                    <x-form.input type="text" name="catatan" value="{{ old('catatan', $pr->catatan ?? '' ) }}" placeholder="Mis. stok Flexi Korea tinggal 15 m2" {{ $editable ? '' : 'disabled' }} />
                 </x-form.group>
             </div>
         </x-card>
