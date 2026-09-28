@@ -18,6 +18,7 @@
 /public/storage
 /storage/app/backups
 /storage/*.key
+oriondb.sql.tmp
 /storage/pail
 /vendor
 Homestead.json

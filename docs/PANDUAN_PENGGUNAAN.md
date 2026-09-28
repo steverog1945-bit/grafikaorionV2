@@ -243,6 +243,23 @@ Kas kasir **tetap Open sampai di-closing**, bukan otomatis standby saat ganti ta
 - **Input jumlah/ukuran** (stok, qty, konversi, lebar, panjang) tetap `type=number` tanpa pemisah ribuan supaya tidak rancu dengan titik desimal; nol di belakang koma dibuang otomatis (`226.000` tampil `226`).
 - Penjaga otomatis di `tests/Feature/FormatAngkaTest.php`: menolak `number_format` gaya Amerika, pemotong nol yang salah, dan input uang tanpa pemisah ribuan.
 
+## Commit Dump Database (satu perintah)
+
+Setiap kali data/struktur database lokal berubah dan ingin disimpan ke git bersama kode:
+
+```
+composer db-commit          # dump oriondb.sql + commit (kalau dump berubah)
+composer db-commit-push    # dump + commit + push origin main
+composer db-commit "pesan"  # dump + commit dengan pesan sendiri
+```
+
+Setara juga bisa langsung: `php scripts/db_dump_commit.php [--push] ["pesan"]`.
+
+- Koneksi dibaca dari `.env` (tanpa kredensial di repo); `mysqldump` dicari di PATH, lalu lokasi standar XAMPP/LAMPP, atau dipaksa lewat env `MYSQLDUMP_BIN`.
+- Dump deterministik (`--skip-dump-date`): database yang tidak berubah menghasilkan file identik - skrip **tidak membuat commit kosong**.
+- Dump ditulis ke file sementara dulu (atomik): kalau mysqldump gagal, `oriondb.sql` lama tetap utuh.
+- File sementara `oriondb.sql.tmp` tidak ikut ter-commit (sudah dikecualikan di `.gitignore`).
+
 ## Sebelum Deploy ke Server/VPS
 
 Checklist teknis - hanya dijalankan setelah aplikasi dinyatakan sempurna dan siap online (lihat memori proyek):
