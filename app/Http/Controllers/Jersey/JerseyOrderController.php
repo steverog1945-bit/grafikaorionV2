@@ -106,6 +106,15 @@ class JerseyOrderController extends Controller
 
             $nama = trim($lineData['nama_barang'] ?? '') ?: ('Barang #' . ($i + 1));
 
+            // Audit kelengkapan: wajib server-side di store/updateLines/susulan.
+            // cekKelengkapan tetap melaporkannya untuk UX (marker di form),
+            // tapi sumber kebenaran adalah validasi, bukan warning ini.
+            if (empty($lineData['jersey_product_type_id'])) {
+                $peringatan[] = "\"{$nama}\": Tipe Produk belum dipilih.";
+            }
+            if (empty($lineData['jersey_category_id'])) {
+                $peringatan[] = "\"{$nama}\": Kategori belum dipilih.";
+            }
             if (empty($lineData['jersey_material_id'])) {
                 $peringatan[] = "\"{$nama}\": Bahan belum dipilih.";
             }
@@ -173,6 +182,30 @@ class JerseyOrderController extends Controller
         }
     }
 
+    /**
+     * Audit kelengkapan: WAJIB minimal satu sumber qty terisi per baris
+     * berisi (pemain berukuran atau qty per ukuran > 0). Dipakai ketiga
+     * jalur simpan (store/updateLines/susulan) sebelum transaksi dibuka.
+     */
+    private function validasiQtyTerisi(array $lines): void
+    {
+        foreach ($lines as $i => $lineData) {
+            $items = array_values(array_filter($lineData['items'] ?? [], fn ($it) => trim($it['player_name'] ?? '') !== ''));
+            $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
+            $qty = count($items) + array_sum(array_map('intval', $sizeQuantitiesMentah));
+
+            if ($qty <= 0) {
+                continue; // baris kosong - dilewati (konsisten dengan hitungHargaBaris)
+            }
+
+            if (empty($sizeQuantitiesMentah) && empty($items)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    "lines.{$i}.size_quantities" => 'Baris ' . ($i + 1) . ': lengkapi data pesanan lebih dulu - pilih minimal satu ukuran dengan qty, atau isi daftar pemain lengkap dengan ukurannya.',
+                ]);
+            }
+        }
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -188,17 +221,21 @@ class JerseyOrderController extends Controller
 
             'lines' => 'required|array|min:1',
             'lines.*.nama_barang' => 'required|string|max:255',
-            'lines.*.jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
-            'lines.*.jersey_category_id' => 'nullable|exists:jersey_categories,id',
-            'lines.*.jersey_material_id' => 'nullable|exists:jersey_materials,id',
-            'lines.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
-            'lines.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
+            // Audit kelengkapan (dropdown wajib terisi): Tipe Produk, Kategori,
+            // dan Bahan menentukan harga tier & estimasi kain - biarkan kosong
+            // berarti order tersimpan tanpa harga/estimasi. Server-side WAJIB
+            // menolak, bukan cuma warning client-side.
+            'lines.*.jersey_product_type_id' => 'required|exists:jersey_product_types,id',
+            'lines.*.jersey_category_id' => 'required|exists:jersey_categories,id',
+            'lines.*.jersey_material_id' => 'required|exists:jersey_materials,id',
+            'lines.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
+            'lines.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
             'lines.*.keterangan' => 'nullable|string|max:2000',
             'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
 
             'lines.*.items' => 'nullable|array',
-            'lines.*.items.*.player_name' => 'nullable|string|max:255',
+            'lines.*.items.*.player_name' => 'required|string|max:255',
             'lines.*.items.*.player_number' => 'nullable|string|max:20',
             // Audit Order Jersey: ukuran diambil dari MASTER jersey_sizes
             // (aktif) - BUKAN whitelist hard-code. Dulu 'in:S,M,L,XL,...'
@@ -207,14 +244,21 @@ class JerseyOrderController extends Controller
             // dropdown form (dari master yang sama) sudah menawarkannya.
             // Rule closure membaca master dengan cache static per-request
             // supaya N baris pemain tidak memicu N query.
-            'lines.*.items.*.size' => ['nullable', 'string', 'max:50', function ($attribute, $value, $fail) {
+            // Audit kelengkapan: pemain TANPA ukuran merusak rekap ukuran,
+            // harga surcharge, dan estimasi kain - ukuran WAJIB untuk setiap
+            // baris pemain (required, bukan nullable), tetap tervalidasi ke
+            // master jersey_sizes.
+            'lines.*.items.*.size' => ['required', 'string', 'max:50', function ($attribute, $value, $fail) {
                 if ($value !== null && !$this->ukuranMasterAktif()->contains($value)) {
                     $fail("Ukuran \"{$value}\" tidak terdaftar (atau nonaktif) di Master Ukuran Jersey. Muat ulang halaman setelah master diperbarui, atau daftarkan ukurannya dulu.");
                 }
             }],
             'lines.*.items.*.gender' => 'nullable|in:L,P',
-            'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
-            'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
+            // Audit kelengkapan: lengan/kerah pemain WAJIB dipilih (pilihan
+            // "Tanpa Lengan"/"Tanpa Kerah" tersedia di master untuk barang
+            // yang memang tidak memakainya - bukan dropdown dibiarkan kosong).
+            'lines.*.items.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
+            'lines.*.items.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
 
             'lines.*.size_quantities' => 'nullable|array',
             // Audit: KEY size_quantities adalah ID ukuran master (dari form
@@ -231,6 +275,7 @@ class JerseyOrderController extends Controller
         foreach ($data['lines'] as $i => $lineData) {
             $this->validasiKeySizeQuantities($lineData['size_quantities'] ?? [], $i);
         }
+        $this->validasiQtyTerisi($data['lines']);
 
         DB::beginTransaction();
         try {
@@ -596,7 +641,7 @@ class JerseyOrderController extends Controller
         $order->load([
             'konsumen', 'designer', 'payments',
             'lines.productType', 'lines.category', 'lines.material', 'lines.sleeveType', 'lines.collarType',
-            'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
+            'lines.items', 'lines.items.jerseySize', 'lines.sizeQuantities.size', 'lines.materials',
         ]);
         // Master data (termasuk designers) dari formData() yang sama dipakai
         // create/edit-lines - dibutuhkan form modal "Tambah Barang Susulan"
@@ -682,17 +727,21 @@ class JerseyOrderController extends Controller
         $data = $request->validate([
             'lines' => 'required|array|min:1',
             'lines.*.nama_barang' => 'required|string|max:255',
-            'lines.*.jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
-            'lines.*.jersey_category_id' => 'nullable|exists:jersey_categories,id',
-            'lines.*.jersey_material_id' => 'nullable|exists:jersey_materials,id',
-            'lines.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
-            'lines.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
+            // Audit kelengkapan (dropdown wajib terisi): Tipe Produk, Kategori,
+            // dan Bahan menentukan harga tier & estimasi kain - biarkan kosong
+            // berarti order tersimpan tanpa harga/estimasi. Server-side WAJIB
+            // menolak, bukan cuma warning client-side.
+            'lines.*.jersey_product_type_id' => 'required|exists:jersey_product_types,id',
+            'lines.*.jersey_category_id' => 'required|exists:jersey_categories,id',
+            'lines.*.jersey_material_id' => 'required|exists:jersey_materials,id',
+            'lines.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
+            'lines.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
             'lines.*.keterangan' => 'nullable|string|max:2000',
             'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
 
             'lines.*.items' => 'nullable|array',
-            'lines.*.items.*.player_name' => 'nullable|string|max:255',
+            'lines.*.items.*.player_name' => 'required|string|max:255',
             'lines.*.items.*.player_number' => 'nullable|string|max:20',
             // Audit Order Jersey: ukuran diambil dari MASTER jersey_sizes
             // (aktif) - BUKAN whitelist hard-code. Dulu 'in:S,M,L,XL,...'
@@ -701,14 +750,21 @@ class JerseyOrderController extends Controller
             // dropdown form (dari master yang sama) sudah menawarkannya.
             // Rule closure membaca master dengan cache static per-request
             // supaya N baris pemain tidak memicu N query.
-            'lines.*.items.*.size' => ['nullable', 'string', 'max:50', function ($attribute, $value, $fail) {
+            // Audit kelengkapan: pemain TANPA ukuran merusak rekap ukuran,
+            // harga surcharge, dan estimasi kain - ukuran WAJIB untuk setiap
+            // baris pemain (required, bukan nullable), tetap tervalidasi ke
+            // master jersey_sizes.
+            'lines.*.items.*.size' => ['required', 'string', 'max:50', function ($attribute, $value, $fail) {
                 if ($value !== null && !$this->ukuranMasterAktif()->contains($value)) {
                     $fail("Ukuran \"{$value}\" tidak terdaftar (atau nonaktif) di Master Ukuran Jersey. Muat ulang halaman setelah master diperbarui, atau daftarkan ukurannya dulu.");
                 }
             }],
             'lines.*.items.*.gender' => 'nullable|in:L,P',
-            'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
-            'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
+            // Audit kelengkapan: lengan/kerah pemain WAJIB dipilih (pilihan
+            // "Tanpa Lengan"/"Tanpa Kerah" tersedia di master untuk barang
+            // yang memang tidak memakainya - bukan dropdown dibiarkan kosong).
+            'lines.*.items.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
+            'lines.*.items.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
 
             'lines.*.size_quantities' => 'nullable|array',
             // Audit: KEY size_quantities adalah ID ukuran master (dari form
@@ -723,6 +779,7 @@ class JerseyOrderController extends Controller
         foreach ($data['lines'] as $i => $lineData) {
             $this->validasiKeySizeQuantities($lineData['size_quantities'] ?? [], $i);
         }
+        $this->validasiQtyTerisi($data['lines']);
 
         DB::beginTransaction();
         try {
@@ -768,17 +825,21 @@ class JerseyOrderController extends Controller
         $data = $request->validate([
             'lines' => 'required|array|min:1',
             'lines.*.nama_barang' => 'required|string|max:255',
-            'lines.*.jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
-            'lines.*.jersey_category_id' => 'nullable|exists:jersey_categories,id',
-            'lines.*.jersey_material_id' => 'nullable|exists:jersey_materials,id',
-            'lines.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
-            'lines.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
+            // Audit kelengkapan (dropdown wajib terisi): Tipe Produk, Kategori,
+            // dan Bahan menentukan harga tier & estimasi kain - biarkan kosong
+            // berarti order tersimpan tanpa harga/estimasi. Server-side WAJIB
+            // menolak, bukan cuma warning client-side.
+            'lines.*.jersey_product_type_id' => 'required|exists:jersey_product_types,id',
+            'lines.*.jersey_category_id' => 'required|exists:jersey_categories,id',
+            'lines.*.jersey_material_id' => 'required|exists:jersey_materials,id',
+            'lines.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
+            'lines.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
             'lines.*.keterangan' => 'nullable|string|max:2000',
             'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
 
             'lines.*.items' => 'nullable|array',
-            'lines.*.items.*.player_name' => 'nullable|string|max:255',
+            'lines.*.items.*.player_name' => 'required|string|max:255',
             'lines.*.items.*.player_number' => 'nullable|string|max:20',
             // Audit Order Jersey: ukuran diambil dari MASTER jersey_sizes
             // (aktif) - BUKAN whitelist hard-code. Dulu 'in:S,M,L,XL,...'
@@ -787,14 +848,21 @@ class JerseyOrderController extends Controller
             // dropdown form (dari master yang sama) sudah menawarkannya.
             // Rule closure membaca master dengan cache static per-request
             // supaya N baris pemain tidak memicu N query.
-            'lines.*.items.*.size' => ['nullable', 'string', 'max:50', function ($attribute, $value, $fail) {
+            // Audit kelengkapan: pemain TANPA ukuran merusak rekap ukuran,
+            // harga surcharge, dan estimasi kain - ukuran WAJIB untuk setiap
+            // baris pemain (required, bukan nullable), tetap tervalidasi ke
+            // master jersey_sizes.
+            'lines.*.items.*.size' => ['required', 'string', 'max:50', function ($attribute, $value, $fail) {
                 if ($value !== null && !$this->ukuranMasterAktif()->contains($value)) {
                     $fail("Ukuran \"{$value}\" tidak terdaftar (atau nonaktif) di Master Ukuran Jersey. Muat ulang halaman setelah master diperbarui, atau daftarkan ukurannya dulu.");
                 }
             }],
             'lines.*.items.*.gender' => 'nullable|in:L,P',
-            'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
-            'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
+            // Audit kelengkapan: lengan/kerah pemain WAJIB dipilih (pilihan
+            // "Tanpa Lengan"/"Tanpa Kerah" tersedia di master untuk barang
+            // yang memang tidak memakainya - bukan dropdown dibiarkan kosong).
+            'lines.*.items.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
+            'lines.*.items.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
 
             'lines.*.size_quantities' => 'nullable|array',
             // Audit: KEY size_quantities adalah ID ukuran master (dari form
@@ -809,6 +877,7 @@ class JerseyOrderController extends Controller
         foreach ($data['lines'] as $i => $lineData) {
             $this->validasiKeySizeQuantities($lineData['size_quantities'] ?? [], $i);
         }
+        $this->validasiQtyTerisi($data['lines']);
 
         DB::beginTransaction();
         try {
@@ -895,7 +964,7 @@ class JerseyOrderController extends Controller
     public function printLine(JerseyOrder $order, JerseyOrderLine $line)
     {
         abort_if($line->jersey_order_id !== $order->id, 404);
-        $line->load(['productType', 'category', 'material', 'items', 'sizeQuantities.size', 'materials', 'order.konsumen', 'order.designer']);
+        $line->load(['productType', 'category', 'material', 'items', 'items.jerseySize', 'sizeQuantities.size', 'materials', 'order.konsumen', 'order.designer']);
         return view('jersey.orders.spk-print', compact('order', 'line'));
     }
 }

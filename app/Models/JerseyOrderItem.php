@@ -27,6 +27,14 @@ class JerseyOrderItem extends Model
         return $this->belongsTo(JerseyOrderLine::class, 'jersey_order_line_id');
     }
 
+    // Master ukuran (mendampingi snapshot teks size) - dipakai untuk
+    // mengurutkan tabel pemain sesuai sort_order master (S, M, L, XL, ...)
+    // alih-alih urutan input, supaya mudah difilter/diperiksa per ukuran.
+    public function jerseySize()
+    {
+        return $this->belongsTo(JerseySize::class, 'jersey_size_id');
+    }
+
     public function sleeveType()
     {
         return $this->belongsTo(JerseySleeveType::class, 'jersey_sleeve_type_id');

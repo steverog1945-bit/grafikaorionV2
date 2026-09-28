@@ -106,6 +106,9 @@ Input Order -> SPK -> Produksi -> Pembayaran di Kasir -> Collecting (serah baran
 Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) memiliki modul sendiri untuk order, komponen, ukuran, dan pembayaran, dan **terhubung ke akuntansi**:
 
 - Ukuran jersey **sumber kebenarannya satu**: Master Data Jersey → Ukuran. Ukuran baru yang ditambahkan langsung bisa dipakai di form order (pemain & qty per ukuran) tanpa perubahan kode. Ukuran yang dinonaktifkan tetap tampil di order lama, tapi tidak lagi bisa dipilih untuk order baru.
+- **Lengan dan Kerah wajib dipilih** (bukan opsional). Untuk barang tanpa lengan/kerah (mis. Celana) pilih master **"Tanpa Lengan" / "Tanpa Kerah"** dari Master Data Jersey → Tipe Lengan / Tipe Kerah — pilihannya tercatat eksplisit di database, bukan dibiarkan kosong. Dropdown tidak disembunyikan dan tidak ada nilai default diam-diam; form menolak simpan bila belum dipilih.
+- **Tabel pemain diurutkan sesuai urutan master ukuran** (S, M, L, XL, ...) alih-alih urutan input, di halaman detail order maupun cetakan SPK, supaya mudah difilter dan diperiksa per ukuran.
+- **Cetakan nota ringkasan A4** menampilkan nama pelanggan paling atas dengan detail order rapat di sebelahnya (label dan nilai berdampingan), bukan label kiri dan nilai terdorong ke tepi kanan, agar mudah dibaca.
 - Nomor order jersey selalu naik (tidak pernah dobel walaupun dua operator menyimpan bersamaan, dan nomor bekas order yang dihapus tidak dipakai ulang).
 
 - Total order diakui sebagai piutang dan pendapatan di akun **Pendapatan Order Jersey (4300)**. Jika line order berubah, sistem hanya memposting selisihnya.

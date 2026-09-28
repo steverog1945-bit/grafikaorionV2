@@ -80,6 +80,10 @@ class KedatanganBahanController extends Controller
     $request->validate([
         'no_surat_jalan' => 'required|unique:kedatangan_bahan,no_surat_jalan',
         'id_supplier'    => 'required|exists:supplier,id_supplier',
+        // Audit kelengkapan (dropdown wajib terisi): gudang menentukan lokasi
+        // fisik stok yang masuk - wajib dipilih (dulu nullable, barang masuk
+        // tanpa gudang jelas).
+        'id_gudang'      => 'required|exists:gudang,id_gudang',
         'id_platform'    => 'nullable|exists:platform_belanja,id',
         'tgl_datang'     => 'required|date',
         'id_bahan'       => 'required|array|min:1',

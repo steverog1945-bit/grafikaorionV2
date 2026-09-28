@@ -1611,6 +1611,18 @@
         const idKonsumen = $('#id_konsumen').val();
         if (!idKonsumen) return Swal.fire('Konsumen', 'Pilih konsumen dulu.', 'warning');
 
+        // Audit kelengkapan (dropdown wajib terisi): Tipe Harga (golongan)
+        // menentukan seluruh harga transaksi - wajib dipilih eksplisit.
+        // Server (PenjualanController::store) sudah menolak tanpa ini;
+        // di sini diberi notif + tandai field sebelum kirim.
+        const idGolonganEl = document.getElementById('id_golongan');
+        if (!idGolonganEl.value) {
+            idGolonganEl.classList.add('ring-2', 'ring-rose-400', 'bg-rose-50/40');
+            idGolonganEl.addEventListener('change', () => idGolonganEl.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40'), { once: true });
+            return Swal.fire('Lengkapi Data Pesanan Lebih Dulu', 'Tipe Harga (golongan konsumen) belum dipilih - pilih dulu, harga order mengikutinya.', 'warning');
+        }
+        idGolonganEl.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40');
+
         const tipeOrder = document.querySelector('input[name="tipe_order"]:checked').value;
         const noPo = document.getElementById('no_po').value.trim();
         if (tipeOrder === 'PO' && !noPo) {
