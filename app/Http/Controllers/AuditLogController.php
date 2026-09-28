@@ -23,11 +23,13 @@ class AuditLogController extends Controller
         if ($request->filled('event')) {
             $query->where('event', $request->event);
         }
+        // Perf dataset besar: created_at = TIMESTAMP + sudah terindeks -
+        // whereDate()/DATE() mematikan index; pakai rentang sargable.
         if ($request->filled('awal')) {
-            $query->whereDate('created_at', '>=', $request->awal);
+            $query->where('created_at', '>=', $request->awal . ' 00:00:00');
         }
         if ($request->filled('akhir')) {
-            $query->whereDate('created_at', '<=', $request->akhir);
+            $query->where('created_at', '<', \Carbon\Carbon::parse($request->akhir)->addDay()->format('Y-m-d') . ' 00:00:00');
         }
 
         $logs = $query->paginate(20)->withQueryString();

@@ -49,11 +49,13 @@ class KasirController extends Controller
             $query->where('transaksi.nomor_nota', 'like', "%{$request->nomor_nota}%");
         }
 
+        // Perf dataset besar: rentang sargable, bukan whereDate() (DATE()
+        // mematikan index (tgl_order,status_nota)).
         if ($request->filled('tgl_mulai')) {
-            $query->whereDate('transaksi.tgl_order', '>=', $request->tgl_mulai);
+            $query->where('transaksi.tgl_order', '>=', $request->tgl_mulai . ' 00:00:00');
         }
         if ($request->filled('tgl_selesai')) {
-            $query->whereDate('transaksi.tgl_order', '<=', $request->tgl_selesai);
+            $query->where('transaksi.tgl_order', '<', \Carbon\Carbon::parse($request->tgl_selesai)->addDay()->format('Y-m-d') . ' 00:00:00');
         }
 
         // Status: kalau operator MEMILIH status tertentu, ikuti pilihannya
@@ -120,6 +122,13 @@ class KasirController extends Controller
             return redirect()->route('kasir.index')->with('error', 'Transaksi tidak ditemukan!');
         }
 
+        // P0-2: nota batal tidak boleh dibuka form pembayarannya - hanya
+        // bisa dilihat (riwayat). Cegah kasir membayar nota yang sudah dibatalkan.
+        if ($transaksi->status_nota === 'Dibatalkan') {
+            return redirect()->route('penjualan.show', $transaksi->id_transaksi)
+                ->with('error', "Nota {$transaksi->nomor_nota} sudah DIBATALKAN - pembayaran tidak bisa diproses.");
+        }
+
         // LEFT JOIN (bukan INNER) - baris Jasa punya id_produk NULL (lihat
         // migrasi add_jasa_support_to_transaksi_detail). INNER JOIN produk
         // sebelumnya diam-diam membuang baris Jasa dari halaman ini sama
@@ -170,6 +179,22 @@ class KasirController extends Controller
 
     public function prosesBayar(Request $request)
     {
+        // F1 (audit putaran 2): idempotensi per-SUBMIT, sebelum menyentuh
+        // database. submit_id unik diisi JS tiap kali tombol bayar disubmit
+        // (lihat form_pembayaran.blade.php); kalau id yang SAMA datang lagi,
+        // itu klik ganda / retry jaringan - ditolak. Pembayaran berkala yang
+        // sah (DP dulu, pelunasan kemudian) tetap lolos karena tiap klik
+        // menghasilkan submit_id berbeda. Sesi Laravel (database driver)
+        // mengerucutkan request bersamaan dari user yang sama, jadi dua
+        // request dengan id identik selalu dieksekusi serial.
+        $submitId = (string) $request->input('submit_id');
+        if ($submitId !== '') {
+            $sudahDiproses = (array) $request->session()->get('pembayaran_submit_id', []);
+            if (in_array($submitId, $sudahDiproses, true)) {
+                return back()->with('error', 'Pembayaran ini sudah pernah diproses. Cek Monitoring Kasir sebelum mencoba lagi.');
+            }
+        }
+
         DB::beginTransaction();
         try {
             $id_transaksi = $request->id_transaksi;
@@ -304,6 +329,34 @@ class KasirController extends Controller
 
             $grandTotalFinal = $totalNotaBaru - $diskon;
 
+            // P0-2: nota yang sudah Dibatalkan TIDAK boleh menerima pembayaran
+            // baru (form bisa saja dibuka sebelum nota dibatalkan, disubmit
+            // sesudahnya). Submit tanpa uang (koreksi harga/status) tetap
+            // diperbolehkan supaya alur pemeliharaan tidak macet.
+            // F1: lockForUpdate() - dua pembayaran nyaris bersamaan untuk nota
+            // yang sama tidak boleh sama-sama membaca status/total-terbayar
+            // lama sebelum salah satu commit (guard Dibatalkan & overpayment
+            // jadi serial per-nota, tidak ada dobel pembayaran).
+            $transaksiRow = DB::table('transaksi')->where('id_transaksi', $id_transaksi)->lockForUpdate()->first();
+
+            if (!$transaksiRow) {
+                throw new \Exception("Nota tidak ditemukan.");
+            }
+            if ($uangDiterimaSekarang > 0 && $transaksiRow->status_nota === 'Dibatalkan') {
+                throw new \Exception("Nota {$transaksiRow->nomor_nota} sudah DIBATALKAN - tidak bisa menerima pembayaran.");
+            }
+
+            // P0-4: cegah overpayment - total bayar baru tidak boleh melebihi
+            // sisa tagihan yang masih ada (potongan/diskon boleh menurunkan
+            // sisa tagihan; yang dicek adalah hasil akhirnya).
+            if ($uangDiterimaSekarang > 0) {
+                $totalBayarLama = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id_transaksi)->sum('nominal');
+                $sisaTagihan = $grandTotalFinal - $totalBayarLama;
+                if ($uangDiterimaSekarang - $sisaTagihan > 0.01) {
+                    throw new \Exception("Pembayaran melebihi sisa tagihan. Sisa tagihan: Rp " . number_format(max(0, $sisaTagihan), 0, ',', '.') . ".");
+                }
+            }
+
             // 2. Catat Pembayaran (Hanya jika uang > 0)
             if ($uangDiterimaSekarang > 0) {
                 $kas = KasSesiService::aktifUntukTransaksi();
@@ -321,8 +374,7 @@ class KasirController extends Controller
                     throw new \Exception("Anda tidak dapat melakukan transaksi. Cek kembali saldo kas kasir Anda. Kas kasir akan terus berjalan sebelum terjadi closing kas kasir.");
                 }
 
-                $transaksiRow = DB::table('transaksi')->where('id_transaksi', $id_transaksi)->first();
-                $nomorNota = $transaksiRow->nomor_nota ?? null;
+                $nomorNota = $transaksiRow->nomor_nota;
 
                 if ($metode === 'Deposit') {
                     // Lock baris konsumen sebagai mutex SEBELUM hitung saldo -
@@ -419,6 +471,18 @@ class KasirController extends Controller
             }
 
             DB::table('transaksi')->where('id_transaksi', $id_transaksi)->update($updateData);
+
+            // P0-4/F1: catat submit_id ini sudah diproses (anti klik-ganda
+            // server-side). Dibatasi 50 id terakhir supaya sesi tidak tumbuh
+            // tanpa batas.
+            if ($submitId !== '') {
+                $sudahDiproses = (array) $request->session()->get('pembayaran_submit_id', []);
+                $sudahDiproses[] = $submitId;
+                while (count($sudahDiproses) > 50) {
+                    array_shift($sudahDiproses);
+                }
+                $request->session()->put('pembayaran_submit_id', $sudahDiproses);
+            }
 
             DB::commit();
             \App\Support\JalurLanjut::set('Pekerjaan masuk antrian produksi', 'spk.index', 'Lihat Antrian SPK');
@@ -547,8 +611,15 @@ class KasirController extends Controller
 
    public function storeKas(Request $request)
 {
-    $request->validate(['jumlah' => 'required']);
-    $nominal = str_replace('.', '', $request->jumlah);
+    // P0-1: endpoint sekarang POST + CSRF (lihat routes/web.php &
+    // kelola_kas.blade.php). Nominal divalidasi numerik di server -
+    // sebelumnya cuma 'required' lalu langsung str_replace titik.
+    $request->validate(['jumlah' => 'required|numeric|min:0']);
+    $nominal = (float) str_replace('.', '', $request->jumlah);
+
+    if ($nominal < 0) {
+        return redirect()->route('kasir.kelola')->with('error', 'Nominal saldo awal tidak boleh negatif.');
+    }
 
     // Hari Minggu = kas libur (bisa dinonaktifkan admin di Pengaturan
     // Aplikasi) - dicek PALING AWAL sebelum guard eksklusivitas di bawah,

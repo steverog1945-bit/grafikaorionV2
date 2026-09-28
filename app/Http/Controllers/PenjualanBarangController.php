@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\KasSesiService;
+use App\Services\DocumentNumberService;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +49,11 @@ class PenjualanBarangController extends Controller
             ->get();
 
         $date = date('Ymd');
-        $lastNota = DB::table('transaksi')->whereDate('tgl_order', date('Y-m-d'))->count();
+        // Perf dataset besar: rentang sargable (DATE() mematikan index tgl_order).
+        $lastNota = DB::table('transaksi')
+            ->where('tgl_order', '>=', $date . ' 00:00:00')
+            ->where('tgl_order', '<', date('Y-m-d', strtotime('+1 day')) . ' 00:00:00')
+            ->count();
         $prefixNota = AppSetting::current()->nomor_nota_prefix ?: 'INV';
         $no_nota = $prefixNota . '-' . $date . '-' . str_pad($lastNota + 1, 3, '0', STR_PAD_LEFT);
 
@@ -82,10 +87,24 @@ class PenjualanBarangController extends Controller
 
         DB::beginTransaction();
         try {
-            $date = date('Ymd');
-            $lastNota = DB::table('transaksi')->whereDate('tgl_order', date('Y-m-d'))->count();
+            // P0-5: nomor nota di-generate ATOMIK lewat DocumentNumberService
+            // (sama seperti PenjualanController::store) - pola COUNT(*)+1 di
+            // bawah itu rawan race condition: dua order bersamaan melihat
+            // "nomor berikutnya" yang sama sebelum salah satu commit, lalu
+            // gagal UNIQUE constraint nomor_nota (500). Padahal service-nya
+            // sudah ada dan sudah dipakai jalur Input Order.
             $prefixNota = AppSetting::current()->nomor_nota_prefix ?: 'INV';
-            $no_nota = $prefixNota . '-' . $date . '-' . str_pad($lastNota + 1, 3, '0', STR_PAD_LEFT);
+            $no_nota = DocumentNumberService::generate($prefixNota);
+
+            // Jaring pengaman untuk data lama: kalau nomor kebetulan sudah
+            // pernah dipakai nota ber-pattern COUNT lama, naikkan urutannya
+            // sampai bebas (maksimal beberapa percobaan - bukan loop tanpa batas).
+            for ($coba = 0; $coba < 5 && DB::table('transaksi')->where('nomor_nota', $no_nota)->exists(); $coba++) {
+                $no_nota = DocumentNumberService::generate($prefixNota);
+            }
+            if (DB::table('transaksi')->where('nomor_nota', $no_nota)->exists()) {
+                throw new \Exception('Gagal menyiapkan nomor nota - nomor masih bentrok. Coba lagi.');
+            }
 
             $idTransaksi = DB::table('transaksi')->insertGetId([
                 'nomor_nota' => $no_nota,

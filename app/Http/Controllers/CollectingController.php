@@ -60,12 +60,13 @@ class CollectingController extends Controller
             $query->where('transaksi.nomor_nota', 'like', '%' . $request->nomor_nota . '%');
         }
 
+        // Perf dataset besar: rentang sargable (DATE() mematikan index tgl_order).
         if ($request->filled('tgl_dari')) {
-            $query->whereDate('transaksi.tgl_order', '>=', $request->tgl_dari);
+            $query->where('transaksi.tgl_order', '>=', $request->tgl_dari . ' 00:00:00');
         }
 
         if ($request->filled('tgl_sampai')) {
-            $query->whereDate('transaksi.tgl_order', '<=', $request->tgl_sampai);
+            $query->where('transaksi.tgl_order', '<', \Carbon\Carbon::parse($request->tgl_sampai)->addDay()->format('Y-m-d') . ' 00:00:00');
         }
 
         // Kelengkapan pengerjaan dihitung dari HAVING karena melibatkan hasil
@@ -165,6 +166,24 @@ class CollectingController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            // F2 (audit putaran 2): jalur DB::table() tidak tersentuh trait
+            // Auditable - serah terima barang fisik ke konsumen adalah mutasi
+            // penting yang WAJIB punya jejak di menu Audit Log. Ditulis DI
+            // DALAM transaksi yang sama (rollback -> log ikut batal).
+            \App\Services\AuditLogger::log(
+                'pengambilan_barang',
+                'transaksi',
+                (int) $id,
+                ['status_collecting' => $transaksi->status_collecting],
+                [
+                    'status_collecting' => 'Sudah Diambil',
+                    'jenis' => $request->input('jenis', 'Diambil Sendiri'),
+                    'nama_penerima' => $request->input('nama_penerima'),
+                    'bukti_path' => $buktiPath,
+                ],
+                "Nota {$transaksi->nomor_nota} diserahkan ke penerima"
+            );
 
             return back()->with('success', "Nota {$transaksi->nomor_nota} ditandai sudah diambil.");
             });

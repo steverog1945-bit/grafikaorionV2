@@ -32,7 +32,11 @@ class PenjualanController extends Controller
     ->unique('id_produk');
 
     $golongan = DB::table('golongan_konsumen')->get();
-    $konsumen = DB::table('konsumen')->get();
+    // Perf dataset besar (50k konsumen): ambil HANYA kolom yang dipakai
+    // dropdown POS (lihat create.blade.php: id/nama/telepon/id_golongan).
+    // Dulu SELECT * ikut menyeret kolom alamat (TEXT) & kolom lain ke memori
+    // dan payload HTML per buka POS.
+    $konsumen = DB::table('konsumen')->select('id_konsumen', 'nama_konsumen', 'telepon', 'id_golongan')->get();
     $finishing = DB::table('finishing')->orderBy('nama_finishing')->get();
     $jasa = DB::table('jasa')
         ->leftJoin('satuan', 'jasa.id_satuan', '=', 'satuan.id_satuan')
@@ -43,7 +47,11 @@ class PenjualanController extends Controller
     // Generate No. Nota - prefix bisa diatur di Pengaturan Aplikasi (dulu
     // hardcode "INV").
     $date = date('Ymd');
-    $lastNota = DB::table('transaksi')->whereDate('tgl_order', date('Y-m-d'))->count();
+    // Perf dataset besar: rentang sargable (DATE() mematikan index tgl_order).
+    $lastNota = DB::table('transaksi')
+        ->where('tgl_order', '>=', $date . ' 00:00:00')
+        ->where('tgl_order', '<', date('Y-m-d', strtotime('+1 day')) . ' 00:00:00')
+        ->count();
     $prefixNota = \App\Models\AppSetting::current()->nomor_nota_prefix ?: 'INV';
     $no_nota = $prefixNota . "-" . $date . "-" . str_pad($lastNota + 1, 3, '0', STR_PAD_LEFT);
 
@@ -357,10 +365,17 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             'tipe_order'        => $tipeOrder,
             'no_po'             => $noPo,
             'id_konsumen'       => $request->id_konsumen,
-            'id_user_kasir'     => Auth::id() ?? 1,
+            // P0-6: fallback "?? 1" dihapus - sebelumnya request tanpa user
+            // login (mis. sesi hangus) diam-diam dicatat atas nama user #1
+            // (biasanya Administrator), merusak akuntabilitas. Sekarang
+            // gagal jelas sebagai 401 kalau sesi tidak valid.
+            'id_user_kasir'     => Auth::id() ?? abort(401, 'Sesi login tidak valid - login ulang sebelum membuat order.'),
             'tgl_order'         => $tglOrder,
             'total_bayar'       => $grand_total,
             'status_pembayaran' => 'Belum Bayar',
+            'status_nota'       => 'Aktif',
+            'created_at'        => now(),
+            'updated_at'        => now(),
         ]);
 
         $totalHppMaterialSemua = 0;
@@ -710,8 +725,10 @@ public function riwayat(Request $request)
         ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
         ->leftJoinSub($latestEditReq, 'latest_req', fn ($join) => $join->on('transaksi.id_transaksi', '=', 'latest_req.id_transaksi'))
         ->leftJoin('nota_edit_request', 'nota_edit_request.id_request', '=', 'latest_req.max_id')
-        ->when($from, fn ($q) => $q->whereDate('tgl_order', '>=', $from))
-        ->when($to, fn ($q) => $q->whereDate('tgl_order', '<=', $to))
+        // Perf dataset besar: rentang sargable untuk memakai index
+        // (tgl_order,status_nota) - whereDate()/DATE() mematikan index.
+        ->when($from, fn ($q) => $q->where('tgl_order', '>=', $from . ' 00:00:00'))
+        ->when($to, fn ($q) => $q->where('tgl_order', '<', \Carbon\Carbon::parse($to)->addDay()->format('Y-m-d') . ' 00:00:00'))
         ->when($filterKonsumen, fn ($q) => $q->where('transaksi.id_konsumen', $request->id_konsumen))
         ->select(
             'transaksi.*',
@@ -871,6 +888,17 @@ public function batalkanNota(Request $request, $id)
  */
 public function eksekusiPembatalanNota(int $id, array $payload): array
 {
+    // P0-2: jalan persis SEKALI per nota - sebelumnya tidak ada guard, jadi
+    // pembatalan notanya sendiri tidak idempoten (stok/jurnal bisa dobel
+    // kalau eksekusi terpicu dua kali).
+    $transaksi = DB::table('transaksi')->where('id_transaksi', $id)->lockForUpdate()->first();
+    if (!$transaksi) {
+        throw new \RuntimeException("Nota #{$id} tidak ditemukan - pembatalan tidak bisa dieksekusi.");
+    }
+    if ($transaksi->status_nota === 'Dibatalkan') {
+        return []; // sudah dibatalkan sebelumnya - tidak ada yang perlu dilakukan
+    }
+
     $items = DB::table('transaksi_detail')->where('id_transaksi', $id)->get();
     $kembalikanStok = (bool) ($payload['kembalikan_stok'] ?? false);
     $ringkasanStok = [];
@@ -892,6 +920,17 @@ public function eksekusiPembatalanNota(int $id, array $payload): array
             ));
         }
     }
+
+    // P0-2: jurnal pendapatan/HPP nota DIBALIK saat pembatalan dieksekusi
+    // (sesuai docs/PANDUAN_PENGGUNAAN.md: "jurnal dibalik"). Baris jurnal
+    // PEMBAYARAN (referensi <nota>-BYR-*) sengaja TIDAK disentuh oleh
+    // reversePenjualan() - uang yang sudah benar-benar diterima tetap
+    // sah di buku besar; nota batal berarti pendapatannya hangus, BUKAN
+    // uangnya hilang. Konsekuensinya piutang nota batal yang sudah
+    // dibayar penuh berubah jadi saldo kas/bank atas nota yang batal -
+    // ditindaklanjuti (retur uang / deposit) lewat proses manual &
+    // terlihat di Laporan Piutang yang sudah mengecualikan nota batal.
+    AccountingService::reversePenjualan($transaksi->nomor_nota);
 
     DB::table('transaksi')->where('id_transaksi', $id)->update([
         'status_nota' => 'Dibatalkan',

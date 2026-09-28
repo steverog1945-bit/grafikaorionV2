@@ -7,6 +7,7 @@ use App\Models\Karyawan;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -39,7 +40,8 @@ class UserController extends Controller
         $request->validate([
             'id_karyawan' => 'required|unique:users,id_karyawan',
             'username' => 'required|unique:users',
-            'password' => 'required|min:5',
+            // P1: aplikasi keuangan - minimal 8 karakter (sebelumnya 5).
+            'password' => 'required|min:8',
             'id_role' => 'required'
         ]);
 
@@ -58,6 +60,17 @@ class UserController extends Controller
     }
     public function update(Request $request, $id)
 {
+    // P1: validasi form update diperbaiki - sebelumnya menyalin validation
+    // store mentah-mentah: 'id_karyawan' required (field tidak ada di form
+    // update) dan 'username' unique tanpa mengabaikan record sendiri, jadi
+    // mengedit username user itu sendiri SELALU gagal "username sudah
+    // dipakai". Password sekarang opsional (diisi = ganti).
+    $request->validate([
+        'username' => 'required|unique:users,username,' . (int) $id . ',id_user',
+        'password' => 'nullable|min:8',
+        'id_role' => 'required'
+    ]);
+
     $user = User::findOrFail($id);
     $user->username = $request->username;
     $user->id_role = $request->id_role;
@@ -68,6 +81,9 @@ class UserController extends Controller
     }
 
     $user->save();
+
+    \App\Services\AuditLogger::log('updated', 'users', (int) $id, null, ['username' => $user->username, 'id_role' => (int) $user->id_role], 'Akun user diperbarui');
+
     return back()->with('success', 'Akun user berhasil diperbarui!');
 }
 
@@ -77,6 +93,18 @@ public function destroy($id)
     if ($user->id_user == Auth::id()) {
         return back()->with('error', 'Anda tidak bisa menghapus akun sendiri!');
     }
+
+    // P1: cek relasi dulu - user yang masih tercatat sebagai kasir di nota
+    // TIDAK boleh dihapus (FK transaksi.id_user_kasir menolaknya dengan
+    // SQL error mentah sebelumnya). Nonaktifkan lewat role/ganti data
+    // karyawan, bukan hapus - riwayat transaksi harus tetap bisa dipertanggung-
+    // jawabkan.
+    $tercatatKasir = DB::table('transaksi')->where('id_user_kasir', $id)->exists();
+    $punyaPembatalan = DB::table('transaksi')->where('id_user_pembatal_nota', $id)->exists();
+    if ($tercatatKasir || $punyaPembatalan) {
+        return back()->with('error', 'Akun ini masih tercatat pada data transaksi (sebagai kasir/pembatal nota) dan tidak bisa dihapus. Nonaktifkan akunnya lewat Setting Akses atau ganti rolenya, agar riwayat tetap utuh.');
+    }
+
     $user->delete();
     return back()->with('success', 'Akun user berhasil dihapus!');
 }

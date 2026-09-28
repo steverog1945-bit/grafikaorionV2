@@ -139,7 +139,7 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
         ->name('penjualan.riwayat');
 
     Route::get('/penjualan/{id}', [PenjualanController::class, 'show'])
-        ->name('penjualan.show');
+        ->whereNumber('id')->name('penjualan.show');
 
     Route::patch('/penjualan/{id}/batalkan-nota', [PenjualanController::class, 'batalkanNota'])
         ->middleware('restrict.input-only')
@@ -245,8 +245,14 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
         Route::get('/kelola-kas',
             [KasirController::class, 'kelolaKas'])->name('kelola');
 
-        Route::get('/store-kas',
-            [KasirController::class, 'storeKas']);
+        // P0-1: Buka kas = POST (bukan GET). Sebelumnya GET .../store-kas?jumlah=...
+        // dieksekusi tanpa verifikasi CSRF (GET tidak dicek VerifyCsrfToken) -
+        // celah CSRF nyata: halaman eksternal bisa memaksa browser kasir yang
+        // sedang login membuka sesi kas dengan nominal sembarang. Sekarang POST
+        // + @csrf di blade (kelola_kas.blade.php), nominal divalidasi di
+        // KasirController::storeKas().
+        Route::post('/store-kas',
+            [KasirController::class, 'storeKas'])->name('store-kas');
 
         Route::post('/kas-manual',
             [KasirController::class, 'storeKasManual'])->name('kas-manual.store');
@@ -364,7 +370,7 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
         ->name('karyawan.update');
 
     Route::delete('/karyawan/delete/{id}',
-        [KaryawanController::class, 'destroy']);
+        [KaryawanController::class, 'destroy'])->whereNumber('id');
 
 
 
@@ -382,10 +388,10 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
         ->name('users.store');
 
     Route::put('/users/update/{id}',
-        [UserController::class, 'update']);
+        [UserController::class, 'update'])->whereNumber('id');
 
     Route::delete('/users/delete/{id}',
-        [UserController::class, 'destroy']);
+        [UserController::class, 'destroy'])->whereNumber('id');
 
 
 
@@ -423,7 +429,7 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
         [BahanBakuController::class, 'toggleStatus'])
         ->name('bahan.toggle-status');
 
-    Route::get('/produk/{id}', [ProdukController::class, 'show']);
+    Route::get('/produk/{id}', [ProdukController::class, 'show'])->whereNumber('id');
 
     /*
     |--------------------------------------------------------------------------

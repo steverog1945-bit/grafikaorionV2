@@ -27,7 +27,8 @@ class DesainerKomisiController extends Controller
             ->leftJoin('kelas_desainer as c', 'c.id_kelas', '=', 'u.id_kelas_desainer')
             ->where('d.biaya_desain', '>', 0)
             ->where('t.status_nota', '!=', 'Dibatalkan')->where('d.status_spk', '!=', 'Batal')
-            ->whereDate('t.tgl_order', '>=', $dari)->whereDate('t.tgl_order', '<=', $sampai);
+            // Perf dataset besar: rentang sargable (DATE() mematikan index).
+            ->where('t.tgl_order', '>=', $dari . ' 00:00:00')->where('t.tgl_order', '<', \Carbon\Carbon::parse($sampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
         if ($this->hanyaMilikSendiri()) {
             $q->where('d.id_desainer', auth()->id());
