@@ -320,6 +320,8 @@
 
 @push('scripts')
 @include('jersey.orders._size-helper')
+{{-- Import CSV Daftar Pemain (modal susulan): parser + validasi master (sekali per halaman). --}}
+@include('jersey.orders._csv-pemain-tools')
 <script>
     function togglePrintMenuRingkasan(event) {
         event.stopPropagation();
