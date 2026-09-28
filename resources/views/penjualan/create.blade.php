@@ -394,7 +394,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
-                    <button onclick="simpanTransaksi()" class="w-full inline-flex items-center justify-center gap-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-100 transition-all active:scale-95">
+                    <button type="button" onclick="simpanTransaksi(this)" class="w-full inline-flex items-center justify-center gap-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-100 transition-all active:scale-95">
                         <i class="fas fa-print"></i> Simpan &amp; Cetak Nota
                     </button>
                 </div>
@@ -1606,7 +1606,9 @@
         }).then((r) => { if (r.isConfirmed) { cart = []; renderCart(); } });
     }
 
-    async function simpanTransaksi() {
+    let sedangMenyimpan = false; // Guard duplicate submit: double-click / enter ganda / klik tombol di tab lain tidak boleh membuat DUA nota.
+    async function simpanTransaksi(btn) {
+        if (sedangMenyimpan) return; // satu submit dalam penerbangan - abaikan klik berikutnya sampai selesai.
         if (cart.length === 0) return Swal.fire('Keranjang Kosong', 'Pilih produk dulu.', 'error');
         const idKonsumen = $('#id_konsumen').val();
         if (!idKonsumen) return Swal.fire('Konsumen', 'Pilih konsumen dulu.', 'warning');
@@ -1643,6 +1645,12 @@
         };
 
         try {
+            // Kunci tombol selama request berjalan (flag JS + visual disabled).
+            // Success & failure SAMA-SAMA membuka kunci: kalau gagal validasi,
+            // operator harus bisa memperbaiki data lalu submit ulang; reload
+            // hanya terjadi di jalur sukses.
+            sedangMenyimpan = true;
+            if (btn) { btn.disabled = true; btn.classList.add('opacity-50', 'pointer-events-none'); }
             Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
             const response = await fetch('{{ route('penjualan.store') }}', {
                 method: 'POST',
@@ -1674,6 +1682,10 @@
                 Swal.fire('Gagal!', result.msg || 'Terjadi kesalahan.', 'error');
             }
         } catch (e) { Swal.fire('Error!', 'Gagal sistem.', 'error'); }
+        finally {
+            sedangMenyimpan = false;
+            if (btn) { btn.disabled = false; btn.classList.remove('opacity-50', 'pointer-events-none'); }
+        }
     }
 </script>
 @endpush

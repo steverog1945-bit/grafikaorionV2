@@ -73,21 +73,6 @@ class PenjualanController extends Controller
     return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef', 'desainerList', 'desainerDefault', 'produkSiapCetak'));
 }
 
-public function getHarga($id_produk, $id_golongan, $qty) {
-    $qty = floatval($qty);
-
-    // Query ke tabel setting_harga sesuai dump SQL Anda
-    $harga = DB::table('setting_harga')
-        ->where('id_produk', $id_produk)
-        ->where('id_golongan', $id_golongan)
-        ->where('range_min', '<=', $qty) // Di database Anda namanya 'range_min'
-        ->orderBy('range_min', 'desc')
-        ->first();
-
-    return response()->json([
-        'harga_jual' => $harga ? $harga->harga_jual : 0
-    ]);
-}
     public function store(Request $request)
 {
     if (!$request->items || count($request->items) == 0) {
@@ -150,13 +135,32 @@ public function getHarga($id_produk, $id_golongan, $qty) {
     $itemsTervalidasi = [];
     $hargaTerkunci = !\App\Support\AksesHarga::bolehLihat(Auth::user());
 
+    // Perf (N+1): dulu tiap baris keranjang menjalankan query master-nya
+    // sendiri (produk/jasa/finishing) di dalam loop - keranjang 20 item
+    // berarti puluhan query identik per checkout. Sekarang semua master
+    // yang dirujuk items di-prefetch SEKALI di atas, loop tinggal baca
+    // dari collection yang sudah di-keyBy id. Semantik cek "tidak
+    // ditemukan" tetap sama persis (get() mengembalikan null).
+    $idJasaReq = collect($request->items)->filter(fn ($i) => !empty($i['id_jasa']))->map(fn ($i) => (int) $i['id_jasa'])->unique()->values()->all();
+    $idProdukReq = collect($request->items)->filter(fn ($i) => empty($i['id_jasa']) && !empty($i['id_produk']))->map(fn ($i) => (int) $i['id_produk'])->unique()->values()->all();
+    $idFinishingReq = collect($request->items)
+        ->flatMap(function ($i) {
+            $daftar = is_array($i['finishing'] ?? null) ? $i['finishing'] : [];
+            if (!$daftar && !empty($i['id_finishing'])) $daftar = [['id_finishing' => $i['id_finishing']]];
+            return collect($daftar)->pluck('id_finishing');
+        })->filter()->map(fn ($v) => (int) $v)->unique()->values()->all();
+
+    $jasaRows = $idJasaReq ? DB::table('jasa')->whereIn('id_jasa', $idJasaReq)->get()->keyBy('id_jasa') : collect();
+    $produkRows = $idProdukReq ? DB::table('produk')->whereIn('id_produk', $idProdukReq)->get()->keyBy('id_produk') : collect();
+    $finishingRows = $idFinishingReq ? DB::table('finishing')->whereIn('id_finishing', $idFinishingReq)->get()->keyBy('id_finishing') : collect();
+
     foreach ($request->items as $index => $item) {
 
         // Baris Jasa (bukan produk fisik) - tidak punya BOM/stok, harga
         // ditentukan manual oleh kasir (sama seperti biaya_desain), bukan
         // dari price list. Divalidasi terpisah lalu lanjut ke baris berikutnya.
         if (!empty($item['id_jasa'])) {
-            $jasa = DB::table('jasa')->where('id_jasa', $item['id_jasa'])->first();
+            $jasa = $jasaRows->get((int) $item['id_jasa']);
             if (!$jasa) {
                 return response()->json(['status' => 'error', 'msg' => 'Jasa pada baris ' . ($index + 1) . ' tidak ditemukan.'], 422);
             }
@@ -184,7 +188,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
             continue;
         }
 
-        $produk = DB::table('produk')->where('id_produk', $item['id_produk'] ?? null)->first();
+        $produk = $produkRows->get((int) ($item['id_produk'] ?? 0));
 
         if (!$produk) {
             return response()->json(['status' => 'error', 'msg' => 'Produk pada baris ' . ($index + 1) . ' tidak ditemukan.'], 422);
@@ -263,7 +267,7 @@ public function getHarga($id_produk, $id_golongan, $qty) {
         $biayaFinishing = 0.0;
         foreach ($daftarFinishingMentah as $fin) {
             $idF = !empty($fin['id_finishing']) ? (int) $fin['id_finishing'] : null;
-            $rowF = $idF ? DB::table('finishing')->where('id_finishing', $idF)->first() : null;
+            $rowF = $idF ? $finishingRows->get($idF) : null;
             if (!$rowF) {
                 return response()->json(['status' => 'error', 'msg' => 'Finishing pada baris ' . ($index + 1) . ' tidak ditemukan.'], 422);
             }
