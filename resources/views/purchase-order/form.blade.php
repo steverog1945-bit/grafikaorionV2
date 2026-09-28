@@ -59,8 +59,7 @@
                     <x-form.input type="date" name="tanggal" value="{{ old('tanggal', $po ? $po->tanggal->toDateString() : now()->toDateString()) }}" required {{ $editable ? '' : 'disabled' }} />
                 </x-form.group>
                 <x-form.group label="Estimasi Kedatangan">
-                    {{-- Default: tgl dibutuhkan dari PR asal (kalau PO dibuat dari PR) - pembeli tinggal menyesuaikan. --}}
-                    <x-form.input type="date" name="tgl_pengiriman_estimasi" value="{{ old('tgl_pengiriman_estimasi', $po?->tgl_pengiriman_estimasi?->toDateString() ?? ($prefill['tgl_dibutuhkan'] ?? null)) }}" {{ $editable ? '' : 'disabled' }} />
+                    <x-form.input type="date" name="tgl_pengiriman_estimasi" value="{{ old('tgl_pengiriman_estimasi', $po?->tgl_pengiriman_estimasi?->toDateString()) }}" {{ $editable ? '' : 'disabled' }} />
                 </x-form.group>
                 <x-form.group label="Termin Pembayaran">
                     <x-form.input type="text" name="termin_pembayaran" value="{{ old('termin_pembayaran', $po->termin_pembayaran ?? '') }}" placeholder="Mis. Net 30 / Tunai" {{ $editable ? '' : 'disabled' }} />
