@@ -22,6 +22,7 @@ Hak akses tiap peran diatur Administrator di System Control > Setting Akses. Mem
 4. **Semua perubahan penting tercatat** di System Control > Log Aktivitas (siapa, kapan, sebelum dan sesudah).
 5. **Nomor dokumen dibuat otomatis** oleh server (INV-, PR-, PO-, SO- diikuti tanggal dan urutan). Jangan mengetik nomor sendiri.
 6. **Halaman daftar dan dropdown memuat data terbaru saat dibuka.** Jika ada data baru dari halaman lain, buka dropdown lagi; tidak perlu memuat ulang halaman.
+7. **Dokumen yang sudah diproses tampil hanya-baca DAN selalu dijelaskan alasannya.** Setiap form dokumen (Purchase Request/Order, dan modul lain) yang tidak bisa diedit menampilkan banner di atas form: status dokumen + apa langkah berikutnya (mis. "menunggu persetujuan", "lanjutkan lewat tombol Buat PO"). Field isian memakai mode baca (readonly) — masih bisa diklik, difokus, dan disalin — bukan disabled yang tampak seperti halaman macet; dropdown tetap disabled tetapi nilainya tetap tampil dan ikut terkirim lewat field tersembunyi.
 
 ## 3. Persiapan awal (sekali, sebelum dipakai massal)
 
