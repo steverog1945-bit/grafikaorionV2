@@ -32,11 +32,18 @@ class PenjualanController extends Controller
     ->unique('id_produk');
 
     $golongan = DB::table('golongan_konsumen')->get();
-    // Perf dataset besar (50k konsumen): ambil HANYA kolom yang dipakai
-    // dropdown POS (lihat create.blade.php: id/nama/telepon/id_golongan).
-    // Dulu SELECT * ikut menyeret kolom alamat (TEXT) & kolom lain ke memori
-    // dan payload HTML per buka POS.
-    $konsumen = DB::table('konsumen')->select('id_konsumen', 'nama_konsumen', 'telepon', 'id_golongan')->get();
+    // Perf dataset besar: dropdown pelanggan POS sekarang AJAX (select2 AJAX
+    // ke KonsumenController::searchAjax) - server TIDAK lagi menyeret seluruh
+    // tabel konsumen (bisa puluhan ribu baris) ke HTML tiap buka POS. Server
+    // render cuma untuk SATU konsumen pre-selected dari redirect ?id_konsumen=
+    // (mis. alur nota pengganti), supaya select2 langsung menampilkan namanya
+    // tanpa perlu fetch tambahan.
+    $konsumenAwal = collect();
+    if (request()->filled('id_konsumen')) {
+        $konsumenAwal = DB::table('konsumen')
+            ->where('id_konsumen', (int) request('id_konsumen'))
+            ->get(['id_konsumen', 'nama_konsumen', 'telepon', 'id_golongan']);
+    }
     $finishing = DB::table('finishing')->orderBy('nama_finishing')->get();
     $jasa = DB::table('jasa')
         ->leftJoin('satuan', 'jasa.id_satuan', '=', 'satuan.id_satuan')
@@ -70,7 +77,7 @@ class PenjualanController extends Controller
 
     $produkSiapCetak = \App\Services\HargaService::produkDenganHargaSiapCetak();
 
-    return view('penjualan.create', compact('produk', 'golongan', 'konsumen', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef', 'desainerList', 'desainerDefault', 'produkSiapCetak'));
+    return view('penjualan.create', compact('produk', 'golongan', 'konsumenAwal', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef', 'desainerList', 'desainerDefault', 'produkSiapCetak'));
 }
 
     public function store(Request $request)

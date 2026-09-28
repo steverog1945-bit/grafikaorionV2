@@ -71,9 +71,13 @@
                                 <i class="fas fa-plus text-[9px]"></i> Baru
                             </button>
                         </div>
+                        {{-- Pelanggan = select2 AJAX (search-ajax, limit 20):
+                             dataset konsumen puluhan ribu TIDAK lagi diseret ke
+                             browser tiap buka POS. Konsumen awal (redirect
+                             ?id_konsumen=) dirender server supaya langsung tampil. --}}
                         <select id="id_konsumen" name="id_konsumen" class="select2-konsumen">
-                            <option value="">Cari Nama...</option>
-                            @foreach($konsumen as $k)
+                            <option value="">Cari Nama / No. HP...</option>
+                            @foreach($konsumenAwal as $k)
                                 <option value="{{ $k->id_konsumen }}"
                                         data-nama="{{ $k->nama_konsumen }}"
                                         data-telp="{{ $k->telepon }}"
@@ -538,7 +542,23 @@
         $('.select2-konsumen').select2({
             placeholder: "-- Cari Nama / No. HP --",
             allowClear: true,
-            width: '100%'
+            width: '100%',
+            minimumInputLength: 0,
+            ajax: {
+                // Server-side search (KonsumenController::searchAjax): LIKE
+                // nama/telepon, limit 20. Klien tidak lagi memegang master
+                // konsumen penuh.
+                url: '{{ route('konsumen.search-ajax') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return { q: params.term || '' };
+                },
+                processResults: function (data) {
+                    return { results: data.results || [] };
+                },
+                cache: true
+            }
         });
 
         // select_produk & select_jasa punya class "select2-produk" tapi
@@ -589,8 +609,15 @@
             $('.select2-konsumen').val('{{ request('id_konsumen') }}').trigger('change');
         @endif
 
+        // Bantu handler .data('golongan') lama: option AJAX select2 tidak punya
+        // atribut data-*, jadi simpan metadata konsumen terpilih di cache element.
+        function simpanMetaKonsumen(el, meta) { $(el).data('meta', meta || null); }
+
         $('.select2-konsumen').on('select2:select', function (e) {
-            let idGol = $(this).find(':selected').data('golongan');
+            // AJAX mode: metadata lewat e.params.data (dibawa prosesResults),
+            // bukan atribut data-* di option.
+            simpanMetaKonsumen(this, e.params.data || null);
+            let idGol = (e.params.data && e.params.data.golongan) || $(this).find(':selected').data('golongan');
             if (idGol) {
                 $('#id_golongan').val(idGol);
                 hitungSubtotal();
@@ -615,7 +642,11 @@
         });
 
         $('.select2-konsumen').on('select2:select', function (e) {
-            let data = e.params.data.element.dataset;
+            // AJAX mode: e.params.data ADALAH item prosesResults (punya
+            // nama/telepon/golongan); fallback .dataset utk opsi server-render.
+            const data = Object.assign({},
+                (e.params.data && e.params.data.nama !== undefined) ? e.params.data : {},
+                (e.params.data && e.params.data.element) ? e.params.data.element.dataset : {});
 
             if (cart.length > 0) {
                 cart = [];
@@ -623,7 +654,7 @@
                 Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Keranjang dikosongkan karena pelanggan berubah', showConfirmButton: false, timer: 2000 });
             }
 
-            $('#display_telp').val(data.telp || '-');
+            $('#display_telp').val(data.telp || data.telepon || '-');
             $('#id_golongan').val(data.golongan).trigger('change');
 
             resetInputProduk();
@@ -694,6 +725,9 @@
             if (res.status === 'success') {
                 let newOption = new Option(res.data.nama_konsumen, res.data.id_konsumen, true, true);
 
+                simpanMetaKonsumen(document.getElementById('id_konsumen'), {
+                    nama: res.data.nama_konsumen, telepon: res.data.telepon || '-', golongan: res.data.id_golongan
+                });
                 $(newOption).attr('data-nama', res.data.nama_konsumen);
                 $(newOption).attr('data-telp', res.data.telepon);
                 $(newOption).attr('data-golongan', res.data.id_golongan);
