@@ -34,7 +34,6 @@
             <tr>
                 <th class="px-8 py-5 text-left">Nomor</th>
                 <th class="px-6 py-5 text-left">Tanggal</th>
-                <th class="px-6 py-5 text-left">Dibutuhkan</th>
                 <th class="px-6 py-5 text-left">Dibuat Oleh</th>
                 <th class="px-6 py-5 text-center">Status</th>
                 <th class="px-8 py-5 text-right">Aksi</th>
@@ -48,7 +47,6 @@
                     @if($p->catatan)<div class="text-[11px] text-slate-400">{{ $p->catatan }}</div>@endif
                 </td>
                 <td class="px-6 py-5"><span class="text-xs text-slate-500">{{ $p->tanggal->format('d M Y') }}</span></td>
-                <td class="px-6 py-5"><span class="text-xs {{ $p->tgl_dibutuhkan ? 'text-slate-500' : 'text-rose-400 italic' }}">{{ $p->tgl_dibutuhkan?->format('d M Y') ?? 'belum diisi' }}</span></td>
                 <td class="px-6 py-5"><span class="text-sm font-semibold text-slate-600">{{ $p->pembuat?->username ?? '-' }}</span></td>
                 <td class="px-6 py-5 text-center">
                     @php $variantMap = ['Draft' => 'info', 'Diajukan' => 'warning', 'Disetujui' => 'success', 'Ditolak' => 'danger', 'Diproses PO' => 'success']; @endphp
