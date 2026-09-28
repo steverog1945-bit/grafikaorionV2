@@ -129,7 +129,12 @@ rename($tmp, $target);
 echo "Dump: oriondb.sql ({$mb} MB) - OK\n";
 
 // ---- 4. Commit hanya kalau isinya benar-benar berubah ----
-exec('git rev-parse --is-inside-work-tree 2>/dev/null', $g, $gKode);
+// Redirect stderr DIBEDA per OS: di Windows Composer menjalankan skrip PHP
+// lewat cmd.exe (bukan bash MINGW64), jadi '2>/dev/null' gagal dengan
+// "The system cannot find the path specified" dan exit code jadi 1 -
+// padahal repo valid. Sintaks cmd.exe adalah '2>nul'.
+$redirStderr = PHP_OS_FAMILY === 'Windows' ? '2>nul' : '2>/dev/null';
+exec('git rev-parse --is-inside-work-tree ' . $redirStderr, $g, $gKode);
 if ($gKode !== 0) {
     fwrite(STDERR, "ERROR: bukan repository git (jalankan dari project root).\n");
     exit(1);
