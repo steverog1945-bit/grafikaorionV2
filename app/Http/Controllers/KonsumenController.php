@@ -9,6 +9,38 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Konsumen;
 class KonsumenController extends Controller
 {
+    /**
+     * Pencarian konsumen untuk POS (select2 AJAX) - dibuat karena dataset
+     * konsumen bisa puluhan ribu baris; menyeret seluruhnya ke <option>
+     * tiap buka POS berat di memori/payload. Ketat kloning pola index():
+     * LIKE nama/telepon, tanpa kolom alamat (TEXT), dibatasi 20 hasil.
+     * Akses tetap dalam middleware auth+menu.access (route-nya di group sama).
+     */
+    public function searchAjax(Request $request)
+    {
+        $request->validate(['q' => 'nullable|string|max:100']);
+
+        $rows = DB::table('konsumen')
+            ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request) {
+                $w->where('konsumen.nama_konsumen', 'like', '%' . $request->q . '%')
+                  ->orWhere('konsumen.telepon', 'like', '%' . $request->q . '%');
+            }))
+            ->orderBy('konsumen.nama_konsumen')
+            ->limit(20)
+            ->get(['id_konsumen', 'nama_konsumen', 'telepon', 'id_golongan']);
+
+        // Format select2 AJAX: { results: [...] }.
+        return response()->json([
+            'results' => $rows->map(fn ($k) => [
+                'id'       => $k->id_konsumen,
+                'text'     => $k->nama_konsumen . ($k->telepon && $k->telepon !== '-' ? ' (' . $k->telepon . ')' : ''),
+                'nama'     => $k->nama_konsumen,
+                'telepon'  => $k->telepon ?? '-',
+                'golongan' => $k->id_golongan,
+            ]),
+        ]);
+    }
+
     public function index(Request $request)
     {
         // Menggabungkan tabel konsumen dengan nama golongannya

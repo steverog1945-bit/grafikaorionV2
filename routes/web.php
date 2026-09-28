@@ -88,6 +88,12 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::patch('/platform-belanja/{id}/toggle', [\App\Http\Controllers\PlatformBelanjaController::class, 'toggle'])->whereNumber('id')->name('platform-belanja.toggle');
     Route::delete('/platform-belanja/{id}', [\App\Http\Controllers\PlatformBelanjaController::class, 'destroy'])->whereNumber('id')->name('platform-belanja.destroy');
     Route::resource('bank', BankController::class);
+    // Pencarian konsumen AJAX untuk dropdown POS (dataset konsumen bisa
+    // puluhan ribu - jangan menyeret semuanya ke browser tiap buka POS).
+    // HARUS terdaftar sebelum resource('konsumen') agar tidak tertangkap
+    // wildcard GET /konsumen/{konsumen}.
+    Route::get('/konsumen/search-ajax', [KonsumenController::class, 'searchAjax'])
+        ->name('konsumen.search-ajax');
     Route::resource('konsumen', KonsumenController::class);
     Route::resource('golongan', GolonganController::class);
     Route::resource('satuan', SatuanController::class);
