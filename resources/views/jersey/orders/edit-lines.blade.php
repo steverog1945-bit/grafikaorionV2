@@ -70,6 +70,11 @@
     </form>
 </div>
 
+{{-- ===================== TEMPLATE BARIS PEMAIN (kosong) ===================== --}}
+<template id="template_baris_pemain_jersey">
+    @include('jersey.orders._player-row-fields', ['prefix' => '__PREFIX__', 'itemIdx' => '__ITEM__', 'item' => null, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
+</template>
+
 {{-- ===================== TEMPLATE 1 BARIS BARANG (kosong, untuk "+ Tambah Jenis Barang") ===================== --}}
 <template id="template_baris_barang">
     <div class="jersey-line-card bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
@@ -77,13 +82,10 @@
     </div>
 </template>
 
-{{-- ===================== TEMPLATE BARIS PEMAIN (kosong) ===================== --}}
-<template id="template_baris_pemain_jersey">
-    @include('jersey.orders._player-row-fields', ['prefix' => '__PREFIX__', 'itemIdx' => '__ITEM__', 'item' => null, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
-</template>
-
 @push('scripts')
 @include('jersey.orders._size-helper')
+{{-- Import CSV Daftar Pemain: parser + validasi master (sekali per halaman). --}}
+@include('jersey.orders._csv-pemain-tools')
 <script>
     // jerseyLineIndex dimulai dari angka besar (timestamp) supaya barang
     // BARU yang ditambah lewat "+ Tambah Jenis Barang" di halaman edit ini

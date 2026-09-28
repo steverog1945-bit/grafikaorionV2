@@ -139,8 +139,12 @@
     <div class="wrapper-daftar-pemain {{ $otIsi === 'quantity_only' ? 'hidden' : '' }}">
         <div class="flex items-center justify-between mb-2">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Daftar Pemain</p>
-            <button type="button" onclick="tambahBarisPemain(this)" class="text-[10px] font-bold text-indigo-600 uppercase underline">+ Tambah Pemain</button>
+            <div class="flex items-center gap-3">
+                @include('jersey.orders._csv-pemain-card-buttons')
+                <button type="button" onclick="tambahBarisPemain(this)" class="text-[10px] font-bold text-indigo-600 uppercase underline">+ Tambah Pemain</button>
+            </div>
         </div>
+        @include('jersey.orders._csv-pemain-hasil-panel')
         <div class="overflow-x-auto">
         <table class="w-full text-xs">
             <thead><tr class="text-[10px] text-slate-400 uppercase">
