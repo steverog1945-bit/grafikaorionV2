@@ -145,13 +145,25 @@ class JerseyOrder extends Model
     public static function generateOrderNumber(\DateTimeInterface $date): string
     {
         $prefix = 'JO-' . $date->format('Ymd') . '-';
-        $last = DB::table('jersey_orders')
-            ->where('order_number', 'like', $prefix . '%')
-            ->orderByDesc('order_number')
-            ->lockForUpdate()
-            ->value('order_number');
 
-        $next = $last ? ((int) substr($last, -3)) + 1 : 1;
+        // Audit Order Jersey (duplicate order number / concurrency): kunci
+        // SEMUA nomor terpakai untuk prefix hari ini (bukan cuma MAX satu
+        // nilai) - dua order nyaris bersamaan dulu bisa membaca MAX yang
+        // sama sebelum salah satu commit, menghasilkan nomor DOBEL. Dengan
+        // mem-pluck daftar terkunci di dalam transaksi pemanggil, request
+        // kedua menunggu sampai request pertama commit, lalu membaca MAX
+        // yang sudah termasuk order baru itu. Nomor SELALU monoton naik
+        // (MAX+1): slot bekas order yang dihapus TIDAK dipakai ulang supaya
+        // nomor yang sama tidak pernah menunjuk dua histori berbeda.
+        // unique() order_number di database = jaring pengaman terakhir.
+        $terpakai = DB::table('jersey_orders')
+            ->where('order_number', 'like', $prefix . '%')
+            ->lockForUpdate()
+            ->pluck('order_number');
+
+        // Ambil angka setelah tanda '-' TERAKHIR (bukan substr(-3)) supaya
+        // tetap benar bila urutan menembus 999 (JO-...-1000).
+        $next = ((int) $terpakai->map(fn ($no) => (int) \Illuminate\Support\Str::afterLast($no, '-'))->max()) + 1;
 
         return $prefix . str_pad((string) $next, 3, '0', STR_PAD_LEFT);
     }
