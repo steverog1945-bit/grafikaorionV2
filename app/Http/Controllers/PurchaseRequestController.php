@@ -128,6 +128,9 @@ class PurchaseRequestController extends Controller
 
     private function validasi(Request $request): array
     {
+        // Pesan & nama atribut bahasa Indonesia (aplikasi ini belum memakai
+        // lang/ id, dan APP_LOCALE=en - kalau kelak pindah ke lang file,
+        // blok messages/attributes ini tinggal dihapus).
         return $request->validate([
             'tanggal' => 'required|date',
             'catatan' => 'nullable|string|max:1000',
@@ -135,6 +138,19 @@ class PurchaseRequestController extends Controller
             'items.*.id_bahan' => 'required|exists:bahan_baku,id_bahan',
             'items.*.qty' => 'required|numeric|min:0.01',
             'items.*.catatan' => 'nullable|string|max:255',
+        ], [
+            'tanggal.required' => 'Tanggal wajib diisi.',
+            'tanggal.date' => 'Tanggal tidak valid.',
+            'items.required' => 'Minimal satu item bahan harus diisi.',
+            'items.*.id_bahan.required' => 'Bahan pada tiap baris item wajib dipilih.',
+            'items.*.id_bahan.exists' => 'Bahan yang dipilih tidak ditemukan.',
+            'items.*.qty.required' => 'Qty pada tiap baris item wajib diisi.',
+            'items.*.qty.min' => 'Qty pada tiap baris item minimal 0.01.',
+            'items.*.catatan.max' => 'Catatan item maksimal 255 karakter.',
+        ], [
+            'items.*.id_bahan' => 'bahan',
+            'items.*.qty' => 'qty',
+            'items.*.catatan' => 'catatan item',
         ]);
     }
 

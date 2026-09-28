@@ -33,8 +33,14 @@
     </x-page-header>
 
     @if($errors->any())
-        <div class="mb-6 p-4 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold">
-            @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
+        <div class="mb-6 rounded-2xl border border-rose-100 bg-rose-50/80 p-4 flex items-start gap-3">
+            <span class="w-8 h-8 shrink-0 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center"><i class="fas fa-exclamation-triangle text-xs"></i></span>
+            <div class="min-w-0">
+                <p class="text-sm font-bold text-rose-700">Form belum bisa disimpan</p>
+                <ul class="mt-1 text-[13px] font-semibold text-rose-600 space-y-0.5">
+                    @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
+                </ul>
+            </div>
         </div>
     @endif
 
@@ -69,13 +75,21 @@
                     </x-form.select>
                 </x-form.group>
                 <x-form.group label="Tanggal PO" name="tanggal">
-                    <x-form.input type="date" name="tanggal" value="{{ old('tanggal', $po ? $po->tanggal->toDateString() : now()->toDateString()) }}" required {{ $editable ? '' : 'readonly' }} />
+                    {{-- Input polos (bukan x-form.input): echo kondisional di dalam
+                         tag komponen terbukti membuat input tidak dirender. --}}
+                    <input type="date" name="tanggal" value="{{ old('tanggal', $po ? $po->tanggal->toDateString() : now()->toDateString()) }}" required
+                        class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                        {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
                 <x-form.group label="Estimasi Kedatangan" name="tgl_pengiriman_estimasi">
-                    <x-form.input type="date" name="tgl_pengiriman_estimasi" value="{{ old('tgl_pengiriman_estimasi', $po?->tgl_pengiriman_estimasi?->toDateString()) }}" {{ $editable ? '' : 'readonly' }} />
+                    <input type="date" name="tgl_pengiriman_estimasi" value="{{ old('tgl_pengiriman_estimasi', $po?->tgl_pengiriman_estimasi?->toDateString()) }}"
+                        class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                        {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
                 <x-form.group label="Termin Pembayaran" name="termin_pembayaran">
-                    <x-form.input type="text" name="termin_pembayaran" value="{{ old('termin_pembayaran', $po->termin_pembayaran ?? '') }}" placeholder="Mis. Net 30 / Tunai" {{ $editable ? '' : 'readonly' }} />
+                    <input type="text" name="termin_pembayaran" value="{{ old('termin_pembayaran', $po->termin_pembayaran ?? '') }}" placeholder="Mis. Net 30 / Tunai"
+                        class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                        {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
             </div>
         </x-card>
