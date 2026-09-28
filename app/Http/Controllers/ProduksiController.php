@@ -42,12 +42,13 @@ class ProduksiController extends Controller
             $query->where('konsumen.nama_konsumen', 'like', '%' . $request->konsumen . '%');
         }
 
+        // Perf dataset besar: rentang sargable (DATE() mematikan index tgl_order).
         if ($request->filled('tgl_dari')) {
-            $query->whereDate('transaksi.tgl_order', '>=', $request->tgl_dari);
+            $query->where('transaksi.tgl_order', '>=', $request->tgl_dari . ' 00:00:00');
         }
 
         if ($request->filled('tgl_sampai')) {
-            $query->whereDate('transaksi.tgl_order', '<=', $request->tgl_sampai);
+            $query->where('transaksi.tgl_order', '<', \Carbon\Carbon::parse($request->tgl_sampai)->addDay()->format('Y-m-d') . ' 00:00:00');
         }
 
         if ($request->filled('id_spk')) {

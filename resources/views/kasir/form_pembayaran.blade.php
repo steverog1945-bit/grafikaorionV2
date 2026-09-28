@@ -26,6 +26,8 @@
     <form action="{{ url('/kasir/proses-bayar') }}" method="POST" id="form-pembayaran">
         @csrf
         <input type="hidden" name="id_transaksi" value="{{ $transaksi->id_transaksi }}">
+        {{-- P0-4: anti klik-ganda. Diisi waktu pertama submit; kalau sudah terisi, submit kedua diabaikan (server tetap punya guard sendiri via session). --}}
+        <input type="hidden" name="submit_id" value="">
 
         <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
 
@@ -751,6 +753,31 @@
         calculateInvoice();
         toggleBankField();
         autoTerapkanDeposit();
+
+        // P0-4: cegah submit ganda tombol bayar (dobel pencatatan pembayaran
+        // saat jaringan lambat / klik dua kali). Server tetap punya guard
+        // session-nya sendiri sebagai lapis kedua.
+        var sudahSubmit = false;
+        document.getElementById('form-pembayaran').addEventListener('submit', function (e) {
+            if (sudahSubmit) {
+                e.preventDefault();
+                return;
+            }
+            sudahSubmit = true;
+            var f = this;
+            f.querySelector('input[name=submit_id]').value = Date.now() + '-' + Math.random().toString(36).slice(2);
+            var tombol = f.querySelector('button[type=submit]');
+            if (tombol) {
+                tombol.disabled = true;
+                tombol.dataset.labelAsli = tombol.innerText;
+                tombol.innerText = 'Memproses...';
+            }
+            setTimeout(function () {
+                tombol.disabled = false;
+                if (tombol.dataset.labelAsli) tombol.innerText = tombol.dataset.labelAsli;
+                sudahSubmit = false;
+            }, 8000);
+        });
     });
 </script>
 @endsection

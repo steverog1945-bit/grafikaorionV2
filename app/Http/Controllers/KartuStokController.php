@@ -50,10 +50,13 @@ class KartuStokController extends Controller
 
         // Hanya bahan yang bergerak pada rentang tanggal / tipe mutasi tertentu.
         if ($dari || $sampai || $tipe) {
+            // Perf dataset besar: kartu_stok.tanggal bertipe TIMESTAMP -
+            // whereDate()/DATE() mematikan index (id_bahan,tanggal); pakai
+            // rentang sargable [dari 00:00, sampai+1 00:00).
             $q->whereExists(function ($e) use ($dari, $sampai, $tipe) {
                 $e->select(DB::raw(1))->from('kartu_stok as ks')->whereColumn('ks.id_bahan', 'bahan_baku.id_bahan')
-                    ->when($dari, fn ($x) => $x->whereDate('ks.tanggal', '>=', $dari))
-                    ->when($sampai, fn ($x) => $x->whereDate('ks.tanggal', '<=', $sampai))
+                    ->when($dari, fn ($x) => $x->where('ks.tanggal', '>=', $dari . ' 00:00:00'))
+                    ->when($sampai, fn ($x) => $x->where('ks.tanggal', '<', \Carbon\Carbon::parse($sampai)->addDay()->format('Y-m-d') . ' 00:00:00'))
                     ->when(in_array($tipe, ['IN', 'OUT', 'ADJUSTMENT'], true), fn ($x) => $x->where('ks.tipe', $tipe));
             });
         }
@@ -120,8 +123,9 @@ class KartuStokController extends Controller
             ->leftJoin('users', 'users.id_user', '=', 'kartu_stok.created_by')
             ->leftJoin('karyawan', 'karyawan.id_karyawan', '=', 'users.id_karyawan')
             ->where('kartu_stok.id_bahan', $id)
-            ->whereDate('kartu_stok.tanggal', '>=', $awal)
-            ->whereDate('kartu_stok.tanggal', '<=', $akhir)
+            // Perf dataset besar: rentang sargable (tanggal = TIMESTAMP).
+            ->where('kartu_stok.tanggal', '>=', $awal . ' 00:00:00')
+            ->where('kartu_stok.tanggal', '<', \Carbon\Carbon::parse($akhir)->addDay()->format('Y-m-d') . ' 00:00:00')
             ->when($tipe, fn ($q) => $q->where('kartu_stok.tipe', $tipe))
             ->when($cari !== '', fn ($q) => $q->where(fn ($w) => $w->where('kartu_stok.referensi', 'like', "%{$cari}%")->orWhere('kartu_stok.keterangan', 'like', "%{$cari}%")))
             ->when($request->filled('oleh'), fn ($q) => $q->where('kartu_stok.created_by', (int) $oleh))

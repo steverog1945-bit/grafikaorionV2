@@ -55,8 +55,26 @@ class DashboardController extends Controller
     {
         $today = now()->format('Y-m-d');
 
-        $orderHariIni = DB::table('transaksi')->whereDate('tgl_order', $today)->where('status_nota', '!=', 'Dibatalkan')->count();
-        $nilaiOrderHariIni = DB::table('transaksi')->whereDate('tgl_order', $today)->where('status_nota', '!=', 'Dibatalkan')->sum('total_bayar');
+        // Perf dataset besar: whereDate() (DATE(kolom)=...) mematikan index
+        // (tgl_order,status_nota) karena fungsi di atas kolom - diganti
+        // rentang sargable [hari, besok). Rentang lebar tanpa batas atas
+        // sengaja dibatasi sampai "besok" karena tgl_order tidak mungkin
+        // di masa depan untuk penghitungan ini.
+        [$mulaiHariIni, $akhirHariIni] = self::rentangHari($today);
+        [$mulaiKemarin, $akhirKemarin] = self::rentangHari($kemarin = now()->subDay()->format('Y-m-d'));
+
+        // Piutang: SUM + COUNT digabung SATU scan (dulu dua query identik).
+        // $piutang TETAP float (dipakai number_format() langsung di blade).
+        $piutangRow = DB::table('transaksi')
+            ->where('status_pembayaran', '!=', 'Lunas')
+            ->where('status_nota', '!=', 'Dibatalkan')
+            ->selectRaw('COALESCE(SUM(total_bayar),0) as total, COUNT(*) as jumlah')
+            ->first();
+        $piutang = (float) ($piutangRow->total ?? 0);
+
+        $orderHariIni = DB::table('transaksi')->whereBetween('tgl_order', [$mulaiHariIni, $akhirHariIni])->where('status_nota', '!=', 'Dibatalkan')->count();
+        $nilaiOrderHariIni = DB::table('transaksi')->whereBetween('tgl_order', [$mulaiHariIni, $akhirHariIni])->where('status_nota', '!=', 'Dibatalkan')->sum('total_bayar');
+        $orderKemarin = DB::table('transaksi')->whereBetween('tgl_order', [$mulaiKemarin, $akhirKemarin])->where('status_nota', '!=', 'Dibatalkan')->count();
 
         $statusSpk = DB::table('transaksi_detail')
             ->select('status_spk', DB::raw('COUNT(*) as jumlah'))
@@ -74,9 +92,8 @@ class DashboardController extends Controller
 
         [$notaLengkap, $notaBelumLengkap] = $this->ringkasanCollecting();
 
-        $piutang = DB::table('transaksi')->where('status_pembayaran', '!=', 'Lunas')->where('status_nota', '!=', 'Dibatalkan')->sum('total_bayar');
-        $piutangCount = DB::table('transaksi')->where('status_pembayaran', '!=', 'Lunas')->where('status_nota', '!=', 'Dibatalkan')->count();
-        $kasMasukHariIni = DB::table('pembayaran_riwayat')->whereDate('tgl_bayar', $today)->sum('nominal');
+        $piutangCount = (int) ($piutangRow->jumlah ?? 0);
+        $kasMasukHariIni = DB::table('pembayaran_riwayat')->whereBetween('tgl_bayar', [$mulaiHariIni, $akhirHariIni])->sum('nominal');
 
         $kasAktifSemua = KasSesiService::aktif();
         $kasAktif = ($kasAktifSemua && (int) $kasAktifSemua->id_user === (int) auth()->id()) ? $kasAktifSemua : null;
@@ -99,13 +116,12 @@ class DashboardController extends Controller
             ->get();
 
         // Pembanding hari kemarin + tren 7 hari terakhir (jumlah order & kas masuk per hari).
-        $kemarin = now()->subDay()->format('Y-m-d');
-        $orderKemarin = DB::table('transaksi')->whereDate('tgl_order', $kemarin)->where('status_nota', '!=', 'Dibatalkan')->count();
-        $kasMasukKemarin = (float) DB::table('pembayaran_riwayat')->whereDate('tgl_bayar', $kemarin)->sum('nominal');
+        $kasMasukKemarin = (float) DB::table('pembayaran_riwayat')->whereBetween('tgl_bayar', [$mulaiKemarin, $akhirKemarin])->sum('nominal');
         $awal7 = now()->subDays(6)->startOfDay();
-        $orderPerHari = DB::table('transaksi')->where('tgl_order', '>=', $awal7)->where('status_nota', '!=', 'Dibatalkan')
+        $orderPerHari = DB::table('transaksi')->where('tgl_order', '>=', $awal7)->where('tgl_order', '<', $akhirHariIni)->where('status_nota', '!=', 'Dibatalkan')
             ->selectRaw('DATE(tgl_order) as tgl, COUNT(*) as n')->groupBy('tgl')->pluck('n', 'tgl');
         $kasPerHari = DB::table('pembayaran_riwayat')->where('tgl_bayar', '>=', $awal7)
+            ->where('tgl_bayar', '<', $akhirHariIni)
             ->selectRaw('DATE(tgl_bayar) as tgl, SUM(nominal) as total')->groupBy('tgl')->pluck('total', 'tgl');
         $tren = collect(range(6, 0))->map(function ($i) use ($orderPerHari, $kasPerHari) {
             $d = now()->subDays($i);
@@ -136,7 +152,7 @@ class DashboardController extends Controller
     {
         $today = now()->format('Y-m-d');
 
-        $orderHariIni = DB::table('transaksi')->whereDate('tgl_order', $today)->where('status_nota', '!=', 'Dibatalkan')->count();
+        $orderHariIni = DB::table('transaksi')->whereBetween('tgl_order', self::rentangHari($today))->where('status_nota', '!=', 'Dibatalkan')->count();
 
         $statusSpk = DB::table('transaksi_detail')
             ->select('status_spk', DB::raw('COUNT(*) as jumlah'))
@@ -332,5 +348,21 @@ class DashboardController extends Controller
         $notaLengkap = (int) ($ringkas->lengkap ?? 0);
 
         return [$notaLengkap, $totalNota - $notaLengkap];
+    }
+
+    /**
+     * Perf (audit dataset besar): [awal hari, awal hari berikutnya) sebagai
+     * pasangan batas sargable untuk menggantikan whereDate() (DATE(kolom)=...)
+     * yang mematikan index pada kolom datetime. Bentuk [inklusif, eksklusif)
+     * aman untuk tipe timestamp/dateTime dan tetap benar walau ada nilai
+     * detik. Boundary pakai string 'Y-m-d H:i:s' - format yang MySQL pahami
+     * sebagai datetime literal, tanpa menebak timezone aplikasi.
+     */
+    private static function rentangHari(string $tanggal): array
+    {
+        return [
+            $tanggal . ' 00:00:00',
+            \Carbon\Carbon::parse($tanggal)->addDay()->format('Y-m-d') . ' 00:00:00',
+        ];
     }
 }

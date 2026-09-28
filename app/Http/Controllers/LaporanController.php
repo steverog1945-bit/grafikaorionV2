@@ -51,8 +51,8 @@ class LaporanController extends Controller
         // tanpa perlu isi filter dulu.
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
-        $query->whereDate('transaksi.tgl_order', '>=', $tglDari)
-              ->whereDate('transaksi.tgl_order', '<=', $tglSampai);
+        $query->where('transaksi.tgl_order', '>=', $tglDari . ' 00:00:00')
+              ->where('transaksi.tgl_order', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
         if ($request->filled('status_pembayaran')) {
             $query->where('transaksi.status_pembayaran', $request->status_pembayaran);
@@ -176,8 +176,8 @@ class LaporanController extends Controller
         // pergerakan hari itu tanpa perlu isi filter dulu.
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
-        $base->whereDate('transaksi.tgl_order', '>=', $tglDari)
-             ->whereDate('transaksi.tgl_order', '<=', $tglSampai);
+        $base->where('transaksi.tgl_order', '>=', $tglDari . ' 00:00:00')
+             ->where('transaksi.tgl_order', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
         if ($request->filled('id_mesin')) {
             $base->where('produk.id_mesin', $request->id_mesin);
@@ -290,8 +290,9 @@ class LaporanController extends Controller
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
 
-        $query->whereDate('kas_harian.tgl_kas', '>=', $tglDari)
-              ->whereDate('kas_harian.tgl_kas', '<=', $tglSampai);
+        // Perf dataset besar: rentang sargable (DATE() mematikan index).
+        $query->where('kas_harian.tgl_kas', '>=', $tglDari . ' 00:00:00')
+              ->where('kas_harian.tgl_kas', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
         if ($request->filled('status_lock')) {
             $query->where('kas_harian.status_lock', $request->status_lock);
@@ -344,7 +345,7 @@ class LaporanController extends Controller
 
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
-        $query->whereDate('pembelian_bahan.tgl_transaksi', '>=', $tglDari)->whereDate('pembelian_bahan.tgl_transaksi', '<=', $tglSampai);
+        $query->where('pembelian_bahan.tgl_transaksi', '>=', $tglDari . ' 00:00:00')->where('pembelian_bahan.tgl_transaksi', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
         if ($request->filled('status_pembayaran')) {
             $query->where('pembelian_bahan.status_pembayaran', $request->status_pembayaran);
@@ -393,8 +394,8 @@ class LaporanController extends Controller
         // Default rekap HARI INI SAJA - berlaku sama di semua laporan.
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
-        $query->whereDate('order_date', '>=', $tglDari)
-              ->whereDate('order_date', '<=', $tglSampai);
+        $query->where('order_date', '>=', $tglDari . ' 00:00:00')
+              ->where('order_date', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
         if ($request->filled('status_pembayaran')) {
             $query->where('status_pembayaran', $request->status_pembayaran);
@@ -542,8 +543,8 @@ class LaporanController extends Controller
         // Default rekap HARI INI SAJA - sama seperti laporan lain.
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
-        $query->whereDate('transaksi.tgl_order', '>=', $tglDari)
-              ->whereDate('transaksi.tgl_order', '<=', $tglSampai);
+        $query->where('transaksi.tgl_order', '>=', $tglDari . ' 00:00:00')
+              ->where('transaksi.tgl_order', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
         if ($request->filled('id_konsumen')) {
             $query->where('transaksi.id_konsumen', $request->id_konsumen);
@@ -692,8 +693,8 @@ class LaporanController extends Controller
             ->join('transaksi_detail as d', 'd.id_transaksi', '=', 't.id_transaksi')
             ->leftJoin('konsumen as k', 'k.id_konsumen', '=', 't.id_konsumen')
             ->where('t.status_nota', '!=', 'Dibatalkan')
-            ->whereDate('t.tgl_order', '>=', $tglDari)
-            ->whereDate('t.tgl_order', '<=', $tglSampai)
+            ->where('t.tgl_order', '>=', $tglDari . ' 00:00:00')
+            ->where('t.tgl_order', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00')
             ->groupBy('t.id_transaksi', 't.nomor_nota', 't.tgl_order', 'k.nama_konsumen')
             ->selectRaw("t.id_transaksi, t.nomor_nota, t.tgl_order, k.nama_konsumen,
                 SUM(d.subtotal) as omzet, SUM(d.hpp_snapshot) as hpp,
@@ -733,8 +734,8 @@ class LaporanController extends Controller
             ->leftJoin('jasa', 'transaksi_detail.id_jasa', '=', 'jasa.id_jasa')
             ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
             ->where('transaksi.status_nota', '!=', 'Dibatalkan')
-            ->whereDate('transaksi.tgl_order', '>=', $tglDari)
-            ->whereDate('transaksi.tgl_order', '<=', $tglSampai);
+            ->where('transaksi.tgl_order', '>=', $tglDari . ' 00:00:00')
+            ->where('transaksi.tgl_order', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
         if ($request->filled('id_mesin')) {
             $query->where('produk.id_mesin', $request->id_mesin);

@@ -153,6 +153,15 @@ class AccountingService
     /**
      * Pembayaran diterima dari konsumen (KasirController::prosesBayar).
      * Mengurangi Piutang Usaha yang dibuat di postPenjualan().
+     *
+     * P0-3: no_referensi jurnal pembayaran DIPISAH dari nota (suffix
+     * "-BYR-<urut>"). Sebelumnya referensinya = nomor nota saja, sama
+     * dengan jurnal pendapatan/HPP nota - akibatnya reversePenjualan()
+     * (yang membalik SEMUA baris per no_referensi saat koreksi nota)
+     * ikut membalik jurnal pembayaran yang sudah menandai uang benar-benar
+     * diterima, padahal pembayaran_riwayat & status nota TIDAK ikut
+     * dibatalkan = uang "hilang" dari buku besar. Dengan referensi
+     * terpisah, reverse nota hanya menyentuh jurnal pendapatan/HPP-nya.
      */
     public static function postPembayaran(string $noNota, float $nominal, string $metode): void
     {
@@ -162,10 +171,20 @@ class AccountingService
 
         $akunKasMasuk = $metode === 'Tunai' ? self::AKUN_KAS : self::AKUN_BANK;
 
-        self::postJournal(now()->toDateString(), $noNota, "Pembayaran {$metode} {$noNota}", [
+        self::postJournal(now()->toDateString(), self::referensiPembayaran($noNota), "Pembayaran {$metode} {$noNota}", [
             ['kode_akun' => $akunKasMasuk, 'debet' => $nominal],
             ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'kredit' => $nominal],
         ]);
+    }
+
+    /** Referensi jurnal pembayaran untuk satu nota: INV-...-001-BYR-1 (jangan pakai nomor nota polos - lihat postPembayaran). */
+    public static function referensiPembayaran(string $noNota): string
+    {
+        $urut = (int) (DB::table('jurnal_umum')
+            ->where('no_referensi', 'like', $noNota . '-BYR-%')
+            ->count()) + 1;
+
+        return $noNota . '-BYR-' . $urut;
     }
 
     /**
@@ -333,13 +352,15 @@ class AccountingService
 
     /**
      * Deposit dipakai sebagai pembayaran nota (KasirController::prosesBayar,
-     * metode 'Deposit'). Tidak ada Kas/Bank baru yang masuk di sini - uangnya
+     * metode 'Deposit'; juga auto-pakai di PenjualanController::store).
+     * Tidak ada Kas/Bank baru yang masuk di sini - uangnya
      * sudah masuk saat setoran - jadi ini murni memindahkan saldo dari
      * kewajiban deposit ke pelunasan piutang.
+     * P0-3: referensi terpisah dari nota (lihat postPembayaran).
      */
     public static function postPembayaranDeposit(string $noNota, float $nominal): void
     {
-        self::postJournal(now()->toDateString(), $noNota, "Pembayaran via deposit {$noNota}", [
+        self::postJournal(now()->toDateString(), self::referensiPembayaran($noNota), "Pembayaran via deposit {$noNota}", [
             ['kode_akun' => self::AKUN_HUTANG_DEPOSIT, 'debet' => $nominal],
             ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'kredit' => $nominal],
         ]);
@@ -420,14 +441,25 @@ class AccountingService
     /**
      * Membalik SEMUA baris jurnal untuk satu no_referensi (nota) dengan
      * entri kontra (debet<->kredit ditukar) - dipakai saat sebuah nota
-     * dikoreksi lewat alur Edit Nota (PenjualanController::applyApprovedEdit).
+     * dikoreksi lewat alur Edit Nota (PenjualanController::applyApprovedEdit)
+     * maupun saat nota DIBATALKAN lewat Approval Workflow
+     * (PenjualanController::eksekusiPembatalanNota).
      * SENGAJA tidak pernah menghapus/mengubah baris jurnal asli (itu jejak
      * audit permanen) - pembalikan akuntansi yang benar selalu berupa entri
      * baru yang saling meniadakan, persis pola ini.
+     *
+     * P0-3: hanya baris jurnal NON-pembayaran yang dibalik. Baris dengan
+     * referensi "<nota>-BYR-*" (postPembayaran/postPembayaranDeposit) adalah
+     * jurnal uang yang benar-benar diterima - membaliknya tanpa membatalkan
+     * pembayaran_riwayat-nya akan membuat uang tercatat masuk tapi hilang
+     * dari buku besar. Koreksi pembayaran memakai jalur void tersendiri.
      */
     public static function reversePenjualan(string $noNota): void
     {
-        $baris = DB::table('jurnal_umum')->where('no_referensi', $noNota)->get();
+        $baris = DB::table('jurnal_umum')
+            ->where('no_referensi', $noNota)
+            ->where('no_referensi', 'not like', $noNota . '-BYR-%')
+            ->get();
 
         if ($baris->isEmpty()) {
             return;

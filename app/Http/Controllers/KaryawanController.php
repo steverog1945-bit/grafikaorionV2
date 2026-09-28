@@ -71,25 +71,31 @@ class KaryawanController extends Controller
         return back()->with('success', 'Data karyawan berhasil diperbarui!');
     }
 
-    // TAMBAHKAN FUNGSI DESTROY INI
+    // P2 (audit): penghapusan karyawan + user terkait dibungkus transaksi -
+    // sebelumnya user dihapus dulu tanpa pengaman, lalu kalau karyawan
+    // gagal dihapus (masih tercatat di transaksi), AKUN LOGIN-nya sudah
+    // hilang padahal karyawannya masih ada (data setengah terhapus).
     public function destroy($id)
-{
-    try {
-        // 1. Hapus User yang terhubung dulu (jika ada)
-        \DB::table('users')->where('id_karyawan', $id)->delete();
+    {
+        try {
+            \DB::transaction(function () use ($id) {
+                // 1. Hapus User yang terhubung dulu (jika ada)
+                \DB::table('users')->where('id_karyawan', $id)->delete();
 
-        // 2. Baru hapus Karyawannya
-        $deleted = \DB::table('karyawan')->where('id_karyawan', $id)->delete();
+                // 2. Baru hapus Karyawannya (gagal di sini = user ikut roll-back)
+                $deleted = \DB::table('karyawan')->where('id_karyawan', $id)->delete();
 
-        if ($deleted) {
+                if (!$deleted) {
+                    throw new \RuntimeException('Data tidak ditemukan.');
+                }
+            });
+
             return back()->with('success', 'Karyawan dan akun loginnya berhasil dihapus.');
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            // Jika masih gagal (mungkin sudah ada data Transaksi), tangkap errornya
+            return back()->with('error', 'Gagal hapus! Karyawan ini sudah tercatat dalam data transaksi/kas.');
         }
-        
-        return back()->with('error', 'Data tidak ditemukan.');
-        
-    } catch (\Exception $e) {
-        // Jika masih gagal (mungkin sudah ada data Transaksi), tangkap errornya
-        return back()->with('error', 'Gagal hapus! Karyawan ini sudah tercatat dalam data transaksi/kas.');
     }
-}
 }

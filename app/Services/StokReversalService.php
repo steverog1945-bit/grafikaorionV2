@@ -24,10 +24,19 @@ use Illuminate\Support\Facades\DB;
  * Sekarang: kalau baris item ini punya snapshot di
  * transaksi_detail_bahan_pakai (dicatat persis saat qty dipotong, lihat
  * PenjualanController::store), snapshot itu yang dipakai - imun terhadap
- * BOM yang berubah belakangan. Transaksi LAMA (sebelum tabel snapshot ini
- * ada) tidak punya baris di sana, jadi jatuh ke rumus lama (recompute dari
- * BOM live) sebagai fallback - satu-satunya cara yang tersedia untuk data
- * yang memang tidak punya snapshot.
+ * BOM yang berubah belakangan.
+ *
+ * Hardening S1 (audit stok): snapshot berlaku CONSUME-ONCE - setelah
+ * berhasil dipakai reversal, baris snapshot dihapus (dalam transaksi yang
+ * sama) sehingga satu item tidak bisa direversal dua kali (batal SPK ->
+ * antrekan ulang -> batal lagi tidak mengembalikan stok dobel). Snapshot
+ * kosong pada transaksi era-snapshot (>= 2026-10-14) berarti "tidak pernah
+ * memotong stok" atau "sudah pernah direversal" - keduanya TIDAK
+ * mengembalikan apa pun (tidak ada recompute BOM live). Fallback recompute
+ * hanya untuk transaksi ERA LAMA (pra snapshot) yang memang tidak punya
+ * data lain, tetap dengan guard anti-dobel (cek kartu_stok IN
+ * BATAL-SPK-{id_detail}). Setiap pemanggilan tercatat di audit_logs
+ * (event stok_reversal, mode snapshot/fallback/dilewati+alasan).
  */
 class StokReversalService
 {
@@ -60,15 +69,135 @@ class StokReversalService
         // di-nest (pakai SAVEPOINT) kalau pemanggil sudah py transaction
         // sendiri, jadi ini tidak mengubah perilaku 3 pemanggil yang ada
         // sekarang.
-        return DB::transaction(function () use ($detail, $referensi, $keterangan) {
-            $snapshot = DB::table('transaksi_detail_bahan_pakai')->where('id_detail', $detail->id_detail ?? 0)->get();
+        // S1 (audit stok): id_detail unik per baris item - dipakai sebagai
+        // penanda "sudah pernah direversal" untuk jalur fallback di bawah
+        // (batal SPK per-item menulis referensi BATAL-SPK-{id_detail}).
+        $idDetail = (int) ($detail->id_detail ?? 0);
+
+        return DB::transaction(function () use ($detail, $idDetail, $referensi, $keterangan) {
+            // S1 consume-once: baris snapshot dibaca DENGAN lock - dua
+            // reversal bersamaan untuk item yang sama tidak bisa sama-sama
+            // memakai snapshot yang sama.
+            $snapshot = DB::table('transaksi_detail_bahan_pakai')
+                ->where('id_detail', $idDetail)
+                ->lockForUpdate()
+                ->get();
 
             if ($snapshot->isNotEmpty()) {
-                return self::kembalikanDariSnapshot($snapshot, $referensi, $keterangan);
+                $ringkasan = self::kembalikanDariSnapshot($snapshot, $referensi, $keterangan);
+
+                // S1 consume-once: snapshot yang sudah berhasil dipakai
+                // reversal DIHAPUS di transaksi yang sama - gagal di tengah
+                // jalan berarti rollback mengembalikan stok DAN snapshot
+                // bersamaan. Tanpa ini, batal SPK -> antrekan ulang -> batal
+                // lagi akan mengembalikan stok DOBEL (snapshot tidak pernah
+                // "habis" dipakai). Re-antre TIDAK memotong stok ulang (stok
+                // cuma dipotong saat order dibuat), jadi menolak reversal
+                // kedua untuk item yang sama adalah perilaku yang benar.
+                if ($ringkasan !== []) {
+                    DB::table('transaksi_detail_bahan_pakai')
+                        ->where('id_detail', $idDetail)
+                        ->delete();
+                }
+
+                self::logReversal($idDetail, 'snapshot', $ringkasan, $referensi, $keterangan);
+
+                return $ringkasan;
             }
 
-            return self::kembalikanRecomputeBomLama($detail, $referensi, $keterangan);
+            // S1: snapshot kosong - maknanya bergantung ERA transaksi.
+            //
+            // Era snapshot (order dibuat >= 2026-10-14): snapshot & baris OUT
+            // kartu_stok selalu ditulis berpasangan dalam SATU transaksi saat
+            // order dibuat. Snapshot kosong berarti SALAH SATU: (a) item ini
+            // memang tidak pernah memotong stok (produk tanpa komponen BOM
+            // berqty > 0 - nota juga tidak punya baris OUT), atau (b) snapshot
+            // sudah pernah dipakai reversal lalu dihapus (consume-once di
+            // atas; nota ini PASTI punya baris OUT). Kedua kasus: JANGAN
+            // recompute dari BOM live - (a) akan mengembalikan stok yang
+            // TIDAK PERNAH dipotong kalau BOM diedit belakangan (stok fiktif),
+            // (b) pasti dobel-reversal.
+            //
+            // Era lama (pra 2026-10-14): pencatatan OUT saat order juga belum
+            // ada - nota lama TIDAK punya baris OUT padahal stoknya benar
+            // terpotong, dan tidak ada snapshot. Fallback recompute BOM adalah
+            // satu-satunya cara; tetap dilindungi guard BATAL-SPK agar tidak
+            // dobel.
+            $transaksiRef = DB::table('transaksi')
+                ->where('id_transaksi', $detail->id_transaksi ?? 0)
+                ->first(['nomor_nota', 'tgl_order', 'created_at']);
+            $noNota = $transaksiRef->nomor_nota ?? null;
+
+            if (!$noNota) {
+                self::logReversal($idDetail, 'dilewati-tanpa-out', [], $referensi, $keterangan);
+
+                return [];
+            }
+
+            $tglEra = $transaksiRef->tgl_order ?? $transaksiRef->created_at;
+            $eraSnapshot = $tglEra !== null && \Carbon\Carbon::parse($tglEra)->startOfDay()->gte('2026-10-14');
+            $adaOut = DB::table('kartu_stok')->where('tipe', 'OUT')->where('referensi', $noNota)->exists();
+
+            if ($eraSnapshot) {
+                self::logReversal(
+                    $idDetail,
+                    $adaOut ? 'dilewati-sudah-direversal' : 'dilewati-tanpa-out',
+                    [],
+                    $referensi,
+                    $keterangan
+                );
+
+                return [];
+            }
+
+            // Era lama: cegah double-reversal - kalau item ini pernah
+            // direversal per-SPK sebelumnya (ada baris IN BATAL-SPK-{id_detail}
+            // di kartu_stok), mengembalikan stok SEKALI LAGI pasti dobel.
+            if ($idDetail > 0 && DB::table('kartu_stok')
+                ->where('tipe', 'IN')
+                ->where('referensi', 'BATAL-SPK-' . $idDetail)
+                ->exists()) {
+                self::logReversal($idDetail, 'dilewati-sudah-direversal', [], $referensi, $keterangan);
+
+                return [];
+            }
+
+            // Fallback KHUSUS transaksi era lama pra-snapshot - PERSIS rumus
+            // lama, kini dengan guard double-reversal di atas.
+            $ringkasan = self::kembalikanRecomputeBomLama($detail, $noNota, $referensi, $keterangan);
+
+            self::logReversal($idDetail, 'fallback-bom-lama', $ringkasan, $referensi, $keterangan);
+
+            return $ringkasan;
         });
+    }
+
+    /**
+     * S1: satu entri audit per pemanggilan reversal - ditulis DI DALAM
+     * transaksi pemanggil (rollback membatalkan log-nya juga, jadi Log
+     * Aktivitas tidak pernah mencatat reversal yang tidak jadi terjadi).
+     * Mode: snapshot (jalur akurat), fallback-bom-lama (transaksi pra-
+     * snapshot), dilewati-tanpa-out / dilewati-sudah-direversal (tidak ada
+     * yang dikembalikan beserta alasannya).
+     */
+    private static function logReversal(int $idDetail, string $mode, array $ringkasan, string $referensi, string $keterangan): void
+    {
+        if ($idDetail <= 0) {
+            return;
+        }
+
+        AuditLogger::log(
+            'stok_reversal',
+            'transaksi_detail',
+            $idDetail,
+            null,
+            [
+                'mode'      => $mode,
+                'referensi' => $referensi,
+                'ringkasan' => $ringkasan,
+            ],
+            $keterangan
+        );
     }
 
     /** Jalur akurat: qty persis seperti yang dipotong saat order dibuat, sudah dalam satuan stok - tanpa konversi/rumus BOM apa pun lagi. */
@@ -86,10 +215,10 @@ class StokReversalService
     }
 
     /** Fallback untuk transaksi sebelum snapshot ini ada - PERSIS rumus lama. */
-    private static function kembalikanRecomputeBomLama(object $detail, string $referensi, string $keterangan): array
+    private static function kembalikanRecomputeBomLama(object $detail, ?string $noNota, string $referensi, string $keterangan): array
     {
         $ringkasan = [];
-        $noNota = DB::table('transaksi')->where('id_transaksi', $detail->id_transaksi ?? 0)->value('nomor_nota');
+        $noNota ??= DB::table('transaksi')->where('id_transaksi', $detail->id_transaksi ?? 0)->value('nomor_nota');
 
         foreach (BomCalculationService::komponen((int) $detail->id_produk, (float) $detail->p_ukuran, (float) $detail->l_ukuran, (float) $detail->qty) as $bom) {
             $qtyPakai = $bom->qty_pakai;

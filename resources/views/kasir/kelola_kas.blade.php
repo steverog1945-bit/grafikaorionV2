@@ -297,7 +297,11 @@ function aksiKas(tipe) {
         }).then((result) => {
             if (result.isConfirmed) {
                 if(result.value >= 0) {
-                    window.location.href = `{{ url('/kasir/store-kas') }}?jumlah=${result.value}`;
+                    // P0-1: kirim via POST + CSRF (sebelumnya GET query string
+                    // tanpa verifikasi CSRF - celah CSRF nyata).
+                    const f = document.getElementById('form-open-kas');
+                    f.querySelector('input[name=jumlah]').value = result.value;
+                    f.submit();
                 } else {
                     Swal.fire('Error', 'Jumlah tidak valid', 'error');
                 }
@@ -306,4 +310,7 @@ function aksiKas(tipe) {
     }
 }
 </script>
+
+{{-- P0-1: form POST + CSRF untuk Buka Kas (dipakai JS aksiKas('open') di atas) --}}
+<form id="form-open-kas" action="{{ route('kasir.store-kas') }}" method="POST" class="hidden">@csrf<input type="hidden" name="jumlah" value="0"></form>
 @endsection

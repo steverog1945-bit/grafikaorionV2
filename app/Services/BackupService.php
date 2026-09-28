@@ -19,7 +19,11 @@ class BackupService
     public static function run(string $tipe): BackupLog
     {
         $startedAt = now();
-        $log = BackupLog::create(['tipe' => $tipe, 'status' => 'Sukses', 'started_at' => $startedAt]);
+        // P1: status awal 'Berjalan' - sebelumnya langsung 'Sukses' padahal
+        // dump belum jalan; proses mati mendadak meninggalkan baris
+        // "Sukses" kosong (false positive di halaman /backup). Kolom enum
+        // diperluas 'Berjalan' lewat migrasi 2026_10_18_000001.
+        $log = BackupLog::create(['tipe' => $tipe, 'status' => 'Berjalan', 'started_at' => $startedAt]);
 
         try {
             $dir = config('backup.disk_path') . DIRECTORY_SEPARATOR . $tipe;
