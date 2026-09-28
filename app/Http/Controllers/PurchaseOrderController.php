@@ -254,6 +254,7 @@ class PurchaseOrderController extends Controller
 
     private function validasi(Request $request): array
     {
+        // Pesan & nama atribut bahasa Indonesia (sama seperti PurchaseRequestController).
         return $request->validate([
             'id_supplier' => 'required|exists:supplier,id_supplier',
             'tanggal' => 'required|date',
@@ -268,6 +269,26 @@ class PurchaseOrderController extends Controller
             'items.*.qty' => 'required|numeric|min:0.01',
             'items.*.harga' => 'required|numeric|min:0',
             'items.*.catatan' => 'nullable|string|max:255',
+        ], [
+            'id_supplier.required' => 'Supplier wajib dipilih.',
+            'id_supplier.exists' => 'Supplier yang dipilih tidak ditemukan.',
+            'tanggal.required' => 'Tanggal PO wajib diisi.',
+            'tanggal.date' => 'Tanggal PO tidak valid.',
+            'tgl_pengiriman_estimasi.after_or_equal' => 'Estimasi kedatangan tidak boleh sebelum tanggal PO.',
+            'items.required' => 'Minimal satu item bahan harus diisi.',
+            'items.*.id_bahan.required' => 'Bahan pada tiap baris item wajib dipilih.',
+            'items.*.id_bahan.exists' => 'Bahan yang dipilih tidak ditemukan.',
+            'items.*.qty.required' => 'Qty pada tiap baris item wajib diisi.',
+            'items.*.qty.min' => 'Qty pada tiap baris item minimal 0.01.',
+            'items.*.harga.required' => 'Harga satuan pada tiap baris item wajib diisi.',
+            'items.*.harga.min' => 'Harga satuan tidak boleh negatif.',
+            'items.*.catatan.max' => 'Catatan item maksimal 255 karakter.',
+        ], [
+            'id_supplier' => 'supplier',
+            'items.*.id_bahan' => 'bahan',
+            'items.*.qty' => 'qty',
+            'items.*.harga' => 'harga satuan',
+            'items.*.catatan' => 'catatan item',
         ]);
     }
 
