@@ -139,6 +139,18 @@ class JerseyOrderController extends Controller
     }
 
     /**
+     * Audit: peta NAMA ukuran master aktif -> ID, dipakai mengisi FK
+     * jersey_order_items.jersey_size_id (pendamping snapshot teks size).
+     * Cache per-request sama seperti ukuranMasterAktif().
+     */
+    private function sizeIdByName(): \Illuminate\Support\Collection
+    {
+        static $cache = null;
+
+        return $cache ??= JerseySize::where('is_active', true)->pluck('id', 'name');
+    }
+
+    /**
      * Audit: KEY size_quantities harus ID ukuran yang aktif di master -
      * ID palsu/di-nonaktifkan ditolak di sini dengan pesan jelas, bukan
      * gagal foreign key di tengah transaksi. Dipanggil SEBELUM transaksi
@@ -492,6 +504,12 @@ class JerseyOrderController extends Controller
             // pemain) tidak perlu diubah, cukup baca kolom teks ini.
             $item['sleeve'] = !empty($item['jersey_sleeve_type_id']) ? ($h['sleeveNameById'][$item['jersey_sleeve_type_id']] ?? null) : null;
             $item['collar'] = !empty($item['jersey_collar_type_id']) ? ($h['collarNameById'][$item['jersey_collar_type_id']] ?? null) : null;
+            // Audit: size (teks snapshot) didampingi FK ke master ukuran -
+            // pola persis sleeve/collar. Validasi sudah menjamin $item['size']
+            // ada di master aktif, jadi lookup ini selalu ketemu.
+            $item['jersey_size_id'] = ($item['size'] ?? null) !== null
+                ? ($this->sizeIdByName()[$item['size']] ?? null)
+                : null;
             $line->items()->create($item);
         }
         foreach ($h['qtyPerSizeId'] as $sizeId => $qtyUkuran) {

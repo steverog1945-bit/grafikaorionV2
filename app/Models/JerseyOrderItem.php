@@ -13,6 +13,7 @@ class JerseyOrderItem extends Model
         'player_name',
         'player_number',
         'size',
+        'jersey_size_id',
         'gender',
         'sleeve',
         'jersey_sleeve_type_id',
