@@ -105,6 +105,9 @@ Input Order -> SPK -> Produksi -> Pembayaran di Kasir -> Collecting (serah baran
 
 Order Jersey (Order Jersey > Daftar Order, Master Data Jersey, Keuangan Jersey) memiliki modul sendiri untuk order, komponen, ukuran, dan pembayaran, dan **terhubung ke akuntansi**:
 
+- Ukuran jersey **sumber kebenarannya satu**: Master Data Jersey → Ukuran. Ukuran baru yang ditambahkan langsung bisa dipakai di form order (pemain & qty per ukuran) tanpa perubahan kode. Ukuran yang dinonaktifkan tetap tampil di order lama, tapi tidak lagi bisa dipilih untuk order baru.
+- Nomor order jersey selalu naik (tidak pernah dobel walaupun dua operator menyimpan bersamaan, dan nomor bekas order yang dihapus tidak dipakai ulang).
+
 - Total order diakui sebagai piutang dan pendapatan di akun **Pendapatan Order Jersey (4300)**. Jika line order berubah, sistem hanya memposting selisihnya.
 - Pembayaran Tunai masuk Kas; Transfer/QRIS/Lainnya masuk Bank. Pembayaran mengurangi piutang.
 - **Hapus pembayaran** dan **hapus order yang sudah bernilai atau sudah ada pembayaran** hanya berupa pengajuan ke Approval Workflow (jurnal dibalik saat disetujui). Order yang punya pembayaran hanya bisa dibatalkan setelah pembayarannya di-void. Order kosong (belum bernilai) masih bisa dihapus langsung.

@@ -124,6 +124,43 @@ class JerseyOrderController extends Controller
         return response()->json(['peringatan' => $peringatan]);
     }
 
+    /**
+     * Audit Order Jersey - SATU SUMBER KEBENARAN UKURAN: daftar nama ukuran
+     * aktif dari master jersey_sizes, dipakai validasi items.*.size di
+     * store/updateLines/storeLineSusulan. Cache per-request: validasi array
+     * rules dieksekusi ulang untuk setiap baris pemain (N panggilan), tidak
+     * boleh berubah jadi N query.
+     */
+    private function ukuranMasterAktif(): \Illuminate\Support\Collection
+    {
+        static $cache = null;
+
+        return $cache ??= JerseySize::where('is_active', true)->pluck('name');
+    }
+
+    /**
+     * Audit: KEY size_quantities harus ID ukuran yang aktif di master -
+     * ID palsu/di-nonaktifkan ditolak di sini dengan pesan jelas, bukan
+     * gagal foreign key di tengah transaksi. Dipanggil SEBELUM transaksi
+     * dibuka supaya ValidationException tampil sebagai error validasi
+     * standar Laravel (redirect back + pesan), bukan flash generik.
+     */
+    private function validasiKeySizeQuantities($sizeQuantities, int $lineIndex): void
+    {
+        $ids = collect($sizeQuantities ?? [])->filter(fn ($q) => (int) $q > 0)->keys();
+        if ($ids->isEmpty()) {
+            return;
+        }
+
+        $sah = JerseySize::whereIn('id', $ids)->where('is_active', true)->pluck('id');
+        $tidakSah = $ids->diff($sah);
+        if ($tidakSah->isNotEmpty()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                "lines.{$lineIndex}.size_quantities" => "Baris " . ($lineIndex + 1) . ": ukuran ID " . $tidakSah->implode(', ') . " tidak terdaftar (atau nonaktif) di Master Ukuran Jersey. Muat ulang halaman setelah master diperbarui.",
+            ]);
+        }
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -151,16 +188,37 @@ class JerseyOrderController extends Controller
             'lines.*.items' => 'nullable|array',
             'lines.*.items.*.player_name' => 'nullable|string|max:255',
             'lines.*.items.*.player_number' => 'nullable|string|max:20',
-            'lines.*.items.*.size' => 'nullable|in:S,M,L,XL,2XL,3XL,4XL,5XL',
+            // Audit Order Jersey: ukuran diambil dari MASTER jersey_sizes
+            // (aktif) - BUKAN whitelist hard-code. Dulu 'in:S,M,L,XL,...'
+            // membuat ukuran baru yang ditambahkan lewat master ditolak di
+            // sini ("The selected lines.0.items.9.size is invalid") padahal
+            // dropdown form (dari master yang sama) sudah menawarkannya.
+            // Rule closure membaca master dengan cache static per-request
+            // supaya N baris pemain tidak memicu N query.
+            'lines.*.items.*.size' => ['nullable', 'string', 'max:50', function ($attribute, $value, $fail) {
+                if ($value !== null && !$this->ukuranMasterAktif()->contains($value)) {
+                    $fail("Ukuran \"{$value}\" tidak terdaftar (atau nonaktif) di Master Ukuran Jersey. Muat ulang halaman setelah master diperbarui, atau daftarkan ukurannya dulu.");
+                }
+            }],
             'lines.*.items.*.gender' => 'nullable|in:L,P',
             'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
             'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
 
             'lines.*.size_quantities' => 'nullable|array',
+            // Audit: KEY size_quantities adalah ID ukuran master (dari form
+            // qty-per-ukuran). Key palsu lolos validasi ini lalu gagal FK
+            // dengan error kasar saat disimpan - dicek eksplisit di bawah.
             'lines.*.size_quantities.*' => 'nullable|integer|min:0',
         ], [
             'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi untuk setiap barang (acuan warna & bentuk produksi).',
         ]);
+
+        // Audit: size_quantities dikunci ke master SEBELUM transaksi dibuka -
+        // key yang bukan ID ukuran master aktif ditolak dengan pesan validasi
+        // standar (dulu lolos validasi lalu gagal FK di tengah transaksi).
+        foreach ($data['lines'] as $i => $lineData) {
+            $this->validasiKeySizeQuantities($lineData['size_quantities'] ?? [], $i);
+        }
 
         DB::beginTransaction();
         try {
@@ -618,16 +676,35 @@ class JerseyOrderController extends Controller
             'lines.*.items' => 'nullable|array',
             'lines.*.items.*.player_name' => 'nullable|string|max:255',
             'lines.*.items.*.player_number' => 'nullable|string|max:20',
-            'lines.*.items.*.size' => 'nullable|in:S,M,L,XL,2XL,3XL,4XL,5XL',
+            // Audit Order Jersey: ukuran diambil dari MASTER jersey_sizes
+            // (aktif) - BUKAN whitelist hard-code. Dulu 'in:S,M,L,XL,...'
+            // membuat ukuran baru yang ditambahkan lewat master ditolak di
+            // sini ("The selected lines.0.items.9.size is invalid") padahal
+            // dropdown form (dari master yang sama) sudah menawarkannya.
+            // Rule closure membaca master dengan cache static per-request
+            // supaya N baris pemain tidak memicu N query.
+            'lines.*.items.*.size' => ['nullable', 'string', 'max:50', function ($attribute, $value, $fail) {
+                if ($value !== null && !$this->ukuranMasterAktif()->contains($value)) {
+                    $fail("Ukuran \"{$value}\" tidak terdaftar (atau nonaktif) di Master Ukuran Jersey. Muat ulang halaman setelah master diperbarui, atau daftarkan ukurannya dulu.");
+                }
+            }],
             'lines.*.items.*.gender' => 'nullable|in:L,P',
             'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
             'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
 
             'lines.*.size_quantities' => 'nullable|array',
+            // Audit: KEY size_quantities adalah ID ukuran master (dari form
+            // qty-per-ukuran). Key palsu lolos validasi ini lalu gagal FK
+            // dengan error kasar saat disimpan - dicek eksplisit di bawah.
             'lines.*.size_quantities.*' => 'nullable|integer|min:0',
         ], [
             'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi untuk setiap barang (acuan warna & bentuk produksi).',
         ]);
+
+        // Audit: size_quantities dikunci ke master (lihat store()).
+        foreach ($data['lines'] as $i => $lineData) {
+            $this->validasiKeySizeQuantities($lineData['size_quantities'] ?? [], $i);
+        }
 
         DB::beginTransaction();
         try {
@@ -685,16 +762,35 @@ class JerseyOrderController extends Controller
             'lines.*.items' => 'nullable|array',
             'lines.*.items.*.player_name' => 'nullable|string|max:255',
             'lines.*.items.*.player_number' => 'nullable|string|max:20',
-            'lines.*.items.*.size' => 'nullable|in:S,M,L,XL,2XL,3XL,4XL,5XL',
+            // Audit Order Jersey: ukuran diambil dari MASTER jersey_sizes
+            // (aktif) - BUKAN whitelist hard-code. Dulu 'in:S,M,L,XL,...'
+            // membuat ukuran baru yang ditambahkan lewat master ditolak di
+            // sini ("The selected lines.0.items.9.size is invalid") padahal
+            // dropdown form (dari master yang sama) sudah menawarkannya.
+            // Rule closure membaca master dengan cache static per-request
+            // supaya N baris pemain tidak memicu N query.
+            'lines.*.items.*.size' => ['nullable', 'string', 'max:50', function ($attribute, $value, $fail) {
+                if ($value !== null && !$this->ukuranMasterAktif()->contains($value)) {
+                    $fail("Ukuran \"{$value}\" tidak terdaftar (atau nonaktif) di Master Ukuran Jersey. Muat ulang halaman setelah master diperbarui, atau daftarkan ukurannya dulu.");
+                }
+            }],
             'lines.*.items.*.gender' => 'nullable|in:L,P',
             'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
             'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
 
             'lines.*.size_quantities' => 'nullable|array',
+            // Audit: KEY size_quantities adalah ID ukuran master (dari form
+            // qty-per-ukuran). Key palsu lolos validasi ini lalu gagal FK
+            // dengan error kasar saat disimpan - dicek eksplisit di bawah.
             'lines.*.size_quantities.*' => 'nullable|integer|min:0',
         ], [
             'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi.',
         ]);
+
+        // Audit: size_quantities dikunci ke master (lihat store()).
+        foreach ($data['lines'] as $i => $lineData) {
+            $this->validasiKeySizeQuantities($lineData['size_quantities'] ?? [], $i);
+        }
 
         DB::beginTransaction();
         try {
