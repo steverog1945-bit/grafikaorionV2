@@ -70,7 +70,8 @@
                     <x-form.select name="id_supplier" id="id_supplier" required :disabled="! $editable">
                         <option value="">-- Pilih Supplier --</option>
                         @foreach($supplierList as $s)
-                            <option value="{{ $s->id_supplier }}" {{ old('id_supplier', $po->id_supplier ?? '') == $s->id_supplier ? 'selected' : '' }}>{{ $s->nama_supplier }}</option>
+                            {{-- PO dari PR: supplier otomatis dari histori pembelian bahan-bahan PR itu (masih bisa diganti). --}}
+                            <option value="{{ $s->id_supplier }}" {{ old('id_supplier', $po->id_supplier ?? ($prefill['id_supplier'] ?? '')) == $s->id_supplier ? 'selected' : '' }}>{{ $s->nama_supplier }}</option>
                         @endforeach
                     </x-form.select>
                 </x-form.group>
@@ -127,6 +128,13 @@
                 @endforeach
             </tbody>
         </x-table>
+
+        @if($editable && !empty($prefill['id_purchase_request']) && collect($rows)->contains(fn ($r) => (float) ($r['harga'] ?? 0) > 0))
+            <p class="mt-3 text-[11px] text-emerald-600 font-semibold flex items-center gap-1.5">
+                <i class="fas fa-wand-magic-sparkles"></i>
+                Harga satuan diambil otomatis dari PO terakhir untuk bahan yang pernah dibeli - tetap bisa diubah bila harga berubah.
+            </p>
+        @endif
 
         @if($editable)
         <div class="mt-4"><x-button type="button" variant="outline" size="sm" onclick="tambahBaris()"><i class="fas fa-plus"></i> Tambah Item</x-button></div>

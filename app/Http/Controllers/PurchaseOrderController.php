@@ -42,12 +42,44 @@ class PurchaseOrderController extends Controller
                 return redirect()->route('purchase-request.index')->with('error', "Purchase Request {$pr->nomor} belum berstatus Disetujui.");
             }
 
+            $bahanIds = $pr->details->pluck('id_bahan');
+
+            // Harga satuan diambil dari PO TERAKHIR per bahan (PO dibatalkan
+            // dikecualikan) - pembeli tidak perlu mengingat/mencari harga;
+            // angka ini cuma default yang tetap boleh diubah sebelum simpan.
+            $hargaTerakhir = DB::table('purchase_order_details as pod')
+                ->join('purchase_orders as po', 'po.id', '=', 'pod.id_purchase_order')
+                ->whereIn('pod.id_bahan', $bahanIds)
+                ->where('po.status', '!=', 'Dibatalkan')
+                ->orderByDesc('po.id')
+                ->get(['pod.id_bahan', 'pod.harga'])
+                ->unique('id_bahan')
+                ->pluck('harga', 'id_bahan');
+
+            // Supplier dipilih otomatis: yang paling sering memasok bahan-bahan
+            // dalam PR ini menurut histori PO (kalau belum ada histori, kosong
+            // dan pembeli memilih manual).
+            $idSupplier = DB::table('purchase_order_details as pod')
+                ->join('purchase_orders as po', 'po.id', '=', 'pod.id_purchase_order')
+                ->whereIn('pod.id_bahan', $bahanIds)
+                ->where('po.status', '!=', 'Dibatalkan')
+                ->select('po.id_supplier', DB::raw('count(*) as total'))
+                ->groupBy('po.id_supplier')
+                ->orderByDesc('total')
+                ->value('po.id_supplier');
+
             $prefill = [
                 'id_purchase_request' => $pr->id,
                 'nomor_pr' => $pr->nomor,
-                // Catatan per item PR ikut terbawa ke item PO (qty belum
+                'id_supplier' => $idSupplier,
+                // Catatan & harga per item PR ikut terbawa (qty belum
                 // dikurangi sisa PR yang sudah jadi PO - lihat catatan create()).
-                'items' => $pr->details->map(fn ($d) => ['id_bahan' => $d->id_bahan, 'qty' => $d->qty, 'harga' => 0, 'catatan' => $d->catatan])->all(),
+                'items' => $pr->details->map(fn ($d) => [
+                    'id_bahan' => $d->id_bahan,
+                    'qty' => $d->qty,
+                    'harga' => (float) ($hargaTerakhir[$d->id_bahan] ?? 0),
+                    'catatan' => $d->catatan,
+                ])->all(),
             ];
         }
 
