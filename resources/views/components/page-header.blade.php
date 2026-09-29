@@ -7,7 +7,8 @@
     <div>
         <h1 class="text-3xl font-bold text-slate-800 tracking-tight">{{ $title }}</h1>
         @isset($subtitle)
-            <p class="text-slate-400 font-medium mt-1 text-xs uppercase tracking-wider flex items-center gap-2">{{ $subtitle }}</p>
+            {{-- Rombak visual (tahap 2): subtitle kalimat biasa, bukan ALL-CAPS tembok - pesan lebih hangat & mudah dibaca. --}}
+            <p class="text-slate-500 font-medium mt-1.5 text-[13px] leading-relaxed flex items-center gap-2">{{ $subtitle }}</p>
         @endisset
     </div>
 
