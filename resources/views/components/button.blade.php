@@ -13,15 +13,19 @@
     $variants = [
         // Glass (ui-refresh.css): gradien indigo lembut + blur + inner highlight.
         'primary'   => 'btn-glass-primary text-white',
-        'secondary' => 'bg-slate-100 hover:bg-slate-200 text-slate-500',
+        // btn-soft (ui-refresh.css): dulu bg-slate-100 + text-slate-500 -
+        // nyaris tak terbaca di light mode. Sekarang kelas khusus dengan
+        // teks pekat + garis tepi + padanan html.dark, jadi jelas di
+        // KEDUA mode (audit kontras 2 mode).
+        'secondary' => 'btn-soft text-slate-700',
         'success'   => 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100',
         'warning'   => 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-100',
         'danger'    => 'bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-100',
-        'outline'   => 'bg-transparent border border-slate-200 text-slate-500 hover:bg-slate-50',
+        'outline'   => 'bg-transparent border border-slate-300 text-slate-700 hover:bg-slate-100',
         // Tanpa hover bawaan - dipakai untuk icon button di tabel yang tiap
         // instance-nya butuh warna hover berbeda (edit=amber, hapus=rose,
         // dst) lewat prop class, tanpa risiko rebutan specificity dgn variant.
-        'ghost'     => 'bg-transparent text-slate-400',
+        'ghost'     => 'bg-transparent text-slate-600 hover:text-slate-900',
     ];
 
     $sizes = [
