@@ -544,3 +544,231 @@ aside .menu-group-items a:hover { background: rgba(255, 255, 255, 0.07) !importa
     }
     #railFlyout, #railTip { display: none !important; }
 }
+
+/* ==================================================================
+   LAPISAN 5 - iOS 27 SUPERGLASS GLOBAL (semua modul, kelas, modal)
+   ==================================================================
+   Prinsip iOS: kaca butuh PANGGUNG bercahaya agar terasa kaca -
+   jadi light mode dapat latar dengan sapuan cahaya lembut, lalu
+   semua panel putih rounded menjadi kaca bening (blur 24-32px +
+   saturasi 180%), teks smooth-black, dan cahaya tepi atas.
+   Sidebar di light mode KACA PUTIH - bukan lagi gelap.
+   ================================================================== */
+
+/* --- 5a. Panggung cahaya (light) - bahan yang di-blur kaca --- */
+html:not(.dark) body {
+    background:
+        radial-gradient(1200px 620px at 85% -10%, rgba(99, 102, 241, 0.07), transparent 60%),
+        radial-gradient(1000px 520px at -10% 22%, rgba(14, 165, 233, 0.06), transparent 55%),
+        linear-gradient(180deg, #f3f5f9 0%, #eef1f6 100%) !important;
+}
+
+/* --- 5b. SIDEBAR: light = kaca putih + teks smooth black --- */
+html:not(.dark) aside {
+    background-image:
+        linear-gradient(105deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.55) 34%, rgba(255, 255, 255, 0.22) 58%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(244, 246, 251, 0.72) 100%) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+    border-right: 1px solid rgba(15, 23, 42, 0.08) !important;
+    box-shadow:
+        24px 0 60px -18px rgba(15, 23, 42, 0.16),
+        inset -1px 0 0 rgba(15, 23, 42, 0.05) !important;
+    color: #1d2433 !important;
+}
+html:not(.dark) aside nav > a { color: #3d4557 !important; }
+html:not(.dark) aside nav > a:hover:not(.sb-active),
+html:not(.dark) aside .menu-group-toggle:hover,
+html:not(.dark) aside .menu-group-items a:hover {
+    background: rgba(15, 23, 42, 0.05) !important;
+    color: #0f172a !important;
+}
+html:not(.dark) aside nav > a.sb-active,
+html:not(.dark) aside .menu-group-items a.sb-active {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(99, 102, 241, 0.10) 100%) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        inset 0 0 0 1px rgba(79, 70, 229, 0.16),
+        0 8px 24px -10px rgba(79, 70, 229, 0.35) !important;
+    color: #1e1b4b !important;
+}
+html:not(.dark) aside nav > a.sb-active::before { background: #6366f1; }
+html:not(.dark) aside .menu-group-toggle > span { color: #475569 !important; }
+html:not(.dark) aside .menu-group-toggle.has-active > span { color: #0f172a !important; }
+html:not(.dark) aside .sidebar-brand-text,
+html:not(.dark) aside .sidebar-text-label { color: #1d2433 !important; }
+html:not(.dark) aside .sidebar-kas-status { color: #475569 !important; }
+html:not(.dark) aside .menu-group-toggle .rail-icon { background: rgba(15, 23, 42, 0.05); color: #475569; }
+html:not(.dark) aside .menu-group-toggle:hover .rail-icon,
+html:not(.dark) aside .menu-group-toggle.flyout-open .rail-icon { background: rgba(15, 23, 42, 0.10); color: #0f172a; }
+html:not(.dark) body.sidebar-collapsed aside .menu-group-toggle { border-top-color: rgba(15, 23, 42, 0.08); }
+/* Kotak "kaca dalam" sidebar (status kas, dsb) ikut terang */
+html:not(.dark) aside [class*="bg-white/"] { background-color: rgba(15, 23, 42, 0.05) !important; }
+
+/* Flyout & tooltip rel: di light jadi kaca PUTIH (menu konteks iOS) */
+html:not(.dark) #railFlyout {
+    background: rgba(255, 255, 255, 0.80) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+    border-color: rgba(15, 23, 42, 0.10) !important;
+    box-shadow: 0 32px 80px -20px rgba(15, 23, 42, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+}
+html:not(.dark) #railFlyout a { color: #1d2433; }
+html:not(.dark) #railFlyout a:hover { background: rgba(15, 23, 42, 0.06); color: #0f172a; }
+html:not(.dark) #railFlyout a svg { color: #64748b; }
+html:not(.dark) #railFlyout a.fly-active {
+    background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
+    color: #fff !important;
+}
+html:not(.dark) #railFlyout a.fly-active svg { color: #fff !important; }
+html:not(.dark) #railTip {
+    background: rgba(255, 255, 255, 0.86) !important;
+    backdrop-filter: blur(20px) saturate(170%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(170%) !important;
+    color: #1d2433 !important;
+    border-color: rgba(15, 23, 42, 0.10) !important;
+    box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.25) !important;
+}
+
+/* --- 5c. KARTU & PANEL: semua bg-white rounded besar jadi kaca --- */
+html:not(.dark) .bg-white.rounded-2xl,
+html:not(.dark) .bg-white.rounded-3xl,
+html:not(.dark) .bg-white.rounded-\[2rem\] {
+    background: rgba(255, 255, 255, 0.62) !important;
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-color: rgba(15, 23, 42, 0.08) !important;
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 16px 40px -20px rgba(15, 23, 42, 0.20),
+        inset 0 1px 0 rgba(255, 255, 255, 0.70) !important;
+}
+html.dark .bg-white.rounded-2xl,
+html.dark .bg-white.rounded-3xl,
+html.dark .bg-white.rounded-\[2rem\] {
+    background: rgba(23, 34, 59, 0.66) !important;
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border-color: rgba(255, 255, 255, 0.09) !important;
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.30),
+        0 16px 40px -20px rgba(0, 0, 0, 0.50),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+/* Komponen x-card (class .card) ikut dikacakan di kedua mode */
+html:not(.dark) .card {
+    background: rgba(255, 255, 255, 0.62) !important;
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-color: rgba(15, 23, 42, 0.08) !important;
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 16px 40px -20px rgba(15, 23, 42, 0.20),
+        inset 0 1px 0 rgba(255, 255, 255, 0.70) !important;
+}
+html.dark .card.card {
+    background: rgba(23, 34, 59, 0.66) !important;
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+
+/* --- 5d. TOPBAR: blur diperdalam (28px) kedua mode --- */
+.topbar {
+    background: rgba(255, 255, 255, 0.60) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+    box-shadow: 0 8px 32px -12px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.70) !important;
+}
+html.dark .topbar.topbar {
+    background: rgba(15, 23, 42, 0.66) !important;
+    backdrop-filter: blur(28px) saturate(170%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(170%) !important;
+    box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+}
+
+/* --- 5e. MODAL & SWEETALERT: kaca lebih dalam (blur 32px), dimmer lembut ala iOS sheet --- */
+[id^="modal-"] > div.relative,
+[id^="modal-"] > div:not(.absolute) {
+    background: rgba(255, 255, 255, 0.78) !important;
+    backdrop-filter: blur(32px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+    box-shadow: 0 32px 80px -20px rgba(2, 6, 23, 0.35) !important;
+}
+html.dark [id^="modal-"] > div.relative,
+html.dark [id^="modal-"] > div:not(.absolute) {
+    background: rgba(15, 23, 42, 0.86) !important;
+    backdrop-filter: blur(32px) saturate(170%) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(170%) !important;
+}
+[id^="modal-"] > .absolute {
+    background: rgba(15, 23, 42, 0.28) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+html.dark [id^="modal-"] > .absolute { background: rgba(2, 6, 23, 0.55) !important; }
+.swal2-popup {
+    background: rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: blur(32px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+}
+html.dark .swal2-popup.swal2-popup {
+    background: rgba(15, 23, 42, 0.88) !important;
+    backdrop-filter: blur(32px) saturate(170%) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(170%) !important;
+}
+
+/* --- 5f. SELECT2 DROPDOWN: kaca putih senada modal --- */
+html:not(.dark) .select2-dropdown {
+    background: rgba(255, 255, 255, 0.86) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+}
+
+/* --- 5g. KINERJA MOBILE: blur diredakan tanpa mengubah rasa --- */
+@media (max-width: 1023px) {
+    aside { backdrop-filter: blur(16px) saturate(150%) !important; -webkit-backdrop-filter: blur(16px) saturate(150%) !important; }
+    .topbar { backdrop-filter: blur(16px) saturate(150%) !important; -webkit-backdrop-filter: blur(16px) saturate(150%) !important; }
+    html:not(.dark) .bg-white.rounded-2xl,
+    html:not(.dark) .bg-white.rounded-3xl,
+    html:not(.dark) .bg-white.rounded-\[2rem\],
+    html.dark .bg-white.rounded-2xl,
+    html.dark .bg-white.rounded-3xl,
+    html.dark .bg-white.rounded-\[2rem\] {
+        backdrop-filter: blur(14px) saturate(150%);
+        -webkit-backdrop-filter: blur(14px) saturate(150%);
+    }
+}
+
+/* --- 5h. HORMATI PREFERENSI GERAK DIKURANGI (elemen baru lapisan ini) --- */
+@media (prefers-reduced-motion: reduce) {
+    html:not(.dark) .bg-white.rounded-2xl,
+    html:not(.dark) .bg-white.rounded-3xl,
+    html:not(.dark) .bg-white.rounded-\[2rem\],
+    html.dark .bg-white.rounded-2xl,
+    html.dark .bg-white.rounded-3xl,
+    html.dark .bg-white.rounded-\[2rem\],
+    aside nav > a, aside .menu-group-toggle, aside .menu-group-items a,
+    #railFlyout, #railTip {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* --- 5i. PELINDUNG CETAK: kertas putih polos --- */
+@media print {
+    html:not(.dark) body { background: #fff !important; }
+    html:not(.dark) .bg-white.rounded-2xl,
+    html:not(.dark) .bg-white.rounded-3xl,
+    html:not(.dark) .bg-white.rounded-\[2rem\],
+    html.dark .bg-white.rounded-2xl,
+    html.dark .bg-white.rounded-3xl,
+    html.dark .bg-white.rounded-\[2rem\],
+    .topbar, aside {
+        background: #fff !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        box-shadow: none !important;
+    }
+    html:not(.dark) aside nav > a,
+    html:not(.dark) aside nav > a.sb-active { background: transparent !important; color: #0f172a !important; box-shadow: none !important; }
+}
