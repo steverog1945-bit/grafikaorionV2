@@ -5,7 +5,8 @@
     @media print {
         @page { size: A4 landscape; margin: 10mm; }
         aside, .no-print, .topbar { display: none !important; }
-        main { margin-left: 0 !important; padding: 0 !important; }
+        {{-- kop tidak menempel ke tepi kertas - lihat catatan evaluasi-master. --}}
+        main { margin-left: 0 !important; padding: 0 8mm !important; }
         body { background: #fff !important; }
         .eval-table th, .eval-table td { padding: 3px 6px !important; font-size: 10px !important; }
         .blok { break-inside: avoid; }

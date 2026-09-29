@@ -187,6 +187,13 @@
        tersembunyi di SEMUA halaman yang memakai layout ini, bukan cuma
        laporan. */
     .topbar { display: none !important; }
+    /* Full white: background HALAMAN (abu #f5f7fa dari body inline style,
+       wrapper bg-slate) tidak pernah ikut tercetak - kalau ditangani per
+       halaman selalu ada yang kelewat. Aksen lembut di dalam kartu (badge,
+       total emerald, kepala tabel) sengaja dipertahankan karena bermakna,
+       bukan sisa background layar. */
+    html, body, main, #mainContent { background: #fff !important; }
+    .card, .modern-table-wrapper { background: #fff !important; border: 1px solid #e2e8f0 !important; }
     .rounded-3xl, .rounded-2xl, .rounded-\[2rem\], .rounded-2rem { border-radius: 3px !important; }
     .shadow-sm, .shadow, .shadow-md { box-shadow: none !important; }
     .chip {
