@@ -8,9 +8,9 @@
         <div class="flex justify-center mb-3 text-slate-300">{{ $icon }}</div>
     @endisset
 
-    <p class="font-semibold text-slate-400">{{ $title }}</p>
+    <p class="font-semibold text-slate-500">{{ $title }}</p>
 
     @if($description)
-        <p class="text-xs text-slate-300 mt-1">{{ $description }}</p>
+        <p class="text-xs text-slate-400 mt-1">{{ $description }}</p>
     @endif
 </div>

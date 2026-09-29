@@ -119,16 +119,16 @@ textarea:focus-visible, [tabindex]:focus-visible {
    ------------------------------------------------------------------ */
 [id^="modal-"] > div.relative,
 [id^="modal-"] > div:not(.absolute) {
-    background: rgba(255, 255, 255, 0.92) !important;
+    background: rgba(255, 255, 255, 0.94) !important;
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(15, 23, 42, 0.10);
     box-shadow: 0 24px 64px rgba(2, 6, 23, 0.28) !important;
 }
 html.dark [id^="modal-"] > div.relative,
 html.dark [id^="modal-"] > div:not(.absolute) {
-    background: rgba(15, 23, 42, 0.92) !important;
-    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.94) !important;
+    border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* Body modal masuk halus (bukan muncul tumpak) */
@@ -205,8 +205,8 @@ table.modern-table tbody td { border-bottom-color: rgba(15, 23, 42, 0.05); }
 /* Baris terakhir tanpa garis bawah - detail yang jarang dirapikan orang */
 table.modern-table tbody tr:last-child td { border-bottom-color: transparent; }
 /* Radius mengikuti wrapper supaya kepala tabel kaca tidak menonjol dari kartu */
-table.modern-table thead th:first-child { border-top-left-radius: 1rem; }
-table.modern-table thead th:last-child { border-top-right-radius: 1rem; }
+table.modern-table thead th:first-child { border-top-left-radius: 1.25rem; }
+table.modern-table thead th:last-child { border-top-right-radius: 1.25rem; }
 
 /* ------------------------------------------------------------------
    10. TOMBOL GLASS - gradien lembut + blur, lebih tegas di dark mode
@@ -285,7 +285,7 @@ html.dark .swal2-popup.swal2-popup {
 @media (max-width: 640px) {
     /* Mobile: radius kartu diperkecil proporsional, tidak meledak di layar kecil */
     .card { border-radius: 14px; }
-    .modern-table-wrapper { border-radius: 12px; }
+    .modern-table-wrapper { border-radius: 14px !important; }
     /* Tabel lebar tetap scroll horizontal mulus di dalam wrapper */
     .modern-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
@@ -317,3 +317,141 @@ html.dark .select2-dropdown {
     border-color: rgba(255, 255, 255, 0.08) !important;
 }
 html.dark ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); background-clip: content-box; }
+
+/* ==================================================================
+   LAPISAN 3 - AUDIT KONTRAS 2 MODE + TABEL GENERASI BARU
+   ==================================================================
+   Kunci permintaan: DARK dan LIGHT harus SAMA JELASNYA - tidak boleh
+   ada elemen yang terbaca di satu mode tapi kabur di mode lainnya.
+   Maka setiap rule terang di bagian 16-17 PASTI punya pasangan
+   html.dark-nya di bagian 18, dan kertas cetak dilindungi di 19.
+   ================================================================== */
+
+/* ------------------------------------------------------------------
+   16. KONTRAS LIGHT - angkat teks mikro & badge yang pudar
+   ------------------------------------------------------------------ */
+/* Label mikro (9-11px) berwarna slate-400 nyaris hilang di latar
+   putih - digelapkan cukup untuk terbaca tanpa merusak hierarki */
+.text-\[9px\].text-slate-400,
+.text-\[10px\].text-slate-400,
+.text-\[11px\].text-slate-400 { color: #52607a !important; }
+
+/* Empty state: abu #adb5bd terlalu pudar di light (dan justru
+   menyilaukan di dark) - dinormalkan untuk kedua mode */
+.empty-state.empty-state { color: #64748b !important; }
+
+/* Chip status: garis tepi hairline supaya pill-nya terdefinisi di
+   kedua mode, bukan blok warna yang melayang tanpa batas */
+.chip.chip { box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08); font-weight: 700; }
+
+/* Tombol sekunder (btn-soft, dipasang di button.blade.php):
+   teks pekat + garis tepi + gradien lembut - jelas ini tombol yang
+   bisa diklik, bukan teks abu-abu mati, tapi tetap di bawah tombol
+   utama. Warna dipilih agar kontrasnya seimbang di KEDUA mode. */
+.btn-soft {
+    background: linear-gradient(180deg, #f8fafc 0%, #e9edf3 100%) !important;
+    color: #33415a !important;
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.12), 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+}
+.btn-soft:hover {
+    background: linear-gradient(180deg, #eef2f7 0%, #dde4ee 100%) !important;
+    color: #1e2a44 !important;
+}
+
+/* ------------------------------------------------------------------
+   17. TABEL GENERASI BARU - perubahan yang langsung terlihat:
+   band kepala tabel bergradasi + garis aksen indigo, zebra lembut,
+   hover baris tegas, angka rata kolom (tabular-nums), kolom pertama
+   lebih berat. Kandang tabel diberi radius + bayangan berlapis.
+   ------------------------------------------------------------------ */
+.modern-table-wrapper {
+    background: #ffffff !important;
+    border: 1px solid rgba(15, 23, 42, 0.09) !important;
+    border-radius: 1.25rem !important;
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.05),
+        0 16px 36px -20px rgba(15, 23, 42, 0.25) !important;
+}
+table.modern-table thead th {
+    background: linear-gradient(180deg, #f8fafc 0%, #ebf0f6 100%) !important;
+    color: #3d4a5f !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.07em !important;
+    border-bottom: 2px solid rgba(79, 70, 229, 0.32) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+table.modern-table tbody td {
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+    font-variant-numeric: tabular-nums;
+}
+/* Kolom pertama (nama/identitas baris) lebih berat - hierarki yang
+   membacakan sendiri isi tabelnya */
+table.modern-table tbody td:first-child { font-weight: 600; }
+/* Zebra lembut rasa indigo - membantu mata melacak baris yang lebar */
+table.modern-table tbody tr:nth-child(even) td { background: rgba(99, 102, 241, 0.032); }
+/* Hover yang jujur: jelas terlihat baris mana yang sedang ditunjuk */
+table.modern-table tbody tr:hover td { background: rgba(99, 102, 241, 0.08) !important; }
+
+/* ------------------------------------------------------------------
+   18. PASANGAN DARK MODE - tidak ada rule di atas tanpa pasangan
+   ------------------------------------------------------------------ */
+html.dark .text-\[9px\].text-slate-400,
+html.dark .text-\[10px\].text-slate-400,
+html.dark .text-\[11px\].text-slate-400 { color: #93a3c4 !important; }
+
+html.dark .empty-state.empty-state { color: #9aa8c2 !important; }
+
+html.dark .chip.chip { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); }
+
+html.dark .btn-soft.btn-soft {
+    background: #22304a !important;
+    color: #dce4f5 !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10), 0 1px 2px rgba(0, 0, 0, 0.30) !important;
+}
+html.dark .btn-soft.btn-soft:hover {
+    background: #2a3752 !important;
+    color: #f1f5f9 !important;
+}
+
+html.dark .modern-table-wrapper.modern-table-wrapper {
+    background: #111a2e !important;
+    border-color: rgba(255, 255, 255, 0.09) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.30), 0 16px 36px -20px rgba(0, 0, 0, 0.60) !important;
+}
+html.dark table.modern-table thead th {
+    background: linear-gradient(180deg, #1e2a49 0%, #17223b 100%) !important;
+    color: #aeb9d6 !important;
+    border-bottom-color: rgba(129, 140, 248, 0.40) !important;
+}
+html.dark table.modern-table tbody tr:nth-child(odd) td,
+html.dark table.modern-table tbody tr:nth-child(even) td { background: transparent; }
+html.dark table.modern-table tbody tr:nth-child(even):not(:last-child) td { background: rgba(255, 255, 255, 0.03); }
+html.dark table.modern-table tbody tr:hover td { background: rgba(99, 102, 241, 0.20) !important; }
+
+/* ------------------------------------------------------------------
+   19. PELINDUNG CETAK - kertas tetap putih polos: zebra, gradasi
+   kepala tabel, dan tombol tidak boleh menyusup ke laporan cetak
+   (jaring pengaman ekstra; blok print app.css tetap yang utama).
+   ------------------------------------------------------------------ */
+@media print {
+    .modern-table-wrapper {
+        background: #fff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+    }
+    table.modern-table thead th {
+        background: #fff !important;
+        color: #0f172a !important;
+        border-bottom: 1.5px solid #0f172a !important;
+    }
+    table.modern-table tbody tr:nth-child(even) td,
+    table.modern-table tbody tr:hover td { background: transparent !important; }
+    .btn-soft {
+        background: #fff !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+    }
+}
