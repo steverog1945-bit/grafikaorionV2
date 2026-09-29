@@ -26,26 +26,40 @@
 }
 
 /* ------------------------------------------------------------------
-   1. SIDEBAR - kaca gelap yang lebih tenang + menu aktif yang jujur
+   1. SIDEBAR SUPERGLASS - kaca gelap ala Apple (visionOS/vibrancy):
+   dua lapis background (kilau diagonal + dasar gelap semi-transparan),
+   blur dalam + saturasi tinggi, garis tepi bercahaya tipis, dan
+   kilat highlight di sisi atas panel. Tetap GELAP di kedua mode agar
+   teks menu kontrasnya aman - "vibrancy"-nya datang dari blur+saturasi
+   yang menyerap warna konten di belakangnya.
    ------------------------------------------------------------------ */
 aside {
-    background: linear-gradient(180deg, rgba(11, 17, 32, 0.92) 0%, rgba(17, 26, 46, 0.88) 60%, rgba(21, 32, 56, 0.86) 100%) !important;
-    backdrop-filter: blur(18px) saturate(140%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
-    border-right: 1px solid var(--ui-hairline-dark) !important;
-    box-shadow: 12px 0 40px rgba(2, 6, 23, 0.25) !important;
+    background-image:
+        linear-gradient(105deg, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.02) 34%, rgba(255, 255, 255, 0) 58%),
+        linear-gradient(180deg, rgba(9, 13, 26, 0.84) 0%, rgba(14, 20, 37, 0.80) 55%, rgba(18, 26, 47, 0.78) 100%) !important;
+    backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
+    -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
+    border-right: 1px solid rgba(255, 255, 255, 0.13) !important;
+    box-shadow:
+        24px 0 60px -18px rgba(2, 6, 23, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.10),
+        inset -1px 0 0 rgba(255, 255, 255, 0.04) !important;
 }
 
-/* Menu aktif: gradien pelangi diganti satu warna tenang + kiri bercahaya
-   halus - terlihat "dipilih", tidak teriak. */
+/* Menu aktif: panel kaca yang "menyala dari dalam" - lapisan terang
+   semi-transparan + highlight tepi atas + glow indigo halus di bawah.
+   Terlihat jelas dipilih tanpa kembali ke gradien pelangi. */
 aside nav > a.sb-active {
-    background: rgba(99, 102, 241, 0.16) !important;
-    box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.28) !important;
-    color: #e0e7ff !important;
-    transition: background var(--ui-med) var(--ui-ease), color var(--ui-med) var(--ui-ease);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(129, 140, 248, 0.10) 100%) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.10),
+        0 8px 24px -10px rgba(79, 70, 229, 0.50) !important;
+    color: #ffffff !important;
+    transition: background var(--ui-med) var(--ui-ease), color var(--ui-med) var(--ui-ease), box-shadow var(--ui-med) var(--ui-ease);
 }
 aside nav > a {
-    transition: background var(--ui-fast) var(--ui-ease), color var(--ui-fast) var(--ui-ease);
+    transition: background var(--ui-fast) var(--ui-ease), color var(--ui-fast) var(--ui-ease), box-shadow var(--ui-fast) var(--ui-ease);
 }
 
 /* ------------------------------------------------------------------
@@ -171,7 +185,7 @@ button:active, .btn:active { transform: scale(0.985); }
    8. HORMATI PREFERENSI GERAK DIKURANGI
    ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
-    aside, .topbar, .card, .modern-table-wrapper, button, .btn,
+    aside, aside nav > a, .topbar, .card, .modern-table-wrapper, button, .btn,
     table.modern-table tbody tr,
     [id^="modal-"] > div.relative,
     [id^="modal-"] > div:not(.absolute) {
@@ -279,7 +293,7 @@ html.dark .swal2-popup.swal2-popup {
    ------------------------------------------------------------------ */
 @media (max-width: 1023px) {
     /* Tablet & mobile: blur diredakan (hemat GPU mobile) tapi visual sama */
-    aside { backdrop-filter: blur(12px) saturate(130%); -webkit-backdrop-filter: blur(12px) saturate(130%); }
+    aside { backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); }
     .topbar { background: var(--ui-glass-light) !important; }
 }
 @media (max-width: 640px) {
@@ -454,4 +468,79 @@ html.dark table.modern-table tbody tr:hover td { background: rgba(99, 102, 241, 
         color: #0f172a !important;
         box-shadow: none !important;
     }
+}
+
+/* ==================================================================
+   LAPISAN 4 - SIDEBAR SUPERGLASS: DETAIL
+   ==================================================================
+   Melengkapi bagian 1: warna teks menu, hover panel kaca, sub-menu
+   aktif, flyout & tooltip rel ikon. Semua kaca gelap senada induknya.
+   ================================================================== */
+
+/* Teks menu: sedikit diterangkan agar sejajar dengan kaca baru */
+aside nav > a { color: rgba(226, 232, 240, 0.82) !important; }
+
+/* Hover: panel kaca tipis menyala mengikuti kursor
+   (aktif dikecualikan supaya panel aktifnya tidak tertimpa) */
+aside nav > a:hover:not(.sb-active),
+aside .menu-group-toggle:hover {
+    background: rgba(255, 255, 255, 0.07) !important;
+    color: #ffffff !important;
+}
+
+/* Sub-menu aktif (di dalam grup): panel kaca senada menu utama -
+   sebelumnya masih memakai gradien indigo-violet bawaan layout */
+aside .menu-group-items a.sb-active {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(129, 140, 248, 0.10) 100%) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+}
+aside .menu-group-items a { transition: background var(--ui-fast) var(--ui-ease), color var(--ui-fast) var(--ui-ease); }
+aside .menu-group-items a:hover { background: rgba(255, 255, 255, 0.07) !important; color: #ffffff !important; }
+
+/* Flyout rel ikon (menu grup saat sidebar diciutkan): kaca gelap
+   dalam - memang mengambang di atas konten, jadi glass sah */
+#railFlyout {
+    background: rgba(10, 15, 30, 0.72) !important;
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow:
+        0 32px 80px -20px rgba(2, 6, 23, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
+}
+#railFlyout a.fly-active {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(129, 140, 248, 0.10) 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.20) !important;
+    color: #fff !important;
+}
+
+/* Tooltip rel ikon: piringan kaca gelap senada flyout */
+#railTip {
+    background: rgba(10, 15, 30, 0.78) !important;
+    backdrop-filter: blur(20px) saturate(170%);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow: 0 16px 40px -12px rgba(2, 6, 23, 0.55) !important;
+}
+
+/* Jaring pengaman cetak: bila aside sempat tercetak di halaman yang
+   tidak menyembunyikannya, wajib terbaca - kertas putih + teks gelap,
+   semua efek kaca dimatikan */
+@media print {
+    aside {
+        background: #fff !important;
+        backdrop-filter: none !important;
+        border-right: 1px solid #94a3b8 !important;
+        box-shadow: none !important;
+    }
+    aside nav > a, aside nav > a.sb-active,
+    aside .menu-group-items a, aside .menu-group-items a.sb-active {
+        background: transparent !important;
+        box-shadow: none !important;
+        color: #0f172a !important;
+    }
+    #railFlyout, #railTip { display: none !important; }
 }
