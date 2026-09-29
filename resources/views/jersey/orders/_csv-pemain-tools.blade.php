@@ -187,6 +187,20 @@ function csvPemainUnduhTemplate() {
 // DIGANTI seluruhnya oleh isi CSV.
 function csvPemainTerapkan(btn, rows) {
     const card = btn.closest('.jersey-line-card');
+    // CSV = daftar pemain: pindahkan kartu ke mode Daftar Pemain lewat
+    // radio ASLI form (dispatch change -> toggleLineType jalan normal).
+    // Karena qty per ukuran dihapus dulu di bawah, pengunci mode tidak
+    // menemukan data yang harus dibuang (tidak ada dialog), kartu hanya
+    // berpindah mode - dan yang terkirim ke server murni daftar pemain.
+    // Tanpa ini, kartu yang tadinya mode Qty per Ukuran mengirim qty lama
+    // + pemain CSV sekaligus: harga "menumpuk" di perkiraan & saat disimpan.
+    const radioPemain = card.querySelector('input[name$="[order_type]"][value="player_list"]');
+    if (radioPemain && !radioPemain.checked) {
+        card.querySelectorAll('.input-qty-ukuran').forEach(i => { i.value = 0; });
+        if (typeof hitungUlangQtyUkuran === 'function') hitungUlangQtyUkuran();
+        radioPemain.checked = true;
+        radioPemain.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     const tbody = card.querySelector('.tbody-pemain');
     tbody.querySelectorAll('.baris-pemain').forEach(tr => tr.remove());
     rows.forEach(r => {
