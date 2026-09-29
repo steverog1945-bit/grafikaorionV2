@@ -11,7 +11,8 @@
     $base = 'inline-flex items-center justify-center gap-2 rounded-xl font-semibold tracking-normal transition-all active:scale-[0.985] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
 
     $variants = [
-        'primary'   => 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100',
+        // Glass (ui-refresh.css): gradien indigo lembut + blur + inner highlight.
+        'primary'   => 'btn-glass-primary text-white',
         'secondary' => 'bg-slate-100 hover:bg-slate-200 text-slate-500',
         'success'   => 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100',
         'warning'   => 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-100',
