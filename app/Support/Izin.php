@@ -90,4 +90,60 @@ class Izin
     {
         return array_keys(array_filter(self::peta($user), fn ($h) => $h['view']));
     }
+
+    /**
+     * Boleh $user membuka PATH ini (akses lihat)? Dipakai saat login untuk
+     * memvalidasi URL "intended" milik sesi lama sebelum mengarahkan user
+     * ke sana - role baru tidak boleh ditabrakkan ke halaman yang tidak
+     * berhak dia lihat (403/500 saat login dengan akun lain). Aturannya
+     * ditulis SEKALI di sini dan dipakai CheckMenuAccess juga, supaya
+     * keputusan "boleh lihat path ini?" tidak pernah beda antara dua tempat.
+     */
+    public static function bolehPath(User $user, string $path): bool
+    {
+        $path = trim($path, '/');
+        if ($path === '') {
+            return false;
+        }
+
+        // Administrator selalu lolos - sama seperti di awal CheckMenuAccess.
+        if (self::adalahAdmin($user)) {
+            return true;
+        }
+
+        // Prefix yang bebas untuk siapa pun yang sudah login.
+        foreach ((array) config('menu_access.always_allow', []) as $prefix) {
+            if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
+                return true;
+            }
+        }
+
+        // Halaman harga ditutup untuk role tanpa hak lihat harga (GET saja
+        // yang relevan di sini - validasi intended adalah akses "lihat").
+        if (!\App\Support\AksesHarga::bolehLihat($user) && \App\Support\AksesHarga::pathKhususHarga($path)) {
+            return false;
+        }
+
+        $rules = (array) config('menu_access.rules', []);
+        $matchedPrefix = null;
+        foreach ($rules as $prefix => $menuIds) {
+            if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
+                if ($matchedPrefix === null || strlen($prefix) > strlen($matchedPrefix)) {
+                    $matchedPrefix = $prefix;
+                }
+            }
+        }
+        if ($matchedPrefix === null) {
+            return false; // belum dipetakan = fail closed, sama seperti middleware
+        }
+
+        // Path form (create/edit) menuntut hak lebih dari sekadar lihat -
+        // disamakan dengan logika CheckMenuAccess.
+        $aksi = 'view';
+        if (preg_match('#(^|/)(create|edit)(/|$)#', $path, $mm)) {
+            $aksi = $mm[2] === 'create' ? 'add' : 'edit';
+        }
+
+        return self::boleh($user, $rules[$matchedPrefix], $aksi);
+    }
 }

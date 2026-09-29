@@ -147,14 +147,67 @@
         jadwalkanPreviewHarga();
     }
 
-    function toggleLineType(radio) {
+    // ---- Pengunci optimis perpindahan mode order ----
+    // Server selalu menghitung ulang harga dari DATABASE (tier
+    // jersey_price_settings + surcharge master ukuran/lengan/kerah) - form
+    // tidak pernah mengarang angka. Tugas JS di sini menjaga yang TERKIRIM
+    // benar-benar milik mode yang dipilih: begitu mode pindah, input milik
+    // mode lama DIBUANG (bukan cuma disembunyikan), karena browser tetap
+    // mengirim input tersembunyi - dulu inilah sumber "penumpukan
+    // perkiraan harga" (qty lama + pemain baru dihitung bersamaan).
+    async function toggleLineType(radio) {
         const card = radio.closest('.jersey-line-card');
         const tipe = radio.value;
-        card.querySelector('.wrapper-qty-ukuran').classList.toggle('hidden', tipe === 'player_list');
-        card.querySelector('.wrapper-daftar-pemain').classList.toggle('hidden', tipe === 'quantity_only');
+        const modeLama = card.dataset.modeAktif
+            || [...card.querySelectorAll('input[name$="[order_type]"]')].find(r => r.closest('label')?.classList.contains('border-indigo-500'))?.value
+            || 'quantity_only';
+
+        const adaQty = [...card.querySelectorAll('.input-qty-ukuran')].some(i => parseInt(i.value) > 0);
+        const adaPemain = [...card.querySelectorAll('.baris-pemain')].some(r => r.querySelector('[name*="player_name"]').value.trim() !== '');
+
+        // Mode Campuran tidak membuang apa pun: qty & pemain memang aktif bersamaan.
+        const pemainAkanDibuang = tipe === 'quantity_only' && adaPemain;
+        const qtyAkanDibuang = tipe === 'player_list' && adaQty;
+
+        if (pemainAkanDibuang || qtyAkanDibuang) {
+            const konfirmasi = await Swal.fire({
+                title: 'Ganti Mode Order?',
+                html: pemainAkanDibuang
+                    ? 'Daftar pemain yang sudah diisi akan <b>dikosongkan</b> - mode <b>Qty per Ukuran</b> tidak memakai daftar pemain. Kalau dibiarkan, pemain itu tetap terkirim &amp; ikut terhitung ke harga.'
+                    : 'Qty per ukuran yang sudah diisi akan <b>dikosongkan</b> - mode <b>Daftar Pemain</b> tidak memakai qty per ukuran. Kalau dibiarkan, qty itu tetap terkirim &amp; ikut terhitung ke harga (penumpukan harga).',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                confirmButtonText: 'Ya, Kosongkan & Ganti Mode',
+                cancelButtonText: 'Batal',
+                customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
+            });
+            if (!konfirmasi.isConfirmed) {
+                card.querySelectorAll('input[name$="[order_type]"]').forEach(r => { r.checked = r.value === modeLama; });
+                sinkronkanTampilanMode(card);
+                return;
+            }
+            if (pemainAkanDibuang) card.querySelectorAll('.baris-pemain').forEach(tr => tr.remove());
+            if (qtyAkanDibuang) card.querySelectorAll('.input-qty-ukuran').forEach(i => { i.value = 0; });
+            if (typeof hitungUlangQtyUkuran === 'function') hitungUlangQtyUkuran();
+        }
+
+        card.querySelector('.wrapper-qty-ukuran')?.classList.toggle('hidden', tipe === 'player_list');
+        card.querySelector('.wrapper-daftar-pemain')?.classList.toggle('hidden', tipe === 'quantity_only');
         if (tipe !== 'quantity_only' && card.querySelectorAll('.tbody-pemain .baris-pemain').length === 0) {
             tambahBarisPemain(card.querySelector('.wrapper-daftar-pemain button'));
         }
+        sinkronkanTampilanMode(card);
+        perbaruiVisibilitasLenganKerah(card);
+        if (typeof jadwalkanPreviewHarga === 'function') jadwalkanPreviewHarga();
+        if (typeof jadwalkanPreviewHargaSusulan === 'function') jadwalkanPreviewHargaSusulan();
+    }
+
+    // Warna kartu mode mengikuti radio yang benar-benar terpilih - dipakai
+    // juga saat import CSV memindahkan mode secara programatik.
+    function sinkronkanTampilanMode(card) {
+        const terpilih = card.querySelector('input[name$="[order_type]"]:checked');
+        if (terpilih) card.dataset.modeAktif = terpilih.value;
         card.querySelectorAll('.line-type-option').forEach(label => {
             const checked = label.querySelector('input').checked;
             label.classList.toggle('border-indigo-500', checked);
@@ -163,7 +216,6 @@
             label.classList.toggle('border-slate-100', !checked);
             label.classList.toggle('text-slate-400', !checked);
         });
-        perbaruiVisibilitasLenganKerah(card);
     }
 
     function tambahBarisPemain(btn) {
@@ -326,6 +378,7 @@
                     if (info.size_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.size_surcharge_total).toLocaleString('id-ID')} ukuran`);
                     if (info.sleeve_collar_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.sleeve_collar_surcharge_total).toLocaleString('id-ID')} lengan/kerah`);
                     if (!info.ada_tier) bagian.push('belum ada tier harga yang cocok');
+                    if (info.pemain_tanpa_ukuran > 0) bagian.push(`${info.pemain_tanpa_ukuran} pemain belum pilih ukuran (dihitung harga dewasa)`);
                     if (detailEl) detailEl.textContent = bagian.join(', ');
                 }
             }

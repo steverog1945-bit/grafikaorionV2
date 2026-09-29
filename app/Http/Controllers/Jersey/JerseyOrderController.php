@@ -463,6 +463,12 @@ class JerseyOrderController extends Controller
         if ($qty > $qtyTerpetakan) {
             $totalDasar += $hargaDewasa * ($qty - $qtyTerpetakan);
         }
+        // Jangan biarkan pemain TANPA ukuran dihargai senyap: dihitung &
+        // dilaporkan, supaya preview bisa menampilkannya secara jujur
+        // (dihitung harga dasar dewasa sampai ukurannya dipilih).
+        $pemainTanpaUkuran = collect($items)
+            ->filter(fn ($i) => ($sizeIdByName[$i['size'] ?? ''] ?? null) === null)
+            ->count();
         // Harga satuan yang disimpan/ditampilkan = rata-rata tertimbang (sama dengan harga dewasa bila tak ada ukuran anak).
         $hargaSatuan = $qty > 0 ? round($totalDasar / $qty, 2) : 0.0;
 
@@ -498,6 +504,7 @@ class JerseyOrderController extends Controller
 
         return [
             'items' => $items,
+            'pemain_tanpa_ukuran' => $pemainTanpaUkuran,
             'qty' => $qty,
             'qtyPerSizeId' => $qtyPerSizeId,
             'qtyPerSizeSleeveType' => $qtyPerSizeSleeveType,
@@ -623,6 +630,7 @@ class JerseyOrderController extends Controller
                 'sleeve_collar_surcharge_total' => $h['sleeveCollarSurchargeTotal'],
                 'subtotal' => $h['subtotal'],
                 'ada_tier' => $h['tier'] !== null && (float) $h['tier']->price > 0,
+                'pemain_tanpa_ukuran' => $h['pemain_tanpa_ukuran'],
             ];
         }
 

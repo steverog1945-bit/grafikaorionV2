@@ -29,21 +29,45 @@ class CheckMenuAccess
 
         $path = trim($request->path(), '/');
 
-        // Role baca-saja (Owner): tidak boleh mengubah data apa pun, walau tombolnya terlihat.
-        if (!$request->isMethodSafe() && in_array(optional($user->role)->nama_role, config('menu_access.roles_baca_saja', []), true)) {
-            abort(403, 'Role Anda bersifat baca-saja (audit). Perubahan data dilakukan oleh Administrator/staf terkait.');
-        }
-
+        // Prefix yang bebas untuk siapa pun yang sudah login (dashboard,
+        // logout, dst) - berlaku untuk SEMUA metode (logout = POST) dan
+        // dicek SEBELUM gembok baca-saja, kalau tidak role baca-saja
+        // (Owner) tidak akan pernah bisa logout sama sekali.
         foreach (config('menu_access.always_allow', []) as $prefix) {
             if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
                 return $next($request);
             }
         }
 
-        // Halaman yang memuat harga/nilai uang ditutup untuk role tanpa hak lihat harga
-        // (Operator Desain/Produksi), APA PUN menu yang diberikan padanya.
+        // Role baca-saja (Owner): tidak boleh mengubah data apa pun, walau tombolnya terlihat.
+        if (!$request->isMethodSafe() && in_array(optional($user->role)->nama_role, config('menu_access.roles_baca_saja', []), true)) {
+            abort(403, 'Role Anda bersifat baca-saja (audit). Perubahan data dilakukan oleh Administrator/staf terkait.');
+        }
+
+        // AKSES LIHAT (GET/HEAD): keputusannya dialihkan ke SATU SUMBER
+        // KEBENARAN di Izin::bolehPath() - fungsi yang sama dipakai saat
+        // login untuk memvalidasi URL "intended" milik sesi lama, supaya
+        // jawaban "boleh lihat path ini?" tidak pernah berbeda antara
+        // middleware dan alur login (akar bug 403 saat ganti akun/role).
+        if ($request->isMethodSafe()) {
+            if (!\App\Support\Izin::bolehPath($user, $path)) {
+                abort(403, 'Anda tidak memiliki izin untuk melihat halaman ini. Hubungi Administrator untuk meminta akses.');
+            }
+            return $next($request);
+        }
+
+        // Halaman harga tetap digembok untuk SEMUA metode - mutasi data di
+        // halaman berharga oleh role tanpa hak lihat harga sama-sama ditolak
+        // (untuk GET/HEAD pemeriksaannya sudah termasuk di Izin::bolehPath()).
         if (!\App\Support\AksesHarga::bolehLihat($user) && \App\Support\AksesHarga::pathKhususHarga($path)) {
             abort(403, 'Role Anda tidak diizinkan melihat atau mengubah harga. Halaman ini khusus role yang berhak.');
+        }
+
+        // Aksi dari metode HTTP: POST = tambah, PUT/PATCH = kelola (ubah), DELETE = hapus.
+        // POST yang sebenarnya hanya "membaca" (pratinjau/cek) didaftarkan di menu_access.post_baca.
+        $aksi = \App\Support\Izin::aksiDariMetode($request->method());
+        if ($aksi === 'add' && in_array($path, config('menu_access.post_baca', []), true)) {
+            $aksi = 'view';
         }
 
         $rules = config('menu_access.rules', []);
@@ -65,19 +89,8 @@ class CheckMenuAccess
             abort(403, 'Rute ini belum terdaftar di peta akses. Hubungi Administrator.');
         }
 
-        // Aksi dari metode HTTP: GET = lihat, POST = tambah, PUT/PATCH = kelola (ubah), DELETE = hapus.
-        // POST yang sebenarnya hanya "membaca" (pratinjau/cek) didaftarkan di menu_access.post_baca.
-        $aksi = \App\Support\Izin::aksiDariMetode($request->method());
-        if ($aksi === 'add' && in_array($path, config('menu_access.post_baca', []), true)) {
-            $aksi = 'view';
-        }
-        // Halaman form (GET .../create atau .../edit) mensyaratkan hak Tambah / Kelola, bukan sekadar Lihat.
-        if ($aksi === 'view' && preg_match('#(^|/)(create|edit)(/|$)#', $path, $mm)) {
-            $aksi = $mm[2] === 'create' ? 'add' : 'edit';
-        }
-
         if (!\App\Support\Izin::boleh($user, $rules[$matchedPrefix], $aksi)) {
-            $label = ['view' => 'melihat', 'add' => 'menambah data di', 'edit' => 'mengubah/mengelola data di', 'delete' => 'menghapus data di'][$aksi];
+            $label = ['add' => 'menambah data di', 'edit' => 'mengubah/mengelola data di', 'delete' => 'menghapus data di'][$aksi];
             abort(403, "Anda tidak memiliki izin untuk {$label} modul ini. Hubungi Administrator untuk meminta akses.");
         }
 
