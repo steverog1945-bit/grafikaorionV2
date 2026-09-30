@@ -19,7 +19,8 @@ class PurchaseRequestController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PurchaseRequest::with('pembuat')->orderByDesc('created_at');
+        // Isi dan supplier ikut dimuat sekaligus (tanpa query per baris) untuk kolom Isi dan Supplier di daftar.
+        $query = PurchaseRequest::with(['pembuat', 'details.bahan', 'supplierRencana', 'purchaseOrders.supplier'])->orderByDesc('created_at');
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -34,6 +35,7 @@ class PurchaseRequestController extends Controller
     {
         return view('purchase-request.form', [
             'pr' => null,
+            'supplierList' => $this->supplierList(),
             'bahanList' => $this->bahanAktif(),
         ]);
     }
@@ -48,6 +50,7 @@ class PurchaseRequestController extends Controller
                 'tanggal' => $validated['tanggal'],
                 'status' => 'Draft',
                 'catatan' => $validated['catatan'] ?? null,
+                'id_supplier_rencana' => $validated['id_supplier_rencana'] ?? null,
                 'id_user_pembuat' => Auth::id(),
             ]);
 
@@ -65,6 +68,7 @@ class PurchaseRequestController extends Controller
 
         return view('purchase-request.form', [
             'pr' => $purchaseRequest,
+            'supplierList' => $this->supplierList(),
             'bahanList' => $this->bahanAktif(),
         ]);
     }
@@ -81,6 +85,7 @@ class PurchaseRequestController extends Controller
             $purchaseRequest->update([
                 'tanggal' => $validated['tanggal'],
                 'catatan' => $validated['catatan'] ?? null,
+                'id_supplier_rencana' => $validated['id_supplier_rencana'] ?? null,
             ]);
             $purchaseRequest->details()->delete();
             $this->simpanBaris($purchaseRequest, $validated['items']);
@@ -134,6 +139,7 @@ class PurchaseRequestController extends Controller
         return $request->validate([
             'tanggal' => 'required|date',
             'catatan' => 'nullable|string|max:1000',
+            'id_supplier_rencana' => 'nullable|exists:supplier,id_supplier',
             'items' => 'required|array|min:1',
             'items.*.id_bahan' => 'required|exists:bahan_baku,id_bahan',
             'items.*.qty' => 'required|numeric|min:0.01',
@@ -166,6 +172,11 @@ class PurchaseRequestController extends Controller
         ])->all();
 
         DB::table('purchase_request_details')->insert($rows);
+    }
+
+    private function supplierList()
+    {
+        return DB::table('supplier')->orderBy('nama_supplier')->get(['id_supplier', 'nama_supplier']);
     }
 
     private function bahanAktif()

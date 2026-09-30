@@ -59,6 +59,14 @@
                         class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                         {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
+                <x-form.group label="Rencana supplier (opsional)" name="id_supplier_rencana">
+                    <select name="id_supplier_rencana" class="w-full rounded-xl border-slate-200 text-sm p-2" {{ $editable ? '' : 'disabled' }}>
+                        <option value="">Belum ditentukan</option>
+                        @foreach($supplierList as $s)
+                            <option value="{{ $s->id_supplier }}" {{ (string) old('id_supplier_rencana', $pr->id_supplier_rencana ?? '') === (string) $s->id_supplier ? 'selected' : '' }}>{{ $s->nama_supplier }}</option>
+                        @endforeach
+                    </select>
+                </x-form.group>
                 <x-form.group label="Catatan (opsional)" name="catatan">
                     <input type="text" name="catatan" value="{{ old('catatan', $pr->catatan ?? '') }}" placeholder="Mis. stok Flexi Korea tinggal 15 m2"
                         class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"

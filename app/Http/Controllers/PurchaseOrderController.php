@@ -81,6 +81,8 @@ class PurchaseOrderController extends Controller
                     'catatan' => $d->catatan,
                 ])->all(),
             ];
+            // Supplier yang direncanakan di PR menjadi isian awal; pembeli tetap bisa menggantinya.
+            $prefill['id_supplier'] = $pr->id_supplier_rencana ?: $idSupplier;
         }
 
         return view('purchase-order.form', $this->dataForm(null) + ['prefill' => $prefill]);

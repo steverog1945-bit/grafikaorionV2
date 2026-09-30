@@ -34,6 +34,8 @@
             <tr>
                 <th class="px-8 py-5 text-left">Nomor</th>
                 <th class="px-6 py-5 text-left">Tanggal</th>
+                <th class="px-6 py-5 text-left">Isi permintaan</th>
+                <th class="px-6 py-5 text-left">Supplier</th>
                 <th class="px-6 py-5 text-left">Dibuat Oleh</th>
                 <th class="px-6 py-5 text-center">Status</th>
                 <th class="px-8 py-5 text-right">Aksi</th>
@@ -47,6 +49,39 @@
                     @if($p->catatan)<div class="text-[11px] text-slate-400">{{ $p->catatan }}</div>@endif
                 </td>
                 <td class="px-6 py-5"><span class="text-xs text-slate-500">{{ $p->tanggal->format('d M Y') }}</span></td>
+                <td class="px-6 py-5 align-top">
+                    {{-- Tiga item pertama tampil langsung; sisanya lewat "lainnya" supaya baris tidak memanjang. --}}
+                    @forelse($p->details->take(3) as $d)
+                        <div class="text-[13px] text-slate-700 whitespace-nowrap">{{ $d->bahan->nama_bahan ?? 'Bahan dihapus' }} <span class="text-slate-400">{{ angka($d->qty, 2) }} {{ $d->bahan->satuan_stok ?? '' }}</span></div>
+                    @empty
+                        <span class="text-xs text-slate-400">Belum ada item</span>
+                    @endforelse
+                    @if($p->details->count() > 3)
+                        <details class="text-[13px]">
+                            <summary class="cursor-pointer text-slate-500">{{ $p->details->count() - 3 }} item lainnya</summary>
+                            @foreach($p->details->slice(3) as $d)
+                                <div class="text-slate-700 whitespace-nowrap">{{ $d->bahan->nama_bahan ?? 'Bahan dihapus' }} <span class="text-slate-400">{{ angka($d->qty, 2) }} {{ $d->bahan->satuan_stok ?? '' }}</span></div>
+                            @endforeach
+                        </details>
+                    @endif
+                </td>
+                <td class="px-6 py-5 align-top">
+                    @php
+                        // Bila sudah jadi Pesanan Pembelian, supplier yang sebenarnya dipakai lebih penting dari rencananya.
+                        $poAktif = $p->purchaseOrders->where('status', '!=', 'Dibatalkan');
+                    @endphp
+                    @if($poAktif->isNotEmpty())
+                        @foreach($poAktif as $po)
+                            <div class="text-[13px] text-slate-700">{{ $po->supplier->nama_supplier ?? '-' }}</div>
+                            <div class="text-xs text-slate-400">{{ $po->nomor }}</div>
+                        @endforeach
+                    @elseif($p->supplierRencana)
+                        <div class="text-[13px] text-slate-700">{{ $p->supplierRencana->nama_supplier }}</div>
+                        <div class="text-xs text-slate-400">Rencana</div>
+                    @else
+                        <span class="text-xs text-slate-400">Belum ditentukan</span>
+                    @endif
+                </td>
                 <td class="px-6 py-5"><span class="text-sm font-medium text-slate-600">{{ $p->pembuat?->username ?? '-' }}</span></td>
                 <td class="px-6 py-5 text-center">
                     @php $variantMap = ['Draft' => 'info', 'Diajukan' => 'warning', 'Disetujui' => 'success', 'Ditolak' => 'danger', 'Diproses PO' => 'success']; @endphp
@@ -66,7 +101,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="5"><x-empty-state title="Belum ada Permintaan Pembelian" /></td></tr>
+            <tr><td colspan="7"><x-empty-state title="Belum ada Permintaan Pembelian" /></td></tr>
             @endforelse
         </tbody>
     </x-table>
