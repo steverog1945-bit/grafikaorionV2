@@ -772,3 +772,35 @@ html:not(.dark) .select2-dropdown {
     html:not(.dark) aside nav > a,
     html:not(.dark) aside nav > a.sb-active { background: transparent !important; color: #0f172a !important; box-shadow: none !important; }
 }
+
+/* ==================================================================
+   LAPISAN 6 - SIDEBAR: JUDUL GRUP PITA (mengikuti gambar referensi)
+   ==================================================================
+   Judul grup ("Produksi & Logistik", dst) tampil sebagai pita abu
+   lembut membulat selebar sidebar, teks tebal huruf biasa (bukan
+   kapital renggang), penanda titik grup aktif + badge + panah di
+   kanan dalam SATU baris. Hanya mode lebar - rel ikon (collapsed)
+   tidak disentuh. Tidak mengubah struktur HTML/logika menu.
+   ================================================================== */
+body:not(.sidebar-collapsed) aside .menu-group-toggle {
+    margin-top: 14px;
+    margin-bottom: 4px;
+    padding: 11px 14px !important;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.06);
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    line-height: 1.25;
+    align-items: center;
+    gap: 6px;
+}
+body:not(.sidebar-collapsed) aside .menu-group-toggle > span { flex: 1 1 auto; min-width: 0; text-align: left; }
+body:not(.sidebar-collapsed) aside .menu-group-toggle > i.fa-chevron-down { font-size: 11px !important; opacity: .65; }
+html:not(.dark) body:not(.sidebar-collapsed) aside .menu-group-toggle > span { color: #1d2433 !important; }
+html:not(.dark) body:not(.sidebar-collapsed) aside .menu-group-toggle:hover { background: rgba(15, 23, 42, 0.10) !important; }
+html.dark body:not(.sidebar-collapsed) aside .menu-group-toggle { background: rgba(255, 255, 255, 0.07); }
+html.dark body:not(.sidebar-collapsed) aside .menu-group-toggle > span { color: #e2e8f0 !important; }
+/* Jarak antar-menu di dalam grup dirapatkan supaya pita judul menjadi penanda bagian yang jelas */
+body:not(.sidebar-collapsed) aside .menu-group-items { padding-top: 2px; }

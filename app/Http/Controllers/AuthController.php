@@ -7,7 +7,17 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    public function showLogin() { return view('login'); }
+    public function showLogin()
+    {
+        // Sudah login -> langsung ke dashboard, bukan menampilkan form login lagi.
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
+        return response()->view('login')->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+        ]);
+    }
 
     public function login(Request $request)
     {
@@ -19,30 +29,13 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // Kunci sesi: URL "intended" adalah jejak SESI LAMA (dibulatkan
-            // oleh redirect() saat user dipaksa ke /login, atau URL terakhir
-            // sebelum logout di browser yang sama). Tidak boleh dipercaya
-            // mentah-mentah: role BARU yang baru saja login bisa saja tidak
-            // punya izin melihat halaman itu (mis. halaman khusus
-            // Administrator) dan langsung menabrak 403. Validasikan dulu
-            // dengan aturan yang SAMA dengan CheckMenuAccess; kalau gagal,
-            // jatuh ke dashboard - halaman yang aman untuk semua role.
-            $tujuan = 'dashboard';
-            $intended = $request->session()->get('url.intended');
+            // Selalu mendarat di Dashboard. URL "intended" (jejak halaman
+            // terakhir sesi lama / halaman yang memaksa login) sengaja
+            // DIBUANG: sesi baru harus mulai bersih dari dashboard, dan role
+            // baru tidak boleh terbawa ke halaman yang tidak berhak dilihat.
+            $request->session()->forget('url.intended');
 
-            if (is_string($intended) && $intended !== '') {
-                $path = trim(parse_url($intended, PHP_URL_PATH) ?: '', '/');
-
-                if ($path !== '' && \App\Support\Izin::bolehPath($request->user(), $path)) {
-                    $tujuan = $intended;
-                }
-
-                // Selalu dihapus: sesi baru harus mulai bersih, jejak sesi
-                // lama tidak boleh hidup lagi di dalamnya.
-                $request->session()->remove('url.intended');
-            }
-
-            return redirect()->to($tujuan);
+            return redirect()->route('dashboard');
         }
 
         return back()->withErrors(['username' => 'User tidak ditemukan atau password salah.']);
