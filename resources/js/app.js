@@ -200,11 +200,36 @@ window.toggleModal = function (id) {
 };
 
 function onModalKeydown(e) {
-    if (e.key !== 'Escape') return;
     const open = openModals();
     if (!open.length) return;
-    e.stopPropagation();
-    window.closeModal(open[open.length - 1].id);
+    const atas = open[open.length - 1];
+
+    if (e.key === 'Escape') {
+        e.stopPropagation();
+        window.closeModal(atas.id);
+        return;
+    }
+
+    // Tab berputar di dalam modal yang terbuka. Tanpa ini fokus keyboard keluar ke halaman di belakang
+    // modal, dan Enter bisa menekan tombol yang tidak terlihat.
+    if (e.key === 'Tab') {
+        const panel = modalPanel(atas) || atas;
+        const bisa = Array.from(panel.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([type=hidden]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter((el) => el.offsetParent !== null);
+        if (!bisa.length) return;
+        const pertama = bisa[0], terakhir = bisa[bisa.length - 1];
+        if (!panel.contains(document.activeElement)) {
+            e.preventDefault();
+            pertama.focus();
+        } else if (e.shiftKey && document.activeElement === pertama) {
+            e.preventDefault();
+            terakhir.focus();
+        } else if (!e.shiftKey && document.activeElement === terakhir) {
+            e.preventDefault();
+            pertama.focus();
+        }
+    }
 }
 
 /* Klik di luar panel, dan tombol bertanda data-modal-close.

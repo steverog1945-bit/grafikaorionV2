@@ -69,7 +69,7 @@
                             </x-button>
                             <form method="POST" action="{{ route('stock-opname.destroy', $o->id) }}" data-konfirmasi="Hapus Stok Opname {{ $o->nomor }}?">
                                 @csrf @method('DELETE')
-                                <x-button size="sm" variant="danger" type="submit">
+                                <x-button size="sm" variant="danger" type="submit" aria-label="Hapus" title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </x-button>
                             </form>

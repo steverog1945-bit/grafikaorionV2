@@ -187,7 +187,7 @@
                         </td>
                         <td class="px-8 py-5 text-right">
                             <div class="flex justify-end gap-2">
-                                <button type="button" onclick='editBahan(@json($b), @json(\App\Support\VersiBaris::token($b)))' class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
+                                <button type="button" onclick='editBahan(@json($b), @json(\App\Support\VersiBaris::token($b)))' class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" aria-label="Ubah" title="Ubah">
                                     <i class="far fa-edit text-sm"></i>
                                 </button>
                                 <button type="button" onclick="toggleStatus('{{ $b->id_bahan }}', '{{ $b->status }}', {{ json_encode($b->nama_bahan) }})"

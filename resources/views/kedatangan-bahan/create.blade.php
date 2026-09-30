@@ -115,7 +115,7 @@
                                                 <input type="text" name="nama_bahan_display[]" value="{{ $d->bahan->nama_bahan }}"
                                                     class="w-full bg-slate-50 border-transparent rounded-xl p-4 font-medium text-slate-700 text-[11px] uppercase" readonly required>
                                                 <button type="button" onclick="openBahanModal(this)"
-                                                    class="px-4 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm">
+                                                    class="px-4 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm" aria-label="Cari" title="Cari">
                                                     <i class="fas fa-search text-xs"></i>
                                                 </button>
                                             </div>
@@ -132,7 +132,7 @@
                                         </td>
                                         <td class="px-4 py-2 text-center">
                                             <button type="button" onclick="removeRow(this)"
-                                                class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-300 hover:text-white hover:bg-rose-500 transition-all mx-auto">
+                                                class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-300 hover:text-white hover:bg-rose-500 transition-all mx-auto" aria-label="Hapus" title="Hapus">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </td>
@@ -168,7 +168,7 @@
                     class="w-full bg-slate-50 border-transparent rounded-xl p-4 font-medium text-slate-700 text-[11px] uppercase placeholder:text-slate-300"
                     placeholder="KLIK CARI BAHAN →" readonly required>
                 <button type="button" onclick="openBahanModal(this)"
-                    class="px-4 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm">
+                    class="px-4 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm" aria-label="Cari" title="Cari">
                     <i class="fas fa-search text-xs"></i>
                 </button>
             </div>
@@ -186,7 +186,7 @@
         </td>
         <td class="px-4 py-2 text-center">
             <button type="button" onclick="removeRow(this)"
-                class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-300 hover:text-white hover:bg-rose-500 transition-all mx-auto">
+                class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-300 hover:text-white hover:bg-rose-500 transition-all mx-auto" aria-label="Hapus" title="Hapus">
                 <i class="fas fa-trash-alt text-sm"></i>
             </button>
         </td>

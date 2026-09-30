@@ -126,14 +126,22 @@
                     'Accept': 'application/json',
                 },
                 body: new FormData(document.getElementById('form-opname'))
-            }).then(() => {
+            }).then(async (res) => {
+                // Hasil hitung harus benar-benar tersimpan dulu. Sebelumnya pengajuan tetap dikirim walau
+                // penyimpanan gagal (mis. alasan selisih belum diisi), sehingga yang diajukan adalah angka lama.
+                if (!res.ok) {
+                    let pesan = 'Hasil hitung belum tersimpan. Periksa isian lalu coba lagi.';
+                    try { const j = await res.json(); if (j.message) pesan = j.message; } catch (e) {}
+                    Swal.fire('Gagal menyimpan', pesan, 'error');
+                    return;
+                }
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = "{{ route('stock-opname.ajukan', $stockOpname->id) }}";
                 form.innerHTML = `@csrf @method('PATCH')`;
                 document.body.appendChild(form);
                 form.submit();
-            });
+            }).catch(() => Swal.fire('Koneksi terputus', 'Hasil hitung belum tersimpan. Coba lagi.', 'error'));
         });
     }
 </script>

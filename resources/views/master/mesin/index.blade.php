@@ -51,7 +51,7 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @foreach($mesin as $i => $m)
+            @forelse($mesin as $i => $m)
                     <tr class="group hover:bg-slate-50/30 transition-all">
                         <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $mesin->firstItem() + $i }}</td>
                         {{-- Identitas Mesin --}}
@@ -102,7 +102,9 @@
                             </div>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+            <tr><td colspan="5"><x-empty-state title="Belum ada mesin terdaftar." /></td></tr>
+            @endforelse
         </tbody>
     </x-table>
 

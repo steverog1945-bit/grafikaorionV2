@@ -295,3 +295,20 @@ Perbaikan data dengan perintah baru `php artisan jersey:koreksi-pembukuan` (tanp
 | Transaksi, jurnal, stok, pembayaran | - | tidak pernah dihapus atau diarsipkan: data keuangan wajib disimpan (UU KUP: 10 tahun) |
 Perintah: `php artisan data:rapikan` (dijadwalkan 03:00; `--pratinjau` untuk menghitung saja). Tes: `RapikanDataTest`.
 Nota: tata letak nota kasir sudah aktif di server (diverifikasi dengan merender nota di `oriondb`); cetakan kini dikirim dengan `Cache-Control: no-store` supaya peramban tidak menampilkan salinan lama. Nota order jersey (thermal/A4) ditata dengan aturan yang sama (teks hitam, garis solid, titik dua sejajar) dan menampilkan Kembali bila ada.
+
+## 31. Keadaan kosong/galat dan navigasi keyboard
+**Keadaan kosong dan galat** (89 halaman dirender pada database uji kosong):
+| Temuan | Perbaikan |
+|---|---|
+| 8 alamat `/kategori/create`, `/supplier/create`, `/bank/create`, `/konsumen/create`, `/golongan/create`, `/satuan/create`, `/mesin/create`, `/produk/create` membalas galat 500 (rute resource tanpa method di controller; tambah dan ubah memang lewat modal) | rute yang tidak punya method dikeluarkan (`->except`), juga `kedatangan-bahan` show. Pemeriksa: setiap rute kini menunjuk method yang ada |
+| Tabel kosong tanpa pesan: Golongan, Mesin, Kelola Kas (uang masuk dan kas tidak terduga) | pesan kosong ditambahkan |
+| Stok opname: tombol Ajukan menyimpan hasil hitung lewat AJAX lalu mengajukan TANPA memeriksa hasil simpan; bila simpan gagal (mis. alasan selisih kosong), yang diajukan angka lama | pengajuan berhenti dan menampilkan pesan bila penyimpanan gagal atau koneksi putus |
+| `kasir/index.blade.php` tidak dipakai di mana pun dan memanggil alamat yang tidak ada | dihapus |
+**Keyboard:**
+| Temuan | Perbaikan |
+|---|---|
+| Tab di dalam modal keluar ke halaman di belakang modal | Tab dan Shift+Tab berputar di dalam modal (`resources/js/app.js`); diperiksa di browser: 12 elemen, berputar dua arah, Esc menutup |
+| Menu samping di layar kecil tidak bisa ditutup dengan Esc | Esc menutup |
+| Pemilih surat jalan di Pembelian Bahan hanya bisa diklik mouse | Enter/Spasi membuka pemilih |
+| 28 tombol yang hanya berisi ikon tanpa nama (pembaca layar membaca "tombol" saja) | diberi `aria-label` dan `title` sesuai ikon (Hapus, Ubah, Tutup, dst.) |
+Sudah benar dan dipertahankan: cincin fokus global, Esc menutup modal, fokus pertama masuk ke isian modal, tidak ada elemen `onclick` lain yang tak terjangkau keyboard.

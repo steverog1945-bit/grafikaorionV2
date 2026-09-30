@@ -30,7 +30,7 @@
                 <input type="number" name="page" min="1" max="{{ $paginator->lastPage() }}" value="{{ $paginator->currentPage() }}"
                     class="w-16 text-center text-xs bg-slate-50 border-none rounded-lg py-1.5 px-2 font-medium focus:ring-2 focus:ring-indigo-500/20">
                 <span class="text-[10px] text-slate-400 whitespace-nowrap">/ {{ $paginator->lastPage() }}</span>
-                <button type="submit" class="text-[10px] font-medium text-indigo-600 hover:text-indigo-700 uppercase px-2 py-1.5 rounded-lg hover:bg-indigo-50 transition-all">
+                <button type="submit" class="text-[10px] font-medium text-indigo-600 hover:text-indigo-700 uppercase px-2 py-1.5 rounded-lg hover:bg-indigo-50 transition-all" aria-label="Ke halaman" title="Ke halaman">
                     <i class="fas fa-arrow-right-to-bracket"></i>
                 </button>
             </form>

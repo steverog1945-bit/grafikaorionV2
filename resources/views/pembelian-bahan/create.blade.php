@@ -43,7 +43,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <x-form.group label="No. Surat Jalan">
-                    <div class="relative group cursor-pointer" onclick="openModal('sj-picker')">
+                    <div class="relative group cursor-pointer" onclick="openModal('sj-picker')" role="button" tabindex="-1" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openModal('sj-picker'); }">
                         <input type="text" id="display_no_sj" readonly class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner pr-11 cursor-pointer" placeholder="Pilih SJ...">
                         <input type="hidden" name="id_kedatangan" id="id_kedatangan">
                         <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-hover:text-indigo-500"></i>

@@ -66,7 +66,7 @@
                         <x-button href="{{ route('kedatangan-bahan.index', ['search' => $s->nama_supplier]) }}" size="icon" variant="ghost" class="hover:text-indigo-500 hover:bg-indigo-50" title="Riwayat Kedatangan Bahan">
                             <i class="fas fa-history text-sm"></i>
                         </x-button>
-                        <x-button size="icon" variant="ghost" onclick="openEditPemasok({{ json_encode($s) }})" class="hover:text-amber-500 hover:bg-amber-50">
+                        <x-button size="icon" variant="ghost" onclick="openEditPemasok({{ json_encode($s) }})" class="hover:text-amber-500 hover:bg-amber-50" aria-label="Ubah" title="Ubah">
                             <i class="far fa-edit text-sm"></i>
                         </x-button>
 

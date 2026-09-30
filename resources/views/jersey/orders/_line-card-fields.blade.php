@@ -16,7 +16,7 @@
 @endphp
 <div class="px-5 py-3 bg-indigo-50/50 border-b border-indigo-100 flex items-center justify-between">
     <span class="text-xs font-medium text-indigo-600 uppercase tracking-widest">Barang #<span class="line-number">1</span></span>
-    <button type="button" onclick="this.closest('.jersey-line-card').remove(); if (typeof jadwalkanPreviewHarga === 'function') jadwalkanPreviewHarga(); if (typeof jadwalkanPreviewHargaSusulan === 'function') jadwalkanPreviewHargaSusulan();" class="w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-50"><i class="far fa-trash-alt text-xs"></i></button>
+    <button type="button" onclick="this.closest('.jersey-line-card').remove(); if (typeof jadwalkanPreviewHarga === 'function') jadwalkanPreviewHarga(); if (typeof jadwalkanPreviewHargaSusulan === 'function') jadwalkanPreviewHargaSusulan();" class="w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-50" aria-label="Hapus" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
 </div>
 <div class="p-5 space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3">

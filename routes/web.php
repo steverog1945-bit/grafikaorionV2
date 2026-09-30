@@ -85,11 +85,11 @@ Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () 
     |--------------------------------------------------------------------------
     */
 
-    Route::resource('kategori', KategoriController::class);
+    Route::resource('kategori', KategoriController::class)->except(['create', 'edit', 'show']); // tambah/ubah lewat modal; rute tanpa method membalas 500
     Route::resource('kategori-kas-kecil', KategoriKasKecilController::class)->except(['show', 'create', 'edit']);
     // Harus SEBELUM resource('supplier') agar tidak tertangkap {supplier}.
     Route::post('/supplier/store-ajax', [SupplierController::class, 'storeAjax'])->name('supplier.store-ajax');
-    Route::resource('supplier', SupplierController::class);
+    Route::resource('supplier', SupplierController::class)->except(['create', 'edit', 'show']); // tambah/ubah lewat modal; rute tanpa method membalas 500
 
     // Platform belanja online (Tokopedia, Shopee, ...) - dikelola pengguna, satu akses dengan Supplier.
     Route::get('/platform-belanja', [\App\Http\Controllers\PlatformBelanjaController::class, 'index'])->name('platform-belanja.index');
@@ -97,18 +97,18 @@ Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () 
     Route::put('/platform-belanja/{id}', [\App\Http\Controllers\PlatformBelanjaController::class, 'update'])->whereNumber('id')->name('platform-belanja.update');
     Route::patch('/platform-belanja/{id}/toggle', [\App\Http\Controllers\PlatformBelanjaController::class, 'toggle'])->whereNumber('id')->name('platform-belanja.toggle');
     Route::delete('/platform-belanja/{id}', [\App\Http\Controllers\PlatformBelanjaController::class, 'destroy'])->whereNumber('id')->name('platform-belanja.destroy');
-    Route::resource('bank', BankController::class);
+    Route::resource('bank', BankController::class)->except(['create', 'edit', 'show']); // tambah/ubah lewat modal; rute tanpa method membalas 500
     // Pencarian konsumen AJAX untuk dropdown POS (dataset konsumen bisa
     // puluhan ribu - jangan menyeret semuanya ke browser tiap buka POS).
     // HARUS terdaftar sebelum resource('konsumen') agar tidak tertangkap
     // wildcard GET /konsumen/{konsumen}.
     Route::get('/konsumen/search-ajax', [KonsumenController::class, 'searchAjax'])
         ->name('konsumen.search-ajax');
-    Route::resource('konsumen', KonsumenController::class);
-    Route::resource('golongan', GolonganController::class);
-    Route::resource('satuan', SatuanController::class);
-    Route::resource('mesin', MesinController::class);
-    Route::resource('produk', ProdukController::class);
+    Route::resource('konsumen', KonsumenController::class)->except(['create', 'edit', 'show']); // tambah/ubah lewat modal; rute tanpa method membalas 500
+    Route::resource('golongan', GolonganController::class)->except(['create', 'edit', 'show']); // tambah/ubah lewat modal; rute tanpa method membalas 500
+    Route::resource('satuan', SatuanController::class)->except(['create', 'edit', 'show']); // tambah/ubah lewat modal; rute tanpa method membalas 500
+    Route::resource('mesin', MesinController::class)->except(['create', 'edit', 'show']); // tambah/ubah lewat modal; rute tanpa method membalas 500
+    Route::resource('produk', ProdukController::class)->except(['create', 'edit']);
     Route::patch('/produk/{id}/toggle-status', [ProdukController::class, 'toggleStatus'])
         ->name('produk.toggle-status');
     Route::resource('finishing', FinishingController::class)->except(['create', 'edit', 'show']);
@@ -349,7 +349,7 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     |--------------------------------------------------------------------------
     */
 
-    Route::resource('kedatangan-bahan', KedatanganBahanController::class);
+    Route::resource('kedatangan-bahan', KedatanganBahanController::class)->except(['show']);
 
     Route::post('kedatangan-bahan/bulk/delete',
         [KedatanganBahanController::class, 'bulkDelete'])

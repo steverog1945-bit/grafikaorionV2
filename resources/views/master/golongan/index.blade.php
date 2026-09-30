@@ -42,7 +42,7 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-            @foreach($golongan as $i => $g)
+            @forelse($golongan as $i => $g)
             <tr class="group hover:bg-slate-50/30 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $golongan->firstItem() + $i }}</td>
                 <td class="px-8 py-5 text-xs text-slate-400">#{{ $g->id_golongan }}</td>
@@ -59,7 +59,7 @@
                 <td class="px-8 py-5 text-right">
                     <div class="flex justify-end gap-2">
                         <button onclick="openEditGolongan({{ json_encode($g) }})"
-                                class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
+                                class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" aria-label="Ubah" title="Ubah">
                             <i class="far fa-edit text-sm"></i>
                         </button>
 
@@ -73,7 +73,9 @@
                     </div>
                 </td>
             </tr>
-            @endforeach
+            @empty
+            <tr><td colspan="5"><x-empty-state title="Belum ada golongan pelanggan. Tambahkan lewat tombol di atas." /></td></tr>
+            @endforelse
         </tbody>
     </x-table>
 

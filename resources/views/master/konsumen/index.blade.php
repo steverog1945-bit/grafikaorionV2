@@ -98,7 +98,7 @@
                         <x-button href="{{ route('konsumen.timeline', $k->id_konsumen) }}" size="icon" variant="ghost" class="hover:text-emerald-500 hover:bg-emerald-50" title="Timeline Pelanggan">
                             <i class="fas fa-stream text-sm"></i>
                         </x-button>
-                        <x-button size="icon" variant="ghost" onclick="openEditKonsumen({{ json_encode($k) }})" class="hover:text-amber-500 hover:bg-amber-50">
+                        <x-button size="icon" variant="ghost" onclick="openEditKonsumen({{ json_encode($k) }})" class="hover:text-amber-500 hover:bg-amber-50" aria-label="Ubah" title="Ubah">
                             <i class="far fa-edit text-sm"></i>
                         </x-button>
 

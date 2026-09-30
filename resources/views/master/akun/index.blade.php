@@ -60,7 +60,7 @@
                             <td class="px-8 py-4 text-right">
                                 <div class="flex justify-end gap-2">
                                     <button onclick="openEditAkun({{ json_encode($a) }})"
-                                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
+                                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" aria-label="Ubah" title="Ubah">
                                         <i class="far fa-edit text-sm"></i>
                                     </button>
                                     <button type="button" onclick="confirmToggleAktif('{{ $a->id_akun }}', {{ json_encode($a->nama_akun) }}, {{ $a->is_active ? 'true' : 'false' }})" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all" title="{{ $a->is_active ? 'Nonaktifkan' : 'Aktifkan' }}">

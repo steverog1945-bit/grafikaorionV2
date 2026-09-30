@@ -98,7 +98,7 @@
                     </td>
                     <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'readonly' }}><span class="pr-unit block mt-1 text-right text-[10px] font-medium text-indigo-600 uppercase"></span></td>
                     <td class="px-4 py-3"><input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" {{ $editable ? '' : 'readonly' }}></td>
-                    @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>@endif
+                    @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-300 hover:text-rose-500" aria-label="Hapus" title="Hapus"><i class="fas fa-trash-alt"></i></button></td>@endif
                 </tr>
                 @endforeach
             </tbody>
@@ -137,7 +137,7 @@
             </td>
             <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required><span class="pr-unit block mt-1 text-right text-[10px] font-medium text-indigo-600 uppercase"></span></td>
             <td class="px-4 py-3"><input type="text" maxlength="255" name="items[__I__][catatan]" class="w-full rounded-xl border-slate-200 text-xs p-2"></td>
-            <td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>
+            <td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-300 hover:text-rose-500" aria-label="Hapus" title="Hapus"><i class="fas fa-trash-alt"></i></button></td>
         </tr>
     </template>
 </div>

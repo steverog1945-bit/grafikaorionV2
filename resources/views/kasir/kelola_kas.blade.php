@@ -157,7 +157,7 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
-            @foreach($mutasi as $i => $m)
+            @forelse($mutasi as $i => $m)
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="p-4 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="p-4 text-xs text-slate-500">{{ date('H:i', strtotime($m->tgl_bayar)) }}</td>
@@ -201,7 +201,9 @@
                     </span>
                 </td>
             </tr>
-            @endforeach
+            @empty
+            <tr><td colspan="7"><x-empty-state title="Belum ada uang masuk pada sesi kas ini." /></td></tr>
+            @endforelse
         </tbody>
     </x-table>
 </div>
@@ -240,7 +242,7 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
-            @foreach($mutasiManual as $i => $m)
+            @forelse($mutasiManual as $i => $m)
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="p-4 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="p-4 text-xs text-slate-500">{{ \Carbon\Carbon::parse($m->waktu)->format('H:i') }}</td>
@@ -257,7 +259,9 @@
                 </td>
                 <td class="p-4 text-center text-[11px] text-slate-400">{{ $m->dicatat_oleh ?? '-' }}</td>
             </tr>
-            @endforeach
+            @empty
+            <tr><td colspan="6"><x-empty-state title="Belum ada kas tidak terduga pada sesi ini." /></td></tr>
+            @endforelse
         </tbody>
     </x-table>
 </div>

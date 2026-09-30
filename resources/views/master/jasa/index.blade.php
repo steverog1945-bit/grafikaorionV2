@@ -136,7 +136,7 @@
                                     <i class="fas fa-layer-group text-sm"></i>
                                 </button>
                                 <button onclick="openEditJasa({{ json_encode($j) }})"
-                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all">
+                                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" aria-label="Ubah" title="Ubah">
                                     <i class="far fa-edit text-sm"></i>
                                 </button>
 

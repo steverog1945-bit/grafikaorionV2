@@ -57,7 +57,7 @@
                 <td class="px-8 py-5 text-right">
                     <div class="flex justify-end gap-2">
                         <button onclick="editKategori({{ json_encode($kat) }})"
-                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all">
+                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all" aria-label="Ubah" title="Ubah">
                             <i class="far fa-edit text-sm"></i>
                         </button>
 

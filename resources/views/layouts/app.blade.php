@@ -306,7 +306,7 @@
         } catch (e) {}
     </script>
 
-    <div id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+    <div id="sidebarOverlay" onclick="toggleMobileMenu()" aria-hidden="true"></div>
 
     <div class="flex min-h-screen">
         <aside id="mainSidebar">
@@ -1728,6 +1728,10 @@
         }
 
         // Toggle Sidebar Mobile
+        // Esc menutup menu samping di layar kecil (sama seperti modal).
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && document.getElementById('mainSidebar')?.classList.contains('mobile-open')) toggleMobileMenu();
+        });
         function toggleMobileMenu() {
             const sidebar = document.getElementById('mainSidebar');
             const overlay = document.getElementById('sidebarOverlay');

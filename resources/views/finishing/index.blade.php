@@ -60,7 +60,7 @@
                         <x-button size="icon" variant="ghost" onclick="openModal('harga-finishing-{{ $d->id_finishing }}')" class="hover:text-indigo-500 hover:bg-indigo-50" title="Harga Bertingkat per Qty">
                             <i class="fas fa-layer-group text-sm"></i>
                         </x-button>
-                        <x-button size="icon" variant="ghost" onclick="openEditFinishing({{ json_encode($d) }})" class="hover:text-amber-500 hover:bg-amber-50">
+                        <x-button size="icon" variant="ghost" onclick="openEditFinishing({{ json_encode($d) }})" class="hover:text-amber-500 hover:bg-amber-50" aria-label="Ubah" title="Ubah">
                             <i class="far fa-edit text-sm"></i>
                         </x-button>
 
