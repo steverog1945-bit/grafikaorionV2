@@ -68,10 +68,10 @@
                                     <option value="besar" @selected($lg['ukuran'] === 'besar')>Besar</option>
                                 </x-form.select>
                             </x-form.group>
-                            <x-form.group label="Gaya Latar Logo" name="logo_gaya" help="Polos = tanpa kotak, dengan kilau lembut. Kaca = kotak transparan. Putih = kotak putih (untuk logo gelap).">
+                            <x-form.group label="Gaya Latar Logo" name="logo_gaya" help="Polos = tanpa kotak. Panel = kotak abu-abu muda dengan garis tepi. Putih = kotak putih (untuk logo gelap).">
                                 <x-form.select name="logo_gaya" id="opt-logo-gaya">
                                     <option value="polos" @selected($lg['gaya'] === 'polos')>Polos (tanpa kotak)</option>
-                                    <option value="kaca" @selected($lg['gaya'] === 'kaca')>Kaca (transparan)</option>
+                                    <option value="kaca" @selected($lg['gaya'] === 'kaca')>Panel (kotak abu-abu)</option>
                                     <option value="putih" @selected($lg['gaya'] === 'putih')>Kotak putih</option>
                                 </x-form.select>
                             </x-form.group>
@@ -85,7 +85,7 @@
                         <div class="space-y-4">
                             <div>
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Pratinjau (latar sidebar)</div>
-                                <div class="rounded-2xl px-6 py-8 flex items-center justify-center min-h-[130px]" style="background:linear-gradient(180deg,#0f172a,#17223b)">
+                                <div class="rounded-2xl px-6 py-8 flex items-center justify-center min-h-[130px]" style="background:#0f172a">
                                     @if($setting->logo_path)
                                         <div id="pratinjau-logo" class="sidebar-logo logo-{{ $lg['ukuran'] }} logo-gaya-{{ $lg['gaya'] }}">
                                             <img id="pratinjau-logo-img" class="logo-full" src="{{ asset('storage/' . $setting->logo_path) }}" alt="Pratinjau logo">

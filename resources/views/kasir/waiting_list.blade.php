@@ -14,7 +14,7 @@
 
     {{-- Antrean terkunci selama kas belum dibuka --}}
     @if(!$kasAktif)
-    <div class="mb-6 flex flex-wrap items-center gap-4 rounded-3xl bg-gradient-to-r from-amber-50 to-orange-50/40 border border-amber-100 px-6 py-4">
+    <div class="mb-6 flex flex-wrap items-center gap-4 rounded-3xl bg-amber-50 border border-amber-100 px-6 py-4">
         <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="fas fa-exclamation-triangle"></i></div>
         <div class="flex-1 min-w-[200px]">
             <p class="text-sm font-bold text-amber-800">Kas kasir belum dibuka</p>
@@ -34,7 +34,7 @@
         @forelse($waiting as $w)
         {{-- tgl_order (bukan created_at) = waktu pesanan masuk yang sebenarnya --}}
         <div class="group relative rounded-3xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] hover:shadow-[0_16px_40px_rgba(79,70,229,0.10)] hover:border-indigo-100 transition-all duration-300 overflow-hidden">
-            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-300 via-violet-300 to-indigo-200 opacity-70"></div>
+            <div class="absolute inset-x-0 top-0 h-1 bg-indigo-300 opacity-70"></div>
 
             <div class="p-6">
                 <div class="flex items-start justify-between gap-3">
@@ -45,14 +45,14 @@
                 <h3 class="mt-4 text-lg font-bold text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors line-clamp-2">{{ $w->nama_konsumen }}</h3>
                 <p class="mt-1 text-xs text-slate-400"><i class="far fa-clock mr-1"></i>{{ \Carbon\Carbon::parse($w->tgl_order)->format('d M Y, H:i') }}</p>
 
-                <div class="mt-5 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/40 px-4 py-4 text-center">
+                <div class="mt-5 rounded-2xl bg-slate-50 px-4 py-4 text-center">
                     <p class="text-[11px] font-medium text-slate-400 mb-1">Estimasi Tagihan</p>
                     <p class="text-2xl font-bold text-slate-800 tracking-tight"><span class="text-sm font-medium text-slate-400 mr-1">Rp</span>{{ number_format($w->total_bayar, 0, ',', '.') }}</p>
                 </div>
 
                 <div class="mt-5">
                     @if($kasAktif)
-                        <a href="{{ url('/kasir/bayar-form/'.$w->id_transaksi) }}" class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-semibold text-xs shadow-lg shadow-indigo-100 transition-all">
+                        <a href="{{ url('/kasir/bayar-form/'.$w->id_transaksi) }}" class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-xs shadow-lg shadow-indigo-100 transition-all">
                             <i class="fas fa-cash-register"></i> Buka Transaksi
                         </a>
                     @else

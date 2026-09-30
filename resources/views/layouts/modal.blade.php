@@ -15,7 +15,7 @@
 
 <div id="modal-{{ $id }}" class="hidden fixed inset-0 z-[60] items-center justify-center p-4">
     {{-- Backdrop --}}
-    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeModal('{{ $id }}')"></div>
+    <div class="absolute inset-0 bg-slate-900/50" onclick="closeModal('{{ $id }}')"></div>
 
     {{-- Panel --}}
     <div class="relative bg-white w-full {{ $widthClass }} rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">

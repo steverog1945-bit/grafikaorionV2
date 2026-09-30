@@ -2,7 +2,7 @@
 
 @section('content')
 @php
-    $gradasi = ['from-indigo-500 to-violet-500', 'from-emerald-500 to-teal-500', 'from-amber-500 to-orange-500', 'from-sky-500 to-indigo-500', 'from-rose-500 to-pink-500'][$post->id % 5];
+    $warnaSampul = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-sky-500', 'bg-rose-500'][$post->id % 5];
     $izinEdit = \App\Support\Izin::boleh(auth()->user(), [67], 'edit');
     $izinHapus = \App\Support\Izin::boleh(auth()->user(), [67], 'delete');
 @endphp
@@ -12,9 +12,9 @@
     <a href="{{ $pengelola ? route('postingan.index') : route('dashboard', ['tab' => 'info']) }}" class="no-print inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-indigo-600 mb-5" title="Kembali ke daftar postingan"><i class="fas fa-arrow-left"></i> Info &amp; Panduan</a>
 
     {{-- ================= HERO ================= --}}
-    <header class="hero-postingan relative overflow-hidden rounded-[2rem] bg-gradient-to-br {{ $gradasi }} min-h-[300px] sm:min-h-[400px] flex items-end shadow-xl">
+    <header class="hero-postingan relative overflow-hidden rounded-[2rem] {{ $warnaSampul }} min-h-[300px] sm:min-h-[400px] flex items-end shadow-xl">
         @if($post->url_sampul)<img src="{{ $post->url_sampul }}" alt="{{ $post->judul }}" class="absolute inset-0 w-full h-full object-cover">@endif
-        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/85 via-slate-900/35 to-transparent"></div>
+        <div class="absolute inset-0 bg-slate-900/55"></div>
         <div class="relative p-6 sm:p-10 w-full">
             <div class="flex flex-wrap items-center gap-2 mb-3">
                 @if($post->kategori)<a href="{{ route('postingan.index', ['kategori' => $post->kategori->slug]) }}" class="rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-indigo-600">{{ $post->kategori->nama }}</a>@endif
@@ -88,7 +88,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             @foreach($terkait as $t)
             <a href="{{ route('postingan.show', $t->slug) }}" class="group rounded-2xl bg-white border border-slate-100 overflow-hidden hover:shadow-md transition-all">
-                <div class="aspect-[16/9] bg-gradient-to-br from-indigo-500 to-violet-500 relative">@if($t->url_sampul)<img src="{{ $t->url_sampul }}" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover">@endif</div>
+                <div class="aspect-[16/9] bg-indigo-500 relative">@if($t->url_sampul)<img src="{{ $t->url_sampul }}" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover">@endif</div>
                 <p class="p-4 text-[13px] font-bold text-slate-700 group-hover:text-indigo-600 line-clamp-2">{{ $t->judul }}</p>
             </a>
             @endforeach

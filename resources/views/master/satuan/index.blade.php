@@ -115,7 +115,7 @@
 
 {{-- MODAL (Unified) --}}
 <div id="modalSatuan" class="fixed inset-0 z-[100] hidden overflow-y-auto">
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModalSatuan()"></div>
+    <div class="fixed inset-0 bg-slate-900/60 transition-opacity" onclick="closeModalSatuan()"></div>
     <div class="flex min-h-full items-center justify-center p-6 text-center">
         <div class="relative w-full max-w-[500px] transform overflow-hidden rounded-[3rem] bg-white text-center shadow-[0_20px_50px_rgba(0,0,0,0.15)] transition-all border border-slate-100">
             

@@ -33,10 +33,6 @@
 
         /* --- Panel kiri: landing --- */
         .hero { position: relative; padding: 48px 56px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid var(--line); overflow: hidden; }
-        .hero::before { content: ''; position: absolute; inset: 0; pointer-events: none;
-            background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
-            background-size: 48px 48px; opacity: .35;
-            -webkit-mask-image: radial-gradient(ellipse 80% 70% at 30% 40%, #000 20%, transparent 75%); mask-image: radial-gradient(ellipse 80% 70% at 30% 40%, #000 20%, transparent 75%); }
         .hero > * { position: relative; }
         .brand { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 14px; font-weight: 600; letter-spacing: .02em; }
         .brand img { width: 32px; height: 32px; object-fit: contain; }

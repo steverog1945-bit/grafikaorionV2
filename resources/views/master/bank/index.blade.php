@@ -64,7 +64,7 @@
 </div>
 
 <div id="modalBank" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleModal('modalBank')"></div>
+    <div class="absolute inset-0 bg-slate-900/60" onclick="toggleModal('modalBank')"></div>
     <form action="{{ route('bank.store') }}" method="POST" class="relative w-full max-w-md bg-white rounded-3xl p-8 space-y-4 shadow-2xl">
         @csrf
         <h3 class="text-xl font-bold text-slate-900 mb-2">Input Rekening Baru</h3>
@@ -76,7 +76,7 @@
 </div>
 
 <div id="modalEditBank" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleModal('modalEditBank')"></div>
+    <div class="absolute inset-0 bg-slate-900/60" onclick="toggleModal('modalEditBank')"></div>
     <form id="formEditBank" method="POST" class="relative w-full max-w-md bg-white rounded-3xl p-8 space-y-4 shadow-2xl">
         @csrf
         @method('PUT')

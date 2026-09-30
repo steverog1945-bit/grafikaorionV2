@@ -82,7 +82,7 @@
 </div>
 
 {{-- MODAL TAMBAH --}}
-<div id="modalAkun" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
+<div id="modalAkun" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40">
     <div class="flex items-center justify-center min-h-screen p-6">
         <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-[500px] overflow-hidden transform transition-all">
             <div class="px-10 py-8 bg-indigo-600 flex justify-between items-center text-white">
@@ -135,7 +135,7 @@
 </div>
 
 {{-- MODAL EDIT --}}
-<div id="modalEditAkun" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
+<div id="modalEditAkun" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40">
     <div class="flex items-center justify-center min-h-screen p-6">
         <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-[500px] overflow-hidden transform transition-all">
             <div class="px-10 py-8 bg-amber-500 flex justify-between items-center text-white">

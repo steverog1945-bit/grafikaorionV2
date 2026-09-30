@@ -23,7 +23,7 @@
 
         .topbar {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 24px; background: linear-gradient(120deg, #4f46e5, #6366f1);
+            padding: 18px 24px; background: #4f46e5;
             color: #fff;
         }
         .topbar .brand { display: flex; align-items: center; gap: 10px; }
