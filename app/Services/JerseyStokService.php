@@ -70,7 +70,16 @@ class JerseyStokService
 
     public static function kembalikan(JerseyOrder $order): void
     {
-        $rows = DB::table('jersey_order_potong_stok')->where('jersey_order_id', $order->id)->get();
+        // Audit Fase 2: gembok baris order DULU (sama seperti potong()), baru
+        // baca catatan potongan. Tanpa ini dua pengembalian bersamaan (batal
+        // order + ubah status ke "baru", dua kasir) sama-sama membaca baris
+        // potong_stok yang sama lalu menambah stok DUA KALI. Yang kedua kini
+        // menunggu, lalu melihat tabel sudah kosong dan keluar. Pengembalian
+        // memakai catatan potongan ASLI (qty & biaya saat dipotong), bukan
+        // estimasi order saat ini - aman bila material/BOM berubah belakangan.
+        DB::table('jersey_orders')->where('id', $order->id)->lockForUpdate()->first();
+
+        $rows = DB::table('jersey_order_potong_stok')->where('jersey_order_id', $order->id)->lockForUpdate()->get();
         if ($rows->isEmpty()) {
             DB::table('jersey_orders')->where('id', $order->id)->update(['stok_dipotong_at' => null]);
 
