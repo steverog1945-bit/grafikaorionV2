@@ -12,7 +12,7 @@
     @endif
 
     @if($terbatas)
-        <div class="mb-4 px-4 py-3 rounded-xl bg-indigo-50 text-indigo-700 text-sm font-medium"><i class="fas fa-industry mr-2"></i>Divisi Anda: {{ $divisiAktif }} - hanya bahan dan cetakan divisi ini yang ditampilkan.</div>
+        <div class="mb-4 px-4 py-3 rounded-xl bg-slate-100 text-slate-600 text-sm font-medium"><i class="fas fa-industry mr-2"></i>Divisi Anda: {{ $divisiAktif }} - hanya bahan dan cetakan divisi ini yang ditampilkan.</div>
     @else
         <form method="GET" action="{{ route('waste.create') }}" class="mb-4 flex items-center gap-3">
             <label class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Divisi</label>
@@ -43,7 +43,7 @@
                         <x-form.group label="Qty Waste">
                             <div class="flex items-center gap-2">
                                 <x-form.input type="number" step="0.0001" min="0.0001" name="qty" id="waste-qty" value="{{ old('qty') }}" />
-                                <span id="waste-unit" class="shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-medium uppercase">-</span>
+                                <span id="waste-unit" class="shrink-0 px-3 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-medium uppercase">-</span>
                             </div>
                         </x-form.group>
                     </div>

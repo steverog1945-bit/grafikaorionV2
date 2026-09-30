@@ -5,7 +5,7 @@
 
     <x-page-header title="Kedatangan Bahan">
         <x-slot:subtitle>
-            <i class="fas fa-truck-loading text-indigo-400"></i>
+            <i class="fas fa-truck-loading text-slate-500"></i>
             Logistik <span class="text-slate-300">/</span> Manajemen Surat Jalan
         </x-slot:subtitle>
         <x-slot:actions>

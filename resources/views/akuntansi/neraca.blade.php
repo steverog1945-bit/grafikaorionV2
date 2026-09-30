@@ -125,7 +125,7 @@
          bantu di layar. --}}
     <div class="mt-6 bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
         <div class="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
                 <i class="fas fa-chart-simple text-sm"></i>
             </div>
             <div>

@@ -80,7 +80,7 @@
                     <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Stok Saat Ini</p>
                     <h3 class="text-3xl font-medium text-slate-900 mt-1">{{ angka($bahan->stok, 2) }} <span class="text-base font-medium text-slate-400">{{ $bahan->nama_satuan_stok ?? $bahan->satuan_stok }}</span></h3>
                 </div>
-                <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl">
+                <div class="w-14 h-14 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center text-2xl">
                     <i class="fas fa-box"></i>
                 </div>
             </div>
@@ -154,7 +154,7 @@
                 <td class="px-4 py-5 text-right">
                     <span class="text-[12px] text-slate-700 font-medium">{{ angka($k->stok_sesudah, 2) }}</span>
                 </td>
-                <td class="px-4 py-5"><span class="inline-flex px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-medium uppercase">{{ $bahan->nama_satuan_stok ?? $bahan->satuan_stok }}</span></td>
+                <td class="px-4 py-5"><span class="inline-flex px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium uppercase">{{ $bahan->nama_satuan_stok ?? $bahan->satuan_stok }}</span></td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] font-medium text-slate-600">{{ $k->referensi ?? '-' }}</span>
                 </td>

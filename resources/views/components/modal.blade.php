@@ -49,7 +49,7 @@
                  seluruh modal lain. --}}
             <div class="flex items-start gap-3 px-5 py-4 border-b border-slate-200 shrink-0">
                 @if($icon)
-                    <span class="w-9 h-9 shrink-0 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <span class="w-9 h-9 shrink-0 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
                         <i class="fas {{ $icon }} text-sm"></i>
                     </span>
                 @endif

@@ -21,7 +21,7 @@
         </div>
     @endif
 
-    <div class="bg-indigo-50 text-indigo-700 p-4 rounded-2xl mb-6 text-xs font-medium flex items-start gap-2">
+    <div class="bg-slate-100 text-slate-600 p-4 rounded-2xl mb-6 text-xs font-medium flex items-start gap-2">
         <i class="fas fa-circle-info mt-0.5"></i>
         <span>Cara kerja: tiap operator desain punya <b>kelas</b>, dan tiap kelas punya <b>persen komisi</b> dari biaya desain yang ia terapkan di nota. Persen dicatat (snapshot) saat nota dibuat, jadi mengubah persen di sini hanya berlaku untuk nota berikutnya. Komisi dibayarkan berkala dari Laporan Biaya &amp; Komisi Desain.</span>
     </div>

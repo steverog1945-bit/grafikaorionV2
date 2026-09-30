@@ -57,7 +57,7 @@
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $konsumen->firstItem() + $i }}</td>
                 <td class="px-8 py-5">
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-medium text-xs">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 font-medium text-xs">
                             {{ substr($k->nama_konsumen, 0, 1) }}
                         </div>
                         <div>
@@ -77,7 +77,7 @@
                 </td>
 
                 <td class="px-6 py-5 text-center">
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
                         {{ $k->nama_golongan }}
                     </span>
                 </td>

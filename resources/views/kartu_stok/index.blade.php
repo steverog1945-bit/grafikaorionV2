@@ -142,7 +142,7 @@
                     <span class="text-[13px] font-medium text-slate-800">{{ angka($b->stok, 2) }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] font-medium uppercase tracking-wide">{{ $b->nama_satuan_stok ?? $b->satuan_stok ?? '-' }}</span>
+                    <span class="inline-flex px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[11px] font-medium uppercase tracking-wide">{{ $b->nama_satuan_stok ?? $b->satuan_stok ?? '-' }}</span>
                 </td>
                 <td class="px-4 py-5 text-center">
                     <x-badge :variant="['Habis' => 'danger', 'Menipis' => 'warning', 'Aman' => 'success'][$b->status_stok] ?? 'info'">{{ $b->status_stok }}</x-badge>
@@ -191,7 +191,7 @@
                 </x-form.select>
             </x-form.group>
 
-            <p class="text-[11px] text-slate-400 -mt-3 ml-1">Stok saat ini: <span id="adj_stok_display" class="font-medium text-slate-600">-</span> <span id="adj_satuan_display" class="inline-flex px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-medium uppercase"></span></p>
+            <p class="text-[11px] text-slate-400 -mt-3 ml-1">Stok saat ini: <span id="adj_stok_display" class="font-medium text-slate-600">-</span> <span id="adj_satuan_display" class="inline-flex px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium uppercase"></span></p>
 
             <x-form.group label="Jenis Penyesuaian" name="tipe" required>
                 <x-form.select name="tipe" id="adj_tipe" onchange="toggleAdjTipe()" required>
@@ -202,13 +202,13 @@
 
             <div id="adj_wrapper_qty">
                 <x-form.group label="Qty Keluar (dalam satuan stok)" name="qty">
-                    <div class="flex items-center gap-2"><x-form.input type="text" inputmode="decimal" name="qty" id="adj_qty" class="input-desimal" autocomplete="off" placeholder="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-medium uppercase">-</span></div>
+                    <div class="flex items-center gap-2"><x-form.input type="text" inputmode="decimal" name="qty" id="adj_qty" class="input-desimal" autocomplete="off" placeholder="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-medium uppercase">-</span></div>
                 </x-form.group>
             </div>
 
             <div id="adj_wrapper_stok_baru" class="hidden">
                 <x-form.group label="Stok Sebenarnya (Hasil Hitung Fisik)" name="stok_baru">
-                    <div class="flex items-center gap-2"><x-form.input type="text" inputmode="decimal" name="stok_baru" id="adj_stok_baru" class="input-desimal" autocomplete="off" placeholder="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-medium uppercase">-</span></div>
+                    <div class="flex items-center gap-2"><x-form.input type="text" inputmode="decimal" name="stok_baru" id="adj_stok_baru" class="input-desimal" autocomplete="off" placeholder="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-medium uppercase">-</span></div>
                 </x-form.group>
             </div>
 

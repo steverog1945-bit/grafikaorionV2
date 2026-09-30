@@ -100,7 +100,7 @@
     {{-- ===================== BAHAN BAKU ===================== --}}
     @if(in_array($jenis, ['semua', 'bahan'], true))
     <section class="eval-section mb-10">
-        <h2 class="text-[13px] font-medium text-slate-500 uppercase tracking-widest mb-3"><i class="fas fa-boxes-stacked mr-1.5 text-indigo-400 print:hidden"></i>A. Bahan Baku</h2>
+        <h2 class="text-[13px] font-medium text-slate-500 uppercase tracking-widest mb-3"><i class="fas fa-boxes-stacked mr-1.5 text-slate-500 print:hidden"></i>A. Bahan Baku</h2>
         <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden print:border-0 print:rounded-none">
             <table class="eval-table">
                 <thead>
@@ -151,7 +151,7 @@
     {{-- ===================== BOM ===================== --}}
     @if(in_array($jenis, ['semua', 'bom'], true))
     <section class="eval-section mb-10 {{ $jenis === 'semua' ? 'page-break' : '' }}">
-        <h2 class="text-[13px] font-medium text-slate-500 uppercase tracking-widest mb-1"><i class="fas fa-sitemap mr-1.5 text-indigo-400 print:hidden"></i>B. BOM per Produk</h2>
+        <h2 class="text-[13px] font-medium text-slate-500 uppercase tracking-widest mb-1"><i class="fas fa-sitemap mr-1.5 text-slate-500 print:hidden"></i>B. BOM per Produk</h2>
         <p class="text-[11px] text-slate-400 mb-3">Pemakaian dan biaya bahan untuk 1 satuan jual (1 m² untuk produk ukuran, 1 pcs untuk produk qty), memakai harga rata-rata bahan saat ini.</p>
         <div class="grid grid-cols-1 xl:grid-cols-2 print:grid-cols-2 gap-4">
             @forelse($bom as $p)
@@ -191,7 +191,7 @@
     {{-- ===================== HARGA PRODUK ===================== --}}
     @if(in_array($jenis, ['semua', 'harga'], true))
     <section class="eval-section mb-10 {{ $jenis === 'semua' ? 'page-break' : '' }}">
-        <h2 class="text-[13px] font-medium text-slate-500 uppercase tracking-widest mb-1"><i class="fas fa-tags mr-1.5 text-indigo-400 print:hidden"></i>C. Harga Produk per Tier &amp; Golongan</h2>
+        <h2 class="text-[13px] font-medium text-slate-500 uppercase tracking-widest mb-1"><i class="fas fa-tags mr-1.5 text-slate-500 print:hidden"></i>C. Harga Produk per Tier &amp; Golongan</h2>
         <p class="text-[11px] text-slate-400 mb-3">Harga jual per satuan jual, per golongan dengan rentang tiernya masing-masing. Persen di samping harga = margin terhadap HPP bahan (merah bila di bawah 20%, tidak tampil bila HPP belum lengkap).</p>
         <div class="space-y-4">
             @forelse($harga['produk'] as $p)

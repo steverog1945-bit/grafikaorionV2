@@ -16,7 +16,7 @@
     @forelse($transaksi as $t)
     <div class="bg-white rounded-[2rem] border-2 border-slate-100 p-6 hover:border-indigo-500 transition-all group shadow-sm">
         <div class="flex justify-between items-start mb-4">
-            <span class="bg-indigo-50 text-indigo-600 px-4 py-1 rounded-xl text-[10px] font-medium uppercase">#{{ $t->nomor_nota }}</span>
+            <span class="bg-slate-100 text-slate-600 px-4 py-1 rounded-xl text-[10px] font-medium uppercase">#{{ $t->nomor_nota }}</span>
             <span class="text-[10px] font-medium text-slate-400">{{ date('H:i', strtotime($t->tgl_order)) }}</span>
         </div>
         
@@ -28,7 +28,7 @@
                 <p class="text-[9px] font-medium text-slate-400 uppercase">Estimasi Tagihan</p>
                 <p class="text-lg font-medium text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</p>
             </div>
-            <a href="{{ url('/kasir/bayar-form/'.$t->id_transaksi) }}" class="bg-slate-900 group-hover:bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-lg shadow-slate-200">
+            <a href="{{ url('/kasir/bayar-form/'.$t->id_transaksi) }}" class="bg-slate-900 group-hover:bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-sm">
                 <span class="text-xl">💰</span>
             </a>
         </div>

@@ -17,7 +17,7 @@
         <div class="lg:col-span-1">
             <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden">
                 <div class="relative z-10">
-                    <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-indigo-100">
+                    <div class="w-14 h-14 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-slate-200">
                         <i class="fas fa-exchange-alt text-xl"></i>
                     </div>
                     <h4 class="font-medium text-slate-800 mb-2 tracking-tight">Katalog Satuan</h4>

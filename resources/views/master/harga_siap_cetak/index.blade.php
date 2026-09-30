@@ -10,7 +10,7 @@
         </x-slot:subtitle>
     </x-page-header>
 
-    <div class="bg-indigo-50 text-indigo-700 p-4 rounded-2xl mb-6 text-xs font-medium flex items-start gap-2">
+    <div class="bg-slate-100 text-slate-600 p-4 rounded-2xl mb-6 text-xs font-medium flex items-start gap-2">
         <i class="fas fa-circle-info mt-0.5"></i>
         <span>Harga di sini <b>berdiri sendiri</b> (bukan potongan persen). Struktur sama dengan Price List: rentang qty/ukuran &times; golongan konsumen. Produk yang <b>belum diberi harga</b> tidak menawarkan opsi "File Siap Cetak" di Input Order. Order siap cetak otomatis tanpa biaya desain &amp; komisi desainer.</span>
     </div>
@@ -83,7 +83,7 @@
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Produk</p>
             <p class="text-base font-medium text-slate-800" id="hsc-nama">-</p>
         </div>
-        <span class="text-[11px] font-medium text-indigo-600 bg-indigo-50 rounded-lg px-3 py-1.5">Rentang dalam <span id="hsc-satuan">-</span></span>
+        <span class="text-[11px] font-medium text-slate-600 bg-slate-100 rounded-lg px-3 py-1.5">Rentang dalam <span id="hsc-satuan">-</span></span>
     </div>
     <div class="overflow-x-auto rounded-2xl border border-slate-100">
         <table class="w-full text-left" id="hsc-tabel">

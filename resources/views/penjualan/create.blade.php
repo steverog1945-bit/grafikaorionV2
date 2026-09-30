@@ -37,7 +37,7 @@
                     <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Nomor Nota</p>
                     <p id="no_nota_display" class="text-base sm:text-xl font-medium text-indigo-600 tracking-tight truncate">{{ $no_nota }}</p>
                 </div>
-                <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 hidden sm:flex items-center justify-center shrink-0"><i class="fas fa-file-invoice"></i></span>
+                <span class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 hidden sm:flex items-center justify-center shrink-0"><i class="fas fa-file-invoice"></i></span>
             </div>
         </x-slot:actions>
     </x-page-header>
@@ -48,7 +48,7 @@
             {{-- ============ DATA PELANGGAN ============ --}}
             <x-card>
                 <div class="flex items-center gap-3 mb-6">
-                    <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><i class="fas fa-user"></i></span>
+                    <span class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center"><i class="fas fa-user"></i></span>
                     <div>
                         <h3 class="text-base font-medium text-slate-800">Data Pelanggan</h3>
                         <p class="text-[11px] text-slate-400">Siapa pemesan dan jenis ordernya</p>
@@ -312,14 +312,14 @@
 
                 <div class="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t border-slate-100">
                     <div class="flex flex-wrap items-center gap-4">
-                        <button type="button" id="btn_tambah_finishing" onclick="tambahFinishingKeDaftar()" class="hidden inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2.5 rounded-xl font-medium text-[10px] uppercase tracking-widest shadow-lg shadow-sky-100 transition-all">
+                        <button type="button" id="btn_tambah_finishing" onclick="tambahFinishingKeDaftar()" class="hidden inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2.5 rounded-xl font-medium text-[10px] uppercase tracking-widest shadow-sm transition-all">
                             <i class="fas fa-plus"></i> Tambah Finishing
                         </button>
                         <button type="button" id="btn_tambah_desain" @unlessbolehHarga hidden @endbolehHarga onclick="tampilkanBiayaDesain()" class="text-indigo-500 hover:text-indigo-700 text-[10px] font-medium uppercase tracking-widest underline underline-offset-4 decoration-dotted">
                             <i class="fas fa-plus-circle"></i> Biaya Desain
                         </button>
                     </div>
-                    <button onclick="tambahKeKeranjang()" class="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-3.5 rounded-xl font-medium text-xs uppercase tracking-wider shadow-lg shadow-emerald-100 transition-all active:scale-95">
+                    <button onclick="tambahKeKeranjang()" class="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-3.5 rounded-xl font-medium text-xs uppercase tracking-wider shadow-sm transition-all active:scale-95">
                         Tambah
                     </button>
                 </div>
@@ -368,7 +368,7 @@
                     </x-form.group>
 
                     <div class="flex justify-end">
-                        <button onclick="tambahJasaKeKeranjang()" class="inline-flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-8 py-3.5 rounded-xl font-medium text-xs uppercase tracking-wider shadow-lg shadow-purple-100 transition-all active:scale-95">
+                        <button onclick="tambahJasaKeKeranjang()" class="inline-flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-8 py-3.5 rounded-xl font-medium text-xs uppercase tracking-wider shadow-sm transition-all active:scale-95">
                             Tambah Jasa
                         </button>
                     </div>
@@ -394,10 +394,10 @@
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden lg:max-h-[calc(100vh-7rem)]">
                 <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
                     <div class="flex items-center gap-3">
-                        <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><i class="fas fa-shopping-basket"></i></span>
+                        <span class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center"><i class="fas fa-shopping-basket"></i></span>
                         <h3 class="text-base font-medium text-slate-800">Keranjang Pesanan</h3>
                     </div>
-                    <div id="item_count_badge" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider">0 Items</div>
+                    <div id="item_count_badge" class="bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider">0 Items</div>
                 </div>
 
                 <div class="flex-grow overflow-y-auto custom-scrollbar p-0 min-h-[120px]">
@@ -419,7 +419,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
-                    <button type="button" onclick="simpanTransaksi(this)" class="w-full inline-flex items-center justify-center gap-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-xs uppercase tracking-wider shadow-lg shadow-indigo-100 transition-all active:scale-95">
+                    <button type="button" onclick="simpanTransaksi(this)" class="w-full inline-flex items-center justify-center gap-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-xs uppercase tracking-wider shadow-sm transition-all active:scale-95">
                         <i class="fas fa-print"></i> Simpan &amp; Cetak Nota
                     </button>
                 </div>
@@ -717,7 +717,7 @@
 
         const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
         btn.innerText = "Tambah";
-        btn.className = "inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-3.5 rounded-xl font-medium text-xs uppercase tracking-wider shadow-lg shadow-emerald-100 transition-all active:scale-95";
+        btn.className = "inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-3.5 rounded-xl font-medium text-xs uppercase tracking-wider shadow-sm transition-all active:scale-95";
     }
 
     // 2. MODAL FUNCTIONS
@@ -1468,7 +1468,7 @@
                             <p class="text-xs text-slate-500 mt-0.5 truncate">${escapeHtml(item.nama_file)}</p>
                             <div class="flex flex-wrap items-center gap-1.5 mt-2">
                                 ${(item.finishing && item.finishing.length ? item.finishing : []).map(f => `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${f.status === 'Custom' ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}">${escapeHtml(f.nama)}</span>`).join('')}
-                                ${(!item.finishing || !item.finishing.length) && item.id_finishing ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-600">${escapeHtml(item.nama_finishing)} &middot; ${escapeHtml(item.status_finishing || 'Standar')}</span>` : ''}
+                                ${(!item.finishing || !item.finishing.length) && item.id_finishing ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">${escapeHtml(item.nama_finishing)} &middot; ${escapeHtml(item.status_finishing || 'Standar')}</span>` : ''}
                                 ${item.siap_cetak ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600" title="Harga File Siap Cetak, tanpa desain tim">File Siap Cetak</span>` : ''}
                                 ${urgensi ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${urgensiChip[urgensi]}">${urgensi}</span>` : ''}
                             </div>
@@ -1591,7 +1591,7 @@
 
             const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
             btn.innerText = "UPDATE ITEM";
-            btn.classList.replace('bg-emerald-500', 'bg-amber-500'); btn.classList.replace('hover:bg-emerald-600', 'hover:bg-amber-600'); btn.classList.replace('shadow-emerald-100', 'shadow-amber-100');
+            btn.classList.replace('bg-emerald-500', 'bg-amber-500'); btn.classList.replace('hover:bg-emerald-600', 'hover:bg-amber-600'); btn.classList.replace('', '');
 
             hitungSubtotal();
             document.getElementById('nama_file').focus();
@@ -1648,7 +1648,7 @@
 
         const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
         btn.innerText = "TAMBAH";
-        btn.classList.replace('bg-amber-500', 'bg-emerald-500'); btn.classList.replace('hover:bg-amber-600', 'hover:bg-emerald-600'); btn.classList.replace('shadow-amber-100', 'shadow-emerald-100');
+        btn.classList.replace('bg-amber-500', 'bg-emerald-500'); btn.classList.replace('hover:bg-amber-600', 'hover:bg-emerald-600'); btn.classList.replace('', '');
 
         document.getElementById('nama_file').focus();
     }

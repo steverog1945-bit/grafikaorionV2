@@ -46,7 +46,7 @@
                             <input type="number" step="0.01" name="detail[{{ $d->id }}][stok_fisik]" data-fisik
                                 value="{{ old('detail.' . $d->id . '.stok_fisik', $d->stok_fisik) }}"
                                 class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}>
-                            <span class="shrink-0 px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-medium uppercase">{{ $d->bahan->satuan_stok ?? '-' }}</span>
+                            <span class="shrink-0 px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-medium uppercase">{{ $d->bahan->satuan_stok ?? '-' }}</span>
                         </div>
                     </td>
                     <td class="px-6 py-5 text-right">

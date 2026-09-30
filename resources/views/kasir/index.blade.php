@@ -48,7 +48,7 @@
                     </td>
                     <td class="p-6 text-center">
                         @if($is_holder_kas && $t->status_pembayaran != 'Lunas')
-                            <button onclick="bayar('{{ $t->id_transaksi }}', '{{ $t->nomor_nota }}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-medium uppercase shadow-lg shadow-indigo-100 transition-all">
+                            <button onclick="bayar('{{ $t->id_transaksi }}', '{{ $t->nomor_nota }}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-medium uppercase shadow-sm transition-all">
                                 Konfirmasi & SPK
                             </button>
                         @else

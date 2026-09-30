@@ -190,7 +190,7 @@
     </div>
 
     <p class="text-[10px] text-slate-400 flex items-center gap-1.5">
-        <i class="fas fa-info-circle text-indigo-300"></i>
+        <i class="fas fa-info-circle text-slate-500"></i>
         Kebutuhan bahan dihitung otomatis dari qty x estimasi Master Data.
     </p>
 </div>

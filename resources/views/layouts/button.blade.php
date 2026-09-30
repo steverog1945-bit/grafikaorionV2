@@ -9,11 +9,11 @@
     $base = 'inline-flex items-center justify-center gap-2 rounded-xl font-medium uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
 
     $variants = [
-        'primary'   => 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100',
+        'primary'   => 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm',
         'secondary' => 'bg-slate-100 hover:bg-slate-200 text-slate-500',
-        'success'   => 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100',
-        'warning'   => 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-100',
-        'danger'    => 'bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-100',
+        'success'   => 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm',
+        'warning'   => 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm',
+        'danger'    => 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm',
         'outline'   => 'bg-transparent border border-slate-200 text-slate-500 hover:bg-slate-50',
         // Tanpa hover bawaan - dipakai untuk icon button di tabel yang tiap
         // instance-nya butuh warna hover berbeda (edit=amber, hapus=rose,

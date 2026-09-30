@@ -8,7 +8,7 @@
 
         <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
             <div class="flex items-center gap-5">
-                <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100">
+                <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-sm">
                     <i class="fas fa-file-invoice-dollar text-white text-2xl"></i>
                 </div>
                 <div>
@@ -207,7 +207,7 @@
 
     async function loadKedatanganDetail(id) {
         const tbody = document.getElementById('table-body');
-        tbody.innerHTML = `<tr><td colspan="5" class="py-20 text-center"><i class="fas fa-circle-notch fa-spin text-indigo-500 text-2xl"></i></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="py-20 text-center"><i class="fas fa-circle-notch fa-spin text-slate-500 text-2xl"></i></td></tr>`;
 
         try {
             const response = await fetch(`{{ url('/pembelian-bahan/kedatangan-detail') }}?id_kedatangan=${id}`, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });

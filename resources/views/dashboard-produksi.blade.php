@@ -13,7 +13,7 @@
         <p class="text-slate-500 text-sm">Antrean pekerjaan cetak, {{ now()->translatedFormat('d F Y') }} &middot; {{ Auth::user()->username }}</p>
     </div>
     @if($namaMesinDiizinkan && $namaMesinDiizinkan->isNotEmpty())
-    <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+    <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-600 border border-slate-200">
         <i class="fas fa-print text-xs"></i>
         <span class="text-[11px] font-medium uppercase tracking-widest">{{ $namaMesinDiizinkan->implode(', ') }}</span>
     </div>

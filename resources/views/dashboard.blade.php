@@ -54,13 +54,13 @@
             <span class="text-[11px] font-medium uppercase tracking-widest">Kasir {{ $kasAktif ? 'Aktif' : 'Standby' }}</span>
         </div>
         @if($u('penjualan.create') !== '#')
-        <a href="{{ $u('penjualan.create') }}" title="Buat nota / order baru" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-[11px] font-medium uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all"><i class="fas fa-plus"></i> Nota Baru</a>
+        <a href="{{ $u('penjualan.create') }}" title="Buat nota / order baru" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-[11px] font-medium uppercase tracking-widest shadow-sm hover:bg-indigo-700 transition-all"><i class="fas fa-plus"></i> Nota Baru</a>
         @endif
         @if($u('kasir.index') !== '#')
-        <a href="{{ $u('kasir.index') }}" title="Buka Monitoring Kasir untuk pembayaran" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white border border-slate-100 text-slate-600 text-[11px] font-medium uppercase tracking-widest hover:bg-slate-50 transition-all"><i class="fas fa-cash-register text-indigo-500"></i> Kasir</a>
+        <a href="{{ $u('kasir.index') }}" title="Buka Monitoring Kasir untuk pembayaran" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white border border-slate-100 text-slate-600 text-[11px] font-medium uppercase tracking-widest hover:bg-slate-50 transition-all"><i class="fas fa-cash-register text-slate-500"></i> Kasir</a>
         @endif
         @if($u('spk.index') !== '#')
-        <a href="{{ $u('spk.index') }}" title="Lihat antrean SPK produksi" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white border border-slate-100 text-slate-600 text-[11px] font-medium uppercase tracking-widest hover:bg-slate-50 transition-all"><i class="fas fa-list-check text-indigo-500"></i> SPK</a>
+        <a href="{{ $u('spk.index') }}" title="Lihat antrean SPK produksi" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white border border-slate-100 text-slate-600 text-[11px] font-medium uppercase tracking-widest hover:bg-slate-50 transition-all"><i class="fas fa-list-check text-slate-500"></i> SPK</a>
         @endif
     </div>
 </div>

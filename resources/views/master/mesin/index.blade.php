@@ -57,7 +57,7 @@
                         {{-- Identitas Mesin --}}
                         <td class="px-8 py-5">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-medium text-xs shadow-sm">
+                                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 font-medium text-xs shadow-sm">
                                     <i class="fas fa-print"></i>
                                 </div>
                                 <div>

@@ -47,7 +47,7 @@
                         <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $merk->firstItem() + $i }}</td>
                         <td class="px-8 py-5 text-xs text-slate-400">#{{ $m->id_merk }}</td>
                         <td class="px-6 py-5">
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 uppercase">
                                 {{ $m->nama_merk }}
                             </span>
                         </td>

@@ -176,7 +176,7 @@
                     @if($k->metode !== 'Tunai')<span class="text-[10px] font-medium uppercase text-slate-500 bg-slate-100 rounded px-2 py-1 ml-1">{{ $k->metode }}</span>@endif
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[11px] font-medium uppercase text-indigo-600 bg-indigo-50 rounded px-2 py-1">{{ $k->sumber === 'jersey' ? 'Pesanan Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Pemasok' : ($k->kategori->nama_kategori ?? '-')) }}</span>
+                    <span class="text-[11px] font-medium uppercase text-slate-600 bg-slate-100 rounded px-2 py-1">{{ $k->sumber === 'jersey' ? 'Pesanan Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Pemasok' : ($k->kategori->nama_kategori ?? '-')) }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] text-slate-600">{{ $k->keterangan }}</span>

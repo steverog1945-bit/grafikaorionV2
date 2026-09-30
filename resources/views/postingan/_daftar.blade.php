@@ -11,7 +11,7 @@
 @endphp
 
     {{-- ================= HERO ================= --}}
-    <div class="relative overflow-hidden rounded-[2rem] bg-indigo-600 px-6 sm:px-12 py-12 mb-8 shadow-xl shadow-indigo-200/60 hero-postingan">
+    <div class="relative overflow-hidden rounded-[2rem] bg-indigo-600 px-6 sm:px-12 py-12 mb-8 shadow-sm hero-postingan">
         <div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-white/10"></div>
         <div class="absolute right-24 -bottom-24 w-64 h-64 rounded-full bg-white/10"></div>
         <div class="relative max-w-3xl">
@@ -39,9 +39,9 @@
     {{-- ================= KATEGORI & FILTER ================= --}}
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div class="flex flex-wrap gap-2">
-            <a href="{{ $u(['cari' => $cari, 'status' => $status]) }}" class="px-4 py-2 rounded-xl text-[11px] font-medium uppercase tracking-widest transition-all {{ !$kategoriSlug ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-white border border-slate-100 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' }}">Semua</a>
+            <a href="{{ $u(['cari' => $cari, 'status' => $status]) }}" class="px-4 py-2 rounded-xl text-[11px] font-medium uppercase tracking-widest transition-all {{ !$kategoriSlug ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white border border-slate-100 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' }}">Semua</a>
             @foreach($kategoriList as $k)
-                <a href="{{ $u(['kategori' => $k->slug, 'cari' => $cari, 'status' => $status]) }}" title="{{ $k->posts_count }} postingan" class="px-4 py-2 rounded-xl text-[11px] font-medium uppercase tracking-widest transition-all {{ $kategoriSlug === $k->slug ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-white border border-slate-100 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' }}">{{ $k->nama }} <span class="opacity-60">{{ $k->posts_count }}</span></a>
+                <a href="{{ $u(['kategori' => $k->slug, 'cari' => $cari, 'status' => $status]) }}" title="{{ $k->posts_count }} postingan" class="px-4 py-2 rounded-xl text-[11px] font-medium uppercase tracking-widest transition-all {{ $kategoriSlug === $k->slug ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white border border-slate-100 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' }}">{{ $k->nama }} <span class="opacity-60">{{ $k->posts_count }}</span></a>
             @endforeach
         </div>
         @if($pengelola)

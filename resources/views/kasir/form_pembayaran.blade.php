@@ -267,7 +267,7 @@
                         <button type="button" onclick="simpanSaja()" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white border border-slate-100 hover:border-indigo-200 text-slate-500 hover:text-indigo-600 font-medium text-xs transition-all">
                             <i class="fas fa-inbox"></i> Simpan
                         </button>
-                        <button type="submit" {{ !$kasAktif ? 'disabled title="Kas belum dibuka - lihat peringatan di atas"' : '' }} class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-xs shadow-lg shadow-indigo-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
+                        <button type="submit" {{ !$kasAktif ? 'disabled title="Kas belum dibuka - lihat peringatan di atas"' : '' }} class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-xs shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
                             <i class="fas fa-cash-register"></i> Bayar
                         </button>
                     </div>

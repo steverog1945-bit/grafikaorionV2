@@ -256,7 +256,7 @@
             <div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <span class="text-[14px] font-medium text-slate-800 uppercase">{{ $t->nomor_nota }}</span>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-medium uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-medium uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
                         {{ $t->nama_golongan }}
                     </span>
                     @if($t->tipe_order)

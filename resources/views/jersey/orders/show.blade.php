@@ -13,10 +13,10 @@
                 </x-button>
                 <div id="print-menu-ringkasan" class="hidden absolute right-0 mt-2 w-52 bg-white border border-slate-100 shadow-xl rounded-xl z-50 overflow-hidden">
                     <a href="{{ route('jersey.orders.print', [$order->id, 'thermal']) }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-[10px] font-medium text-slate-600 hover:bg-slate-50 border-b border-slate-50">
-                        <i class="fas fa-receipt text-indigo-400"></i> THERMAL (58MM)
+                        <i class="fas fa-receipt text-slate-500"></i> THERMAL (58MM)
                     </a>
                     <a href="{{ route('jersey.orders.print', [$order->id, 'normal']) }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-[10px] font-medium text-slate-600 hover:bg-slate-50">
-                        <i class="fas fa-file-invoice text-indigo-400"></i> A4 / F4
+                        <i class="fas fa-file-invoice text-slate-500"></i> A4 / F4
                     </a>
                 </div>
             </div>

@@ -20,7 +20,7 @@
 --}}
 <div id="polling-notif-{{ md5($url) }}" class="hidden fixed top-20 right-6 z-50 animate-bounce">
     <button onclick="window.location.reload()"
-        class="flex items-center gap-2 bg-indigo-600 text-white text-[12px] font-medium px-4 py-3 rounded-2xl shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all">
+        class="flex items-center gap-2 bg-indigo-600 text-white text-[12px] font-medium px-4 py-3 rounded-2xl shadow-sm hover:bg-indigo-700 transition-all">
         <i class="fas fa-bell"></i>
         {{ $pesan }}
         <i class="fas fa-rotate-right ml-1"></i>

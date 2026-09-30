@@ -34,7 +34,7 @@
                     <div class="text-[10px] text-slate-400">{{ $u->karyawan->bagian }}</div>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
                         <i class="fas fa-shield-alt mr-1.5"></i> {{ $u->role->nama_role }}
                     </span>
                 </td>

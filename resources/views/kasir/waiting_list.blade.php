@@ -25,7 +25,7 @@
     @endif
 
     <div class="mb-5 flex items-center gap-3">
-        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-500 text-xs font-medium">
+        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
             <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span> {{ count($waiting) }} nota menunggu
         </span>
     </div>
@@ -38,7 +38,7 @@
 
             <div class="p-6">
                 <div class="flex items-start justify-between gap-3">
-                    <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-500 text-[11px] font-medium">Nota #{{ $w->nomor_nota }}</span>
+                    <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-medium">Nota #{{ $w->nomor_nota }}</span>
                     <span class="w-2 h-2 mt-1.5 rounded-full bg-amber-300 animate-pulse" title="Menunggu pembayaran"></span>
                 </div>
 
@@ -52,7 +52,7 @@
 
                 <div class="mt-5">
                     @if($kasAktif)
-                        <a href="{{ url('/kasir/bayar-form/'.$w->id_transaksi) }}" class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-xs shadow-lg shadow-indigo-100 transition-all">
+                        <a href="{{ url('/kasir/bayar-form/'.$w->id_transaksi) }}" class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-xs shadow-sm transition-all">
                             <i class="fas fa-cash-register"></i> Buka Transaksi
                         </a>
                     @else
@@ -65,7 +65,7 @@
         </div>
         @empty
         <div class="col-span-full rounded-3xl bg-white border border-dashed border-slate-200 p-16 text-center">
-            <div class="w-16 h-16 rounded-full bg-indigo-50 text-indigo-300 flex items-center justify-center mx-auto mb-5"><i class="fas fa-mug-hot text-2xl"></i></div>
+            <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-5"><i class="fas fa-mug-hot text-2xl"></i></div>
             <h3 class="text-slate-700 font-medium">Tidak ada antrean baru</h3>
             <p class="text-slate-400 text-sm mt-1">Semua pesanan sudah masuk ke sistem pembayaran.</p>
         </div>

@@ -45,7 +45,7 @@
             <tr class="group hover:bg-slate-50/30 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $kategori->firstItem() + $i }}</td>
                 <td class="px-8 py-5">
-                    <span class="inline-flex items-center justify-center px-4 py-1.5 bg-indigo-50 text-indigo-600 text-[11px] font-medium rounded-lg uppercase border border-indigo-100/50 ">
+                    <span class="inline-flex items-center justify-center px-4 py-1.5 bg-slate-100 text-slate-600 text-[11px] font-medium rounded-lg uppercase border border-slate-200/50 ">
                         {{ $kat->kode_kategori }}
                     </span>
                 </td>

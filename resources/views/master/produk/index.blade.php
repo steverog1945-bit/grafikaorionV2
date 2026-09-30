@@ -5,7 +5,7 @@
 
     <x-page-header title="Product Engineering">
         <x-slot:subtitle>
-            <i class="fas fa-microchip text-indigo-400"></i>
+            <i class="fas fa-microchip text-slate-500"></i>
             Engineering <span class="text-slate-300">/</span> Spesifikasi & Kalkulasi Stok
         </x-slot:subtitle>
         <x-slot:actions>
@@ -579,7 +579,7 @@
             </td>
             <td class="p-3">
                 <input type="hidden" name="cara_hitung_pemakaian[]" value="${rumus}">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-medium uppercase tracking-widest">${rumus}</span>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-medium uppercase tracking-widest">${rumus}</span>
             </td>
             <td class="p-3 text-center">
                 <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmpty();" class="text-slate-300 hover:text-rose-500">

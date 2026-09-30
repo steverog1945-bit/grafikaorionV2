@@ -100,7 +100,7 @@
                             @endif
                         </td>
                         <td class="px-6 py-5 text-center">
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium bg-indigo-50 text-indigo-600 uppercase">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium bg-slate-100 text-slate-600 uppercase">
                                 {{ $j->nama_satuan ?? '-' }}
                             </span>
                         </td>
@@ -108,7 +108,7 @@
                             @php $tierCount = ($hargaTiers[$j->id_jasa] ?? collect())->count(); @endphp
                             <span id="jasa-harga-summary-{{ $j->id_jasa }}">
                                 @if($tierCount > 0)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100">BERTINGKAT ({{ $tierCount }})</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">BERTINGKAT ({{ $tierCount }})</span>
                                 @elseif($j->harga_default)
                                     <span class="text-sm font-medium text-slate-700">Rp {{ number_format($j->harga_default, 0, ',', '.') }}</span>
                                 @else
@@ -434,7 +434,7 @@
         const hargaDefault = container.dataset.hargaDefault;
 
         if (tierCount > 0) {
-            cell.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100">BERTINGKAT (${tierCount})</span>`;
+            cell.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">BERTINGKAT (${tierCount})</span>`;
         } else if (hargaDefault) {
             cell.innerHTML = `<span class="text-sm font-medium text-slate-700">Rp ${new Intl.NumberFormat('id-ID').format(hargaDefault)}</span>`;
         } else {

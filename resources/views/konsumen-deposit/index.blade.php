@@ -45,7 +45,7 @@
                     <tr class="{{ $s->saldo_deposit <= 0 ? 'opacity-60' : '' }}">
                         <td class="text-sm font-medium text-slate-700">{{ $s->nama_konsumen }}</td>
                         <td class="text-center">
-                            <span class="badge bg-indigo-50 text-indigo-700">
+                            <span class="badge bg-slate-100 text-slate-600">
                                 {{ $s->nama_golongan ?? '-' }}
                             </span>
                         </td>

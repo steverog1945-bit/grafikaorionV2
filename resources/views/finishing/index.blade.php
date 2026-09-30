@@ -48,7 +48,7 @@
                     @endif
                 </td>
                 <td class="px-4 py-5 text-center">
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
                         {{ match($d->metode_hitung) { 'luas' => 'Luas (m²)', 'keliling' => 'Keliling (m)', default => 'Satuan (Pcs)' } }}
                     </span>
                 </td>

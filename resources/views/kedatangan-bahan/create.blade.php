@@ -371,11 +371,11 @@ function validateForm() {
     if (isValid) {
         btn.prop('disabled', false)
            .removeClass('bg-slate-400 opacity-50 cursor-not-allowed')
-           .addClass('bg-indigo-600 hover:bg-indigo-700 cursor-pointer shadow-indigo-200');
+           .addClass('bg-indigo-600 hover:bg-indigo-700 cursor-pointer');
     } else {
         btn.prop('disabled', true)
            .addClass('bg-slate-400 opacity-50 cursor-not-allowed')
-           .removeClass('bg-indigo-600 hover:bg-indigo-700 cursor-pointer shadow-indigo-200');
+           .removeClass('bg-indigo-600 hover:bg-indigo-700 cursor-pointer');
     }
 }
 
@@ -391,7 +391,7 @@ function openBahanModal(button) {
 
 function loadBahan() {
     const tbody = $('#bahan-result');
-    tbody.html('<tr><td colspan="5" class="text-center py-8"><i class="fas fa-circle-notch fa-spin text-indigo-500 text-2xl"></i></td></tr>');
+    tbody.html('<tr><td colspan="5" class="text-center py-8"><i class="fas fa-circle-notch fa-spin text-slate-500 text-2xl"></i></td></tr>');
 
     $.get("{{ route('ajax.bahan') }}", {
         search: currentSearch,

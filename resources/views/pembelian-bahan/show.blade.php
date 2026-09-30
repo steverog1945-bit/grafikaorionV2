@@ -20,11 +20,11 @@
                 </x-button>
                 <div id="menu-cetak-daftar" class="hidden absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-20">
                     <a href="{{ route('pembelian-bahan.cetak', [$pembelian->id_pembelian, 'a4']) }}" target="_blank" class="flex items-start gap-3 px-5 py-4 hover:bg-indigo-50 transition-all">
-                        <i class="far fa-file-alt text-indigo-500 mt-0.5"></i>
+                        <i class="far fa-file-alt text-slate-500 mt-0.5"></i>
                         <span><span class="block text-xs font-medium text-slate-700 uppercase tracking-widest">Kertas A4</span><span class="block text-[11px] text-slate-400 font-medium">Invoice kertas biasa 210 x 297 mm</span></span>
                     </a>
                     <a href="{{ route('pembelian-bahan.cetak', [$pembelian->id_pembelian, 'continuous']) }}" target="_blank" class="flex items-start gap-3 px-5 py-4 hover:bg-indigo-50 transition-all border-t border-slate-50">
-                        <i class="fas fa-scroll text-indigo-500 mt-0.5"></i>
+                        <i class="fas fa-scroll text-slate-500 mt-0.5"></i>
                         <span><span class="block text-xs font-medium text-slate-700 uppercase tracking-widest">Continuous Form</span><span class="block text-[11px] text-slate-400 font-medium">Kertas sambung dot-matrix 9,5 x 11 inci</span></span>
                     </a>
                 </div>

@@ -119,7 +119,7 @@
                 <td data-label="Kode" class="px-6 py-5"><span class="text-[12px] font-medium text-slate-500 uppercase">{{ $b->kode_bahan }}</span></td>
                 <td data-label="Nama Bahan" class="px-4 py-5"><span class="text-[13px] font-medium text-slate-700">{{ $b->nama_bahan }}</span></td>
                 <td data-label="Kategori" class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $b->kategori->nama_kategori ?? '-' }}</span></td>
-                <td data-label="Satuan" class="px-4 py-5"><span class="inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] font-medium uppercase">{{ $b->satuan_stok ?: '-' }}</span></td>
+                <td data-label="Satuan" class="px-4 py-5"><span class="inline-flex px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[11px] font-medium uppercase">{{ $b->satuan_stok ?: '-' }}</span></td>
                 <td data-label="Stok Saat Ini" class="px-4 py-5 text-right"><span class="text-[13px] font-medium {{ $b->status_stok === 'Habis' ? 'text-rose-500' : ($b->status_stok === 'Menipis' ? 'text-amber-600' : 'text-slate-700') }}">{{ number_format($b->stok, 2, ',', '.') }} {{ $b->satuan_stok }}</span></td>
                 <td data-label="Stok Minimal" class="px-4 py-5 text-right"><span class="text-[12px] text-slate-500">{{ $b->stok_minimal > 0 ? number_format($b->stok_minimal, 2, ',', '.') . ' ' . $b->satuan_stok : '-' }}</span></td>
                 <td data-label="Harga Rata-rata" class="px-4 py-5 text-right"><span class="text-[12px] text-slate-500">Rp {{ number_format($b->harga_rata_rata, 0, ',', '.') }}</span></td>

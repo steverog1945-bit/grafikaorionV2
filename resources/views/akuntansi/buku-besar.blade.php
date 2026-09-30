@@ -54,7 +54,7 @@
     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
         <div class="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
             <div>
-                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $akun->kode_akun }}</span>
+                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">{{ $akun->kode_akun }}</span>
                 <span class="ml-2 text-sm font-medium text-slate-700">{{ $akun->nama_akun }}</span>
             </div>
             <span class="text-[10px] font-medium text-slate-400 uppercase">Saldo Normal: {{ $akun->saldo_normal }}</span>

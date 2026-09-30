@@ -5,7 +5,7 @@
 
     <x-page-header title="Master Karyawan">
         <x-slot:subtitle>
-            <i class="fas fa-users text-indigo-400"></i>
+            <i class="fas fa-users text-slate-500"></i>
             SDM <span class="mx-1 text-slate-300">/</span> Manajemen Profil &amp; Produksi
         </x-slot:subtitle>
         <x-slot:actions>
@@ -67,13 +67,13 @@
                 <td class="px-4 py-5">
                     <div class="font-medium text-slate-800 uppercase tracking-tight text-[14px]">{{ $k->nama_karyawan }}</div>
                     <div class="text-[12px] text-slate-400 font-medium mt-1 flex items-center gap-1.5">
-                        <i class="fas fa-phone-alt text-[10px] text-indigo-300"></i> {{ $k->telepon }}
+                        <i class="fas fa-phone-alt text-[10px] text-slate-500"></i> {{ $k->telepon }}
                     </div>
                 </td>
 
                 {{-- Division --}}
                 <td class="px-4 py-5">
-                    <span class="inline-flex items-center px-4 py-1.5 rounded-xl text-[11px] font-medium uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100">
+                    <span class="inline-flex items-center px-4 py-1.5 rounded-xl text-[11px] font-medium uppercase tracking-widest bg-slate-100 text-slate-600 border border-slate-200">
                         {{ $k->bagian }}
                     </span>
                     @if($k->mesin->isNotEmpty())

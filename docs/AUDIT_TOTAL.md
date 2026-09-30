@@ -159,3 +159,16 @@ Klik ganda pada form biasa (bukan POS) bergantung pada penjagaan server: aman, t
 | `config:cache` | SENGAJA tidak dijalankan di komputer ini: konfigurasi ter-cache mengalahkan `phpunit.xml`, sehingga tes (RefreshDatabase) akan berjalan di database asli dan mengosongkannya. Jalankan hanya di server yang tidak dipakai menjalankan tes |
 | Antislop 3 | SELESAI: 8 ikon sihir/petir diganti ikon yang menggambarkan isinya |
 | Antislop 7 | Diperiksa: panah yang tersisa menunjukkan arah nyata (tautan lanjut, halaman berikut); dibiarkan |
+
+## 17. Landing login dan antislop (seluruh nomor)
+| Nomor | Hasil |
+|---|---|
+| Landing login | BARU di `resources/views/login.blade.php`: token visual opencode (kanvas kertas, garis 1px, huruf mono untuk judul/label, sudut 4px, satu aksen), form masuk di kanan, lalu bagian Modul, Alur satu nota, Akses, dan kaki berisi alamat dari Pengaturan Aplikasi. Isi hanya modul yang memang ada; tanpa angka atau testimoni karangan. Di HP form tampil paling atas. Diperiksa di browser lebar 1280 dan 375 (tanpa gulir mendatar) |
+| 1, 3, 10 | Selesai sebelumnya |
+| 2 | Tidak berlaku (tidak ada logo karangan; tanpa logo hanya nama aplikasi) |
+| 4 bayangan berwarna | 31 pemakaian diganti bayangan netral kecil |
+| 5 radius, 6 huruf kapital renggang, 9 teks mikro | Sudah ditangani terpusat di `resources/css/ui-refresh.css` milik main (radius 8px, `text-transform: none`, tracking 0, ukuran minimal 13px); tidak perlu diubah per berkas |
+| 7 panah | Yang tersisa menunjukkan arah nyata |
+| 8 badge pil | Huruf kapitalnya sudah hilang lewat aturan terpusat; bentuk `rounded-full` dipertahankan sesuai pengecualian yang ditulis di CSS main |
+| 11 indigo di mana-mana | 16 ikon dan 46 lencana/wadah ikon statis dinetralkan ke abu. Tombol utama, tautan, menu aktif, fokus, dan semua keadaan yang diatur lewat kondisi Blade atau JS tidak disentuh |
+| 12 blok fitur kembar di login | Diganti daftar bergaris di landing baru |
