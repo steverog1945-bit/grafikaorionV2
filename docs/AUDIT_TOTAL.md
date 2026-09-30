@@ -275,4 +275,4 @@ Cara: salinan `oriondb` di database terpisah `percetakan_erp_beban` diisi data d
 | Dashboard | 1,3 detik | 0,35 detik | JOIN konsumen memaksa pengurutan seluruh nota; ringkasan collecting mengelompokkan semua item |
 | Notifikasi (dipanggil tiap 30 detik oleh setiap layar) | hitungan per pengguna | angka dibagi bersama 20 detik; hitungan "siap diambil" di database | `NotifikasiService` |
 Sisa di atas 1 detik (4 halaman), dibiarkan dengan alasan: SPK dan Produksi (1,2 sampai 1,9 detik) karena data uji berisi 60 ribu item yang masih berjalan, jauh di atas kenyataan; Neraca (1,2 detik) menjumlah 670 ribu baris jurnal memakai indeks penutup, wajar untuk laporan; `/sinyal` hanya pada permintaan pertama sebelum cache.
-Database `percetakan_erp_beban` dibiarkan untuk pengukuran ulang (`scratchpad` skrip gandakan/ukur); boleh dihapus kapan saja.
+Database `percetakan_erp_beban` dibiarkan untuk pengukuran ulang: `python scripts/beban-gandakan.py 10` lalu `DB_DATABASE=percetakan_erp_beban php artisan tinker scripts/beban-ukur.php`. Boleh dihapus kapan saja.
