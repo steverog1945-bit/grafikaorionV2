@@ -1661,6 +1661,9 @@
         }).then((r) => { if (r.isConfirmed) { cart = []; renderCart(); } });
     }
 
+    // Pengenal satu kali pengiriman: server hanya memproses id ini SEKALI (lihat middleware sekali.jalan), jadi
+    // kirim ulang setelah jaringan putus tidak melahirkan nota kedua.
+    let submitIdNota = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
     let sedangMenyimpan = false; // Guard duplicate submit: double-click / enter ganda / klik tombol di tab lain tidak boleh membuat DUA nota.
     async function simpanTransaksi(btn) {
         if (sedangMenyimpan) return; // satu submit dalam penerbangan - abaikan klik berikutnya sampai selesai.
@@ -1696,6 +1699,7 @@
             tgl_order: document.getElementById('tgl_order').value,
             items: cart,
             quotation_id: {{ !empty($quotationRef) ? (int) $quotationRef->id : 'null' }},
+            submit_id: submitIdNota,
             _token: '{{ csrf_token() }}'
         };
 

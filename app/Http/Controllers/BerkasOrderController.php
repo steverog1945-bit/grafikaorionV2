@@ -76,7 +76,12 @@ class BerkasOrderController extends Controller
         $data = $request->validate([
             'kategori' => 'required|in:Production File,QC Photo,Lainnya',
             'id_detail' => 'nullable|integer',
-            'file' => 'required|file|extensions:jpg,jpeg,png,webp,pdf,zip,ai,psd,cdr,eps|max:51200',
+            // Isi berkas ikut diperiksa (BerkasAman): aturan extensions: hanya membaca nama dari klien.
+            'file' => ['required', 'file', 'max:51200', function ($atribut, $nilai, $gagal) {
+                if ($nilai instanceof \Illuminate\Http\UploadedFile && ($pesan = \App\Support\BerkasAman::periksa($nilai))) {
+                    $gagal($pesan);
+                }
+            }],
             'catatan' => 'nullable|string|max:255',
         ]);
 
@@ -94,7 +99,7 @@ class BerkasOrderController extends Controller
         }
 
         $file = $request->file('file');
-        $path = $file->store("berkas_order/{$idTransaksi}", 'public');
+        $path = \App\Support\BerkasAman::simpan($file, "berkas_order/{$idTransaksi}");
 
         try {
             DB::table('order_berkas')->insert([
