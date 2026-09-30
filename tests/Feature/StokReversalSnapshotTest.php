@@ -96,7 +96,8 @@ class StokReversalSnapshotTest extends TestCase
         // Simulasikan transaksi LAMA (dibuat sebelum fitur snapshot ada) - insert langsung, tanpa lewat store(), jadi TIDAK ADA baris transaksi_detail_bahan_pakai.
         $idTransaksi = DB::table('transaksi')->insertGetId([
             'nomor_nota' => 'LAMA-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $this->idKonsumen, 'id_user_kasir' => $this->admin->id_user,
-            'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif',
+            'tgl_order' => '2026-09-20 09:00:00', 'created_at' => '2026-09-20 09:00:00',
+            'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif',
         ]);
         $idDetail = DB::table('transaksi_detail')->insertGetId([
             'id_transaksi' => $idTransaksi, 'id_produk' => $this->idProduk, 'nama_file' => 'a',
@@ -109,5 +110,35 @@ class StokReversalSnapshotTest extends TestCase
         StokReversalService::kembalikan(DB::table('transaksi_detail')->where('id_detail', $idDetail)->first(), 'BATAL-LAMA', 'uji fallback');
 
         $this->assertEquals(100, (float) DB::table('bahan_baku')->where('id_bahan', $this->idBahanLama)->value('stok'), 'Fallback recompute BOM live harus tetap mengembalikan 7 seperti sebelumnya');
+    }
+
+    /**
+     * Audit H-2: nota SESUDAH snapshot mulai dipakai (27 Sep 2026 21:26:42)
+     * tanpa baris snapshot TIDAK BOLEH memicu recompute BOM live, walau
+     * tanggalnya sebelum 14 Okt (batas keliru lama). Skenario: produk tanpa
+     * komponen BOM saat order dibuat, BOM ditambah belakangan, lalu batal.
+     */
+    public function test_nota_era_snapshot_tanpa_snapshot_tidak_recompute_bom_live(): void
+    {
+        $idTransaksi = DB::table('transaksi')->insertGetId([
+            'nomor_nota' => 'ERA-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $this->idKonsumen, 'id_user_kasir' => $this->admin->id_user,
+            'tgl_order' => '2026-09-28 08:00:00', 'created_at' => '2026-09-28 08:00:00',
+            'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif',
+        ]);
+        $idDetail = DB::table('transaksi_detail')->insertGetId([
+            'id_transaksi' => $idTransaksi, 'id_produk' => $this->idProduk, 'nama_file' => 'a',
+            'p_ukuran' => 0, 'l_ukuran' => 0, 'qty' => 7, 'subtotal' => 1, 'status_spk' => 'Antre',
+        ]);
+        $stokSebelum = (float) DB::table('bahan_baku')->where('id_bahan', $this->idBahanLama)->value('stok');
+
+        $ringkasan = StokReversalService::kembalikan(DB::table('transaksi_detail')->where('id_detail', $idDetail)->first(), 'BATAL-ERA', 'uji era snapshot');
+
+        $this->assertSame([], $ringkasan);
+        $this->assertEquals($stokSebelum, (float) DB::table('bahan_baku')->where('id_bahan', $this->idBahanLama)->value('stok'), 'Stok fiktif tidak boleh muncul');
+    }
+
+    public function test_batas_era_tepat_pada_detik_snapshot_mulai(): void
+    {
+        $this->assertSame('2026-09-27 21:26:42', StokReversalService::SNAPSHOT_MULAI);
     }
 }
