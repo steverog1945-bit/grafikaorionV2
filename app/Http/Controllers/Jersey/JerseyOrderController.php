@@ -999,7 +999,7 @@ class JerseyOrderController extends Controller
             'lines.productType', 'lines.category', 'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
         ]);
         $format = in_array($format, ['thermal', 'normal']) ? $format : 'normal';
-        return view('jersey.orders.print', compact('order', 'format'));
+        return response()->view('jersey.orders.print', compact('order', 'format'))->header('Cache-Control', 'no-store, max-age=0');
     }
 
     /**

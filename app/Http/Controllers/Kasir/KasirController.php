@@ -1023,12 +1023,13 @@ public function printOpsi(Request $request, $id)
         && $items->every(fn ($i) => !$i->id_produk && !$i->id_jasa);
     $format = ($dariPenjualanBarang && $formatGlobal === 'thermal') ? 'a4' : $formatGlobal;
 
-    return view('kasir.print_nota', compact(
+    // no-store: nota selalu dicetak dari data dan tata letak terbaru, bukan salinan lama di cache peramban.
+    return response()->view('kasir.print_nota', compact(
         'transaksi', 'items', 'totalTerbayar', 'format',
         'totalCetak', 'totalDesain', 'totalFinishing', 'kembali', 'kurangBayar',
         'totalTagihanAsli', 'totalTagihanBulat', 'pembulatan',
         'depositTerpakaiTransaksiIni', 'saldoDepositSaatIni', 'konsumenPernahPakaiDeposit'
-    ));
+    ))->header('Cache-Control', 'no-store, max-age=0');
 }
 
 /**
