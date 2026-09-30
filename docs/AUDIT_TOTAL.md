@@ -141,3 +141,12 @@ Klik ganda pada form biasa (bukan POS) bergantung pada penjagaan server: aman, t
 | Stok per gudang | TIDAK dikerjakan: perubahan desain besar (kartu stok, opname, semua mutasi), butuh keputusan bisnis |
 | Dropdown semua konsumen | Ditunda: aman untuk ribuan baris |
 | Tes | 441 lulus, 2.019 assertion |
+
+## 15. Catatan akhir brief awal dan SweetAlert (sesi lanjutan)
+| Item | Hasil |
+|---|---|
+| Ikon SweetAlert menumpuk dengan tulisan | Akar: `padding-left` judul dibatalkan oleh `padding: 0` di bawahnya, sementara ikon `position:absolute` di kiri. Popup kini grid dua kolom (ikon kolom 1, judul dan isi kolom 2); tanpa ikon atau tanpa judul tetap rapi; toast tidak berubah. Diukur di browser: ikon (kanan 438) tidak lagi menyentuh judul (kiri 448) |
+| Semua alert | 13 `confirm()` bawaan peramban di 12 view diganti dialog SweetAlert seragam lewat atribut `data-konfirmasi` (penangan global di layout). Dialog hapus/batal memakai tombol merah dan fokus awal di Batal |
+| Jasa dan Jasa Jahit bisa diedit/disimpan role non-admin | Terkunci dengan tes regresi (tambah, ubah, tier harga; dan role tanpa izin edit tetap 403) |
+| Logout tidak mengikat halaman terakhir; login ke Dashboard | Terkunci dengan tes regresi (`url.intended` dibuang saat login dan logout) |
+| Login profesional, sidebar seperti acuan, skill dipakai | Sudah (lihat bagian 2); login versi main dipertahankan sesuai perintah |
