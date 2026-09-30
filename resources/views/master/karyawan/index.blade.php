@@ -121,7 +121,7 @@
 
                     {{-- MODAL EDIT (Dalam Loop) --}}
                     <div id="modalEdit{{ $k->id_karyawan }}" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
-                        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onclick="toggleModal('modalEdit{{ $k->id_karyawan }}')"></div>
+                        <div class="absolute inset-0 bg-slate-900/60 transition-opacity" onclick="toggleModal('modalEdit{{ $k->id_karyawan }}')"></div>
                         <div class="relative w-full max-w-md bg-white rounded-[2.5rem] p-10 shadow-2xl border border-white/20 transform transition-all scale-100">
                             <div class="mb-8">
                                 <h3 class="text-2xl font-black text-slate-800 tracking-tighter uppercase">Edit Profil</h3>
@@ -188,7 +188,7 @@
 
 {{-- MODAL TAMBAH --}}
 <div id="modalTambah" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="toggleModal('modalTambah')"></div>
+    <div class="absolute inset-0 bg-slate-900/60" onclick="toggleModal('modalTambah')"></div>
     <div class="relative w-full max-w-md bg-white rounded-[2.5rem] p-10 shadow-2xl border border-white/20">
         <div class="mb-8 text-center">
             <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">

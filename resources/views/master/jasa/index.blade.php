@@ -116,7 +116,7 @@
 </div>
 
 {{-- MODAL TAMBAH (Indigo) --}}
-<div id="modalJasa" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
+<div id="modalJasa" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40">
     <div class="flex items-center justify-center min-h-screen p-6">
         <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-[500px] overflow-hidden transform transition-all">
 
@@ -173,7 +173,7 @@
 </div>
 
 {{-- MODAL EDIT (Amber) --}}
-<div id="modalEditJasa" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
+<div id="modalEditJasa" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40">
     <div class="flex items-center justify-center min-h-screen p-6">
         <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-[500px] overflow-hidden transform transition-all">
 

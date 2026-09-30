@@ -5,13 +5,13 @@
     $paramTetap = $paramTetap ?? [];
     $u = fn (array $p = []) => $basisUrl . '?' . http_build_query(array_filter(array_merge($paramTetap, $p), fn ($v) => $v !== null && $v !== ''));
 
-    $warnaKartu = ['from-indigo-500 to-violet-500', 'from-emerald-500 to-teal-500', 'from-amber-500 to-orange-500', 'from-sky-500 to-indigo-500', 'from-rose-500 to-pink-500'];
+    $warnaKartu = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-sky-500', 'bg-rose-500'];
     $tanpaFilter = !$kategoriSlug && $tag === '' && $cari === '' && !$status;
     $labelStatus = ['Terbit' => 'bg-emerald-50 text-emerald-600', 'Terjadwal' => 'bg-sky-50 text-sky-600', 'Draft' => 'bg-amber-50 text-amber-600'];
 @endphp
 
     {{-- ================= HERO ================= --}}
-    <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-500 px-6 sm:px-12 py-12 mb-8 shadow-xl shadow-indigo-200/60 hero-postingan">
+    <div class="relative overflow-hidden rounded-[2rem] bg-indigo-600 px-6 sm:px-12 py-12 mb-8 shadow-xl shadow-indigo-200/60 hero-postingan">
         <div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-white/10"></div>
         <div class="absolute right-24 -bottom-24 w-64 h-64 rounded-full bg-white/10"></div>
         <div class="relative max-w-3xl">
@@ -66,7 +66,7 @@
     {{-- ================= UNGGULAN ================= --}}
     @if($unggulan)
     <a href="{{ route('postingan.show', $unggulan->slug) }}" class="group grid grid-cols-1 lg:grid-cols-2 bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden mb-8 hover:shadow-xl transition-all">
-        <div class="relative min-h-[240px] lg:min-h-[340px] bg-gradient-to-br {{ $warnaKartu[$unggulan->id % count($warnaKartu)] }}">
+        <div class="relative min-h-[240px] lg:min-h-[340px] {{ $warnaKartu[$unggulan->id % count($warnaKartu)] }}">
             @if($unggulan->url_sampul)<img src="{{ $unggulan->url_sampul }}" alt="{{ $unggulan->judul }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">@endif
             @if($unggulan->disematkan)<span class="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-600"><i class="fas fa-thumbtack"></i> Disematkan</span>@endif
         </div>
@@ -89,7 +89,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         @foreach($posts as $p)
         <article class="group relative flex flex-col bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all">
-            <a href="{{ route('postingan.show', $p->slug) }}" class="block relative aspect-[16/9] bg-gradient-to-br {{ $warnaKartu[$p->id % count($warnaKartu)] }} overflow-hidden">
+            <a href="{{ route('postingan.show', $p->slug) }}" class="block relative aspect-[16/9] {{ $warnaKartu[$p->id % count($warnaKartu)] }} overflow-hidden">
                 @if($p->url_sampul)
                     <img src="{{ $p->url_sampul }}" alt="{{ $p->judul }}" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                 @else

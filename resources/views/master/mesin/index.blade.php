@@ -104,7 +104,7 @@
                     </tr>
 
                    {{-- MODAL EDIT (Inline per Row) --}}
-<div id="edit{{ $m->id_mesin }}" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
+<div id="edit{{ $m->id_mesin }}" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40">
     <div class="flex items-center justify-center min-h-screen p-6">
         {{-- Card Modal --}}
         <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-[500px] overflow-hidden transform transition-all">
@@ -168,7 +168,7 @@
 </div>
 
 {{-- MODAL TAMBAH --}}
-<div id="tambahMesin" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
+<div id="tambahMesin" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40">
     <div class="flex items-center justify-center min-h-screen px-4 py-10">
         <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
             <div class="px-8 py-6 border-b border-slate-50 flex justify-between items-center bg-indigo-600">

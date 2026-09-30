@@ -35,7 +35,7 @@
     /* SIDEBAR CORE (Tetap Dipertahankan) */
     aside {
         width: var(--sidebar-width);
-        background: linear-gradient(180deg, #0f172a 0%, #131d33 55%, #17223b 100%);
+        background: #0f172a;
         color: #f1f5f9;
         position: fixed;
         top: 0; bottom: 0; left: 0;
@@ -93,7 +93,7 @@
     body.sidebar-collapsed aside .menu-group-toggle:hover .rail-icon,
     body.sidebar-collapsed aside .menu-group-toggle.flyout-open .rail-icon { background: rgba(255,255,255,0.14); color: #fff; transform: translateY(-1px); }
     body.sidebar-collapsed aside .menu-group-toggle.has-active .rail-icon {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+        background: #4f46e5; color: #fff;
     }
 
     /* Tampilan lebar: penanda grup yang berisi halaman aktif */
@@ -118,7 +118,7 @@
     #railFlyout .fly-title { padding: 6px 12px 10px; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #94a3b8; }
     #railFlyout a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: #e2e8f0; font-size: 14px; font-weight: 500; text-decoration: none; }
     #railFlyout a:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    #railFlyout a.fly-active { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: #fff; }
+    #railFlyout a.fly-active { background: #4f46e5; color: #fff; }
     #railFlyout a svg { width: 20px; height: 20px; flex-shrink: 0; color: #94a3b8; }
     #railFlyout a:hover svg, #railFlyout a.fly-active svg { color: #fff; }
     #railTip {
@@ -136,16 +136,12 @@
     .sidebar-logo:hover { transform: translateY(-1px); }
     .sidebar-logo:hover .logo-full { transform: scale(1.03); }
 
-    /* Gaya polos: tanpa kotak; kilau lembut di belakang + garis tipis terang supaya tepi logo gelap tetap terbaca */
+    /* Gaya polos: tanpa kotak; garis tipis terang di tepi supaya logo gelap tetap terbaca */
     .sidebar-logo.logo-gaya-polos { padding: 8px 12px; }
-    .sidebar-logo.logo-gaya-polos::before {
-        content: ''; position: absolute; inset: -6px -14px; z-index: 0; pointer-events: none;
-        background: radial-gradient(closest-side, rgba(129,140,248,0.30), rgba(129,140,248,0) 72%);
-    }
-    .sidebar-logo.logo-gaya-polos img { position: relative; z-index: 1; filter: drop-shadow(0 0 1px rgba(255,255,255,0.95)) drop-shadow(0 6px 14px rgba(2,6,23,0.45)); }
-    /* Gaya kaca */
-    .sidebar-logo.logo-gaya-kaca { padding: 10px 16px; border-radius: 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 30px rgba(2,6,23,0.25); backdrop-filter: blur(6px); }
-    .sidebar-logo.logo-gaya-kaca img { filter: drop-shadow(0 4px 10px rgba(2,6,23,0.35)); }
+    .sidebar-logo.logo-gaya-polos img { position: relative; z-index: 1; filter: drop-shadow(0 0 1px rgba(255,255,255,0.95)); }
+    /* Gaya panel (nilai tersimpan tetap 'kaca'): kotak solid dengan garis tepi, tanpa blur */
+    .sidebar-logo.logo-gaya-kaca { padding: 10px 16px; border-radius: 18px; background: #f1f4f9; border: 1px solid #dfe4ec; }
+    html.dark .sidebar-logo.logo-gaya-kaca { background: #1b2640; border-color: #26314a; }
     /* Gaya putih */
     .sidebar-logo.logo-gaya-putih { padding: 10px 16px; border-radius: 18px; background: #fff; box-shadow: 0 10px 30px rgba(2,6,23,0.35); }
 
@@ -195,9 +191,7 @@
         gap: 12px;
         padding: 18px 24px;
         border-bottom: 1px solid #e2e8f0;
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: #ffffff;
     }
 
     /* Topbar mobile - sebelumnya sama persis dengan desktop (padding 18px
@@ -308,7 +302,7 @@
             $pemilikSb = $pembukaSb ? 'Anda' : (DB::table('users')->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')->where('users.id_user', $kasAktif->id_user)->value(DB::raw('COALESCE(karyawan.nama_karyawan, users.username)')) ?? '-');
             $umurTeks = $umurSb >= 1 ? floor($umurSb) . ' jam' : 'baru dibuka';
         @endphp
-        <div class="sidebar-kas-status group rounded-2xl px-3 py-2.5 flex items-center gap-3 border backdrop-blur-sm {{ $kasBasi ? 'bg-gradient-to-br from-amber-500/25 to-orange-500/10 border-amber-400/40' : 'bg-gradient-to-br from-emerald-500/20 to-teal-500/5 border-emerald-400/25' }}"
+        <div class="sidebar-kas-status group rounded-2xl px-3 py-2.5 flex items-center gap-3 border {{ $kasBasi ? 'bg-amber-500/15 border-amber-400/40' : 'bg-emerald-500/15 border-emerald-400/25' }}"
              title="{{ $kasBasi ? 'Kasir Open lebih dari 24 jam - belum di-closing' : 'Kasir: Open' }}">
             <span class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $kasBasi ? 'bg-amber-400/20 text-amber-300' : 'bg-emerald-400/20 text-emerald-300' }}">
                 <i class="fas {{ $kasBasi ? 'fa-triangle-exclamation' : 'fa-cash-register' }} text-sm"></i>
@@ -366,7 +360,7 @@
 
         // Helper untuk styling menu agar konsisten
         $menuClass = "flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative ";
-        $activeClass = "sb-active bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-950/40";
+        $activeClass = "sb-active bg-indigo-600 text-white";
         $nonActiveClass = "text-slate-300 hover:bg-white/10 hover:text-white";
         
         $iconClass = "h-[22px] w-[22px] shrink-0 transition-colors ";

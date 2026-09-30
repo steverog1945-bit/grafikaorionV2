@@ -3,121 +3,98 @@
 @section('content')
 <style>
     /* ============================================================
-       KACA HALAMAN - bahannya benar-benar kaca: di light mode latar
-       PUTIH BENING (bukan turunan warna sidebar), blur dalam +
-       saturasi tinggi, garis rambut, dan cahaya tepi atas. Semua
-       warna hidup di variabel --kaca-* supaya light & dark memakai
-       bahan yang sama, cukup ganti nilai variabelnya.
+       LEMBAR HALAMAN - panel solid dengan garis tepi. Warna hidup di
+       variabel --lembar-* sehingga mode terang dan gelap memakai
+       struktur yang sama, cukup ganti nilai variabelnya. Tanpa blur
+       dan tanpa latar tembus pandang.
        ============================================================ */
-    .kaca {
-        --kaca-bg: rgba(255, 255, 255, 0.55);
-        --kaca-hover: rgba(255, 255, 255, 0.72);
-        --kaca-border: rgba(15, 23, 42, 0.08);
-        --kaca-line: rgba(15, 23, 42, 0.06);
-        --kaca-head: rgba(15, 23, 42, 0.03);
-        --kaca-ink: #1d2433;
-        --kaca-muted: #5b6472;
-        background: var(--kaca-bg);
-        backdrop-filter: blur(24px) saturate(180%);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
-        border: 1px solid var(--kaca-border);
+    .lembar {
+        --lembar-bg: #ffffff;
+        --lembar-hover: #f8f9fd;
+        --lembar-border: #dfe4ec;
+        --lembar-line: #edf0f5;
+        --lembar-head: #f4f6fa;
+        --lembar-ink: #1d2433;
+        --lembar-muted: #5b6472;
+        background: var(--lembar-bg);
+        border: 1px solid var(--lembar-border);
         border-radius: 16px;
-        box-shadow:
-            0 1px 2px rgba(15, 23, 42, 0.04),
-            0 12px 32px -16px rgba(15, 23, 42, 0.18),
-            inset 0 1px 0 rgba(255, 255, 255, 0.65);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
         transition:
             background 220ms cubic-bezier(0.32, 0.72, 0, 1),
-            border-color 220ms cubic-bezier(0.32, 0.72, 0, 1),
-            box-shadow 220ms cubic-bezier(0.32, 0.72, 0, 1);
+            border-color 220ms cubic-bezier(0.32, 0.72, 0, 1);
     }
-    .kaca:hover {
-        background: var(--kaca-hover);
-        border-color: rgba(15, 23, 42, 0.12);
-        box-shadow:
-            0 2px 4px rgba(15, 23, 42, 0.05),
-            0 18px 40px -18px rgba(15, 23, 42, 0.24),
-            inset 0 1px 0 rgba(255, 255, 255, 0.70);
+    .lembar:hover { background: var(--lembar-hover); border-color: #cbd3e0; }
+    html.dark .lembar {
+        --lembar-bg: #111a2e;
+        --lembar-hover: #16213a;
+        --lembar-border: #26314a;
+        --lembar-line: #1d2942;
+        --lembar-head: #17223b;
+        --lembar-ink: #f1f5f9;
+        --lembar-muted: #94a3b8;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.30);
     }
-    html.dark .kaca {
-        --kaca-bg: rgba(23, 34, 59, 0.62);
-        --kaca-hover: rgba(30, 42, 73, 0.72);
-        --kaca-border: rgba(255, 255, 255, 0.09);
-        --kaca-line: rgba(255, 255, 255, 0.07);
-        --kaca-head: rgba(255, 255, 255, 0.04);
-        --kaca-ink: #f1f5f9;
-        --kaca-muted: #94a3b8;
-        box-shadow:
-            0 1px 2px rgba(0, 0, 0, 0.30),
-            0 12px 32px -16px rgba(0, 0, 0, 0.50),
-            inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    }
-    html.dark .kaca:hover {
-        border-color: rgba(255, 255, 255, 0.14);
-        box-shadow:
-            0 2px 4px rgba(0, 0, 0, 0.35),
-            0 18px 40px -18px rgba(0, 0, 0, 0.55),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    }
+    html.dark .lembar:hover { border-color: #33415f; }
 
     /* Kartu angka: mungil, satu fakta per kartu */
-    .kaca-e {
+    .lembar-e {
         padding: 10px 14px 11px;
         border-radius: 14px;
         cursor: default;
     }
-    .kaca-e .l { font-size: 9.5px; font-weight: 700; color: var(--kaca-muted); text-transform: uppercase; letter-spacing: 0.07em; line-height: 1.35; }
-    .kaca-e .v { font-size: 15px; font-weight: 800; color: var(--kaca-ink); margin-top: 3px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-    .kaca-e .v small { font-size: 10.5px; font-weight: 700; }
+    .lembar-e .l { font-size: 9.5px; font-weight: 700; color: var(--lembar-muted); text-transform: uppercase; letter-spacing: 0.07em; line-height: 1.35; }
+    .lembar-e .v { font-size: 15px; font-weight: 800; color: var(--lembar-ink); margin-top: 3px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .lembar-e .v small { font-size: 10.5px; font-weight: 700; }
 
     /* Panel berisi tabel */
-    .kaca-p { padding: 12px 16px 8px; }
-    .k-judul { font-size: 10px; font-weight: 700; color: var(--kaca-muted); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-    .k-ket { font-size: 10.5px; color: var(--kaca-muted); margin-bottom: 8px; }
+    .lembar-p { padding: 12px 16px 8px; }
+    .k-judul { font-size: 10px; font-weight: 700; color: var(--lembar-muted); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .k-ket { font-size: 10.5px; color: var(--lembar-muted); margin-bottom: 8px; }
 
     /* Tabel: rapat, tenang, baris bernafas */
     .t { width: 100%; border-collapse: collapse; }
-    .t th { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--kaca-muted); text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--kaca-border); background: var(--kaca-head); white-space: nowrap; }
-    .t td { font-size: 12px; color: var(--kaca-ink); padding: 6px 10px; border-bottom: 1px solid var(--kaca-line); vertical-align: top; font-variant-numeric: tabular-nums; }
+    .t th { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--lembar-muted); text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--lembar-border); background: var(--lembar-head); white-space: nowrap; }
+    .t td { font-size: 12px; color: var(--lembar-ink); padding: 6px 10px; border-bottom: 1px solid var(--lembar-line); vertical-align: top; font-variant-numeric: tabular-nums; }
     .t tbody tr:last-child td { border-bottom: 0; }
     .t tbody tr { transition: background 140ms cubic-bezier(0.32, 0.72, 0, 1); }
-    .t tbody tr:hover { background: var(--kaca-head); }
+    .t tbody tr:hover { background: var(--lembar-head); }
     .t td.num, .t th.num { text-align: right; font-variant-numeric: tabular-nums; }
-    .t .kosong { color: var(--kaca-muted); font-style: italic; }
+    .t .kosong { color: var(--lembar-muted); font-style: italic; }
 
-    /* Filter & tombol kaca */
-    .kaca-input {
-        background: rgba(255, 255, 255, 0.55);
-        border: 1px solid rgba(15, 23, 42, 0.10);
+    /* Filter & tombol lembar */
+    .lembar-input {
+        background: #ffffff;
+        border: 1px solid #cfd6e2;
         border-radius: 10px; padding: 8px 12px;
         font-size: 13px; font-weight: 600; color: #1d2433;
         box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
         transition: border-color 140ms cubic-bezier(0.32, 0.72, 0, 1), box-shadow 140ms cubic-bezier(0.32, 0.72, 0, 1), background 140ms cubic-bezier(0.32, 0.72, 0, 1);
     }
-    .kaca-input:focus { outline: none; border-color: rgba(79, 70, 229, 0.45); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18); background: rgba(255, 255, 255, 0.85); }
-    html.dark .kaca-input { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.12); color: #e2e8f0; }
-    html.dark .kaca-input:focus { background: rgba(255, 255, 255, 0.10); border-color: rgba(129, 140, 248, 0.5); }
+    .lembar-input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px #dfe2fb; background: #ffffff; }
+    html.dark .lembar-input { background: #17223b; border-color: #33415f; color: #e2e8f0; }
+    html.dark .lembar-input:focus { background: #17223b; border-color: #818cf8; box-shadow: 0 0 0 3px #2a3560; }
 
-    .kaca-btn {
+    .lembar-btn {
         display: inline-flex; align-items: center; gap: 7px;
         padding: 8px 16px; border-radius: 999px;
         font-size: 12.5px; font-weight: 600; color: #1d2433;
-        background: rgba(255, 255, 255, 0.55);
-        border: 1px solid rgba(15, 23, 42, 0.10);
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        background: #ffffff;
+        border: 1px solid #cfd6e2;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
         transition: all 140ms cubic-bezier(0.32, 0.72, 0, 1);
         cursor: pointer;
     }
-    .kaca-btn:hover { background: rgba(255, 255, 255, 0.85); border-color: rgba(15, 23, 42, 0.16); box-shadow: 0 3px 10px -2px rgba(15, 23, 42, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.7); }
-    .kaca-btn:active { transform: scale(0.97); }
-    html.dark .kaca-btn { background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.12); color: #e2e8f0; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06); }
-    html.dark .kaca-btn:hover { background: rgba(255, 255, 255, 0.13); border-color: rgba(255, 255, 255, 0.18); }
-    .kaca-btn-utama { background: #4f46e5; border-color: transparent; color: #fff; box-shadow: 0 4px 14px -4px rgba(79, 70, 229, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.22); }
-    .kaca-btn-utama:hover { background: #4338ca; border-color: transparent; box-shadow: 0 6px 18px -4px rgba(79, 70, 229, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
-    html.dark .kaca-btn-utama { background: #6366f1; color: #fff; }
+    .lembar-btn:hover { background: #f4f6fa; border-color: #b9c2d3; }
+    .lembar-btn:active { transform: scale(0.97); }
+    html.dark .lembar-btn { background: #17223b; border-color: #33415f; color: #e2e8f0; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
+    html.dark .lembar-btn:hover { background: #1f2c49; border-color: #4a5a7d; }
+    .lembar-btn-utama { background: #4f46e5; border-color: #4338ca; color: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.18); }
+    .lembar-btn-utama:hover { background: #4338ca; border-color: #3730a3; }
+    html.dark .lembar-btn-utama { background: #6366f1; color: #fff; }
 
     /* Pil status kecil di judul panel */
-    .pil { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 10.5px; font-weight: 600; color: var(--kaca-muted); background: var(--kaca-head); border: 1px solid var(--kaca-line); text-transform: none; letter-spacing: 0; }
+    .pil { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 10.5px; font-weight: 600; color: var(--lembar-muted); background: var(--lembar-head); border: 1px solid var(--lembar-line); text-transform: none; letter-spacing: 0; }
 
     /* Nomor bab */
     .bab-no { width: 20px; height: 20px; border-radius: 999px; background: #1d2433; color: #fff; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -126,7 +103,7 @@
     html.dark .bab-judul { color: #cbd5e1; }
 
     @media (prefers-reduced-motion: reduce) {
-        .kaca, .kaca-btn, .kaca-input, .t tbody tr { transition: none !important; }
+        .lembar, .lembar-btn, .lembar-input, .t tbody tr { transition: none !important; }
     }
 
     @media print {
@@ -134,21 +111,19 @@
         aside, .no-print, .topbar { display: none !important; }
         main { margin-left: 0 !important; padding: 0 8mm !important; }
         body { background: #fff !important; }
-        .kaca, .kaca-e {
+        .lembar, .lembar-e {
             background: #fff !important;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
             border: 1px solid #cbd5e1 !important;
             box-shadow: none !important;
         }
-        .kaca:hover { background: #fff !important; }
+        .lembar:hover { background: #fff !important; }
         .t th { background: #f1f5f9 !important; color: #475569 !important; border-bottom: 1px solid #94a3b8 !important; }
         .t td { color: #1e293b !important; border-bottom: 1px solid #e2e8f0 !important; padding: 3px 6px !important; font-size: 10px !important; }
         .t th { padding: 3px 6px !important; font-size: 9px !important; }
-        .kaca-e .l { color: #475569 !important; }
-        .kaca-e .v { color: #0f172a !important; }
+        .lembar-e .l { color: #475569 !important; }
+        .lembar-e .v { color: #0f172a !important; }
         .bab-no { background: #1e293b !important; color: #fff !important; }
-        .bab-judul, .k-judul, .k-ket, .kaca-muted-print { color: #334155 !important; }
+        .bab-judul, .k-judul, .k-ket, .lembar-muted-print { color: #334155 !important; }
         .blok { break-inside: avoid; }
     }
 </style>
@@ -170,14 +145,14 @@
     </x-page-header>
 
     {{-- Filter: satu baris tenang, tanpa kotak besar --}}
-    <div class="kaca no-print mb-6 px-5 py-3.5">
+    <div class="lembar no-print mb-6 px-5 py-3.5">
         <form method="GET" class="flex flex-wrap items-center gap-3">
-            <span class="text-[10px] font-bold uppercase tracking-[0.12em]" style="color:var(--kaca-muted)">Bulan</span>
-            <input type="month" name="bulan" value="{{ $bulan->format('Y-m') }}" class="kaca-input" data-no-autosubmit>
+            <span class="text-[10px] font-bold uppercase tracking-[0.12em]" style="color:var(--lembar-muted)">Bulan</span>
+            <input type="month" name="bulan" value="{{ $bulan->format('Y-m') }}" class="lembar-input" data-no-autosubmit>
             <span class="flex-1"></span>
-            <button type="submit" class="kaca-btn kaca-btn-utama"><i class="fas fa-filter text-[11px]"></i> Tampilkan</button>
-            <a href="{{ route('audit-owner.csv', ['bulan' => $bulan->format('Y-m')]) }}" class="kaca-btn" title="Semua bagian laporan dalam satu berkas CSV"><i class="fas fa-file-csv text-[11px]"></i> Unduh CSV</a>
-            <button type="button" onclick="window.print()" class="kaca-btn"><i class="fas fa-print text-[11px]"></i> Cetak</button>
+            <button type="submit" class="lembar-btn lembar-btn-utama"><i class="fas fa-filter text-[11px]"></i> Tampilkan</button>
+            <a href="{{ route('audit-owner.csv', ['bulan' => $bulan->format('Y-m')]) }}" class="lembar-btn" title="Semua bagian laporan dalam satu berkas CSV"><i class="fas fa-file-csv text-[11px]"></i> Unduh CSV</a>
+            <button type="button" onclick="window.print()" class="lembar-btn"><i class="fas fa-print text-[11px]"></i> Cetak</button>
         </form>
     </div>
 
@@ -188,18 +163,18 @@
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-3 blok">
-        <div class="kaca kaca-e"><div class="l">Omzet nota &middot; {{ $k['jumlah_nota'] }} nota</div><div class="v">{{ $rp($k['omzet']) }}</div></div>
-        <div class="kaca kaca-e"><div class="l">Omzet jersey &middot; {{ $k['jumlah_jersey'] }} order</div><div class="v">{{ $rp($k['omzet_jersey']) }}</div></div>
-        <div class="kaca kaca-e"><div class="l">Biaya aktual &middot; HPP + rework + waste</div><div class="v">{{ $rp($k['biaya_aktual']) }}</div></div>
-        <div class="kaca kaca-e"><div class="l">Laba kotor &middot; margin {{ $n($k['margin'], 1) }}%</div><div class="v {{ $k['laba_kotor'] < 0 ? 'text-rose-600' : 'text-emerald-600' }}">{{ $rp($k['laba_kotor']) }}</div></div>
-        <div class="kaca kaca-e"><div class="l">Saldo kas &middot; buku besar</div><div class="v">{{ $rp($k['saldo_kas']) }}</div></div>
-        <div class="kaca kaca-e"><div class="l">Saldo bank</div><div class="v">{{ $rp($k['saldo_bank']) }}</div></div>
-        <div class="kaca kaca-e"><div class="l">Piutang &middot; {{ $k['nota_belum_lunas'] }} nota belum lunas</div><div class="v">{{ $rp($k['piutang']) }}</div></div>
-        <div class="kaca kaca-e"><div class="l">Hutang supplier</div><div class="v">{{ $rp($k['hutang']) }}</div></div>
+        <div class="lembar lembar-e"><div class="l">Omzet nota &middot; {{ $k['jumlah_nota'] }} nota</div><div class="v">{{ $rp($k['omzet']) }}</div></div>
+        <div class="lembar lembar-e"><div class="l">Omzet jersey &middot; {{ $k['jumlah_jersey'] }} order</div><div class="v">{{ $rp($k['omzet_jersey']) }}</div></div>
+        <div class="lembar lembar-e"><div class="l">Biaya aktual &middot; HPP + rework + waste</div><div class="v">{{ $rp($k['biaya_aktual']) }}</div></div>
+        <div class="lembar lembar-e"><div class="l">Laba kotor &middot; margin {{ $n($k['margin'], 1) }}%</div><div class="v {{ $k['laba_kotor'] < 0 ? 'text-rose-600' : 'text-emerald-600' }}">{{ $rp($k['laba_kotor']) }}</div></div>
+        <div class="lembar lembar-e"><div class="l">Saldo kas &middot; buku besar</div><div class="v">{{ $rp($k['saldo_kas']) }}</div></div>
+        <div class="lembar lembar-e"><div class="l">Saldo bank</div><div class="v">{{ $rp($k['saldo_bank']) }}</div></div>
+        <div class="lembar lembar-e"><div class="l">Piutang &middot; {{ $k['nota_belum_lunas'] }} nota belum lunas</div><div class="v">{{ $rp($k['piutang']) }}</div></div>
+        <div class="lembar lembar-e"><div class="l">Hutang supplier</div><div class="v">{{ $rp($k['hutang']) }}</div></div>
     </div>
 
     <div class="grid md:grid-cols-2 gap-3 mb-3">
-        <div class="kaca kaca-p blok">
+        <div class="lembar lembar-p blok">
             <h3 class="k-judul">Uang masuk &mdash; pembayaran nota</h3>
             <table class="t">
                 <thead><tr><th>Metode</th><th class="num">Transaksi</th><th class="num">Total</th></tr></thead>
@@ -210,7 +185,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="kaca kaca-p blok">
+        <div class="lembar lembar-p blok">
             <h3 class="k-judul">Uang keluar</h3>
             <table class="t">
                 <thead><tr><th>Uraian</th><th class="num">Jumlah</th><th class="num">Nilai</th></tr></thead>
@@ -225,7 +200,7 @@
         </div>
     </div>
 
-    <div class="kaca kaca-p mb-3 blok">
+    <div class="lembar lembar-p mb-3 blok">
         <h3 class="k-judul">Kas harian &mdash; {{ $a['kas_harian']->count() }} sesi closing</h3>
         <table class="t">
             <thead><tr><th>Tanggal</th><th>Kasir</th><th class="num">Saldo awal</th><th class="num">Saldo sistem</th><th class="num">Saldo fisik</th><th class="num">Selisih</th><th>Status</th><th>Keterangan</th></tr></thead>
@@ -238,7 +213,7 @@
         </table>
     </div>
 
-    <div class="kaca kaca-p mb-3 blok">
+    <div class="lembar lembar-p mb-3 blok">
         <h3 class="k-judul">Nota dibatalkan &mdash; {{ $k['nota_dibatalkan_jumlah'] }} nota senilai {{ $rp($k['nota_dibatalkan_nilai']) }}</h3>
         <table class="t">
             <thead><tr><th>Nota</th><th class="num">Nilai</th><th>Tanggal batal</th><th>Alasan</th></tr></thead>
@@ -254,7 +229,7 @@
         <h2 class="bab-judul">Permintaan bahan</h2>
     </div>
 
-    <div class="kaca kaca-p mb-3 blok">
+    <div class="lembar lembar-p mb-3 blok">
         <h3 class="k-judul">Purchase Request
             @foreach($a['permintaan']['pr_per_status'] as $st => $c)<span class="pil">{{ $st }} &middot; {{ $c }}</span>@endforeach
         </h3>
@@ -266,7 +241,7 @@
         </table>
     </div>
 
-    <div class="kaca kaca-p mb-3 blok">
+    <div class="lembar lembar-p mb-3 blok">
         <h3 class="k-judul">Purchase Order <span class="pil">total {{ $rp($a['permintaan']['po_total']) }}</span></h3>
         <table class="t">
             <thead><tr><th>Nomor</th><th>Tanggal</th><th>Supplier</th><th>Status</th><th class="num">Total</th></tr></thead>
@@ -282,7 +257,7 @@
         <h2 class="bab-judul">Pemakaian bahan &mdash; cetak &amp; salah cetak</h2>
     </div>
 
-    <div class="kaca kaca-p mb-3 blok">
+    <div class="lembar lembar-p mb-3 blok">
         <p class="k-ket">Dihitung dari Kartu Stok. Uji: stok awal + masuk &minus; keluar + penyesuaian harus pas dengan stok akhir &mdash; kolom <b>Kontrol</b> menunjukkan 0 kalau cocok.</p>
         <div class="overflow-x-auto">
         <table class="t">
@@ -300,13 +275,13 @@
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-3 blok">
-        <div class="kaca kaca-e"><div class="l">Biaya waste diterapkan</div><div class="v">{{ $rp($sc['waste_biaya']) }}</div></div>
-        <div class="kaca kaca-e"><div class="l">Waste abnormal</div><div class="v">{{ $sc['waste_abnormal'] }} <small>kejadian</small></div></div>
-        <div class="kaca kaca-e"><div class="l">Biaya rework selesai</div><div class="v">{{ $rp($sc['rework_biaya']) }}</div></div>
-        <div class="kaca kaca-e"><div class="l">Reject QC</div><div class="v">{{ $n($sc['qc_reject'], 4) }} <small>/ {{ $n($sc['qc_diperiksa'], 4) }} &middot; {{ $n($sc['qc_persen_reject'], 2) }}%</small></div></div>
+        <div class="lembar lembar-e"><div class="l">Biaya waste diterapkan</div><div class="v">{{ $rp($sc['waste_biaya']) }}</div></div>
+        <div class="lembar lembar-e"><div class="l">Waste abnormal</div><div class="v">{{ $sc['waste_abnormal'] }} <small>kejadian</small></div></div>
+        <div class="lembar lembar-e"><div class="l">Biaya rework selesai</div><div class="v">{{ $rp($sc['rework_biaya']) }}</div></div>
+        <div class="lembar lembar-e"><div class="l">Reject QC</div><div class="v">{{ $n($sc['qc_reject'], 4) }} <small>/ {{ $n($sc['qc_diperiksa'], 4) }} &middot; {{ $n($sc['qc_persen_reject'], 2) }}%</small></div></div>
     </div>
 
-    <div class="kaca kaca-p mb-3 blok">
+    <div class="lembar lembar-p mb-3 blok">
         <h3 class="k-judul">Rincian waste &mdash; bahan terbuang</h3>
         <table class="t">
             <thead><tr><th>Nomor</th><th>Tanggal</th><th>Bahan</th><th class="num">Qty</th><th>Jenis</th><th>Status</th><th class="num">Biaya</th><th>Alasan</th><th>Petugas</th></tr></thead>
@@ -316,7 +291,7 @@
         </table>
     </div>
 
-    <div class="kaca kaca-p mb-3 blok">
+    <div class="lembar lembar-p mb-3 blok">
         <h3 class="k-judul">Rincian rework &mdash; cetak ulang</h3>
         <table class="t">
             <thead><tr><th>Nomor</th><th>Tanggal</th><th class="num">Qty</th><th>Status</th><th class="num">Biaya material</th><th>Catatan</th><th>Petugas</th></tr></thead>
@@ -326,7 +301,7 @@
         </table>
     </div>
 
-    <div class="kaca kaca-p mb-3 blok">
+    <div class="lembar lembar-p mb-3 blok">
         <h3 class="k-judul">Penyesuaian stok &amp; opname</h3>
         <table class="t">
             <thead><tr><th>Tanggal</th><th>Bahan</th><th class="num">Sebelum</th><th class="num">Sesudah</th><th class="num">Selisih</th><th class="num">Nilai</th><th>Referensi / alasan</th><th>Petugas</th></tr></thead>
@@ -343,7 +318,7 @@
         <h2 class="bab-judul">Pengendalian &amp; jejak input</h2>
     </div>
 
-    <div class="kaca kaca-p mb-3 blok">
+    <div class="lembar lembar-p mb-3 blok">
         <h3 class="k-judul">Pengajuan &amp; persetujuan
             @foreach($a['approval']['per_status'] as $st => $c)<span class="pil">{{ $st }} &middot; {{ $c }}</span>@endforeach
         </h3>
@@ -355,7 +330,7 @@
         </table>
     </div>
 
-    <div class="kaca kaca-p mb-3 blok">
+    <div class="lembar lembar-p mb-3 blok">
         <h3 class="k-judul">Input per pengguna</h3>
         <table class="t">
             <thead><tr><th>Pengguna</th>@foreach($a['input_user']['kolom'] as $c)<th class="num">{{ $c }}</th>@endforeach</tr></thead>
@@ -365,7 +340,7 @@
         </table>
     </div>
 
-    <div class="kaca kaca-p mb-6 blok">
+    <div class="lembar lembar-p mb-6 blok">
         <h3 class="k-judul">Jejak aktivitas <span class="pil">{{ $a['jejak']['total'] }} catatan</span>
             @foreach($a['jejak']['per_event'] as $ev => $c)<span class="pil">{{ $ev }} &middot; {{ $c }}</span>@endforeach
         </h3>

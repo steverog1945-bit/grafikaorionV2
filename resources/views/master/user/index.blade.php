@@ -62,7 +62,7 @@
 </div>
 
 <div id="modalUser" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleModal('modalUser')"></div>
+    <div class="absolute inset-0 bg-slate-900/60" onclick="toggleModal('modalUser')"></div>
     <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1.5 bg-indigo-600"></div>
         
@@ -118,7 +118,7 @@
      ganti username/role, dan password kalau diisi), tapi tidak ada satupun
      elemen UI yang memanggilnya. --}}
 <div id="modalEditUser" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleModal('modalEditUser')"></div>
+    <div class="absolute inset-0 bg-slate-900/60" onclick="toggleModal('modalEditUser')"></div>
     <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1.5 bg-amber-500"></div>
 
