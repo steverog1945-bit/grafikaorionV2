@@ -114,6 +114,7 @@ class MatriksRuteKeamananTest extends TestCase
             'POST /login',
             'POST /logout',
             'GET /sinyal',
+            'GET /baca/{slug}', // tulisan yang ditandai publik (PublikController, scope publik)
         ];
         $ditemukan = array_map(fn ($b) => preg_replace('/ \[.*\]$/', '', $b), $terbuka);
         $asing = array_values(array_filter($ditemukan, fn ($b) => !in_array($b, $harapan, true) && !str_starts_with($b, 'GET /storage') && $b !== 'PUT /storage/{path}'));

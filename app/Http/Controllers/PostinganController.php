@@ -186,6 +186,7 @@ class PostinganController extends Controller
             'status' => $data['status'],
             'terbit_at' => $terbitAt,
             'disematkan' => $request->boolean('disematkan'),
+            'tampil_publik' => $request->boolean('tampil_publik'),
             'id_penulis' => $post->id_penulis ?? Auth::id(),
             'menit_baca' => HtmlBersih::menitBaca($isi),
         ])->save();

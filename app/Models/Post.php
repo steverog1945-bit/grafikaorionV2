@@ -12,9 +12,9 @@ class Post extends Model
 
     protected $table = 'posts';
 
-    protected $fillable = ['judul', 'slug', 'ringkasan', 'isi', 'gambar_sampul', 'id_kategori', 'tags', 'status', 'terbit_at', 'disematkan', 'id_penulis', 'menit_baca'];
+    protected $fillable = ['judul', 'slug', 'ringkasan', 'isi', 'gambar_sampul', 'id_kategori', 'tags', 'status', 'terbit_at', 'disematkan', 'tampil_publik', 'id_penulis', 'menit_baca'];
 
-    protected $casts = ['terbit_at' => 'datetime', 'disematkan' => 'boolean'];
+    protected $casts = ['terbit_at' => 'datetime', 'disematkan' => 'boolean', 'tampil_publik' => 'boolean'];
 
     public function kategori()
     {
@@ -30,6 +30,12 @@ class Post extends Model
     public function scopeTerbit($q)
     {
         return $q->where('status', 'terbit')->where(fn ($w) => $w->whereNull('terbit_at')->orWhere('terbit_at', '<=', now()));
+    }
+
+    /** Yang boleh dibaca TANPA login: sudah terbit dan sengaja ditandai tampil di halaman depan. */
+    public function scopePublik($q)
+    {
+        return $q->terbit()->where('tampil_publik', true);
     }
 
     /** Draft | Terjadwal | Terbit (untuk label). */

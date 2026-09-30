@@ -172,3 +172,13 @@ Klik ganda pada form biasa (bukan POS) bergantung pada penjagaan server: aman, t
 | 8 badge pil | Huruf kapitalnya sudah hilang lewat aturan terpusat; bentuk `rounded-full` dipertahankan sesuai pengecualian yang ditulis di CSS main |
 | 11 indigo di mana-mana | 16 ikon dan 46 lencana/wadah ikon statis dinetralkan ke abu. Tombol utama, tautan, menu aktif, fokus, dan semua keadaan yang diatur lewat kondisi Blade atau JS tidak disentuh |
 | 12 blok fitur kembar di login | Diganti daftar bergaris di landing baru |
+
+## 18. Halaman depan ala blog (menggantikan landing bagian 17)
+| Item | Hasil |
+|---|---|
+| Halaman depan `/` | Daftar tulisan publik: satu tulisan utama, saring kategori, cari, dan "Muat tulisan lain" tanpa muat ulang (AJAX, tetap jalan tanpa JS). Isi mengikuti jumlah tulisan yang diterbitkan |
+| Baca tanpa login | `/baca/{slug}` (`PublikController`). Hanya tulisan berstatus terbit DAN dicentang "Tampil di halaman depan" (kolom baru `posts.tampil_publik`, bawaan tidak). Draft, terjadwal, dan tulisan internal membalas 404 |
+| Masuk | Dialog dari tombol Masuk; terbuka sendiri bila login gagal atau baru ditolak dari halaman dalam. Pengguna yang sudah login tetap diarahkan ke Dashboard |
+| Gaya | Judul serif (Playfair Display, sudah ada di server), antarmuka Inter, tanpa huruf mono, gradien, kaca, atau bayangan berwarna |
+| Gerak (pedoman emil-design-eng) | Hanya transform dan opacity, di bawah 300ms, ease-out `cubic-bezier(0.23,1,0.32,1)`; tombol `scale(0.97)` saat ditekan; dialog mulai dari `scale(0.96)`; kartu baru naik 10px berurutan 40ms; hover hanya di perangkat ber-pointer; `prefers-reduced-motion` dihormati |
+| Tes | `HalamanDepanPublikTest` (7 kasus) + matriks rute diperbarui |

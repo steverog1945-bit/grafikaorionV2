@@ -9,14 +9,23 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    public function showLogin()
+    public function showLogin(Request $request)
     {
         // Sudah login -> langsung ke dashboard, bukan menampilkan form login lagi.
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
 
-        return response()->view('login')->withHeaders([
+        // Halaman depan = daftar tulisan publik + dialog masuk.
+        $data = PublikController::dataBeranda($request);
+        if ($request->ajax()) {
+            return PublikController::jawabanDaftar($data);
+        }
+
+        // Baru saja ditolak dari halaman dalam: dialog masuk dibuka sendiri, sekali.
+        $data['bukaMasuk'] = (bool) $request->session()->pull('url.intended');
+
+        return response()->view('login', $data)->withHeaders([
             'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
         ]);
     }

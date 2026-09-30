@@ -100,6 +100,10 @@
                         <input type="checkbox" name="disematkan" value="1" class="accent-indigo-600" {{ old('disematkan', $post->disematkan) ? 'checked' : '' }}>
                         <span><span class="block text-xs font-medium text-slate-600 uppercase tracking-wide"><i class="fas fa-thumbtack text-amber-500"></i> Sematkan di atas</span><span class="block text-[11px] text-slate-400">Selalu tampil paling atas &amp; di dashboard</span></span>
                     </label>
+                    <label class="mt-3 flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 cursor-pointer" title="Tulisan ini bisa dibaca siapa saja di halaman depan, tanpa login">
+                        <input type="checkbox" name="tampil_publik" value="1" class="accent-indigo-600" {{ old('tampil_publik', $post->tampil_publik) ? 'checked' : '' }}>
+                        <span><span class="block text-xs font-medium text-slate-600"><i class="fas fa-globe text-slate-500"></i> Tampil di halaman depan</span><span class="block text-[11px] text-slate-400">Bisa dibaca tanpa login. Jangan dicentang untuk SOP atau pengumuman internal.</span></span>
+                    </label>
                 </x-card>
 
                 <x-card>

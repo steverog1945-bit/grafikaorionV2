@@ -1,248 +1,176 @@
-@php
-    $appSetting = \App\Models\AppSetting::current();
-    $urlLogo = $appSetting->logo_path ? asset('storage/' . $appSetting->logo_path) : null;
+@extends('publik.layout')
 
-    // Isi landing diambil dari modul yang benar-benar ada di aplikasi ini.
-    // Tidak ada angka, testimoni, atau klaim yang tidak bisa dibuktikan.
-    $modul = [
-        ['Penjualan dan kasir', 'Nota cetak, penjualan barang, DP, pelunasan, deposit pelanggan, buka dan tutup kas harian.'],
-        ['Produksi', 'SPK per item, antrean desain dan cetak, jumlah cetak, salah cetak, QC dan rework.'],
-        ['Serah terima', 'Barang keluar tercatat penerimanya. Nota yang belum lunas hanya keluar dengan alasan tertulis.'],
-        ['Stok dan pembelian', 'Kartu stok, permintaan dan pesanan pembelian, kedatangan bahan, hutang supplier, stok opname.'],
-        ['Order jersey', 'Daftar pemain, ukuran dari master, estimasi kain, pembayaran bertahap.'],
-        ['Akuntansi', 'Jurnal otomatis dari setiap transaksi, buku besar, neraca, laba rugi, tutup periode.'],
-        ['Laporan dan audit', 'Piutang, profitabilitas, pemakaian bahan, audit bulanan pemilik, jejak siapa mengubah apa.'],
-    ];
-    $alur = [
-        ['Order', 'Kasir membuat nota. Harga mengikuti price list golongan pelanggan.'],
-        ['Bayar', 'DP atau lunas, tunai, transfer, atau dari deposit.'],
-        ['Produksi', 'Operator mengambil SPK. Bahan berkurang sesuai pemakaian.'],
-        ['Serah terima', 'Barang diserahkan, nama penerima dan bukti dicatat.'],
-        ['Buku', 'Piutang, kas, persediaan, dan pendapatan terjurnal sendiri.'],
-    ];
-@endphp
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Masuk - {{ $appSetting->nama_aplikasi }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    {{-- Font dilayani sendiri (server LAN tanpa internet tetap tampil benar). --}}
-    <link rel="stylesheet" href="{{ asset('vendor/fonts/inter.css') }}">
+@section('judul', $appSetting->nama_aplikasi ?? \App\Models\AppSetting::current()->nama_aplikasi)
+@section('deskripsi', 'Kabar, panduan, dan hasil kerja dari ' . \App\Models\AppSetting::current()->nama_aplikasi . '.')
 
-    <style>
-        /* Landing + login. Token visual mengikuti opencode: kanvas kertas hangat, teks hampir hitam,
-           garis rambut 1px, huruf mono untuk judul dan label, sudut kecil, satu aksen (indigo merek).
-           Tanpa gradien, tanpa kaca, tanpa bayangan, tanpa kartu fitur kembar. */
-        :root {
-            --kertas: #fdfcfc; --lembar: #ffffff; --garis: #e6e2df; --garis-kuat: #cfc9c5;
-            --tinta: #201d1d; --tinta-2: #57504e; --tinta-3: #6f6866;
-            --aksen: #4f46e5; --aksen-tekan: #4338ca;
-            --mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-            --sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+@section('gaya')
+        .bl-pembuka { padding: 4rem 0 2.5rem; }
+        .bl-pembuka h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(2.25rem, 5vw, 3.75rem); line-height: 1.08; letter-spacing: -0.02em; margin: 0; max-width: 16ch; }
+        .bl-pembuka p { margin: 1.25rem 0 0; font-size: 1.125rem; color: var(--tinta-2); max-width: 46ch; }
+
+        /* Tulisan utama: gambar besar di kiri, teks di kanan. */
+        .bl-utama { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 2.5rem; align-items: center; padding: 2rem 0 3.5rem; border-top: 1px solid var(--garis); }
+        .bl-utama h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(1.625rem, 2.6vw, 2.25rem); line-height: 1.18; letter-spacing: -0.015em; margin: 0.625rem 0 0; }
+        .bl-utama .bl-ringkas { font-size: 1.0625rem; -webkit-line-clamp: 4; }
+        .bl-baca { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1.25rem; font-weight: 500; border-bottom: 1px solid var(--tinta); padding-bottom: 2px; }
+        .bl-baca i { font-size: 0.75rem; transition: transform 180ms var(--keluar); }
+
+        .bl-gambar { overflow: hidden; border-radius: 6px; background: #eeeae4; aspect-ratio: 3 / 2; }
+        .bl-gambar img { width: 100%; height: 100%; object-fit: cover; transition: transform 320ms var(--keluar); }
+        .bl-meta { display: flex; flex-wrap: wrap; gap: 0.375rem 0.75rem; margin: 0; font-size: 0.8125rem; color: var(--tinta-3); }
+        .bl-meta span { color: var(--tinta); font-weight: 500; }
+        .bl-ringkas { margin: 0.625rem 0 0; color: var(--tinta-2); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+
+        /* Bilah saring */
+        .bl-bilah { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--tinta); border-bottom: 1px solid var(--garis); scroll-margin-top: 64px; }
+        .bl-kategori { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; }
+        .bl-kategori button { background: none; border: 0; padding: 0.25rem 0; font: inherit; font-size: 0.9375rem; color: var(--tinta-3); cursor: pointer; position: relative; transition: color 150ms ease; }
+        .bl-kategori button::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--tinta); transform: scaleX(0); transform-origin: left; transition: transform 200ms var(--keluar); }
+        .bl-kategori button[aria-pressed="true"] { color: var(--tinta); font-weight: 500; }
+        .bl-kategori button[aria-pressed="true"]::after { transform: scaleX(1); }
+        .bl-cari { position: relative; flex: 0 1 260px; }
+        .bl-cari i { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--tinta-3); font-size: 0.8125rem; pointer-events: none; }
+        .bl-cari input { width: 100%; padding: 0 0.75rem 0 2.25rem; background: var(--putih); border: 1px solid var(--garis-kuat); font: inherit; font-size: 0.9375rem; color: var(--tinta); outline: none; }
+        .bl-cari input:focus { border-color: var(--aksen); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important; }
+
+        /* Daftar */
+        .bl-daftar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3rem 2rem; padding-top: 2.5rem; transition: opacity 150ms ease; }
+        .bl-daftar[aria-busy="true"] { opacity: 0.5; }
+        .bl-kartu-taut { display: block; }
+        .bl-kartu .bl-meta { margin-top: 1rem; }
+        .bl-kartu h3 { font-family: var(--serif); font-weight: 600; font-size: 1.3125rem; line-height: 1.25; letter-spacing: -0.01em; margin: 0.375rem 0 0; text-wrap: balance; }
+        /* Kartu yang baru masuk naik sedikit sambil muncul; berurutan 40ms supaya terasa satu gerakan. */
+        .bl-kartu.baru { animation: bl-naik 280ms var(--keluar) both; animation-delay: calc(var(--i, 0) * 40ms); }
+        @keyframes bl-naik { from { opacity: 0; transform: translateY(10px); } }
+        @media (hover: hover) {
+            .bl-kartu-taut:hover .bl-gambar img, .bl-utama a:hover .bl-gambar img { transform: scale(1.03); }
+            .bl-kartu-taut:hover h3 { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+            .bl-baca:hover i { transform: translateX(3px); }
+            .bl-kategori button:hover { color: var(--tinta); }
         }
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body {
-            margin: 0; background: var(--kertas); color: var(--tinta);
-            font-family: var(--sans); font-size: 15px; line-height: 1.6;
-            padding: 0 max(1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
-        }
-        a { color: inherit; }
+        .bl-kosong { padding: 4rem 0; text-align: center; color: var(--tinta-3); }
+        .bl-lagi { display: flex; justify-content: center; padding-top: 3rem; }
 
-        /* Satu kolom bergaris, seperti halaman dokumen. */
-        .lp { max-width: 1080px; margin: 0 auto; border-left: 1px solid var(--garis); border-right: 1px solid var(--garis); background: var(--kertas); }
-        .lp > * { border-bottom: 1px solid var(--garis); }
-
-        .lp-atas { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.875rem 1.5rem; position: sticky; top: 0; background: var(--kertas); z-index: 5; }
-        .lp-merek { display: flex; align-items: center; gap: 0.625rem; font-family: var(--mono); font-weight: 600; font-size: 14px; text-decoration: none; }
-        .lp-merek img { height: 28px; width: auto; object-fit: contain; }
-        .lp-nav { display: flex; gap: 1.5rem; font-family: var(--mono); font-size: 13px; }
-        .lp-nav a { text-decoration: none; color: var(--tinta-2); }
-        .lp-nav a:hover { color: var(--tinta); text-decoration: underline; text-underline-offset: 4px; }
-
-        .lp-hero { display: grid; grid-template-columns: minmax(0, 1fr) 380px; }
-        .lp-hero-teks { padding: 3.5rem 1.5rem 3rem; border-right: 1px solid var(--garis); }
-        .lp-hero h1 { font-family: var(--mono); font-weight: 600; font-size: clamp(1.625rem, 3.2vw, 2.375rem); line-height: 1.2; letter-spacing: -0.02em; margin: 0; max-width: 20ch; }
-        .lp-lead { margin: 1.25rem 0 0; color: var(--tinta-2); max-width: 52ch; }
-        .lp-fakta { list-style: none; margin: 2rem 0 0; padding: 0; font-family: var(--mono); font-size: 13px; color: var(--tinta-2); }
-        .lp-fakta li { padding: 0.5rem 0; border-top: 1px solid var(--garis); display: flex; gap: 0.75rem; }
-        .lp-fakta li::before { content: '[+]'; color: var(--tinta-3); }
-
-        .lp-masuk { padding: 2.25rem 1.5rem; background: var(--lembar); scroll-margin-top: 4rem; }
-        .login-judul { font-family: var(--mono); font-size: 1.0625rem; font-weight: 600; margin: 0 0 1.25rem; }
-        .login-label { display: block; font-family: var(--mono); font-size: 13px; color: var(--tinta-2); margin-bottom: 0.375rem; }
-        /* Tinggi isian mengikuti aturan global aplikasi (38px), lihat ui-refresh.css. */
-        .login-input { width: 100%; padding: 0 0.75rem; background: #fff; border: 1px solid var(--garis-kuat); border-radius: 4px; font-size: 0.875rem; font-family: inherit; color: var(--tinta); outline: none; transition: border-color 140ms, box-shadow 140ms; }
-        .login-input::placeholder { color: #8f8886; }
-        .login-input:focus { border-color: var(--aksen); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
-        .login-tombol { width: 100%; height: 40px; background: var(--tinta); color: #fff; border: none; border-radius: 4px; font-family: var(--mono); font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 140ms; }
-        .login-tombol:hover { background: var(--aksen); }
-        .login-tombol:active { background: var(--aksen-tekan); }
-        .login-tombol:focus-visible, #login-toggle:focus-visible, .lp a:focus-visible { outline: 2px solid var(--aksen); outline-offset: 2px; }
-        .login-galat { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 4px; padding: 0.625rem 0.75rem; font-size: 0.8125rem; display: flex; gap: 0.5rem; align-items: flex-start; }
-        .login-catatan { font-size: 13px; color: var(--tinta-3); margin: 1rem 0 0; }
-
-        .lp-bagian { padding: 2.5rem 1.5rem; scroll-margin-top: 3.5rem; }
-        .lp-bagian h2 { font-family: var(--mono); font-size: 1rem; font-weight: 600; margin: 0 0 0.25rem; }
-        .lp-bagian > p { margin: 0 0 1.5rem; color: var(--tinta-2); max-width: 60ch; }
-
-        /* Modul: daftar dua kolom bergaris, bukan kartu. */
-        .lp-daftar { margin: 0; border-top: 1px solid var(--garis); }
-        .lp-daftar div { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 1.5rem; padding: 0.75rem 0; border-bottom: 1px solid var(--garis); }
-        .lp-daftar dt { font-family: var(--mono); font-size: 14px; font-weight: 600; }
-        .lp-daftar dd { margin: 0; color: var(--tinta-2); }
-
-        .lp-alur { list-style: none; margin: 0; padding: 0; counter-reset: langkah; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--garis); }
-        .lp-alur li { counter-increment: langkah; padding: 1rem; border-right: 1px solid var(--garis); font-size: 14px; color: var(--tinta-2); }
-        .lp-alur li:last-child { border-right: 0; }
-        .lp-alur b { display: block; font-family: var(--mono); color: var(--tinta); margin-bottom: 0.25rem; }
-        .lp-alur b::before { content: counter(langkah) '. '; color: var(--tinta-3); font-weight: 400; }
-
-        .lp-aturan { list-style: disc; margin: 0; padding-left: 1.25rem; color: var(--tinta-2); max-width: 64ch; }
-        .lp-aturan li { margin-bottom: 0.375rem; }
-
-        .lp-kaki { padding: 1.5rem; font-family: var(--mono); font-size: 13px; color: var(--tinta-3); display: flex; flex-wrap: wrap; gap: 0.25rem 2rem; justify-content: space-between; }
-
-        /* Layar sempit: form lebih dulu, karena halaman ini alat kerja. */
         @media (max-width: 900px) {
-            .lp-nav { display: none; }
-            .lp-hero { grid-template-columns: 1fr; }
-            .lp-masuk { order: -1; border-bottom: 1px solid var(--garis); }
-            .lp-hero-teks { border-right: 0; padding: 2rem 1.25rem; }
-            .lp-daftar div { grid-template-columns: 1fr; gap: 0.125rem; }
-            .lp-alur { grid-template-columns: 1fr; }
-            .lp-alur li { border-right: 0; border-bottom: 1px solid var(--garis); }
-            .lp-alur li:last-child { border-bottom: 0; }
-            .lp-bagian, .lp-masuk { padding-left: 1.25rem; padding-right: 1.25rem; }
+            .bl-pembuka { padding: 2.5rem 0 1.5rem; }
+            .bl-utama { grid-template-columns: 1fr; gap: 1.25rem; padding-bottom: 2.5rem; }
+            .bl-daftar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem 1.25rem; }
+            .bl-cari { flex-basis: 100%; }
         }
-        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
-    </style>
-</head>
-<body>
-<div class="lp">
-    <header class="lp-atas">
-        <a class="lp-merek" href="#masuk">
-            @if($urlLogo)
-                <img src="{{ $urlLogo }}" alt="">
-            @endif
-            <span>{{ $appSetting->nama_aplikasi }}</span>
+        @media (max-width: 560px) { .bl-daftar { grid-template-columns: 1fr; } }
+@endsection
+
+@section('isi')
+@php $nama = \App\Models\AppSetting::current()->nama_aplikasi; @endphp
+<div class="bl-lebar">
+    <section class="bl-pembuka">
+        <h1>Kabar dan catatan kerja {{ $nama }}</h1>
+        <p>Pengumuman, panduan, dan hasil cetak terbaru kami.</p>
+    </section>
+
+    @if($unggulan)
+    <section class="bl-utama" id="unggulan" aria-label="Tulisan utama">
+        <a href="{{ route('publik.baca', $unggulan->slug) }}" tabindex="-1" aria-hidden="true">
+            @if($unggulan->url_sampul)<div class="bl-gambar"><img src="{{ $unggulan->url_sampul }}" alt=""></div>@endif
         </a>
-        <nav class="lp-nav" aria-label="Isi halaman">
-            <a href="#modul">Modul</a>
-            <a href="#alur">Alur nota</a>
-            <a href="#akses">Akses</a>
-            <a href="#masuk">Masuk</a>
-        </nav>
-    </header>
+        <div>
+            <p class="bl-meta">
+                @if($unggulan->kategori)<span>{{ $unggulan->kategori->nama }}</span>@endif
+                <time>{{ optional($unggulan->terbit_at)->locale('id')->translatedFormat('d F Y') }}</time>
+                <span style="font-weight:400;color:inherit">{{ $unggulan->menit_baca }} menit baca</span>
+            </p>
+            <h2><a href="{{ route('publik.baca', $unggulan->slug) }}">{{ $unggulan->judul }}</a></h2>
+            @if($unggulan->ringkasan)<p class="bl-ringkas">{{ $unggulan->ringkasan }}</p>@endif
+            <a class="bl-baca" href="{{ route('publik.baca', $unggulan->slug) }}">Baca tulisan <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
+    </section>
+    @endif
 
-    <div class="lp-hero">
-        <section class="lp-hero-teks">
-            <h1>Order, produksi, stok, dan kas percetakan dalam satu catatan.</h1>
-            <p class="lp-lead">Sistem kerja {{ $appSetting->nama_aplikasi }}. Satu nota diikuti dari meja kasir sampai barang diserahkan, dan angkanya masuk ke buku tanpa diketik ulang.</p>
-            <ul class="lp-fakta">
-                <li>Berjalan di jaringan kantor, tidak bergantung pada internet.</li>
-                <li>Setiap orang hanya melihat menu sesuai perannya.</li>
-                <li>Perubahan harga, stok, dan pembayaran tercatat beserta pelakunya.</li>
-            </ul>
-        </section>
-
-        <section class="lp-masuk" id="masuk" aria-labelledby="judul-masuk">
-            <h2 class="login-judul" id="judul-masuk">Masuk ke sistem</h2>
-
-            <form action="{{ url('login') }}" method="POST" class="space-y-4">
-                @csrf
-
-                <div>
-                    <label class="login-label" for="login-username">Username</label>
-                    <input type="text" id="login-username" name="username" class="login-input"
-                           placeholder="Nama pengguna" required autofocus
-                           autocomplete="username" autocapitalize="none" spellcheck="false">
-                </div>
-
-                <div>
-                    <label class="login-label" for="login-password">Password</label>
-                    {{-- Tombol tampil/sembunyikan: salah ketik di HP tidak perlu menghapus semuanya. --}}
-                    <div class="relative">
-                        <input type="password" id="login-password" name="password" class="login-input pr-10"
-                               placeholder="Kata sandi" required autocomplete="current-password">
-                        <button type="button" id="login-toggle"
-                                class="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 rounded"
-                                aria-label="Tampilkan password" aria-pressed="false">
-                            <i class="fas fa-eye text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-
-                @if($errors->any())
-                    <div class="login-galat" role="alert">
-                        <i class="fas fa-circle-exclamation mt-0.5 shrink-0"></i>
-                        <span>{{ $errors->first() }}</span>
-                    </div>
-                @endif
-
-                <button type="submit" class="login-tombol">Masuk</button>
-            </form>
-
-            <p class="login-catatan">Gunakan akun yang didaftarkan oleh Administrator. Setelah masuk Anda langsung berada di Dashboard.</p>
-        </section>
+    <div class="bl-bilah" id="tulisan">
+        <div class="bl-kategori" role="group" aria-label="Saring menurut kategori">
+            <button type="button" data-kategori="" aria-pressed="{{ $kategoriSlug === '' ? 'true' : 'false' }}">Semua</button>
+            @foreach($kategoriList as $k)
+                <button type="button" data-kategori="{{ $k->slug }}" aria-pressed="{{ $kategoriSlug === $k->slug ? 'true' : 'false' }}">{{ $k->nama }}</button>
+            @endforeach
+        </div>
+        <label class="bl-cari">
+            <span class="sr-only">Cari tulisan</span>
+            <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" id="bl-cari" value="{{ $cari }}" placeholder="Cari tulisan" autocomplete="off">
+        </label>
     </div>
 
-    <section class="lp-bagian" id="modul">
-        <h2>Modul</h2>
-        <p>Yang tersedia setelah masuk, tergantung peran akun Anda.</p>
-        <dl class="lp-daftar">
-            @foreach($modul as [$nama, $isi])
-                <div><dt>{{ $nama }}</dt><dd>{{ $isi }}</dd></div>
-            @endforeach
-        </dl>
-    </section>
+    <div class="bl-daftar" id="bl-daftar" aria-live="polite">
+        @include('publik._kartu', ['posts' => $posts])
+    </div>
 
-    <section class="lp-bagian" id="alur">
-        <h2>Alur satu nota</h2>
-        <p>Urutan kerja yang diikuti sistem. Tiap langkah dikerjakan oleh peran yang berbeda.</p>
-        <ol class="lp-alur">
-            @foreach($alur as [$nama, $isi])
-                <li><b>{{ $nama }}</b>{{ $isi }}</li>
-            @endforeach
-        </ol>
-    </section>
+    <p class="bl-kosong" id="bl-kosong" @if($posts->total() > 0 || $unggulan) hidden @endif>
+        <span data-kosong-cari hidden>Tidak ada tulisan yang cocok. Coba kata lain atau pilih kategori Semua.</span>
+        <span data-kosong-awal>Belum ada tulisan yang diterbitkan.</span>
+    </p>
 
-    <section class="lp-bagian" id="akses">
-        <h2>Akses</h2>
-        <p>Beberapa hal yang perlu diketahui sebelum memakai.</p>
-        <ul class="lp-aturan">
-            <li>Akun dibuat oleh Administrator. Tidak ada pendaftaran sendiri.</li>
-            <li>Lupa password: minta Administrator mengatur ulang.</li>
-            <li>Pembatalan nota, koreksi stok, dan pengeluaran kas kecil diajukan dulu, lalu disetujui orang lain.</li>
-            <li>Keluar dari sistem sebelum meninggalkan komputer yang dipakai bersama.</li>
-        </ul>
-    </section>
-
-    <footer class="lp-kaki">
-        <span>{{ $appSetting->nama_aplikasi }}</span>
-        @if($appSetting->alamat)<span>{{ $appSetting->alamat }}</span>@endif
-        @if($appSetting->telepon)<span>{{ $appSetting->telepon }}</span>@endif
-    </footer>
+    <div class="bl-lagi" id="bl-lagi" @if(!$posts->hasMorePages()) hidden @endif>
+        <button type="button" class="bl-tombol bl-tombol-garis" data-halaman="{{ $posts->currentPage() + 1 }}">Muat tulisan lain</button>
+    </div>
 </div>
+@endsection
 
+@push('skrip')
 <script>
-    // Tampilkan / sembunyikan password
-    (function () {
-        var input = document.getElementById('login-password');
-        var tombol = document.getElementById('login-toggle');
-        if (!input || !tombol) return;
+// Saring, cari, dan muat-lagi tanpa memuat ulang halaman. Tanpa JS, daftar awal tetap tampil lengkap.
+(function () {
+    var daftar = document.getElementById('bl-daftar'), lagi = document.getElementById('bl-lagi'), kosong = document.getElementById('bl-kosong');
+    var unggulan = document.getElementById('unggulan'), cari = document.getElementById('bl-cari');
+    var keadaan = { kategori: @json($kategoriSlug), cari: @json($cari) }, urutan = 0, tunda;
 
-        tombol.addEventListener('click', function () {
-            var revealing = input.type === 'password';
-            input.type = revealing ? 'text' : 'password';
-            tombol.setAttribute('aria-pressed', String(revealing));
-            tombol.setAttribute('aria-label', revealing ? 'Sembunyikan password' : 'Tampilkan password');
-            tombol.innerHTML = '<i class="fas ' + (revealing ? 'fa-eye-slash' : 'fa-eye') + ' text-sm"></i>';
-            input.focus();
+    function alamat(halaman) {
+        var q = new URLSearchParams();
+        if (keadaan.kategori) q.set('kategori', keadaan.kategori);
+        if (keadaan.cari) q.set('cari', keadaan.cari);
+        if (halaman > 1) q.set('page', halaman);
+        var s = q.toString();
+        return @json(url('/')) + (s ? '?' + s : '');
+    }
+
+    function muat(halaman, tambah) {
+        var nomor = ++urutan;
+        daftar.setAttribute('aria-busy', 'true');
+        fetch(alamat(halaman), { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function (d) {
+                if (nomor !== urutan) return; // jawaban lama kalah oleh ketikan yang lebih baru
+                var wadah = document.createElement('div');
+                wadah.innerHTML = d.html;
+                var baru = Array.prototype.slice.call(wadah.children);
+                baru.forEach(function (k, i) { k.classList.add('baru'); k.style.setProperty('--i', Math.min(i, 8)); });
+                if (!tambah) daftar.innerHTML = '';
+                baru.forEach(function (k) { daftar.appendChild(k); });
+
+                var berfilter = !!(keadaan.kategori || keadaan.cari);
+                if (unggulan) unggulan.hidden = berfilter;
+                kosong.hidden = daftar.children.length > 0 || (!berfilter && !!unggulan);
+                kosong.querySelector('[data-kosong-cari]').hidden = !berfilter;
+                kosong.querySelector('[data-kosong-awal]').hidden = berfilter;
+                lagi.hidden = !d.berikut;
+                if (d.berikut) lagi.querySelector('button').dataset.halaman = d.berikut;
+                if (!tambah) history.replaceState(null, '', alamat(1) + '#tulisan');
+            })
+            .catch(function () { if (!tambah) location.href = alamat(1); })
+            .finally(function () { if (nomor === urutan) daftar.removeAttribute('aria-busy'); });
+    }
+
+    document.querySelectorAll('.bl-kategori button').forEach(function (t) {
+        t.addEventListener('click', function () {
+            document.querySelectorAll('.bl-kategori button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === t)); });
+            keadaan.kategori = t.dataset.kategori;
+            muat(1, false);
         });
-    })();
+    });
+    cari.addEventListener('input', function () {
+        clearTimeout(tunda);
+        tunda = setTimeout(function () { keadaan.cari = cari.value.trim(); muat(1, false); }, 250);
+    });
+    lagi.querySelector('button').addEventListener('click', function () { muat(parseInt(this.dataset.halaman, 10), true); });
+})();
 </script>
-</body>
-</html>
+@endpush

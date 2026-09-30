@@ -44,6 +44,8 @@ use App\Http\Controllers\SettingAplikasiController;
 */
 
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+// Tulisan yang ditandai publik bisa dibaca tanpa login.
+Route::get('/baca/{slug}', [\App\Http\Controllers\PublikController::class, 'baca'])->where('slug', '[a-z0-9-]+')->name('publik.baca');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
