@@ -214,17 +214,12 @@ class CollectingController extends Controller
      */
     public function cekAntrianBaru()
     {
-        // ->select() eksplisit WAJIB sebelum groupBy() di sini - tanpa itu
-        // MySQL/MariaDB (mode ONLY_FULL_GROUP_BY, default aktif) menolak
-        // query karena secara implisit SELECT * menyertakan kolom yang
-        // tidak ada di GROUP BY maupun agregat (ditemukan lewat test).
+        // Dipanggil berkala oleh halaman Collecting: dihitung di database dengan indeks, bukan mengelompokkan
+        // seluruh nota lalu menghitungnya di PHP.
         $total = DB::table('transaksi')
-            ->leftJoin('transaksi_detail', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
             ->where('transaksi.status_collecting', 'Belum Diambil')
-            ->groupBy('transaksi.id_transaksi')
-            ->select('transaksi.id_transaksi')
-            ->havingRaw('COUNT(transaksi_detail.id_detail) > 0 AND SUM(CASE WHEN transaksi_detail.status_spk IN (\'Selesai\',\'Batal\') THEN 1 ELSE 0 END) = COUNT(transaksi_detail.id_detail)')
-            ->get()
+            ->whereExists(fn ($e) => $e->select(DB::raw(1))->from('transaksi_detail as d')->whereColumn('d.id_transaksi', 'transaksi.id_transaksi'))
+            ->whereNotExists(fn ($e) => $e->select(DB::raw(1))->from('transaksi_detail as d')->whereColumn('d.id_transaksi', 'transaksi.id_transaksi')->whereNotIn('d.status_spk', ['Selesai', 'Batal']))
             ->count();
 
         return response()->json(['total' => $total]);

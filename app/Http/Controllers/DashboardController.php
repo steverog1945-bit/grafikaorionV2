@@ -339,7 +339,8 @@ class DashboardController extends Controller
         // Dua hitungan berindeks, bukan GROUP BY seluruh item lalu dihitung lagi (tumbuh terus seiring nota).
         // Nota lengkap = nota yang punya item dan tidak satu pun itemnya masih berjalan.
         $totalNota = DB::table('transaksi_detail')->distinct()->count('id_transaksi');
-        $notaBelum = DB::table('transaksi_detail')->whereNotIn('status_spk', ['Selesai', 'Batal'])->distinct()->count('id_transaksi');
+        // Status berjalan ditulis positif (IN) supaya indeks status_spk terpakai; NOT IN memaksa pemindaian penuh.
+        $notaBelum = DB::table('transaksi_detail')->whereIn('status_spk', ['Antre', 'Desain', 'Cetak', 'Pending'])->distinct()->count('id_transaksi');
         $notaLengkap = $totalNota - $notaBelum;
 
         return [$notaLengkap, $totalNota - $notaLengkap];
