@@ -99,6 +99,7 @@ class BackupOffsiteTest extends TestCase
             'started_at' => now(), 'finished_at' => now(), 'created_at' => now(), 'updated_at' => now(),
         ]);
         \Illuminate\Support\Facades\Cache::forget('notif_user_' . $admin->id_user);
+        \Illuminate\Support\Facades\Cache::forget('notif:backup-gagal');
 
         $notif = NotifikasiService::untuk($admin);
         $item = collect($notif['items'])->firstWhere('key', 'backup-gagal');

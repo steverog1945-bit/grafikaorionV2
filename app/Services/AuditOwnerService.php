@@ -42,10 +42,10 @@ class AuditOwnerService
         $tgl = self::tgl($d, $s);
         $r = DashboardEksekutifService::ringkasan($d, $s);
 
-        $nota = DB::table('transaksi')->whereBetween(DB::raw('DATE(tgl_order)'), $tgl);
+        $nota = DB::table('transaksi')->whereTanggalAntara('tgl_order', $tgl);
         $batal = (clone $nota)->where('status_nota', 'Dibatalkan');
 
-        $kasMasuk = DB::table('pembayaran_riwayat')->whereBetween(DB::raw('DATE(tgl_bayar)'), $tgl)
+        $kasMasuk = DB::table('pembayaran_riwayat')->whereTanggalAntara('tgl_bayar', $tgl)
             ->selectRaw('metode, COUNT(*) jumlah, SUM(nominal) total')->groupBy('metode')->orderBy('metode')->get();
 
         $pembayaranJersey = (float) DB::table('jersey_order_payments')->whereNull('deleted_at')->whereBetween('tanggal_bayar', $tgl)->sum('jumlah');
@@ -58,7 +58,7 @@ class AuditOwnerService
             ->selectRaw("COALESCE(c.nama_kategori, 'Tanpa kategori') as kategori, COUNT(*) as jumlah, SUM(k.nominal) as total")
             ->groupBy('kategori')->orderByDesc('total')->get();
 
-        $kasManual = DB::table('kas_manual')->whereBetween(DB::raw('DATE(waktu)'), $tgl)
+        $kasManual = DB::table('kas_manual')->whereTanggalAntara('waktu', $tgl)
             ->selectRaw('status, COUNT(*) jumlah, SUM(nominal) total')->groupBy('status')->get();
 
         return $r + [
@@ -113,7 +113,7 @@ class AuditOwnerService
     private static function mutasiStok(Carbon $d, Carbon $s)
     {
         $rows = DB::table('kartu_stok as ks')->join('bahan_baku as b', 'b.id_bahan', '=', 'ks.id_bahan')
-            ->whereBetween(DB::raw('DATE(ks.tanggal)'), self::tgl($d, $s))
+            ->whereTanggalAntara('ks.tanggal', self::tgl($d, $s))
             ->orderBy('ks.tanggal')->orderBy('ks.id')
             ->get(['ks.*', 'b.nama_bahan', 'b.satuan_stok', 'b.harga_rata_rata']);
 
@@ -161,7 +161,7 @@ class AuditOwnerService
             ->get(['w.nomor', 'w.tanggal', 'b.nama_bahan', 'b.satuan_stok', 'w.qty', 'w.jenis', 'w.alasan', 'w.status', 'w.biaya', 'u.username as petugas']);
 
         $rework = DB::table('rework as r')->leftJoin('users as u', 'u.id_user', '=', 'r.id_user')
-            ->whereBetween(DB::raw('DATE(r.created_at)'), $tgl)->orderBy('r.created_at')
+            ->whereTanggalAntara('r.created_at', $tgl)->orderBy('r.created_at')
             ->get(['r.nomor', 'r.created_at as tanggal', 'r.qty_rework', 'r.status', 'r.biaya_material', 'r.catatan', 'u.username as petugas']);
 
         $qc = DB::table('qc_inspeksi')->whereBetween('tanggal', $tgl);
@@ -183,7 +183,7 @@ class AuditOwnerService
     private static function penyesuaian(Carbon $d, Carbon $s)
     {
         return DB::table('kartu_stok as ks')->join('bahan_baku as b', 'b.id_bahan', '=', 'ks.id_bahan')->leftJoin('users as u', 'u.id_user', '=', 'ks.created_by')
-            ->where('ks.tipe', 'ADJUSTMENT')->whereBetween(DB::raw('DATE(ks.tanggal)'), self::tgl($d, $s))->orderBy('ks.tanggal')
+            ->where('ks.tipe', 'ADJUSTMENT')->whereTanggalAntara('ks.tanggal', self::tgl($d, $s))->orderBy('ks.tanggal')
             ->get(['ks.tanggal', 'b.nama_bahan', 'b.satuan_stok', 'ks.stok_sebelum', 'ks.stok_sesudah', 'ks.referensi', 'ks.keterangan', 'u.username as petugas', 'b.harga_rata_rata'])
             ->map(function ($r) {
                 $r->selisih = (float) $r->stok_sesudah - (float) $r->stok_sebelum;
@@ -196,7 +196,7 @@ class AuditOwnerService
     private static function approval(Carbon $d, Carbon $s): array
     {
         $rows = DB::table('approval_requests as a')->leftJoin('users as p', 'p.id_user', '=', 'a.requested_by')->leftJoin('users as k', 'k.id_user', '=', 'a.decided_by')
-            ->whereBetween(DB::raw('DATE(a.created_at)'), self::tgl($d, $s))->orderBy('a.created_at')
+            ->whereTanggalAntara('a.created_at', self::tgl($d, $s))->orderBy('a.created_at')
             ->get(['a.tipe_aksi', 'a.ringkasan', 'a.alasan_pengajuan', 'a.status', 'a.catatan_keputusan', 'a.created_at', 'a.decided_at', 'p.username as pengaju', 'k.username as pemutus']);
 
         return ['daftar' => $rows, 'per_status' => $rows->groupBy('status')->map->count()];
@@ -207,7 +207,7 @@ class AuditOwnerService
     {
         $tgl = self::tgl($d, $s);
         $sumber = [
-            'Nota' => DB::table('transaksi')->whereBetween(DB::raw('DATE(tgl_order)'), $tgl)->selectRaw('id_user_kasir uid, COUNT(*) c')->groupBy('id_user_kasir'),
+            'Nota' => DB::table('transaksi')->whereTanggalAntara('tgl_order', $tgl)->selectRaw('id_user_kasir uid, COUNT(*) c')->groupBy('id_user_kasir'),
             'Waste' => DB::table('waste_log')->whereBetween('tanggal', $tgl)->selectRaw('id_user uid, COUNT(*) c')->groupBy('id_user'),
             'QC' => DB::table('qc_inspeksi')->whereBetween('tanggal', $tgl)->selectRaw('id_user uid, COUNT(*) c')->groupBy('id_user'),
             'Kas Kecil' => DB::table('kas_kecil')->whereNull('deleted_at')->whereBetween('tanggal', $tgl)->selectRaw('id_user uid, COUNT(*) c')->groupBy('id_user'),
@@ -231,7 +231,7 @@ class AuditOwnerService
 
     private static function jejak(Carbon $d, Carbon $s): array
     {
-        $q = DB::table('audit_logs')->whereBetween(DB::raw('DATE(created_at)'), self::tgl($d, $s));
+        $q = DB::table('audit_logs')->whereTanggalAntara('created_at', self::tgl($d, $s));
 
         return [
             'total' => (clone $q)->count(),

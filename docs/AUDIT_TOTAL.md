@@ -262,3 +262,17 @@ Ini akar keluhan awal "Jasa dan Jasa Jahit tidak bisa edit/simpan": pemetaan izi
 Pemeriksa statis: `scripts/cek-modal.py` (keseimbangan tag di dalam `x-modal`); tes `ModalDanPenawaranTest`.
 
 Penawaran: kolom P dan L hanya tampil untuk produk yang dihitung per ukuran; produk per qty hanya qty, dan ukuran yang ikut terkirim dibuang di server. Cetak penawaran kini berbentuk surat: nomor dan perihal, pembuka, terbilang, ketentuan (disusun dari isi dokumen: masa berlaku, ada tidaknya ukuran dan biaya desain), penutup, dan dua kolom tanda tangan; huruf Inter 13px.
+
+## 28. Audit query berat pada data besar
+Cara: salinan `oriondb` di database terpisah `percetakan_erp_beban` diisi data demo lalu digandakan sampai 87 ribu nota, 173 ribu item, 670 ribu baris jurnal, 690 ribu log audit, 650 ribu mutasi kartu stok, 16 ribu order jersey. Semua 159 rute GET (halaman dan endpoint AJAX yang dipanggil modal) dijalankan sebagai Administrator; query di atas 150 ms di-EXPLAIN. `oriondb` tidak disentuh.
+| Halaman | Sebelum | Sesudah | Akar dan perbaikan |
+|---|---|---|---|
+| Audit Bulanan (`/audit-owner`) | 105 detik | 0,5 detik | `DATE(kolom) BETWEEN` di 19 query mematikan indeks. Makro baru `whereTanggalAntara()` (rentang `>=` awal, `<` besok) + indeks `kartu_stok.tanggal` |
+| Ekspor CSV Audit Bulanan | 113 detik | 0,5 detik | sama |
+| Laporan Pemakaian Bahan | 17,5 detik | < 0,1 detik | sama (DashboardEksekutifService) |
+| Kartu Stok | 24,7 detik | 0,7 detik | seluruh kartu stok di-GROUP BY setiap buka halaman; diganti subquery berindeks per bahan |
+| Collecting | 3,3 detik | 0,2 detik | JOIN + GROUP BY semua nota untuk paginasi 20 baris dan hitungan "siap diambil" di PHP; diganti subquery per nota dan hitungan di database |
+| Dashboard | 1,3 detik | 0,35 detik | JOIN konsumen memaksa pengurutan seluruh nota; ringkasan collecting mengelompokkan semua item |
+| Notifikasi (dipanggil tiap 30 detik oleh setiap layar) | hitungan per pengguna | angka dibagi bersama 20 detik; hitungan "siap diambil" di database | `NotifikasiService` |
+Sisa di atas 1 detik (4 halaman), dibiarkan dengan alasan: SPK dan Produksi (1,2 sampai 1,9 detik) karena data uji berisi 60 ribu item yang masih berjalan, jauh di atas kenyataan; Neraca (1,2 detik) menjumlah 670 ribu baris jurnal memakai indeks penutup, wajar untuk laporan; `/sinyal` hanya pada permintaan pertama sebelum cache.
+Database `percetakan_erp_beban` dibiarkan untuk pengukuran ulang (`scratchpad` skrip gandakan/ukur); boleh dihapus kapan saja.

@@ -19,14 +19,15 @@ class KartuStokController extends Controller
         $sampai = $request->get('sampai');
         $tipe = $request->get('tipe');                       // IN | OUT | ADJUSTMENT (mutasi pada rentang tanggal)
 
-        $mutasiTerakhir = DB::table('kartu_stok')->selectRaw('id_bahan, MAX(tanggal) as terakhir, COUNT(*) as jumlah')->groupBy('id_bahan');
-
         $q = DB::table('bahan_baku')
             ->leftJoin('kategori', 'kategori.id_kategori', '=', 'bahan_baku.id_kategori')
             ->leftJoin('mesin', 'mesin.id_mesin', '=', 'bahan_baku.id_mesin')
             ->leftJoin('satuan as satuan_stok_ref', 'satuan_stok_ref.id_satuan', '=', 'bahan_baku.id_satuan_stok')
-            ->leftJoinSub($mutasiTerakhir, 'mt', 'mt.id_bahan', '=', 'bahan_baku.id_bahan')
-            ->select('bahan_baku.*', 'kategori.nama_kategori', 'mesin.nama_mesin', 'satuan_stok_ref.nama_satuan as nama_satuan_stok', 'mt.terakhir as mutasi_terakhir', 'mt.jumlah as jumlah_mutasi')
+            ->select('bahan_baku.*', 'kategori.nama_kategori', 'mesin.nama_mesin', 'satuan_stok_ref.nama_satuan as nama_satuan_stok')
+            // Subquery berkorelasi per bahan memakai indeks (id_bahan, tanggal). Sebelumnya seluruh kartu stok
+            // dikelompokkan dulu (GROUP BY id_bahan) setiap kali halaman dibuka: 24 detik pada 650 ribu mutasi.
+            ->selectRaw('(select max(ks2.tanggal) from kartu_stok ks2 where ks2.id_bahan = bahan_baku.id_bahan) as mutasi_terakhir')
+            ->selectRaw('(select count(*) from kartu_stok ks3 where ks3.id_bahan = bahan_baku.id_bahan) as jumlah_mutasi')
             ->when($search, function ($qq) use ($search) {
                 $qq->where(function ($w) use ($search) {
                     $w->where('bahan_baku.nama_bahan', 'like', "%{$search}%")->orWhere('bahan_baku.kode_bahan', 'like', "%{$search}%");
@@ -65,7 +66,7 @@ class KartuStokController extends Controller
             'kode' => $q->orderBy('bahan_baku.kode_bahan'),
             'stok_asc' => $q->orderBy('bahan_baku.stok')->orderBy('bahan_baku.nama_bahan'),
             'stok_desc' => $q->orderByDesc('bahan_baku.stok')->orderBy('bahan_baku.nama_bahan'),
-            'mutasi' => $q->orderByDesc('mt.terakhir')->orderBy('bahan_baku.nama_bahan'),
+            'mutasi' => $q->orderByDesc('mutasi_terakhir')->orderBy('bahan_baku.nama_bahan'),
             default => $q->orderBy('bahan_baku.nama_bahan'),
         };
 

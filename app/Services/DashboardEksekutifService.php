@@ -24,14 +24,14 @@ class DashboardEksekutifService
     {
         $tgl = [$dari->toDateString(), $sampai->toDateString()];
 
-        $omzet = (float) DB::table('transaksi')->where('status_nota', '!=', 'Dibatalkan')->whereBetween(DB::raw('DATE(tgl_order)'), $tgl)->sum('total_bayar');
+        $omzet = (float) DB::table('transaksi')->where('status_nota', '!=', 'Dibatalkan')->whereTanggalAntara('tgl_order', $tgl)->sum('total_bayar');
 
         $hpp = (float) DB::table('transaksi_detail as d')
             ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
-            ->where('t.status_nota', '!=', 'Dibatalkan')->whereBetween(DB::raw('DATE(t.tgl_order)'), $tgl)
+            ->where('t.status_nota', '!=', 'Dibatalkan')->whereTanggalAntara('t.tgl_order', $tgl)
             ->sum('d.hpp_snapshot');
 
-        $rework = (float) DB::table('rework')->where('status', 'Selesai')->whereBetween(DB::raw('DATE(selesai_at)'), $tgl)->sum('biaya_material');
+        $rework = (float) DB::table('rework')->where('status', 'Selesai')->whereTanggalAntara('selesai_at', $tgl)->sum('biaya_material');
         $waste = (float) DB::table('waste_log')->where('status', 'Diterapkan')->whereBetween('tanggal', $tgl)->sum('biaya');
         $aktual = round($hpp + $rework + $waste, 2);
         $laba = round($omzet - $aktual, 2);
@@ -46,7 +46,7 @@ class DashboardEksekutifService
             'biaya_aktual' => $aktual,
             'laba_kotor' => $laba,
             'margin' => $omzet > 0 ? round($laba / $omzet * 100, 1) : 0.0,
-            'jumlah_nota' => DB::table('transaksi')->where('status_nota', '!=', 'Dibatalkan')->whereBetween(DB::raw('DATE(tgl_order)'), $tgl)->count(),
+            'jumlah_nota' => DB::table('transaksi')->where('status_nota', '!=', 'Dibatalkan')->whereTanggalAntara('tgl_order', $tgl)->count(),
             'omzet_jersey' => (float) (clone $jersey)->sum('total'),
             'jumlah_jersey' => (clone $jersey)->count(),
             'saldo_kas' => self::saldo('1000'),
@@ -88,7 +88,7 @@ class DashboardEksekutifService
         return DB::table('transaksi as t')
             ->leftJoin('konsumen as k', 'k.id_konsumen', '=', 't.id_konsumen')
             ->where('t.status_nota', '!=', 'Dibatalkan')
-            ->whereBetween(DB::raw('DATE(t.tgl_order)'), [$dari->toDateString(), $sampai->toDateString()])
+            ->whereTanggalAntara('t.tgl_order', [$dari->toDateString(), $sampai->toDateString()])
             ->groupBy('t.id_konsumen', 'k.nama_konsumen')
             ->selectRaw("COALESCE(k.nama_konsumen, 'Tanpa pelanggan') as nama, COUNT(*) as jumlah_nota, SUM(t.total_bayar) as omzet")
             ->orderByDesc('omzet')->limit($limit)->get();
@@ -101,7 +101,7 @@ class DashboardEksekutifService
             ->leftJoin('produk as p', 'p.id_produk', '=', 'd.id_produk')
             ->leftJoin('jasa as j', 'j.id_jasa', '=', 'd.id_jasa')
             ->where('t.status_nota', '!=', 'Dibatalkan')
-            ->whereBetween(DB::raw('DATE(t.tgl_order)'), [$dari->toDateString(), $sampai->toDateString()])
+            ->whereTanggalAntara('t.tgl_order', [$dari->toDateString(), $sampai->toDateString()])
             ->groupBy(DB::raw("COALESCE(p.nama_produk, j.nama_jasa, d.nama_file)"))
             ->selectRaw("COALESCE(p.nama_produk, j.nama_jasa, d.nama_file) as nama, SUM(d.qty) as qty, SUM(d.subtotal) as omzet")
             ->orderByDesc('omzet')->limit($limit)->get();
@@ -157,7 +157,7 @@ class DashboardEksekutifService
             ->leftJoin('mesin as m', 'm.id_mesin', '=', 'p.id_mesin')
             ->leftJoin('konsumen as k', 'k.id_konsumen', '=', 't.id_konsumen')
             ->where('t.status_nota', '!=', 'Dibatalkan')
-            ->whereBetween(DB::raw('DATE(t.tgl_order)'), [$dari->toDateString(), $sampai->toDateString()]);
+            ->whereTanggalAntara('t.tgl_order', [$dari->toDateString(), $sampai->toDateString()]);
 
         $ekspresi = match ($dimensi) {
             'pelanggan' => "COALESCE(k.nama_konsumen, 'Tanpa pelanggan')",
@@ -182,7 +182,7 @@ class DashboardEksekutifService
         return DB::table('kartu_stok as ks')
             ->join('bahan_baku as b', 'b.id_bahan', '=', 'ks.id_bahan')
             ->where('ks.tipe', 'OUT')
-            ->whereBetween(DB::raw('DATE(ks.tanggal)'), [$dari->toDateString(), $sampai->toDateString()])
+            ->whereTanggalAntara('ks.tanggal', [$dari->toDateString(), $sampai->toDateString()])
             ->groupBy('b.id_bahan', 'b.nama_bahan', 'b.satuan_stok', 'b.harga_rata_rata')
             ->selectRaw("b.nama_bahan, b.satuan_stok, b.harga_rata_rata,
                 SUM(CASE WHEN ks.referensi LIKE 'RW-%' THEN ks.qty ELSE 0 END) as qty_rework,

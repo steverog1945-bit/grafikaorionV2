@@ -100,17 +100,19 @@ class DashboardController extends Controller
 
         $urgentList = DB::table('transaksi_detail')
             ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
-            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->where('transaksi_detail.status_urgent', 1)
             ->whereNotIn('transaksi_detail.status_spk', ['Selesai', 'Batal'])
-            ->select('transaksi_detail.id_detail', 'transaksi_detail.nama_file', 'transaksi_detail.status_spk', 'konsumen.nama_konsumen')
+            ->select('transaksi_detail.id_detail', 'transaksi_detail.nama_file', 'transaksi_detail.status_spk')
+            // Nama pelanggan lewat subquery: dengan JOIN, MySQL mengurutkan seluruh nota dulu (filesort).
+            ->selectRaw('(select k.nama_konsumen from konsumen k where k.id_konsumen = transaksi.id_konsumen) as nama_konsumen')
             ->orderByDesc('transaksi_detail.id_detail')
             ->limit(5)
             ->get();
 
         $orderTerbaru = DB::table('transaksi')
-            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
-            ->select('transaksi.id_transaksi', 'transaksi.nomor_nota', 'transaksi.tgl_order', 'transaksi.total_bayar', 'transaksi.status_pembayaran', 'transaksi.status_nota', 'konsumen.nama_konsumen')
+            ->select('transaksi.id_transaksi', 'transaksi.nomor_nota', 'transaksi.tgl_order', 'transaksi.total_bayar', 'transaksi.status_pembayaran', 'transaksi.status_nota')
+            // Nama pelanggan lewat subquery: dengan JOIN, MySQL mengurutkan seluruh nota dulu (filesort).
+            ->selectRaw('(select k.nama_konsumen from konsumen k where k.id_konsumen = transaksi.id_konsumen) as nama_konsumen')
             ->orderByDesc('transaksi.id_transaksi')
             ->limit(5)
             ->get();
@@ -172,18 +174,20 @@ class DashboardController extends Controller
 
         $urgentList = DB::table('transaksi_detail')
             ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
-            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->where('transaksi_detail.status_urgent', 1)
             ->whereNotIn('transaksi_detail.status_spk', ['Selesai', 'Batal'])
-            ->select('transaksi_detail.id_detail', 'transaksi_detail.nama_file', 'transaksi_detail.status_spk', 'konsumen.nama_konsumen')
+            ->select('transaksi_detail.id_detail', 'transaksi_detail.nama_file', 'transaksi_detail.status_spk')
+            // Nama pelanggan lewat subquery: dengan JOIN, MySQL mengurutkan seluruh nota dulu (filesort).
+            ->selectRaw('(select k.nama_konsumen from konsumen k where k.id_konsumen = transaksi.id_konsumen) as nama_konsumen')
             ->orderByDesc('transaksi_detail.id_detail')
             ->limit(5)
             ->get();
 
         // TIDAK ADA total_bayar di select - hanya status pembayaran (badge).
         $orderTerbaru = DB::table('transaksi')
-            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
-            ->select('transaksi.id_transaksi', 'transaksi.nomor_nota', 'transaksi.tgl_order', 'transaksi.status_pembayaran', 'transaksi.status_nota', 'konsumen.nama_konsumen')
+            ->select('transaksi.id_transaksi', 'transaksi.nomor_nota', 'transaksi.tgl_order', 'transaksi.status_pembayaran', 'transaksi.status_nota')
+            // Nama pelanggan lewat subquery: dengan JOIN, MySQL mengurutkan seluruh nota dulu (filesort).
+            ->selectRaw('(select k.nama_konsumen from konsumen k where k.id_konsumen = transaksi.id_konsumen) as nama_konsumen')
             ->orderByDesc('transaksi.id_transaksi')
             ->limit(6)
             ->get();
@@ -240,7 +244,6 @@ class DashboardController extends Controller
         // urgent (sedang dikerjakan tapi butuh perhatian).
         $spkPerluDikerjakan = DB::table('transaksi_detail')
             ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
-            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->join('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
             ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
             ->where('transaksi.status_nota', 'Aktif')
@@ -249,7 +252,8 @@ class DashboardController extends Controller
             ->select(
                 'transaksi_detail.id_detail', 'transaksi_detail.nama_file', 'transaksi_detail.qty',
                 'transaksi_detail.status_spk', 'transaksi_detail.status_urgent',
-                'transaksi.nomor_nota', 'konsumen.nama_konsumen',
+                'transaksi.nomor_nota',
+                DB::raw('(select k.nama_konsumen from konsumen k where k.id_konsumen = transaksi.id_konsumen) as nama_konsumen'),
                 DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya') as divisi")
             )
             ->orderByRaw("FIELD(transaksi_detail.status_spk, 'Antre', 'Cetak', 'Desain')")
@@ -332,20 +336,11 @@ class DashboardController extends Controller
      */
     private function ringkasanCollecting(): array
     {
-        $perNota = DB::table('transaksi_detail')
-            ->select(
-                'id_transaksi',
-                DB::raw('COUNT(*) as total_item'),
-                DB::raw("SUM(CASE WHEN status_spk IN ('Selesai','Batal') THEN 1 ELSE 0 END) as item_kelar")
-            )
-            ->groupBy('id_transaksi');
-
-        $ringkas = DB::query()->fromSub($perNota, 'per_nota')
-            ->selectRaw('COUNT(*) as total_nota, SUM(CASE WHEN total_item = item_kelar THEN 1 ELSE 0 END) as lengkap')
-            ->first();
-
-        $totalNota = (int) ($ringkas->total_nota ?? 0);
-        $notaLengkap = (int) ($ringkas->lengkap ?? 0);
+        // Dua hitungan berindeks, bukan GROUP BY seluruh item lalu dihitung lagi (tumbuh terus seiring nota).
+        // Nota lengkap = nota yang punya item dan tidak satu pun itemnya masih berjalan.
+        $totalNota = DB::table('transaksi_detail')->distinct()->count('id_transaksi');
+        $notaBelum = DB::table('transaksi_detail')->whereNotIn('status_spk', ['Selesai', 'Batal'])->distinct()->count('id_transaksi');
+        $notaLengkap = $totalNota - $notaBelum;
 
         return [$notaLengkap, $totalNota - $notaLengkap];
     }

@@ -33,7 +33,10 @@ class NotifikasiService
                 if (!JalurLanjut::bolehUntuk($user, $url)) {
                     continue;
                 }
-                $n = (int) ($d['hitung'])();
+                // Angka notifikasi sama untuk semua pengguna yang berhak, dan diminta setiap 30 detik oleh
+                // setiap layar yang terbuka. Disimpan 20 detik supaya sepuluh layar tidak menghitung ulang
+                // sepuluh kali (siapa yang berhak melihat tetap diperiksa per pengguna di atas).
+                $n = (int) \Illuminate\Support\Facades\Cache::remember('notif:' . $d['key'], 20, $d['hitung']);
                 if ($n > 0) {
                     $items[] = ['key' => $d['key'], 'label' => $d['label'], 'count' => $n, 'url' => $url, 'tone' => $d['tone']];
                 }
@@ -71,12 +74,12 @@ class NotifikasiService
                 'hitung' => fn () => DB::table('transaksi_detail as d')->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
                     ->whereIn('d.status_spk', ['Desain', 'Cetak'])->where('t.status_nota', '!=', 'Dibatalkan')->count()],
             ['key' => 'collecting', 'label' => 'Nota siap diambil/diserahkan', 'routes' => ['collecting.index'], 'tone' => 'indigo',
+                // Dihitung di database; sebelumnya semua nota dikelompokkan lalu dihitung di PHP.
                 'hitung' => fn () => DB::table('transaksi as t')
-                    ->join('transaksi_detail as d', 'd.id_transaksi', '=', 't.id_transaksi')
                     ->where('t.status_collecting', 'Belum Diambil')->where('t.status_nota', '!=', 'Dibatalkan')
-                    ->groupBy('t.id_transaksi')
-                    ->havingRaw("SUM(CASE WHEN d.status_spk IN ('Selesai','Batal') THEN 1 ELSE 0 END) = COUNT(d.id_detail)")
-                    ->select('t.id_transaksi')->get()->count()],
+                    ->whereExists(fn ($e) => $e->select(DB::raw(1))->from('transaksi_detail as d')->whereColumn('d.id_transaksi', 't.id_transaksi'))
+                    ->whereNotExists(fn ($e) => $e->select(DB::raw(1))->from('transaksi_detail as d')->whereColumn('d.id_transaksi', 't.id_transaksi')->whereNotIn('d.status_spk', ['Selesai', 'Batal']))
+                    ->count()],
             ['key' => 'rework', 'label' => 'Rework belum selesai', 'routes' => ['qc.index'], 'tone' => 'rose',
                 'hitung' => fn () => DB::table('rework')->where('status', 'Dibuka')->count()],
             ['key' => 'waste', 'label' => 'Waste menunggu persetujuan', 'routes' => ['waste.index'], 'tone' => 'amber',

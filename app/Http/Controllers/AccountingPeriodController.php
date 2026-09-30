@@ -57,7 +57,7 @@ class AccountingPeriodController extends Controller
         }
 
         $kasTerbuka = \Illuminate\Support\Facades\DB::table('kas_harian')->where('status_lock', 'open')
-            ->whereDate('tgl_kas', '<=', $akhir->toDateString())->count();
+            ->where('tgl_kas', '<=', $akhir->toDateString())->count();
         if ($kasTerbuka > 0) {
             return back()->with('error', "Masih ada {$kasTerbuka} sesi kas dari periode ini yang belum ditutup. Lakukan closing kas dulu.");
         }

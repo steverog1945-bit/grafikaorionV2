@@ -23,7 +23,7 @@ class BiayaTintaService
             ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
             ->join('produk as p', 'p.id_produk', '=', 'd.id_produk')
             ->where('t.status_nota', '!=', 'Dibatalkan')
-            ->whereBetween(DB::raw('DATE(t.tgl_order)'), [$dari->toDateString(), $sampai->toDateString()])
+            ->whereTanggalAntara('t.tgl_order', [$dari->toDateString(), $sampai->toDateString()])
             ->get(['p.id_produk', 'p.nama_produk', 'p.id_mesin', 'p.metode_hitung', 'd.p_ukuran', 'd.l_ukuran', 'd.qty', 'd.subtotal']);
 
         // Ukuran per produk: m2, lembar (qty), omzet.

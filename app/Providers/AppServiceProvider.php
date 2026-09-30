@@ -78,6 +78,17 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(120)->by('poll' . ($id ?: $request->ip()));
         });
 
+        // whereTanggalAntara('kolom', [dari, sampai]): rentang tanggal inklusif yang tetap memakai indeks.
+        // Pengganti whereBetween(DB::raw("DATE(kolom)"), ...): DATE() di kolom membuat MySQL memindai seluruh
+        // tabel (terukur 16 sampai 59 detik per query pada 700 ribu baris audit dan kartu stok).
+        \Illuminate\Database\Query\Builder::macro('whereTanggalAntara', function (string $kolom, array $rentang) {
+            [$dari, $sampai] = array_values($rentang);
+            $dari = \Illuminate\Support\Carbon::parse($dari)->startOfDay();
+            $besok = \Illuminate\Support\Carbon::parse($sampai)->startOfDay()->addDay();
+
+            return $this->where($kolom, '>=', $dari->toDateTimeString())->where($kolom, '<', $besok->toDateTimeString());
+        });
+
         // @bolehHarga ... @else ... @endbolehHarga : tampilkan hanya untuk role yang berhak melihat harga/nilai uang.
         \Illuminate\Support\Facades\Blade::if('bolehHarga', fn () => \App\Support\AksesHarga::bolehLihat());
 
