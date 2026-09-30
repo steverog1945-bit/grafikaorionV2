@@ -211,3 +211,13 @@ Tes: `TutupPeriodeKontrolTest` (6 kasus). Tidak diubah: tanggal dokumen non-keua
 | Permintaan | Cetak SPK di bawah 13px | diukur di browser: tidak ada teks di bawah 13px, huruf Inter | `partials/spk-print-style` (berlaku juga untuk SPK cetak reguler) |
 | Permintaan | Nota jersey (thermal dan A4) menampilkan estimasi bahan | - | Dihapus dari nota; estimasi hanya ada di SPK |
 | Permintaan | Kembalian | Kasir utama sudah menampilkan kembalian, tetapi server MENOLAK uang tunai yang lebih besar dari tagihan | Tunai boleh lebih: yang dicatat sebesar sisa tagihan, kembalian ditampilkan langsung dan di pesan sukses. Non-tunai yang melebihi tetap ditolak. Berlaku di kasir utama dan Catat Pembayaran jersey |
+
+## 22. Audit konkurensi lanjutan dan halaman depan
+| Item | Hasil |
+|---|---|
+| Pelunasan order jersey, 6 proses bersamaan | 1 pembayaran tercatat, jurnal seimbang, piutang nol (LULUS) |
+| 6 nota POS bersamaan | 6 nomor nota berbeda, jurnal seimbang (LULUS) |
+| Satu `submit_id` dikirim 6 kali bersamaan | 1 nota (LULUS; penjaga memakai cache database yang dipakai produksi) |
+| Pengembalian deposit 6 kali bersamaan (saldo 100.000, masing-masing 60.000) | 1 pengembalian, saldo 40.000 (LULUS) |
+| Belum diuji paralel | pengurangan stok saat produksi, pembayaran hutang supplier, persetujuan approval |
+| Halaman depan | Dialog masuk kini di tengah layar (margin bawaan `<dialog>` dihapus oleh reset CSS). Ditambah: pembuka dengan ajakan WhatsApp, Yang kami kerjakan (8 kelompok dari katalog produk), Cara pesan (4 langkah), Kabar dan catatan, Hubungi kami. Hanya Inter (dan Nunito di isi artikel); tanpa serif dan mono |

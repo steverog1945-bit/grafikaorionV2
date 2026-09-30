@@ -14,17 +14,16 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- Semua font dan ikon dilayani sendiri: server LAN tanpa internet tetap tampil benar. --}}
     <link rel="stylesheet" href="{{ asset('vendor/fonts/inter.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/fonts/majalah.css') }}">
+    @stack('font')
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/all.min.css') }}">
     <style>
-        /* Halaman depan bergaya jurnal: serif untuk judul, sans untuk antarmuka, banyak ruang kosong,
-           garis rambut sebagai pemisah. Tanpa gradien, kaca, bayangan berwarna, atau huruf mono.
+        /* Halaman depan: satu keluarga huruf (Inter, yang sudah dipakai aplikasi), hierarki dari ukuran dan
+           bobot, banyak ruang kosong, garis rambut sebagai pemisah. Tanpa serif, mono, gradien, atau kaca.
            Gerak: hanya transform dan opacity, di bawah 300ms, ease-out kuat; hormati reduced-motion. */
         :root {
             --kertas: #faf9f7; --putih: #ffffff; --garis: #e9e5df; --garis-kuat: #d6d0c8;
             --tinta: #1b1a18; --tinta-2: #55514b; --tinta-3: #6e6962;
             --aksen: #4f46e5; --aksen-tekan: #4338ca;
-            --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
             --sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
             --keluar: cubic-bezier(0.23, 1, 0.32, 1);
         }
@@ -42,6 +41,7 @@
         .bl-merek img { height: 32px; width: auto; }
         .bl-kepala nav { display: flex; align-items: center; gap: 1.5rem; font-size: 0.9375rem; }
         .bl-taut { color: var(--tinta-2); transition: color 150ms ease; }
+        @media (max-width: 700px) { .bl-nav-lebar { display: none; } }
         .bl-tombol { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 40px; padding: 0 1.125rem; background: var(--tinta); color: #fff !important; border: 0; font: 500 0.9375rem var(--sans); cursor: pointer; transition: transform 140ms var(--keluar), background-color 150ms ease; }
         .bl-tombol:active { transform: scale(0.97); }
         .bl-tombol-garis { background: transparent; color: var(--tinta) !important; border: 1px solid var(--garis-kuat); }
@@ -52,19 +52,19 @@
         }
 
         /* Kaki */
-        .bl-kaki { margin-top: 5rem; border-top: 1px solid var(--garis); padding: 2rem 0 max(2rem, env(safe-area-inset-bottom)); font-size: 0.875rem; color: var(--tinta-3); }
+        .bl-kaki { margin-top: 1rem; border-top: 1px solid var(--garis); padding: 2rem 0 max(2rem, env(safe-area-inset-bottom)); font-size: 0.875rem; color: var(--tinta-3); }
         .bl-kaki .bl-lebar { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; justify-content: space-between; }
         .bl-kaki b { color: var(--tinta); font-weight: 600; }
 
         /* Dialog masuk: muncul dari tengah (modal tidak berjangkar ke pemicu), mulai dari 0.96, bukan dari nol. */
-        .bl-dialog { width: min(400px, calc(100vw - 2rem)); padding: 0; border: 1px solid var(--garis); border-radius: 10px; background: var(--putih); color: var(--tinta); }
+        .bl-dialog { position: fixed; inset: 0; margin: auto; height: fit-content; width: min(400px, calc(100vw - 2rem)); padding: 0; border: 1px solid var(--garis); border-radius: 10px; background: var(--putih); color: var(--tinta); }
         .bl-dialog::backdrop { background: rgba(27, 26, 24, 0.45); }
         .bl-dialog[open] { animation: bl-masuk 220ms var(--keluar); }
         .bl-dialog[open]::backdrop { animation: bl-pudar 220ms ease-out; }
         @keyframes bl-masuk { from { opacity: 0; transform: scale(0.96) translateY(6px); } }
         @keyframes bl-pudar { from { opacity: 0; } }
         .bl-dialog-isi { padding: 1.75rem; }
-        .bl-dialog h2 { font-family: var(--serif); font-size: 1.5rem; font-weight: 600; margin: 0 0 0.25rem; letter-spacing: -0.01em; }
+        .bl-dialog h2 { font-size: 1.375rem; font-weight: 650; margin: 0 0 0.25rem; letter-spacing: -0.02em; }
         .bl-dialog p.ket { margin: 0 0 1.25rem; font-size: 0.875rem; color: var(--tinta-3); }
         .login-label { display: block; font-size: 0.8125rem; font-weight: 500; color: var(--tinta-2); margin-bottom: 0.375rem; }
         /* Tinggi isian mengikuti aturan global aplikasi (38px), lihat ui-refresh.css. */
@@ -79,7 +79,8 @@
         @yield('gaya')
     </style>
 </head>
-<body class="bl">
+<body class="bl tanpa-js">
+    <script>document.body.classList.remove('tanpa-js');</script>
     <header class="bl-kepala">
         <div class="bl-lebar">
             <a class="bl-merek" href="{{ url('/') }}">
@@ -87,7 +88,10 @@
                 <span>{{ $appSetting->nama_aplikasi }}</span>
             </a>
             <nav aria-label="Utama">
+                <a class="bl-taut bl-nav-lebar" href="{{ url('/') }}#layanan">Layanan</a>
+                <a class="bl-taut bl-nav-lebar" href="{{ url('/') }}#cara-pesan">Cara pesan</a>
                 <a class="bl-taut" href="{{ url('/') }}#tulisan">Tulisan</a>
+                <a class="bl-taut bl-nav-lebar" href="{{ url('/') }}#kontak">Kontak</a>
                 <button type="button" class="bl-tombol" data-buka-masuk>Masuk</button>
             </nav>
         </div>

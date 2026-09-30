@@ -3,15 +3,21 @@
 @section('judul', $post->judul . ' - ' . \App\Models\AppSetting::current()->nama_aplikasi)
 @section('deskripsi', $post->ringkasan)
 
+@push('font')
+    {{-- Nunito untuk isi artikel (kelas prose-post), sudah ada di server. --}}
+    <link rel="stylesheet" href="{{ asset('vendor/fonts/majalah.css') }}">
+@endpush
+
 @section('gaya')
         /* Garis kemajuan baca: digerakkan lewat transform (tanpa layout ulang). */
         .bl-maju { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: var(--tinta); transform: scaleX(0); transform-origin: left; z-index: 30; }
         .bl-artikel { max-width: 720px; margin: 0 auto; padding-top: 3rem; }
+        .bl-lain { margin-bottom: 4rem; }
         .bl-kembali { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem; color: var(--tinta-3); transition: color 150ms ease; }
         .bl-kembali i { font-size: 0.75rem; transition: transform 180ms var(--keluar); }
         .bl-meta { display: flex; flex-wrap: wrap; gap: 0.375rem 0.75rem; margin: 2rem 0 0; font-size: 0.875rem; color: var(--tinta-3); }
         .bl-meta b { color: var(--tinta); font-weight: 500; }
-        .bl-artikel h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(2rem, 4.4vw, 3rem); line-height: 1.12; letter-spacing: -0.02em; margin: 0.75rem 0 0; text-wrap: balance; }
+        .bl-artikel h1 { font-weight: 650; font-size: clamp(2rem, 4.4vw, 3rem); line-height: 1.1; letter-spacing: -0.03em; margin: 0.75rem 0 0; text-wrap: balance; }
         .bl-dek { margin: 1.25rem 0 0; font-size: 1.1875rem; line-height: 1.55; color: var(--tinta-2); }
         .bl-sampul { max-width: 1120px; margin: 2.5rem auto 0; border-radius: 6px; overflow: hidden; background: #eeeae4; }
         .bl-sampul img { width: 100%; max-height: 560px; object-fit: cover; }
@@ -22,14 +28,14 @@
         .bl-tag { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; font-size: 0.875rem; color: var(--tinta-3); }
         .bl-bagi { display: flex; gap: 0.5rem; }
         .bl-lain { margin-top: 4.5rem; padding-top: 1.5rem; border-top: 1px solid var(--tinta); }
-        .bl-lain > h2 { font-family: var(--serif); font-size: 1.5rem; font-weight: 600; margin: 0 0 1.75rem; }
+        .bl-lain > h2 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 1.75rem; }
         .bl-daftar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5rem 2rem; }
         .bl-kartu-taut { display: block; }
         .bl-gambar { overflow: hidden; border-radius: 6px; background: #eeeae4; aspect-ratio: 3 / 2; }
         .bl-gambar img { width: 100%; height: 100%; object-fit: cover; transition: transform 320ms var(--keluar); }
         .bl-kartu .bl-meta { margin-top: 1rem; font-size: 0.8125rem; }
         .bl-kartu .bl-meta span { color: var(--tinta); font-weight: 500; }
-        .bl-kartu h3 { font-family: var(--serif); font-weight: 600; font-size: 1.25rem; line-height: 1.25; margin: 0.375rem 0 0; }
+        .bl-kartu h3 { font-weight: 600; font-size: 1.1875rem; line-height: 1.3; letter-spacing: -0.015em; margin: 0.375rem 0 0; }
         .bl-ringkas { margin: 0.5rem 0 0; color: var(--tinta-2); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
         @media (hover: hover) {
             .bl-kembali:hover { color: var(--tinta); }
