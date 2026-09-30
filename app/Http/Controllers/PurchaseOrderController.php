@@ -224,7 +224,7 @@ class PurchaseOrderController extends Controller
     {
         $v = $request->validate([
             'no_surat_jalan' => 'required|string|max:255|unique:kedatangan_bahan,no_surat_jalan',
-            'tgl_datang' => 'required|date',
+            'tgl_datang' => ['required', 'date', new \App\Rules\TanggalTransaksi],
             'id_gudang' => 'nullable|exists:gudang,id_gudang',
         ]);
 

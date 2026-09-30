@@ -56,7 +56,7 @@ class JerseyFinanceController extends Controller
     public function storePayment(Request $request, JerseyOrder $order)
     {
         $data = $request->validate([
-            'tanggal_bayar' => 'required|date',
+            'tanggal_bayar' => ['required', 'date', new \App\Rules\TanggalTransaksi],
             'jumlah' => 'required|numeric|min:1',
             'metode_bayar' => 'required|in:Tunai,Transfer,QRIS,Lainnya',
             // bukti_path HANYA boleh berasal dari uploadBukti() (folder & berkas

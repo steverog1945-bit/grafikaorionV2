@@ -158,7 +158,7 @@ class JerseyAkuntansiTest extends TestCase
         $o = $this->order(500000);
         AccountingPeriodService::tutup((int) now()->year, (int) now()->month, $this->admin->id_user);
 
-        $this->bayar($o, 100000)->assertSessionHas('error');
+        $this->bayar($o, 100000)->assertSessionHasErrors('tanggal_bayar');
 
         $this->assertEquals(0, DB::table('jersey_order_payments')->count());
         $this->assertEquals('Belum Bayar', $o->fresh()->status_pembayaran);

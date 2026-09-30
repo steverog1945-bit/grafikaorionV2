@@ -191,3 +191,12 @@ Cara: 107 halaman GET (tanpa parameter) dijalankan sebagai Administrator terhada
 | SEDANG: `/pembelian-bahan` menghitung sisa hutang dengan satu `SUM` per faktur berhutang (tumbuh tanpa batas) | N query | 1 query | satu `SUM ... GROUP BY` |
 | RENDAH: `/accounting-period` 12 query (satu per bulan) | terbatas 12 | dibiarkan | - |
 Belum diukur: halaman ber-parameter (detail nota, cetak, ekspor) dan waktu query pada data besar (data sekarang masih kecil, `EXPLAIN` belum bermakna).
+
+## 20. Audit tutup buku dan tanggal dokumen
+| Severity | Temuan | Dampak | Perbaikan |
+|---|---|---|---|
+| TINGGI | Periode berjalan atau bulan depan bisa ditutup | Semua jurnal hari itu ditolak: kasir tidak bisa menyimpan nota atau menerima pembayaran | Hanya bulan yang sudah berakhir yang bisa ditutup |
+| SEDANG | Tutup periode tanpa pemeriksaan | Bulan terkunci padahal sesi kasnya belum di-closing atau jurnalnya timpang | Ditolak bila ada sesi kas terbuka dari periode itu atau debet tidak sama dengan kredit |
+| SEDANG | Tanggal dokumen bebas (kas kecil, setoran deposit, pembayaran jersey, kedatangan bahan, pembelian dan pembayaran hutang, catatan jahit), padahal jurnal selalu bertanggal hari ini | Dokumen bisa dimundurkan ke bulan yang sudah ditutup (laporan operasional bulan itu berubah setelah tutup buku) atau diberi tanggal masa depan | Aturan `App\Rules\TanggalTransaksi`: tidak melewati hari ini dan tidak di periode tertutup, dipasang di 8 titik |
+| KEEP | Semua jurnal lewat `postJournal` yang menolak periode tertutup; buka/tutup periode tercatat di audit (`Auditable`); `audit:integritas` lulus di `oriondb` | - | - |
+Tes: `TutupPeriodeKontrolTest` (6 kasus). Tidak diubah: tanggal dokumen non-keuangan (penawaran, PR, PO, opname, promo).

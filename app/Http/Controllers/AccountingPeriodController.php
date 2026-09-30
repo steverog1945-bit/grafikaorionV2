@@ -48,6 +48,26 @@ class AccountingPeriodController extends Controller
             'catatan' => 'nullable|string|max:255',
         ]);
 
+        // Pemeriksaan sebelum tutup buku. Menutup bulan yang masih berjalan menghentikan seluruh transaksi
+        // hari itu; menutup bulan yang kasnya belum direkonsiliasi atau jurnalnya timpang mengunci kesalahan.
+        $awal = \Carbon\Carbon::create($data['tahun'], $data['bulan'], 1)->startOfDay();
+        $akhir = $awal->copy()->endOfMonth();
+        if ($akhir->isFuture()) {
+            return back()->with('error', 'Periode ' . $awal->locale('id')->translatedFormat('F Y') . ' belum berakhir. Periode baru bisa ditutup setelah bulannya lewat.');
+        }
+
+        $kasTerbuka = \Illuminate\Support\Facades\DB::table('kas_harian')->where('status_lock', 'open')
+            ->whereDate('tgl_kas', '<=', $akhir->toDateString())->count();
+        if ($kasTerbuka > 0) {
+            return back()->with('error', "Masih ada {$kasTerbuka} sesi kas dari periode ini yang belum ditutup. Lakukan closing kas dulu.");
+        }
+
+        $saldo = \Illuminate\Support\Facades\DB::table('jurnal_umum')->whereBetween('tgl_jurnal', [$awal->toDateString(), $akhir->toDateString()])
+            ->selectRaw('COALESCE(SUM(debet), 0) as d, COALESCE(SUM(kredit), 0) as k')->first();
+        if (abs((float) $saldo->d - (float) $saldo->k) > 0.01) {
+            return back()->with('error', 'Jurnal periode ini tidak seimbang (debet ' . number_format((float) $saldo->d, 2, ',', '.') . ', kredit ' . number_format((float) $saldo->k, 2, ',', '.') . '). Periksa dulu sebelum menutup.');
+        }
+
         AccountingPeriodService::tutup($data['tahun'], $data['bulan'], auth()->id(), $data['catatan'] ?? null);
 
         return back()->with('success', "Periode {$data['bulan']}/{$data['tahun']} berhasil ditutup. Jurnal baru bertanggal periode ini akan ditolak.");

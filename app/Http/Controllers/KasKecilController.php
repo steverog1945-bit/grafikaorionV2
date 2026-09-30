@@ -51,7 +51,7 @@ class KasKecilController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'tanggal' => 'required|date',
+            'tanggal' => ['required', 'date', new \App\Rules\TanggalTransaksi],
             'jenis' => 'required|in:Keluar,Masuk',
             'id_kategori' => 'required|integer|exists:kategori_kas_kecil,id_kategori_kas_kecil',
             'keterangan' => 'required|string|max:500',

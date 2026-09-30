@@ -242,7 +242,7 @@ class JasaJahitController extends Controller
             'id_jasa_jahit'       => 'required|exists:jasa_jahit,id_jasa_jahit',
             'id_transaksi_detail' => 'nullable|exists:transaksi_detail,id_detail',
             'qty'                 => 'required|numeric|min:0.0001',
-            'tgl_catat'           => 'required|date',
+            'tgl_catat'           => ['required', 'date', new \App\Rules\TanggalTransaksi],
             'catatan'             => 'nullable|max:1000',
         ]);
 

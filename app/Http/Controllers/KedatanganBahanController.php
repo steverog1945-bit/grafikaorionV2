@@ -85,7 +85,7 @@ class KedatanganBahanController extends Controller
         // tanpa gudang jelas).
         'id_gudang'      => 'required|exists:gudang,id_gudang',
         'id_platform'    => 'nullable|exists:platform_belanja,id',
-        'tgl_datang'     => 'required|date',
+        'tgl_datang'     => ['required', 'date', new \App\Rules\TanggalTransaksi],
         'id_bahan'       => 'required|array|min:1',
         'qty'            => 'required|array|min:1',
         'qty.*'          => 'required|numeric|min:0.01',
@@ -254,7 +254,7 @@ public function bulkDelete(Request $request)
 {
     $request->validate([
         'no_surat_jalan' => 'required',
-        'tgl_datang'     => 'required|date',
+        'tgl_datang'     => ['required', 'date', new \App\Rules\TanggalTransaksi],
         'id_supplier'    => 'required',
         'id_bahan'       => 'required|array|min:1',
         'qty'            => 'required|array|min:1',

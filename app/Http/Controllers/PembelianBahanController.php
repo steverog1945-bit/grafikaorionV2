@@ -468,7 +468,7 @@ public function edit($id)
 public function update(Request $request, $id)
 {
     $request->validate([
-        'tgl_transaksi' => 'required|date'
+        'tgl_transaksi' => ['required', 'date', new \App\Rules\TanggalTransaksi]
     ]);
 
     $pembelian = PembelianBahan::findOrFail($id);
@@ -490,7 +490,7 @@ public function pelunasan(Request $request, $id)
     $request->validate([
         'nominal' => 'nullable|numeric|min:0.01',
         'metode' => 'nullable|in:Tunai,Transfer,Kas Kecil',
-        'tanggal' => 'nullable|date',
+        'tanggal' => ['nullable', 'date', new \App\Rules\TanggalTransaksi],
         'keterangan' => 'nullable|string|max:255',
     ]);
 
@@ -557,7 +557,7 @@ public function bayarSupplier(Request $request, $idSupplier)
 {
     $data = $request->validate([
         'nominal' => 'required|numeric|min:0.01', 'metode' => 'required|in:Tunai,Transfer,Kas Kecil',
-        'tanggal' => 'nullable|date', 'keterangan' => 'nullable|string|max:255',
+        'tanggal' => ['nullable', 'date', new \App\Rules\TanggalTransaksi], 'keterangan' => 'nullable|string|max:255',
     ]);
 
     try {

@@ -65,7 +65,7 @@ class KonsumenDepositController extends Controller
             'id_konsumen'  => 'required|exists:konsumen,id_konsumen',
             'nominal'      => 'required|numeric|min:1',
             'metode_bayar' => 'required|in:Tunai,Transfer',
-            'tgl_deposit'  => 'required|date',
+            'tgl_deposit'  => ['required', 'date', new \App\Rules\TanggalTransaksi],
             'keterangan'   => 'nullable',
         ]);
 
