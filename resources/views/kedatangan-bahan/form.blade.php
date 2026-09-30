@@ -20,7 +20,7 @@
                 <input type="date" name="tgl_datang" class="form-control" value="{{ old('tgl_datang', isset($kedatangan) ? $kedatangan->tgl_datang : date('Y-m-d')) }}" required>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Supplier</label>
+                <label class="form-label">Pemasok</label>
                 <select name="id_supplier" class="form-select" required>
                     <option value="">-- Pilih Supplier --</option>
                     @foreach($supplier as $s)

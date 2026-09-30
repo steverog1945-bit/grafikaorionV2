@@ -35,7 +35,7 @@
                         <x-badge variant="warning">ADJ</x-badge>
                     @endif
                 </td>
-                <td class="px-6 py-5 text-right font-semibold text-slate-700">{{ angka($k->qty, 2) }}</td>
+                <td class="px-6 py-5 text-right font-medium text-slate-700">{{ angka($k->qty, 2) }}</td>
                 <td class="px-6 py-5 text-right text-slate-500">{{ angka($k->stok_sebelum, 2) }}</td>
                 <td class="px-6 py-5 text-right text-slate-500">{{ angka($k->stok_sesudah, 2) }}</td>
                 <td class="px-6 py-5">{{ $k->referensi }}</td>

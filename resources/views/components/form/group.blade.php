@@ -7,7 +7,7 @@
 
 <div {{ $attributes->merge(['class' => 'w-full']) }}>
     @if($label)
-        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-2">
+        <label class="block text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-2 ml-2">
             {{ $label }}
             @if($required)
                 <span class="text-rose-500">*</span>
@@ -19,7 +19,7 @@
 
     @if($name)
         @error($name)
-            <p class="mt-1.5 ml-2 text-xs font-semibold text-rose-500">{{ $message }}</p>
+            <p class="mt-1.5 ml-2 text-xs font-medium text-rose-500">{{ $message }}</p>
         @enderror
     @endif
 

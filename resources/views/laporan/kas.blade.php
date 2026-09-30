@@ -31,15 +31,15 @@
     <x-card class="mb-6 no-print">
         <form method="GET" action="{{ route('laporan.kas') }}" class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
                 <x-form.input type="date" name="tgl_dari" value="{{ $tglDari }}" />
             </div>
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
                 <x-form.input type="date" name="tgl_sampai" value="{{ $tglSampai }}" />
             </div>
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Sesi</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Sesi</label>
                 <x-form.select name="status_lock">
                     <option value="">-- Semua --</option>
                     <option value="open" {{ request('status_lock') === 'open' ? 'selected' : '' }}>Masih Buka</option>
@@ -53,7 +53,7 @@
             </x-button>
 
             @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'status_lock']))
-                <a href="{{ route('laporan.kas') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                <a href="{{ route('laporan.kas') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
             @endif
@@ -64,24 +64,24 @@
          polos khusus cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Sesi</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($jumlahSesi, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Jumlah Sesi</p>
+            <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($jumlahSesi, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Tunai Masuk</p>
-            <h3 class="text-2xl font-bold text-emerald-600 mt-1">Rp {{ number_format($totalTunaiMasuk, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Tunai Masuk</p>
+            <h3 class="text-2xl font-medium text-emerald-600 mt-1">Rp {{ number_format($totalTunaiMasuk, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Transfer Masuk</p>
-            <h3 class="text-2xl font-bold text-indigo-600 mt-1">Rp {{ number_format($totalTransferMasuk, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Transfer Masuk</p>
+            <h3 class="text-2xl font-medium text-indigo-600 mt-1">Rp {{ number_format($totalTransferMasuk, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Debit Masuk</p>
-            <h3 class="text-2xl font-bold text-sky-600 mt-1">Rp {{ number_format($totalDebitMasuk, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Debit Masuk</p>
+            <h3 class="text-2xl font-medium text-sky-600 mt-1">Rp {{ number_format($totalDebitMasuk, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Selisih</p>
-            <h3 class="text-2xl font-bold {{ $totalSelisih < 0 ? 'text-rose-500' : 'text-slate-900' }} mt-1">Rp {{ number_format($totalSelisih, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Selisih</p>
+            <h3 class="text-2xl font-medium {{ $totalSelisih < 0 ? 'text-rose-500' : 'text-slate-900' }} mt-1">Rp {{ number_format($totalSelisih, 0, ',', '.') }}</h3>
         </div>
     </div>
     <div class="hidden print:block">
@@ -94,17 +94,17 @@
         ]" />
     </div>
 
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Sesi Kas</div>
+    <div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Sesi Kas</div>
 
     {{-- Versi cetak: satu tabel polos per sesi (bukan kartu rounded/
          shadow/badge berwarna), gaya visual sama dengan Laporan Order. --}}
     <div class="hidden print:block">
-        <p class="text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-2">Detail Sesi Kas</p>
+        <p class="text-[10px] font-medium text-slate-700 uppercase tracking-wide mb-2">Detail Sesi Kas</p>
         @forelse($data as $k)
         @php $manualPrint = $manualPerSesi->get($k->id_kas, collect()); @endphp
         <div class="mb-6 border border-slate-200 overflow-hidden break-inside-avoid">
             <div class="px-3 py-2 bg-slate-50 border-b border-slate-200 text-[10.5px] text-slate-600 leading-relaxed">
-                <span class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($k->tgl_kas)->format('d/m/Y') }}</span>
+                <span class="font-medium text-slate-800">{{ \Carbon\Carbon::parse($k->tgl_kas)->format('d/m/Y') }}</span>
                 &middot; Kasir: {{ $k->nama_kasir ?? '-' }}
                 &middot; Saldo Awal: {{ number_format($k->saldo_awal, 0, ',', '.') }}
                 &middot; Status: {{ $k->status_lock === 'open' ? 'Masih Buka' : 'Tutup' }}
@@ -112,12 +112,12 @@
             <table class="w-full text-[11px] border-collapse">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200">
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left w-6">#</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Waktu</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Keterangan</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Oleh</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Status</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Nominal</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-left w-6">#</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-left">Waktu</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-left">Keterangan</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-left">Oleh</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-left">Status</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Nominal</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -128,7 +128,7 @@
                         <td class="px-3 py-1.5 text-slate-700">{{ $m->keterangan }}</td>
                         <td class="px-3 py-1.5 text-slate-600">{{ $m->nama_user ?? '-' }}</td>
                         <td class="px-3 py-1.5 text-slate-600">{{ $m->status }}</td>
-                        <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ $m->status === 'Masuk' ? '+' : '-' }} {{ number_format($m->nominal, 0, ',', '.') }}</td>
+                        <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ $m->status === 'Masuk' ? '+' : '-' }} {{ number_format($m->nominal, 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
@@ -139,12 +139,12 @@
             </table>
             <div class="px-3 py-2 bg-slate-50 border-t border-slate-200 flex justify-end">
                 <table class="text-[11px]">
-                    <tr><td class="pr-4 text-slate-600">Tunai Masuk</td><td class="text-right font-semibold text-slate-800">{{ number_format($k->total_tunai_masuk, 0, ',', '.') }}</td></tr>
-                    <tr><td class="pr-4 text-slate-600">Transfer Masuk</td><td class="text-right font-semibold text-slate-800">{{ number_format($k->total_transfer_masuk, 0, ',', '.') }}</td></tr>
-                    <tr><td class="pr-4 text-slate-600">Debit Masuk</td><td class="text-right font-semibold text-slate-800">{{ number_format($k->total_debit_masuk ?? 0, 0, ',', '.') }}</td></tr>
-                    <tr><td class="pr-4 text-slate-600">Tunai Keluar</td><td class="text-right font-semibold text-slate-800">{{ number_format($k->total_tunai_keluar, 0, ',', '.') }}</td></tr>
-                    <tr><td class="pr-4 text-slate-600">Saldo Fisik</td><td class="text-right font-semibold text-slate-800">{{ $k->saldo_fisik !== null ? number_format($k->saldo_fisik, 0, ',', '.') : '-' }}</td></tr>
-                    <tr><td class="pr-4 font-bold text-slate-700">Selisih</td><td class="text-right font-bold text-slate-900">{{ $k->selisih !== null ? number_format($k->selisih, 0, ',', '.') : '-' }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Tunai Masuk</td><td class="text-right font-medium text-slate-800">{{ number_format($k->total_tunai_masuk, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Transfer Masuk</td><td class="text-right font-medium text-slate-800">{{ number_format($k->total_transfer_masuk, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Debit Masuk</td><td class="text-right font-medium text-slate-800">{{ number_format($k->total_debit_masuk ?? 0, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Tunai Keluar</td><td class="text-right font-medium text-slate-800">{{ number_format($k->total_tunai_keluar, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Saldo Fisik</td><td class="text-right font-medium text-slate-800">{{ $k->saldo_fisik !== null ? number_format($k->saldo_fisik, 0, ',', '.') : '-' }}</td></tr>
+                    <tr><td class="pr-4 font-medium text-slate-700">Selisih</td><td class="text-right font-medium text-slate-900">{{ $k->selisih !== null ? number_format($k->selisih, 0, ',', '.') : '-' }}</td></tr>
                 </table>
             </div>
         </div>
@@ -160,7 +160,7 @@
         <div class="px-6 py-4 bg-slate-50/80 border-b border-slate-100 flex flex-wrap items-start justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-[14px] font-bold text-slate-800">{{ \Carbon\Carbon::parse($k->tgl_kas)->format('d M Y') }}</span>
+                    <span class="text-[14px] font-medium text-slate-800">{{ \Carbon\Carbon::parse($k->tgl_kas)->format('d M Y') }}</span>
                     @if($k->status_lock === 'open')
                         <x-badge variant="warning">Masih Buka</x-badge>
                     @else
@@ -168,7 +168,7 @@
                     @endif
                 </div>
                 <p class="text-[12px] text-slate-500 mt-1.5">
-                    Kasir: <span class="font-bold text-slate-700">{{ $k->nama_kasir ?? '-' }}</span>
+                    Kasir: <span class="font-medium text-slate-700">{{ $k->nama_kasir ?? '-' }}</span>
                     &middot; Saldo Awal: Rp {{ number_format($k->saldo_awal, 0, ',', '.') }}
                 </p>
             </div>
@@ -192,12 +192,12 @@
                     <tr>
                         <td data-label="#" class="p-3 text-slate-400">{{ $i + 1 }}</td>
                         <td data-label="Waktu" class="p-3 text-slate-500">{{ \Carbon\Carbon::parse($m->waktu)->format('H:i') }}</td>
-                        <td data-label="Keterangan" class="p-3 font-semibold text-slate-700">{{ $m->keterangan }}</td>
+                        <td data-label="Keterangan" class="p-3 font-medium text-slate-700">{{ $m->keterangan }}</td>
                         <td data-label="Oleh" class="p-3 text-slate-500">{{ $m->nama_user ?? '-' }}</td>
                         <td data-label="Status" class="p-3 text-center">
                             <x-badge :variant="$m->status === 'Masuk' ? 'success' : 'danger'">{{ $m->status }}</x-badge>
                         </td>
-                        <td data-label="Nominal" class="p-3 text-right font-bold {{ $m->status === 'Masuk' ? 'text-emerald-600' : 'text-rose-500' }}">
+                        <td data-label="Nominal" class="p-3 text-right font-medium {{ $m->status === 'Masuk' ? 'text-emerald-600' : 'text-rose-500' }}">
                             {{ $m->status === 'Masuk' ? '+' : '-' }} Rp {{ number_format($m->nominal, 0, ',', '.') }}
                         </td>
                     </tr>
@@ -210,12 +210,12 @@
         @endif
 
         <div class="px-6 py-4 bg-slate-50/60 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2">
-            <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Tunai Masuk</span> <span class="font-bold text-emerald-600">Rp {{ number_format($k->total_tunai_masuk, 0, ',', '.') }}</span></p>
-            <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Transfer Masuk</span> <span class="font-bold text-indigo-600">Rp {{ number_format($k->total_transfer_masuk, 0, ',', '.') }}</span></p>
-            <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Debit Masuk</span> <span class="font-bold text-sky-600">Rp {{ number_format($k->total_debit_masuk ?? 0, 0, ',', '.') }}</span></p>
-            <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Tunai Keluar</span> <span class="font-bold text-rose-500">Rp {{ number_format($k->total_tunai_keluar, 0, ',', '.') }}</span></p>
-            <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Saldo Fisik</span> <span class="font-bold text-slate-700">{{ $k->saldo_fisik !== null ? 'Rp ' . number_format($k->saldo_fisik, 0, ',', '.') : '-' }}</span></p>
-            <p class="text-[13px] font-black flex justify-between gap-3 {{ $k->selisih === null ? 'text-slate-300' : ($k->selisih < 0 ? 'text-rose-500' : ($k->selisih > 0 ? 'text-amber-500' : 'text-emerald-600')) }}">
+            <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Tunai Masuk</span> <span class="font-medium text-emerald-600">Rp {{ number_format($k->total_tunai_masuk, 0, ',', '.') }}</span></p>
+            <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Transfer Masuk</span> <span class="font-medium text-indigo-600">Rp {{ number_format($k->total_transfer_masuk, 0, ',', '.') }}</span></p>
+            <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Debit Masuk</span> <span class="font-medium text-sky-600">Rp {{ number_format($k->total_debit_masuk ?? 0, 0, ',', '.') }}</span></p>
+            <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Tunai Keluar</span> <span class="font-medium text-rose-500">Rp {{ number_format($k->total_tunai_keluar, 0, ',', '.') }}</span></p>
+            <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Saldo Fisik</span> <span class="font-medium text-slate-700">{{ $k->saldo_fisik !== null ? 'Rp ' . number_format($k->saldo_fisik, 0, ',', '.') : '-' }}</span></p>
+            <p class="text-[13px] font-medium flex justify-between gap-3 {{ $k->selisih === null ? 'text-slate-300' : ($k->selisih < 0 ? 'text-rose-500' : ($k->selisih > 0 ? 'text-amber-500' : 'text-emerald-600')) }}">
                 <span>Selisih</span> <span>{{ $k->selisih !== null ? 'Rp ' . number_format($k->selisih, 0, ',', '.') : '-' }}</span>
             </p>
         </div>

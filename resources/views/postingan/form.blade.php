@@ -5,8 +5,12 @@
     $edit = $post->exists;
     $terbitAtInput = old('terbit_at', optional($post->terbit_at)->format('Y-m-d\TH:i'));
 @endphp
-<link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Lora:wght@400;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+{{-- Font gaya majalah (Nunito, Lora, Playfair) dilayani sendiri.
+     Hanya halaman Postingan yang memakainya, jadi CSS-nya dimuat di
+     sini dan bukan di layout - lihat catatan lengkap di
+     public/vendor/fonts/majalah.css. --}}
+<link href="{{ asset('vendor/fonts/majalah.css') }}" rel="stylesheet">
+<link href="{{ asset('vendor/quill/quill.snow.css') }}" rel="stylesheet">
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1300px] mx-auto">
 
     <x-page-header :title="$edit ? 'Edit Postingan' : 'Tulis Postingan'">
@@ -17,7 +21,7 @@
     </x-page-header>
 
     @if ($errors->any())
-        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-semibold">
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-medium">
             <ul class="list-disc list-inside space-y-1">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
         </div>
     @endif
@@ -32,7 +36,7 @@
             <div class="w-full lg:w-[68%] space-y-6">
                 <x-card>
                     <x-form.group label="Judul" required>
-                        <x-form.input type="text" name="judul" value="{{ old('judul', $post->judul) }}" required maxlength="200" placeholder="Judul yang jelas dan singkat" class="!text-lg !font-bold" />
+                        <x-form.input type="text" name="judul" value="{{ old('judul', $post->judul) }}" required maxlength="200" placeholder="Judul yang jelas dan singkat" class="!text-lg !font-medium" />
                     </x-form.group>
                     <x-form.group label="Ringkasan (tampil di daftar; kosongkan untuk otomatis)" class="mt-4">
                         <textarea name="ringkasan" rows="2" maxlength="300" placeholder="Satu-dua kalimat pembuka..." class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ old('ringkasan', $post->ringkasan) }}</textarea>
@@ -42,7 +46,7 @@
                 {{-- Tanpa overflow-hidden agar toolbar bisa menempel (sticky) saat halaman digulir --}}
                 <x-card :padding="false" class="editor-kartu">
                     <div class="px-6 pt-5 pb-3 flex items-center justify-between">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Isi Postingan <span class="text-rose-500">*</span></label>
+                        <label class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Isi Postingan <span class="text-rose-500">*</span></label>
                         <span class="text-[11px] text-slate-400" id="hitung-kata">0 kata</span>
                     </div>
                     <div id="toolbar-postingan" class="toolbar-postingan">
@@ -82,7 +86,7 @@
             {{-- ============ KANAN: PENGATURAN ============ --}}
             <div class="w-full lg:w-[32%] space-y-6 lg:sticky lg:top-24">
                 <x-card>
-                    <h3 class="text-sm font-bold text-slate-800 mb-4">Penerbitan</h3>
+                    <h3 class="text-sm font-medium text-slate-800 mb-4">Penerbitan</h3>
                     <x-form.group label="Status" required>
                         <x-form.select name="status" id="status-post">
                             <option value="draft" {{ old('status', $post->status) === 'draft' ? 'selected' : '' }}>Draft (belum terlihat orang lain)</option>
@@ -94,12 +98,12 @@
                     </x-form.group>
                     <label class="mt-4 flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 cursor-pointer" title="Postingan disematkan selalu tampil paling atas dan di dashboard">
                         <input type="checkbox" name="disematkan" value="1" class="accent-indigo-600" {{ old('disematkan', $post->disematkan) ? 'checked' : '' }}>
-                        <span><span class="block text-xs font-bold text-slate-600 uppercase tracking-wide"><i class="fas fa-thumbtack text-amber-500"></i> Sematkan di atas</span><span class="block text-[11px] text-slate-400">Selalu tampil paling atas &amp; di dashboard</span></span>
+                        <span><span class="block text-xs font-medium text-slate-600 uppercase tracking-wide"><i class="fas fa-thumbtack text-amber-500"></i> Sematkan di atas</span><span class="block text-[11px] text-slate-400">Selalu tampil paling atas &amp; di dashboard</span></span>
                     </label>
                 </x-card>
 
                 <x-card>
-                    <h3 class="text-sm font-bold text-slate-800 mb-4">Kategori &amp; Tag</h3>
+                    <h3 class="text-sm font-medium text-slate-800 mb-4">Kategori &amp; Tag</h3>
                     <x-form.group label="Kategori">
                         <x-form.select name="id_kategori">
                             <option value="">-- Tanpa kategori --</option>
@@ -107,7 +111,7 @@
                         </x-form.select>
                     </x-form.group>
                     <x-form.group label="atau buat kategori baru" class="mt-4">
-                        <x-form.input type="text" name="kategori_baru" value="{{ old('kategori_baru') }}" maxlength="60" placeholder="mis. Info Supplier" />
+                        <x-form.input type="text" name="kategori_baru" value="{{ old('kategori_baru') }}" maxlength="60" placeholder="mis. Info Pemasok" />
                     </x-form.group>
                     <x-form.group label="Tag (pisahkan koma)" class="mt-4">
                         <x-form.input type="text" name="tags" value="{{ old('tags', $post->tags) }}" maxlength="255" placeholder="banner, laminasi, sop" />
@@ -115,14 +119,14 @@
                 </x-card>
 
                 <x-card>
-                    <h3 class="text-sm font-bold text-slate-800 mb-4">Gambar Sampul</h3>
+                    <h3 class="text-sm font-medium text-slate-800 mb-4">Gambar Sampul</h3>
                     <div id="pratinjau-sampul" class="rounded-2xl overflow-hidden bg-slate-100 aspect-[16/9] mb-3 {{ $post->url_sampul ? '' : 'hidden' }}">
-                        <img id="img-sampul" src="{{ $post->url_sampul }}" alt="Sampul" class="w-full h-full object-cover">
+                        <img loading="lazy" decoding="async" id="img-sampul" src="{{ $post->url_sampul }}" alt="Sampul" class="w-full h-full object-cover">
                     </div>
-                    <input type="file" name="sampul" id="input-sampul" accept="image/png,image/jpeg,image/webp" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-indigo-50 file:text-indigo-600">
+                    <input type="file" name="sampul" id="input-sampul" accept="image/png,image/jpeg,image/webp" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[10px] file:font-medium file:uppercase file:bg-indigo-50 file:text-indigo-600">
                     <p class="text-[11px] text-slate-400 mt-2">JPG/PNG/WebP, maks. 5 MB. Rasio 16:9 paling pas.</p>
                     @if($post->gambar_sampul)
-                    <label class="mt-3 flex items-center gap-2 text-xs font-semibold text-slate-500"><input type="checkbox" name="hapus_sampul" value="1" class="accent-rose-500"> Hapus sampul saat ini</label>
+                    <label class="mt-3 flex items-center gap-2 text-xs font-medium text-slate-500"><input type="checkbox" name="hapus_sampul" value="1" class="accent-rose-500"> Hapus sampul saat ini</label>
                     @endif
                 </x-card>
 
@@ -135,7 +139,7 @@
 </div>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+<script src="{{ asset('vendor/quill/quill.min.js') }}"></script>
 <script>
     const URL_UNGGAH = @json(route('postingan.unggah'));
     const CSRF = document.querySelector('meta[name="csrf-token"]').content;

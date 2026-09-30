@@ -9,16 +9,16 @@
         <table class="w-full text-left border-collapse" id="matriks-izin">
             <thead>
                 <tr class="bg-slate-900 text-white">
-                    <th class="p-4 text-xs font-semibold uppercase tracking-wider">Modul</th>
+                    <th class="p-4 text-xs font-medium uppercase tracking-wider">Modul</th>
                     @foreach($aksi as $k => $label)
-                    <th class="p-4 text-xs font-semibold uppercase tracking-wider text-center w-28">
+                    <th class="p-4 text-xs font-medium uppercase tracking-wider text-center w-28">
                         <label class="inline-flex flex-col items-center gap-1 cursor-pointer">
                             {{ $label }}
                             <input type="checkbox" class="cek-kolom w-4 h-4 rounded border-slate-400 text-indigo-500" data-aksi="{{ $k }}" title="Pilih semua kolom {{ $label }}">
                         </label>
                     </th>
                     @endforeach
-                    <th class="p-4 text-xs font-semibold uppercase tracking-wider text-center w-24">Semua</th>
+                    <th class="p-4 text-xs font-medium uppercase tracking-wider text-center w-24">Semua</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -29,9 +29,9 @@
                 @endphp
                 <tr class="hover:bg-indigo-50/40 transition-colors {{ $menu->aktif ? '' : 'opacity-50' }} {{ $beda ? 'bg-amber-50/60' : '' }}" data-row>
                     <td class="p-4">
-                        <div class="font-bold text-slate-700 text-sm">{{ $nama }}
-                            @if(!$menu->aktif)<span class="ml-1 text-[10px] font-black text-slate-400 uppercase">(disembunyikan)</span>@endif
-                            @if($beda)<span class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-black uppercase">khusus user</span>@endif
+                        <div class="font-medium text-slate-700 text-sm">{{ $nama }}
+                            @if(!$menu->aktif)<span class="ml-1 text-[10px] font-medium text-slate-400 uppercase">(disembunyikan)</span>@endif
+                            @if($beda)<span class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-medium uppercase">khusus user</span>@endif
                         </div>
                         <div class="text-[11px] text-slate-400">{{ $menu->url_link }}</div>
                     </td>

@@ -12,10 +12,10 @@
                     <i class="fas fa-print"></i> Cetak Ringkasan
                 </x-button>
                 <div id="print-menu-ringkasan" class="hidden absolute right-0 mt-2 w-52 bg-white border border-slate-100 shadow-xl rounded-xl z-50 overflow-hidden">
-                    <a href="{{ route('jersey.orders.print', [$order->id, 'thermal']) }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50 border-b border-slate-50">
+                    <a href="{{ route('jersey.orders.print', [$order->id, 'thermal']) }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-[10px] font-medium text-slate-600 hover:bg-slate-50 border-b border-slate-50">
                         <i class="fas fa-receipt text-indigo-400"></i> THERMAL (58MM)
                     </a>
-                    <a href="{{ route('jersey.orders.print', [$order->id, 'normal']) }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50">
+                    <a href="{{ route('jersey.orders.print', [$order->id, 'normal']) }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-[10px] font-medium text-slate-600 hover:bg-slate-50">
                         <i class="fas fa-file-invoice text-indigo-400"></i> A4 / F4
                     </a>
                 </div>
@@ -37,19 +37,19 @@
     </x-page-header>
 
     @if (session('success'))
-        <div class="bg-emerald-50 text-emerald-600 p-4 rounded-2xl mb-6 font-semibold">{{ session('success') }}</div>
+        <div class="bg-emerald-50 text-emerald-600 p-4 rounded-2xl mb-6 font-medium">{{ session('success') }}</div>
     @endif
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <x-card class="md:col-span-2">
-            <h3 class="text-sm font-bold text-slate-700 mb-4">Informasi Order</h3>
+            <h3 class="text-sm font-medium text-slate-700 mb-4">Informasi Order</h3>
             <div class="grid grid-cols-2 gap-4 text-sm">
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Pelanggan</p><p class="font-semibold">{{ $order->konsumen->nama_konsumen ?? $order->customer_name }}</p></div>
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">No. HP</p><p class="font-semibold">{{ $order->customer_phone ?? '-' }}</p></div>
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Tim</p><p class="font-semibold">{{ $order->team_name ?? '-' }}</p></div>
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Tanggal Order</p><p class="font-semibold">{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</p></div>
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Deadline</p><p class="font-semibold">{{ $order->deadline ? \Carbon\Carbon::parse($order->deadline)->format('d/m/Y') : '-' }}</p></div>
-                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Desainer</p><p class="font-semibold">{{ $order->designer_name ?? '-' }}</p></div>
+                <div><p class="text-[10px] text-slate-400 uppercase font-medium">Pelanggan</p><p class="font-medium">{{ $order->konsumen->nama_konsumen ?? $order->customer_name }}</p></div>
+                <div><p class="text-[10px] text-slate-400 uppercase font-medium">No. HP</p><p class="font-medium">{{ $order->customer_phone ?? '-' }}</p></div>
+                <div><p class="text-[10px] text-slate-400 uppercase font-medium">Tim</p><p class="font-medium">{{ $order->team_name ?? '-' }}</p></div>
+                <div><p class="text-[10px] text-slate-400 uppercase font-medium">Tanggal Order</p><p class="font-medium">{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</p></div>
+                <div><p class="text-[10px] text-slate-400 uppercase font-medium">Deadline</p><p class="font-medium">{{ $order->deadline ? \Carbon\Carbon::parse($order->deadline)->format('d/m/Y') : '-' }}</p></div>
+                <div><p class="text-[10px] text-slate-400 uppercase font-medium">Desainer</p><p class="font-medium">{{ $order->designer_name ?? '-' }}</p></div>
             </div>
             @if($order->notes)
                 <div class="mt-4 p-3 bg-slate-50 rounded-xl text-xs text-slate-500">{{ $order->notes }}</div>
@@ -58,7 +58,7 @@
 
         <x-card>
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-sm font-bold text-slate-700">Ringkasan Biaya</h3>
+                <h3 class="text-sm font-medium text-slate-700">Ringkasan Biaya</h3>
                 <x-badge :status="$order->status_pembayaran" />
             </div>
             @bolehHarga
@@ -66,9 +66,9 @@
                 <div class="flex justify-between"><span class="text-slate-400">Subtotal Barang</span><span>Rp {{ number_format($order->lines->sum('subtotal'), 0, ',', '.') }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Diskon</span><span>Rp {{ number_format($order->discount, 0, ',', '.') }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Biaya Tambahan</span><span>Rp {{ number_format($order->additional_charge, 0, ',', '.') }}</span></div>
-                <div class="flex justify-between border-t border-slate-100 pt-2 font-bold text-base"><span>Total</span><span>Rp {{ number_format($order->total, 0, ',', '.') }}</span></div>
-                <div class="flex justify-between text-emerald-600"><span class="text-slate-400">Sudah Dibayar</span><span class="font-semibold">Rp {{ number_format($order->deposit, 0, ',', '.') }}</span></div>
-                <div class="flex justify-between border-t border-slate-100 pt-2 font-bold text-base text-rose-600"><span>Sisa Tagihan</span><span>Rp {{ number_format($order->sisa_tagihan, 0, ',', '.') }}</span></div>
+                <div class="flex justify-between border-t border-slate-100 pt-2 font-medium text-base"><span>Total</span><span>Rp {{ number_format($order->total, 0, ',', '.') }}</span></div>
+                <div class="flex justify-between text-emerald-600"><span class="text-slate-400">Sudah Dibayar</span><span class="font-medium">Rp {{ number_format($order->deposit, 0, ',', '.') }}</span></div>
+                <div class="flex justify-between border-t border-slate-100 pt-2 font-medium text-base text-rose-600"><span>Sisa Tagihan</span><span>Rp {{ number_format($order->sisa_tagihan, 0, ',', '.') }}</span></div>
             </div>
             @endbolehHarga
             @if($order->sisa_tagihan > 0)
@@ -86,16 +86,16 @@
                 <div class="flex items-center gap-4">
                     <div class="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
                         @if($line->thumbnail)
-                            <img src="{{ asset('storage/' . $line->thumbnail) }}" class="w-full h-full object-cover">
+                            <img loading="lazy" decoding="async" src="{{ asset('storage/' . $line->thumbnail) }}" class="w-full h-full object-cover">
                         @else
                             <i class="fas fa-image text-slate-300"></i>
                         @endif
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                        <h3 class="text-sm font-medium text-slate-700 flex items-center gap-2">
                             {{ $line->nama_barang }}
                             @if($line->is_susulan)
-                                <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-[9px] font-black uppercase tracking-widest">Susulan</span>
+                                <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-[9px] font-medium uppercase tracking-widest">Susulan</span>
                             @endif
                         </h3>
                         <p class="text-[11px] text-slate-400">{{ $line->productType->name ?? '-' }} &middot; {{ $line->category->name ?? '-' }} &middot; {{ $line->bahan ?? '-' }} @if($line->sleeveType) &middot; {{ $line->sleeveType->name }} @endif @if($line->collarType) &middot; {{ $line->collarType->name }} @endif</p>
@@ -103,12 +103,12 @@
                         <p class="text-[11px] text-slate-400">
                             {{ angka($line->qty, 4) }} pcs &times; Rp {{ number_format($line->harga_satuan, 0, ',', '.') }}
                             @if($line->size_surcharge_total > 0)
-                                + Rp {{ number_format($line->size_surcharge_total, 0, ',', '.') }} <span class="text-amber-500 font-semibold">(tambahan ukuran)</span>
+                                + Rp {{ number_format($line->size_surcharge_total, 0, ',', '.') }} <span class="text-amber-500 font-medium">(tambahan ukuran)</span>
                             @endif
                             @if($line->sleeve_collar_surcharge_total > 0)
-                                + Rp {{ number_format($line->sleeve_collar_surcharge_total, 0, ',', '.') }} <span class="text-amber-500 font-semibold">(tambahan lengan/kerah)</span>
+                                + Rp {{ number_format($line->sleeve_collar_surcharge_total, 0, ',', '.') }} <span class="text-amber-500 font-medium">(tambahan lengan/kerah)</span>
                             @endif
-                            = <span class="font-bold text-slate-600">Rp {{ number_format($line->subtotal, 0, ',', '.') }}</span>
+                            = <span class="font-medium text-slate-600">Rp {{ number_format($line->subtotal, 0, ',', '.') }}</span>
                         </p>
                         @endbolehHarga
                     </div>
@@ -140,7 +140,7 @@
                     <tbody class="divide-y divide-slate-50">
                         @foreach($itemsSorted as $item)
                         <tr>
-                            <td class="p-2 font-semibold">{{ $item->player_name }}</td>
+                            <td class="p-2 font-medium">{{ $item->player_name }}</td>
                             <td class="p-2">{{ $item->player_number ?? '-' }}</td>
                             <td class="p-2">{{ $item->size }}</td>
                             <td class="p-2">{{ $item->gender }}</td>
@@ -156,7 +156,7 @@
             @if($line->sizeQuantities->isNotEmpty())
             <div class="flex flex-wrap gap-2">
                 @foreach($line->sizeQuantities as $sq)
-                    <div class="px-3 py-1.5 bg-slate-50 rounded-lg text-[11px] font-bold text-slate-600">{{ $sq->size->name ?? '-' }}: {{ $sq->quantity }} pcs</div>
+                    <div class="px-3 py-1.5 bg-slate-50 rounded-lg text-[11px] font-medium text-slate-600">{{ $sq->size->name ?? '-' }}: {{ $sq->quantity }} pcs</div>
                 @endforeach
             </div>
             @endif
@@ -166,7 +166,7 @@
 
     <x-card class="mb-6">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-bold text-slate-700">Riwayat Pembayaran</h3>
+            <h3 class="text-sm font-medium text-slate-700">Riwayat Pembayaran</h3>
             @if($order->sisa_tagihan > 0)
                 <x-button type="button" size="sm" variant="success" onclick="openModal('tambah-pembayaran')">
                     <i class="fas fa-plus"></i> Tambah Pembayaran
@@ -182,11 +182,11 @@
                     <tbody class="divide-y divide-slate-50">
                         @foreach($order->payments->sortByDesc('tanggal_bayar') as $p)
                         <tr>
-                            <td class="p-2 font-semibold text-slate-600">{{ $p->tanggal_bayar->format('d/m/Y') }}</td>
+                            <td class="p-2 font-medium text-slate-600">{{ $p->tanggal_bayar->format('d/m/Y') }}</td>
                             <td class="p-2">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[10px] font-bold uppercase">{{ $p->metode_bayar }}</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[10px] font-medium uppercase">{{ $p->metode_bayar }}</span>
                             </td>
-                            @bolehHarga<td class="p-2 text-right font-bold text-emerald-600">Rp {{ number_format($p->jumlah, 0, ',', '.') }}</td>@endbolehHarga
+                            @bolehHarga<td class="p-2 text-right font-medium text-emerald-600">Rp {{ number_format($p->jumlah, 0, ',', '.') }}</td>@endbolehHarga
                             <td class="p-2 text-slate-400">{{ $p->keterangan ?? '-' }}</td>
                             <td class="p-2 text-center">
                                 @if($p->bukti_path)
@@ -210,7 +210,7 @@
     </x-card>
 
     <x-card>
-        <h3 class="text-sm font-bold text-slate-700 mb-4">Update Data Order</h3>
+        <h3 class="text-sm font-medium text-slate-700 mb-4">Update Data Order</h3>
         <form action="{{ route('jersey.orders.update', $order->id) }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             @csrf @method('PUT') @versi($order)
             <x-form.group label="Status Order">
@@ -233,10 +233,10 @@
                 </x-form.select>
             </x-form.group>
             <x-form.group label="Diskon (Rp)">
-                <input type="text" inputmode="numeric" name="discount" value="{{ number_format($order->discount, 0, ',', '.') }}" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <input type="text" inputmode="numeric" name="discount" value="{{ number_format($order->discount, 0, ',', '.') }}" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </x-form.group>
             <x-form.group label="Biaya Tambahan (Rp)">
-                <input type="text" inputmode="numeric" name="additional_charge" value="{{ number_format($order->additional_charge, 0, ',', '.') }}" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <input type="text" inputmode="numeric" name="additional_charge" value="{{ number_format($order->additional_charge, 0, ',', '.') }}" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </x-form.group>
             <div class="md:col-span-3">
                 <x-form.group label="Catatan">
@@ -257,12 +257,12 @@
                 @include('jersey.orders._line-card-fields', ['idx' => 0, 'line' => null, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
             </div>
             <div class="flex items-center justify-between gap-4 flex-wrap mb-4 bg-indigo-600 rounded-2xl px-6 py-4">
-                <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest">Perkiraan Harga Barang Susulan Ini</span>
-                <span id="preview-total-susulan" class="text-xl font-black text-white">Rp 0</span>
+                <span class="text-[10px] font-medium text-indigo-200 uppercase tracking-widest">Perkiraan Harga Barang Susulan Ini</span>
+                <span id="preview-total-susulan" class="text-xl font-medium text-white">Rp 0</span>
             </div>
             <div class="flex gap-3">
-                <button type="button" onclick="closeModal('tambah-susulan')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
-                <button type="submit" class="flex-[2] py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase">Simpan Barang Susulan</button>
+                <button type="button" onclick="closeModal('tambah-susulan')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium uppercase">Batal</button>
+                <button type="submit" class="flex-[2] py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium uppercase">Simpan Barang Susulan</button>
             </div>
         </form>
     </x-modal>
@@ -270,7 +270,7 @@
     <x-modal id="tambah-pembayaran" title="Catat Pembayaran" maxWidth="md">
         <form id="form-tambah-pembayaran" action="{{ route('jersey.keuangan.bayar.store', $order->id) }}" method="POST">
             @csrf
-            <div class="mb-4 p-3 bg-rose-50 rounded-xl text-xs text-rose-600 font-semibold">
+            <div class="mb-4 p-3 bg-rose-50 rounded-xl text-xs text-rose-600 font-medium">
                 Sisa tagihan order ini: Rp {{ number_format($order->sisa_tagihan, 0, ',', '.') }}
             </div>
             <div class="grid grid-cols-2 gap-3 mb-4">
@@ -279,7 +279,7 @@
                 </x-form.group>
                 <x-form.group label="Jumlah (Rp)">
                     <input type="text" inputmode="numeric" name="jumlah_display" id="pembayaran-jumlah-display" required
-                        class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                        class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                         placeholder="0">
                     <input type="hidden" name="jumlah" id="pembayaran-jumlah">
                 </x-form.group>
@@ -292,9 +292,9 @@
                 </x-form.select>
             </x-form.group>
             <div class="mb-4">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Bukti Bayar (opsional)</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Bukti Bayar (opsional)</label>
                 <div class="bukti-dropzone relative border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-300" tabindex="0" onclick="document.getElementById('bukti-file-input').click()">
-                    <img class="bukti-preview hidden mx-auto max-h-32 rounded-lg mb-2">
+                    <img loading="lazy" decoding="async" class="bukti-preview hidden mx-auto max-h-32 rounded-lg mb-2" 
                     <p class="bukti-placeholder text-[11px] text-slate-400"><i class="fas fa-receipt mb-1 block text-lg text-slate-300"></i>Klik, Tempel (Ctrl+V), atau Pilih File</p>
                     <input type="file" id="bukti-file-input" class="hidden" accept="image/*">
                 </div>
@@ -302,11 +302,11 @@
                 <p class="bukti-status text-[10px] mt-1"></p>
             </div>
             <x-form.group label="Keterangan (opsional)" class="mb-4">
-                <input type="text" name="keterangan" placeholder="mis. Cicilan ke-2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <input type="text" name="keterangan" placeholder="mis. Cicilan ke-2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </x-form.group>
             <div class="pt-2 flex gap-3">
-                <button type="button" onclick="closeModal('tambah-pembayaran')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
-                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase">Simpan Pembayaran</button>
+                <button type="button" onclick="closeModal('tambah-pembayaran')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium uppercase">Batal</button>
+                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium uppercase">Simpan Pembayaran</button>
             </div>
         </form>
     </x-modal>
@@ -332,7 +332,7 @@
 
     function confirmHapusOrderJersey() {
         Swal.fire({
-            title: 'Hapus / batalkan Order Jersey?',
+            title: 'Hapus / batalkan Pesanan Jersey?',
             html: 'Order <b>{{ $order->order_number }}</b> beserta seluruh barang & rinciannya akan dihapus. Jika order sudah diakui sebagai pendapatan atau sudah ada pembayaran, ini hanya MENGAJUKAN pembatalan ke Administrator (jurnal dibalik setelah disetujui).',
             icon: 'warning',
             showCancelButton: true,
@@ -348,7 +348,7 @@
     function confirmHapusPembayaran(id) {
         Swal.fire({
             title: 'Ajukan void pembayaran?',
-            html: 'Pembayaran baru di-void dan jurnalnya dibalik setelah disetujui Administrator di Approval Workflow.',
+            html: 'Pembayaran baru di-void dan jurnalnya dibalik setelah disetujui Administrator di Alur Persetujuan.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
@@ -430,7 +430,7 @@
     });
 
     // ---- Modal Tambah Barang Susulan - dukungan mode order (toggle),
-    // daftar pemain, & upload thumbnail sama persis dengan Order Jersey
+    // daftar pemain, & upload thumbnail sama persis dengan Pesanan Jersey
     // Baru / Kelola Barang (satu kartu barang saja, idx tetap 0). ----
     // ---- Pengunci optimis perpindahan mode order (sama dengan
     // create.blade.php): input milik mode lama DIBUANG saat mode pindah,

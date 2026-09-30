@@ -23,7 +23,7 @@
         <div class="mb-8 bg-rose-50 border border-rose-200 rounded-2xl p-5 flex items-start gap-4">
             <i class="fas fa-ban text-rose-500 text-xl mt-0.5"></i>
             <div>
-                <p class="text-sm font-black text-rose-700 uppercase tracking-wide">Nota Ini Dibatalkan</p>
+                <p class="text-sm font-medium text-rose-700 uppercase tracking-wide">Nota Ini Dibatalkan</p>
                 <p class="text-sm text-rose-600 mt-1">
                     Dibatalkan oleh <b>{{ $transaksi->nama_pembatal_nota ?? '-' }}</b>
                     pada {{ $transaksi->tgl_dibatalkan_nota ? \Carbon\Carbon::parse($transaksi->tgl_dibatalkan_nota)->format('d M Y, H:i') : '-' }}.
@@ -38,16 +38,16 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <x-card>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Konsumen</p>
-            <p class="text-lg font-bold text-slate-800">{{ $transaksi->nama_konsumen }}</p>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3">Konsumen</p>
+            <p class="text-lg font-medium text-slate-800">{{ $transaksi->nama_konsumen }}</p>
             <p class="text-sm text-slate-500 mt-1">{{ $transaksi->telepon ?? '-' }}</p>
-            <p class="text-xs text-indigo-500 font-bold uppercase mt-2">{{ $transaksi->nama_golongan ?? '-' }}</p>
+            <p class="text-xs text-indigo-500 font-medium uppercase mt-2">{{ $transaksi->nama_golongan ?? '-' }}</p>
         </x-card>
 
         <x-card>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Info Order</p>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3">Info Order</p>
             <div class="flex items-center gap-2 mb-2">
-                <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold {{ $transaksi->tipe_order === 'PO' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-600 border border-slate-100' }}">
+                <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium {{ $transaksi->tipe_order === 'PO' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-600 border border-slate-100' }}">
                     {{ $transaksi->tipe_order }}
                 </span>
                 @if($transaksi->no_po)
@@ -59,14 +59,14 @@
         </x-card>
 
         <x-card>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Status & Total</p>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3">Status & Total</p>
             <div class="flex items-center gap-2">
                 <x-badge :status="$transaksi->status_pembayaran" />
                 @if($transaksi->status_nota === 'Dibatalkan')
                     <x-badge status="Dibatalkan" variant="danger" />
                 @endif
             </div>
-            @bolehHarga<p class="text-2xl font-black {{ $transaksi->status_nota === 'Dibatalkan' ? 'text-slate-400 line-through' : 'text-indigo-600' }} mt-2">Rp {{ number_format($transaksi->total_bayar, 0, ',', '.') }}</p>@endbolehHarga
+            @bolehHarga<p class="text-2xl font-medium {{ $transaksi->status_nota === 'Dibatalkan' ? 'text-slate-400 line-through' : 'text-indigo-600' }} mt-2">Rp {{ number_format($transaksi->total_bayar, 0, ',', '.') }}</p>@endbolehHarga
         </x-card>
     </div>
 
@@ -91,19 +91,19 @@
                 <td class="px-6 py-4 text-xs text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-6 py-4">
                     @if($item->thumbnail)
-                        <img src="{{ asset('storage/' . $item->thumbnail) }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100">
+                        <img loading="lazy" decoding="async" src="{{ asset('storage/' . $item->thumbnail) }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100">
                     @else
                         <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300"><i class="far fa-image"></i></div>
                     @endif
                 </td>
                 <td class="px-6 py-4">
-                    <p class="text-sm font-bold text-slate-700">{{ $item->nama_file }}</p>
+                    <p class="text-sm font-medium text-slate-700">{{ $item->nama_file }}</p>
                     <p class="text-xs text-slate-400">{{ $item->nama_produk ?? ($item->nama_jasa ? '🔧 ' . $item->nama_jasa : '-') }}</p>
                     @forelse(($finishingItems[$item->id_detail] ?? collect()) as $fin)
-                        <p class="text-[11px] text-indigo-500 font-bold mt-1">✨ {{ $fin->nama_finishing }} ({{ $fin->status_finishing }}){{ $fin->metode_hitung === 'quantity' && $fin->qty_pakai ? ' × ' . angka((float) $fin->qty_pakai, 2) : '' }}@bolehHarga <span class="text-slate-400 font-semibold">&middot; Rp {{ number_format($fin->biaya, 0, ',', '.') }}</span>@endbolehHarga @if($fin->catatan)<span class="text-slate-400 font-medium">&middot; {{ $fin->catatan }}</span>@endif</p>
+                        <p class="text-[11px] text-indigo-500 font-medium mt-1">✨ {{ $fin->nama_finishing }} ({{ $fin->status_finishing }}){{ $fin->metode_hitung === 'quantity' && $fin->qty_pakai ? ' × ' . angka((float) $fin->qty_pakai, 2) : '' }}@bolehHarga <span class="text-slate-400 font-medium">&middot; Rp {{ number_format($fin->biaya, 0, ',', '.') }}</span>@endbolehHarga @if($fin->catatan)<span class="text-slate-400 font-medium">&middot; {{ $fin->catatan }}</span>@endif</p>
                     @empty
                         @if($item->nama_finishing)
-                        <p class="text-[11px] text-indigo-500 font-bold mt-1">✨ {{ $item->nama_finishing }} ({{ $item->status_finishing ?? 'Standar' }})</p>
+                        <p class="text-[11px] text-indigo-500 font-medium mt-1">✨ {{ $item->nama_finishing }} ({{ $item->status_finishing ?? 'Standar' }})</p>
                         @endif
                     @endforelse
                 </td>
@@ -114,17 +114,17 @@
                         -
                     @endif
                 </td>
-                <td class="px-4 py-4 text-center text-sm font-bold text-slate-700">{{ angka($item->qty, 4) }}</td>
+                <td class="px-4 py-4 text-center text-sm font-medium text-slate-700">{{ angka($item->qty, 4) }}</td>
                 <td class="px-4 py-4 text-center">
                     <x-badge :status="$item->status_urgensi ?? 'Normal'" :variant="($item->status_urgensi ?? 'Normal') === 'Very Urgent' ? 'danger' : (($item->status_urgensi ?? 'Normal') === 'Urgent' ? 'warning' : 'info')" />
                 </td>
                 @bolehHarga<td class="px-6 py-4 text-right text-sm text-slate-600">{{ number_format($item->biaya_cetak ?? 0, 0, ',', '.') }}</td>@endbolehHarga
                 @bolehHarga<td class="px-6 py-4 text-right text-sm text-slate-600">{{ number_format($item->biaya_finishing ?? 0, 0, ',', '.') }}</td>@endbolehHarga
-                @bolehHarga<td class="px-6 py-4 text-right text-sm font-bold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>@endbolehHarga
+                @bolehHarga<td class="px-6 py-4 text-right text-sm font-medium text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>@endbolehHarga
                 <td class="px-6 py-4 text-center">
                     <x-badge :status="$item->status_spk" />
                     @if($item->spk_lengkap && in_array(optional(auth()->user()->role)->nama_role, ['Operator Desain', 'Administrator'], true))
-                        <a href="{{ route('spk.desain', $item->id_detail) }}" target="_blank" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[11px] font-semibold transition-all" title="Cetak SPK lengkap untuk desainer">
+                        <a href="{{ route('spk.desain', $item->id_detail) }}" target="_blank" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[11px] font-medium transition-all" title="Cetak SPK lengkap untuk desainer">
                             <i class="fas fa-file-image"></i> SPK Desain
                         </a>
                     @endif
@@ -134,8 +134,8 @@
         </tbody>
         <tfoot>
             <tr class="bg-slate-50/70 border-t-2 border-slate-100">
-                @bolehHarga<td colspan="8" class="px-6 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
-                <td class="px-6 py-4 text-right text-sm font-black text-slate-800">{{ number_format($transaksi->total_bayar, 0, ',', '.') }}</td>@endbolehHarga
+                @bolehHarga<td colspan="8" class="px-6 py-4 text-right text-[11px] font-medium text-slate-500 uppercase tracking-widest">Total</td>
+                <td class="px-6 py-4 text-right text-sm font-medium text-slate-800">{{ number_format($transaksi->total_bayar, 0, ',', '.') }}</td>@endbolehHarga
                 <td></td>
             </tr>
         </tfoot>
@@ -152,7 +152,7 @@
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
                         <p class="text-xs text-amber-700"><b>Ini BUKAN hapus permanen.</b> Nota tetap tersimpan untuk jejak audit (nomor nota, riwayat pembayaran, kartu stok tidak hilang) - hanya ditandai Dibatalkan dan seluruh item SPK di dalamnya ikut dibatalkan supaya tidak ada yang lanjut memproduksinya.</p>
                     </div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Alasan pembatalan (wajib diisi)</label>
+                    <label class="block text-xs font-medium text-slate-500 uppercase mb-1">Alasan pembatalan (wajib diisi)</label>
                     <textarea id="swal-alasan-nota" class="swal2-textarea" style="display:flex" placeholder="Contoh: salah input konsumen, nota duplikat, dsb."></textarea>
                     <label class="flex items-start gap-2 text-sm text-slate-600 mt-2 px-1 cursor-pointer">
                         <input type="checkbox" id="swal-kembalikan-stok-nota" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">

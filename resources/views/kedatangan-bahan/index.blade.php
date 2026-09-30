@@ -20,18 +20,18 @@
     <x-card class="mb-6">
         <form method="GET" action="{{ route('kedatangan-bahan.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[260px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Pencarian</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Pencarian</label>
                 <div class="relative">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <x-form.input type="text" name="search" value="{{ request('search') }}" class="!pl-11" placeholder="Nomor SJ atau nama supplier..." />
                 </div>
             </div>
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
                 <x-form.input type="date" name="from" value="{{ request('from') }}" />
             </div>
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
                 <x-form.input type="date" name="to" value="{{ request('to') }}" />
             </div>
             <x-button type="submit" title="Terapkan filter">
@@ -39,7 +39,7 @@
                 Filter
             </x-button>
             @if(request()->anyFilled(['search', 'from', 'to']))
-                <a href="{{ route('kedatangan-bahan.index') }}" title="Kembalikan filter ke awal" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">Reset</a>
+                <a href="{{ route('kedatangan-bahan.index') }}" title="Kembalikan filter ke awal" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">Reset</a>
             @endif
         </form>
     </x-card>
@@ -74,14 +74,14 @@
                     <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $kedatangans->firstItem() + $i }}</td>
 
                     <td class="px-4 py-5">
-                        <span class="text-[13px] font-bold text-slate-700 uppercase block">{{ $k->no_surat_jalan }}</span>
-                        <span class="text-[11px] text-slate-400 font-semibold mt-0.5 block">{{ optional($k->tgl_datang)->format('d M Y') }}</span>
+                        <span class="text-[13px] font-medium text-slate-700 uppercase block">{{ $k->no_surat_jalan }}</span>
+                        <span class="text-[11px] text-slate-400 font-medium mt-0.5 block">{{ optional($k->tgl_datang)->format('d M Y') }}</span>
                     </td>
 
                     <td class="px-4 py-5">
-                        <span class="text-[12px] font-bold text-slate-700 uppercase block leading-tight">{{ $k->supplier->nama_supplier ?? 'VENDOR UMUM' }}</span>
-                        @if($k->platform)<span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-orange-50 text-orange-600 text-[10px] font-black uppercase"><i class="fas fa-shopping-bag"></i> {{ $k->platform->nama }}@if($k->no_pesanan_online) &middot; {{ $k->no_pesanan_online }}@endif</span>@endif
-                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1 mt-0.5">
+                        <span class="text-[12px] font-medium text-slate-700 uppercase block leading-tight">{{ $k->supplier->nama_supplier ?? 'VENDOR UMUM' }}</span>
+                        @if($k->platform)<span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-orange-50 text-orange-600 text-[10px] font-medium uppercase"><i class="fas fa-shopping-bag"></i> {{ $k->platform->nama }}@if($k->no_pesanan_online) &middot; {{ $k->no_pesanan_online }}@endif</span>@endif
+                        <span class="text-[10px] font-medium text-indigo-500 uppercase tracking-wider flex items-center gap-1 mt-0.5">
                             <i class="fas fa-warehouse text-[9px]"></i> {{ $k->gudang->nama_gudang ?? 'UTAMA' }}
                         </span>
                     </td>
@@ -90,12 +90,12 @@
                     <td class="px-4 py-5 min-w-[280px] max-w-md">
                         <div class="rounded-xl bg-slate-50 px-4 py-3">
                             <p class="catatan-isi text-[12px] text-slate-600 leading-relaxed whitespace-pre-line break-words" data-lipat="1">{{ $k->keterangan ?? 'Tidak ada catatan...' }}</p>
-                            <button type="button" class="catatan-toggle hidden mt-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-500 hover:text-indigo-700" title="Tampilkan seluruh catatan">Selengkapnya <i class="fas fa-chevron-down text-[8px]"></i></button>
+                            <button type="button" class="catatan-toggle hidden mt-1.5 text-[10px] font-medium uppercase tracking-widest text-indigo-500 hover:text-indigo-700" title="Tampilkan seluruh catatan">Selengkapnya <i class="fas fa-chevron-down text-[8px]"></i></button>
                         </div>
                     </td>
 
                     <td class="px-4 py-5 text-center">
-                        <span class="px-3 py-1.5 rounded-lg border {{ $k->status == 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100' }} text-[10px] font-bold uppercase tracking-widest">
+                        <span class="px-3 py-1.5 rounded-lg border {{ $k->status == 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100' }} text-[10px] font-medium uppercase tracking-widest">
                             {{ $k->status }}
                         </span>
                     </td>
@@ -113,7 +113,7 @@
                                     <i class="fas fa-trash text-xs"></i>
                                 </x-button>
                             @else
-                                <span class="text-[11px] font-bold text-slate-300 uppercase italic">
+                                <span class="text-[11px] font-medium text-slate-300 uppercase italic">
                                     <i class="fas fa-check-double mr-1"></i> Terverifikasi
                                 </span>
                             @endif
@@ -146,7 +146,6 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Catatan panjang: dilipat 3 baris, tombol muncul hanya bila memang terpotong.
     document.querySelectorAll('.catatan-isi').forEach(p => {
@@ -205,7 +204,7 @@
     function confirmApprove(id, noSj) {
         Swal.fire({
             title: 'Validasi Kedatangan?',
-            html: `Konfirmasi barang <b>${escapeHtml(noSj)}</b> telah diterima.<br><small class="text-rose-500 font-bold uppercase underline">Stok bertambah otomatis!</small>`,
+            html: `Konfirmasi barang <b>${escapeHtml(noSj)}</b> telah diterima.<br><small class="text-rose-500 font-medium uppercase underline">Stok bertambah otomatis!</small>`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#4f46e5',

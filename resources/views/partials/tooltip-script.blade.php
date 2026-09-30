@@ -36,8 +36,8 @@
     ];
     // singkatan umum -> arti (judul kolom & label)
     const SINGKATAN = {
-        'hpp': 'Harga Pokok Penjualan - biaya bahan/produksi per item', 'dp': 'Down Payment - uang muka', 'po': 'Purchase Order - pesanan pembelian ke supplier',
-        'pr': 'Purchase Request - permintaan pembelian', 'bom': 'Bill of Materials - daftar bahan yang dipakai sebuah produk', 'spk': 'Surat Perintah Kerja untuk produksi',
+        'hpp': 'Harga Pokok Penjualan - biaya bahan/produksi per item', 'dp': 'Down Payment - uang muka', 'po': 'Pesanan Pembelian - pesanan pembelian ke supplier',
+        'pr': 'Permintaan Pembelian - permintaan pembelian', 'bom': 'Bill of Materials - daftar bahan yang dipakai sebuah produk', 'spk': 'Surat Perintah Kerja untuk produksi',
         'qc': 'Quality Control - pemeriksaan mutu hasil', 'sj': 'Surat Jalan barang datang', 'no. sj': 'Nomor Surat Jalan', 'tempo': 'Pembelian dibayar nanti (kredit) sampai jatuh tempo',
         'piutang': 'Tagihan yang belum dibayar konsumen', 'hutang': 'Kewajiban yang belum dibayar ke supplier', 'margin': 'Selisih harga jual dan HPP', 'margin %': 'Persentase selisih harga jual dan HPP',
         'krg. bayar': 'Kurang bayar - sisa tagihan', 'closing': 'Penutupan sesi kas dan pencocokan uang fisik', 'saldo awal': 'Saldo pada saat mulai dicatat',
@@ -48,7 +48,7 @@
         'kartu stok': 'Riwayat keluar-masuk stok per bahan', 'jurnal': 'Catatan akuntansi debet-kredit', 'debet': 'Sisi kiri jurnal (menambah aset/beban)', 'kredit': 'Sisi kanan jurnal (menambah pendapatan/hutang)',
         'periode': 'Rentang tanggal laporan', 'kelas': 'Tingkat desainer yang menentukan persen komisi', 'komisi': 'Bagian desainer dari biaya desain',
         'tier': 'Tingkat harga berdasarkan jumlah/ukuran order', 'golongan': 'Kelompok konsumen dengan harga khusus', 'urgensi': 'Tingkat prioritas pengerjaan',
-        'divisi': 'Bagian produksi/mesin yang mengerjakan', 'thumbnail': 'Gambar kecil sebagai acuan desain', 'no. po': 'Nomor Purchase Order dari konsumen',
+        'divisi': 'Bagian produksi/mesin yang mengerjakan', 'thumbnail': 'Gambar kecil sebagai acuan desain', 'no. po': 'Nomor Pesanan Pembelian dari konsumen',
     };
 
     function teksLangsung(el) { return (el.textContent || '').replace(/\s+/g, ' ').trim(); }

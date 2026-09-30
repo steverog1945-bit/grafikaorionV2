@@ -172,7 +172,7 @@
     {{-- Filter: satu baris tenang, tanpa kotak besar --}}
     <div class="kaca no-print mb-6 px-5 py-3.5">
         <form method="GET" class="flex flex-wrap items-center gap-3">
-            <span class="text-[10px] font-bold uppercase tracking-[0.12em]" style="color:var(--kaca-muted)">Bulan</span>
+            <span class="text-[10px] font-medium uppercase tracking-[0.12em]" style="color:var(--kaca-muted)">Bulan</span>
             <input type="month" name="bulan" value="{{ $bulan->format('Y-m') }}" class="kaca-input" data-no-autosubmit>
             <span class="flex-1"></span>
             <button type="submit" class="kaca-btn kaca-btn-utama"><i class="fas fa-filter text-[11px]"></i> Tampilkan</button>
@@ -205,7 +205,7 @@
                 <thead><tr><th>Metode</th><th class="num">Transaksi</th><th class="num">Total</th></tr></thead>
                 <tbody>
                 @forelse($k['kas_masuk'] as $r)<tr><td>{{ $r->metode }}</td><td class="num">{{ $r->jumlah }}</td><td class="num">{{ $rp($r->total) }}</td></tr>@empty<tr><td colspan="3" class="kosong">Belum ada pembayaran nota bulan ini.</td></tr>@endforelse
-                <tr><td colspan="2" class="font-bold">Total</td><td class="num font-bold">{{ $rp($k['kas_masuk_total']) }}</td></tr>
+                <tr><td colspan="2" class="font-medium">Total</td><td class="num font-medium">{{ $rp($k['kas_masuk_total']) }}</td></tr>
                 <tr><td>Pembayaran order jersey</td><td class="num">&mdash;</td><td class="num">{{ $rp($k['pembayaran_jersey']) }}</td></tr>
                 </tbody>
             </table>
@@ -232,7 +232,7 @@
             <tbody>
             @forelse($a['kas_harian'] as $r)
                 <tr><td>{{ \Carbon\Carbon::parse($r->tgl_kas)->format('d/m/Y') }}</td><td>{{ $r->kasir }}</td><td class="num">{{ $rp($r->saldo_awal) }}</td><td class="num">{{ $rp($r->saldo_akhir) }}</td><td class="num">{{ $r->saldo_fisik !== null ? $rp($r->saldo_fisik) : '&mdash;' }}</td>
-                    <td class="num {{ abs((float) $r->selisih) > 0 ? 'text-rose-600 font-bold' : '' }}">{{ $r->selisih !== null ? $rp($r->selisih) : '&mdash;' }}</td><td>{{ $r->status_lock }}</td><td>{{ $r->keterangan_closing }}</td></tr>
+                    <td class="num {{ abs((float) $r->selisih) > 0 ? 'text-rose-600 font-medium' : '' }}">{{ $r->selisih !== null ? $rp($r->selisih) : '&mdash;' }}</td><td>{{ $r->status_lock }}</td><td>{{ $r->keterangan_closing }}</td></tr>
             @empty<tr><td colspan="8" class="kosong">Belum ada sesi kas bulan ini.</td></tr>@endforelse
             </tbody>
         </table>
@@ -267,9 +267,9 @@
     </div>
 
     <div class="kaca kaca-p mb-3 blok">
-        <h3 class="k-judul">Purchase Order <span class="pil">total {{ $rp($a['permintaan']['po_total']) }}</span></h3>
+        <h3 class="k-judul">Pesanan Pembelian <span class="pil">total {{ $rp($a['permintaan']['po_total']) }}</span></h3>
         <table class="t">
-            <thead><tr><th>Nomor</th><th>Tanggal</th><th>Supplier</th><th>Status</th><th class="num">Total</th></tr></thead>
+            <thead><tr><th>Nomor</th><th>Tanggal</th><th>Pemasok</th><th>Status</th><th class="num">Total</th></tr></thead>
             <tbody>
             @forelse($a['permintaan']['po'] as $r)<tr><td>{{ $r->nomor }}</td><td>{{ \Carbon\Carbon::parse($r->tanggal)->format('d/m/Y') }}</td><td>{{ $r->nama_supplier }}</td><td>{{ $r->status }}</td><td class="num">{{ $rp($r->total) }}</td></tr>@empty<tr><td colspan="5" class="kosong">Belum ada PO bulan ini.</td></tr>@endforelse
             </tbody>
@@ -289,10 +289,10 @@
             <thead><tr><th>Bahan</th><th>Satuan</th><th class="num">Stok awal</th><th class="num">Masuk</th><th class="num">Keluar cetak</th><th class="num">Salah cetak</th><th class="num">Rework</th><th class="num">Keluar lain</th><th class="num">Penyesuaian</th><th class="num">Stok akhir</th><th class="num">Nilai salah cetak</th><th class="num">Kontrol</th></tr></thead>
             <tbody>
             @forelse($a['stok'] as $r)
-                <tr><td class="font-semibold">{{ $r->nama_bahan }}</td><td>{{ $r->satuan }}</td><td class="num">{{ $n($r->stok_awal, 4) }}</td><td class="num">{{ $n($r->masuk, 4) }}</td><td class="num">{{ $n($r->keluar_cetak, 4) }}</td>
-                    <td class="num {{ $r->keluar_waste > 0 ? 'text-rose-600 font-semibold' : '' }}">{{ $n($r->keluar_waste, 4) }}</td><td class="num {{ $r->keluar_rework > 0 ? 'text-rose-600 font-semibold' : '' }}">{{ $n($r->keluar_rework, 4) }}</td>
-                    <td class="num">{{ $n($r->keluar_lain, 4) }}</td><td class="num">{{ $n($r->penyesuaian, 4) }}</td><td class="num font-bold">{{ $n($r->stok_akhir, 4) }}</td>
-                    <td class="num">{{ $rp($r->nilai_salah_cetak) }}</td><td class="num {{ abs($r->selisih_kontrol) > 0.0001 ? 'text-rose-600 font-bold' : 'text-emerald-600' }}">{{ abs($r->selisih_kontrol) > 0.0001 ? $n($r->selisih_kontrol, 4) : 'pas' }}</td></tr>
+                <tr><td class="font-medium">{{ $r->nama_bahan }}</td><td>{{ $r->satuan }}</td><td class="num">{{ $n($r->stok_awal, 4) }}</td><td class="num">{{ $n($r->masuk, 4) }}</td><td class="num">{{ $n($r->keluar_cetak, 4) }}</td>
+                    <td class="num {{ $r->keluar_waste > 0 ? 'text-rose-600 font-medium' : '' }}">{{ $n($r->keluar_waste, 4) }}</td><td class="num {{ $r->keluar_rework > 0 ? 'text-rose-600 font-medium' : '' }}">{{ $n($r->keluar_rework, 4) }}</td>
+                    <td class="num">{{ $n($r->keluar_lain, 4) }}</td><td class="num">{{ $n($r->penyesuaian, 4) }}</td><td class="num font-medium">{{ $n($r->stok_akhir, 4) }}</td>
+                    <td class="num">{{ $rp($r->nilai_salah_cetak) }}</td><td class="num {{ abs($r->selisih_kontrol) > 0.0001 ? 'text-rose-600 font-medium' : 'text-emerald-600' }}">{{ abs($r->selisih_kontrol) > 0.0001 ? $n($r->selisih_kontrol, 4) : 'pas' }}</td></tr>
             @empty<tr><td colspan="12" class="kosong">Belum ada pergerakan stok.</td></tr>@endforelse
             </tbody>
         </table>

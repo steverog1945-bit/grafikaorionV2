@@ -13,14 +13,14 @@
 --}}
 <div class="mb-6 border border-slate-200 overflow-hidden">
     @if($title)
-        <p class="text-[10px] font-bold text-slate-700 uppercase tracking-wide px-3 py-2 bg-slate-50 border-b border-slate-200">{{ $title }}</p>
+        <p class="text-[10px] font-medium text-slate-700 uppercase tracking-wide px-3 py-2 bg-slate-50 border-b border-slate-200">{{ $title }}</p>
     @endif
     <table class="w-full text-[11px] border-collapse">
         @if(count($headers))
         <thead>
             <tr class="bg-slate-50 border-b border-slate-200">
                 @foreach($headers as $i => $h)
-                <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-{{ $align[$i] ?? 'left' }}">{{ $h }}</th>
+                <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-{{ $align[$i] ?? 'left' }}">{{ $h }}</th>
                 @endforeach
             </tr>
         </thead>

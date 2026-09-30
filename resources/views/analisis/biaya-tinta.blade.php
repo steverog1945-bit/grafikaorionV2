@@ -16,8 +16,8 @@
 
     <x-card class="mb-8">
         <form method="GET" class="flex flex-wrap items-end gap-4">
-            <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari</label><x-form.input type="date" name="tgl_dari" value="{{ $dari->toDateString() }}" /></div>
-            <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai</label><x-form.input type="date" name="tgl_sampai" value="{{ $sampai->toDateString() }}" /></div>
+            <div><label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari</label><x-form.input type="date" name="tgl_dari" value="{{ $dari->toDateString() }}" /></div>
+            <div><label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai</label><x-form.input type="date" name="tgl_sampai" value="{{ $sampai->toDateString() }}" /></div>
             <x-button type="submit" variant="primary"><i class="fas fa-filter"></i> Tampilkan</x-button>
         </form>
     </x-card>
@@ -30,12 +30,12 @@
     @endif
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <x-card><div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Biaya Tinta</div><div class="text-2xl font-bold text-slate-700 mt-1">{{ $rp($h['total_biaya']) }}</div></x-card>
-        <x-card><div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Luas Cetak</div><div class="text-2xl font-bold text-slate-700 mt-1">{{ $n($h['total_m2']) }} m²</div></x-card>
-        <x-card><div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Biaya Tinta per m²</div><div class="text-2xl font-bold text-slate-700 mt-1">{{ $h['total_m2'] > 0 ? $rp($h['total_biaya'] / $h['total_m2']) : '-' }}</div></x-card>
+        <x-card><div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Biaya Tinta</div><div class="text-2xl font-medium text-slate-700 mt-1">{{ $rp($h['total_biaya']) }}</div></x-card>
+        <x-card><div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Luas Cetak</div><div class="text-2xl font-medium text-slate-700 mt-1">{{ $n($h['total_m2']) }} m²</div></x-card>
+        <x-card><div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Biaya Tinta per m²</div><div class="text-2xl font-medium text-slate-700 mt-1">{{ $h['total_m2'] > 0 ? $rp($h['total_biaya'] / $h['total_m2']) : '-' }}</div></x-card>
     </div>
 
-    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Pemakaian per Bahan Tinta</h3>
+    <h3 class="text-[11px] font-medium text-slate-400 uppercase tracking-widest mb-3 px-1">Pemakaian per Bahan Tinta</h3>
     <x-table class="mb-8">
         <thead>
             <tr>
@@ -49,11 +49,11 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($h['per_bahan'] as $r)
             <tr class="hover:bg-slate-50/30">
-                <td class="px-8 py-4 text-[13px] font-bold text-slate-700">{{ $r->mesin }}</td>
+                <td class="px-8 py-4 text-[13px] font-medium text-slate-700">{{ $r->mesin }}</td>
                 <td class="px-4 py-4 text-sm text-slate-600">{{ $r->bahan }}</td>
                 <td class="px-4 py-4 text-right text-sm">{{ $n($r->volume_dasar) }} {{ $r->dasar === 'm2' ? 'm²' : 'lembar' }}</td>
                 <td class="px-4 py-4 text-right text-sm">{{ $n($r->pakai, 3) }} {{ $r->satuan_hitung }}</td>
-                <td class="px-8 py-4 text-right text-sm font-bold {{ $r->harga_ada ? '' : 'text-amber-500' }}">{{ $r->harga_ada ? $rp($r->biaya) : 'Harga kosong' }}</td>
+                <td class="px-8 py-4 text-right text-sm font-medium {{ $r->harga_ada ? '' : 'text-amber-500' }}">{{ $r->harga_ada ? $rp($r->biaya) : 'Harga kosong' }}</td>
             </tr>
             @empty
             <tr><td colspan="5"><x-empty-state title="Tidak ada pesanan yang cocok dengan pengaturan pemakaian pada periode ini" /></td></tr>
@@ -61,7 +61,7 @@
         </tbody>
     </x-table>
 
-    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Biaya Tinta per Produk</h3>
+    <h3 class="text-[11px] font-medium text-slate-400 uppercase tracking-widest mb-3 px-1">Biaya Tinta per Produk</h3>
     <x-table class="mb-8">
         <thead>
             <tr>
@@ -76,12 +76,12 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($h['per_produk'] as $r)
             <tr class="hover:bg-slate-50/30">
-                <td class="px-8 py-4 text-[13px] font-bold text-slate-700">{{ $r->nama }}</td>
+                <td class="px-8 py-4 text-[13px] font-medium text-slate-700">{{ $r->nama }}</td>
                 <td class="px-4 py-4 text-right text-sm">{{ $r->m2 > 0 ? $n($r->m2) . ' m²' : '-' }}</td>
                 <td class="px-4 py-4 text-right text-sm">{{ $rp($r->omzet) }}</td>
-                <td class="px-4 py-4 text-right text-sm font-bold">{{ $rp($r->biaya_tinta) }}</td>
+                <td class="px-4 py-4 text-right text-sm font-medium">{{ $rp($r->biaya_tinta) }}</td>
                 <td class="px-4 py-4 text-right text-sm">{{ $r->biaya_per_m2 !== null ? $rp($r->biaya_per_m2) : '-' }}</td>
-                <td class="px-8 py-4 text-right text-sm font-semibold {{ $r->persen_omzet >= 15 ? 'text-rose-600' : 'text-slate-600' }}">{{ $r->persen_omzet }}%</td>
+                <td class="px-8 py-4 text-right text-sm font-medium {{ $r->persen_omzet >= 15 ? 'text-rose-600' : 'text-slate-600' }}">{{ $r->persen_omzet }}%</td>
             </tr>
             @empty
             <tr><td colspan="6"><x-empty-state title="Tidak ada pesanan produk pada periode ini" /></td></tr>
@@ -90,7 +90,7 @@
     </x-table>
 
     <div class="flex items-center justify-between mb-3 px-1">
-        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Pengaturan Pemakaian per Mesin</h3>
+        <h3 class="text-[11px] font-medium text-slate-400 uppercase tracking-widest">Pengaturan Pemakaian per Mesin</h3>
         <x-button size="sm" variant="primary" onclick="bukaPengaturanTinta()"><i class="fas fa-plus"></i> Tambah / Ubah</x-button>
     </div>
     <x-table>
@@ -106,7 +106,7 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($pengaturan as $p)
             <tr class="hover:bg-slate-50/30">
-                <td class="px-8 py-4 text-[13px] font-bold text-slate-700">{{ $p->nama_mesin }}</td>
+                <td class="px-8 py-4 text-[13px] font-medium text-slate-700">{{ $p->nama_mesin }}</td>
                 <td class="px-4 py-4 text-sm text-slate-600">{{ $p->nama_bahan }}</td>
                 <td class="px-4 py-4 text-right text-sm">{{ $n($p->pemakaian, 6) }} per {{ $p->dasar === 'm2' ? 'm²' : 'lembar' }}</td>
                 <td class="px-4 py-4 text-sm text-slate-400">{{ $p->keterangan }}</td>

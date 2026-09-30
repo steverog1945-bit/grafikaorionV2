@@ -2,7 +2,7 @@
 
 @if($paginator instanceof \Illuminate\Contracts\Pagination\Paginator || $paginator instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator)
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-100">
-        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+        <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
             @if($paginator->total() > 0)
                 Menampilkan {{ $paginator->firstItem() }}–{{ $paginator->lastItem() }} dari {{ $paginator->total() }} data
             @else
@@ -26,11 +26,11 @@
                         <input type="hidden" name="{{ is_array($nilai) ? $namaField . '[]' : $namaField }}" value="{{ $v }}">
                     @endforeach
                 @endforeach
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Ke Halaman</label>
+                <label class="text-[10px] font-medium text-slate-400 uppercase tracking-widest whitespace-nowrap">Ke Halaman</label>
                 <input type="number" name="page" min="1" max="{{ $paginator->lastPage() }}" value="{{ $paginator->currentPage() }}"
-                    class="w-16 text-center text-xs bg-slate-50 border-none rounded-lg py-1.5 px-2 font-bold focus:ring-2 focus:ring-indigo-500/20">
+                    class="w-16 text-center text-xs bg-slate-50 border-none rounded-lg py-1.5 px-2 font-medium focus:ring-2 focus:ring-indigo-500/20">
                 <span class="text-[10px] text-slate-400 whitespace-nowrap">/ {{ $paginator->lastPage() }}</span>
-                <button type="submit" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase px-2 py-1.5 rounded-lg hover:bg-indigo-50 transition-all">
+                <button type="submit" class="text-[10px] font-medium text-indigo-600 hover:text-indigo-700 uppercase px-2 py-1.5 rounded-lg hover:bg-indigo-50 transition-all">
                     <i class="fas fa-arrow-right-to-bracket"></i>
                 </button>
             </form>
@@ -81,7 +81,7 @@
                     @if($segmen['tipe'] === 'gap')
                         <span class="w-8 h-8 flex items-center justify-center text-xs text-slate-300">&hellip;</span>
                     @else
-                        <a href="{{ $segmen['url'] }}" @class(['w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold', 'bg-indigo-600 text-white' => $segmen['nomor'] == $paginatorBerQuery->currentPage(), 'text-slate-500 hover:bg-slate-50' => $segmen['nomor'] != $paginatorBerQuery->currentPage()])>
+                        <a href="{{ $segmen['url'] }}" @class(['w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium', 'bg-indigo-600 text-white' => $segmen['nomor'] == $paginatorBerQuery->currentPage(), 'text-slate-500 hover:bg-slate-50' => $segmen['nomor'] != $paginatorBerQuery->currentPage()])>
                             {{ $segmen['nomor'] }}
                         </a>
                     @endif

@@ -28,13 +28,17 @@
             <tr><td>Qty Order</td><td class="right">{{ angka($detail->qty, 4) }}</td></tr>
             <tr><td>Qty Cetak</td><td class="right">{{ $detail->qty_cetak ?? '-' }}</td></tr>
             @foreach($finishingItems as $fin)
-            <tr><td colspan="2" style="font-weight:bold; padding-top:6px;">Finishing: {{ $fin->nama_finishing }} ({{ $fin->status_finishing }}){{ $fin->metode_hitung === 'quantity' && $fin->qty_pakai ? ' x ' . angka((float) $fin->qty_pakai, 2) : '' }}{{ $fin->catatan ? ' - ' . $fin->catatan : '' }}</td></tr>
+            <tr><td colspan="2" style="font-weight:500; padding-top:6px;">Finishing: {{ $fin->nama_finishing }} ({{ $fin->status_finishing }}){{ $fin->metode_hitung === 'quantity' && $fin->qty_pakai ? ' x ' . angka((float) $fin->qty_pakai, 2) : '' }}{{ $fin->catatan ? ' - ' . $fin->catatan : '' }}</td></tr>
             @endforeach
             @if($finishingItems->isEmpty() && $detail->nama_finishing)
-            <tr><td colspan="2" style="font-weight:bold; padding-top:6px;">Finishing: {{ $detail->nama_finishing }}</td></tr>
+            <tr><td colspan="2" style="font-weight:500; padding-top:6px;">Finishing: {{ $detail->nama_finishing }}</td></tr>
             @endif
             @if($detail->status_urgent)
-            <tr><td colspan="2" class="right" style="font-weight:bold;">*** URGENT ***</td></tr>
+            {{-- Tanda urgent dipindah dari "*** TEBAL ***" ke warna kritis
+                 OpenCode (#ed4831). Pada dokumen yang ditempel di mesin,
+                 warna lebih cepat tertangkap daripada huruf tebal, dan
+                 tidak perlu tanda bintang yang menambah lebar. --}}
+            <tr><td colspan="2" class="right" style="font-weight:500; color:#ed4831;">URGENT</td></tr>
             @endif
         </table>
 
@@ -53,7 +57,11 @@
              composer. --}}
         <div class="center" style="margin: 8px 0; text-align:center;">
             <div id="qr-spk" style="display:inline-block"></div>
-            <div style="font-size:10px; letter-spacing:1px; margin-top:2px;">TRX{{ $detail->id_transaksi }}</div>
+            {{-- Kode ini dibaca scanner atau diketik ulang manual, jadi
+             spacing-nya bukan dekorasi. Diturunkan dari 1px ke 0.5px:
+             pada label sepanjang 10px, 1px sudah cukup untuk
+             membuat huruf bersenggolan. --}}
+        <div style="font-size:10px; letter-spacing:0.5px; margin-top:2px;">TRX{{ $detail->id_transaksi }}</div>
             <div style="font-size:9px; color:#64748b;">Scan dengan kamera HP untuk membuka pembayaran</div>
         </div>
 
@@ -80,7 +88,7 @@
         <button onclick="window.print()">🖨️ Cetak</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="{{ asset('vendor/qrcode-generator/qrcode.min.js') }}"></script>
     <script>
         // QR berisi ALAMAT halaman pembayaran nota: dipindai kamera HP biasa langsung membuka form bayar (login dulu bila belum).
         (function () {

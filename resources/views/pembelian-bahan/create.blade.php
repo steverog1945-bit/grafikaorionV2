@@ -12,21 +12,21 @@
                     <i class="fas fa-file-invoice-dollar text-white text-2xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-3xl font-bold text-slate-800 uppercase tracking-tight">Entry Faktur</h1>
+                    <h1 class="text-3xl font-medium text-slate-800 uppercase tracking-tight">Entry Faktur</h1>
                     <p class="text-slate-400 font-medium italic">Konversi Surat Jalan menjadi Tagihan Pembelian</p>
                 </div>
             </div>
             <x-card :padding="false" class="px-8 py-4">
                 <div class="text-right">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Tagihan</p>
-                    <h2 class="text-3xl font-bold text-indigo-600" id="total-header">Rp 0</h2>
+                    <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Tagihan</p>
+                    <h2 class="text-3xl font-medium text-indigo-600" id="total-header">Rp 0</h2>
                 </div>
             </x-card>
         </div>
 
         <x-card class="mb-8">
             @if ($errors->any())
-                <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-semibold">
+                <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-medium">
                     <ul class="list-disc list-inside space-y-1">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -36,7 +36,7 @@
             @endif
 
             @if (session('error'))
-                <div class="bg-rose-500 text-white p-4 rounded-2xl mb-6 font-semibold shadow-lg">
+                <div class="bg-rose-500 text-white p-4 rounded-2xl mb-6 font-medium shadow-lg">
                     {{ session('error') }}
                 </div>
             @endif
@@ -50,7 +50,7 @@
                     </div>
                 </x-form.group>
 
-                <x-form.group label="Supplier">
+                <x-form.group label="Pemasok">
                     <input type="text" id="display_supplier" readonly class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-500 shadow-inner" placeholder="-">
                 </x-form.group>
 
@@ -62,14 +62,14 @@
                     <x-form.input type="text" name="no_faktur" required placeholder="Contoh: INV/9910" />
                 </x-form.group>
 
-                <div id="info-online-faktur" class="hidden md:col-span-4 rounded-2xl bg-orange-50 border border-orange-100 px-5 py-3 text-sm font-semibold text-orange-700"></div>
+                <div id="info-online-faktur" class="hidden md:col-span-4 rounded-2xl bg-orange-50 border border-orange-100 px-5 py-3 text-sm font-medium text-orange-700"></div>
                 <x-form.group label="Ongkir (Rp)"><x-form.input type="text" inputmode="numeric" name="ongkir" id="ongkir" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
                 <x-form.group label="Biaya Layanan (Rp)"><x-form.input type="text" inputmode="numeric" name="biaya_layanan" id="biaya_layanan" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
                 <x-form.group label="Voucher / Diskon Platform (Rp)"><x-form.input type="text" inputmode="numeric" name="voucher" id="voucher" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
 
                 <x-form.group label="Opsi Pajak">
                     <div class="bg-slate-50 rounded-xl p-3 flex items-center justify-between shadow-inner h-[46px]">
-                        <span class="text-xs font-bold text-slate-500 uppercase">PPN 11%</span>
+                        <span class="text-xs font-medium text-slate-500 uppercase">PPN 11%</span>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="tax_toggle" name="include_pajak" class="sr-only peer" onchange="calculateGrandTotal()">
                             <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
@@ -91,16 +91,16 @@
                         {{-- Pilihan cepat termin pembayaran; angka bebas tetap bisa diketik --}}
                         <div class="flex flex-wrap gap-1.5 mt-2" id="pilihan-tempo">
                             @foreach([7, 14, 30, 45, 60] as $h)
-                                <button type="button" data-hari="{{ $h }}" onclick="setTempo({{ $h }})" title="Jatuh tempo {{ $h }} hari setelah tanggal transaksi" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600">{{ $h }} hari</button>
+                                <button type="button" data-hari="{{ $h }}" onclick="setTempo({{ $h }})" title="Jatuh tempo {{ $h }} hari setelah tanggal transaksi" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-medium uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600">{{ $h }} hari</button>
                             @endforeach
                         </div>
-                        <p class="text-[11px] font-semibold text-slate-400 mt-1.5 ml-1 hidden" id="usulan-tempo"></p>
+                        <p class="text-[11px] font-medium text-slate-400 mt-1.5 ml-1 hidden" id="usulan-tempo"></p>
                     </x-form.group>
                 </div>
 
                 <div id="due_date_group" class="hidden">
                     <x-form.group label="Tgl Jatuh Tempo">
-                        <p class="text-[11px] font-semibold text-indigo-500 mt-1.5 ml-1 hidden" id="info-jatuh-tempo"></p>
+                        <p class="text-[11px] font-medium text-indigo-500 mt-1.5 ml-1 hidden" id="info-jatuh-tempo"></p>
                         <input type="date" name="jatuh_tempo_tgl" id="jatuh_tempo_tgl" readonly
                             class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-500 shadow-inner cursor-not-allowed">
                     </x-form.group>
@@ -122,7 +122,7 @@
                 <tr>
                     <td colspan="5" class="py-20 text-center opacity-30">
                         <i class="fas fa-inbox text-5xl mb-4 block"></i>
-                        <span class="text-xs font-bold uppercase tracking-widest">Pilih Nomor Surat Jalan Dahulu</span>
+                        <span class="text-xs font-medium uppercase tracking-widest">Pilih Nomor Surat Jalan Dahulu</span>
                     </td>
                 </tr>
             </tbody>
@@ -133,17 +133,17 @@
         <x-card class="mt-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div class="space-y-2.5 text-sm">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Rincian Perhitungan</p>
-                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Subtotal item (setelah diskon &amp; potongan)</span><span class="font-semibold text-slate-700" id="rincian-subtotal">Rp 0</span></div>
-                    <div class="flex justify-between"><span class="text-slate-500 font-medium">PPN 11%</span><span class="font-semibold text-slate-700" id="rincian-ppn">Rp 0</span></div>
-                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Ongkir</span><span class="font-semibold text-slate-700" id="rincian-ongkir">Rp 0</span></div>
-                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Biaya layanan</span><span class="font-semibold text-slate-700" id="rincian-layanan">Rp 0</span></div>
-                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Voucher / diskon platform</span><span class="font-semibold text-rose-500" id="rincian-voucher">- Rp 0</span></div>
+                    <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3">Rincian Perhitungan</p>
+                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Subtotal item (setelah diskon &amp; potongan)</span><span class="font-medium text-slate-700" id="rincian-subtotal">Rp 0</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500 font-medium">PPN 11%</span><span class="font-medium text-slate-700" id="rincian-ppn">Rp 0</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Ongkir</span><span class="font-medium text-slate-700" id="rincian-ongkir">Rp 0</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Biaya layanan</span><span class="font-medium text-slate-700" id="rincian-layanan">Rp 0</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500 font-medium">Voucher / diskon platform</span><span class="font-medium text-rose-500" id="rincian-voucher">- Rp 0</span></div>
                 </div>
                 <div class="rounded-3xl bg-indigo-50 border border-indigo-100 px-8 py-6 text-right">
-                    <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Net Total Faktur</p>
-                    <p class="text-4xl font-bold text-indigo-600 mt-1" id="total-footer">Rp 0</p>
-                    <p class="text-[11px] font-semibold text-indigo-300 mt-1">Jumlah yang harus dibayar ke supplier</p>
+                    <p class="text-[10px] font-medium text-indigo-400 uppercase tracking-widest">Net Total Faktur</p>
+                    <p class="text-4xl font-medium text-indigo-600 mt-1" id="total-footer">Rp 0</p>
+                    <p class="text-[11px] font-medium text-indigo-300 mt-1">Jumlah yang harus dibayar ke supplier</p>
                 </div>
             </div>
         </x-card>
@@ -158,14 +158,14 @@
 
 {{-- MODAL PILIH SURAT JALAN (satu-satunya - sebelumnya ada 2 dgn id sama) --}}
 <x-modal id="sj-picker" title="Pilih Surat Jalan" maxWidth="4xl">
-    <p class="text-[11px] text-slate-400 font-semibold uppercase tracking-widest -mt-4 mb-6">Hanya menampilkan kedatangan yang sudah berstatus 'Selesai'</p>
+    <p class="text-[11px] text-slate-400 font-medium uppercase tracking-widest -mt-4 mb-6">Hanya menampilkan kedatangan yang sudah berstatus 'Selesai'</p>
 
     <div class="overflow-y-auto max-h-[400px] pr-2">
         <table class="w-full text-left">
             <thead>
-                <tr class="text-[10px] font-bold text-slate-300 uppercase tracking-widest border-b border-slate-100">
+                <tr class="text-[10px] font-medium text-slate-300 uppercase tracking-widest border-b border-slate-100">
                     <th class="pb-4">No. Surat Jalan</th>
-                    <th class="pb-4">Supplier</th>
+                    <th class="pb-4">Pemasok</th>
                     <th class="pb-4 text-center">Tgl Datang</th>
                     <th class="pb-4 text-right">Aksi</th>
                 </tr>
@@ -173,8 +173,8 @@
             <tbody class="divide-y divide-slate-50">
                 @forelse($kedatangans as $sj)
                 <tr class="hover:bg-slate-50/80 transition-all group">
-                    <td class="py-4 font-bold text-slate-700 uppercase text-sm">{{ $sj->no_surat_jalan }}</td>
-                    <td class="py-4 font-bold text-indigo-600 text-[11px] uppercase">{{ $sj->supplier->nama_supplier ?? 'UMUM' }}</td>
+                    <td class="py-4 font-medium text-slate-700 uppercase text-sm">{{ $sj->no_surat_jalan }}</td>
+                    <td class="py-4 font-medium text-indigo-600 text-[11px] uppercase">{{ $sj->supplier->nama_supplier ?? 'UMUM' }}</td>
                     <td class="py-4 text-center text-slate-500 text-xs">{{ \Carbon\Carbon::parse($sj->tgl_datang)->format('d/m/Y') }}</td>
                     <td class="py-4 text-right">
                         <x-button type="button" size="sm" onclick="selectSJ('{{ $sj->id_kedatangan }}', '{{ $sj->no_surat_jalan }}')">
@@ -235,29 +235,29 @@
                     tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/50 transition-colors">
                         <td class="px-6 py-6">
-                            <p class="font-bold text-slate-700 text-xs uppercase">${item.nama_bahan}</p>
-                            <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">${item.kode_bahan}</p>
+                            <p class="font-medium text-slate-700 text-xs uppercase">${item.nama_bahan}</p>
+                            <p class="text-[10px] text-slate-400 font-medium tracking-widest uppercase">${item.kode_bahan}</p>
                             <input type="hidden" name="id_bahan[]" value="${item.id_bahan}">
                         </td>
                         <td class="px-4 py-6 text-center">
                             <input type="number" name="qty[]" step="0.01" value="${item.qty}" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner w-24 text-center">
-                            <p class="text-[10px] font-bold text-slate-400 mt-1.5 uppercase tracking-widest">${item.satuan || 'Pcs'}</p>
+                            <p class="text-[10px] font-medium text-slate-400 mt-1.5 uppercase tracking-widest">${item.satuan || 'Pcs'}</p>
                         </td>
                         <td class="px-4 py-6">
                             <input type="text" inputmode="numeric" name="harga[]" value="" placeholder="0" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan">
                         </td>
                         <td class="px-4 py-6 space-y-2">
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Diskon</label>
+                                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1 ml-1">Diskon</label>
                                 <input type="text" inputmode="numeric" name="diskon[]" placeholder="0" value="" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Potongan</label>
+                                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1 ml-1">Potongan</label>
                                 <input type="text" inputmode="numeric" name="potongan[]" placeholder="0" value="" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan">
                             </div>
                         </td>
                         <td class="px-6 py-6 text-right">
-                            <p class="subtotal-text text-base font-bold text-slate-700">Rp 0</p>
+                            <p class="subtotal-text text-base font-medium text-slate-700">Rp 0</p>
                             <input type="hidden" name="subtotal[]" class="subtotal-input">
                         </td>
                     </tr>`;

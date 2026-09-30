@@ -13,14 +13,14 @@
                 <i class="fas fa-inbox"></i>
                 Antrean Baru
                 @if($waitingCount > 0)
-                    <span class="absolute -top-2 -right-2 bg-rose-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black border-2 border-white">{{ $waitingCount }}</span>
+                    <span class="absolute -top-2 -right-2 bg-rose-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-medium border-2 border-white">{{ $waitingCount }}</span>
                 @endif
             </x-button>
         </x-slot:actions>
     </x-page-header>
 
     <div id="new-data-alert" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[100]">
-        <button onclick="location.reload()" class="bg-indigo-600 text-white px-6 py-3 rounded-full shadow-2xl font-bold text-sm flex items-center gap-3 border-4 border-white">
+        <button onclick="location.reload()" class="bg-indigo-600 text-white px-6 py-3 rounded-full shadow-2xl font-medium text-sm flex items-center gap-3 border-4 border-white">
             <i class="fas fa-bell"></i> Ada transaksi baru masuk - klik untuk tampilkan
         </button>
     </div>
@@ -36,7 +36,7 @@
             <i class="fas fa-exclamation-triangle"></i>
         </div>
         <div class="flex-1 min-w-[180px]">
-            <p class="text-sm font-black text-amber-800 uppercase tracking-wide">Kas Kasir Belum Dibuka</p>
+            <p class="text-sm font-medium text-amber-800 uppercase tracking-wide">Kas Kasir Belum Dibuka</p>
             <p class="text-xs text-amber-600 mt-0.5">Pencatatan pembayaran baru terkunci sampai saldo kas hari ini dibuka.</p>
         </div>
         <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0 w-full sm:w-auto">
@@ -57,17 +57,17 @@
             <input type="hidden" name="status_filtered" value="1">
 
             <div class="w-full md:w-40">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
                 <x-form.input type="date" name="tgl_mulai" value="{{ request('tgl_mulai') }}" />
             </div>
 
             <div class="w-full md:w-40">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Sampai</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Sampai</label>
                 <x-form.input type="date" name="tgl_selesai" value="{{ request('tgl_selesai') }}" />
             </div>
 
             <div class="w-full md:w-56">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
                 <select name="id_konsumen" class="select2-filter w-full">
                     <option value="">-- Semua Konsumen --</option>
                     @foreach($konsumenList as $k)
@@ -77,12 +77,12 @@
             </div>
 
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">No. Nota</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">No. Nota</label>
                 <x-form.input type="text" name="nomor_nota" value="{{ request('nomor_nota') }}" placeholder="INV-..." />
             </div>
 
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Transaksi</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Transaksi</label>
                 <x-form.select name="status_bayar">
                     <option value="">-- Semua Status --</option>
                     <option value="Belum Bayar" {{ request('status_bayar') === 'Belum Bayar' ? 'selected' : '' }}>Belum Bayar</option>
@@ -97,7 +97,7 @@
             </x-button>
 
             @if(request()->anyFilled(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar']))
-                <a href="{{ route('kasir.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                <a href="{{ route('kasir.index') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
             @endif
@@ -122,23 +122,23 @@
             <tr class="group hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $transaksi->firstItem() + $i }}</td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->format('d M Y') }}</span>
+                    <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->format('d M Y') }}</span>
                     <div class="text-[10px] text-slate-400">{{ \Carbon\Carbon::parse($t->tgl_order)->format('H:i') }}</div>
                 </td>
                 <td class="px-4 py-5 text-center">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold {{ $t->tipe_order === 'PO' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-100' }}">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-medium {{ $t->tipe_order === 'PO' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-100' }}">
                         {{ $t->tipe_order }}
                     </span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[13px] font-bold text-indigo-600">#{{ $t->nomor_nota }}</span>
+                    <span class="text-[13px] font-medium text-indigo-600">#{{ $t->nomor_nota }}</span>
                     <div class="text-[10px] text-slate-400">Kasir: {{ $t->username }}</div>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-bold text-slate-700 uppercase">{{ $t->nama_konsumen }}</span>
+                    <span class="text-[12px] font-medium text-slate-700 uppercase">{{ $t->nama_konsumen }}</span>
                 </td>
                 <td class="px-6 py-5 text-right">
-                    <span class="text-[13px] font-bold text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>
+                    <span class="text-[13px] font-medium text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>
                     {{-- Rincian "sudah terbayar berapa" untuk status DP - data
                          ini sebelumnya SUDAH diambil lewat subquery total_masuk
                          (lihat KasirController::index()) tapi tidak pernah
@@ -146,8 +146,8 @@
                          ke Lunas, jejak cicilannya seolah "menghilang" karena
                          cuma bisa dilihat lewat modal Riwayat Proses terpisah. --}}
                     @if($t->status_pembayaran === 'DP')
-                        <div class="text-[10px] text-emerald-500 font-bold mt-0.5">Terbayar Rp {{ number_format($t->total_masuk ?? 0, 0, ',', '.') }}</div>
-                        <div class="text-[10px] text-amber-500 font-bold">Sisa Rp {{ number_format($t->total_bayar - ($t->total_masuk ?? 0), 0, ',', '.') }}</div>
+                        <div class="text-[10px] text-emerald-500 font-medium mt-0.5">Terbayar Rp {{ number_format($t->total_masuk ?? 0, 0, ',', '.') }}</div>
+                        <div class="text-[10px] text-amber-500 font-medium">Sisa Rp {{ number_format($t->total_bayar - ($t->total_masuk ?? 0), 0, ',', '.') }}</div>
                     @endif
                 </td>
                 <td class="px-4 py-5 text-center">
@@ -197,15 +197,15 @@
 <x-modal id="scan-barcode" title="Scan Barcode SPK / Nota" maxWidth="md">
     <div class="space-y-5">
         <div>
-            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Scan pakai alat scanner</label>
+            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Scan pakai alat scanner</label>
             <input type="text" id="input-scan-manual" placeholder="Arahkan scanner ke sini lalu tembak..." autocomplete="off"
-                class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-center tracking-widest focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-center tracking-widest focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             <p class="text-[11px] text-slate-400 mt-1.5 ml-2">Kolom ini otomatis aktif - tinggal scan, tidak perlu klik dulu.</p>
         </div>
 
         <div class="flex items-center gap-3">
             <div class="flex-1 h-px bg-slate-100"></div>
-            <span class="text-[10px] font-bold text-slate-300 uppercase">Atau</span>
+            <span class="text-[10px] font-medium text-slate-300 uppercase">Atau</span>
             <div class="flex-1 h-px bg-slate-100"></div>
         </div>
 
@@ -247,7 +247,7 @@
                 `<tr>
                     <td class="py-1 pr-2">${escapeHtml(it.nama_file)}</td>
                     <td class="py-1 pr-2 text-center">${it.qty}${it.qty_cetak !== null ? ' / ' + it.qty_cetak : ''}</td>
-                    <td class="py-1 text-right font-bold">${it.status_spk}</td>
+                    <td class="py-1 text-right font-medium">${it.status_spk}</td>
                 </tr>`
             ).join('');
 
@@ -256,7 +256,7 @@
                     `<tr>
                         <td class="py-1 pr-2">${new Date(p.tgl_bayar).toLocaleString('id-ID')}</td>
                         <td class="py-1 pr-2">${p.metode}</td>
-                        <td class="py-1 text-right font-bold">Rp ${new Intl.NumberFormat('id-ID').format(p.nominal)}</td>
+                        <td class="py-1 text-right font-medium">Rp ${new Intl.NumberFormat('id-ID').format(p.nominal)}</td>
                     </tr>`
                   ).join('')
                 : '<tr><td colspan="3" class="py-2 text-slate-400 italic">Belum ada pembayaran tercatat.</td></tr>';
@@ -267,9 +267,9 @@
                 html: `
                     <div class="text-left text-xs">
                         <p class="text-slate-500 mb-3">Order: ${new Date(data.tgl_order).toLocaleString('id-ID')} &middot; Status: <b>${data.status_pembayaran}</b></p>
-                        <p class="font-bold uppercase text-[10px] text-slate-400 mb-1">Item &amp; Status SPK (qty order / qty cetak)</p>
+                        <p class="font-medium uppercase text-[10px] text-slate-400 mb-1">Item &amp; Status SPK (qty order / qty cetak)</p>
                         <table class="w-full mb-4">${itemRows}</table>
-                        <p class="font-bold uppercase text-[10px] text-slate-400 mb-1">Riwayat Pembayaran</p>
+                        <p class="font-medium uppercase text-[10px] text-slate-400 mb-1">Riwayat Pembayaran</p>
                         <table class="w-full">${bayarRows}</table>
                     </div>
                 `,
@@ -336,21 +336,95 @@
         return new Promise((resolve, reject) => {
             if (libHtml5QrcodeSudahDimuat) return resolve();
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
+            script.src = '{{ asset('vendor/html5-qrcode/html5-qrcode.min.js') }}';
             script.onload = () => { libHtml5QrcodeSudahDimuat = true; resolve(); };
             script.onerror = () => reject(new Error('Gagal memuat library kamera.'));
             document.head.appendChild(script);
         });
     }
 
+    /* Peta error kamera ke bahasa yang bisa ditindaklanjuti.
+
+       Sebelumnya SEMUA kegagalan jatuh ke satu kalimat: "pastikan izin
+       kamera diberikan". Itu yang membuat bug ini sulit dilaporkan -
+       penyebab sebenarnya (kamera dipakai aplikasi lain, tidak ada
+       kamera belakang, halaman dibuka lewat HTTP, kamera tidak
+       didukung) semuanya terdengar seperti masalah izin yang sama,
+       padahal cara mengatasinya berbeda. Jadi setiap kemungkinan
+       ditulis terpisah, dengan langkah yang benar-benar berguna.
+    */
+    function jelaskanErrorKamera(e) {
+        const nama = e && e.name ? e.name : '';
+        const pesanAsli = e && e.message ? e.message : String(e || '');
+
+        if (nama === 'NotAllowedError' || /permission|denied/i.test(pesanAsli)) {
+            return {
+                judul: 'Izin kamera belum diberikan',
+                arah: 'Izin ini sengaja tidak diminta otomatis supaya tidak muncul mendadak. ' +
+                      'Tekan ikon gembok di bilah alamat, pilih "Izin situs" -> Kamera -> "Izinkan", ' +
+                      'lalu muat ulang halaman ini. Kalau masih ditolak, cek pengaturan situs di browser HP.',
+            };
+        }
+        if (nama === 'NotFoundError' || /Requested device not found/i.test(pesanAsli)) {
+            return {
+                judul: 'Tidak ada kamera yang bisa dipakai',
+                arah: 'Browser tidak menemukan kamera belakang. Tutup dulu aplikasi yang sedang memakai ' +
+                      'kamera (kamera, video call, scan QR lain) - beberapa HP mematikan kamera ' +
+                      'begitu ada aplikasi lain yang memakainya.',
+            };
+        }
+        if (nama === 'NotReadableError' || /Could not start|being used|track started/i.test(pesanAsli)) {
+            return {
+                judul: 'Kamera sedang dipakai aplikasi lain',
+                arah: 'Tutup aplikasi kamera, WhatsApp video, atau scan QR lain yang sedang berjalan, ' +
+                      'lalu coba lagi.',
+            };
+        }
+        if (nama === 'OverconstrainedError' || nama === 'ConstraintNotSatisfiedError') {
+            return {
+                judul: 'Kamera tidak mendukung mode yang diminta',
+                arah: 'Halaman ini meminta kamera belakang dan tidak ada yang cocok. Kamera depan masih ' +
+                      'bisa dipakai, atau langsung pakai kolom kode manual di bawah.',
+            };
+        }
+        if (nama === 'SecurityError' || !window.isSecureContext) {
+            return {
+                judul: 'Kamera butuh koneksi HTTPS',
+                arah: 'Browser hanya mengizinkan akses kamera di alamat HTTPS. Kalau halaman ini dibuka lewat ' +
+                      'http:// atau alamat IP lokal, kamera tidak akan pernah bisa jalan walaupun izin sudah ' +
+                      'diberikan. Pakai kolom kode manual di bawah, atau minta server dipasang HTTPS.',
+            };
+        }
+        return {
+            judul: 'Kamera gagal dibuka',
+            arah: 'Browser melaporkan: ' + (pesanAsli || 'tanpa keterangan') + '. ' +
+                  'Pakai kolom kode manual di bawah sebagai sementara.',
+        };
+    }
+
     async function mulaiScanKamera() {
         const statusEl = document.getElementById('status-kamera-scan');
         const readerEl = document.getElementById('reader-barcode');
+
+        // getUserMedia hanya ada di konteks aman (HTTPS atau localhost).
+        // Dicek lebih dulu supaya pengguna diberi tahu penyebab yang
+        // sebenarnya, bukan "izin belum diberikan" yang tidak berguna.
+        if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            const info = jelaskanErrorKamera({ name: 'SecurityError' });
+            Swal.fire({
+                title: info.judul,
+                html: '<div style="text-align:left;font-size:13px;line-height:1.6">' + info.arah + '</div>',
+                icon: 'warning',
+                confirmButtonText: 'Mengerti',
+            });
+            return;
+        }
+
         statusEl.textContent = 'Memuat kamera...';
         try {
             await muatLibHtml5Qrcode();
         } catch (e) {
-            statusEl.textContent = 'Gagal memuat library kamera - cek koneksi internet.';
+            statusEl.textContent = 'Gagal memuat library kamera - muat ulang halaman.';
             return;
         }
 
@@ -361,10 +435,22 @@
             formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128],
         });
 
+        /* facingMode ditulis sebagai { ideal: ... } BUKAN { exact: ... }.
+
+           Ini penyebab kedua bug ini di HP. Dengan exact, browser HARUS
+           menemukan kamera yang persis memenuhi permintaan itu; kalau
+           tidak ada, ia menolak tanpa mencoba yang lain. Kamera
+           belakang sering tidak tersedia persis saat dibutuhkan - sedang
+           dipakai aplikasi lain, atau mode kamera aktif berbeda. 'ideal'
+           berarti "pilih yang belakang kalau ada, kalau tidak pakai
+           yang ada". Untuk scan barcode, kamera depan masih bisa
+           dipakai, jadi menolak seluruhnya hanya karena tidak dapat
+           yang ideal adalah keputusan yang salah.
+        */
         try {
             await html5QrcodeScannerAktif.start(
-                { facingMode: 'environment' },
-                { fps: 10, qrbox: { width: 260, height: 120 } },
+                { facingMode: { ideal: 'environment' } },
+                { fps: 10, qrbox: { width: 260, height: 120 }, aspectRatio: 2.0 },
                 (kodeTerbaca) => {
                     statusEl.textContent = 'Terbaca: ' + kodeTerbaca;
                     html5QrcodeScannerAktif.stop().then(() => {
@@ -376,8 +462,17 @@
             );
             statusEl.textContent = 'Arahkan kamera ke barcode...';
         } catch (e) {
-            statusEl.textContent = 'Tidak bisa mengakses kamera - pastikan izin kamera diberikan.';
+            const info = jelaskanErrorKamera(e);
+            statusEl.textContent = info.judul;
+            Swal.fire({
+                title: info.judul,
+                html: '<div style="text-align:left;font-size:13px;line-height:1.6">' + info.arah + '</div>',
+                icon: 'warning',
+                confirmButtonText: 'Mengerti',
+            });
+            try { await html5QrcodeScannerAktif.stop(); } catch (e2) { /* belum start, tidak apa-apa */ }
             html5QrcodeScannerAktif = null;
+            readerEl.classList.add('hidden');
         }
     }
 </script>

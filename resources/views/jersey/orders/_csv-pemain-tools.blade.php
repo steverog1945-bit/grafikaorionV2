@@ -20,7 +20,7 @@
 // - Pemisah kolom: titik koma (;) - hasil simpanan default Excel Indonesia.
 // - Baris pertama boleh berupa header (nama/nomor/...) - otomatis dilewati.
 // - gender: L atau P (kosong = L).
-// - ukuran/lengan/kerah: HARUS sama dengan nama di Master Data Jersey
+// - ukuran/lengan/kerah: HARUS sama dengan nama di Data Master Jersey
 //   (Ukuran / Tipe Lengan / Tipe Kerah) - pencocokan tidak peduli huruf
 //   besar/kecil & spasi berlebih. Barang tanpa lengan/kerah (mis. Celana)
 //   tetap WAJIB menuliskan master "Tanpa Lengan" / "Tanpa Kerah".

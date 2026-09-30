@@ -3,7 +3,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Stock Opname">
+    <x-page-header title="Stok Opname">
         <x-slot:subtitle>
             <i class="fas fa-clipboard-list text-amber-400"></i>
             Hitung fisik stok gudang - stok baru berubah setelah hasil hitung disetujui lewat Approval Workflow
@@ -18,7 +18,7 @@
     <x-card class="mb-8">
         <form method="GET" class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-64">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
                 <x-form.select name="status" onchange="this.form.submit()">
                     <option value="">Semua Status</option>
                     <option value="Draft" {{ request('status') == 'Draft' ? 'selected' : '' }}>Draft</option>
@@ -44,7 +44,7 @@
             @forelse($daftar as $o)
             <tr class="hover:bg-slate-50/30 transition-all">
                 <td class="px-8 py-5">
-                    <span class="text-[13px] font-bold text-slate-700">{{ $o->nomor }}</span>
+                    <span class="text-[13px] font-medium text-slate-700">{{ $o->nomor }}</span>
                     @if($o->catatan)
                         <div class="text-[11px] text-slate-400">{{ $o->catatan }}</div>
                     @endif
@@ -53,7 +53,7 @@
                     <span class="text-xs text-slate-500">{{ $o->tanggal->format('d M Y') }}</span>
                 </td>
                 <td class="px-6 py-5">
-                    <span class="text-sm font-semibold text-slate-600">{{ $o->pembuat?->username ?? '-' }}</span>
+                    <span class="text-sm font-medium text-slate-600">{{ $o->pembuat?->username ?? '-' }}</span>
                 </td>
                 <td class="px-6 py-5 text-center">
                     @php
@@ -67,7 +67,7 @@
                             <x-button size="sm" variant="secondary" :href="route('stock-opname.edit', $o->id)">
                                 <i class="fas fa-edit"></i> Lanjutkan
                             </x-button>
-                            <form method="POST" action="{{ route('stock-opname.destroy', $o->id) }}" onsubmit="return confirm('Hapus Stock Opname {{ $o->nomor }}?');">
+                            <form method="POST" action="{{ route('stock-opname.destroy', $o->id) }}" onsubmit="return confirm('Hapus Stok Opname {{ $o->nomor }}?');">
                                 @csrf @method('DELETE')
                                 <x-button size="sm" variant="danger" type="submit">
                                     <i class="fas fa-trash"></i>
@@ -84,7 +84,7 @@
             @empty
             <tr>
                 <td colspan="5">
-                    <x-empty-state title="Belum ada Stock Opname" />
+                    <x-empty-state title="Belum ada Stok Opname" />
                 </td>
             </tr>
             @endforelse

@@ -28,10 +28,10 @@
     </div>
 
     @if (session('success'))
-        <div class="bg-emerald-50 text-emerald-700 p-4 rounded-2xl mb-6 font-semibold no-print">{{ session('success') }}</div>
+        <div class="bg-emerald-50 text-emerald-700 p-4 rounded-2xl mb-6 font-medium no-print">{{ session('success') }}</div>
     @endif
     @if ($errors->any())
-        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-semibold no-print">
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-medium no-print">
             <ul class="list-disc list-inside space-y-1">
                 @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
             </ul>
@@ -59,7 +59,7 @@
                             <option value="{{ $kat->id_kategori_kas_kecil }}" data-jenis="{{ $kat->jenis }}" {{ (string) old('id_kategori') === (string) $kat->id_kategori_kas_kecil ? 'selected' : '' }}>{{ $kat->nama_kategori }}</option>
                         @endforeach
                     </x-form.select>
-                    <a href="{{ route('kategori-kas-kecil.index') }}" class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest hover:underline ml-2 mt-1 inline-block">
+                    <a href="{{ route('kategori-kas-kecil.index') }}" class="text-[10px] font-medium text-indigo-500 uppercase tracking-widest hover:underline ml-2 mt-1 inline-block">
                         <i class="fas fa-cog"></i> Kelola Kategori
                     </a>
                 </x-form.group>
@@ -82,15 +82,15 @@
     <x-card class="mb-6 no-print">
         <form method="GET" action="{{ route('kas-kecil.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
                 <x-form.input type="date" name="tgl_dari" value="{{ $tglDari }}" />
             </div>
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
                 <x-form.input type="date" name="tgl_sampai" value="{{ $tglSampai }}" />
             </div>
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Jenis</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Jenis</label>
                 <x-form.select name="jenis">
                     <option value="">-- Semua --</option>
                     <option value="Masuk" {{ request('jenis') === 'Masuk' ? 'selected' : '' }}>Pemasukan</option>
@@ -98,7 +98,7 @@
                 </x-form.select>
             </div>
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
                 <x-form.select name="id_kategori">
                     <option value="">-- Semua --</option>
                     @foreach($kategoriList as $kat)
@@ -113,7 +113,7 @@
             </x-button>
 
             @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'id_kategori', 'jenis']))
-                <a href="{{ route('kas-kecil.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                <a href="{{ route('kas-kecil.index') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
             @endif
@@ -124,20 +124,20 @@
          polos khusus cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pemasukan Tunai</p>
-            <h3 class="text-2xl font-bold text-emerald-600 mt-1">Rp {{ number_format($masukTunai, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Pemasukan Tunai</p>
+            <h3 class="text-2xl font-medium text-emerald-600 mt-1">Rp {{ number_format($masukTunai, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pemasukan Non-Tunai</p>
-            <h3 class="text-2xl font-bold text-slate-700 mt-1">Rp {{ number_format($masukNonTunai, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Pemasukan Non-Tunai</p>
+            <h3 class="text-2xl font-medium text-slate-700 mt-1">Rp {{ number_format($masukNonTunai, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Pengeluaran</p>
-            <h3 class="text-2xl font-bold text-rose-500 mt-1">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Pengeluaran</p>
+            <h3 class="text-2xl font-medium text-rose-500 mt-1">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo Tunai (sesuai filter)</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-1">Rp {{ number_format($masukTunai - $totalPengeluaran, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Saldo Tunai (sesuai filter)</p>
+            <h3 class="text-2xl font-medium text-slate-900 mt-1">Rp {{ number_format($masukTunai - $totalPengeluaran, 0, ',', '.') }}</h3>
         </div>
     </div>
     <div class="hidden print:block">
@@ -169,14 +169,14 @@
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-6 py-5">
-                    <span class="text-[13px] font-bold text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d M Y') }}</span>
+                    <span class="text-[13px] font-medium text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d M Y') }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[10px] font-bold uppercase rounded px-2 py-1 {{ $k->jenis === 'Masuk' ? 'text-emerald-600 bg-emerald-50' : 'text-rose-500 bg-rose-50' }}">{{ $k->jenis === 'Masuk' ? 'Masuk' : 'Keluar' }}</span>
-                    @if($k->metode !== 'Tunai')<span class="text-[10px] font-bold uppercase text-slate-500 bg-slate-100 rounded px-2 py-1 ml-1">{{ $k->metode }}</span>@endif
+                    <span class="text-[10px] font-medium uppercase rounded px-2 py-1 {{ $k->jenis === 'Masuk' ? 'text-emerald-600 bg-emerald-50' : 'text-rose-500 bg-rose-50' }}">{{ $k->jenis === 'Masuk' ? 'Masuk' : 'Keluar' }}</span>
+                    @if($k->metode !== 'Tunai')<span class="text-[10px] font-medium uppercase text-slate-500 bg-slate-100 rounded px-2 py-1 ml-1">{{ $k->metode }}</span>@endif
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[11px] font-bold uppercase text-indigo-600 bg-indigo-50 rounded px-2 py-1">{{ $k->sumber === 'jersey' ? 'Order Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Supplier' : ($k->kategori->nama_kategori ?? '-')) }}</span>
+                    <span class="text-[11px] font-medium uppercase text-indigo-600 bg-indigo-50 rounded px-2 py-1">{{ $k->sumber === 'jersey' ? 'Pesanan Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Pemasok' : ($k->kategori->nama_kategori ?? '-')) }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] text-slate-600">{{ $k->keterangan }}</span>
@@ -185,7 +185,7 @@
                     <span class="text-[12px] text-slate-400">{{ $k->user->username ?? '-' }}</span>
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[12px] font-bold {{ $k->jenis === 'Masuk' ? 'text-emerald-600' : 'text-rose-500' }}">{{ $k->jenis === 'Masuk' ? '+' : '-' }} Rp {{ number_format($k->nominal, 0, ',', '.') }}</span>
+                    <span class="text-[12px] font-medium {{ $k->jenis === 'Masuk' ? 'text-emerald-600' : 'text-rose-500' }}">{{ $k->jenis === 'Masuk' ? '+' : '-' }} Rp {{ number_format($k->nominal, 0, ',', '.') }}</span>
                 </td>
                 <td class="px-4 py-5 text-center no-print">
                     @if($k->sumber !== 'manual')
@@ -216,12 +216,12 @@
             @forelse($data as $i => $k)
             <tr>
                 <td class="px-3 py-1.5 text-center text-slate-400">{{ $data->firstItem() + $i }}</td>
-                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d/m/Y') }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d/m/Y') }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->jenis === 'Masuk' ? 'Masuk' : 'Keluar' }}{{ $k->metode !== 'Tunai' ? ' (' . $k->metode . ')' : '' }}</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ $k->sumber === 'jersey' ? 'Order Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Supplier' : ($k->kategori->nama_kategori ?? '-')) }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $k->sumber === 'jersey' ? 'Pesanan Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Pemasok' : ($k->kategori->nama_kategori ?? '-')) }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->keterangan }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->user->username ?? '-' }}</td>
-                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ $k->jenis === 'Masuk' ? '' : '-' }}{{ number_format($k->nominal, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ $k->jenis === 'Masuk' ? '' : '-' }}{{ number_format($k->nominal, 0, ',', '.') }}</td>
             </tr>
             @empty
             <tr>
@@ -230,8 +230,8 @@
             @endforelse
             @if($data->isNotEmpty())
             <tr class="bg-slate-50 border-t border-slate-200">
-                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="6">Selisih Masuk - Keluar (halaman ini)</td>
-                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($data->where('jenis', 'Masuk')->sum('nominal') - $data->where('jenis', 'Keluar')->sum('nominal'), 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700 uppercase" colspan="6">Selisih Masuk - Keluar (halaman ini)</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($data->where('jenis', 'Masuk')->sum('nominal') - $data->where('jenis', 'Keluar')->sum('nominal'), 0, ',', '.') }}</td>
             </tr>
             @endif
         </x-laporan.print-table>

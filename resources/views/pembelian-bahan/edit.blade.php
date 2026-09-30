@@ -20,13 +20,13 @@
                     <x-form.input type="date" name="tgl_transaksi" value="{{ \Carbon\Carbon::parse($pembelian->tgl_transaksi)->format('Y-m-d') }}" required />
                 </x-form.group>
 
-                <x-form.group label="Supplier (Locked)">
+                <x-form.group label="Pemasok (Locked)">
                     <input type="text" value="{{ $pembelian->kedatangan->supplier->nama_supplier ?? 'Umum' }}" readonly
-                        class="w-full bg-slate-100 border-none rounded-xl p-3 text-sm font-bold text-slate-400 cursor-not-allowed">
+                        class="w-full bg-slate-100 border-none rounded-xl p-3 text-sm font-medium text-slate-400 cursor-not-allowed">
                 </x-form.group>
 
                 <x-form.group label="Status Pembayaran">
-                    <div class="p-3 bg-slate-100 rounded-xl text-sm font-bold text-slate-400 flex items-center gap-2 h-[46px]">
+                    <div class="p-3 bg-slate-100 rounded-xl text-sm font-medium text-slate-400 flex items-center gap-2 h-[46px]">
                         <i class="fas fa-lock text-[10px]"></i> {{ $pembelian->status_pembayaran }}
                     </div>
                 </x-form.group>
@@ -37,7 +37,7 @@
         <div class="bg-blue-50 border border-blue-100 rounded-2xl p-6 mb-8 flex gap-4 items-start">
             <i class="fas fa-info-circle text-blue-500 mt-1"></i>
             <div>
-                <p class="text-[11px] font-bold text-blue-800 uppercase tracking-wider">Informasi Audit</p>
+                <p class="text-[11px] font-medium text-blue-800 uppercase tracking-wider">Informasi Audit</p>
                 <p class="text-xs text-blue-600/80 leading-relaxed font-medium">Rincian item bahan dan harga tidak dapat diubah melalui halaman ini karena sudah tercatat dalam histori stok dan jurnal keuangan. Jika terdapat kesalahan input barang, silakan hapus faktur ini dan buat ulang dari Surat Jalan terkait.</p>
             </div>
         </div>

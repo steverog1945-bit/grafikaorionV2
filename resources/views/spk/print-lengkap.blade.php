@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>SPK #{{ $detail->id_detail }} - {{ $detail->nama_produk }}</title>
     @php $appSettingSpk = \App\Models\AppSetting::current(); @endphp
-    @include('partials.spk-lengkap-style')
+    @include('partials.spk-print-style')
 </head>
 <body>
     <div class="sheet">
@@ -39,7 +39,7 @@
                     <div class="item"><span>Pemesan</span><strong>{{ $detail->nama_konsumen }}</strong></div>
                     <div class="item"><span>No. Telepon</span><strong>{{ $detail->telepon_konsumen ?: '-' }}</strong></div>
                     <div class="item"><span>Tanggal Masuk</span><strong>{{ \Carbon\Carbon::parse($detail->tgl_order)->format('d/m/Y H:i') }}</strong></div>
-                    <div class="item"><span>Desainer / Petugas Input</span><strong>{{ $detail->pembuat_nota ?? '-' }}@if($detail->role_pembuat) <small style="color:#94a3b8;font-weight:600">({{ $detail->role_pembuat }})</small>@endif</strong></div>
+                    <div class="item"><span>Desainer / Petugas Input</span><strong>{{ $detail->pembuat_nota ?? '-' }}@if($detail->role_pembuat) <small class="info-catatan">({{ $detail->role_pembuat }})</small>@endif</strong></div>
                     @if($detail->metode_hitung === 'ukuran')
                     <div class="item"><span>Ukuran Cetak</span><strong>{{ angka($detail->p_ukuran, 2) }} x {{ angka($detail->l_ukuran, 2) }} cm</strong></div>
                     @endif
@@ -60,7 +60,7 @@
         <div class="section">
             <div class="section-title">Kebutuhan Bahan <span class="note">(dihitung otomatis dari BOM produk, bukan hasil timbang riil)</span></div>
             <table class="material">
-                <thead><tr><th>Bahan</th><th style="text-align:right">Pemakaian</th><th style="text-align:right">Perkiraan Panjang Bahan</th></tr></thead>
+                <thead><tr><th>Bahan</th><th class="num">Pemakaian</th><th class="num">Perkiraan Panjang Bahan</th></tr></thead>
                 <tbody>
                     @forelse($bahan as $b)
                     <tr>
@@ -69,7 +69,7 @@
                         <td class="num">{{ $b->panjang_m !== null ? angka($b->panjang_m, 2) . ' m' : '-' }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="3" class="empty-note" style="padding: 12px 8px;">Belum ada BOM bahan untuk produk ini.</td></tr>
+                    <tr class="empty-row"><td colspan="3" class="empty-note">Belum ada BOM bahan untuk produk ini.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -78,7 +78,7 @@
         <div class="section">
             <div class="section-title">Finishing</div>
             <table class="material">
-                <thead><tr><th>Finishing</th><th>Spek</th><th style="text-align:right">Jumlah Pakai</th><th>Catatan</th></tr></thead>
+                <thead><tr><th>Finishing</th><th>Spek</th><th class="num">Jumlah Pakai</th><th>Catatan</th></tr></thead>
                 <tbody>
                     @forelse($finishingItems as $fin)
                     <tr>
@@ -88,13 +88,13 @@
                         <td>{{ $fin->catatan ?: '-' }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="4" class="empty-note" style="padding: 12px 8px;">Tanpa finishing.</td></tr>
+                    <tr class="empty-row"><td colspan="4" class="empty-note">Tanpa finishing.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div style="margin: 8px 0; text-align:center;"><div id="qr-spk" style="display:inline-block"></div><div style="font-size:10px; letter-spacing:1px; margin-top:2px;">TRX{{ $detail->id_transaksi }}</div><div style="font-size:9px; color:#64748b;">Scan dengan kamera HP untuk membuka pembayaran</div></div>
+        <div class="kode-blok"><div id="qr-spk" class="kode-qr"></div><div class="kode-trx">TRX{{ $detail->id_transaksi }}</div><div class="scan-caption">Scan dengan kamera HP untuk membuka pembayaran</div></div>
 
         <div class="footer-strip">
             <span class="dot"></span>
@@ -109,10 +109,10 @@
     </div>
 
     <div class="no-print">
-        <button onclick="window.print()">🖨️ Cetak SPK</button>
+        <button onclick="window.print()">Cetak SPK</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="{{ asset('vendor/qrcode-generator/qrcode.min.js') }}"></script>
     <script>
         // QR berisi ALAMAT halaman pembayaran nota: dipindai kamera HP biasa langsung membuka form bayar (login dulu bila belum).
         (function () {

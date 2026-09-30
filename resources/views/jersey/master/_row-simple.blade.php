@@ -5,13 +5,13 @@
      pakai opacity (bukan badge status terpisah) - konsisten dengan pola
      Master Bahan Baku yang sudah ada di aplikasi. --}}
 <tr data-id="{{ $row->id }}" class="{{ $row->is_active ? '' : 'opacity-50' }}">
-    <td class="p-2.5 font-semibold">
+    <td class="p-2.5 font-medium">
         {{ $row->name }}
         @if($entity === 'product-types' && !$row->has_sleeve_collar)
-            <span class="ml-2 text-[9px] font-bold uppercase tracking-wide text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">Tanpa Lengan/Kerah</span>
+            <span class="ml-2 text-[9px] font-medium uppercase tracking-wide text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">Tanpa Lengan/Kerah</span>
         @endif
         @if(in_array($entity, ['sleeve-types', 'collar-types']) && $row->price_surcharge > 0)
-            <span class="ml-2 text-[9px] font-bold uppercase tracking-wide text-emerald-600 bg-emerald-50 rounded px-1.5 py-0.5">+Rp {{ number_format($row->price_surcharge, 0, ',', '.') }}</span>
+            <span class="ml-2 text-[9px] font-medium uppercase tracking-wide text-emerald-600 bg-emerald-50 rounded px-1.5 py-0.5">+Rp {{ number_format($row->price_surcharge, 0, ',', '.') }}</span>
         @endif
     </td>
     <td class="p-2.5 text-center">

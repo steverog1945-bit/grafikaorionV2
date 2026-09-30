@@ -26,13 +26,13 @@
             <input type="hidden" name="divisi" value="{{ request('divisi') }}">
 
             <div class="flex-1 min-w-[260px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari</label>
                 <x-form.input type="text" name="search" value="{{ request('search') }}"
                     placeholder="Nama file, konsumen, atau nomor nota..." />
             </div>
 
             <div class="w-full md:w-52">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status SPK</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status SPK</label>
                 <x-form.select name="status_spk">
                     <option value="">-- Semua Status --</option>
                     @foreach(['Antre', 'Desain', 'Cetak', 'Selesai', 'Pending', 'Batal'] as $s)
@@ -44,7 +44,7 @@
             <label class="flex items-center gap-2 pb-3 cursor-pointer">
                 <input type="checkbox" name="urgent_only" value="1" {{ request('urgent_only') ? 'checked' : '' }}
                     class="rounded-md border-slate-200 text-rose-600 focus:ring-rose-500">
-                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Urgent saja</span>
+                <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Urgent saja</span>
             </label>
 
             <x-button type="submit">
@@ -53,7 +53,7 @@
             </x-button>
 
             @if(request()->anyFilled(['search', 'status_spk', 'urgent_only']))
-                <a href="{{ route('spk.index', ['divisi' => request('divisi')]) }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                <a href="{{ route('spk.index', ['divisi' => request('divisi')]) }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
             @endif
@@ -88,20 +88,20 @@
                     </td>
                     <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $spk->firstItem() + $i }}</td>
                     <td class="px-4 py-5">
-                        <div class="text-[13px] font-bold text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $item->nama_file }}</div>
+                        <div class="text-[13px] font-medium text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $item->nama_file }}</div>
                         <div class="text-[10px] text-slate-400 mt-0.5">Nota: {{ $item->nomor_nota }} &middot; SPK #{{ $item->id_detail }}</div>
                     </td>
                     <td class="px-4 py-5">
-                        <span class="text-[12px] font-bold text-slate-700 uppercase">{{ $item->nama_konsumen }}</span>
+                        <span class="text-[12px] font-medium text-slate-700 uppercase">{{ $item->nama_konsumen }}</span>
                         @if($item->divisi)
                             <div class="text-[10px] text-slate-400">{{ $item->divisi }}</div>
                         @endif
                     </td>
                     <td class="px-4 py-5">
-                        <span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->format('d M Y') }}</span>
+                        <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->format('d M Y') }}</span>
                     </td>
                     <td class="px-4 py-5 text-center">
-                        <span class="text-[13px] font-bold text-slate-700">{{ angka($item->qty, 4) }}</span>
+                        <span class="text-[13px] font-medium text-slate-700">{{ angka($item->qty, 4) }}</span>
                     </td>
                     <td class="px-4 py-5 text-center">
                         <button type="button" onclick="toggleUrgent({{ $item->id_detail }})"
@@ -110,7 +110,7 @@
                         </button>
                     </td>
                     <td class="px-4 py-5">
-                        <span class="text-[12px] font-semibold text-slate-600">{{ $item->pembuat_nota }}</span>
+                        <span class="text-[12px] font-medium text-slate-600">{{ $item->pembuat_nota }}</span>
                     </td>
                     <td class="px-4 py-5 text-center">
                         <x-badge :status="$item->status_pembayaran" />
@@ -121,7 +121,7 @@
                     <td class="px-8 py-5 text-center">
                         <div class="flex items-center justify-center gap-2">
                             @if(!$bisaUbah)
-                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Hanya lihat</span>
+                                <span class="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Hanya lihat</span>
                             @elseif($item->status_spk === 'Antre')
                                 <x-button type="button" size="icon" variant="ghost" onclick="ambilPekerjaan({{ $item->id_detail }})" class="border border-slate-100 hover:text-emerald-600" title="Ambil Pekerjaan (pindah ke Produksi)">
                                     <i class="fas fa-hand-paper text-xs"></i>

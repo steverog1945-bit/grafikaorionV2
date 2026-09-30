@@ -6,16 +6,16 @@
     <x-page-header title="Catat Waste" subtitle="Susut bahan baku yang tidak menjadi barang terjual" />
 
     @if($errors->any())
-        <div class="mb-6 p-4 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold">
+        <div class="mb-6 p-4 rounded-xl bg-rose-50 text-rose-600 text-sm font-medium">
             @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
         </div>
     @endif
 
     @if($terbatas)
-        <div class="mb-4 px-4 py-3 rounded-xl bg-indigo-50 text-indigo-700 text-sm font-semibold"><i class="fas fa-industry mr-2"></i>Divisi Anda: {{ $divisiAktif }} - hanya bahan dan cetakan divisi ini yang ditampilkan.</div>
+        <div class="mb-4 px-4 py-3 rounded-xl bg-indigo-50 text-indigo-700 text-sm font-medium"><i class="fas fa-industry mr-2"></i>Divisi Anda: {{ $divisiAktif }} - hanya bahan dan cetakan divisi ini yang ditampilkan.</div>
     @else
         <form method="GET" action="{{ route('waste.create') }}" class="mb-4 flex items-center gap-3">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Divisi</label>
+            <label class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Divisi</label>
             <select name="divisi" class="rounded-xl border-slate-200 text-sm p-2 w-64">
                 <option value="">Semua divisi</option>
                 @foreach($daftarMesin as $m)<option value="{{ $m->id_mesin }}" {{ (string) request('divisi') === (string) $m->id_mesin ? 'selected' : '' }}>{{ $m->nama_mesin }}</option>@endforeach
@@ -43,12 +43,12 @@
                         <x-form.group label="Qty Waste">
                             <div class="flex items-center gap-2">
                                 <x-form.input type="number" step="0.0001" min="0.0001" name="qty" id="waste-qty" value="{{ old('qty') }}" />
-                                <span id="waste-unit" class="shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black uppercase">-</span>
+                                <span id="waste-unit" class="shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-medium uppercase">-</span>
                             </div>
                         </x-form.group>
                     </div>
                     <div id="waste-blok-luas" class="hidden">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Bagian yang rusak (cm)</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Bagian yang rusak (cm)</label>
                         <div class="grid grid-cols-3 gap-2">
                             <x-form.input type="number" step="0.01" min="0" name="panjang" id="waste-p" value="{{ old('panjang') }}" placeholder="Panjang" />
                             <x-form.input type="number" step="0.01" min="0" name="lebar" id="waste-l" value="{{ old('lebar') }}" placeholder="Lebar" />
@@ -56,7 +56,7 @@
                         </div>
                         <p class="mt-1 text-[10px] text-slate-400 ml-2">Panjang x Lebar x Jumlah (kali kejadian/lembar)</p>
                     </div>
-                    <p id="waste-konversi" class="mt-2 text-[11px] font-semibold text-slate-500"></p>
+                    <p id="waste-konversi" class="mt-2 text-[11px] font-medium text-slate-500"></p>
                 </div>
                 <x-form.group label="Jenis">
                     <x-form.select name="jenis" required>
@@ -66,7 +66,7 @@
                 </x-form.group>
             </div>
 
-            <x-form.group label="Terkait Item Order (opsional - masuk biaya Job Costing order itu)">
+            <x-form.group label="Terkait Item Order (opsional - masuk biaya Biaya Pekerjaan order itu)">
                 <x-form.select name="id_detail" id="id_detail">
                     <option value="">-- Tidak terkait order tertentu --</option>
                     @foreach($items as $i)
@@ -118,7 +118,7 @@
         } else { hasil = parseFloat(wQty.value) || 0; }
         if (!d.satuan) { wInfo.textContent = ''; return; }
         wInfo.textContent = hasil > 0 ? `${dasar}= stok berkurang ${fmt(hasil)} ${d.satuan} (stok sekarang ${fmt(stok)} ${d.satuan}).` : `Stok sekarang ${fmt(stok)} ${d.satuan}.`;
-        wInfo.className = 'mt-2 text-[11px] font-semibold ' + (hasil > stok ? 'text-rose-600' : 'text-slate-500');
+        wInfo.className = 'mt-2 text-[11px] font-medium ' + (hasil > stok ? 'text-rose-600' : 'text-slate-500');
     }
     wSel.addEventListener('change', segarkanSatuanWaste);
     [wQty, wP, wL, wJ].forEach(el => el.addEventListener('input', hitungKonversi));

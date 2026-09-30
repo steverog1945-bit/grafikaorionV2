@@ -19,7 +19,7 @@
     <x-card class="mb-6">
         <form method="GET" action="{{ route('harga-promo.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[260px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Produk</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Produk</label>
                 <x-form.input type="text" name="search" value="{{ request('search') }}" placeholder="Nama produk..." />
             </div>
             <x-button type="submit">
@@ -27,7 +27,7 @@
                 Filter
             </x-button>
             @if(request()->filled('search'))
-                <a href="{{ route('harga-promo.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">Reset</a>
+                <a href="{{ route('harga-promo.index') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">Reset</a>
             @endif
         </form>
     </x-card>
@@ -53,16 +53,16 @@
             <tr class="hover:bg-slate-50/50 transition-all {{ $sedangBerlaku ? 'bg-rose-50/30' : '' }}">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $promo->firstItem() + $i }}</td>
                 <td class="px-6 py-5">
-                    <span class="text-[13px] font-bold text-slate-700 uppercase">{{ $p->nama_produk }}</span>
+                    <span class="text-[13px] font-medium text-slate-700 uppercase">{{ $p->nama_produk }}</span>
                 </td>
                 <td class="px-4 py-5 text-right">
                     <span class="text-[12px] text-slate-400 line-through">Lihat Price List</span>
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[14px] font-black text-rose-600">Rp {{ number_format($p->harga_promo, 0, ',', '.') }}</span>
+                    <span class="text-[14px] font-medium text-rose-600">Rp {{ number_format($p->harga_promo, 0, ',', '.') }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-semibold text-slate-600">
+                    <span class="text-[12px] font-medium text-slate-600">
                         {{ \Carbon\Carbon::parse($p->tgl_mulai)->format('d M Y') }} - {{ \Carbon\Carbon::parse($p->tgl_selesai)->format('d M Y') }}
                     </span>
                 </td>

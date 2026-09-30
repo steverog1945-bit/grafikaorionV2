@@ -6,7 +6,7 @@
     <x-page-header title="Pengaturan Aplikasi" subtitle="Identitas perusahaan, format nota, dan aturan kas - semua pengaturan aplikasi dalam satu tempat." />
 
     @if (session('success'))
-        <div class="bg-emerald-50 text-emerald-600 p-4 rounded-2xl mb-6 font-semibold">
+        <div class="bg-emerald-50 text-emerald-600 p-4 rounded-2xl mb-6 font-medium">
             {{ session('success') }}
         </div>
     @endif
@@ -15,13 +15,13 @@
          terpisah per tab) supaya perubahan di beberapa tab sekaligus tidak
          perlu disimpan satu-satu. --}}
     <div class="flex gap-1 mb-5 border-b border-slate-200 overflow-x-auto">
-        <button type="button" onclick="pindahTabPengaturan('umum')" id="tab-btn-umum" class="tab-btn-pengaturan px-5 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-indigo-600 text-indigo-600 whitespace-nowrap">
+        <button type="button" onclick="pindahTabPengaturan('umum')" id="tab-btn-umum" class="tab-btn-pengaturan px-5 py-3 text-xs font-medium uppercase tracking-widest border-b-2 border-indigo-600 text-indigo-600 whitespace-nowrap">
             <i class="fas fa-building mr-1.5"></i> Umum
         </button>
-        <button type="button" onclick="pindahTabPengaturan('nota')" id="tab-btn-nota" class="tab-btn-pengaturan px-5 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-400 hover:text-slate-600 whitespace-nowrap">
+        <button type="button" onclick="pindahTabPengaturan('nota')" id="tab-btn-nota" class="tab-btn-pengaturan px-5 py-3 text-xs font-medium uppercase tracking-widest border-b-2 border-transparent text-slate-400 hover:text-slate-600 whitespace-nowrap">
             <i class="fas fa-receipt mr-1.5"></i> Nota
         </button>
-        <button type="button" onclick="pindahTabPengaturan('kas')" id="tab-btn-kas" class="tab-btn-pengaturan px-5 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-400 hover:text-slate-600 whitespace-nowrap">
+        <button type="button" onclick="pindahTabPengaturan('kas')" id="tab-btn-kas" class="tab-btn-pengaturan px-5 py-3 text-xs font-medium uppercase tracking-widest border-b-2 border-transparent text-slate-400 hover:text-slate-600 whitespace-nowrap">
             <i class="fas fa-cash-register mr-1.5"></i> Kas
         </button>
     </div>
@@ -35,16 +35,16 @@
                 <div class="flex items-center gap-5">
                     <div class="w-20 h-20 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
                         @if($setting->logo_path)
-                            <img id="preview-logo" src="{{ asset('storage/' . $setting->logo_path) }}" alt="Logo" class="w-full h-full object-contain">
+                            <img loading="lazy" decoding="async" id="preview-logo" src="{{ asset('storage/' . $setting->logo_path) }}" alt="Logo" class="w-full h-full object-contain">
                         @else
                             <i id="preview-logo-placeholder" class="fas fa-image text-slate-300 text-2xl"></i>
-                            <img id="preview-logo" src="" alt="Logo" class="w-full h-full object-contain hidden">
+                            <img loading="lazy" decoding="async" id="preview-logo" src="" alt="Logo" class="w-full h-full object-contain hidden" 
                         @endif
                     </div>
                     <x-form.group label="Logo Perusahaan" name="logo" help="PNG/JPG/WEBP, maks 2MB. Kosongkan kalau tidak ingin mengubah.">
                         <input type="file" name="logo" accept="image/png,image/jpeg,image/webp"
                             onchange="previewLogoAplikasi(this)"
-                            class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-xs font-semibold text-slate-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white">
+                            class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-xs font-medium text-slate-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-indigo-600 file:text-white">
                     </x-form.group>
                 </div>
 
@@ -58,7 +58,7 @@
                     ];
                 @endphp
                 <div class="rounded-2xl border border-slate-100 p-5 space-y-5">
-                    <div class="text-[11px] font-black text-slate-400 uppercase tracking-widest"><i class="fas fa-swatchbook mr-1.5"></i> Tampilan Logo di Sidebar</div>
+                    <div class="text-[11px] font-medium text-slate-400 uppercase tracking-widest"><i class="fas fa-swatchbook mr-1.5"></i> Tampilan Logo di Sidebar</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-5">
                             <x-form.group label="Ukuran Logo" name="logo_ukuran">
@@ -84,11 +84,11 @@
                         </div>
                         <div class="space-y-4">
                             <div>
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Pratinjau (latar sidebar)</div>
+                                <div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Pratinjau (latar sidebar)</div>
                                 <div class="rounded-2xl px-6 py-8 flex items-center justify-center min-h-[130px]" style="background:linear-gradient(180deg,#0f172a,#17223b)">
                                     @if($setting->logo_path)
                                         <div id="pratinjau-logo" class="sidebar-logo logo-{{ $lg['ukuran'] }} logo-gaya-{{ $lg['gaya'] }}">
-                                            <img id="pratinjau-logo-img" class="logo-full" src="{{ asset('storage/' . $setting->logo_path) }}" alt="Pratinjau logo">
+                                            <img loading="lazy" decoding="async" id="pratinjau-logo-img" class="logo-full" src="{{ asset('storage/' . $setting->logo_path) }}" alt="Pratinjau logo">
                                         </div>
                                     @else
                                         <span class="text-sm text-slate-400">Unggah logo untuk melihat pratinjau.</span>
@@ -97,12 +97,12 @@
                             </div>
                             <x-form.group label="Logo Ikon (opsional, persegi)" name="logo_ikon" help="Dipakai saat sidebar diringkas. PNG/JPG/WEBP, maks 1MB.">
                                 <input type="file" name="logo_ikon" accept="image/png,image/jpeg,image/webp"
-                                    class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-xs font-semibold text-slate-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white">
+                                    class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-xs font-medium text-slate-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-indigo-600 file:text-white">
                             </x-form.group>
                             @if($setting->logo_ikon_path)
                                 <div class="flex items-center gap-3 ml-2">
-                                    <img src="{{ asset('storage/' . $setting->logo_ikon_path) }}" alt="Logo ikon" class="w-10 h-10 rounded-lg object-contain bg-slate-800 p-1">
-                                    <label class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                                    <img loading="lazy" decoding="async" src="{{ asset('storage/' . $setting->logo_ikon_path) }}" alt="Logo ikon" class="w-10 h-10 rounded-lg object-contain bg-slate-800 p-1">
+                                    <label class="flex items-center gap-2 text-xs font-medium text-slate-500">
                                         <input type="checkbox" name="hapus_logo_ikon" value="1" class="rounded border-slate-300 text-indigo-600"> Hapus logo ikon
                                     </label>
                                 </div>
@@ -160,7 +160,7 @@
                                 @foreach(['thermal' => ['Thermal (58mm)', 'Struk kasir, kertas gulung'], 'a4' => ['A4 / A5', 'Invoice kertas biasa'], 'continuous' => ['Continuous Form', 'Kertas sambung/dot-matrix']] as $val => $label)
                                 <label class="relative flex flex-col gap-1 p-4 rounded-xl border-2 cursor-pointer {{ old('format_nota', $setting->format_nota ?? 'a4') === $val ? 'border-indigo-500 bg-indigo-50' : 'border-slate-100' }}">
                                     <input type="radio" name="format_nota" value="{{ $val }}" @checked(old('format_nota', $setting->format_nota ?? 'a4') === $val) onchange="tandaiFormatNota(this)" class="absolute top-3 right-3 accent-indigo-600">
-                                    <span class="text-sm font-bold text-slate-700">{{ $label[0] }}</span>
+                                    <span class="text-sm font-medium text-slate-700">{{ $label[0] }}</span>
                                     <span class="text-[11px] text-slate-400">{{ $label[1] }}</span>
                                 </label>
                                 @endforeach
@@ -181,7 +181,7 @@
                                 @foreach([['tidak', 'Tidak Dibulatkan'], ['100', 'Ke Rp 100'], ['500', 'Ke Rp 500'], ['1000', 'Ke Rp 1.000']] as [$val, $label])
                                 <label class="relative flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer text-center {{ old('pembulatan_nota', $setting->pembulatan_nota ?? 'tidak') === $val ? 'border-indigo-500 bg-indigo-50' : 'border-slate-100' }}">
                                     <input type="radio" name="pembulatan_nota" value="{{ $val }}" @checked(old('pembulatan_nota', $setting->pembulatan_nota ?? 'tidak') === $val) onchange="tandaiPembulatanNota(this)" class="absolute inset-0 opacity-0 cursor-pointer">
-                                    <span class="text-xs font-bold text-slate-700">{{ $label }}</span>
+                                    <span class="text-xs font-medium text-slate-700">{{ $label }}</span>
                                 </label>
                                 @endforeach
                             </div>
@@ -205,11 +205,11 @@
                                     <span class="w-px h-5 bg-slate-200 mx-1"></span>
                                     <button type="button" onmousedown="event.preventDefault()" onclick="formatFooterNota('removeFormat')" class="w-7 h-7 rounded hover:bg-slate-200 text-slate-600 text-xs" title="Hapus Format"><i class="fas fa-eraser"></i></button>
                                 </div>
-                                <div id="editor-footer-nota" contenteditable="true" oninput="syncFooterNotaHidden()" class="min-h-[120px] p-3 text-sm text-slate-700 focus:outline-none" style="white-space: pre-wrap;">{!! old('nota_footer_text', $setting->nota_footer_text) !!}</div>
+                                <div id="editor-footer-nota" contenteditable="true" oninput="syncFooterNotaHidden()" class="min-h-[120px] p-3 text-sm text-slate-700 focus:outline-none" style="white-space: pre-wrap;">{!! \App\Support\HtmlBersih::bersihkan(old('nota_footer_text', $setting->nota_footer_text)) !!}</div>
                             </div>
                             <input type="hidden" name="nota_footer_text" id="input-footer-nota-hidden" value="{{ old('nota_footer_text', $setting->nota_footer_text) }}">
                             @error('nota_footer_text')
-                                <p class="mt-1.5 ml-2 text-xs font-semibold text-rose-500">{{ $message }}</p>
+                                <p class="mt-1.5 ml-2 text-xs font-medium text-rose-500">{{ $message }}</p>
                             @enderror
                         </x-form.group>
 
@@ -228,7 +228,7 @@
                      di-scale-down lewat CSS transform supaya proporsi antar
                      format ikut terlihat akurat, bukan cuma "kira-kira mirip". --}}
                 <div class="w-full lg:w-[42%] lg:sticky lg:top-6">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">Preview Nota - Ukuran Nyata</p>
+                    <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3 text-center">Preview Nota - Ukuran Nyata</p>
                     <div class="bg-slate-200 rounded-2xl p-4 overflow-hidden" style="max-height: 70vh; overflow-y: auto;">
                         <div id="preview-nota-wrap" class="mx-auto bg-white shadow-md" style="transform-origin: top center;">
                             <iframe id="preview-nota-iframe" class="w-full border-0 block" style="min-height: 400px;"></iframe>
@@ -243,9 +243,9 @@
         <div id="tab-panel-kas" class="tab-panel-pengaturan hidden">
             <x-card class="space-y-6">
                 <div class="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-                    <span class="block text-sm font-bold text-slate-700">Hari libur &amp; jam kerja kas</span>
+                    <span class="block text-sm font-medium text-slate-700">Hari libur &amp; jam kerja kas</span>
                     <span class="block text-xs text-slate-400 mt-0.5 mb-3">Hari tutup dan jam buka kini diatur per hari (Senin-Minggu) di halaman Jam Kerja.</span>
-                    <a href="{{ route('jam-kerja.index') }}" class="inline-flex px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700"><i class="fas fa-clock mr-2"></i> Atur Jam Kerja</a>
+                    <a href="{{ route('jam-kerja.index') }}" class="inline-flex px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700"><i class="fas fa-clock mr-2"></i> Atur Jam Kerja</a>
                 </div>
 
                 <div class="pt-4 flex justify-end border-t border-slate-100">

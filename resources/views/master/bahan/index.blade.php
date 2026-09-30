@@ -15,17 +15,17 @@
     <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-8">
         <form method="GET" action="{{ route('bahan.index') }}" id="filterForm" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[300px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Material</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Material</label>
                 <div class="relative">
-                    <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input type="text" name="search" value="{{ request('search') }}"
-                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                            placeholder="Ketik SKU atau Nama Bahan...">
                 </div>
             </div>
 
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
                 <select name="kategori" class="select2-filter w-full">
                     <option value="">Semua Divisi</option>
                     @foreach($kategori as $kat)
@@ -35,7 +35,7 @@
             </div>
 
             <div class="w-full md:w-40">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
                 <select name="status" class="select2-filter w-full">
                     <option value="aktif" {{ request('status', 'aktif') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                     <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
@@ -44,18 +44,18 @@
             </div>
 
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Harga (HPP)</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Harga (HPP)</label>
                 <select name="harga"
-                        class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                        class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
                     <option value="">Semua</option>
                     <option value="kosong" {{ request('harga') == 'kosong' ? 'selected' : '' }}>Belum ada harga</option>
                 </select>
             </div>
 
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Urutan</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Urutan</label>
                 <select name="sort"
-                        class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-indigo-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                        class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-indigo-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
                     <option value="nama_bahan" {{ request('sort', 'nama_bahan') == 'nama_bahan' ? 'selected' : '' }}>Abjad (A-Z)</option>
                     <option value="stok" {{ request('sort') == 'stok' ? 'selected' : '' }}>Stok Terendah</option>
                     <option value="created_at" {{ request('sort') == 'created_at' ? 'selected' : '' }}>Terbaru</option>
@@ -97,14 +97,14 @@
                         <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $bahan->firstItem() + $i }}</td>
                         <td class="px-8 py-5">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-bold text-xs">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-medium text-xs">
                                     {{ substr($b->nama_bahan, 0, 1) }}
                                 </div>
                                 <div>
-                                    <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
+                                    <div class="text-[14px] font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">
                                         {{ $b->nama_bahan }}
                                         @if($b->status === 'nonaktif')
-                                            <span class="ml-1 text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded uppercase align-middle">Nonaktif</span>
+                                            <span class="ml-1 text-[9px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded uppercase align-middle">Nonaktif</span>
                                         @endif
                                     </div>
                                     <div class="text-[11px] text-slate-400 mt-0.5">{{ $b->kode_bahan }}</div>
@@ -113,7 +113,7 @@
                         </td>
                         <td class="px-6 py-5 text-center">
                             <div class="flex flex-col gap-1 items-center">
-                                <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md uppercase">
+                                <span class="text-[10px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md uppercase">
                                     {{ $b->mesin->nama_mesin ?? '-' }}
                                 </span>
                                 <span class="text-[9px] text-slate-400 font-medium uppercase">{{ $b->kategori->nama_kategori ?? 'Umum' }}</span>
@@ -133,14 +133,14 @@
                             @endphp
                             <div class="inline-flex flex-col items-center gap-1.5" title="Stok minimal: {{ $angka($b->stok_minimal) }} {{ $b->satuan_stok }}">
                                 <div class="flex items-baseline gap-1.5">
-                                    <span class="text-[15px] font-bold tabular-nums {{ $stokHabis ? 'text-rose-600' : 'text-slate-700' }}">{{ $angka($b->stok) }}</span>
-                                    <span class="text-xs font-semibold text-slate-400">{{ $b->satuan_stok }}</span>
+                                    <span class="text-[15px] font-medium tabular-nums {{ $stokHabis ? 'text-rose-600' : 'text-slate-700' }}">{{ $angka($b->stok) }}</span>
+                                    <span class="text-xs font-medium text-slate-400">{{ $b->satuan_stok }}</span>
                                 </div>
                                 <div class="w-20 h-1 rounded-full bg-slate-100 overflow-hidden">
                                     <div class="h-full rounded-full {{ $warnaBar }}" style="width: {{ max(4, round($rasio * 100)) }}%"></div>
                                 </div>
                                 @if($stokHabis)
-                                    <span class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Stok menipis</span>
+                                    <span class="text-[10px] font-medium text-rose-500 uppercase tracking-wider">Stok menipis</span>
                                 @elseif($b->satuanHitung && $b->id_satuan_stok !== $b->id_satuan_hitung && $b->nilai_konversi > 1)
                                     <span class="text-[11px] font-medium text-slate-400">≈ {{ $angka($b->stok * $b->nilai_konversi, 0) }} {{ $b->satuanHitung->nama_satuan }}</span>
                                 @endif
@@ -151,11 +151,11 @@
                                     class="group/harga inline-flex items-baseline gap-1.5 px-3 py-1.5 rounded-lg transition-colors {{ (float) $b->harga_rata_rata > 0 ? 'hover:bg-slate-100' : 'bg-amber-50 hover:bg-amber-100' }}"
                                     title="Ubah harga rata-rata (dasar HPP)">
                                 @if((float) $b->harga_rata_rata > 0)
-                                    <span class="text-[13px] font-bold tabular-nums text-slate-700">Rp {{ number_format($b->harga_rata_rata, 0, ',', '.') }}</span>
-                                    <span class="text-xs font-semibold text-slate-400">/ {{ $b->satuan_stok }}</span>
+                                    <span class="text-[13px] font-medium tabular-nums text-slate-700">Rp {{ number_format($b->harga_rata_rata, 0, ',', '.') }}</span>
+                                    <span class="text-xs font-medium text-slate-400">/ {{ $b->satuan_stok }}</span>
                                     <i class="fas fa-pen text-[10px] text-slate-300 opacity-0 group-hover/harga:opacity-100 transition-opacity self-center"></i>
                                 @else
-                                    <span class="text-xs font-bold text-amber-600"><i class="fas fa-exclamation-triangle mr-1"></i>Belum ada harga</span>
+                                    <span class="text-xs font-medium text-amber-600"><i class="fas fa-exclamation-triangle mr-1"></i>Belum ada harga</span>
                                 @endif
                             </button>
                         </td>
@@ -167,21 +167,21 @@
                         @endphp
                         <td class="px-6 py-5 text-center">
                             @if($bt)
-                                <span class="text-[13px] font-bold tabular-nums text-slate-700">Rp {{ number_format($bt->harga, 0, ',', '.') }}</span>
-                                <span class="block text-[10px] font-semibold text-slate-400 mt-0.5" title="Faktur {{ $bt->no_faktur }}">{{ \Carbon\Carbon::parse($bt->tgl_transaksi)->format('d M Y') }}</span>
+                                <span class="text-[13px] font-medium tabular-nums text-slate-700">Rp {{ number_format($bt->harga, 0, ',', '.') }}</span>
+                                <span class="block text-[10px] font-medium text-slate-400 mt-0.5" title="Faktur {{ $bt->no_faktur }}">{{ \Carbon\Carbon::parse($bt->tgl_transaksi)->format('d M Y') }}</span>
                             @else
-                                <span class="text-[11px] font-semibold text-slate-300 italic" title="Belum ada faktur pembelian untuk bahan ini">Belum pernah dibeli</span>
+                                <span class="text-[11px] font-medium text-slate-300 italic" title="Belum ada faktur pembelian untuk bahan ini">Belum pernah dibeli</span>
                             @endif
                         </td>
                         <td class="px-6 py-5 text-center">
                             @if($selisihPersen === null)
                                 <span class="text-slate-300">-</span>
                             @elseif(abs($selisihRp) < 0.5)
-                                <span class="text-[11px] font-bold text-slate-400" title="Harga beli terakhir sama dengan harga rata-rata">Sama</span>
+                                <span class="text-[11px] font-medium text-slate-400" title="Harga beli terakhir sama dengan harga rata-rata">Sama</span>
                             @else
                                 <span class="inline-flex flex-col items-center px-2.5 py-1 rounded-lg {{ $selisihRp > 0 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600' }}" title="Harga beli terakhir {{ $selisihRp > 0 ? 'lebih mahal' : 'lebih murah' }} Rp {{ number_format(abs($selisihRp), 0, ',', '.') }} dari harga rata-rata">
-                                    <span class="text-[12px] font-bold tabular-nums">{{ $selisihRp > 0 ? '▲' : '▼' }} {{ angka(abs($selisihPersen), 1) }}%</span>
-                                    <span class="text-[10px] font-semibold tabular-nums">{{ $selisihRp > 0 ? '+' : '-' }}Rp {{ number_format(abs($selisihRp), 0, ',', '.') }}</span>
+                                    <span class="text-[12px] font-medium tabular-nums">{{ $selisihRp > 0 ? '▲' : '▼' }} {{ angka(abs($selisihPersen), 1) }}%</span>
+                                    <span class="text-[10px] font-medium tabular-nums">{{ $selisihRp > 0 ? '+' : '-' }}Rp {{ number_format(abs($selisihRp), 0, ',', '.') }}</span>
                                 </span>
                             @endif
                         </td>
@@ -212,7 +212,7 @@
         {{-- BULK ACTIONS FOOTER --}}
         <div id="bulk-footer" class="px-8 py-5 border-t border-slate-50 flex justify-start opacity-0 pointer-events-none transition-all duration-300 translate-y-2">
             <button type="button" id="btn-bulk-delete"
-                    class="px-6 py-3 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm">
+                    class="px-6 py-3 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl text-[11px] font-medium uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm">
                 <i class="fas fa-trash-alt"></i> Hapus Terpilih (<span id="count-checked">0</span>)
             </button>
         </div>
@@ -282,7 +282,7 @@
         </div>
 
         <div id="wrapper_dimensi_roll" class="p-4 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-3">
-            <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">
+            <p class="text-[10px] font-medium text-indigo-500 uppercase tracking-widest">
                 <i class="fas fa-ruler-combined mr-1"></i> Dimensi Roll (Opsional - bahan roll m²)
             </p>
             <div class="grid grid-cols-2 gap-4">
@@ -304,7 +304,7 @@
                 <x-form.input type="number" step="0.001" name="stok" id="input_stok" required value="0" class="disabled:opacity-60 disabled:cursor-not-allowed" />
                 <p id="stok_locked_hint" class="hidden mt-1.5 ml-2 text-xs text-slate-400">
                     <i class="fas fa-lock mr-0.5"></i> Ubah lewat
-                    <a href="{{ route('kartu-stok.index') }}" class="text-indigo-500 font-bold hover:underline" target="_blank">Kartu Stok &rarr; Penyesuaian</a>
+                    <a href="{{ route('kartu-stok.index') }}" class="text-indigo-500 font-medium hover:underline" target="_blank">Kartu Stok &rarr; Penyesuaian</a>
                 </p>
             </x-form.group>
             <x-form.group label="Stok Minimal" required>
@@ -317,7 +317,7 @@
             </div>
         </div>
 
-        <label id="blok_jurnal" class="flex items-center gap-2 ml-2 text-xs font-semibold text-slate-500"
+        <label id="blok_jurnal" class="flex items-center gap-2 ml-2 text-xs font-medium text-slate-500"
                title="Hilangkan centang bila saldo awal akuntansi akan diisi sekaligus lewat akuntansi:saldo-awal, supaya tidak tercatat dua kali.">
             <input type="hidden" name="catat_jurnal" value="0">
             <input type="checkbox" name="catat_jurnal" value="1" checked class="rounded border-slate-300 text-indigo-600">
@@ -325,7 +325,7 @@
         </label>
 
         <div class="pt-4 flex gap-3">
-            <x-button type="button" variant="secondary" onclick="closeModalBahan()" class="flex-1">Batalkan</x-button>
+            <x-button type="button" variant="secondary" onclick="closeModal('bahan')" class="flex-1">Batalkan</x-button>
             <x-button type="submit" class="flex-1">Simpan Data</x-button>
         </div>
     </form>
@@ -393,10 +393,6 @@
         document.getElementById('input_panjang_roll').value = data.panjang_roll || '';
 
         openModal('bahan');
-    }
-
-    function closeModalBahan() {
-        closeModal('bahan');
     }
 
     // Lebar x Panjang roll (meter) = total m2 per roll = Nilai Konversi

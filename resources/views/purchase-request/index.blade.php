@@ -3,7 +3,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Purchase Request">
+    <x-page-header title="Permintaan Pembelian">
         <x-slot:subtitle>
             <i class="fas fa-clipboard-list text-amber-400"></i>
             Permintaan pembelian bahan - disetujui dulu lewat Approval Workflow, baru dijadikan Purchase Order
@@ -18,7 +18,7 @@
     <x-card class="mb-8">
         <form method="GET" class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-64">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
                 <x-form.select name="status" onchange="this.form.submit()">
                     <option value="">Semua Status</option>
                     @foreach(['Draft', 'Diajukan', 'Disetujui', 'Ditolak', 'Diproses PO'] as $s)
@@ -43,11 +43,11 @@
             @forelse($daftar as $p)
             <tr class="hover:bg-slate-50/30 transition-all">
                 <td class="px-8 py-5">
-                    <span class="text-[13px] font-bold text-slate-700">{{ $p->nomor }}</span>
+                    <span class="text-[13px] font-medium text-slate-700">{{ $p->nomor }}</span>
                     @if($p->catatan)<div class="text-[11px] text-slate-400">{{ $p->catatan }}</div>@endif
                 </td>
                 <td class="px-6 py-5"><span class="text-xs text-slate-500">{{ $p->tanggal->format('d M Y') }}</span></td>
-                <td class="px-6 py-5"><span class="text-sm font-semibold text-slate-600">{{ $p->pembuat?->username ?? '-' }}</span></td>
+                <td class="px-6 py-5"><span class="text-sm font-medium text-slate-600">{{ $p->pembuat?->username ?? '-' }}</span></td>
                 <td class="px-6 py-5 text-center">
                     @php $variantMap = ['Draft' => 'info', 'Diajukan' => 'warning', 'Disetujui' => 'success', 'Ditolak' => 'danger', 'Diproses PO' => 'success']; @endphp
                     <x-badge :status="$p->status" :variant="$variantMap[$p->status] ?? 'info'" />
@@ -66,7 +66,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="5"><x-empty-state title="Belum ada Purchase Request" /></td></tr>
+            <tr><td colspan="5"><x-empty-state title="Belum ada Permintaan Pembelian" /></td></tr>
             @endforelse
         </tbody>
     </x-table>

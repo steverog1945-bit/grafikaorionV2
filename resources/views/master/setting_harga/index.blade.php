@@ -4,7 +4,7 @@
 @include('partials.rupiah-format-script')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Price List & Level" subtitle="Harga jual produk per golongan konsumen, bisa bertingkat berdasarkan qty.">
+    <x-page-header title="Daftar Harga & Tingkat" subtitle="Harga jual produk per golongan konsumen, bisa bertingkat berdasarkan qty.">
         <x-slot:actions>
             <x-button href="{{ route('harga-promo.index') }}" variant="secondary">
                 <i class="fas fa-fire"></i>
@@ -17,12 +17,12 @@
     <x-card class="mb-6">
         <form action="{{ route('setting-harga.index') }}" method="GET" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[220px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Produk</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Produk</label>
                 <x-form.input type="text" name="search" value="{{ request('search') }}" placeholder="Nama produk..." />
             </div>
 
             <div class="w-full md:w-52">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin/Divisi</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin/Divisi</label>
                 <x-form.select name="category">
                     <option value="">Semua Mesin</option>
                     @foreach($categories as $cat)
@@ -69,12 +69,12 @@
             <tr class="group hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-3.5 text-center text-[11px] text-slate-400">{{ $produk->firstItem() + $i }}</td>
                 <td class="px-6 py-3.5">
-                    <div class="text-[14px] font-bold text-slate-700 uppercase">{{ $p->nama_produk }}</div>
+                    <div class="text-[14px] font-medium text-slate-700 uppercase">{{ $p->nama_produk }}</div>
                     <div class="flex items-center gap-2 mt-0.5">
-                        <span class="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-bold uppercase border border-indigo-100">
+                        <span class="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-medium uppercase border border-indigo-100">
                             <i class="fas fa-print mr-1"></i>{{ $p->nama_mesin ?? 'Tanpa Mesin' }}
                         </span>
-                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{{ $p->metode_hitung }} &middot; {{ $satuanRentangRow }}</span>
+                        <span class="text-[9px] text-slate-400 font-medium uppercase tracking-widest">{{ $p->metode_hitung }} &middot; {{ $satuanRentangRow }}</span>
                     </div>
                 </td>
 
@@ -86,12 +86,12 @@
                             <span class="text-slate-300 italic text-[10px]">Belum Diatur</span>
                         @elseif($tiersGol->count() === 1)
                             @php $satu = $tiersGol->first(); @endphp
-                            <span class="text-slate-700 font-semibold">Rp{{ number_format($satu->harga_jual, 0, ',', '.') }}</span>
+                            <span class="text-slate-700 font-medium">Rp{{ number_format($satu->harga_jual, 0, ',', '.') }}</span>
                             @if($satu->range_min > 0.01 || $satu->range_max)
                                 <div class="text-[9px] text-slate-400">{{ $fmtRentang($satu->range_min) }}-{{ $satu->range_max !== null ? $fmtRentang($satu->range_max) : '∞' }} {{ $satuanRentangRow }}</div>
                             @endif
                         @else
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">{{ $tiersGol->count() }} TIER</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100">{{ $tiersGol->count() }} TIER</span>
                             <div class="text-[9px] text-slate-400 mt-0.5">Rp{{ number_format($tiersGol->min('harga_jual'), 0, ',', '.') }} - Rp{{ number_format($tiersGol->max('harga_jual'), 0, ',', '.') }}</div>
                         @endif
                     </span>
@@ -141,7 +141,9 @@
          resolusi kecil (itu yang bikin modal jadi tinggi & butuh banyak
          scroll - melebarkan ke samping mengurangi kebutuhan memanjang ke
          bawah). Sama dengan lebar modal Produk & BOM untuk konsistensi. --}}
-    <x-modal id="harga-produk-{{ $p->id_produk }}" title="Kelola Harga: {{ $p->nama_produk }}" maxWidth="6xl">
+    <x-modal id="harga-produk-{{ $p->id_produk }}" title="Kelola Harga: {{ $p->nama_produk }}"
+         subtitle="Harga dasar dan harga bertingkat yang dipakai saat membuat nota"
+         icon="fa-tags" maxWidth="6xl">
         <p class="text-xs text-slate-400 mb-5 -mt-2">
             Rentang dalam <b class="text-slate-500">{{ $satuanRentang }}</b>{{ $p->metode_hitung === 'ukuran' ? ' (luas = panjang × lebar, boleh pecahan - mis. 0,09 m²)' : '' }}. Kosongkan <b class="text-slate-500">Max</b> untuk rentang tak terbatas. Harga dipilih otomatis di Input Order sesuai golongan &amp; {{ $satuanRentang }} order.
         </p>
@@ -153,7 +155,7 @@
                 @php $jumlahTierGol = $hargaProdukModal->where('id_golongan', $g->id_golongan)->count(); @endphp
                 <button type="button" onclick="switchHargaTab({{ $p->id_produk }}, {{ $g->id_golongan }})"
                     id="harga-tab-btn-{{ $p->id_produk }}-{{ $g->id_golongan }}"
-                    class="flex-1 min-w-[110px] py-3 px-2 text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap {{ $i === 0 ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500' : 'text-slate-400 border-b-2 border-transparent hover:text-slate-600' }}">
+                    class="flex-1 min-w-[110px] py-3 px-2 text-[11px] font-medium uppercase tracking-widest transition-all whitespace-nowrap {{ $i === 0 ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500' : 'text-slate-400 border-b-2 border-transparent hover:text-slate-600' }}">
                     {{ $g->nama_golongan }}
                     <span class="ml-1 text-[9px] {{ $jumlahTierGol > 0 ? 'text-indigo-400' : 'text-slate-300' }}">({{ $jumlahTierGol }})</span>
                 </button>
@@ -169,7 +171,7 @@
                      tiap tab. Aksi ini MENGGANTI TOTAL tier golongan lain
                      (bukan digabung) - selalu dikonfirmasi dulu. --}}
                 <div class="flex justify-end mb-3">
-                    <button type="button" onclick="confirmCopyHargaGolongan({{ $p->id_produk }}, {{ $g->id_golongan }}, '{{ $g->nama_golongan }}')" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5">
+                    <button type="button" onclick="confirmCopyHargaGolongan({{ $p->id_produk }}, {{ $g->id_golongan }}, '{{ $g->nama_golongan }}')" class="text-[11px] font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5">
                         <i class="fas fa-clone text-[10px]"></i> Copy Harga {{ $g->nama_golongan }} ke Semua Golongan Lain
                     </button>
                 </div>
@@ -183,16 +185,16 @@
                     @csrf
                     <input type="hidden" name="id_golongan" value="{{ $g->id_golongan }}">
                     <div>
-                        <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Min ({{ $satuanRentang }})</label>
-                        <input type="number" name="range_min" placeholder="Min" value="{{ $defaultMin }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm">
+                        <label class="block text-[9px] font-medium text-emerald-700 uppercase mb-1.5">Min ({{ $satuanRentang }})</label>
+                        <input type="number" name="range_min" placeholder="Min" value="{{ $defaultMin }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-medium shadow-sm">
                     </div>
                     <div>
-                        <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Max ({{ $satuanRentang }})</label>
-                        <input type="number" name="range_max" placeholder="~ (tak terbatas)" min="{{ $stepRentang }}" step="{{ $stepRentang }}" class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm">
+                        <label class="block text-[9px] font-medium text-emerald-700 uppercase mb-1.5">Max ({{ $satuanRentang }})</label>
+                        <input type="number" name="range_max" placeholder="~ (tak terbatas)" min="{{ $stepRentang }}" step="{{ $stepRentang }}" class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-medium shadow-sm">
                     </div>
                     <div>
-                        <label class="block text-[9px] font-black text-emerald-700 uppercase mb-1.5">Harga (Rp)</label>
-                        <input type="text" inputmode="numeric" name="harga_jual" placeholder="0" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-bold shadow-sm format-ribuan">
+                        <label class="block text-[9px] font-medium text-emerald-700 uppercase mb-1.5">Harga (Rp)</label>
+                        <input type="text" inputmode="numeric" name="harga_jual" placeholder="0" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-medium shadow-sm format-ribuan">
                     </div>
                     <div class="flex items-end">
                         <x-button type="submit" variant="success" class="w-full !py-2.5">
@@ -245,11 +247,11 @@
                                     <form id="tier-edit-form-{{ $t->id_harga }}" action="{{ route('setting-harga.tier.update', $t->id_harga) }}" class="tier-edit-form-produk grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
                                         @csrf
                                         <input type="hidden" name="_versi" value="{{ \App\Support\VersiBaris::token($t) }}">
-                                        <input type="number" name="range_min" value="{{ $fmtNilai($t->range_min) }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
-                                        <input type="number" name="range_max" value="{{ $t->range_max !== null ? $fmtNilai($t->range_max) : '' }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
+                                        <input type="number" name="range_min" value="{{ $fmtNilai($t->range_min) }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-medium">
+                                        <input type="number" name="range_max" value="{{ $t->range_max !== null ? $fmtNilai($t->range_max) : '' }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-medium">
                                         <div class="relative">
-                                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
-                                            <input type="text" inputmode="numeric" name="harga_jual" value="{{ number_format((int) $t->harga_jual, 0, '', '.') }}" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
+                                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium pointer-events-none">Rp</span>
+                                            <input type="text" inputmode="numeric" name="harga_jual" value="{{ number_format((int) $t->harga_jual, 0, '', '.') }}" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-medium format-ribuan">
                                         </div>
                                     </form>
                                     <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
@@ -353,11 +355,11 @@
                         <form id="${formId}" action="{{ url('/setting-harga-tier') }}/${t.id_harga}" class="tier-edit-form-produk grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
                             <input type="hidden" name="_token" value="${csrfTokenHarga}">
                             <input type="hidden" name="_versi" value="${t.updated_at || ''}">
-                            <input type="number" name="range_min" value="${t.range_min}" min="${stepRentang}" step="${stepRentang}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
-                            <input type="number" name="range_max" value="${t.range_max ?? ''}" min="${stepRentang}" step="${stepRentang}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-bold">
+                            <input type="number" name="range_min" value="${t.range_min}" min="${stepRentang}" step="${stepRentang}" required class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-medium">
+                            <input type="number" name="range_max" value="${t.range_max ?? ''}" min="${stepRentang}" step="${stepRentang}" placeholder="~" class="text-sm text-center bg-slate-50 border-none rounded-lg py-2 font-medium">
                             <div class="relative">
-                                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold pointer-events-none">Rp</span>
-                                <input type="text" inputmode="numeric" name="harga_jual" value="${formatRupiah(parseInt(t.harga_jual))}" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
+                                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium pointer-events-none">Rp</span>
+                                <input type="text" inputmode="numeric" name="harga_jual" value="${formatRupiah(parseInt(t.harga_jual))}" required class="w-full pl-7 text-sm bg-slate-50 border-none rounded-lg py-2 font-medium format-ribuan">
                             </div>
                         </form>
                         <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
@@ -408,7 +410,7 @@
         if (rows.length === 1) {
             const min = rows[0].querySelector('[name="range_min"]').value;
             const max = rows[0].querySelector('[name="range_max"]').value;
-            let html = `<span class="text-slate-700 font-semibold">${fmt(hargaList[0])}</span>`;
+            let html = `<span class="text-slate-700 font-medium">${fmt(hargaList[0])}</span>`;
             if (parseFloat(min) > 0.01 || max) {
                 html += `<div class="text-[9px] text-slate-400">${min}-${max || '&infin;'} ${satuanRentang}</div>`;
             }
@@ -417,7 +419,7 @@
             const minHarga = Math.min(...hargaList);
             const maxHarga = Math.max(...hargaList);
             cell.innerHTML = `
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">${rows.length} TIER</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100">${rows.length} TIER</span>
                 <div class="text-[9px] text-slate-400 mt-0.5">${fmt(minHarga)} - ${fmt(maxHarga)}</div>`;
         }
     }

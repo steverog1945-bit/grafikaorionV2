@@ -6,7 +6,7 @@
 ])
 
 @php
-    $base = 'inline-flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
+    $base = 'inline-flex items-center justify-center gap-2 rounded-xl font-medium uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
 
     $variants = [
         'primary'   => 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100',

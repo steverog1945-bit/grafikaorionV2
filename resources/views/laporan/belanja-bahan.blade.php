@@ -31,15 +31,15 @@
     <x-card class="mb-6 no-print">
         <form method="GET" action="{{ route('laporan.belanja-bahan') }}" class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
                 <x-form.input type="date" name="tgl_dari" value="{{ $tglDari }}" />
             </div>
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
                 <x-form.input type="date" name="tgl_sampai" value="{{ $tglSampai }}" />
             </div>
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Bayar</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Bayar</label>
                 <x-form.select name="status_pembayaran">
                     <option value="">-- Semua --</option>
                     <option value="Lunas" {{ request('status_pembayaran') === 'Lunas' ? 'selected' : '' }}>Lunas</option>
@@ -47,7 +47,7 @@
                 </x-form.select>
             </div>
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Tipe Pembelian</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Tipe Pembelian</label>
                 <x-form.select name="tipe_pembelian">
                     <option value="">-- Semua --</option>
                     <option value="Cash" {{ request('tipe_pembelian') === 'Cash' ? 'selected' : '' }}>Cash</option>
@@ -62,7 +62,7 @@
             </x-button>
 
             @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'status_pembayaran', 'tipe_pembelian']))
-                <a href="{{ route('laporan.belanja-bahan') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                <a href="{{ route('laporan.belanja-bahan') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
             @endif
@@ -73,16 +73,16 @@
          polos khusus cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Faktur</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($jumlahFaktur, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Jumlah Faktur</p>
+            <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($jumlahFaktur, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Belanja Bahan</p>
-            <h3 class="text-2xl font-bold text-indigo-600 mt-1">Rp {{ number_format($totalBelanja, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Belanja Bahan</p>
+            <h3 class="text-2xl font-medium text-indigo-600 mt-1">Rp {{ number_format($totalBelanja, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sisa Hutang (belum Lunas)</p>
-            <h3 class="text-2xl font-bold text-rose-500 mt-1">Rp {{ number_format($totalHutang, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Sisa Hutang (belum Lunas)</p>
+            <h3 class="text-2xl font-medium text-rose-500 mt-1">Rp {{ number_format($totalHutang, 0, ',', '.') }}</h3>
         </div>
     </div>
     <div class="hidden print:block">
@@ -93,17 +93,17 @@
         ]" />
     </div>
 
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Faktur</div>
+    <div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Faktur</div>
 
     {{-- Versi cetak: satu tabel polos per faktur (bukan kartu rounded/
          shadow/badge berwarna), gaya visual sama dengan Laporan Order. --}}
     <div class="hidden print:block">
-        <p class="text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-2">Detail Faktur</p>
+        <p class="text-[10px] font-medium text-slate-700 uppercase tracking-wide mb-2">Detail Faktur</p>
         @forelse($data as $p)
         @php $itemPrint = $itemPerFaktur->get($p->id_pembelian, collect()); @endphp
         <div class="mb-6 border border-slate-200 overflow-hidden break-inside-avoid">
             <div class="px-3 py-2 bg-slate-50 border-b border-slate-200 text-[10.5px] text-slate-600 leading-relaxed">
-                <span class="font-bold text-slate-800">{{ $p->no_faktur }}</span>
+                <span class="font-medium text-slate-800">{{ $p->no_faktur }}</span>
                 &middot; Supplier: {{ $p->nama_supplier ?? '-' }}
                 &middot; Tipe: {{ $p->tipe_pembelian }}
                 &middot; Tanggal: {{ \Carbon\Carbon::parse($p->tgl_transaksi)->format('d/m/Y') }}
@@ -113,13 +113,13 @@
             <table class="w-full text-[11px] border-collapse">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200">
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left w-6">#</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Bahan</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Qty</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Harga</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Diskon</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Potongan</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Subtotal</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-left w-6">#</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-left">Bahan</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Qty</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Harga</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Diskon</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Potongan</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Subtotal</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -131,7 +131,7 @@
                         <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($d->harga, 0, ',', '.') }}</td>
                         <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($d->diskon, 0, ',', '.') }}</td>
                         <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($d->potongan, 0, ',', '.') }}</td>
-                        <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($d->subtotal, 0, ',', '.') }}</td>
+                        <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($d->subtotal, 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
@@ -142,7 +142,7 @@
             </table>
             <div class="px-3 py-2 bg-slate-50 border-t border-slate-200 flex justify-end">
                 <table class="text-[11px]">
-                    <tr><td class="pr-4 font-bold text-slate-700">Grand Total</td><td class="text-right font-bold text-slate-900">{{ number_format($p->grand_total, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 font-medium text-slate-700">Grand Total</td><td class="text-right font-medium text-slate-900">{{ number_format($p->grand_total, 0, ',', '.') }}</td></tr>
                 </table>
             </div>
         </div>
@@ -158,13 +158,13 @@
         <div class="px-6 py-4 bg-slate-50/80 border-b border-slate-100 flex flex-wrap items-start justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-[14px] font-bold text-slate-800 uppercase">{{ $p->no_faktur }}</span>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-500">
+                    <span class="text-[14px] font-medium text-slate-800 uppercase">{{ $p->no_faktur }}</span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-medium uppercase tracking-wider bg-slate-100 text-slate-500">
                         {{ $p->tipe_pembelian }}
                     </span>
                 </div>
                 <p class="text-[12px] text-slate-500 mt-1.5">
-                    <span class="font-bold text-slate-700">{{ $p->nama_supplier ?? '-' }}</span>
+                    <span class="font-medium text-slate-700">{{ $p->nama_supplier ?? '-' }}</span>
                     &middot; {{ \Carbon\Carbon::parse($p->tgl_transaksi)->format('d M Y') }}
                     @if($p->jatuh_tempo_tgl) &middot; Jatuh Tempo: {{ \Carbon\Carbon::parse($p->jatuh_tempo_tgl)->format('d M Y') }} @endif
                 </p>
@@ -196,12 +196,12 @@
                     @foreach($item as $i => $d)
                     <tr>
                         <td data-label="#" class="p-3 text-slate-400">{{ $i + 1 }}</td>
-                        <td data-label="Bahan" class="p-3 font-semibold text-slate-700">{{ $d->nama_bahan ?? '-' }}</td>
+                        <td data-label="Bahan" class="p-3 font-medium text-slate-700">{{ $d->nama_bahan ?? '-' }}</td>
                         <td data-label="Qty" class="p-3 text-right text-slate-500">{{ number_format($d->qty, 0, ',', '.') }} {{ $d->satuan_stok }}</td>
                         <td data-label="Harga" class="p-3 text-right text-slate-500">{{ number_format($d->harga, 0, ',', '.') }}</td>
                         <td data-label="Diskon" class="p-3 text-right text-slate-500">{{ number_format($d->diskon, 0, ',', '.') }}</td>
                         <td data-label="Potongan" class="p-3 text-right text-slate-500">{{ number_format($d->potongan, 0, ',', '.') }}</td>
-                        <td data-label="Subtotal" class="p-3 text-right font-bold text-slate-800">{{ number_format($d->subtotal, 0, ',', '.') }}</td>
+                        <td data-label="Subtotal" class="p-3 text-right font-medium text-slate-800">{{ number_format($d->subtotal, 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -212,7 +212,7 @@
         @endif
 
         <div class="px-6 py-4 bg-slate-50/60 border-t border-slate-100 flex justify-end">
-            <p class="text-[13px] font-black flex justify-between gap-6"><span>Grand Total</span> <span class="text-indigo-600">Rp {{ number_format($p->grand_total, 0, ',', '.') }}</span></p>
+            <p class="text-[13px] font-medium flex justify-between gap-6"><span>Grand Total</span> <span class="text-indigo-600">Rp {{ number_format($p->grand_total, 0, ',', '.') }}</span></p>
         </div>
     </div>
     @empty

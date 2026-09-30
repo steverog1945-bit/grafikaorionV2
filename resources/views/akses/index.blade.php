@@ -9,14 +9,14 @@
     <div class="flex flex-wrap gap-2 mb-6">
         @foreach($roles as $r)
         <a href="{{ route('akses.index', ['role' => $r->id_role]) }}"
-           class="px-4 py-2 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all {{ $r->id_role === $role->id_role ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400' }}">
+           class="px-4 py-2 rounded-xl text-[12px] font-medium uppercase tracking-widest transition-all {{ $r->id_role === $role->id_role ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400' }}">
             {{ $r->nama_role }}
         </a>
         @endforeach
     </div>
 
     @if($role->nama_role === 'Administrator')
-        <div class="p-5 rounded-2xl bg-emerald-50 text-emerald-700 text-sm font-semibold">Administrator selalu memiliki semua akses pada semua modul dan tidak bisa dibatasi.</div>
+        <div class="p-5 rounded-2xl bg-emerald-50 text-emerald-700 text-sm font-medium">Administrator selalu memiliki semua akses pada semua modul dan tidak bisa dibatasi.</div>
     @else
     <form action="{{ route('akses.update') }}" method="POST">
         @csrf
@@ -26,7 +26,7 @@
         <div class="mb-5 p-5 rounded-2xl bg-amber-50/70 border border-amber-100 flex items-start gap-4">
             <input type="checkbox" name="boleh_lihat_harga" value="1" id="cek-harga" {{ $role->boleh_lihat_harga ? 'checked' : '' }} class="mt-1 w-6 h-6 rounded-lg border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer">
             <label for="cek-harga" class="cursor-pointer">
-                <div class="font-bold text-slate-800">Boleh melihat &amp; mengubah harga</div>
+                <div class="font-medium text-slate-800">Boleh melihat &amp; mengubah harga</div>
                 <div class="text-[11px] text-slate-500 font-medium">Kosongkan untuk role yang hanya input nota &amp; produksi: harga hanya tampil (tidak bisa diubah) di Input Nota; halaman/kolom harga lain (Finishing, Quotation, detail nota, jersey, waste &amp; QC) ditutup.</div>
             </label>
         </div>

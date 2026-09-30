@@ -3,7 +3,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Order Jersey" subtitle="Transaksi order jersey - terpisah dari alur Kasir percetakan.">
+    <x-page-header title="Pesanan Jersey" subtitle="Transaksi order jersey - terpisah dari alur Kasir percetakan.">
         <x-slot:actions>
             <x-button href="{{ route('jersey.master.index') }}" variant="secondary">
                 <i class="fas fa-sliders-h"></i> Master Data
@@ -15,7 +15,7 @@
     </x-page-header>
 
     @if (session('success'))
-        <div class="bg-emerald-50 text-emerald-600 p-4 rounded-2xl mb-6 font-semibold">{{ session('success') }}</div>
+        <div class="bg-emerald-50 text-emerald-600 p-4 rounded-2xl mb-6 font-medium">{{ session('success') }}</div>
     @endif
 
     <x-card class="mb-6">
@@ -51,9 +51,9 @@
             @forelse($orders as $i => $o)
             <tr class="hover:bg-slate-50/50">
                 <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $orders->firstItem() + $i }}</td>
-                <td class="px-4 py-3 font-bold text-slate-700">{{ $o->order_number }}</td>
+                <td class="px-4 py-3 font-medium text-slate-700">{{ $o->order_number }}</td>
                 <td class="px-4 py-3">
-                    <p class="font-semibold text-slate-700">{{ $o->konsumen->nama_konsumen ?? $o->customer_name }}</p>
+                    <p class="font-medium text-slate-700">{{ $o->konsumen->nama_konsumen ?? $o->customer_name }}</p>
                     @if($o->team_name)<p class="text-[11px] text-slate-400">{{ $o->team_name }}</p>@endif
                 </td>
                 <td class="px-4 py-3 text-xs text-slate-500">
@@ -63,7 +63,7 @@
                 <td class="px-4 py-3 text-center text-xs">{{ $o->deadline ? \Carbon\Carbon::parse($o->deadline)->format('d/m/Y') : '-' }}</td>
                 <td class="px-4 py-3 text-center"><x-badge :status="$o->status" /></td>
                 <td class="px-4 py-3 text-center"><x-badge :status="$o->status_pembayaran" /></td>
-                @bolehHarga<td class="px-4 py-3 text-right font-bold">Rp {{ number_format($o->total, 0, ',', '.') }}</td>@endbolehHarga
+                @bolehHarga<td class="px-4 py-3 text-right font-medium">Rp {{ number_format($o->total, 0, ',', '.') }}</td>@endbolehHarga
                 <td class="px-4 py-3 text-center">
                     <x-button href="{{ route('jersey.orders.show', $o->id) }}" size="icon" variant="ghost" class="hover:text-slate-700" title="Detail">
                         <i class="fas fa-eye text-xs"></i>

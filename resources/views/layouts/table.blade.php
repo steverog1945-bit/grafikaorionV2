@@ -1,6 +1,8 @@
 @props([
-    'wrapperClass' => 'bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden',
-    'bare'         => false, // true = skip wrapper card, dipakai saat tabel sudah ada di dalam card/panel lain
+    // Wrapper luar polos, permukaan visual dibawa .modern-table-wrapper
+    // (lihat catatan senada di components/table.blade.php).
+    'wrapperClass' => 'overflow-hidden',
+    'bare'         => false,
 ])
 
 @if($bare)

@@ -24,6 +24,6 @@
     $resolved = $variant ?? $map[strtolower(trim((string) $status))] ?? 'info';
 @endphp
 
-<span {{ $attributes->merge(['class' => 'chip chip-' . $resolved]) }}>
+<span {{ $attributes->merge(['class' => 'chip chip-' . $resolved . ' rounded-sm']) }}>
     {{ $slot->isEmpty() ? $status : $slot }}
 </span>

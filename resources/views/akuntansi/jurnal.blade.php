@@ -29,14 +29,14 @@
     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 mb-6 no-print">
         <form method="GET" class="flex flex-wrap items-end gap-4">
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Dari Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Dari Tanggal</label>
                 <input type="date" name="awal" value="{{ $awal }}" class="bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Sampai Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Sampai Tanggal</label>
                 <input type="date" name="akhir" value="{{ $akhir }}" class="bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
             </div>
-            <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700">
+            <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[11px] font-medium uppercase tracking-widest hover:bg-indigo-700">
                 <i class="fas fa-filter mr-1"></i> Tampilkan
             </button>
         </form>
@@ -63,13 +63,13 @@
                     <td class="px-6 py-3 text-xs text-slate-500">{{ $r->no_referensi }}</td>
                     <td class="px-6 py-3 text-sm text-slate-700">{{ $r->keterangan }}</td>
                     <td class="px-6 py-3 text-xs">
-                        <span class="inline-flex items-center px-2 py-1 rounded-lg bg-slate-50 text-slate-600 font-bold">{{ $r->kode_akun }}</span>
+                        <span class="inline-flex items-center px-2 py-1 rounded-lg bg-slate-50 text-slate-600 font-medium">{{ $r->kode_akun }}</span>
                         <div class="text-[10px] text-slate-400 mt-1">{{ $r->nama_akun }}</div>
                     </td>
-                    <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                    <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
                         {{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}
                     </td>
-                    <td class="px-8 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                    <td class="px-8 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
                         {{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}
                     </td>
                 </tr>
@@ -82,13 +82,13 @@
             @if($rows->isNotEmpty())
             <tfoot>
                 <tr class="bg-slate-50/70 border-t-2 border-slate-100">
-                    <td colspan="5" class="px-8 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
-                    <td class="px-6 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
-                    <td class="px-8 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
+                    <td colspan="5" class="px-8 py-4 text-right text-[11px] font-medium text-slate-500 uppercase tracking-widest">Total</td>
+                    <td class="px-6 py-4 text-right text-sm font-medium text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
+                    <td class="px-8 py-4 text-right text-sm font-medium text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
                 </tr>
                 @if(abs($totalDebet - $totalKredit) < 0.01)
                 <tr>
-                    <td colspan="7" class="px-8 py-3 text-center text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50/50">
+                    <td colspan="7" class="px-8 py-3 text-center text-[10px] font-medium text-emerald-600 uppercase tracking-widest bg-emerald-50/50">
                         <i class="fas fa-check-circle"></i> Balance - Total Debet = Total Kredit
                     </td>
                 </tr>
@@ -121,13 +121,13 @@
             @endforelse
             @if($rows->isNotEmpty())
             <tr class="bg-slate-50 border-t border-slate-200">
-                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="5">Total</td>
-                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
-                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700 uppercase" colspan="5">Total</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
             </tr>
             @if(abs($totalDebet - $totalKredit) < 0.01)
             <tr>
-                <td class="px-3 py-1.5 text-center font-bold text-slate-700" colspan="7">Balance - Total Debet = Total Kredit</td>
+                <td class="px-3 py-1.5 text-center font-medium text-slate-700" colspan="7">Balance - Total Debet = Total Kredit</td>
             </tr>
             @endif
             @endif

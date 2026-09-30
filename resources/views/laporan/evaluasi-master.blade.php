@@ -42,7 +42,7 @@
                 Cetak bahan baku, BOM, dan seluruh tier harga produk untuk evaluasi harian atau bulanan
             </x-slot:subtitle>
             <x-slot:actions>
-                <a href="{{ request()->fullUrlWithQuery(['format' => 'csv']) }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                <a href="{{ request()->fullUrlWithQuery(['format' => 'csv']) }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-medium uppercase tracking-wider">
                     <i class="fas fa-file-csv"></i> Unduh CSV
                 </a>
                 <x-button type="button" onclick="window.print()"><i class="fas fa-print"></i> Cetak</x-button>
@@ -83,7 +83,7 @@
                         <option value="semua" @selected($status === 'semua')>Semua</option>
                     </x-form.select>
                 </x-form.group>
-                <label class="flex items-center gap-2 text-xs font-semibold text-slate-500 pb-3">
+                <label class="flex items-center gap-2 text-xs font-medium text-slate-500 pb-3">
                     <input type="hidden" name="cek_fisik" value="0">
                     <input type="checkbox" name="cek_fisik" value="1" @checked($cekFisik) onchange="this.form.requestSubmit()" class="rounded border-slate-300 text-indigo-600">
                     Kolom cek fisik
@@ -100,7 +100,7 @@
     {{-- ===================== BAHAN BAKU ===================== --}}
     @if(in_array($jenis, ['semua', 'bahan'], true))
     <section class="eval-section mb-10">
-        <h2 class="text-[13px] font-black text-slate-500 uppercase tracking-widest mb-3"><i class="fas fa-boxes-stacked mr-1.5 text-indigo-400 print:hidden"></i>A. Bahan Baku</h2>
+        <h2 class="text-[13px] font-medium text-slate-500 uppercase tracking-widest mb-3"><i class="fas fa-boxes-stacked mr-1.5 text-indigo-400 print:hidden"></i>A. Bahan Baku</h2>
         <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden print:border-0 print:rounded-none">
             <table class="eval-table">
                 <thead>
@@ -151,19 +151,19 @@
     {{-- ===================== BOM ===================== --}}
     @if(in_array($jenis, ['semua', 'bom'], true))
     <section class="eval-section mb-10 {{ $jenis === 'semua' ? 'page-break' : '' }}">
-        <h2 class="text-[13px] font-black text-slate-500 uppercase tracking-widest mb-1"><i class="fas fa-sitemap mr-1.5 text-indigo-400 print:hidden"></i>B. BOM per Produk</h2>
+        <h2 class="text-[13px] font-medium text-slate-500 uppercase tracking-widest mb-1"><i class="fas fa-sitemap mr-1.5 text-indigo-400 print:hidden"></i>B. BOM per Produk</h2>
         <p class="text-[11px] text-slate-400 mb-3">Pemakaian dan biaya bahan untuk 1 satuan jual (1 m² untuk produk ukuran, 1 pcs untuk produk qty), memakai harga rata-rata bahan saat ini.</p>
         <div class="grid grid-cols-1 xl:grid-cols-2 print:grid-cols-2 gap-4">
             @forelse($bom as $p)
             <div class="eval-block bg-white rounded-2xl border border-slate-100 overflow-hidden print:rounded-none print:border-slate-300">
                 <div class="px-4 py-3 bg-slate-50 flex items-center justify-between gap-3">
                     <div>
-                        <div class="text-[13px] font-bold text-slate-800">{{ $p->nama_produk }}</div>
+                        <div class="text-[13px] font-medium text-slate-800">{{ $p->nama_produk }}</div>
                         <div class="text-[11px] text-slate-400">{{ $p->nama_mesin ?? '-' }} &middot; per {{ $p->satuan_jual }}</div>
                     </div>
                     <div class="text-right">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">HPP bahan</div>
-                        <div class="text-[14px] font-bold text-slate-800">Rp {{ $rp($p->hpp) }}</div>
+                        <div class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">HPP bahan</div>
+                        <div class="text-[14px] font-medium text-slate-800">Rp {{ $rp($p->hpp) }}</div>
                     </div>
                 </div>
                 <table class="eval-table">
@@ -191,16 +191,16 @@
     {{-- ===================== HARGA PRODUK ===================== --}}
     @if(in_array($jenis, ['semua', 'harga'], true))
     <section class="eval-section mb-10 {{ $jenis === 'semua' ? 'page-break' : '' }}">
-        <h2 class="text-[13px] font-black text-slate-500 uppercase tracking-widest mb-1"><i class="fas fa-tags mr-1.5 text-indigo-400 print:hidden"></i>C. Harga Produk per Tier &amp; Golongan</h2>
+        <h2 class="text-[13px] font-medium text-slate-500 uppercase tracking-widest mb-1"><i class="fas fa-tags mr-1.5 text-indigo-400 print:hidden"></i>C. Harga Produk per Tier &amp; Golongan</h2>
         <p class="text-[11px] text-slate-400 mb-3">Harga jual per satuan jual, per golongan dengan rentang tiernya masing-masing. Persen di samping harga = margin terhadap HPP bahan (merah bila di bawah 20%, tidak tampil bila HPP belum lengkap).</p>
         <div class="space-y-4">
             @forelse($harga['produk'] as $p)
             <div class="eval-block bg-white rounded-2xl border border-slate-100 overflow-hidden print:rounded-none print:border-slate-300">
                 <div class="px-4 py-3 bg-slate-50 flex items-center justify-between gap-3">
                     <div>
-                        <span class="text-[13px] font-bold text-slate-800">{{ $p->nama_produk }}</span>
+                        <span class="text-[13px] font-medium text-slate-800">{{ $p->nama_produk }}</span>
                         <span class="text-[11px] text-slate-400 ml-2">{{ $p->nama_mesin ?? '-' }} &middot; per {{ $p->satuan_jual }}</span>
-                        @if($p->promo)<span class="ml-2 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Promo Rp {{ $rp($p->promo) }}</span>@endif
+                        @if($p->promo)<span class="ml-2 text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Promo Rp {{ $rp($p->promo) }}</span>@endif
                     </div>
                     <div class="text-[11px] text-slate-500">HPP bahan <b>Rp {{ $rp($p->hpp) }}</b>@if($p->ada_harga_kosong || $p->tanpa_bom) <span style="color:#d97706">(belum lengkap)</span>@endif</div>
                 </div>

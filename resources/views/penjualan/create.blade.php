@@ -7,8 +7,8 @@
     @if(!empty($quotationRef))
     <div class="mb-6 p-5 rounded-2xl bg-amber-50 border border-amber-200">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <div class="text-sm font-bold text-amber-800"><i class="fas fa-file-signature"></i> Order dari Penawaran {{ $quotationRef->nomor }} - {{ $quotationRef->nama_pelanggan }}</div>
-            <div class="text-sm font-extrabold text-amber-800">Total penawaran Rp {{ number_format($quotationRef->total, 0, ',', '.') }}{{ $quotationRef->diskon > 0 ? ' (sudah diskon Rp ' . number_format($quotationRef->diskon, 0, ',', '.') . ')' : '' }}</div>
+            <div class="text-sm font-medium text-amber-800"><i class="fas fa-file-signature"></i> Order dari Penawaran {{ $quotationRef->nomor }} - {{ $quotationRef->nama_pelanggan }}</div>
+            <div class="text-sm font-medium text-amber-800">Total penawaran Rp {{ number_format($quotationRef->total, 0, ',', '.') }}{{ $quotationRef->diskon > 0 ? ' (sudah diskon Rp ' . number_format($quotationRef->diskon, 0, ',', '.') . ')' : '' }}</div>
         </div>
         <ul class="text-xs text-amber-900 space-y-1">
             @foreach($quotationRef->items as $it)
@@ -34,8 +34,8 @@
             </x-button>
             <div class="bg-white shadow-sm border border-slate-100 rounded-2xl px-5 sm:px-8 py-3.5 flex items-center gap-4 sm:gap-6 max-w-full">
                 <div class="text-right min-w-0">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nomor Nota</p>
-                    <p id="no_nota_display" class="text-base sm:text-xl font-bold text-indigo-600 tracking-tight truncate">{{ $no_nota }}</p>
+                    <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Nomor Nota</p>
+                    <p id="no_nota_display" class="text-base sm:text-xl font-medium text-indigo-600 tracking-tight truncate">{{ $no_nota }}</p>
                 </div>
                 <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 hidden sm:flex items-center justify-center shrink-0"><i class="fas fa-file-invoice"></i></span>
             </div>
@@ -50,7 +50,7 @@
                 <div class="flex items-center gap-3 mb-6">
                     <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><i class="fas fa-user"></i></span>
                     <div>
-                        <h3 class="text-base font-bold text-slate-800">Data Pelanggan</h3>
+                        <h3 class="text-base font-medium text-slate-800">Data Pelanggan</h3>
                         <p class="text-[11px] text-slate-400">Siapa pemesan dan jenis ordernya</p>
                     </div>
                 </div>
@@ -66,8 +66,8 @@
                         <div class="@md:col-span-2">
                             <x-form.group>
                         <div class="flex items-center justify-between mb-2 ml-2 mr-1">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cari Pelanggan</label>
-                            <button type="button" onclick="openModal('konsumen-baru')" title="Daftarkan pelanggan baru" class="text-indigo-600 hover:text-indigo-700 font-bold text-[11px] flex items-center gap-1">
+                            <label class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Cari Pelanggan</label>
+                            <button type="button" onclick="openModal('konsumen-baru')" title="Daftarkan pelanggan baru" class="text-indigo-600 hover:text-indigo-700 font-medium text-[11px] flex items-center gap-1">
                                 <i class="fas fa-plus text-[9px]"></i> Baru
                             </button>
                         </div>
@@ -100,10 +100,10 @@
                     </x-form.group>
                         <x-form.group label="Tipe Order">
                         <div class="flex gap-2">
-                            <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-bold cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500 transition-all">
+                            <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-medium cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500 transition-all">
                                 <input type="radio" name="tipe_order" value="Reguler" checked onchange="onTipeOrderChange()" class="accent-indigo-600"> Reguler
                             </label>
-                            <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-bold cursor-pointer has-[:checked]:bg-amber-50 has-[:checked]:border-amber-300 has-[:checked]:text-amber-600 text-slate-500 transition-all">
+                            <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-medium cursor-pointer has-[:checked]:bg-amber-50 has-[:checked]:border-amber-300 has-[:checked]:text-amber-600 text-slate-500 transition-all">
                                 <input type="radio" name="tipe_order" value="PO" onchange="onTipeOrderChange()" class="accent-amber-600"> PO
                             </label>
                         </div>
@@ -123,7 +123,7 @@
                 <div class="flex items-center gap-3 mb-6">
                     <span class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fas fa-box-open"></i></span>
                     <div>
-                        <h3 class="text-base font-bold text-slate-800">Detail Pesanan</h3>
+                        <h3 class="text-base font-medium text-slate-800">Detail Pesanan</h3>
                         <p class="text-[11px] text-slate-400">Produk, ukuran, finishing, dan biaya item</p>
                     </div>
                 </div>
@@ -153,12 +153,12 @@
 
                 {{-- Jenis Pengerjaan: hanya tampil untuk produk yang punya Harga File Siap Cetak (menu Master > Harga File Siap Cetak) --}}
                 <div id="wrapper_siap_cetak" class="hidden mb-3.5">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Jenis Pengerjaan</label>
+                    <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Jenis Pengerjaan</label>
                     <div class="flex gap-2">
-                        <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-bold cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500 transition-all" title="Harga Price List biasa; boleh ditambah biaya desain">
+                        <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-medium cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500 transition-all" title="Harga Daftar Harga biasa; boleh ditambah biaya desain">
                             <input type="radio" name="jenis_pengerjaan" value="desain" checked onchange="setSiapCetak(false)" class="accent-indigo-600"> Dengan Desain
                         </label>
-                        <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-bold cursor-pointer has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-300 has-[:checked]:text-emerald-600 text-slate-500 transition-all" title="File sudah jadi dari pelanggan: memakai harga File Siap Cetak tersendiri, tanpa biaya desain &amp; komisi desainer">
+                        <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 px-3 text-xs font-medium cursor-pointer has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-300 has-[:checked]:text-emerald-600 text-slate-500 transition-all" title="File sudah jadi dari pelanggan: memakai harga File Siap Cetak tersendiri, tanpa biaya desain &amp; komisi desainer">
                             <input type="radio" name="jenis_pengerjaan" value="siap" onchange="setSiapCetak(true)" class="accent-emerald-600"> File Siap Cetak
                         </label>
                     </div>
@@ -170,24 +170,32 @@
                 </x-form.group>
                     <x-form.group label="Thumbnail Gambar" required>
                         <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 shadow-inner">
-                            <input type="file" id="input_thumbnail" accept="image/png,image/jpeg,image/webp" onchange="uploadThumbnail(this)" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-indigo-50 file:text-indigo-600">
-                            <img id="thumbnail_preview" class="hidden w-11 h-11 rounded-lg object-cover border border-slate-200">
+                            <input type="file" id="input_thumbnail" accept="image/png,image/jpeg,image/webp" onchange="uploadThumbnail(this)" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-medium file:uppercase file:bg-indigo-50 file:text-indigo-600">
+                            {{-- Tag ini sebelumnya TIDAK ditutup: penutup '>' hilang,
+                                 sehingga parser HTML menelani </div> berikutnya sebagai
+                                 bagian dari tag img. Akibatnya satu </div> hilang,
+                                 seluruh isi kartu produk (ukuran, finishing, biaya,
+                                 tombol) jadi ter-nest satu level terlalu dalam, dan
+                                 kolom kiri ikut menelan keranjang. width/height
+                                 ditulis supaya kotak 44x44 sudah ada sebelum gambar
+                                 dimuat - tanpa itu, gambar melompat saat muncul. --}}
+                            <img loading="lazy" decoding="async" width="44" height="44" alt="Pratinjau thumbnail desain" id="thumbnail_preview" class="hidden w-11 h-11 rounded-lg object-cover border border-slate-200">
                         </div>
                     </x-form.group>
                 </div>
 
                 <div id="wrapper_ukuran" class="hidden grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Panjang (cm)</label>
-                        <input type="number" id="input_p" onchange="hitungSubtotal()" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20">
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Panjang (cm)</label>
+                        <input type="number" id="input_p" onchange="hitungSubtotal()" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Lebar (cm)</label>
-                        <input type="number" id="input_l" onchange="hitungSubtotal()" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20">
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Lebar (cm)</label>
+                        <input type="number" id="input_l" onchange="hitungSubtotal()" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Qty</label>
-                        <input type="number" id="input_qty_ukuran" onchange="hitungSubtotal()" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20" value="1">
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Qty</label>
+                        <input type="number" id="input_qty_ukuran" onchange="hitungSubtotal()" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20" value="1">
                     </div>
                 </div>
                 <p id="note_ukuran" class="hidden text-xs font-medium text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5 mb-4 leading-relaxed">
@@ -196,8 +204,8 @@
                 </p>
 
                 <div id="wrapper_qty" class="hidden mb-4">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Jumlah Unit</label>
-                    <input type="number" id="input_qty_biasa" onchange="hitungSubtotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-xl font-bold text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20" value="1">
+                    <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Jumlah Unit</label>
+                    <input type="number" id="input_qty_biasa" onchange="hitungSubtotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-xl font-medium text-slate-700 text-center shadow-inner focus:ring-2 focus:ring-indigo-500/20" value="1">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3.5 mb-4">
@@ -219,7 +227,7 @@
                 <div id="stok_warning" hidden class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
                     <i class="fas fa-exclamation-triangle text-amber-500 mt-0.5"></i>
                     <div>
-                        <p class="text-xs font-bold text-amber-700 uppercase tracking-wide">Stok bahan tidak cukup</p>
+                        <p class="text-xs font-medium text-amber-700 uppercase tracking-wide">Stok bahan tidak cukup</p>
                         <p id="stok_warning_detail" class="text-xs text-amber-600 mt-1"></p>
                     </div>
                 </div>
@@ -228,7 +236,7 @@
                 <div id="min_order_warning" hidden class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
                     <i class="fas fa-ruler-combined text-amber-500 mt-0.5"></i>
                     <div>
-                        <p class="text-xs font-bold text-amber-700 uppercase tracking-wide">Di bawah minimum order produk ini</p>
+                        <p class="text-xs font-medium text-amber-700 uppercase tracking-wide">Di bawah minimum order produk ini</p>
                         <p id="min_order_warning_detail" class="text-xs text-amber-600 mt-1"></p>
                     </div>
                 </div>
@@ -236,21 +244,21 @@
                 {{-- ---------- ESTIMASI HARGA ---------- --}}
                 <div class="rounded-3xl bg-indigo-50 border border-indigo-100 px-6 py-5 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
-                        <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Harga Estimasi</p>
-                        <h2 id="display_subtotal" class="text-3xl font-bold text-indigo-600 tracking-tight mt-1">Rp 0</h2>
+                        <p class="text-[10px] font-medium text-indigo-400 uppercase tracking-widest">Harga Estimasi</p>
+                        <h2 id="display_subtotal" class="text-3xl font-medium text-indigo-600 tracking-tight mt-1">Rp 0</h2>
                     </div>
                     <div class="sm:text-right">
-                        <p id="display_harga" class="text-indigo-400 text-xs font-semibold">Rp 0 /unit</p>
-                        <p id="status_hitung" class="hidden text-amber-600 text-xs font-semibold mt-1"><i class="fas fa-circle-notch fa-spin mr-1"></i> Menghitung...</p>
-                        <span id="badge_promo" hidden class="inline-block mt-2 px-3 py-1 bg-rose-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-full">🔥 Harga Promo Aktif</span>
+                        <p id="display_harga" class="text-indigo-400 text-xs font-medium">Rp 0 /unit</p>
+                        <p id="status_hitung" class="hidden text-amber-600 text-xs font-medium mt-1"><i class="fas fa-circle-notch fa-spin mr-1"></i> Menghitung...</p>
+                        <span id="badge_promo" hidden class="inline-block mt-2 px-3 py-1 bg-rose-500 text-white text-[10px] font-medium uppercase tracking-widest rounded-full">🔥 Harga Promo Aktif</span>
                     </div>
                 </div>
 
                 {{-- ---------- FINISHING & BIAYA ---------- --}}
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Finishing &amp; Biaya</p>
+                <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3 ml-1">Finishing &amp; Biaya</p>
                 <div class="grid grid-cols-2 @xl:grid-cols-4 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Finishing</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Finishing</label>
                         <select id="select_finishing" onchange="onFinishingChange()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                             <option value="">-- Tanpa Finishing --</option>
                             @foreach($finishing as $f)
@@ -259,40 +267,40 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Spek Finishing</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Spek Finishing</label>
                         <select id="input_status_finishing" onchange="onStatusFinishingChange()" disabled class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner disabled:opacity-40 disabled:cursor-not-allowed">
                             <option value="Standar">Standar</option>
                             <option value="Custom">Custom</option>
                         </select>
                     </div>
                     <div class="col-span-2">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Catatan Finishing</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Catatan Finishing</label>
                         <input type="text" id="input_catatan_finishing" maxlength="255" placeholder="mis. Doff" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     </div>
                     {{-- Biaya Cetak = komponen UTAMA subtotal (Cetak + Desain + Finishing, lihat hitungSubtotal()). Mengikuti Harga x Qty
                          sampai operator mengetik manual (cetakManualEdit). --}}
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Biaya Cetak (Rp)</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Biaya Cetak (Rp)</label>
                         <input type="text" inputmode="numeric" id="input_cetak" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 text-right focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan" value="0">
                     </div>
                     {{-- Jumlah pcs finishing hanya untuk finishing metode 'quantity' (mis. Pasang Mata Ayam) - kasir wajib cek/sesuaikan. --}}
                     <div id="wrapper_qty_finishing" class="hidden">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Jumlah Pcs Finishing</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Jumlah Pcs Finishing</label>
                         <input type="number" min="1" id="input_qty_finishing" onchange="onQtyFinishingManualChange()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 text-right focus:ring-2 focus:ring-indigo-500/20 shadow-inner" value="1">
                     </div>
                     {{-- Biaya Finishing hanya muncul begitu jenis Finishing dipilih (lihat onFinishingChange()). --}}
                     <div id="wrapper_biaya_finishing" class="hidden">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Biaya Finishing (Rp)</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Biaya Finishing (Rp)</label>
                         <input type="text" inputmode="numeric" id="input_finishing_biaya" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 text-right focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan" value="0">
                     </div>
                     {{-- Biaya Desain disembunyikan default; muncul lewat tombol "+ Biaya Desain" (tampilkanBiayaDesain()). --}}
                     <div id="wrapper_biaya_desain" class="hidden">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Biaya Desain (Rp)</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Biaya Desain (Rp)</label>
                         <input type="text" inputmode="numeric" id="input_desain" @unlessbolehHarga readonly @endbolehHarga onchange="hitungSubtotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 text-right focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan" value="0">
                     </div>
                     {{-- Desainer yang menerapkan biaya desain (untuk monitoring & komisi/bagi hasil) --}}
                     <div id="wrapper_desainer" class="hidden" title="Operator desain yang mengerjakan desain ini - dipakai untuk laporan biaya &amp; komisi desain">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Desainer</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Desainer</label>
                         <select id="input_desainer" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                             <option value="">-- Tanpa Desainer --</option>
                             @foreach($desainerList as $ds)
@@ -304,14 +312,14 @@
 
                 <div class="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t border-slate-100">
                     <div class="flex flex-wrap items-center gap-4">
-                        <button type="button" id="btn_tambah_finishing" onclick="tambahFinishingKeDaftar()" class="hidden inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-sky-100 transition-all">
+                        <button type="button" id="btn_tambah_finishing" onclick="tambahFinishingKeDaftar()" class="hidden inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2.5 rounded-xl font-medium text-[10px] uppercase tracking-widest shadow-lg shadow-sky-100 transition-all">
                             <i class="fas fa-plus"></i> Tambah Finishing
                         </button>
-                        <button type="button" id="btn_tambah_desain" @unlessbolehHarga hidden @endbolehHarga onclick="tampilkanBiayaDesain()" class="text-indigo-500 hover:text-indigo-700 text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
+                        <button type="button" id="btn_tambah_desain" @unlessbolehHarga hidden @endbolehHarga onclick="tampilkanBiayaDesain()" class="text-indigo-500 hover:text-indigo-700 text-[10px] font-medium uppercase tracking-widest underline underline-offset-4 decoration-dotted">
                             <i class="fas fa-plus-circle"></i> Biaya Desain
                         </button>
                     </div>
-                    <button onclick="tambahKeKeranjang()" class="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-100 transition-all active:scale-95">
+                    <button onclick="tambahKeKeranjang()" class="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-3.5 rounded-xl font-medium text-xs uppercase tracking-wider shadow-lg shadow-emerald-100 transition-all active:scale-95">
                         Tambah
                     </button>
                 </div>
@@ -319,8 +327,8 @@
                 {{-- Daftar finishing untuk item ini (boleh lebih dari satu, mis. Laminasi + Kisscut) --}}
                 <div id="finishing_list_box" class="hidden mt-4 rounded-2xl border border-slate-100 bg-white overflow-hidden">
                     <div class="px-4 py-2.5 bg-slate-50 flex items-center justify-between">
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Finishing item ini</span>
-                        <span class="text-xs font-bold text-slate-600">Total Finishing: <b id="finishing_list_total" class="text-slate-900">Rp 0</b></span>
+                        <span class="text-[10px] font-medium uppercase tracking-widest text-slate-500">Finishing item ini</span>
+                        <span class="text-xs font-medium text-slate-600">Total Finishing: <b id="finishing_list_total" class="text-slate-900">Rp 0</b></span>
                     </div>
                     <div id="finishing_list_rows" class="divide-y divide-slate-50"></div>
                 </div>
@@ -331,7 +339,7 @@
                 <button type="button" onclick="toggleTambahJasa()" class="w-full flex items-center gap-3 p-6 text-left">
                     <span class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"><i class="fas fa-hand-holding-heart"></i></span>
                     <div>
-                        <h3 class="text-base font-bold text-slate-800">Tambah Jasa</h3>
+                        <h3 class="text-base font-medium text-slate-800">Tambah Jasa</h3>
                         <p class="text-[11px] text-slate-400">Layanan non-material, harga manual</p>
                     </div>
                     <i id="icon_toggle_jasa" class="fas fa-chevron-down text-slate-300 ml-auto transition-transform"></i>
@@ -360,30 +368,43 @@
                     </x-form.group>
 
                     <div class="flex justify-end">
-                        <button onclick="tambahJasaKeKeranjang()" class="inline-flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-purple-100 transition-all active:scale-95">
+                        <button onclick="tambahJasaKeKeranjang()" class="inline-flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-8 py-3.5 rounded-xl font-medium text-xs uppercase tracking-wider shadow-lg shadow-purple-100 transition-all active:scale-95">
                             Tambah Jasa
                         </button>
                     </div>
                 </div>
             </x-card>
+
+            {{-- Penutup kolom kiri. Tanpa baris ini kolom kiri tidak pernah
+                 tertutup, sehingga keranjang ikut jadi ANAK kolom kiri dan
+                 duduk di bawah dua kartu (sekitar 1600px dari atas halaman).
+                 Akibatnya kasir harus menggulir halaman hanya untuk melihat
+                 keranjang, dan sticky tidak pernah aktif karena posisinya
+                 belum tercapai. Satu baris ini yang mengembalikan keranjang
+                 ke kolom kanannya. --}}
         </div>
 
         {{-- ============ KERANJANG - sticky agar Total & tombol Simpan selalu terlihat; daftar item scroll sendiri ============ --}}
         <div class="w-full lg:w-[42%] flex flex-col lg:sticky lg:top-24 lg:self-start">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden lg:max-h-[calc(100vh-8rem)]">
+            {{-- max-h SEHARUSNYA 100vh dikurangi tinggi top (top-24 = 6rem)
+                 dikurangi jarak aman di bawah. Sebelumnya 8rem: itu 128px,
+                 padahal ruang di bawah top hanya 100vh - 96px, jadi bagian
+                 bawah keranjang selalu keluar layar ~32px - tombol Simpan
+                 justru yang paling penting dan justru terpotong. --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden lg:max-h-[calc(100vh-7rem)]">
                 <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
                     <div class="flex items-center gap-3">
                         <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><i class="fas fa-shopping-basket"></i></span>
-                        <h3 class="text-base font-bold text-slate-800">Keranjang Pesanan</h3>
+                        <h3 class="text-base font-medium text-slate-800">Keranjang Pesanan</h3>
                     </div>
-                    <div id="item_count_badge" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider">0 Items</div>
+                    <div id="item_count_badge" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider">0 Items</div>
                 </div>
 
                 <div class="flex-grow overflow-y-auto custom-scrollbar p-0 min-h-[120px]">
                     <div id="cart_body" class="divide-y divide-slate-50 text-slate-600">
                         <div class="py-16 text-center opacity-30">
                             <i class="fas fa-receipt text-2xl mb-2 block"></i>
-                            <p class="text-xs font-bold uppercase tracking-widest">Belum Ada Pesanan</p>
+                            <p class="text-xs font-medium uppercase tracking-widest">Belum Ada Pesanan</p>
                         </div>
                     </div>
                 </div>
@@ -391,14 +412,14 @@
                 <div class="mt-auto p-6 bg-slate-50 border-t border-slate-100 shrink-0">
                     <div class="flex justify-between items-center mb-5">
                         <div>
-                            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Pembayaran</p>
-                            <h2 id="grand_total" class="text-3xl font-bold text-indigo-600 tracking-tight leading-none">Rp 0</h2>
+                            <p class="text-slate-400 text-[10px] font-medium uppercase tracking-widest mb-1">Total Pembayaran</p>
+                            <h2 id="grand_total" class="text-3xl font-medium text-indigo-600 tracking-tight leading-none">Rp 0</h2>
                         </div>
                         <button onclick="resetCart()" title="Kosongkan keranjang" class="w-11 h-11 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 rounded-xl transition-all">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
-                    <button type="button" onclick="simpanTransaksi(this)" class="w-full inline-flex items-center justify-center gap-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-100 transition-all active:scale-95">
+                    <button type="button" onclick="simpanTransaksi(this)" class="w-full inline-flex items-center justify-center gap-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-xs uppercase tracking-wider shadow-lg shadow-indigo-100 transition-all active:scale-95">
                         <i class="fas fa-print"></i> Simpan &amp; Cetak Nota
                     </button>
                 </div>
@@ -425,10 +446,10 @@
         </x-form.group>
         <x-form.group label="Tipe Konsumen">
             <div class="flex gap-2">
-                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-bold cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500">
+                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-medium cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500">
                     <input type="radio" name="new_tipe_konsumen" value="temporary" checked class="accent-indigo-600"> Temporary
                 </label>
-                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-bold cursor-pointer has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-300 has-[:checked]:text-emerald-600 text-slate-500">
+                <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-medium cursor-pointer has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-300 has-[:checked]:text-emerald-600 text-slate-500">
                     <input type="radio" name="new_tipe_konsumen" value="permanent" class="accent-emerald-600"> Permanent
                 </label>
             </div>
@@ -482,7 +503,7 @@
 
     // compressImage() & namaFileDariGambar() ada di partial bersama
     // partials/image-compress-script.blade.php (di-include di awal file
-    // ini) - dipakai juga oleh Order Jersey, supaya logika kompresi cuma
+    // ini) - dipakai juga oleh Pesanan Jersey, supaya logika kompresi cuma
     // ada di SATU tempat.
 
     // Upload thumbnail segera saat file dipilih (bukan dikirim bareng payload
@@ -696,7 +717,7 @@
 
         const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
         btn.innerText = "Tambah";
-        btn.className = "inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-100 transition-all active:scale-95";
+        btn.className = "inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-3.5 rounded-xl font-medium text-xs uppercase tracking-wider shadow-lg shadow-emerald-100 transition-all active:scale-95";
     }
 
     // 2. MODAL FUNCTIONS
@@ -811,7 +832,7 @@
             currentProduk.metode_hitung = metode;
             // Ganti produk = Biaya Cetak manual (kalau ada) tidak relevan lagi
             // untuk produk yang baru dipilih - kembali ke auto-default dari
-            // Price List produk ini.
+            // Daftar Harga produk ini.
             cetakManualEdit = false;
             finishingBiayaManualEdit = false;
             setTimeout(() => {
@@ -823,7 +844,7 @@
     }
 
     // Biaya Cetak sekarang komponen UTAMA subtotal, defaultnya otomatis
-    // mengikuti Harga Price List x Qty (lihat hitungSubtotal()) - pola
+    // mengikuti Harga Daftar Harga x Qty (lihat hitungSubtotal()) - pola
     // "manual edit" ini PERSIS sama seperti finishingBiayaManualEdit di
     // bawah: begitu operator mengetik sendiri, auto-fill berhenti menimpa
     // balik angka yang sudah sengaja diubah.
@@ -1032,13 +1053,13 @@
         document.getElementById('finishing_list_total').innerText = 'Rp ' + Math.round(totalFinishingList()).toLocaleString('id-ID');
         rows.innerHTML = finishingList.map((f, i) => `
             <div class="px-4 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-1">
-                <span class="w-6 text-xs font-bold text-slate-400">${i + 1}</span>
+                <span class="w-6 text-xs font-medium text-slate-400">${i + 1}</span>
                 <div class="flex-1 min-w-[160px]">
-                    <p class="text-sm font-semibold text-slate-700">${escapeHtml(f.nama)} <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase ${f.status === 'Custom' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600'}">${f.status}</span></p>
+                    <p class="text-sm font-medium text-slate-700">${escapeHtml(f.nama)} <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium uppercase ${f.status === 'Custom' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600'}">${f.status}</span></p>
                     ${f.catatan ? `<p class="text-[11px] text-slate-400">${escapeHtml(f.catatan)}</p>` : ''}
                 </div>
                 <span class="text-xs text-slate-500 w-24 text-center">${f.metode === 'quantity' ? angkaId(parseFloat(f.qty_pakai) || 0, 2) + ' pakai' : (f.metode === 'luas' ? 'per m²' : 'per meter')}</span>
-                <span class="text-sm font-bold text-slate-800 w-28 text-right">Rp ${Math.round(f.biaya).toLocaleString('id-ID')}</span>
+                <span class="text-sm font-medium text-slate-800 w-28 text-right">Rp ${Math.round(f.biaya).toLocaleString('id-ID')}</span>
                 <button type="button" onclick="hapusFinishingDariDaftar(${i})" class="text-rose-400 hover:text-rose-600" title="Hapus finishing ini"><i class="fas fa-times"></i></button>
             </div>`).join('');
     }
@@ -1137,7 +1158,7 @@
             const hargaJual = parseFloat(data.harga_jual) || 0;
 
             // Biaya Cetak = komponen UTAMA subtotal, defaultnya mengikuti
-            // Harga Price List x Qty - TAPI cuma kalau operator belum
+            // Harga Daftar Harga x Qty - TAPI cuma kalau operator belum
             // mengetik manual sendiri (cetakManualEdit), pola sama persis
             // dengan refreshFinishingBiayaSuggestion() di atas.
             const inputCetak = document.getElementById('input_cetak');
@@ -1249,14 +1270,14 @@
         if (!res || res.harga_satuan <= 0) return Swal.fire('Opps!', 'Detail belum lengkap.', 'error');
 
         // BUG PENTING yang pernah kejadian nyata: validasi di atas cuma
-        // mengecek res.harga_satuan (tarif Price List), BUKAN Biaya Cetak
+        // mengecek res.harga_satuan (tarif Daftar Harga), BUKAN Biaya Cetak
         // yang sesungguhnya akan tersimpan (subtotal item ini = Biaya Cetak
         // + Desain + Finishing, lihat hitungSubtotal()). Kalau operator
         // sempat menyentuh field Biaya Cetak (cetakManualEdit jadi true,
         // auto-fill berhenti mengikuti) lalu MENGOSONGKANNYA atau
-        // membiarkannya 0, guard di atas tetap lolos selama Price List-nya
+        // membiarkannya 0, guard di atas tetap lolos selama Daftar Harga-nya
         // sendiri valid - item masuk keranjang dengan Biaya Cetak 0 tanpa
-        // peringatan apa pun, subtotal-nya 0 walau harga_satuan Price List-
+        // peringatan apa pun, subtotal-nya 0 walau harga_satuan Daftar Harga-
         // nya benar. Dicegat eksplisit di sini.
         const biayaCetakSaatIni = cleanRupiah(document.getElementById('input_cetak').value);
         if (biayaCetakSaatIni <= 0) {
@@ -1410,11 +1431,11 @@
             container.innerHTML = `
                 <div class="py-20 text-center opacity-30">
                     <i class="fas fa-receipt text-2xl mb-2 block"></i>
-                    <p class="text-xs font-bold uppercase tracking-widest">Belum Ada Pesanan</p>
+                    <p class="text-xs font-medium uppercase tracking-widest">Belum Ada Pesanan</p>
                 </div>`;
         }
 
-        // Chip mini - satu ukuran (text-xs font-bold) dipakai untuk semua
+        // Chip mini - satu ukuran (text-xs font-medium) dipakai untuk semua
         // badge di kartu keranjang (finishing, urgensi), cuma warnanya yang
         // beda sesuai makna. Sebelumnya tiap badge punya ukuran font sendiri
         // (9px, 8px, 11px) yang tidak ada alasannya beda-beda - sekarang
@@ -1441,15 +1462,15 @@
             container.innerHTML += `
                 <div class="group p-4 hover:bg-slate-50/70 transition-colors">
                     <div class="flex items-start gap-3">
-                        ${item.thumbnail ? `<img src="{{ asset('storage') }}/${item.thumbnail}" class="w-11 h-11 rounded-lg object-cover border border-slate-100 shrink-0">` : `<div class="w-11 h-11 rounded-lg bg-slate-50 border border-slate-100 shrink-0 flex items-center justify-center text-slate-300"><i class="far fa-image text-sm"></i></div>`}
+                        ${item.thumbnail ? `<img loading="lazy" decoding="async" src="{{ asset('storage') }}/${item.thumbnail}" class="w-11 h-11 rounded-lg object-cover border border-slate-100 shrink-0" ` : `<div class="w-11 h-11 rounded-lg bg-slate-50 border border-slate-100 shrink-0 flex items-center justify-center text-slate-300"><i class="far fa-image text-sm"></i></div>`}
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-bold text-slate-800 leading-tight truncate">${escapeHtml(item.nama_produk)}</p>
+                            <p class="text-sm font-medium text-slate-800 leading-tight truncate">${escapeHtml(item.nama_produk)}</p>
                             <p class="text-xs text-slate-500 mt-0.5 truncate">${escapeHtml(item.nama_file)}</p>
                             <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                                ${(item.finishing && item.finishing.length ? item.finishing : []).map(f => `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${f.status === 'Custom' ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}">${escapeHtml(f.nama)}</span>`).join('')}
-                                ${(!item.finishing || !item.finishing.length) && item.id_finishing ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600">${escapeHtml(item.nama_finishing)} &middot; ${escapeHtml(item.status_finishing || 'Standar')}</span>` : ''}
-                                ${item.siap_cetak ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600" title="Harga File Siap Cetak, tanpa desain tim">File Siap Cetak</span>` : ''}
-                                ${urgensi ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${urgensiChip[urgensi]}">${urgensi}</span>` : ''}
+                                ${(item.finishing && item.finishing.length ? item.finishing : []).map(f => `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${f.status === 'Custom' ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}">${escapeHtml(f.nama)}</span>`).join('')}
+                                ${(!item.finishing || !item.finishing.length) && item.id_finishing ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-600">${escapeHtml(item.nama_finishing)} &middot; ${escapeHtml(item.status_finishing || 'Standar')}</span>` : ''}
+                                ${item.siap_cetak ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600" title="Harga File Siap Cetak, tanpa desain tim">File Siap Cetak</span>` : ''}
+                                ${urgensi ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${urgensiChip[urgensi]}">${urgensi}</span>` : ''}
                             </div>
                             ${biayaTambahan ? `<p class="text-xs text-slate-400 mt-1.5">${biayaTambahan}</p>` : ''}
                         </div>
@@ -1463,8 +1484,8 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
-                        <span class="text-xs font-bold text-slate-400">Qty ${angkaId(item.qty_hitung, 2)}</span>
-                        <span class="text-sm font-bold text-slate-900">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(item.subtotal))}</span>
+                        <span class="text-xs font-medium text-slate-400">Qty ${angkaId(item.qty_hitung, 2)}</span>
+                        <span class="text-sm font-medium text-slate-900">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(item.subtotal))}</span>
                     </div>
                 </div>`;
         });

@@ -65,6 +65,22 @@ class FinishingController extends Controller
             return redirect()->back()->with('error', 'Gagal hapus! Finishing ini masih digunakan pada BOM Produk.');
         }
 
+        // Ditambahkan: tier harga dan pemakaian di transaksi_detail juga
+        // menunjuk finishing. Keduanya tidak punya foreign key, jadi
+        // menghapusnya akan meninggalkan baris yang menunjuk finishing
+        // yang sudah tidak ada - dan harga jual per finishing ikut hilang
+        // tanpa jejak.
+        $terpakaiLain = [
+            'tier harga'    => DB::table('finishing_harga')->where('id_finishing', $id)->exists(),
+            'transaksi'     => DB::table('transaksi_detail')->where('id_finishing', $id)->exists(),
+        ];
+        $dipakai = array_keys(array_filter($terpakaiLain));
+        if ($dipakai) {
+            return redirect()->back()->with('error',
+                'Gagal hapus! Finishing ini masih dipakai pada: ' . implode(', ', $dipakai) . '.'
+            );
+        }
+
         Finishing::findOrFail($id)->delete();
 
         return redirect()->back()->with('success', 'Finishing dihapus');

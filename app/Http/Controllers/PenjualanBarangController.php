@@ -48,6 +48,33 @@ class PenjualanBarangController extends Controller
             ->orderBy('bahan_baku.nama_bahan')
             ->get();
 
+        // Jasa untuk tab "Jasa" di halaman yang sama. Hanya yang punya
+        // harga dasar - jasa tanpa harga tidak bisa dijual karena kolom
+        // harga di form diisi dari master, dan kasir tidak boleh
+        // menemukan daftar jasa yang isinya tidak bisa langsung dipakai.
+        $jasa = DB::table('jasa')
+            ->leftJoin('satuan', 'jasa.id_satuan', '=', 'satuan.id_satuan')
+            ->whereNotNull('jasa.harga_default')
+            ->where('jasa.harga_default', '>', 0)
+            ->select(
+                'jasa.id_jasa',
+                'jasa.nama_jasa',
+                'jasa.id_mesin',
+                'jasa.harga_default',
+                'jasa.biaya_operasional',
+                'jasa.biaya_tinta',
+                DB::raw('COALESCE(satuan.nama_satuan, "Pcs") as nama_satuan')
+            )
+            ->orderBy('jasa.nama_jasa')
+            ->get();
+
+        // Divisi untuk filter. Sama seperti Master Jasa: hanya mesin yang
+        // tampil sebagai divisi di produksi.
+        $mesinJasa = DB::table('mesin')
+            ->where('tampil_divisi', true)
+            ->orderBy('nama_mesin')
+            ->get(['id_mesin', 'nama_mesin']);
+
         $date = date('Ymd');
         // Perf dataset besar: rentang sargable (DATE() mematikan index tgl_order).
         $lastNota = DB::table('transaksi')
@@ -57,7 +84,9 @@ class PenjualanBarangController extends Controller
         $prefixNota = AppSetting::current()->nomor_nota_prefix ?: 'INV';
         $no_nota = $prefixNota . '-' . $date . '-' . str_pad($lastNota + 1, 3, '0', STR_PAD_LEFT);
 
-        return view('penjualan-barang.create', compact('konsumen', 'golongan', 'kategori', 'bahan', 'no_nota'));
+        return view('penjualan-barang.create', compact(
+            'konsumen', 'golongan', 'kategori', 'bahan', 'no_nota', 'jasa', 'mesinJasa'
+        ));
     }
 
     public function store(Request $request)
@@ -65,11 +94,15 @@ class PenjualanBarangController extends Controller
         $request->validate([
             'id_konsumen' => 'required|exists:konsumen,id_konsumen',
             'items' => 'required|array|min:1',
-            'items.*.tipe' => 'required|in:bahan,custom',
+            'items.*.tipe' => 'required|in:bahan,jasa,custom',
             'items.*.qty' => 'required|numeric|min:0.01',
             'items.*.harga' => 'required|numeric|min:0',
             // Bahan Baku: wajib pilih dari master (stok ikut berkurang).
             'items.*.id_bahan' => 'required_if:items.*.tipe,bahan|nullable|exists:bahan_baku,id_bahan',
+            // Jasa: wajib pilih dari Master Jasa. Nama & harga tetap
+            // ikut dikirim tapi server TIDAK mempercayainya - keduanya
+            // diambil ulang dari database (lihat store()).
+            'items.*.id_jasa' => 'required_if:items.*.tipe,jasa|nullable|exists:jasa,id_jasa',
             // Custom/Lainnya: barang/jasa yang tidak ada di data bahan baku,
             // nama diisi bebas, TIDAK memotong stok apa pun.
             'items.*.nama' => 'required_if:items.*.tipe,custom|nullable|string|max:255',
@@ -121,11 +154,55 @@ class PenjualanBarangController extends Controller
 
             $grandTotal = 0;
 
-            foreach ($request->items as $item) {
+            foreach ($request->items as $index => $item) {
                 $qty = (float) $item['qty'];
                 $harga = (float) $item['harga'];
                 $subtotal = $qty * $harga;
                 $grandTotal += $subtotal;
+
+                // JASA: id_jasa dan harga diambil ULANG dari database,
+                // bukan mempercayai yang dikirim form. Alasannya sama
+                // dengan harga bahan baku: role tanpa hak ubah harga harus
+                // tetap mendapat harga master, dan kalau nama/harga
+                // yang dikirim tidak cocok dengan master, yang tercatat
+                // harus master - bukan input yang bisa dimanipulasi.
+                if (($item['tipe'] ?? '') === 'jasa') {
+                    $jasa = DB::table('jasa')->where('id_jasa', $item['id_jasa'])->first();
+                    if (! $jasa) {
+                        throw new \Exception('Jasa pada baris ' . ($index + 1) . ' tidak ditemukan.');
+                    }
+
+                    $hppJasa = (float) $jasa->harga_default;
+
+                    DB::table('transaksi_detail')->insert([
+                        'id_transaksi'        => $idTransaksi,
+                        'id_produk'           => null,
+                        'id_jasa'             => $jasa->id_jasa,
+                        'id_bahan'            => null,
+                        'nama_file'           => $jasa->nama_jasa,
+                        'p_ukuran'            => 0,
+                        'l_ukuran'            => 0,
+                        'qty'                 => $qty,
+                        'biaya_cetak'         => $subtotal,
+                        'biaya_desain'        => 0,
+                        'biaya_finishing'     => 0,
+                        'subtotal'            => $subtotal,
+                        'harga_jual_snapshot' => $subtotal,
+                        'hpp_snapshot'        => $hppJasa,
+                        // Jasa tidak lewat produksi/SPK sama sekali -
+                        // langsung "Selesai", sama seperti penjualan bahan.
+                        'status_spk'          => 'Selesai',
+                        'status_urgensi'      => 'Normal',
+                        'status_finishing'    => 'Standar',
+                        'created_at'          => now(),
+                        'updated_at'          => now(),
+                    ]);
+
+                    // Jasa tidak menyentuh stok sama sekali - bukan
+                    // item inventaris. status_spk-nya sudah 'Selesai'
+                    // di atas supaya tidak nyangkut di antrean produksi.
+                    continue;
+                }
 
                 if ($item['tipe'] === 'custom') {
                     // Barang/jasa CUSTOM: tidak ada di data master bahan baku

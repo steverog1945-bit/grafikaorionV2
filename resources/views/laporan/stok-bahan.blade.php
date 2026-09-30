@@ -32,11 +32,11 @@
     <x-card class="mb-6 no-print">
         <form method="GET" action="{{ route('laporan.stok-bahan') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[220px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Bahan</label>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama atau kode bahan..." class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Bahan</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama atau kode bahan..." class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div class="w-full md:w-52">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
                 <x-form.select name="id_kategori">
                     <option value="">-- Semua Kategori --</option>
                     @foreach($kategoriList as $kat)
@@ -45,7 +45,7 @@
                 </x-form.select>
             </div>
             <div class="w-full md:w-52">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Stok</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Stok</label>
                 <x-form.select name="status_stok">
                     <option value="">-- Semua Status --</option>
                     <option value="Habis" {{ request('status_stok') === 'Habis' ? 'selected' : '' }}>Habis</option>
@@ -61,7 +61,7 @@
             </x-button>
 
             @if(request()->anyFilled(['search', 'id_kategori', 'status_stok']))
-                <a href="{{ route('laporan.stok-bahan') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                <a href="{{ route('laporan.stok-bahan') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
             @endif
@@ -72,20 +72,20 @@
          cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Bahan Aktif</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($jumlahBahan, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Jumlah Bahan Aktif</p>
+            <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($jumlahBahan, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Stok Habis</p>
-            <h3 class="text-2xl font-bold text-rose-500 mt-1">{{ number_format($jumlahHabis, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Stok Habis</p>
+            <h3 class="text-2xl font-medium text-rose-500 mt-1">{{ number_format($jumlahHabis, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Stok Menipis</p>
-            <h3 class="text-2xl font-bold text-amber-500 mt-1">{{ number_format($jumlahMenipis, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Stok Menipis</p>
+            <h3 class="text-2xl font-medium text-amber-500 mt-1">{{ number_format($jumlahMenipis, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Belum Ada Batas Minimal</p>
-            <h3 class="text-2xl font-bold text-sky-500 mt-1">{{ number_format($jumlahBelumAdaBatas, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Belum Ada Batas Minimal</p>
+            <h3 class="text-2xl font-medium text-sky-500 mt-1">{{ number_format($jumlahBelumAdaBatas, 0, ',', '.') }}</h3>
         </div>
     </div>
     <div class="hidden print:block">
@@ -116,11 +116,11 @@
             @forelse($data as $i => $b)
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
-                <td data-label="Kode" class="px-6 py-5"><span class="text-[12px] font-bold text-slate-500 uppercase">{{ $b->kode_bahan }}</span></td>
-                <td data-label="Nama Bahan" class="px-4 py-5"><span class="text-[13px] font-bold text-slate-700">{{ $b->nama_bahan }}</span></td>
+                <td data-label="Kode" class="px-6 py-5"><span class="text-[12px] font-medium text-slate-500 uppercase">{{ $b->kode_bahan }}</span></td>
+                <td data-label="Nama Bahan" class="px-4 py-5"><span class="text-[13px] font-medium text-slate-700">{{ $b->nama_bahan }}</span></td>
                 <td data-label="Kategori" class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $b->kategori->nama_kategori ?? '-' }}</span></td>
-                <td data-label="Satuan" class="px-4 py-5"><span class="inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] font-black uppercase">{{ $b->satuan_stok ?: '-' }}</span></td>
-                <td data-label="Stok Saat Ini" class="px-4 py-5 text-right"><span class="text-[13px] font-bold {{ $b->status_stok === 'Habis' ? 'text-rose-500' : ($b->status_stok === 'Menipis' ? 'text-amber-600' : 'text-slate-700') }}">{{ number_format($b->stok, 2, ',', '.') }} {{ $b->satuan_stok }}</span></td>
+                <td data-label="Satuan" class="px-4 py-5"><span class="inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] font-medium uppercase">{{ $b->satuan_stok ?: '-' }}</span></td>
+                <td data-label="Stok Saat Ini" class="px-4 py-5 text-right"><span class="text-[13px] font-medium {{ $b->status_stok === 'Habis' ? 'text-rose-500' : ($b->status_stok === 'Menipis' ? 'text-amber-600' : 'text-slate-700') }}">{{ number_format($b->stok, 2, ',', '.') }} {{ $b->satuan_stok }}</span></td>
                 <td data-label="Stok Minimal" class="px-4 py-5 text-right"><span class="text-[12px] text-slate-500">{{ $b->stok_minimal > 0 ? number_format($b->stok_minimal, 2, ',', '.') . ' ' . $b->satuan_stok : '-' }}</span></td>
                 <td data-label="Harga Rata-rata" class="px-4 py-5 text-right"><span class="text-[12px] text-slate-500">Rp {{ number_format($b->harga_rata_rata, 0, ',', '.') }}</span></td>
                 <td data-label="Status" class="px-8 py-5 text-center">
@@ -146,7 +146,7 @@
             <tr>
                 <td class="px-3 py-1.5 text-center text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-3 py-1.5 text-slate-500">{{ $b->kode_bahan }}</td>
-                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $b->nama_bahan }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700">{{ $b->nama_bahan }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $b->kategori->nama_kategori ?? '-' }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-700">{{ number_format($b->stok, 2, ',', '.') }} {{ $b->satuan_stok }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ $b->stok_minimal > 0 ? number_format($b->stok_minimal, 2, ',', '.') . ' ' . $b->satuan_stok : '-' }}</td>

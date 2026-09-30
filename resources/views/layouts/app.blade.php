@@ -23,28 +23,82 @@
     </script>
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {{-- Aset pihak ketiga dilayani sendiri, bukan dari CDN.
+         Alasannya bukan sekadar kecepatan: setiap permintaan ke domain
+         ketiga adalah permintaan render-blocking yang tidak bisa kita
+         ukur, tidak bisa kita cache sendiri, dan tetap menggagalkan
+         render meski server kita baik. Kalau domainnya lambat atau
+         diblokir jaringan kantor, halaman kosong.
+
+         Yang diganti:
+           Inter         -> public/vendor/fonts (font variable, 2 file
+                            latin + latin-ext, mencakup bobot 100-900)
+           Select2       -> public/vendor/select2
+           Font Awesome  -> public/vendor/fontawesome (woff2 saja)
+           jQuery        -> public/vendor/jquery
+           SweetAlert2   -> public/vendor/sweetalert2 (catatan terpisah
+                            di bawah, soal urutannya) --}}
+    <link rel="stylesheet" href="{{ asset('vendor/fonts/inter.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/select2/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/fontawesome/all.min.css') }}">
+
+    {{-- SweetAlert2 WAJIB skrip klasik di <head>, bukan di-bundle ke app.js.
+
+         Alasannya urutan waktu, bukan selera. Layout ini memanggil
+         Swal.mixin() dan Swal.fire() di skrip inline pada badgean
+         document body, untuk menampilkan flash message session. Skrip
+         inline badgean berjalan SAAT dokumen di-parse.
+
+         Sementara app.js adalah <script type="module">, yang sifatnya
+         selalu deferred: baru dieksekusi setelah dokumen selesai
+         di-parse. Jadi kalau Swal hanya datang dari app.js, setiap
+         pemanggilan Swal di badgean akan melihat "Swal is not defined"
+         - persis yang terjadi ketika tag CDN-nya dihapus.
+
+         Script klasik di head memblokir parse sampai selesai dimuat,
+         jadi window.Swal sudah ada sebelum badgean dieksekusi. Karena
+         itu SweetAlert2 juga dikeluarkan dari resources/js/app.js:
+         tanpa itu pustakanya diunduh dua kali, dan bundle JS jadi
+         sekitar 50KB lebih besar tanpa alasan. --}}
+    {{--
+        CSS SweetAlert2. Selama ini HANYA JS yang dimuat - CSS-nya tidak
+        pernah ditambahkan. Akibatnya setiap dialog konfirmasi render
+        tanpa gaya sama sekali: container-nya position:static (bukan
+        fixed), display:block (bukan flex), dan dialog-nya jatuh ke
+        bawah halaman selebar layar. Yang terlihat cuma ikon tanda seru
+        di pojok bawah.
+
+        File-nya diunduh dari CDN dan disimpan di public/vendor supaya
+        tidak ada permintaan eksternal saat runtime - konsisten dengan
+        kebijakan self-host yang sudah berlaku untuk aset lain.
+    --}}
+    <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
     
     <style>
     :root { --sidebar-width: 288px; --sidebar-width-collapsed: 96px; }
-    body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; background-color: #f5f7fa; overflow-x: hidden; }
+    body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; background-color: #f8fafc; overflow-x: hidden; }
 
-    /* SIDEBAR CORE (Tetap Dipertahankan) */
+    /* SIDEBAR CORE - OpenCode Desktop: solid, clean, no gradient */
     aside {
         width: var(--sidebar-width);
-        background: linear-gradient(180deg, #0f172a 0%, #131d33 55%, #17223b 100%);
-        color: #f1f5f9;
+        background: #ffffff;
+        color: #0f172a;
         position: fixed;
         top: 0; bottom: 0; left: 0;
         z-index: 50;
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
+        transition: width 220ms cubic-bezier(0.23, 1, 0.32, 1), transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
         display: flex;
         flex-direction: column;
-        border-right: 1px solid rgba(255,255,255,0.06);
-        box-shadow: 8px 0 32px rgba(15,23,42,0.18);
+        border-right: 1px solid #e2e8f0;
+        box-shadow: none;
+    }
+
+    html.dark aside {
+        background: #0f172a;
+        border-right-color: #334155;
+        color: #f1f5f9;
     }
 
     @media (max-width: 1023px) {
@@ -115,37 +169,31 @@
         background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 18px;
         box-shadow: 0 24px 60px rgba(2,6,23,0.45);
     }
-    #railFlyout .fly-title { padding: 6px 12px 10px; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #94a3b8; }
+    #railFlyout .fly-title { padding: 6px 12px 10px; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #94a3b8; }
     #railFlyout a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: #e2e8f0; font-size: 14px; font-weight: 500; text-decoration: none; }
     #railFlyout a:hover { background: rgba(255,255,255,0.1); color: #fff; }
     #railFlyout a.fly-active { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: #fff; }
     #railFlyout a svg { width: 20px; height: 20px; flex-shrink: 0; color: #94a3b8; }
     #railFlyout a:hover svg, #railFlyout a.fly-active svg { color: #fff; }
     #railTip {
-        padding: 8px 14px; border-radius: 10px; background: #0f172a; color: #fff; font-size: 13px; font-weight: 600;
+        padding: 8px 14px; border-radius: 10px; background: #0f172a; color: #fff; font-size: 13px; font-weight: 500;
         box-shadow: 0 10px 30px rgba(2,6,23,0.4); border: 1px solid rgba(255,255,255,0.1); white-space: nowrap; pointer-events: none;
     }
 
-    /* Logo perusahaan - diatur dari Pengaturan Aplikasi (ukuran, gaya latar, mode ringkas) */
-    .sidebar-logo { position: relative; display: flex; align-items: center; justify-content: center; max-width: 100%; text-decoration: none; transition: transform .35s ease, background .3s ease; }
-    .sidebar-logo .logo-full { display: block; width: auto; height: auto; object-fit: contain; transition: transform .35s ease, filter .35s ease; }
+    /* Logo perusahaan - OpenCode Desktop: clean, no effects */
+    .sidebar-logo { position: relative; display: flex; align-items: center; justify-content: center; max-width: 100%; text-decoration: none; }
+    .sidebar-logo .logo-full { display: block; width: auto; height: auto; object-fit: contain; }
     .sidebar-logo .logo-icon { display: none; }
-    .sidebar-logo.logo-kecil .logo-full { max-height: 34px; max-width: 150px; }
-    .sidebar-logo.logo-sedang .logo-full { max-height: 46px; max-width: 190px; }
-    .sidebar-logo.logo-besar .logo-full { max-height: 60px; max-width: 220px; }
-    .sidebar-logo:hover { transform: translateY(-1px); }
-    .sidebar-logo:hover .logo-full { transform: scale(1.03); }
+    .sidebar-logo.logo-kecil .logo-full { max-height: 32px; max-width: 140px; }
+    .sidebar-logo.logo-sedang .logo-full { max-height: 40px; max-width: 180px; }
+    .sidebar-logo.logo-besar .logo-full { max-height: 52px; max-width: 200px; }
 
-    /* Gaya polos: tanpa kotak; kilau lembut di belakang + garis tipis terang supaya tepi logo gelap tetap terbaca */
-    .sidebar-logo.logo-gaya-polos { padding: 8px 12px; }
-    .sidebar-logo.logo-gaya-polos::before {
-        content: ''; position: absolute; inset: -6px -14px; z-index: 0; pointer-events: none;
-        background: radial-gradient(closest-side, rgba(129,140,248,0.30), rgba(129,140,248,0) 72%);
-    }
-    .sidebar-logo.logo-gaya-polos img { position: relative; z-index: 1; filter: drop-shadow(0 0 1px rgba(255,255,255,0.95)) drop-shadow(0 6px 14px rgba(2,6,23,0.45)); }
-    /* Gaya kaca */
-    .sidebar-logo.logo-gaya-kaca { padding: 10px 16px; border-radius: 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 30px rgba(2,6,23,0.25); backdrop-filter: blur(6px); }
-    .sidebar-logo.logo-gaya-kaca img { filter: drop-shadow(0 4px 10px rgba(2,6,23,0.35)); }
+    /* Gaya polos: tanpa efek */
+    .sidebar-logo.logo-gaya-polos { padding: 6px 10px; }
+    .sidebar-logo.logo-gaya-polos img { position: relative; z-index: 1; }
+    /* Gaya kaca: subtle */
+    .sidebar-logo.logo-gaya-kaca { padding: 8px 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; }
+    html.dark .sidebar-logo.logo-gaya-kaca { background: #1e293b; border-color: #334155; }
     /* Gaya putih */
     .sidebar-logo.logo-gaya-putih { padding: 10px 16px; border-radius: 18px; background: #fff; box-shadow: 0 10px 30px rgba(2,6,23,0.35); }
 
@@ -180,7 +228,7 @@
        "topbar" tidak dipakai di manapun selain di sini) - burger icon &
        judul cuma numpang di elemen tanpa padding/tinggi/alignment eksplisit,
        jadinya terlihat "nempel asal" alih-alih menyatu dengan header. */
-    .notif-badge { margin-left: auto; min-width: 1.5rem; height: 1.25rem; padding: 0 .375rem; line-height: 1; border-radius: 9999px; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-badge { margin-left: auto; min-width: 1.5rem; height: 1.25rem; padding: 0 .375rem; line-height: 1; border-radius: 9999px; color: #fff; font-size: 11px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .notif-badge.rose { background: #f43f5e; } .notif-badge.amber { background: #f59e0b; } .notif-badge.indigo { background: #6366f1; }
     /* Badge selalu rata di kolom kanan yang sama: link menu (badge) & judul grup (badge + panah). */
     aside .menu-group-toggle { justify-content: flex-start; padding-right: .875rem; }
@@ -264,7 +312,7 @@
 
     <div class="flex min-h-screen">
         <aside id="mainSidebar">
-            <div id="sidebarBrandHeader" class="relative px-5 py-5 border-b border-white/10 flex items-center justify-center">
+            <div id="sidebarBrandHeader" class="relative px-4 py-4 border-b border-slate-200 flex items-center justify-center">
                 @php
                     $logoUkuran = in_array($appSetting->logo_ukuran, ['kecil', 'sedang', 'besar'], true) ? $appSetting->logo_ukuran : 'sedang';
                     $logoGaya = in_array($appSetting->logo_gaya, ['polos', 'kaca', 'putih'], true) ? $appSetting->logo_gaya : 'polos';
@@ -273,14 +321,23 @@
                 @endphp
                 <a href="{{ url('/dashboard') }}" class="sidebar-logo logo-{{ $logoUkuran }} logo-gaya-{{ $logoGaya }}" title="{{ $appSetting->nama_aplikasi }}">
                     @if($urlLogo)
-                        <img class="logo-full" src="{{ $urlLogo }}" alt="Logo {{ $appSetting->nama_aplikasi }}">
+                        {{-- width/height ditulis eksplisit supaya browser bisa
+                             menyiapkan ruang gambar sebelum file selesai dimuat.
+                             Tanpa itu, sidebar melompat begitu logo tiba - dan
+                             karena logo ada di setiap halaman, lompat itu
+                             terlihat di setiap navigasi. Rasio 600:238 mengikuti
+                             file yang sudah dikecilkan; lihat catatan di
+                             atas mengenai alasannya. --}}
+                        <img class="logo-full" src="{{ $urlLogo }}" width="600" height="238"
+                             alt="Logo {{ $appSetting->nama_aplikasi }}"
+                             decoding="async" fetchpriority="high">
                         <span class="logo-icon">
                             @if($appSetting->logo_ikon_path)
-                                <img class="logo-ikon-file" src="{{ asset('storage/' . $appSetting->logo_ikon_path) }}" alt="">
+                                <img class="logo-ikon-file" src="{{ asset('storage/' . $appSetting->logo_ikon_path) }}" alt="" decoding="async">
                             @elseif($logoRingkas === 'potong')
-                                <span class="logo-crop"><img src="{{ $urlLogo }}" alt=""></span>
+                                <span class="logo-crop"><img src="{{ $urlLogo }}" width="600" height="238" alt="" decoding="async"></span>
                             @else
-                                <img class="logo-penuh" src="{{ $urlLogo }}" alt="">
+                                <img class="logo-penuh" src="{{ $urlLogo }}" width="600" height="238" alt="" decoding="async">
                             @endif
                         </span>
                     @else
@@ -318,7 +375,7 @@
                 </span>
             </span>
             <span class="min-w-0 leading-tight sidebar-text-label">
-                <span class="block text-[11px] font-black uppercase tracking-wider {{ $kasBasi ? 'text-amber-200' : 'text-emerald-200' }}">{{ $kasBasi ? 'Belum di-closing' : 'Kasir Open' }}</span>
+                <span class="block text-[11px] font-medium uppercase tracking-wider {{ $kasBasi ? 'text-amber-200' : 'text-emerald-200' }}">{{ $kasBasi ? 'Belum di-closing' : 'Kasir Open' }}</span>
                 <span class="block text-[10px] font-medium text-slate-400 truncate">{{ $mulaiSb ? $mulaiSb->format('d/m H:i') : '' }} &middot; {{ $umurTeks }} &middot; {{ $pemilikSb }}</span>
             </span>
         </div>
@@ -326,7 +383,7 @@
         <div class="sidebar-kas-status rounded-2xl px-3 py-2.5 flex items-center gap-3 border border-white/10 bg-white/5" title="Kasir: Standby">
             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-400/15 text-slate-400"><i class="fas fa-moon text-sm"></i></span>
             <span class="min-w-0 leading-tight sidebar-text-label">
-                <span class="block text-[11px] font-black uppercase tracking-wider text-slate-300">Kasir Standby</span>
+                <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-300">Kasir Standby</span>
                 <span class="block text-[10px] font-medium text-slate-500">Belum ada saldo dibuka</span>
             </span>
         </div>
@@ -336,19 +393,19 @@
             <nav class="mt-5 px-4 pb-24 space-y-1.5">
     @php
         $userAkses = \App\Support\Izin::menuTerlihat(Auth::user());
-        // Menu yang dinonaktifkan lewat Menu Editor disembunyikan dari sidebar untuk semua role.
+        // Menu yang dinonaktifkan lewat Pengaturan Menu disembunyikan dari sidebar untuk semua role.
         $menuNonaktif = DB::table('menus')->where('aktif', false)->pluck('id_menu')->map(fn ($i) => (int) $i)->all();
 
         // Administrator selalu lolos di sini juga, sama seperti bypass di
         // CheckMenuAccess middleware. Tanpa ini, menu sidebar Administrator
         // bisa ikut hilang kalau grant-nya di role_permissions tidak sengaja
-        // tercabut/kosong (mis. dari halaman Setting Akses) - padahal
+        // tercabut/kosong (mis. dari halaman Pengaturan Akses) - padahal
         // rute-rutenya sendiri tetap bisa diakses karena middleware sudah
         // bypass duluan, jadi menu yang "hilang" itu cuma ilusi UI.
         $isAdministrator = optional(Auth::user()->role)->nama_role === 'Administrator';
 
         // Menu yang isinya harga/nilai uang disembunyikan untuk role tanpa hak lihat harga
-        // (Finishing Produk = 21, Quotation = 58), walau menunya tercentang di Hak Akses.
+        // (Finishing Produk = 21, Penawaran = 58), walau menunya tercentang di Hak Akses.
         $menuBerharga = [21, 58];
         $bolehLihatHargaSidebar = \App\Support\AksesHarga::bolehLihat();
 
@@ -364,14 +421,14 @@
             return $isAdministrator || in_array($idMenu, $userAkses);
         };
 
-        // Helper untuk styling menu agar konsisten
-        $menuClass = "flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 group relative ";
-        $activeClass = "sb-active bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-950/40";
-        $nonActiveClass = "text-slate-300 hover:bg-white/10 hover:text-white";
-        
-        $iconClass = "h-[22px] w-[22px] shrink-0 transition-colors ";
-        $iconActive = "text-white";
-        $iconNonActive = "text-slate-400 group-hover:text-white";
+        // Helper untuk styling menu - OpenCode Desktop: compact, solid, no gradient
+        $menuClass = "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors group relative ";
+        $activeClass = "sb-active bg-indigo-50 text-indigo-600";
+        $nonActiveClass = "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
+
+        $iconClass = "h-[18px] w-[18px] shrink-0 transition-colors ";
+        $iconActive = "text-indigo-600";
+        $iconNonActive = "text-slate-400 group-hover:text-slate-600";
     @endphp
 
     {{-- DASHBOARD --}}
@@ -428,11 +485,11 @@
             || Request::is('satuan', 'satuan/*') || Request::is('mesin', 'mesin/*') || Request::is('gudang', 'gudang/*');
     @endphp
     @if($grpProduksiVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-4 pb-2 px-3 text-[11px] font-medium text-slate-500 uppercase tracking-wider hover:text-slate-700 transition-colors">
         <span>Produksi & Logistik</span>
         <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpProduksiAktif ? 'rotate-180' : '' }}"></i>
     </button>
-    <div class="menu-group-items space-y-1 {{ $grpProduksiAktif ? '' : 'hidden' }}">
+    <div class="menu-group-items space-y-0.5 {{ $grpProduksiAktif ? '' : 'hidden' }}">
     @endif
 
     @if($cekAkses(1))
@@ -454,7 +511,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('stock-opname.*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-7 9l2 2 4-4" />
         </svg>
-        <span class="text-sm font-medium">Stock Opname</span>
+        <span class="text-sm font-medium">Stok Opname</span>
     </a>
     @endif
     @if($cekAkses(20))
@@ -474,7 +531,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-request', 'purchase-request/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6m-6 4h4" />
         </svg>
-        <span class="text-sm font-medium">Purchase Request</span>
+        <span class="text-sm font-medium">Permintaan Pembelian</span>
     </a>
     @endif
     @if($cekAkses(20) || $cekAkses(55))
@@ -482,7 +539,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('purchase-order', 'purchase-order/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        <span class="text-sm font-medium">Purchase Order</span>
+        <span class="text-sm font-medium">Pesanan Pembelian</span>
     </a>
     @endif
     @if($cekAkses(17))
@@ -532,7 +589,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('qc', 'qc/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
-        <span class="text-sm font-medium">QC & Rework</span>
+        <span class="text-sm font-medium">QC & Reparasi</span>
     </a>
     @endif
 
@@ -541,7 +598,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('waste', 'waste/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
-        <span class="text-sm font-medium">Waste Management</span>
+        <span class="text-sm font-medium">Pengelolaan Limbah</span>
     </a>
     @endif
 
@@ -550,7 +607,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('collecting.*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>
-        <span class="text-sm font-medium">Collecting</span>
+        <span class="text-sm font-medium">Pengambilan</span>
     </a>
     @endif
 
@@ -615,16 +672,22 @@
     @php
         $grpRelasiVisible = $cekAkses(7) || $cekAkses(34) || $cekAkses(18) || $cekAkses(13) || $cekAkses(21) || $cekAkses(32) || $cekAkses(14) || $cekAkses(28) || $cekAkses(9) || $cekAkses(16);
         $grpRelasiAktif = Request::is('konsumen', 'konsumen/*') || Request::is('golongan', 'golongan/*') || Request::is('produk', 'produk/*')
-            || Request::is('finishing', 'finishing/*') || Request::is('jasa', 'jasa/*') || Request::is('setting-harga', 'setting-harga/*') || Request::is('harga-siap-cetak', 'harga-siap-cetak/*')
+            || Request::is('finishing', 'finishing/*') || Request::is('jasa', 'jasa/*') || Request::is('jasa-jahit', 'jasa-jahit/*') || Request::is('setting-harga', 'setting-harga/*') || Request::is('harga-siap-cetak', 'harga-siap-cetak/*')
             || Request::is('harga-promo', 'harga-promo/*') || Request::is('supplier', 'supplier/*') || Request::is('platform-belanja', 'platform-belanja/*') || Request::is('kasir/monitoring', 'kasir/monitoring/*')
-            || Request::is('kasir/kelola-kas', 'kasir/kelola-kas/*');
+            || Request::is('kasir/kelola-kas', 'kasir/kelola-kas/*')
+            // Setoran Konsumen tadinya TIDAK ada di daftar ini, padahal
+            // menu-nya ada di grup ini. Akibatnya begitu halaman deposit
+            // dibuka tidak ada grup yang terflag aktif, sehingga semua
+            // grup accordion ikut tertutup - berbeda dari menu lain di
+            // grup yang sama yang tetap terbuka.
+            || Request::is('konsumen-deposit', 'konsumen-deposit/*');
     @endphp
     @if($grpRelasiVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-4 pb-2 px-3 text-[11px] font-medium text-slate-500 uppercase tracking-wider hover:text-slate-700 transition-colors">
         <span>Relasi Bisnis</span>
         <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpRelasiAktif ? 'rotate-180' : '' }}"></i>
     </button>
-    <div class="menu-group-items space-y-1 {{ $grpRelasiAktif ? '' : 'hidden' }}">
+    <div class="menu-group-items space-y-0.5 {{ $grpRelasiAktif ? '' : 'hidden' }}">
     @endif
 
     @if($cekAkses(7))
@@ -642,7 +705,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3v-1m-3 1v-5m11-4V6a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2h1" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 17a5 5 0 100-10 5 5 0 000 10z" />
         </svg>
-        <span class="text-sm font-medium">Deposit Konsumen</span>
+        <span class="text-sm font-medium">Setoran Konsumen</span>
     </a>
     @endif
 
@@ -683,12 +746,28 @@
     </a>
     @endif
 
+    {{-- Jasa Jahit Borongan (PENGELUARAN). Disebelahan "Jasa" karena
+         keduanya pasangan: Jasa pendapatan, Jahit pengeluaran. Yang ini
+         cek aksesnya ke id menu 68, sama seperti cekAkses() di bawahnya
+         cek id menu lain - kalau nomornya salah, menunya tidak akan
+         muncul bagi siapa pun. --}}
+    @if($cekAkses(68))
+    <a href="{{ route('jasa-jahit.index') }}" class="{{ $menuClass }} {{ Request::is('jasa-jahit', 'jasa-jahit/*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jasa-jahit', 'jasa-jahit/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {{-- Gunting. Ikon lain di sidebar memakai stroke outline yang
+                 sama, jadi bentuknya konsisten dengan sisa menu. --}}
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18M6.5 6.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM6.5 22.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM17.5 8.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+        </svg>
+        <span class="text-sm font-medium">Jasa Jahit Borongan</span>
+    </a>
+    @endif
+
     @if($cekAkses(14))
     <a href="{{ url('/setting-harga') }}" class="{{ $menuClass }} {{ Request::is('setting-harga', 'setting-harga/*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('setting-harga', 'setting-harga/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
-        <span class="text-sm font-medium">Price List & Level</span>
+        <span class="text-sm font-medium">Daftar Harga & Tingkat</span>
     </a>
     <a href="{{ route('harga-siap-cetak.index') }}" title="Harga khusus order dengan file siap cetak dari pelanggan" class="{{ $menuClass }} {{ Request::is('harga-siap-cetak', 'harga-siap-cetak/*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('harga-siap-cetak', 'harga-siap-cetak/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -712,7 +791,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('supplier', 'supplier/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
-        <span class="text-sm font-medium">Supplier</span>
+        <span class="text-sm font-medium">Pemasok</span>
     </a>
     @endif
     @if($cekAkses(9) || $cekAkses(62))
@@ -751,8 +830,8 @@
             || Request::is('bank', 'bank/*') || Request::is('karyawan', 'karyawan/*');
     @endphp
     @if($grpFinanceVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
-        <span>Finance & HR</span>
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-medium text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+        <span>Keuangan & SDM</span>
         <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpFinanceAktif ? 'rotate-180' : '' }}"></i>
     </button>
     <div class="menu-group-items space-y-1 {{ $grpFinanceAktif ? '' : 'hidden' }}">
@@ -764,17 +843,17 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('penjualan/kasir', 'penjualan/kasir/*') ? 'text-emerald-400' : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
-        <span class="text-sm font-medium">Input Order</span>
+        <span class="text-sm font-medium">Input Pesanan</span>
     </a>
     @endif
 
-    {{-- Quotation memuat harga: disembunyikan untuk role tanpa hak lihat harga (Operator Desain/Produksi) --}}
+    {{-- Penawaran memuat harga: disembunyikan untuk role tanpa hak lihat harga (Operator Desain/Produksi) --}}
     @if(($cekAkses(3) || $cekAkses(41) || $cekAkses(58)) && $bolehLihatHargaSidebar)
     <a href="{{ url('/quotation') }}" class="{{ $menuClass }} {{ Request::is('quotation', 'quotation/*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('quotation', 'quotation/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        <span class="text-sm font-medium">Quotation</span>
+        <span class="text-sm font-medium">Penawaran</span>
     </a>
     @endif
 
@@ -784,7 +863,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('penjualan-barang', 'penjualan-barang/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
-        <span class="text-sm font-medium">Penjualan Barang</span>
+        <span class="text-sm font-medium">Penjualan dan Jasa</span>
     </a>
     @endif
 
@@ -849,7 +928,7 @@
             || request()->routeIs('laporan.stok-bahan') || request()->routeIs('laporan.hpp') || request()->routeIs('laporan.job-costing') || request()->routeIs('laporan.profitabilitas') || request()->routeIs('laporan.pemakaian-bahan') || request()->routeIs('laporan.biaya-tinta') || request()->routeIs('laporan.evaluasi-master') || request()->routeIs('laporan.biaya-desain*');
     @endphp
     @if($grpLaporanVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-medium text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
         <span>Laporan</span>
         <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpLaporanAktif ? 'rotate-180' : '' }}"></i>
     </button>
@@ -861,7 +940,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.order') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
-        <span class="text-sm font-medium">Laporan Order</span>
+        <span class="text-sm font-medium">Laporan Pesanan</span>
     </a>
     @endif
 
@@ -895,7 +974,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.hutang') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m9-8a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <span class="text-sm font-medium">Laporan Hutang Supplier</span>
+        <span class="text-sm font-medium">Laporan Hutang Pemasok</span>
     </a>
     @endif
 
@@ -904,7 +983,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.order-jersey') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 7h16M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7M9 7v11m6-11v11" />
         </svg>
-        <span class="text-sm font-medium">Laporan Order Jersey</span>
+        <span class="text-sm font-medium">Laporan Pesanan Jersey</span>
     </a>
     @endif
 
@@ -963,7 +1042,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.job-costing') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
-        <span class="text-sm font-medium">Laporan Job Costing</span>
+        <span class="text-sm font-medium">Laporan Biaya Pekerjaan</span>
     </a>
     <a href="{{ route('laporan.profitabilitas') }}" class="{{ $menuClass }} {{ request()->routeIs('laporan.profitabilitas') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.profitabilitas') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -981,7 +1060,7 @@
             ->filter(fn ($m) => $cekAkses((int) $m->id_menu));
     @endphp
     @if($menuKustom->isNotEmpty())
-    <div class="pt-5 pb-2 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">Menu Tambahan</div>
+    <div class="pt-5 pb-2 px-3 text-[11px] font-medium uppercase tracking-widest text-slate-400">Menu Tambahan</div>
     <div class="space-y-1">
         @foreach($menuKustom as $mk)
         @php $luar = preg_match('#^https?://#i', $mk->url_link); @endphp
@@ -994,7 +1073,7 @@
     @endif
 
     @php
-        // Accounting Period cuma bisa diakses Administrator (menu_access.php
+        // Periode Akuntansi cuma bisa diakses Administrator (menu_access.php
         // 'accounting-period' => [] - tidak ada id_menu yang bisa
         // menggrant-nya lewat role_permissions), jadi dicek $isAdministrator
         // langsung, bukan $cekAkses(N).
@@ -1002,7 +1081,7 @@
         $grpAkuntansiAktif = Request::is('akun', 'akun/*') || Request::is('akuntansi', 'akuntansi/*') || Request::is('accounting-period', 'accounting-period/*');
     @endphp
     @if($grpAkuntansiVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-medium text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
         <span>Akuntansi</span>
         <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpAkuntansiAktif ? 'rotate-180' : '' }}"></i>
     </button>
@@ -1014,7 +1093,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('akun', 'akun/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
-        <span class="text-sm font-medium">Chart of Accounts</span>
+        <span class="text-sm font-medium">Daftar Akun</span>
     </a>
     @endif
 
@@ -1023,7 +1102,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('akuntansi', 'akuntansi/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
-        <span class="text-sm font-medium">Laporan Keuangan</span>
+        <span class="text-sm font-medium">Jurnal Umum</span>
     </a>
     @endif
 
@@ -1032,7 +1111,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('accounting-period', 'accounting-period/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
-        <span class="text-sm font-medium">Accounting Period</span>
+        <span class="text-sm font-medium">Periode Akuntansi</span>
     </a>
     @endif
     @if($grpAkuntansiVisible)
@@ -1041,8 +1120,8 @@
 
     @php $grpJerseyAktif = Request::is('jersey', 'jersey/*'); @endphp
     @if($cekAkses(38) || $cekAkses(42))
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
-        <span>Order Jersey</span>
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-medium text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+        <span>Pesanan Jersey</span>
         <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpJerseyAktif ? 'rotate-180' : '' }}"></i>
     </button>
     <div class="menu-group-items space-y-1 {{ $grpJerseyAktif ? '' : 'hidden' }}">
@@ -1051,7 +1130,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ (Request::is('jersey', 'jersey/*') && !Request::is('jersey/master', 'jersey/master/*') && !Request::is('jersey/keuangan', 'jersey/keuangan/*') && !Request::is('jersey/create')) ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 7h16M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7M9 7v11m6-11v11" />
         </svg>
-        <span class="text-sm font-medium">Daftar Order</span>
+        <span class="text-sm font-medium">Daftar Pesanan</span>
     </a>
     @endif
     @if(!$cekAkses(38) && $cekAkses(42))
@@ -1059,7 +1138,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jersey/create') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 7h16M5 7v11a2 2 0 002 2h10a2 2 0 002-2V7M9 7v11m6-11v11" />
         </svg>
-        <span class="text-sm font-medium">Order Jersey Baru</span>
+        <span class="text-sm font-medium">Pesanan Jersey Baru</span>
     </a>
     @endif
     @if($cekAkses(38))
@@ -1068,7 +1147,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
-        <span class="text-sm font-medium">Master Data Jersey</span>
+        <span class="text-sm font-medium">Data Master Jersey</span>
     </a>
     <a href="{{ url('/jersey/keuangan') }}" class="{{ $menuClass }} {{ Request::is('jersey/keuangan', 'jersey/keuangan/*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jersey/keuangan', 'jersey/keuangan/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1081,17 +1160,17 @@
     @endif
 
     @php
-        // Approval Workflow, Log Aktivitas, Backup & Recovery cuma bisa
+        // Alur Persetujuan, Log Aktivitas, Cadangan & Pemulihan cuma bisa
         // diakses Administrator (menu_access.php rule-nya [] kosong - tidak
         // ada id_menu yang bisa menggrant lewat role_permissions), jadi
-        // dicek $isAdministrator langsung, sama seperti Accounting Period.
+        // dicek $isAdministrator langsung, sama seperti Periode Akuntansi.
         $grpSystemVisible = $cekAkses(6) || $cekAkses(4) || $cekAkses(37) || $cekAkses(63) || $cekAkses(66) || $cekAkses(49) || $cekAkses(50) || $cekAkses(52) || $isAdministrator;
         $grpSystemAktif = Request::is('users', 'users/*') || Request::is('setting-akses', 'setting-akses/*') || Request::is('pengaturan-aplikasi', 'pengaturan-aplikasi/*') || Request::is('pengaturan-jam-kerja', 'pengaturan-jam-kerja/*') || Request::is('pengaturan-desainer', 'pengaturan-desainer/*') || Request::is('menu-editor', 'menu-editor/*')
             || Request::is('approval', 'approval/*') || Request::is('log-aktivitas', 'log-aktivitas/*') || Request::is('backup', 'backup/*');
     @endphp
     @if($grpSystemVisible)
-    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
-        <span>System Control</span>
+    <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-medium text-slate-400 uppercase tracking-[0.16em] hover:text-white transition-colors">
+        <span>Pengaturan Sistem</span>
         <i class="fas fa-chevron-down text-[10px] transition-transform {{ $grpSystemAktif ? 'rotate-180' : '' }}"></i>
     </button>
     <div class="menu-group-items space-y-1 {{ $grpSystemAktif ? '' : 'hidden' }}">
@@ -1102,7 +1181,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('users', 'users/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
-        <span class="text-sm font-medium">Manajemen User</span>
+        <span class="text-sm font-medium">Manajemen Pengguna</span>
     </a>
     @endif
     
@@ -1112,7 +1191,7 @@
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('setting-akses', 'setting-akses/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
-    <span class="text-sm font-medium">Setting Akses</span>
+    <span class="text-sm font-medium">Pengaturan Akses</span>
 </a>
 @endif
 
@@ -1149,7 +1228,7 @@
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('menu-editor', 'menu-editor/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
     </svg>
-    <span class="text-sm font-medium">Menu Editor</span>
+    <span class="text-sm font-medium">Pengaturan Menu</span>
 </a>
 @endif
 @endif
@@ -1159,7 +1238,7 @@
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('approval', 'approval/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
-    <span class="text-sm font-medium">Approval Workflow</span>
+    <span class="text-sm font-medium">Alur Persetujuan</span>
 </a>
 @endif
 @if($isAdministrator || $cekAkses(49))
@@ -1175,7 +1254,7 @@
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('backup', 'backup/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7c0 1.657 3.582 3 8 3s8-1.343 8-3m-16 0c0-1.657 3.582-3 8-3s8 1.343 8 3m-16 0v10c0 1.657 3.582 3 8 3s8-1.343 8-3V7" />
     </svg>
-    <span class="text-sm font-medium">Backup & Recovery</span>
+    <span class="text-sm font-medium">Cadangan & Pemulihan</span>
 </a>
 @endif
 @if($grpSystemVisible)
@@ -1190,10 +1269,33 @@
             <button id="sidebarCollapseToggle" onclick="toggleSidebar()" class="topbar-burger w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all shrink-0" title="Sembunyikan/tampilkan menu">
                 <i class="fas fa-bars"></i>
             </button>
-            <span class="topbar-app-name font-bold text-slate-700 truncate">{{ $appSetting->nama_aplikasi }}</span>
+            <span class="topbar-app-name font-medium text-slate-700 truncate">{{ $appSetting->nama_aplikasi }}</span>
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+            {{-- Pemicu command palette.
+
+                 Tombol ini ada supaya jalan pintas bisa ditemukan tanpa
+                 perlu tahu dulu: hanya dengan melihat "Ctrl K" di dalam
+                 kotak, orang akan mencoba menekannya. Kalau palette hanya
+                 bisa dibuka lewat Ctrl+K tanpa petunjuk apa pun, fitur
+                 yang bagus jadi tidak pernah dipakai.
+
+                 Di layar sempit tombolnya tetap ada, hanya teks dan
+                 label keyboard disembunyikan sehingga jadi ikon saja.
+                 Versi sebelumnya disembunyikan penuh di bawah 640px dengan
+                 alasan "di HP tidak ada ruang" - tapi di HP juga tidak
+                 ada keyboard, jadi Ctrl+K mustahil ditekan dan palette
+                 jadi tidak bisa dibuka sama sekali. Tombol ikon hanya
+                 36px, muat di topbar mana pun. --}}
+            <button type="button" onclick="bukaPalette()"
+                    class="palette-pemicu flex items-center gap-2 h-9 pl-3 pr-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-400 hover:border-slate-300 hover:bg-slate-100 transition-colors"
+                    title="Cari menu (Ctrl+K)" aria-label="Cari menu">
+                <i class="fas fa-search text-xs shrink-0"></i>
+                <span class="text-[12px] hidden sm:inline">Cari menu</span>
+                <kbd class="text-[10px] font-medium text-slate-400 bg-white border border-slate-200 rounded px-1 py-0.5 hidden sm:inline">Ctrl K</kbd>
+            </button>
+
             {{-- Tombol mode gelap / terang --}}
             <button type="button" id="tema-toggle" onclick="ubahTema()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Ganti ke mode gelap" aria-label="Ganti mode gelap atau terang">
                 <i class="fas fa-moon" id="tema-ikon"></i>
@@ -1202,22 +1304,22 @@
             <div class="relative">
                 <button type="button" id="notif-btn" onclick="toggleNotif(event)" class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Notifikasi & pekerjaan masuk">
                     <i class="fas fa-bell"></i>
-                    <span id="notif-total" class="hidden absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold items-center justify-center ring-2 ring-white"></span>
+                    <span id="notif-total" class="hidden absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-rose-500 text-white text-[10px] font-medium items-center justify-center ring-2 ring-white"></span>
                 </button>
                 <div id="notif-panel" class="hidden absolute right-0 mt-2 w-80 max-w-[90vw] bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
                     <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                        <span class="text-sm font-black text-slate-700">Pekerjaan masuk</span>
-                        <span id="notif-total-teks" class="text-[11px] font-bold text-slate-400"></span>
+                        <span class="text-sm font-medium text-slate-700">Pekerjaan masuk</span>
+                        <span id="notif-total-teks" class="text-[11px] font-medium text-slate-400"></span>
                     </div>
                     <div id="notif-list" class="max-h-[60vh] overflow-y-auto divide-y divide-slate-50"></div>
                 </div>
             </div>
             @php $namaTampil = optional(Auth::user()->karyawan)->nama_karyawan ?? Auth::user()->username; @endphp
             <div class="hidden sm:flex flex-col items-end leading-tight">
-                <span class="text-[13px] font-bold text-slate-700">{{ $namaTampil }}</span>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{{ optional(Auth::user()->role)->nama_role }}</span>
+                <span class="text-[13px] font-medium text-slate-700">{{ $namaTampil }}</span>
+                <span class="text-[10px] font-medium text-slate-400 uppercase tracking-wide">{{ optional(Auth::user()->role)->nama_role }}</span>
             </div>
-            <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0 ring-2 ring-indigo-50">
+            <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-sm shrink-0 ring-2 ring-indigo-50">
                 {{ strtoupper(substr($namaTampil, 0, 1)) }}
             </div>
             <form action="{{ url('logout') }}" method="POST">
@@ -1234,8 +1336,15 @@
     </div>
 </main>
     </div>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    {{-- jQuery dan Select2 dilayani sendiri (lihat catatan aset di <head>).
+         Keduanya tidak bisa dipindah ke <head> dengan sembarangan: Select2
+         mencari jQuery di window saat dimuat, dan banyak initialization
+         di halaman ini berjalan sebagai script inline yang ikut dieksekusi
+         berurutan di blok ini. Memindahkan tagnya saja tanpa menggeser
+         urutan pemanggilnya akan membuat .select2() dipanggil sebelum
+         pustakanya ada. --}}
+    <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset('vendor/select2/select2.min.js') }}"></script>
     <script>
         // Refresh opsi select2 saat dibuka - opsi umumnya dirender server
         // sekali saat halaman dimuat, jadi data yang baru ditambah di halaman
@@ -1294,7 +1403,9 @@
         })();
     </script>
     @include('partials.rupiah-format-script')
+    @include('partials.quick-picker')
     @include('partials.tooltip-script')
+    @include('partials.command-palette')
     <script>
         // Filter konsisten di SELURUH aplikasi: memilih nilai pada dropdown di dalam form GET (filter/pencarian)
         // langsung menerapkan filter - tidak perlu klik tombol atau memilih dua kali. Termasuk dropdown select2
@@ -1391,7 +1502,7 @@
     // Jalankan pengecekan setiap 10 detik - HANYA untuk role yang benar-benar
     // punya akses ke endpoint-nya sendiri. /kasir/check-pembayaran ada di
     // bawah prefix "kasir" yang di config/menu_access.php dijaga id_menu 16
-    // (BUKAN 3/41 - itu gate untuk prefix "penjualan"/Input Order, beda
+    // (BUKAN 3/41 - itu gate untuk prefix "penjualan"/Input Pesanan, beda
     // modul). Sebelumnya jalan untuk SEMUA user login tanpa
     // syarat, jadi role tanpa id_menu 16 (termasuk Operator Desain yang
     // cuma punya akses input-order) tetap polling endpoint ini tiap 10
@@ -1493,7 +1604,7 @@
         if (list) {
             list.innerHTML = items.length ? items.map(i => `<a href="${i.url}" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-all">
                 <span class="notif-badge ${i.tone}" style="margin-left:0">${i.count}</span>
-                <span class="text-[13px] font-semibold text-slate-600 leading-snug">${i.label}</span></a>`).join('')
+                <span class="text-[13px] font-medium text-slate-600 leading-snug">${i.label}</span></a>`).join('')
                 : '<div class="px-4 py-8 text-center text-sm text-slate-400"><i class="fas fa-check-circle text-emerald-400 text-2xl mb-2 block"></i>Tidak ada pekerjaan yang menunggu.</div>';
         }
         // Badge di menu sidebar: cocokkan lewat alamat tujuan (gabungkan bila beberapa notifikasi ke halaman yang sama).
@@ -1580,7 +1691,7 @@
             if (document.getElementById('pill-segarkan')) return;
             const b = document.createElement('button');
             b.id = 'pill-segarkan'; b.type = 'button';
-            b.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] px-5 py-2.5 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow-xl hover:bg-indigo-700';
+            b.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] px-5 py-2.5 rounded-full bg-indigo-600 text-white text-sm font-medium shadow-xl hover:bg-indigo-700';
             b.textContent = 'Data diperbarui di tab/pengguna lain — Muat ulang';
             b.onclick = () => location.reload();
             document.body.appendChild(b);
@@ -1652,21 +1763,179 @@
             }
         });
 
-        // Accordion grup menu sidebar - state buka/tutup TIDAK disimpan ke
-        // localStorage (sengaja): tiap halaman full reload, dan grup yang
-        // berisi link aktif sudah otomatis terbuka lewat variable $grpXAktif
-        // yang dihitung di server (lihat blok masing-masing grup), jadi
-        // state manual user cukup bertahan selama sesi klik di halaman yang
-        // sama saja - lebih sederhana daripada sinkronisasi localStorage
-        // per grup untuk manfaat yang tipis.
+        /* Accordion grup menu sidebar.
+
+        Yang berlaku sekarang: satu grup terbuka pada satu waktu, dan
+        grup yang memuat halaman aktif terbuka otomatis. Dua aturan itu
+        menggantikan model lama wherein setiap grup berdiri sendiri dan
+        state-nya disimpan per grup - yang membuat sidebar bisa menumpuk
+        lima grup terbuka sekaligus.
+
+        sessionStorage masih dipakai, tapi hanya untuk kasus tanpa grup
+        yang cocok dengan URL, dan hanya menyimpan satu grup (yang
+        terakhir). localStorage sengaja tidak dipakai supaya pilihan
+        user tidak bertahan berhari-hari di komputer bersama.
+        */
+        const GRUP_KEY = 'sidebarGrup';
+
+        function grupId(btn) {
+            return Array.from(document.querySelectorAll('#mainSidebar .menu-group-toggle'))
+                .indexOf(btn);
+        }
+
+        function simpanGrup() {
+            try {
+                const state = {};
+                document.querySelectorAll('#mainSidebar .menu-group-toggle').forEach((b, i) => {
+                    const items = b.nextElementSibling;
+                    if (items && items.classList.contains('menu-group-items')) {
+                        state[i] = !items.classList.contains('hidden');
+                    }
+                });
+                sessionStorage.setItem(GRUP_KEY, JSON.stringify(state));
+            } catch (e) { /* storage penuh atau dinonaktifkan: abaikan */ }
+        }
+
+        /* Grup yang cocok dengan URL halaman sekarang.
+
+        Dicocokkan dari href menu di dalam grup, bukan dari nama grup.
+        Dua halaman bisa punya URL yang sama-sama mengandung "/kasir"
+        (mis. /kasir/monitoring dan /kasir/waiting-list) dan keduanya
+        memang berada di grup yang sama, jadi pencocokan longest-prefix
+        dipakai: URL halaman dicocokkan ke href menu yang paling panjang
+        yang cocok, lalu grup dari menu itulah yang dibuka.
+        */
+        function grupUntukHalamanAktif() {
+            const path = location.pathname.replace(/\/+$/, '') || '/';
+            let terbaik = null;
+            let panjangTerpanjang = -1;
+
+            document.querySelectorAll('#mainSidebar .menu-group-toggle').forEach((b) => {
+                const items = b.nextElementSibling;
+                if (!items || !items.classList.contains('menu-group-items')) return;
+
+                items.querySelectorAll('a[href]').forEach((a) => {
+                    let url;
+                    try { url = new URL(a.getAttribute('href'), location.origin); } catch (e) { return; }
+                    const href = url.pathname.replace(/\/+$/, '') || '/';
+                    if (path !== href && !path.startsWith(href + '/')) return;
+                    if (href.length > panjangTerpanjang) {
+                        panjangTerpanjang = href.length;
+                        terbaik = b;
+                    }
+                });
+            });
+
+            return terbaik;
+        }
+
+        function pulihkanGrup() {
+            // Grup yang memuat halaman aktif selalu dibuka - inilah yang
+            // membuat user tidak perlu mencari menunya setelah pindah
+            // halaman. State lama dari sessionStorage hanya dipakai
+            // kalau tidak ada grup yang cocok (mis. halaman tanpa menu
+            // di sidebar seperti /akuntansi/neraca yang diteruskan).
+            const grupAktif = grupUntukHalamanAktif();
+
+            if (grupAktif) {
+                tutupGrupLain(grupAktif);
+                const items = grupAktif.nextElementSibling;
+                items.classList.remove('hidden');
+                const icon = grupAktif.querySelector('i.fa-chevron-down');
+                if (icon) icon.classList.add('rotate-180');
+                grupAktif.setAttribute('aria-expanded', 'true');
+                simpanGrup();
+                return;
+            }
+
+            try {
+                const raw = sessionStorage.getItem(GRUP_KEY);
+                if (!raw) return;
+                const state = JSON.parse(raw);
+                let jumlahBuka = 0;
+                let terakhir = null;
+
+                document.querySelectorAll('#mainSidebar .menu-group-toggle').forEach((b, i) => {
+                    const items = b.nextElementSibling;
+                    // Hanya grup yang state-nya benar-benar tersimpan yang
+                    // diubah. Grup baru / baru dapat hak akses dibiarkan
+                    // mengikuti keputusan server.
+                    if (!(i in state) || !items || !items.classList.contains('menu-group-items')) return;
+                    if (state[i] === true) { jumlahBuka++; terakhir = b; }
+                });
+
+                // Kalau state lama menyisakan lebih dari satu grup terbuka
+                // (karena dulu tidak ada aturan ini), tinggalkan yang
+                // terakhir saja. Tanpa baris ini, sidebar bisa sampai lima
+                // grup terbuka sekaligus.
+                if (jumlahBuka > 1 && terakhir) {
+                    tutupGrupLain(terakhir);
+                    simpanGrup();
+                    return;
+                }
+
+                document.querySelectorAll('#mainSidebar .menu-group-toggle').forEach((b, i) => {
+                    const items = b.nextElementSibling;
+                    if (!(i in state) || !items || !items.classList.contains('menu-group-items')) return;
+                    const buka = state[i] === true;
+                    items.classList.toggle('hidden', !buka);
+                    const icon = b.querySelector('i.fa-chevron-down');
+                    if (icon) icon.classList.toggle('rotate-180', buka);
+                    b.setAttribute('aria-expanded', String(buka));
+                });
+            } catch (e) { /* data rusak: pakai state server */ }
+        }
+
+        /* Hanya satu grup boleh terbuka.
+
+        Sebelumnya setiap grup berdiri sendiri: membuka satu grup tidak
+        menutup yang lain, dan state-nya disimpan per grup di
+        sessionStorage. Akibatnya setelah beberapa kali berpindah halaman,
+        sidebar bisa punya lima grup terbuka sekaligus dan daftar menu jadi
+        hummedCLOSED penuh. Itu yang dilaporkan sebagai "accordion terus
+        terbuka meskipun sedang memilih menu yang lain".
+
+        Dua aturan yang sekarang berlaku:
+        1. Membuka satu grup menutup semua grup lain. Ini perilaku accordion
+           yang sebenarnya, dan membuat panjang sidebar selalu sama.
+        2. Hanya grup yang MEMANG berisi halaman aktif yang boleh terbuka
+           saat halaman dimuat. Jadi begitu kasir menekan "Antrean Kasir",
+           grup Penjualan terbuka dan semua yang lain tertutup - tanpa
+           perlu user menutup apa pun.
+
+        Aturan 2 yang penting untukTransition: tanpa itu, user yang sedang
+        mengerjakan satu bagian lalu pindah ke bagian lain akan mendapati
+        grup lamanya masih terbuka di halaman berikutnya, dan harus
+        mencari di mana menu yang dia cari berada.
+        */
+        function tutupGrupLain(kecualiBtn) {
+            document.querySelectorAll('#mainSidebar .menu-group-toggle').forEach((b) => {
+                if (b === kecualiBtn) return;
+                const items = b.nextElementSibling;
+                if (!items || !items.classList.contains('menu-group-items')) return;
+                items.classList.add('hidden');
+                const ic = b.querySelector('i.fa-chevron-down');
+                if (ic) ic.classList.remove('rotate-180');
+                b.setAttribute('aria-expanded', 'false');
+            });
+        }
+
         function toggleMenuGroup(btn) {
             // Rel ringkas (sidebar dilipat): grup membuka flyout, bukan accordion.
             if (window.railAktif && window.railAktif()) { window.railBukaFlyout(btn, true); return; }
             const items = btn.nextElementSibling;
+            const akanBuka = items.classList.contains('hidden');
+            if (akanBuka) tutupGrupLain(btn);
+            items.classList.toggle('hidden', !akanBuka);
             const icon = btn.querySelector('i.fa-chevron-down');
-            items.classList.toggle('hidden');
-            if (icon) icon.classList.toggle('rotate-180');
+            if (icon) icon.classList.toggle('rotate-180', akanBuka);
+            btn.setAttribute('aria-expanded', String(akanBuka));
+            simpanGrup();
         }
+
+        // Terapkan kembali state setelah DOM siap, lalu delegasi klik grup
+        // ke toggleMenuGroup di atas supaya setiap perubahan ikut tersimpan.
+        pulihkanGrup();
 
         // ===== Rel ikon (sidebar ringkas): ikon grup + flyout + tooltip =====
         (function () {

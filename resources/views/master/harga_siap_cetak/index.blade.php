@@ -10,7 +10,7 @@
         </x-slot:subtitle>
     </x-page-header>
 
-    <div class="bg-indigo-50 text-indigo-700 p-4 rounded-2xl mb-6 text-xs font-semibold flex items-start gap-2">
+    <div class="bg-indigo-50 text-indigo-700 p-4 rounded-2xl mb-6 text-xs font-medium flex items-start gap-2">
         <i class="fas fa-circle-info mt-0.5"></i>
         <span>Harga di sini <b>berdiri sendiri</b> (bukan potongan persen). Struktur sama dengan Price List: rentang qty/ukuran &times; golongan konsumen. Produk yang <b>belum diberi harga</b> tidak menawarkan opsi "File Siap Cetak" di Input Order. Order siap cetak otomatis tanpa biaya desain &amp; komisi desainer.</span>
     </div>
@@ -18,18 +18,18 @@
     <x-card class="mb-6">
         <form method="GET" action="{{ route('harga-siap-cetak.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[240px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Produk</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Produk</label>
                 <x-form.input type="text" name="cari" value="{{ request('cari') }}" placeholder="Nama produk..." />
             </div>
             <div class="w-full md:w-52">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin / Divisi</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin / Divisi</label>
                 <x-form.select name="mesin">
                     <option value="">Semua Mesin</option>
                     @foreach($mesinList as $m)<option value="{{ $m->id_mesin }}" {{ (string) request('mesin') === (string) $m->id_mesin ? 'selected' : '' }}>{{ $m->nama_mesin }}</option>@endforeach
                 </x-form.select>
             </div>
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Harga</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Harga</label>
                 <x-form.select name="status">
                     <option value="">Semua</option>
                     <option value="sudah" {{ request('status') === 'sudah' ? 'selected' : '' }}>Sudah diatur</option>
@@ -37,11 +37,11 @@
                 </x-form.select>
             </div>
             <x-button type="submit" title="Terapkan filter"><i class="fas fa-filter"></i> Filter</x-button>
-            @if(request()->anyFilled(['cari', 'mesin', 'status']))<a href="{{ route('harga-siap-cetak.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline" title="Kembalikan filter">Reset</a>@endif
+            @if(request()->anyFilled(['cari', 'mesin', 'status']))<a href="{{ route('harga-siap-cetak.index') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline" title="Kembalikan filter">Reset</a>@endif
         </form>
     </x-card>
 
-    <p class="text-xs font-semibold text-slate-400 mb-3 ml-1">{{ $totalSudah }} produk sudah punya harga siap cetak.</p>
+    <p class="text-xs font-medium text-slate-400 mb-3 ml-1">{{ $totalSudah }} produk sudah punya harga siap cetak.</p>
 
     <x-table>
         <thead>
@@ -56,14 +56,14 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($produk as $p)
             <tr class="hover:bg-slate-50/50 transition-all">
-                <td class="px-6 py-4 text-[13px] font-bold text-slate-700 uppercase">{{ $p->nama_produk }}</td>
-                <td class="px-4 py-4 text-[12px] font-semibold text-slate-500">{{ $p->nama_mesin ?? '-' }}</td>
+                <td class="px-6 py-4 text-[13px] font-medium text-slate-700 uppercase">{{ $p->nama_produk }}</td>
+                <td class="px-4 py-4 text-[12px] font-medium text-slate-500">{{ $p->nama_mesin ?? '-' }}</td>
                 <td class="px-4 py-4 text-center text-[12px] text-slate-500">{{ $p->metode_hitung === 'ukuran' ? 'm²' : 'pcs' }}</td>
                 <td class="px-4 py-4 text-center">
                     @if($p->jumlah_tier > 0)<x-badge variant="success">Sudah diatur</x-badge>@else<x-badge variant="warning">Belum diatur</x-badge>@endif
                 </td>
                 <td class="px-8 py-4 text-center">
-                    <button type="button" onclick="bukaHargaSiapCetak({{ $p->id_produk }})" title="Atur harga file siap cetak produk ini" class="px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-[10px] font-bold uppercase tracking-widest"><i class="fas fa-tags"></i> Atur Harga</button>
+                    <button type="button" onclick="bukaHargaSiapCetak({{ $p->id_produk }})" title="Atur harga file siap cetak produk ini" class="px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-[10px] font-medium uppercase tracking-widest"><i class="fas fa-tags"></i> Atur Harga</button>
                 </td>
             </tr>
             @empty
@@ -75,13 +75,15 @@
 </div>
 
 {{-- MODAL GRID HARGA --}}
-<x-modal id="harga-sc" title="Harga File Siap Cetak" maxWidth="6xl">
+<x-modal id="harga-sc" title="Harga File Siap Cetak"
+         subtitle="Harga per ukuran file yang sudah siap cetak, tanpa proses desain"
+         icon="fa-file-lines" maxWidth="6xl">
     <div class="flex items-center justify-between mb-4">
         <div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Produk</p>
-            <p class="text-base font-bold text-slate-800" id="hsc-nama">-</p>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Produk</p>
+            <p class="text-base font-medium text-slate-800" id="hsc-nama">-</p>
         </div>
-        <span class="text-[11px] font-bold text-indigo-600 bg-indigo-50 rounded-lg px-3 py-1.5">Rentang dalam <span id="hsc-satuan">-</span></span>
+        <span class="text-[11px] font-medium text-indigo-600 bg-indigo-50 rounded-lg px-3 py-1.5">Rentang dalam <span id="hsc-satuan">-</span></span>
     </div>
     <div class="overflow-x-auto rounded-2xl border border-slate-100">
         <table class="w-full text-left" id="hsc-tabel">
@@ -91,9 +93,9 @@
     </div>
     <p class="text-[11px] text-slate-400 mt-3">Kosongkan harga golongan yang tidak dipakai. Kolom "Sampai" kosong = tanpa batas atas (hanya boleh di baris terakhir). Rentang tidak boleh tumpang tindih.</p>
     <div class="flex items-center justify-between mt-5">
-        <button type="button" onclick="tambahBarisHsc()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-widest" title="Tambah rentang baru"><i class="fas fa-plus"></i> Tambah Rentang</button>
+        <button type="button" onclick="tambahBarisHsc()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-medium uppercase tracking-widest" title="Tambah rentang baru"><i class="fas fa-plus"></i> Tambah Rentang</button>
         <div class="flex gap-3">
-            <button type="button" onclick="closeModal('harga-sc')" class="px-5 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:bg-slate-50">Batal</button>
+            <button type="button" onclick="closeModal('harga-sc')" class="px-5 py-2.5 rounded-xl text-[11px] font-medium uppercase tracking-widest text-slate-400 hover:bg-slate-50">Batal</button>
             <x-button type="button" onclick="simpanHsc()" id="hsc-simpan"><i class="fas fa-check"></i> Simpan Harga</x-button>
         </div>
     </div>
@@ -112,8 +114,8 @@
             hscProduk = id; hscGolongan = d.golongan;
             document.getElementById('hsc-nama').textContent = d.produk;
             document.getElementById('hsc-satuan').textContent = d.satuan;
-            document.getElementById('hsc-kepala').innerHTML = '<th class="px-3 py-3 text-[10px] font-bold uppercase text-slate-400 w-28">Mulai</th><th class="px-3 py-3 text-[10px] font-bold uppercase text-slate-400 w-28">Sampai</th>'
-                + d.golongan.map(g => `<th class="px-3 py-3 text-[10px] font-bold uppercase text-slate-400">${g.nama_golongan} (Rp)</th>`).join('') + '<th class="w-10"></th>';
+            document.getElementById('hsc-kepala').innerHTML = '<th class="px-3 py-3 text-[10px] font-medium uppercase text-slate-400 w-28">Mulai</th><th class="px-3 py-3 text-[10px] font-medium uppercase text-slate-400 w-28">Sampai</th>'
+                + d.golongan.map(g => `<th class="px-3 py-3 text-[10px] font-medium uppercase text-slate-400">${g.nama_golongan} (Rp)</th>`).join('') + '<th class="w-10"></th>';
             document.getElementById('hsc-isi').innerHTML = '';
             (d.tier.length ? d.tier : [{ min: 0, max: null, harga: {} }]).forEach(t => tambahBarisHsc(t));
             openModal('harga-sc');

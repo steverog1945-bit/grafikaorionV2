@@ -1,7 +1,9 @@
 @props([
     'id'       => null,
     'title'    => null,
-    'maxWidth' => 'lg', // sm | md | lg | xl | 2xl
+    'subtitle' => null,
+    'icon'     => null,   // nama ikon Font Awesome, mis. 'fa-layer-group'
+    'maxWidth' => 'lg',   // sm | md | lg | xl | 2xl | 3xl | 4xl | 5xl | 6xl
 ])
 
 @php
@@ -13,29 +15,65 @@
     $widthClass = $widths[$maxWidth] ?? $widths['lg'];
 @endphp
 
-<div id="modal-{{ $id }}" class="hidden fixed inset-0 z-[60] items-center justify-center p-4">
-    {{-- Backdrop --}}
-    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeModal('{{ $id }}')"></div>
+{{-- Root memakai hidden (atribut), bukan kelas `hidden`.
+     Alasannya: `hidden` (display:none) menang atas `flex` kalau keduanya
+     aktif bersamaan, jadi toggle berbasis classList menyisakan elemen
+     yang tak terlihat tapi masih bisa difokus. Dengan menyembunyikan
+     lewat atribut, state tertutup benar-benar hilang dari accessibility
+     tree. --}}
+<div id="modal-{{ $id }}" data-modal-root hidden class="fixed inset-0 z-[60] items-center justify-center p-4">
 
-    {{-- Panel --}}
-    <div class="relative bg-white w-full {{ $widthClass }} rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+    {{-- Area gelap. Dipasang sebagai elemen terpisah supaya klik di
+         dalamnya menutup modal, sementara klik di panel tidak. --}}
+    <div class="absolute inset-0 bg-slate-900/50" data-modal-backdrop></div>
+
+    {{-- Panel. Animasi masuk/keluar dikendalikan atribut data-state
+         yang di-toggle openModal()/closeModal() di app.js. --}}
+    <div data-modal-panel
+         class="relative bg-white w-full {{ $widthClass }} rounded-lg border border-slate-200 shadow-xl max-h-[90vh] flex flex-col overflow-hidden"
+         role="dialog" aria-modal="true" aria-labelledby="modal-{{ $id }}-title">
         @if($title)
-            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-                <h3 id="modal-{{ $id }}-title" class="text-base font-bold text-slate-800">{{ $title }}</h3>
-                <button type="button" onclick="closeModal('{{ $id }}')" class="text-slate-400 hover:text-rose-500 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+            {{-- Kepala modal.
+
+                 Bentuknya mengambil struktur "Tambah Karyawan" yang
+                 diminta: ikon + judul + subjudul, karena ketiganya
+                 membantu pembaca tahu sedang menambah atau mengubah
+                 apa, tanpa harus membaca isinya dulu.
+
+                 Yang TIDAK diambil dari sana adalah radius 2.5rem,
+                 tata letak terpusat, dan huruf besar. Ketiganya
+                 menyimpang dari 110 modal lain yang sudah radius 8px,
+                 dan menjauh dari tampilan desktop yang jadi acuan
+                 aplikasi ini. Yang dipakai: ikon di kiri, teks rata
+                 kiri, radius 8px, ukuran huruf yang sama dengan
+                 seluruh modal lain. --}}
+            <div class="flex items-start gap-3 px-5 py-4 border-b border-slate-200 shrink-0">
+                @if($icon)
+                    <span class="w-9 h-9 shrink-0 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <i class="fas {{ $icon }} text-sm"></i>
+                    </span>
+                @endif
+                <div class="min-w-0 grow">
+                    <h3 id="modal-{{ $id }}-title" class="text-sm font-medium text-slate-900">{{ $title }}</h3>
+                    @if($subtitle)
+                        <p class="text-xs text-slate-500 mt-0.5">{{ $subtitle }}</p>
+                    @endif
+                </div>
+                <button type="button" data-modal-close
+                        class="w-8 h-8 -mr-1 shrink-0 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                        aria-label="Tutup {{ $title }}">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
         @endif
 
-        <div class="p-6">
+        {{-- Isi modal boleh menggulir sendiri, kepala & kaki tetap diam. --}}
+        <div class="p-5 overflow-y-auto grow min-h-0">
             {{ $slot }}
         </div>
 
         @isset($footer)
-            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100">
+            <div class="flex items-center justify-end gap-2 px-5 py-3 border-t border-slate-200 shrink-0">
                 {{ $footer }}
             </div>
         @endisset

@@ -5,7 +5,7 @@
 
     <x-page-header title="Manajemen Pengguna" subtitle="Kelola akun login dan sinkronisasi hak akses karyawan.">
         <x-slot:actions>
-            <x-button onclick="toggleModal('modalUser')">
+            <x-button onclick="toggleModal('user-tambah')">
                 <i class="fas fa-user-plus"></i>
                 Buat Akun User
             </x-button>
@@ -27,14 +27,14 @@
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-6 py-5">
-                    <span class="text-[13px] text-indigo-600 font-bold">{{ '@' . $u->username }}</span>
+                    <span class="text-[13px] text-indigo-600 font-medium">{{ '@' . $u->username }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <div class="text-[13px] font-bold text-slate-700 uppercase">{{ $u->karyawan->nama_karyawan }}</div>
+                    <div class="text-[13px] font-medium text-slate-700 uppercase">{{ $u->karyawan->nama_karyawan }}</div>
                     <div class="text-[10px] text-slate-400">{{ $u->karyawan->bagian }}</div>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
                         <i class="fas fa-shield-alt mr-1.5"></i> {{ $u->role->nama_role }}
                     </span>
                 </td>
@@ -61,20 +61,14 @@
 
 </div>
 
-<div id="modalUser" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleModal('modalUser')"></div>
-    <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-1.5 bg-indigo-600"></div>
-        
-        <h3 class="text-xl font-bold mb-6 text-slate-900 flex items-center gap-2">
-            <span>🔐</span> Buat Akses User Baru
-        </h3>
-        
-        <form action="{{ route('users.store') }}" method="POST" class="space-y-4">
+<x-modal id="user-tambah" title="Tambah Pengguna"
+         subtitle="Akun login beserta bagian dan akses menu"
+         icon="fa-user-gear" maxWidth="md">
+<form action="{{ route('users.store') }}" method="POST" class="space-y-4">
             @csrf
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1 ml-1">Tautkan Karyawan</label>
-                <select name="id_karyawan" id="pilih_karyawan_baru" onchange="autoPilihRole(this, 'id_role_baru')" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 transition" required>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Tautkan Karyawan</label>
+                <select name="id_karyawan" id="pilih_karyawan_baru" onchange="autoPilihRole(this, 'id_role_baru')" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500 transition" required>
                     <option value="">-- Pilih Nama Karyawan --</option>
                     @foreach($karyawan as $k)
                         <option value="{{ $k->id_karyawan }}" data-bagian="{{ $k->bagian }}">{{ $k->nama_karyawan }} ({{ $k->bagian }})</option>
@@ -84,59 +78,51 @@
 
             <div class="grid grid-cols-1 gap-4">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1 ml-1">Username</label>
-                    <input type="text" name="username" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="contoh: admin_cetak" required>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
+                    <input type="text" name="username" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500 transition" placeholder="contoh: admin_cetak" required>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1 ml-1">Password Awal</label>
-                    <input type="password" name="password" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="••••••••" required>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Password Awal</label>
+                    <input type="password" name="password" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500 transition" placeholder="••••••••" required>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1 ml-1">Role / Tingkat Akses</label>
-                <select name="id_role" id="id_role_baru" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 transition" required>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Role / Tingkat Akses</label>
+                <select name="id_role" id="id_role_baru" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500 transition" required>
                     @foreach($roles as $r)
                         <option value="{{ $r->id_role }}" data-nama-role="{{ $r->nama_role }}">{{ $r->nama_role }}</option>
                     @endforeach
                 </select>
-                <p class="text-[11px] text-slate-400 mt-1.5 ml-1">Otomatis tersaran sesuai bagian karyawan - bisa diubah manual bila perlu.</p>
+                <p class="text-[11px] mt-1.5">Otomatis tersaran sesuai bagian karyawan - bisa diubah manual bila perlu.</p>
             </div>
 
             <div class="flex justify-end gap-3 mt-8">
-                <button type="button" onclick="toggleModal('modalUser')" class="px-5 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition">Batal</button>
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95">
+                <button type="button" onclick="toggleModal('user-tambah')" class="text-sm hover:text-slate-700 transition">Batal</button>
+                <button type="submit" class="bg-indigo-600 text-white shadow-lg active:scale-95">
                     Aktifkan Akun
                 </button>
             </div>
         </form>
-    </div>
-</div>
-
+</x-modal>
 {{-- MODAL EDIT: dulunya tombol ini cuma bertuliskan "Reset Password" tanpa
      onclick apapun - UserController::update() sudah ada dan bekerja (bisa
      ganti username/role, dan password kalau diisi), tapi tidak ada satupun
      elemen UI yang memanggilnya. --}}
-<div id="modalEditUser" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleModal('modalEditUser')"></div>
-    <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-1.5 bg-amber-500"></div>
-
-        <h3 class="text-xl font-bold mb-6 text-slate-900 flex items-center gap-2">
-            <span>✏️</span> Edit Akun User
-        </h3>
-
-        <form id="formEditUser" method="POST" class="space-y-4">
+<x-modal id="user-edit" title="Edit Pengguna"
+         subtitle="Perubahan akses berlaku setelah pengguna logout"
+         icon="fa-pen" maxWidth="md">
+<form id="formEditUser" method="POST" class="space-y-4">
             @csrf
             @method('PUT')
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1 ml-1">Username</label>
-                <input type="text" name="username" id="edit_username" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-amber-500 transition" required>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
+                <input type="text" name="username" id="edit_username" class="w-full border-slate-200 px-4 outline-none focus:ring-amber-500 transition" required>
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1 ml-1">Role / Tingkat Akses</label>
-                <select name="id_role" id="edit_id_role" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-amber-500 transition" required>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Role / Tingkat Akses</label>
+                <select name="id_role" id="edit_id_role" class="w-full border-slate-200 px-4 outline-none focus:ring-amber-500 transition" required>
                     @foreach($roles as $r)
                         <option value="{{ $r->id_role }}">{{ $r->nama_role }}</option>
                     @endforeach
@@ -144,20 +130,18 @@
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1 ml-1">Password Baru (opsional)</label>
-                <input type="password" name="password" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-amber-500 transition" placeholder="Kosongkan jika tidak diubah">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Password Baru (opsional)</label>
+                <input type="password" name="password" class="w-full border-slate-200 px-4 outline-none focus:ring-amber-500 transition" placeholder="Kosongkan jika tidak diubah">
             </div>
 
             <div class="flex justify-end gap-3 mt-8">
-                <button type="button" onclick="toggleModal('modalEditUser')" class="px-5 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition">Batal</button>
-                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-amber-100 transition-all active:scale-95">
+                <button type="button" onclick="toggleModal('user-edit')" class="text-sm hover:text-slate-700 transition">Batal</button>
+                <button type="submit" class="text-white shadow-lg active:scale-95">
                     Simpan Perubahan
                 </button>
             </div>
         </form>
-    </div>
-</div>
-
+</x-modal>
 <script>
     const BAGIAN_ROLE_MAP = @json($bagianRoleMap);
 
@@ -179,16 +163,11 @@
         }
     }
 
-    function toggleModal(id) {
-        const modal = document.getElementById(id);
-        modal.classList.toggle('hidden');
-    }
-
     function openEditUser(user) {
         document.getElementById('formEditUser').action = `{{ url('/users/update') }}/${user.id_user}`;
         document.getElementById('edit_username').value = user.username;
         document.getElementById('edit_id_role').value = user.id_role;
-        toggleModal('modalEditUser');
+        toggleModal('user-edit');
     }
 
     function escapeHtml(str) {

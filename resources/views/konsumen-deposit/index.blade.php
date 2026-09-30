@@ -3,9 +3,9 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Deposit Konsumen" subtitle="Pencatatan setoran deposit pelanggan.">
+    <x-page-header title="Setoran Konsumen" subtitle="Pencatatan setoran deposit pelanggan.">
         <x-slot:actions>
-            <x-button onclick="toggleModal('modalDeposit')">
+            <x-button onclick="toggleModal('deposit-tambah')">
                 <i class="fas fa-piggy-bank"></i>
                 Setoran Baru
             </x-button>
@@ -13,20 +13,22 @@
     </x-page-header>
 
     {{-- SALDO PER KONSUMEN --}}
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden mb-8">
-        <div class="px-8 py-5 border-b border-slate-100 bg-slate-50/50">
-            <h3 class="text-sm font-black text-slate-700 uppercase tracking-tight">Saldo Deposit Aktif</h3>
+    <x-card :padding="false" class="mb-8">
+        <div class="px-5 py-4 border-b border-slate-200">
+            {{-- Judul kartu: tanpa huruf besar dan tanpa tracking. Di
+                 OpenCode hierarki datang dari ukuran dan warna, bukan dari
+                 text-transform. --}}
+            <h3 class="text-sm font-medium text-slate-900">Saldo Deposit Aktif</h3>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-8 py-4 text-left">Konsumen</th>
-                        <th class="px-6 py-4 text-center">Golongan</th>
-                        <th class="px-8 py-4 text-right">Saldo Deposit</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
+        <x-table bare>
+            <thead>
+                <tr>
+                    <th class="text-left">Konsumen</th>
+                    <th class="text-center">Golongan</th>
+                    <th class="text-right">Saldo Deposit</th>
+                </tr>
+            </thead>
+            <tbody>
                     @forelse($saldoPerKonsumen as $s)
                     {{-- Baris saldo 0 (deposit pernah ada, sekarang sudah habis
                          terpakai semua) SENGAJA tetap ditampilkan, bukan
@@ -34,18 +36,18 @@
                          KonsumenDepositController::index(). Diberi opacity
                          lebih pudar + badge "Habis Terpakai" supaya beda
                          jelas dari yang masih aktif punya saldo. --}}
-                    <tr class="hover:bg-slate-50/30 transition-all {{ $s->saldo_deposit <= 0 ? 'opacity-60' : '' }}">
-                        <td class="px-8 py-4 text-sm font-bold text-slate-700 uppercase">{{ $s->nama_konsumen }}</td>
-                        <td class="px-6 py-4 text-center">
-                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <tr class="{{ $s->saldo_deposit <= 0 ? 'opacity-60' : '' }}">
+                        <td class="text-sm font-medium text-slate-700">{{ $s->nama_konsumen }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-indigo-50 text-indigo-700">
                                 {{ $s->nama_golongan ?? '-' }}
                             </span>
                         </td>
-                        <td class="px-8 py-4 text-right">
+                        <td class="text-right">
                             @if($s->saldo_deposit > 0)
-                                <span class="text-sm font-black text-emerald-600">Rp {{ number_format($s->saldo_deposit, 0, ',', '.') }}</span>
+                                <span class="text-sm font-medium text-emerald-600">Rp {{ number_format($s->saldo_deposit, 0, ',', '.') }}</span>
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase bg-slate-100 text-slate-400 border border-slate-200" title="Deposit konsumen ini sudah habis terpakai semua - tidak bisa dipakai lagi untuk pembayaran sampai ada setoran baru.">
+                                <span class="badge bg-slate-100 text-slate-400" title="Deposit konsumen ini sudah habis terpakai semua - tidak bisa dipakai lagi untuk pembayaran sampai ada setoran baru.">
                                     <i class="fas fa-ban"></i> Habis Terpakai
                                 </span>
                             @endif
@@ -56,41 +58,39 @@
                         <td colspan="3" class="py-16 text-center text-slate-400 font-medium italic">Belum ada deposit tercatat.</td>
                     </tr>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+            </tbody>
+        </x-table>
+    </x-card>
 
     {{-- RIWAYAT SETORAN --}}
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div class="px-8 py-5 border-b border-slate-100 bg-slate-50/50">
-            <h3 class="text-sm font-black text-slate-700 uppercase tracking-tight">Riwayat Deposit (50 Terbaru)</h3>
+    <x-card :padding="false">
+        <div class="px-5 py-4 border-b border-slate-200">
+            <h3 class="text-sm font-medium text-slate-900">Riwayat Deposit (50 Terbaru)</h3>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-8 py-4 text-left">Tanggal</th>
-                        <th class="px-6 py-4 text-left">Konsumen</th>
-                        <th class="px-6 py-4 text-center">Tipe</th>
-                        <th class="px-6 py-4 text-right">Nominal</th>
-                        <th class="px-6 py-4 text-center">Metode / Nota</th>
-                        <th class="px-6 py-4 text-left">Keterangan</th>
-                        <th class="px-8 py-4 text-center">Dicatat Oleh</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
+        <x-table bare>
+            <thead>
+                <tr>
+                    <th class="text-left">Tanggal</th>
+                    <th class="text-left">Konsumen</th>
+                    <th class="text-center">Tipe</th>
+                    <th class="text-right">Nominal</th>
+                    <th class="text-center">Metode / Nota</th>
+                    <th class="text-left">Keterangan</th>
+                    <th class="text-center">Dicatat Oleh</th>
+                </tr>
+            </thead>
+            <tbody>
                     @forelse($riwayat as $r)
-                    <tr class="hover:bg-slate-50/30 transition-all">
-                        <td class="px-8 py-4 text-sm text-slate-600 font-semibold">{{ \Carbon\Carbon::parse($r->tgl_deposit)->format('d M Y') }}</td>
-                        <td class="px-6 py-4 text-sm font-bold text-slate-700 uppercase">{{ $r->nama_konsumen }}</td>
-                        <td class="px-6 py-4 text-center">
-                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase {{ $r->tipe === 'Setoran' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }}">
+                    <tr>
+                        <td class="text-sm text-slate-600 font-medium">{{ \Carbon\Carbon::parse($r->tgl_deposit)->format('d M Y') }}</td>
+                        <td class="text-sm font-medium text-slate-700">{{ $r->nama_konsumen }}</td>
+                        <td class="text-center">
+                            <span class="badge {{ $r->tipe === 'Setoran' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }}">
                                 {{ $r->tipe }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-right">
-                            <span class="text-sm font-black {{ $r->tipe === 'Setoran' ? 'text-emerald-600' : 'text-rose-500' }}">
+                        <td class="text-right">
+                            <span class="text-sm font-medium {{ $r->tipe === 'Setoran' ? 'text-emerald-600' : 'text-rose-500' }}">
                                 {{ $r->tipe === 'Setoran' ? '+' : '-' }} Rp {{ number_format($r->nominal, 0, ',', '.') }}
                             </span>
                             {{-- Deposit dicatat sebagai saldo terpool per konsumen
@@ -102,115 +102,95 @@
                                 @php $saldoSaatIni = $saldoMap[$r->id_konsumen]->saldo_deposit ?? 0; @endphp
                                 <div class="mt-1">
                                     @if($saldoSaatIni <= 0)
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase bg-slate-100 text-slate-400" title="Saldo deposit konsumen ini sekarang habis - setoran ini (dan setoran lain miliknya) sudah terpakai semua.">
+                                        <span class="badge bg-slate-100 text-slate-400" title="Saldo deposit konsumen ini sekarang habis - setoran ini (dan setoran lain miliknya) sudah terpakai semua.">
                                             <i class="fas fa-ban"></i> Habis Terpakai
                                         </span>
                                     @elseif($saldoSaatIni < $r->nominal)
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-50 text-amber-600" title="Saldo deposit konsumen ini sekarang lebih kecil dari nominal setoran ini - sebagian sudah terpakai.">
+                                        <span class="badge bg-amber-50 text-amber-600" title="Saldo deposit konsumen ini sekarang lebih kecil dari nominal setoran ini - sebagian sudah terpakai.">
                                             <i class="fas fa-adjust"></i> Terpakai Sebagian
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-600">
+                                        <span class="badge bg-emerald-50 text-emerald-600">
                                             <i class="fas fa-check-circle"></i> Tersedia
                                         </span>
                                     @endif
                                 </div>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-center">
+                        <td class="text-center">
                             @if($r->tipe === 'Setoran')
-                                <span class="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase {{ $r->metode_bayar === 'Tunai' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600' }}">
+                                <span class="badge {{ $r->metode_bayar === 'Tunai' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600' }}">
                                     {{ $r->metode_bayar }}
                                 </span>
                             @else
-                                <span class="text-[11px] text-indigo-500">{{ $r->nomor_nota ?? '-' }}</span>
+                                <span class="text-indigo-500">{{ $r->nomor_nota ?? '-' }}</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-sm text-slate-500 italic truncate max-w-xs">{{ $r->keterangan ?? '-' }}</td>
-                        <td class="px-8 py-4 text-center text-[11px] text-slate-400">{{ $r->dicatat_oleh ?? '-' }}</td>
+                        <td class="text-sm text-slate-500 italic truncate max-w-xs">{{ $r->keterangan ?? '-' }}</td>
+                        <td class="text-center text-slate-400">{{ $r->dicatat_oleh ?? '-' }}</td>
                     </tr>
                     @empty
                     <tr>
                         <td colspan="7" class="py-16 text-center text-slate-400 font-medium italic">Belum ada riwayat deposit.</td>
                     </tr>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+            </tbody>
+        </x-table>
+    </x-card>
 </div>
 
-{{-- MODAL SETORAN BARU --}}
-<div id="modalDeposit" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-    <div class="flex items-center justify-center min-h-screen p-6">
-        <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-[500px] overflow-hidden transform transition-all">
+{{-- MODAL SETORAN BARU
 
-            <div class="px-10 py-8 bg-indigo-600 flex justify-between items-center text-white">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-piggy-bank"></i>
-                    <h3 class="text-xl font-bold tracking-tight">Setoran Deposit Baru</h3>
-                </div>
-                <button onclick="toggleModal('modalDeposit')" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                    <i class="fas fa-times text-xs"></i>
-                </button>
-            </div>
-
-            <form action="{{ route('konsumen-deposit.store') }}" method="POST" class="py-10 space-y-5">
+     Tanpa py-10 sendiri (p-5 sudah ada di <x-modal>) dan tanpa
+     max-w + mx-auto yang membuat isinya bergeser ke tengah.
+--}}
+<x-modal id="deposit-tambah" title="Tambah Setoran Konsumen"
+         subtitle="Dana muka yang mengurangi tagihan nota"
+         icon="fa-money-bill-transfer" maxWidth="md">
+<form action="{{ route('konsumen-deposit.store') }}" method="POST" class="space-y-4">
                 @csrf
-                <div class="space-y-5 max-w-[85%] mx-auto">
+                <div>
+                    <label class="block text-[10px] mb-2">Konsumen</label>
+                    <select name="id_konsumen" required
+                            class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
+                        <option value="">-- Pilih Konsumen --</option>
+                        @foreach($konsumen as $k)
+                            <option value="{{ $k->id_konsumen }}">{{ $k->nama_konsumen }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] mb-2">Nominal Deposit</label>
+                    <input type="text" inputmode="numeric" autocomplete="off" name="nominal" placeholder="0" required
+                           class="w-full py-3.5 text-sm text-slate-700 format-ribuan">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Konsumen</label>
-                        <select name="id_konsumen" required
-                               class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner appearance-none">
-                            <option value="">-- Pilih Konsumen --</option>
-                            @foreach($konsumen as $k)
-                                <option value="{{ $k->id_konsumen }}">{{ $k->nama_konsumen }}</option>
-                            @endforeach
+                        <label class="block text-[10px] mb-2">Tanggal</label>
+                        <input type="date" name="tgl_deposit" value="{{ date('Y-m-d') }}" required
+                               class="w-full py-3.5 text-sm font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] mb-2">Metode</label>
+                        <select name="metode_bayar" required
+                                class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
+                            <option value="Tunai">Tunai</option>
+                            <option value="Transfer">Transfer</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Nominal Deposit</label>
-                        <input type="text" inputmode="numeric" autocomplete="off" name="nominal" placeholder="0" required
-                               class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner format-ribuan">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Tanggal</label>
-                            <input type="date" name="tgl_deposit" value="{{ date('Y-m-d') }}" required
-                                   class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Metode</label>
-                            <select name="metode_bayar" required
-                                   class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner appearance-none">
-                                <option value="Tunai">Tunai</option>
-                                <option value="Transfer">Transfer</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-left">Keterangan</label>
-                        <textarea name="keterangan" placeholder="Keterangan setoran (opsional)..."
-                                  class="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner"></textarea>
-                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] mb-2">Keterangan</label>
+                    <textarea name="keterangan" placeholder="Keterangan setoran (opsional)..."
+                              class="w-full py-3.5 text-sm font-medium text-slate-700"></textarea>
                 </div>
 
-                <div class="flex flex-col items-center gap-3 pt-4 max-w-[70%] mx-auto">
-                    <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100">Simpan Setoran</button>
-                    <button type="button" onclick="toggleModal('modalDeposit')" class="w-full py-4 bg-transparent text-slate-400 rounded-2xl text-[11px] font-bold uppercase tracking-widest">Batalkan</button>
-                </div>
+                <x-slot:footer>
+                    <x-button type="button" variant="secondary" onclick="toggleModal('deposit-tambah')">Batal</x-button>
+                    <x-button type="submit">Simpan Setoran</x-button>
+                </x-slot:footer>
             </form>
-        </div>
-    </div>
-</div>
-
+</x-modal>
 <script>
-    function toggleModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.classList.toggle('hidden');
-            document.body.style.overflow = modal.classList.contains('hidden') ? 'auto' : 'hidden';
-        }
-    }
 </script>
 @endsection

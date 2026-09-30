@@ -4,7 +4,7 @@
 @php $bisaUbah = \App\Support\Izin::boleh(auth()->user(), [23], 'edit'); @endphp
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="QC & Rework">
+    <x-page-header title="QC & Reparasi">
         <x-slot:subtitle>
             <i class="fas fa-clipboard-check text-amber-400"></i>
             Pemeriksaan hasil cetak per item order - item yang ditolak otomatis membuka Rework
@@ -14,7 +14,7 @@
         </x-slot:actions>
     </x-page-header>
 
-    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Rework</h2>
+    <h2 class="text-xs font-medium text-slate-500 uppercase tracking-widest mb-3">Rework</h2>
     <x-table class="mb-10">
         <thead>
             <tr>
@@ -29,9 +29,9 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($rework as $r)
             <tr>
-                <td class="px-8 py-4 text-[13px] font-bold text-slate-700">{{ $r->nomor }}</td>
+                <td class="px-8 py-4 text-[13px] font-medium text-slate-700">{{ $r->nomor }}</td>
                 <td class="px-6 py-4 text-xs text-slate-500">{{ $r->nomor_nota }} - {{ $r->nama_file }}</td>
-                <td class="px-6 py-4 text-right text-sm font-semibold">{{ angka($r->qty_rework, 4) }}</td>
+                <td class="px-6 py-4 text-right text-sm font-medium">{{ angka($r->qty_rework, 4) }}</td>
                 @bolehHarga<td class="px-6 py-4 text-right text-sm">{{ $r->status === 'Selesai' ? 'Rp ' . number_format($r->biaya_material, 0, ',', '.') : '-' }}</td>@endbolehHarga
                 <td class="px-6 py-4 text-center"><x-badge :status="$r->status" :variant="$r->status === 'Selesai' ? 'success' : 'warning'" /></td>
                 <td class="px-8 py-4 text-right">
@@ -50,7 +50,7 @@
     </x-table>
     <x-table.pagination :paginator="$rework" />
 
-    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-10 mb-3">Riwayat QC</h2>
+    <h2 class="text-xs font-medium text-slate-500 uppercase tracking-widest mt-10 mb-3">Riwayat QC</h2>
     <x-table>
         <thead>
             <tr>
@@ -69,11 +69,11 @@
                 $cek = collect(json_decode($q->checklist ?? '[]', true))->filter()->keys()->map(fn ($k) => \App\Services\QcService::CHECKLIST[$k] ?? $k)->implode(', ');
             @endphp
             <tr>
-                <td class="px-8 py-4"><span class="text-[13px] font-bold text-slate-700">{{ $q->nomor }}</span><div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($q->tanggal)->format('d M Y') }} - {{ $q->username }}</div></td>
+                <td class="px-8 py-4"><span class="text-[13px] font-medium text-slate-700">{{ $q->nomor }}</span><div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($q->tanggal)->format('d M Y') }} - {{ $q->username }}</div></td>
                 <td class="px-6 py-4 text-xs text-slate-500">{{ $q->nomor_nota }} - {{ $q->nama_file }}</td>
                 <td class="px-6 py-4 text-right text-sm">{{ angka($q->qty_diperiksa, 4) }}</td>
-                <td class="px-6 py-4 text-right text-sm text-emerald-600 font-semibold">{{ $q->qty_lolos }}</td>
-                <td class="px-6 py-4 text-right text-sm text-rose-500 font-semibold">{{ angka($q->qty_reject, 4) }}</td>
+                <td class="px-6 py-4 text-right text-sm text-emerald-600 font-medium">{{ $q->qty_lolos }}</td>
+                <td class="px-6 py-4 text-right text-sm text-rose-500 font-medium">{{ angka($q->qty_reject, 4) }}</td>
                 <td class="px-6 py-4 text-center"><x-badge :status="$q->hasil" :variant="$q->hasil === 'Lulus' ? 'success' : 'danger'" /></td>
                 <td class="px-8 py-4 text-xs text-slate-500">{{ $cek ?: '-' }}{{ $q->catatan ? ' | ' . $q->catatan : '' }}</td>
             </tr>

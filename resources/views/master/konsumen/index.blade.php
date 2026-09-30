@@ -16,16 +16,16 @@
     <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-8">
         <form method="GET" action="{{ route('konsumen.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[260px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Konsumen</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Konsumen</label>
                 <div class="relative">
-                    <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input type="text" name="search" value="{{ request('search') }}"
-                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                            placeholder="Ketik nama atau no. telepon...">
                 </div>
             </div>
             <div class="w-full md:w-56">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Golongan</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Golongan</label>
                 <select name="id_golongan" class="select2-filter w-full">
                     <option value="">Semua Golongan</option>
                     @foreach($golongan as $g)
@@ -33,7 +33,7 @@
                     @endforeach
                 </select>
             </div>
-            <button type="submit" class="h-[46px] px-6 bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700">Filter</button>
+            <button type="submit" class="h-[46px] px-6 bg-indigo-600 text-white rounded-xl text-[11px] font-medium uppercase tracking-widest hover:bg-indigo-700">Filter</button>
             <a href="{{ route('konsumen.index') }}" class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
                 <i class="fas fa-undo-alt text-sm"></i>
             </a>
@@ -57,11 +57,11 @@
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $konsumen->firstItem() + $i }}</td>
                 <td class="px-8 py-5">
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-bold text-xs">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-medium text-xs">
                             {{ substr($k->nama_konsumen, 0, 1) }}
                         </div>
                         <div>
-                            <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors uppercase">
+                            <div class="text-[14px] font-medium text-slate-700 group-hover:text-indigo-600 transition-colors uppercase">
                                 {{ $k->nama_konsumen }}
                             </div>
                             <div class="text-[11px] text-slate-400 mt-0.5">ID: #CST-{{ $k->id_konsumen }}</div>
@@ -71,13 +71,13 @@
 
                 <td class="px-6 py-5 text-left">
                     <div class="flex flex-col">
-                        <span class="text-sm font-semibold text-indigo-600 mb-1"><i class="fab fa-whatsapp mr-1"></i> {{ $k->telepon }}</span>
+                        <span class="text-sm font-medium text-indigo-600 mb-1"><i class="fab fa-whatsapp mr-1"></i> {{ $k->telepon }}</span>
                         <span class="text-[11px] text-slate-400 truncate max-w-[200px]">{{ $k->alamat ?? 'Tanpa alamat' }}</span>
                     </div>
                 </td>
 
                 <td class="px-6 py-5 text-center">
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
                         {{ $k->nama_golongan }}
                     </span>
                 </td>

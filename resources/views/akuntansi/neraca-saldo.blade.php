@@ -29,10 +29,10 @@
     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 mb-6 no-print">
         <form method="GET" class="flex flex-wrap items-end gap-4">
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Per Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Per Tanggal</label>
                 <input type="date" name="akhir" value="{{ $akhir }}" class="bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
             </div>
-            <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700">
+            <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[11px] font-medium uppercase tracking-widest hover:bg-indigo-700">
                 <i class="fas fa-filter mr-1"></i> Tampilkan
             </button>
         </form>
@@ -54,20 +54,20 @@
                 @forelse($rows as $i => $r)
                 <tr class="hover:bg-slate-50/30 transition-all">
                     <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
-                    <td class="px-8 py-3 text-sm font-bold text-slate-600">{{ $r->kode_akun }}</td>
+                    <td class="px-8 py-3 text-sm font-medium text-slate-600">{{ $r->kode_akun }}</td>
                     <td class="px-6 py-3 text-sm text-slate-700">
                         {{ $r->nama_akun }}
                         @if($r->saldo_tidak_normal)
-                            <span class="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 uppercase" title="Saldo terbalik dari saldo normal yang didefinisikan">
+                            <span class="ml-2 inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 uppercase" title="Saldo terbalik dari saldo normal yang didefinisikan">
                                 <i class="fas fa-exclamation-triangle"></i> Tidak Normal
                             </span>
                         @endif
                     </td>
                     <td class="px-6 py-3 text-xs text-slate-400">{{ $r->tipe_akun }}</td>
-                    <td class="px-6 py-3 text-right text-sm {{ $r->kolom_debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                    <td class="px-6 py-3 text-right text-sm {{ $r->kolom_debet > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
                         {{ $r->kolom_debet > 0 ? number_format($r->kolom_debet, 0, ',', '.') : '-' }}
                     </td>
-                    <td class="px-8 py-3 text-right text-sm {{ $r->kolom_kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                    <td class="px-8 py-3 text-right text-sm {{ $r->kolom_kredit > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
                         {{ $r->kolom_kredit > 0 ? number_format($r->kolom_kredit, 0, ',', '.') : '-' }}
                     </td>
                 </tr>
@@ -80,12 +80,12 @@
             @if($rows->isNotEmpty())
             <tfoot>
                 <tr class="bg-slate-50/70 border-t-2 border-slate-100">
-                    <td colspan="4" class="px-8 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total</td>
-                    <td class="px-6 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
-                    <td class="px-8 py-4 text-right text-sm font-black text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
+                    <td colspan="4" class="px-8 py-4 text-right text-[11px] font-medium text-slate-500 uppercase tracking-widest">Total</td>
+                    <td class="px-6 py-4 text-right text-sm font-medium text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
+                    <td class="px-8 py-4 text-right text-sm font-medium text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
-                    <td colspan="6" class="px-8 py-3 text-center text-[10px] font-bold uppercase tracking-widest {{ abs($totalDebet - $totalKredit) < 0.01 ? 'text-emerald-600 bg-emerald-50/50' : 'text-rose-600 bg-rose-50/50' }}">
+                    <td colspan="6" class="px-8 py-3 text-center text-[10px] font-medium uppercase tracking-widest {{ abs($totalDebet - $totalKredit) < 0.01 ? 'text-emerald-600 bg-emerald-50/50' : 'text-rose-600 bg-rose-50/50' }}">
                         @if(abs($totalDebet - $totalKredit) < 0.01)
                             <i class="fas fa-check-circle"></i> Balance - Total Debet = Total Kredit
                         @else
@@ -104,7 +104,7 @@
             @forelse($rows as $i => $r)
             <tr>
                 <td class="px-3 py-1.5 text-center text-slate-400">{{ $i + 1 }}</td>
-                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $r->kode_akun }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700">{{ $r->kode_akun }}</td>
                 <td class="px-3 py-1.5 text-slate-700">{{ $r->nama_akun }}{{ $r->saldo_tidak_normal ? ' (Tidak Normal)' : '' }}</td>
                 <td class="px-3 py-1.5 text-slate-500">{{ $r->tipe_akun }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->kolom_debet > 0 ? number_format($r->kolom_debet, 0, ',', '.') : '-' }}</td>
@@ -117,12 +117,12 @@
             @endforelse
             @if($rows->isNotEmpty())
             <tr class="bg-slate-50 border-t border-slate-200">
-                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="4">Total</td>
-                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
-                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700 uppercase" colspan="4">Total</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($totalDebet, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($totalKredit, 0, ',', '.') }}</td>
             </tr>
             <tr>
-                <td class="px-3 py-1.5 text-center font-bold text-slate-700" colspan="6">
+                <td class="px-3 py-1.5 text-center font-medium text-slate-700" colspan="6">
                     {{ abs($totalDebet - $totalKredit) < 0.01 ? 'Balance - Total Debet = Total Kredit' : 'TIDAK BALANCE - Selisih ' . number_format(abs($totalDebet - $totalKredit), 0, ',', '.') }}
                 </td>
             </tr>

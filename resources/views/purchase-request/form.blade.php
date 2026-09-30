@@ -6,15 +6,15 @@
     $rows = old('items', $pr ? $pr->details->map(fn ($d) => ['id_bahan' => $d->id_bahan, 'qty' => $d->qty, 'catatan' => $d->catatan])->all() : [['id_bahan' => '', 'qty' => '', 'catatan' => '']]);
     $variantMap = ['Draft' => 'info', 'Diajukan' => 'warning', 'Disetujui' => 'success', 'Ditolak' => 'danger', 'Diproses PO' => 'success'];
     $statusInfo = [
-        'Diajukan'     => 'Sedang menunggu persetujuan di Approval Workflow.',
-        'Disetujui'    => 'Sudah disetujui - lanjutkan dengan menekan tombol Buat PO di daftar Purchase Request.',
-        'Ditolak'      => 'Ditolak oleh persetujuan. Buat Purchase Request baru bila masih diperlukan.',
-        'Diproses PO'  => 'Sudah dijadikan Purchase Order - ubah qty/harga lewat PO-nya.',
+        'Diajukan'     => 'Sedang menunggu persetujuan di Alur Persetujuan.',
+        'Disetujui'    => 'Sudah disetujui - lanjutkan dengan menekan tombol Buat PO di daftar Permintaan Pembelian.',
+        'Ditolak'      => 'Ditolak oleh persetujuan. Buat Permintaan Pembelian baru bila masih diperlukan.',
+        'Diproses PO'  => 'Sudah dijadikan Pesanan Pembelian - ubah qty/harga lewat PO-nya.',
     ][$pr->status ?? ''] ?? null;
 @endphp
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1100px] mx-auto">
 
-    <x-page-header title="{{ $pr ? 'Purchase Request ' . $pr->nomor : 'Purchase Request Baru' }}">
+    <x-page-header title="{{ $pr ? 'Permintaan Pembelian ' . $pr->nomor : 'Permintaan Pembelian Baru' }}">
         <x-slot:subtitle>
             <i class="fas fa-clipboard-list text-amber-400"></i>
             {{ $editable ? 'Isi bahan yang perlu dibeli, simpan sebagai Draft, lalu ajukan untuk persetujuan' : 'Hanya-baca - sudah tidak berstatus Draft' }}
@@ -30,8 +30,8 @@
         <div class="mb-6 rounded-2xl border border-rose-100 bg-rose-50/80 p-4 flex items-start gap-3">
             <span class="w-8 h-8 shrink-0 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center"><i class="fas fa-exclamation-triangle text-xs"></i></span>
             <div class="min-w-0">
-                <p class="text-sm font-bold text-rose-700">Form belum bisa disimpan</p>
-                <ul class="mt-1 text-[13px] font-semibold text-rose-600 space-y-0.5">
+                <p class="text-sm font-medium text-rose-700">Form belum bisa disimpan</p>
+                <ul class="mt-1 text-[13px] font-medium text-rose-600 space-y-0.5">
                     @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
                 </ul>
             </div>
@@ -39,7 +39,7 @@
     @endif
 
     @if(!$editable && $statusInfo)
-        <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-700 text-sm font-semibold flex items-start gap-3">
+        <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-700 text-sm font-medium flex items-start gap-3">
             <i class="fas fa-lock mt-0.5"></i>
             <span>Document ini hanya-baca karena berstatus <b>{{ $pr->status }}</b>. {{ $statusInfo }}</span>
         </div>
@@ -88,7 +88,7 @@
                         </select>
                         @if(!$editable)<input type="hidden" name="items[{{ $i }}][id_bahan]" value="{{ $r['id_bahan'] }}">{{-- nilai tetap terkirim meski select disabled --}}@endif
                     </td>
-                    <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'readonly' }}><span class="pr-unit block mt-1 text-right text-[10px] font-black text-indigo-600 uppercase"></span></td>
+                    <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'readonly' }}><span class="pr-unit block mt-1 text-right text-[10px] font-medium text-indigo-600 uppercase"></span></td>
                     <td class="px-4 py-3"><input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" {{ $editable ? '' : 'readonly' }}></td>
                     @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>@endif
                 </tr>
@@ -114,7 +114,7 @@
 
     @if($pr && $editable)
         <form id="form-ajukan-pr" method="POST" action="{{ route('purchase-request.ajukan', $pr->id) }}">@csrf @method('PATCH')</form>
-        <form id="form-hapus-pr" method="POST" action="{{ route('purchase-request.destroy', $pr->id) }}" onsubmit="return confirm('Hapus Purchase Request ini?');">@csrf @method('DELETE')</form>
+        <form id="form-hapus-pr" method="POST" action="{{ route('purchase-request.destroy', $pr->id) }}" onsubmit="return confirm('Hapus Permintaan Pembelian ini?');">@csrf @method('DELETE')</form>
     @endif
 
     <template id="row-template">
@@ -127,7 +127,7 @@
                     @endforeach
                 </select>
             </td>
-            <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required><span class="pr-unit block mt-1 text-right text-[10px] font-black text-indigo-600 uppercase"></span></td>
+            <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required><span class="pr-unit block mt-1 text-right text-[10px] font-medium text-indigo-600 uppercase"></span></td>
             <td class="px-4 py-3"><input type="text" maxlength="255" name="items[__I__][catatan]" class="w-full rounded-xl border-slate-200 text-xs p-2"></td>
             <td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>
         </tr>

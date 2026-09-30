@@ -74,12 +74,17 @@ class AksesController extends Controller
 
     public function update(Request $request)
     {
+        $validated = $request->validate([
+            'role_id' => ['required', 'integer', 'exists:roles,id_role'],
+            'boleh_lihat_harga' => ['nullable', 'boolean'],
+        ]);
+
         // Jalur lama (satu form untuk semua role): permissions[id_role][] = id_menu -> semua aksi diberikan.
         if ($request->has('permissions') || !$request->has('role_id')) {
             return $this->updateLama($request);
         }
 
-        $role = Role::findOrFail((int) $request->input('role_id'));
+        $role = Role::findOrFail((int) $validated['role_id']);
         // Optimistic locking: hak role ini sudah diubah admin lain sejak halaman dibuka -> jangan menimpa.
         if ($request->filled('_versi') && $request->input('_versi') !== $this->versiRole((int) $role->id_role)) {
             return redirect()->route('akses.index', ['role' => $role->id_role])->with('error', 'Hak akses role ini sudah diubah oleh admin lain sejak Anda membukanya, jadi perubahan Anda TIDAK disimpan. Halaman sudah dimuat ulang dengan data terbaru - ulangi perubahan Anda.');
@@ -97,7 +102,7 @@ class AksesController extends Controller
             if ($baris) {
                 DB::table('role_permissions')->insert($baris);
             }
-            $role->boleh_lihat_harga = $role->nama_role === 'Administrator' || $request->boolean('boleh_lihat_harga');
+            $role->boleh_lihat_harga = $role->nama_role === 'Administrator' || (bool) ($validated['boleh_lihat_harga'] ?? false);
             $role->save();
         });
 
@@ -109,10 +114,36 @@ class AksesController extends Controller
 
     private function updateLama(Request $request)
     {
-        DB::transaction(function () use ($request) {
+        // Jalur ini menulis id_role dan id_menu LANGSUNG dari request ke
+        // tabel role_permissions. Sebelumnya keduanya dibiarkan mentah:
+        // request buatan bisa menyisipkan id_role atau id_menu yang tidak
+        // ada, dan foreach di bawahnya akan iterate karakter demi
+        // karakter kalau nilainya string, bukan array.
+        $valid = $request->validate([
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['array'],
+            'permissions.*.*' => ['integer', 'min:1'],
+            'lihat_harga' => ['nullable', 'array'],
+            'lihat_harga.*' => ['integer', 'min:1'],
+        ]);
+
+        $idRoleValid = Role::pluck('id_role')->map(fn ($x) => (int) $x)->all();
+        $idMenuValid = Menu::pluck('id_menu')->map(fn ($x) => (int) $x)->all();
+
+        $permissions = $valid['permissions'] ?? [];
+        $dilewati = 0;
+        foreach ($permissions as $roleId => $menuIds) {
+            if (! in_array((int) $roleId, $idRoleValid, true)) { $dilewati++; continue; }
+            $permissions[(int) $roleId] = array_values(array_filter(
+                array_map('intval', (array) $menuIds),
+                fn ($m) => in_array($m, $idMenuValid, true)
+            ));
+        }
+
+        DB::transaction(function () use ($permissions, $valid, $idRoleValid) {
             DB::table('role_permissions')->delete();
             $dataToInsert = [];
-            foreach ((array) $request->input('permissions', []) as $roleId => $menuIds) {
+            foreach ($permissions as $roleId => $menuIds) {
                 foreach ($menuIds as $menuId) {
                     $dataToInsert[] = ['id_role' => $roleId, 'id_menu' => $menuId, 'can_view' => 1, 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1];
                 }
@@ -121,13 +152,24 @@ class AksesController extends Controller
                 DB::table('role_permissions')->insert($dataToInsert);
             }
 
-            $bolehLihat = collect($request->input('lihat_harga', []))->map(fn ($id) => (int) $id)->all();
+            $bolehLihat = collect($valid['lihat_harga'] ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->filter(fn ($id) => in_array($id, $idRoleValid, true))
+                ->all();
             foreach (Role::all() as $role) {
                 $role->boleh_lihat_harga = $role->nama_role === 'Administrator' || in_array((int) $role->id_role, $bolehLihat, true);
                 $role->save();
             }
         });
         Izin::lupakan();
+
+        // Jalur lama ini sebelumnya TIDAK menulis audit log, padahal ia
+        // menghapus SELURUH tabel role_permissions dan menulis ulang
+        // semua hak akses. Perubahan sedah dramatik tanpa jejak.
+        AuditLogger::log('updated', 'role_permissions', 0, null,
+            ['jumlah_role' => count($permissions), 'dilewati' => $dilewati],
+            'Hak akses seluruh role disinkronkan lewat formulir lama' . ($dilewati ? " ({$dilewati} role diabaikan karena tidak dikenal)" : '')
+        );
 
         return back()->with('success', 'Hak akses seluruh role berhasil disinkronkan!');
     }
@@ -154,6 +196,15 @@ class AksesController extends Controller
 
     public function userUpdate(Request $request, int $id)
     {
+        $request->validate([
+            'izin' => ['nullable', 'array'],
+            'izin.*' => ['nullable', 'array'],
+            'izin.*.view' => ['nullable', 'boolean'],
+            'izin.*.add' => ['nullable', 'boolean'],
+            'izin.*.edit' => ['nullable', 'boolean'],
+            'izin.*.delete' => ['nullable', 'boolean'],
+        ]);
+
         $user = User::findOrFail($id);
         if ($request->filled('_versi') && $request->input('_versi') !== $this->versiUser((int) $user->id_user)) {
             return redirect()->route('akses.user', $user->id_user)->with('error', 'Hak akses user ini sudah diubah admin lain sejak Anda membukanya, jadi perubahan Anda TIDAK disimpan. Halaman sudah dimuat ulang dengan data terbaru.');

@@ -10,25 +10,25 @@
     </x-page-header>
 
     @if (session('success'))
-        <div class="bg-emerald-50 text-emerald-700 p-4 rounded-2xl mb-6 font-semibold">{{ session('success') }}</div>
+        <div class="bg-emerald-50 text-emerald-700 p-4 rounded-2xl mb-6 font-medium">{{ session('success') }}</div>
     @endif
     @if (session('error'))
-        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-semibold">{{ session('error') }}</div>
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-medium">{{ session('error') }}</div>
     @endif
     @if ($errors->any())
-        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-semibold">
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-medium">
             <ul class="list-disc list-inside space-y-1">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
         </div>
     @endif
 
-    <div class="bg-indigo-50 text-indigo-700 p-4 rounded-2xl mb-6 text-xs font-semibold flex items-start gap-2">
+    <div class="bg-indigo-50 text-indigo-700 p-4 rounded-2xl mb-6 text-xs font-medium flex items-start gap-2">
         <i class="fas fa-circle-info mt-0.5"></i>
         <span>Cara kerja: tiap operator desain punya <b>kelas</b>, dan tiap kelas punya <b>persen komisi</b> dari biaya desain yang ia terapkan di nota. Persen dicatat (snapshot) saat nota dibuat, jadi mengubah persen di sini hanya berlaku untuk nota berikutnya. Komisi dibayarkan berkala dari Laporan Biaya &amp; Komisi Desain.</span>
     </div>
 
     {{-- KELAS --}}
     <x-card class="mb-8">
-        <h3 class="text-sm font-bold text-slate-800 mb-4">Kelas Desainer</h3>
+        <h3 class="text-sm font-medium text-slate-800 mb-4">Kelas Desainer</h3>
         <x-table bare>
             <thead>
                 <tr>
@@ -62,7 +62,7 @@
                     <td class="p-3"><x-form.input type="number" step="0.01" min="0" max="100" name="persen_komisi" form="form-kelas-baru" placeholder="0" required /></td>
                     <td class="p-3"><x-form.input type="text" name="keterangan" form="form-kelas-baru" placeholder="Keterangan (opsional)" /></td>
                     <td class="p-3"></td>
-                    <td class="p-3 text-center"><button type="submit" form="form-kelas-baru" title="Tambah kelas baru" class="px-3 py-2 rounded-xl bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-700"><i class="fas fa-plus"></i> Tambah</button></td>
+                    <td class="p-3 text-center"><button type="submit" form="form-kelas-baru" title="Tambah kelas baru" class="px-3 py-2 rounded-xl bg-indigo-600 text-white text-[10px] font-medium uppercase tracking-widest hover:bg-indigo-700"><i class="fas fa-plus"></i> Tambah</button></td>
                 </tr>
             </tbody>
         </x-table>
@@ -70,7 +70,7 @@
 
     {{-- ANGGOTA --}}
     <x-card>
-        <h3 class="text-sm font-bold text-slate-800 mb-4">Kelas per Operator Desain</h3>
+        <h3 class="text-sm font-medium text-slate-800 mb-4">Kelas per Operator Desain</h3>
         <x-table bare>
             <thead>
                 <tr>
@@ -84,7 +84,7 @@
                 @forelse($anggota as $a)
                 <tr>
                     <form method="POST" action="{{ route('desainer.anggota', $a->id_user) }}" id="form-anggota-{{ $a->id_user }}">@csrf</form>
-                    <td class="p-3 text-xs font-bold text-slate-700">{{ $a->nama }}</td>
+                    <td class="p-3 text-xs font-medium text-slate-700">{{ $a->nama }}</td>
                     <td class="p-3 text-xs text-slate-500">{{ $a->username }}</td>
                     <td class="p-3">
                         <x-form.select name="id_kelas" form="form-anggota-{{ $a->id_user }}" title="Kelas menentukan persen komisi operator ini">

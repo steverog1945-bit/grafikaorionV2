@@ -1,43 +1,26 @@
-@props([
-    'id'       => null,
-    'title'    => null,
-    'maxWidth' => 'lg', // sm | md | lg | xl | 2xl
-])
+{{--
+    DEPRECATED - pakai <x-modal>.
 
-@php
-    $widths = [
-        'sm' => 'max-w-sm', 'md' => 'max-w-md', 'lg' => 'max-w-lg',
-        'xl' => 'max-w-xl', '2xl' => 'max-w-2xl', '3xl' => 'max-w-3xl',
-        '4xl' => 'max-w-4xl', '5xl' => 'max-w-5xl', '6xl' => 'max-w-6xl',
-    ];
-    $widthClass = $widths[$maxWidth] ?? $widths['lg'];
-@endphp
+    File ini pernah jadi salinan komponen modal sebelum komponennya
+    ada. Sekarang isinya sudah dibuang: <x-modal> adalah satu-
+    satunya tempat markup modal didefinisikan, supaya radius, tinggi,
+    font, animasi, Escape, dan klik-luar tidak mungkin berbeda antar
+    halaman.
 
-<div id="modal-{{ $id }}" class="hidden fixed inset-0 z-[60] items-center justify-center p-4">
-    {{-- Backdrop --}}
-    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeModal('{{ $id }}')"></div>
+    Isi lama juga sudah menyimpang: radius 16px, tombol tutup tanpa
+    hitung tinggi, panel memakai overflow-y-auto sehingga header ikut
+    tergulir, dan tidak punya penanda data-modal-root sehingga Escape
+    serta klik-luar tidak pernah bekerja di halaman mana pun yang
+    memakainya.
 
-    {{-- Panel --}}
-    <div class="relative bg-white w-full {{ $widthClass }} rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-        @if($title)
-            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-                <h3 id="modal-{{ $id }}-title" class="text-base font-bold text-slate-800">{{ $title }}</h3>
-                <button type="button" onclick="closeModal('{{ $id }}')" class="text-slate-400 hover:text-rose-500 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        @endif
+    Sengaja tidak dihapus: kalau view lama di luar repo masih
+    merujuk ke 'layouts.modal', file ini akan diam-diam merender
+    modal yang rusak. Lebih aman meneruskan ke komponen yang benar.
+--}}
+<x-modal :id="$id" :title="$title ?? null" :maxWidth="$maxWidth ?? 'lg'">
+    {{ $slot }}
 
-        <div class="p-6">
-            {{ $slot }}
-        </div>
-
-        @isset($footer)
-            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100">
-                {{ $footer }}
-            </div>
-        @endisset
-    </div>
-</div>
+    @isset($footer)
+        <x-slot:footer>{{ $footer }}</x-slot:footer>
+    @endisset
+</x-modal>

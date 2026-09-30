@@ -29,7 +29,7 @@
     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 mb-6 no-print">
         <form method="GET" class="flex flex-wrap items-end gap-4">
             <div class="min-w-[260px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Akun</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Akun</label>
                 <select name="kode_akun" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
                     @foreach($daftarAkun as $a)
                         <option value="{{ $a->kode_akun }}" {{ $kodeAkun == $a->kode_akun ? 'selected' : '' }}>{{ $a->kode_akun }} - {{ $a->nama_akun }}</option>
@@ -37,14 +37,14 @@
                 </select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Dari Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Dari Tanggal</label>
                 <input type="date" name="awal" value="{{ $awal }}" class="bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Sampai Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Sampai Tanggal</label>
                 <input type="date" name="akhir" value="{{ $akhir }}" class="bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner">
             </div>
-            <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700">
+            <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[11px] font-medium uppercase tracking-widest hover:bg-indigo-700">
                 <i class="fas fa-filter mr-1"></i> Tampilkan
             </button>
         </form>
@@ -54,10 +54,10 @@
     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
         <div class="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
             <div>
-                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $akun->kode_akun }}</span>
-                <span class="ml-2 text-sm font-bold text-slate-700">{{ $akun->nama_akun }}</span>
+                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $akun->kode_akun }}</span>
+                <span class="ml-2 text-sm font-medium text-slate-700">{{ $akun->nama_akun }}</span>
             </div>
-            <span class="text-[10px] font-bold text-slate-400 uppercase">Saldo Normal: {{ $akun->saldo_normal }}</span>
+            <span class="text-[10px] font-medium text-slate-400 uppercase">Saldo Normal: {{ $akun->saldo_normal }}</span>
         </div>
         <x-table bare>
             <thead>
@@ -72,8 +72,8 @@
             </thead>
             <tbody class="divide-y divide-slate-50">
                 <tr class="bg-slate-50/40">
-                    <td colspan="5" class="px-8 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest">Saldo Awal</td>
-                    <td class="px-8 py-3 text-right text-sm font-bold text-slate-700">{{ number_format($saldoAwal, 0, ',', '.') }}</td>
+                    <td colspan="5" class="px-8 py-3 text-xs font-medium text-slate-500 uppercase tracking-widest">Saldo Awal</td>
+                    <td class="px-8 py-3 text-right text-sm font-medium text-slate-700">{{ number_format($saldoAwal, 0, ',', '.') }}</td>
                 </tr>
                 @forelse($rows as $i => $r)
                 <tr class="hover:bg-slate-50/30 transition-all">
@@ -82,13 +82,13 @@
                     <td class="px-6 py-3 text-sm text-slate-700">
                         <span class="text-xs text-slate-400">{{ $r->no_referensi }}</span> — {{ $r->keterangan }}
                     </td>
-                    <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                    <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
                         {{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}
                     </td>
-                    <td class="px-6 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-bold' : 'text-slate-300' }}">
+                    <td class="px-6 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
                         {{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}
                     </td>
-                    <td class="px-8 py-3 text-right text-sm font-bold text-slate-800">{{ number_format($r->saldo_berjalan, 0, ',', '.') }}</td>
+                    <td class="px-8 py-3 text-right text-sm font-medium text-slate-800">{{ number_format($r->saldo_berjalan, 0, ',', '.') }}</td>
                 </tr>
                 @empty
                 <tr>
@@ -96,8 +96,8 @@
                 </tr>
                 @endforelse
                 <tr class="bg-indigo-50/40 border-t-2 border-indigo-100">
-                    <td colspan="5" class="px-8 py-4 text-right text-[11px] font-bold text-indigo-700 uppercase tracking-widest">Saldo Akhir</td>
-                    <td class="px-8 py-4 text-right text-sm font-black text-indigo-700">{{ number_format($saldoAkhir, 0, ',', '.') }}</td>
+                    <td colspan="5" class="px-8 py-4 text-right text-[11px] font-medium text-indigo-700 uppercase tracking-widest">Saldo Akhir</td>
+                    <td class="px-8 py-4 text-right text-sm font-medium text-indigo-700">{{ number_format($saldoAkhir, 0, ',', '.') }}</td>
                 </tr>
             </tbody>
         </x-table>
@@ -107,8 +107,8 @@
     <div class="hidden print:block">
         <x-laporan.print-table :title="'Buku Besar - ' . $akun->kode_akun . ' ' . $akun->nama_akun" :headers="['#', 'Tanggal', 'No. Referensi / Keterangan', 'Debet', 'Kredit', 'Saldo']" :align="['center', 'left', 'left', 'right', 'right', 'right']">
             <tr class="bg-slate-50">
-                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="5">Saldo Awal</td>
-                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($saldoAwal, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700 uppercase" colspan="5">Saldo Awal</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($saldoAwal, 0, ',', '.') }}</td>
             </tr>
             @forelse($rows as $i => $r)
             <tr>
@@ -117,7 +117,7 @@
                 <td class="px-3 py-1.5 text-slate-700">{{ $r->no_referensi }} — {{ $r->keterangan }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}</td>
-                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($r->saldo_berjalan, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($r->saldo_berjalan, 0, ',', '.') }}</td>
             </tr>
             @empty
             <tr>
@@ -125,8 +125,8 @@
             </tr>
             @endforelse
             <tr class="bg-slate-50 border-t border-slate-200">
-                <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="5">Saldo Akhir</td>
-                <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($saldoAkhir, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700 uppercase" colspan="5">Saldo Akhir</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($saldoAkhir, 0, ',', '.') }}</td>
             </tr>
         </x-laporan.print-table>
     </div>

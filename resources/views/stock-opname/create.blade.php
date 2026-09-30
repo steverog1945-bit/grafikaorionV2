@@ -3,7 +3,7 @@
 @section('content')
 <div class="max-w-2xl mx-auto px-4 py-10">
 
-    <x-page-header title="Stock Opname Baru" subtitle="Semua bahan aktif akan otomatis dimasukkan - isi hasil hitung fisik di langkah berikutnya" />
+    <x-page-header title="Stok Opname Baru" subtitle="Semua bahan aktif akan otomatis dimasukkan - isi hasil hitung fisik di langkah berikutnya" />
 
     <x-card>
         <form method="POST" action="{{ route('stock-opname.store') }}" class="space-y-5">

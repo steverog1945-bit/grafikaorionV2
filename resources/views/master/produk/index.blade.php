@@ -20,13 +20,13 @@
     <x-card class="mb-8">
         <form action="{{ route('produk.index') }}" method="GET" class="flex flex-col lg:flex-row gap-4 lg:items-end">
             <div class="flex-1">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Produk</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Produk</label>
                 <x-form.input type="text" name="search" value="{{ request('search') }}"
                     placeholder="Cari Produk atau Barcode..." />
             </div>
 
             <div class="w-full lg:w-72">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin/Divisi</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin/Divisi</label>
                 <x-form.select name="category" onchange="this.form.submit()">
                     <option value="">Semua Mesin</option>
                     @foreach($mesin as $m)
@@ -38,7 +38,7 @@
             </div>
 
             <div class="w-full lg:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
                 <x-form.select name="status" onchange="this.form.submit()">
                     <option value="aktif" {{ request('status', 'aktif') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                     <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
@@ -72,20 +72,20 @@
             <tr class="group hover:bg-indigo-50/40 transition-all {{ $p->status === 'nonaktif' ? 'opacity-50' : '' }}">
                 <td class="px-4 py-3.5 text-center text-[11px] text-slate-400">{{ $produk->firstItem() + $i }}</td>
                 <td class="px-6 py-3.5">
-                    <div class="font-bold text-slate-800 text-[14px] flex items-center gap-2">
+                    <div class="font-medium text-slate-800 text-[14px] flex items-center gap-2">
                         {{ $p->nama_produk }}
                         @if($p->status === 'nonaktif')
-                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-400 text-[9px] font-bold uppercase tracking-widest">Nonaktif</span>
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-400 text-[9px] font-medium uppercase tracking-widest">Nonaktif</span>
                         @endif
                     </div>
-                    <div class="text-[10px] text-indigo-500 font-bold mt-1 uppercase tracking-widest flex items-center gap-1.5">
+                    <div class="text-[10px] text-indigo-500 font-medium mt-1 uppercase tracking-widest flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
                         {{ $p->nama_kategori ?? 'Umum' }}
                     </div>
                 </td>
 
                 <td class="px-4 py-3.5 text-center">
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest {{ $p->metode_hitung == 'ukuran' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 'bg-blue-50 text-blue-600 border border-blue-100' }}">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-medium uppercase tracking-widest {{ $p->metode_hitung == 'ukuran' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 'bg-blue-50 text-blue-600 border border-blue-100' }}">
                         <i class="fas {{ $p->metode_hitung == 'ukuran' ? 'fa-ruler-combined' : 'fa-layer-group' }} mr-1.5"></i>
                         {{ $p->metode_hitung }}
                     </span>
@@ -96,7 +96,7 @@
                         <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                             <i class="fas fa-boxes text-[11px]"></i>
                         </div>
-                        <span class="text-sm font-bold text-slate-600">
+                        <span class="text-sm font-medium text-slate-600">
                             {{ $p->daftar_bahan ?? 'Belum ada bahan' }}
                         </span>
                     </div>
@@ -105,7 +105,7 @@
                 <td class="px-4 py-3.5 text-center">
                     {{-- Bukan <code> (browser render monospace) - badge biasa
                          senada dengan chip Metode Hitung di kolom sebelah. --}}
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-slate-50 text-indigo-600 text-[10px] font-bold uppercase tracking-widest border border-slate-100">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-slate-50 text-indigo-600 text-[10px] font-medium uppercase tracking-widest border border-slate-100">
                         {{ $p->cara_hitung_pemakaian ?? '-' }}
                     </span>
                 </td>
@@ -165,7 +165,7 @@
                  (padding/radius/jarak antar-field diturunkan) mengikuti gaya
                  field di halaman Input Order - bukan lagi kartu besar berjarak lega. --}}
             <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3 mb-5">
-                <p class="text-[11px] font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest flex items-center gap-2">
                     <i class="fas fa-info-circle"></i> Info Produk
                 </p>
 
@@ -228,7 +228,7 @@
 
                 <label class="flex items-start gap-3 cursor-pointer rounded-xl bg-white shadow-sm px-4 py-3 mb-4">
                     <input type="checkbox" name="spk_lengkap" value="1" id="input_spk_lengkap" class="mt-0.5 w-4 h-4 rounded accent-indigo-600">
-                    <span><span class="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">Cetak SPK lengkap</span><span class="block text-[11px] text-slate-400">SPK memuat gambar, konsumen, desainer, kebutuhan bahan, dan finishing (seperti SPK order jersey) - untuk cetakan tertentu mis. Century + bahan TC yang ada finishing jahit.</span></span>
+                    <span><span class="block text-[11px] font-medium text-slate-600 uppercase tracking-wide">Cetak SPK lengkap</span><span class="block text-[11px] text-slate-400">SPK memuat gambar, konsumen, desainer, kebutuhan bahan, dan finishing (seperti SPK order jersey) - untuk cetakan tertentu mis. Century + bahan TC yang ada finishing jahit.</span></span>
                 </label>
 
                 <x-form.group label="Keterangan">
@@ -244,10 +244,10 @@
                  syncBomFinishing() di ProdukController, bukan panggilan terpisah). --}}
             <div class="bg-white rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden">
                 <div class="flex border-b border-slate-100">
-                    <button type="button" onclick="switchBomTab('bahan')" id="tab-btn-bahan" class="flex-1 py-3 text-[11px] font-bold uppercase tracking-widest transition-all bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500">
+                    <button type="button" onclick="switchBomTab('bahan')" id="tab-btn-bahan" class="flex-1 py-3 text-[11px] font-medium uppercase tracking-widest transition-all bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500">
                         <i class="fas fa-boxes mr-2"></i> Bahan Baku Penyusun
                     </button>
-                    <button type="button" onclick="switchBomTab('finishing')" id="tab-btn-finishing" class="flex-1 py-3 text-[11px] font-bold uppercase tracking-widest transition-all text-slate-400 border-b-2 border-transparent hover:text-slate-600">
+                    <button type="button" onclick="switchBomTab('finishing')" id="tab-btn-finishing" class="flex-1 py-3 text-[11px] font-medium uppercase tracking-widest transition-all text-slate-400 border-b-2 border-transparent hover:text-slate-600">
                         <i class="fas fa-magic mr-2"></i> Finishing Penyusun
                     </button>
                 </div>
@@ -255,7 +255,7 @@
                 <div id="tab-panel-bahan" class="p-5">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                         <div class="md:col-span-1">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Pilih Bahan</label>
+                            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Pilih Bahan</label>
                             <select id="temp_id_bahan" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
                                 <option value="">-- Pilih Bahan --</option>
                                 @foreach($bahan_baku as $bb)
@@ -269,7 +269,7 @@
                             </select>
                         </div>
                         <div class="md:col-span-1">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cara Hitung Pemakaian</label>
+                            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cara Hitung Pemakaian</label>
                             <select id="temp_rumus" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
                                 <option value="(P*L)/10000">Luas (m²) - [P*L/10000]</option>
                                 <option value="Q">Quantity (1:1) - [Satuan]</option>
@@ -296,7 +296,7 @@
                                 <th class="p-3 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="bom_table_body" class="divide-y divide-slate-50 text-[12px] font-bold text-slate-600">
+                        <tbody id="bom_table_body" class="divide-y divide-slate-50 text-[12px] font-medium text-slate-600">
                             <tr id="empty_state">
                                 <td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
                             </tr>
@@ -308,7 +308,7 @@
                 <div id="tab-panel-finishing" class="p-5 hidden">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                         <div class="md:col-span-1">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Pilih Finishing</label>
+                            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Pilih Finishing</label>
                             <select id="temp_id_finishing" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
                                 <option value="">-- Pilih Finishing --</option>
                                 @foreach($finishing as $f)
@@ -317,7 +317,7 @@
                             </select>
                         </div>
                         <div class="md:col-span-1">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Qty per Produk</label>
+                            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Qty per Produk</label>
                             <input type="number" id="temp_finishing_qty" value="1" min="0.01" step="0.01" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
                         </div>
                         <div class="md:col-span-1 flex items-end">
@@ -336,7 +336,7 @@
                                 <th class="p-3 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="finishing_table_body" class="divide-y divide-slate-50 text-[12px] font-bold text-slate-600">
+                        <tbody id="finishing_table_body" class="divide-y divide-slate-50 text-[12px] font-medium text-slate-600">
                             <tr id="empty_state_finishing">
                                 <td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
                             </tr>
@@ -396,8 +396,8 @@
 
         const aktif = 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500';
         const nonaktif = 'text-slate-400 border-b-2 border-transparent hover:text-slate-600';
-        document.getElementById('tab-btn-bahan').className = 'flex-1 py-3 text-[11px] font-bold uppercase tracking-widest transition-all ' + (tab === 'bahan' ? aktif : nonaktif);
-        document.getElementById('tab-btn-finishing').className = 'flex-1 py-3 text-[11px] font-bold uppercase tracking-widest transition-all ' + (tab === 'finishing' ? aktif : nonaktif);
+        document.getElementById('tab-btn-bahan').className = 'flex-1 py-3 text-[11px] font-medium uppercase tracking-widest transition-all ' + (tab === 'bahan' ? aktif : nonaktif);
+        document.getElementById('tab-btn-finishing').className = 'flex-1 py-3 text-[11px] font-medium uppercase tracking-widest transition-all ' + (tab === 'finishing' ? aktif : nonaktif);
     }
 
     // Tampilkan input Min Order sesuai metode_hitung: Panjang/Lebar (m²) untuk
@@ -573,13 +573,13 @@
                 <div class="flex items-center gap-3">
                     <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
                     <input type="hidden" name="id_bahan[]" value="${id}">
-                    <span class="font-bold">${nama}</span>
+                    <span class="font-medium">${nama}</span>
                     <small class="text-slate-400">${satuan ? '('+satuan+')' : ''}</small>
                 </div>
             </td>
             <td class="p-3">
                 <input type="hidden" name="cara_hitung_pemakaian[]" value="${rumus}">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-widest">${rumus}</span>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-medium uppercase tracking-widest">${rumus}</span>
             </td>
             <td class="p-3 text-center">
                 <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmpty();" class="text-slate-300 hover:text-rose-500">
@@ -639,12 +639,12 @@
                 <div class="flex items-center gap-3">
                     <div class="w-2 h-2 rounded-full bg-purple-400"></div>
                     <input type="hidden" name="id_finishing[]" value="${id}">
-                    <span class="font-bold">${nama}</span>
+                    <span class="font-medium">${nama}</span>
                 </div>
             </td>
             <td class="p-3">
                 <input type="hidden" name="finishing_qty[]" value="${qty}">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-50 text-purple-600 text-[10px] font-bold uppercase tracking-widest">${qty}</span>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-50 text-purple-600 text-[10px] font-medium uppercase tracking-widest">${qty}</span>
             </td>
             <td class="p-3 text-center">
                 <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmptyFinishing();" class="text-slate-300 hover:text-rose-500">

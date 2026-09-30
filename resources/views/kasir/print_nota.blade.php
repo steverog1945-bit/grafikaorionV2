@@ -108,7 +108,7 @@
         @php($footerNota = $footerNotaOverride ?? \App\Models\AppSetting::current()->nota_footer_text)
         @if($footerNota)
             <div class="divider"></div>
-            <div class="footer-note" style="text-align: left;">{!! $footerNota !!}</div>
+            <div class="footer-note" style="text-align: left;">{!! \App\Support\HtmlBersih::bersihkan($footerNota) !!}</div>
         @endif
 
         <p class="footer-note">===== Terima Kasih =====</p>

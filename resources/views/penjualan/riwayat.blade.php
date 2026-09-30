@@ -6,10 +6,10 @@
     <x-page-header title="Riwayat Nota" :subtitle="$konsumenTerpilih ? 'Daftar transaksi penjualan per konsumen' : 'Daftar transaksi penjualan • default hari ini'">
         <x-slot:actions>
             @if($isAdmin)
-                <a href="{{ route('penjualan.edit-approval') }}" class="relative inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-amber-50 text-amber-700 border border-amber-100 hover:bg-amber-100 transition-all font-bold text-xs uppercase tracking-widest">
+                <a href="{{ route('penjualan.edit-approval') }}" class="relative inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-amber-50 text-amber-700 border border-amber-100 hover:bg-amber-100 transition-all font-medium text-xs uppercase tracking-widest">
                     <i class="fas fa-user-shield"></i> Persetujuan Edit Nota
                     @if($pendingEditCount > 0)
-                        <span class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">{{ $pendingEditCount }}</span>
+                        <span class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-medium flex items-center justify-center">{{ $pendingEditCount }}</span>
                     @endif
                 </a>
             @endif
@@ -28,7 +28,7 @@
                     (dipersempit ke rentang tanggal di bawah)
                 @endif
             </p>
-            <a href="{{ route('penjualan.riwayat') }}" class="text-[11px] font-bold text-indigo-500 uppercase tracking-widest hover:underline">
+            <a href="{{ route('penjualan.riwayat') }}" class="text-[11px] font-medium text-indigo-500 uppercase tracking-widest hover:underline">
                 <i class="fas fa-times-circle mr-1"></i> Hapus Filter Konsumen
             </a>
         </div>
@@ -41,12 +41,12 @@
                 <input type="hidden" name="id_konsumen" value="{{ $konsumenTerpilih->id_konsumen }}">
             @endif
             <div class="w-full md:w-56">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
                 <x-form.input type="date" name="from" value="{{ $from }}" />
             </div>
 
             <div class="w-full md:w-56">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
                 <x-form.input type="date" name="to" value="{{ $to }}" />
             </div>
 
@@ -80,20 +80,20 @@
             <tr class="group hover:bg-slate-50/30 transition-all {{ $t->status_nota === 'Dibatalkan' ? 'opacity-50' : '' }}">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $transaksis->firstItem() + $i }}</td>
                 <td class="px-8 py-5">
-                    <span class="text-[13px] font-bold text-slate-700">{{ $t->nomor_nota }}</span>
+                    <span class="text-[13px] font-medium text-slate-700">{{ $t->nomor_nota }}</span>
                 </td>
                 <td class="px-6 py-5">
-                    <span class="text-sm font-semibold text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->format('d M Y') }}</span>
+                    <span class="text-sm font-medium text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->format('d M Y') }}</span>
                     <div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($t->tgl_order)->format('H:i') }}</div>
                 </td>
                 <td class="px-6 py-5">
-                    <span class="text-sm font-bold text-slate-700">{{ $t->nama_konsumen }}</span>
+                    <span class="text-sm font-medium text-slate-700">{{ $t->nama_konsumen }}</span>
                 </td>
                 <td class="px-6 py-5">
                     <span class="text-xs text-slate-500">{{ $t->nama_golongan ?? '-' }}</span>
                 </td>
                 <td class="px-6 py-5">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold {{ ($t->tipe_order ?? 'Reguler') === 'PO' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-100' }}">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium {{ ($t->tipe_order ?? 'Reguler') === 'PO' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-100' }}">
                         {{ $t->tipe_order ?? 'Reguler' }}
                     </span>
                 </td>
@@ -108,28 +108,28 @@
                     @endif
                 </td>
                 <td class="px-6 py-5 text-right">
-                    @bolehHarga<span class="text-[14px] font-bold text-indigo-600">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>@endbolehHarga
+                    @bolehHarga<span class="text-[14px] font-medium text-indigo-600">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>@endbolehHarga
                 </td>
                 <td class="px-8 py-5 text-right">
                     <div class="flex items-center justify-end gap-1.5">
-                        <a href="{{ route('penjualan.show', $t->id_transaksi) }}" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-indigo-600 hover:bg-indigo-50 transition-all">
+                        <a href="{{ route('penjualan.show', $t->id_transaksi) }}" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-medium uppercase text-indigo-600 hover:bg-indigo-50 transition-all">
                             <i class="far fa-eye"></i> Lihat
                         </a>
 
                         @if($t->status_nota !== 'Dibatalkan' && \App\Support\Izin::boleh(auth()->user(), [3], 'edit'))
                             @if($t->edit_request_status === 'Menunggu')
-                                <span class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-amber-600 bg-amber-50" title="Menunggu persetujuan Administrator">
+                                <span class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-medium uppercase text-amber-600 bg-amber-50" title="Menunggu persetujuan Administrator">
                                     <i class="far fa-clock"></i> Menunggu
                                 </span>
                             @elseif($t->edit_request_status === 'Disetujui')
                                 <form action="{{ route('penjualan.edit-apply', $t->edit_request_id) }}" method="POST" class="inline" id="apply-edit-form-{{ $t->id_transaksi }}">
                                     @csrf
-                                    <button type="button" onclick="confirmApplyEdit('{{ $t->id_transaksi }}', {{ json_encode($t->nomor_nota) }})" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-emerald-600 hover:bg-emerald-50 transition-all">
+                                    <button type="button" onclick="confirmApplyEdit('{{ $t->id_transaksi }}', {{ json_encode($t->nomor_nota) }})" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-medium uppercase text-emerald-600 hover:bg-emerald-50 transition-all">
                                         <i class="fas fa-check-circle"></i> Proses Koreksi
                                     </button>
                                 </form>
                             @else
-                                <button type="button" onclick="openRequestEdit('{{ $t->id_transaksi }}', {{ json_encode($t->nomor_nota) }})" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="{{ $t->edit_request_status === 'Ditolak' ? 'Permintaan sebelumnya ditolak - ajukan lagi' : 'Ajukan edit (butuh persetujuan Administrator)' }}">
+                                <button type="button" onclick="openRequestEdit('{{ $t->id_transaksi }}', {{ json_encode($t->nomor_nota) }})" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-medium uppercase text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="{{ $t->edit_request_status === 'Ditolak' ? 'Permintaan sebelumnya ditolak - ajukan lagi' : 'Ajukan edit (butuh persetujuan Administrator)' }}">
                                     <i class="far fa-edit"></i> Edit
                                 </button>
                             @endif
@@ -180,13 +180,13 @@
     }
 
     // "Proses Koreksi" MEMBATALKAN nota lama (stok & jurnal dikembalikan)
-    // dan langsung mengarah ke Input Order untuk membuat nota pengganti -
+    // dan langsung mengarah ke Input Pesanan untuk membuat nota pengganti -
     // aksi ini tidak bisa diundo lewat tombol ini sendiri (pembatalannya
     // permanen, sama seperti batalkanNota()), jadi wajib konfirmasi dulu.
     function confirmApplyEdit(idTransaksi, nomorNota) {
         Swal.fire({
             title: 'Proses koreksi nota ini?',
-            html: `Nota <b>${nomorNota}</b> akan DIBATALKAN (stok & jurnal otomatis dikembalikan), lalu Anda diarahkan ke Input Order untuk membuat nota pengganti dengan data yang benar.<br><small class="text-slate-400">Nota lama tetap tersimpan di riwayat untuk referensi/audit.</small>`,
+            html: `Nota <b>${nomorNota}</b> akan DIBATALKAN (stok & jurnal otomatis dikembalikan), lalu Anda diarahkan ke Input Pesanan untuk membuat nota pengganti dengan data yang benar.<br><small class="text-slate-400">Nota lama tetap tersimpan di riwayat untuk referensi/audit.</small>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#059669',

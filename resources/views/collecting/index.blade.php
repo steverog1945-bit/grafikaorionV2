@@ -5,7 +5,7 @@
 <x-polling-notifikasi :url="route('collecting.cek-antrian-baru')" :jumlah-awal="$jumlahSiapDiambilAwal" pesan="Ada nota baru siap diambil." />
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Collecting">
+    <x-page-header title="Pengambilan">
         <x-slot:subtitle>
             Produksi &amp; Logistik <span class="mx-1 text-slate-300">/</span> Kelengkapan Pesanan Sebelum Diambil
         </x-slot:subtitle>
@@ -21,27 +21,27 @@
     <x-card class="mb-6">
         <form method="GET" action="{{ route('collecting.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[220px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Nama Konsumen</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Nama Konsumen</label>
                 <x-form.input type="text" name="nama_konsumen" value="{{ request('nama_konsumen') }}" placeholder="Cari konsumen..." />
             </div>
 
             <div class="w-full md:w-52">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Nomor Faktur</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Nomor Faktur</label>
                 <x-form.input type="text" name="nomor_nota" value="{{ request('nomor_nota') }}" placeholder="INV-..." />
             </div>
 
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
                 <x-form.input type="date" name="tgl_dari" value="{{ request('tgl_dari') }}" />
             </div>
 
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Sampai</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Sampai</label>
                 <x-form.input type="date" name="tgl_sampai" value="{{ request('tgl_sampai') }}" />
             </div>
 
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Pengerjaan</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Pengerjaan</label>
                 <x-form.select name="status_pengerjaan">
                     <option value="">-- Semua --</option>
                     <option value="belum" {{ request('status_pengerjaan') === 'belum' ? 'selected' : '' }}>Belum Lengkap</option>
@@ -50,7 +50,7 @@
             </div>
 
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Pengambilan</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Pengambilan</label>
                 <x-form.select name="status_pengambilan">
                     <option value="">-- Semua --</option>
                     <option value="Belum Diambil" {{ request('status_pengambilan') === 'Belum Diambil' ? 'selected' : '' }}>Belum Diambil</option>
@@ -64,7 +64,7 @@
             </x-button>
 
             @if(request()->anyFilled(['nama_konsumen', 'nomor_nota', 'tgl_dari', 'tgl_sampai', 'status_pengerjaan', 'status_pengambilan']))
-                <a href="{{ route('collecting.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                <a href="{{ route('collecting.index') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
             @endif
@@ -91,20 +91,20 @@
             <tr class="group hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $collecting->firstItem() + $i }}</td>
                 <td class="px-6 py-5">
-                    <span class="text-[13px] font-bold text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $item->nomor_nota }}</span>
+                    <span class="text-[13px] font-medium text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $item->nomor_nota }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-bold text-slate-700 uppercase">{{ $item->nama_konsumen }}</span>
+                    <span class="text-[12px] font-medium text-slate-700 uppercase">{{ $item->nama_konsumen }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->format('d M Y') }}</span>
+                    <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->format('d M Y') }}</span>
                 </td>
                 <td class="px-4 py-5 text-center">
                     <div class="inline-flex items-center gap-2">
                         <div class="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div class="h-full {{ $lengkap ? 'bg-emerald-500' : 'bg-amber-400' }}" style="width: {{ $item->total_item > 0 ? round(($item->item_kelar / $item->total_item) * 100) : 0 }}%"></div>
                         </div>
-                        <span class="text-[11px] font-bold text-slate-500">{{ $item->item_kelar }}/{{ $item->total_item }}</span>
+                        <span class="text-[11px] font-medium text-slate-500">{{ $item->item_kelar }}/{{ $item->total_item }}</span>
                     </div>
                     @if($item->item_batal > 0)
                         <div class="text-[9px] text-rose-400 mt-1">{{ $item->item_batal }} item dibatalkan</div>

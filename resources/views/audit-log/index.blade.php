@@ -55,12 +55,12 @@
             <tr class="hover:bg-slate-50/50 transition-all align-top">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $logs->firstItem() + $i }}</td>
                 <td class="px-4 py-5 text-[12px] text-slate-600 whitespace-nowrap">{{ $log->created_at?->format('d M Y H:i:s') }}</td>
-                <td class="px-4 py-5 text-[12px] font-semibold text-slate-700">{{ $log->user_label ?? $log->user?->username ?? '-' }}</td>
+                <td class="px-4 py-5 text-[12px] font-medium text-slate-700">{{ $log->user_label ?? $log->user?->username ?? '-' }}</td>
                 <td class="px-4 py-5">
                     @php
                         $warna = ['created' => 'emerald', 'updated' => 'amber', 'deleted' => 'rose'][$log->event] ?? 'slate';
                     @endphp
-                    <span class="text-[11px] font-bold uppercase text-{{ $warna }}-600 bg-{{ $warna }}-50 rounded px-2 py-1">{{ $log->event }}</span>
+                    <span class="text-[11px] font-medium uppercase text-{{ $warna }}-600 bg-{{ $warna }}-50 rounded px-2 py-1">{{ $log->event }}</span>
                 </td>
                 <td class="px-4 py-5 text-[12px] text-slate-600">
                     {{ class_basename($log->auditable_type) }}
@@ -70,14 +70,14 @@
                     {{ $log->keterangan }}
                     @if($log->old_values || $log->new_values)
                         <details class="mt-1">
-                            <summary class="text-[10px] text-indigo-500 cursor-pointer uppercase tracking-wide font-bold">Lihat detail</summary>
+                            <summary class="text-[10px] text-indigo-500 cursor-pointer uppercase tracking-wide font-medium">Lihat detail</summary>
                             <div class="mt-2 grid grid-cols-2 gap-2 text-[10px] font-mono">
                                 <div>
-                                    <p class="text-slate-400 font-bold mb-1">SEBELUM</p>
+                                    <p class="text-slate-400 font-medium mb-1">SEBELUM</p>
                                     <pre class="bg-slate-50 rounded p-2 overflow-x-auto">{{ $log->old_values ? json_encode($log->old_values, JSON_PRETTY_PRINT) : '-' }}</pre>
                                 </div>
                                 <div>
-                                    <p class="text-slate-400 font-bold mb-1">SESUDAH</p>
+                                    <p class="text-slate-400 font-medium mb-1">SESUDAH</p>
                                     <pre class="bg-slate-50 rounded p-2 overflow-x-auto">{{ $log->new_values ? json_encode($log->new_values, JSON_PRETTY_PRINT) : '-' }}</pre>
                                 </div>
                             </div>

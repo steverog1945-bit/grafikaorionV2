@@ -5,7 +5,7 @@
 
     @php $editable = $stockOpname->status === 'Draft'; @endphp
 
-    <x-page-header title="Stock Opname {{ $stockOpname->nomor }}">
+    <x-page-header title="Stok Opname {{ $stockOpname->nomor }}">
         <x-slot:subtitle>
             <i class="fas fa-clipboard-list text-amber-400"></i>
             {{ $stockOpname->tanggal->format('d M Y') }} - {{ $stockOpname->gudang?->nama_gudang ?? 'Semua Gudang' }}
@@ -35,22 +35,22 @@
                 @forelse($details as $d)
                 <tr class="hover:bg-slate-50/30 transition-all" data-row>
                     <td class="px-8 py-5">
-                        <span class="text-[13px] font-bold text-slate-700">{{ $d->bahan->nama_bahan ?? '-' }}</span>
+                        <span class="text-[13px] font-medium text-slate-700">{{ $d->bahan->nama_bahan ?? '-' }}</span>
                         <div class="text-[11px] text-slate-400">{{ $d->bahan->satuan_stok ?? '' }}</div>
                     </td>
                     <td class="px-6 py-5 text-right">
-                        <span class="text-sm font-semibold text-slate-600" data-sistem="{{ angka($d->stok_sistem, 4) }}">{{ angka($d->stok_sistem, 2) }}</span> <span class="text-[10px] font-black text-indigo-600 uppercase">{{ $d->bahan->satuan_stok ?? '' }}</span>
+                        <span class="text-sm font-medium text-slate-600" data-sistem="{{ angka($d->stok_sistem, 4) }}">{{ angka($d->stok_sistem, 2) }}</span> <span class="text-[10px] font-medium text-indigo-600 uppercase">{{ $d->bahan->satuan_stok ?? '' }}</span>
                     </td>
                     <td class="px-6 py-5">
                         <div class="flex items-center gap-2">
                             <input type="number" step="0.01" name="detail[{{ $d->id }}][stok_fisik]" data-fisik
                                 value="{{ old('detail.' . $d->id . '.stok_fisik', $d->stok_fisik) }}"
                                 class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}>
-                            <span class="shrink-0 px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase">{{ $d->bahan->satuan_stok ?? '-' }}</span>
+                            <span class="shrink-0 px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-medium uppercase">{{ $d->bahan->satuan_stok ?? '-' }}</span>
                         </div>
                     </td>
                     <td class="px-6 py-5 text-right">
-                        <span class="text-sm font-bold" data-selisih>-</span>
+                        <span class="text-sm font-medium" data-selisih>-</span>
                     </td>
                     <td class="px-8 py-5">
                         <input type="text" name="detail[{{ $d->id }}][alasan]"
@@ -94,13 +94,13 @@
 
             if (fisik === null || isNaN(fisik)) {
                 selisihEl.textContent = '-';
-                selisihEl.className = 'text-sm font-bold text-slate-300';
+                selisihEl.className = 'text-sm font-medium text-slate-300';
                 return;
             }
 
             const selisih = fisik - sistem;
             selisihEl.textContent = (selisih > 0 ? '+' : '') + angkaId(selisih, 2);
-            selisihEl.className = 'text-sm font-bold ' + (selisih === 0 ? 'text-slate-400' : (selisih > 0 ? 'text-emerald-600' : 'text-rose-500'));
+            selisihEl.className = 'text-sm font-medium ' + (selisih === 0 ? 'text-slate-400' : (selisih > 0 ? 'text-emerald-600' : 'text-rose-500'));
         });
     }
 

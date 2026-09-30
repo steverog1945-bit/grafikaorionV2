@@ -31,15 +31,15 @@
     <x-card class="mb-6 no-print">
         <form method="GET" action="{{ route('laporan.order') }}" class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
                 <x-form.input type="date" name="tgl_dari" value="{{ $tglDari }}" />
             </div>
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
                 <x-form.input type="date" name="tgl_sampai" value="{{ $tglSampai }}" />
             </div>
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Transaksi</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Transaksi</label>
                 <x-form.select name="status_pembayaran">
                     <option value="">-- Semua --</option>
                     @foreach(['Lunas', 'DP', 'Belum Bayar'] as $s)
@@ -48,7 +48,7 @@
                 </x-form.select>
             </div>
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Golongan Konsumen</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Golongan Konsumen</label>
                 <x-form.select name="id_golongan">
                     <option value="">-- Semua --</option>
                     @foreach($golongan as $g)
@@ -57,7 +57,7 @@
                 </x-form.select>
             </div>
             <div class="flex-1 min-w-[220px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
                 <select name="id_konsumen" id="select-konsumen-laporan" class="select2-konsumen-laporan w-full">
                     <option value="">-- Cari Nama / No. HP --</option>
                     @foreach($konsumenList as $k)
@@ -72,7 +72,7 @@
             </x-button>
 
             @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'status_pembayaran', 'id_golongan', 'id_konsumen']))
-                <a href="{{ route('laporan.order') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                <a href="{{ route('laporan.order') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
             @endif
@@ -83,16 +83,16 @@
          diubah), tabel standar polos khusus saat dicetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Transaksi</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($jumlahTransaksi, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Jumlah Transaksi</p>
+            <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($jumlahTransaksi, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Transaksi</p>
-            <h3 class="text-2xl font-bold text-indigo-600 mt-1">Rp {{ number_format($totalTransaksi, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Transaksi</p>
+            <h3 class="text-2xl font-medium text-indigo-600 mt-1">Rp {{ number_format($totalTransaksi, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Piutang (sisa tagihan riil)</p>
-            <h3 class="text-2xl font-bold text-rose-500 mt-1">Rp {{ number_format($totalPiutang, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Piutang (sisa tagihan riil)</p>
+            <h3 class="text-2xl font-medium text-rose-500 mt-1">Rp {{ number_format($totalPiutang, 0, ',', '.') }}</h3>
         </div>
     </div>
     <div class="hidden print:block">
@@ -121,10 +121,10 @@
             <tbody class="divide-y divide-slate-50">
                 @foreach($breakdownDivisi as $b)
                 <tr>
-                    <td data-label="Divisi" class="px-4 py-3 text-[12px] font-bold text-slate-700">{{ $b->divisi }}</td>
-                    <td data-label="Biaya Cetak" class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">{{ number_format($b->total_biaya_cetak, 0, ',', '.') }}</td>
-                    <td data-label="Biaya Design" class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">{{ number_format($b->total_biaya_desain, 0, ',', '.') }}</td>
-                    <td data-label="Biaya Finishing" class="px-4 py-3 text-right text-[12px] font-semibold text-slate-600">{{ number_format($b->total_biaya_finishing, 0, ',', '.') }}</td>
+                    <td data-label="Divisi" class="px-4 py-3 text-[12px] font-medium text-slate-700">{{ $b->divisi }}</td>
+                    <td data-label="Biaya Cetak" class="px-4 py-3 text-right text-[12px] font-medium text-slate-600">{{ number_format($b->total_biaya_cetak, 0, ',', '.') }}</td>
+                    <td data-label="Biaya Design" class="px-4 py-3 text-right text-[12px] font-medium text-slate-600">{{ number_format($b->total_biaya_desain, 0, ',', '.') }}</td>
+                    <td data-label="Biaya Finishing" class="px-4 py-3 text-right text-[12px] font-medium text-slate-600">{{ number_format($b->total_biaya_finishing, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -135,7 +135,7 @@
             <x-laporan.print-table title="Rincian Biaya per Divisi" :headers="['Divisi', 'Biaya Cetak', 'Biaya Design', 'Biaya Finishing']" :align="['left', 'right', 'right', 'right']">
                 @foreach($breakdownDivisi as $b)
                 <tr>
-                    <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $b->divisi }}</td>
+                    <td class="px-3 py-1.5 font-medium text-slate-700">{{ $b->divisi }}</td>
                     <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_cetak, 0, ',', '.') }}</td>
                     <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_desain, 0, ',', '.') }}</td>
                     <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($b->total_biaya_finishing, 0, ',', '.') }}</td>
@@ -160,8 +160,8 @@
                 </tr>
                 @endforeach
                 <tr class="bg-slate-50 border-t border-slate-200">
-                    <td class="px-3 py-1.5 font-bold text-slate-700 uppercase" colspan="3">Total {{ $namaDivisi }}</td>
-                    <td class="px-3 py-1.5 text-right font-bold text-slate-800">{{ number_format($baris->sum('total_subtotal'), 0, ',', '.') }}</td>
+                    <td class="px-3 py-1.5 font-medium text-slate-700 uppercase" colspan="3">Total {{ $namaDivisi }}</td>
+                    <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($baris->sum('total_subtotal'), 0, ',', '.') }}</td>
                 </tr>
             </x-laporan.print-table>
         </div>
@@ -169,7 +169,7 @@
     </div>
     @endif
 
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Transaksi</div>
+    <div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Transaksi</div>
 
     {{-- DETAIL TRANSAKSI - kartu per nota di layar (tidak diubah). Saat
          cetak, isinya disamakan persis dengan referensi (satu tabel per
@@ -178,7 +178,7 @@
          tetap pakai gaya visual kita sendiri (tabel polos, bukan kartu
          berwarna/rounded/shadow seperti tampilan layar). --}}
     <div class="hidden print:block">
-        <p class="text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-2">Detail Transaksi</p>
+        <p class="text-[10px] font-medium text-slate-700 uppercase tracking-wide mb-2">Detail Transaksi</p>
         @forelse($data as $t)
         @php
             $itemNotaPrint = $itemPerNota->get($t->id_transaksi, collect());
@@ -186,7 +186,7 @@
         @endphp
         <div class="mb-6 border border-slate-200 overflow-hidden break-inside-avoid">
             <div class="px-3 py-2 bg-slate-50 border-b border-slate-200 text-[10.5px] text-slate-600 leading-relaxed">
-                <span class="font-bold text-slate-800">{{ $t->nomor_nota }}</span>
+                <span class="font-medium text-slate-800">{{ $t->nomor_nota }}</span>
                 &middot; Konsumen: {{ $t->nama_konsumen }}
                 &middot; Golongan: {{ $t->nama_golongan }}
                 @if($t->no_po) &middot; No. PO: {{ $t->no_po }} @endif
@@ -197,17 +197,17 @@
             <table class="w-full text-[11px] border-collapse">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200">
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left w-6">#</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Divisi</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Produk</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-left">Ukuran</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Harga</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Potongan</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Qty</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Cetak(Rp)</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Design(Rp)</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Finishing(Rp)</th>
-                        <th class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase text-right">Subtotal</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-left w-6">#</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-left">Divisi</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-left">Produk</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-left">Ukuran</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Harga</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Potongan</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Qty</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Cetak(Rp)</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Design(Rp)</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Finishing(Rp)</th>
+                        <th class="px-3 py-1.5 text-[10px] font-medium text-slate-500 uppercase text-right">Subtotal</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -223,7 +223,7 @@
                         <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->biaya_cetak, 0, ',', '.') }}</td>
                         <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->biaya_desain, 0, ',', '.') }}</td>
                         <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($item->biaya_finishing, 0, ',', '.') }}</td>
-                        <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                        <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
@@ -234,9 +234,9 @@
             </table>
             <div class="px-3 py-2 bg-slate-50 border-t border-slate-200 flex justify-end">
                 <table class="text-[11px]">
-                    <tr><td class="pr-4 text-slate-600">Grand Total</td><td class="text-right font-semibold text-slate-800">{{ number_format($t->total_bayar, 0, ',', '.') }}</td></tr>
-                    <tr><td class="pr-4 text-slate-600">Total Bayar</td><td class="text-right font-semibold text-slate-800">{{ number_format($t->total_dibayar, 0, ',', '.') }}</td></tr>
-                    <tr><td class="pr-4 font-bold text-slate-700">{{ $kurangBayarPrint > 0 ? 'Kurang Bayar' : 'Lunas' }}</td><td class="text-right font-bold text-slate-900">{{ number_format($kurangBayarPrint, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Grand Total</td><td class="text-right font-medium text-slate-800">{{ number_format($t->total_bayar, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 text-slate-600">Total Bayar</td><td class="text-right font-medium text-slate-800">{{ number_format($t->total_dibayar, 0, ',', '.') }}</td></tr>
+                    <tr><td class="pr-4 font-medium text-slate-700">{{ $kurangBayarPrint > 0 ? 'Kurang Bayar' : 'Lunas' }}</td><td class="text-right font-medium text-slate-900">{{ number_format($kurangBayarPrint, 0, ',', '.') }}</td></tr>
                 </table>
             </div>
         </div>
@@ -255,18 +255,18 @@
         <div class="px-6 py-4 bg-slate-50/80 border-b border-slate-100 flex flex-wrap items-start justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-[14px] font-bold text-slate-800 uppercase">{{ $t->nomor_nota }}</span>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span class="text-[14px] font-medium text-slate-800 uppercase">{{ $t->nomor_nota }}</span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-medium uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
                         {{ $t->nama_golongan }}
                     </span>
                     @if($t->tipe_order)
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-500">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-medium uppercase tracking-wider bg-slate-100 text-slate-500">
                         {{ $t->tipe_order }}
                     </span>
                     @endif
                 </div>
                 <p class="text-[12px] text-slate-500 mt-1.5">
-                    <span class="font-bold text-slate-700">{{ $t->nama_konsumen }}</span>
+                    <span class="font-medium text-slate-700">{{ $t->nama_konsumen }}</span>
                     @if($t->no_po) &middot; No. PO: {{ $t->no_po }} @endif
                 </p>
                 <p class="text-[11px] text-slate-400 mt-0.5">
@@ -308,7 +308,7 @@
                     <tr>
                         <td data-label="#" class="p-3 text-slate-400">{{ $i + 1 }}</td>
                         <td data-label="Divisi" class="p-3 text-slate-500">{{ $item->divisi ?? '-' }}</td>
-                        <td data-label="Produk / Jasa" class="p-3 font-semibold text-slate-700">{{ $item->nama_produk ?? $item->nama_jasa ?? '-' }}<br><span class="text-[10px] font-normal text-slate-400">{{ $item->nama_file }}</span></td>
+                        <td data-label="Produk / Jasa" class="p-3 font-medium text-slate-700">{{ $item->nama_produk ?? $item->nama_jasa ?? '-' }}<br><span class="text-[10px] font-normal text-slate-400">{{ $item->nama_file }}</span></td>
                         <td data-label="Ukuran" class="p-3 text-slate-500">{{ $item->p_ukuran > 0 && $item->l_ukuran > 0 ? number_format($item->p_ukuran, 0, ',', '.') . 'x' . number_format($item->l_ukuran, 0, ',', '.') . ' cm' : '-' }}</td>
                         <td data-label="Harga" class="p-3 text-right text-slate-500">{{ number_format($item->harga_jual_snapshot, 0, ',', '.') }}</td>
                         <td data-label="Potongan" class="p-3 text-right text-slate-500">{{ number_format($item->potongan, 0, ',', '.') }}</td>
@@ -316,7 +316,7 @@
                         <td data-label="Cetak" class="p-3 text-right text-slate-500">{{ number_format($item->biaya_cetak, 0, ',', '.') }}</td>
                         <td data-label="Design" class="p-3 text-right text-slate-500">{{ number_format($item->biaya_desain, 0, ',', '.') }}</td>
                         <td data-label="Finishing" class="p-3 text-right text-slate-500">{{ number_format($item->biaya_finishing, 0, ',', '.') }}</td>
-                        <td data-label="Subtotal" class="p-3 text-right font-bold text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                        <td data-label="Subtotal" class="p-3 text-right font-medium text-slate-800">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -329,10 +329,10 @@
         {{-- TOTAL PER NOTA --}}
         <div class="px-6 py-4 bg-slate-50/60 border-t border-slate-100 flex justify-end">
             <div class="text-right space-y-1 min-w-[220px]">
-                <p class="text-[12px] text-slate-500 flex justify-between gap-6"><span>Grand Total</span> <span class="font-bold text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span></p>
-                <p class="text-[12px] text-slate-500 flex justify-between gap-6"><span>Sudah Dibayar</span> <span class="font-semibold text-emerald-600">Rp {{ number_format($t->total_dibayar, 0, ',', '.') }}</span></p>
+                <p class="text-[12px] text-slate-500 flex justify-between gap-6"><span>Grand Total</span> <span class="font-medium text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span></p>
+                <p class="text-[12px] text-slate-500 flex justify-between gap-6"><span>Sudah Dibayar</span> <span class="font-medium text-emerald-600">Rp {{ number_format($t->total_dibayar, 0, ',', '.') }}</span></p>
                 @php $kurangBayar = max(0, $t->total_bayar - $t->total_dibayar); @endphp
-                <p class="text-[13px] font-black flex justify-between gap-6 pt-1 border-t border-slate-200 {{ $kurangBayar > 0 ? 'text-rose-500' : 'text-emerald-600' }}"><span>{{ $kurangBayar > 0 ? 'Kurang Bayar' : 'Lunas' }}</span> <span>Rp {{ number_format($kurangBayar, 0, ',', '.') }}</span></p>
+                <p class="text-[13px] font-medium flex justify-between gap-6 pt-1 border-t border-slate-200 {{ $kurangBayar > 0 ? 'text-rose-500' : 'text-emerald-600' }}"><span>{{ $kurangBayar > 0 ? 'Kurang Bayar' : 'Lunas' }}</span> <span>Rp {{ number_format($kurangBayar, 0, ',', '.') }}</span></p>
             </div>
         </div>
     </div>

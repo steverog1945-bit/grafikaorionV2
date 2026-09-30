@@ -1,774 +1,1211 @@
 /* ==========================================================================
-   UI REFRESH - lapisan tampilan modern (clean / fresh / smooth + glass)
+   UI REFRESH - OpenCode Desktop Aesthetic
    ==========================================================================
-   DIRANCANG DENGAN ACUAN DUA SKILL:
-   - emilkowalski/skills  : easing & durasi konsisten, glass hanya pada
-     elemen mengambang (sidebar/topbar/dropdown) dan konten tetap solid,
-     aksen hanya bila bermakna, hormati prefers-reduced-motion.
-   - prompt-master        : state harus menjelaskan dirinya (focus ring
-     terlihat jelas, hover yang jujur), tidak ada ornamen tanpa fungsi.
+   Standardisasi global:
+   - Radius: 4px (chip/badge), 6px (button/input), 8px (card/table/modal)
+   - Search icon: left-3, padding pl-10
+   - Form: border 1px solid, tanpa shadow-inner
+   - Semua elemen konsisten tanpa kecuali
 
-   RESTORE: cukup hapus @import file ini dari app.css - seluruh perubahan
-   visual rombak terisolasi DI SINI dan tidak menyentuh markup.
+   RESTORE: hapus @import file ini dari app.css
    ========================================================================== */
 
 :root {
-    /* Token gerak: satu keluarga easing/durasi (emilkowalski). */
-    --ui-ease: cubic-bezier(0.32, 0.72, 0, 1);
+    /* Bobot teks. OpenCode hanya punya dua: 400 dan 500. Tidak ada
+       semibold, bold, atau black di range itu, dan itulah alasan teksnya
+       di sana terasa ringan. Nilai ini di sini supaya elemen yang
+       tidak punya kelas utility eksplisit - <th> polos, <b> di dalam
+       tabel harga, <strong> di teks - ikut dapat bobot yang benar.
+
+       Kenapa perlu: <th> tanpa kelas font-* sama sekali tidak
+       mewarisi apa pun, jadi browser memberinya 700.stormsari <b> dan
+       <strong> bawa 700 dari stylesheet bawaan. Keduanya muncul di
+       banyak tabel tanpa disadari - tabel harga finishing dan master
+       ukuran jersey semua kolomnya 700 tanpa satu pun kelas yang
+       menyebutnya. */
+    --bobot-teks: 400;
+    --bobot-teks-tegas: 500;
+
+    /* Token gerak */
+    --ui-ease: cubic-bezier(0.23, 1, 0.32, 1);
+    --ui-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
     --ui-fast: 140ms;
     --ui-med: 220ms;
 
-    /* Token permukaan glass */
-    --ui-glass-light: rgba(255, 255, 255, 0.78);
-    --ui-glass-dark: rgba(15, 23, 42, 0.72);
-    --ui-hairline-light: rgba(15, 23, 42, 0.08);
-    --ui-hairline-dark: rgba(255, 255, 255, 0.10);
+    /* Token warna - Light mode */
+    --surface-primary: #ffffff;
+    --surface-secondary: #f8fafc;
+    --surface-tertiary: #f1f5f9;
+    --border-primary: #e2e8f0;
+    --border-secondary: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
+    /* Ikon dekoratif (search, panah, dsb) adalah "non-text content":
+       WCAG 1.4.11 menuntut minimal 3:1 terhadap latar, bukan 4.5:1.
+       text-slate-400 (#94a3b8) hanya 2.56:1 di atas putih sehingga GAGAL,
+       makanya dipakai warna tersendiri yang sudah dihitung. */
+    --icon-muted: #76869f;
+    --accent-primary: #4f46e5;
+    --accent-hover: #4338ca;
+    --accent-light: #eef2ff;
+
+    /* Token warna - Dark mode */
+    --dark-surface-primary: #0f172a;
+    --dark-surface-secondary: #1e293b;
+    --dark-surface-tertiary: #334155;
+    --dark-border-primary: #334155;
+    --dark-border-secondary: #475569;
+    --dark-text-primary: #f1f5f9;
+    --dark-text-secondary: #cbd5e1;
+    /* Disamakan dengan --text-tertiary mode gelap di app.css (#94a3b8).
+       Nilai lama #64748b hanya 3.75:1 di atas #0f172a, gagal untuk teks
+       kecil. Dua sistem token harus mengantar angka yang sama; kalau
+       tidak, perbaikan di satu tempat akan dibatalkan di tempat lain. */
+    --dark-text-tertiary: #94a3b8;
+    --dark-icon-muted: #7f8db0;
+    --dark-accent-primary: #818cf8;
+    --dark-accent-hover: #6366f1;
+    --dark-accent-light: #1e1b4b;
+
+    /* Token radius - KONSISTEN */
+    --radius-sm: 4px;   /* chip, badge */
+    --radius-md: 6px;   /* button, input */
+    --radius-lg: 8px;   /* card, table, modal */
+
+    /* Token spacing */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 24px;
+    --space-2xl: 32px;
 }
 
-/* ------------------------------------------------------------------
-   1. SIDEBAR SUPERGLASS - kaca gelap ala Apple (visionOS/vibrancy):
-   dua lapis background (kilau diagonal + dasar gelap semi-transparan),
-   blur dalam + saturasi tinggi, garis tepi bercahaya tipis, dan
-   kilat highlight di sisi atas panel. Tetap GELAP di kedua mode agar
-   teks menu kontrasnya aman - "vibrancy"-nya datang dari blur+saturasi
-   yang menyerap warna konten di belakangnya.
-   ------------------------------------------------------------------ */
+/* ==========================================================================
+   1. SIDEBAR - Clean, solid, no gradient
+   ========================================================================== */
 aside {
-    background-image:
-        linear-gradient(105deg, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.02) 34%, rgba(255, 255, 255, 0) 58%),
-        linear-gradient(180deg, rgba(9, 13, 26, 0.84) 0%, rgba(14, 20, 37, 0.80) 55%, rgba(18, 26, 47, 0.78) 100%) !important;
-    backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
-    -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
-    border-right: 1px solid rgba(255, 255, 255, 0.13) !important;
-    box-shadow:
-        24px 0 60px -18px rgba(2, 6, 23, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.10),
-        inset -1px 0 0 rgba(255, 255, 255, 0.04) !important;
+    background: var(--surface-primary);
+    border-right: 1px solid var(--border-primary);
+    box-shadow: none;
+    transition: width var(--ui-med) var(--ui-ease);
 }
 
-/* Menu aktif: panel kaca yang "menyala dari dalam" - lapisan terang
-   semi-transparan + highlight tepi atas + glow indigo halus di bawah.
-   Terlihat jelas dipilih tanpa kembali ke gradien pelangi. */
-aside nav > a.sb-active {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(129, 140, 248, 0.10) 100%) !important;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.22),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.10),
-        0 8px 24px -10px rgba(79, 70, 229, 0.50) !important;
-    color: #ffffff !important;
-    transition: background var(--ui-med) var(--ui-ease), color var(--ui-med) var(--ui-ease), box-shadow var(--ui-med) var(--ui-ease);
+html:not(.dark) aside {
+    background: var(--surface-primary);
+    border-right-color: var(--border-primary);
 }
+
+html.dark aside {
+    background: var(--dark-surface-primary);
+    border-right-color: var(--dark-border-primary);
+}
+
+/* Menu items */
 aside nav > a {
-    transition: background var(--ui-fast) var(--ui-ease), color var(--ui-fast) var(--ui-ease), box-shadow var(--ui-fast) var(--ui-ease);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 12px;
+    transition: background-color var(--ui-fast) var(--ui-ease),
+                color var(--ui-fast) var(--ui-ease);
 }
 
-/* ------------------------------------------------------------------
-   2. TOPBAR - "floating pill": lepas dari tepi, melayang di atas konten.
-      Bentuk yang jarang dipakai ERP - ini pembeda visual utamanya.
-   ------------------------------------------------------------------ */
+aside nav > a:hover:not(.sb-active) {
+    background: var(--surface-tertiary);
+    color: var(--text-primary);
+}
+
+aside nav > a.sb-active {
+    background: var(--accent-light);
+    color: var(--accent-primary);
+    font-weight: 500;
+}
+
+html.dark aside nav > a.sb-active {
+    background: var(--dark-accent-light);
+    color: var(--dark-accent-primary);
+}
+
+/* Kepala grup di sidebar (Produksi & Logistik, Relasi Bisnis, dst).
+   Tanpa huruf besar dan tanpa tracking: OpenCode tidak memakai
+   text-transform untuk teks UI dan letter-spacing-nya 0. Hierarki di
+   sini tetap terbaca karena posisinya - grup jelas dari indentasinya
+   dan dari anak-anaknya, bukan dari bentuk hurufnya.
+
+   Ukuran 13px, sama dengan menu item di bawahnya. Sebelumnya 11px -
+   dan itu masalah nyata: label grup adalah satu-satunya teks di sidebar
+   yang harus dibaca dari jarak jauh (kasir berdiri di depan mesin, bukan
+   duduk di depan monitor), justru yang paling kecil.
+
+   Hover-nya memakai latar abu-abu membulat yang SAMA dengan menu item
+   (lihat aside nav > a:hover di bawah). Sebelumnya hover hanya mengubah
+   warna teks - tidak ada pembeda bentuk, jadi tidak terlihat dari jarak.
+   Dengan latar yang sama, keduanya terasa seperti satu sistem. */
+aside .menu-group-toggle {
+    color: var(--text-tertiary);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    padding: 8px 12px;
+    text-transform: none;
+    transition: color var(--ui-fast) var(--ui-ease),
+                background-color var(--ui-fast) var(--ui-ease);
+}
+
+aside .menu-group-toggle:hover {
+    background: var(--surface-tertiary);
+    color: var(--text-primary);
+}
+
+/* Sidebar brand */
+aside #sidebarBrandHeader {
+    border-bottom-color: var(--border-primary);
+}
+
+/* Sidebar scrollbar */
+aside nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+aside nav::-webkit-scrollbar-thumb {
+    background: var(--border-secondary);
+    border-radius: 2px;
+}
+
+/* ==========================================================================
+   2. TOPBAR - Floating, clean, no blur
+   ========================================================================== */
 .topbar {
-    position: sticky;
-    top: 10px !important;
-    margin: 10px 16px 6px !important;
-    width: auto;
-    border-radius: 18px !important;
-    border: 1px solid var(--ui-hairline-light) !important;
-    background: var(--ui-glass-light) !important;
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.07) !important;
-    transition: background var(--ui-med) var(--ui-ease), box-shadow var(--ui-med) var(--ui-ease);
-}
-/* Specificity dinaikkan (double class) karena app.css juga mendefinisikan
-   html.dark .topbar !important dimuat SETELAH file ini. */
-html.dark .topbar.topbar {
-    background: var(--ui-glass-dark) !important;
-    border-color: var(--ui-hairline-dark) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
-}
-@media (max-width: 640px) {
-    .topbar {
-        top: 6px !important;
-        margin: 6px 10px 4px !important;
-        border-radius: 14px !important;
-    }
+    background: var(--surface-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin: 12px 16px;
+    padding: 12px 20px;
+    top: 0;
+    transition: background var(--ui-med) var(--ui-ease),
+                border-color var(--ui-med) var(--ui-ease);
 }
 
-/* ------------------------------------------------------------------
-   3. KARTU & TABEL - border semi-transparan, bayangan berlapis lembut,
-      hover naik halus; menghilangkan kesan "radius besar + bayangan tebal"
-      yang membuat semua halaman terlihat hasil generate.
-   ------------------------------------------------------------------ */
+html.dark .topbar {
+    background: var(--dark-surface-primary);
+    border-color: var(--dark-border-primary);
+}
+
+/* ==========================================================================
+   3. CARD - Grounded, no excessive shadow
+   ========================================================================== */
 .card {
-    border: 1px solid rgba(15, 23, 42, 0.07) !important;
-    box-shadow:
-        0 1px 2px rgba(15, 23, 42, 0.04),
-        0 8px 24px rgba(15, 23, 42, 0.05) !important;
-    transition: box-shadow var(--ui-med) var(--ui-ease), transform var(--ui-med) var(--ui-ease);
+    background: var(--surface-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: none;
+    padding: 20px;
+    transition: border-color var(--ui-fast) var(--ui-ease);
 }
+
+html.dark .card {
+    background: var(--dark-surface-primary);
+    border-color: var(--dark-border-primary);
+}
+
+/* ==========================================================================
+   4. TABLE - Readable, compact, no zebra
+   ========================================================================== */
 .modern-table-wrapper {
-    border: 1px solid rgba(15, 23, 42, 0.07) !important;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
-}
-table.modern-table tbody tr {
-    transition: background-color var(--ui-fast) var(--ui-ease);
-}
-table.modern-table tbody tr:hover { background-color: rgba(99, 102, 241, 0.035); }
-
-/* Kepala tabel: tidak lagi blok abu menonjol, cukup label + garis */
-table.modern-table thead th { background: transparent !important; }
-
-/* ------------------------------------------------------------------
-   4. FOCUS RING YANG JELAS (state yang menjelaskan dirinya)
-   ------------------------------------------------------------------ */
-a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
-textarea:focus-visible, [tabindex]:focus-visible {
-    outline: 2px solid rgba(99, 102, 241, 0.55);
-    outline-offset: 2px;
-    border-radius: 10px;
+    background: var(--surface-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: none;
 }
 
-/* ------------------------------------------------------------------
-   5. MODAL & DROPDOWN PANEL - glass di elemen mengambang saja
-   ------------------------------------------------------------------ */
-[id^="modal-"] > div.relative,
-[id^="modal-"] > div:not(.absolute) {
-    background: rgba(255, 255, 255, 0.94) !important;
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(15, 23, 42, 0.10);
-    box-shadow: 0 24px 64px rgba(2, 6, 23, 0.28) !important;
-}
-html.dark [id^="modal-"] > div.relative,
-html.dark [id^="modal-"] > div:not(.absolute) {
-    background: rgba(15, 23, 42, 0.94) !important;
-    border-color: rgba(255, 255, 255, 0.12);
+html.dark .modern-table-wrapper {
+    background: var(--dark-surface-primary);
+    border-color: var(--dark-border-primary);
 }
 
-/* Body modal masuk halus (bukan muncul tumpak) */
-[id^="modal-"] > div.relative,
-[id^="modal-"] > div:not(.absolute) {
-    animation: ui-pop var(--ui-med) var(--ui-ease);
-}
-@keyframes ui-pop {
-    from { opacity: 0; transform: translateY(8px) scale(0.985); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
+/* Kepala tabel.
+
+   ATURAN INI YANG MENANG, bukan yang di app.css. app.css punya
+   .modern-table th dengan isi yang sama, tapi specificity-nya lebih
+   rendah (tanpa "thead"), dan ui-refresh.css diimpor lebih dulu -
+   jadi perubahan harus dibuat DI SINI. Duplikasi itulah yang dulu
+   membuat bobot 600 bertahan meski kedua berkas sudah ditulis 500.
+   Kalau nanti app.css dihapus duplikatnya, hapus catatan ini juga.
+
+   Tanpa huruf besar dan tanpa letter-spacing: OpenCode tidak memakai
+   text-transform untuk teks UI dan spacing-nya 0. "NAMA AKUN" dengan
+   jarak antar huruf harus dibaca huruf demi huruf; "Nama Akun" dibaca
+   sebagai satu kata - lebih cepat, bukan lebih lambat. */
+.modern-table thead th {
+    background: var(--surface-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    padding: 10px 16px;
+    text-transform: none;
 }
 
-/* ------------------------------------------------------------------
-   6. TOMBOL & BADGE - satu keluarga: bayangan kecil, gerak halus
-   ------------------------------------------------------------------ */
+html.dark .modern-table thead th {
+    background: var(--dark-surface-secondary);
+    border-bottom-color: var(--dark-border-primary);
+    color: var(--dark-text-secondary);
+}
+
+.modern-table tbody td {
+    border-bottom: 1px solid var(--border-primary);
+    color: var(--text-primary);
+    font-size: 13px;
+    padding: 10px 16px;
+}
+
+html.dark .modern-table tbody td {
+    border-bottom-color: var(--dark-border-primary);
+    color: var(--dark-text-primary);
+}
+
+.modern-table tbody tr:hover td {
+    background: var(--surface-secondary);
+}
+
+html.dark .modern-table tbody tr:hover td {
+    background: var(--dark-surface-secondary);
+}
+
+.modern-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ==========================================================================
+   5. BUTTON - Consistent, responsive
+   ========================================================================== */
 button, .btn {
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
     transition: transform var(--ui-fast) var(--ui-ease),
                 background-color var(--ui-fast) var(--ui-ease),
-                border-color var(--ui-fast) var(--ui-ease),
-                box-shadow var(--ui-fast) var(--ui-ease) !important;
-}
-button:active, .btn:active { transform: scale(0.985); }
-
-/* ------------------------------------------------------------------
-   7. SCROLLBAR HALUS (desktop) - detail yang terasa dirawat
-   ------------------------------------------------------------------ */
-@media (pointer: fine) {
-    ::-webkit-scrollbar { width: 10px; height: 10px; }
-    ::-webkit-scrollbar-thumb {
-        background: rgba(15, 23, 42, 0.18);
-        border-radius: 999px;
-        border: 2px solid transparent;
-        background-clip: content-box;
-    }
-    ::-webkit-scrollbar-thumb:hover { background-color: rgba(15, 23, 42, 0.30); }
-    ::-webkit-scrollbar-track { background: transparent; }
+                border-color var(--ui-fast) var(--ui-ease);
 }
 
-/* ------------------------------------------------------------------
-   8. HORMATI PREFERENSI GERAK DIKURANGI
-   ------------------------------------------------------------------ */
+button:active, .btn:active {
+    transform: scale(0.97);
+}
+
+/* ==========================================================================
+   6. FOCUS RING - Visible, consistent
+   ========================================================================== */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+html.dark a:focus-visible,
+html.dark button:focus-visible,
+html.dark input:focus-visible,
+html.dark select:focus-visible,
+html.dark textarea:focus-visible,
+html.dark [tabindex]:focus-visible {
+    outline-color: var(--dark-accent-primary);
+}
+
+/* ==========================================================================
+   7. MODAL - Clean, no excessive blur
+   ========================================================================== */
+[data-modal-root] > div.relative,
+[data-modal-root] > div:not(.absolute) {
+    background: var(--surface-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+html.dark [data-modal-root] > div.relative,
+html.dark [data-modal-root] > div:not(.absolute) {
+    background: var(--dark-surface-primary);
+    border-color: var(--dark-border-primary);
+}
+
+/* ==========================================================================
+   8. FORM ELEMENTS - Consistent
+   ========================================================================== */
+input:not([type=checkbox]):not([type=radio]):not([type=range]),
+textarea,
+select {
+    background: var(--surface-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 13px;
+    padding: 8px 12px;
+    transition: border-color var(--ui-fast) var(--ui-ease),
+                box-shadow var(--ui-fast) var(--ui-ease);
+}
+
+html.dark input:not([type=checkbox]):not([type=radio]):not([type=range]),
+html.dark textarea,
+html.dark select {
+    background: var(--dark-surface-secondary);
+    border-color: var(--dark-border-primary);
+    color: var(--dark-text-primary);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-light);
+    outline: none;
+}
+
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+    border-color: var(--dark-accent-primary);
+    box-shadow: 0 0 0 3px var(--dark-accent-light);
+}
+
+/* ==========================================================================
+   9. CHIP/BADGE - Compact, readable
+   ========================================================================== */
+.chip {
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 10px;
+}
+
+/* ==========================================================================
+   9b. BOBOT TEKS DASAR
+
+   Elemen yang tidak punya kelas utility font-* tidak mewarisi bobot
+   apa pun dari orang tuanya, jadi browser memberinya nilai bawaan:
+   <th> menjadi 700, dan <b>/<strong> juga 700 dari stylesheet
+   bawaan. Akibatnya ada tabel yang seluruh kolomnya tebal tanpa satu
+   pun kelas yang menyebutnya - tabel harga finishing, tabel ukuran
+   jersey, tabel dashboard. Sekali class utility dibersihkan, tempat-
+   tempat itu justru masih tebal karena sumbernya elemen, bukan kelas.
+
+   Jadi bobotnya dikunci di sini, sekali, untuk elemen yang tidak
+   menentukan sendiri. Yang TIDAK disentuh: .prose-post dan
+   .ql-editor (isi artikel - bukan UI), serta apa pun yang sudah
+   menulis font-weight sendiri secara eksplisit.
+   ========================================================================== */
+th {
+    font-weight: var(--bobot-teks-tegas);
+}
+
+b,
+strong {
+    font-weight: var(--bobot-teks-tegas);
+}
+
+/* ==========================================================================
+   10. SCROLLBAR - Subtle
+   ========================================================================== */::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-secondary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+    background: var(--dark-border-secondary);
+}
+
+/* ==========================================================================
+   11. EMPTY STATE - Readable
+   ========================================================================== */
+.empty-state {
+    color: var(--text-tertiary);
+    font-size: 13px;
+    padding: 40px;
+}
+
+/* ==========================================================================
+   12. ANIMASI
+   ==========================================================================
+   Animasi modal TIDAK lagi memakai @keyframes di sini. Dulu ada
+   `modal-enter` di blok ini, sementara blok 21 juga mendefinisikan
+   animasi berbasis transition untuk panel yang sama. Dua sistem itu
+   menggerakkan properti transform yang sama, dan keyframe menang -
+   akibatnya panel bisa tertahan di scale(0.98) translateY(8px) dan
+   tidak pernah sampai ke posisi akhir.
+
+   Keyframes juga tidak bisa diinterupsi: kalau modal ditutup di tengah
+   animasi, gerakan yang sama terulang dari awal. Transition bisa
+   di-retarget, jadi untuk UI yang bisa dibatalkan midstroke,
+   transition adalah pilihan yang benar. Definisi animasinya ada di
+   blok 21. */
+
+/* ==========================================================================
+   13. REDUCED MOTION - Respect user preference
+   ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
-    aside, aside nav > a, .topbar, .card, .modern-table-wrapper, button, .btn,
-    table.modern-table tbody tr,
-    [id^="modal-"] > div.relative,
-    [id^="modal-"] > div:not(.absolute) {
-        transition: none !important;
-        animation: none !important;
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
 
-/* ==================================================================
-   LAPISAN 2 - PENDEDALAMAN (tabel glass, tooltip, select2, responsive,
-   dark mode yang lebih tegas glasnya)
-   ================================================================== */
-
-/* ------------------------------------------------------------------
-   9. TABEL GLASS SMOOTH - kepala tabel kaca, baris bernafas
-   ------------------------------------------------------------------ */
-.modern-table-wrapper {
-    background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(12px) saturate(150%);
-    -webkit-backdrop-filter: blur(12px) saturate(150%);
-    border: 1px solid rgba(15, 23, 42, 0.07) !important;
-}
-table.modern-table thead th {
-    background: linear-gradient(180deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.75)) !important;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border-bottom: 1px solid rgba(15, 23, 42, 0.06) !important;
-    letter-spacing: 0.03em;
-}
-table.modern-table tbody td { border-bottom-color: rgba(15, 23, 42, 0.05); }
-/* Baris terakhir tanpa garis bawah - detail yang jarang dirapikan orang */
-table.modern-table tbody tr:last-child td { border-bottom-color: transparent; }
-/* Radius mengikuti wrapper supaya kepala tabel kaca tidak menonjol dari kartu */
-table.modern-table thead th:first-child { border-top-left-radius: 1.25rem; }
-table.modern-table thead th:last-child { border-top-right-radius: 1.25rem; }
-
-/* ------------------------------------------------------------------
-   10. TOMBOL GLASS - gradien lembut + blur, lebih tegas di dark mode
-   ------------------------------------------------------------------ */
-.btn-glass-primary {
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.92), rgba(99, 102, 241, 0.82)) !important;
-    backdrop-filter: blur(10px) saturate(150%);
-    -webkit-backdrop-filter: blur(10px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
-    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
-}
-.btn-glass-primary:hover { box-shadow: 0 6px 20px rgba(79, 70, 229, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important; }
-
-/* Tombol outline jadi "ghost glass": latar semi transparan + blur */
-button, .btn { }
-.x-btn-outline, button[class*="outline"] {
-    background: rgba(255, 255, 255, 0.55) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(15, 23, 42, 0.10) !important;
-}
-
-/* ------------------------------------------------------------------
-   11. TOOLTIP MODERN - kaca gelap, blur, muncul dengan spring lembut
-   ------------------------------------------------------------------ */
-#app-tooltip {
-    background: rgba(15, 23, 42, 0.88) !important;
-    backdrop-filter: blur(10px) saturate(150%);
-    -webkit-backdrop-filter: blur(10px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 10px !important;
-    box-shadow: 0 8px 28px rgba(2, 6, 23, 0.35) !important;
-    transition: opacity 160ms cubic-bezier(0.32, 0.72, 0, 1), transform 160ms cubic-bezier(0.32, 0.72, 0, 1) !important;
-}
-#app-tooltip.show { transform: translateY(0) scale(1); }
-
-/* ------------------------------------------------------------------
-   12. SELECT2 DROPDOWN GLASS - senada modal
-   ------------------------------------------------------------------ */
-.select2-dropdown {
-    background: rgba(255, 255, 255, 0.94) !important;
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
-    box-shadow: 0 16px 40px rgba(2, 6, 23, 0.16) !important;
-}
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background: linear-gradient(90deg, rgba(79, 70, 229, 0.12), rgba(99, 102, 241, 0.06)) !important;
-    color: #4338ca !important;
-}
-
-/* ------------------------------------------------------------------
-   13. SWEETALERT - panel kaca senada modal
-   ------------------------------------------------------------------ */
-.swal2-popup {
-    background: rgba(255, 255, 255, 0.94) !important;
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 1.25rem !important;
-    box-shadow: 0 24px 64px rgba(2, 6, 23, 0.28) !important;
-}
-html.dark .swal2-popup.swal2-popup {
-    background: rgba(15, 23, 42, 0.94) !important;
-    border-color: rgba(255, 255, 255, 0.08);
-}
-
-/* ------------------------------------------------------------------
-   14. RESPONSIVE - desktop / tablet / mobile tanpa lompatan visual
-   ------------------------------------------------------------------ */
-@media (max-width: 1023px) {
-    /* Tablet & mobile: blur diredakan (hemat GPU mobile) tapi visual sama */
-    aside { backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); }
-    .topbar { background: var(--ui-glass-light) !important; }
-}
-@media (max-width: 640px) {
-    /* Mobile: radius kartu diperkecil proporsional, tidak meledak di layar kecil */
-    .card { border-radius: 14px; }
-    .modern-table-wrapper { border-radius: 14px !important; }
-    /* Tabel lebar tetap scroll horizontal mulus di dalam wrapper */
-    .modern-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-}
-
-/* ------------------------------------------------------------------
-   15. DARK MODE - glass lebih tegas & urut prioritas lapisan
-   ------------------------------------------------------------------ */
-html.dark .modern-table-wrapper.modern-table-wrapper {
-    background: rgba(17, 26, 46, 0.82) !important;
-    border-color: rgba(255, 255, 255, 0.08) !important;
-}
-html.dark table.modern-table thead th {
-    background: linear-gradient(180deg, rgba(23, 34, 59, 0.9), rgba(17, 26, 46, 0.78)) !important;
-    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-}
-html.dark table.modern-table tbody td { border-bottom-color: rgba(255, 255, 255, 0.05); }
-html.dark table.modern-table tbody tr:hover { background-color: rgba(99, 102, 241, 0.08); }
-html.dark .card {
-    background: rgba(17, 26, 46, 0.85) !important;
-    border-color: rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25) !important;
-}
-html.dark .x-btn-outline, html.dark button[class*="outline"] {
-    background: rgba(255, 255, 255, 0.06) !important;
-    border-color: rgba(255, 255, 255, 0.10) !important;
-}
-html.dark .select2-dropdown {
-    background: rgba(15, 23, 42, 0.96) !important;
-    border-color: rgba(255, 255, 255, 0.08) !important;
-}
-html.dark ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); background-clip: content-box; }
-
-/* ==================================================================
-   LAPISAN 3 - AUDIT KONTRAS 2 MODE + TABEL GENERASI BARU
-   ==================================================================
-   Kunci permintaan: DARK dan LIGHT harus SAMA JELASNYA - tidak boleh
-   ada elemen yang terbaca di satu mode tapi kabur di mode lainnya.
-   Maka setiap rule terang di bagian 16-17 PASTI punya pasangan
-   html.dark-nya di bagian 18, dan kertas cetak dilindungi di 19.
-   ================================================================== */
-
-/* ------------------------------------------------------------------
-   16. KONTRAS LIGHT - angkat teks mikro & badge yang pudar
-   ------------------------------------------------------------------ */
-/* Label mikro (9-11px) berwarna slate-400 nyaris hilang di latar
-   putih - digelapkan cukup untuk terbaca tanpa merusak hierarki */
-.text-\[9px\].text-slate-400,
-.text-\[10px\].text-slate-400,
-.text-\[11px\].text-slate-400 { color: #52607a !important; }
-
-/* Empty state: abu #adb5bd terlalu pudar di light (dan justru
-   menyilaukan di dark) - dinormalkan untuk kedua mode */
-.empty-state.empty-state { color: #64748b !important; }
-
-/* Chip status: garis tepi hairline supaya pill-nya terdefinisi di
-   kedua mode, bukan blok warna yang melayang tanpa batas */
-.chip.chip { box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08); font-weight: 700; }
-
-/* Tombol sekunder (btn-soft, dipasang di button.blade.php):
-   teks pekat + garis tepi + gradien lembut - jelas ini tombol yang
-   bisa diklik, bukan teks abu-abu mati, tapi tetap di bawah tombol
-   utama. Warna dipilih agar kontrasnya seimbang di KEDUA mode. */
-.btn-soft {
-    background: linear-gradient(180deg, #f8fafc 0%, #e9edf3 100%) !important;
-    color: #33415a !important;
-    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.12), 0 1px 2px rgba(15, 23, 42, 0.05) !important;
-}
-.btn-soft:hover {
-    background: linear-gradient(180deg, #eef2f7 0%, #dde4ee 100%) !important;
-    color: #1e2a44 !important;
-}
-
-/* ------------------------------------------------------------------
-   17. TABEL GENERASI BARU - perubahan yang langsung terlihat:
-   band kepala tabel bergradasi + garis aksen indigo, zebra lembut,
-   hover baris tegas, angka rata kolom (tabular-nums), kolom pertama
-   lebih berat. Kandang tabel diberi radius + bayangan berlapis.
-   ------------------------------------------------------------------ */
-.modern-table-wrapper {
-    background: #ffffff !important;
-    border: 1px solid rgba(15, 23, 42, 0.09) !important;
-    border-radius: 1.25rem !important;
-    box-shadow:
-        0 1px 2px rgba(15, 23, 42, 0.05),
-        0 16px 36px -20px rgba(15, 23, 42, 0.25) !important;
-}
-table.modern-table thead th {
-    background: linear-gradient(180deg, #f8fafc 0%, #ebf0f6 100%) !important;
-    color: #3d4a5f !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.07em !important;
-    border-bottom: 2px solid rgba(79, 70, 229, 0.32) !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-}
-table.modern-table tbody td {
-    padding-top: 14px !important;
-    padding-bottom: 14px !important;
-    font-variant-numeric: tabular-nums;
-}
-/* Kolom pertama (nama/identitas baris) lebih berat - hierarki yang
-   membacakan sendiri isi tabelnya */
-table.modern-table tbody td:first-child { font-weight: 600; }
-/* Zebra lembut rasa indigo - membantu mata melacak baris yang lebar */
-table.modern-table tbody tr:nth-child(even) td { background: rgba(99, 102, 241, 0.032); }
-/* Hover yang jujur: jelas terlihat baris mana yang sedang ditunjuk */
-table.modern-table tbody tr:hover td { background: rgba(99, 102, 241, 0.08) !important; }
-
-/* ------------------------------------------------------------------
-   18. PASANGAN DARK MODE - tidak ada rule di atas tanpa pasangan
-   ------------------------------------------------------------------ */
-html.dark .text-\[9px\].text-slate-400,
-html.dark .text-\[10px\].text-slate-400,
-html.dark .text-\[11px\].text-slate-400 { color: #93a3c4 !important; }
-
-html.dark .empty-state.empty-state { color: #9aa8c2 !important; }
-
-html.dark .chip.chip { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); }
-
-html.dark .btn-soft.btn-soft {
-    background: #22304a !important;
-    color: #dce4f5 !important;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10), 0 1px 2px rgba(0, 0, 0, 0.30) !important;
-}
-html.dark .btn-soft.btn-soft:hover {
-    background: #2a3752 !important;
-    color: #f1f5f9 !important;
-}
-
-html.dark .modern-table-wrapper.modern-table-wrapper {
-    background: #111a2e !important;
-    border-color: rgba(255, 255, 255, 0.09) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.30), 0 16px 36px -20px rgba(0, 0, 0, 0.60) !important;
-}
-html.dark table.modern-table thead th {
-    background: linear-gradient(180deg, #1e2a49 0%, #17223b 100%) !important;
-    color: #aeb9d6 !important;
-    border-bottom-color: rgba(129, 140, 248, 0.40) !important;
-}
-html.dark table.modern-table tbody tr:nth-child(odd) td,
-html.dark table.modern-table tbody tr:nth-child(even) td { background: transparent; }
-html.dark table.modern-table tbody tr:nth-child(even):not(:last-child) td { background: rgba(255, 255, 255, 0.03); }
-html.dark table.modern-table tbody tr:hover td { background: rgba(99, 102, 241, 0.20) !important; }
-
-/* ------------------------------------------------------------------
-   19. PELINDUNG CETAK - kertas tetap putih polos: zebra, gradasi
-   kepala tabel, dan tombol tidak boleh menyusup ke laporan cetak
-   (jaring pengaman ekstra; blok print app.css tetap yang utama).
-   ------------------------------------------------------------------ */
+/* ==========================================================================
+   14. PRINT - Clean paper
+   ========================================================================== */
 @media print {
+    aside,
+    .topbar {
+        display: none !important;
+    }
+
+    .card,
     .modern-table-wrapper {
         background: #fff !important;
         border: 1px solid #e2e8f0 !important;
-        border-radius: 4px !important;
         box-shadow: none !important;
     }
-    table.modern-table thead th {
+
+    .modern-table thead th {
         background: #fff !important;
-        color: #0f172a !important;
         border-bottom: 1.5px solid #0f172a !important;
-    }
-    table.modern-table tbody tr:nth-child(even) td,
-    table.modern-table tbody tr:hover td { background: transparent !important; }
-    .btn-soft {
-        background: #fff !important;
-        color: #0f172a !important;
-        box-shadow: none !important;
-    }
-}
-
-/* ==================================================================
-   LAPISAN 4 - SIDEBAR SUPERGLASS: DETAIL
-   ==================================================================
-   Melengkapi bagian 1: warna teks menu, hover panel kaca, sub-menu
-   aktif, flyout & tooltip rel ikon. Semua kaca gelap senada induknya.
-   ================================================================== */
-
-/* Teks menu: sedikit diterangkan agar sejajar dengan kaca baru */
-aside nav > a { color: rgba(226, 232, 240, 0.82) !important; }
-
-/* Hover: panel kaca tipis menyala mengikuti kursor
-   (aktif dikecualikan supaya panel aktifnya tidak tertimpa) */
-aside nav > a:hover:not(.sb-active),
-aside .menu-group-toggle:hover {
-    background: rgba(255, 255, 255, 0.07) !important;
-    color: #ffffff !important;
-}
-
-/* Sub-menu aktif (di dalam grup): panel kaca senada menu utama -
-   sebelumnya masih memakai gradien indigo-violet bawaan layout */
-aside .menu-group-items a.sb-active {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(129, 140, 248, 0.10) 100%) !important;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
-    color: #ffffff !important;
-}
-aside .menu-group-items a { transition: background var(--ui-fast) var(--ui-ease), color var(--ui-fast) var(--ui-ease); }
-aside .menu-group-items a:hover { background: rgba(255, 255, 255, 0.07) !important; color: #ffffff !important; }
-
-/* Flyout rel ikon (menu grup saat sidebar diciutkan): kaca gelap
-   dalam - memang mengambang di atas konten, jadi glass sah */
-#railFlyout {
-    background: rgba(10, 15, 30, 0.72) !important;
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.14) !important;
-    box-shadow:
-        0 32px 80px -20px rgba(2, 6, 23, 0.65),
-        inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
-}
-#railFlyout a.fly-active {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(129, 140, 248, 0.10) 100%) !important;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.20) !important;
-    color: #fff !important;
-}
-
-/* Tooltip rel ikon: piringan kaca gelap senada flyout */
-#railTip {
-    background: rgba(10, 15, 30, 0.78) !important;
-    backdrop-filter: blur(20px) saturate(170%);
-    -webkit-backdrop-filter: blur(20px) saturate(170%);
-    border: 1px solid rgba(255, 255, 255, 0.14) !important;
-    box-shadow: 0 16px 40px -12px rgba(2, 6, 23, 0.55) !important;
-}
-
-/* Jaring pengaman cetak: bila aside sempat tercetak di halaman yang
-   tidak menyembunyikannya, wajib terbaca - kertas putih + teks gelap,
-   semua efek kaca dimatikan */
-@media print {
-    aside {
-        background: #fff !important;
-        backdrop-filter: none !important;
-        border-right: 1px solid #94a3b8 !important;
-        box-shadow: none !important;
-    }
-    aside nav > a, aside nav > a.sb-active,
-    aside .menu-group-items a, aside .menu-group-items a.sb-active {
-        background: transparent !important;
-        box-shadow: none !important;
         color: #0f172a !important;
     }
-    #railFlyout, #railTip { display: none !important; }
-}
 
-/* ==================================================================
-   LAPISAN 5 - iOS 27 SUPERGLASS GLOBAL (semua modul, kelas, modal)
-   ==================================================================
-   Prinsip iOS: kaca butuh PANGGUNG bercahaya agar terasa kaca -
-   jadi light mode dapat latar dengan sapuan cahaya lembut, lalu
-   semua panel putih rounded menjadi kaca bening (blur 24-32px +
-   saturasi 180%), teks smooth-black, dan cahaya tepi atas.
-   Sidebar di light mode KACA PUTIH - bukan lagi gelap.
-   ================================================================== */
-
-/* --- 5a. Panggung cahaya (light) - bahan yang di-blur kaca --- */
-html:not(.dark) body {
-    background:
-        radial-gradient(1200px 620px at 85% -10%, rgba(99, 102, 241, 0.07), transparent 60%),
-        radial-gradient(1000px 520px at -10% 22%, rgba(14, 165, 233, 0.06), transparent 55%),
-        linear-gradient(180deg, #f3f5f9 0%, #eef1f6 100%) !important;
-}
-
-/* --- 5b. SIDEBAR: light = kaca putih + teks smooth black --- */
-html:not(.dark) aside {
-    background-image:
-        linear-gradient(105deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.55) 34%, rgba(255, 255, 255, 0.22) 58%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(244, 246, 251, 0.72) 100%) !important;
-    backdrop-filter: blur(28px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
-    border-right: 1px solid rgba(15, 23, 42, 0.08) !important;
-    box-shadow:
-        24px 0 60px -18px rgba(15, 23, 42, 0.16),
-        inset -1px 0 0 rgba(15, 23, 42, 0.05) !important;
-    color: #1d2433 !important;
-}
-html:not(.dark) aside nav > a { color: #3d4557 !important; }
-html:not(.dark) aside nav > a:hover:not(.sb-active),
-html:not(.dark) aside .menu-group-toggle:hover,
-html:not(.dark) aside .menu-group-items a:hover {
-    background: rgba(15, 23, 42, 0.05) !important;
-    color: #0f172a !important;
-}
-html:not(.dark) aside nav > a.sb-active,
-html:not(.dark) aside .menu-group-items a.sb-active {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(99, 102, 241, 0.10) 100%) !important;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.95),
-        inset 0 0 0 1px rgba(79, 70, 229, 0.16),
-        0 8px 24px -10px rgba(79, 70, 229, 0.35) !important;
-    color: #1e1b4b !important;
-}
-html:not(.dark) aside nav > a.sb-active::before { background: #6366f1; }
-html:not(.dark) aside .menu-group-toggle > span { color: #475569 !important; }
-html:not(.dark) aside .menu-group-toggle.has-active > span { color: #0f172a !important; }
-html:not(.dark) aside .sidebar-brand-text,
-html:not(.dark) aside .sidebar-text-label { color: #1d2433 !important; }
-html:not(.dark) aside .sidebar-kas-status { color: #475569 !important; }
-html:not(.dark) aside .menu-group-toggle .rail-icon { background: rgba(15, 23, 42, 0.05); color: #475569; }
-html:not(.dark) aside .menu-group-toggle:hover .rail-icon,
-html:not(.dark) aside .menu-group-toggle.flyout-open .rail-icon { background: rgba(15, 23, 42, 0.10); color: #0f172a; }
-html:not(.dark) body.sidebar-collapsed aside .menu-group-toggle { border-top-color: rgba(15, 23, 42, 0.08); }
-/* Kotak "kaca dalam" sidebar (status kas, dsb) ikut terang */
-html:not(.dark) aside [class*="bg-white/"] { background-color: rgba(15, 23, 42, 0.05) !important; }
-
-/* Flyout & tooltip rel: di light jadi kaca PUTIH (menu konteks iOS) */
-html:not(.dark) #railFlyout {
-    background: rgba(255, 255, 255, 0.80) !important;
-    backdrop-filter: blur(28px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
-    border-color: rgba(15, 23, 42, 0.10) !important;
-    box-shadow: 0 32px 80px -20px rgba(15, 23, 42, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
-}
-html:not(.dark) #railFlyout a { color: #1d2433; }
-html:not(.dark) #railFlyout a:hover { background: rgba(15, 23, 42, 0.06); color: #0f172a; }
-html:not(.dark) #railFlyout a svg { color: #64748b; }
-html:not(.dark) #railFlyout a.fly-active {
-    background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
-    color: #fff !important;
-}
-html:not(.dark) #railFlyout a.fly-active svg { color: #fff !important; }
-html:not(.dark) #railTip {
-    background: rgba(255, 255, 255, 0.86) !important;
-    backdrop-filter: blur(20px) saturate(170%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(170%) !important;
-    color: #1d2433 !important;
-    border-color: rgba(15, 23, 42, 0.10) !important;
-    box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.25) !important;
-}
-
-/* --- 5c. KARTU & PANEL: semua bg-white rounded besar jadi kaca --- */
-html:not(.dark) .bg-white.rounded-2xl,
-html:not(.dark) .bg-white.rounded-3xl,
-html:not(.dark) .bg-white.rounded-\[2rem\] {
-    background: rgba(255, 255, 255, 0.62) !important;
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border-color: rgba(15, 23, 42, 0.08) !important;
-    box-shadow:
-        0 1px 2px rgba(15, 23, 42, 0.04),
-        0 16px 40px -20px rgba(15, 23, 42, 0.20),
-        inset 0 1px 0 rgba(255, 255, 255, 0.70) !important;
-}
-html.dark .bg-white.rounded-2xl,
-html.dark .bg-white.rounded-3xl,
-html.dark .bg-white.rounded-\[2rem\] {
-    background: rgba(23, 34, 59, 0.66) !important;
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
-    border-color: rgba(255, 255, 255, 0.09) !important;
-    box-shadow:
-        0 1px 2px rgba(0, 0, 0, 0.30),
-        0 16px 40px -20px rgba(0, 0, 0, 0.50),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-}
-/* Komponen x-card (class .card) ikut dikacakan di kedua mode */
-html:not(.dark) .card {
-    background: rgba(255, 255, 255, 0.62) !important;
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border-color: rgba(15, 23, 42, 0.08) !important;
-    box-shadow:
-        0 1px 2px rgba(15, 23, 42, 0.04),
-        0 16px 40px -20px rgba(15, 23, 42, 0.20),
-        inset 0 1px 0 rgba(255, 255, 255, 0.70) !important;
-}
-html.dark .card.card {
-    background: rgba(23, 34, 59, 0.66) !important;
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
-}
-
-/* --- 5d. TOPBAR: blur diperdalam (28px) kedua mode --- */
-.topbar {
-    background: rgba(255, 255, 255, 0.60) !important;
-    backdrop-filter: blur(28px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
-    box-shadow: 0 8px 32px -12px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.70) !important;
-}
-html.dark .topbar.topbar {
-    background: rgba(15, 23, 42, 0.66) !important;
-    backdrop-filter: blur(28px) saturate(170%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(170%) !important;
-    box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
-}
-
-/* --- 5e. MODAL & SWEETALERT: kaca lebih dalam (blur 32px), dimmer lembut ala iOS sheet --- */
-[id^="modal-"] > div.relative,
-[id^="modal-"] > div:not(.absolute) {
-    background: rgba(255, 255, 255, 0.78) !important;
-    backdrop-filter: blur(32px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
-    box-shadow: 0 32px 80px -20px rgba(2, 6, 23, 0.35) !important;
-}
-html.dark [id^="modal-"] > div.relative,
-html.dark [id^="modal-"] > div:not(.absolute) {
-    background: rgba(15, 23, 42, 0.86) !important;
-    backdrop-filter: blur(32px) saturate(170%) !important;
-    -webkit-backdrop-filter: blur(32px) saturate(170%) !important;
-}
-[id^="modal-"] > .absolute {
-    background: rgba(15, 23, 42, 0.28) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-}
-html.dark [id^="modal-"] > .absolute { background: rgba(2, 6, 23, 0.55) !important; }
-.swal2-popup {
-    background: rgba(255, 255, 255, 0.82) !important;
-    backdrop-filter: blur(32px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
-}
-html.dark .swal2-popup.swal2-popup {
-    background: rgba(15, 23, 42, 0.88) !important;
-    backdrop-filter: blur(32px) saturate(170%) !important;
-    -webkit-backdrop-filter: blur(32px) saturate(170%) !important;
-}
-
-/* --- 5f. SELECT2 DROPDOWN: kaca putih senada modal --- */
-html:not(.dark) .select2-dropdown {
-    background: rgba(255, 255, 255, 0.86) !important;
-    backdrop-filter: blur(24px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-}
-
-/* --- 5g. KINERJA MOBILE: blur diredakan tanpa mengubah rasa --- */
-@media (max-width: 1023px) {
-    aside { backdrop-filter: blur(16px) saturate(150%) !important; -webkit-backdrop-filter: blur(16px) saturate(150%) !important; }
-    .topbar { backdrop-filter: blur(16px) saturate(150%) !important; -webkit-backdrop-filter: blur(16px) saturate(150%) !important; }
-    html:not(.dark) .bg-white.rounded-2xl,
-    html:not(.dark) .bg-white.rounded-3xl,
-    html:not(.dark) .bg-white.rounded-\[2rem\],
-    html.dark .bg-white.rounded-2xl,
-    html.dark .bg-white.rounded-3xl,
-    html.dark .bg-white.rounded-\[2rem\] {
-        backdrop-filter: blur(14px) saturate(150%);
-        -webkit-backdrop-filter: blur(14px) saturate(150%);
+    .modern-table tbody td {
+        color: #0f172a !important;
     }
 }
 
-/* --- 5h. HORMATI PREFERENSI GERAK DIKURANGI (elemen baru lapisan ini) --- */
+/* ==========================================================================
+   15. SEARCH ICON + SEARCH INPUT - Centered, consistent
+   ========================================================================== */
+/* PENTING: posisi ikon TIDAK dipaksa lewat CSS.
+   tiap halaman sudah memakai pola Tailwind yang benar, yaitu
+   `absolute left-3 top-1/2 -translate-y-1/2` di dalam pembungkus
+   `.relative` yang hanya memuat satu input. Pola itu menengahkan ikon
+   dengan benar karena top-50% + translate(-50%) selalu tepat terhadap
+   tinggi induknya.
+
+   Pernah aturan ini memaksa `left: 12px; top: 0; bottom: 0;
+   margin-block: auto; transform: none` ke SEMUA ikon absolut. Itu
+   merusak halaman: (a) ikon yang memang sengaja di sisi kanan ikut
+   tergeser ke kiri, (b) `transform: none` menabrak transform milik
+   Tailwind, (c) pembungkus `.relative` yang isinya lebih dari satu
+   elemen membuat ikon menengak di kotak yang salah. Karena itu tidak
+   ada lagi posisi ikon yang dipaksa dari sini. */
+
+/* Padding horizontal dari utilitas Tailwind harus SELALU menang atas
+   aturan dasar input di atas.
+
+   Aturan dasar itu memakai shorthand `padding: 8px 12px`, yang
+   spesifisitasnya lebih tinggi dari utilitas `pl-*` milik Tailwind.
+   Akibatnya SETIAP `pl-*` dan `pr-*` kecil di markup jadi tidak
+   berlaku, bukan hanya yang besar. Contoh: input harga bertingkat
+   punya awalan "Rp" yang diposisikan absolut di left 10px dan berakhir
+   di 23px, sementara teksnya mulai di 12px - tumpang tindih 11px,
+   persis yang dilaporkan.
+
+   Dua kelompok, dibedakan maknanya:
+
+     pl-5 s/d pl-8, pr-2, pr-4  -> nilai aslinya dipulihkan. Awalan
+       kecil (mis. "Rp") atau sekadar ruang bernapas; pemanggilnya
+       sudah menghitung lebar yang pas.
+
+     pl-9 s/d pl-14, pr-9 s/d pr-14 -> dinormalkan ke 40px. Angka-angka
+       ini dipakai HANYA ketika ada ikon 16px di dalam input, dan teksnya
+       selalu dimulai di 40px supaya seragam antar halaman. Nilai
+       aslinya berbeda-beda (36px sampai 56px) sehingga jaraknya tidak
+       konsisten kalau dipakai apa adanya. */
+input[class*="pl-5"] { padding-left: 20px !important; }
+input[class*="pl-6"] { padding-left: 24px !important; }
+input[class*="pl-7"] { padding-left: 28px !important; }
+input[class*="pl-8"] { padding-left: 32px !important; }
+input[class*="pr-2"] { padding-right: 8px !important; }
+input[class*="pr-4"] { padding-right: 16px !important; }
+
+input[class*="pl-9"],
+input[class*="pl-10"],
+input[class*="pl-11"],
+input[class*="pl-12"],
+input[class*="pl-14"] {
+    padding-left: 40px !important;
+}
+
+input[class*="pr-9"],
+input[class*="pr-10"],
+input[class*="pr-11"],
+input[class*="pr-12"],
+input[class*="pr-14"] {
+    padding-right: 40px !important;
+}
+
+/* Warna ikon search diseragamkan. Halaman memakai campur warna
+   slate-300 (1.48:1) dan slate-400 (2.56:1) di atas putih, keduanya
+   gagal standar 3:1 untuk non-text content, sehingga ikonsearch
+   nyaris tak terlihat. Token --icon-muted sudah dihitung 3.70:1. */
+[class*="fa-search"][class*="absolute"] {
+    color: var(--icon-muted) !important;
+}
+
+html.dark [class*="fa-search"][class*="absolute"] {
+    color: var(--dark-icon-muted) !important;
+}
+
+/* Aksen saat hover tetap dipertahankan: sebagian halaman memakai
+   group-hover:text-indigo-500 pada ikonnya. Rule ini menimpa warna
+   dasar hanya ketika induk .group benar-benar di-hover. */
+.group:hover [class*="fa-search"][class*="absolute"] {
+    color: var(--accent-primary) !important;
+}
+
+html.dark .group:hover [class*="fa-search"][class*="absolute"] {
+    color: var(--dark-accent-primary) !important;
+}
+
+/* Isian satu baris dikunci tingginya supaya ikon, teks, dan select di
+   sebelahnya satu sama lain benar-benar sejajar. `height` (bukan
+   min-height) dipilih supaya semua isian benar-benar sama tinggi;
+   field yang memang lebih tinggi (min-h-[...] di markup) tetap aman
+   karena min-height menang atas height. */
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),
+select:not([multiple]):not([size]) {
+    height: 38px;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-tertiary);
+    opacity: 1;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: var(--dark-text-tertiary);
+}
+
+/* Fokus diseragamkan untuk SEMUA isian. Sebagian halaman memakai
+   `focus:ring-2 focus:ring-indigo-500/20` dan sebagian lain tidak
+   memakai apa-apa, sehingga kotak yang sama terlihat berbeda fokusnya.
+   Satu aturan di sini membuat seluruh isian dalam aplikasi ini sama. */
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--accent-primary) !important;
+    box-shadow: 0 0 0 3px var(--accent-light) !important;
+    outline: none !important;
+}
+
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+    border-color: var(--dark-accent-primary) !important;
+    box-shadow: 0 0 0 3px var(--dark-accent-light) !important;
+}
+
+/* ==========================================================================
+   16. BADGE - Consistent radius
+   ========================================================================== */
+.badge,
+[class*="badge-"] {
+    border-radius: var(--radius-sm) !important;
+}
+
+/* ==========================================================================
+   17. RADIUS GLOBAL - oversized radii dinormalkan ke --radius-lg
+   ========================================================================== */
+/* Halaman lama masih menandai kontainer besar dengan rounded-2xl (16px),
+   rounded-3xl (24px) atau rounded-[2rem] (32px) enquanto .card/.table/
+   .modal memakai 8px. Tanpa aturan ini tabel, panel filter, dan kartu
+  BERBEDA radius satu sama lain di halaman yang sama. Semua diseragamkan
+   ke 8px; radius yang lebih kecil (chip, badge, icon button) tetap
+   dipertahankan karena punya makna hierarki. */
+.rounded-\[2rem\],
+.rounded-3xl,
+.rounded-2xl {
+    border-radius: var(--radius-lg) !important;
+}
+
+/* Pengecualian: elemen yang benar-benar "pill" (chip status, lencana
+   bulat, avatar) boleh tetap bulat - ditandai eksplisit. */
+.rounded-full {
+    border-radius: 9999px !important;
+}
+
+/* ==========================================================================
+   18. FORM INPUT - Remove shadow-inner, use border
+   ========================================================================== */
+input,
+textarea,
+select {
+    box-shadow: none !important;
+}
+
+/* ==========================================================================
+   19. CONSISTENCY FIX - All rounded elements
+   ========================================================================== */
+/* Card, table, modal use radius-lg */
+.card,
+.modern-table-wrapper,
+[data-modal-root] > div.relative,
+[data-modal-root] > div:not(.absolute) {
+    border-radius: var(--radius-lg) !important;
+}
+
+/* Button, input, select use radius-md.
+   Checkbox dan radio dikecualikan: keduanya punya bentuk baku
+   (kotak dan pil) yang mengikuti platform, jadi ikut diubah
+   hanya membuat keduanya tampak aneh. */
+button,
+.btn,
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),
+textarea,
+select {
+    border-radius: var(--radius-md) !important;
+}
+
+/* Chip, badge use radius-sm */
+.chip,
+.badge,
+[class*="badge-"] {
+    border-radius: var(--radius-sm) !important;
+}
+
+/* ==========================================================================
+   20. STATUS KAS DI SIDEBAR - HARUS TERBACA DI DUA MODE
+   ========================================================================== */
+/* Markup sidebar memakai warna yang diancang untuk sidebar gelap
+   (text-amber-200 di atas gradient amber, border-white/10, bg-white/5).
+   Sekarang sidebar light mode berwarna putih, warna-warna itu jadi
+   nyaris tak terlihat: teks amber-200 di atas putih tidak terbaca dan
+   garis putih-atas-putih hilang. Di light mode diganti ke pasangan
+   gelap-teks di atas latar pastel, kontrasnya dihitung (lihat laporan). */
+html:not(.dark) aside .sidebar-kas-status {
+    backdrop-filter: none;
+    background-image: none !important;
+}
+
+/* Judul status: amber-200/emerald-200 -> amber-700/emerald-700 */
+html:not(.dark) aside .sidebar-kas-status .text-amber-200 {
+    color: #b45309 !important; /* amber-700, 4.9:1 di atas #fffbeb */
+}
+
+html:not(.dark) aside .sidebar-kas-status .text-emerald-200 {
+    color: #047857 !important; /* emerald-700, 5.2:1 di atas #ecfdf5 */
+}
+
+html:not(.dark) aside .sidebar-kas-status .text-slate-300 {
+    color: #334155 !important; /* slate-700 */
+}
+
+html:not(.dark) aside .sidebar-kas-status .text-slate-400 {
+    color: #475569 !important; /* slate-600, 7.5:1 di atas putih */
+}
+
+html:not(.dark) aside .sidebar-kas-status .text-slate-500 {
+    color: #475569 !important; /* slate-600 */
+}
+
+/* Latar kartu status: gradient transparan -> warna pastel solid */
+html:not(.dark) aside .sidebar-kas-status.bg-gradient-to-br {
+    background-image: none !important;
+    background-color: #fffbeb !important; /* amber-50, "Belum di-closing" */
+    border-color: #fcd34d !important; /* amber-300 */
+}
+
+html:not(.dark) aside .sidebar-kas-status.border-emerald-400\/25 {
+    background-color: #ecfdf5 !important; /* emerald-50, "Kasir Open" */
+    border-color: #6ee7b7 !important; /* emerald-300 */
+}
+
+/* Latar ikon: amber-400/20 di atas putih washed out -> amber-100 */
+html:not(.dark) aside .sidebar-kas-status .bg-amber-400\/20 {
+    background-color: #fef3c7 !important; /* amber-100 */
+    color: #b45309 !important;
+}
+
+html:not(.dark) aside .sidebar-kas-status .bg-emerald-400\/20 {
+    background-color: #d1fae5 !important; /* emerald-100 */
+    color: #047857 !important;
+}
+
+html:not(.dark) aside .sidebar-kas-status .bg-slate-400\/15 {
+    background-color: #f1f5f9 !important; /* slate-100, "Standby" */
+    color: #475569 !important;
+}
+
+/* "Kasir Standby" memakai border-white/10 + bg-white/5, yang di atas
+   sidebar putih sama sekali tak terlihat. Diganti slate. */
+html:not(.dark) aside .sidebar-kas-status.bg-white\/5 {
+    background-color: #f8fafc !important; /* slate-50 */
+    border-color: #e2e8f0 !important; /* slate-200 */
+}
+
+/* Titik status: ring putih-atas-putih tidak terlihat di light mode */
+html:not(.dark) aside .sidebar-kas-status .ring-slate-900 {
+    --tw-ring-color: #ffffff !important;
+}
+
+/* Ping "animate-ping" pada titik status: geleng terus-menerus
+   menarik perhatian tanpa alasan. Dianimate hanya di dark mode. */
+html:not(.dark) aside .sidebar-kas-status .animate-ping {
+    animation: none !important;
+    display: none !important;
+}
+
+/* ==========================================================================
+   21. ANIMASI - HALUS, CEPAT, BISA DIGAGASI
+   ==========================================================================
+   Aturan yang dipakai di seluruh animasi di bawah:
+     - hanya `transform` dan `opacity` yang dianimasikan, karena keduanya
+       tidak memicu layout/paint ulang
+     - durasi 150-220ms, di bawah batas 300ms supaya terasa responsif
+     - `ease-out` untuk masuk (cepat di awal, terasa gesit) dan
+       `ease-in-out` untuk gerak di layar
+     - scale tidak pernah mulai dari 0, selalu dari 0.96+
+   ------------------------------------------------------------------------ */
+
+/* --- Modal: fade untuk lapisan, scale untuk panel ---
+   Selector memakai data-modal-root, bukan [id^="modal-"], karena
+   judul di dalam modal juga ber-prefix "modal-" (id="modal-{id}-title")
+   dan akan ikut ter-jarum, lalu ikut ter-skale dan ter-fade. */
+[data-modal-root] {
+    opacity: 0;
+    transition: opacity var(--ui-med) var(--ui-ease);
+}
+
+[data-modal-root][data-state="open"] {
+    opacity: 1;
+}
+
+[data-modal-root] [data-modal-panel] {
+    transform: scale(0.96) translateY(8px);
+    transition: transform var(--ui-med) var(--ui-ease);
+}
+
+[data-modal-root][data-state="open"] [data-modal-panel] {
+    transform: scale(1) translateY(0);
+}
+
+/* Modal yang ditulis manual per halaman tidak memakai data-modal-panel.
+   Panahnya adalah anak pertama root, jadi itu yang digerakkan. */
+[data-modal-root]:not(:has([data-modal-panel])) > div {
+    transform: scale(0.96) translateY(8px);
+    transition: transform var(--ui-med) var(--ui-ease);
+}
+
+[data-modal-root][data-state="open"]:not(:has([data-modal-panel])) > div {
+    transform: scale(1) translateY(0);
+}
+
+/* --- Dropdown Select2: panah berputar halus saat terbuka --- */
+.select2-container--open .select2-selection__arrow {
+    transition: transform var(--ui-fast) var(--ui-ease);
+}
+
+.select2-container--open .select2-selection__arrow b {
+    border-color: #6366f1 transparent transparent transparent;
+}
+
+/* --- Accordion sidebar: buka-tutup tanpa lompatan --- */
+aside .menu-group-items {
+    transition: opacity var(--ui-fast) var(--ui-ease);
+}
+
+aside .menu-group-items.hidden {
+    display: none;
+}
+
+aside .menu-group-toggle i.fa-chevron-down {
+    transition: transform var(--ui-fast) var(--ui-ease);
+}
+
+/* --- Menu sidebar: garis penanda aktif bergeser halus, bukan muncul mendadak --- */
+aside nav > a::before {
+    transition: opacity var(--ui-fast) var(--ui-ease),
+                transform var(--ui-fast) var(--ui-ease);
+}
+
+aside nav > a.sb-active::before {
+    opacity: 1;
+    transform: scaleY(1);
+}
+
+/* --- Baris tabel & kartu: hover halus --- */
+.modern-table tbody tr td,
+.card {
+    transition: background-color var(--ui-fast) var(--ui-ease),
+                border-color var(--ui-fast) var(--ui-ease);
+}
+
+/* --- Link & tombol teks: warna berubah halus --- */
+a,
+button,
+.btn,
+.x-page-header a {
+    transition: color var(--ui-fast) var(--ui-ease),
+                background-color var(--ui-fast) var(--ui-ease),
+                border-color var(--ui-fast) var(--ui-ease),
+                transform var(--ui-fast) var(--ui-ease),
+                opacity var(--ui-fast) var(--ui-ease);
+}
+
+/* --- Hormati preferensi pengguna: tanpa gerak, tanpa blur --- */
 @media (prefers-reduced-motion: reduce) {
-    html:not(.dark) .bg-white.rounded-2xl,
-    html:not(.dark) .bg-white.rounded-3xl,
-    html:not(.dark) .bg-white.rounded-\[2rem\],
-    html.dark .bg-white.rounded-2xl,
-    html.dark .bg-white.rounded-3xl,
-    html.dark .bg-white.rounded-\[2rem\],
-    aside nav > a, aside .menu-group-toggle, aside .menu-group-items a,
-    #railFlyout, #railTip {
+    [data-modal-root],
+    [data-modal-root] [data-modal-panel],
+    [data-modal-root]:not(:has([data-modal-panel])) > div,
+    aside .menu-group-items,
+    aside .menu-group-toggle i.fa-chevron-down,
+    aside nav > a::before,
+    .modern-table tbody tr td,
+    .card,
+    a,
+    button,
+    .btn {
         transition: none !important;
         animation: none !important;
     }
 }
 
-/* --- 5i. PELINDUNG CETAK: kertas putih polos --- */
-@media print {
-    html:not(.dark) body { background: #fff !important; }
-    html:not(.dark) .bg-white.rounded-2xl,
-    html:not(.dark) .bg-white.rounded-3xl,
-    html:not(.dark) .bg-white.rounded-\[2rem\],
-    html.dark .bg-white.rounded-2xl,
-    html.dark .bg-white.rounded-3xl,
-    html.dark .bg-white.rounded-\[2rem\],
-    .topbar, aside {
-        background: #fff !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        box-shadow: none !important;
-    }
-    html:not(.dark) aside nav > a,
-    html:not(.dark) aside nav > a.sb-active { background: transparent !important; color: #0f172a !important; box-shadow: none !important; }
+/* ==========================================================================
+   22. WARNA LABEL FORM - BACA DI PUTIH, DAN SERAGAM DENGAN KOMPONEN
+   ==========================================================================
+   Micro-label form di aplikasi ini (text-[10px] font-bold uppercase
+   tracking-widest) ditulis langsung di markup, bukan lewat komponen.
+   Masalahnya dua, keduanya soal warna:
+
+     1. TDK TERBACA. Hampir semuanya memakai text-slate-400 (#94a3b8).
+        Di atas putih rasionya cuma 2.56:1, sedangkan WCAG AA menuntut
+        4.5:1 untuk teks di bawah 18pt. Label ini 10px, jadi jelas
+        termasuk teks kecil. Dibanding teks isiannya yang hitam, label
+        ini praktis hilang.
+
+     2. TIDAK SERAGAM dengan <x-form.group>, yang sudah memakai
+        text-slate-500 (#64748b, rasionya 4.76:1 dan lolos). Jadi
+        form yang memakai komponen dan form yang menulis label sendiri punya warna label berbeda, meski tipografinya sama persis.
+
+   Arah perbaikannya hanya satu: menaikkan 169 label inline itu ke
+   slate-500 agar menyusul komponen. Menurunkan komponen ke slate-400
+   akan menyamakan angka tapi memperburik keterbacaan, jadi bukan
+   pilihan.
+
+   Sengaja diperbaiki di CSS, bukan dengan mengedit 169 tempat di
+   markup: satu blok di sini berlaku untuk semuanya dan tidak bisa
+   tercecer saat ada halaman baru. Selector-nya sengaja sempit - hanya
+   label uppercase 10/11px - supaya teks slate-400 lain yang memang sengaja diredupkan (placeholder,
+   keterangan, kolom tabel) tidak ikut menjadi lebih gelap dari yang dimaksud.
+   ------------------------------------------------------------------------ */
+
+/* .text-\[10px\] - tanda kurung siku harus di-escape di CSS */
+label.text-\[10px\].uppercase,
+label.text-\[11px\].uppercase,
+legend.text-\[10px\].uppercase {
+    color: #64748b; /* slate-500 */
 }
+
+/* Mode gelap TIDAK diberi aturan sendiri di sini. Percobaan pertama
+   menulis `html.dark label... { color: #94a3b8 }`, tapi aturan itu
+   selalu kalah: app.css punya
+       html.dark .text-slate-400, html.dark .text-slate-500
+           { color: var(--text-tertiary) !important; }
+   dan penanda !important menang apa pun spesifisitasnya. Warna label
+   gelap sebenarnya datang dari token --text-tertiary yang sudah
+   diperbaiki di app.css - di situ perbaikannya berlaku untuk semua
+   teks tertiary, bukan cuma label. */
+
+   /* ==========================================================================
+      22. TIPOGRAFI - HURUF BESAR & TRACKING LEBAR DIBUANG
+
+      INI AKAR MASALAH "HALAMAN INI TIDAK TERLIHAT SEPERTI OPENCODE".
+
+      Di seluruh aplikasi ada satu pola label mikro yang sangat sering:
+      9-10px, uppercase, letter-spacing 0.05-0.1em, warna slate-400.
+      Di halaman berdata (jasa, bahan baku, karyawan, akun, dashboard,
+      jurnal) jumlahnya 18 sampai 104 elemen per halaman. Itu pola
+      "admin dashboard padat" - bukan OpenCode.
+
+      Token OpenCode, diambil dari packages/ui/src/styles/theme.css di
+      repo sst/opencode (lihat scripts/audit-token-opencode.cjs):
+        - text-transform: tidak dipakai sama sekali untuk teks UI
+        - letter-spacing: 0
+        - ukuran teks terendah: 13px
+        - pembeda label dan nilai: WARNA, bukan huruf besar atau ukuran
+
+      Kenapa di CSS dan bukan dibersihkan per berkas:
+      utility `uppercase` + `tracking-widest` tersebar di lebih dari 100
+      view (546 + 50 + 30 pemakaian). Membersihkannya satu per satu
+      berarti perubahan besar di banyak berkas sekaligus. Karena ini
+      keputusan token, bukan keputusan per halaman, satu tempat adalah
+      tempat yang benar - sama seperti section 17 untuk radius.
+
+      Yang SENGAJA tidak disentuh:
+        - .tracking-tight (nilai negatif -0.025em). OpenCode memakai
+          tracking sangat kecil pada judul besar; ini membuat teks
+          besar lebih rapat, bukan membuatnya renggang.
+        - .uppercase-buka: escape hatch untuk label yang memang harus
+          huruf besar (kode, singkatan baku).
+      ======================================================================== */
+
+   /* 1. Huruf besar dibuang.
+
+      Badge dan chip di aplikasi ini TIDAK memakai uppercase (sudah
+      diukur: 0 elemen), jadi tidak ada bentuk pil yang kehilangan
+      penandanya. Yang berubah: label form, header tabel, dan tab -
+      semuanya jadi kapitalisasi kalimat, seperti OpenCode. */
+   .uppercase,
+   label,
+   th,
+   legend {
+      text-transform: none !important;
+   }
+
+   /* 2. Tracking positif dinormalkan ke 0.
+
+      Tracking lebar ada justru karena hurufnya besar: huruf besar
+      tanpa jarak terlihat renggang. Sekarang huruf besarnya sudah
+      dibuang, jadi spacing itu hanya menambah lebar sia-sia. */
+   .tracking-wide,
+   .tracking-wider,
+   .tracking-widest,
+   [class*='tracking-[0.'] {
+      letter-spacing: 0 !important;
+   }
+
+   /* 3. Label mikro dinaikkan satu tingkat.
+
+      Huruf besar 10px jauh lebih tinggi dari huruf kecil 10px. Kalau
+      huruf besarnya dihapus tanpa menaikkan ukuran, label yang tadinya
+      terbaca jadi menyusut - hierarki hilang, bukan membaik. Jadi 9px
+      naik ke 10px dan 10px naik ke 11px: cukup untuk tetap terbaca,
+      dan tidak cukup untuk membuat kolom tabel sempit meluber.
+
+      11px ke atas TIDAK disentuh - ukurannya sudah wajar, dan
+      menaikkannya berisiko membongkar tabel. */
+   .text-\[8px\] {
+      font-size: 13px !important;
+   }
+
+   .text-\[9px\] {
+      font-size: 13px !important;
+   }
+
+   .text-\[10px\] {
+      font-size: 13px !important;
+   }
+
+   .text-\[11px\] {
+      font-size: 13px !important;
+   }
+
+   .text-\[12px\] {
+      font-size: 13px !important;
+   }
+
+   /* .text-xs = 12px bawaan Tailwind, dipakai di ratusan tempat.
+      Dinaikkan ke 13px karena permintaannya "minimal 13px". */
+   .text-xs {
+      font-size: 13px !important;
+   }
+
+   /* ==========================================================================
+      23. FONT 11px -> 13px
+
+      Permintaan: hindari font-size 11px, minimal 13px agar terbaca jelas.
+
+      Angka 11px tersebar di 371 tempat pada 111 berkas. Mengeditnya satu
+      per satu berarti perubahan besar di banyak berkas sekaligus, dan
+      yang terlewat tidak akan ketahuan sampai halamannya dibuka satu per
+      satu. Karena ini keputusan token (OpenCode tidak memakai 11px -
+      ukuran terendahnya 13px), satu tempat adalah tempat yang benar -
+      sama seperti section 22 untuk huruf besar.
+
+      Yang SENGAJA tidak ikut:
+        - .text-\[11px\].tetap-kecil : escape hatch untuk tempat yang
+          memang harus kecil (badge di dalam tabel yang sangat padat).
+        - SVG <text> di dalam diagram: angka di sana bukan ukuran layar,
+          dan mengubahnya mengubah proporsi gambar.
+      ======================================================================== */
+   .text-\[11px\] {
+      font-size: 13px !important;
+   }
+   /* ==========================================================================
+      24. KONFIRMASI GLOBAL - satu gaya untuk semua dialog SweetAlert2
+
+      17 berkas memanggil Swal.fire() dengan customClass inline yang
+      berbeda-beda (rounded-[2rem], rounded-lg, px-6 py-2.5, dst). Daripada
+      menyentuhnya satu per satu, gaya ditentukan di sini dengan
+      !important - satu tempat, semua dialog seragam.
+
+      Yang ditiru dari gambar: popup putih radius 12px, judul besar tebal
+      gelap, deskripsi abu-abu, tombol Cancel putih ber-border, tombol
+      Delete merah solid, tombol X lingkaran abu-abu.
+      ======================================================================== */
+
+   /* Popup: putih, radius 12px, shadow lembut. !important menimpa
+      customClass popup:'rounded-[2rem]' di beberapa berkas. */
+   .swal2-popup {
+      border-radius: 12px !important;
+      box-shadow: 0 10px 40px rgba(15, 23, 42, .12) !important;
+      padding: 18px !important;
+   }
+
+   /* Judul: besar, tebal, gelap. */
+   .swal2-title {
+      padding-left: 40px !important;
+      font-size: 20px !important;
+      font-weight: 600 !important;
+      color: #171717 !important;
+      padding: 0 !important;
+      margin: 0 0 6px !important;
+      text-align: left !important;
+   }
+
+   /* Deskripsi: abu-abu, 14px. */
+   .swal2-html-container {
+      font-size: 14px !important;
+      color: #6f6f6f !important;
+      margin: 0 0 12px !important;
+      text-align: left !important;
+   }
+
+   /* Tombol Cancel: putih, border abu-abu, teks gelap. */
+   .swal2-cancel {
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      color: #475569 !important;
+      border-radius: 8px !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      padding: 10px 20px !important;
+      box-shadow: none !important;
+   }
+   .swal2-cancel:hover {
+      background: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+   }
+   .swal2-cancel:focus {
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .15) !important;
+   }
+
+   /* Tombol Confirm/Delete: merah solid, teks putih.
+
+      Merah secara BUKAN default - merah dipakai untuk aksi destruktif
+      (hapus, batalkan, hapus permanen). Dialog konfirmasi yang bukan
+      destruktif (mis. "Simpan?") harus menimpanya dengan
+      confirmButtonColor sendiri, dan itu sudah bekerja karena aturan
+      di bawah hanya menetapkan warna dasar.
+
+      Alasan merah dipakai sebagai warna dasar: sebagian besar dialog
+      konfirmasi di aplikasi ini memang destruktif, dan gambar acuan
+      menunjukkan tombol merah. */
+   .swal2-confirm {
+      background: #dc2626 !important;
+      border-color: #dc2626 !important;
+      color: #ffffff !important;
+      border-radius: 8px !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      padding: 10px 20px !important;
+      box-shadow: none !important;
+   }
+   .swal2-confirm:hover {
+      background: #b91c1c !important;
+   }
+   .swal2-confirm:focus {
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, .2) !important;
+   }
+
+   /* Kalau dialog memakai ikon warning/error, tombol confirm merah.
+      Dikenali lewat kelas .swal2-icon yang ada di dalam popup. */
+   .swal2-popup:has(.swal2-icon--warning) .swal2-confirm,
+   .swal2-popup:has(.swal2-icon--error) .swal2-confirm,
+   .swal2-popup:has(.swal2-icon--question) .swal2-confirm {
+      background: #dc2626 !important;
+      border-color: #dc2626 !important;
+      color: #ffffff !important;
+   }
+   .swal2-popup:has(.swal2-icon--warning) .swal2-confirm:hover,
+   .swal2-popup:has(.swal2-icon--error) .swal2-confirm:hover,
+   .swal2-popup:has(.swal2-icon--question) .swal2-confirm:hover {
+      background: #b91c1c !important;
+   }
+
+   /* Tombol X: lingkaran abu-abu, ikon gelap. */
+   .swal2-close {
+      background: #f1f5f9 !important;
+      border-radius: 50% !important;
+      color: #64748b !important;
+      font-size: 14px !important;
+      width: 32px !important;
+      height: 32px !important;
+      top: 16px !important;
+      right: 16px !important;
+   }
+   .swal2-close:hover {
+      background: #e2e8f0 !important;
+      color: #334155 !important;
+   }
+   .swal2-close:focus {
+      box-shadow: none !important;
+   }
+
+   /* Ikon tanda seru: di KIRI JUDUL, sebaris dengan teksnya.
+
+      Sebelumnya ikon di tengah di atas judul (margin: 0 auto).
+      Itu membuat dialog terasa seperti pengumukan. Di gambar acuan
+      ikon berada di kiri, sejajar dengan judul - seperti daftar
+      dengan bullet, bukan poster dengan gambar di atas.
+
+      position:absolute + left/top mengikuti padding popup (20px).
+      Judul diberi padding-left supaya teksnya mulai di kanan ikon. */
+   /* Ikon di KIRI JUDUL, sebaris dengan teksnya.
+
+      Sebelumnya ikon di tengah di atas judul (position:absolute,
+      left:20px, top:20px). Itu membuat dialog terasa seperti pengumukan.
+      Sekarang ikon di kiri, sejajar dengan judul - seperti daftar dengan
+      bullet, bukan poster dengan gambar di atas.
+
+      left/top mengikuti padding popup (18px). Judul diberi
+      padding-left supaya teksnya mulai di kanan ikon. */
+   .swal2-icon {
+      position: absolute !important;
+      left: 18px !important;
+      top: 18px !important;
+      width: 28px !important;
+      height: 28px !important;
+      margin: 0 !important;
+      border-width: 2px !important;
+   }
+   .swal2-icon .swal2-icon-content {
+      font-size: 14px !important;
+   }
+
+   /* Footer (tombol-tombol): rapat, kanan. */
+   .swal2-actions {
+      margin: 0 !important;
+      gap: 10px !important;
+      justify-content: flex-end !important;
+   }

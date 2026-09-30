@@ -15,9 +15,19 @@ class KasirController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Hitung jumlah antrean baru (Hanya status 'Belum Bayar')
+        // 1. Hitung jumlah antrean baru (status 'Belum Bayar', nota yang
+        //    belum dibatalkan).
+        //
+        //    Pengecualian 'Dibatalkan' WAJIB di sini, bukan hanya di query
+        //    utama di bawah. Kedua query itu dibaca kasir sebagai satu
+        //    angka yang sama: daftar di layar says "N antrean", lencana di
+        //    sidebar says "N". Kalau hanya daftar yang menyingkirkan nota
+        //    batal, lencana tetap menghitungnya dan kasir membuka halaman
+        //    karena dikira ada antrean - lalu tidak ada apa-apa yang bisa
+        //    dilayani. Itu persis yang dilaporkan.
         $waitingCount = DB::table('transaksi')
             ->where('status_pembayaran', 'Belum Bayar')
+            ->where('status_nota', '!=', 'Dibatalkan')
             ->count();
 
         // 2. Query Monitoring Utama - SEMUA status (Belum Bayar/DP/Lunas)
@@ -94,14 +104,22 @@ class KasirController extends Controller
 
     public function waitingList()
     {
-        // Pastikan hanya mengambil status 'Belum Bayar'. Urut berdasar
-        // tgl_order (BUKAN created_at) - transaksi dibuat lewat
-        // DB::table()->insertGetId() di PenjualanController::store(), yang
-        // tidak otomatis mengisi created_at (selalu NULL), sementara
-        // tgl_order SELALU diisi now() saat order dibuat.
+        // Pastikan hanya mengambil status 'Belum Bayar' DAN nota yang
+        // belum dibatalkan. Urut berdasar tgl_order (BUKAN created_at) -
+        // transaksi dibuat lewat DB::table()->insertGetId() di
+        // PenjualanController::store(), yang tidak otomatis mengisi
+        // created_at (selalu NULL), sementara tgl_order SELALU diisi
+        // now() saat order dibuat.
+        //
+        // Tanpa syarat status_nota, nota yang dibatalkan dengan alasan
+        // tetap muncul di sini. Alasan pembatalannya ada (kolom
+        // alasan_batal_nota) tapi kasir tidak punya cara memintanya,
+        // jadi yang tersisa hanya membukanya dan menemukan form
+        // pembayaran yang memang menolak.
         $waiting = DB::table('transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->where('transaksi.status_pembayaran', 'Belum Bayar')
+            ->where('transaksi.status_nota', '!=', 'Dibatalkan')
             ->select('transaksi.*', 'konsumen.nama_konsumen')
             ->orderBy('transaksi.tgl_order', 'desc')
             ->get();
@@ -1038,7 +1056,16 @@ public function getHistory($id)
 }
     public function checkNewTransaction()
     {
-        $count = DB::table('transaksi')->where('tgl_order', date('Y-m-d'))->where('status_pembayaran', 'Belum Bayar')->count();
+        // Angka ini yang muncul sebagai notifikasi "antrean baru" di
+        // halaman kasir. Kalau nota batal ikut dihitung, bunyi notifikasi
+        // tetap berbunyi padahal tidak ada yang bisa dilayani - kasir
+        // lalu datang ke meja dan mendapati daftar kosong.
+        $count = DB::table('transaksi')
+            ->where('tgl_order', date('Y-m-d'))
+            ->where('status_pembayaran', 'Belum Bayar')
+            ->where('status_nota', '!=', 'Dibatalkan')
+            ->count();
+
         return response()->json(['total' => $count]);
     }
 }

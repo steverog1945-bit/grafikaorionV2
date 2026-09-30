@@ -16,7 +16,7 @@
     <div class="mb-6 flex flex-wrap items-center gap-4 rounded-3xl bg-gradient-to-r from-amber-50 to-orange-50/40 border border-amber-100 px-6 py-4">
         <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="fas fa-exclamation-triangle"></i></div>
         <div class="flex-1 min-w-[200px]">
-            <p class="text-sm font-bold text-amber-800">Kas kasir belum dibuka</p>
+            <p class="text-sm font-medium text-amber-800">Kas kasir belum dibuka</p>
             <p class="text-xs text-amber-600/90 mt-0.5">Pembayaran belum bisa dicatat sebelum saldo kas hari ini dibuka. Nota tetap bisa disimpan sebagai antrean (tanpa uang masuk).</p>
         </div>
         <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0 w-full sm:w-auto"><i class="fas fa-wallet"></i> Buka Kas</x-button>
@@ -38,16 +38,16 @@
                 <div class="flex flex-wrap items-center gap-4 rounded-3xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] px-6 py-5">
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-400 flex items-center justify-center shrink-0"><i class="fas fa-user text-lg"></i></div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-lg font-bold text-slate-800 truncate">{{ $transaksi->nama_konsumen }}</p>
-                        <p class="text-xs text-slate-400 mt-0.5">Nota <span class="font-semibold text-slate-500">#{{ $transaksi->nomor_nota }}</span> &middot; {{ \Carbon\Carbon::parse($transaksi->tgl_order)->format('d M Y, H:i') }}</p>
+                        <p class="text-lg font-medium text-slate-800 truncate">{{ $transaksi->nama_konsumen }}</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Nota <span class="font-medium text-slate-500">#{{ $transaksi->nomor_nota }}</span> &middot; {{ \Carbon\Carbon::parse($transaksi->tgl_order)->format('d M Y, H:i') }}</p>
                     </div>
-                    <span class="px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-500 text-[11px] font-semibold tracking-wide">{{ $transaksi->nama_golongan ?? '-' }}</span>
+                    <span class="px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-500 text-[11px] font-medium tracking-wide">{{ $transaksi->nama_golongan ?? '-' }}</span>
                 </div>
 
                 {{-- Rincian barang: kartu lembut per item --}}
                 <div class="rounded-3xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] p-6">
                     <div class="flex items-center justify-between mb-5">
-                        <h4 class="text-sm font-semibold text-slate-700">Rincian Barang</h4>
+                        <h4 class="text-sm font-medium text-slate-700">Rincian Barang</h4>
                         <span class="text-[11px] text-slate-400">Ubah harga per item lewat ikon pensil</span>
                     </div>
 
@@ -71,27 +71,27 @@
                         <div class="item-row group flex flex-wrap items-center gap-4 rounded-2xl bg-slate-50/60 hover:bg-slate-50 border border-transparent hover:border-slate-100 px-4 py-3.5 transition-all" data-id="{{ $item->id_detail }}">
                             <span class="w-6 text-xs font-medium text-slate-300">{{ $i + 1 }}</span>
                             @if($item->thumbnail)
-                                <img src="{{ asset('storage/'.$item->thumbnail) }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0">
+                                <img loading="lazy" decoding="async" src="{{ asset('storage/'.$item->thumbnail) }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0">
                             @else
                                 <div class="w-12 h-12 rounded-xl bg-white border border-slate-100 shrink-0 flex items-center justify-center text-slate-300"><i class="far fa-image"></i></div>
                             @endif
 
                             <div class="flex-1 min-w-[180px]">
-                                <p class="text-sm font-semibold text-slate-700 truncate">{{ $item->nama_produk ?? $item->nama_jasa ?? $item->nama_file }}</p>
+                                <p class="text-sm font-medium text-slate-700 truncate">{{ $item->nama_produk ?? $item->nama_jasa ?? $item->nama_file }}</p>
                                 @if($item->nama_produk || $item->nama_jasa)
                                     <p class="text-xs text-slate-400 truncate">{{ $item->nama_file }}</p>
                                 @endif
-                                <p class="disp-biaya-tambahan text-[11px] text-slate-400 mt-1">{!! $bagianBiaya !!}</p>
+                                <p class="disp-biaya-tambahan text-[11px] text-slate-400 mt-1">{!! \App\Support\HtmlBersih::bersihkan($bagianBiaya) !!}</p>
                             </div>
 
                             <div class="text-right w-28">
                                 <p class="text-[10px] text-slate-300 font-medium uppercase tracking-wide">Harga</p>
-                                <p class="disp-harga text-sm font-semibold text-slate-600">Rp {{ number_format($hargaSatuan, 0, ',', '.') }}</p>
+                                <p class="disp-harga text-sm font-medium text-slate-600">Rp {{ number_format($hargaSatuan, 0, ',', '.') }}</p>
                             </div>
 
                             <div class="text-center w-24">
                                 <p class="text-[10px] text-slate-300 font-medium uppercase tracking-wide">Qty</p>
-                                <p class="text-sm font-semibold text-slate-600">
+                                <p class="text-sm font-medium text-slate-600">
                                     @if($item->metode_hitung == 'ukuran')
                                         {{ number_format($item->qty_hitung, 2, ',', '.') }} m²
                                         <span class="block text-[10px] text-slate-300 font-normal">{{ angka($item->qty, 4) }} pcs</span>
@@ -103,7 +103,7 @@
 
                             <div class="text-right w-32">
                                 <p class="text-[10px] text-slate-300 font-medium uppercase tracking-wide">Subtotal</p>
-                                <p class="disp-subtotal text-base font-bold text-slate-800">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</p>
+                                <p class="disp-subtotal text-base font-medium text-slate-800">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</p>
                             </div>
 
                             <button type="button" onclick="openCustomHarga({{ $item->id_detail }})" class="w-9 h-9 inline-flex items-center justify-center rounded-xl bg-white text-slate-300 hover:text-indigo-500 hover:shadow-sm border border-slate-100 transition-all" title="Ubah harga item ini">
@@ -128,7 +128,7 @@
                     <div class="mb-5 flex items-center gap-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 px-4 py-3">
                         <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><i class="fas fa-wallet text-sm"></i></div>
                         <div class="flex-1">
-                            <p class="text-xs font-semibold text-emerald-700">Deposit tersedia Rp {{ number_format($saldoDeposit, 0, ',', '.') }}</p>
+                            <p class="text-xs font-medium text-emerald-700">Deposit tersedia Rp {{ number_format($saldoDeposit, 0, ',', '.') }}</p>
                             <p class="text-[11px] text-emerald-600/80 mt-0.5">Otomatis diterapkan. Ganti Metode Pembayaran jika ingin pakai Tunai/Transfer.</p>
                         </div>
                     </div>
@@ -136,7 +136,7 @@
                     <div class="mb-5 flex items-center gap-3 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3">
                         <div class="w-9 h-9 rounded-xl bg-slate-200/70 text-slate-400 flex items-center justify-center shrink-0"><i class="fas fa-ban text-sm"></i></div>
                         <div class="flex-1">
-                            <p class="text-xs font-semibold text-slate-500">Deposit sudah habis terpakai</p>
+                            <p class="text-xs font-medium text-slate-500">Deposit sudah habis terpakai</p>
                             <p class="text-[11px] text-slate-400 mt-0.5">Konsumen ini pernah setor deposit, tapi saldonya sudah habis - tidak bisa dipakai lagi sampai ada setoran baru.</p>
                         </div>
                     </div>
@@ -144,13 +144,13 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
                         <div class="md:col-span-2">
-                            <label class="block text-[11px] font-semibold text-slate-400 mb-2.5">Jenis Pembayaran</label>
+                            <label class="block text-[11px] font-medium text-slate-400 mb-2.5">Jenis Pembayaran</label>
                             <div class="grid grid-cols-2 md:grid-cols-1 gap-2">
-                                <label class="tipe-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold text-xs cursor-pointer transition-all">
+                                <label class="tipe-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 text-indigo-700 font-medium text-xs cursor-pointer transition-all">
                                     <input type="radio" name="tipe_bayar" value="lunas" class="sr-only" checked onchange="onTipeBayarChange()">
                                     <i class="fas fa-check-circle"></i> Lunas
                                 </label>
-                                <label class="tipe-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-semibold text-xs cursor-pointer transition-all hover:border-slate-200">
+                                <label class="tipe-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-medium text-xs cursor-pointer transition-all hover:border-slate-200">
                                     <input type="radio" name="tipe_bayar" value="dp" class="sr-only" onchange="onTipeBayarChange()">
                                     <i class="fas fa-hand-holding-usd"></i> DP
                                 </label>
@@ -158,21 +158,21 @@
                         </div>
 
                         <div class="md:col-span-3">
-                            <label class="block text-[11px] font-semibold text-slate-400 mb-2.5">Metode Pembayaran</label>
+                            <label class="block text-[11px] font-medium text-slate-400 mb-2.5">Metode Pembayaran</label>
                             <div class="grid grid-cols-2 gap-2">
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold text-xs cursor-pointer transition-all">
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 text-indigo-700 font-medium text-xs cursor-pointer transition-all">
                                     <input type="radio" name="metode_pembayaran" id="metode-tunai" value="Tunai" class="sr-only" checked onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-money-bill-wave"></i> Tunai
                                 </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-semibold text-xs cursor-pointer transition-all hover:border-slate-200">
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-medium text-xs cursor-pointer transition-all hover:border-slate-200">
                                     <input type="radio" name="metode_pembayaran" value="Debit" class="sr-only" onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-credit-card"></i> Debit
                                 </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-semibold text-xs cursor-pointer transition-all hover:border-slate-200">
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-medium text-xs cursor-pointer transition-all hover:border-slate-200">
                                     <input type="radio" name="metode_pembayaran" value="Transfer" class="sr-only" onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-university"></i> Transfer
                                 </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-semibold text-xs cursor-pointer transition-all hover:border-slate-200 {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}"
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-medium text-xs cursor-pointer transition-all hover:border-slate-200 {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}"
                                     title="{{ $saldoDeposit > 0 ? '' : ($depositSudahHabis ? 'Deposit konsumen ini sudah habis terpakai, tidak bisa dipakai lagi.' : 'Konsumen ini belum pernah setor deposit.') }}">
                                     <input type="radio" name="metode_pembayaran" value="Deposit" class="sr-only" {{ $saldoDeposit <= 0 ? 'disabled' : '' }} onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-wallet"></i> Deposit
@@ -182,7 +182,7 @@
                     </div>
 
                     <div id="wrapper-bank" class="hidden mt-5">
-                        <label class="block text-[11px] font-semibold text-slate-400 mb-2">Rekening Tujuan</label>
+                        <label class="block text-[11px] font-medium text-slate-400 mb-2">Rekening Tujuan</label>
                         <select name="id_bank" id="input-bank" class="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-sm font-medium text-slate-600 shadow-inner focus:ring-2 focus:ring-indigo-500/20">
                             <option value="">-- Pilih Rekening --</option>
                             @foreach($banks as $b)
@@ -191,21 +191,21 @@
                         </select>
                     </div>
                     <div id="wrapper-deposit-info" class="hidden mt-5 rounded-2xl bg-indigo-50/60 border border-indigo-100 px-4 py-3">
-                        <p class="text-xs font-semibold text-indigo-600">Saldo deposit: Rp {{ number_format($saldoDeposit, 0, ',', '.') }}</p>
+                        <p class="text-xs font-medium text-indigo-600">Saldo deposit: Rp {{ number_format($saldoDeposit, 0, ',', '.') }}</p>
                         <p class="text-[11px] text-indigo-400 mt-0.5">Jumlah bayar tidak boleh melebihi saldo ini.</p>
                     </div>
 
                     <div class="mt-6">
-                        <label id="label-uang-diterima" class="block text-[11px] font-semibold text-slate-400 mb-2">Uang Diterima</label>
+                        <label id="label-uang-diterima" class="block text-[11px] font-medium text-slate-400 mb-2">Uang Diterima</label>
                         <div class="relative">
-                            <span class="absolute left-5 top-1/2 -translate-y-1/2 font-semibold text-slate-300 text-lg">Rp</span>
+                            <span class="absolute left-5 top-1/2 -translate-y-1/2 font-medium text-slate-300 text-lg">Rp</span>
                             <input type="text" id="input-bayar-mask"
-                                   class="format-ribuan w-full h-14 pl-14 pr-4 rounded-2xl border border-slate-100 bg-slate-50/60 text-xl font-bold text-indigo-600 focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50 transition-all"
+                                   class="format-ribuan w-full h-14 pl-14 pr-4 rounded-2xl border border-slate-100 bg-slate-50/60 text-xl font-medium text-indigo-600 focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50 transition-all"
                                    placeholder="0">
                             <input type="hidden" name="jumlah_bayar" id="input-bayar-asli">
                         </div>
                         <div class="mt-2.5 flex justify-end">
-                            <button type="button" id="btn-bayar-pas" onclick="setUangPas()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-500 text-[11px] font-semibold transition-all">
+                            <button type="button" id="btn-bayar-pas" onclick="setUangPas()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-500 text-[11px] font-medium transition-all">
                                 <i class="fas fa-bolt"></i> Bayar Sisa Tagihan
                             </button>
                         </div>
@@ -217,14 +217,14 @@
             <div class="xl:col-span-4 xl:sticky xl:top-6 space-y-6">
                 <div class="rounded-3xl bg-gradient-to-br from-indigo-50 via-white to-violet-50/60 border border-indigo-100/70 shadow-[0_8px_30px_rgba(79,70,229,0.08)] p-6 relative overflow-hidden">
                     @if($totalTerbayar > 0)
-                    <span class="absolute top-4 right-4 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold">Sudah dibayar Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</span>
+                    <span class="absolute top-4 right-4 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-medium">Sudah dibayar Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</span>
                     @endif
 
-                    <h4 class="text-sm font-semibold text-slate-700 mb-5">Ringkasan Tagihan</h4>
+                    <h4 class="text-sm font-medium text-slate-700 mb-5">Ringkasan Tagihan</h4>
 
                     <div class="flex justify-between items-center text-sm mb-3">
                         <span class="text-slate-400">Total Nota</span>
-                        <span id="total-kotor" class="font-semibold text-slate-700">Rp 0</span>
+                        <span id="total-kotor" class="font-medium text-slate-700">Rp 0</span>
                     </div>
 
                     <div class="flex justify-between items-center mb-3">
@@ -232,14 +232,14 @@
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 font-medium text-[11px]">Rp</span>
                             <input type="text" id="input-diskon" name="diskon" value="0"
-                                class="format-ribuan w-36 h-9 bg-white border border-slate-100 rounded-xl text-right text-sm text-slate-700 font-semibold focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 pl-9">
+                                class="format-ribuan w-36 h-9 bg-white border border-slate-100 rounded-xl text-right text-sm text-slate-700 font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 pl-9">
                         </div>
                     </div>
 
                     @if($totalTerbayar > 0)
                     <div class="flex justify-between items-center text-sm mb-3 text-emerald-600">
                         <span>Sudah Dibayar</span>
-                        <span class="font-semibold">- Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</span>
+                        <span class="font-medium">- Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</span>
                     </div>
                     <input type="hidden" id="total_terbayar_hidden" value="{{ $totalTerbayar }}">
                     @else
@@ -249,25 +249,25 @@
                     <div class="h-px bg-indigo-100/70 my-4"></div>
 
                     <div class="flex justify-between items-end">
-                        <span class="text-xs font-semibold text-indigo-400">{{ $totalTerbayar > 0 ? 'Sisa Tagihan' : 'Grand Total' }}</span>
+                        <span class="text-xs font-medium text-indigo-400">{{ $totalTerbayar > 0 ? 'Sisa Tagihan' : 'Grand Total' }}</span>
                         <input type="hidden" id="grand_total_hidden" name="total_akhir" value="0">
-                        <span id="display-grand-total" class="text-3xl font-bold text-slate-800 tracking-tight">Rp 0</span>
+                        <span id="display-grand-total" class="text-3xl font-medium text-slate-800 tracking-tight">Rp 0</span>
                     </div>
 
                     <div class="mt-6 rounded-2xl bg-white/80 border border-white px-4 py-3.5">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-[11px] font-medium text-slate-400">Status</span>
-                            <span id="status-label" class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-semibold">MENUNGGU...</span>
+                            <span id="status-label" class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-medium">MENUNGGU...</span>
                         </div>
                         <span id="label-selisih" class="block text-[11px] text-slate-400 mt-2">Kalkulasi</span>
-                        <div id="display-selisih" class="text-xl font-bold text-slate-700">Rp 0</div>
+                        <div id="display-selisih" class="text-xl font-medium text-slate-700">Rp 0</div>
                     </div>
 
                     <div class="mt-5 grid grid-cols-2 gap-3">
-                        <button type="button" onclick="simpanSaja()" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white border border-slate-100 hover:border-indigo-200 text-slate-500 hover:text-indigo-600 font-semibold text-xs transition-all">
+                        <button type="button" onclick="simpanSaja()" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white border border-slate-100 hover:border-indigo-200 text-slate-500 hover:text-indigo-600 font-medium text-xs transition-all">
                             <i class="fas fa-inbox"></i> Simpan
                         </button>
-                        <button type="submit" {{ !$kasAktif ? 'disabled title="Kas belum dibuka - lihat peringatan di atas"' : '' }} class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-semibold text-xs shadow-lg shadow-indigo-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
+                        <button type="submit" {{ !$kasAktif ? 'disabled title="Kas belum dibuka - lihat peringatan di atas"' : '' }} class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-medium text-xs shadow-lg shadow-indigo-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
                             <i class="fas fa-cash-register"></i> Bayar
                         </button>
                     </div>
@@ -281,7 +281,7 @@
          bukan satu modal per item - lebih ringan & konsisten dengan pola
          openEditX(data) yang sudah dipakai di halaman master lain. --}}
     <x-modal id="custom-harga" title="Custom Harga" maxWidth="sm">
-        <p id="ch-nama-item" class="text-xs text-slate-400 uppercase font-bold mb-1 -mt-2"></p>
+        <p id="ch-nama-item" class="text-xs text-slate-400 uppercase font-medium mb-1 -mt-2"></p>
         {{-- Acuan per-unit murni informasi (Biaya Cetak / Qty), dihitung LIVE
              lewat hitungPreviewCustomHarga() - Biaya Cetak sekarang komponen
              UTAMA Subtotal (bukan lagi Harga x Qty ditambah Biaya Cetak
@@ -296,8 +296,8 @@
                  konsisten baik untuk item baru maupun item lama sebelum
                  Biaya Cetak jadi komponen utama). --}}
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Biaya Cetak</label>
-                <input type="text" id="ch-cetak" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Biaya Cetak</label>
+                <input type="text" id="ch-cetak" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
 
             {{-- Biaya Desain/Finishing disembunyikan default, cuma muncul kalau
@@ -305,34 +305,34 @@
                  operator sengaja menambahkannya lewat tombol di bawah -
                  selaras dengan penjualan/create.blade.php. --}}
             <div id="ch-wrapper-desain" class="hidden">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Biaya Desain</label>
-                <input type="text" id="ch-desain" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Biaya Desain</label>
+                <input type="text" id="ch-desain" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div id="ch-wrapper-finishing" class="hidden">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Biaya Finishing</label>
-                <input type="text" id="ch-finishing" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Biaya Finishing</label>
+                <input type="text" id="ch-finishing" class="format-ribuan-modal w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div class="flex flex-wrap gap-x-4 gap-y-1">
-                <button type="button" id="ch-btn-tambah-desain" onclick="tampilkanChBiaya('desain')" class="text-indigo-500 hover:text-indigo-700 text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
+                <button type="button" id="ch-btn-tambah-desain" onclick="tampilkanChBiaya('desain')" class="text-indigo-500 hover:text-indigo-700 text-[10px] font-medium uppercase tracking-widest underline underline-offset-4 decoration-dotted">
                     <i class="fas fa-plus-circle"></i> Biaya Desain
                 </button>
-                <button type="button" id="ch-btn-tambah-finishing" onclick="tampilkanChBiaya('finishing')" class="text-indigo-500 hover:text-indigo-700 text-[10px] font-bold uppercase tracking-widest underline underline-offset-4 decoration-dotted">
+                <button type="button" id="ch-btn-tambah-finishing" onclick="tampilkanChBiaya('finishing')" class="text-indigo-500 hover:text-indigo-700 text-[10px] font-medium uppercase tracking-widest underline underline-offset-4 decoration-dotted">
                     <i class="fas fa-plus-circle"></i> Biaya Finishing
                 </button>
             </div>
 
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Potongan Tunai (Diskon Item Ini)</label>
-                <input type="text" id="ch-potongan" class="format-ribuan-modal w-full bg-rose-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-rose-600 focus:ring-2 focus:ring-rose-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Potongan Tunai (Diskon Item Ini)</label>
+                <input type="text" id="ch-potongan" class="format-ribuan-modal w-full bg-rose-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-rose-600 focus:ring-2 focus:ring-rose-500/20 shadow-inner">
             </div>
 
             <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                <span class="text-[11px] font-bold text-slate-400 uppercase">Total Potongan</span>
-                <span id="ch-total-potongan" class="text-sm font-bold text-rose-500">Rp 0</span>
+                <span class="text-[11px] font-medium text-slate-400 uppercase">Total Potongan</span>
+                <span id="ch-total-potongan" class="text-sm font-medium text-rose-500">Rp 0</span>
             </div>
             <div class="flex items-center justify-between">
-                <span class="text-xs font-black text-slate-500 uppercase">Subtotal Baru</span>
-                <span id="ch-preview-subtotal" class="text-xl font-black text-indigo-600">Rp 0</span>
+                <span class="text-xs font-medium text-slate-500 uppercase">Subtotal Baru</span>
+                <span id="ch-preview-subtotal" class="text-xl font-medium text-indigo-600">Rp 0</span>
             </div>
         </div>
 
@@ -340,7 +340,7 @@
              dibuka (nota asli sebelum diedit) - berguna kalau operator sudah
              sempat mengubah-ubah Biaya Desain/Finishing/Potongan lalu
              berubah pikiran, tanpa perlu tutup modal & buka ulang. --}}
-        <button type="button" onclick="kembalikanNilaiAsliCh()" class="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 font-bold text-[11px] uppercase tracking-widest transition-all">
+        <button type="button" onclick="kembalikanNilaiAsliCh()" class="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 font-medium text-[11px] uppercase tracking-widest transition-all">
             <i class="fas fa-undo-alt"></i> Kembalikan Nilai Asli
         </button>
 
@@ -425,17 +425,17 @@
 
         if (bayar <= 0) {
             statusLabel.innerText = "BELUM BAYAR";
-            statusLabel.className = "px-2.5 py-1 rounded-full bg-rose-50 text-rose-500 text-[10px] font-semibold";
+            statusLabel.className = "px-2.5 py-1 rounded-full bg-rose-50 text-rose-500 text-[10px] font-medium";
             labelSelisih.innerText = "SISA PIUTANG";
             displaySelisih.innerText = 'Rp ' + formatRupiah(Math.abs(sisaTagihan));
         } else if (bayar < sisaTagihan) {
             statusLabel.innerText = "PIUTANG / DP";
-            statusLabel.className = "px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-semibold";
+            statusLabel.className = "px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-medium";
             labelSelisih.innerText = "KEKURANGAN";
             displaySelisih.innerText = 'Rp ' + formatRupiah(Math.abs(selisih));
         } else {
             statusLabel.innerText = "LUNAS";
-            statusLabel.className = "px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold";
+            statusLabel.className = "px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-medium";
             labelSelisih.innerText = "KEMBALIAN";
             displaySelisih.innerText = 'Rp ' + formatRupiah(selisih);
         }
@@ -574,7 +574,7 @@
 
         chNilaiAsli = { cetak, desain, finishing, potongan };
 
-        document.getElementById('ch-nama-item').innerText = row.querySelector('td:nth-child(2) .font-bold').innerText;
+        document.getElementById('ch-nama-item').innerText = row.querySelector('td:nth-child(2) .font-medium').innerText;
         document.getElementById('ch-cetak').value = formatRupiah(cetak);
         document.getElementById('ch-desain').value = formatRupiah(desain);
         document.getElementById('ch-finishing').value = formatRupiah(finishing);

@@ -1,5 +1,5 @@
-{{-- Modal "Supplier Baru" - pola sama dengan modal Konsumen Baru di Input Order. Param: $selectId (id <select> supplier). --}}
-<x-modal id="supplier-baru" title="Input Supplier Baru" maxWidth="md">
+{{-- Modal "Pemasok Baru" - pola sama dengan modal Konsumen Baru di Input Pesanan. Param: $selectId (id <select> supplier). --}}
+<x-modal id="supplier-baru" title="Input Pemasok Baru" maxWidth="md">
     <div class="space-y-5">
         <x-form.group label="Nama Perusahaan/Vendor">
             <x-form.input type="text" id="new_supplier_nama" placeholder="Contoh: PT. Sumber Kertas" />
@@ -44,7 +44,7 @@
 
                 ['new_supplier_nama', 'new_supplier_kontak', 'new_supplier_alamat'].forEach(id => document.getElementById(id).value = '');
                 closeModal('supplier-baru');
-                Swal.fire('Berhasil', 'Supplier baru terpilih', 'success');
+                Swal.fire('Berhasil', 'Pemasok baru terpilih', 'success');
             } else {
                 Swal.fire('Gagal', res.message || 'Data tidak dapat disimpan.', 'error');
             }

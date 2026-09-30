@@ -1,5 +1,11 @@
 @props([
-    'wrapperClass' => 'bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden',
+    // Wrapper luar SENGAJA dibuat polos (tanpa bg/radius/border sendiri).
+    // Permukaan visual (background, border, radius 8px) dibawa oleh
+    // .modern-table-wrapper di dalam. Sebelumnya wrapper luar juga punya
+    // rounded-[2rem] + border + shadow, sehingga tabel punya dua lapis
+    // radius (32px di luar, 8px di dalam) dan dua garis border bertumpuk
+    // yang terlihat tidak senada dengan .card mana pun.
+    'wrapperClass' => 'overflow-hidden',
     'bare'         => false, // true = skip wrapper card, dipakai saat tabel sudah ada di dalam card/panel lain
 ])
 

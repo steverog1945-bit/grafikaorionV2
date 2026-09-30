@@ -17,9 +17,9 @@
         <tbody>
             @forelse($bahan as $b)
             <tr>
-                <td class="px-8 py-5 font-semibold text-slate-700">{{ $b->kode_bahan }}</td>
+                <td class="px-8 py-5 font-medium text-slate-700">{{ $b->kode_bahan }}</td>
                 <td class="px-6 py-5">{{ $b->nama_bahan }}</td>
-                <td class="px-6 py-5 text-right font-semibold text-slate-700">{{ angka($b->stok, 2) }}</td>
+                <td class="px-6 py-5 text-right font-medium text-slate-700">{{ angka($b->stok, 2) }}</td>
                 <td class="px-6 py-5 text-center">
                     <x-button href="{{ url('/kartu-stok/'.$b->id_bahan) }}" size="sm" variant="secondary">
                         Lihat Kartu

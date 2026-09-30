@@ -47,7 +47,7 @@
 
         <table class="info">
             <tr><td class="label">No. Faktur</td><td class="sep">:</td><td><b>{{ $pembelian->no_faktur }}</b></td><td class="label">Tanggal</td><td class="sep">:</td><td>{{ \Carbon\Carbon::parse($pembelian->tgl_transaksi)->format('d/m/Y') }}</td></tr>
-            <tr><td class="label">Supplier</td><td class="sep">:</td><td>{{ $pembelian->kedatangan->supplier->nama_supplier ?? 'Umum' }}</td><td class="label">Ref. Surat Jalan</td><td class="sep">:</td><td>{{ $pembelian->kedatangan->no_surat_jalan ?? '-' }}</td></tr>
+            <tr><td class="label">Pemasok</td><td class="sep">:</td><td>{{ $pembelian->kedatangan->supplier->nama_supplier ?? 'Umum' }}</td><td class="label">Ref. Surat Jalan</td><td class="sep">:</td><td>{{ $pembelian->kedatangan->no_surat_jalan ?? '-' }}</td></tr>
             <tr>
                 <td class="label">Metode Bayar</td><td class="sep">:</td><td>{{ $pembelian->tipe_pembelian === 'Tempo' ? 'Tempo / Kredit' : 'Cash / Tunai' }}</td>
                 <td class="label">{{ $pembelian->tipe_pembelian === 'Tempo' ? 'Jatuh Tempo' : 'Status' }}</td><td class="sep">:</td>

@@ -11,9 +11,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Header keamanan dipasang global, bukan per route. Alasannya
+        // ada di docblock HeaderKeamanan: header ini harus ikut pada
+        // respons 403/404/422 dan redirect juga, bukan cuma halaman sukses.
+        $middleware->append(\App\Http\Middleware\HeaderKeamanan::class);
+
         $middleware->alias([
             'menu.access' => \App\Http\Middleware\CheckMenuAccess::class,
             'restrict.input-only' => \App\Http\Middleware\RestrictInputOnlyRoles::class,
+            'throttle.write' => \App\Http\Middleware\ThrottleWriteRequests::class,
+            'hanya.admin' => \App\Http\Middleware\HanyaAdministrator::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

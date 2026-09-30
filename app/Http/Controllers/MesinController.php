@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Mesin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MesinController extends Controller
 {
@@ -51,12 +52,34 @@ class MesinController extends Controller
     public function destroy($id)
     {
         $mesin = Mesin::findOrFail($id);
-        // Cek jika sudah dipakai di bahan_baku (mencegah error constraint)
-        try {
-            $mesin->delete();
-            return back()->with('success', 'Mesin berhasil dihapus!');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Gagal! Mesin masih digunakan pada data bahan baku.');
+
+        // Dulu method ini hanya berisi try/catch dengan komentar "mencegah
+        // error constraint". Tapi tabel-tabel ini TIDAK punya foreign key
+        // constraint sama sekali (lihat blok FK di repo ini), jadi tidak
+        // ada error yang bisa ditangkap - penghapusan mesin yang masih
+        // dipakai akan BERHASIL dan meninggalkan produk, bahan baku, dan
+        // pemakaian tinta menunjuk mesin yang sudah tidak ada.
+        // Karena itu pemakaiannya dicek lebih dulu, satu per satu.
+        $pemakaian = [
+            'Produk'        => DB::table('produk')->where('id_mesin', $id)->exists(),
+            'Bahan Baku'    => DB::table('bahan_baku')->where('id_mesin', $id)->exists(),
+            'Finishing'     => DB::table('finishing')->where('id_mesin', $id)->exists(),
+            'Pemakaian Tinta' => DB::table('pemakaian_tinta')->where('id_mesin', $id)->exists(),
+            'Karyawan'      => DB::table('karyawan_mesin')->where('id_mesin', $id)->exists(),
+        ];
+
+        $dipakai = array_keys(array_filter($pemakaian));
+        if ($dipakai) {
+            return back()->with('error',
+                'Gagal hapus! Mesin ini masih dipakai pada: ' . implode(', ', $dipakai) . '.'
+            );
         }
+
+        DB::transaction(function () use ($id) {
+            DB::table('karyawan_mesin')->where('id_mesin', $id)->delete();
+            Mesin::where('id_mesin', $id)->delete();
+        });
+
+        return back()->with('success', 'Mesin berhasil dihapus!');
     }
 }

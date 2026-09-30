@@ -26,7 +26,7 @@
         </x-page-header>
     </div>
 
-    <div class="bg-amber-50 text-amber-700 p-4 rounded-2xl mb-6 text-xs font-semibold flex items-start gap-2 no-print">
+    <div class="bg-amber-50 text-amber-700 p-4 rounded-2xl mb-6 text-xs font-medium flex items-start gap-2 no-print">
         <i class="fas fa-triangle-exclamation mt-0.5"></i>
         <span>Margin di sini hanya memperhitungkan biaya BAHAN BAKU sesuai komposisi BOM produk - BELUM termasuk ongkos finishing, jasa, tenaga kerja, atau overhead (aplikasi belum mencatat biaya-biaya itu). Angka ini adalah <b>margin kotor atas bahan</b>, bukan laba bersih sesungguhnya. Baris Jasa selalu HPP Rp0 (tidak berbasis BOM).</span>
     </div>
@@ -35,15 +35,15 @@
     <x-card class="mb-6 no-print">
         <form method="GET" action="{{ route('laporan.hpp') }}" class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
                 <x-form.input type="date" name="tgl_dari" value="{{ $tglDari }}" />
             </div>
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
                 <x-form.input type="date" name="tgl_sampai" value="{{ $tglSampai }}" />
             </div>
             <div class="w-full md:w-52">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin/Divisi</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin/Divisi</label>
                 <x-form.select name="id_mesin">
                     <option value="">Semua Mesin</option>
                     @foreach($mesinList as $m)
@@ -58,7 +58,7 @@
             </x-button>
 
             @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'id_mesin']))
-                <a href="{{ route('laporan.hpp') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">Reset</a>
+                <a href="{{ route('laporan.hpp') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">Reset</a>
             @endif
         </form>
     </x-card>
@@ -66,20 +66,20 @@
     {{-- RESUME - kartu berwarna di layar, tabel standar polos khusus cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Omzet</p>
-            <h3 class="text-xl font-bold text-slate-900 mt-1">Rp {{ number_format($totalOmzet, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Omzet</p>
+            <h3 class="text-xl font-medium text-slate-900 mt-1">Rp {{ number_format($totalOmzet, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total HPP Bahan</p>
-            <h3 class="text-xl font-bold text-slate-900 mt-1">Rp {{ number_format($totalHpp, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total HPP Bahan</p>
+            <h3 class="text-xl font-medium text-slate-900 mt-1">Rp {{ number_format($totalHpp, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm">
-            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Margin Kotor</p>
-            <h3 class="text-xl font-bold text-emerald-600 mt-1">Rp {{ number_format($totalMargin, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-emerald-500 uppercase tracking-widest">Margin Kotor</p>
+            <h3 class="text-xl font-medium text-emerald-600 mt-1">Rp {{ number_format($totalMargin, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm">
-            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Margin %</p>
-            <h3 class="text-xl font-bold text-emerald-600 mt-1">{{ number_format($marginPersen, 1, ',', '.') }}%</h3>
+            <p class="text-[10px] font-medium text-emerald-500 uppercase tracking-widest">Margin %</p>
+            <h3 class="text-xl font-medium text-emerald-600 mt-1">{{ number_format($marginPersen, 1, ',', '.') }}%</h3>
         </div>
     </div>
 
@@ -95,7 +95,7 @@
     {{-- BREAKDOWN PER DIVISI --}}
     @if($breakdownDivisi->isNotEmpty())
     <x-card class="mb-6 print:hidden">
-        <h3 class="text-sm font-bold text-slate-800 mb-4">Ringkasan per Divisi</h3>
+        <h3 class="text-sm font-medium text-slate-800 mb-4">Ringkasan per Divisi</h3>
         <x-table bare>
             <thead>
                 <tr>
@@ -109,11 +109,11 @@
             <tbody class="divide-y divide-slate-50">
                 @foreach($breakdownDivisi as $d)
                 <tr>
-                    <td class="p-3 font-bold text-slate-700 uppercase text-xs">{{ $d->divisi }}</td>
+                    <td class="p-3 font-medium text-slate-700 uppercase text-xs">{{ $d->divisi }}</td>
                     <td class="p-3 text-right text-xs">Rp {{ number_format($d->total_omzet, 0, ',', '.') }}</td>
                     <td class="p-3 text-right text-xs">Rp {{ number_format($d->total_hpp, 0, ',', '.') }}</td>
-                    <td class="p-3 text-right text-xs font-bold text-emerald-600">Rp {{ number_format($d->margin, 0, ',', '.') }}</td>
-                    <td class="p-3 text-right text-xs font-bold text-emerald-600">{{ number_format($d->margin_persen, 1, ',', '.') }}%</td>
+                    <td class="p-3 text-right text-xs font-medium text-emerald-600">Rp {{ number_format($d->margin, 0, ',', '.') }}</td>
+                    <td class="p-3 text-right text-xs font-medium text-emerald-600">{{ number_format($d->margin_persen, 1, ',', '.') }}%</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -123,7 +123,7 @@
         <x-laporan.print-table title="Ringkasan per Divisi" :headers="['Divisi', 'Omzet', 'HPP Bahan', 'Margin', 'Margin %']" :align="['left', 'right', 'right', 'right', 'right']">
             @foreach($breakdownDivisi as $d)
             <tr>
-                <td class="px-3 py-1.5 font-semibold text-slate-700 uppercase">{{ $d->divisi }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700 uppercase">{{ $d->divisi }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($d->total_omzet, 0, ',', '.') }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($d->total_hpp, 0, ',', '.') }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-800">{{ number_format($d->margin, 0, ',', '.') }}</td>
@@ -134,7 +134,7 @@
     </div>
     @endif
 
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Per Item</div>
+    <div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Per Item</div>
 
     {{-- DETAIL PER ITEM --}}
     <div class="print:hidden">
@@ -157,14 +157,14 @@
             @php $marginBaris = $row->subtotal - $row->hpp_snapshot; @endphp
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-4 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
-                <td class="px-6 py-4 text-[12px] font-bold text-slate-700">{{ $row->nomor_nota }}</td>
+                <td class="px-6 py-4 text-[12px] font-medium text-slate-700">{{ $row->nomor_nota }}</td>
                 <td class="px-4 py-4 text-[12px] text-slate-500">{{ \Carbon\Carbon::parse($row->tgl_order)->format('d M Y') }}</td>
-                <td class="px-4 py-4 text-[12px] font-semibold text-slate-600">{{ $row->nama_item }}</td>
+                <td class="px-4 py-4 text-[12px] font-medium text-slate-600">{{ $row->nama_item }}</td>
                 <td class="px-4 py-4 text-[11px] text-slate-400 uppercase">{{ $row->divisi }}</td>
                 <td class="px-4 py-4 text-[12px] text-center text-slate-600">{{ number_format($row->qty, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-[12px] text-right text-slate-600">Rp {{ number_format($row->subtotal, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-[12px] text-right text-slate-500">Rp {{ number_format($row->hpp_snapshot, 0, ',', '.') }}</td>
-                <td class="px-6 py-4 text-[12px] text-right font-bold text-emerald-600">Rp {{ number_format($marginBaris, 0, ',', '.') }}</td>
+                <td class="px-6 py-4 text-[12px] text-right font-medium text-emerald-600">Rp {{ number_format($marginBaris, 0, ',', '.') }}</td>
             </tr>
             @empty
             <tr>
@@ -182,14 +182,14 @@
             @forelse($data as $i => $row)
             <tr>
                 <td class="px-3 py-1.5 text-center text-slate-400">{{ $data->firstItem() + $i }}</td>
-                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $row->nomor_nota }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700">{{ $row->nomor_nota }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ \Carbon\Carbon::parse($row->tgl_order)->format('d/m/Y') }}</td>
                 <td class="px-3 py-1.5 text-slate-700">{{ $row->nama_item }}</td>
                 <td class="px-3 py-1.5 text-slate-600 uppercase">{{ $row->divisi }}</td>
                 <td class="px-3 py-1.5 text-center text-slate-600">{{ number_format($row->qty, 0, ',', '.') }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($row->subtotal, 0, ',', '.') }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($row->hpp_snapshot, 0, ',', '.') }}</td>
-                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($row->subtotal - $row->hpp_snapshot, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($row->subtotal - $row->hpp_snapshot, 0, ',', '.') }}</td>
             </tr>
             @empty
             <tr>

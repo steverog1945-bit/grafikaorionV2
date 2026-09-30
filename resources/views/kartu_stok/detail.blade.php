@@ -19,16 +19,16 @@
     <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6">
         <form method="GET" action="{{ url('/kartu-stok/'.$bahan->id_bahan) }}" class="flex flex-wrap items-end gap-4">
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
-                <input type="date" name="awal" value="{{ $awal }}" class="bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
+                <input type="date" name="awal" value="{{ $awal }}" class="bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
-                <input type="date" name="akhir" value="{{ $akhir }}" class="bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
+                <input type="date" name="akhir" value="{{ $akhir }}" class="bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Tipe</label>
-                <select name="tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Tipe</label>
+                <select name="tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner appearance-none cursor-pointer">
                     <option value="">Semua Tipe</option>
                     <option value="IN" {{ $tipe == 'IN' ? 'selected' : '' }}>IN (Masuk)</option>
                     <option value="OUT" {{ $tipe == 'OUT' ? 'selected' : '' }}>OUT (Keluar)</option>
@@ -36,30 +36,30 @@
                 </select>
             </div>
             <div class="w-full md:w-56">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Referensi / Keterangan</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Referensi / Keterangan</label>
                 <x-form.input type="text" name="cari" value="{{ $cari }}" placeholder="No. SJ, nota, catatan..." />
             </div>
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dicatat Oleh</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dicatat Oleh</label>
                 <x-form.select name="oleh">
                     <option value="">Semua Pencatat</option>
                     @foreach($pencatatList as $pc)<option value="{{ $pc->id_user }}" {{ (string) $oleh === (string) $pc->id_user ? 'selected' : '' }}>{{ $pc->nama }}</option>@endforeach
                 </x-form.select>
             </div>
             <div class="w-full md:w-40">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Urutan</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Urutan</label>
                 <x-form.select name="urut">
                     <option value="lama" {{ $urutDetail === 'lama' ? 'selected' : '' }}>Terlama dulu</option>
                     <option value="baru" {{ $urutDetail === 'baru' ? 'selected' : '' }}>Terbaru dulu</option>
                 </x-form.select>
             </div>
             <div class="w-full flex flex-wrap items-center gap-2" title="Pilihan cepat rentang tanggal">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">Rentang cepat:</span>
+                <span class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mr-1">Rentang cepat:</span>
                 @foreach([['Hari ini', now()->toDateString(), now()->toDateString()], ['7 hari', now()->subDays(6)->toDateString(), now()->toDateString()], ['Bulan ini', now()->startOfMonth()->toDateString(), now()->toDateString()], ['Bulan lalu', now()->subMonthNoOverflow()->startOfMonth()->toDateString(), now()->subMonthNoOverflow()->endOfMonth()->toDateString()], ['Tahun ini', now()->startOfYear()->toDateString(), now()->toDateString()], ['Semua', '2000-01-01', now()->toDateString()]] as [$lbl, $a1, $a2])
-                    <a href="{{ url('/kartu-stok/'.$bahan->id_bahan) }}?{{ http_build_query(array_merge(request()->except(['awal', 'akhir']), ['awal' => $a1, 'akhir' => $a2])) }}" class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest {{ $awal === $a1 && $akhir === $a2 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' }}">{{ $lbl }}</a>
+                    <a href="{{ url('/kartu-stok/'.$bahan->id_bahan) }}?{{ http_build_query(array_merge(request()->except(['awal', 'akhir']), ['awal' => $a1, 'akhir' => $a2])) }}" class="px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-widest {{ $awal === $a1 && $akhir === $a2 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' }}">{{ $lbl }}</a>
                 @endforeach
             </div>
-            <button type="submit" class="h-[46px] px-6 flex items-center justify-center bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all">
+            <button type="submit" class="h-[46px] px-6 flex items-center justify-center bg-indigo-600 text-white rounded-xl text-[11px] font-medium uppercase tracking-widest hover:bg-indigo-700 transition-all">
                 <i class="fas fa-filter mr-1"></i> Tampilkan
             </button>
             <a href="{{ url('/kartu-stok/'.$bahan->id_bahan) }}" class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
@@ -77,8 +77,8 @@
         <x-card>
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Stok Saat Ini</p>
-                    <h3 class="text-3xl font-black text-slate-900 mt-1">{{ angka($bahan->stok, 2) }} <span class="text-base font-bold text-slate-400">{{ $bahan->nama_satuan_stok ?? $bahan->satuan_stok }}</span></h3>
+                    <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Stok Saat Ini</p>
+                    <h3 class="text-3xl font-medium text-slate-900 mt-1">{{ angka($bahan->stok, 2) }} <span class="text-base font-medium text-slate-400">{{ $bahan->nama_satuan_stok ?? $bahan->satuan_stok }}</span></h3>
                 </div>
                 <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl">
                     <i class="fas fa-box"></i>
@@ -89,8 +89,8 @@
         <x-card>
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estimasi dalam {{ $bahan->nama_satuan_hitung }}</p>
-                    <h3 class="text-3xl font-black text-slate-900 mt-1">≈ {{ number_format($bahan->stok * $bahan->nilai_konversi, 0, ',', '.') }} <span class="text-base font-bold text-slate-400">{{ $bahan->nama_satuan_hitung }}</span></h3>
+                    <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Estimasi dalam {{ $bahan->nama_satuan_hitung }}</p>
+                    <h3 class="text-3xl font-medium text-slate-900 mt-1">≈ {{ number_format($bahan->stok * $bahan->nilai_konversi, 0, ',', '.') }} <span class="text-base font-medium text-slate-400">{{ $bahan->nama_satuan_hitung }}</span></h3>
                     <p class="text-[10px] text-slate-400 mt-1">Dihitung dari {{ angka($bahan->stok, 2) }} {{ $bahan->nama_satuan_stok }} × {{ number_format($bahan->nilai_konversi, 0, ',', '.') }} {{ $bahan->nama_satuan_hitung }}/{{ $bahan->nama_satuan_stok }}</p>
                 </div>
                 <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl">
@@ -103,10 +103,10 @@
 
     {{-- RINGKASAN PERIODE (mengikuti filter yang aktif) --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo Awal Periode</p><p class="text-xl font-bold text-slate-800 mt-1">{{ angka($saldoAwal, 2) }}</p></div>
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Total Masuk (IN)</p><p class="text-xl font-bold text-emerald-600 mt-1">+ {{ angka($totalMasuk, 2) }}</p></div>
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Total Keluar (OUT)</p><p class="text-xl font-bold text-rose-600 mt-1">- {{ angka($totalKeluar, 2) }}</p></div>
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Selisih Penyesuaian</p><p class="text-xl font-bold text-amber-600 mt-1">{{ $totalAdj >= 0 ? '+' : '-' }} {{ angka(abs($totalAdj), 2) }}</p></div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Saldo Awal Periode</p><p class="text-xl font-medium text-slate-800 mt-1">{{ angka($saldoAwal, 2) }}</p></div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-medium text-emerald-500 uppercase tracking-widest">Total Masuk (IN)</p><p class="text-xl font-medium text-emerald-600 mt-1">+ {{ angka($totalMasuk, 2) }}</p></div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-medium text-rose-500 uppercase tracking-widest">Total Keluar (OUT)</p><p class="text-xl font-medium text-rose-600 mt-1">- {{ angka($totalKeluar, 2) }}</p></div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-medium text-amber-500 uppercase tracking-widest">Selisih Penyesuaian</p><p class="text-xl font-medium text-amber-600 mt-1">{{ $totalAdj >= 0 ? '+' : '-' }} {{ angka(abs($totalAdj), 2) }}</p></div>
     </div>
 
     <x-table>
@@ -126,15 +126,15 @@
         </thead>
         <tbody class="divide-y divide-slate-50">
             <tr class="bg-slate-50/40">
-                <td colspan="5" class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Saldo Awal ({{ \Carbon\Carbon::parse($awal)->format('d M Y') }})</td>
-                <td class="px-4 py-3 text-right text-sm font-bold text-slate-700">{{ angka($saldoAwal, 2) }}</td>
+                <td colspan="5" class="px-6 py-3 text-[11px] font-medium text-slate-500 uppercase tracking-widest">Saldo Awal ({{ \Carbon\Carbon::parse($awal)->format('d M Y') }})</td>
+                <td class="px-4 py-3 text-right text-sm font-medium text-slate-700">{{ angka($saldoAwal, 2) }}</td>
                 <td colspan="4"></td>
             </tr>
             @forelse($kartu as $i => $k)
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-6 py-5">
-                    <span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($k->tanggal)->format('d M Y H:i') }}</span>
+                    <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($k->tanggal)->format('d M Y H:i') }}</span>
                 </td>
                 <td class="px-4 py-5 text-center">
                     @if($k->tipe === 'IN')
@@ -146,17 +146,17 @@
                     @endif
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[13px] font-bold text-slate-800">{{ angka($k->qty, 2) }}</span>
+                    <span class="text-[13px] font-medium text-slate-800">{{ angka($k->qty, 2) }}</span>
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[12px] text-slate-500 font-semibold">{{ angka($k->stok_sebelum, 2) }}</span>
+                    <span class="text-[12px] text-slate-500 font-medium">{{ angka($k->stok_sebelum, 2) }}</span>
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[12px] text-slate-700 font-bold">{{ angka($k->stok_sesudah, 2) }}</span>
+                    <span class="text-[12px] text-slate-700 font-medium">{{ angka($k->stok_sesudah, 2) }}</span>
                 </td>
-                <td class="px-4 py-5"><span class="inline-flex px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase">{{ $bahan->nama_satuan_stok ?? $bahan->satuan_stok }}</span></td>
+                <td class="px-4 py-5"><span class="inline-flex px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-medium uppercase">{{ $bahan->nama_satuan_stok ?? $bahan->satuan_stok }}</span></td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-semibold text-slate-600">{{ $k->referensi ?? '-' }}</span>
+                    <span class="text-[12px] font-medium text-slate-600">{{ $k->referensi ?? '-' }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] text-slate-500">{{ $k->nama_pencatat ?? '-' }}</span>

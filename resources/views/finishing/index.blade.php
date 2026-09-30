@@ -30,7 +30,7 @@
             <tr class="group hover:bg-slate-50/30 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-6 py-5">
-                    <div class="text-[13px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors uppercase">
+                    <div class="text-[13px] font-medium text-slate-700 group-hover:text-indigo-600 transition-colors uppercase">
                         {{ $d->nama_finishing }}
                     </div>
                     @if($d->keterangan)
@@ -38,22 +38,22 @@
                     @endif
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-semibold text-slate-600">{{ $d->mesin->nama_mesin ?? '-' }}</span>
+                    <span class="text-[12px] font-medium text-slate-600">{{ $d->mesin->nama_mesin ?? '-' }}</span>
                 </td>
                 <td class="px-4 py-5">
                     @if($d->kategori)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase">{{ $d->kategori->nama_kategori }}</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase">{{ $d->kategori->nama_kategori }}</span>
                     @else
                         <span class="text-[11px] text-slate-300 italic">Semua Kategori</span>
                     @endif
                 </td>
                 <td class="px-4 py-5 text-center">
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
                         {{ match($d->metode_hitung) { 'luas' => 'Luas (m²)', 'keliling' => 'Keliling (m)', default => 'Satuan (Pcs)' } }}
                     </span>
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[13px] font-bold text-slate-800">Rp {{ number_format($d->harga_default, 0, ',', '.') }}</span>
+                    <span class="text-[13px] font-medium text-slate-800">Rp {{ number_format($d->harga_default, 0, ',', '.') }}</span>
                 </td>
                 <td class="px-8 py-5 text-right">
                     <div class="flex justify-end gap-2">
@@ -88,7 +88,9 @@
          di database, supaya add/edit/hapus satu baris tidak pernah
          menyentuh baris lain sama sekali). --}}
     @foreach($data as $d)
-    <x-modal id="harga-finishing-{{ $d->id_finishing }}" title="Harga Bertingkat: {{ $d->nama_finishing }}" maxWidth="lg">
+    <x-modal id="harga-finishing-{{ $d->id_finishing }}" title="Harga Bertingkat: {{ $d->nama_finishing }}"
+         subtitle="Harga jual menyesuaikan jumlah, makin banyak makin murah per pcs"
+         icon="fa-layer-group" maxWidth="lg">
         <div class="mb-4 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs text-slate-500">
             Harga Default (<b>Rp {{ number_format($d->harga_default, 0, ',', '.') }}</b>) dipakai kalau qty tidak cocok tier manapun di bawah, atau belum ada tier sama sekali. Kasir tetap bisa menimpa manual di Input Order - ini hanya acuan/starting point.
         </div>
@@ -97,7 +99,7 @@
             $tiers = $hargaTiers[$d->id_finishing] ?? collect();
             // Satuan rentang eksplisit ikut metode_hitung finishing ITU SENDIRI
             // ('luas'/'keliling'/'quantity' - lihat perbaikan qty acuan
-            // finishing sesi sebelumnya), sama seperti Price List produk -
+            // finishing sesi sebelumnya), sama seperti Daftar Harga produk -
             // luas m² & keliling meter boleh pecahan, Pcs wajib bulat.
             $satuanRentangFinishing = match($d->metode_hitung) { 'luas' => 'm²', 'keliling' => 'm', default => 'Pcs' };
             $stepRentangFinishing = $d->metode_hitung === 'quantity' ? '1' : '0.01';
@@ -110,12 +112,12 @@
                 <form action="{{ route('finishing.harga.update', $t->id_finishing_harga) }}" class="tier-edit-form-finishing flex items-center gap-2 flex-1">
                     @csrf
                     <input type="number" name="range_min" value="{{ angka_polos($t->range_min, 4) }}" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                    <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+                    <span class="text-[10px] text-slate-300 font-medium">s/d</span>
                     <input type="number" name="range_max" value="{{ angka_polos($t->range_max, 4) }}" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentangFinishing }}</span>
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>
-                    <input type="text" inputmode="numeric" name="harga" value="{{ number_format((int) $t->harga, 0, '', '.') }}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
+                    <input type="text" inputmode="numeric" name="harga" value="{{ number_format((int) $t->harga, 0, '', '.') }}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-medium format-ribuan">
                     <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
                         <i class="fas fa-save text-xs"></i>
                     </button>
@@ -130,12 +132,12 @@
         <form action="{{ route('finishing.harga.store', $d->id_finishing) }}" class="tier-add-form-finishing flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-finishing="{{ $d->id_finishing }}" data-satuan-rentang="{{ $satuanRentangFinishing }}">
             @csrf
             <input type="number" name="range_min" placeholder="Min" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" required class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
-            <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+            <span class="text-[10px] text-slate-300 font-medium">s/d</span>
             <input type="number" name="range_max" placeholder="~" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
             <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentangFinishing }}</span>
             <span class="text-[10px] text-slate-400">=</span>
             <span class="text-[10px] text-slate-400">Rp</span>
-            <input type="text" inputmode="numeric" name="harga" placeholder="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-bold format-ribuan">
+            <input type="text" inputmode="numeric" name="harga" placeholder="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-medium format-ribuan">
             <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shrink-0" title="Tambah Tier">
                 <i class="fas fa-plus text-xs"></i>
             </button>
@@ -173,7 +175,7 @@
                 </x-form.group>
             </div>
 
-            <x-form.group label="Kategori Berlaku" name="id_kategori" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Input Order.">
+            <x-form.group label="Kategori Berlaku" name="id_kategori" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Input Pesanan.">
                 <x-form.select name="id_kategori">
                     <option value="">-- Semua Kategori --</option>
                     @foreach($kategori as $kat)
@@ -223,7 +225,7 @@
                 </x-form.group>
             </div>
 
-            <x-form.group label="Kategori Berlaku" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Input Order.">
+            <x-form.group label="Kategori Berlaku" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Input Pesanan.">
                 <x-form.select name="id_kategori" id="edit_id_kategori">
                     <option value="">-- Semua Kategori --</option>
                     @foreach($kategori as $kat)
@@ -284,12 +286,12 @@
                 <form action="{{ url('/finishing-harga') }}/${t.id_finishing_harga}" class="tier-edit-form-finishing flex items-center gap-2 flex-1">
                     <input type="hidden" name="_token" value="${csrfToken}">
                     <input type="number" name="range_min" value="${t.range_min}" min="${stepRentang}" step="${stepRentang}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                    <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+                    <span class="text-[10px] text-slate-300 font-medium">s/d</span>
                     <input type="number" name="range_max" value="${t.range_max ?? ''}" min="${stepRentang}" step="${stepRentang}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[9px] text-slate-400 uppercase shrink-0">${satuanRentang}</span>
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>
-                    <input type="text" inputmode="numeric" name="harga" value="${formatRupiah(parseInt(t.harga))}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
+                    <input type="text" inputmode="numeric" name="harga" value="${formatRupiah(parseInt(t.harga))}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-medium format-ribuan">
                     <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
                         <i class="fas fa-save text-xs"></i>
                     </button>

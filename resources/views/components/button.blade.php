@@ -6,33 +6,23 @@
 ])
 
 @php
-    // Rombak visual (tahap 2): tanpa ALL-CAPS paksa - label kalimat normal
-    // terasa lebih manusiawi dan tetap jelas; state tetap komunikatif.
-    $base = 'inline-flex items-center justify-center gap-2 rounded-xl font-semibold tracking-normal transition-all active:scale-[0.985] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
+    // OpenCode Desktop Aesthetic: compact, consistent, no excessive styling
+    $base = 'inline-flex items-center justify-center gap-2 rounded-lg font-medium text-[13px] tracking-normal transition-transform transition-background-color transition-border-color active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
 
     $variants = [
-        // Glass (ui-refresh.css): gradien indigo lembut + blur + inner highlight.
-        'primary'   => 'btn-glass-primary text-white',
-        // btn-soft (ui-refresh.css): dulu bg-slate-100 + text-slate-500 -
-        // nyaris tak terbaca di light mode. Sekarang kelas khusus dengan
-        // teks pekat + garis tepi + padanan html.dark, jadi jelas di
-        // KEDUA mode (audit kontras 2 mode).
-        'secondary' => 'btn-soft text-slate-700',
-        'success'   => 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100',
-        'warning'   => 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-100',
-        'danger'    => 'bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-100',
-        'outline'   => 'bg-transparent border border-slate-300 text-slate-700 hover:bg-slate-100',
-        // Tanpa hover bawaan - dipakai untuk icon button di tabel yang tiap
-        // instance-nya butuh warna hover berbeda (edit=amber, hapus=rose,
-        // dst) lewat prop class, tanpa risiko rebutan specificity dgn variant.
+        'primary'   => 'bg-indigo-600 hover:bg-indigo-700 text-white',
+        'secondary' => 'bg-slate-100 hover:bg-slate-200 text-slate-700',
+        'success'   => 'bg-emerald-600 hover:bg-emerald-700 text-white',
+        'warning'   => 'bg-amber-500 hover:bg-amber-600 text-white',
+        'danger'    => 'bg-rose-500 hover:bg-rose-600 text-white',
+        'outline'   => 'bg-transparent border border-slate-300 text-slate-700 hover:bg-slate-50',
         'ghost'     => 'bg-transparent text-slate-600 hover:text-slate-900',
     ];
 
     $sizes = [
-        'default' => 'text-xs px-6 py-3',
-        'sm'      => 'text-[10px] px-4 py-2',
-        // Icon-only: bentuk persegi, tanpa tracking/uppercase pada slot ikon
-        'icon'    => '!p-0 w-9 h-9 !rounded-lg normal-case tracking-normal',
+        'default' => 'px-4 py-2',
+        'sm'      => 'px-3 py-1.5 text-xs',
+        'icon'    => '!p-0 w-8 h-8 !rounded-md',
     ];
 
     $classes = $base . ' ' . ($variants[$variant] ?? $variants['primary']) . ' ' . ($sizes[$size] ?? $sizes['default']);

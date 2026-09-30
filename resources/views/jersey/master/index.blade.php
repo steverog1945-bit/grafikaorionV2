@@ -4,7 +4,7 @@
 @include('partials.rupiah-format-script')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Master Data Jersey" subtitle="Desainer, tipe produk, kategori, ukuran, bahan, estimasi bahan & tier harga untuk modul Order Jersey. Pelanggan diambil langsung dari Master Konsumen.">
+    <x-page-header title="Data Master Jersey" subtitle="Desainer, tipe produk, kategori, ukuran, bahan, estimasi bahan & tier harga untuk modul Pesanan Jersey. Pelanggan diambil langsung dari Master Konsumen.">
         <x-slot:actions>
             <x-button href="{{ route('jersey.orders.index') }}" variant="secondary">
                 <i class="fas fa-arrow-left"></i> Kembali ke Order
@@ -15,7 +15,7 @@
     <div class="flex flex-wrap gap-2 mb-6" id="jersey-master-tabs">
         @foreach(['desainer' => 'Desainer', 'tipe' => 'Tipe Produk', 'kategori' => 'Kategori', 'ukuran' => 'Ukuran', 'bahan' => 'Bahan', 'lengan' => 'Tipe Lengan', 'kerah' => 'Tipe Kerah', 'estimasi' => 'Estimasi Bahan', 'harga' => 'Tier Harga'] as $key => $label)
             <button type="button" onclick="switchJerseyTab('{{ $key }}')" id="tab-btn-{{ $key }}"
-                class="jersey-tab-btn px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all {{ $loop->first ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-white text-slate-400 border border-slate-200' }}">
+                class="jersey-tab-btn px-5 py-2.5 rounded-xl text-xs font-medium uppercase tracking-widest transition-all {{ $loop->first ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-white text-slate-400 border border-slate-200' }}">
                 {{ $label }}
             </button>
         @endforeach
@@ -25,7 +25,7 @@
     <div id="tab-panel-desainer" class="jersey-tab-panel">
         <x-card>
             <form id="form-add-desainer" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
-                <div class="flex-1"><input type="text" name="name" required placeholder="Nama desainer" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <div class="flex-1"><input type="text" name="name" required placeholder="Nama desainer" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-desainer', 'statusId' => 'filter-status-desainer', 'placeholder' => 'Cari nama desainer...'])
@@ -46,8 +46,8 @@
     <div id="tab-panel-tipe" class="jersey-tab-panel hidden">
         <x-card>
             <form id="form-add-tipe" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
-                <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe produk (mis. Jersey, Celana, Sublime Lainnya)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
-                <label class="flex items-center gap-2 text-xs font-semibold text-slate-500 bg-white border border-slate-200 rounded-xl py-3 px-4 whitespace-nowrap cursor-pointer">
+                <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe produk (mis. Jersey, Celana, Sublime Lainnya)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <label class="flex items-center gap-2 text-xs font-medium text-slate-500 bg-white border border-slate-200 rounded-xl py-3 px-4 whitespace-nowrap cursor-pointer">
                     <input type="checkbox" name="has_sleeve_collar" checked class="rounded text-indigo-600 focus:ring-indigo-500/20">
                     Punya Lengan &amp; Kerah
                 </label>
@@ -72,7 +72,7 @@
     <div id="tab-panel-kategori" class="jersey-tab-panel hidden">
         <x-card>
             <form id="form-add-kategori" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
-                <div class="flex-1"><input type="text" name="name" required placeholder="Nama kategori (mis. Jersey Futsal)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <div class="flex-1"><input type="text" name="name" required placeholder="Nama kategori (mis. Jersey Futsal)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-kategori', 'statusId' => 'filter-status-kategori', 'placeholder' => 'Cari nama kategori...'])
@@ -93,11 +93,11 @@
     <div id="tab-panel-ukuran" class="jersey-tab-panel hidden">
         <x-card>
             <form id="form-add-ukuran" class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
-                <input type="text" name="name" required placeholder="Nama ukuran (mis. XXL)" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
-                <input type="number" name="sort_order" placeholder="Urutan tampil" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
-                <select name="kelompok" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"><option value="dewasa">Dewasa</option><option value="anak">Anak</option></select>
-                <input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
-                <input type="number" step="0.5" min="-90" max="100" name="selisih_persen" placeholder="Selisih harga % (mis. -20)" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                <input type="text" name="name" required placeholder="Nama ukuran (mis. XXL)" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                <input type="number" name="sort_order" placeholder="Urutan tampil" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                <select name="kelompok" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"><option value="dewasa">Dewasa</option><option value="anak">Anak</option></select>
+                <input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                <input type="number" step="0.5" min="-90" max="100" name="selisih_persen" placeholder="Selisih harga % (mis. -20)" class="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                 <x-button type="submit" variant="success">Tambah Ukuran</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-ukuran', 'statusId' => 'filter-status-ukuran', 'placeholder' => 'Cari nama ukuran...'])
@@ -119,7 +119,7 @@
         <x-card>
             <p class="text-xs text-slate-400 mb-4">Daftar bahan riil (mis. Dryfit, Cotton Combed) yang dipilih saat membuat baris barang di order - bukan lagi diketik bebas.</p>
             <form id="form-add-bahan" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
-                <div class="flex-1"><input type="text" name="name" required placeholder="Nama bahan (mis. Dryfit)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <div class="flex-1"><input type="text" name="name" required placeholder="Nama bahan (mis. Dryfit)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-bahan', 'statusId' => 'filter-status-bahan', 'placeholder' => 'Cari nama bahan...'])
@@ -137,12 +137,12 @@
 
         {{-- SINKRON dengan Master Bahan Baku: stok & harga per kg satu sumber --}}
         <x-card class="mt-6">
-            <h3 class="text-sm font-semibold text-slate-700 mb-1">Sinkron dengan Master Bahan Baku</h3>
+            <h3 class="text-sm font-medium text-slate-700 mb-1">Sinkron dengan Master Bahan Baku</h3>
             <p class="text-xs text-slate-400 mb-4">Hubungkan tiap bahan jersey ke bahan baku di gudang, sehingga stok dan harga beli per kg mengikuti Master Bahan (satu sumber).</p>
             <div class="divide-y divide-slate-100">
                 @foreach($materials as $m)
                 <div class="py-3 flex flex-wrap items-center gap-3 {{ $m->is_active ? '' : 'opacity-50' }}">
-                    <span class="w-40 text-sm font-semibold text-slate-700">{{ $m->name }}</span>
+                    <span class="w-40 text-sm font-medium text-slate-700">{{ $m->name }}</span>
                     <select onchange="sinkronBahanJersey({{ $m->id }}, this.value)" class="flex-1 min-w-[240px] bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm shadow-inner">
                         <option value="">- Belum disinkronkan -</option>
                         @foreach($bahanGudang as $bg)
@@ -165,8 +165,8 @@
         <x-card>
             <p class="text-xs text-slate-400 mb-4">Tipe lengan riil (mis. Pendek, Panjang, 3/4) yang dipilih saat membuat order - dipakai sebagai acuan estimasi bahan, bukan lagi pilihan tetap.</p>
             <form id="form-add-lengan" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
-                <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe lengan (mis. 3/4 Lengan)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
-                <div class="sm:w-48"><input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe lengan (mis. 3/4 Lengan)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <div class="sm:w-48"><input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-lengan', 'statusId' => 'filter-status-lengan', 'placeholder' => 'Cari tipe lengan...'])
@@ -188,8 +188,8 @@
         <x-card>
             <p class="text-xs text-slate-400 mb-4">Tipe kerah riil (mis. O-Neck, V-Neck) yang dipilih saat membuat order - dipakai sebagai acuan estimasi bahan, bukan lagi diketik bebas.</p>
             <form id="form-add-kerah" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
-                <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe kerah (mis. V-Neck)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
-                <div class="sm:w-48"><input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe kerah (mis. V-Neck)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <div class="sm:w-48"><input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-kerah', 'statusId' => 'filter-status-kerah', 'placeholder' => 'Cari tipe kerah...'])
@@ -211,12 +211,12 @@
         <x-card>
             <p class="text-xs text-slate-400 mb-4">Estimasi kebutuhan bahan per ukuran, per komponen (Body/Lengan/Rib/Celana, dst) - dalam meter DAN berat (gram/kg) - dipakai untuk menghitung otomatis "Spesifikasi Order" saat order dibuat. Murni estimasi, bukan pemotongan stok riil. Kosongkan sel yang belum diketahui angkanya. Kolom <b class="text-slate-500">Total</b> menjumlahkan seluruh komponen aktif per ukuran - perkiraan total bahan untuk SATU baju ukuran itu.</p>
             <form id="form-add-komponen" class="flex flex-col sm:flex-row gap-3 mb-3 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
-                <div class="flex-1"><input type="text" name="name" required placeholder="Nama komponen baru (mis. Kerah)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
-                <select name="jersey_product_type_id" class="sm:w-44 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                <div class="flex-1"><input type="text" name="name" required placeholder="Nama komponen baru (mis. Kerah)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
+                <select name="jersey_product_type_id" class="sm:w-44 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">-- Semua Tipe Produk --</option>
                     @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                 </select>
-                <select name="jersey_category_id" class="sm:w-44 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                <select name="jersey_category_id" class="sm:w-44 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">-- Semua Kategori --</option>
                     @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                 </select>
@@ -225,7 +225,7 @@
             <p class="text-[11px] text-slate-400 -mt-1 mb-4">Kosongkan Tipe Produk/Kategori kalau komponen berlaku untuk SEMUA barang (mis. Body). Isi salah satu/keduanya kalau komponen cuma relevan untuk barang tertentu (mis. komponen "Celana" cuma untuk Tipe Produk Celana) - supaya SPK cuma menampilkan estimasi yang benar-benar dipakai barangnya.</p>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-estimasi', 'placeholder' => 'Cari nama ukuran...'])
 
-            <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-2 mt-2">Estimasi Meter</p>
+            <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest mb-2 mt-2">Estimasi Meter</p>
             <div class="overflow-x-auto mb-6">
                 <table class="w-full text-xs border-collapse" id="tabel-estimasi">
                     <thead>
@@ -245,7 +245,7 @@
                     <tbody id="tbody-estimasi-meter">
                         @foreach($sizes as $s)
                         <tr data-size-id="{{ $s->id }}">
-                            <td class="p-2.5 font-semibold sticky left-0 bg-white">{{ $s->name }}</td>
+                            <td class="p-2.5 font-medium sticky left-0 bg-white">{{ $s->name }}</td>
                             @foreach($components->where('is_active', true) as $comp)
                             @php $nilaiUsage = optional(optional($usageMatrix[$s->id] ?? null)[$comp->id] ?? null)->usage_meter; @endphp
                             <td class="p-1" data-component-td="{{ $comp->id }}">
@@ -254,14 +254,14 @@
                                     class="input-meter-cell w-20 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
                             </td>
                             @endforeach
-                            <td class="p-2.5 text-center font-bold text-indigo-600 bg-indigo-50/40 total-meter-cell">{{ $totalPerSize[$s->id]['meter_text'] }}</td>
+                            <td class="p-2.5 text-center font-medium text-indigo-600 bg-indigo-50/40 total-meter-cell">{{ $totalPerSize[$s->id]['meter_text'] }}</td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
 
-            <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-2">Estimasi Berat (gram)</p>
+            <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest mb-2">Estimasi Berat (gram)</p>
             <div class="overflow-x-auto">
                 <table class="w-full text-xs border-collapse" id="tabel-estimasi-berat-tbl">
                     <thead>
@@ -278,7 +278,7 @@
                     <tbody id="tbody-estimasi-berat">
                         @foreach($sizes as $s)
                         <tr data-size-id="{{ $s->id }}">
-                            <td class="p-2.5 font-semibold sticky left-0 bg-white">{{ $s->name }}</td>
+                            <td class="p-2.5 font-medium sticky left-0 bg-white">{{ $s->name }}</td>
                             @foreach($components->where('is_active', true) as $comp)
                             @php $nilaiBerat = optional(optional($usageMatrix[$s->id] ?? null)[$comp->id] ?? null)->usage_weight_gram; @endphp
                             <td class="p-1" data-component-td-berat="{{ $comp->id }}">
@@ -287,7 +287,7 @@
                                     class="input-berat-cell w-20 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
                             </td>
                             @endforeach
-                            <td class="p-2.5 text-center font-bold text-indigo-600 bg-indigo-50/40 total-berat-cell">{{ $totalPerSize[$s->id]['berat_text'] }}</td>
+                            <td class="p-2.5 text-center font-medium text-indigo-600 bg-indigo-50/40 total-berat-cell">{{ $totalPerSize[$s->id]['berat_text'] }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -297,7 +297,7 @@
             <div class="border-t border-slate-100 mt-6 pt-6">
                 <p class="text-xs text-slate-400 mb-4">Estimasi bahan untuk Tipe Lengan & Tipe Kerah - kelola daftar tipenya di tab <b class="text-slate-500">Tipe Lengan</b>/<b class="text-slate-500">Tipe Kerah</b>, isi angka pemakaiannya di sini per ukuran. Order mode Daftar Pemain/Campuran memakai pilihan lengan/kerah masing-masing pemain; mode Qty per Ukuran memakai pilihan default di level barang.</p>
 
-                <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-2">Estimasi Lengan (meter &amp; gram)</p>
+                <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest mb-2">Estimasi Lengan (meter &amp; gram)</p>
                 <div class="overflow-x-auto mb-6">
                     <table class="w-full text-xs border-collapse" id="tabel-estimasi-lengan">
                         <thead>
@@ -315,7 +315,7 @@
                             @if($sleeveTypes->where('is_active', true)->isNotEmpty())
                             @foreach($sizes as $s)
                             <tr data-size-id="{{ $s->id }}">
-                                <td class="p-2.5 font-semibold sticky left-0 bg-white">{{ $s->name }}</td>
+                                <td class="p-2.5 font-medium sticky left-0 bg-white">{{ $s->name }}</td>
                                 @foreach($sleeveTypes->where('is_active', true) as $st)
                                 @php $u = optional($sleeveUsageMatrix[$s->id] ?? null)[$st->id] ?? null; @endphp
                                 <td class="p-1" data-type-td="{{ $st->id }}">
@@ -334,7 +334,7 @@
                     </table>
                 </div>
 
-                <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-2">Estimasi Kerah (meter &amp; gram)</p>
+                <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest mb-2">Estimasi Kerah (meter &amp; gram)</p>
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs border-collapse" id="tabel-estimasi-kerah">
                         <thead>
@@ -352,7 +352,7 @@
                             @if($collarTypes->where('is_active', true)->isNotEmpty())
                             @foreach($sizes as $s)
                             <tr data-size-id="{{ $s->id }}">
-                                <td class="p-2.5 font-semibold sticky left-0 bg-white">{{ $s->name }}</td>
+                                <td class="p-2.5 font-medium sticky left-0 bg-white">{{ $s->name }}</td>
                                 @foreach($collarTypes->where('is_active', true) as $ct)
                                 @php $u = optional($collarUsageMatrix[$s->id] ?? null)[$ct->id] ?? null; @endphp
                                 <td class="p-1" data-type-td="{{ $ct->id }}">
@@ -380,27 +380,27 @@
             <p class="text-xs text-slate-400 mb-4">Harga sekarang berpusat pada <b class="text-slate-500">Bahan</b> - tiap bahan bisa punya tier qty & harga sendiri karena selisih harga belanja antar bahan bisa sangat jauh. Kosongkan Bahan/Tipe Produk/Kategori untuk membuat tier "berlaku umum" (fallback kalau tidak ada tier spesifik yang cocok). Pencarian harga otomatis memilih tier paling spesifik yang cocok dengan bahan & qty tiap baris barang.</p>
             <div id="input-cepat-harga" class="mb-6 bg-emerald-50/40 p-4 rounded-2xl border border-emerald-100">
                 <div class="flex items-center justify-between gap-2 mb-3">
-                    <h3 class="text-xs font-black text-emerald-700 uppercase tracking-widest"><i class="fas fa-bolt mr-1"></i> Input Cepat per Tipe Produk</h3>
+                    <h3 class="text-xs font-medium text-emerald-700 uppercase tracking-widest"><i class="fas fa-bolt mr-1"></i> Input Cepat per Tipe Produk</h3>
                     <span class="text-[10px] text-slate-400">Pilih tipe produk, isi semua tier sekaligus. Berlaku untuk semua kategori.</span>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                     <div>
-                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Untuk Ukuran</label>
-                        <select id="cepat-kelompok" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
+                        <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Untuk Ukuran</label>
+                        <select id="cepat-kelompok" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
                             <option value="dewasa">Dewasa (harga umum)</option>
                             <option value="anak">Anak (harga khusus ukuran anak)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
-                        <select id="cepat-tipe" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
+                        <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
+                        <select id="cepat-tipe" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
                             <option value="">-- Pilih Tipe Produk --</option>
                             @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Bahan (opsional)</label>
-                        <select id="cepat-bahan" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
+                        <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Bahan (opsional)</label>
+                        <select id="cepat-bahan" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-emerald-500/20">
                             <option value="">-- Semua Bahan (harga umum) --</option>
                             @foreach($materials->where('is_active', true) as $m)<option class="opsi-bahan" value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
                         </select>
@@ -408,44 +408,44 @@
                 </div>
                 <div id="cepat-baris" class="space-y-2 mb-3"></div>
                 <div class="flex flex-wrap gap-2">
-                    <button type="button" onclick="tambahBarisCepat()" class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-500 hover:text-emerald-600"><i class="fas fa-plus"></i> Baris</button>
-                    <button type="button" onclick="isiPitaStandar()" class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-500 hover:text-emerald-600" title="1-11, 12-23, 24-49, 50+">Pita standar (lusin)</button>
-                    <button type="button" onclick="simpanCepat()" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-emerald-700"><i class="fas fa-save"></i> Simpan Semua Tier</button>
+                    <button type="button" onclick="tambahBarisCepat()" class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-500 hover:text-emerald-600"><i class="fas fa-plus"></i> Baris</button>
+                    <button type="button" onclick="isiPitaStandar()" class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-500 hover:text-emerald-600" title="1-11, 12-23, 24-49, 50+">Pita standar (lusin)</button>
+                    <button type="button" onclick="simpanCepat()" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-medium uppercase tracking-widest hover:bg-emerald-700"><i class="fas fa-save"></i> Simpan Semua Tier</button>
                 </div>
             </div>
             <form id="form-add-harga" class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <div class="md:col-span-2">
-                    <label class="block text-[9px] font-black text-indigo-600 uppercase tracking-widest mb-1.5">Bahan</label>
-                    <select name="jersey_material_id" id="harga-select-bahan" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <label class="block text-[9px] font-medium text-indigo-600 uppercase tracking-widest mb-1.5">Bahan</label>
+                    <select name="jersey_material_id" id="harga-select-bahan" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                         <option value="">-- Semua Bahan --</option>
                         @foreach($materials->where('is_active', true) as $m)<option class="opsi-bahan" value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
                     </select>
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
-                    <select name="jersey_product_type_id" id="harga-select-tipe" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
+                    <select name="jersey_product_type_id" id="harga-select-tipe" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                         <option value="">-- Semua Tipe --</option>
                         @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                     </select>
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Kategori</label>
-                    <select name="jersey_category_id" id="harga-select-kategori" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Kategori</label>
+                    <select name="jersey_category_id" id="harga-select-kategori" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                         <option value="">-- Semua Kategori --</option>
                         @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Qty Min</label>
-                    <input type="number" name="qty_min" placeholder="1" required min="1" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Qty Min</label>
+                    <input type="number" name="qty_min" placeholder="1" required min="1" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                 </div>
                 <div>
-                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Qty Max</label>
-                    <input type="number" name="qty_max" placeholder="~ (kosongkan)" min="1" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Qty Max</label>
+                    <input type="number" name="qty_max" placeholder="~ (kosongkan)" min="1" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Harga per Pcs (Rp)</label>
-                    <input type="text" inputmode="numeric" name="price" placeholder="0" required class="format-ribuan w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Harga per Pcs (Rp)</label>
+                    <input type="text" inputmode="numeric" name="price" placeholder="0" required class="format-ribuan w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                 </div>
                 <div class="md:col-span-2 flex items-end">
                     <x-button type="submit" variant="success" class="w-full">
@@ -454,19 +454,19 @@
                 </div>
             </form>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                <select id="filter-harga-bahan" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                <select id="filter-harga-bahan" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">Semua Bahan</option>
                     @foreach($materials->where('is_active', true) as $m)<option class="opsi-bahan" value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
                 </select>
-                <select id="filter-harga-tipe" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                <select id="filter-harga-tipe" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">Semua Tipe</option>
                     @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                 </select>
-                <select id="filter-harga-kategori" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                <select id="filter-harga-kategori" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">Semua Kategori</option>
                     @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                 </select>
-                <button type="button" onclick="resetFilterHarga()" class="flex items-center justify-center gap-2 bg-slate-100 text-slate-500 rounded-xl py-2.5 px-3 text-xs font-bold uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-all">
+                <button type="button" onclick="resetFilterHarga()" class="flex items-center justify-center gap-2 bg-slate-100 text-slate-500 rounded-xl py-2.5 px-3 text-xs font-medium uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-all">
                     <i class="fas fa-undo-alt text-[10px]"></i> Reset Filter
                 </button>
             </div>
@@ -489,22 +489,22 @@
             <input type="hidden" id="edit-simple-entity">
             <input type="hidden" id="edit-simple-id">
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nama</label>
-                <input type="text" id="edit-simple-name" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Nama</label>
+                <input type="text" id="edit-simple-name" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div id="edit-simple-has-sleeve-collar-wrapper" class="hidden">
-                <label class="flex items-center gap-2 text-xs font-semibold text-slate-500 cursor-pointer">
+                <label class="flex items-center gap-2 text-xs font-medium text-slate-500 cursor-pointer">
                     <input type="checkbox" id="edit-simple-has-sleeve-collar" class="rounded text-indigo-600 focus:ring-indigo-500/20">
                     Punya Lengan &amp; Kerah
                 </label>
             </div>
             <div id="edit-simple-price-surcharge-wrapper" class="hidden">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tambahan Harga (Rp)</label>
-                <input type="text" inputmode="numeric" id="edit-simple-price-surcharge" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Tambahan Harga (Rp)</label>
+                <input type="text" inputmode="numeric" id="edit-simple-price-surcharge" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div class="pt-2 flex gap-3">
-                <button type="button" onclick="closeModal('edit-simple')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
-                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase">Simpan</button>
+                <button type="button" onclick="closeModal('edit-simple')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium uppercase">Batal</button>
+                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium uppercase">Simpan</button>
             </div>
         </form>
     </x-modal>
@@ -514,22 +514,22 @@
             <input type="hidden" id="edit-komponen-scope-id">
             <p class="text-xs text-slate-400">Kosongkan supaya komponen ini berlaku untuk semua barang. Isi salah satu/keduanya supaya komponen ini cuma dihitung &amp; ditampilkan di SPK barang dengan Tipe Produk/Kategori yang cocok.</p>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
-                <select id="edit-komponen-scope-tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
+                <select id="edit-komponen-scope-tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Semua Tipe Produk --</option>
                     @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                 </select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kategori</label>
-                <select id="edit-komponen-scope-kategori" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Kategori</label>
+                <select id="edit-komponen-scope-kategori" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Semua Kategori --</option>
                     @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                 </select>
             </div>
             <div class="pt-2 flex gap-3">
-                <button type="button" onclick="closeModal('edit-komponen-scope')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
-                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase">Simpan</button>
+                <button type="button" onclick="closeModal('edit-komponen-scope')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium uppercase">Batal</button>
+                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium uppercase">Simpan</button>
             </div>
         </form>
     </x-modal>
@@ -538,28 +538,28 @@
         <form id="form-edit-ukuran" class="space-y-4">
             <input type="hidden" id="edit-ukuran-id">
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nama</label>
-                <input type="text" id="edit-ukuran-name" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Nama</label>
+                <input type="text" id="edit-ukuran-name" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Urutan Tampil</label>
-                <input type="number" id="edit-ukuran-sort" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Urutan Tampil</label>
+                <input type="number" id="edit-ukuran-sort" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kelompok</label>
-                <select id="edit-ukuran-kelompok" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"><option value="dewasa">Dewasa</option><option value="anak">Anak</option></select>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Kelompok</label>
+                <select id="edit-ukuran-kelompok" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"><option value="dewasa">Dewasa</option><option value="anak">Anak</option></select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Selisih Harga (%) dari harga tier</label>
-                <input type="number" step="0.5" min="-90" max="100" id="edit-ukuran-percent" placeholder="mis. -20 untuk diskon 20%" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Selisih Harga (%) dari harga tier</label>
+                <input type="number" step="0.5" min="-90" max="100" id="edit-ukuran-percent" placeholder="mis. -20 untuk diskon 20%" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tambahan Harga (Rp)</label>
-                <input type="text" inputmode="numeric" id="edit-ukuran-surcharge" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Tambahan Harga (Rp)</label>
+                <input type="text" inputmode="numeric" id="edit-ukuran-surcharge" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div class="pt-2 flex gap-3">
-                <button type="button" onclick="closeModal('edit-ukuran')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
-                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase">Simpan</button>
+                <button type="button" onclick="closeModal('edit-ukuran')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium uppercase">Batal</button>
+                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium uppercase">Simpan</button>
             </div>
         </form>
     </x-modal>
@@ -568,23 +568,23 @@
         <form id="form-edit-harga" class="space-y-4">
             <input type="hidden" id="edit-harga-id">
             <div>
-                <label class="block text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-2">Bahan</label>
-                <select id="edit-harga-bahan" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-indigo-500 uppercase tracking-widest mb-2">Bahan</label>
+                <select id="edit-harga-bahan" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Semua Bahan --</option>
                     @foreach($materials->where('is_active', true) as $m)<option class="opsi-bahan" value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
                 </select>
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
-                    <select id="edit-harga-tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
+                    <select id="edit-harga-tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                         <option value="">-- Semua --</option>
                         @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kategori</label>
-                    <select id="edit-harga-kategori" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Kategori</label>
+                    <select id="edit-harga-kategori" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                         <option value="">-- Semua --</option>
                         @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                     </select>
@@ -592,21 +592,21 @@
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Qty Min</label>
-                    <input type="number" id="edit-harga-qty-min" min="1" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Qty Min</label>
+                    <input type="number" id="edit-harga-qty-min" min="1" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Qty Max</label>
-                    <input type="number" id="edit-harga-qty-max" min="1" placeholder="~ (kosongkan)" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Qty Max</label>
+                    <input type="number" id="edit-harga-qty-max" min="1" placeholder="~ (kosongkan)" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 </div>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Harga per Pcs (Rp)</label>
-                <input type="text" inputmode="numeric" id="edit-harga-price" required class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Harga per Pcs (Rp)</label>
+                <input type="text" inputmode="numeric" id="edit-harga-price" required class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
             <div class="pt-2 flex gap-3">
-                <button type="button" onclick="closeModal('edit-harga')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold uppercase">Batal</button>
-                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase">Simpan</button>
+                <button type="button" onclick="closeModal('edit-harga')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium uppercase">Batal</button>
+                <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium uppercase">Simpan</button>
             </div>
         </form>
     </x-modal>
@@ -724,12 +724,12 @@
 
     function baseRowHtml(entity, row) {
         const badgeLenganKerah = (entity === 'product-types' && row.has_sleeve_collar === false)
-            ? '<span class="ml-2 text-[9px] font-bold uppercase tracking-wide text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">Tanpa Lengan/Kerah</span>' : '';
+            ? '<span class="ml-2 text-[9px] font-medium uppercase tracking-wide text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">Tanpa Lengan/Kerah</span>' : '';
         const badgeSurcharge = (['sleeve-types', 'collar-types'].includes(entity) && Number(row.price_surcharge) > 0)
-            ? `<span class="ml-2 text-[9px] font-bold uppercase tracking-wide text-emerald-600 bg-emerald-50 rounded px-1.5 py-0.5">+Rp ${Number(row.price_surcharge).toLocaleString('id-ID')}</span>` : '';
+            ? `<span class="ml-2 text-[9px] font-medium uppercase tracking-wide text-emerald-600 bg-emerald-50 rounded px-1.5 py-0.5">+Rp ${Number(row.price_surcharge).toLocaleString('id-ID')}</span>` : '';
         return `
         <tr data-id="${row.id}" class="${row.is_active ? '' : 'opacity-50'}">
-            <td class="p-2.5 font-semibold">${escapeHtmlJersey(row.name)}${badgeLenganKerah}${badgeSurcharge}</td>
+            <td class="p-2.5 font-medium">${escapeHtmlJersey(row.name)}${badgeLenganKerah}${badgeSurcharge}</td>
             <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
                     <button type="button" onclick="bukaEditSimple('${entity}', ${row.id}, ${JSON.stringify(row.name).replace(/"/g, '&quot;')}, ${row.has_sleeve_collar !== false}, ${Number(row.price_surcharge) || 0})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
@@ -792,7 +792,7 @@
             const ukuranRows = @json($sizes->map(fn ($s) => ['id' => $s->id, 'name' => $s->name]));
             tbody.innerHTML = ukuranRows.map(u => `
                 <tr data-size-id="${u.id}">
-                    <td class="p-2.5 font-semibold sticky left-0 bg-white">${escapeHtmlJersey(u.name)}</td>
+                    <td class="p-2.5 font-medium sticky left-0 bg-white">${escapeHtmlJersey(u.name)}</td>
                 </tr>`).join('');
         }
         tbody.querySelectorAll('tr[data-size-id]').forEach(tr => {
@@ -945,11 +945,11 @@
     function baseRowSizeHtml(row) {
         return `
         <tr data-id="${row.id}" class="${row.is_active ? '' : 'opacity-50'}">
-            <td class="p-2.5 font-semibold">${escapeHtmlJersey(row.name)}</td>
-            <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${row.kelompok === 'anak' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}">${row.kelompok === 'anak' ? 'Anak' : 'Dewasa'}</span></td>
+            <td class="p-2.5 font-medium">${escapeHtmlJersey(row.name)}</td>
+            <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded-md text-[10px] font-medium uppercase ${row.kelompok === 'anak' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}">${row.kelompok === 'anak' ? 'Anak' : 'Dewasa'}</span></td>
             <td class="p-2.5 text-center">${row.sort_order}</td>
             <td class="p-2.5 text-right">Rp ${formatRupiah(Math.round(parseFloat(row.price_surcharge)))}</td>
-            <td class="p-2.5 text-right ${parseFloat(row.price_percent) < 0 ? 'text-emerald-600 font-bold' : ''}">${parseFloat(row.price_percent) ? (parseFloat(row.price_percent) > 0 ? '+' : '') + parseFloat(row.price_percent) + '%' : '-'}</td>
+            <td class="p-2.5 text-right ${parseFloat(row.price_percent) < 0 ? 'text-emerald-600 font-medium' : ''}">${parseFloat(row.price_percent) ? (parseFloat(row.price_percent) > 0 ? '+' : '') + parseFloat(row.price_percent) + '%' : '-'}</td>
             <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
                     <button type="button" onclick="bukaEditUkuran(${JSON.stringify(row).replace(/"/g, '&quot;')})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
@@ -1208,10 +1208,10 @@
     function barisCepatHtml(t) {
         const v = (x) => (x === null || x === undefined) ? '' : x;
         return `<div class="cepat-row grid grid-cols-3 gap-2 items-center">
-            <input type="number" min="1" placeholder="Qty min" value="${v(t.qty_min)}" class="cepat-min w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600">
-            <input type="number" min="1" placeholder="Qty max (kosong = ~)" value="${v(t.qty_max)}" class="cepat-max w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600">
+            <input type="number" min="1" placeholder="Qty min" value="${v(t.qty_min)}" class="cepat-min w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-600">
+            <input type="number" min="1" placeholder="Qty max (kosong = ~)" value="${v(t.qty_max)}" class="cepat-max w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-600">
             <div class="flex gap-2">
-                <input type="text" inputmode="numeric" placeholder="Harga/pcs" value="${t.price ? Number(t.price).toLocaleString('id-ID') : ''}" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.')" class="cepat-harga w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-600">
+                <input type="text" inputmode="numeric" placeholder="Harga/pcs" value="${t.price ? Number(t.price).toLocaleString('id-ID') : ''}" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.')" class="cepat-harga w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-600">
                 <button type="button" onclick="this.closest('.cepat-row').remove()" class="w-10 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Hapus baris"><i class="far fa-trash-alt text-xs"></i></button>
             </div>
         </div>`;
@@ -1317,11 +1317,11 @@
     function rowHargaHtml(row) {
         return `
         <tr data-id="${row.id}" data-material-id="${row.jersey_material_id ?? ''}" data-type-id="${row.jersey_product_type_id ?? ''}" data-category-id="${row.jersey_category_id ?? ''}">
-            <td class="p-2.5 font-semibold text-indigo-600">${row.material ? escapeHtmlJersey(row.material.name) : 'Semua Bahan'}${row.kelompok === 'anak' ? '<span class="ml-2 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-black uppercase">Anak</span>' : ''}</td>
+            <td class="p-2.5 font-medium text-indigo-600">${row.material ? escapeHtmlJersey(row.material.name) : 'Semua Bahan'}${row.kelompok === 'anak' ? '<span class="ml-2 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-medium uppercase">Anak</span>' : ''}</td>
             <td class="p-2.5">${row.product_type ? escapeHtmlJersey(row.product_type.name) : 'Semua'}</td>
             <td class="p-2.5">${row.category ? escapeHtmlJersey(row.category.name) : 'Semua'}</td>
             <td class="p-2.5 text-center">${row.qty_min} - ${row.qty_max ?? '∞'}</td>
-            <td class="p-2.5 text-right font-bold">Rp ${formatRupiah(Math.round(parseFloat(row.price)))}</td>
+            <td class="p-2.5 text-right font-medium">Rp ${formatRupiah(Math.round(parseFloat(row.price)))}</td>
             <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
                     <button type="button" onclick="bukaEditHarga(${JSON.stringify(row).replace(/"/g, '&quot;')})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>

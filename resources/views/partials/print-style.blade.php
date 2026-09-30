@@ -1,100 +1,221 @@
 {{--
-    CSS bersama untuk semua dokumen print (nota, closing kas, SPK) -
-    sebelumnya CSS identik ini copy-paste di 3 file terpisah (rawan
-    diperbaiki di satu tempat tapi lupa di tempat lain). Include sekali per
-    halaman SETELAH variabel $format ('thermal'/lainnya) sudah didefinisikan
-    di controller, karena beberapa ukuran di sini bergantung padanya.
+    CSS bersama untuk semua dokumen print (nota, closing kas, SPK).
+
+    Include sekali per halaman SETELAH variabel $format ('thermal',
+    'continuous', atau ukuran A4/A5) sudah didefinisikan, karena
+    beberapa nilai di sini berbeda per format.
+
+    KETIKAAN YANG MENGATUR SELURUH BERKAS INI:
+
+    1. Font = font stack OpenCode, bukan Inter. Alasan praktis, bukan
+       sekadar selera: halaman print TIDAK memuat stylesheet Inter
+       sama sekali (file Inter hanya di-<link> di layout aplikasi),
+       jadi `Inter` di stack print selama ini tidak pernah ada -
+       browser langsung jatuh ke Segoe UI atau Arial. Menulis Inter
+       di sini hanya menipu. Stack di bawah adalah milik OpenCode persis.
+
+    2. Bobot hanya 500 (dan 400 untuk isi). OpenCode tidak punya
+       600 ke atas. Untuk thermal ada alasan teknis yang lebih
+       penting, ada di catatan tabel di bawah.
+
+    3. Warna diambil dari token OpenCode (lihat theme.css di
+       packages/ui/src/styles/theme.css repo sst/opencode):
+         teks utama #171717, teks sekunder #6f6f6f, teks tersier #8f8f8f,
+         garis #e5e5e5, aksen #034cff, sukses #2dba26, kritis #ed4831.
+       Sebelumnya dokumen cetak memakai indigo (#4f46e5) dan abu-abu
+       kebiruan yang tidak ada di palet itu sama sekali. Untuk dokumen
+       yang keluar dari printer, warna yang tidak ada di palet berarti
+       tinta yang tidak disengaja.
+
+    4. Minimalis: garis putus-putus dihapus ( became hairline solid),
+       badge status berbentuk pil diganti teks, dan kotak catatan
+       berbingkai diganti satu garis pemisah. Semua itu dekorasi yang
+       tidak membawa informasi - di struk yang sempit, garis putus
+       hanya menambah titik-titik yang membuat bacaan terasa lebih berat.
 --}}
 <style>
     * { box-sizing: border-box; }
-    body {
-        font-family: -apple-system, 'Segoe UI', 'Inter', Roboto, sans-serif;
-        margin: 0; padding: 16px; color: #1e293b; background: #fff;
-    }
-    {{-- 'continuous' (kertas sambung/dot-matrix) pakai ukuran font yang SAMA
-         dengan 'a4' di seluruh style ini (kedua-duanya "bukan thermal") -
-         cuma lebar kertasnya beda (dot-matrix continuous form biasanya
-         lebih lebar dari A4/A5). --}}
-    .sheet { max-width: {{ $format === 'thermal' ? '58mm' : ($format === 'continuous' ? '190mm' : '480px') }}; margin: 0 auto; }
 
-    .print-header { text-align: center; margin-bottom: 8px; }
-    .print-header img { max-height: {{ $format === 'thermal' ? '32px' : '44px' }}; margin-bottom: 6px; object-fit: contain; }
-    .print-header h1 {
-        font-size: {{ $format === 'thermal' ? '14px' : '19px' }};
-        margin: 0; font-weight: {{ $format === 'thermal' ? '700' : '800' }};
-        letter-spacing: {{ $format === 'thermal' ? 'normal' : '-0.02em' }}; color: #0f172a;
-    }
-    .print-header .company-info {
-        font-size: {{ $format === 'thermal' ? '10px' : '11px' }};
-        color: #64748b; margin: 2px 0 0; line-height: 1.4;
-    }
-    .print-header .doc-title {
+    body {
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: {{ $format === 'thermal' ? '8px' : '16px' }};
+        color: #171717;
+        background: #ffffff;
         font-size: {{ $format === 'thermal' ? '11px' : '12px' }};
-        text-transform: uppercase; letter-spacing: {{ $format === 'thermal' ? '0.02em' : '0.08em' }}; color: #4f46e5;
-        font-weight: {{ $format === 'thermal' ? '600' : '700' }}; margin: 6px 0 0;
+        line-height: 1.5;
+    }
+
+    {{-- Lebar kertas. 'continuous' (kertas sambung / dot-matrix) memakai
+         ukuran font yang SAMA dengan A4 di seluruh style ini - dua-duanya
+         "bukan thermal", hanya lebar kertasnya berbeda. --}}
+    .sheet {
+        max-width: {{ $format === 'thermal' ? '58mm' : ($format === 'continuous' ? '190mm' : '480px') }};
+        margin: 0 auto;
+    }
+
+    /* ----------------------------------------------------------------------
+       Kepala dokumen
+       ---------------------------------------------------------------------- */
+    .print-header { text-align: center; margin-bottom: {{ $format === 'thermal' ? '10px' : '14px' }}; }
+
+    .print-header img {
+        max-height: {{ $format === 'thermal' ? '28px' : '40px' }};
+        margin-bottom: 6px;
+        object-fit: contain;
+    }
+
+    /* 500, bukan 700/800. Nama perusahaan adalah satu-satunya hal yang
+       harus terbaca pertama kali di struk, dan pada bobot 500 dengan
+       ukuran 13px (thermal) / 17px (A4) itu sudah cukup menonjol
+       tanpa tebal. */
+    .print-header h1 {
+        font-size: {{ $format === 'thermal' ? '13px' : '17px' }};
+        margin: 0;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: #171717;
+    }
+
+    .print-header .company-info {
+        font-size: {{ $format === 'thermal' ? '9.5px' : '11px' }};
+        color: #6f6f6f;
+        margin: 3px 0 0;
+        line-height: 1.45;
+    }
+
+    /* Judul dokumen tidak lagi huruf besar dengan letter-spacing lebar.
+       Di struk thermal itu menambah lebar tanpa menambah hierarki;
+       hierarki di sini datang dari ukuran dan warna saja. */
+    .print-header .doc-title {
+        font-size: {{ $format === 'thermal' ? '10px' : '11.5px' }};
+        color: #034cff;
+        font-weight: 500;
+        margin: 7px 0 0;
     }
 
     .center { text-align: center; }
-    .sub { font-size: 11px; color: #64748b; margin: 0 0 12px; }
+    .sub { font-size: 11px; color: #6f6f6f; margin: 0 0 10px; }
 
-    {{--
-        Ukuran &amp; ketebalan font untuk thermal SENGAJA tidak dibuat terlalu
-        kecil/tebal - font kecil (&lt;10px) dikombinasikan font-weight
-        700-800 + letter-spacing sering membuat printer thermal (rendering
-        1-bit dari browser, tanpa anti-alias abu-abu seperti di layar)
-        mencetak tepi huruf jadi pecah seperti titik-titik/dot, bukan garis
-        utuh - keluhan langsung dari user. Non-thermal (A5/A4) tidak
-        disentuh sama sekali, sudah normal di kertas biasa.
-    --}}
-    table { width: 100%; border-collapse: collapse; font-size: {{ $format === 'thermal' ? '11px' : '12.5px' }}; }
-    th, td { padding: 3px 4px; text-align: left; vertical-align: top; }
-    th {
-        border-bottom: 1.5px solid #e2e8f0; font-size: {{ $format === 'thermal' ? '10px' : '10px' }};
-        text-transform: uppercase; letter-spacing: {{ $format === 'thermal' ? '0.02em' : '0.04em' }};
-        color: #64748b; font-weight: {{ $format === 'thermal' ? '600' : '700' }};
+    /* ----------------------------------------------------------------------
+       Tabel
+
+       CATATAN THERMAL YANG HARAP TIDAK DIABAIKAN.
+
+       Printer thermal merender 1-bit: tidak ada anti-alias abu-abu
+       seperti di layar, hanya penuh atau kosong per piksel. Kombinasi
+       "font kecil + bobot tebal + letter-spacing" membuat tepi huruf
+       pecah jadi titik-titik, bukan garis utuh - keluhan yang sudah
+       pernah masuk.
+
+       Solusinya bukan mempertebal, tapi MEMBESARKAN. Ukuran 11px
+       dengan bobot 400 memberi tepi yang jauh lebih utuh daripada
+       10px dengan bobot 600, dan hasilnya juga lebih mudah dibaca
+       dari jarak jauh. Karena itu header tabel thermal dinaikkan ke
+       10.5px bobot 500, bukan diturunkan ke 9px bobot 700.
+    ---------------------------------------------------------------------- */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: {{ $format === 'thermal' ? '11px' : '12px' }};
     }
+
+    th, td { padding: {{ $format === 'thermal' ? '2.5px' : '3px' }} 4px; text-align: left; vertical-align: top; }
+
+    th {
+        border-bottom: 1px solid #e5e5e5;
+        font-size: {{ $format === 'thermal' ? '10.5px' : '10.5px' }};
+        font-weight: 500;
+        color: #6f6f6f;
+    }
+
     td.right, th.right { text-align: right; }
 
-    .divider { border-top: 1px dashed #cbd5e1; margin: 6px 0; }
+    /* Garis pemisah. Garis putus-putus dihapus: pada printer thermal
+       garis putus digambar ulang tiap beberapa piksel sehingga menjadi
+       noise, bukan batas yang terbaca. */
+    .divider { border-top: 1px solid #e5e5e5; margin: {{ $format === 'thermal' ? '5px' : '7px' }} 0; }
 
-    {{--
-        Kelas opsional (opt-in, TIDAK mengubah default table/th/td/divider
-        di atas supaya nota & closing kas yang juga memakai partial ini
-        tidak ikut berubah) - dipakai halaman yang butuh baris lebih rapat
-        di bagian tertentu saja, mis. Ringkasan Order Jersey yang ingin
-        rapat di semua bagian KECUALI tabel rincian barang.
-    --}}
+    /* Varian rapat, tetap dipertahankan karena beberapa halaman
+       memakainya untuk bagian tertentu saja. */
     .table-compact th, .table-compact td { padding: 2px 4px; }
     .divider-tight { margin: 4px 0; }
 
-    .total-row td { font-weight: {{ $format === 'thermal' ? '700' : '800' }}; font-size: {{ $format === 'thermal' ? '12px' : '15px' }}; color: #0f172a; }
+    .total-row td {
+        font-weight: 500;
+        font-size: {{ $format === 'thermal' ? '12px' : '13.5px' }};
+        color: #171717;
+    }
 
+    /* Badge status. Sebelumnya pil berwarna; sekarang teks biasa
+       dengan warna status. Bentuk pil tidak menambah informasi apa pun
+       pada kertas, dan menambah tinggi baris pada struk sempit. */
     .status-badge {
-        display: inline-block; padding: 4px 12px; border-radius: 999px;
-        background: #eef2ff; color: #4f46e5; font-weight: {{ $format === 'thermal' ? '700' : '800' }};
-        font-size: {{ $format === 'thermal' ? '10px' : '12px' }};
+        display: inline;
+        padding: 0;
+        border-radius: 0;
+        background: none;
+        color: #171717;
+        font-weight: 500;
+        font-size: {{ $format === 'thermal' ? '10px' : '11px' }};
     }
+    .status-badge[data-status="success"] { color: #2dba26; }
+    .status-badge[data-status="critical"] { color: #ed4831; }
+    .status-badge[data-status="info"] { color: #034cff; }
 
+    /* Catatan. Bingkai putus-putus + latar diganti satu garis pemisah
+       di atas: isi catatan tetap terbaca, tapi tidak menambah kotak
+       yang harus dicetak. */
     .catatan {
-        border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px; margin-top: 8px;
-        font-size: {{ $format === 'thermal' ? '10px' : '11px' }}; background: #f8fafc;
+        border-top: 1px solid #e5e5e5;
+        padding: {{ $format === 'thermal' ? '6px' : '8px' }} 0 0;
+        margin-top: {{ $format === 'thermal' ? '6px' : '8px' }};
+        font-size: {{ $format === 'thermal' ? '10px' : '11px' }};
+        color: #6f6f6f;
     }
 
-    .signature { display: flex; justify-content: space-between; margin-top: 36px; }
+    .signature { display: flex; justify-content: space-between; margin-top: {{ $format === 'thermal' ? '24px' : '32px' }}; }
     .signature div { text-align: center; width: 45%; }
-    .signature .line { border-top: 1px solid #334155; margin-top: 40px; padding-top: 6px; font-size: 11px; color: #475569; }
-
-    .selisih-negatif { color: #dc2626; }
-    .selisih-positif { color: #16a34a; }
-
-    .footer-note { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 10px; }
-
-    .no-print { text-align: center; margin-top: 24px; }
-    .no-print button {
-        padding: 10px 28px; font-family: inherit; font-weight: 700; cursor: pointer;
-        background: #4f46e5; color: #fff; border: none; border-radius: 10px; font-size: 13px;
+    .signature .line {
+        border-top: 1px solid #8f8f8f;
+        margin-top: {{ $format === 'thermal' ? '28px' : '36px' }};
+        padding-top: 5px;
+        font-size: {{ $format === 'thermal' ? '9.5px' : '11px' }};
+        color: #6f6f6f;
     }
-    .no-print button:hover { background: #4338ca; }
+
+    .selisih-negatif { color: #ed4831; }
+    .selisih-positif { color: #2dba26; }
+
+    /* Catatan kaki memakai #6f6f6f, bukan #94a3b8. Yang kedua hanya
+       berkontras 2,3:1 terhadap putih - di layar masih terbaca, tapi di
+       printer yang sering menghasilkan abu-abu tipis, teks seperti itu
+       hilang. */
+    .footer-note {
+        text-align: center;
+        font-size: {{ $format === 'thermal' ? '9.5px' : '10.5px' }};
+        color: #6f6f6f;
+        margin-top: 8px;
+    }
+
+    /* ----------------------------------------------------------------------
+       Tombol cetak (tidak ikut tercetak)
+       ---------------------------------------------------------------------- */
+    .no-print { text-align: center; margin-top: 20px; }
+
+    .no-print button {
+        padding: 8px 20px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        /* Tombol utama OpenCode: #171717, bukan indigo. */
+        background: #171717;
+        color: #fcfcfc;
+        border: none;
+        border-radius: 6px;
+    }
+    .no-print button:hover { background: #000000; }
 
     @media print {
         .no-print { display: none !important; }

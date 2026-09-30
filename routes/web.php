@@ -57,7 +57,11 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth'])->get('/sinyal', [\App\Http\Controllers\SinyalController::class, 'index'])->name('sinyal');
 
-Route::middleware(['auth', 'menu.access'])->group(function () {
+// throttle.write hanya menghitung POST/PUT/PATCH/DELETE (lihat
+// App\Http\Middleware\ThrottleWriteRequests), jadi aman dipasang di
+// sini tanpa menyentuh halaman yang memanggil endpoint baca berulang,
+// seperti /sinyal di kasir.
+Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
@@ -112,6 +116,28 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
     Route::post('/jasa/{id}/harga', [\App\Http\Controllers\JasaHargaController::class, 'store'])->name('jasa.harga.store');
     Route::patch('/jasa-harga/{id}', [\App\Http\Controllers\JasaHargaController::class, 'update'])->name('jasa.harga.update');
     Route::delete('/jasa-harga/{id}', [\App\Http\Controllers\JasaHargaController::class, 'destroy'])->name('jasa.harga.destroy');
+
+    // Jasa Jahit Borongan (PENGELUARAN) - katalog jenis jahit + harga
+    // borongan, dan catatan pengeluaran yang diambil dari orderan yang
+    // finishing-nya ditandai jahit.
+    //
+    // Catatan TIDAK punya route update, hanya store dan destroy. Sifatnya
+    // seperti koreksi buku: kalau salah, hapus lalu catat ulang. Kalau
+    // boleh diedit, tidak ada jejak bahwa angka yang pernah dibayar ke
+    // penjahit berbeda dari yang tercatat.
+    Route::get('/jasa-jahit', [\App\Http\Controllers\JasaJahitController::class, 'index'])
+        ->name('jasa-jahit.index');
+    Route::post('/jasa-jahit', [\App\Http\Controllers\JasaJahitController::class, 'store'])
+        ->name('jasa-jahit.store');
+    Route::put('/jasa-jahit/{id}', [\App\Http\Controllers\JasaJahitController::class, 'update'])
+        ->name('jasa-jahit.update');
+    Route::delete('/jasa-jahit/{id}', [\App\Http\Controllers\JasaJahitController::class, 'destroy'])
+        ->name('jasa-jahit.destroy');
+    Route::post('/jasa-jahit/catat', [\App\Http\Controllers\JasaJahitController::class, 'storeCatat'])
+        ->name('jasa-jahit.catat.store');
+    Route::delete('/jasa-jahit/catat/{id}', [\App\Http\Controllers\JasaJahitController::class, 'destroyCatat'])
+        ->name('jasa-jahit.catat.destroy');
+
     Route::resource('gudang', \App\Http\Controllers\GudangController::class)->except(['create', 'edit', 'show']);
     // Customer Timeline (LEVEL 2) - akses mengikuti menu Data Konsumen [7].
     Route::get('/konsumen/{id}/timeline', [\App\Http\Controllers\KonsumenTimelineController::class, 'show'])
@@ -610,17 +636,25 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/setting-akses',
-        [AksesController::class, 'index'])->name('akses.index');
+    // Halaman hak akses dikunci hanya.admin, bukan hanya menu.access.
+    // Alasannya ada di App\Http\Middleware\HanyaAdministrator: menu.access
+    // membaca izin dari tabel role_permissions, dan tabel itu bisa ditulis
+    // oleh halaman ini sendiri. Kalau sebuah role diberi izin "Pengaturan
+    // Akses", tanpa gembok tambahan role itu bisa langsung mencentang semua
+    // modul untuk dirinya sendiri.
+    Route::middleware('hanya.admin')->group(function () {
+        Route::get('/setting-akses',
+            [AksesController::class, 'index'])->name('akses.index');
 
-    Route::post('/setting-akses/update',
-        [AksesController::class, 'update'])
-        ->name('akses.update');
+        Route::post('/setting-akses/update',
+            [AksesController::class, 'update'])
+            ->name('akses.update');
 
-    // Pengecualian hak akses per user (di bawah prefix users = menu Data User).
-    Route::get('/users/{id}/akses', [AksesController::class, 'userIndex'])->whereNumber('id')->name('akses.user');
-    Route::post('/users/{id}/akses', [AksesController::class, 'userUpdate'])->whereNumber('id')->name('akses.user.update');
-    Route::post('/users/{id}/akses/reset', [AksesController::class, 'userReset'])->whereNumber('id')->name('akses.user.reset');
+        // Pengecualian hak akses per user (di bawah prefix users = menu Data User).
+        Route::get('/users/{id}/akses', [AksesController::class, 'userIndex'])->whereNumber('id')->name('akses.user');
+        Route::post('/users/{id}/akses', [AksesController::class, 'userUpdate'])->whereNumber('id')->name('akses.user.update');
+        Route::post('/users/{id}/akses/reset', [AksesController::class, 'userReset'])->whereNumber('id')->name('akses.user.reset');
+    });
 
     Route::get('/pengaturan-jam-kerja', [\App\Http\Controllers\JamKerjaController::class, 'index'])->name('jam-kerja.index');
     Route::post('/pengaturan-jam-kerja', [\App\Http\Controllers\JamKerjaController::class, 'update'])->name('jam-kerja.update');

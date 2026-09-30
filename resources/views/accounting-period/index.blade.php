@@ -3,7 +3,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Accounting Period">
+    <x-page-header title="Periode Akuntansi">
         <x-slot:subtitle>
             <i class="fas fa-lock text-amber-400"></i>
             Tutup periode supaya jurnal bertanggal periode itu tidak bisa diposting/diubah lagi
@@ -24,7 +24,7 @@
             @foreach($daftarPeriode as $p)
             <tr class="hover:bg-slate-50/30 transition-all">
                 <td class="px-8 py-5">
-                    <span class="text-[13px] font-bold text-slate-700">{{ $p['nama'] }}</span>
+                    <span class="text-[13px] font-medium text-slate-700">{{ $p['nama'] }}</span>
                 </td>
                 <td class="px-6 py-5 text-center">
                     <x-badge :status="$p['status']" :variant="$p['status'] === 'Closed' ? 'danger' : 'success'" />

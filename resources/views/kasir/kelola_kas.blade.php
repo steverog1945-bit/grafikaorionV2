@@ -6,7 +6,7 @@
 
 <div class="mb-8 flex justify-between items-end">
     <div>
-        <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight uppercase">Kelola Kas Harian</h2>
+        <h2 class="text-2xl font-medium text-slate-800 tracking-tight uppercase">Kelola Kas Harian</h2>
         <p class="text-slate-500 text-sm italic font-medium">Manajemen saldo awal dan status operasional kasir.</p>
     </div>
 
@@ -23,7 +23,7 @@
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                 </span>
-                <span class="text-[10px] font-black text-emerald-600 uppercase">Kasir Aktif</span>
+                <span class="text-[10px] font-medium text-emerald-600 uppercase">Kasir Aktif</span>
             </div>
             {{-- Kas Tidak Terduga - mutasi tunai yang tidak terikat nota
                  (pengeluaran operasional dadakan, kas masuk di luar
@@ -49,11 +49,11 @@
 
                     <x-form.group label="Status" required>
                         <div class="grid grid-cols-2 gap-3">
-                            <label class="relative flex items-center gap-2 py-3 px-4 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 font-bold text-xs cursor-pointer transition-all status-manual-option">
+                            <label class="relative flex items-center gap-2 py-3 px-4 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 font-medium text-xs cursor-pointer transition-all status-manual-option">
                                 <input type="radio" name="status" value="Masuk" class="accent-emerald-600" checked onchange="toggleStatusManual(this)">
                                 Debet / Kas Masuk
                             </label>
-                            <label class="relative flex items-center gap-2 py-3 px-4 rounded-xl border-2 border-slate-100 text-slate-400 font-bold text-xs cursor-pointer transition-all status-manual-option">
+                            <label class="relative flex items-center gap-2 py-3 px-4 rounded-xl border-2 border-slate-100 text-slate-400 font-medium text-xs cursor-pointer transition-all status-manual-option">
                                 <input type="radio" name="status" value="Keluar" class="accent-rose-600" onchange="toggleStatusManual(this)">
                                 Kredit / Kas Keluar
                             </label>
@@ -61,7 +61,7 @@
                     </x-form.group>
 
                     <x-form.group label="Nominal / Jumlah" required>
-                        <x-form.input type="text" inputmode="numeric" name="nominal" required placeholder="0" class="text-xl font-bold format-ribuan" />
+                        <x-form.input type="text" inputmode="numeric" name="nominal" required placeholder="0" class="text-xl font-medium format-ribuan" />
                     </x-form.group>
 
                     <div class="pt-2 flex gap-3">
@@ -93,7 +93,7 @@
     @endphp
     <div class="mb-6 flex flex-wrap items-center gap-3 rounded-2xl px-5 py-4 border-2 {{ $kasBasi ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-100' }}">
         <i class="fas {{ $kasBasi ? 'fa-triangle-exclamation text-amber-500' : 'fa-clock text-slate-400' }} text-lg"></i>
-        <div class="text-sm font-semibold {{ $kasBasi ? 'text-amber-800' : 'text-slate-600' }}">
+        <div class="text-sm font-medium {{ $kasBasi ? 'text-amber-800' : 'text-slate-600' }}">
             Sesi kas dibuka <b>{{ $mulaiTampil->translatedFormat('d F Y, H:i') }}</b> oleh <b>{{ $pemilikSesi }}</b> ({{ $umurJam }} jam).
             @if($kasBasi)
                 Sesi ini sudah lebih dari 24 jam dan <b>belum di-closing</b> - lakukan closing supaya uang laci direkonsiliasi
@@ -115,7 +115,7 @@
         <i class="fas fa-arrows-rotate"></i>
     </div>
     <div class="flex-1">
-        <p class="text-sm font-black text-indigo-800 uppercase tracking-wide">Saldo Di-rolling dari Sesi Sebelumnya</p>
+        <p class="text-sm font-medium text-indigo-800 uppercase tracking-wide">Saldo Di-rolling dari Sesi Sebelumnya</p>
         <p class="text-xs text-indigo-600 mt-0.5">Sesi kas terakhir ditutup dengan saldo Rp {{ number_format($saldoRolling, 0, ',', '.') }} dan status "Rolling" - uang ini tetap di laci, dipakai sebagai saran saldo awal hari ini (tetap bisa diubah manual saat membuka kasir).</p>
     </div>
 </div>
@@ -124,22 +124,22 @@
 <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
     <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
         <div>
-            <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight">Rincian Mutasi Kas Hari Ini</h3>
+            <h3 class="text-lg font-medium text-slate-800 uppercase tracking-tight">Rincian Mutasi Kas Hari Ini</h3>
             <p class="text-xs text-slate-500 italic">Daftar masuknya uang berdasarkan nota dan metode pembayaran</p>
         </div>
         <div class="flex gap-4">
             {{-- Badge Ringkasan Cepat --}}
             <div class="px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100 text-right">
-                <span class="block text-[9px] font-black text-emerald-600 uppercase">Total Tunai</span>
-                <span class="font-bold text-emerald-700">Rp {{ number_format($data_kas->sum('nominal_tunai'), 0, ',', '.') }}</span>
+                <span class="block text-[9px] font-medium text-emerald-600 uppercase">Total Tunai</span>
+                <span class="font-medium text-emerald-700">Rp {{ number_format($data_kas->sum('nominal_tunai'), 0, ',', '.') }}</span>
             </div>
             <div class="px-4 py-2 bg-sky-50 rounded-xl border border-sky-100 text-right">
-                <span class="block text-[9px] font-black text-sky-600 uppercase">Total Debit</span>
-                <span class="font-bold text-sky-700">Rp {{ number_format($data_kas->sum('nominal_debit'), 0, ',', '.') }}</span>
+                <span class="block text-[9px] font-medium text-sky-600 uppercase">Total Debit</span>
+                <span class="font-medium text-sky-700">Rp {{ number_format($data_kas->sum('nominal_debit'), 0, ',', '.') }}</span>
             </div>
             <div class="px-4 py-2 bg-blue-50 rounded-xl border border-blue-100 text-right">
-                <span class="block text-[9px] font-black text-blue-600 uppercase">Total Transfer</span>
-                <span class="font-bold text-blue-700">Rp {{ number_format($data_kas->sum('nominal_transfer'), 0, ',', '.') }}</span>
+                <span class="block text-[9px] font-medium text-blue-600 uppercase">Total Transfer</span>
+                <span class="font-medium text-blue-700">Rp {{ number_format($data_kas->sum('nominal_transfer'), 0, ',', '.') }}</span>
             </div>
         </div>
     </div>
@@ -162,24 +162,24 @@
                 <td class="p-4 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="p-4 text-xs text-slate-500">{{ date('H:i', strtotime($m->tgl_bayar)) }}</td>
                 <td class="p-4">
-                    <span class="block font-bold text-slate-700 uppercase text-sm">{{ $m->nama_konsumen }}</span>
+                    <span class="block font-medium text-slate-700 uppercase text-sm">{{ $m->nama_konsumen }}</span>
                     <span class="text-[10px] text-slate-400 italic">{{ $m->keterangan }}</span>
                 </td>
                 <td class="p-4">
-                    <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-600">#{{ $m->nomor_nota }}</span>
+                    <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">#{{ $m->nomor_nota }}</span>
                 </td>
                 {{-- Sebelumnya cuma dibedakan Tunai vs "selain Tunai" (dianggap
                      selalu Transfer) - Debit & Deposit ikut kepencet label
                      TRANSFER yang salah. Sekarang eksplisit 4 metode. --}}
                 <td class="p-4 text-center">
                     @if($m->metode == 'Tunai')
-                        <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-[9px] font-black"><i class="fas fa-money-bill-wave mr-1"></i>TUNAI</span>
+                        <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-[9px] font-medium"><i class="fas fa-money-bill-wave mr-1"></i>TUNAI</span>
                     @elseif($m->metode == 'Debit')
-                        <span class="px-2 py-1 bg-sky-100 text-sky-700 rounded-lg text-[9px] font-black"><i class="fas fa-credit-card mr-1"></i>DEBIT</span>
+                        <span class="px-2 py-1 bg-sky-100 text-sky-700 rounded-lg text-[9px] font-medium"><i class="fas fa-credit-card mr-1"></i>DEBIT</span>
                     @elseif($m->metode == 'Deposit')
-                        <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-[9px] font-black"><i class="fas fa-wallet mr-1"></i>DEPOSIT</span>
+                        <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-[9px] font-medium"><i class="fas fa-wallet mr-1"></i>DEPOSIT</span>
                     @else
-                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black"><i class="fas fa-university mr-1"></i>TRANSFER</span>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-medium"><i class="fas fa-university mr-1"></i>TRANSFER</span>
                     @endif
                 </td>
                 <td class="p-4 text-right">
@@ -191,12 +191,12 @@
                             default => 'text-blue-600',
                         };
                     @endphp
-                    <span class="font-black {{ $warnaNominal }}">
+                    <span class="font-medium {{ $warnaNominal }}">
                         Rp {{ number_format($m->nominal, 0, ',', '.') }}
                     </span>
                 </td>
                 <td class="p-4 text-center">
-                    <span class="text-[10px] font-black uppercase {{ $m->status_pembayaran == 'Lunas' ? 'text-emerald-500' : 'text-amber-500' }}">
+                    <span class="text-[10px] font-medium uppercase {{ $m->status_pembayaran == 'Lunas' ? 'text-emerald-500' : 'text-amber-500' }}">
                         {{ $m->status_pembayaran }}
                     </span>
                 </td>
@@ -213,17 +213,17 @@
 <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden mt-6">
     <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
         <div>
-            <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight">Kas Tidak Terduga Hari Ini</h3>
+            <h3 class="text-lg font-medium text-slate-800 uppercase tracking-tight">Kas Tidak Terduga Hari Ini</h3>
             <p class="text-xs text-slate-500 italic">Mutasi tunai di luar nota (pengeluaran dadakan, kas masuk lain-lain)</p>
         </div>
         <div class="flex gap-4">
             <div class="px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100 text-right">
-                <span class="block text-[9px] font-black text-emerald-600 uppercase">Masuk</span>
-                <span class="font-bold text-emerald-700">Rp {{ number_format($data_kas->sum('nominal_manual_masuk'), 0, ',', '.') }}</span>
+                <span class="block text-[9px] font-medium text-emerald-600 uppercase">Masuk</span>
+                <span class="font-medium text-emerald-700">Rp {{ number_format($data_kas->sum('nominal_manual_masuk'), 0, ',', '.') }}</span>
             </div>
             <div class="px-4 py-2 bg-rose-50 rounded-xl border border-rose-100 text-right">
-                <span class="block text-[9px] font-black text-rose-600 uppercase">Keluar</span>
-                <span class="font-bold text-rose-700">Rp {{ number_format($data_kas->sum('nominal_manual_keluar'), 0, ',', '.') }}</span>
+                <span class="block text-[9px] font-medium text-rose-600 uppercase">Keluar</span>
+                <span class="font-medium text-rose-700">Rp {{ number_format($data_kas->sum('nominal_manual_keluar'), 0, ',', '.') }}</span>
             </div>
         </div>
     </div>
@@ -247,12 +247,12 @@
                 <td class="p-4 text-sm text-slate-600">{{ $m->keterangan }}</td>
                 <td class="p-4 text-center">
                     @if($m->status === 'Masuk')
-                        <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[9px] font-black">DEBET / MASUK</span>
+                        <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[9px] font-medium">DEBET / MASUK</span>
                     @else
-                        <span class="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[9px] font-black">KREDIT / KELUAR</span>
+                        <span class="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[9px] font-medium">KREDIT / KELUAR</span>
                     @endif
                 </td>
-                <td class="p-4 text-right font-black {{ $m->status === 'Masuk' ? 'text-emerald-600' : 'text-rose-600' }}">
+                <td class="p-4 text-right font-medium {{ $m->status === 'Masuk' ? 'text-emerald-600' : 'text-rose-600' }}">
                     {{ $m->status === 'Masuk' ? '+' : '-' }} Rp {{ number_format($m->nominal, 0, ',', '.') }}
                 </td>
                 <td class="p-4 text-center text-[11px] text-slate-400">{{ $m->dicatat_oleh ?? '-' }}</td>

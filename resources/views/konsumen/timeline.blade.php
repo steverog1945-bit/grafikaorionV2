@@ -21,8 +21,8 @@
             ['Saldo Deposit', 'Rp ' . number_format($ringkasan['saldo_deposit'], 0, ',', '.'), '', 'text-sky-600'],
         ] as [$label, $nilai, $ket, $warna])
         <x-card>
-            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">{{ $label }}</div>
-            <div class="text-lg font-extrabold {{ $warna }}">{{ $nilai }}</div>
+            <div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">{{ $label }}</div>
+            <div class="text-lg font-medium {{ $warna }}">{{ $nilai }}</div>
             @if($ket)<div class="text-[11px] text-slate-400">{{ $ket }}</div>@endif
         </x-card>
         @endforeach
@@ -46,11 +46,11 @@
             <div class="w-10 h-10 rounded-full {{ $kelasWarna[$k['warna']] ?? 'bg-slate-50 text-slate-500' }} flex items-center justify-center shrink-0"><i class="fas fa-{{ $k['ikon'] }} text-sm"></i></div>
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap justify-between gap-2">
-                    <div class="text-sm font-bold text-slate-700">
+                    <div class="text-sm font-medium text-slate-700">
                         @if($k['url'])<a href="{{ $k['url'] }}" class="hover:text-indigo-600">{{ $k['judul'] }}</a>@else{{ $k['judul'] }}@endif
-                        <span class="ml-2 text-[10px] font-bold uppercase tracking-widest text-slate-300">{{ $k['jenis'] }}</span>
+                        <span class="ml-2 text-[10px] font-medium uppercase tracking-widest text-slate-300">{{ $k['jenis'] }}</span>
                     </div>
-                    <div class="text-sm font-extrabold {{ $k['nominal'] < 0 ? 'text-rose-500' : 'text-slate-700' }}">Rp {{ number_format($k['nominal'], 0, ',', '.') }}</div>
+                    <div class="text-sm font-medium {{ $k['nominal'] < 0 ? 'text-rose-500' : 'text-slate-700' }}">Rp {{ number_format($k['nominal'], 0, ',', '.') }}</div>
                 </div>
                 <div class="text-xs text-slate-400">{{ $k['waktu']->format('d M Y H:i') }}{{ $k['detail'] ? ' - ' . $k['detail'] : '' }}</div>
             </div>

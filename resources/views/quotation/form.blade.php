@@ -24,7 +24,7 @@
     <x-page-header title="{{ $quotation ? 'Penawaran ' . $quotation->nomor : 'Penawaran Baru' }}">
         <x-slot:subtitle>
             <i class="fas fa-file-signature text-amber-400"></i>
-            {{ $editable ? 'Draft - harga dihitung otomatis dari Price List, bisa ditimpa per baris' : 'Hanya-baca' }}
+            {{ $editable ? 'Draft - harga dihitung otomatis dari Daftar Harga, bisa ditimpa per baris' : 'Hanya-baca' }}
         </x-slot:subtitle>
         @if($quotation)
         <x-slot:actions>
@@ -34,7 +34,7 @@
     </x-page-header>
 
     @if($errors->any())
-        <div class="mb-6 p-4 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold">@foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach</div>
+        <div class="mb-6 p-4 rounded-xl bg-rose-50 text-rose-600 text-sm font-medium">@foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach</div>
     @endif
 
     <form id="form-qt" method="POST" action="{{ $quotation ? route('quotation.update', $quotation->id) : route('quotation.store') }}">
@@ -78,47 +78,47 @@
             <x-card data-row>
                 <div class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tipe</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Tipe</label>
                         <select name="items[{{ $i }}][tipe]" data-tipe onchange="ubahTipe(this)" class="w-full rounded-xl border-slate-200 text-sm p-2" {{ $editable ? '' : 'disabled' }}>
                             <option value="Produk" {{ ($r['tipe'] ?? 'Produk') === 'Produk' ? 'selected' : '' }}>Produk</option>
                             <option value="Jasa" {{ ($r['tipe'] ?? '') === 'Jasa' ? 'selected' : '' }}>Jasa</option>
                         </select>
                     </div>
                     <div class="col-span-2 md:col-span-2" data-blok-produk>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Produk</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Produk</label>
                         <select name="items[{{ $i }}][id_produk]" class="w-full rounded-xl border-slate-200 text-sm p-2" {{ $editable ? '' : 'disabled' }}>
                             <option value="">-- Pilih --</option>
                             @foreach($produkList as $p)<option value="{{ $p->id_produk }}" {{ ($r['id_produk'] ?? '') == $p->id_produk ? 'selected' : '' }}>{{ $p->nama_produk }}</option>@endforeach
                         </select>
                     </div>
                     <div class="col-span-2 md:col-span-2" data-blok-jasa style="display:none">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Jasa</label>
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Jasa</label>
                         <select name="items[{{ $i }}][id_jasa]" class="w-full rounded-xl border-slate-200 text-sm p-2" {{ $editable ? '' : 'disabled' }}>
                             <option value="">-- Pilih --</option>
                             @foreach($jasaList as $j)<option value="{{ $j->id_jasa }}" {{ ($r['id_jasa'] ?? '') == $j->id_jasa ? 'selected' : '' }}>{{ $j->nama_jasa }}</option>@endforeach
                         </select>
                     </div>
-                    <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">P (cm)</label>
+                    <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">P (cm)</label>
                         <input type="number" step="0.01" min="0" name="items[{{ $i }}][p]" value="{{ $r['p'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
-                    <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">L (cm)</label>
+                    <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">L (cm)</label>
                         <input type="number" step="0.01" min="0" name="items[{{ $i }}][l]" value="{{ $r['l'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
-                    <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Qty</label>
+                    <div><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Qty</label>
                         <input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" required class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
-                    <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Harga satuan (kosong = otomatis)</label>
+                    <div><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Harga satuan (kosong = otomatis)</label>
                         <input type="text" inputmode="decimal" autocomplete="off" name="items[{{ $i }}][harga_satuan]" value="{{ ($r['harga_satuan'] ?? '') === '' ? '' : angka_input($r['harga_satuan'], 2) }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
-                    <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Finishing</label>
+                    <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Finishing</label>
                         <select name="items[{{ $i }}][id_finishing]" class="w-full rounded-xl border-slate-200 text-sm p-2" {{ $editable ? '' : 'disabled' }}>
                             <option value="">-</option>
                             @foreach($finishingList as $f)<option value="{{ $f->id_finishing }}" {{ ($r['id_finishing'] ?? '') == $f->id_finishing ? 'selected' : '' }}>{{ $f->nama_finishing }}</option>@endforeach
                         </select></div>
-                    <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Biaya finishing</label>
+                    <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Biaya finishing</label>
                         <input type="text" inputmode="decimal" autocomplete="off" name="items[{{ $i }}][biaya_finishing]" value="{{ ($r['biaya_finishing'] ?? 0) ? angka_input($r['biaya_finishing'], 2) : '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
-                    <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Biaya desain</label>
+                    <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Biaya desain</label>
                         <input type="text" inputmode="decimal" autocomplete="off" name="items[{{ $i }}][biaya_desain]" value="{{ ($r['biaya_desain'] ?? 0) ? angka_input($r['biaya_desain'], 2) : '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
-                    <div class="col-span-2 md:col-span-2"><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Catatan baris</label>
+                    <div class="col-span-2 md:col-span-2"><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Catatan baris</label>
                         <input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" {{ $editable ? '' : 'disabled' }}></div>
                     <div class="text-right">
-                        @if(isset($r['subtotal']))<div class="text-[10px] font-bold text-slate-400 uppercase">Subtotal</div><div class="text-sm font-extrabold text-indigo-600">Rp {{ number_format($r['subtotal'], 0, ',', '.') }}</div>@endif
+                        @if(isset($r['subtotal']))<div class="text-[10px] font-medium text-slate-400 uppercase">Subtotal</div><div class="text-sm font-medium text-indigo-600">Rp {{ number_format($r['subtotal'], 0, ',', '.') }}</div>@endif
                         @if($editable)<button type="button" onclick="this.closest('[data-row]').remove()" class="mt-1 text-slate-300 hover:text-rose-500 text-xs"><i class="fas fa-trash-alt"></i> Hapus baris</button>@endif
                     </div>
                 </div>
@@ -138,10 +138,10 @@
             </x-card>
             <x-card>
                 <div class="space-y-3 text-sm">
-                    @if($quotation)<div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span class="font-bold">Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</span></div>@endif
+                    @if($quotation)<div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span class="font-medium">Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</span></div>@endif
                     <div class="flex justify-between items-center gap-4"><span class="text-slate-500">Diskon (Rp)</span>
                         <input type="text" inputmode="decimal" autocomplete="off" name="diskon" value="{{ angka_input(old('diskon', $quotation->diskon ?? 0), 2) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'disabled' }}></div>
-                    @if($quotation)<div class="flex justify-between pt-3 border-t border-slate-100 text-base"><span class="font-bold text-slate-700">Total</span><span class="font-extrabold text-indigo-600">Rp {{ number_format($quotation->total, 0, ',', '.') }}</span></div>
+                    @if($quotation)<div class="flex justify-between pt-3 border-t border-slate-100 text-base"><span class="font-medium text-slate-700">Total</span><span class="font-medium text-indigo-600">Rp {{ number_format($quotation->total, 0, ',', '.') }}</span></div>
                     @else<p class="text-[11px] text-slate-400">Subtotal & total dihitung server setelah disimpan.</p>@endif
                 </div>
             </x-card>
@@ -161,7 +161,7 @@
         @endif
 
         <x-card class="mt-8">
-            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Tindak Lanjut</h3>
+            <h3 class="text-xs font-medium text-slate-800 uppercase tracking-widest mb-4">Tindak Lanjut</h3>
             <div class="flex flex-wrap gap-3">
                 <x-button :href="route('quotation.cetak', $quotation->id)" target="_blank" variant="outline"><i class="fas fa-print"></i> Cetak / Simpan PDF</x-button>
                 @if($wa)<x-button :href="$wa" target="_blank" variant="success"><i class="fab fa-whatsapp"></i> Kirim WhatsApp</x-button>@endif
@@ -193,21 +193,21 @@
     <template id="row-template">
         <x-card data-row>
             <div class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
-                <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tipe</label>
+                <div><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Tipe</label>
                     <select name="items[__I__][tipe]" data-tipe onchange="ubahTipe(this)" class="w-full rounded-xl border-slate-200 text-sm p-2"><option value="Produk">Produk</option><option value="Jasa">Jasa</option></select></div>
-                <div class="col-span-2 md:col-span-2" data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Produk</label>
+                <div class="col-span-2 md:col-span-2" data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Produk</label>
                     <select name="items[__I__][id_produk]" class="w-full rounded-xl border-slate-200 text-sm p-2"><option value="">-- Pilih --</option>@foreach($produkList as $p)<option value="{{ $p->id_produk }}">{{ $p->nama_produk }}</option>@endforeach</select></div>
-                <div class="col-span-2 md:col-span-2" data-blok-jasa style="display:none"><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Jasa</label>
+                <div class="col-span-2 md:col-span-2" data-blok-jasa style="display:none"><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Jasa</label>
                     <select name="items[__I__][id_jasa]" class="w-full rounded-xl border-slate-200 text-sm p-2"><option value="">-- Pilih --</option>@foreach($jasaList as $j)<option value="{{ $j->id_jasa }}">{{ $j->nama_jasa }}</option>@endforeach</select></div>
-                <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">P (cm)</label><input type="number" step="0.01" min="0" name="items[__I__][p]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
-                <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">L (cm)</label><input type="number" step="0.01" min="0" name="items[__I__][l]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
-                <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Qty</label><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" required class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
-                <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Harga satuan (kosong = otomatis)</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][harga_satuan]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
-                <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Finishing</label>
+                <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">P (cm)</label><input type="number" step="0.01" min="0" name="items[__I__][p]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
+                <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">L (cm)</label><input type="number" step="0.01" min="0" name="items[__I__][l]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
+                <div><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Qty</label><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" required class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
+                <div><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Harga satuan (kosong = otomatis)</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][harga_satuan]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
+                <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Finishing</label>
                     <select name="items[__I__][id_finishing]" class="w-full rounded-xl border-slate-200 text-sm p-2"><option value="">-</option>@foreach($finishingList as $f)<option value="{{ $f->id_finishing }}">{{ $f->nama_finishing }}</option>@endforeach</select></div>
-                <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Biaya finishing</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][biaya_finishing]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
-                <div data-blok-produk><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Biaya desain</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][biaya_desain]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
-                <div class="col-span-2 md:col-span-2"><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Catatan baris</label><input type="text" maxlength="255" name="items[__I__][catatan]" class="w-full rounded-xl border-slate-200 text-xs p-2"></div>
+                <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Biaya finishing</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][biaya_finishing]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
+                <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Biaya desain</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][biaya_desain]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
+                <div class="col-span-2 md:col-span-2"><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Catatan baris</label><input type="text" maxlength="255" name="items[__I__][catatan]" class="w-full rounded-xl border-slate-200 text-xs p-2"></div>
                 <div class="text-right"><button type="button" onclick="this.closest('[data-row]').remove()" class="text-slate-300 hover:text-rose-500 text-xs"><i class="fas fa-trash-alt"></i> Hapus baris</button></div>
             </div>
         </x-card>

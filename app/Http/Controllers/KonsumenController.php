@@ -164,11 +164,29 @@ public function storeAjax(Request $request)
 
     public function destroy($id)
     {
+        // Dulu hanya try/catch. Tabel transaksi, jersey_orders, dan
+        // transaksi_detail TIDAK punya foreign key ke konsumen, jadi tidak
+        // ada error yang bisa ditangkap dan penghapusan selalu berhasil -
+        // meninggalkan riwayat nota dan order yang menunjuk konsumen yang
+        // sudah tidak ada. quotations punya FK, jadi yang itu memang
+        // akan caught, tapi sisanya tidak.
+        $pemakaian = [
+            'Nota Penjualan' => DB::table('transaksi')->where('id_konsumen', $id)->exists(),
+            'Order Jersey'   => DB::table('jersey_orders')->where('id_konsumen', $id)->exists(),
+            'Deposit'        => DB::table('konsumen_deposit')->where('id_konsumen', $id)->exists(),
+        ];
+        $dipakai = array_keys(array_filter($pemakaian));
+        if ($dipakai) {
+            return back()->with('error',
+                'Gagal hapus! Konsumen ini masih punya data di: ' . implode(', ', $dipakai) . '.'
+            );
+        }
+
         try {
             DB::table('konsumen')->where('id_konsumen', $id)->delete();
             return redirect()->back()->with('success', 'Konsumen dihapus.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal hapus! Konsumen ini masih punya riwayat transaksi atau deposit.');
+            return redirect()->back()->with('error', 'Gagal hapus! Konsumen ini masih punya riwayat yang mengikat.');
         }
     }
 }

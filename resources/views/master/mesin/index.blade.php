@@ -4,7 +4,7 @@
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
     <x-page-header title="Master Aset Mesin" subtitle="Monitor dan kelola armada mesin cetak produksi real-time">
         <x-slot:actions>
-            <x-button onclick="toggleModal('tambahMesin')">
+            <x-button onclick="openModal('mesin-tambah')">
                 <i class="fas fa-plus-circle"></i>
                 Registrasi Mesin
             </x-button>
@@ -15,16 +15,16 @@
     <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-8">
         <form method="GET" action="{{ route('mesin.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[260px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Mesin</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Mesin</label>
                 <div class="relative">
-                    <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input type="text" name="search" value="{{ request('search') }}"
-                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                            placeholder="Ketik nama mesin...">
                 </div>
             </div>
             <div class="w-full md:w-56">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Tipe Operasional</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Tipe Operasional</label>
                 <select name="tipe_mesin" class="select2-filter w-full">
                     <option value="">Semua Tipe</option>
                     @foreach($daftarTipe as $t)
@@ -32,7 +32,7 @@
                     @endforeach
                 </select>
             </div>
-            <button type="submit" class="h-[46px] px-6 bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700">Filter</button>
+            <button type="submit" class="h-[46px] px-6 bg-indigo-600 text-white rounded-xl text-[11px] font-medium uppercase tracking-widest hover:bg-indigo-700">Filter</button>
             <a href="{{ route('mesin.index') }}" class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
                 <i class="fas fa-undo-alt text-sm"></i>
             </a>
@@ -57,11 +57,11 @@
                         {{-- Identitas Mesin --}}
                         <td class="px-8 py-5">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-bold text-xs shadow-sm">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-medium text-xs shadow-sm">
                                     <i class="fas fa-print"></i>
                                 </div>
                                 <div>
-                                    <div class="text-[14px] font-bold text-slate-700 group-hover:text-indigo-600 transition-colors uppercase">
+                                    <div class="text-[14px] font-medium text-slate-700 group-hover:text-indigo-600 transition-colors uppercase">
                                         {{ $m->nama_mesin }}
                                     </div>
                                     <div class="text-[12px] text-slate-400 mt-0.5">ID: #{{ $m->id_mesin }}</div>
@@ -71,14 +71,14 @@
 
                         {{-- Tipe Mesin --}}
                         <td class="px-6 py-5 text-center">
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100">
                                 <i class="fas fa-bolt mr-1.5 text-blue-400"></i> {{ $m->tipe_mesin }}
                             </span>
                         </td>
 
                         {{-- Status (Placeholder Visual) --}}
                         <td class="px-6 py-5 text-center">
-                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-lg uppercase border border-emerald-100">
+                            <span class="inline-flex items-center gap-1.5 text-[10px] font-medium text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-lg uppercase border border-emerald-100">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                 Active
                             </span>
@@ -87,7 +87,7 @@
                         {{-- Action Buttons --}}
                         <td class="px-8 py-5 text-right">
                             <div class="flex justify-end gap-2">
-                                <button onclick="toggleModal('edit{{ $m->id_mesin }}')" 
+                                <button onclick="openModal('mesin-edit-{{ $m->id_mesin }}')"
                                         class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all border border-transparent hover:border-amber-100">
                                     <i class="far fa-edit text-sm"></i>
                                 </button>
@@ -102,105 +102,81 @@
                             </div>
                         </td>
                     </tr>
-
-                   {{-- MODAL EDIT (Inline per Row) --}}
-<div id="edit{{ $m->id_mesin }}" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-    <div class="flex items-center justify-center min-h-screen p-6">
-        {{-- Card Modal --}}
-        <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-[500px] overflow-hidden transform transition-all">
-            
-            {{-- Header: Warna Amber Solid untuk Indikasi Edit --}}
-            <div class="px-10 py-8 bg-amber-500 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <h3 class="text-xl font-bold text-white tracking-tight">Update Data Mesin</h3>
-                </div>
-                <button onclick="toggleModal('edit{{ $m->id_mesin }}')" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors">
-                    <i class="fas fa-times text-xs"></i>
-                </button>
-            </div>
-
-            {{-- Form Body --}}
-            <form action="{{ url('mesin/'.$m->id_mesin) }}" method="POST" class="py-6 space-y-8">
-                @csrf @method('PUT')
-                
-                <div class="space-y-6">
-                    {{-- Input Nama - Terpusat --}}
-                    <div class="max-w-[85%] mx-auto text-left">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Nama Mesin Produksi</label>
-                        <input type="text" name="nama_mesin" value="{{ $m->nama_mesin }}" required
-                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 transition-all shadow-inner text-center">
-                    </div>
-
-                    {{-- Input Tipe - Terpusat --}}
-                    <div class="max-w-[85%] mx-auto text-left">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Tipe / Teknologi Mesin</label>
-                        <input type="text" name="tipe_mesin" value="{{ $m->tipe_mesin }}" required
-                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 transition-all shadow-inner text-center">
-                    </div>
-                    <div class="max-w-[85%] mx-auto text-left">
-                        <label class="flex items-start gap-3 cursor-pointer rounded-2xl bg-slate-50 px-5 py-4">
-                            <input type="checkbox" name="tampil_divisi" value="1" {{ $m->tampil_divisi ? 'checked' : '' }} class="mt-0.5 w-5 h-5 rounded accent-amber-500">
-                            <span><span class="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">Tampil sebagai divisi produksi</span><span class="block text-[11px] text-slate-400">Hilangkan centang untuk mesin pendukung (mis. cutter) agar tidak jadi tab divisi di SPK/Produksi.</span></span>
-                        </label>
-                    </div>
-                </div>
-
-                {{-- Footer Buttons: Stacked & Centered --}}
-                <div class="flex flex-col items-center gap-3 pt-4 max-w-[75%] mx-auto">
-                    <button type="submit" 
-                            class="w-full py-4 bg-amber-500 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-amber-600 transition-all">
-                        Simpan Perubahan
-                    </button>
-                    <button type="button" onclick="toggleModal('edit{{ $m->id_mesin }}')" 
-                            class="w-full py-4 bg-transparent text-slate-400 rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:text-slate-600 transition-all">
-                        Kembali / Batal
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
                     @endforeach
         </tbody>
     </x-table>
 
     <x-table.pagination :paginator="$mesin" />
+
+    {{-- Modal edit: satu per baris. Dulu ditulis di dalam <tbody>, yang
+         tidak valid - peramban memindahkan div keluar dari tabel dengan
+         cara yang tidak ditentukan, sehingga posisinya tidak bisa
+         diandalkan. Dipindah ke sini, dan lewat <x-modal> supaya
+         Escape, klik-luar, dan animasinya seragam dengan modal lain. --}}
+    @foreach($mesin as $m)
+        <x-modal id="mesin-edit-{{ $m->id_mesin }}" title="Edit Mesin" maxWidth="md">
+            <form action="{{ url('mesin/'.$m->id_mesin) }}" method="POST" class="space-y-4">
+                @csrf @method('PUT')
+
+                <div>
+                    <label for="nama-mesin-{{ $m->id_mesin }}" class="block text-xs font-medium text-slate-700 mb-1.5">Nama Mesin Produksi</label>
+                    <input type="text" name="nama_mesin" id="nama-mesin-{{ $m->id_mesin }}" value="{{ $m->nama_mesin }}" required>
+                </div>
+
+                <div>
+                    <label for="tipe-mesin-{{ $m->id_mesin }}" class="block text-xs font-medium text-slate-700 mb-1.5">Tipe / Teknologi Mesin</label>
+                    <input type="text" name="tipe_mesin" id="tipe-mesin-{{ $m->id_mesin }}" value="{{ $m->tipe_mesin }}" required>
+                </div>
+
+                <label class="flex items-start gap-3 cursor-pointer rounded-md bg-slate-50 px-4 py-3">
+                    <input type="checkbox" name="tampil_divisi" value="1" {{ $m->tampil_divisi ? 'checked' : '' }} class="mt-0.5 w-4 h-4">
+                    <span>
+                        <span class="block text-xs font-medium text-slate-700">Tampil sebagai divisi produksi</span>
+                        <span class="block text-xs text-slate-500">Hilangkan centang untuk mesin pendukung (mis. cutter) agar tidak jadi tab divisi di SPK dan Produksi.</span>
+                    </span>
+                </label>
+
+                <x-slot:footer>
+                    <x-button type="button" variant="secondary" onclick="closeModal('mesin-edit-{{ $m->id_mesin }}')">Batal</x-button>
+                    <x-button type="submit">Simpan Perubahan</x-button>
+                </x-slot:footer>
+            </form>
+        </x-modal>
+    @endforeach
 </div>
 
-{{-- MODAL TAMBAH --}}
-<div id="tambahMesin" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-    <div class="flex items-center justify-center min-h-screen px-4 py-10">
-        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
-            <div class="px-8 py-6 border-b border-slate-50 flex justify-between items-center bg-indigo-600">
-                <h3 class="text-lg font-bold text-white">Registrasi Mesin Baru</h3>
-                <button onclick="toggleModal('tambahMesin')" class="text-indigo-200 hover:text-white transition-colors">
-                    <i class="fas fa-times-circle text-xl"></i>
-                </button>
-            </div>
-            <form action="{{ url('mesin') }}" method="POST" class="p-8 space-y-5">
-                @csrf
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Nama Mesin Produksi</label>
-                    <input type="text" name="nama_mesin" placeholder="Contoh: Roland RF-640" required
-                           class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Tipe / Teknologi Mesin</label>
-                    <input type="text" name="tipe_mesin" placeholder="Contoh: Eco-Solvent" required
-                           class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
-                </div>
-                <label class="flex items-start gap-3 cursor-pointer rounded-xl bg-slate-50 px-4 py-3">
-                    <input type="checkbox" name="tampil_divisi" value="1" checked class="mt-0.5 w-4 h-4 rounded accent-indigo-600">
-                    <span><span class="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">Tampil sebagai divisi produksi</span><span class="block text-[11px] text-slate-400">Hilangkan centang untuk mesin pendukung (mis. cutter).</span></span>
-                </label>
-                <div class="pt-5 flex gap-3">
-                    <button type="button" onclick="toggleModal('tambahMesin')" class="flex-1 py-3.5 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-100 transition-all">Batal</button>
-                    <button type="submit" class="flex-1 py-3.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">Daftarkan Mesin</button>
-                </div>
-            </form>
+{{-- MODAL TAMBAH
+     ID-nya dulu 'tambahMesin', tidak berawalan "modal-", jadi tidak
+     bisa dikenali pendeteksian seragam dan tidak pernah dapat Escape
+     maupun klik-luar. Sekarang lewat <x-modal>. --}}
+<x-modal id="mesin-tambah" title="Registrasi Mesin Baru" maxWidth="md">
+    <form action="{{ url('mesin') }}" method="POST" class="space-y-4">
+        @csrf
+
+        <div>
+            <label for="mesin-nama" class="block text-xs font-medium text-slate-700 mb-1.5">Nama Mesin Produksi</label>
+            <input type="text" name="nama_mesin" id="mesin-nama" placeholder="Contoh: Roland RF-640" required>
         </div>
-    </div>
-</div>
+
+        <div>
+            <label for="mesin-tipe" class="block text-xs font-medium text-slate-700 mb-1.5">Tipe / Teknologi Mesin</label>
+            <input type="text" name="tipe_mesin" id="mesin-tipe" placeholder="Contoh: Eco-Solvent" required>
+        </div>
+
+        <label class="flex items-start gap-3 cursor-pointer rounded-md bg-slate-50 px-4 py-3">
+            <input type="checkbox" name="tampil_divisi" value="1" checked class="mt-0.5 w-4 h-4">
+            <span>
+                <span class="block text-xs font-medium text-slate-700">Tampil sebagai divisi produksi</span>
+                <span class="block text-xs text-slate-500">Hilangkan centang untuk mesin pendukung (mis. cutter).</span>
+            </span>
+        </label>
+
+        <x-slot:footer>
+            <x-button type="button" variant="secondary" onclick="closeModal('mesin-tambah')">Batal</x-button>
+            <x-button type="submit">Daftarkan Mesin</x-button>
+        </x-slot:footer>
+    </form>
+</x-modal>
 
 @push('scripts')
 <script>
@@ -213,18 +189,6 @@
 @endpush
 
 <script>
-    function toggleModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.classList.toggle('hidden');
-            // Prevent body scroll when modal open
-            if (!modal.classList.contains('hidden')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = 'auto';
-            }
-        }
-    }
 
     function confirmDeleteMesin(id, nama) {
         Swal.fire({

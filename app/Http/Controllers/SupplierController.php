@@ -70,12 +70,21 @@ class SupplierController extends Controller
         return redirect()->back()->with('success', 'Supplier berhasil diperbarui.');
     }
 
-    public function destroy($id) {
+    public function destroy($id)
+    {
+        // Sama seperti konsumen: try/catch saja tidak apa-apa karena
+        // kedatangan_bahan TIDAK punya FK ke supplier. purchase_orders
+        // memang punya FK, jadi yang itu akan tertangkap - yang
+        // kedatangan tidak.
+        if (DB::table('kedatangan_bahan')->where('id_supplier', $id)->exists()) {
+            return back()->with('error', 'Gagal hapus! Supplier ini masih dipakai pada riwayat kedatangan bahan.');
+        }
+
         try {
             DB::table('supplier')->where('id_supplier', $id)->delete();
             return redirect()->back()->with('success', 'Supplier dihapus.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal hapus! Supplier ini masih punya riwayat kedatangan bahan.');
+            return redirect()->back()->with('error', 'Gagal hapus! Supplier ini masih punya purchase order.');
         }
     }
 }

@@ -27,7 +27,7 @@
 </head>
 <body>
     <div class="sheet ringkasan-jersey">
-        @include('partials.print-header', ['docTitle' => 'Ringkasan Order Jersey'])
+        @include('partials.print-header', ['docTitle' => 'Ringkasan Pesanan Jersey'])
 
         {{-- Info order rapat kiri: pelanggan paling atas (paling sering
              dicari), label & nilainya bersebelahan supaya terbaca sekali

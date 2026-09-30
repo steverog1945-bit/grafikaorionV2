@@ -374,7 +374,21 @@ class JerseyOrderController extends Controller
         $sleeveSurchargeById = $this->cacheMaster['sleeveSurchargeById'] ??= JerseySleeveType::pluck('price_surcharge', 'id');
         $collarSurchargeById = $this->cacheMaster['collarSurchargeById'] ??= JerseyCollarType::pluck('price_surcharge', 'id');
 
-        $items = array_values(array_filter($lineData['items'] ?? [], fn ($i) => trim($i['player_name'] ?? '') !== ''));
+        // Kunci 'size' dipaksa ada di sini, bukan hanya dijaga di tempat
+        // dipakai. Alasannya bukan kerapian: filter di bawah hanya
+        // memeriksa player_name, jadi baris pemain yang namanya sudah
+        // terisi tapi ukurannya masih kosong tetap lolos. Dua loop di
+        // bawah membaca $item['size'] secara langsung, dan tanpa
+        // penjaga di sini satu baris yang belum lengkap membuat SELURUH
+        // estimasi harga 500 (Undefined array key "size") - bukan cuma
+        // baris itu yang gagal, tapi seluruh preview harga untuk order
+        // ini. Gejalanya mudah terjadi karena operator mengetik nama dulu
+        // dan ukuran menyusul.
+        $items = array_values(array_filter(array_map(function ($i) {
+            $i['size'] = trim((string) ($i['size'] ?? ''));
+
+            return $i;
+        }, $lineData['items'] ?? []), fn ($i) => trim($i['player_name'] ?? '') !== ''));
         $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
 
         $qty = count($items) + array_sum(array_map('intval', $sizeQuantitiesMentah));

@@ -5,7 +5,7 @@
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
     <x-page-header title="Master Jasa" subtitle="Layanan non-material (mis. instalasi, laminasi luar).">
         <x-slot:actions>
-            <x-button onclick="toggleModal('modalJasa')">
+            <x-button onclick="toggleModal('jasa-tambah')">
                 <i class="fas fa-concierge-bell"></i>
                 Tambah Jasa
             </x-button>
@@ -16,24 +16,50 @@
     <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-8">
         <form method="GET" action="{{ route('jasa.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[260px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Jasa</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Jasa</label>
                 <div class="relative">
-                    <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input type="text" name="search" value="{{ request('search') }}"
-                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                            placeholder="Ketik nama jasa...">
                 </div>
             </div>
-            <div class="w-full md:w-56">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Unit Hitung</label>
-                <select name="id_satuan" class="select2-filter w-full">
-                    <option value="">Semua Satuan</option>
-                    @foreach($satuan as $s)
-                        <option value="{{ $s->id_satuan }}" {{ request('id_satuan') == $s->id_satuan ? 'selected' : '' }}>{{ $s->nama_satuan }}</option>
-                    @endforeach
-                </select>
+            {{-- Filter divisi. Strukturnya SAMA PERSIS dengan filter
+                 Unit Hitung di sebelahnya: satu <div> pembungkus (agar
+                 bisa participating dalam flex) lalu <div> di dalamnya
+                 yang memegang lebar md:w-56.
+
+                 Versi sebelumnya hanya punya <div> pembuka tanpa
+                 penutup, sehingga blok Unit Hitung masuk ke dalamnya dan
+                 tombol reset justru berada DI LUAR <form>. Akibatnya
+                 dua filter tersusun ke bawah, tombol Filter menggantung
+                 di baris ketiga, dan ada ruang abu-abu lebar yang
+                 menganggur. --}}
+            <div>
+                <div class="w-full md:w-56">
+                    <label class="block text-[10px] font-medium text-slate-400 mb-2 ml-2">Divisi</label>
+                    <select name="id_mesin" class="select2-filter w-full">
+                        <option value="">Semua Divisi</option>
+                        @foreach($mesin as $m)
+                            <option value="{{ $m->id_mesin }}" {{ request('id_mesin') == $m->id_mesin ? 'selected' : '' }}>{{ $m->nama_mesin }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
-            <button type="submit" class="h-[46px] px-6 bg-indigo-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700">Filter</button>
+
+            <div>
+                <div class="w-full md:w-56">
+                    <label class="block text-[10px] font-medium text-slate-400 mb-2 ml-2">Unit Hitung</label>
+                    <select name="id_satuan" class="select2-filter w-full">
+                        <option value="">Semua Satuan</option>
+                        @foreach($satuan as $s)
+                            <option value="{{ $s->id_satuan }}" {{ request('id_satuan') == $s->id_satuan ? 'selected' : '' }}>{{ $s->nama_satuan }}</option>
+                        @endforeach
+                </select>
+                </div>
+            </div>
+
+            <button type="submit" class="h-[46px] px-6 bg-indigo-600 text-white rounded-xl text-[11px] font-medium hover:bg-indigo-700">Filter</button>
             <a href="{{ route('jasa.index') }}" class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
                 <i class="fas fa-undo-alt text-sm"></i>
             </a>
@@ -47,8 +73,10 @@
                         <th class="px-4 py-5 text-center w-10">#</th>
                         <th class="px-8 py-5 text-left w-24">ID</th>
                         <th class="px-6 py-5 text-left">Nama Jasa</th>
+                        <th class="px-6 py-5 text-center">Divisi</th>
                         <th class="px-6 py-5 text-center">Unit Hitung</th>
                         <th class="px-6 py-5 text-right">Harga</th>
+                        <th class="px-6 py-5 text-right">Biaya</th>
                         <th class="px-6 py-5 text-left">Keterangan</th>
                         <th class="px-8 py-5 text-right">Manajemen</th>
                     </tr>
@@ -59,10 +87,20 @@
                         <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $jasa->firstItem() + $i }}</td>
                         <td class="px-8 py-5 text-xs text-slate-400">#{{ $j->id_jasa }}</td>
                         <td class="px-6 py-5">
-                            <span class="text-sm font-bold text-slate-700 uppercase">{{ $j->nama_jasa }}</span>
+                            <span class="text-sm font-medium text-slate-700 uppercase">{{ $j->nama_jasa }}</span>
                         </td>
                         <td class="px-6 py-5 text-center">
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-bold bg-indigo-50 text-indigo-600 uppercase">
+                            @if($j->id_mesin)
+                                <span class="text-sm text-slate-600">{{ $j->nama_mesin }}</span>
+                            @else
+                                {{-- Jasa tanpa mesin = belum ditugaskan ke divisi mana. --}}
+                                {{-- Ditampilkan, bukan disembunyikan, supaya jasa yang --}}
+                                {{-- belum ada divisinya terlihat dan bisa dilengkapi. --}}
+                                <span class="text-sm text-slate-400">Tanpa divisi</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-5 text-center">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium bg-indigo-50 text-indigo-600 uppercase">
                                 {{ $j->nama_satuan ?? '-' }}
                             </span>
                         </td>
@@ -70,13 +108,21 @@
                             @php $tierCount = ($hargaTiers[$j->id_jasa] ?? collect())->count(); @endphp
                             <span id="jasa-harga-summary-{{ $j->id_jasa }}">
                                 @if($tierCount > 0)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">BERTINGKAT ({{ $tierCount }})</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100">BERTINGKAT ({{ $tierCount }})</span>
                                 @elseif($j->harga_default)
-                                    <span class="text-sm font-bold text-slate-700">Rp {{ number_format($j->harga_default, 0, ',', '.') }}</span>
+                                    <span class="text-sm font-medium text-slate-700">Rp {{ number_format($j->harga_default, 0, ',', '.') }}</span>
                                 @else
                                     <span class="text-[10px] text-slate-300 italic">Manual di Kasir</span>
                                 @endif
                             </span>
+                        </td>
+                        <td class="px-6 py-5 text-right">
+                            @php $totalBiayaJasa = (float) $j->biaya_operasional + (float) $j->biaya_tinta; @endphp
+                            @if($totalBiayaJasa > 0)
+                                <span class="text-sm text-slate-600">Rp {{ number_format($totalBiayaJasa, 0, ',', '.') }}</span>
+                            @else
+                                <span class="text-sm text-slate-400">-</span>
+                            @endif
                         </td>
                         <td class="px-6 py-5">
                             <p class="text-sm text-slate-500 leading-relaxed truncate max-w-xs">
@@ -115,125 +161,159 @@
     <x-table.pagination :paginator="$jasa" />
 </div>
 
-{{-- MODAL TAMBAH (Indigo) --}}
-<div id="modalJasa" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-    <div class="flex items-center justify-center min-h-screen p-6">
-        <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-[500px] overflow-hidden transform transition-all">
+{{-- MODAL TAMBAH
 
-            <div class="px-10 py-8 bg-indigo-600 flex justify-between items-center text-white">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-plus-circle"></i>
-                    <h3 class="text-xl font-bold tracking-tight">Tambah Jasa</h3>
-                </div>
-                <button onclick="toggleModal('modalJasa')" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                    <i class="fas fa-times text-xs"></i>
-                </button>
-            </div>
-
-            <form action="{{ route('jasa.store') }}" method="POST" class="py-12 space-y-8">
-                @csrf
-                <div class="space-y-6">
-                    <div class="max-w-[85%] mx-auto">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Nama Jasa</label>
-                        <input type="text" name="nama_jasa" placeholder="Contoh: Instalasi, Laminasi Luar" required
-                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center">
-                    </div>
-
-                    <div class="max-w-[85%] mx-auto">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Unit Hitung</label>
-                        <select name="id_satuan"
-                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center appearance-none">
-                            <option value="">-- Pilih Satuan --</option>
-                            @foreach($satuan as $s)
-                                <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="max-w-[85%] mx-auto">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Harga Dasar (Rp) <span class="normal-case font-normal text-slate-300">- opsional, starting point di Kasir</span></label>
-                        <input type="text" inputmode="numeric" name="harga_default" placeholder="0"
-                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center format-ribuan">
-                    </div>
-
-                    <div class="max-w-[85%] mx-auto">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Keterangan Singkat</label>
-                        <textarea name="keterangan" placeholder="Keterangan jasa..."
-                                  class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-indigo-500/10 shadow-inner text-center"></textarea>
-                    </div>
-                </div>
-
-                <div class="flex flex-col items-center gap-3 pt-4 max-w-[70%] mx-auto">
-                    <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100">Simpan Data</button>
-                    <button type="button" onclick="toggleModal('modalJasa')" class="w-full py-4 bg-transparent text-slate-400 rounded-2xl text-[11px] font-bold uppercase tracking-widest">Batalkan</button>
-                </div>
-            </form>
+     Tanpa pembungkus max-w-[85%] mx-auto di tiap field. Wrapper itu
+     membuat isi modal ini sempit dan bergeser ke tengah, sementara
+     modal lain memakai lebar penuh - perbedaan yang terasa langsung
+     waktu membandingkan keduanya.
+--}}
+<x-modal id="jasa-tambah" title="Tambah Jasa"
+         subtitle="Jasa non-material yang ikut ditagihkan di nota"
+         icon="fa-screwdriver-wrench" maxWidth="md">
+    <form action="{{ route('jasa.store') }}" method="POST" class="space-y-4">
+        @csrf
+        <div>
+            <label class="block text-[10px]">Nama Jasa</label>
+            <input type="text" name="nama_jasa" placeholder="Contoh: Instalasi, Laminasi Luar" required
+                   class="w-full text-sm font-medium text-slate-700">
         </div>
-    </div>
-</div>
 
-{{-- MODAL EDIT (Amber) --}}
-<div id="modalEditJasa" class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-    <div class="flex items-center justify-center min-h-screen p-6">
-        <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-[500px] overflow-hidden transform transition-all">
-
-            <div class="px-10 py-8 bg-amber-500 flex justify-between items-center text-white">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-edit"></i>
-                    <h3 class="text-xl font-bold tracking-tight">Edit Jasa</h3>
-                </div>
-                <button onclick="toggleModal('modalEditJasa')" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                    <i class="fas fa-times text-xs"></i>
-                </button>
-            </div>
-
-            <form id="formEditJasa" method="POST" class="py-12 space-y-8">
-                @csrf @method('PUT')
-                <div class="space-y-6">
-                    <div class="max-w-[85%] mx-auto">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Nama Jasa</label>
-                        <input type="text" name="nama_jasa" id="edit_nama_jasa" required
-                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner text-center">
-                    </div>
-
-                    <div class="max-w-[85%] mx-auto">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Unit Hitung</label>
-                        <select name="id_satuan" id="edit_id_satuan"
-                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner text-center appearance-none">
-                            <option value="">-- Pilih Satuan --</option>
-                            @foreach($satuan as $s)
-                                <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="max-w-[85%] mx-auto">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Harga Dasar (Rp) <span class="normal-case font-normal text-slate-300">- opsional, starting point di Kasir</span></label>
-                        <input type="text" inputmode="numeric" name="harga_default" id="edit_harga_default" placeholder="0"
-                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner text-center format-ribuan">
-                    </div>
-
-                    <div class="max-w-[85%] mx-auto">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 text-left">Keterangan Singkat</label>
-                        <textarea name="keterangan" id="edit_keterangan"
-                                  class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-amber-500/10 shadow-inner text-center"></textarea>
-                    </div>
-                </div>
-
-                <div class="flex flex-col items-center gap-3 pt-4 max-w-[70%] mx-auto">
-                    <button type="submit" class="w-full py-4 bg-amber-500 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-amber-600 shadow-lg shadow-amber-100">Update Data</button>
-                    <button type="button" onclick="toggleModal('modalEditJasa')" class="w-full py-4 bg-transparent text-slate-400 rounded-2xl text-[11px] font-bold uppercase tracking-widest">Kembali</button>
-                </div>
-            </form>
+        <div>
+            {{-- Divisi = mesin pengerjaan, sama seperti produk.id_mesin. --}}
+            {{-- Kosongkan kalau jasa ini belum ditugaskan ke mesin mana. --}}
+            <label class="block text-[10px]">Divisi (Mesin) <span class="normal-case font-normal text-slate-400">- siapa yang mengerjakan</span></label>
+            <select name="id_mesin"
+                    class="w-full text-sm font-medium text-slate-700 appearance-none">
+                <option value="">-- Tanpa Divisi --</option>
+                @foreach($mesin as $m)
+                    <option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>
+                @endforeach
+            </select>
         </div>
-    </div>
-</div>
 
+        <div>
+        <div>
+            <label class="block text-[10px]">Unit Hitung</label>
+            <select name="id_satuan"
+                    class="w-full text-sm font-medium text-slate-700 appearance-none">
+                <option value="">-- Pilih Satuan --</option>
+                @foreach($satuan as $s)
+                    <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-[10px]">Harga Dasar (Rp) <span class="normal-case font-normal text-slate-400">- opsional, titik awal di Kasir</span></label>
+            <input type="text" inputmode="numeric" name="harga_default" placeholder="0"
+                   class="w-full text-sm font-medium text-slate-700 format-ribuan">
+        </div>
+
+        {{-- Biaya ini dipotong dari harga jual untuk menghitung margin. --}}
+        {{-- Kalau dibiarkan 0, margin jasa selalu terlihat 100% di laporan - --}}
+        {{-- bukan karena jasanya gratis, tapi karena biayanya belum dicatat. --}}
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-[10px]">Biaya Operasional (Rp)</label>
+                <input type="text" inputmode="numeric" name="biaya_operasional" placeholder="0"
+                       class="w-full text-sm font-medium text-slate-700 format-ribuan">
+            </div>
+            <div>
+                <label class="block text-[10px]">Biaya Tinta (Rp)</label>
+                <input type="text" inputmode="numeric" name="biaya_tinta" placeholder="0"
+                       class="w-full text-sm font-medium text-slate-700 format-ribuan">
+            </div>
+        </div>
+
+        <div>
+        <div>
+            <label class="block text-[10px]">Keterangan Singkat</label>
+            <textarea name="keterangan" placeholder="Keterangan jasa..."
+                      class="w-full text-sm font-medium text-slate-700"></textarea>
+        </div>
+
+        <x-slot:footer>
+            <x-button type="button" variant="secondary" onclick="toggleModal('jasa-tambah')">Batal</x-button>
+            <x-button type="submit">Simpan Jasa</x-button>
+        </x-slot:footer>
+    </form>
+</x-modal>
+
+{{-- MODAL EDIT --}}
+<x-modal id="jasa-edit" title="Edit Jasa"
+         subtitle="Perubahan berlaku untuk nota berikutnya"
+         icon="fa-pen" maxWidth="md">
+    <form id="formEditJasa" method="POST" class="space-y-4">
+        @csrf @method('PUT')
+        <div>
+            <label class="block text-[10px]">Nama Jasa</label>
+            <input type="text" name="nama_jasa" id="edit_nama_jasa" required
+                   class="w-full text-sm font-medium text-slate-700">
+        </div>
+
+        <div>
+            <label class="block text-[10px]">Divisi (Mesin)</label>
+            <select name="id_mesin" id="edit_id_mesin"
+                    class="w-full text-sm font-medium text-slate-700 appearance-none">
+                <option value="">-- Tanpa Divisi --</option>
+                @foreach($mesin as $m)
+                    <option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
+        <div>
+            <label class="block text-[10px]">Unit Hitung</label>
+            <select name="id_satuan" id="edit_id_satuan"
+                    class="w-full text-sm font-medium text-slate-700 appearance-none">
+                <option value="">-- Pilih Satuan --</option>
+                @foreach($satuan as $s)
+                    <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-[10px]">Harga Dasar (Rp) <span class="normal-case font-normal text-slate-400">- opsional, titik awal di Kasir</span></label>
+            <input type="text" inputmode="numeric" name="harga_default" id="edit_harga_default" placeholder="0"
+                   class="w-full text-sm font-medium text-slate-700 format-ribuan">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-[10px]">Biaya Operasional (Rp)</label>
+                <input type="text" inputmode="numeric" name="biaya_operasional" id="edit_biaya_operasional" placeholder="0"
+                       class="w-full text-sm font-medium text-slate-700 format-ribuan">
+            </div>
+            <div>
+                <label class="block text-[10px]">Biaya Tinta (Rp)</label>
+                <input type="text" inputmode="numeric" name="biaya_tinta" id="edit_biaya_tinta" placeholder="0"
+                       class="w-full text-sm font-medium text-slate-700 format-ribuan">
+            </div>
+        </div>
+
+        <div>
+        <div>
+            <label class="block text-[10px]">Keterangan Singkat</label>
+            <textarea name="keterangan" id="edit_keterangan"
+                      class="w-full text-sm font-medium text-slate-700"></textarea>
+        </div>
+
+        <x-slot:footer>
+            <x-button type="button" variant="secondary" onclick="toggleModal('jasa-edit')">Batal</x-button>
+            <x-button type="submit">Simpan Perubahan</x-button>
+        </x-slot:footer>
+    </form>
+</x-modal>
 {{-- MODAL HARGA BERTINGKAT (satu per jasa - pola sama seperti Finishing,
      server-rendered per baris supaya add/edit/hapus satu tier tidak pernah
      menyentuh tier lain). --}}
 @foreach($jasa as $j)
-<x-modal id="harga-jasa-{{ $j->id_jasa }}" title="Harga Bertingkat: {{ $j->nama_jasa }}" maxWidth="lg">
+<x-modal id="harga-jasa-{{ $j->id_jasa }}" title="Harga Bertingkat: {{ $j->nama_jasa }}"
+         subtitle="Harga jual menyesuaikan jumlah, makin banyak makin murah per pcs"
+         icon="fa-layer-group" maxWidth="lg">
     <div class="mb-4 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs text-slate-500">
         @if($j->harga_default)
             Harga Dasar (<b>Rp {{ number_format($j->harga_default, 0, ',', '.') }}</b>) dipakai kalau qty tidak cocok tier manapun di bawah, atau belum ada tier sama sekali.
@@ -252,11 +332,11 @@
             <form action="{{ route('jasa.harga.update', $t->id_jasa_harga) }}" class="tier-edit-form-jasa flex items-center gap-2 flex-1">
                 @csrf
                 <input type="number" name="range_min" value="{{ angka_polos($t->range_min, 4) }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+                <span class="text-[10px] text-slate-300 font-medium">s/d</span>
                 <input type="number" name="range_max" value="{{ angka_polos($t->range_max, 4) }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                 <span class="text-[10px] text-slate-400">=</span>
                 <span class="text-[10px] text-slate-400">Rp</span>
-                <input type="text" inputmode="numeric" name="harga" value="{{ number_format((int) $t->harga, 0, '', '.') }}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
+                <input type="text" inputmode="numeric" name="harga" value="{{ number_format((int) $t->harga, 0, '', '.') }}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-medium format-ribuan">
                 <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
                     <i class="fas fa-save text-xs"></i>
                 </button>
@@ -271,11 +351,11 @@
     <form action="{{ route('jasa.harga.store', $j->id_jasa) }}" class="tier-add-form-jasa flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-jasa="{{ $j->id_jasa }}">
         @csrf
         <input type="number" name="range_min" placeholder="Min" min="1" required class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
-        <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+        <span class="text-[10px] text-slate-300 font-medium">s/d</span>
         <input type="number" name="range_max" placeholder="~" min="1" class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
         <span class="text-[10px] text-slate-400">=</span>
         <span class="text-[10px] text-slate-400">Rp</span>
-        <input type="text" inputmode="numeric" name="harga" placeholder="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-bold format-ribuan">
+        <input type="text" inputmode="numeric" name="harga" placeholder="0" required class="flex-1 text-xs bg-white border-none rounded-lg py-2 font-medium format-ribuan">
         <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shrink-0" title="Tambah Tier">
             <i class="fas fa-plus text-xs"></i>
         </button>
@@ -298,22 +378,18 @@
 @endpush
 
 <script>
-    function toggleModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.classList.toggle('hidden');
-            document.body.style.overflow = modal.classList.contains('hidden') ? 'auto' : 'hidden';
-        }
-    }
 
     function openEditJasa(data) {
         const form = document.getElementById('formEditJasa');
         form.action = `{{ url('/jasa') }}/${data.id_jasa}`;
         document.getElementById('edit_nama_jasa').value = data.nama_jasa;
+        document.getElementById('edit_id_mesin').value = data.id_mesin || '';
+        document.getElementById('edit_biaya_operasional').value = formatRupiah(data.biaya_operasional || 0);
+        document.getElementById('edit_biaya_tinta').value = formatRupiah(data.biaya_tinta || 0);
         document.getElementById('edit_id_satuan').value = data.id_satuan || '';
         document.getElementById('edit_harga_default').value = data.harga_default ? formatRupiahDariAngka(data.harga_default) : '';
         document.getElementById('edit_keterangan').value = data.keterangan || '';
-        toggleModal('modalEditJasa');
+        toggleModal('jasa-edit');
     }
 
     // Aksi tier harga (tambah/edit/hapus) dikirim lewat fetch() dengan body
@@ -330,11 +406,11 @@
                 <form action="{{ url('/jasa-harga') }}/${t.id_jasa_harga}" class="tier-edit-form-jasa flex items-center gap-2 flex-1">
                     <input type="hidden" name="_token" value="${csrfTokenJasa}">
                     <input type="number" name="range_min" value="${t.range_min}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                    <span class="text-[10px] text-slate-300 font-bold">s/d</span>
+                    <span class="text-[10px] text-slate-300 font-medium">s/d</span>
                     <input type="number" name="range_max" value="${t.range_max ?? ''}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>
-                    <input type="text" inputmode="numeric" name="harga" value="${formatRupiah(parseInt(t.harga))}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-bold format-ribuan">
+                    <input type="text" inputmode="numeric" name="harga" value="${formatRupiah(parseInt(t.harga))}" required class="flex-1 text-xs bg-slate-50 border-none rounded-lg py-2 font-medium format-ribuan">
                     <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shrink-0" title="Simpan">
                         <i class="fas fa-save text-xs"></i>
                     </button>
@@ -358,9 +434,9 @@
         const hargaDefault = container.dataset.hargaDefault;
 
         if (tierCount > 0) {
-            cell.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">BERTINGKAT (${tierCount})</span>`;
+            cell.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100">BERTINGKAT (${tierCount})</span>`;
         } else if (hargaDefault) {
-            cell.innerHTML = `<span class="text-sm font-bold text-slate-700">Rp ${new Intl.NumberFormat('id-ID').format(hargaDefault)}</span>`;
+            cell.innerHTML = `<span class="text-sm font-medium text-slate-700">Rp ${new Intl.NumberFormat('id-ID').format(hargaDefault)}</span>`;
         } else {
             cell.innerHTML = '<span class="text-[10px] text-slate-300 italic">Manual di Kasir</span>';
         }

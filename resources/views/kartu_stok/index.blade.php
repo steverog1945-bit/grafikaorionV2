@@ -20,37 +20,37 @@
     <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6">
         <form method="GET" action="{{ route('kartu-stok.index') }}" class="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
             <div class="col-span-2">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Bahan</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Bahan</label>
                 <div class="relative">
-                    <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input type="text" name="search" value="{{ $search }}"
-                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                           class="w-full bg-slate-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                            placeholder="Ketik SKU atau Nama Bahan...">
                 </div>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
                 <x-form.select name="kategori">
                     <option value="">Semua Kategori</option>
                     @foreach($kategoriList as $kt)<option value="{{ $kt->id_kategori }}" {{ (string) request('kategori') === (string) $kt->id_kategori ? 'selected' : '' }}>{{ $kt->nama_kategori }}</option>@endforeach
                 </x-form.select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin / Divisi</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Mesin / Divisi</label>
                 <x-form.select name="mesin">
                     <option value="">Semua Mesin</option>
                     @foreach($mesinList as $m)<option value="{{ $m->id_mesin }}" {{ (string) request('mesin') === (string) $m->id_mesin ? 'selected' : '' }}>{{ $m->nama_mesin }}</option>@endforeach
                 </x-form.select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Satuan Stok</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Satuan Stok</label>
                 <x-form.select name="satuan">
                     <option value="">Semua Satuan</option>
                     @foreach($satuanList as $sa)<option value="{{ $sa->id_satuan }}" {{ (string) request('satuan') === (string) $sa->id_satuan ? 'selected' : '' }}>{{ $sa->nama_satuan }}</option>@endforeach
                 </x-form.select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Stok</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Stok</label>
                 <x-form.select name="status_stok">
                     <option value="">Semua</option>
                     <option value="habis" {{ $statusStok === 'habis' ? 'selected' : '' }}>Habis (0 / minus)</option>
@@ -60,7 +60,7 @@
                 </x-form.select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Bahan</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Bahan</label>
                 <x-form.select name="status">
                     <option value="aktif" {{ $status === 'aktif' ? 'selected' : '' }}>Aktif</option>
                     <option value="nonaktif" {{ $status === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
@@ -68,7 +68,7 @@
                 </x-form.select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Urutkan</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Urutkan</label>
                 <x-form.select name="urut">
                     <option value="nama" {{ $urut === 'nama' ? 'selected' : '' }}>Nama (A-Z)</option>
                     <option value="kode" {{ $urut === 'kode' ? 'selected' : '' }}>Kode / SKU</option>
@@ -78,15 +78,15 @@
                 </x-form.select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2" title="Tampilkan hanya bahan yang punya mutasi stok pada rentang ini">Mutasi Dari</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2" title="Tampilkan hanya bahan yang punya mutasi stok pada rentang ini">Mutasi Dari</label>
                 <x-form.input type="date" name="dari" value="{{ $dari }}" />
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Mutasi Sampai</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Mutasi Sampai</label>
                 <x-form.input type="date" name="sampai" value="{{ $sampai }}" />
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Jenis Mutasi</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Jenis Mutasi</label>
                 <x-form.select name="tipe">
                     <option value="">Semua Jenis</option>
                     <option value="IN" {{ $tipe === 'IN' ? 'selected' : '' }}>Masuk (IN)</option>
@@ -97,7 +97,7 @@
             <div class="col-span-2 lg:col-span-1 flex items-center gap-3">
                 <x-button type="submit" title="Terapkan filter"><i class="fas fa-filter"></i> Tampilkan</x-button>
                 @if($adaFilter)
-                    <a href="{{ route('kartu-stok.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline" title="Kembalikan semua filter ke awal">Reset</a>
+                    <a href="{{ route('kartu-stok.index') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline" title="Kembalikan semua filter ke awal">Reset</a>
                 @endif
             </div>
         </form>
@@ -105,9 +105,9 @@
 
     {{-- RINGKASAN HASIL FILTER --}}
     <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bahan Tampil</p><p class="text-2xl font-bold text-slate-800 mt-1">{{ $ringkas['total'] }}</p></div>
-        <a href="{{ route('kartu-stok.index', array_merge(request()->except('status_stok'), ['status_stok' => 'habis'])) }}" title="Saring bahan yang stoknya habis" class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 hover:shadow-md transition-all"><p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Habis</p><p class="text-2xl font-bold text-rose-600 mt-1">{{ $ringkas['habis'] }}</p></a>
-        <a href="{{ route('kartu-stok.index', array_merge(request()->except('status_stok'), ['status_stok' => 'menipis'])) }}" title="Saring bahan yang stoknya menipis" class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 hover:shadow-md transition-all"><p class="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Menipis</p><p class="text-2xl font-bold text-amber-600 mt-1">{{ $ringkas['menipis'] }}</p></a>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4"><p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Bahan Tampil</p><p class="text-2xl font-medium text-slate-800 mt-1">{{ $ringkas['total'] }}</p></div>
+        <a href="{{ route('kartu-stok.index', array_merge(request()->except('status_stok'), ['status_stok' => 'habis'])) }}" title="Saring bahan yang stoknya habis" class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 hover:shadow-md transition-all"><p class="text-[10px] font-medium text-rose-500 uppercase tracking-widest">Habis</p><p class="text-2xl font-medium text-rose-600 mt-1">{{ $ringkas['habis'] }}</p></a>
+        <a href="{{ route('kartu-stok.index', array_merge(request()->except('status_stok'), ['status_stok' => 'menipis'])) }}" title="Saring bahan yang stoknya menipis" class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 hover:shadow-md transition-all"><p class="text-[10px] font-medium text-amber-500 uppercase tracking-widest">Menipis</p><p class="text-2xl font-medium text-amber-600 mt-1">{{ $ringkas['menipis'] }}</p></a>
     </div>
 
     <x-table>
@@ -129,27 +129,27 @@
             <tr class="group hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-6 py-5">
-                    <span class="text-[12px] font-bold text-slate-700">{{ $b->kode_bahan }}</span>
+                    <span class="text-[12px] font-medium text-slate-700">{{ $b->kode_bahan }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[13px] font-bold text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $b->nama_bahan }}</span>
+                    <span class="text-[13px] font-medium text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $b->nama_bahan }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="block text-[12px] font-semibold text-slate-600">{{ $b->nama_kategori ?? '-' }}</span>
-                    <span class="block text-[10px] font-bold text-slate-400 uppercase">{{ $b->nama_mesin ?? '-' }}</span>
+                    <span class="block text-[12px] font-medium text-slate-600">{{ $b->nama_kategori ?? '-' }}</span>
+                    <span class="block text-[10px] font-medium text-slate-400 uppercase">{{ $b->nama_mesin ?? '-' }}</span>
                 </td>
                 <td class="px-4 py-5 text-right">
-                    <span class="text-[13px] font-bold text-slate-800">{{ angka($b->stok, 2) }}</span>
+                    <span class="text-[13px] font-medium text-slate-800">{{ angka($b->stok, 2) }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] font-black uppercase tracking-wide">{{ $b->nama_satuan_stok ?? $b->satuan_stok ?? '-' }}</span>
+                    <span class="inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] font-medium uppercase tracking-wide">{{ $b->nama_satuan_stok ?? $b->satuan_stok ?? '-' }}</span>
                 </td>
                 <td class="px-4 py-5 text-center">
                     <x-badge :variant="['Habis' => 'danger', 'Menipis' => 'warning', 'Aman' => 'success'][$b->status_stok] ?? 'info'">{{ $b->status_stok }}</x-badge>
                 </td>
                 <td class="px-4 py-5">
                     @if($b->mutasi_terakhir)
-                        <span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($b->mutasi_terakhir)->format('d M Y') }}</span>
+                        <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($b->mutasi_terakhir)->format('d M Y') }}</span>
                         <span class="block text-[10px] text-slate-400">{{ $b->jumlah_mutasi }} mutasi</span>
                     @else
                         <span class="text-[11px] text-slate-300 italic">Belum ada</span>
@@ -191,7 +191,7 @@
                 </x-form.select>
             </x-form.group>
 
-            <p class="text-[11px] text-slate-400 -mt-3 ml-1">Stok saat ini: <span id="adj_stok_display" class="font-bold text-slate-600">-</span> <span id="adj_satuan_display" class="inline-flex px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase"></span></p>
+            <p class="text-[11px] text-slate-400 -mt-3 ml-1">Stok saat ini: <span id="adj_stok_display" class="font-medium text-slate-600">-</span> <span id="adj_satuan_display" class="inline-flex px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-medium uppercase"></span></p>
 
             <x-form.group label="Jenis Penyesuaian" name="tipe" required>
                 <x-form.select name="tipe" id="adj_tipe" onchange="toggleAdjTipe()" required>
@@ -202,13 +202,13 @@
 
             <div id="adj_wrapper_qty">
                 <x-form.group label="Qty Keluar (dalam satuan stok)" name="qty">
-                    <div class="flex items-center gap-2"><x-form.input type="text" inputmode="decimal" name="qty" id="adj_qty" class="input-desimal" autocomplete="off" placeholder="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black uppercase">-</span></div>
+                    <div class="flex items-center gap-2"><x-form.input type="text" inputmode="decimal" name="qty" id="adj_qty" class="input-desimal" autocomplete="off" placeholder="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-medium uppercase">-</span></div>
                 </x-form.group>
             </div>
 
             <div id="adj_wrapper_stok_baru" class="hidden">
                 <x-form.group label="Stok Sebenarnya (Hasil Hitung Fisik)" name="stok_baru">
-                    <div class="flex items-center gap-2"><x-form.input type="text" inputmode="decimal" name="stok_baru" id="adj_stok_baru" class="input-desimal" autocomplete="off" placeholder="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black uppercase">-</span></div>
+                    <div class="flex items-center gap-2"><x-form.input type="text" inputmode="decimal" name="stok_baru" id="adj_stok_baru" class="input-desimal" autocomplete="off" placeholder="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-medium uppercase">-</span></div>
                 </x-form.group>
             </div>
 

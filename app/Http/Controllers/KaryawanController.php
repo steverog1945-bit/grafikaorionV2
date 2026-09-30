@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Karyawan;
 use App\Models\Mesin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class KaryawanController extends Controller
 {
@@ -77,6 +78,19 @@ class KaryawanController extends Controller
     // hilang padahal karyawannya masih ada (data setengah terhapus).
     public function destroy($id)
     {
+        // Penugasan ke mesin (karyawan_mesin) tidak punya foreign key,
+        // jadi tidak ada error yang bisa ditangkap - tanpa cek ini,
+        // penugasan itu akan tertinggal menunjuk karyawan yang sudah
+        // dihapus. Akun login (users) justru SENGAJA ikut terhapus,
+        // supaya tidak ada akun tanpa orang.
+        $mesinDitugaskan = \DB::table('karyawan_mesin')->where('id_karyawan', $id)->count();
+        if ($mesinDitugaskan > 0) {
+            return back()->with('error',
+                "Gagal hapus! Karyawan ini masih ditugaskan ke $mesinDitugaskan mesin. "
+                . 'Lepas dulu penugasannya di menu Karyawan.'
+            );
+        }
+
         try {
             \DB::transaction(function () use ($id) {
                 // 1. Hapus User yang terhubung dulu (jika ada)

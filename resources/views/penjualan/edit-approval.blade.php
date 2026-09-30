@@ -18,7 +18,7 @@
     <x-card class="mb-8">
         <form method="GET" action="{{ route('penjualan.edit-approval') }}" class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-64">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status</label>
                 <x-form.select name="status" onchange="this.form.submit()">
                     <option value="Menunggu" {{ request('status', 'Menunggu') == 'Menunggu' ? 'selected' : '' }}>Menunggu</option>
                     <option value="Disetujui" {{ request('status') == 'Disetujui' ? 'selected' : '' }}>Disetujui</option>
@@ -46,11 +46,11 @@
             <tr class="hover:bg-slate-50/30 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $requests->firstItem() + $i }}</td>
                 <td class="px-8 py-5">
-                    <span class="text-[13px] font-bold text-slate-700">{{ $r->nomor_nota }}</span>
+                    <span class="text-[13px] font-medium text-slate-700">{{ $r->nomor_nota }}</span>
                     <div class="text-[11px] text-slate-400">{{ $r->nama_konsumen }} &middot; Rp {{ number_format($r->total_bayar, 0, ',', '.') }}</div>
                 </td>
                 <td class="px-6 py-5">
-                    <span class="text-sm font-semibold text-slate-600">{{ $r->nama_requester }}</span>
+                    <span class="text-sm font-medium text-slate-600">{{ $r->nama_requester }}</span>
                 </td>
                 <td class="px-6 py-5 max-w-xs">
                     <span class="text-xs text-slate-500">{{ $r->alasan }}</span>

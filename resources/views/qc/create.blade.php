@@ -6,7 +6,7 @@
     <x-page-header title="QC Baru" subtitle="Periksa hasil cetak satu item order - isi jumlah reject bila ada" />
 
     @if($errors->any())
-        <div class="mb-6 p-4 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold">
+        <div class="mb-6 p-4 rounded-xl bg-rose-50 text-rose-600 text-sm font-medium">
             @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
         </div>
     @endif
@@ -37,10 +37,10 @@
             <p class="text-xs text-slate-400 -mt-3">Lolos = diperiksa - reject: <b id="qty-lolos">0</b>. Reject &gt; 0 otomatis membuka Rework.</p>
 
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Poin bermasalah (centang bila ada masalah)</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3 ml-1">Poin bermasalah (centang bila ada masalah)</label>
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                     @foreach($checklist as $key => $label)
-                    <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-50 text-sm font-semibold text-slate-600">
+                    <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-50 text-sm font-medium text-slate-600">
                         <input type="checkbox" name="checklist[{{ $key }}]" value="1" {{ old("checklist.$key") ? 'checked' : '' }}> {{ $label }}
                     </label>
                     @endforeach

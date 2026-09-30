@@ -25,27 +25,27 @@
         <form method="GET" action="{{ route('produksi.index') }}" class="flex flex-wrap items-end gap-4">
             <input type="hidden" name="divisi" value="{{ request('divisi') }}">
             <div class="flex-1 min-w-[220px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
                 <x-form.input type="text" name="konsumen" value="{{ request('konsumen') }}" placeholder="Nama konsumen..." />
             </div>
 
             <div class="w-full md:w-40">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">ID SPK</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">ID SPK</label>
                 <x-form.input type="text" name="id_spk" value="{{ request('id_spk') }}" placeholder="#" />
             </div>
 
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
                 <x-form.input type="date" name="tgl_dari" value="{{ request('tgl_dari') }}" />
             </div>
 
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Sampai</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Sampai</label>
                 <x-form.input type="date" name="tgl_sampai" value="{{ request('tgl_sampai') }}" />
             </div>
 
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Produksi</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Produksi</label>
                 <x-form.select name="status_produksi">
                     <option value="progress" {{ request('status_produksi', 'progress') === 'progress' ? 'selected' : '' }}>On Progress</option>
                     <option value="selesai" {{ request('status_produksi') === 'selesai' ? 'selected' : '' }}>Selesai</option>
@@ -60,7 +60,7 @@
             </x-button>
 
             @if(request()->anyFilled(['konsumen', 'id_spk', 'tgl_dari', 'tgl_sampai']) || (request()->filled('status_produksi') && request('status_produksi') !== 'progress'))
-                <a href="{{ route('produksi.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                <a href="{{ route('produksi.index') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
             @endif
@@ -86,17 +86,17 @@
             <tr class="group hover:bg-slate-50/50 transition-all {{ $item->status_urgent ? 'bg-rose-50/40' : '' }}">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $produksi->firstItem() + $i }}</td>
                 <td class="px-4 py-5">
-                    <div class="text-[13px] font-bold text-slate-700 uppercase">{{ $item->nama_file }}</div>
+                    <div class="text-[13px] font-medium text-slate-700 uppercase">{{ $item->nama_file }}</div>
                     <div class="text-[10px] text-slate-400 mt-0.5">{{ $item->nama_produk }} &middot; SPK #{{ $item->id_detail }}</div>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-bold text-slate-700 uppercase">{{ $item->nama_konsumen }}</span>
+                    <span class="text-[12px] font-medium text-slate-700 uppercase">{{ $item->nama_konsumen }}</span>
                     @if($item->divisi)
                         <div class="text-[10px] text-slate-400">{{ $item->divisi }}</div>
                     @endif
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-semibold text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->format('d M Y') }}</span>
+                    <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->format('d M Y') }}</span>
                 </td>
                 <td class="px-4 py-5 text-center">
                     @if($item->status_urgent)
@@ -106,16 +106,16 @@
                     @endif
                 </td>
                 <td class="px-4 py-5 text-center">
-                    <span class="text-[13px] font-bold text-slate-700">{{ angka($item->qty, 4) }}</span>
+                    <span class="text-[13px] font-medium text-slate-700">{{ angka($item->qty, 4) }}</span>
                 </td>
                 <td class="px-4 py-5 text-center">
                     @if(in_array($item->status_spk, ['Selesai', 'Batal', 'Pending']) || !$bisaUbah)
-                        <span class="text-[13px] font-bold text-slate-700">{{ $item->qty_cetak ?? $item->qty }}</span>
+                        <span class="text-[13px] font-medium text-slate-700">{{ $item->qty_cetak ?? $item->qty }}</span>
                     @else
                         <form method="POST" action="{{ route('produksi.simpan-qty', $item->id_detail) }}" class="flex items-center justify-center gap-1">
                             @csrf @method('PATCH')
                             <input type="number" name="qty_cetak" min="0" value="{{ $item->qty_cetak ?? $item->qty }}"
-                                class="w-20 bg-slate-50 border-none rounded-lg py-1.5 px-2 text-sm font-bold text-slate-700 text-center focus:ring-2 focus:ring-indigo-500/20">
+                                class="w-20 bg-slate-50 border-none rounded-lg py-1.5 px-2 text-sm font-medium text-slate-700 text-center focus:ring-2 focus:ring-indigo-500/20">
                             <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all" title="Simpan jumlah produksi">
                                 <i class="fas fa-save text-xs"></i>
                             </button>

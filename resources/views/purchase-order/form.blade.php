@@ -19,7 +19,7 @@
 @endphp
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1200px] mx-auto">
 
-    <x-page-header title="{{ $po ? 'Purchase Order ' . $po->nomor : 'Purchase Order Baru' }}">
+    <x-page-header title="{{ $po ? 'Pesanan Pembelian ' . $po->nomor : 'Pesanan Pembelian Baru' }}">
         <x-slot:subtitle>
             <i class="fas fa-file-invoice text-amber-400"></i>
             {{ $labelPr }}
@@ -36,8 +36,8 @@
         <div class="mb-6 rounded-2xl border border-rose-100 bg-rose-50/80 p-4 flex items-start gap-3">
             <span class="w-8 h-8 shrink-0 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center"><i class="fas fa-exclamation-triangle text-xs"></i></span>
             <div class="min-w-0">
-                <p class="text-sm font-bold text-rose-700">Form belum bisa disimpan</p>
-                <ul class="mt-1 text-[13px] font-semibold text-rose-600 space-y-0.5">
+                <p class="text-sm font-medium text-rose-700">Form belum bisa disimpan</p>
+                <ul class="mt-1 text-[13px] font-medium text-rose-600 space-y-0.5">
                     @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
                 </ul>
             </div>
@@ -45,7 +45,7 @@
     @endif
 
     @if($po && !$editable && $statusInfo)
-        <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-700 text-sm font-semibold flex items-start gap-3">
+        <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-700 text-sm font-medium flex items-start gap-3">
             <i class="fas fa-lock mt-0.5"></i>
             <span>Purchase Order ini hanya-baca karena berstatus <b>{{ $po->status }}</b>. {{ $statusInfo }}</span>
         </div>
@@ -60,9 +60,9 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <x-form.group>
                     <div class="flex items-center justify-between mb-2 ml-2 mr-1">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supplier</label>
+                        <label class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Pemasok</label>
                         @if($editable)
-                        <button type="button" onclick="openModal('supplier-baru')" class="text-indigo-600 hover:text-indigo-700 font-bold text-[11px] flex items-center gap-1">
+                        <button type="button" onclick="openModal('supplier-baru')" class="text-indigo-600 hover:text-indigo-700 font-medium text-[11px] flex items-center gap-1">
                             <i class="fas fa-plus text-[9px]"></i> Baru
                         </button>
                         @endif
@@ -120,7 +120,7 @@
                     </td>
                     <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" data-qty class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required {{ $editable ? '' : 'readonly' }}></td>
                     <td class="px-4 py-3"><input type="text" inputmode="decimal" autocomplete="off" name="items[{{ $i }}][harga]" value="{{ ($r['harga'] ?? '') === '' ? '' : angka_input($r['harga'], 2) }}" data-harga class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" required {{ $editable ? '' : 'readonly' }}></td>
-                    <td class="px-4 py-3 text-right"><span class="text-sm font-bold text-slate-700" data-subtotal>0</span></td>
+                    <td class="px-4 py-3 text-right"><span class="text-sm font-medium text-slate-700" data-subtotal>0</span></td>
                     <td class="px-4 py-3"><input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" placeholder="mis. merk sama dengan PR" {{ $editable ? '' : 'readonly' }}></td>
                     @if($po && !$editable)<td class="px-4 py-3 text-right text-sm text-slate-500">{{ angka($r['qty_diterima'] ?? 0, 2) }}</td>@endif
                     @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove(); hitungTotal()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>@endif
@@ -130,7 +130,7 @@
         </x-table>
 
         @if($editable && !empty($prefill['id_purchase_request']) && collect($rows)->contains(fn ($r) => (float) ($r['harga'] ?? 0) > 0))
-            <p class="mt-3 text-[11px] text-emerald-600 font-semibold flex items-center gap-1.5">
+            <p class="mt-3 text-[11px] text-emerald-600 font-medium flex items-center gap-1.5">
                 <i class="fas fa-wand-magic-sparkles"></i>
                 Harga satuan diambil otomatis dari PO terakhir untuk bahan yang pernah dibeli - tetap bisa diubah bila harga berubah.
             </p>
@@ -148,14 +148,14 @@
             </x-card>
             <x-card>
                 <div class="space-y-3 text-sm">
-                    <div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span class="font-bold" id="t-subtotal">0</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span class="font-medium" id="t-subtotal">0</span></div>
                     <div class="flex justify-between items-center gap-4"><span class="text-slate-500">Diskon (Rp)</span>
                         <input type="text" inputmode="decimal" autocomplete="off" name="diskon" id="in-diskon" value="{{ angka_input(old('diskon', $po->diskon ?? 0), 2) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'readonly' }}></div>
                     <div class="flex justify-between items-center gap-4"><span class="text-slate-500">Pajak (%)</span>
                         <input type="number" step="0.01" min="0" max="100" name="pajak_persen" id="in-pajak" value="{{ old('pajak_persen', $po->pajak_persen ?? 0) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'readonly' }}></div>
                     <div class="flex justify-between items-center gap-4"><span class="text-slate-500">Ongkir (Rp)</span>
                         <input type="text" inputmode="decimal" autocomplete="off" name="ongkir" id="in-ongkir" value="{{ angka_input(old('ongkir', $po->ongkir ?? 0), 2) }}" class="w-40 rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" {{ $editable ? '' : 'readonly' }}></div>
-                    <div class="flex justify-between pt-3 border-t border-slate-100 text-base"><span class="font-bold text-slate-700">Total</span><span class="font-extrabold text-indigo-600" id="t-total">0</span></div>
+                    <div class="flex justify-between pt-3 border-t border-slate-100 text-base"><span class="font-medium text-slate-700">Total</span><span class="font-medium text-indigo-600" id="t-total">0</span></div>
                 </div>
             </x-card>
         </div>
@@ -176,10 +176,10 @@
     @if($po)
         @if($editable)
             <form id="form-terbit-po" method="POST" action="{{ route('purchase-order.terbitkan', $po->id) }}" onsubmit="return confirm('Terbitkan PO ini ke supplier? Setelah diterbitkan tidak bisa diubah.');">@csrf @method('PATCH')</form>
-            <form id="form-hapus-po" method="POST" action="{{ route('purchase-order.destroy', $po->id) }}" onsubmit="return confirm('Hapus Purchase Order ini?');">@csrf @method('DELETE')</form>
+            <form id="form-hapus-po" method="POST" action="{{ route('purchase-order.destroy', $po->id) }}" onsubmit="return confirm('Hapus Pesanan Pembelian ini?');">@csrf @method('DELETE')</form>
         @endif
         @if(in_array($po->status, ['Draft', 'Dipesan']))
-            <form method="POST" action="{{ route('purchase-order.batalkan', $po->id) }}" onsubmit="return confirm('Batalkan Purchase Order ini?');" class="mt-4 flex justify-end">@csrf @method('PATCH')
+            <form method="POST" action="{{ route('purchase-order.batalkan', $po->id) }}" onsubmit="return confirm('Batalkan Pesanan Pembelian ini?');" class="mt-4 flex justify-end">@csrf @method('PATCH')
                 <x-button type="submit" variant="outline" size="sm"><i class="fas fa-ban"></i> Batalkan PO</x-button>
             </form>
         @endif
@@ -187,16 +187,16 @@
 
     @if($po && in_array($po->status, ['Dipesan', 'Diterima Sebagian', 'Selesai']))
     <x-card class="mt-8">
-        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Penerimaan Barang</h3>
+        <h3 class="text-xs font-medium text-slate-800 uppercase tracking-widest mb-4">Penerimaan Barang</h3>
 
         @if($po->kedatangan->isNotEmpty())
         <div class="mb-6 space-y-2">
             @foreach($po->kedatangan as $k)
                 <div class="flex items-center justify-between text-sm p-3 rounded-xl bg-slate-50">
-                    <span class="font-semibold text-slate-700">SJ {{ $k->no_surat_jalan }} - {{ $k->tgl_datang?->format('d M Y') }}</span>
+                    <span class="font-medium text-slate-700">SJ {{ $k->no_surat_jalan }} - {{ $k->tgl_datang?->format('d M Y') }}</span>
                     <span class="flex items-center gap-3">
                         <x-badge :status="$k->status" :variant="$k->status === 'Selesai' ? 'success' : 'info'" />
-                        <a href="{{ route('kedatangan-bahan.edit', $k->id_kedatangan) }}" class="text-indigo-600 text-xs font-bold uppercase">Buka</a>
+                        <a href="{{ route('kedatangan-bahan.edit', $k->id_kedatangan) }}" class="text-indigo-600 text-xs font-medium uppercase">Buka</a>
                     </span>
                 </div>
             @endforeach
@@ -234,7 +234,7 @@
             </td>
             <td class="px-4 py-3"><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" data-qty class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" required></td>
             <td class="px-4 py-3"><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][harga]" data-harga class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" required></td>
-            <td class="px-4 py-3 text-right"><span class="text-sm font-bold text-slate-700" data-subtotal>0</span></td>
+            <td class="px-4 py-3 text-right"><span class="text-sm font-medium text-slate-700" data-subtotal>0</span></td>
             <td class="px-4 py-3"><input type="text" maxlength="255" name="items[__I__][catatan]" class="w-full rounded-xl border-slate-200 text-xs p-2" placeholder="mis. merk sama dengan PR"></td>
             <td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove(); hitungTotal()" class="text-slate-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button></td>
         </tr>

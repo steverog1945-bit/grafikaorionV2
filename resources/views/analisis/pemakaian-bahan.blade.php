@@ -13,8 +13,8 @@
 
     <x-card class="mb-8">
         <form method="GET" class="flex flex-wrap items-end gap-4">
-            <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari</label><x-form.input type="date" name="tgl_dari" value="{{ $dari->toDateString() }}" /></div>
-            <div><label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai</label><x-form.input type="date" name="tgl_sampai" value="{{ $sampai->toDateString() }}" /></div>
+            <div><label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari</label><x-form.input type="date" name="tgl_dari" value="{{ $dari->toDateString() }}" /></div>
+            <div><label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai</label><x-form.input type="date" name="tgl_sampai" value="{{ $sampai->toDateString() }}" /></div>
             <x-button type="submit" variant="primary"><i class="fas fa-filter"></i> Tampilkan</x-button>
         </form>
     </x-card>
@@ -34,12 +34,12 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($data as $r)
             <tr class="hover:bg-slate-50/30">
-                <td class="px-8 py-4"><span class="text-[13px] font-bold text-slate-700">{{ $r->nama_bahan }}</span><div class="text-[11px] text-slate-400">{{ $r->satuan_stok }}</div></td>
+                <td class="px-8 py-4"><span class="text-[13px] font-medium text-slate-700">{{ $r->nama_bahan }}</span><div class="text-[11px] text-slate-400">{{ $r->satuan_stok }}</div></td>
                 <td class="px-4 py-4 text-right text-sm">{{ $n($r->qty_pemakaian) }}</td>
-                <td class="px-4 py-4 text-right text-sm {{ $r->qty_rework > 0 ? 'text-rose-500 font-semibold' : 'text-slate-300' }}">{{ $n($r->qty_rework) }}</td>
-                <td class="px-4 py-4 text-right text-sm {{ $r->qty_waste > 0 ? 'text-rose-500 font-semibold' : 'text-slate-300' }}">{{ $n($r->qty_waste) }}</td>
-                <td class="px-4 py-4 text-right text-sm font-bold">{{ $n($r->qty_total) }}</td>
-                <td class="px-4 py-4 text-right text-sm font-semibold {{ $r->persen_susut >= 10 ? 'text-rose-600' : 'text-slate-600' }}">{{ $r->persen_susut }}%</td>
+                <td class="px-4 py-4 text-right text-sm {{ $r->qty_rework > 0 ? 'text-rose-500 font-medium' : 'text-slate-300' }}">{{ $n($r->qty_rework) }}</td>
+                <td class="px-4 py-4 text-right text-sm {{ $r->qty_waste > 0 ? 'text-rose-500 font-medium' : 'text-slate-300' }}">{{ $n($r->qty_waste) }}</td>
+                <td class="px-4 py-4 text-right text-sm font-medium">{{ $n($r->qty_total) }}</td>
+                <td class="px-4 py-4 text-right text-sm font-medium {{ $r->persen_susut >= 10 ? 'text-rose-600' : 'text-slate-600' }}">{{ $r->persen_susut }}%</td>
                 <td class="px-8 py-4 text-right text-sm">Rp {{ number_format($r->nilai_susut, 0, ',', '.') }}</td>
             </tr>
             @empty

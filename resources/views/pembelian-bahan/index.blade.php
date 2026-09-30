@@ -19,23 +19,23 @@
     <x-card class="mb-6">
         <form method="GET" action="{{ route('pembelian-bahan.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[300px]">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Data</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Data</label>
                 <x-form.input type="text" name="search" value="{{ request('search') }}"
-                    placeholder="Nomor Surat Jalan atau Nama Supplier..." />
+                    placeholder="Nomor Surat Jalan atau Nama Pemasok..." />
             </div>
 
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
                 <x-form.input type="date" name="from" value="{{ request('from') }}" />
             </div>
 
             <div class="w-full md:w-48">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
                 <x-form.input type="date" name="to" value="{{ request('to') }}" />
             </div>
 
             <div class="w-full md:w-52">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Jatuh Tempo</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Jatuh Tempo</label>
                 <x-form.select name="jt">
                     <option value="">Tampilkan semua</option>
                     <option value="telat" {{ request('jt') === 'telat' ? 'selected' : '' }}>Telat jatuh tempo</option>
@@ -50,7 +50,7 @@
             </x-button>
 
             @if(request()->anyFilled(['search', 'from', 'to', 'jt']))
-                <a href="{{ route('pembelian-bahan.index') }}" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                <a href="{{ route('pembelian-bahan.index') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset Filter
                 </a>
             @endif
@@ -60,24 +60,24 @@
     {{-- HITUNGAN JATUH TEMPO (seluruh faktur berhutang) - klik untuk menyaring --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <a href="{{ route('pembelian-bahan.index', ['jt' => 'telat']) }}" title="Faktur yang sudah lewat jatuh tempo dan belum lunas" class="rounded-3xl border p-5 transition-all hover:shadow-md {{ request('jt') === 'telat' ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-100' }}">
-            <p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Telat Jatuh Tempo</p>
-            <p class="text-2xl font-bold text-rose-600 mt-1">{{ $ringkasJt['telat']['n'] }} <span class="text-xs font-semibold text-slate-400">faktur</span></p>
-            <p class="text-xs font-semibold text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['telat']['nilai'], 0, ',', '.') }}</p>
+            <p class="text-[10px] font-medium text-rose-500 uppercase tracking-widest">Telat Jatuh Tempo</p>
+            <p class="text-2xl font-medium text-rose-600 mt-1">{{ $ringkasJt['telat']['n'] }} <span class="text-xs font-medium text-slate-400">faktur</span></p>
+            <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['telat']['nilai'], 0, ',', '.') }}</p>
         </a>
         <a href="{{ route('pembelian-bahan.index', ['jt' => '7hari']) }}" title="Faktur yang jatuh tempo dalam 7 hari ke depan" class="rounded-3xl border p-5 transition-all hover:shadow-md {{ request('jt') === '7hari' ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100' }}">
-            <p class="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Jatuh Tempo &le; 7 Hari</p>
-            <p class="text-2xl font-bold text-amber-600 mt-1">{{ $ringkasJt['minggu']['n'] }} <span class="text-xs font-semibold text-slate-400">faktur</span></p>
-            <p class="text-xs font-semibold text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['minggu']['nilai'], 0, ',', '.') }}</p>
+            <p class="text-[10px] font-medium text-amber-500 uppercase tracking-widest">Jatuh Tempo &le; 7 Hari</p>
+            <p class="text-2xl font-medium text-amber-600 mt-1">{{ $ringkasJt['minggu']['n'] }} <span class="text-xs font-medium text-slate-400">faktur</span></p>
+            <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['minggu']['nilai'], 0, ',', '.') }}</p>
         </a>
         <a href="{{ route('pembelian-bahan.index', ['jt' => 'aman']) }}" title="Faktur berhutang dengan jatuh tempo lebih dari 7 hari lagi" class="rounded-3xl border p-5 transition-all hover:shadow-md {{ request('jt') === 'aman' ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-100' }}">
-            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Belum Jatuh Tempo</p>
-            <p class="text-2xl font-bold text-emerald-600 mt-1">{{ $ringkasJt['aman']['n'] }} <span class="text-xs font-semibold text-slate-400">faktur</span></p>
-            <p class="text-xs font-semibold text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['aman']['nilai'], 0, ',', '.') }}</p>
+            <p class="text-[10px] font-medium text-emerald-500 uppercase tracking-widest">Belum Jatuh Tempo</p>
+            <p class="text-2xl font-medium text-emerald-600 mt-1">{{ $ringkasJt['aman']['n'] }} <span class="text-xs font-medium text-slate-400">faktur</span></p>
+            <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['aman']['nilai'], 0, ',', '.') }}</p>
         </a>
     </div>
     @if(request()->filled('jt'))
-        <div class="mb-4 text-xs font-semibold text-slate-500">Menyaring: <b>{{ ['telat' => 'faktur telat jatuh tempo', '7hari' => 'faktur jatuh tempo dalam 7 hari', 'aman' => 'faktur belum jatuh tempo (lebih dari 7 hari)'][request('jt')] ?? '' }}</b>
-            <a href="{{ route('pembelian-bahan.index', request()->except(['jt', 'page'])) }}" title="Kembali menampilkan semua faktur" class="text-indigo-600 font-bold uppercase tracking-widest ml-2 hover:underline">Tampilkan semua</a></div>
+        <div class="mb-4 text-xs font-medium text-slate-500">Menyaring: <b>{{ ['telat' => 'faktur telat jatuh tempo', '7hari' => 'faktur jatuh tempo dalam 7 hari', 'aman' => 'faktur belum jatuh tempo (lebih dari 7 hari)'][request('jt')] ?? '' }}</b>
+            <a href="{{ route('pembelian-bahan.index', request()->except(['jt', 'page'])) }}" title="Kembali menampilkan semua faktur" class="text-indigo-600 font-medium uppercase tracking-widest ml-2 hover:underline">Tampilkan semua</a></div>
     @endif
 
     <form id="bulk-delete-form" method="POST" action="{{ route('pembelian-bahan.bulk-delete') }}">
@@ -92,7 +92,7 @@
                     <th class="px-4 py-5 text-center w-10">#</th>
                     <th class="px-4 py-5 text-left min-w-[150px]">No. Faktur</th>
                     <th class="px-4 py-5 text-left">Tanggal</th>
-                    <th class="px-4 py-5 text-left">Supplier</th>
+                    <th class="px-4 py-5 text-left">Pemasok</th>
                     <th class="px-4 py-5 text-center">Status</th>
                     <th class="px-4 py-5 text-center">Jatuh Tempo</th>
                     <th class="px-4 py-5 text-right">Total Nominal</th>
@@ -108,29 +108,29 @@
                     <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
 
                     <td class="px-4 py-5">
-                        <span class="text-[13px] font-bold text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">
+                        <span class="text-[13px] font-medium text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">
                             {{ $item->no_faktur }}
                         </span>
                     </td>
 
                     <td class="px-4 py-5">
-                        <span class="text-[12px] font-semibold text-slate-600">
+                        <span class="text-[12px] font-medium text-slate-600">
                             {{ \Carbon\Carbon::parse($item->tgl_transaksi)->format('d M Y') }}
                         </span>
                     </td>
                     <td class="px-4 py-5">
-                        <span class="text-[12px] font-bold text-slate-700 uppercase">
+                        <span class="text-[12px] font-medium text-slate-700 uppercase">
                             {{ $item->kedatangan->supplier->nama_supplier ?? 'Umum' }}
                         </span>
                     </td>
                     <td class="px-4 py-5 text-center">
                         @if($item->status_pembayaran == 'Lunas')
                             <x-badge variant="success">Lunas</x-badge>
-                            <div class="text-[9px] text-slate-400 font-semibold italic mt-1">{{ \Carbon\Carbon::parse($item->tgl_pelunasan)->format('d/m/y') }}</div>
+                            <div class="text-[9px] text-slate-400 font-medium italic mt-1">{{ \Carbon\Carbon::parse($item->tgl_pelunasan)->format('d/m/y') }}</div>
                         @else
                             <x-badge variant="warning">Hutang</x-badge>
                             @if($item->sisa_hutang < $item->grand_total)
-                                <div class="text-[9px] text-rose-500 font-bold mt-1">Sisa Rp {{ number_format($item->sisa_hutang, 0, ',', '.') }}</div>
+                                <div class="text-[9px] text-rose-500 font-medium mt-1">Sisa Rp {{ number_format($item->sisa_hutang, 0, ',', '.') }}</div>
                             @endif
                         @endif
                     </td>
@@ -140,15 +140,15 @@
                                 $jt = \Carbon\Carbon::parse($item->jatuh_tempo_tgl ?: $item->tgl_transaksi)->startOfDay();
                                 $selisihHari = (int) now()->startOfDay()->diffInDays($jt, false); // negatif = sudah lewat
                             @endphp
-                            <span class="block text-xs font-semibold text-slate-600">{{ $jt->format('d/m/Y') }}</span>
+                            <span class="block text-xs font-medium text-slate-600">{{ $jt->format('d/m/Y') }}</span>
                             @if($selisihHari < 0)
-                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-[10px] font-bold uppercase" title="Sudah lewat jatuh tempo">Telat {{ abs($selisihHari) }} hari</span>
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-[10px] font-medium uppercase" title="Sudah lewat jatuh tempo">Telat {{ abs($selisihHari) }} hari</span>
                             @elseif($selisihHari === 0)
-                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-[10px] font-bold uppercase" title="Jatuh tempo hari ini">Hari ini</span>
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-[10px] font-medium uppercase" title="Jatuh tempo hari ini">Hari ini</span>
                             @elseif($selisihHari <= 7)
-                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-[10px] font-bold uppercase" title="Segera jatuh tempo">{{ $selisihHari }} hari lagi</span>
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-[10px] font-medium uppercase" title="Segera jatuh tempo">{{ $selisihHari }} hari lagi</span>
                             @else
-                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase" title="Masih ada waktu">{{ $selisihHari }} hari lagi</span>
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-medium uppercase" title="Masih ada waktu">{{ $selisihHari }} hari lagi</span>
                             @endif
                         @else
                             <span class="text-slate-400 italic text-xs">Lunas</span>
@@ -156,7 +156,7 @@
                     </td>
 
                     <td class="px-4 py-5 text-right">
-                        <span class="text-[14px] font-bold text-indigo-600">
+                        <span class="text-[14px] font-medium text-indigo-600">
                             Rp {{ number_format($item->grand_total, 0, ',', '.') }}
                         </span>
                     </td>
@@ -275,7 +275,7 @@
     }
 
     // Menghapus faktur = MENGAJUKAN pembatalan (jurnal dibalik setelah
-    // Administrator menyetujui lewat menu Approval Workflow).
+    // Administrator menyetujui lewat menu Alur Persetujuan).
     function singleDelete(id) {
         Swal.fire({
             title: 'Ajukan pembatalan faktur?',
@@ -304,7 +304,7 @@
     bulkBtn?.addEventListener('click', function() {
         Swal.fire({
             title: 'Ajukan pembatalan semua faktur terpilih?',
-            text: 'Tiap faktur diajukan ke Approval Workflow; tidak ada yang langsung dihapus.',
+            text: 'Tiap faktur diajukan ke Alur Persetujuan; tidak ada yang langsung dihapus.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

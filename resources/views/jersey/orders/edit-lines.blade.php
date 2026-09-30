@@ -13,16 +13,16 @@
         </x-slot:actions>
     </x-page-header>
 
-    <div class="bg-amber-50 text-amber-700 p-3 rounded-2xl mb-4 text-xs font-semibold flex items-start gap-2">
+    <div class="bg-amber-50 text-amber-700 p-3 rounded-2xl mb-4 text-xs font-medium flex items-start gap-2">
         <i class="fas fa-triangle-exclamation mt-0.5"></i>
         <span>Menyimpan perubahan di sini akan menghitung ulang SEMUA barang pada order ini - id barang lama berubah, jadi tautan SPK yang sudah dicetak sebelumnya perlu dicetak ulang dari halaman Detail Order setelah disimpan.</span>
     </div>
 
     @if (session('error'))
-        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-4 font-semibold">{{ session('error') }}</div>
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-4 font-medium">{{ session('error') }}</div>
     @endif
     @if ($errors->any())
-        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-4 font-semibold">
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-4 font-medium">
             <ul class="list-disc list-inside space-y-1">
                 @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
             </ul>
@@ -46,22 +46,22 @@
                     @endforeach
                 </div>
 
-                <button type="button" onclick="tambahBarisBarang()" class="w-full py-3 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 font-bold text-xs uppercase tracking-widest hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
+                <button type="button" onclick="tambahBarisBarang()" class="w-full py-3 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 font-medium text-xs uppercase tracking-widest hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
                     <i class="fas fa-plus"></i> Tambah Jenis Barang
                 </button>
             </div>
 
             <div class="w-full lg:w-[36%] lg:sticky lg:top-6 space-y-4">
                 <x-card>
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Ringkasan Barang</h3>
+                    <h3 class="text-xs font-medium text-slate-400 uppercase tracking-widest mb-3">Ringkasan Barang</h3>
                     <div id="ringkasan-daftar-barang" class="divide-y divide-slate-50">
                         <p class="text-xs text-slate-300 italic text-center py-5">Belum ada barang.</p>
                     </div>
                 </x-card>
 
                 <div class="flex items-center justify-between gap-4 flex-wrap bg-indigo-600 rounded-2xl px-6 py-4">
-                    <span class="text-xs font-bold text-indigo-200 uppercase tracking-widest">Perkiraan Total Barang</span>
-                    <span id="preview-total-order" class="text-2xl font-black text-white">Rp 0</span>
+                    <span class="text-xs font-medium text-indigo-200 uppercase tracking-widest">Perkiraan Total Barang</span>
+                    <span id="preview-total-order" class="text-2xl font-medium text-white">Rp 0</span>
                 </div>
 
                 <x-button type="submit" class="w-full !py-4">Simpan Perubahan Barang</x-button>
@@ -364,7 +364,7 @@
             const infoWrap = document.createElement('div');
             infoWrap.className = 'flex-1 min-w-0';
             const namaEl = document.createElement('p');
-            namaEl.className = 'text-xs font-bold text-slate-700 truncate';
+            namaEl.className = 'text-xs font-medium text-slate-700 truncate';
             namaEl.textContent = namaBarang;
             const qtyEl = document.createElement('p');
             qtyEl.className = 'text-[10px] text-slate-400';
@@ -373,7 +373,7 @@
             baris.appendChild(infoWrap);
 
             const subtotalEl = document.createElement('span');
-            subtotalEl.className = 'text-xs font-bold text-slate-600 shrink-0';
+            subtotalEl.className = 'text-xs font-medium text-slate-600 shrink-0';
             subtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
             baris.appendChild(subtotalEl);
 

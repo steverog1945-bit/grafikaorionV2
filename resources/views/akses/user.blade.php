@@ -10,7 +10,7 @@
     </x-page-header>
 
     @if(optional($user->role)->nama_role === 'Administrator')
-        <div class="p-5 rounded-2xl bg-emerald-50 text-emerald-700 text-sm font-semibold">User berrole Administrator selalu memiliki semua akses.</div>
+        <div class="p-5 rounded-2xl bg-emerald-50 text-emerald-700 text-sm font-medium">User berrole Administrator selalu memiliki semua akses.</div>
     @else
     <form action="{{ route('akses.user.update', $user->id_user) }}" method="POST">
         @csrf
@@ -23,7 +23,7 @@
     @if($override->isNotEmpty())
     <form action="{{ route('akses.user.reset', $user->id_user) }}" method="POST" class="mt-3" onsubmit="return confirm('Hapus semua pengecualian dan kembali mengikuti role?')">
         @csrf
-        <button type="submit" class="px-4 py-3 rounded-xl bg-rose-50 text-rose-600 text-sm font-bold hover:bg-rose-100"><i class="fas fa-undo"></i> Kembalikan ke hak role ({{ $override->count() }} pengecualian)</button>
+        <button type="submit" class="px-4 py-3 rounded-xl bg-rose-50 text-rose-600 text-sm font-medium hover:bg-rose-100"><i class="fas fa-undo"></i> Kembalikan ke hak role ({{ $override->count() }} pengecualian)</button>
     </form>
     @endif
     @endif

@@ -27,13 +27,13 @@
     </div>
 
     @if (session('success'))
-        <div class="bg-emerald-50 text-emerald-700 p-4 rounded-2xl mb-6 font-semibold no-print">{{ session('success') }}</div>
+        <div class="bg-emerald-50 text-emerald-700 p-4 rounded-2xl mb-6 font-medium no-print">{{ session('success') }}</div>
     @endif
     @if (session('error'))
-        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-semibold no-print">{{ session('error') }}</div>
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-medium no-print">{{ session('error') }}</div>
     @endif
 
-    <div class="bg-amber-50 text-amber-700 p-4 rounded-2xl mb-6 text-xs font-semibold flex items-start gap-2 no-print">
+    <div class="bg-amber-50 text-amber-700 p-4 rounded-2xl mb-6 text-xs font-medium flex items-start gap-2 no-print">
         <i class="fas fa-circle-info mt-0.5"></i>
         <span>Biaya desain tetap diakui <b>penuh sebagai pendapatan</b> di nota. Komisi desainer dihitung saat nota dibuat (persen kelasnya saat itu) dan dibayarkan berkala dari <b>Kas Kecil</b> sebagai beban komisi - jadi laba bersih desain = biaya desain - komisi. Item tanpa desainer tidak mendapat komisi (ditandai "Tanpa desainer" agar bisa dipantau).</span>
     </div>
@@ -42,16 +42,16 @@
     <x-card class="mb-6 no-print">
         <form method="GET" action="{{ route('laporan.biaya-desain') }}" class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal Order</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal Order</label>
                 <x-form.input type="date" name="tgl_dari" value="{{ $tglDari }}" />
             </div>
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal Order</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal Order</label>
                 <x-form.input type="date" name="tgl_sampai" value="{{ $tglSampai }}" />
             </div>
             @unless($milikSendiri)
             <div class="w-full md:w-52">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Desainer</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Desainer</label>
                 <x-form.select name="id_desainer">
                     <option value="">Semua Desainer</option>
                     <option value="tanpa" {{ request('id_desainer') === 'tanpa' ? 'selected' : '' }}>Tanpa desainer</option>
@@ -61,7 +61,7 @@
                 </x-form.select>
             </div>
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Kelas</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Kelas</label>
                 <x-form.select name="id_kelas">
                     <option value="">Semua Kelas</option>
                     @foreach($kelasList as $kl)
@@ -71,7 +71,7 @@
             </div>
             @endunless
             <div class="w-full md:w-44">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Komisi</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Komisi</label>
                 <x-form.select name="status_komisi">
                     <option value="">Semua</option>
                     <option value="Belum" {{ request('status_komisi') === 'Belum' ? 'selected' : '' }}>Belum dibayar</option>
@@ -85,7 +85,7 @@
             </x-button>
 
             @if(request()->anyFilled(['tgl_dari', 'tgl_sampai', 'id_desainer', 'id_kelas', 'status_komisi']))
-                <a href="{{ route('laporan.biaya-desain') }}" title="Kembalikan filter ke awal" class="text-[11px] font-bold text-rose-500 uppercase tracking-widest hover:underline ml-2">Reset</a>
+                <a href="{{ route('laporan.biaya-desain') }}" title="Kembalikan filter ke awal" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">Reset</a>
             @endif
         </form>
     </x-card>
@@ -93,24 +93,24 @@
     {{-- RESUME --}}
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-6 print:hidden">
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest" title="Jumlah item order yang memakai biaya desain">Item Berbiaya Desain</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($total->item, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest" title="Jumlah item order yang memakai biaya desain">Item Berbiaya Desain</p>
+            <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($total->item, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest" title="Jumlah biaya desain yang ditagihkan ke konsumen">Total Biaya Desain</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-1">Rp {{ number_format($total->biaya, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest" title="Jumlah biaya desain yang ditagihkan ke konsumen">Total Biaya Desain</p>
+            <h3 class="text-2xl font-medium text-slate-900 mt-1">Rp {{ number_format($total->biaya, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest" title="Bagian desainer = biaya desain x persen kelasnya">Total Komisi</p>
-            <h3 class="text-2xl font-bold text-indigo-600 mt-1">Rp {{ number_format($total->komisi, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest" title="Bagian desainer = biaya desain x persen kelasnya">Total Komisi</p>
+            <h3 class="text-2xl font-medium text-indigo-600 mt-1">Rp {{ number_format($total->komisi, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-amber-100 shadow-sm">
-            <p class="text-[10px] font-bold text-amber-500 uppercase tracking-widest" title="Komisi yang masih harus dibayarkan ke desainer">Komisi Belum Dibayar</p>
-            <h3 class="text-2xl font-bold text-amber-600 mt-1">Rp {{ number_format($total->belum, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-amber-500 uppercase tracking-widest" title="Komisi yang masih harus dibayarkan ke desainer">Komisi Belum Dibayar</p>
+            <h3 class="text-2xl font-medium text-amber-600 mt-1">Rp {{ number_format($total->belum, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm">
-            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest" title="Biaya desain dikurangi komisi - bagian toko">Bagian Toko</p>
-            <h3 class="text-2xl font-bold text-emerald-600 mt-1">Rp {{ number_format($total->bersih, 0, ',', '.') }}</h3>
+            <p class="text-[10px] font-medium text-emerald-500 uppercase tracking-widest" title="Biaya desain dikurangi komisi - bagian toko">Bagian Toko</p>
+            <h3 class="text-2xl font-medium text-emerald-600 mt-1">Rp {{ number_format($total->bersih, 0, ',', '.') }}</h3>
         </div>
     </div>
     <div class="hidden print:block">
@@ -126,7 +126,7 @@
 
     {{-- REKAP PER DESAINER --}}
     <x-card class="mb-6 print:hidden">
-        <h3 class="text-sm font-bold text-slate-800 mb-4">Rekap per Desainer</h3>
+        <h3 class="text-sm font-medium text-slate-800 mb-4">Rekap per Desainer</h3>
         <x-table bare>
             <thead>
                 <tr>
@@ -144,13 +144,13 @@
             <tbody class="divide-y divide-slate-50">
                 @forelse($rekap as $r)
                 <tr>
-                    <td class="p-3 font-bold text-slate-700 text-xs">{{ $r->id_desainer ? $r->nama : 'Tanpa desainer' }}</td>
+                    <td class="p-3 font-medium text-slate-700 text-xs">{{ $r->id_desainer ? $r->nama : 'Tanpa desainer' }}</td>
                     <td class="p-3 text-xs text-slate-500">{{ $r->nama_kelas ? $r->nama_kelas . ' (' . angka($r->persen_komisi, 2) . '%)' : '-' }}</td>
                     <td class="p-3 text-center text-xs">{{ $r->jumlah_nota }}</td>
                     <td class="p-3 text-center text-xs">{{ $r->jumlah_item }}</td>
                     <td class="p-3 text-right text-xs">Rp {{ number_format($r->total_biaya, 0, ',', '.') }}</td>
-                    <td class="p-3 text-right text-xs font-bold text-indigo-600">Rp {{ number_format($r->total_komisi, 0, ',', '.') }}</td>
-                    <td class="p-3 text-right text-xs font-bold text-amber-600">Rp {{ number_format($r->komisi_belum, 0, ',', '.') }}</td>
+                    <td class="p-3 text-right text-xs font-medium text-indigo-600">Rp {{ number_format($r->total_komisi, 0, ',', '.') }}</td>
+                    <td class="p-3 text-right text-xs font-medium text-amber-600">Rp {{ number_format($r->komisi_belum, 0, ',', '.') }}</td>
                     <td class="p-3 text-right text-xs text-emerald-600">Rp {{ number_format($r->komisi_dibayar, 0, ',', '.') }}</td>
                     @unless($milikSendiri)
                     <td class="p-3 text-center no-print">
@@ -160,7 +160,7 @@
                             <input type="hidden" name="id_desainer" value="{{ $r->id_desainer }}">
                             <input type="hidden" name="tgl_dari" value="{{ $tglDari }}">
                             <input type="hidden" name="tgl_sampai" value="{{ $tglSampai }}">
-                            <button type="submit" title="Bayar seluruh komisi belum dibayar desainer ini pada periode yang tampil - dicatat sebagai pengeluaran Kas Kecil" class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-[10px] font-bold uppercase tracking-widest">
+                            <button type="submit" title="Bayar seluruh komisi belum dibayar desainer ini pada periode yang tampil - dicatat sebagai pengeluaran Kas Kecil" class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-[10px] font-medium uppercase tracking-widest">
                                 <i class="fas fa-hand-holding-dollar"></i> Bayar
                             </button>
                         </form>
@@ -180,7 +180,7 @@
         <x-laporan.print-table title="Rekap per Desainer" :headers="['Desainer', 'Kelas', 'Nota', 'Item', 'Biaya Desain', 'Komisi', 'Belum Dibayar', 'Dibayar']" :align="['left', 'left', 'center', 'center', 'right', 'right', 'right', 'right']">
             @forelse($rekap as $r)
             <tr>
-                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $r->id_desainer ? $r->nama : 'Tanpa desainer' }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700">{{ $r->id_desainer ? $r->nama : 'Tanpa desainer' }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $r->nama_kelas ? $r->nama_kelas . ' (' . angka($r->persen_komisi, 2) . '%)' : '-' }}</td>
                 <td class="px-3 py-1.5 text-center text-slate-600">{{ $r->jumlah_nota }}</td>
                 <td class="px-3 py-1.5 text-center text-slate-600">{{ $r->jumlah_item }}</td>
@@ -195,7 +195,7 @@
         </x-laporan.print-table>
     </div>
 
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Per Item</div>
+    <div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Per Item</div>
 
     <div class="print:hidden">
     <x-table>
@@ -214,18 +214,18 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($data as $row)
             <tr class="hover:bg-slate-50/50 transition-all">
-                <td class="px-6 py-4 text-[12px] font-bold text-slate-700">{{ $row->nomor_nota }}</td>
+                <td class="px-6 py-4 text-[12px] font-medium text-slate-700">{{ $row->nomor_nota }}</td>
                 <td class="px-4 py-4 text-[12px] text-slate-500">{{ \Carbon\Carbon::parse($row->tgl_order)->format('d M Y') }}</td>
-                <td class="px-4 py-4 text-[12px] text-slate-600"><span class="font-semibold">{{ $row->nama_file }}</span><div class="text-[10px] text-slate-400">{{ $row->nama_konsumen ?? '-' }}</div></td>
-                <td class="px-4 py-4 text-[12px] {{ $row->id_desainer ? 'text-slate-700 font-semibold' : 'text-amber-500 font-semibold' }}">{{ $row->id_desainer ? $row->nama_desainer : 'Tanpa desainer' }}</td>
+                <td class="px-4 py-4 text-[12px] text-slate-600"><span class="font-medium">{{ $row->nama_file }}</span><div class="text-[10px] text-slate-400">{{ $row->nama_konsumen ?? '-' }}</div></td>
+                <td class="px-4 py-4 text-[12px] {{ $row->id_desainer ? 'text-slate-700 font-medium' : 'text-amber-500 font-medium' }}">{{ $row->id_desainer ? $row->nama_desainer : 'Tanpa desainer' }}</td>
                 <td class="px-4 py-4 text-[12px] text-right text-slate-600">Rp {{ number_format($row->biaya_desain, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-[12px] text-center text-slate-500">{{ angka($row->komisi_desain_persen, 2) }}%</td>
-                <td class="px-4 py-4 text-[12px] text-right font-bold text-indigo-600">Rp {{ number_format($row->komisi_desain, 0, ',', '.') }}</td>
+                <td class="px-4 py-4 text-[12px] text-right font-medium text-indigo-600">Rp {{ number_format($row->komisi_desain, 0, ',', '.') }}</td>
                 <td class="px-6 py-4 text-center">
                     @if($row->komisi_status === 'Dibayar')
-                        <span class="text-[10px] font-bold uppercase text-emerald-600 bg-emerald-50 rounded px-2 py-1" title="Dibayar {{ \Carbon\Carbon::parse($row->komisi_dibayar_at)->format('d M Y H:i') }}">Dibayar</span>
+                        <span class="text-[10px] font-medium uppercase text-emerald-600 bg-emerald-50 rounded px-2 py-1" title="Dibayar {{ \Carbon\Carbon::parse($row->komisi_dibayar_at)->format('d M Y H:i') }}">Dibayar</span>
                     @elseif($row->komisi_status === 'Belum')
-                        <span class="text-[10px] font-bold uppercase text-amber-600 bg-amber-50 rounded px-2 py-1" title="Menunggu pembayaran komisi">Belum</span>
+                        <span class="text-[10px] font-medium uppercase text-amber-600 bg-amber-50 rounded px-2 py-1" title="Menunggu pembayaran komisi">Belum</span>
                     @else
                         <span class="text-slate-300" title="Tidak ada komisi (tanpa desainer atau persen kelas 0%)">-</span>
                     @endif
@@ -242,14 +242,14 @@
         <x-laporan.print-table title="Detail Per Item" :headers="['Nota', 'Tanggal', 'Item', 'Konsumen', 'Desainer', 'Biaya Desain', '%', 'Komisi', 'Status']" :align="['left', 'left', 'left', 'left', 'left', 'right', 'center', 'right', 'center']">
             @forelse($data as $row)
             <tr>
-                <td class="px-3 py-1.5 font-semibold text-slate-700">{{ $row->nomor_nota }}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700">{{ $row->nomor_nota }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ \Carbon\Carbon::parse($row->tgl_order)->format('d/m/Y') }}</td>
                 <td class="px-3 py-1.5 text-slate-700">{{ $row->nama_file }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $row->nama_konsumen ?? '-' }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $row->id_desainer ? $row->nama_desainer : 'Tanpa desainer' }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ number_format($row->biaya_desain, 0, ',', '.') }}</td>
                 <td class="px-3 py-1.5 text-center text-slate-600">{{ angka($row->komisi_desain_persen, 2) }}%</td>
-                <td class="px-3 py-1.5 text-right font-semibold text-slate-800">{{ number_format($row->komisi_desain, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($row->komisi_desain, 0, ',', '.') }}</td>
                 <td class="px-3 py-1.5 text-center text-slate-600">{{ $row->komisi_status ?? '-' }}</td>
             </tr>
             @empty
