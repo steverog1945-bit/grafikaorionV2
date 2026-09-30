@@ -337,8 +337,11 @@ class JerseyOrderController extends Controller
                 // lewat jalur yang sama dengan pembayaran susulan. Sebelumnya
                 // DP awal hanya masuk ledger tanpa jurnal -> piutang terlalu
                 // besar & kas terlalu kecil di akuntansi.
-                if ($depositAwal - (float) $order->fresh()->total > 0.004) {
-                    throw new \RuntimeException('DP awal (Rp ' . number_format($depositAwal, 0, ',', '.') . ') melebihi total order (Rp ' . number_format((float) $order->fresh()->total, 0, ',', '.') . ').');
+                // Uang DP yang lebih besar dari total order: yang dicatat sebesar total, selebihnya kembalian.
+                $totalOrder = (float) $order->fresh()->total;
+                if ($depositAwal - $totalOrder > 0.004) {
+                    $kembalianDp = round($depositAwal - $totalOrder, 2);
+                    $depositAwal = $totalOrder;
                 }
 
                 $dp = $order->payments()->create([
@@ -346,6 +349,8 @@ class JerseyOrderController extends Controller
                     'jumlah' => $depositAwal,
                     'metode_bayar' => 'Tunai',
                     'keterangan' => 'DP awal saat order dibuat.',
+                    'uang_diterima' => round($depositAwal + ($kembalianDp ?? 0), 2),
+                    'kembalian' => $kembalianDp ?? 0,
                     'created_by' => Auth::id(),
                 ]);
                 \App\Services\JerseyAccountingService::catatPembayaran($order, $dp);
@@ -355,7 +360,8 @@ class JerseyOrderController extends Controller
             DB::commit();
 
             return redirect()->route('jersey.orders.show', $order->id)
-                ->with('success', 'Order jersey ' . $order->order_number . ' berhasil dibuat.');
+                ->with('success', 'Order jersey ' . $order->order_number . ' berhasil dibuat.'
+                    . (($kembalianDp ?? 0) > 0 ? ' Kembalian untuk pelanggan: Rp ' . number_format($kembalianDp, 0, ',', '.') . '.' : ''));
         } catch (\Throwable $e) {
             DB::rollBack();
             return back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Gagal menyimpan order'));

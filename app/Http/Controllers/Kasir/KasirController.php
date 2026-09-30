@@ -447,7 +447,10 @@ class KasirController extends Controller
                     'metode'       => $metode,
                     'id_bank'      => $idBank,
                     'tgl_bayar'    => now(),
-                    'keterangan'   => "Pembayaran via Kasir"
+                    'keterangan'   => "Pembayaran via Kasir",
+                    // Catatan serah uang untuk nota: yang diserahkan pelanggan dan kembaliannya.
+                    'uang_diterima' => round($uangDiterimaSekarang + $kembalian, 2),
+                    'kembalian'    => $kembalian,
                 ]);
 
                 // pembayaran_riwayat tidak punya kolom pengguna/sesi kas, jadi
@@ -985,7 +988,12 @@ public function printOpsi(Request $request, $id)
     // ini tidak menyimpan "uang diterima" terpisah dari "nominal diterapkan
     // ke nota" per pembayaran, jadi ini pendekatan terbaik yang bisa dihitung
     // dari data yang benar-benar ada.
-    $kembali = max(0, $totalTerbayar - $totalTagihanBulat);
+    // Kembalian yang sungguh diserahkan disimpan per pembayaran (kolom kembalian); rumus lama dipertahankan
+    // untuk nota lama yang tercatat sebelum kolom itu ada.
+    $kembali = max(
+        (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('kembalian'),
+        max(0, $totalTerbayar - $totalTagihanBulat)
+    );
     $kurangBayar = max(0, $totalTagihanBulat - $totalTerbayar);
 
     // Info deposit - dipakai buat baris "Penggunaan deposit pada transaksi

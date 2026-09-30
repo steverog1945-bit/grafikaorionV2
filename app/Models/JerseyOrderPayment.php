@@ -20,6 +20,8 @@ class JerseyOrderPayment extends Model
         'metode_bayar',
         'bukti_path',
         'keterangan',
+        'uang_diterima',
+        'kembalian',
         'created_by',
     ];
 

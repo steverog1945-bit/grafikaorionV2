@@ -89,6 +89,33 @@ class AuditIntegritasCommand extends Command
             }
         }
 
+        // 5. Uang yang diterima tidak boleh melebihi tagihan (kelebihan seharusnya kembalian, bukan pembayaran).
+        $lebihNota = DB::table('transaksi as t')->where('t.status_nota', '!=', 'Dibatalkan')
+            ->joinSub(DB::table('pembayaran_riwayat')->selectRaw('id_transaksi, SUM(nominal) s')->groupBy('id_transaksi'), 'b', 'b.id_transaksi', '=', 't.id_transaksi')
+            ->whereRaw('b.s - t.total_bayar > 0.01')->get(['t.nomor_nota', 't.total_bayar', 'b.s']);
+        foreach ($lebihNota as $r) {
+            $adaTemuan = true;
+            $hasil[] = ['bayar_melebihi_tagihan', $r->nomor_nota, "total={$r->total_bayar} dibayar={$r->s}"];
+        }
+        if (DB::getSchemaBuilder()->hasTable('jersey_orders')) {
+            $lebihJersey = DB::table('jersey_orders as o')
+                ->joinSub(DB::table('jersey_order_payments')->whereNull('deleted_at')->selectRaw('jersey_order_id, SUM(jumlah) s')->groupBy('jersey_order_id'), 'b', 'b.jersey_order_id', '=', 'o.id')
+                ->whereRaw('b.s - o.total > 0.01')->get(['o.order_number', 'o.total', 'b.s']);
+            foreach ($lebihJersey as $r) {
+                $adaTemuan = true;
+                $hasil[] = ['bayar_melebihi_tagihan', $r->order_number, "total={$r->total} dibayar={$r->s} (php artisan jersey:koreksi-pembukuan)"];
+            }
+
+            // 6. Pendapatan order jersey yang ditandai terjurnal harus benar-benar ada di jurnal (akun 4300).
+            $pendapatan = DB::table('jurnal_umum')->where('kode_akun', '4300')->selectRaw('no_referensi, SUM(kredit) - SUM(debet) s')->groupBy('no_referensi')->pluck('s', 'no_referensi');
+            foreach (DB::table('jersey_orders')->where('total_terjurnal', '>', 0)->get(['order_number', 'total_terjurnal']) as $o) {
+                if (abs((float) $o->total_terjurnal - (float) ($pendapatan[$o->order_number] ?? 0)) > 0.01) {
+                    $adaTemuan = true;
+                    $hasil[] = ['pendapatan_jersey_tidak_terjurnal', $o->order_number, "total_terjurnal={$o->total_terjurnal} jurnal=" . (float) ($pendapatan[$o->order_number] ?? 0)];
+                }
+            }
+        }
+
         if ($this->option('json')) {
             $this->line(json_encode(['ok' => !$adaTemuan, 'temuan' => $hasil], JSON_PRETTY_PRINT));
         } elseif ($adaTemuan) {

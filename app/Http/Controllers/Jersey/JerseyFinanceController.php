@@ -100,6 +100,8 @@ class JerseyFinanceController extends Controller
                 'metode_bayar' => $data['metode_bayar'],
                 'bukti_path' => $data['bukti_path'] ?? null,
                 'keterangan' => $data['keterangan'] ?? null,
+                'uang_diterima' => round((float) $data['jumlah'] + $kembalian, 2),
+                'kembalian' => $kembalian,
                 'created_by' => Auth::id(),
             ]);
             \App\Services\JerseyAccountingService::catatPembayaran($order, $payment);
