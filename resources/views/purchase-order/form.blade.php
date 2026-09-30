@@ -131,7 +131,7 @@
 
         @if($editable && !empty($prefill['id_purchase_request']) && collect($rows)->contains(fn ($r) => (float) ($r['harga'] ?? 0) > 0))
             <p class="mt-3 text-[11px] text-emerald-600 font-medium flex items-center gap-1.5">
-                <i class="fas fa-wand-magic-sparkles"></i>
+                <i class="fas fa-clock-rotate-left"></i>
                 Harga satuan diambil otomatis dari PO terakhir untuk bahan yang pernah dibeli - tetap bisa diubah bila harga berubah.
             </p>
         @endif

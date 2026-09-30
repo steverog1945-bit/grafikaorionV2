@@ -248,7 +248,7 @@
                         <i class="fas fa-boxes mr-2"></i> Bahan Baku Penyusun
                     </button>
                     <button type="button" onclick="switchBomTab('finishing')" id="tab-btn-finishing" class="flex-1 py-3 text-[11px] font-medium uppercase tracking-widest transition-all text-slate-400 border-b-2 border-transparent hover:text-slate-600">
-                        <i class="fas fa-magic mr-2"></i> Finishing Penyusun
+                        <i class="fas fa-layer-group mr-2"></i> Finishing Penyusun
                     </button>
                 </div>
 

@@ -380,7 +380,7 @@
             <p class="text-xs text-slate-400 mb-4">Harga sekarang berpusat pada <b class="text-slate-500">Bahan</b> - tiap bahan bisa punya tier qty & harga sendiri karena selisih harga belanja antar bahan bisa sangat jauh. Kosongkan Bahan/Tipe Produk/Kategori untuk membuat tier "berlaku umum" (fallback kalau tidak ada tier spesifik yang cocok). Pencarian harga otomatis memilih tier paling spesifik yang cocok dengan bahan & qty tiap baris barang.</p>
             <div id="input-cepat-harga" class="mb-6 bg-emerald-50/40 p-4 rounded-2xl border border-emerald-100">
                 <div class="flex items-center justify-between gap-2 mb-3">
-                    <h3 class="text-xs font-medium text-emerald-700 uppercase tracking-widest"><i class="fas fa-bolt mr-1"></i> Input Cepat per Tipe Produk</h3>
+                    <h3 class="text-xs font-medium text-emerald-700 uppercase tracking-widest"><i class="fas fa-table-cells mr-1"></i> Input Cepat per Tipe Produk</h3>
                     <span class="text-[10px] text-slate-400">Pilih tipe produk, isi semua tier sekaligus. Berlaku untuk semua kategori.</span>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">

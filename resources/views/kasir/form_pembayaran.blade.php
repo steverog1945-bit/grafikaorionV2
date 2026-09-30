@@ -206,7 +206,7 @@
                         </div>
                         <div class="mt-2.5 flex justify-end">
                             <button type="button" id="btn-bayar-pas" onclick="setUangPas()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-500 text-[11px] font-medium transition-all">
-                                <i class="fas fa-bolt"></i> Bayar Sisa Tagihan
+                                <i class="fas fa-money-bill-wave"></i> Bayar Sisa Tagihan
                             </button>
                         </div>
                     </div>

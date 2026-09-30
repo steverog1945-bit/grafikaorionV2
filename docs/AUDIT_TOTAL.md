@@ -150,3 +150,12 @@ Klik ganda pada form biasa (bukan POS) bergantung pada penjagaan server: aman, t
 | Jasa dan Jasa Jahit bisa diedit/disimpan role non-admin | Terkunci dengan tes regresi (tambah, ubah, tier harga; dan role tanpa izin edit tetap 403) |
 | Logout tidak mengikat halaman terakhir; login ke Dashboard | Terkunci dengan tes regresi (`url.intended` dibuang saat login dan logout) |
 | Login profesional, sidebar seperti acuan, skill dipakai | Sudah (lihat bagian 2); login versi main dipertahankan sesuai perintah |
+
+## 16. Penutup operasional
+| Item | Hasil |
+|---|---|
+| `bind-address` MySQL (H-4 / S9) | SELESAI. Layanan Windows `ORION_MariaDB` di-restart pemilik; terverifikasi `127.0.0.1:3306` (bukan lagi `0.0.0.0`), aplikasi tetap 200. Catatan: MariaDB di server ini berjalan sebagai layanan Windows, bukan lewat XAMPP Control Panel |
+| `produksi:cek` | 0 gagal, 4 waspada, 13 sesuai |
+| `config:cache` | SENGAJA tidak dijalankan di komputer ini: konfigurasi ter-cache mengalahkan `phpunit.xml`, sehingga tes (RefreshDatabase) akan berjalan di database asli dan mengosongkannya. Jalankan hanya di server yang tidak dipakai menjalankan tes |
+| Antislop 3 | SELESAI: 8 ikon sihir/petir diganti ikon yang menggambarkan isinya |
+| Antislop 7 | Diperiksa: panah yang tersisa menunjukkan arah nyata (tautan lanjut, halaman berikut); dibiarkan |

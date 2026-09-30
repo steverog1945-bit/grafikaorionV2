@@ -7,7 +7,7 @@
     <x-page-header title="Finishing Produk" subtitle="Master Produk & BOM / Jenis Pekerjaan Finishing">
         <x-slot:actions>
             <x-button onclick="openModal('tambah-finishing')">
-                <i class="fas fa-magic"></i>
+                <i class="fas fa-plus"></i>
                 Finishing Baru
             </x-button>
         </x-slot:actions>

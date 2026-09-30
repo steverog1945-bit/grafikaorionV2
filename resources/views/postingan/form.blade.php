@@ -75,7 +75,7 @@
                             <button class="ql-clean" title="Hapus format teks terpilih"></button>
                         </span>
                         <span class="ql-formats">
-                            <button type="button" id="btn-rapikan" class="btn-rapikan" title="Rapikan otomatis: hapus spasi &amp; baris kosong berlebih, ubah '-' / '1.' menjadi daftar, deteksi judul, sambung baris terpotong"><i class="fas fa-wand-magic-sparkles"></i> Rapikan</button>
+                            <button type="button" id="btn-rapikan" class="btn-rapikan" title="Rapikan otomatis: hapus spasi &amp; baris kosong berlebih, ubah '-' / '1.' menjadi daftar, deteksi judul, sambung baris terpotong"><i class="fas fa-align-left"></i> Rapikan</button>
                         </span>
                     </div>
                     <div id="editor-postingan">{!! \App\Support\HtmlBersih::bersihkan(old('isi', $post->isi_html)) !!}</div>

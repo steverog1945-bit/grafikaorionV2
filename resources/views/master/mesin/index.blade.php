@@ -72,7 +72,7 @@
                         {{-- Tipe Mesin --}}
                         <td class="px-6 py-5 text-center">
                             <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100">
-                                <i class="fas fa-bolt mr-1.5 text-blue-400"></i> {{ $m->tipe_mesin }}
+                                <i class="fas fa-print mr-1.5 text-blue-400"></i> {{ $m->tipe_mesin }}
                             </span>
                         </td>
 
