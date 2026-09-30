@@ -105,6 +105,19 @@ public function destroy($id)
         return back()->with('error', 'Akun ini masih tercatat pada data transaksi (sebagai kasir/pembatal nota) dan tidak bisa dihapus. Nonaktifkan akunnya lewat Setting Akses atau ganti rolenya, agar riwayat tetap utuh.');
     }
 
+    // Audit Fase 2: purchase_orders/purchase_requests/quotations/stock_opnames
+    // punya FK ON DELETE CASCADE ke users - menghapus user MEMBUANG seluruh
+    // dokumen yang dia buat (data bisnis hilang diam-diam). Tolak di sini.
+    $dokumen = [];
+    foreach (['purchase order' => 'purchase_orders', 'purchase request' => 'purchase_requests', 'quotation' => 'quotations', 'stock opname' => 'stock_opnames'] as $label => $tabel) {
+        if (DB::table($tabel)->where('id_user_pembuat', $id)->exists()) {
+            $dokumen[] = $label;
+        }
+    }
+    if ($dokumen !== []) {
+        return back()->with('error', 'Akun ini tercatat sebagai pembuat ' . implode(', ', $dokumen) . ' dan tidak bisa dihapus (dokumennya ikut terhapus). Ganti role/nonaktifkan akunnya saja.');
+    }
+
     $user->delete();
     return back()->with('success', 'Akun user berhasil dihapus!');
 }
