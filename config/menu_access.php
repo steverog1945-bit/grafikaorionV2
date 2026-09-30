@@ -135,6 +135,10 @@ return [
         'merk' => [30],
         'jenis-bahan' => [31],
         'jasa' => [32],
+        // Jasa Jahit Borongan (menus.id_menu 68). Tanpa baris ini seluruh
+        // /jasa-jahit/* jatuh ke fail-closed 403 untuk role non-Administrator
+        // (tambah/ubah/simpan ditolak) walau menunya sudah dicentang.
+        'jasa-jahit' => [68],
         'gudang' => [33],
         'konsumen-deposit' => [34],
 

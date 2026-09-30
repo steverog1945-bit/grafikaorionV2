@@ -88,11 +88,11 @@ class KasSesiTest extends TestCase
     {
         $this->sesiKemarinMalam($this->kasir);
 
-        $this->actingAs($this->kasir)->get('/kasir/store-kas?jumlah=100000')->assertSessionHas('error');
+        $this->actingAs($this->kasir)->post('/kasir/store-kas', ['jumlah' => 100000])->assertSessionHas('error');
         $this->assertEquals(1, DB::table('kas_harian')->count());
 
         $lain = User::factory()->create(['id_role' => $this->kasir->id_role]);
-        $this->actingAs($lain)->get('/kasir/store-kas?jumlah=100000')->assertSessionHas('error');
+        $this->actingAs($lain)->post('/kasir/store-kas', ['jumlah' => 100000])->assertSessionHas('error');
         $this->assertEquals(1, DB::table('kas_harian')->count());
     }
 
