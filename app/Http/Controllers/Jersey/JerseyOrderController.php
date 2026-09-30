@@ -324,13 +324,23 @@ class JerseyOrderController extends Controller
             // pelunasan) yang ditambahkan lewat modul Keuangan Jersey.
             $depositAwal = (float) ($data['deposit'] ?? 0);
             if ($depositAwal > 0) {
-                $order->payments()->create([
+                // Audit H-1b: DP tidak boleh melebihi total order (sebelumnya
+                // tak divalidasi) dan WAJIB dijurnal + dicermin ke Kas Kecil
+                // lewat jalur yang sama dengan pembayaran susulan. Sebelumnya
+                // DP awal hanya masuk ledger tanpa jurnal -> piutang terlalu
+                // besar & kas terlalu kecil di akuntansi.
+                if ($depositAwal - (float) $order->fresh()->total > 0.004) {
+                    throw new \RuntimeException('DP awal (Rp ' . number_format($depositAwal, 0, ',', '.') . ') melebihi total order (Rp ' . number_format((float) $order->fresh()->total, 0, ',', '.') . ').');
+                }
+
+                $dp = $order->payments()->create([
                     'tanggal_bayar' => $data['order_date'],
                     'jumlah' => $depositAwal,
                     'metode_bayar' => 'Tunai',
                     'keterangan' => 'DP awal saat order dibuat.',
                     'created_by' => Auth::id(),
                 ]);
+                \App\Services\JerseyAccountingService::catatPembayaran($order, $dp);
                 $order->recalculatePembayaran();
             }
 

@@ -54,12 +54,34 @@ class JerseyFinanceController extends Controller
             'tanggal_bayar' => 'required|date',
             'jumlah' => 'required|numeric|min:1',
             'metode_bayar' => 'required|in:Tunai,Transfer,QRIS,Lainnya',
-            'bukti_path' => 'nullable|string|max:255',
+            // bukti_path HANYA boleh berasal dari uploadBukti() (folder & berkas
+            // harus benar-benar ada) - bukan string bebas dari klien.
+            'bukti_path' => ['nullable', 'string', 'max:255', 'regex:#^jersey_bukti_bayar/[A-Za-z0-9._-]+$#'],
             'keterangan' => 'nullable|string|max:500',
         ]);
 
+        if (!empty($data['bukti_path']) && !\Illuminate\Support\Facades\Storage::disk('public')->exists($data['bukti_path'])) {
+            return back()->withInput()->with('error', 'Berkas bukti bayar tidak ditemukan. Unggah ulang bukti bayarnya.');
+        }
+
         try {
-        DB::transaction(function () use ($data, $order) {
+        DB::transaction(function () use ($data, &$order) {
+            // Audit H-1: gembok baris order DULU, baru hitung sisa & tulis.
+            // Dua kasir / klik ganda untuk order yang sama kini antre; yang
+            // kedua melihat sisa yang sudah berkurang dan ditolak, bukan
+            // menghasilkan pembayaran + jurnal ganda.
+            $order = JerseyOrder::whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            $sudahDibayar = (float) $order->payments()->sum('jumlah');
+            $sisa = round((float) $order->total - $sudahDibayar, 2);
+
+            if ($sisa <= 0) {
+                throw new \RuntimeException('Order ini sudah lunas - tidak ada sisa tagihan.');
+            }
+            if ((float) $data['jumlah'] - $sisa > 0.004) {
+                throw new \RuntimeException('Jumlah melebihi sisa tagihan (Rp ' . number_format($sisa, 0, ',', '.') . '). Masukkan maksimal sebesar sisa tagihan.');
+            }
+
             $payment = $order->payments()->create([
                 'tanggal_bayar' => $data['tanggal_bayar'],
                 'jumlah' => $data['jumlah'],
