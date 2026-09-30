@@ -163,4 +163,55 @@ class JerseyAkuntansiTest extends TestCase
         $this->assertEquals(0, DB::table('jersey_order_payments')->count());
         $this->assertEquals('Belum Bayar', $o->fresh()->status_pembayaran);
     }
+
+    // ---- Audit H-1: kelebihan bayar & pembayaran ganda ----
+
+    public function test_pembayaran_melebihi_sisa_tagihan_ditolak_tanpa_jurnal_dan_tanpa_baris(): void
+    {
+        $o = $this->order(500000);
+
+        $this->bayar($o, 500001)->assertSessionHas('error');
+
+        $this->assertEquals(0, DB::table('jersey_order_payments')->count());
+        $this->assertEquals(500000, $this->saldo('1100'));
+        $this->assertEquals('Belum Bayar', $o->fresh()->status_pembayaran);
+    }
+
+    public function test_pembayaran_kedua_setelah_lunas_ditolak_bukan_menjadi_pembayaran_ganda(): void
+    {
+        $o = $this->order(500000);
+
+        $this->bayar($o, 500000)->assertSessionHas('success');
+        // Simulasi klik ganda / kasir kedua yang submit form lama dengan angka yang sama.
+        $this->bayar($o, 500000)->assertSessionHas('error');
+
+        $this->assertEquals(1, DB::table('jersey_order_payments')->count());
+        $this->assertEquals(500000, (float) DB::table('jersey_orders')->where('id', $o->id)->value('deposit'));
+        $this->assertEquals(0.0, $this->saldo('1100') + 0);
+        $this->assertEquals(1, DB::table('kas_kecil')->where('sumber', 'jersey')->count());
+    }
+
+    public function test_pembayaran_pas_sisa_setelah_cicilan_diterima(): void
+    {
+        $o = $this->order(1000000);
+
+        $this->bayar($o, 300000)->assertSessionHas('success');
+        $this->bayar($o, 700000.01)->assertSessionHas('error');
+        $this->bayar($o, 700000)->assertSessionHas('success');
+
+        $this->assertEquals('Lunas', $o->fresh()->status_pembayaran);
+    }
+
+    public function test_bukti_path_bebas_dari_klien_ditolak(): void
+    {
+        $o = $this->order(500000);
+
+        foreach (['../../.env', 'jersey_bukti_bayar/../../.env', 'lain/berkas.jpg', 'jersey_bukti_bayar/tidak-ada.jpg'] as $path) {
+            $this->post("/jersey/keuangan/{$o->id}/bayar", [
+                'tanggal_bayar' => now()->toDateString(), 'jumlah' => 100000, 'metode_bayar' => 'Tunai', 'bukti_path' => $path,
+            ]);
+        }
+
+        $this->assertEquals(0, DB::table('jersey_order_payments')->count());
+    }
 }
