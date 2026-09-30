@@ -71,6 +71,13 @@ return [
         'bank' => [11],
         'produk' => [13],
         'setting-harga' => [14],
+        // Route tier harga per-baris memakai segmen "xxx-harga/{id}" (bukan
+        // "xxx/{id}/..."), jadi TIDAK tertangkap prefix induknya - tanpa
+        // baris ini PATCH/DELETE-nya jatuh ke fail-closed 403 untuk semua
+        // role non-Administrator (akar bug "Jasa tidak bisa diedit/disimpan").
+        'setting-harga-tier' => [14],
+        'finishing-harga' => [21],
+        'jasa-harga' => [32],
         'harga-siap-cetak' => [14],
         'kategori' => [15],
 
