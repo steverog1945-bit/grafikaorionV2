@@ -212,7 +212,18 @@
            dijadikan pemicu dan tidak ada tombol yang ditambahkan. */
         window.qpPasang = function () {
             document.querySelectorAll('select').forEach(function (el) {
-                if (el.multiple || el.dataset.qpPasang) return;
+                if (el.multiple) return;
+                // Baris hasil cloneNode membawa tanda "sudah dipasang" dan tombolnya, tetapi TIDAK membawa
+                // penangan kliknya. Tombol salinan seperti itu dibuang supaya dipasang ulang dengan benar.
+                if (el.dataset.qpPasang) {
+                    const grupLama = el.closest('.qp-grup');
+                    const tombolLama = grupLama ? grupLama.querySelector('.qp-tombol') : null;
+                    if (!tombolLama || tombolLama._qpHidup) return;
+                    tombolLama.remove();
+                    grupLama.parentNode.insertBefore(el, grupLama);
+                    grupLama.remove();
+                    delete el.dataset.qpPasang;
+                }
                 if (el.hasAttribute('data-no-refresh')) return;
                 if (el.options.length < BATAS) return;
 
@@ -256,6 +267,7 @@
                 btn.setAttribute('aria-label', 'Cari cepat ' + (el.name || 'pilihan'));
                 btn.innerHTML = '<i class="fas fa-magnifying-glass"></i>';
                 btn.addEventListener('click', bukaPencari);
+                btn._qpHidup = true; // properti JS tidak ikut tersalin oleh cloneNode
 
                 const induk = anchor.parentNode;
                 const grup = document.createElement('div');
@@ -272,6 +284,21 @@
             // jeda pendek supaya kotaknya sudah ada.
             setTimeout(window.qpPasang, 300);
             setTimeout(window.qpPasang, 1200);
+
+            // Baris yang ditambahkan belakangan (Tambah Item, modal yang diisi ulang, hasil AJAX) juga harus
+            // mendapat tombol cari. Sebelumnya pemasangan hanya terjadi saat halaman dimuat, jadi tombol
+            // hilang mulai baris kedua. Pengamat ini memasang ulang setiap kali ada <select> baru di halaman.
+            let jadwal = null;
+            new MutationObserver(function (mutasi) {
+                const adaSelectBaru = mutasi.some(function (m) {
+                    return Array.prototype.some.call(m.addedNodes, function (n) {
+                        if (n.nodeType !== 1 || n.classList.contains('qp-grup') || n.classList.contains('qp-tombol')) return false;
+                        return n.matches('select, option') || !!n.querySelector('select');
+                    });
+                });
+                if (!adaSelectBaru || jadwal) return;
+                jadwal = setTimeout(function () { jadwal = null; window.qpPasang(); }, 60);
+            }).observe(document.body, { childList: true, subtree: true });
         });
     })();
 </script>

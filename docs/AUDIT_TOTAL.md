@@ -241,3 +241,8 @@ Pemeriksa baru `assertRantaiKartuStok`: tidak boleh ada dua mutasi yang berangka
 Performa halaman detail dan cetak (19 halaman, `oriondb`, hanya baca): terberat 35 query (detail nota) dan 31 (detail order jersey); tidak ada query yang berulang lebih dari 3 kali. Tidak ada temuan.
 
 Status audit konkurensi: semua alur uang dan stok yang teridentifikasi sudah diuji dengan proses sungguhan (12 skenario). Yang tersisa di luar konkurensi: keadaan kosong/galat per halaman, navigasi keyboard, dan kecepatan pada data besar.
+
+## 25. Tombol cari cepat hilang pada baris yang ditambahkan
+Akar: `partials/quick-picker` memasang tombol hanya saat halaman dimuat (dan 0,3 s / 1,2 s sesudahnya), sehingga `<select>` yang ditambahkan lewat "Tambah Item" tidak pernah mendapat tombol. Ini berlaku di semua form berbaris dinamis, bukan hanya Permintaan Pembelian.
+Perbaikan di satu tempat (berlaku untuk semua halaman): pengamat DOM memasang tombol setiap kali ada `<select>` atau `<option>` baru; baris hasil `cloneNode` (yang membawa tombol tanpa penangan klik) dipasang ulang.
+Diperiksa di browser: Permintaan Pembelian 1 baris -> 4 baris, 4 tombol, tombol baris baru memanggil pencari; Pesanan Pembelian 1 -> 3, 3 tombol. Penawaran tidak punya dropdown panjang di barisnya.
