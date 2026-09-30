@@ -24,7 +24,8 @@ class KasKecilController extends Controller
 
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
-        $query->whereDate('tanggal', '>=', $tglDari)->whereDate('tanggal', '<=', $tglSampai);
+        // Kolom `tanggal` bertipe DATE: bandingkan langsung (sargable), bukan whereDate()/DATE(kolom) yang mematikan indeks.
+        $query->where('tanggal', '>=', $tglDari)->where('tanggal', '<=', $tglSampai);
 
         if ($request->filled('id_kategori')) {
             $query->where('id_kategori', $request->id_kategori);

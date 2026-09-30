@@ -115,8 +115,8 @@ class DashboardEksekutifService
         return array_values(array_filter([
             $item('Pengajuan menunggu persetujuan', \App\Models\ApprovalRequest::where('status', 'Menunggu')->count(), 'approval.index'),
             $item('Bahan di bawah stok minimal', DB::table('bahan_baku')->where('status', 'aktif')->whereColumn('stok', '<', 'stok_minimal')->where('stok_minimal', '>', 0)->count(), 'laporan.stok-bahan'),
-            $item('PO melewati estimasi kedatangan', DB::table('purchase_orders')->whereIn('status', ['Dipesan', 'Diterima Sebagian'])->whereDate('tgl_pengiriman_estimasi', '<', now()->toDateString())->count(), 'purchase-order.index'),
-            $item('Faktur hutang lewat jatuh tempo', DB::table('pembelian_bahan')->whereNull('deleted_at')->where('status_pembayaran', 'Hutang')->whereDate('jatuh_tempo_tgl', '<', now()->toDateString())->count(), 'laporan.hutang'),
+            $item('PO melewati estimasi kedatangan', DB::table('purchase_orders')->whereIn('status', ['Dipesan', 'Diterima Sebagian'])->where('tgl_pengiriman_estimasi', '<', now()->toDateString())->count(), 'purchase-order.index'),
+            $item('Faktur hutang lewat jatuh tempo', DB::table('pembelian_bahan')->whereNull('deleted_at')->where('status_pembayaran', 'Hutang')->where('jatuh_tempo_tgl', '<', now()->toDateString())->count(), 'laporan.hutang'),
             $item('Nota belum lunas lebih dari 7 hari', DB::table('transaksi')->where('status_nota', 'Aktif')->where('status_pembayaran', '!=', 'Lunas')->where('tgl_order', '<', now()->subDays(7))->count(), 'laporan.piutang'),
             $item('Rework menunggu diproses', DB::table('rework')->where('status', 'Dibuka')->count(), 'qc.index'),
         ], fn ($p) => $p['jumlah'] > 0));
