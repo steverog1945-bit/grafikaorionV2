@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -85,7 +86,7 @@ class JasaController extends Controller
     {
         $request->validate($this->rules());
 
-        DB::table('jasa')->insert([
+        $id = DB::table('jasa')->insertGetId([
             'nama_jasa'         => $request->nama_jasa,
             'id_satuan'         => $request->id_satuan ?: null,
             'id_mesin'          => $request->id_mesin ?: null,
@@ -96,6 +97,8 @@ class JasaController extends Controller
             'created_at'        => now(),
             'updated_at'        => now(),
         ]);
+
+        AuditLogger::log('created', 'jasa', (int) $id, null, (array) DB::table('jasa')->where('id_jasa', $id)->first(), 'Jasa baru: ' . $request->nama_jasa);
 
         return redirect()->back()->with('success', 'Jasa berhasil ditambahkan.');
     }
@@ -108,7 +111,8 @@ class JasaController extends Controller
         // Tanpa cek ini, query update tidak menyentuh baris mana pun dan
         // tetap membalas "berhasil" - kasir mengira datanya tersimpan
         // padahal tidak ada yang berubah.
-        if (! DB::table('jasa')->where('id_jasa', $id)->exists()) {
+        $lama = DB::table('jasa')->where('id_jasa', $id)->first();
+        if (! $lama) {
             return redirect()->back()->with('error', 'Jasa tidak ditemukan.');
         }
 
@@ -123,12 +127,19 @@ class JasaController extends Controller
             'updated_at'        => now(),
         ]);
 
+        AuditLogger::log('updated', 'jasa', (int) $id, (array) $lama, (array) DB::table('jasa')->where('id_jasa', $id)->first(), 'Jasa diperbarui: ' . $request->nama_jasa);
+
         return redirect()->back()->with('success', 'Jasa berhasil diperbarui.');
     }
 
     public function destroy($id)
     {
+        $lama = DB::table('jasa')->where('id_jasa', $id)->first();
         DB::table('jasa')->where('id_jasa', $id)->delete();
+        if ($lama) {
+            AuditLogger::log('deleted', 'jasa', (int) $id, (array) $lama, null, 'Jasa dihapus: ' . $lama->nama_jasa);
+        }
+
         return redirect()->back()->with('success', 'Jasa berhasil dihapus.');
     }
 }

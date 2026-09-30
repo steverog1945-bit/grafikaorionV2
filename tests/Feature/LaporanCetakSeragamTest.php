@@ -17,8 +17,8 @@ class LaporanCetakSeragamTest extends TestCase
 
         foreach ([
             '/laporan/hpp' => 'Laporan HPP & Margin',
-            '/laporan/hutang' => 'Laporan Hutang Supplier',
-            '/laporan/job-costing' => 'Laporan Job Costing',
+            '/laporan/hutang' => 'Laporan Hutang Pemasok',
+            '/laporan/job-costing' => 'Laporan Biaya Pekerjaan',
         ] as $url => $judul) {
             $res = $this->actingAs($admin)->get($url)->assertOk();
             $res->assertSee('window.print()', false);

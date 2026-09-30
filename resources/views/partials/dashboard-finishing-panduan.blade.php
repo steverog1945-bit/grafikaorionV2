@@ -161,12 +161,12 @@ SVG,
                 </span>
                 <button type="button" onclick="gantiGambarFinishing(this)" title="Tampilkan ilustrasi cara kerja" class="absolute right-3 top-3 px-2.5 py-1.5 rounded-lg bg-white/90 text-slate-600 text-[10px] font-medium uppercase tracking-widest hover:bg-white shadow-sm">Ilustrasi</button>
             </div>
-            <div class="panel-ilustrasi hidden bg-gradient-to-br from-slate-50 to-indigo-50/40 px-4 pt-4 pb-2 relative kartu-ilustrasi">
+            <div class="panel-ilustrasi hidden bg-slate-50 px-4 pt-4 pb-2 relative kartu-ilustrasi">
                 <div class="w-full aspect-[8/5]">{!! $k['svg'] !!}</div>
                 <button type="button" onclick="gantiGambarFinishing(this)" title="Kembali ke foto" class="absolute right-3 top-3 px-2.5 py-1.5 rounded-lg bg-white text-slate-600 text-[10px] font-medium uppercase tracking-widest shadow-sm">Foto</button>
             </div>
             @else
-            <div class="panel-ilustrasi bg-gradient-to-br from-slate-50 to-indigo-50/40 px-4 pt-4 pb-2">
+            <div class="panel-ilustrasi bg-slate-50 px-4 pt-4 pb-2">
                 <div class="w-full aspect-[8/5]">{!! $k['svg'] !!}</div>
             </div>
             @endif

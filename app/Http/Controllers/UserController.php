@@ -42,8 +42,14 @@ class UserController extends Controller
             'username' => 'required|unique:users',
             // P1: aplikasi keuangan - minimal 8 karakter (sebelumnya 5).
             'password' => 'required|min:8',
-            'id_role' => 'required'
+            'id_role' => 'required|exists:roles,id_role'
         ]);
+
+        // Hanya Administrator yang boleh membuat akun berrole Administrator
+        // (atau role yang sama dengan dirinya bila dia bukan admin).
+        if (!\App\Support\Izin::bolehBerikanRole(Auth::user(), (int) $request->id_role)) {
+            abort(403, 'Role itu hanya bisa diberikan oleh Administrator. Pilih role lain untuk akun ini.');
+        }
 
         // password & id_role sengaja diisi lewat assignment eksplisit (bukan
         // mass-assignment) - keduanya bukan lagi $fillable di model User
@@ -55,6 +61,8 @@ class UserController extends Controller
         $user->password = Hash::make($request->password);
         $user->id_role = $request->id_role;
         $user->save();
+
+        \App\Services\AuditLogger::log('created', 'users', (int) $user->id_user, null, ['username' => $user->username, 'id_role' => (int) $user->id_role], 'Akun user baru dibuat');
 
         return back()->with('success', 'User berhasil dibuat!');
     }
@@ -68,10 +76,18 @@ class UserController extends Controller
     $request->validate([
         'username' => 'required|unique:users,username,' . (int) $id . ',id_user',
         'password' => 'nullable|min:8',
-        'id_role' => 'required'
+        'id_role' => 'required|exists:roles,id_role'
     ]);
 
     $user = User::findOrFail($id);
+
+    // Akun Administrator dan akun sendiri tidak boleh diubah oleh non-admin;
+    // role Administrator tidak boleh diberikan oleh non-admin.
+    if (!\App\Support\Izin::bolehKelolaUser(Auth::user(), $user) || !\App\Support\Izin::bolehBerikanRole(Auth::user(), (int) $request->id_role)) {
+        abort(403, 'Anda tidak berwenang mengubah akun atau role ini. Perubahan pada Administrator dan pada akun Anda sendiri dilakukan oleh Administrator.');
+    }
+
+    $roleLama = (int) $user->id_role;
     $user->username = $request->username;
     $user->id_role = $request->id_role;
 
@@ -82,7 +98,8 @@ class UserController extends Controller
 
     $user->save();
 
-    \App\Services\AuditLogger::log('updated', 'users', (int) $id, null, ['username' => $user->username, 'id_role' => (int) $user->id_role], 'Akun user diperbarui');
+    // Nilai password tidak pernah dicatat; hanya fakta bahwa password diganti.
+    \App\Services\AuditLogger::log('updated', 'users', (int) $id, ['id_role' => $roleLama], ['username' => $user->username, 'id_role' => (int) $user->id_role, 'password_diganti' => $request->filled('password')], $roleLama !== (int) $user->id_role ? 'Akun user diperbarui (role berubah)' : 'Akun user diperbarui');
 
     return back()->with('success', 'Akun user berhasil diperbarui!');
 }
@@ -92,6 +109,9 @@ public function destroy($id)
     $user = User::findOrFail($id);
     if ($user->id_user == Auth::id()) {
         return back()->with('error', 'Anda tidak bisa menghapus akun sendiri!');
+    }
+    if (!\App\Support\Izin::bolehKelolaUser(Auth::user(), $user)) {
+        abort(403, 'Akun Administrator hanya bisa dihapus oleh Administrator.');
     }
 
     // P1: cek relasi dulu - user yang masih tercatat sebagai kasir di nota
@@ -105,7 +125,22 @@ public function destroy($id)
         return back()->with('error', 'Akun ini masih tercatat pada data transaksi (sebagai kasir/pembatal nota) dan tidak bisa dihapus. Nonaktifkan akunnya lewat Setting Akses atau ganti rolenya, agar riwayat tetap utuh.');
     }
 
+    // Audit Fase 2: purchase_orders/purchase_requests/quotations/stock_opnames
+    // punya FK ON DELETE CASCADE ke users - menghapus user MEMBUANG seluruh
+    // dokumen yang dia buat (data bisnis hilang diam-diam). Tolak di sini.
+    $dokumen = [];
+    foreach (['purchase order' => 'purchase_orders', 'purchase request' => 'purchase_requests', 'quotation' => 'quotations', 'stock opname' => 'stock_opnames'] as $label => $tabel) {
+        if (DB::table($tabel)->where('id_user_pembuat', $id)->exists()) {
+            $dokumen[] = $label;
+        }
+    }
+    if ($dokumen !== []) {
+        return back()->with('error', 'Akun ini tercatat sebagai pembuat ' . implode(', ', $dokumen) . ' dan tidak bisa dihapus (dokumennya ikut terhapus). Ganti role/nonaktifkan akunnya saja.');
+    }
+
     $user->delete();
+    \App\Services\AuditLogger::log('deleted', 'users', (int) $id, ['username' => $user->username, 'id_role' => (int) $user->id_role], null, 'Akun user dihapus');
+
     return back()->with('success', 'Akun user berhasil dihapus!');
 }
 }

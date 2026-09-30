@@ -163,4 +163,84 @@ class JerseyAkuntansiTest extends TestCase
         $this->assertEquals(0, DB::table('jersey_order_payments')->count());
         $this->assertEquals('Belum Bayar', $o->fresh()->status_pembayaran);
     }
+
+    // ---- Audit H-1: kelebihan bayar & pembayaran ganda ----
+
+    public function test_pembayaran_melebihi_sisa_tagihan_ditolak_tanpa_jurnal_dan_tanpa_baris(): void
+    {
+        $o = $this->order(500000);
+
+        $this->bayar($o, 500001)->assertSessionHas('error');
+
+        $this->assertEquals(0, DB::table('jersey_order_payments')->count());
+        $this->assertEquals(500000, $this->saldo('1100'));
+        $this->assertEquals('Belum Bayar', $o->fresh()->status_pembayaran);
+    }
+
+    public function test_pembayaran_kedua_setelah_lunas_ditolak_bukan_menjadi_pembayaran_ganda(): void
+    {
+        $o = $this->order(500000);
+
+        $this->bayar($o, 500000)->assertSessionHas('success');
+        // Simulasi klik ganda / kasir kedua yang submit form lama dengan angka yang sama.
+        $this->bayar($o, 500000)->assertSessionHas('error');
+
+        $this->assertEquals(1, DB::table('jersey_order_payments')->count());
+        $this->assertEquals(500000, (float) DB::table('jersey_orders')->where('id', $o->id)->value('deposit'));
+        $this->assertEquals(0.0, $this->saldo('1100') + 0);
+        $this->assertEquals(1, DB::table('kas_kecil')->where('sumber', 'jersey')->count());
+    }
+
+    public function test_pembayaran_pas_sisa_setelah_cicilan_diterima(): void
+    {
+        $o = $this->order(1000000);
+
+        $this->bayar($o, 300000)->assertSessionHas('success');
+        $this->bayar($o, 700000.01)->assertSessionHas('error');
+        $this->bayar($o, 700000)->assertSessionHas('success');
+
+        $this->assertEquals('Lunas', $o->fresh()->status_pembayaran);
+    }
+
+    public function test_bukti_path_bebas_dari_klien_ditolak(): void
+    {
+        $o = $this->order(500000);
+
+        foreach (['../../.env', 'jersey_bukti_bayar/../../.env', 'lain/berkas.jpg', 'jersey_bukti_bayar/tidak-ada.jpg'] as $path) {
+            $this->post("/jersey/keuangan/{$o->id}/bayar", [
+                'tanggal_bayar' => now()->toDateString(), 'jumlah' => 100000, 'metode_bayar' => 'Tunai', 'bukti_path' => $path,
+            ]);
+        }
+
+        $this->assertEquals(0, DB::table('jersey_order_payments')->count());
+    }
+
+    /** Ringkasan Keuangan Jersey dihitung SQL - harus identik dengan aturan per-model (piutang, jatuh tempo = deadline hari ini/lewat & belum lunas). */
+    public function test_ringkasan_keuangan_jersey_dari_sql_sama_dengan_aturan_per_order(): void
+    {
+        $buat = fn (string $no, ?string $deadline, float $total, float $bayar = 0) => JerseyOrder::create([
+            'order_number' => $no, 'order_date' => now()->toDateString(), 'customer_name' => $no, 'deadline' => $deadline,
+            'additional_charge' => $total,
+        ]);
+        $kemarin = $buat('JO-KMR', now()->subDay()->toDateString(), 100000);
+        $hariIni = $buat('JO-INI', now()->toDateString(), 200000);
+        $besok = $buat('JO-BSK', now()->addDay()->toDateString(), 300000);
+        $tanpa = $buat('JO-NUL', null, 400000);
+        $lunasTelat = $buat('JO-LNS', now()->subDays(3)->toDateString(), 50000);
+        foreach ([$kemarin, $hariIni, $besok, $tanpa, $lunasTelat] as $o) {
+            $o->recalculateTotal();
+        }
+        $this->bayar($lunasTelat->fresh(), 50000)->assertSessionHas('success');
+        $this->bayar($hariIni->fresh(), 50000)->assertSessionHas('success'); // DP: sisa 150.000
+
+        $r = $this->get('/jersey/keuangan')->assertOk();
+
+        // Belum lunas: kemarin 100k + hari ini (200k-50k) + besok 300k + tanpa deadline 400k = 950k; order lunas tidak dihitung.
+        $this->assertEquals(950000, (float) $r->viewData('totalPiutang'));
+        // Telat: kemarin + hari ini (lunas tidak dihitung, besok & tanpa deadline bukan telat) = 2.
+        $this->assertSame(2, $r->viewData('jumlahJatuhTempo'));
+        // Konsisten dengan aturan per-model.
+        $perModel = JerseyOrder::whereIn('status_pembayaran', ['Belum Bayar', 'DP'])->get()->filter(fn ($o) => $o->jatuh_tempo)->count();
+        $this->assertSame($perModel, $r->viewData('jumlahJatuhTempo'));
+    }
 }

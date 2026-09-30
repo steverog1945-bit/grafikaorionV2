@@ -52,6 +52,7 @@ class PembelianOnlineTest extends TestCase
     {
         $tokped = DB::table('platform_belanja')->where('nama', 'Tokopedia')->value('id');
         $sup = DB::table('supplier')->insertGetId(['nama_supplier' => 'Toko Y', 'alamat' => '-', 'kontak' => '0']);
+        $gudang = DB::table('gudang')->insertGetId(['nama_gudang' => 'Utama']);
         $mesin = DB::table('mesin')->insertGetId(['nama_mesin' => 'M', 'tipe_mesin' => 'x']);
         $kat = DB::table('kategori')->insertGetId(['nama_kategori' => 'K']);
         $bahan = DB::table('bahan_baku')->insertGetId(['kode_bahan' => 'B1', 'nama_bahan' => 'Kain', 'id_mesin' => $mesin, 'id_kategori' => $kat, 'stok' => 0, 'nilai_konversi' => 1, 'satuan_stok' => 'm', 'status' => 'aktif']);
@@ -61,7 +62,7 @@ class PembelianOnlineTest extends TestCase
         $this->actingAs($this->admin)->post('/kedatangan-bahan', [
             'no_surat_jalan' => 'TP-777', 'id_supplier' => $sup, 'tgl_datang' => now()->toDateString(), 'id_platform' => $tokped,
             'nama_toko_online' => 'Toko Y Official', 'no_pesanan_online' => 'INV/2510/TP', 'no_resi' => 'JNE123',
-            'id_bahan' => [$bahan], 'qty' => [5],
+            'id_gudang' => $gudang, 'id_bahan' => [$bahan], 'qty' => [5],
         ])->assertRedirect();
 
         $k = KedatanganBahan::where('no_surat_jalan', 'TP-777')->firstOrFail();
@@ -71,7 +72,7 @@ class PembelianOnlineTest extends TestCase
         // Offline: info online dikosongkan walau terkirim.
         $this->actingAs($this->admin)->post('/kedatangan-bahan', [
             'no_surat_jalan' => 'OFF-1', 'id_supplier' => $sup, 'tgl_datang' => now()->toDateString(), 'no_resi' => 'ABAIKAN',
-            'id_bahan' => [$bahan], 'qty' => [1],
+            'id_gudang' => $gudang, 'id_bahan' => [$bahan], 'qty' => [1],
         ])->assertRedirect();
         $this->assertNull(KedatanganBahan::where('no_surat_jalan', 'OFF-1')->value('no_resi'));
     }
@@ -83,6 +84,8 @@ class PembelianOnlineTest extends TestCase
         $kat = DB::table('kategori')->insertGetId(['nama_kategori' => 'K']);
         $bahan = DB::table('bahan_baku')->insertGetId(['kode_bahan' => 'B2', 'nama_bahan' => 'Tinta', 'id_mesin' => $mesin, 'id_kategori' => $kat, 'stok' => 10, 'nilai_konversi' => 1, 'satuan_stok' => 'pcs', 'status' => 'aktif']);
         $k = KedatanganBahan::create(['no_surat_jalan' => 'SP-9', 'id_supplier' => $sup, 'tgl_datang' => now()->toDateString(), 'status' => 'Selesai']);
+        // Kedatangan Selesai yang realistis selalu punya detail bahan (penjaga server-side memeriksanya).
+        DB::table('kedatangan_bahan_detail')->insert(['id_kedatangan' => $k->id_kedatangan, 'id_bahan' => $bahan, 'qty' => 2, 'status' => 'OK']);
 
         $this->actingAs($this->admin)->post('/pembelian-bahan', [
             'id_kedatangan' => $k->id_kedatangan, 'no_faktur' => 'ONL-1', 'tgl_transaksi' => now()->toDateString(), 'tipe_pembelian' => 'Cash',

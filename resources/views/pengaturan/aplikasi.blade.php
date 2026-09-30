@@ -85,7 +85,7 @@
                         <div class="space-y-4">
                             <div>
                                 <div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Pratinjau (latar sidebar)</div>
-                                <div class="rounded-2xl px-6 py-8 flex items-center justify-center min-h-[130px]" style="background:linear-gradient(180deg,#0f172a,#17223b)">
+                                <div class="rounded-2xl px-6 py-8 flex items-center justify-center min-h-[130px]" style="background:#0f172a">
                                     @if($setting->logo_path)
                                         <div id="pratinjau-logo" class="sidebar-logo logo-{{ $lg['ukuran'] }} logo-gaya-{{ $lg['gaya'] }}">
                                             <img loading="lazy" decoding="async" id="pratinjau-logo-img" class="logo-full" src="{{ asset('storage/' . $setting->logo_path) }}" alt="Pratinjau logo">

@@ -147,7 +147,7 @@
     body.sidebar-collapsed aside .menu-group-toggle:hover .rail-icon,
     body.sidebar-collapsed aside .menu-group-toggle.flyout-open .rail-icon { background: rgba(255,255,255,0.14); color: #fff; transform: translateY(-1px); }
     body.sidebar-collapsed aside .menu-group-toggle.has-active .rail-icon {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+        background: #4f46e5; color: #fff;
     }
 
     /* Tampilan lebar: penanda grup yang berisi halaman aktif */
@@ -172,7 +172,7 @@
     #railFlyout .fly-title { padding: 6px 12px 10px; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #94a3b8; }
     #railFlyout a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: #e2e8f0; font-size: 14px; font-weight: 500; text-decoration: none; }
     #railFlyout a:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    #railFlyout a.fly-active { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: #fff; }
+    #railFlyout a.fly-active { background: #4f46e5; color: #fff; }
     #railFlyout a svg { width: 20px; height: 20px; flex-shrink: 0; color: #94a3b8; }
     #railFlyout a:hover svg, #railFlyout a.fly-active svg { color: #fff; }
     #railTip {
@@ -243,9 +243,7 @@
         gap: 12px;
         padding: 18px 24px;
         border-bottom: 1px solid #e2e8f0;
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: #ffffff;
     }
 
     /* Topbar mobile - sebelumnya sama persis dengan desktop (padding 18px
@@ -365,7 +363,7 @@
             $pemilikSb = $pembukaSb ? 'Anda' : (DB::table('users')->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')->where('users.id_user', $kasAktif->id_user)->value(DB::raw('COALESCE(karyawan.nama_karyawan, users.username)')) ?? '-');
             $umurTeks = $umurSb >= 1 ? floor($umurSb) . ' jam' : 'baru dibuka';
         @endphp
-        <div class="sidebar-kas-status group rounded-2xl px-3 py-2.5 flex items-center gap-3 border backdrop-blur-sm {{ $kasBasi ? 'bg-gradient-to-br from-amber-500/25 to-orange-500/10 border-amber-400/40' : 'bg-gradient-to-br from-emerald-500/20 to-teal-500/5 border-emerald-400/25' }}"
+        <div class="sidebar-kas-status group rounded-2xl px-3 py-2.5 flex items-center gap-3 border {{ $kasBasi ? 'bg-amber-500/15 border-amber-400/40' : 'bg-emerald-500/15 border-emerald-400/25' }}"
              title="{{ $kasBasi ? 'Kasir Open lebih dari 24 jam - belum di-closing' : 'Kasir: Open' }}">
             <span class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $kasBasi ? 'bg-amber-400/20 text-amber-300' : 'bg-emerald-400/20 text-emerald-300' }}">
                 <i class="fas {{ $kasBasi ? 'fa-triangle-exclamation' : 'fa-cash-register' }} text-sm"></i>

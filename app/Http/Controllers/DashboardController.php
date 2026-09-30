@@ -64,7 +64,7 @@ class DashboardController extends Controller
         [$mulaiKemarin, $akhirKemarin] = self::rentangHari($kemarin = now()->subDay()->format('Y-m-d'));
 
         // Piutang: SUM + COUNT digabung SATU scan (dulu dua query identik).
-        // $piutang TETAP float (dipakai number_format() langsung di blade).
+        // $piutang TETAP float (dipakai langsung oleh format angka di blade).
         $piutangRow = DB::table('transaksi')
             ->where('status_pembayaran', '!=', 'Lunas')
             ->where('status_nota', '!=', 'Dibatalkan')

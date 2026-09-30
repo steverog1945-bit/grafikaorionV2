@@ -158,7 +158,7 @@
                             <span class="text-slate-400">Tanpa order</span>
                         @endif
                     </td>
-                    <td class="text-right text-sm text-slate-600">{{ rtrim(rtrim(number_format($r->qty, 4, ',', ''), '0'), ',') }}</td>
+                    <td class="text-right text-sm text-slate-600">{{ angka($r->qty, 4) }}</td>
                     <td class="text-right text-sm text-slate-600">Rp {{ number_format($r->harga_snapshot, 0, ',', '.') }}</td>
                     <td class="text-right text-sm font-medium text-slate-700">Rp {{ number_format($r->total, 0, ',', '.') }}</td>
                     <td class="text-sm text-slate-500">{{ $r->username ?? '-' }}</td>

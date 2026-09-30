@@ -155,6 +155,6 @@ class ApprovalWorkflowTest extends TestCase
     {
         $response = $this->actingAs($this->admin())->get('/approval');
         $response->assertOk();
-        $response->assertSee('Approval Workflow');
+        $response->assertSee('Alur Persetujuan');
     }
 }

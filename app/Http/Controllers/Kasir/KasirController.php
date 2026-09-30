@@ -508,7 +508,7 @@ class KasirController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal: ' . $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal'));
         }
     }
 
@@ -623,7 +623,7 @@ class KasirController extends Controller
             return redirect()->route('kasir.kelola')->with('success', 'Mutasi kas tidak terduga berhasil dicatat.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('kasir.kelola')->with('error', 'Gagal mencatat: ' . $e->getMessage());
+            return redirect()->route('kasir.kelola')->with('error', \App\Support\PesanError::untuk($e, 'Gagal mencatat'));
         }
     }
 
@@ -901,7 +901,7 @@ public function simpanClosing(Request $request)
 
     } catch (\Exception $e) {
         DB::rollBack();
-        return back()->with('error', $e->getMessage());
+        return back()->with('error', \App\Support\PesanError::untuk($e));
     }
 }
 

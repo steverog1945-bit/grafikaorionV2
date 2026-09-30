@@ -22,6 +22,16 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle.write' => \App\Http\Middleware\ThrottleWriteRequests::class,
             'hanya.admin' => \App\Http\Middleware\HanyaAdministrator::class,
         ]);
+
+        // Otorisasi menu WAJIB berjalan sebelum route-model binding. Bawaan
+        // Laravel menaruh SubstituteBindings lebih dulu, sehingga pengguna
+        // tanpa izin mendapat 404 untuk id yang tidak ada dan 403 untuk id
+        // yang ada (keberadaan data bisa ditebak), dan query pencarian model
+        // berjalan sebelum izin diperiksa.
+        $middleware->prependToPriorityList(
+            before: \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            prepend: \App\Http\Middleware\CheckMenuAccess::class,
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Periode akuntansi ditutup: tampilkan pesan jelas, bukan halaman 500.

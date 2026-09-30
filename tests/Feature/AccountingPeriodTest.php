@@ -113,6 +113,6 @@ class AccountingPeriodTest extends TestCase
     {
         $response = $this->actingAs($this->admin())->get('/accounting-period');
         $response->assertOk();
-        $response->assertSee('Accounting Period');
+        $response->assertSee('Periode Akuntansi');
     }
 }

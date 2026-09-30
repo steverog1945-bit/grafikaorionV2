@@ -25,7 +25,7 @@ class AuditOwnerTest extends TestCase
     public function test_owner_bisa_buka_audit_dan_unduh_csv(): void
     {
         $o = $this->owner();
-        $this->actingAs($o)->get('/audit-owner?bulan=' . now()->format('Y-m'))->assertOk()->assertSee('Keadaan Keuangan')->assertSee('Pengurangan Bahan');
+        $this->actingAs($o)->get('/audit-owner?bulan=' . now()->format('Y-m'))->assertOk()->assertSee('Keuangan bulan ini')->assertSee('Pemakaian bahan');
         $this->actingAs($o)->get('/audit-owner/csv')->assertOk()->assertHeader('content-type', 'text/csv; charset=UTF-8');
         $this->actingAs($o)->get('/eksekutif')->assertOk();
         $this->actingAs($o)->get('/log-aktivitas')->assertOk();

@@ -196,7 +196,7 @@ class BahanBakuController extends Controller
                 return back()->with('success', 'Bahan baku dengan logika konversi berhasil disimpan!');
             });
         } catch (\Exception $e) {
-            return back()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal menyimpan'));
         }
     }
 
@@ -247,10 +247,30 @@ class BahanBakuController extends Controller
 
     public function destroy($id)
     {
+        // Audit Fase 2: penjagaan di tingkat aplikasi. Komentar migrasi bilang
+        // FK RESTRICT yang menolak hapus bahan berriwayat, tetapi FK itu tidak
+        // ada di database produksi (hilang saat pemulihan crash) - tanpa cek
+        // ini bahan berriwayat terhapus dan meninggalkan kartu_stok/BOM orphan.
+        $dipakai = [];
+        foreach ([
+            'kartu stok' => 'kartu_stok', 'BOM produk' => 'bom_detail', 'kedatangan bahan' => 'kedatangan_bahan_detail',
+            'pembelian' => 'pembelian_bahan_detail', 'nota penjualan' => 'transaksi_detail', 'purchase order' => 'purchase_order_details',
+            'purchase request' => 'purchase_request_details', 'stock opname' => 'stock_opname_details', 'waste' => 'waste_log',
+            'material jersey' => 'jersey_materials', 'potong stok jersey' => 'jersey_order_potong_stok',
+        ] as $label => $tabel) {
+            if (DB::table($tabel)->where('id_bahan', $id)->exists()) {
+                $dipakai[] = $label;
+            }
+        }
+        if ($dipakai !== []) {
+            return back()->with('error', 'Bahan tidak bisa dihapus karena sudah tercatat di: ' . implode(', ', $dipakai) . '. Nonaktifkan saja agar riwayatnya tetap utuh.');
+        }
+
         try {
             BahanBaku::destroy($id);
             return back()->with('success', 'Bahan berhasil dihapus.');
         } catch (\Exception $e) {
+            report($e);
             return back()->with('error', 'Gagal hapus! Data masih terikat dengan transaksi.');
         }
     }

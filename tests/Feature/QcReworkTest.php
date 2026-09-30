@@ -156,7 +156,7 @@ class QcReworkTest extends TestCase
 
     public function test_halaman_qc_render_dan_alur_lewat_http(): void
     {
-        $this->get('/qc')->assertOk()->assertSee('QC & Rework');
+        $this->get('/qc')->assertOk()->assertSee('QC & Reparasi');
         $this->get('/qc/create')->assertOk()->assertSee('INV-QC-001');
 
         $this->post('/qc', ['id_detail' => $this->idDetail, 'qty_diperiksa' => 100, 'qty_reject' => 5])->assertRedirect(route('qc.index'));

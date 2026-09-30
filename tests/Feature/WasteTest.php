@@ -119,7 +119,7 @@ class WasteTest extends TestCase
 
     public function test_halaman_waste_render_dan_akses_per_role(): void
     {
-        $this->get('/waste')->assertOk()->assertSee('Waste Management');
+        $this->get('/waste')->assertOk()->assertSee('Pengelolaan Limbah');
         $this->get('/waste/create')->assertOk()->assertSee('Flexi Korea');
 
         $roleGudang = Role::factory()->create(['nama_role' => 'Gudang']);

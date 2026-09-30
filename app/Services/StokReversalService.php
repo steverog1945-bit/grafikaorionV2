@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\DB;
  * berhasil dipakai reversal, baris snapshot dihapus (dalam transaksi yang
  * sama) sehingga satu item tidak bisa direversal dua kali (batal SPK ->
  * antrekan ulang -> batal lagi tidak mengembalikan stok dobel). Snapshot
- * kosong pada transaksi era-snapshot (>= 2026-10-14) berarti "tidak pernah
+ * kosong pada transaksi era-snapshot (>= SNAPSHOT_MULAI, 2026-09-27 21:26:42) berarti "tidak pernah
  * memotong stok" atau "sudah pernah direversal" - keduanya TIDAK
  * mengembalikan apa pun (tidak ada recompute BOM live). Fallback recompute
  * hanya untuk transaksi ERA LAMA (pra snapshot) yang memang tidak punya
@@ -40,6 +40,16 @@ use Illuminate\Support\Facades\DB;
  */
 class StokReversalService
 {
+    /**
+     * Saat snapshot transaksi_detail_bahan_pakai pertama kali tercatat di
+     * produksi (MIN(created_at) tabel itu, dikonfirmasi pemilik 2026-09-30).
+     * Audit H-2: sebelumnya di-hard-code 2026-10-14 - 17 hari lebih lambat
+     * dari kenyataan, sehingga nota era snapshot tanpa baris snapshot salah
+     * jatuh ke recompute BOM live (stok fiktif). JANGAN dimundurkan/dimajukan
+     * tanpa memeriksa data: nilainya fakta historis, bukan pengaturan.
+     */
+    public const SNAPSHOT_MULAI = '2026-09-27 21:26:42';
+
     /**
      * @param  object  $detail  Baris transaksi_detail (butuh id_detail, id_produk, p_ukuran, l_ukuran, qty)
      * @param  string  $referensi  Kode referensi untuk kartu_stok, mis. "BATAL-SPK-12" atau "BATAL-NOTA-5"
@@ -107,7 +117,7 @@ class StokReversalService
 
             // S1: snapshot kosong - maknanya bergantung ERA transaksi.
             //
-            // Era snapshot (order dibuat >= 2026-10-14): snapshot & baris OUT
+            // Era snapshot (order dibuat >= SNAPSHOT_MULAI): snapshot & baris OUT
             // kartu_stok selalu ditulis berpasangan dalam SATU transaksi saat
             // order dibuat. Snapshot kosong berarti SALAH SATU: (a) item ini
             // memang tidak pernah memotong stok (produk tanpa komponen BOM
@@ -118,7 +128,7 @@ class StokReversalService
             // TIDAK PERNAH dipotong kalau BOM diedit belakangan (stok fiktif),
             // (b) pasti dobel-reversal.
             //
-            // Era lama (pra 2026-10-14): pencatatan OUT saat order juga belum
+            // Era lama (pra SNAPSHOT_MULAI): pencatatan OUT saat order juga belum
             // ada - nota lama TIDAK punya baris OUT padahal stoknya benar
             // terpotong, dan tidak ada snapshot. Fallback recompute BOM adalah
             // satu-satunya cara; tetap dilindungi guard BATAL-SPK agar tidak
@@ -134,8 +144,18 @@ class StokReversalService
                 return [];
             }
 
-            $tglEra = $transaksiRef->tgl_order ?? $transaksiRef->created_at;
-            $eraSnapshot = $tglEra !== null && \Carbon\Carbon::parse($tglEra)->startOfDay()->gte('2026-10-14');
+            // Era snapshot HANYA bila created_at (jam tepat, tak boleh lebih
+            // awal dari SNAPSHOT_MULAI) DAN tanggal order sama-sama sesudah
+            // batas. Data impor lama yang created_at-nya baru tapi tgl_order
+            // lampau tetap diperlakukan sebagai era lama (ada stok terpotong
+            // tanpa snapshot -> fallback yang benar).
+            $mulai = \Carbon\Carbon::parse(self::SNAPSHOT_MULAI);
+            $tglOrder = $transaksiRef->tgl_order ?? null;
+            $dibuat = $transaksiRef->created_at ?? null;
+            $eraSnapshot = $dibuat !== null
+                ? \Carbon\Carbon::parse($dibuat)->gte($mulai)
+                    && ($tglOrder === null || \Carbon\Carbon::parse($tglOrder)->startOfDay()->gte($mulai->copy()->startOfDay()))
+                : ($tglOrder !== null && \Carbon\Carbon::parse($tglOrder)->startOfDay()->gte($mulai->copy()->startOfDay()));
             $adaOut = DB::table('kartu_stok')->where('tipe', 'OUT')->where('referensi', $noNota)->exists();
 
             if ($eraSnapshot) {

@@ -13,7 +13,7 @@
 
     {{-- Kas belum dibuka: pembayaran dikunci, nota tetap bisa disimpan sebagai antrean --}}
     @if(!$kasAktif)
-    <div class="mb-6 flex flex-wrap items-center gap-4 rounded-3xl bg-gradient-to-r from-amber-50 to-orange-50/40 border border-amber-100 px-6 py-4">
+    <div class="mb-6 flex flex-wrap items-center gap-4 rounded-3xl bg-amber-50 border border-amber-100 px-6 py-4">
         <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="fas fa-exclamation-triangle"></i></div>
         <div class="flex-1 min-w-[200px]">
             <p class="text-sm font-medium text-amber-800">Kas kasir belum dibuka</p>
@@ -36,7 +36,7 @@
 
                 {{-- Info nota & konsumen --}}
                 <div class="flex flex-wrap items-center gap-4 rounded-3xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] px-6 py-5">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-400 flex items-center justify-center shrink-0"><i class="fas fa-user text-lg"></i></div>
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-400 flex items-center justify-center shrink-0"><i class="fas fa-user text-lg"></i></div>
                     <div class="flex-1 min-w-0">
                         <p class="text-lg font-medium text-slate-800 truncate">{{ $transaksi->nama_konsumen }}</p>
                         <p class="text-xs text-slate-400 mt-0.5">Nota <span class="font-medium text-slate-500">#{{ $transaksi->nomor_nota }}</span> &middot; {{ \Carbon\Carbon::parse($transaksi->tgl_order)->format('d M Y, H:i') }}</p>
@@ -215,7 +215,7 @@
 
             {{-- ===================== KOLOM KANAN: ringkasan & aksi (menempel saat scroll) ===================== --}}
             <div class="xl:col-span-4 xl:sticky xl:top-6 space-y-6">
-                <div class="rounded-3xl bg-gradient-to-br from-indigo-50 via-white to-violet-50/60 border border-indigo-100/70 shadow-[0_8px_30px_rgba(79,70,229,0.08)] p-6 relative overflow-hidden">
+                <div class="rounded-3xl bg-indigo-50 border border-indigo-100/70 shadow-[0_8px_30px_rgba(79,70,229,0.08)] p-6 relative overflow-hidden">
                     @if($totalTerbayar > 0)
                     <span class="absolute top-4 right-4 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-medium">Sudah dibayar Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</span>
                     @endif
@@ -267,7 +267,7 @@
                         <button type="button" onclick="simpanSaja()" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white border border-slate-100 hover:border-indigo-200 text-slate-500 hover:text-indigo-600 font-medium text-xs transition-all">
                             <i class="fas fa-inbox"></i> Simpan
                         </button>
-                        <button type="submit" {{ !$kasAktif ? 'disabled title="Kas belum dibuka - lihat peringatan di atas"' : '' }} class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-medium text-xs shadow-lg shadow-indigo-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
+                        <button type="submit" {{ !$kasAktif ? 'disabled title="Kas belum dibuka - lihat peringatan di atas"' : '' }} class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-xs shadow-lg shadow-indigo-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
                             <i class="fas fa-cash-register"></i> Bayar
                         </button>
                     </div>

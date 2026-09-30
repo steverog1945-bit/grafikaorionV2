@@ -729,7 +729,7 @@ html:not(.dark) aside .sidebar-kas-status .text-slate-500 {
 }
 
 /* Latar kartu status: gradient transparan -> warna pastel solid */
-html:not(.dark) aside .sidebar-kas-status.bg-gradient-to-br {
+html:not(.dark) aside .sidebar-kas-status.border-amber-400\/40 {
     background-image: none !important;
     background-color: #fffbeb !important; /* amber-50, "Belum di-closing" */
     border-color: #fcd34d !important; /* amber-300 */

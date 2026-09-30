@@ -57,6 +57,47 @@ class Izin
         return optional(optional($user)->role)->nama_role === 'Administrator';
     }
 
+    /**
+     * Pengelola akun/hak akses yang BUKAN Administrator (mis. staf yang diberi
+     * menu Data User atau Setting Akses) tidak boleh menaikkan hak siapa pun
+     * ke atas dirinya: tidak boleh menyentuh role Administrator, role miliknya
+     * sendiri, maupun akun Administrator dan akunnya sendiri. Tanpa batas ini
+     * satu izin menu "Data User" sama dengan izin penuh (buat akun admin atau
+     * naikkan diri sendiri). Dicek di SERVER, bukan disembunyikan di tampilan.
+     */
+    public static function bolehKelolaRole(?User $aktor, int $idRole): bool
+    {
+        if (self::adalahAdmin($aktor)) {
+            return true;
+        }
+        if (!$aktor || (int) $aktor->id_role === $idRole) {
+            return false;
+        }
+        $nama = DB::table('roles')->where('id_role', $idRole)->value('nama_role');
+
+        return $nama !== null && $nama !== 'Administrator';
+    }
+
+    /** Memberikan role KE AKUN: non-admin boleh memberi role apa pun kecuali Administrator (role sendiri setara, bukan kenaikan). */
+    public static function bolehBerikanRole(?User $aktor, int $idRole): bool
+    {
+        if (self::adalahAdmin($aktor)) {
+            return true;
+        }
+        $nama = DB::table('roles')->where('id_role', $idRole)->value('nama_role');
+
+        return $aktor !== null && $nama !== null && $nama !== 'Administrator';
+    }
+
+    public static function bolehKelolaUser(?User $aktor, User $target): bool
+    {
+        if (self::adalahAdmin($aktor)) {
+            return true;
+        }
+
+        return $aktor && (int) $aktor->id_user !== (int) $target->id_user && !self::adalahAdmin($target);
+    }
+
     /** Boleh melakukan $aksi pada salah satu menu di $idMenus? */
     public static function boleh(?User $user, array $idMenus, string $aksi = 'view'): bool
     {

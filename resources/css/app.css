@@ -672,7 +672,7 @@ html.dark .prose-post img { box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
 /* Editor: kartu tanpa overflow-hidden agar toolbar sticky; toolbar menempel di bawah topbar */
 .editor-kartu { overflow: visible !important; }
 #editor-postingan { min-height: 420px; font-size: 1rem; }
-.toolbar-postingan.ql-toolbar.ql-snow { position: sticky; top: calc(var(--tinggi-topbar, 78px) + 8px); z-index: 20; border: 0 !important; border-top: 1px solid #eef1f4 !important; border-bottom: 1px solid #e2e8f0 !important; background: rgba(248, 250, 252, .97); backdrop-filter: blur(6px); padding: 8px 14px !important; display: flex; flex-wrap: wrap; align-items: center; row-gap: 4px; box-shadow: 0 6px 14px -10px rgba(15, 23, 42, .25); }
+.toolbar-postingan.ql-toolbar.ql-snow { position: sticky; top: calc(var(--tinggi-topbar, 78px) + 8px); z-index: 20; border: 0 !important; border-top: 1px solid #eef1f4 !important; border-bottom: 1px solid #e2e8f0 !important; background: #f8fafc; padding: 8px 14px !important; display: flex; flex-wrap: wrap; align-items: center; row-gap: 4px; box-shadow: 0 6px 14px -10px rgba(15, 23, 42, .25); }
 .toolbar-postingan .ql-formats { margin-right: 10px !important; display: inline-flex; align-items: center; padding-right: 10px; border-right: 1px solid #e2e8f0; }
 .toolbar-postingan .ql-formats:last-child { border-right: 0; }
 .toolbar-postingan button { border-radius: 8px; }

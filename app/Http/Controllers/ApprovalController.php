@@ -45,7 +45,7 @@ class ApprovalController extends Controller
                 $request->input('catatan')
             );
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menyetujui: ' . $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal menyetujui'));
         }
 
         if ($approvalRequest->tipe_aksi === 'purchase_request') {
@@ -66,7 +66,7 @@ class ApprovalController extends Controller
                 fn (array $payload) => $this->eksekusiPenolakan($approvalRequest)
             );
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menolak: ' . $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal menolak'));
         }
 
         return back()->with('success', 'Pengajuan ditolak.');

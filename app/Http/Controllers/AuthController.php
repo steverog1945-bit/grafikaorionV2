@@ -2,12 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    public function showLogin() { return view('login'); }
+    public function showLogin()
+    {
+        // Sudah login -> langsung ke dashboard, bukan menampilkan form login lagi.
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
+        return response()->view('login')->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+        ]);
+    }
 
     public function login(Request $request)
     {
@@ -19,31 +31,29 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // Kunci sesi: URL "intended" adalah jejak SESI LAMA (dibulatkan
-            // oleh redirect() saat user dipaksa ke /login, atau URL terakhir
-            // sebelum logout di browser yang sama). Tidak boleh dipercaya
-            // mentah-mentah: role BARU yang baru saja login bisa saja tidak
-            // punya izin melihat halaman itu (mis. halaman khusus
-            // Administrator) dan langsung menabrak 403. Validasikan dulu
-            // dengan aturan yang SAMA dengan CheckMenuAccess; kalau gagal,
-            // jatuh ke dashboard - halaman yang aman untuk semua role.
-            $tujuan = 'dashboard';
-            $intended = $request->session()->get('url.intended');
+            // Selalu mendarat di Dashboard. URL "intended" (jejak halaman
+            // terakhir sesi lama / halaman yang memaksa login) sengaja
+            // DIBUANG: sesi baru harus mulai bersih dari dashboard, dan role
+            // baru tidak boleh terbawa ke halaman yang tidak berhak dilihat.
+            $request->session()->forget('url.intended');
 
-            if (is_string($intended) && $intended !== '') {
-                $path = trim(parse_url($intended, PHP_URL_PATH) ?: '', '/');
+            AuditLogger::log('login', 'users', (int) $request->user()->id_user, null, null, 'Masuk ke sistem');
 
-                if ($path !== '' && \App\Support\Izin::bolehPath($request->user(), $path)) {
-                    $tujuan = $intended;
-                }
-
-                // Selalu dihapus: sesi baru harus mulai bersih, jejak sesi
-                // lama tidak boleh hidup lagi di dalamnya.
-                $request->session()->remove('url.intended');
-            }
-
-            return redirect()->to($tujuan);
+            return redirect()->route('dashboard');
         }
+
+        // Username yang diketik HANYA dicatat bila memang akun yang ada: orang
+        // sering salah mengetik password di kolom username, dan itu tidak boleh
+        // berakhir di log. Password tidak pernah dicatat.
+        $dikenal = User::where('username', $credentials['username'])->value('id_user');
+        AuditLogger::log(
+            'login_gagal',
+            'users',
+            $dikenal ? (int) $dikenal : null,
+            null,
+            null,
+            $dikenal ? 'Percobaan masuk gagal untuk akun ' . $credentials['username'] : 'Percobaan masuk gagal (username tidak dikenal)'
+        );
 
         return back()->withErrors(['username' => 'User tidak ditemukan atau password salah.']);
     }
@@ -56,6 +66,10 @@ class AuthController extends Controller
         // sesi lama yang tidak berhak dia lihat - inilah akar bug
         // "logout lalu login akun produksi = error 403".
         $request->session()->remove('url.intended');
+
+        if (Auth::check()) {
+            AuditLogger::log('logout', 'users', (int) Auth::id(), null, null, 'Keluar dari sistem');
+        }
 
         Auth::logout();
         $request->session()->invalidate();

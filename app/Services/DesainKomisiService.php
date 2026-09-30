@@ -52,7 +52,9 @@ class DesainKomisiService
         return DB::table('transaksi_detail as d')->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
             ->where('d.id_desainer', $idDesainer)->where('d.komisi_status', 'Belum')->where('d.komisi_desain', '>', 0)
             ->where('t.status_nota', '!=', 'Dibatalkan')->where('d.status_spk', '!=', 'Batal')
-            ->whereDate('t.tgl_order', '>=', $dari)->whereDate('t.tgl_order', '<=', $sampai);
+            // tgl_order = TIMESTAMP: rentang [dari 00:00, sampai+1 hari 00:00) - sargable, hasil sama dengan whereDate.
+            ->where('t.tgl_order', '>=', \Carbon\Carbon::parse($dari)->startOfDay())
+            ->where('t.tgl_order', '<', \Carbon\Carbon::parse($sampai)->addDay()->startOfDay());
     }
 
     /** Bayar semua komisi "Belum" seorang desainer di rentang tanggal: satu pengeluaran Kas Kecil + status baris jadi Dibayar. */

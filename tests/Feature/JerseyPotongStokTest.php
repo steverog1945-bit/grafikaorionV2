@@ -96,4 +96,42 @@ class JerseyPotongStokTest extends TestCase
         DB::table('jersey_materials')->update(['id_bahan' => null]);
         $this->assertSame([], JerseyStokService::kebutuhan($this->idOrder));
     }
+
+    public function test_pengembalian_memakai_catatan_potongan_asli_walau_estimasi_material_berubah_setelahnya(): void
+    {
+        $order = JerseyOrder::find($this->idOrder);
+        DB::transaction(function () use ($order) {
+            $order->update(['status' => 'proses']);
+            JerseyStokService::selaraskan($order);
+        });
+        $this->assertEqualsWithDelta(19.35, $this->stok(), 0.0001);
+
+        // Estimasi kain berubah SETELAH dipotong (mis. edit material): 6,0 kg -> 9,0 kg.
+        DB::table('jersey_order_line_materials')->update(['penggunaan_kg' => 4.5]);
+        DB::table('bahan_baku')->where('id_bahan', $this->idBahan)->update(['harga_rata_rata' => 99000]); // harga juga berubah
+
+        DB::transaction(fn () => JerseyStokService::kembalikan($order->fresh()));
+
+        // Kembali persis yang dipotong dulu (6,0 kg), bukan 9,0 kg hasil estimasi baru.
+        $this->assertEqualsWithDelta(25.35, $this->stok(), 0.0001);
+        $this->assertEqualsWithDelta(0.0, $this->saldoHpp(), 0.01, 'HPP dibalik sebesar biaya asli (6 kg x 58.000), bukan harga baru');
+    }
+
+    public function test_dua_pengembalian_berturutan_dari_objek_basi_tidak_menambah_stok_dua_kali(): void
+    {
+        $order = JerseyOrder::find($this->idOrder);
+        DB::transaction(function () use ($order) {
+            $order->update(['status' => 'proses']);
+            JerseyStokService::selaraskan($order);
+        });
+
+        // Dua pemanggil memegang objek order yang SAMA-SAMA basi (masih menganggap stok terpotong).
+        $a = JerseyOrder::find($this->idOrder);
+        $b = JerseyOrder::find($this->idOrder);
+        DB::transaction(fn () => JerseyStokService::kembalikan($a));
+        DB::transaction(fn () => JerseyStokService::kembalikan($b));
+
+        $this->assertEqualsWithDelta(25.35, $this->stok(), 0.0001, 'Stok tidak boleh melebihi awal');
+        $this->assertEquals(1, DB::table('kartu_stok')->where('tipe', 'IN')->where('id_bahan', $this->idBahan)->count(), 'Satu bahan -> tepat satu baris IN pengembalian');
+    }
 }

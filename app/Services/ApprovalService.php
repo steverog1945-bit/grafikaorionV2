@@ -59,6 +59,25 @@ class ApprovalService
                 throw new \RuntimeException('Pengajuan ini sudah diputuskan sebelumnya (status: ' . $fresh->status . ').');
             }
 
+            // Pemisahan tugas (maker-checker): yang mengajukan tidak menyetujui
+            // pengajuannya sendiri selama masih ada Administrator lain yang bisa
+            // memutuskan. Bila dia satu-satunya Administrator, tetap boleh
+            // (usaha kecil tidak boleh terkunci sendiri) tetapi keputusan diberi
+            // catatan supaya pemeriksa tahu tidak ada orang kedua yang menilai.
+            if ((int) $fresh->requested_by === (int) Auth::id()) {
+                $adaPenyetujuLain = DB::table('users')
+                    ->join('roles', 'roles.id_role', '=', 'users.id_role')
+                    ->where('roles.nama_role', 'Administrator')
+                    ->where('users.id_user', '!=', Auth::id())
+                    ->exists();
+
+                if ($adaPenyetujuLain) {
+                    throw new \RuntimeException('Anda tidak bisa menyetujui pengajuan yang Anda buat sendiri. Minta Administrator lain untuk memutuskannya.');
+                }
+
+                $catatan = trim(($catatan ? $catatan . ' | ' : '') . 'Disetujui oleh pengaju sendiri (tidak ada Administrator lain).');
+            }
+
             $eksekusi($fresh->payload ?? []);
 
             $fresh->update([

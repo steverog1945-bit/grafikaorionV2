@@ -24,7 +24,7 @@ class QuotationController extends Controller
 
         if ($request->filled('status')) {
             if ($request->status === 'Kedaluwarsa') {
-                $query->whereIn('status', ['Draft', 'Terkirim'])->whereDate('berlaku_sampai', '<', now()->toDateString());
+                $query->whereIn('status', ['Draft', 'Terkirim'])->where('berlaku_sampai', '<', now()->toDateString());
             } else {
                 $query->where('status', $request->status);
             }
@@ -45,7 +45,7 @@ class QuotationController extends Controller
         try {
             $q = QuotationService::simpan($this->validasi($request));
         } catch (\RuntimeException $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e));
         }
 
         return redirect()->route('quotation.edit', $q->id)->with('success', "Penawaran {$q->nomor} disimpan sebagai Draft.");
@@ -67,7 +67,7 @@ class QuotationController extends Controller
         try {
             QuotationService::simpan($this->validasi($request), $quotation);
         } catch (\RuntimeException $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e));
         }
 
         return back()->with('success', 'Penawaran diperbarui.');
@@ -78,7 +78,7 @@ class QuotationController extends Controller
         try {
             QuotationService::kirim($quotation);
         } catch (\RuntimeException $e) {
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e));
         }
 
         return back()->with('success', 'Penawaran ditandai terkirim ke pelanggan.');
@@ -91,7 +91,7 @@ class QuotationController extends Controller
         try {
             QuotationService::tanggapi($quotation, $request->keputusan);
         } catch (\RuntimeException $e) {
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e));
         }
 
         if ($request->keputusan === 'Disetujui') {

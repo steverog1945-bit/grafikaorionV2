@@ -38,9 +38,14 @@ class JerseyFinanceController extends Controller
 
         // Ringkasan dashboard - dihitung dari SELURUH order (bukan cuma
         // halaman yang sedang tampil) supaya angkanya benar-benar total.
-        $semuaBelumLunas = JerseyOrder::whereIn('status_pembayaran', ['Belum Bayar', 'DP'])->get();
-        $totalPiutang = $semuaBelumLunas->sum(fn ($o) => max(0, (float) $o->total - (float) $o->deposit));
-        $jumlahJatuhTempo = $semuaBelumLunas->filter(fn ($o) => $o->jatuh_tempo)->count();
+        // Dihitung DATABASE (satu query agregat), bukan memuat semua order ke PHP lalu sum/filter.
+        $ringkas = JerseyOrder::whereIn('status_pembayaran', ['Belum Bayar', 'DP'])
+            ->selectRaw('COALESCE(SUM(GREATEST(total - deposit, 0)), 0) as piutang')
+            // Sama dengan JerseyOrder::getJatuhTempoAttribute(): deadline (kolom tanggal) hari ini atau lebih lama = telat.
+            ->selectRaw('COALESCE(SUM(deadline IS NOT NULL AND deadline <= ?), 0) as telat', [now()->toDateString()])
+            ->first();
+        $totalPiutang = (float) $ringkas->piutang;
+        $jumlahJatuhTempo = (int) $ringkas->telat;
 
         $awalBulan = now()->startOfMonth();
         $totalDiterimaBulanIni = JerseyOrderPayment::where('tanggal_bayar', '>=', $awalBulan)->sum('jumlah');
@@ -54,12 +59,34 @@ class JerseyFinanceController extends Controller
             'tanggal_bayar' => 'required|date',
             'jumlah' => 'required|numeric|min:1',
             'metode_bayar' => 'required|in:Tunai,Transfer,QRIS,Lainnya',
-            'bukti_path' => 'nullable|string|max:255',
+            // bukti_path HANYA boleh berasal dari uploadBukti() (folder & berkas
+            // harus benar-benar ada) - bukan string bebas dari klien.
+            'bukti_path' => ['nullable', 'string', 'max:255', 'regex:#^jersey_bukti_bayar/[A-Za-z0-9._-]+$#'],
             'keterangan' => 'nullable|string|max:500',
         ]);
 
+        if (!empty($data['bukti_path']) && !\Illuminate\Support\Facades\Storage::disk('public')->exists($data['bukti_path'])) {
+            return back()->withInput()->with('error', 'Berkas bukti bayar tidak ditemukan. Unggah ulang bukti bayarnya.');
+        }
+
         try {
-        DB::transaction(function () use ($data, $order) {
+        DB::transaction(function () use ($data, &$order) {
+            // Audit H-1: gembok baris order DULU, baru hitung sisa & tulis.
+            // Dua kasir / klik ganda untuk order yang sama kini antre; yang
+            // kedua melihat sisa yang sudah berkurang dan ditolak, bukan
+            // menghasilkan pembayaran + jurnal ganda.
+            $order = JerseyOrder::whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            $sudahDibayar = (float) $order->payments()->sum('jumlah');
+            $sisa = round((float) $order->total - $sudahDibayar, 2);
+
+            if ($sisa <= 0) {
+                throw new \RuntimeException('Order ini sudah lunas - tidak ada sisa tagihan.');
+            }
+            if ((float) $data['jumlah'] - $sisa > 0.004) {
+                throw new \RuntimeException('Jumlah melebihi sisa tagihan (Rp ' . number_format($sisa, 0, ',', '.') . '). Masukkan maksimal sebesar sisa tagihan.');
+            }
+
             $payment = $order->payments()->create([
                 'tanggal_bayar' => $data['tanggal_bayar'],
                 'jumlah' => $data['jumlah'],
@@ -74,7 +101,7 @@ class JerseyFinanceController extends Controller
         } catch (\RuntimeException $e) {
             // Mis. periode akuntansi sudah ditutup - seluruh transaksi
             // (termasuk baris pembayaran) sudah di-rollback.
-            return back()->withInput()->with('error', 'Pembayaran gagal dicatat: ' . $e->getMessage());
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Pembayaran gagal dicatat'));
         }
 
         return back()->with('success', 'Pembayaran berhasil dicatat.');

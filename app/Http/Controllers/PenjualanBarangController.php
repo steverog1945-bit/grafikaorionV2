@@ -302,7 +302,7 @@ class PenjualanBarangController extends Controller
             return redirect()->route('kasir.bayarForm', $idTransaksi)->with('success', "Penjualan barang {$no_nota} berhasil dibuat. Lanjutkan ke pembayaran.");
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menyimpan: ' . $e->getMessage())->withInput();
+            return redirect()->back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal menyimpan'))->withInput();
         }
     }
 }

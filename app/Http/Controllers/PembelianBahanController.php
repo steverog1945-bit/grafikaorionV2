@@ -32,11 +32,11 @@ class PembelianBahanController extends Controller
         }
 
         if ($request->filled('from')) {
-            $query->whereDate('tgl_transaksi', '>=', $request->from);
+            $query->where('tgl_transaksi', '>=', $request->from); // DATE: sargable
         }
 
         if ($request->filled('to')) {
-            $query->whereDate('tgl_transaksi', '<=', $request->to);
+            $query->where('tgl_transaksi', '<=', $request->to);
         }
 
         // Filter jatuh tempo: telat / jatuh tempo <= 7 hari (hanya faktur yang masih berhutang).
@@ -152,6 +152,27 @@ public function kedatanganDetail(Request $request)
         DB::beginTransaction();
 
         try{
+
+            // Audit Fase 2: penjaga SERVER-SIDE (dulu hanya filter dropdown di
+            // create()). Gembok baris kedatangan supaya dua submit bersamaan /
+            // klik ganda antre; yang kedua melihat faktur sudah ada dan ditolak
+            // - bukan faktur ganda + jurnal ganda + harga rata-rata dihitung dua kali.
+            $kedatangan = DB::table('kedatangan_bahan')->where('id_kedatangan', $request->id_kedatangan)->lockForUpdate()->first();
+            if (!$kedatangan) {
+                throw new \RuntimeException('Kedatangan bahan tidak ditemukan.');
+            }
+            if ($kedatangan->status !== 'Selesai') {
+                throw new \RuntimeException('Faktur hanya bisa dibuat dari kedatangan yang sudah berstatus Selesai.');
+            }
+            if (DB::table('pembelian_bahan')->where('id_kedatangan', $kedatangan->id_kedatangan)->whereNull('deleted_at')->exists()) {
+                throw new \RuntimeException('Kedatangan ini sudah punya faktur pembelian.');
+            }
+            $bahanKedatangan = DB::table('kedatangan_bahan_detail')->where('id_kedatangan', $kedatangan->id_kedatangan)->pluck('id_bahan')->map(fn ($b) => (int) $b)->all();
+            foreach ($request->id_bahan as $idBahanInput) {
+                if (!in_array((int) $idBahanInput, $bahanKedatangan, true)) {
+                    throw new \RuntimeException('Ada bahan pada faktur yang tidak termasuk dalam kedatangan ini.');
+                }
+            }
 
             $includePajak = $request->boolean('include_pajak');
 
@@ -269,10 +290,19 @@ public function kedatanganDetail(Request $request)
             return redirect()->route('pembelian-bahan.index')
                 ->with('success','Pembelian berhasil disimpan');
 
+        }catch(\RuntimeException $e){
+
+            // Pesan bisnis yang memang ditujukan ke operator (periode ditutup,
+            // kedatangan sudah difaktur, dst).
+            DB::rollBack();
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e));
+
         }catch(\Exception $e){
 
+            // Selain itu (SQL, bug): detail hanya ke log, bukan ke layar.
             DB::rollBack();
-            return back()->with('error',$e->getMessage());
+            report($e);
+            return back()->withInput()->with('error','Pembelian gagal disimpan karena kesalahan sistem. Data tidak tersimpan; coba lagi atau hubungi Administrator.');
 
         }
 
@@ -481,7 +511,7 @@ public function pelunasan(Request $request, $id)
 
         return redirect()->back()->with('success', 'Pembayaran hutang Rp ' . number_format($nominal, 0, ',', '.') . ' berhasil dicatat.');
     } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'Gagal membayar: ' . $e->getMessage());
+        return redirect()->back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal membayar'));
     }
 }
 /** Data untuk layar pelunasan: ?faktur=ID (satu faktur) atau ?supplier=ID (semua hutang supplier). */
@@ -529,7 +559,7 @@ public function bayarSupplier(Request $request, $idSupplier)
     try {
         $hasil = \App\Services\PembayaranHutangService::bayarSupplier((int) $idSupplier, (float) $data['nominal'], $data['metode'], $data['tanggal'] ?? null, $data['keterangan'] ?? null);
     } catch (\Exception $e) {
-        return back()->with('error', 'Gagal membayar: ' . $e->getMessage());
+        return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal membayar'));
     }
 
     return back()->with('success', 'Pembayaran hutang Rp ' . number_format((float) $data['nominal'], 0, ',', '.') . ' dibagi ke ' . count($hasil) . ' faktur: ' . collect($hasil)->map(fn ($h) => "{$h['no_faktur']} (Rp " . number_format($h['nominal'], 0, ',', '.') . ')')->implode(', ') . '.');

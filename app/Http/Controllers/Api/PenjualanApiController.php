@@ -20,7 +20,7 @@ class PenjualanApiController extends Controller
 
             return response()->json($produk);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => \App\Support\PesanError::untuk($e)], 500);
         }
     }
 
@@ -31,7 +31,7 @@ class PenjualanApiController extends Controller
 
             return response()->json($hasil);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => \App\Support\PesanError::untuk($e)], 500);
         }
     }
 
@@ -48,7 +48,7 @@ class PenjualanApiController extends Controller
 
             return response()->json(['harga' => $harga]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => \App\Support\PesanError::untuk($e)], 500);
         }
     }
 
@@ -64,7 +64,7 @@ class PenjualanApiController extends Controller
 
             return response()->json(['harga' => $harga]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => \App\Support\PesanError::untuk($e)], 500);
         }
     }
 
