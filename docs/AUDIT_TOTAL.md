@@ -200,3 +200,14 @@ Belum diukur: halaman ber-parameter (detail nota, cetak, ekspor) dan waktu query
 | SEDANG | Tanggal dokumen bebas (kas kecil, setoran deposit, pembayaran jersey, kedatangan bahan, pembelian dan pembayaran hutang, catatan jahit), padahal jurnal selalu bertanggal hari ini | Dokumen bisa dimundurkan ke bulan yang sudah ditutup (laporan operasional bulan itu berubah setelah tutup buku) atau diberi tanggal masa depan | Aturan `App\Rules\TanggalTransaksi`: tidak melewati hari ini dan tidak di periode tertutup, dipasang di 8 titik |
 | KEEP | Semua jurnal lewat `postJournal` yang menolak periode tertutup; buka/tutup periode tercatat di audit (`Auditable`); `audit:integritas` lulus di `oriondb` | - | - |
 Tes: `TutupPeriodeKontrolTest` (6 kasus). Tidak diubah: tanggal dokumen non-keuangan (penawaran, PR, PO, opname, promo).
+
+## 21. Audit konkurensi dengan proses sungguhan, SPK jersey, kembalian
+| Severity | Temuan | Bukti | Perbaikan |
+|---|---|---|---|
+| KRITIS | Pelunasan ganda: beberapa pembayaran bersamaan untuk nota yang sama semuanya tercatat | `PembayaranParalelTest`: 6 proses PHP membayar lunas nota Rp 50.000 pada saat yang sama, 6 pembayaran tercatat (Rp 300.000) | Akar: MySQL REPEATABLE READ memotret data pada bacaan pertama transaksi; kunci nota diambil setelah bacaan lain, sehingga "total sudah dibayar" dihitung dari potret lama. Kunci nota kini bacaan pertama, dan koneksi memakai READ COMMITTED (`config/database.php`) |
+| KRITIS | Deposit terpakai dua kali lewat dua nota berbeda milik pelanggan yang sama | Uji yang sama: saldo Rp 50.000 terpakai Rp 100.000 | Tertutup oleh READ COMMITTED (kunci pelanggan kini efektif) |
+| Catatan | Temuan di bagian sebelumnya bahwa konkurensi "KEEP" hanya benar untuk klik ganda berurutan; tes lama berjalan dalam satu proses sehingga tidak bisa menangkap ini | - | Tes proses paralel masuk suite (3 kasus) |
+| Permintaan | SPK jersey: rib dan kerah tercampur | - | Rib dipisah dari kain jersey di tabel bahan (tidak ikut total) dan komponen Rib dinonaktifkan di master; order lama tidak diubah |
+| Permintaan | Cetak SPK di bawah 13px | diukur di browser: tidak ada teks di bawah 13px, huruf Inter | `partials/spk-print-style` (berlaku juga untuk SPK cetak reguler) |
+| Permintaan | Nota jersey (thermal dan A4) menampilkan estimasi bahan | - | Dihapus dari nota; estimasi hanya ada di SPK |
+| Permintaan | Kembalian | Kasir utama sudah menampilkan kembalian, tetapi server MENOLAK uang tunai yang lebih besar dari tagihan | Tunai boleh lebih: yang dicatat sebesar sisa tagihan, kembalian ditampilkan langsung dan di pesan sukses. Non-tunai yang melebihi tetap ditolak. Berlaku di kasir utama dan Catat Pembayaran jersey |

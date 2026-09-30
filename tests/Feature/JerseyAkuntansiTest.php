@@ -170,11 +170,25 @@ class JerseyAkuntansiTest extends TestCase
     {
         $o = $this->order(500000);
 
-        $this->bayar($o, 500001)->assertSessionHas('error');
+        // Non-tunai tidak punya kembalian: lebih dari sisa ditolak.
+        $this->bayar($o, 500001, 'Transfer')->assertSessionHas('error');
 
         $this->assertEquals(0, DB::table('jersey_order_payments')->count());
         $this->assertEquals(500000, $this->saldo('1100'));
         $this->assertEquals('Belum Bayar', $o->fresh()->status_pembayaran);
+    }
+
+    public function test_tunai_lebih_dari_sisa_dicatat_sebesar_sisa_dan_kembalian_diberitahukan(): void
+    {
+        $o = $this->order(500000);
+
+        $r = $this->bayar($o, 600000);
+
+        $r->assertSessionHas('success');
+        $this->assertStringContainsString('Kembalian untuk pelanggan: Rp 100.000', session('success'));
+        $this->assertEquals(500000, (float) DB::table('jersey_order_payments')->sum('jumlah'));
+        $this->assertEquals(0.0, $this->saldo('1100') + 0);
+        $this->assertEquals('Lunas', $o->fresh()->status_pembayaran);
     }
 
     public function test_pembayaran_kedua_setelah_lunas_ditolak_bukan_menjadi_pembayaran_ganda(): void
@@ -196,7 +210,7 @@ class JerseyAkuntansiTest extends TestCase
         $o = $this->order(1000000);
 
         $this->bayar($o, 300000)->assertSessionHas('success');
-        $this->bayar($o, 700000.01)->assertSessionHas('error');
+        $this->bayar($o, 700000.01, 'Transfer')->assertSessionHas('error');
         $this->bayar($o, 700000)->assertSessionHas('success');
 
         $this->assertEquals('Lunas', $o->fresh()->status_pembayaran);

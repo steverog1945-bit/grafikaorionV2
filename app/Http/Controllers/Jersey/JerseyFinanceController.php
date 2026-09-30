@@ -58,6 +58,7 @@ class JerseyFinanceController extends Controller
         $data = $request->validate([
             'tanggal_bayar' => ['required', 'date', new \App\Rules\TanggalTransaksi],
             'jumlah' => 'required|numeric|min:1',
+            'uang_diterima' => 'nullable|numeric|min:0',
             'metode_bayar' => 'required|in:Tunai,Transfer,QRIS,Lainnya',
             // bukti_path HANYA boleh berasal dari uploadBukti() (folder & berkas
             // harus benar-benar ada) - bukan string bebas dari klien.
@@ -70,7 +71,8 @@ class JerseyFinanceController extends Controller
         }
 
         try {
-        DB::transaction(function () use ($data, &$order) {
+        $kembalian = 0.0;
+        DB::transaction(function () use (&$data, &$order, &$kembalian) {
             // Audit H-1: gembok baris order DULU, baru hitung sisa & tulis.
             // Dua kasir / klik ganda untuk order yang sama kini antre; yang
             // kedua melihat sisa yang sudah berkurang dan ditolak, bukan
@@ -82,6 +84,11 @@ class JerseyFinanceController extends Controller
 
             if ($sisa <= 0) {
                 throw new \RuntimeException('Order ini sudah lunas - tidak ada sisa tagihan.');
+            }
+            // Tunai: uang yang diserahkan boleh lebih dari sisa tagihan; yang dicatat sebesar sisa, selebihnya kembalian.
+            if ($data['metode_bayar'] === 'Tunai' && (float) $data['jumlah'] - $sisa > 0.004) {
+                $kembalian = round((float) $data['jumlah'] - $sisa, 2);
+                $data['jumlah'] = $sisa;
             }
             if ((float) $data['jumlah'] - $sisa > 0.004) {
                 throw new \RuntimeException('Jumlah melebihi sisa tagihan (Rp ' . number_format($sisa, 0, ',', '.') . '). Masukkan maksimal sebesar sisa tagihan.');
@@ -104,7 +111,7 @@ class JerseyFinanceController extends Controller
             return back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Pembayaran gagal dicatat'));
         }
 
-        return back()->with('success', 'Pembayaran berhasil dicatat.');
+        return back()->with('success', 'Pembayaran berhasil dicatat.' . ($kembalian > 0 ? ' Kembalian untuk pelanggan: Rp ' . number_format($kembalian, 0, ',', '.') . '.' : ''));
     }
 
     /**

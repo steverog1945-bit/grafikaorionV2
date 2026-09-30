@@ -223,6 +223,7 @@ class KasirController extends Controller
             // Terbukti dengan uji proses paralel: 6 pelunasan bersamaan semuanya tercatat (6x tagihan).
             DB::table('transaksi')->where('id_transaksi', $id_transaksi)->lockForUpdate()->first();
             $uangDiterimaSekarang = (float) (str_replace('.', '', $request->jumlah_bayar) ?: 0);
+            $kembalian = 0.0;
             $diskon = (float) str_replace('.', '', $request->diskon ?? 0);
             $metode = $request->metode_pembayaran;
 
@@ -377,7 +378,14 @@ class KasirController extends Controller
                 $totalBayarLama = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id_transaksi)->sum('nominal');
                 $sisaTagihan = $grandTotalFinal - $totalBayarLama;
                 if ($uangDiterimaSekarang - $sisaTagihan > 0.01) {
-                    throw new \Exception("Pembayaran melebihi sisa tagihan. Sisa tagihan: Rp " . number_format(max(0, $sisaTagihan), 0, ',', '.') . ".");
+                    // Uang tunai yang diserahkan boleh lebih besar dari tagihan: selisihnya kembalian, bukan
+                    // pembayaran. Yang masuk ke riwayat, kas, dan jurnal tetap sebesar sisa tagihan. Nota yang
+                    // sudah lunas tetap ditolak, dan metode non-tunai tidak punya kembalian.
+                    if ($metode !== 'Tunai' || $sisaTagihan <= 0.01) {
+                        throw new \Exception("Pembayaran melebihi sisa tagihan. Sisa tagihan: Rp " . number_format(max(0, $sisaTagihan), 0, ',', '.') . ".");
+                    }
+                    $kembalian = round($uangDiterimaSekarang - $sisaTagihan, 2);
+                    $uangDiterimaSekarang = round($sisaTagihan, 2);
                 }
             }
 
@@ -521,7 +529,8 @@ class KasirController extends Controller
 
             DB::commit();
             \App\Support\JalurLanjut::set('Pekerjaan masuk antrian produksi', 'spk.index', 'Lihat Antrian SPK');
-            return redirect()->route('kasir.index')->with('success', 'Transaksi berhasil diproses ke Monitoring.');
+            return redirect()->route('kasir.index')->with('success', 'Transaksi berhasil diproses ke Monitoring.'
+                . ($kembalian > 0 ? ' Kembalian untuk pelanggan: Rp ' . number_format($kembalian, 0, ',', '.') . '.' : ''));
 
         } catch (\Exception $e) {
             DB::rollBack();

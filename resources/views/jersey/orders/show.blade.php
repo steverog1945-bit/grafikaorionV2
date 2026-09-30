@@ -284,6 +284,11 @@
                     <input type="hidden" name="jumlah" id="pembayaran-jumlah">
                 </x-form.group>
             </div>
+            {{-- Hitungan langsung: sisa setelah pembayaran ini, atau kembalian bila uangnya lebih. --}}
+            <div id="pembayaran-hitung" class="mb-4 flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-sm" data-sisa="{{ (float) $order->sisa_tagihan }}" aria-live="polite">
+                <span id="pembayaran-hitung-label" class="text-slate-500">Sisa setelah pembayaran ini</span>
+                <span id="pembayaran-hitung-nilai" class="font-medium text-slate-700">Rp {{ number_format($order->sisa_tagihan, 0, ',', '.') }}</span>
+            </div>
             <x-form.group label="Metode Bayar" class="mb-4">
                 <x-form.select name="metode_bayar">
                     @foreach(['Tunai', 'Transfer', 'QRIS', 'Lainnya'] as $m)
@@ -424,6 +429,37 @@
             statusEl.classList.add('text-rose-500');
         }
     }
+
+    // Hitungan langsung pembayaran: kurang, pas, atau kembalian.
+    (function () {
+        const kotak = document.getElementById('pembayaran-hitung');
+        const label = document.getElementById('pembayaran-hitung-label');
+        const nilai = document.getElementById('pembayaran-hitung-nilai');
+        const isian = document.getElementById('pembayaran-jumlah-display');
+        const metode = document.querySelector('#form-tambah-pembayaran [name="metode_bayar"]');
+        const sisa = parseFloat(kotak.dataset.sisa) || 0;
+        const rp = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+        function hitung() {
+            const bayar = cleanRupiah(isian.value) || 0;
+            const selisih = bayar - sisa;
+            nilai.className = 'font-medium';
+            if (selisih > 0 && metode.value === 'Tunai') {
+                label.textContent = 'Kembalian untuk pelanggan';
+                nilai.textContent = rp(selisih);
+                nilai.classList.add('text-emerald-600');
+            } else if (selisih > 0) {
+                label.textContent = 'Melebihi sisa tagihan (non-tunai tidak ada kembalian)';
+                nilai.textContent = rp(selisih);
+                nilai.classList.add('text-rose-600');
+            } else {
+                label.textContent = selisih === 0 ? 'Lunas, tanpa kembalian' : 'Sisa setelah pembayaran ini';
+                nilai.textContent = rp(Math.abs(selisih));
+                nilai.classList.add(selisih === 0 ? 'text-emerald-600' : 'text-slate-700');
+            }
+        }
+        isian.addEventListener('input', hitung);
+        metode.addEventListener('change', hitung);
+    })();
 
     document.getElementById('form-tambah-pembayaran').addEventListener('submit', (e) => {
         document.getElementById('pembayaran-jumlah').value = cleanRupiah(document.getElementById('pembayaran-jumlah-display').value);

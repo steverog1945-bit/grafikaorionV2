@@ -60,29 +60,10 @@
             </tbody>
         </table>
 
-        @if($order->lines->contains(fn ($l) => $l->materials->isNotEmpty()))
-        <div class="divider divider-tight"></div>
-        <table>
-            <thead><tr><th>Kebutuhan Bahan (estimasi)</th><th class="right">Meter</th><th class="right">Berat</th></tr></thead>
-            <tbody>
-                @foreach($order->lines as $line)
-                    @if($line->materials->isNotEmpty())
-                    <tr><td colspan="3"><strong>{{ $line->nama_barang }}</strong> ({{ angka($line->qty, 4) }} pcs)</td></tr>
-                    @foreach($line->materials as $m)
-                    <tr>
-                        <td>&nbsp;&nbsp;{{ $m->nama_barang }}</td>
-                        <td class="right">{{ $m->penggunaan_meter !== null ? number_format($m->penggunaan_meter, 2, ',', '.') . ' m' : '-' }}</td>
-                        <td class="right">{{ $m->penggunaan_kg !== null ? \App\Services\JerseyMaterialEstimationService::formatBeratGram($m->penggunaan_kg * 1000) : '-' }}</td>
-                    </tr>
-                    @endforeach
-                    @endif
-                @endforeach
-            </tbody>
-        </table>
-        @endif
+        {{-- Estimasi kebutuhan bahan SENGAJA tidak dicetak di nota: nota dipegang pelanggan, sedangkan
+             pemakaian bahan adalah data internal perusahaan. Estimasi hanya ada di SPK (dokumen produksi). --}}
 
         @php
-            $totalBeratKg = $order->lines->flatMap->materials->sum('penggunaan_kg');
 
             $totalUkuranOrder = [];
             foreach ($order->lines as $line) {
@@ -97,14 +78,11 @@
             }
             uasort($totalUkuranOrder, fn ($a, $b) => $a['sort'] <=> $b['sort']);
         @endphp
-        @if(!empty($totalUkuranOrder) || $totalBeratKg > 0)
+        @if(!empty($totalUkuranOrder))
         <div class="divider divider-tight"></div>
         <table class="table-compact">
             @if(!empty($totalUkuranOrder))
             <tr><td>Total Ukuran</td><td class="right">{{ collect($totalUkuranOrder)->map(fn ($v, $k) => "{$k}: {$v['qty']}")->implode(', ') }}</td></tr>
-            @endif
-            @if($totalBeratKg > 0)
-            <tr><td>Estimasi Total Berat Bahan</td><td class="right">{{ \App\Services\JerseyMaterialEstimationService::formatBeratGram($totalBeratKg * 1000) }}</td></tr>
             @endif
         </table>
         @endif

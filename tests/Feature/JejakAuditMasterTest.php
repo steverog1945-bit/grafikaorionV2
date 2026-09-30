@@ -147,5 +147,13 @@ class JejakAuditMasterTest extends TestCase
         $this->assertEquals(20000, $baru['nominal']);
         $this->assertSame('Tunai', $baru['metode']);
         $this->assertSame(1, $this->log('pembayaran_riwayat')->count(), 'Klik ganda tidak boleh menghasilkan dua catatan');
+
+        // Tunai lebih dari sisa (sisa 30.000, uang 50.000): dicatat 30.000, kembalian 20.000 diberitahukan.
+        $r = $this->post('/kasir/proses-bayar', ['id_transaksi' => $idTrx, 'jumlah_bayar' => '50.000', 'metode_pembayaran' => 'Tunai', 'submit_id' => 'uji-124']);
+        $this->assertStringContainsString('Kembalian untuk pelanggan: Rp 20.000', (string) session('success'));
+        $this->assertEquals(50000, (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $idTrx)->sum('nominal'));
+        // Sudah lunas: uang berikutnya ditolak, bukan dianggap kembalian.
+        $this->post('/kasir/proses-bayar', ['id_transaksi' => $idTrx, 'jumlah_bayar' => '10.000', 'metode_pembayaran' => 'Tunai', 'submit_id' => 'uji-125']);
+        $this->assertEquals(50000, (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $idTrx)->sum('nominal'));
     }
 }

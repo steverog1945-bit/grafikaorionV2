@@ -436,7 +436,8 @@
         } else {
             statusLabel.innerText = "LUNAS";
             statusLabel.className = "px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-medium";
-            labelSelisih.innerText = "KEMBALIAN";
+            const metodeDipilih = document.querySelector('[name="metode_pembayaran"]:checked, select[name="metode_pembayaran"]')?.value;
+            labelSelisih.innerText = selisih > 0 && metodeDipilih && metodeDipilih !== 'Tunai' ? "LEBIH (non-tunai tidak ada kembalian)" : "KEMBALIAN";
             displaySelisih.innerText = 'Rp ' + formatRupiah(selisih);
         }
     }
@@ -499,6 +500,7 @@
     // Pembayaran" di atasnya - sama-sama radio yang disamarkan (sr-only),
     // tampilannya digambar ulang lewat class toggle di label pembungkusnya.
     function onMetodePembayaranChange() {
+        setTimeout(calculateInvoice, 0); // label kembalian/lebih mengikuti metode
         document.querySelectorAll('.metode-bayar-option').forEach(label => {
             const input = label.querySelector('input');
             const isChecked = input.checked;
