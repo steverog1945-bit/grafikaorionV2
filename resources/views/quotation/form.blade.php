@@ -88,7 +88,7 @@
                         <label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Produk</label>
                         <select name="items[{{ $i }}][id_produk]" class="w-full rounded-xl border-slate-200 text-sm p-2" {{ $editable ? '' : 'disabled' }}>
                             <option value="">-- Pilih --</option>
-                            @foreach($produkList as $p)<option value="{{ $p->id_produk }}" {{ ($r['id_produk'] ?? '') == $p->id_produk ? 'selected' : '' }}>{{ $p->nama_produk }}</option>@endforeach
+                            @foreach($produkList as $p)<option value="{{ $p->id_produk }}" data-metode="{{ $p->metode_hitung }}" {{ ($r['id_produk'] ?? '') == $p->id_produk ? 'selected' : '' }}>{{ $p->nama_produk }}</option>@endforeach
                         </select>
                     </div>
                     <div class="col-span-2 md:col-span-2" data-blok-jasa style="display:none">
@@ -98,9 +98,9 @@
                             @foreach($jasaList as $j)<option value="{{ $j->id_jasa }}" {{ ($r['id_jasa'] ?? '') == $j->id_jasa ? 'selected' : '' }}>{{ $j->nama_jasa }}</option>@endforeach
                         </select>
                     </div>
-                    <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">P (cm)</label>
+                    <div data-blok-produk data-blok-ukuran><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">P (cm)</label>
                         <input type="number" step="0.01" min="0" name="items[{{ $i }}][p]" value="{{ $r['p'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
-                    <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">L (cm)</label>
+                    <div data-blok-produk data-blok-ukuran><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">L (cm)</label>
                         <input type="number" step="0.01" min="0" name="items[{{ $i }}][l]" value="{{ $r['l'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
                     <div><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Qty</label>
                         <input type="number" step="0.01" min="0.01" name="items[{{ $i }}][qty]" value="{{ $r['qty'] ?? '' }}" required class="w-full rounded-xl border-slate-200 text-sm p-2 text-right" {{ $editable ? '' : 'disabled' }}></div>
@@ -196,11 +196,11 @@
                 <div><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Tipe</label>
                     <select name="items[__I__][tipe]" data-tipe onchange="ubahTipe(this)" class="w-full rounded-xl border-slate-200 text-sm p-2"><option value="Produk">Produk</option><option value="Jasa">Jasa</option></select></div>
                 <div class="col-span-2 md:col-span-2" data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Produk</label>
-                    <select name="items[__I__][id_produk]" class="w-full rounded-xl border-slate-200 text-sm p-2"><option value="">-- Pilih --</option>@foreach($produkList as $p)<option value="{{ $p->id_produk }}">{{ $p->nama_produk }}</option>@endforeach</select></div>
+                    <select name="items[__I__][id_produk]" class="w-full rounded-xl border-slate-200 text-sm p-2"><option value="">-- Pilih --</option>@foreach($produkList as $p)<option value="{{ $p->id_produk }}" data-metode="{{ $p->metode_hitung }}">{{ $p->nama_produk }}</option>@endforeach</select></div>
                 <div class="col-span-2 md:col-span-2" data-blok-jasa style="display:none"><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Jasa</label>
                     <select name="items[__I__][id_jasa]" class="w-full rounded-xl border-slate-200 text-sm p-2"><option value="">-- Pilih --</option>@foreach($jasaList as $j)<option value="{{ $j->id_jasa }}">{{ $j->nama_jasa }}</option>@endforeach</select></div>
-                <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">P (cm)</label><input type="number" step="0.01" min="0" name="items[__I__][p]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
-                <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">L (cm)</label><input type="number" step="0.01" min="0" name="items[__I__][l]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
+                <div data-blok-produk data-blok-ukuran><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">P (cm)</label><input type="number" step="0.01" min="0" name="items[__I__][p]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
+                <div data-blok-produk data-blok-ukuran><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">L (cm)</label><input type="number" step="0.01" min="0" name="items[__I__][l]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
                 <div><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Qty</label><input type="number" step="0.01" min="0.01" name="items[__I__][qty]" required class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></div>
                 <div><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Harga satuan (kosong = otomatis)</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][harga_satuan]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
                 <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Finishing</label>
@@ -222,10 +222,29 @@
         const jasa = sel.value === 'Jasa', row = sel.closest('[data-row]');
         row.querySelectorAll('[data-blok-produk]').forEach(e => e.style.display = jasa ? 'none' : '');
         row.querySelectorAll('[data-blok-jasa]').forEach(e => e.style.display = jasa ? '' : 'none');
+        aturUkuran(row);
     }
+
+    // Kolom P dan L hanya untuk produk yang dihitung per ukuran (spanduk, stiker meteran). Produk yang
+    // dihitung per qty cukup qty saja; nilai P/L yang tersisa dikosongkan supaya tidak ikut tersimpan.
+    function aturUkuran(row) {
+        const jasa = row.querySelector('[data-tipe]').value === 'Jasa';
+        const opsi = row.querySelector('select[name$="[id_produk]"]').selectedOptions[0];
+        const perluUkuran = !jasa && !!opsi && opsi.dataset.metode === 'ukuran';
+        row.querySelectorAll('[data-blok-ukuran]').forEach(function (e) {
+            e.style.display = perluUkuran ? '' : 'none';
+            const isian = e.querySelector('input');
+            isian.required = perluUkuran && !isian.disabled;
+            if (!perluUkuran) isian.value = '';
+        });
+    }
+    document.addEventListener('change', function (e) {
+        if (e.target.matches('select[name$="[id_produk]"]')) aturUkuran(e.target.closest('[data-row]'));
+    });
 
     function tambahBaris() {
         document.getElementById('item-rows').insertAdjacentHTML('beforeend', document.getElementById('row-template').innerHTML.replaceAll('__I__', nextIndex++));
+        aturUkuran(document.getElementById('item-rows').lastElementChild);
     }
 
     document.querySelectorAll('[data-tipe]').forEach(ubahTipe);

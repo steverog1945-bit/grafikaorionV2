@@ -13,6 +13,31 @@
         '4xl' => 'max-w-4xl', '5xl' => 'max-w-5xl', '6xl' => 'max-w-6xl',
     ];
     $widthClass = $widths[$maxWidth] ?? $widths['lg'];
+
+    // Tombol di slot footer dirender DI LUAR <form> yang ada di isi modal (footer adalah saudara isi, bukan
+    // anaknya), jadi tombol type="submit" di sana tidak terhubung ke form mana pun: diklik tidak terjadi
+    // apa-apa, dan Enter di isian juga tidak mengirim. Di sini tombol itu dihubungkan lewat atribut form=.
+    // Hanya dilakukan bila isi modal punya tepat satu form; tombol yang sudah punya form= tidak disentuh.
+    $isiModal = (string) $slot;
+    $kakiModal = isset($footer) ? (string) $footer : null;
+    if ($kakiModal !== null && preg_match_all('/<form\b[^>]*>/i', $isiModal, $cocok) === 1) {
+        $tagForm = $cocok[0][0];
+        if (preg_match('/\bid\s*=\s*"([^"]+)"/i', $tagForm, $idCocok)) {
+            $idForm = $idCocok[1];
+        } else {
+            $idForm = 'modal-' . $id . '-form';
+            $isiModal = str_replace($tagForm, preg_replace('/^<form\b/i', '<form id="' . e($idForm) . '"', $tagForm), $isiModal);
+        }
+        $kakiModal = preg_replace_callback('/<(button|input)\b[^>]*>/i', function ($m) use ($idForm) {
+            $tag = $m[0];
+            $submit = preg_match('/\btype\s*=\s*"submit"/i', $tag) || (strtolower($m[1]) === 'button' && !preg_match('/\btype\s*=/i', $tag));
+            if (!$submit || preg_match('/\bform\s*=/i', $tag)) {
+                return $tag;
+            }
+
+            return preg_replace('/^<(button|input)\b/i', '<$1 form="' . e($idForm) . '"', $tag);
+        }, $kakiModal);
+    }
 @endphp
 
 {{-- Root memakai hidden (atribut), bukan kelas `hidden`.
@@ -69,12 +94,12 @@
 
         {{-- Isi modal boleh menggulir sendiri, kepala & kaki tetap diam. --}}
         <div class="p-5 overflow-y-auto grow min-h-0">
-            {{ $slot }}
+            {!! $isiModal !!}
         </div>
 
         @isset($footer)
             <div class="flex items-center justify-end gap-2 px-5 py-3 border-t border-slate-200 shrink-0">
-                {{ $footer }}
+                {!! $kakiModal !!}
             </div>
         @endisset
     </div>

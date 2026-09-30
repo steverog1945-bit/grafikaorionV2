@@ -103,7 +103,7 @@ class QuotationController extends Controller
 
     public function cetak(Quotation $quotation)
     {
-        $quotation->load('items');
+        $quotation->load(['items', 'pembuat.karyawan']);
 
         return view('quotation.print', compact('quotation'));
     }

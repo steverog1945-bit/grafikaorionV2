@@ -1544,11 +1544,11 @@
             document.getElementById('input_l').value = item.l;
             document.getElementById('input_qty_ukuran').value = item.qty_input;
             document.getElementById('input_qty_biasa').value = item.qty_input;
-            document.getElementById('input_desain').value = formatRupiah(item.biaya_desain || 0);
+            document.getElementById('input_desain').value = formatRupiahDariAngka(item.biaya_desain);
             document.getElementById('input_desainer').value = item.id_desainer || '';
             document.getElementById('wrapper_desainer').classList.toggle('hidden', !(item.biaya_desain > 0));
             setSiapCetak(!!item.siap_cetak, true);
-            document.getElementById('input_cetak').value = formatRupiah(item.biaya_cetak || 0);
+            document.getElementById('input_cetak').value = formatRupiahDariAngka(item.biaya_cetak);
             // Finishing item lama: pulihkan ke DAFTAR (baris isian dikosongkan). Bentuk lama (tunggal) dijadikan satu elemen.
             finishingList = (item.finishing && item.finishing.length ? item.finishing : (item.id_finishing ? [{
                 id_finishing: item.id_finishing, nama: item.nama_finishing, metode: document.querySelector(`#select_finishing option[value="${item.id_finishing}"]`)?.dataset.metode || 'luas',

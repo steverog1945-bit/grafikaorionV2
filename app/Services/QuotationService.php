@@ -104,6 +104,12 @@ class QuotationService
 
         $p = (float) ($item['p'] ?? 0);
         $l = (float) ($item['l'] ?? 0);
+        // Produk yang dihitung per qty tidak punya ukuran: P/L yang ikut terkirim (mis. sisa isian sebelum
+        // produk diganti) dibuang supaya tidak tercetak di penawaran.
+        if ($produk->metode_hitung !== 'ukuran') {
+            $p = 0.0;
+            $l = 0.0;
+        }
         $qtyHitung = $produk->metode_hitung === 'ukuran' ? ($p * $l / 10000) * $qty : $qty;
 
         if ($qtyHitung <= 0) {

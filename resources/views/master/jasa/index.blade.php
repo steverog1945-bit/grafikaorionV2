@@ -193,7 +193,6 @@
         </div>
 
         <div>
-        <div>
             <label class="block text-[10px]">Unit Hitung</label>
             <select name="id_satuan"
                     class="w-full text-sm font-medium text-slate-700 appearance-none">
@@ -226,7 +225,6 @@
             </div>
         </div>
 
-        <div>
         <div>
             <label class="block text-[10px]">Keterangan Singkat</label>
             <textarea name="keterangan" placeholder="Keterangan jasa..."
@@ -264,7 +262,6 @@
         </div>
 
         <div>
-        <div>
             <label class="block text-[10px]">Unit Hitung</label>
             <select name="id_satuan" id="edit_id_satuan"
                     class="w-full text-sm font-medium text-slate-700 appearance-none">
@@ -294,7 +291,6 @@
             </div>
         </div>
 
-        <div>
         <div>
             <label class="block text-[10px]">Keterangan Singkat</label>
             <textarea name="keterangan" id="edit_keterangan"
@@ -384,8 +380,8 @@
         form.action = `{{ url('/jasa') }}/${data.id_jasa}`;
         document.getElementById('edit_nama_jasa').value = data.nama_jasa;
         document.getElementById('edit_id_mesin').value = data.id_mesin || '';
-        document.getElementById('edit_biaya_operasional').value = formatRupiah(data.biaya_operasional || 0);
-        document.getElementById('edit_biaya_tinta').value = formatRupiah(data.biaya_tinta || 0);
+        document.getElementById('edit_biaya_operasional').value = formatRupiahDariAngka(data.biaya_operasional);
+        document.getElementById('edit_biaya_tinta').value = formatRupiahDariAngka(data.biaya_tinta);
         document.getElementById('edit_id_satuan').value = data.id_satuan || '';
         document.getElementById('edit_harga_default').value = data.harga_default ? formatRupiahDariAngka(data.harga_default) : '';
         document.getElementById('edit_keterangan').value = data.keterangan || '';

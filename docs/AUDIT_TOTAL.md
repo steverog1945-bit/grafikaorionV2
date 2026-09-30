@@ -249,3 +249,16 @@ Diperiksa di browser: Permintaan Pembelian 1 baris -> 4 baris, 4 tombol, tombol 
 
 ## 26. Daftar Permintaan Pembelian: isi dan supplier
 Kolom baru di daftar: **Isi permintaan** (bahan, qty, satuan; tiga pertama tampil, sisanya dilipat) dan **Supplier**. PR sebelumnya tidak punya data supplier sama sekali, jadi ditambah kolom opsional `purchase_requests.id_supplier_rencana` (migrasi korektif, FK ke supplier, SET NULL) dan isian "Rencana supplier" di form. Bila PR sudah menjadi Pesanan Pembelian, daftar menampilkan supplier PO itu beserta nomornya. Supplier rencana menjadi isian awal saat membuat PO dari PR (bila kosong, tetap memakai tebakan lama dari riwayat pembelian). Tes: `PermintaanPembelianDaftarTest` (5 kasus, termasuk tanpa query per baris).
+
+## 27. Audit modal (semua halaman), penawaran
+Cara: 90 halaman dirender sebagai Administrator lalu diurai di browser (193 modal, 323 tombol submit, 482 pemanggilan buka/tutup modal).
+| Severity | Temuan | Cakupan | Perbaikan |
+|---|---|---|---|
+| TINGGI | Tombol "Simpan" di kaki modal berada di luar `<form>`: slot footer komponen `x-modal` dirender sebagai saudara isi, jadi tombol `type="submit"` tidak terhubung ke form mana pun. Diklik tidak terjadi apa-apa; Enter juga tidak mengirim | 38 tombol di 13 halaman: Jasa, Jasa Jahit, Golongan, Satuan, Kategori, Kategori Kas Kecil, Mesin, Merek, Jenis Bahan, Gudang, Karyawan, Akun, Deposit | Satu perbaikan di `components/modal.blade.php`: tombol submit di footer diberi atribut `form=` ke form di isi modal (form tanpa id diberi id). Berlaku otomatis untuk modal baru |
+| TINGGI | Master Jasa: dua `<div>` tidak ditutup di modal Tambah dan Edit, sehingga modal Edit dan modal Harga Bertingkat bersarang DI DALAM modal Tambah. Edit tidak pernah tampil; saat Tambah dibuka, modal lain ikut muncul bertumpuk di bawahnya | `/jasa` | 4 `<div>` liar dibuang |
+| TINGGI | Master Jasa, modal Edit: biaya operasional dan biaya tinta diisi dengan `formatRupiah("1500.00")` yang membuang titik desimal menjadi 150.000. Setiap kali jasa diedit lalu disimpan, kedua biaya naik 100 kali | `/jasa` | memakai `formatRupiahDariAngka`; pola yang sama di Input Order ikut diganti |
+| - | Pemanggilan modal yang targetnya tidak ada | 0 dari 482 | - |
+Ini akar keluhan awal "Jasa dan Jasa Jahit tidak bisa edit/simpan": pemetaan izin (403) yang diperbaiki di Fase 1 hanya separuh masalah.
+Pemeriksa statis: `scratchpad/cek_modal.py` (keseimbangan tag di dalam `x-modal`); tes `ModalDanPenawaranTest`.
+
+Penawaran: kolom P dan L hanya tampil untuk produk yang dihitung per ukuran; produk per qty hanya qty, dan ukuran yang ikut terkirim dibuang di server. Cetak penawaran kini berbentuk surat: nomor dan perihal, pembuka, terbilang, ketentuan (disusun dari isi dokumen: masa berlaku, ada tidaknya ukuran dan biaya desain), penutup, dan dua kolom tanda tangan; huruf Inter 13px.
