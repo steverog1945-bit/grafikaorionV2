@@ -111,35 +111,47 @@
 
         <div class="section">
             <div class="section-title">Estimasi Kebutuhan Bahan <span class="note">(estimasi otomatis, bukan hasil timbang riil)</span></div>
+            @php
+                // Rib adalah bahan tersendiri (kain rib), bukan kain jersey. Kerah dipotong dari kain jersey.
+                // Keduanya tidak boleh dijumlahkan: total di bawah hanya kain jersey.
+                $adalahRib = fn ($m) => (bool) preg_match('/^rib\b/i', trim((string) $m->nama_barang));
+                $bahanKain = $line->materials->reject($adalahRib)->values();
+                $bahanRib = $line->materials->filter($adalahRib)->values();
+                $barisBahan = function ($m) {
+                    return [
+                        $m->penggunaan_meter !== null ? number_format($m->penggunaan_meter, 2, ',', '.') . ' m' : '-',
+                        $m->penggunaan_kg !== null ? \App\Services\JerseyMaterialEstimationService::formatBeratGram($m->penggunaan_kg * 1000) : '-',
+                    ];
+                };
+            @endphp
             <table class="material">
                 <thead>
                     <tr><th>Komponen</th><th class="num">Perkiraan Meter</th><th class="num">Perkiraan Berat</th></tr>
                 </thead>
                 <tbody>
-                    @forelse($line->materials as $m)
-                    <tr>
-                        <td>{{ $m->nama_barang }}</td>
-                        <td class="num">{{ $m->penggunaan_meter !== null ? number_format($m->penggunaan_meter, 2, ',', '.') . ' m' : '-' }}</td>
-                        <td class="num">{{ $m->penggunaan_kg !== null ? \App\Services\JerseyMaterialEstimationService::formatBeratGram($m->penggunaan_kg * 1000) : '-' }}</td>
-                    </tr>
-                    @empty
+                    @if($line->materials->isEmpty())
                     <tr class="empty-row"><td colspan="3" class="empty-note">Belum ada data estimasi bahan untuk ukuran pada order ini.</td></tr>
-                    @endforelse
-                </tbody>
-                @if($line->materials->isNotEmpty())
-                <tfoot>
-                    {{-- Gaya baris TOTAL dipindah ke kelas .total-row di partial
-                         print. Sebelumnya inline: border-top 1.5px solid #0f172a
-                         dan font-weight 800 - warna dan bobot di luar token
-                         OpenCode, dan karena inline tidak ikut berubah kalau
-                         partial diperbaiki. --}}
+                    @endif
+                    @if($bahanKain->isNotEmpty())
+                    <tr class="kelompok"><td colspan="3">Kain jersey</td></tr>
+                    @foreach($bahanKain as $m)
+                    @php [$meter, $berat] = $barisBahan($m); @endphp
+                    <tr><td>{{ $m->nama_barang }}</td><td class="num">{{ $meter }}</td><td class="num">{{ $berat }}</td></tr>
+                    @endforeach
                     <tr class="total-row">
-                        <td>TOTAL</td>
-                        <td class="num">{{ number_format($line->materials->sum('penggunaan_meter'), 2, ',', '.') }} m</td>
-                        <td class="num">{{ \App\Services\JerseyMaterialEstimationService::formatBeratGram($line->materials->sum('penggunaan_kg') * 1000) }}</td>
+                        <td>Total kain jersey</td>
+                        <td class="num">{{ number_format($bahanKain->sum('penggunaan_meter'), 2, ',', '.') }} m</td>
+                        <td class="num">{{ \App\Services\JerseyMaterialEstimationService::formatBeratGram($bahanKain->sum('penggunaan_kg') * 1000) }}</td>
                     </tr>
-                </tfoot>
-                @endif
+                    @endif
+                    @if($bahanRib->isNotEmpty())
+                    <tr class="kelompok"><td colspan="3">Rib (bahan terpisah, tidak termasuk total kain)</td></tr>
+                    @foreach($bahanRib as $m)
+                    @php [$meter, $berat] = $barisBahan($m); @endphp
+                    <tr><td>{{ $m->nama_barang }}</td><td class="num">{{ $meter }}</td><td class="num">{{ $berat }}</td></tr>
+                    @endforeach
+                    @endif
+                </tbody>
             </table>
         </div>
 

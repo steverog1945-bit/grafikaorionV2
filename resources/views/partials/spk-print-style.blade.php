@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="{{ asset('vendor/fonts/inter.css') }}">
 <style>
     /* ==========================================================================
        GAYA CETAK SPK - dipakai bersama
@@ -30,7 +31,10 @@
     * { box-sizing: border-box; }
 
     body {
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        /* Inter: huruf yang sama dengan layar aplikasi, dilayani dari server sendiri. */
+        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 13px;
+        line-height: 1.45;
         margin: 0;
         padding: 20px;
         color: #171717;
@@ -60,15 +64,15 @@
     .topbar .brand { display: flex; align-items: center; gap: 10px; }
     .topbar .brand img { height: 26px; object-fit: contain; background: #ffffff; border-radius: 4px; padding: 2px; }
     .topbar .brand strong { display: block; font-size: 13px; font-weight: 500; letter-spacing: -0.01em; }
-    .topbar .brand span { display: block; font-size: 9.5px; color: #a3a3a3; }
+    .topbar .brand span { display: block; font-size: 13px; color: #a3a3a3; }
 
     .topbar .doc-badge { text-align: right; }
     /* Pil hilang. Label dokumen jadi teks biasa: bentuk pil tidak
        membawa informasi apa pun, dan menambah tinggi baris. */
     .topbar .doc-label {
-        display: block; font-size: 9.5px; font-weight: 500; color: #a3a3a3;
+        display: block; font-size: 13px; font-weight: 500; color: #a3a3a3;
     }
-    .topbar .doc-code { display: block; margin-top: 3px; font-size: 12px; font-weight: 500; }
+    .topbar .doc-code { display: block; margin-top: 3px; font-size: 13px; font-weight: 500; }
 
     /* ----------------------------------------------------------------------
        Blok utama: gambar desain di kiri, data di kanan
@@ -90,19 +94,19 @@
         justify-content: center;
     }
     .hero-thumb img { display: block; max-width: 320px; max-height: 320px; width: auto; height: auto; }
-    .hero-thumb .placeholder { color: #8f8f8f; font-size: 10.5px; text-align: center; padding: 0 12px; }
+    .hero-thumb .placeholder { color: #8f8f8f; font-size: 13px; text-align: center; padding: 0 12px; }
 
     .hero-info { flex: 1; min-width: 0; }
-    .hero-info h1 { margin: 0 0 4px; font-size: 18px; font-weight: 500; color: #171717; letter-spacing: -0.01em; }
-    .hero-info .sub { margin: 0 0 14px; font-size: 11px; color: #6f6f6f; }
+    .hero-info h1 { margin: 0 0 4px; font-size: 20px; font-weight: 500; color: #171717; letter-spacing: -0.01em; }
+    .hero-info .sub { margin: 0 0 14px; font-size: 13px; color: #6f6f6f; }
 
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
     /* Label field: 9px uppercase + 800 adalah pola yang paling sering
        membuat tabel terasa berat. Diganti 10px normal dengan warna
        tersier - tetap berbeda dari isinya, tapi tidak berteriak. */
-    .info-grid .item span { display: block; font-size: 10px; color: #8f8f8f; margin-bottom: 2px; }
-    .info-grid .item strong { font-size: 12px; font-weight: 500; color: #171717; }
-    .info-grid .item strong.accent { color: #034cff; font-size: 13px; }
+    .info-grid .item span { display: block; font-size: 13px; color: #8f8f8f; margin-bottom: 2px; }
+    .info-grid .item strong { font-size: 13px; font-weight: 500; color: #171717; }
+    .info-grid .item strong.accent { color: #034cff; font-size: 15px; }
     /* Keterangan peran di dalam nilai (mis. "Administrator" setelah nama
        desainer). Bobot 400 supaya tidak ikut dibaca sebagai bagian dari
        nama, dan warnanya sama dengan label - keduanya properties. */
@@ -114,13 +118,13 @@
     /* Kode transaksi dibaca scanner atau diketik ulang manual, jadi
        spacing-nya bukan dekorasi. 0.5px, bukan 1px - pada label 10px,
        1px sudah cukup untuk membuat huruf bersenggolan. */
-    .kode-trx { font-size: 10px; letter-spacing: 0.5px; margin-top: 2px; color: #171717; }
-    .scan-caption { font-size: 9px; color: #6f6f6f; }
+    .kode-trx { font-size: 13px; letter-spacing: 0.5px; margin-top: 2px; color: #171717; }
+    .scan-caption { font-size: 13px; color: #6f6f6f; }
 
     /* Catatan produksi */
     .keterangan-box { margin: 14px 20px 0; padding: 10px 0 0; border-top: 1px solid #e5e5e5; }
-    .keterangan-box p { margin: 0 0 3px; font-size: 10px; color: #8f8f8f; }
-    .keterangan-box pre { margin: 0; font-family: inherit; font-size: 11px; white-space: pre-wrap; color: #171717; line-height: 1.6; }
+    .keterangan-box p { margin: 0 0 3px; font-size: 13px; color: #8f8f8f; }
+    .keterangan-box pre { margin: 0; font-family: inherit; font-size: 13px; white-space: pre-wrap; color: #171717; line-height: 1.6; }
 
     /* ----------------------------------------------------------------------
        Bagian
@@ -130,12 +134,12 @@
     /* Garis warna di kiri judul dihapus - dekorasi tanpa informasi. */
     .section-title {
         margin: 0 0 10px;
-        font-size: 12px;
+        font-size: 15px;
         font-weight: 500;
         color: #171717;
     }
     .section-title::before { content: none; }
-    .section-title .note { font-size: 10px; color: #8f8f8f; }
+    .section-title .note { font-size: 13px; color: #8f8f8f; }
 
     /* ----------------------------------------------------------------------
        Chip ukuran
@@ -152,7 +156,7 @@
     .size-chips .chip .chip-size {
         padding: 5px 9px;
         background: #f3f3f3;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 500;
         color: #171717;
         display: flex;
@@ -161,7 +165,7 @@
     .size-chips .chip .chip-qty {
         padding: 5px 10px;
         background: #f3f3f3;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 500;
         color: #034cff;
         display: flex;
@@ -179,11 +183,11 @@
         background: #171717;
         border-radius: 6px;
         color: #fcfcfc;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 500;
     }
 
-    .empty-note { font-size: 10.5px; color: #8f8f8f; font-style: italic; }
+    .empty-note { font-size: 13px; color: #8f8f8f; font-style: italic; }
 
     /* ----------------------------------------------------------------------
        Tabel
@@ -192,14 +196,14 @@
 
     table.roster th, table.material th {
         background: #f8f8f8;
-        font-size: 10px;
+        font-size: 13px;
         font-weight: 500;
         color: #6f6f6f;
         text-align: left;
         padding: 6px 8px;
         border-bottom: 1px solid #e5e5e5;
     }
-    table.roster td, table.material td { padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f3f3f3; color: #171717; }
+    table.roster td, table.material td { padding: 6px 8px; font-size: 13px; border-bottom: 1px solid #f3f3f3; color: #171717; }
 
     /* Zebra dihapus. Pada daftar bahan dan roster yang biasanya satu
        halaman penuh, garis horizontal sudah cukup membedakan baris;
@@ -230,6 +234,9 @@
        data yang isinya hilang. */
     .empty-row td { padding: 12px 8px; }
 
+    /* Judul kelompok di dalam tabel bahan (Kain jersey / Rib). */
+    table.material tr.kelompok td { padding-top: 12px; color: #6f6f6f; border-bottom: 1px solid #e5e5e5; }
+
     /* ----------------------------------------------------------------------
        Catatan bawah
        ---------------------------------------------------------------------- */
@@ -245,14 +252,14 @@
         border-top: 1px solid #e5e5e5;
     }
     .footer-strip .dot { width: 5px; height: 5px; border-radius: 50%; background: #efa72e; flex-shrink: 0; }
-    .footer-strip span { font-size: 10.5px; color: #171717; }
+    .footer-strip span { font-size: 13px; color: #171717; }
 
     /* ----------------------------------------------------------------------
        Tanda tangan
        ---------------------------------------------------------------------- */
     .signature { display: flex; padding: 22px 20px 18px; gap: 20px; }
     .signature > div { flex: 1; text-align: center; }
-    .signature p.role { font-size: 10px; color: #8f8f8f; margin: 0 0 42px; }
+    .signature p.role { font-size: 13px; color: #8f8f8f; margin: 0 0 42px; }
     .signature .line { border-top: 1px solid #8f8f8f; width: 75%; margin: 0 auto; }
 
     /* ----------------------------------------------------------------------
