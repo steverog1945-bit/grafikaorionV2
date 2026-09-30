@@ -210,4 +210,83 @@ class AlurParalelTest extends TestCase
         $this->assertEquals(0, (float) DB::table('jurnal_umum')->where('kode_akun', '1100')->selectRaw('COALESCE(SUM(debet) - SUM(kredit), 0) s')->value('s'));
         $this->assertEquals((float) DB::table('jurnal_umum')->sum('debet'), (float) DB::table('jurnal_umum')->sum('kredit'));
     }
+
+    /** Bahan + kas terbuka + pelanggan, dipakai uji stok. @return array{0:int,1:int,2:int} [idBahan, idKonsumen, idGolongan] */
+    private function siapkanStok(float $stok = 100): array
+    {
+        $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
+        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $mesin = DB::table('mesin')->insertGetId(['nama_mesin' => 'Mesin', 'tipe_mesin' => 'Digital']);
+        $kat = DB::table('kategori')->insertGetId(['nama_kategori' => 'Kategori']);
+        $bahan = DB::table('bahan_baku')->insertGetId([
+            'kode_bahan' => 'BHN-S', 'nama_bahan' => 'Flexi', 'stok' => $stok, 'stok_minimal' => 5, 'harga_rata_rata' => 1000, 'nilai_konversi' => 1,
+            'id_mesin' => $mesin, 'id_kategori' => $kat, 'satuan_stok' => 'm2', 'status' => 'aktif', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'saldo_awal' => 0, 'status_lock' => 'open', 'created_at' => now()]);
+
+        return [$bahan, $kons, $gol];
+    }
+
+    /** Kartu stok harus berupa satu rantai tak terputus dari stok awal sampai stok sekarang. */
+    private function assertRantaiKartuStok(int $idBahan, float $stokAwal): void
+    {
+        $baris = DB::table('kartu_stok')->where('id_bahan', $idBahan)->get();
+        $peta = [];
+        foreach ($baris as $b) {
+            $kunci = number_format((float) $b->stok_sebelum, 4, '.', '');
+            $this->assertArrayNotHasKey($kunci, $peta, 'Dua mutasi berangkat dari stok yang sama (pengurangan hilang): ' . $kunci);
+            $peta[$kunci] = (float) $b->stok_sesudah;
+        }
+        $kini = $stokAwal;
+        for ($i = 0; $i < $baris->count(); $i++) {
+            $kunci = number_format($kini, 4, '.', '');
+            $this->assertArrayHasKey($kunci, $peta, 'Rantai kartu stok putus di ' . $kunci);
+            $kini = $peta[$kunci];
+        }
+        $this->assertEquals($kini, (float) DB::table('bahan_baku')->where('id_bahan', $idBahan)->value('stok'), 'Stok bahan tidak sama dengan ujung kartu stok');
+    }
+
+    public function test_enam_nota_dengan_bom_bersamaan_memotong_bahan_tepat(): void
+    {
+        [$bahan, $kons, $gol] = $this->siapkanStok(100);
+        $produk = DB::table('produk')->insertGetId(['nama_produk' => 'Produk Uji', 'metode_hitung' => 'quantity', 'status' => 'aktif']);
+        DB::table('bom_detail')->insert(['id_produk' => $produk, 'id_bahan' => $bahan, 'cara_hitung_pemakaian' => 'Q', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('setting_harga')->insert(['id_produk' => $produk, 'id_golongan' => $gol, 'range_min' => 0, 'harga_jual' => 10000]);
+
+        $permintaan = [];
+        for ($i = 0; $i < 6; $i++) {
+            $permintaan[] = ['uri' => '/penjualan/store', 'json' => true, 'data' => [
+                'id_konsumen' => $kons, 'id_golongan' => $gol, 'submit_id' => 'bom-' . $i,
+                'items' => [['id_produk' => $produk, 'nama_file' => "a{$i}", 'p' => 0, 'l' => 0, 'qty_input' => 5, 'biaya_cetak' => 10000]],
+            ]];
+        }
+        $hasil = $this->tembak($permintaan);
+
+        $this->assertSame(6, DB::table('transaksi')->count(), json_encode($hasil));
+        $this->assertEquals(70, (float) DB::table('bahan_baku')->where('id_bahan', $bahan)->value('stok'));
+        $this->assertSame(6, DB::table('transaksi_detail_bahan_pakai')->count());
+        $this->assertRantaiKartuStok($bahan, 100);
+        $this->assertEquals((float) DB::table('jurnal_umum')->sum('debet'), (float) DB::table('jurnal_umum')->sum('kredit'));
+    }
+
+    public function test_opname_disetujui_bersamaan_dengan_penjualan_bahan_kartu_stok_tetap_satu_rantai(): void
+    {
+        [$bahan, $kons] = $this->siapkanStok(100);
+        $this->actingAs($this->admin)->post('/stock-opname', ['tanggal' => now()->toDateString()]);
+        $opname = \App\Models\StockOpname::firstOrFail();
+        $detail = $opname->details()->firstOrFail();
+        $this->actingAs($this->admin)->patch(route('stock-opname.update-details', $opname->id), ['detail' => [$detail->id => ['stok_fisik' => 90, 'alasan' => 'Rusak']]]);
+        $this->actingAs($this->admin)->patch(route('stock-opname.ajukan', $opname->id));
+        $req = \App\Models\ApprovalRequest::where('referensi_id', $opname->id)->where('tipe_aksi', 'stock_opname')->firstOrFail();
+
+        $jual = ['uri' => '/penjualan-barang/store', 'data' => ['id_konsumen' => $kons, 'items' => [['tipe' => 'bahan', 'id_bahan' => $bahan, 'qty' => 3, 'harga' => 15000]]]];
+        $setuju = ['uri' => "/approval/{$req->id}/approve", 'metode' => 'PATCH', 'data' => ['catatan' => 'ok']];
+        // 3 penjualan dan 3 kali persetujuan opname yang sama, semuanya pada saat yang sama.
+        $this->tembak([$jual, $setuju, $jual, $setuju, $jual, $setuju]);
+
+        $this->assertSame('Disetujui', $opname->fresh()->status);
+        $this->assertLessThanOrEqual(1, DB::table('kartu_stok')->where('id_bahan', $bahan)->where('tipe', 'ADJUSTMENT')->count(), 'Opname dieksekusi lebih dari sekali');
+        $this->assertSame(3, DB::table('kartu_stok')->where('id_bahan', $bahan)->where('tipe', 'OUT')->count());
+        $this->assertRantaiKartuStok($bahan, 100);
+    }
 }

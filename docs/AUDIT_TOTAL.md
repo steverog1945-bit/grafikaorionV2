@@ -230,3 +230,14 @@ Tes: `TutupPeriodeKontrolTest` (6 kasus). Tidak diubah: tanggal dokumen non-keua
 | Pembatalan nota berbayar disetujui 6 kali bersamaan | dieksekusi sekali: satu kredit deposit Rp 40.000, piutang nol, jurnal seimbang | lulus |
 Kesimpulan: semua alur uang yang menghitung total dari tabel lain setelah mengunci (pembayaran nota, deposit, hutang supplier) bergantung pada `isolation_level` READ COMMITTED di `config/database.php`. Jangan diubah; `AlurParalelTest` dan `PembayaranParalelTest` akan gagal bila dikembalikan.
 Belum diuji paralel: penyelesaian SPK produksi (pemakaian bahan BOM) dan stok opname.
+
+## 24. Konkurensi stok (BOM dan opname) dan performa halaman detail
+| Skenario (6 proses bersamaan) | Hasil |
+|---|---|
+| 6 nota POS dengan BOM (masing-masing memakai 5 dari stok 100) | stok akhir 70, 6 baris snapshot pemakaian, kartu stok satu rantai tak terputus, jurnal seimbang (LULUS) |
+| 3 penjualan bahan + 3 kali persetujuan opname yang sama, serentak | opname dieksekusi sekali, 3 mutasi keluar, kartu stok tetap satu rantai dan ujungnya sama dengan stok bahan (LULUS) |
+Pemeriksa baru `assertRantaiKartuStok`: tidak boleh ada dua mutasi yang berangkat dari stok yang sama, dan rantai dari stok awal harus berakhir di stok sekarang.
+
+Performa halaman detail dan cetak (19 halaman, `oriondb`, hanya baca): terberat 35 query (detail nota) dan 31 (detail order jersey); tidak ada query yang berulang lebih dari 3 kali. Tidak ada temuan.
+
+Status audit konkurensi: semua alur uang dan stok yang teridentifikasi sudah diuji dengan proses sungguhan (12 skenario). Yang tersisa di luar konkurensi: keadaan kosong/galat per halaman, navigasi keyboard, dan kecepatan pada data besar.
