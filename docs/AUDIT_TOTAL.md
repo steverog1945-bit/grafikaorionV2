@@ -259,6 +259,6 @@ Cara: 90 halaman dirender sebagai Administrator lalu diurai di browser (193 moda
 | TINGGI | Master Jasa, modal Edit: biaya operasional dan biaya tinta diisi dengan `formatRupiah("1500.00")` yang membuang titik desimal menjadi 150.000. Setiap kali jasa diedit lalu disimpan, kedua biaya naik 100 kali | `/jasa` | memakai `formatRupiahDariAngka`; pola yang sama di Input Order ikut diganti |
 | - | Pemanggilan modal yang targetnya tidak ada | 0 dari 482 | - |
 Ini akar keluhan awal "Jasa dan Jasa Jahit tidak bisa edit/simpan": pemetaan izin (403) yang diperbaiki di Fase 1 hanya separuh masalah.
-Pemeriksa statis: `scratchpad/cek_modal.py` (keseimbangan tag di dalam `x-modal`); tes `ModalDanPenawaranTest`.
+Pemeriksa statis: `scripts/cek-modal.py` (keseimbangan tag di dalam `x-modal`); tes `ModalDanPenawaranTest`.
 
 Penawaran: kolom P dan L hanya tampil untuk produk yang dihitung per ukuran; produk per qty hanya qty, dan ukuran yang ikut terkirim dibuang di server. Cetak penawaran kini berbentuk surat: nomor dan perihal, pembuka, terbilang, ketentuan (disusun dari isi dokumen: masa berlaku, ada tidaknya ukuran dan biaya desain), penutup, dan dua kolom tanda tangan; huruf Inter 13px.
