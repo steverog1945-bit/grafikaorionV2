@@ -17,7 +17,7 @@
         <div class="relative max-w-3xl">
             <p class="text-[11px] font-medium uppercase tracking-[0.25em] text-indigo-100">Papan Informasi Toko</p>
             <h1 class="text-3xl sm:text-4xl font-medium text-white tracking-tight mt-2 leading-tight">Info &amp; Panduan</h1>
-            <p class="text-indigo-100 mt-3 text-sm sm:text-base leading-relaxed">Pengumuman, SOP kerja, tips finishing, dan hasil karya terbaik &mdash; semua tim membaca dari satu tempat.</p>
+            <p class="text-indigo-100 mt-3 text-sm sm:text-base leading-relaxed">Pengumuman, SOP kerja, tips finishing, dan hasil karya terbaik. Semua tim membaca dari satu tempat.</p>
 
             <form method="GET" action="{{ $basisUrl }}" class="mt-7 flex flex-col sm:flex-row gap-3 max-w-2xl" data-no-autosubmit>
                 @foreach($paramTetap as $pn => $pv)<input type="hidden" name="{{ $pn }}" value="{{ $pv }}">@endforeach

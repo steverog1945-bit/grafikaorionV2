@@ -25,8 +25,8 @@
         const kontak = document.getElementById('new_supplier_kontak').value.trim();
         const alamat = document.getElementById('new_supplier_alamat').value.trim();
 
-        if (!nama) return Swal.fire('Opps', 'Nama supplier wajib diisi!', 'warning');
-        if (!kontak) return Swal.fire('Opps', 'No. telepon / sales wajib diisi!', 'warning');
+        if (!nama) return Swal.fire('Data belum lengkap', 'Nama supplier wajib diisi!', 'warning');
+        if (!kontak) return Swal.fire('Data belum lengkap', 'No. telepon / sales wajib diisi!', 'warning');
 
         try {
             const response = await fetch('{{ url('/supplier/store-ajax') }}', {

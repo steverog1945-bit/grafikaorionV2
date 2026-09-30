@@ -43,7 +43,7 @@ class KonsumenTimelineController extends Controller
             'omzet' => $omzet,
             'dibayar' => $dibayar,
             'piutang' => max(0, round($omzet - $dibayar, 2)),
-            'saldo_deposit' => (float) $deposit->where('tipe', 'Setoran')->sum('nominal') - (float) $deposit->where('tipe', 'Pemakaian')->sum('nominal'),
+            'saldo_deposit' => (float) $deposit->where('tipe', 'Setoran')->sum('nominal') - (float) $deposit->whereIn('tipe', ['Pemakaian', 'Pengembalian'])->sum('nominal'),
             'order_terakhir' => $notaAktif->max('tgl_order'),
             'belum_diambil' => $notaAktif->where('status_collecting', 'Belum Diambil')->count(),
             'jumlah_penawaran' => $penawaran->count(),
@@ -82,7 +82,7 @@ class KonsumenTimelineController extends Controller
         foreach ($deposit as $d) {
             $kejadian->push(['waktu' => Carbon::parse($d->tgl_deposit), 'jenis' => 'Deposit', 'ikon' => 'wallet', 'warna' => 'sky',
                 'judul' => $d->tipe . ' deposit', 'detail' => $d->keterangan ?: ($d->metode_bayar ?: ''),
-                'nominal' => (float) $d->nominal * ($d->tipe === 'Pemakaian' ? -1 : 1), 'url' => null]);
+                'nominal' => (float) $d->nominal * ($d->tipe === 'Setoran' ? 1 : -1), 'url' => null]);
         }
 
         foreach ($jersey as $j) {

@@ -139,7 +139,10 @@ class HeaderKeamanan
             . 'magnetometer=(), accelerometer=(), gyroscope=()'
         );
 
-        $respons->headers->set('Content-Security-Policy', $this->csp());
+        // Respons yang sudah menetapkan CSP sendiri (mis. BerkasPrivatController untuk berkas aktif) tidak ditimpa.
+        if (!$respons->headers->has('Content-Security-Policy')) {
+            $respons->headers->set('Content-Security-Policy', $this->csp());
+        }
 
         return $respons;
     }

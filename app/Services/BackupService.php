@@ -110,6 +110,16 @@ class BackupService
         try {
             Storage::disk($disk)->put($tipe . '/' . $filename, $dump);
 
+            // Retensi yang sama dengan salinan lokal, supaya lokasi kedua tidak tumbuh tanpa batas.
+            $maks = (int) config("backup.retention.{$tipe}", 7);
+            $berkas = collect(Storage::disk($disk)->files($tipe))
+                ->filter(fn ($f) => str_ends_with($f, '.sql'))
+                ->sortByDesc(fn ($f) => Storage::disk($disk)->lastModified($f))
+                ->values();
+            foreach ($berkas->slice($maks) as $lama) {
+                Storage::disk($disk)->delete($lama);
+            }
+
             return ['Sukses', null];
         } catch (\Throwable $e) {
             return ['Gagal', $e->getMessage()];

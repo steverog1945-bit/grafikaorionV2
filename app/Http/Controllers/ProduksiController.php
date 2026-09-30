@@ -135,6 +135,12 @@ class ProduksiController extends Controller
                 // bisa muncul di Produksi sama sekali.
                 'status_spk' => in_array($detail->status_spk, ['Antre', 'Desain']) ? 'Cetak' : $detail->status_spk,
             ]);
+            \App\Services\AuditLogger::log(
+                'updated', 'transaksi_detail', (int) $id,
+                ['status_spk' => $detail->status_spk, 'qty_cetak' => $detail->qty_cetak],
+                ['status_spk' => in_array($detail->status_spk, ['Antre', 'Desain']) ? 'Cetak' : $detail->status_spk, 'qty_cetak' => (int) $request->qty_cetak],
+                "SPK item #{$id}: jumlah cetak diinput"
+            );
         });
 
         if ($pesanError) {
@@ -166,6 +172,12 @@ class ProduksiController extends Controller
                 'qty_cetak' => $detail->qty_cetak ?? $detail->qty,
                 'status_spk' => 'Selesai',
             ]);
+            \App\Services\AuditLogger::log(
+                'updated', 'transaksi_detail', (int) $id,
+                ['status_spk' => $detail->status_spk],
+                ['status_spk' => 'Selesai', 'qty_cetak' => $detail->qty_cetak ?? $detail->qty],
+                "SPK item #{$id} diselesaikan"
+            );
         });
 
         if ($pesanError) {
@@ -224,6 +236,12 @@ class ProduksiController extends Controller
                 'status_spk' => $statusBaru,
                 'catatan_produksi' => $request->input('alasan_batal'),
             ]);
+            \App\Services\AuditLogger::log(
+                'updated', 'transaksi_detail', (int) $id,
+                ['status_spk' => $detail->status_spk],
+                ['status_spk' => $statusBaru, 'alasan' => $request->input('alasan_batal'), 'stok_dikembalikan' => (bool) $kembalikanStok],
+                "SPK item #{$id} dibatalkan"
+            );
 
             if (!$kembalikanStok) {
                 return;

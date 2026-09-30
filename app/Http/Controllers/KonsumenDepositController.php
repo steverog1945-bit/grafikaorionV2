@@ -102,6 +102,52 @@ class KonsumenDepositController extends Controller
     }
 
     /**
+     * Mengembalikan saldo deposit kepada pelanggan sebagai uang. Hanya Administrator (rute hanya.admin);
+     * uang keluar dari kas, jadi alasan wajib dan semuanya tercatat di audit dan jurnal.
+     */
+    public function kembalikan(Request $request)
+    {
+        $data = $request->validate([
+            'id_konsumen' => 'required|exists:konsumen,id_konsumen',
+            'nominal' => 'required|numeric|min:1',
+            'metode_bayar' => 'required|in:Tunai,Transfer',
+            'alasan' => 'required|string|min:5|max:500',
+        ]);
+
+        try {
+            DB::transaction(function () use ($data) {
+                // Mutex per konsumen sebelum membaca saldo (sama seperti pembayaran via deposit).
+                DB::table('konsumen')->where('id_konsumen', $data['id_konsumen'])->lockForUpdate()->first();
+
+                $saldo = self::saldoUntuk((int) $data['id_konsumen']);
+                if ((float) $data['nominal'] > $saldo) {
+                    throw new \RuntimeException('Nominal melebihi saldo deposit. Saldo tersedia: Rp ' . number_format($saldo, 0, ',', '.'));
+                }
+
+                $noReferensi = 'DEPRET-' . now()->format('YmdHis') . '-' . $data['id_konsumen'];
+                $baris = [
+                    'id_konsumen' => $data['id_konsumen'],
+                    'tipe' => 'Pengembalian',
+                    'nominal' => $data['nominal'],
+                    'metode_bayar' => $data['metode_bayar'],
+                    'keterangan' => 'Dikembalikan ke pelanggan: ' . $data['alasan'],
+                    'tgl_deposit' => now()->toDateString(),
+                    'id_user' => Auth::id(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+                $id = DB::table('konsumen_deposit')->insertGetId($baris);
+                \App\Services\AuditLogger::log('created', 'konsumen_deposit', $id, null, $baris, "Pengembalian deposit {$noReferensi}");
+                AccountingService::postPengembalianDeposit($noReferensi, (float) $data['nominal'], $data['metode_bayar']);
+            });
+        } catch (\Throwable $e) {
+            return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal mengembalikan deposit'));
+        }
+
+        return back()->with('success', 'Deposit dikembalikan dan tercatat di jurnal.');
+    }
+
+    /**
      * Saldo deposit tersedia untuk satu konsumen (dipakai KasirController
      * saat validasi pembayaran metode Deposit).
      */
@@ -109,8 +155,9 @@ class KonsumenDepositController extends Controller
     {
         $setoran = (float) DB::table('konsumen_deposit')
             ->where('id_konsumen', $idKonsumen)->where('tipe', 'Setoran')->sum('nominal');
+        // Pemakaian (bayar nota) dan Pengembalian (uang dikembalikan) sama-sama mengurangi saldo.
         $pemakaian = (float) DB::table('konsumen_deposit')
-            ->where('id_konsumen', $idKonsumen)->where('tipe', 'Pemakaian')->sum('nominal');
+            ->where('id_konsumen', $idKonsumen)->whereIn('tipe', ['Pemakaian', 'Pengembalian'])->sum('nominal');
 
         return $setoran - $pemakaian;
     }

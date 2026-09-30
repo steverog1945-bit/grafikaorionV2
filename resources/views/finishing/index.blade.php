@@ -320,12 +320,12 @@
             });
             const data = await res.json();
             if (!res.ok || !data.success) {
-                Swal.fire('Opps!', data.message || 'Gagal menyimpan.', 'error');
+                Swal.fire('Gagal menyimpan', data.message || 'Gagal menyimpan.', 'error');
                 return null;
             }
             return data;
         } catch (e) {
-            Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');
+            Swal.fire('Koneksi terputus', 'Terjadi kesalahan koneksi.', 'error');
             return null;
         }
     }
@@ -369,7 +369,7 @@
                 });
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    Swal.fire('Opps!', data.message || 'Gagal menghapus.', 'error');
+                    Swal.fire('Gagal menghapus', data.message || 'Gagal menghapus.', 'error');
                     return;
                 }
                 const row = document.querySelector(`.tier-row-finishing[data-id="${id}"]`);
@@ -380,7 +380,7 @@
                 }
                 Toast.fire({ icon: 'success', title: data.message });
             } catch (e) {
-                Swal.fire('Opps!', 'Terjadi kesalahan koneksi.', 'error');
+                Swal.fire('Koneksi terputus', 'Terjadi kesalahan koneksi.', 'error');
             }
         });
     }

@@ -9,6 +9,12 @@
                 <i class="fas fa-piggy-bank"></i>
                 Setoran Baru
             </x-button>
+            @if(optional(auth()->user()->role)->nama_role === 'Administrator')
+            <x-button variant="secondary" onclick="toggleModal('deposit-kembali')">
+                <i class="fas fa-hand-holding-dollar"></i>
+                Kembalikan Uang
+            </x-button>
+            @endif
         </x-slot:actions>
     </x-page-header>
 
@@ -191,6 +197,45 @@
                 </x-slot:footer>
             </form>
 </x-modal>
+@if(optional(auth()->user()->role)->nama_role === 'Administrator')
+<x-modal id="deposit-kembali" title="Kembalikan Uang Deposit"
+         subtitle="Uang keluar dari kas dan mengurangi saldo pelanggan"
+         icon="fa-hand-holding-dollar" maxWidth="md">
+<form action="{{ route('konsumen-deposit.kembalikan') }}" method="POST" class="space-y-4">
+    @csrf
+    <div>
+        <label class="block text-[10px] mb-2">Konsumen</label>
+        <select name="id_konsumen" required class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
+            <option value="">-- Pilih Konsumen --</option>
+            @foreach($saldoPerKonsumen->where('saldo_deposit', '>', 0) as $s)
+                <option value="{{ $s->id_konsumen }}">{{ $s->nama_konsumen }} (saldo Rp {{ number_format($s->saldo_deposit, 0, ',', '.') }})</option>
+            @endforeach
+        </select>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-[10px] mb-2">Nominal</label>
+            <input type="text" inputmode="numeric" autocomplete="off" name="nominal" placeholder="0" required class="w-full py-3.5 text-sm text-slate-700 format-ribuan">
+        </div>
+        <div>
+            <label class="block text-[10px] mb-2">Dibayarkan lewat</label>
+            <select name="metode_bayar" required class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
+                <option value="Tunai">Tunai</option>
+                <option value="Transfer">Transfer</option>
+            </select>
+        </div>
+    </div>
+    <div>
+        <label class="block text-[10px] mb-2">Alasan</label>
+        <textarea name="alasan" required minlength="5" maxlength="500" placeholder="Mis. nota dibatalkan, pelanggan minta uangnya kembali" class="w-full py-3.5 text-sm font-medium text-slate-700"></textarea>
+    </div>
+    <x-slot:footer>
+        <x-button type="button" variant="secondary" onclick="toggleModal('deposit-kembali')">Batal</x-button>
+        <x-button type="submit">Kembalikan Uang</x-button>
+    </x-slot:footer>
+</form>
+</x-modal>
+@endif
 <script>
 </script>
 @endsection

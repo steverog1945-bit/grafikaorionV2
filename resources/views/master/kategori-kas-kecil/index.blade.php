@@ -56,7 +56,7 @@
                 <td class="px-6 py-5">
                     @if($kat->kode_akun)
                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100">
-                            {{ $kat->kode_akun }} &middot; {{ optional($akunBeban->firstWhere('kode_akun', $kat->kode_akun))->nama_akun ?? '—' }}
+                            {{ $kat->kode_akun }} &middot; {{ optional($akunBeban->firstWhere('kode_akun', $kat->kode_akun))->nama_akun ?? '-' }}
                         </span>
                     @else
                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-amber-50 text-amber-600 border border-amber-100 uppercase">

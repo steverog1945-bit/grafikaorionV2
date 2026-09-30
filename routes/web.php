@@ -55,6 +55,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 |--------------------------------------------------------------------------
 */
 
+// Berkas privat (desain, bukti bayar): cukup login. Tidak lewat menu.access karena dipakai gambar di banyak halaman.
+Route::middleware(['auth'])->get('/storage/{folder}/{path}', [\App\Http\Controllers\BerkasPrivatController::class, 'tampil'])
+    ->where('path', '.*')->name('berkas.privat');
+
 Route::middleware(['auth'])->get('/sinyal', [\App\Http\Controllers\SinyalController::class, 'index'])->name('sinyal');
 
 // throttle.write hanya menghitung POST/PUT/PATCH/DELETE (lihat
@@ -144,6 +148,8 @@ Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () 
         ->whereNumber('id')->name('konsumen.timeline');
     Route::get('/konsumen-deposit',[\App\Http\Controllers\KonsumenDepositController::class, 'index'])->name('konsumen-deposit.index');
     Route::post('/konsumen-deposit', [\App\Http\Controllers\KonsumenDepositController::class, 'store'])->name('konsumen-deposit.store');
+    Route::post('/konsumen-deposit/kembalikan', [\App\Http\Controllers\KonsumenDepositController::class, 'kembalikan'])
+        ->middleware('hanya.admin')->name('konsumen-deposit.kembalikan');
 
     Route::get('/kas-kecil', [\App\Http\Controllers\KasKecilController::class, 'index'])->name('kas-kecil.index');
     Route::post('/kas-kecil', [\App\Http\Controllers\KasKecilController::class, 'store'])->name('kas-kecil.store');

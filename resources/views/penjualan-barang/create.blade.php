@@ -358,19 +358,19 @@
     // server untuk mengisi hpp dari biaya master).
     function tambahJasaKeDaftar() {
         const idKonsumen = $('#id_konsumen').val();
-        if (!idKonsumen) return Swal.fire('Opps', 'Pilih pelanggan dulu', 'error');
+        if (!idKonsumen) return Swal.fire('Data belum lengkap', 'Pilih pelanggan dulu', 'error');
 
         const sel = document.getElementById('select_jasa_barang');
         const idJasa = sel.value;
-        if (!idJasa) return Swal.fire('Opps', 'Pilih jasa dulu.', 'warning');
+        if (!idJasa) return Swal.fire('Data belum lengkap', 'Pilih jasa dulu.', 'warning');
 
         const opt = sel.options[sel.selectedIndex];
         const qty = parseFloat(document.getElementById('input_qty_jasa').value) || 0;
         const harga = cleanRupiah(document.getElementById('input_harga_jasa').value);
         const biaya = parseFloat(opt.dataset.biaya || 0) || 0;
 
-        if (qty <= 0) return Swal.fire('Opps', 'Qty jasa harus lebih dari 0.', 'warning');
-        if (harga <= 0) return Swal.fire('Opps', 'Harga satuan jasa harus diisi.', 'warning');
+        if (qty <= 0) return Swal.fire('Data belum lengkap', 'Qty jasa harus lebih dari 0.', 'warning');
+        if (harga <= 0) return Swal.fire('Data belum lengkap', 'Harga satuan jasa harus diisi.', 'warning');
 
         // Peringatan margin, bukan pemblokir: kasir yang tahu situasinya
         // boleh tetap menjual. Tapi harga jual di bawah biaya hampir
@@ -431,7 +431,7 @@
         const idGol = document.getElementById('new_id_golongan').value;
         const tipeKonsumen = document.querySelector('input[name="new_tipe_konsumen"]:checked').value;
 
-        if (!nama) return Swal.fire('Opps', 'Nama wajib diisi!', 'warning');
+        if (!nama) return Swal.fire('Data belum lengkap', 'Nama wajib diisi!', 'warning');
 
         try {
             const response = await fetch('{{ url('/konsumen/store-ajax') }}', {

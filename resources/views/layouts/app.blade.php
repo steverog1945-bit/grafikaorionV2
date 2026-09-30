@@ -1443,7 +1443,7 @@
             @endif
         @endif
         @if(session('error'))
-            Swal.fire({ icon: 'error', title: 'Opps!', text: "{{ session('error') }}", customClass: { popup: 'rounded-3xl' } });
+            Swal.fire({ icon: 'error', title: 'Tidak berhasil', text: "{{ session('error') }}", customClass: { popup: 'rounded-3xl' } });
         @endif
     </script>
     <script>
@@ -1690,7 +1690,7 @@
             const b = document.createElement('button');
             b.id = 'pill-segarkan'; b.type = 'button';
             b.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] px-5 py-2.5 rounded-full bg-indigo-600 text-white text-sm font-medium shadow-xl hover:bg-indigo-700';
-            b.textContent = 'Data diperbarui di tab/pengguna lain — Muat ulang';
+            b.textContent = 'Data diperbarui di tab/pengguna lain. Muat ulang';
             b.onclick = () => location.reload();
             document.body.appendChild(b);
         }
@@ -2051,6 +2051,28 @@
             if (n.querySelectorAll) semua(n);
         }))).observe(document.documentElement, { childList: true, subtree: true });
     })();
+    </script>
+    <script>
+    // Klik ganda pada tombol simpan tidak boleh mengirim form dua kali (kasir di LAN sering menekan lagi
+    // saat halaman terasa lambat). Server tetap penjaga utama (kunci baris, submit_id); ini hanya mencegah
+    // pesan "sudah diproses" yang membingungkan. Tombol aktif lagi bila halaman tidak berpindah (mis. unduhan).
+    document.addEventListener('submit', function (e) {
+        const form = e.target;
+        if (e.defaultPrevented || !(form instanceof HTMLFormElement) || form.dataset.bolehKirimUlang !== undefined) return;
+        if (form.dataset.sedangKirim === '1') { e.preventDefault(); return; }
+        form.dataset.sedangKirim = '1';
+        const tombol = form.querySelectorAll('button[type=submit], input[type=submit], button:not([type])');
+        setTimeout(function () { tombol.forEach(function (t) { t.disabled = true; t.classList.add('opacity-60'); }); }, 0);
+        setTimeout(function () {
+            form.dataset.sedangKirim = '0';
+            tombol.forEach(function (t) { t.disabled = false; t.classList.remove('opacity-60'); });
+        }, 8000);
+    }, false);
+    window.addEventListener('pageshow', function (e) {
+        if (!e.persisted) return;
+        document.querySelectorAll('form[data-sedang-kirim="1"]').forEach(function (f) { f.dataset.sedangKirim = '0'; });
+        document.querySelectorAll('button:disabled.opacity-60').forEach(function (t) { t.disabled = false; t.classList.remove('opacity-60'); });
+    });
     </script>
     @stack('scripts')
 </body>

@@ -47,6 +47,15 @@ return [
             'report' => false,
         ],
 
+        // Salinan kedua backup database (lihat config/backup.php). Arahkan ke drive/komputer LAIN lewat
+        // BACKUP_SALINAN_PATH (mis. D:/BackupERP, atau \\NAMA-PC\BackupERP untuk komputer lain di LAN).
+        'salinan_backup' => [
+            'driver' => 'local',
+            'root' => env('BACKUP_SALINAN_PATH', 'D:/BackupERP'),
+            'throw' => true,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

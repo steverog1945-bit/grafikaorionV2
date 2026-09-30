@@ -45,7 +45,7 @@
     <div class="max-w-3xl mx-auto bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
         <div class="px-10 py-6 border-b border-slate-100 text-center">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Periode</p>
-            <p class="text-sm font-medium text-slate-700 mt-1">{{ \Carbon\Carbon::parse($awal)->format('d M Y') }} — {{ \Carbon\Carbon::parse($akhir)->format('d M Y') }}</p>
+            <p class="text-sm font-medium text-slate-700 mt-1">{{ \Carbon\Carbon::parse($awal)->format('d M Y') }} s/d {{ \Carbon\Carbon::parse($akhir)->format('d M Y') }}</p>
         </div>
 
         <div class="p-10 space-y-6">

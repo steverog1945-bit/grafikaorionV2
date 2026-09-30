@@ -122,3 +122,22 @@ Klik ganda pada form biasa (bukan POS) bergantung pada penjagaan server: aman, t
 
 ## 13. Keputusan yang masih di tangan pemilik
 1. Jalankan `pasang-penjadwal.ps1`. 2. `bind-address=127.0.0.1` di `my.ini`. 3. Lokasi salinan backup luar server. 4. Nomor `audit-001` yang dikerjakan. 5. Perlu pengembalian tunai deposit? 6. Stok per gudang atau tetap global? 7. `pembelian_bahan.id_kedatangan`: NOT NULL atau SET NULL? 8. Hapus worktree lama.
+
+## 14. Pembaruan penutup (2026-09-30, setelah penjadwal dipasang)
+| Item | Hasil |
+|---|---|
+| Penjadwal backup | Terpasang oleh pemilik. Backup terakhir tercatat 3 jam sebelum pemeriksaan (`produksi:cek` OK) |
+| Salinan backup kedua | SELESAI: disk `salinan_backup` -> `D:/BackupERP` (`BACKUP_SECONDARY_DISK`, `BACKUP_SALINAN_PATH` di `.env`), retensi sama dengan lokal. Terbukti: backup manual menghasilkan `offsite_status=Sukses`. Catatan: D: adalah drive lain di komputer yang sama; untuk perlindungan penuh arahkan `BACKUP_SALINAN_PATH` ke komputer lain di LAN (`\NAMA-PC\BackupERP`) atau disk eksternal |
+| `bind-address` MySQL | Skrip `scripts/kunci-mysql-lokal.ps1` siap (mencadangkan `my.ini`, mengubah satu baris). Menunggu dijalankan pemilik sebagai Administrator lalu restart MySQL; ini pengaturan sistem, sengaja tidak diubah otomatis |
+| LOG_LEVEL | `warning` |
+| APP_ENV | tetap `local` (masih ada data uji; `production` memblokir perintah data demo). Ubah bersama pembersihan data uji |
+| Pengembalian tunai deposit | SELESAI: tipe `Pengembalian`, hanya Administrator, alasan wajib, tidak boleh melebihi saldo, jurnal Dr Hutang Deposit / Cr Kas atau Bank, audit; migrasi sudah dijalankan; 4 tes |
+| Audit SPK/produksi | SELESAI: input jumlah cetak, selesai, dan batal kini tercatat di audit. Opname: status lewat model `Auditable`, perubahan stok tercatat di kartu stok dengan `created_by` (cukup) |
+| Berkas privat (S8) | SELESAI: desain pelanggan, bukti bayar, bukti kas kecil, bukti serah terima, berkas order hanya untuk pengguna login (`BerkasPrivatController`, aturan di `public/.htaccess`); logo dan gambar postingan tetap publik. Terverifikasi di Apache: tamu dialihkan ke login, logo 200. Tes menemukan dan memperbaiki satu cacat: `HeaderKeamanan` menimpa CSP respons berkas |
+| `pembelian_bahan.id_kedatangan` | Diputuskan NOT NULL (kode selalu mewajibkan). FK `RESTRICT` dipasang lewat migrasi korektif; FK kini 115 |
+| Klik ganda | Penjaga global di layout: tombol submit dinonaktifkan sementara setelah kirim; server tetap penjaga utama |
+| Antislop 1 dan 10 | SELESAI: tanda pisah panjang (16) diganti; judul "Opps" (34) diganti judul yang menyebut kejadiannya. Nomor 2 tidak berlaku pada login versi main. Nomor 3 sampai 9, 11, 12 tidak disentuh (menunggu pilihan) |
+| Metode bayar berbeda antarmodul | Diputuskan tidak diubah: `Debit`/`Deposit` khas kasir, `QRIS`/`Lainnya` khas Jersey; non-tunai sama-sama masuk Bank. Menyeragamkan berarti mengubah laporan closing kas |
+| Stok per gudang | TIDAK dikerjakan: perubahan desain besar (kartu stok, opname, semua mutasi), butuh keputusan bisnis |
+| Dropdown semua konsumen | Ditunda: aman untuk ribuan baris |
+| Tes | 441 lulus, 2.019 assertion |

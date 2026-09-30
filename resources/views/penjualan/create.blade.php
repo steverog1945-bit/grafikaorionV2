@@ -727,7 +727,7 @@
         const idGol = document.getElementById('new_id_golongan').value;
         const tipeKonsumen = document.querySelector('input[name="new_tipe_konsumen"]:checked').value;
 
-        if (!nama) return Swal.fire('Opps', 'Nama wajib diisi!', 'warning');
+        if (!nama) return Swal.fire('Data belum lengkap', 'Nama wajib diisi!', 'warning');
 
         try {
             const response = await fetch('{{ url('/konsumen/store-ajax') }}', {
@@ -1242,8 +1242,8 @@
         const idKonsumen = $('#id_konsumen').val();
         const namaFile = document.getElementById('nama_file').value.trim();
 
-        if (!idKonsumen) return Swal.fire('Opps', 'Pilih pelanggan dulu', 'error');
-        if (!currentProduk) return Swal.fire('Opps!', 'Pilih produk dulu.', 'warning');
+        if (!idKonsumen) return Swal.fire('Data belum lengkap', 'Pilih pelanggan dulu', 'error');
+        if (!currentProduk) return Swal.fire('Data belum lengkap', 'Pilih produk dulu.', 'warning');
         {
             const katAktif = document.getElementById('filter_kategori').value;
             const katProduk = $('#select_produk').find(':selected').data('kategori');
@@ -1267,7 +1267,7 @@
         if (document.getElementById('select_finishing').value) await tambahFinishingKeDaftar(true);
 
         const res = await hitungSubtotal();
-        if (!res || res.harga_satuan <= 0) return Swal.fire('Opps!', 'Detail belum lengkap.', 'error');
+        if (!res || res.harga_satuan <= 0) return Swal.fire('Data belum lengkap', 'Detail belum lengkap.', 'error');
 
         // BUG PENTING yang pernah kejadian nyata: validasi di atas cuma
         // mengecek res.harga_satuan (tarif Daftar Harga), BUKAN Biaya Cetak
@@ -1375,19 +1375,19 @@
 
     function tambahJasaKeKeranjang() {
         const idKonsumen = $('#id_konsumen').val();
-        if (!idKonsumen) return Swal.fire('Opps', 'Pilih pelanggan dulu', 'error');
+        if (!idKonsumen) return Swal.fire('Data belum lengkap', 'Pilih pelanggan dulu', 'error');
 
         const selJasa = document.getElementById('select_jasa');
         const idJasa = selJasa.value;
-        if (!idJasa) return Swal.fire('Opps!', 'Pilih jasa dulu.', 'warning');
+        if (!idJasa) return Swal.fire('Data belum lengkap', 'Pilih jasa dulu.', 'warning');
 
         const namaJasa = selJasa.options[selJasa.selectedIndex].dataset.nama;
         const qty = parseFloat(document.getElementById('input_jasa_qty').value) || 0;
         const harga = cleanRupiah(document.getElementById('input_jasa_harga').value);
         const keterangan = document.getElementById('jasa_keterangan').value.trim() || namaJasa;
 
-        if (qty <= 0) return Swal.fire('Opps!', 'Qty jasa harus lebih dari 0.', 'warning');
-        if (harga <= 0) return Swal.fire('Opps!', 'Harga satuan jasa harus diisi.', 'warning');
+        if (qty <= 0) return Swal.fire('Data belum lengkap', 'Qty jasa harus lebih dari 0.', 'warning');
+        if (harga <= 0) return Swal.fire('Data belum lengkap', 'Harga satuan jasa harus diisi.', 'warning');
 
         cart.push({
             is_jasa: true,

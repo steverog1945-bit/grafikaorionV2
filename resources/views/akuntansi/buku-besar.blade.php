@@ -80,7 +80,7 @@
                     <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                     <td class="px-8 py-3 text-xs text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
                     <td class="px-6 py-3 text-sm text-slate-700">
-                        <span class="text-xs text-slate-400">{{ $r->no_referensi }}</span> — {{ $r->keterangan }}
+                        <span class="text-xs text-slate-400">{{ $r->no_referensi }}</span>: {{ $r->keterangan }}
                     </td>
                     <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
                         {{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}
@@ -114,7 +114,7 @@
             <tr>
                 <td class="px-3 py-1.5 text-center text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-3 py-1.5 text-slate-500">{{ \Carbon\Carbon::parse($r->tgl_jurnal)->format('d/m/Y') }}</td>
-                <td class="px-3 py-1.5 text-slate-700">{{ $r->no_referensi }} — {{ $r->keterangan }}</td>
+                <td class="px-3 py-1.5 text-slate-700">{{ $r->no_referensi }}: {{ $r->keterangan }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}</td>
                 <td class="px-3 py-1.5 text-right text-slate-600">{{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}</td>
                 <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($r->saldo_berjalan, 0, ',', '.') }}</td>

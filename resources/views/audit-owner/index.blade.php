@@ -175,13 +175,13 @@
 
     <div class="grid md:grid-cols-2 gap-3 mb-3">
         <div class="lembar lembar-p blok">
-            <h3 class="k-judul">Uang masuk &mdash; pembayaran nota</h3>
+            <h3 class="k-judul">Uang masuk: pembayaran nota</h3>
             <table class="t">
                 <thead><tr><th>Metode</th><th class="num">Transaksi</th><th class="num">Total</th></tr></thead>
                 <tbody>
                 @forelse($k['kas_masuk'] as $r)<tr><td>{{ $r->metode }}</td><td class="num">{{ $r->jumlah }}</td><td class="num">{{ $rp($r->total) }}</td></tr>@empty<tr><td colspan="3" class="kosong">Belum ada pembayaran nota bulan ini.</td></tr>@endforelse
                 <tr><td colspan="2" class="font-medium">Total</td><td class="num font-medium">{{ $rp($k['kas_masuk_total']) }}</td></tr>
-                <tr><td>Pembayaran order jersey</td><td class="num">&mdash;</td><td class="num">{{ $rp($k['pembayaran_jersey']) }}</td></tr>
+                <tr><td>Pembayaran order jersey</td><td class="num">-</td><td class="num">{{ $rp($k['pembayaran_jersey']) }}</td></tr>
                 </tbody>
             </table>
         </div>
@@ -191,7 +191,7 @@
                 <thead><tr><th>Uraian</th><th class="num">Jumlah</th><th class="num">Nilai</th></tr></thead>
                 <tbody>
                 <tr><td>Pembelian bahan (faktur)</td><td class="num">{{ $k['pembelian_jumlah'] }}</td><td class="num">{{ $rp($k['pembelian_total']) }}</td></tr>
-                <tr><td>Pembayaran hutang supplier</td><td class="num">&mdash;</td><td class="num">{{ $rp($k['pembayaran_hutang']) }}</td></tr>
+                <tr><td>Pembayaran hutang supplier</td><td class="num">-</td><td class="num">{{ $rp($k['pembayaran_hutang']) }}</td></tr>
                 @foreach($k['kas_kecil'] as $r)<tr><td>Kas kecil &middot; {{ $r->kategori }}</td><td class="num">{{ $r->jumlah }}</td><td class="num">{{ $rp($r->total) }}</td></tr>@endforeach
                 @foreach($k['kas_manual'] as $r)<tr><td>Kas manual &middot; {{ $r->status }}</td><td class="num">{{ $r->jumlah }}</td><td class="num">{{ $rp($r->total) }}</td></tr>@endforeach
                 @if($k['kas_kecil']->isEmpty() && $k['kas_manual']->isEmpty())<tr><td colspan="3" class="kosong">Belum ada pengeluaran lain.</td></tr>@endif
@@ -201,20 +201,20 @@
     </div>
 
     <div class="lembar lembar-p mb-3 blok">
-        <h3 class="k-judul">Kas harian &mdash; {{ $a['kas_harian']->count() }} sesi closing</h3>
+        <h3 class="k-judul">Kas harian: {{ $a['kas_harian']->count() }} sesi closing</h3>
         <table class="t">
             <thead><tr><th>Tanggal</th><th>Kasir</th><th class="num">Saldo awal</th><th class="num">Saldo sistem</th><th class="num">Saldo fisik</th><th class="num">Selisih</th><th>Status</th><th>Keterangan</th></tr></thead>
             <tbody>
             @forelse($a['kas_harian'] as $r)
-                <tr><td>{{ \Carbon\Carbon::parse($r->tgl_kas)->format('d/m/Y') }}</td><td>{{ $r->kasir }}</td><td class="num">{{ $rp($r->saldo_awal) }}</td><td class="num">{{ $rp($r->saldo_akhir) }}</td><td class="num">{{ $r->saldo_fisik !== null ? $rp($r->saldo_fisik) : '&mdash;' }}</td>
-                    <td class="num {{ abs((float) $r->selisih) > 0 ? 'text-rose-600 font-medium' : '' }}">{{ $r->selisih !== null ? $rp($r->selisih) : '&mdash;' }}</td><td>{{ $r->status_lock }}</td><td>{{ $r->keterangan_closing }}</td></tr>
+                <tr><td>{{ \Carbon\Carbon::parse($r->tgl_kas)->format('d/m/Y') }}</td><td>{{ $r->kasir }}</td><td class="num">{{ $rp($r->saldo_awal) }}</td><td class="num">{{ $rp($r->saldo_akhir) }}</td><td class="num">{{ $r->saldo_fisik !== null ? $rp($r->saldo_fisik) : '-' }}</td>
+                    <td class="num {{ abs((float) $r->selisih) > 0 ? 'text-rose-600 font-medium' : '' }}">{{ $r->selisih !== null ? $rp($r->selisih) : '-' }}</td><td>{{ $r->status_lock }}</td><td>{{ $r->keterangan_closing }}</td></tr>
             @empty<tr><td colspan="8" class="kosong">Belum ada sesi kas bulan ini.</td></tr>@endforelse
             </tbody>
         </table>
     </div>
 
     <div class="lembar lembar-p mb-3 blok">
-        <h3 class="k-judul">Nota dibatalkan &mdash; {{ $k['nota_dibatalkan_jumlah'] }} nota senilai {{ $rp($k['nota_dibatalkan_nilai']) }}</h3>
+        <h3 class="k-judul">Nota dibatalkan: {{ $k['nota_dibatalkan_jumlah'] }} nota senilai {{ $rp($k['nota_dibatalkan_nilai']) }}</h3>
         <table class="t">
             <thead><tr><th>Nota</th><th class="num">Nilai</th><th>Tanggal batal</th><th>Alasan</th></tr></thead>
             <tbody>
@@ -254,11 +254,11 @@
     {{-- ================= 3. PEMAKAIAN BAHAN ================= --}}
     <div class="flex items-center gap-2.5 mb-3 mt-8">
         <span class="bab-no">3</span>
-        <h2 class="bab-judul">Pemakaian bahan &mdash; cetak &amp; salah cetak</h2>
+        <h2 class="bab-judul">Pemakaian bahan: cetak &amp; salah cetak</h2>
     </div>
 
     <div class="lembar lembar-p mb-3 blok">
-        <p class="k-ket">Dihitung dari Kartu Stok. Uji: stok awal + masuk &minus; keluar + penyesuaian harus pas dengan stok akhir &mdash; kolom <b>Kontrol</b> menunjukkan 0 kalau cocok.</p>
+        <p class="k-ket">Dihitung dari Kartu Stok. Uji: stok awal + masuk &minus; keluar + penyesuaian harus pas dengan stok akhir; kolom <b>Kontrol</b> menunjukkan 0 kalau cocok.</p>
         <div class="overflow-x-auto">
         <table class="t">
             <thead><tr><th>Bahan</th><th>Satuan</th><th class="num">Stok awal</th><th class="num">Masuk</th><th class="num">Keluar cetak</th><th class="num">Salah cetak</th><th class="num">Rework</th><th class="num">Keluar lain</th><th class="num">Penyesuaian</th><th class="num">Stok akhir</th><th class="num">Nilai salah cetak</th><th class="num">Kontrol</th></tr></thead>
@@ -282,7 +282,7 @@
     </div>
 
     <div class="lembar lembar-p mb-3 blok">
-        <h3 class="k-judul">Rincian waste &mdash; bahan terbuang</h3>
+        <h3 class="k-judul">Rincian waste: bahan terbuang</h3>
         <table class="t">
             <thead><tr><th>Nomor</th><th>Tanggal</th><th>Bahan</th><th class="num">Qty</th><th>Jenis</th><th>Status</th><th class="num">Biaya</th><th>Alasan</th><th>Petugas</th></tr></thead>
             <tbody>
@@ -292,7 +292,7 @@
     </div>
 
     <div class="lembar lembar-p mb-3 blok">
-        <h3 class="k-judul">Rincian rework &mdash; cetak ulang</h3>
+        <h3 class="k-judul">Rincian rework: cetak ulang</h3>
         <table class="t">
             <thead><tr><th>Nomor</th><th>Tanggal</th><th class="num">Qty</th><th>Status</th><th class="num">Biaya material</th><th>Catatan</th><th>Petugas</th></tr></thead>
             <tbody>

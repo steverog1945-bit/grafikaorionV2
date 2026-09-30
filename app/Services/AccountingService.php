@@ -350,6 +350,21 @@ class AccountingService
         ]);
     }
 
+    /** Deposit dikembalikan ke pelanggan sebagai uang: Dr Hutang Deposit / Cr Kas atau Bank. */
+    public static function postPengembalianDeposit(string $noReferensi, float $nominal, string $metode): void
+    {
+        if ($nominal <= 0) {
+            return;
+        }
+
+        $akunKeluar = $metode === 'Tunai' ? self::AKUN_KAS : self::AKUN_BANK;
+
+        self::postJournal(now()->toDateString(), $noReferensi, "Pengembalian deposit {$noReferensi}", [
+            ['kode_akun' => self::AKUN_HUTANG_DEPOSIT, 'debet' => $nominal],
+            ['kode_akun' => $akunKeluar, 'kredit' => $nominal],
+        ]);
+    }
+
     /**
      * Deposit dipakai sebagai pembayaran nota (KasirController::prosesBayar,
      * metode 'Deposit'; juga auto-pakai di PenjualanController::store).
