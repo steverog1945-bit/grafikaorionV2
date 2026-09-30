@@ -216,6 +216,12 @@ class KasirController extends Controller
         DB::beginTransaction();
         try {
             $id_transaksi = $request->id_transaksi;
+
+            // Kunci nota HARUS menjadi bacaan PERTAMA di transaksi ini. MySQL (REPEATABLE READ) memotret
+            // data pada bacaan pertama; bila kunci baru diambil setelah bacaan lain, proses yang menunggu
+            // kunci tetap menghitung "total sudah dibayar" dari potret lama dan ikut mencatat pembayaran.
+            // Terbukti dengan uji proses paralel: 6 pelunasan bersamaan semuanya tercatat (6x tagihan).
+            DB::table('transaksi')->where('id_transaksi', $id_transaksi)->lockForUpdate()->first();
             $uangDiterimaSekarang = (float) (str_replace('.', '', $request->jumlah_bayar) ?: 0);
             $diskon = (float) str_replace('.', '', $request->diskon ?? 0);
             $metode = $request->metode_pembayaran;

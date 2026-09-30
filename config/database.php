@@ -60,6 +60,12 @@ return [
             // Kunci zona waktu sesi MySQL sama dengan app.timezone (WIB). Tanpa ini sesi mengikuti jam SISTEM
             // server: bila jam Windows/MySQL berpindah zona, semua kolom timestamp bergeser diam-diam.
             'timezone' => env('DB_TIMEZONE', '+07:00'),
+            // READ COMMITTED, bukan bawaan REPEATABLE READ. Pola aplikasi ini: kunci baris (lockForUpdate)
+            // lalu hitung total dari tabel lain (pembayaran, deposit). Di REPEATABLE READ hitungan itu memakai
+            // potret saat transaksi mulai membaca, bukan data terbaru setelah kunci didapat, sehingga dua
+            // proses bersamaan sama-sama lolos (terbukti: deposit terpakai dua kali, PembayaranParalelTest).
+            // Dengan READ COMMITTED setiap pernyataan melihat data yang sudah ter-commit.
+            'isolation_level' => env('DB_ISOLATION', 'READ COMMITTED'),
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
