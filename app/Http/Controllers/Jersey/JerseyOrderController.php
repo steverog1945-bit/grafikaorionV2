@@ -350,7 +350,7 @@ class JerseyOrderController extends Controller
                 ->with('success', 'Order jersey ' . $order->order_number . ' berhasil dibuat.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->withInput()->with('error', 'Gagal menyimpan order: ' . $e->getMessage());
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Gagal menyimpan order'));
         }
     }
 
@@ -824,7 +824,7 @@ class JerseyOrderController extends Controller
                 ->with('success', 'Barang pada order jersey berhasil diperbarui. Cetak ulang SPK barang yang berubah bila perlu.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->withInput()->with('error', 'Gagal memperbarui barang: ' . $e->getMessage());
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Gagal memperbarui barang'));
         }
     }
 
@@ -920,7 +920,7 @@ class JerseyOrderController extends Controller
                 ->with('success', 'Barang susulan berhasil ditambahkan ke order ' . $order->order_number . '.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->withInput()->with('error', 'Gagal menambah barang susulan: ' . $e->getMessage());
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Gagal menambah barang susulan'));
         }
     }
 

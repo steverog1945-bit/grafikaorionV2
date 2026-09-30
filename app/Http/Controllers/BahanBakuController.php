@@ -196,7 +196,7 @@ class BahanBakuController extends Controller
                 return back()->with('success', 'Bahan baku dengan logika konversi berhasil disimpan!');
             });
         } catch (\Exception $e) {
-            return back()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal menyimpan'));
         }
     }
 

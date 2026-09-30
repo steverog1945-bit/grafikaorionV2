@@ -92,7 +92,7 @@ class KaryawanController extends Controller
 
             return back()->with('success', 'Karyawan dan akun loginnya berhasil dihapus.');
         } catch (\RuntimeException $e) {
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e));
         } catch (\Exception $e) {
             // Jika masih gagal (mungkin sudah ada data Transaksi), tangkap errornya
             return back()->with('error', 'Gagal hapus! Karyawan ini sudah tercatat dalam data transaksi/kas.');

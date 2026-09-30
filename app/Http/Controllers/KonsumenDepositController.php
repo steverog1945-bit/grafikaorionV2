@@ -97,7 +97,7 @@ class KonsumenDepositController extends Controller
             return redirect()->back()->with('success', 'Deposit berhasil dicatat.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal mencatat deposit: ' . $e->getMessage());
+            return redirect()->back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal mencatat deposit'));
         }
     }
 

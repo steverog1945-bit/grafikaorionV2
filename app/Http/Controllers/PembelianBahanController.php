@@ -295,7 +295,7 @@ public function kedatanganDetail(Request $request)
             // Pesan bisnis yang memang ditujukan ke operator (periode ditutup,
             // kedatangan sudah difaktur, dst).
             DB::rollBack();
-            return back()->withInput()->with('error',$e->getMessage());
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e));
 
         }catch(\Exception $e){
 
@@ -511,7 +511,7 @@ public function pelunasan(Request $request, $id)
 
         return redirect()->back()->with('success', 'Pembayaran hutang Rp ' . number_format($nominal, 0, ',', '.') . ' berhasil dicatat.');
     } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'Gagal membayar: ' . $e->getMessage());
+        return redirect()->back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal membayar'));
     }
 }
 /** Data untuk layar pelunasan: ?faktur=ID (satu faktur) atau ?supplier=ID (semua hutang supplier). */
@@ -559,7 +559,7 @@ public function bayarSupplier(Request $request, $idSupplier)
     try {
         $hasil = \App\Services\PembayaranHutangService::bayarSupplier((int) $idSupplier, (float) $data['nominal'], $data['metode'], $data['tanggal'] ?? null, $data['keterangan'] ?? null);
     } catch (\Exception $e) {
-        return back()->with('error', 'Gagal membayar: ' . $e->getMessage());
+        return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal membayar'));
     }
 
     return back()->with('success', 'Pembayaran hutang Rp ' . number_format((float) $data['nominal'], 0, ',', '.') . ' dibagi ke ' . count($hasil) . ' faktur: ' . collect($hasil)->map(fn ($h) => "{$h['no_faktur']} (Rp " . number_format($h['nominal'], 0, ',', '.') . ')')->implode(', ') . '.');

@@ -207,9 +207,9 @@ class KartuStokController extends Controller
             try {
                 ApprovalService::setujui($pengajuan, fn (array $payload) => \App\Services\PenyesuaianStokService::eksekusi($payload), 'Disetujui otomatis (diajukan oleh Administrator)');
             } catch (\Throwable $e) {
-                ApprovalService::tolak($pengajuan, 'Gagal dijalankan otomatis: ' . $e->getMessage());
+                ApprovalService::tolak($pengajuan, \App\Support\PesanError::untuk($e, 'Gagal dijalankan otomatis'));
 
-                return back()->withInput()->with('error', 'Penyesuaian gagal: ' . $e->getMessage());
+                return back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Penyesuaian gagal'));
             }
             session()->flash('lanjut', ['teks' => 'Stok sudah diperbarui - lihat riwayatnya di kartu stok bahan', 'url' => url('/kartu-stok/' . $bahan->id_bahan), 'tombol' => 'Buka Kartu Stok']);
 

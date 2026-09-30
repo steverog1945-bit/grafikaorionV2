@@ -96,7 +96,7 @@ class JerseyFinanceController extends Controller
         } catch (\RuntimeException $e) {
             // Mis. periode akuntansi sudah ditutup - seluruh transaksi
             // (termasuk baris pembayaran) sudah di-rollback.
-            return back()->withInput()->with('error', 'Pembayaran gagal dicatat: ' . $e->getMessage());
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Pembayaran gagal dicatat'));
         }
 
         return back()->with('success', 'Pembayaran berhasil dicatat.');
