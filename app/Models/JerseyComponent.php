@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Support\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class JerseyComponent extends Model
 {
+    use Auditable;
     protected $table = 'jersey_components';
 
     protected $fillable = ['name', 'sort_order', 'is_active', 'jersey_product_type_id', 'jersey_category_id'];

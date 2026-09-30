@@ -48,6 +48,18 @@ class AuditLogger
     }
 
     /**
+     * Pencatatan master data yang ditulis lewat DB::table(): baca baris
+     * SESUDAH aksi lalu catat lama -> baru. Untuk 'deleted' tidak ada baris
+     * baru. Panggil di dalam transaksi pemanggil supaya ikut rollback.
+     */
+    public static function master(string $event, string $tabel, string $kunci, int $id, ?object $lama = null, ?string $keterangan = null): void
+    {
+        $baru = $event === 'deleted' ? null : (array) DB::table($tabel)->where($kunci, $id)->first();
+
+        self::log($event, $tabel, $id, $lama ? (array) $lama : null, $baru, $keterangan);
+    }
+
+    /**
      * Helper untuk jalur DB::table(): baca baris SEBELUM diubah, lakukan
      * $callback (yang melakukan UPDATE-nya), lalu catat diff old->new.
      * Dipakai supaya controller tidak perlu manual susun old_values.

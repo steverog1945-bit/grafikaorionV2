@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Support\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class Finishing extends Model
 {
+    use Auditable;
     protected $table = 'finishing';
     protected $primaryKey = 'id_finishing';
 

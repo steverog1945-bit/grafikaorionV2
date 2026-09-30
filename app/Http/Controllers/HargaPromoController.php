@@ -32,13 +32,14 @@ class HargaPromoController extends Controller
             'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
         ]);
 
-        DB::table('harga_promo')->insert([
+        $idBaru = DB::table('harga_promo')->insertGetId([
             'id_produk' => $request->id_produk,
             'harga_promo' => $request->harga_promo,
             'tgl_mulai' => $request->tgl_mulai,
             'tgl_selesai' => $request->tgl_selesai,
             'status_promo' => 'aktif',
         ]);
+        \App\Services\AuditLogger::master('created', 'harga_promo', 'id_promo', (int) $idBaru, null, 'Harga promo baru');
 
         return back()->with('success', 'Harga promo berhasil ditambahkan.');
     }
@@ -52,12 +53,15 @@ class HargaPromoController extends Controller
             'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
         ]);
 
+        $lama = DB::table('harga_promo')->where('id_promo', $id)->first();
+
         DB::table('harga_promo')->where('id_promo', $id)->update([
             'id_produk' => $request->id_produk,
             'harga_promo' => $request->harga_promo,
             'tgl_mulai' => $request->tgl_mulai,
             'tgl_selesai' => $request->tgl_selesai,
         ]);
+        \App\Services\AuditLogger::master('updated', 'harga_promo', 'id_promo', (int) $id, $lama, 'Harga promo diubah');
 
         return back()->with('success', 'Harga promo berhasil diperbarui.');
     }
@@ -73,13 +77,18 @@ class HargaPromoController extends Controller
         DB::table('harga_promo')->where('id_promo', $id)->update([
             'status_promo' => $promo->status_promo === 'aktif' ? 'non-aktif' : 'aktif',
         ]);
+        \App\Services\AuditLogger::master('updated', 'harga_promo', 'id_promo', (int) $id, $promo, 'Status promo diubah');
 
         return back()->with('success', 'Status promo diperbarui.');
     }
 
     public function destroy($id)
     {
+        $lama = DB::table('harga_promo')->where('id_promo', $id)->first();
         DB::table('harga_promo')->where('id_promo', $id)->delete();
+        if ($lama) {
+            \App\Services\AuditLogger::master('deleted', 'harga_promo', 'id_promo', (int) $id, $lama, 'Harga promo dihapus');
+        }
 
         return back()->with('success', 'Harga promo dihapus.');
     }

@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Support\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
 class AppSetting extends Model
 {
+    use Auditable;
     protected $table = 'app_settings';
 
     protected $fillable = [

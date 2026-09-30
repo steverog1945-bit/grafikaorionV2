@@ -644,7 +644,7 @@ class PenjualanController extends Controller
                     'updated_at'   => now(),
                 ]);
 
-                DB::table('pembayaran_riwayat')->insert([
+                $idBayarDeposit = DB::table('pembayaran_riwayat')->insertGetId([
                     'id_transaksi' => $id_transaksi,
                     'nominal'      => $jumlahPakai,
                     'metode'       => 'Deposit',
@@ -652,6 +652,15 @@ class PenjualanController extends Controller
                     'tgl_bayar'    => now(),
                     'keterangan'   => 'Otomatis dipotong dari saldo deposit saat order dibuat',
                 ]);
+
+                \App\Services\AuditLogger::log(
+                    'created',
+                    'pembayaran_riwayat',
+                    (int) $idBayarDeposit,
+                    null,
+                    ['nomor_nota' => $noNota, 'nominal' => (float) $jumlahPakai, 'metode' => 'Deposit'],
+                    "Deposit dipakai otomatis untuk nota {$noNota}: Rp " . number_format((float) $jumlahPakai, 0, ',', '.')
+                );
 
                 AccountingService::postPembayaranDeposit($noNota, $jumlahPakai);
 

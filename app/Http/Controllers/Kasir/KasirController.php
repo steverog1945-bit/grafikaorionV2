@@ -427,7 +427,7 @@ class KasirController extends Controller
                     ]);
                 }
 
-                DB::table('pembayaran_riwayat')->insert([
+                $idBayarRiwayat = DB::table('pembayaran_riwayat')->insertGetId([
                     'id_transaksi' => $id_transaksi,
                     'nominal'      => $uangDiterimaSekarang,
                     'metode'       => $metode,
@@ -435,6 +435,17 @@ class KasirController extends Controller
                     'tgl_bayar'    => now(),
                     'keterangan'   => "Pembayaran via Kasir"
                 ]);
+
+                // pembayaran_riwayat tidak punya kolom pengguna/sesi kas, jadi
+                // "siapa yang menerima uang ini" hanya bisa dijawab lewat audit.
+                \App\Services\AuditLogger::log(
+                    'created',
+                    'pembayaran_riwayat',
+                    (int) $idBayarRiwayat,
+                    null,
+                    ['nomor_nota' => $nomorNota, 'nominal' => (float) $uangDiterimaSekarang, 'metode' => $metode, 'id_bank' => $idBank, 'id_kas' => (int) $kas->id_kas],
+                    "Pembayaran nota {$nomorNota} ({$metode}) Rp " . number_format((float) $uangDiterimaSekarang, 0, ',', '.')
+                );
 
                 // Update Saldo Kas - Deposit TIDAK menambah kas hari ini, karena
                 // uangnya sudah masuk kas saat setoran deposit dulu, bukan hari ini.

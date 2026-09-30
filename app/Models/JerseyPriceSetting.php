@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Support\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class JerseyPriceSetting extends Model
 {
+    use Auditable;
     protected $table = 'jersey_price_settings';
 
     protected $fillable = [

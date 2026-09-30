@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Support\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Karyawan extends Model
 {
+    use Auditable;
     use HasFactory;
 
     protected $table = 'karyawan';

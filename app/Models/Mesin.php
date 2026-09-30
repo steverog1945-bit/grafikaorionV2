@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Support\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class Mesin extends Model
 {
+    use Auditable;
     protected $table = 'mesin';
     protected $primaryKey = 'id_mesin';
     public $timestamps = false;

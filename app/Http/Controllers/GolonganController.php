@@ -26,10 +26,11 @@ class GolonganController extends Controller
             'keterangan' => 'nullable'
         ]);
 
-        DB::table('golongan_konsumen')->insert([
+        $idBaru = DB::table('golongan_konsumen')->insertGetId([
             'nama_golongan' => $request->nama_golongan,
             'keterangan' => $request->keterangan
         ]);
+        \App\Services\AuditLogger::master('created', 'golongan_konsumen', 'id_golongan', (int) $idBaru, null, 'Golongan konsumen baru');
 
         return redirect()->back()->with('success', 'Golongan konsumen berhasil ditambahkan.');
     }
@@ -40,11 +41,14 @@ class GolonganController extends Controller
         'nama_golongan' => 'required|max:100'
     ]);
 
+    $lama = DB::table('golongan_konsumen')->where('id_golongan', $id)->first();
+
     DB::table('golongan_konsumen')->where('id_golongan', $id)->update([
         'nama_golongan' => $request->nama_golongan,
         // Gunakan operator ?? untuk memberikan string kosong jika input null
-        'keterangan'    => $request->keterangan ?? '-' 
+        'keterangan'    => $request->keterangan ?? '-'
     ]);
+    \App\Services\AuditLogger::master('updated', 'golongan_konsumen', 'id_golongan', (int) $id, $lama, 'Golongan konsumen diubah');
 
     return redirect()->back()->with('success', 'Golongan berhasil diperbarui.');
 }
@@ -57,7 +61,22 @@ class GolonganController extends Controller
             return redirect()->back()->with('error', 'Gagal hapus! Golongan ini masih digunakan oleh data konsumen.');
         }
 
+        // Golongan juga menentukan harga: price list, harga file siap cetak, dan penawaran memakainya.
+        $dipakaiHarga = [];
+        foreach (['Price List' => 'setting_harga', 'Harga File Siap Cetak' => 'harga_siap_cetak', 'Penawaran' => 'quotations'] as $label => $tabel) {
+            if (DB::table($tabel)->where('id_golongan', $id)->exists()) {
+                $dipakaiHarga[] = $label;
+            }
+        }
+        if ($dipakaiHarga) {
+            return redirect()->back()->with('error', 'Gagal hapus! Golongan ini masih dipakai pada: ' . implode(', ', $dipakaiHarga) . '.');
+        }
+
+        $lama = DB::table('golongan_konsumen')->where('id_golongan', $id)->first();
         DB::table('golongan_konsumen')->where('id_golongan', $id)->delete();
+        if ($lama) {
+            \App\Services\AuditLogger::master('deleted', 'golongan_konsumen', 'id_golongan', (int) $id, $lama, 'Golongan konsumen dihapus');
+        }
         return redirect()->back()->with('success', 'Golongan berhasil dihapus.');
     }
 }

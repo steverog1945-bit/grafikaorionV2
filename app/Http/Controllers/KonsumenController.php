@@ -76,6 +76,8 @@ class KonsumenController extends Controller
     ]);
 
     // 2. Update data ke database
+    $lama = DB::table('konsumen')->where('id_konsumen', $id)->first();
+
     DB::table('konsumen')->where('id_konsumen', $id)->update([
         'nama_konsumen' => $request->nama_konsumen,
         'telepon'       => $request->telepon,
@@ -83,6 +85,7 @@ class KonsumenController extends Controller
         'tipe_konsumen' => $request->tipe_konsumen ?? 'temporary',
         'alamat'        => $request->alamat,
     ]);
+    \App\Services\AuditLogger::master('updated', 'konsumen', 'id_konsumen', (int) $id, $lama, 'Data konsumen diubah');
 
     // 3. Kembali ke halaman sebelumnya dengan pesan sukses
     return redirect()->back()->with('success', 'Data konsumen berhasil diperbarui.');
@@ -150,7 +153,7 @@ public function storeAjax(Request $request)
             'telepon'       => 'required'
         ]);
 
-        DB::table('konsumen')->insert([
+        $idBaru = DB::table('konsumen')->insertGetId([
             'nama_konsumen' => $request->nama_konsumen,
             'telepon'       => $request->telepon,
             'alamat'        => $request->alamat,
@@ -158,6 +161,7 @@ public function storeAjax(Request $request)
             'tipe_konsumen' => $request->tipe_konsumen ?? 'temporary',
             'tgl_registrasi'=> now()
         ]);
+        \App\Services\AuditLogger::master('created', 'konsumen', 'id_konsumen', (int) $idBaru, null, 'Konsumen baru');
 
         return redirect()->back()->with('success', 'Data konsumen berhasil disimpan.');
     }
@@ -183,7 +187,11 @@ public function storeAjax(Request $request)
         }
 
         try {
+            $lama = DB::table('konsumen')->where('id_konsumen', $id)->first();
             DB::table('konsumen')->where('id_konsumen', $id)->delete();
+            if ($lama) {
+                \App\Services\AuditLogger::master('deleted', 'konsumen', 'id_konsumen', (int) $id, $lama, 'Konsumen dihapus');
+            }
             return redirect()->back()->with('success', 'Konsumen dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal hapus! Konsumen ini masih punya riwayat yang mengikat.');

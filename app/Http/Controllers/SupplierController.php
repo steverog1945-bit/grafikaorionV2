@@ -27,11 +27,12 @@ class SupplierController extends Controller
             'kontak' => 'required'
         ]);
 
-        DB::table('supplier')->insert([
+        $idBaru = DB::table('supplier')->insertGetId([
             'nama_supplier' => $request->nama_supplier,
             'alamat' => $request->alamat,
             'kontak' => $request->kontak
         ]);
+        \App\Services\AuditLogger::master('created', 'supplier', 'id_supplier', (int) $idBaru, null, 'Supplier baru');
 
         return redirect()->back()->with('success', 'Supplier berhasil ditambahkan.');
     }
@@ -51,6 +52,7 @@ class SupplierController extends Controller
         }
 
         $id = DB::table('supplier')->insertGetId(['nama_supplier' => $nama, 'alamat' => $request->alamat, 'kontak' => $request->kontak]);
+        \App\Services\AuditLogger::master('created', 'supplier', 'id_supplier', (int) $id, null, 'Supplier baru (dari form lain)');
 
         return response()->json(['status' => 'success', 'data' => ['id_supplier' => $id, 'nama_supplier' => $nama]]);
     }
@@ -61,11 +63,14 @@ class SupplierController extends Controller
             'kontak' => 'required'
         ]);
 
+        $lama = DB::table('supplier')->where('id_supplier', $id)->first();
+
         DB::table('supplier')->where('id_supplier', $id)->update([
             'nama_supplier' => $request->nama_supplier,
             'alamat' => $request->alamat,
             'kontak' => $request->kontak
         ]);
+        \App\Services\AuditLogger::master('updated', 'supplier', 'id_supplier', (int) $id, $lama, 'Data supplier diubah');
 
         return redirect()->back()->with('success', 'Supplier berhasil diperbarui.');
     }
@@ -81,7 +86,11 @@ class SupplierController extends Controller
         }
 
         try {
+            $lama = DB::table('supplier')->where('id_supplier', $id)->first();
             DB::table('supplier')->where('id_supplier', $id)->delete();
+            if ($lama) {
+                \App\Services\AuditLogger::master('deleted', 'supplier', 'id_supplier', (int) $id, $lama, 'Supplier dihapus');
+            }
             return redirect()->back()->with('success', 'Supplier dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal hapus! Supplier ini masih punya purchase order.');

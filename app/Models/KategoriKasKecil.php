@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Support\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class KategoriKasKecil extends Model
 {
+    use Auditable;
     protected $table = 'kategori_kas_kecil';
     protected $primaryKey = 'id_kategori_kas_kecil';
 
