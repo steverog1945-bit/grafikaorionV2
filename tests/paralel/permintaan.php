@@ -19,7 +19,7 @@ while (microtime(true) < (float) $mulai) {
     usleep(200);
 }
 
-$request = Illuminate\Http\Request::create($muatan['uri'], 'POST', $muatan['data']);
+$request = Illuminate\Http\Request::create($muatan['uri'], $muatan['metode'] ?? 'POST', $muatan['data']);
 if (!empty($muatan['json'])) {
     $request->headers->set('Accept', 'application/json');
 }

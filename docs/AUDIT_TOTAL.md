@@ -221,3 +221,12 @@ Tes: `TutupPeriodeKontrolTest` (6 kasus). Tidak diubah: tanggal dokumen non-keua
 | Pengembalian deposit 6 kali bersamaan (saldo 100.000, masing-masing 60.000) | 1 pengembalian, saldo 40.000 (LULUS) |
 | Belum diuji paralel | pengurangan stok saat produksi, pembayaran hutang supplier, persetujuan approval |
 | Halaman depan | Dialog masuk kini di tengah layar (margin bawaan `<dialog>` dihapus oleh reset CSS). Ditambah: pembuka dengan ajakan WhatsApp, Yang kami kerjakan (8 kelompok dari katalog produk), Cara pesan (4 langkah), Kabar dan catatan, Hubungi kami. Hanya Inter (dan Nunito di isi artikel); tanpa serif dan mono |
+
+## 23. Audit konkurensi: stok, hutang supplier, persetujuan (6 proses bersamaan)
+| Skenario | Dengan READ COMMITTED (sekarang) | Dengan pengaturan lama (REPEATABLE READ) |
+|---|---|---|
+| 6 pelunasan hutang supplier Rp 100.000 untuk satu faktur | Rp 100.000 tercatat, Hutang Usaha nol | **Rp 600.000 tercatat** (temuan KRITIS ketiga dari akar yang sama; tertutup oleh perbaikan bagian 21) |
+| 6 penjualan bahan (qty 3) dari stok 100 | stok akhir 82, rantai kartu stok 100, 97, 94, 91, 88, 85 utuh, 6 nomor nota berbeda | lulus (memakai nilai dari baris yang dikunci) |
+| Pembatalan nota berbayar disetujui 6 kali bersamaan | dieksekusi sekali: satu kredit deposit Rp 40.000, piutang nol, jurnal seimbang | lulus |
+Kesimpulan: semua alur uang yang menghitung total dari tabel lain setelah mengunci (pembayaran nota, deposit, hutang supplier) bergantung pada `isolation_level` READ COMMITTED di `config/database.php`. Jangan diubah; `AlurParalelTest` dan `PembayaranParalelTest` akan gagal bila dikembalikan.
+Belum diuji paralel: penyelesaian SPK produksi (pemakaian bahan BOM) dan stok opname.
