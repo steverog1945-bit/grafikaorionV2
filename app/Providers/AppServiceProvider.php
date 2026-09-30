@@ -88,7 +88,14 @@ class AppServiceProvider extends ServiceProvider
     view()->composer('*', function ($view) {
         if (auth()->check()) {
             // Mengambil kas harian yang dibuka oleh user manapun hari ini yang masih 'open'
-            $kas = \App\Services\KasSesiService::aktif();
+            // Composer '*' terpanggil untuk SETIAP view dan komponen Blade. Tanpa ingatan per-permintaan,
+            // query kas ini berulang ratusan kali dalam satu halaman (terukur: 316 kali di Price List).
+            // Disimpan di atribut request, jadi tetap segar di permintaan berikutnya.
+            $req = request();
+            if (!$req->attributes->has('kas_aktif_tampilan')) {
+                $req->attributes->set('kas_aktif_tampilan', \App\Services\KasSesiService::aktif() ?? false);
+            }
+            $kas = $req->attributes->get('kas_aktif_tampilan') ?: null;
             $view->with('kasAktif', $kas);
             $view->with('kasBasi', \App\Services\KasSesiService::basi($kas));
         }

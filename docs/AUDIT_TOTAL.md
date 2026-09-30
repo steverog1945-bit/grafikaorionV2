@@ -182,3 +182,12 @@ Klik ganda pada form biasa (bukan POS) bergantung pada penjagaan server: aman, t
 | Gaya | Judul serif (Playfair Display, sudah ada di server), antarmuka Inter, tanpa huruf mono, gradien, kaca, atau bayangan berwarna |
 | Gerak (pedoman emil-design-eng) | Hanya transform dan opacity, di bawah 300ms, ease-out `cubic-bezier(0.23,1,0.32,1)`; tombol `scale(0.97)` saat ditekan; dialog mulai dari `scale(0.96)`; kartu baru naik 10px berurutan 40ms; hover hanya di perangkat ber-pointer; `prefers-reduced-motion` dihormati |
 | Tes | `HalamanDepanPublikTest` (7 kasus) + matriks rute diperbarui |
+
+## 19. Audit performa terukur (menggantikan perkiraan di bagian 7)
+Cara: 107 halaman GET (tanpa parameter) dijalankan sebagai Administrator terhadap `oriondb`, hanya membaca, sambil menghitung query.
+| Temuan | Sebelum | Sesudah | Perbaikan |
+|---|---|---|---|
+| TINGGI: composer `view('*')` di `AppServiceProvider` menjalankan query kas aktif untuk setiap view dan komponen Blade | Price List 329 query (316 di antaranya query yang sama), Kartu Stok 290, Master Jersey 191, Karyawan 131, Produk 112 | halaman terberat 53 query | hasil disimpan di atribut request (sekali per permintaan, tetap segar di permintaan berikutnya); tes `PerformaQueryTest` |
+| SEDANG: `/pembelian-bahan` menghitung sisa hutang dengan satu `SUM` per faktur berhutang (tumbuh tanpa batas) | N query | 1 query | satu `SUM ... GROUP BY` |
+| RENDAH: `/accounting-period` 12 query (satu per bulan) | terbatas 12 | dibiarkan | - |
+Belum diukur: halaman ber-parameter (detail nota, cetak, ekspor) dan waktu query pada data besar (data sekarang masih kecil, `EXPLAIN` belum bermakna).

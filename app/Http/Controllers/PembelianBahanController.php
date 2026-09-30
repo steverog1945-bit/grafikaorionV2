@@ -72,8 +72,12 @@ class PembelianBahanController extends Controller
         // Ringkasan jatuh tempo seluruh faktur berhutang (bukan hanya halaman ini).
         $ringkasJt = ['telat' => ['n' => 0, 'nilai' => 0.0], 'minggu' => ['n' => 0, 'nilai' => 0.0], 'aman' => ['n' => 0, 'nilai' => 0.0]];
         $hariIni = now()->startOfDay();
-        foreach (DB::table('pembelian_bahan')->whereNull('deleted_at')->where('status_pembayaran', 'Hutang')->get() as $p) {
-            $sisa = \App\Services\PembayaranHutangService::sisa($p);
+        // Satu query untuk semua pembayaran (sebelumnya satu SUM per faktur berhutang: tumbuh tanpa batas).
+        $fakturHutang = DB::table('pembelian_bahan')->whereNull('deleted_at')->where('status_pembayaran', 'Hutang')->get();
+        $dibayarHutang = DB::table('pembayaran_hutang')->whereIn('id_pembelian', $fakturHutang->pluck('id_pembelian'))
+            ->whereNull('voided_at')->groupBy('id_pembelian')->selectRaw('id_pembelian, SUM(nominal) as total')->pluck('total', 'id_pembelian');
+        foreach ($fakturHutang as $p) {
+            $sisa = max(0, round((float) $p->grand_total - (float) ($dibayarHutang[$p->id_pembelian] ?? 0), 2));
             if ($sisa <= 0) {
                 continue;
             }
