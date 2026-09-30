@@ -80,6 +80,9 @@ class AksesController extends Controller
         }
 
         $role = Role::findOrFail((int) $request->input('role_id'));
+        if (!Izin::bolehKelolaRole(auth()->user(), (int) $role->id_role)) {
+            abort(403, 'Hak akses role Administrator dan role Anda sendiri hanya bisa diubah oleh Administrator.');
+        }
         // Optimistic locking: hak role ini sudah diubah admin lain sejak halaman dibuka -> jangan menimpa.
         if ($request->filled('_versi') && $request->input('_versi') !== $this->versiRole((int) $role->id_role)) {
             return redirect()->route('akses.index', ['role' => $role->id_role])->with('error', 'Hak akses role ini sudah diubah oleh admin lain sejak Anda membukanya, jadi perubahan Anda TIDAK disimpan. Halaman sudah dimuat ulang dengan data terbaru - ulangi perubahan Anda.');
@@ -109,10 +112,19 @@ class AksesController extends Controller
 
     private function updateLama(Request $request)
     {
-        DB::transaction(function () use ($request) {
-            DB::table('role_permissions')->delete();
+        // Non-admin hanya boleh menyentuh role yang memang boleh dikelolanya;
+        // role lain (Administrator, role sendiri) dibiarkan persis seperti adanya.
+        $aktor = auth()->user();
+        $boleh = fn ($idRole) => Izin::bolehKelolaRole($aktor, (int) $idRole);
+
+        DB::transaction(function () use ($request, $boleh) {
+            $terkelola = Role::all()->filter(fn ($r) => $boleh($r->id_role))->pluck('id_role')->all();
+            DB::table('role_permissions')->whereIn('id_role', $terkelola)->delete();
             $dataToInsert = [];
             foreach ((array) $request->input('permissions', []) as $roleId => $menuIds) {
+                if (!$boleh($roleId)) {
+                    continue;
+                }
                 foreach ($menuIds as $menuId) {
                     $dataToInsert[] = ['id_role' => $roleId, 'id_menu' => $menuId, 'can_view' => 1, 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1];
                 }
@@ -123,6 +135,9 @@ class AksesController extends Controller
 
             $bolehLihat = collect($request->input('lihat_harga', []))->map(fn ($id) => (int) $id)->all();
             foreach (Role::all() as $role) {
+                if (!$boleh($role->id_role)) {
+                    continue;
+                }
                 $role->boleh_lihat_harga = $role->nama_role === 'Administrator' || in_array((int) $role->id_role, $bolehLihat, true);
                 $role->save();
             }
@@ -155,6 +170,7 @@ class AksesController extends Controller
     public function userUpdate(Request $request, int $id)
     {
         $user = User::findOrFail($id);
+        $this->pastikanBolehKelolaUser($user);
         if ($request->filled('_versi') && $request->input('_versi') !== $this->versiUser((int) $user->id_user)) {
             return redirect()->route('akses.user', $user->id_user)->with('error', 'Hak akses user ini sudah diubah admin lain sejak Anda membukanya, jadi perubahan Anda TIDAK disimpan. Halaman sudah dimuat ulang dengan data terbaru.');
         }
@@ -183,9 +199,17 @@ class AksesController extends Controller
         return redirect()->route('akses.user', $user->id_user)->with('success', 'Hak akses khusus user disimpan.');
     }
 
+    private function pastikanBolehKelolaUser(User $user): void
+    {
+        if (!Izin::bolehKelolaUser(auth()->user(), $user)) {
+            abort(403, 'Hak khusus akun Administrator dan akun Anda sendiri hanya bisa diubah oleh Administrator.');
+        }
+    }
+
     public function userReset(int $id)
     {
         $user = User::findOrFail($id);
+        $this->pastikanBolehKelolaUser($user);
         DB::table('user_permissions')->where('id_user', $user->id_user)->delete();
         Izin::lupakan();
         AuditLogger::log('updated', 'user_permissions', (int) $user->id_user, null, ['user' => $user->username], "Pengecualian hak akses user {$user->username} dihapus (kembali ikut role)");
