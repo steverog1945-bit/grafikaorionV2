@@ -90,7 +90,7 @@ class CheckMenuAccess
         }
 
         if (!\App\Support\Izin::boleh($user, $rules[$matchedPrefix], $aksi)) {
-            $label = ['add' => 'menambah data di', 'edit' => 'mengubah/mengelola data di', 'delete' => 'menghapus data di'][$aksi];
+            $label = ['view' => 'melihat data di', 'add' => 'menambah data di', 'edit' => 'mengubah/mengelola data di', 'delete' => 'menghapus data di'][$aksi];
             abort(403, "Anda tidak memiliki izin untuk {$label} modul ini. Hubungi Administrator untuk meminta akses.");
         }
 
