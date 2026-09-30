@@ -142,9 +142,14 @@ class JerseyOrderController extends Controller
      */
     private function ukuranMasterAktif(): \Illuminate\Support\Collection
     {
-        static $cache = null;
+        // Cache di atribut REQUEST (bukan `static`): `static` hidup selama proses PHP, jadi pada server
+        // berumur panjang (Octane/worker) daftar ukuran akan basi setelah Master Ukuran diubah.
+        $req = request();
+        if (!$req->attributes->has('jersey.ukuran_aktif')) {
+            $req->attributes->set('jersey.ukuran_aktif', JerseySize::where('is_active', true)->pluck('name'));
+        }
 
-        return $cache ??= JerseySize::where('is_active', true)->pluck('name');
+        return $req->attributes->get('jersey.ukuran_aktif');
     }
 
     /**
@@ -154,9 +159,12 @@ class JerseyOrderController extends Controller
      */
     private function sizeIdByName(): \Illuminate\Support\Collection
     {
-        static $cache = null;
+        $req = request();
+        if (!$req->attributes->has('jersey.ukuran_id')) {
+            $req->attributes->set('jersey.ukuran_id', JerseySize::where('is_active', true)->pluck('id', 'name'));
+        }
 
-        return $cache ??= JerseySize::where('is_active', true)->pluck('id', 'name');
+        return $req->attributes->get('jersey.ukuran_id');
     }
 
     /**
