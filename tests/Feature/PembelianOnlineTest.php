@@ -83,6 +83,8 @@ class PembelianOnlineTest extends TestCase
         $kat = DB::table('kategori')->insertGetId(['nama_kategori' => 'K']);
         $bahan = DB::table('bahan_baku')->insertGetId(['kode_bahan' => 'B2', 'nama_bahan' => 'Tinta', 'id_mesin' => $mesin, 'id_kategori' => $kat, 'stok' => 10, 'nilai_konversi' => 1, 'satuan_stok' => 'pcs', 'status' => 'aktif']);
         $k = KedatanganBahan::create(['no_surat_jalan' => 'SP-9', 'id_supplier' => $sup, 'tgl_datang' => now()->toDateString(), 'status' => 'Selesai']);
+        // Kedatangan Selesai yang realistis selalu punya detail bahan (penjaga server-side memeriksanya).
+        DB::table('kedatangan_bahan_detail')->insert(['id_kedatangan' => $k->id_kedatangan, 'id_bahan' => $bahan, 'qty' => 2, 'status' => 'OK']);
 
         $this->actingAs($this->admin)->post('/pembelian-bahan', [
             'id_kedatangan' => $k->id_kedatangan, 'no_faktur' => 'ONL-1', 'tgl_transaksi' => now()->toDateString(), 'tipe_pembelian' => 'Cash',
