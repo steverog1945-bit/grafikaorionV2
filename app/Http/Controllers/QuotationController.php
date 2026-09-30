@@ -24,7 +24,7 @@ class QuotationController extends Controller
 
         if ($request->filled('status')) {
             if ($request->status === 'Kedaluwarsa') {
-                $query->whereIn('status', ['Draft', 'Terkirim'])->whereDate('berlaku_sampai', '<', now()->toDateString());
+                $query->whereIn('status', ['Draft', 'Terkirim'])->where('berlaku_sampai', '<', now()->toDateString());
             } else {
                 $query->where('status', $request->status);
             }

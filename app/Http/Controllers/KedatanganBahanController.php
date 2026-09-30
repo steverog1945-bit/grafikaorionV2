@@ -52,11 +52,11 @@ class KedatanganBahanController extends Controller
 
     // 2. Filter Tanggal (Range)
     $query->when($request->from, function ($q) use ($request) {
-        $q->whereDate('tgl_datang', '>=', $request->from);
+        $q->where('tgl_datang', '>=', $request->from); // DATE: sargable
     });
 
     $query->when($request->to, function ($q) use ($request) {
-        $q->whereDate('tgl_datang', '<=', $request->to);
+        $q->where('tgl_datang', '<=', $request->to);
     });
 
     // Urutkan berdasarkan yang terbaru dan paginasi

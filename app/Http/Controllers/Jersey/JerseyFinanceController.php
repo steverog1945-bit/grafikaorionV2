@@ -38,9 +38,14 @@ class JerseyFinanceController extends Controller
 
         // Ringkasan dashboard - dihitung dari SELURUH order (bukan cuma
         // halaman yang sedang tampil) supaya angkanya benar-benar total.
-        $semuaBelumLunas = JerseyOrder::whereIn('status_pembayaran', ['Belum Bayar', 'DP'])->get();
-        $totalPiutang = $semuaBelumLunas->sum(fn ($o) => max(0, (float) $o->total - (float) $o->deposit));
-        $jumlahJatuhTempo = $semuaBelumLunas->filter(fn ($o) => $o->jatuh_tempo)->count();
+        // Dihitung DATABASE (satu query agregat), bukan memuat semua order ke PHP lalu sum/filter.
+        $ringkas = JerseyOrder::whereIn('status_pembayaran', ['Belum Bayar', 'DP'])
+            ->selectRaw('COALESCE(SUM(GREATEST(total - deposit, 0)), 0) as piutang')
+            // Sama dengan JerseyOrder::getJatuhTempoAttribute(): deadline (kolom tanggal) hari ini atau lebih lama = telat.
+            ->selectRaw('COALESCE(SUM(deadline IS NOT NULL AND deadline <= ?), 0) as telat', [now()->toDateString()])
+            ->first();
+        $totalPiutang = (float) $ringkas->piutang;
+        $jumlahJatuhTempo = (int) $ringkas->telat;
 
         $awalBulan = now()->startOfMonth();
         $totalDiterimaBulanIni = JerseyOrderPayment::where('tanggal_bayar', '>=', $awalBulan)->sum('jumlah');

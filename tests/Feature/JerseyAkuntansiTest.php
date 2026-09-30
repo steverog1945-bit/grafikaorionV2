@@ -214,4 +214,33 @@ class JerseyAkuntansiTest extends TestCase
 
         $this->assertEquals(0, DB::table('jersey_order_payments')->count());
     }
+
+    /** Ringkasan Keuangan Jersey dihitung SQL - harus identik dengan aturan per-model (piutang, jatuh tempo = deadline hari ini/lewat & belum lunas). */
+    public function test_ringkasan_keuangan_jersey_dari_sql_sama_dengan_aturan_per_order(): void
+    {
+        $buat = fn (string $no, ?string $deadline, float $total, float $bayar = 0) => JerseyOrder::create([
+            'order_number' => $no, 'order_date' => now()->toDateString(), 'customer_name' => $no, 'deadline' => $deadline,
+            'additional_charge' => $total,
+        ]);
+        $kemarin = $buat('JO-KMR', now()->subDay()->toDateString(), 100000);
+        $hariIni = $buat('JO-INI', now()->toDateString(), 200000);
+        $besok = $buat('JO-BSK', now()->addDay()->toDateString(), 300000);
+        $tanpa = $buat('JO-NUL', null, 400000);
+        $lunasTelat = $buat('JO-LNS', now()->subDays(3)->toDateString(), 50000);
+        foreach ([$kemarin, $hariIni, $besok, $tanpa, $lunasTelat] as $o) {
+            $o->recalculateTotal();
+        }
+        $this->bayar($lunasTelat->fresh(), 50000)->assertSessionHas('success');
+        $this->bayar($hariIni->fresh(), 50000)->assertSessionHas('success'); // DP: sisa 150.000
+
+        $r = $this->get('/jersey/keuangan')->assertOk();
+
+        // Belum lunas: kemarin 100k + hari ini (200k-50k) + besok 300k + tanpa deadline 400k = 950k; order lunas tidak dihitung.
+        $this->assertEquals(950000, (float) $r->viewData('totalPiutang'));
+        // Telat: kemarin + hari ini (lunas tidak dihitung, besok & tanpa deadline bukan telat) = 2.
+        $this->assertSame(2, $r->viewData('jumlahJatuhTempo'));
+        // Konsisten dengan aturan per-model.
+        $perModel = JerseyOrder::whereIn('status_pembayaran', ['Belum Bayar', 'DP'])->get()->filter(fn ($o) => $o->jatuh_tempo)->count();
+        $this->assertSame($perModel, $r->viewData('jumlahJatuhTempo'));
+    }
 }

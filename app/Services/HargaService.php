@@ -128,8 +128,8 @@ class HargaService
         return DB::table('harga_promo')
             ->where('id_produk', $idProduk)
             ->where('status_promo', 'aktif')
-            ->whereDate('tgl_mulai', '<=', $today)
-            ->whereDate('tgl_selesai', '>=', $today)
+            ->where('tgl_mulai', '<=', $today)   // kolom DATE: sargable
+            ->where('tgl_selesai', '>=', $today)
             ->orderByDesc('id_promo')
             ->first();
     }

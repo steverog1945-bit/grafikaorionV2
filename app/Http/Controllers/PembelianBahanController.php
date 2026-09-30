@@ -32,11 +32,11 @@ class PembelianBahanController extends Controller
         }
 
         if ($request->filled('from')) {
-            $query->whereDate('tgl_transaksi', '>=', $request->from);
+            $query->where('tgl_transaksi', '>=', $request->from); // DATE: sargable
         }
 
         if ($request->filled('to')) {
-            $query->whereDate('tgl_transaksi', '<=', $request->to);
+            $query->where('tgl_transaksi', '<=', $request->to);
         }
 
         // Filter jatuh tempo: telat / jatuh tempo <= 7 hari (hanya faktur yang masih berhutang).
