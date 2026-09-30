@@ -14,4 +14,6 @@ Artisan::command('inspire', function () {
 // jadwal ini sendiri tidak aktif tanpa proses scheduler tersebut.
 Schedule::command('backup:run daily')->dailyAt('01:00')->withoutOverlapping();
 Schedule::command('backup:run weekly')->weeklyOn(1, '01:30')->withoutOverlapping();
+// Perawatan data: cache/sesi kedaluwarsa, log audit lama ke arsip. Setelah backup harian.
+Schedule::command('data:rapikan')->dailyAt('03:00')->withoutOverlapping();
 Schedule::command('backup:run monthly')->monthlyOn(1, '02:00')->withoutOverlapping();

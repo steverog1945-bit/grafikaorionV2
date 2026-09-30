@@ -15,7 +15,10 @@ class AuditLogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = AuditLog::with('user')->orderByDesc('created_at');
+        // "Arsip": log lama yang sudah dipindahkan oleh data:rapikan (struktur tabel sama).
+        $arsip = $request->boolean('arsip') && \Illuminate\Support\Facades\Schema::hasTable('audit_logs_arsip');
+        $model = $arsip ? (new AuditLog)->setTable('audit_logs_arsip') : new AuditLog;
+        $query = $model->newQuery()->with('user')->orderByDesc('created_at');
 
         if ($request->filled('auditable_type')) {
             $query->where('auditable_type', 'like', '%' . $request->auditable_type . '%');
@@ -34,8 +37,8 @@ class AuditLogController extends Controller
 
         $logs = $query->paginate(20)->withQueryString();
 
-        $daftarTipe = AuditLog::select('auditable_type')->distinct()->orderBy('auditable_type')->pluck('auditable_type');
+        $daftarTipe = $model->newQuery()->select('auditable_type')->distinct()->orderBy('auditable_type')->pluck('auditable_type');
 
-        return view('audit-log.index', compact('logs', 'daftarTipe'));
+        return view('audit-log.index', compact('logs', 'daftarTipe', 'arsip'));
     }
 }

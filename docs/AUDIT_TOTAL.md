@@ -283,3 +283,15 @@ Perbaikan data dengan perintah baru `php artisan jersey:koreksi-pembukuan` (tanp
 **Semua pintu pembayaran dari pelanggan:** kasir utama, pelunasan jersey, dan DP awal jersey mencatat sebesar tagihan; uang yang diserahkan dan kembaliannya disimpan di kolom baru `uang_diterima` dan `kembalian` (tabel pembayaran_riwayat dan jersey_order_payments) dan disebut di pesan sukses. Setoran deposit tidak punya tagihan; pemakaian deposit otomatis sudah dibatasi sebesar tagihan.
 **Nota thermal/A4** ditata ulang mengikuti contoh struk (label dan titik dua sejajar, item dua baris dengan harga satuan, ringkasan rata kanan); isi tetap. Baris penggunaan deposit dan saldo deposit selalu dicetak. Semua teks hitam pekat dan garis solid (abu-abu tercetak sebagai titik-titik di printer thermal); huruf tidak diubah. "Kembali" di nota kini dari kembalian yang tersimpan.
 **Audit indeks:** 518 query unik dari semua rute GET (dengan variasi saringan status, tanggal, dan pencarian) di-EXPLAIN pada data besar. 42 temuan pemindaian penuh atau filesort; 19 indeks baru (status collecting, urgent + status SPK, approval status + tanggal, kas kecil tanggal + jenis, tanggal/status/jatuh tempo order jersey, tanggal bayar jersey, `updated_at` di 13 tabel yang dipantau `/sinyal`) dan satu query ditulis ulang (NOT IN menjadi IN). Sisa 19 temuan tidak bisa dibantu indeks: hitungan seluruh tabel untuk paginasi, pencarian `LIKE '%kata%'`, agregat seluruh jurnal di Neraca Saldo, dan saringan `!=`; terberat 0,56 detik pada 670 ribu baris jurnal.
+
+## 30. Siklus hidup data
+| Data | Sebelumnya | Sekarang |
+|---|---|---|
+| Log audit (`audit_logs`) | tumbuh tanpa batas (690 ribu baris di data uji; setiap halaman log menghitung seluruh tabel) | baris lebih tua dari 24 bulan (`AUDIT_ARSIP_BULAN`, minimal 6) DIPINDAH ke `audit_logs_arsip` tiap malam, bertahap 5.000 baris; tetap bisa dibuka di Log Aktivitas dengan centang "Tampilkan arsip". Tidak ada yang dihapus |
+| Cache database | baris kedaluwarsa tidak pernah dibuang | dibuang tiap malam |
+| Sesi database | hanya dibersihkan acak (2 dari 100 permintaan) | juga dibersihkan tiap malam |
+| `laravel.log` | satu berkas, 11 MB dalam tiga hari | `LOG_STACK=daily`: satu berkas per hari, disimpan 14 hari (`LOG_DAILY_DAYS`). Berkas lama `laravel.log` dibiarkan; boleh dihapus |
+| Riwayat backup (`backup_logs`) | tanpa batas | lebih dari 1 tahun dihapus (berkas backup punya retensi sendiri: 7 harian, 4 mingguan, 12 bulanan, 10 manual) |
+| Transaksi, jurnal, stok, pembayaran | - | tidak pernah dihapus atau diarsipkan: data keuangan wajib disimpan (UU KUP: 10 tahun) |
+Perintah: `php artisan data:rapikan` (dijadwalkan 03:00; `--pratinjau` untuk menghitung saja). Tes: `RapikanDataTest`.
+Nota: tata letak nota kasir sudah aktif di server (diverifikasi dengan merender nota di `oriondb`); cetakan kini dikirim dengan `Cache-Control: no-store` supaya peramban tidak menampilkan salinan lama. Nota order jersey (thermal/A4) ditata dengan aturan yang sama (teks hitam, garis solid, titik dua sejajar) dan menampilkan Kembali bila ada.

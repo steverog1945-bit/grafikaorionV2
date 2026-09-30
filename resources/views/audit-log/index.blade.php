@@ -12,7 +12,7 @@
     </x-page-header>
 
     <x-card class="mb-6">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
             <x-form.group label="Jenis Data">
                 <x-form.select name="auditable_type">
                     <option value="">Semua</option>
@@ -35,6 +35,9 @@
             <x-form.group label="Sampai Tanggal">
                 <x-form.input type="date" name="akhir" value="{{ request('akhir') }}" />
             </x-form.group>
+            <label class="flex items-center gap-2 text-sm text-slate-600" title="Log yang lebih tua dari masa simpan harian dipindahkan ke arsip, tidak dihapus">
+                <input type="checkbox" name="arsip" value="1" {{ ($arsip ?? false) ? 'checked' : '' }}> Tampilkan arsip
+            </label>
             <x-button type="submit"><i class="fas fa-filter"></i> Filter</x-button>
         </form>
     </x-card>
