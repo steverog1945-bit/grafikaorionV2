@@ -114,6 +114,9 @@ class CollectingController extends Controller
             'nama_penerima' => 'nullable|string|max:150|required_if:jenis,Diambil Perwakilan,Dikirim',
             'catatan_serah' => 'nullable|string|max:1000',
             'bukti' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:10240',
+            // Serah terima nota yang belum lunas: konfirmasi eksplisit + alasan tertulis (ditegakkan di server).
+            'konfirmasi_belum_lunas' => 'nullable|boolean',
+            'alasan_belum_lunas' => 'nullable|string|max:500',
         ]);
 
         $buktiPath = null;
@@ -132,6 +135,20 @@ class CollectingController extends Controller
 
             if ($transaksi->status_nota === 'Dibatalkan') {
                 return back()->with('error', 'Nota ini sudah dibatalkan - tidak ada barang yang perlu diambil.');
+            }
+
+            // Kontrol pelepasan barang: nota yang belum lunas tidak diserahkan begitu saja. Boleh (usaha ini
+            // memang punya piutang), tetapi harus sengaja: konfirmasi + alasan, dan keduanya tercatat di audit.
+            $sisaTagihan = 0.0;
+            $alasanBelumLunas = null;
+            if ($transaksi->status_pembayaran !== 'Lunas') {
+                $terbayar = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal');
+                $sisaTagihan = max(0, round((float) $transaksi->total_bayar - $terbayar, 2));
+
+                $alasanBelumLunas = trim((string) $request->input('alasan_belum_lunas'));
+                if (!$request->boolean('konfirmasi_belum_lunas') || mb_strlen($alasanBelumLunas) < 5) {
+                    return back()->with('error', "Nota {$transaksi->nomor_nota} belum lunas (sisa Rp " . number_format($sisaTagihan, 0, ',', '.') . '). Barang belum diserahkan. Untuk menyerahkan dengan tagihan tersisa, konfirmasi dan tulis alasannya.');
+                }
             }
 
             $progres = DB::table('transaksi_detail')
@@ -181,8 +198,8 @@ class CollectingController extends Controller
                     'jenis' => $request->input('jenis', 'Diambil Sendiri'),
                     'nama_penerima' => $request->input('nama_penerima'),
                     'bukti_path' => $buktiPath,
-                ],
-                "Nota {$transaksi->nomor_nota} diserahkan ke penerima"
+                ] + ($alasanBelumLunas !== null ? ['diserahkan_belum_lunas' => true, 'sisa_tagihan' => $sisaTagihan, 'alasan' => $alasanBelumLunas] : []),
+                "Nota {$transaksi->nomor_nota} diserahkan ke penerima" . ($alasanBelumLunas !== null ? ' TANPA LUNAS (sisa Rp ' . number_format($sisaTagihan, 0, ',', '.') . ')' : '')
             );
 
             return back()->with('success', "Nota {$transaksi->nomor_nota} ditandai sudah diambil.");

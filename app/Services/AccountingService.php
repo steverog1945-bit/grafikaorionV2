@@ -439,6 +439,24 @@ class AccountingService
     }
 
     /**
+     * Nota yang sudah dibayar lalu dibatalkan: pendapatan dibalik (reversePenjualan) tetapi jurnal
+     * pembayarannya sengaja dibiarkan, sehingga Piutang nota itu bersaldo KREDIT sebesar uang yang
+     * sudah diterima. Uang itu kini utang usaha kepada pelanggan: dipindahkan ke Hutang Deposit
+     * (Dr Piutang / Cr Hutang Deposit) dan di sisi operasional menjadi saldo deposit pelanggan.
+     */
+    public static function postKreditNotaBatal(string $noNota, float $nominal): void
+    {
+        if ($nominal <= 0) {
+            return;
+        }
+
+        self::postJournal(now()->toDateString(), $noNota . '-KRD', "Kredit pelanggan dari nota batal {$noNota}", [
+            ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'debet' => $nominal],
+            ['kode_akun' => self::AKUN_HUTANG_DEPOSIT, 'kredit' => $nominal],
+        ]);
+    }
+
+    /**
      * Membalik SEMUA baris jurnal untuk satu no_referensi (nota) dengan
      * entri kontra (debet<->kredit ditukar) - dipakai saat sebuah nota
      * dikoreksi lewat alur Edit Nota (PenjualanController::applyApprovedEdit)

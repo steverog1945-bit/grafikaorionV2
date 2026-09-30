@@ -979,6 +979,7 @@ public function eksekusiPembatalanNota(int $id, array $payload): array
     // ditindaklanjuti (retur uang / deposit) lewat proses manual &
     // terlihat di Laporan Piutang yang sudah mengecualikan nota batal.
     AccountingService::reversePenjualan($transaksi->nomor_nota);
+    $this->kreditkanPembayaranNotaBatal($transaksi);
 
     DB::table('transaksi')->where('id_transaksi', $id)->update([
         'status_nota' => 'Dibatalkan',
@@ -988,6 +989,35 @@ public function eksekusiPembatalanNota(int $id, array $payload): array
     ]);
 
     return $ringkasanStok;
+}
+
+/**
+ * Uang yang sudah masuk untuk nota yang dibatalkan tidak boleh menggantung: menjadi saldo deposit
+ * pelanggan (bisa dipakai di nota pengganti), dengan jurnal Piutang -> Hutang Deposit dan jejak audit.
+ * Dipanggil di dalam transaksi pembatalan, tepat sekali per nota (pembatalan dijaga status_nota).
+ */
+private function kreditkanPembayaranNotaBatal(object $transaksi): void
+{
+    $terbayar = round((float) DB::table('pembayaran_riwayat')->where('id_transaksi', $transaksi->id_transaksi)->sum('nominal'), 2);
+    if ($terbayar <= 0) {
+        return;
+    }
+
+    $data = [
+        'id_konsumen' => $transaksi->id_konsumen,
+        'tipe' => 'Setoran',
+        'nominal' => $terbayar,
+        'metode_bayar' => 'Kredit Nota Batal',
+        'keterangan' => "Uang nota {$transaksi->nomor_nota} yang dibatalkan, menjadi saldo pelanggan",
+        'tgl_deposit' => now()->toDateString(),
+        'id_transaksi' => $transaksi->id_transaksi,
+        'id_user' => Auth::id(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ];
+    $idDeposit = DB::table('konsumen_deposit')->insertGetId($data);
+    AccountingService::postKreditNotaBatal($transaksi->nomor_nota, $terbayar);
+    \App\Services\AuditLogger::log('created', 'konsumen_deposit', $idDeposit, null, $data, "Kredit pelanggan Rp " . number_format($terbayar, 0, ',', '.') . " dari nota batal {$transaksi->nomor_nota}");
 }
 
 /**
@@ -1260,6 +1290,7 @@ public function applyApprovedEdit($id)
         }
 
         AccountingService::reversePenjualan($transaksi->nomor_nota);
+        $this->kreditkanPembayaranNotaBatal($transaksi);
 
         DB::table('transaksi')->where('id_transaksi', $transaksi->id_transaksi)->update([
             'status_nota' => 'Dibatalkan',

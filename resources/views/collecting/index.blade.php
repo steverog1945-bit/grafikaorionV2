@@ -137,7 +137,7 @@
                         </x-button>
                         @if($bisaUbah && $item->status_collecting !== 'Sudah Diambil' && $item->status_nota !== 'Dibatalkan')
                             <x-button type="button" size="icon" variant="ghost"
-                                onclick="prosesCollecting('{{ $item->id_transaksi }}', {{ json_encode($item->nomor_nota) }}, {{ $lengkap ? 'true' : 'false' }})"
+                                onclick="prosesCollecting('{{ $item->id_transaksi }}', {{ json_encode($item->nomor_nota) }}, {{ $lengkap ? 'true' : 'false' }}, {{ json_encode($item->status_pembayaran) }})"
                                 class="border border-slate-100 {{ $lengkap ? 'hover:text-emerald-600' : 'text-slate-200 cursor-not-allowed' }}"
                                 title="{{ $lengkap ? 'Tandai Sudah Diambil' : 'Belum bisa diproses - masih ada item yang belum selesai' }}">
                                 <i class="fas fa-hand-holding text-xs"></i>
@@ -162,7 +162,8 @@
 
 @push('scripts')
 <script>
-    function prosesCollecting(idTransaksi, nomorNota, sudahLengkap) {
+    function prosesCollecting(idTransaksi, nomorNota, sudahLengkap, statusBayar) {
+        const belumLunas = statusBayar !== 'Lunas';
         if (!sudahLengkap) {
             Swal.fire({
                 title: 'Belum Bisa Diproses',
@@ -192,6 +193,12 @@
                     <input id="sw-catatan" class="swal2-input" style="margin:6px 0 12px;width:100%" maxlength="1000">
                     <label style="font-weight:700">Foto bukti (opsional)</label>
                     <input id="sw-bukti" type="file" accept="image/*" style="margin-top:6px;width:100%">
+                    ${belumLunas ? `
+                    <div style="margin-top:14px;padding:10px 12px;border:1px solid #fcd34d;background:#fffbeb;border-radius:6px">
+                        <b style="color:#92400e">Nota ini belum lunas (${statusBayar}).</b>
+                        <div style="margin:4px 0 8px;color:#78350f">Barang boleh diserahkan hanya dengan sengaja. Tulis alasannya, misalnya pelanggan tetap dengan jatuh tempo atau ada persetujuan pemilik.</div>
+                        <input id="sw-alasan-belum-lunas" class="swal2-input" style="margin:0;width:100%" maxlength="500" placeholder="Alasan menyerahkan sebelum lunas">
+                    </div>` : ''}
                 </div>`,
             icon: 'question',
             showCancelButton: true,
@@ -210,7 +217,12 @@
                     Swal.showValidationMessage('Nama penerima wajib diisi untuk perwakilan/dikirim.');
                     return false;
                 }
-                return { jenis, nama, catatan: document.getElementById('sw-catatan').value, bukti: document.getElementById('sw-bukti') };
+                const alasan = belumLunas ? document.getElementById('sw-alasan-belum-lunas').value.trim() : '';
+                if (belumLunas && alasan.length < 5) {
+                    Swal.showValidationMessage('Nota belum lunas: tulis alasan menyerahkan barang (minimal 5 huruf).');
+                    return false;
+                }
+                return { jenis, nama, catatan: document.getElementById('sw-catatan').value, bukti: document.getElementById('sw-bukti'), alasan };
             }
         }).then((result) => {
             if (result.isConfirmed) {
@@ -219,7 +231,9 @@
                 form.enctype = 'multipart/form-data';
                 form.action = `{{ url('/collecting') }}/${idTransaksi}/proses`;
                 form.innerHTML = `@csrf @method('PATCH')`;
-                [['jenis', result.value.jenis], ['nama_penerima', result.value.nama], ['catatan_serah', result.value.catatan]].forEach(([n, v]) => {
+                const isian = [['jenis', result.value.jenis], ['nama_penerima', result.value.nama], ['catatan_serah', result.value.catatan]];
+                if (belumLunas) { isian.push(['konfirmasi_belum_lunas', '1'], ['alasan_belum_lunas', result.value.alasan]); }
+                isian.forEach(([n, v]) => {
                     const i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = v; form.appendChild(i);
                 });
                 if (result.value.bukti.files.length) { result.value.bukti.name = 'bukti'; form.appendChild(result.value.bukti); }

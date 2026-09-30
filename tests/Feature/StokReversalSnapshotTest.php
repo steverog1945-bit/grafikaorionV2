@@ -141,4 +141,41 @@ class StokReversalSnapshotTest extends TestCase
     {
         $this->assertSame('2026-09-27 21:26:42', StokReversalService::SNAPSHOT_MULAI);
     }
+
+    /**
+     * Audit stok: konversi satuan dan harga rata-rata bahan berubah SETELAH order dibuat,
+     * lalu item dibatalkan. Stok harus kembali persis sebesar yang benar-benar dipotong dulu,
+     * bukan dihitung ulang dari konversi/harga yang berlaku sekarang.
+     */
+    public function test_reversal_tidak_terpengaruh_perubahan_konversi_dan_harga_setelah_order(): void
+    {
+        $this->actingAs($this->admin)->postJson('/penjualan/store', [
+            'id_konsumen' => $this->idKonsumen, 'id_golongan' => $this->idGol,
+            'items' => [['id_produk' => $this->idProduk, 'nama_file' => 'a', 'p' => 0, 'l' => 0, 'qty_input' => 7, 'biaya_cetak' => 10000]],
+        ])->assertOk();
+        $this->assertEquals(93, (float) DB::table('bahan_baku')->where('id_bahan', $this->idBahanLama)->value('stok'));
+
+        DB::table('bahan_baku')->where('id_bahan', $this->idBahanLama)->update(['nilai_konversi' => 500, 'harga_rata_rata' => 99999]);
+
+        StokReversalService::kembalikan(DB::table('transaksi_detail')->first(), 'BATAL-KONVERSI', 'uji konversi berubah');
+
+        $this->assertEquals(100, (float) DB::table('bahan_baku')->where('id_bahan', $this->idBahanLama)->value('stok'), 'Kembali 7, bukan 7 x konversi baru');
+        $in = DB::table('kartu_stok')->where('referensi', 'BATAL-KONVERSI')->where('id_bahan', $this->idBahanLama)->first();
+        $this->assertEquals(7, (float) $in->qty);
+    }
+
+    public function test_reversal_kedua_untuk_item_yang_sama_tidak_menambah_stok_lagi(): void
+    {
+        $this->actingAs($this->admin)->postJson('/penjualan/store', [
+            'id_konsumen' => $this->idKonsumen, 'id_golongan' => $this->idGol,
+            'items' => [['id_produk' => $this->idProduk, 'nama_file' => 'a', 'p' => 0, 'l' => 0, 'qty_input' => 4, 'biaya_cetak' => 10000]],
+        ])->assertOk();
+        $detail = DB::table('transaksi_detail')->first();
+
+        StokReversalService::kembalikan($detail, 'BATAL-1', 'pertama');
+        StokReversalService::kembalikan($detail, 'BATAL-2', 'kedua (klik ganda / dua pengguna)');
+
+        $this->assertEquals(100, (float) DB::table('bahan_baku')->where('id_bahan', $this->idBahanLama)->value('stok'), 'Stok tidak boleh melebihi awal');
+        $this->assertSame(1, DB::table('kartu_stok')->where('tipe', 'IN')->where('id_bahan', $this->idBahanLama)->whereIn('referensi', ['BATAL-1', 'BATAL-2'])->count());
+    }
 }
