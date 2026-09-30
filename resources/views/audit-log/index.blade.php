@@ -24,7 +24,7 @@
             <x-form.group label="Aksi">
                 <x-form.select name="event">
                     <option value="">Semua</option>
-                    @foreach(['created' => 'Dibuat', 'updated' => 'Diubah', 'deleted' => 'Dihapus', 'login' => 'Masuk', 'login_gagal' => 'Gagal masuk', 'logout' => 'Keluar'] as $val => $label)
+                    @foreach(['created' => 'Dibuat', 'updated' => 'Diubah', 'deleted' => 'Dihapus', 'login' => 'Masuk', 'login_gagal' => 'Gagal masuk', 'logout' => 'Keluar', 'harga_manual' => 'Harga diubah'] as $val => $label)
                         <option value="{{ $val }}" {{ request('event') === $val ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </x-form.select>
@@ -58,8 +58,8 @@
                 <td class="px-4 py-5 text-[12px] font-semibold text-slate-700">{{ $log->user_label ?? $log->user?->username ?? '-' }}</td>
                 <td class="px-4 py-5">
                     @php
-                        $warna = ['created' => 'emerald', 'updated' => 'amber', 'deleted' => 'rose', 'login' => 'emerald', 'login_gagal' => 'rose'][$log->event] ?? 'slate';
-                        $namaAksi = ['created' => 'Dibuat', 'updated' => 'Diubah', 'deleted' => 'Dihapus', 'login' => 'Masuk', 'login_gagal' => 'Gagal masuk', 'logout' => 'Keluar'][$log->event] ?? $log->event;
+                        $warna = ['created' => 'emerald', 'updated' => 'amber', 'deleted' => 'rose', 'login' => 'emerald', 'login_gagal' => 'rose', 'harga_manual' => 'amber'][$log->event] ?? 'slate';
+                        $namaAksi = ['created' => 'Dibuat', 'updated' => 'Diubah', 'deleted' => 'Dihapus', 'login' => 'Masuk', 'login_gagal' => 'Gagal masuk', 'logout' => 'Keluar', 'harga_manual' => 'Harga diubah'][$log->event] ?? $log->event;
                     @endphp
                     <span class="text-[11px] font-bold uppercase text-{{ $warna }}-600 bg-{{ $warna }}-50 rounded px-2 py-1">{{ $namaAksi }}</span>
                 </td>

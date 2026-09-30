@@ -343,6 +343,8 @@ class PenjualanController extends Controller
             'finishing_list' => $daftarFinishing,
             'biaya_finishing' => $biayaFinishing,
             'biaya_cetak' => $biayaCetak,
+            // Acuan price list (harga per unit x qty hitung) - dipakai HANYA untuk mencatat selisih bila kasir menimpa biaya cetak.
+            'harga_standar' => round($hargaSatuan * $qtyHitung),
             'biaya_desain' => $biayaDesain,
             'file_siap_cetak' => $siapCetak,
             // Desainer yang menerapkan biaya desain + komisi menurut kelasnya (snapshot saat nota dibuat).
@@ -554,6 +556,32 @@ class PenjualanController extends Controller
             }
 
             $totalHppMaterialSemua += $hppItemIni;
+        }
+
+        // Jejak penimpaan harga: bila biaya cetak yang dipakai berbeda dari
+        // price list (potongan atau markup manual oleh kasir/admin), catat di
+        // audit siapa, nota mana, baris mana, dari berapa ke berapa. Tanpa ini
+        // potongan harga tidak bisa ditelusuri setelah nota tersimpan.
+        $penyimpangan = [];
+        foreach ($itemsTervalidasi as $urut => $item) {
+            if (!empty($item['is_jasa']) || !isset($item['harga_standar'])) {
+                continue;
+            }
+            $selisih = round((float) $item['biaya_cetak'] - (float) $item['harga_standar'], 2);
+            if (abs($selisih) > 1) {
+                $penyimpangan[] = ['baris' => $urut + 1, 'nama_file' => $item['nama_file'], 'price_list' => (float) $item['harga_standar'], 'dipakai' => (float) $item['biaya_cetak'], 'selisih' => $selisih];
+            }
+        }
+        if ($penyimpangan !== []) {
+            $totalSelisih = array_sum(array_column($penyimpangan, 'selisih'));
+            \App\Services\AuditLogger::log(
+                'harga_manual',
+                'transaksi',
+                (int) $id_transaksi,
+                ['price_list' => array_sum(array_column($penyimpangan, 'price_list'))],
+                ['dipakai' => array_sum(array_column($penyimpangan, 'dipakai')), 'baris' => $penyimpangan],
+                'Nota ' . $noNota . ': biaya cetak diubah dari price list pada ' . count($penyimpangan) . ' baris (' . ($totalSelisih < 0 ? 'potongan Rp ' : 'tambahan Rp ') . number_format(abs($totalSelisih), 0, ',', '.') . ')'
+            );
         }
 
         // Dipisah jadi 2 posting independen (bukan 1 baris gabungan) supaya
