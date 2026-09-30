@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,8 +37,23 @@ class AuthController extends Controller
             // baru tidak boleh terbawa ke halaman yang tidak berhak dilihat.
             $request->session()->forget('url.intended');
 
+            AuditLogger::log('login', 'users', (int) $request->user()->id_user, null, null, 'Masuk ke sistem');
+
             return redirect()->route('dashboard');
         }
+
+        // Username yang diketik HANYA dicatat bila memang akun yang ada: orang
+        // sering salah mengetik password di kolom username, dan itu tidak boleh
+        // berakhir di log. Password tidak pernah dicatat.
+        $dikenal = User::where('username', $credentials['username'])->value('id_user');
+        AuditLogger::log(
+            'login_gagal',
+            'users',
+            $dikenal ? (int) $dikenal : null,
+            null,
+            null,
+            $dikenal ? 'Percobaan masuk gagal untuk akun ' . $credentials['username'] : 'Percobaan masuk gagal (username tidak dikenal)'
+        );
 
         return back()->withErrors(['username' => 'User tidak ditemukan atau password salah.']);
     }
@@ -49,6 +66,10 @@ class AuthController extends Controller
         // sesi lama yang tidak berhak dia lihat - inilah akar bug
         // "logout lalu login akun produksi = error 403".
         $request->session()->remove('url.intended');
+
+        if (Auth::check()) {
+            AuditLogger::log('logout', 'users', (int) Auth::id(), null, null, 'Keluar dari sistem');
+        }
 
         Auth::logout();
         $request->session()->invalidate();
