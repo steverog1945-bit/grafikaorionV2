@@ -67,7 +67,7 @@
                             <x-button size="sm" variant="secondary" :href="route('stock-opname.edit', $o->id)">
                                 <i class="fas fa-edit"></i> Lanjutkan
                             </x-button>
-                            <form method="POST" action="{{ route('stock-opname.destroy', $o->id) }}" onsubmit="return confirm('Hapus Stok Opname {{ $o->nomor }}?');">
+                            <form method="POST" action="{{ route('stock-opname.destroy', $o->id) }}" data-konfirmasi="Hapus Stok Opname {{ $o->nomor }}?">
                                 @csrf @method('DELETE')
                                 <x-button size="sm" variant="danger" type="submit">
                                     <i class="fas fa-trash"></i>

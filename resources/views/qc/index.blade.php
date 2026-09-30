@@ -36,7 +36,7 @@
                 <td class="px-6 py-4 text-center"><x-badge :status="$r->status" :variant="$r->status === 'Selesai' ? 'success' : 'warning'" /></td>
                 <td class="px-8 py-4 text-right">
                     @if($r->status === 'Dibuka' && $bisaUbah)
-                    <form method="POST" action="{{ route('qc.rework.proses', $r->id) }}" onsubmit="return confirm('Proses rework? Material tambahan sesuai BOM akan dikeluarkan dari stok dan dijurnal sebagai beban.');">
+                    <form method="POST" action="{{ route('qc.rework.proses', $r->id) }}" data-konfirmasi="Proses rework? Material tambahan sesuai BOM akan dikeluarkan dari stok dan dijurnal sebagai beban.">
                         @csrf
                         <x-button type="submit" size="sm" variant="success"><i class="fas fa-tools"></i> Proses Rework</x-button>
                     </form>

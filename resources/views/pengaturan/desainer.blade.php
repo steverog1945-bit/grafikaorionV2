@@ -49,7 +49,7 @@
                     <td class="p-3 text-center text-xs text-slate-500">{{ $k->jumlah_anggota }}</td>
                     <td class="p-3 text-center whitespace-nowrap">
                         <button type="submit" form="form-kelas-{{ $k->id_kelas }}" title="Simpan perubahan kelas ini" class="w-9 h-9 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"><i class="fas fa-check text-sm"></i></button>
-                        <form method="POST" action="{{ route('desainer.kelas.destroy', $k->id_kelas) }}" class="inline" onsubmit="return confirm('Hapus kelas {{ $k->nama_kelas }}?')">
+                        <form method="POST" action="{{ route('desainer.kelas.destroy', $k->id_kelas) }}" class="inline" data-konfirmasi="Hapus kelas {{ $k->nama_kelas }}?">
                             @csrf @method('DELETE')
                             <button type="submit" title="Hapus kelas (hanya bila tidak ada operator di dalamnya)" class="w-9 h-9 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50"><i class="far fa-trash-alt text-sm"></i></button>
                         </form>

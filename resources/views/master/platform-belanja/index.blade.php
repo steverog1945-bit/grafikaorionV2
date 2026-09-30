@@ -28,7 +28,7 @@
                     <button type="submit" class="px-3 py-2 rounded-lg text-[11px] font-medium uppercase {{ $p->aktif ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500' }}">{{ $p->aktif ? 'Aktif' : 'Nonaktif' }}</button>
                 </form>
                 @if(!($dipakai[$p->id] ?? 0))
-                <form method="POST" action="{{ route('platform-belanja.destroy', $p->id) }}" onsubmit="return confirm('Hapus platform ini?')">@csrf @method('DELETE')
+                <form method="POST" action="{{ route('platform-belanja.destroy', $p->id) }}" data-konfirmasi="Hapus platform ini?">@csrf @method('DELETE')
                     <button type="submit" class="w-9 h-9 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
                 </form>
                 @endif

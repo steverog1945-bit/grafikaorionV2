@@ -39,7 +39,7 @@
                     <td class="p-3"><input type="number" name="menu[{{ $m->id_menu }}][urutan]" value="{{ $m->urutan }}" min="0" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right"></td>
                     <td class="p-3 text-center">
                         @if($m->jenis === 'kustom')
-                        <button type="submit" form="hapus-menu-{{ $m->id_menu }}" class="text-slate-300 hover:text-rose-500" title="Hapus menu kustom" onclick="return confirm('Hapus menu kustom ini?')"><i class="fas fa-trash-alt"></i></button>
+                        <button type="submit" form="hapus-menu-{{ $m->id_menu }}" class="text-slate-300 hover:text-rose-500" title="Hapus menu kustom" data-konfirmasi="Hapus menu kustom ini?"><i class="fas fa-trash-alt"></i></button>
                         @endif
                     </td>
                 </tr>

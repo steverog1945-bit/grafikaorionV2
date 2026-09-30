@@ -114,7 +114,7 @@
 
     @if($pr && $editable)
         <form id="form-ajukan-pr" method="POST" action="{{ route('purchase-request.ajukan', $pr->id) }}">@csrf @method('PATCH')</form>
-        <form id="form-hapus-pr" method="POST" action="{{ route('purchase-request.destroy', $pr->id) }}" onsubmit="return confirm('Hapus Permintaan Pembelian ini?');">@csrf @method('DELETE')</form>
+        <form id="form-hapus-pr" method="POST" action="{{ route('purchase-request.destroy', $pr->id) }}" data-konfirmasi="Hapus Permintaan Pembelian ini?">@csrf @method('DELETE')</form>
     @endif
 
     <template id="row-template">

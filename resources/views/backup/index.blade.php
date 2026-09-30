@@ -29,7 +29,7 @@
     </div>
 
     <x-card class="mb-8">
-        <form method="POST" action="{{ route('backup.jalankan') }}" onsubmit="return confirm('Jalankan backup manual sekarang?');">
+        <form method="POST" action="{{ route('backup.jalankan') }}" data-konfirmasi="Jalankan backup manual sekarang?">
             @csrf
             <x-button type="submit" variant="primary">
                 <i class="fas fa-play"></i> Jalankan Backup Manual Sekarang

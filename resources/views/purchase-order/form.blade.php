@@ -175,11 +175,11 @@
 
     @if($po)
         @if($editable)
-            <form id="form-terbit-po" method="POST" action="{{ route('purchase-order.terbitkan', $po->id) }}" onsubmit="return confirm('Terbitkan PO ini ke supplier? Setelah diterbitkan tidak bisa diubah.');">@csrf @method('PATCH')</form>
-            <form id="form-hapus-po" method="POST" action="{{ route('purchase-order.destroy', $po->id) }}" onsubmit="return confirm('Hapus Pesanan Pembelian ini?');">@csrf @method('DELETE')</form>
+            <form id="form-terbit-po" method="POST" action="{{ route('purchase-order.terbitkan', $po->id) }}" data-konfirmasi="Terbitkan PO ini ke supplier? Setelah diterbitkan tidak bisa diubah.">@csrf @method('PATCH')</form>
+            <form id="form-hapus-po" method="POST" action="{{ route('purchase-order.destroy', $po->id) }}" data-konfirmasi="Hapus Pesanan Pembelian ini?">@csrf @method('DELETE')</form>
         @endif
         @if(in_array($po->status, ['Draft', 'Dipesan']))
-            <form method="POST" action="{{ route('purchase-order.batalkan', $po->id) }}" onsubmit="return confirm('Batalkan Pesanan Pembelian ini?');" class="mt-4 flex justify-end">@csrf @method('PATCH')
+            <form method="POST" action="{{ route('purchase-order.batalkan', $po->id) }}" data-konfirmasi="Batalkan Pesanan Pembelian ini?" class="mt-4 flex justify-end">@csrf @method('PATCH')
                 <x-button type="submit" variant="outline" size="sm"><i class="fas fa-ban"></i> Batalkan PO</x-button>
             </form>
         @endif

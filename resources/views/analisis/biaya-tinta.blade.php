@@ -113,7 +113,7 @@
                 <td class="px-8 py-4 text-right">
                     <div class="flex justify-end gap-2">
                         <button type="button" onclick='bukaPengaturanTinta(@json($p))' class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" title="Ubah"><i class="far fa-edit text-sm"></i></button>
-                        <form method="POST" action="{{ route('laporan.biaya-tinta.hapus', $p->id) }}" onsubmit="return confirm('Hapus pengaturan ini?')">
+                        <form method="POST" action="{{ route('laporan.biaya-tinta.hapus', $p->id) }}" data-konfirmasi="Hapus pengaturan ini?">
                             @csrf @method('DELETE')
                             <button type="submit" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" title="Hapus"><i class="far fa-trash-alt text-sm"></i></button>
                         </form>

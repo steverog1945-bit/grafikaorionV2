@@ -37,7 +37,7 @@
                 </td>
                 <td class="px-8 py-5 text-right">
                     @if($p['status'] === 'Closed')
-                        <form method="POST" action="{{ route('accounting-period.buka') }}" onsubmit="return confirm('Buka kembali periode {{ $p['nama'] }}? Jurnal baru akan bisa diposting lagi ke periode ini.');">
+                        <form method="POST" action="{{ route('accounting-period.buka') }}" data-konfirmasi="Buka kembali periode {{ $p['nama'] }}? Jurnal baru akan bisa diposting lagi ke periode ini.">
                             @csrf @method('PATCH')
                             <input type="hidden" name="tahun" value="{{ $p['tahun'] }}">
                             <input type="hidden" name="bulan" value="{{ $p['bulan'] }}">

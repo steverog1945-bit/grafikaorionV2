@@ -2053,6 +2053,40 @@
     })();
     </script>
     <script>
+    // Konfirmasi seragam: form atau tombol ber-atribut data-konfirmasi="pesan" memakai dialog SweetAlert,
+    // bukan kotak confirm() bawaan peramban (tampilannya berbeda-beda dan tidak mengikuti tema aplikasi).
+    (function () {
+        function tampil(pesan, lanjut) {
+            const merusak = /^(hapus|batalkan|reset)/i.test(pesan);
+            Swal.fire({
+                icon: merusak ? 'warning' : 'question',
+                title: merusak ? 'Yakin?' : 'Lanjutkan?',
+                text: pesan,
+                showCancelButton: true,
+                confirmButtonText: merusak ? 'Ya, lanjutkan' : 'Lanjutkan',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                focusCancel: merusak,
+                confirmButtonColor: merusak ? '#dc2626' : '#4f46e5'
+            }).then(function (r) { if (r.isConfirmed) lanjut(); });
+        }
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (!(form instanceof HTMLFormElement) || !form.dataset.konfirmasi || form.dataset.sudahKonfirmasi === '1') return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            tampil(form.dataset.konfirmasi, function () { form.dataset.sudahKonfirmasi = '1'; form.requestSubmit(); });
+        }, true);
+        document.addEventListener('click', function (e) {
+            const tombol = e.target.closest ? e.target.closest('button[data-konfirmasi], a[data-konfirmasi]') : null;
+            if (!tombol || tombol.dataset.sudahKonfirmasi === '1') return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            tampil(tombol.dataset.konfirmasi, function () { tombol.dataset.sudahKonfirmasi = '1'; tombol.click(); });
+        }, true);
+    })();
+    </script>
+    <script>
     // Klik ganda pada tombol simpan tidak boleh mengirim form dua kali (kasir di LAN sering menekan lagi
     // saat halaman terasa lambat). Server tetap penjaga utama (kunci baris, submit_id); ini hanya mencegah
     // pesan "sudah diproses" yang membingungkan. Tombol aktif lagi bila halaman tidak berpindah (mis. unduhan).

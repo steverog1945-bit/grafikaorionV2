@@ -1074,7 +1074,6 @@ legend.text-\[10px\].uppercase {
 
    /* Judul: besar, tebal, gelap. */
    .swal2-title {
-      padding-left: 40px !important;
       font-size: 20px !important;
       font-weight: 600 !important;
       color: #171717 !important;
@@ -1172,36 +1171,41 @@ legend.text-\[10px\].uppercase {
       box-shadow: none !important;
    }
 
-   /* Ikon tanda seru: di KIRI JUDUL, sebaris dengan teksnya.
+   /* Ikon di KIRI judul, sebaris dengan teksnya, tanpa saling menimpa.
 
-      Sebelumnya ikon di tengah di atas judul (margin: 0 auto).
-      Itu membuat dialog terasa seperti pengumukan. Di gambar acuan
-      ikon berada di kiri, sejajar dengan judul - seperti daftar
-      dengan bullet, bukan poster dengan gambar di atas.
-
-      position:absolute + left/top mengikuti padding popup (20px).
-      Judul diberi padding-left supaya teksnya mulai di kanan ikon. */
-   /* Ikon di KIRI JUDUL, sebaris dengan teksnya.
-
-      Sebelumnya ikon di tengah di atas judul (position:absolute,
-      left:20px, top:20px). Itu membuat dialog terasa seperti pengumukan.
-      Sekarang ikon di kiri, sejajar dengan judul - seperti daftar dengan
-      bullet, bukan poster dengan gambar di atas.
-
-      left/top mengikuti padding popup (18px). Judul diberi
-      padding-left supaya teksnya mulai di kanan ikon. */
-   .swal2-icon {
-      position: absolute !important;
-      left: 18px !important;
-      top: 18px !important;
-      width: 28px !important;
-      height: 28px !important;
-      margin: 0 !important;
+      Sebelumnya ikon position:absolute di pojok kiri, sementara judul dan isi
+      mulai dari tepi kiri yang sama (padding-left judul dibatalkan oleh
+      "padding: 0"), sehingga ikon menumpuk di atas tulisan. Sekarang popup
+      berupa grid dua kolom: ikon di kolom 1, judul dan isi di kolom 2,
+      tombol/isian melebar di bawah. Toast tidak ikut diubah. */
+   .swal2-popup:not(.swal2-toast) {
+      display: grid !important;
+      grid-template-columns: 32px minmax(0, 1fr);
+      column-gap: 14px;
+      align-items: start;
+      justify-items: stretch;
+   }
+   .swal2-popup:not(.swal2-toast) > * { grid-column: 1 / -1; }
+   .swal2-popup:not(.swal2-toast) > .swal2-icon {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      position: static !important;
+      width: 32px !important;
+      height: 32px !important;
+      margin: 2px 0 0 !important;
       border-width: 2px !important;
+      justify-self: start;
    }
-   .swal2-icon .swal2-icon-content {
-      font-size: 14px !important;
-   }
+   .swal2-popup:not(.swal2-toast) > .swal2-icon .swal2-icon-content { font-size: 16px !important; }
+   .swal2-popup:not(.swal2-toast) > .swal2-title { grid-column: 2; grid-row: 1; align-self: center; }
+   .swal2-popup:not(.swal2-toast) > .swal2-html-container { grid-column: 2; grid-row: 2; }
+   /* Tanpa ikon: teks memakai seluruh lebar. */
+   .swal2-popup:not(.swal2-toast):not(:has(> .swal2-icon[style*="display: flex"])) > .swal2-title,
+   .swal2-popup:not(.swal2-toast):not(:has(> .swal2-icon[style*="display: flex"])) > .swal2-html-container { grid-column: 1 / -1; }
+   /* Tanpa judul: isi naik ke baris pertama di samping ikon. */
+   .swal2-popup:not(.swal2-toast):has(> .swal2-title[style*="display: none"]) > .swal2-html-container { grid-row: 1; align-self: center; }
+   .swal2-popup:not(.swal2-toast) > .swal2-actions { margin-top: 16px !important; }
+   .swal2-popup:not(.swal2-toast) > .swal2-close { grid-column: auto; }
 
    /* Footer (tombol-tombol): rapat, kanan. */
    .swal2-actions {

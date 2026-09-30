@@ -100,7 +100,7 @@
                                 <i class="fas fa-pen text-[11px]"></i>
                             </button>
                             <form action="{{ route('jasa-jahit.destroy', $j->id_jasa_jahit) }}" method="POST" class="inline"
-                                  onsubmit="return confirm('Hapus jenis jahit &quot;{{ $j->nama_jahit }}&quot;? Catatan pengeluarannya ikut terhapus.')">
+                                  data-konfirmasi="Hapus jenis jahit &quot;{{ $j->nama_jahit }}&quot;? Catatan pengeluarannya ikut terhapus.">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="w-9 h-9 flex items-center justify-center text-slate-400 rounded-lg transition-all hover:text-rose-500 hover:bg-rose-50" title="Hapus jenis jahit">
@@ -164,7 +164,7 @@
                     <td class="text-sm text-slate-500">{{ $r->username ?? '-' }}</td>
                     <td class="text-right">
                         <form action="{{ route('jasa-jahit.catat.destroy', $r->id_jasa_jahit_catat) }}" method="POST" class="inline"
-                              onsubmit="return confirm('Hapus catatan ini? Catatan tidak bisa diubah, jadi kalau salah hapus lalu catat ulang yang benar.')">
+                              data-konfirmasi="Hapus catatan ini? Catatan tidak bisa diubah, jadi kalau salah hapus lalu catat ulang yang benar.">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="w-9 h-9 flex items-center justify-center text-slate-400 rounded-lg transition-all hover:text-rose-500 hover:bg-rose-50" title="Hapus catatan">

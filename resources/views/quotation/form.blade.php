@@ -157,7 +157,7 @@
 
     @if($quotation)
         @if($editable)
-            <form id="form-hapus-qt" method="POST" action="{{ route('quotation.destroy', $quotation->id) }}" onsubmit="return confirm('Hapus penawaran ini?');">@csrf @method('DELETE')</form>
+            <form id="form-hapus-qt" method="POST" action="{{ route('quotation.destroy', $quotation->id) }}" data-konfirmasi="Hapus penawaran ini?">@csrf @method('DELETE')</form>
         @endif
 
         <x-card class="mt-8">
