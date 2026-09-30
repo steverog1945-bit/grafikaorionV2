@@ -15,9 +15,12 @@ class KartuStokFilterTest extends TestCase
     private int $idMesin;
     private int $idKat;
 
+    private int $urutKode = 0;
+
     private function bahan(string $nama, float $stok, float $min, string $status = 'aktif', ?int $kat = null): int
     {
-        return DB::table('bahan_baku')->insertGetId(['kode_bahan' => strtoupper(substr($nama, 0, 4)) . rand(10, 99), 'nama_bahan' => $nama, 'id_mesin' => $this->idMesin, 'id_kategori' => $kat ?? $this->idKat,
+        // Kode berurutan (bukan acak): dua bahan bernama mirip pernah bentrok di unique kode_bahan.
+        return DB::table('bahan_baku')->insertGetId(['kode_bahan' => strtoupper(substr($nama, 0, 4)) . str_pad((string) ++$this->urutKode, 3, '0', STR_PAD_LEFT), 'nama_bahan' => $nama, 'id_mesin' => $this->idMesin, 'id_kategori' => $kat ?? $this->idKat,
             'nilai_konversi' => 1, 'stok' => $stok, 'stok_minimal' => $min, 'harga_rata_rata' => 0, 'satuan_stok' => 'rim', 'status' => $status]);
     }
 
