@@ -86,7 +86,7 @@ class DesainerKomisiController extends Controller
         try {
             $hasil = DesainKomisiService::bayar((int) $data['id_desainer'], $data['tgl_dari'], $data['tgl_sampai']);
         } catch (\RuntimeException $e) {
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e));
         }
 
         return back()->with('success', 'Komisi Rp ' . number_format($hasil['total'], 0, ',', '.') . " untuk {$hasil['item']} item dibayarkan dari Kas Kecil (KK-{$hasil['id_kas_kecil']}).");

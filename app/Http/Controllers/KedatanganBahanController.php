@@ -126,7 +126,7 @@ class KedatanganBahanController extends Controller
 
     } catch (\Exception $e) {
         \DB::rollBack();
-        return back()->withInput()->with('error', 'Gagal simpan: ' . $e->getMessage());
+        return back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Gagal simpan'));
     }
 }
 public function validateStatus($id)

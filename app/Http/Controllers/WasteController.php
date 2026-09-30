@@ -152,7 +152,7 @@ class WasteController extends Controller
         try {
             $hasil = WasteService::catat((int) $data['id_bahan'], (float) $data['qty'], $data['jenis'], $data['alasan'], $request->filled('id_detail') ? (int) $data['id_detail'] : null);
         } catch (\RuntimeException $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e));
         }
 
         return redirect()->route('waste.index')->with('success', $hasil['status'] === 'Diterapkan'

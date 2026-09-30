@@ -29,7 +29,7 @@ class BackupController extends Controller
             $log = BackupService::run('manual');
             return back()->with('success', "Backup manual berhasil dibuat (" . angka($log->ukuran_bytes / 1024, 1) . " KB).");
         } catch (\Throwable $e) {
-            return back()->with('error', 'Backup manual gagal: ' . $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e, 'Backup manual gagal'));
         }
     }
 }

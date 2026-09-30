@@ -61,7 +61,7 @@ class QcController extends Controller
                 array_map(fn ($v) => (bool) $v, $data['checklist'] ?? []), $data['catatan'] ?? null
             );
         } catch (\RuntimeException $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e));
         }
 
         $pesan = "QC {$hasil['nomor']} tersimpan.";
@@ -77,7 +77,7 @@ class QcController extends Controller
         try {
             $biaya = QcService::prosesRework($id);
         } catch (\RuntimeException $e) {
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e));
         }
 
         return back()->with('success', 'Rework selesai diproses. Biaya material Rp ' . number_format($biaya, 0, ',', '.') . ' dicatat ke stok & jurnal.');
