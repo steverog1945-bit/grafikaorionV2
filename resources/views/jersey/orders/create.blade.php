@@ -324,7 +324,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        $('.select2-konsumen-jersey').select2({ placeholder: '-- Cari Nama / No. HP --', allowClear: true, width: '100%' });
+        $('.select2-konsumen-jersey').select2({ placeholder: '-- Cari Nama / No. HP --', width: '100%' });
         tambahBarisBarang();
     });
 

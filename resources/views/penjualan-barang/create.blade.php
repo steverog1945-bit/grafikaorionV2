@@ -268,7 +268,7 @@
 @push('scripts')
 <script>
     $(document).ready(function () {
-        $('.select2-konsumen-barang').select2({ placeholder: '-- Cari Nama / No. HP --', allowClear: true, width: '100%' });
+        $('.select2-konsumen-barang').select2({ placeholder: '-- Cari Nama / No. HP --', width: '100%' });
 
         // Select yang disembunyikan select2 tidak bisa menampilkan pesan "wajib diisi" bawaan browser,
         // jadi tombol simpan tampak tidak bereaksi. Periksa sendiri dan beri tahu dengan jelas.

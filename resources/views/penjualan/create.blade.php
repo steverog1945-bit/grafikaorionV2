@@ -562,7 +562,6 @@
     $(document).ready(function() {
         $('.select2-konsumen').select2({
             placeholder: "-- Cari Nama / No. HP --",
-            allowClear: true,
             width: '100%',
             minimumInputLength: 0,
             ajax: {

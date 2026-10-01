@@ -64,4 +64,66 @@ class FormKonsumenDanSkripTest extends TestCase
         }
         $this->assertSame([], $temuan, 'classList dengan nama kelas kosong melempar error di browser');
     }
+
+    public function test_isian_yang_dipulihkan_browser_disinkronkan_dan_konsumen_transaksi_tidak_bisa_dikosongkan_sekali_klik(): void
+    {
+        $layout = file_get_contents(resource_path('views/layouts/app.blade.php'));
+        $this->assertStringContainsString('window.sinkronkanIsianPulih', $layout);
+        $this->assertStringContainsString("nav.type !== 'reload'", $layout);
+
+        foreach (['penjualan/create.blade.php', 'penjualan-barang/create.blade.php', 'jersey/orders/create.blade.php'] as $f) {
+            $isi = file_get_contents(resource_path('views/' . $f));
+            $this->assertStringNotContainsString('allowClear', $isi, $f . ': konsumen transaksi tidak boleh punya tombol hapus');
+        }
+    }
+
+    /** Tombol yang memanggil fungsi tak terdefinisi tidak bereaksi sama sekali (dulu: ubah/hapus Pemasok). */
+    public function test_fungsi_di_atribut_onclick_terdefinisi(): void
+    {
+        $views = resource_path('views');
+        $umum = file_get_contents(resource_path('js/app.js'));
+        foreach (['layouts', 'components', 'partials'] as $dir) {
+            foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($views . '/' . $dir)) as $f) {
+                if (str_ends_with($f->getFilename(), '.blade.php')) {
+                    $umum .= file_get_contents($f->getPathname());
+                }
+            }
+        }
+        $bawaan = ['alert', 'confirm', 'setTimeout', 'parseInt', 'parseFloat', 'history', 'location', 'window', 'document', 'event', 'this', 'return', 'if', 'Swal', 'fetch', 'print', 'open', 'close', 'Number'];
+
+        $muat = function (string $berkas, array &$sudah) use (&$muat, $views): string {
+            if (isset($sudah[$berkas]) || ! is_file($berkas)) {
+                return '';
+            }
+            $sudah[$berkas] = true;
+            $isi = file_get_contents($berkas);
+            preg_match_all("/@include(?:If)?\(\s*'([^']+)'/", $isi, $m);
+            foreach ($m[1] as $nama) {
+                $isi .= $muat($views . '/' . str_replace('.', '/', $nama) . '.blade.php', $sudah);
+            }
+
+            return $isi;
+        };
+
+        $temuan = [];
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($views)) as $f) {
+            $jalur = str_replace(DIRECTORY_SEPARATOR, '/', $f->getPathname());
+            if (! str_ends_with($jalur, '.blade.php') || preg_match('#/(layouts|components|partials)/#', $jalur) || str_starts_with($f->getFilename(), '_')) {
+                continue;
+            }
+            $sudah = [];
+            $gabung = $muat($f->getPathname(), $sudah) . $umum;
+            preg_match_all('/\bon(?:click|change|input|submit)\s*=\s*["\']\s*(?:return\s+)?([A-Za-z_$][\w$]*)\s*\(/', file_get_contents($f->getPathname()), $m);
+            foreach (array_unique($m[1]) as $fn) {
+                if (in_array($fn, $bawaan, true)) {
+                    continue;
+                }
+                $q = preg_quote($fn, '/');
+                if (! preg_match('/function\s+' . $q . '\b|\b' . $q . '\s*=\s*(async\s*)?(function|\(|[A-Za-z_$][\w$]*\s*=>)|window\.' . $q . '\s*=/', $gabung)) {
+                    $temuan[] = str_replace(str_replace(DIRECTORY_SEPARATOR, '/', $views), '', $jalur) . ': ' . $fn . '()';
+                }
+            }
+        }
+        $this->assertSame([], $temuan, 'Fungsi dipanggil dari atribut tetapi tidak didefinisikan');
+    }
 }

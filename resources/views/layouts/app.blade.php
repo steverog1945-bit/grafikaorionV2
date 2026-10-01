@@ -2116,6 +2116,32 @@
             tombol.forEach(function (t) { t.disabled = false; t.classList.remove('opacity-60'); });
         }, 8000);
     }, false);
+    // Saat halaman di-reload, browser memulihkan isian terakhir (radio, centang, pilihan dropdown) TANPA
+    // memicu event change. Tampilan yang diatur skrip halaman lalu tidak sinkron dengan isian yang terlihat,
+    // mis. radio "Jasa" tercentang tetapi blok Bahan Baku yang tampil. Setelah semua skrip halaman siap,
+    // isian yang nilainya berbeda dari bawaan HTML diberi event change agar tampilan mengikuti isian.
+    window.sinkronkanIsianPulih = function (akar) {
+        (akar || document).querySelectorAll('input[type=radio], input[type=checkbox], select').forEach(function (el) {
+            if (el.closest('[data-no-pulih]')) return;
+            let berubah = false;
+            if (el.tagName === 'SELECT') {
+                berubah = Array.prototype.some.call(el.options, function (o) { return o.selected !== o.defaultSelected; })
+                    && !(el.selectedIndex === 0 && !Array.prototype.some.call(el.options, function (o) { return o.defaultSelected; }));
+            } else if (el.type === 'radio') {
+                berubah = el.checked && !el.defaultChecked;
+            } else {
+                berubah = el.checked !== el.defaultChecked;
+            }
+            if (berubah) el.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    };
+    window.addEventListener('load', function () {
+        // Hanya saat reload atau kembali/maju: pada kunjungan biasa browser tidak memulihkan apa pun, dan
+        // isian yang diisi skrip halaman (mis. form ubah) tidak boleh memicu change kedua kalinya.
+        const nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || {};
+        if (nav.type !== 'reload' && nav.type !== 'back_forward') return;
+        setTimeout(function () { window.sinkronkanIsianPulih(); }, 0);
+    });
     window.addEventListener('pageshow', function (e) {
         if (!e.persisted) return;
         document.querySelectorAll('form[data-sedang-kirim="1"]').forEach(function (f) { f.dataset.sedangKirim = '0'; });

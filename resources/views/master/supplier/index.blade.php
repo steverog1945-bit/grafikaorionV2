@@ -66,13 +66,14 @@
                         <x-button href="{{ route('kedatangan-bahan.index', ['search' => $s->nama_supplier]) }}" size="icon" variant="ghost" class="hover:text-indigo-500 hover:bg-indigo-50" title="Riwayat Kedatangan Bahan">
                             <i class="fas fa-history text-sm"></i>
                         </x-button>
-                        <x-button size="icon" variant="ghost" onclick="openEditPemasok({{ json_encode($s) }})" class="hover:text-amber-500 hover:bg-amber-50" aria-label="Ubah" title="Ubah">
+                        <x-button size="icon" variant="ghost" onclick="openEditSupplier({{ json_encode($s) }})" class="hover:text-amber-500 hover:bg-amber-50" aria-label="Ubah" title="Ubah">
                             <i class="far fa-edit text-sm"></i>
                         </x-button>
 
-                        <form action="{{ route('supplier.destroy', $s->id_supplier) }}" method="POST" class="inline" id="delete-form-supplier-{{ $s->id_supplier }}">
+                        <form action="{{ route('supplier.destroy', $s->id_supplier) }}" method="POST" class="inline"
+                              data-konfirmasi="Hapus pemasok {{ $s->nama_supplier }}? Data yang dihapus tidak bisa dikembalikan.">
                             @csrf @method('DELETE')
-                            <x-button type="button" size="icon" variant="ghost" onclick="confirmDeletePemasok('{{ $s->id_supplier }}', '{{ $s->nama_supplier }}')" class="hover:text-rose-500 hover:bg-rose-50">
+                            <x-button type="submit" size="icon" variant="ghost" class="hover:text-rose-500 hover:bg-rose-50" aria-label="Hapus" title="Hapus">
                                 <i class="far fa-trash-alt text-sm"></i>
                             </x-button>
                         </form>
@@ -150,29 +151,6 @@
         document.getElementById('edit_kontak').value = data.kontak;
         document.getElementById('edit_alamat').value = data.alamat || '';
         openModal('edit-supplier');
-    }
-
-    function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    function confirmDeleteSupplier(id, name) {
-        Swal.fire({
-            title: 'Hapus Pemasok?',
-            html: `Menghapus <b>${escapeHtml(name)}</b>? Data yang dihapus tidak dapat dikembalikan.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f1f5f9',
-            cancelButtonText: '<span style="color: #64748b">Batal</span>',
-            confirmButtonText: 'Ya, Hapus!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('delete-form-supplier-' + id).submit();
-            }
-        });
     }
 </script>
 @endpush
