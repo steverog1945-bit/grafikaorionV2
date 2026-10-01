@@ -41,9 +41,9 @@ class KaryawanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_karyawan' => 'required',
+            'nama_karyawan' => 'required|max:100',
             'bagian' => 'required',
-            'telepon' => 'required',
+            'telepon' => 'required|max:20',
             'mesin_ids' => 'nullable|array',
             'mesin_ids.*' => 'exists:mesin,id_mesin',
         ]);

@@ -23,7 +23,7 @@ class BankController extends Controller
     }
 
     public function store(Request $request) {
-        $request->validate(['nama_bank' => 'required', 'nomor_rekening' => 'required', 'atas_nama' => 'required']);
+        $request->validate(['nama_bank' => 'required|max:50', 'nomor_rekening' => 'required|max:50', 'atas_nama' => 'required|max:100']);
         $idBaru = DB::table('bank_perusahaan')->insertGetId($request->only('nama_bank', 'nomor_rekening', 'atas_nama'));
         \App\Services\AuditLogger::master('created', 'bank_perusahaan', 'id_bank', (int) $idBaru, null, 'Rekening bank baru');
         return redirect()->back()->with('success', 'Rekening bank berhasil disimpan.');
@@ -31,9 +31,9 @@ class BankController extends Controller
     public function update(Request $request, $id)
 {
     $request->validate([
-        'nama_bank' => 'required',
-        'nomor_rekening' => 'required',
-        'atas_nama' => 'required'
+        'nama_bank' => 'required|max:50',
+        'nomor_rekening' => 'required|max:50',
+        'atas_nama' => 'required|max:100'
     ]);
 
     $lama = DB::table('bank_perusahaan')->where('id_bank', $id)->first();

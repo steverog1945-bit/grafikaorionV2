@@ -19,8 +19,8 @@ class MasterController extends Controller
     public function storeMesin(Request $request)
     {
         $request->validate([
-            'nama_mesin' => 'required',
-            'tipe_mesin' => 'required',
+            'nama_mesin' => 'required|max:100',
+            'tipe_mesin' => 'required|max:50',
         ]);
 
         DB::table('mesin')->insert([
@@ -35,7 +35,7 @@ class MasterController extends Controller
     public function storeKategori(Request $request)
     {
         $request->validate([
-            'nama_kategori' => 'required|unique:kategori,nama_kategori',
+            'nama_kategori' => 'required|unique:kategori,nama_kategori|max:50',
         ]);
 
         DB::table('kategori')->insert([

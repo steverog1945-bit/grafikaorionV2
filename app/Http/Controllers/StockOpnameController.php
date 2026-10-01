@@ -42,7 +42,7 @@ class StockOpnameController extends Controller
     {
         $validated = $request->validate([
             'id_gudang' => 'nullable|exists:gudang,id_gudang',
-            'tanggal' => 'required|date',
+            'tanggal' => ['required', 'date', new \App\Rules\TanggalTransaksi],
             'catatan' => 'nullable|string|max:1000',
         ]);
 

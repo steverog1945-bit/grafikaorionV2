@@ -111,8 +111,8 @@ class BahanBakuController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_bahan'        => 'required',
-            'kode_bahan'        => 'required|unique:bahan_baku,kode_bahan',
+            'nama_bahan'        => 'required|max:100',
+            'kode_bahan'        => 'required|unique:bahan_baku,kode_bahan|max:50',
             'id_mesin'          => 'required',
             'id_kategori'       => 'required',
             'id_satuan_stok'    => 'required',
@@ -203,8 +203,8 @@ class BahanBakuController extends Controller
     public function update(Request $request, $id_bahan)
     {
         $request->validate([
-            'nama_bahan'        => 'required',
-            'kode_bahan'        => 'required|unique:bahan_baku,kode_bahan,'.$id_bahan.',id_bahan',
+            'nama_bahan'        => 'required|max:100',
+            'kode_bahan'        => 'max:50|required|unique:bahan_baku,kode_bahan,'.$id_bahan.',id_bahan',
             'id_satuan_stok'    => 'required',
             'id_satuan_hitung'  => 'required',
             'nilai_konversi'    => 'required|numeric|min:0.0001',

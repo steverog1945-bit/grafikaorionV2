@@ -291,7 +291,7 @@ class PurchaseOrderController extends Controller
         // Pesan & nama atribut bahasa Indonesia (sama seperti PurchaseRequestController).
         return $request->validate([
             'id_supplier' => 'required|exists:supplier,id_supplier',
-            'tanggal' => 'required|date',
+            'tanggal' => ['required', 'date', new \App\Rules\TanggalTransaksi],
             'tgl_pengiriman_estimasi' => 'nullable|date|after_or_equal:tanggal',
             'termin_pembayaran' => 'nullable|string|max:100',
             'diskon' => 'nullable|numeric|min:0',

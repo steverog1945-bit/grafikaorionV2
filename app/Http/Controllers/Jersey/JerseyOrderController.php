@@ -217,7 +217,7 @@ class JerseyOrderController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'order_date' => 'required|date',
+            'order_date' => ['required', 'date', new \App\Rules\TanggalTransaksi],
             'id_konsumen' => 'required|exists:konsumen,id_konsumen',
             'team_name' => 'nullable|string|max:255',
             'deadline' => 'nullable|date',

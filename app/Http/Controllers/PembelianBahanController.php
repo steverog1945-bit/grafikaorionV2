@@ -140,7 +140,7 @@ public function kedatanganDetail(Request $request)
 
         $request->validate([
             'id_kedatangan'=>'required',
-            'no_faktur'=>'required',
+            'no_faktur'=>'required|max:255',
             'tgl_transaksi'=>'required',
             'tipe_pembelian'=>'required|in:Cash,Tempo',
             'id_bahan'=>'required|array|min:1',

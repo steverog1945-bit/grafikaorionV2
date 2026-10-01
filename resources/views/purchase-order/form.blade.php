@@ -78,7 +78,7 @@
                 <x-form.group label="Tanggal PO" name="tanggal" dalam>
                     {{-- Input polos (bukan x-form.input): echo kondisional di dalam
                          tag komponen terbukti membuat input tidak dirender. --}}
-                    <input type="date" name="tanggal" value="{{ old('tanggal', $po ? $po->tanggal->toDateString() : now()->toDateString()) }}" required
+                    <input type="date" name="tanggal" max="{{ now()->toDateString() }}" value="{{ old('tanggal', $po ? $po->tanggal->toDateString() : now()->toDateString()) }}" required
                         class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                         {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>

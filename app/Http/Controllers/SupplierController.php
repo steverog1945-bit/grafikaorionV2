@@ -24,7 +24,7 @@ class SupplierController extends Controller
     public function store(Request $request) {
         $request->validate([
             'nama_supplier' => 'required|max:255',
-            'kontak' => 'required'
+            'kontak' => 'required|max:255'
         ]);
 
         $idBaru = DB::table('supplier')->insertGetId([
@@ -60,7 +60,7 @@ class SupplierController extends Controller
     public function update(Request $request, $id) {
         $request->validate([
             'nama_supplier' => 'required|max:255',
-            'kontak' => 'required'
+            'kontak' => 'required|max:255'
         ]);
 
         $lama = DB::table('supplier')->where('id_supplier', $id)->first();

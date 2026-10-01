@@ -37,7 +37,7 @@
                 <x-card>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <x-form.group label="Tanggal Order" required>
-                            <x-form.input type="date" name="order_date" value="{{ old('order_date', date('Y-m-d')) }}" required />
+                            <x-form.input type="date" name="order_date" value="{{ old('order_date', date('Y-m-d')) }}" max="{{ date('Y-m-d') }}" required />
                         </x-form.group>
 
                         <x-form.group label="Pelanggan" required>

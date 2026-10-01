@@ -51,7 +51,7 @@ class KategoriKasKecilController extends Controller
         $request->validate([
             'nama_kategori' => 'required|string|max:100|unique:kategori_kas_kecil,nama_kategori',
             'jenis' => 'required|in:Keluar,Masuk',
-            'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun',
+            'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun|max:20',
         ], [
             'nama_kategori.unique' => 'Nama kategori sudah ada!',
         ]);
@@ -70,7 +70,7 @@ class KategoriKasKecilController extends Controller
         $request->validate([
             'nama_kategori' => 'required|string|max:100|unique:kategori_kas_kecil,nama_kategori,' . $kategoriKasKecil->id_kategori_kas_kecil . ',id_kategori_kas_kecil',
             'jenis' => 'required|in:Keluar,Masuk',
-            'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun',
+            'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun|max:20',
         ], [
             'nama_kategori.unique' => 'Nama kategori sudah ada!',
         ]);

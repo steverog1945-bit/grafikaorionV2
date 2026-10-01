@@ -19,7 +19,7 @@
             </x-form.group>
 
             <x-form.group label="Tanggal Opname" dalam>
-                <x-form.input type="date" name="tanggal" value="{{ old('tanggal', now()->toDateString()) }}" required />
+                <x-form.input type="date" name="tanggal" value="{{ old('tanggal', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required />
             </x-form.group>
 
             <x-form.group label="Catatan (opsional)" dalam>

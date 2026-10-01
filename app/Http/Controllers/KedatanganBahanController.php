@@ -78,7 +78,7 @@ class KedatanganBahanController extends Controller
 {
     // 1. Validasi Backend (Pastikan field sesuai dengan name di HTML)
     $request->validate([
-        'no_surat_jalan' => 'required|unique:kedatangan_bahan,no_surat_jalan',
+        'no_surat_jalan' => 'required|unique:kedatangan_bahan,no_surat_jalan|max:255',
         'id_supplier'    => 'required|exists:supplier,id_supplier',
         // Audit kelengkapan (dropdown wajib terisi): gudang menentukan lokasi
         // fisik stok yang masuk - wajib dipilih (dulu nullable, barang masuk
@@ -253,7 +253,7 @@ public function bulkDelete(Request $request)
     public function update(Request $request, $id)
 {
     $request->validate([
-        'no_surat_jalan' => 'required',
+        'no_surat_jalan' => 'required|max:255',
         'tgl_datang'     => ['required', 'date', new \App\Rules\TanggalTransaksi],
         'id_supplier'    => 'required',
         'id_bahan'       => 'required|array|min:1',

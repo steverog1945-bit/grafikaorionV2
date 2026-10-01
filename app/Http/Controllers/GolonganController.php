@@ -22,8 +22,8 @@ class GolonganController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_golongan' => 'required|max:100',
-            'keterangan' => 'nullable'
+            'nama_golongan' => 'required|max:50',
+            'keterangan' => 'nullable|max:255'
         ]);
 
         $idBaru = DB::table('golongan_konsumen')->insertGetId([
@@ -38,7 +38,7 @@ class GolonganController extends Controller
     public function update(Request $request, $id)
 {
     $request->validate([
-        'nama_golongan' => 'required|max:100'
+        'nama_golongan' => 'required|max:50'
     ]);
 
     $lama = DB::table('golongan_konsumen')->where('id_golongan', $id)->first();

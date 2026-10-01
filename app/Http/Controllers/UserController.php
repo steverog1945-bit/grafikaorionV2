@@ -39,7 +39,7 @@ class UserController extends Controller
     {
         $request->validate([
             'id_karyawan' => 'required|unique:users,id_karyawan',
-            'username' => 'required|unique:users',
+            'username' => 'required|unique:users|max:255',
             // P1: aplikasi keuangan - minimal 8 karakter (sebelumnya 5).
             'password' => 'required|min:8',
             'id_role' => 'required|exists:roles,id_role'
@@ -74,7 +74,7 @@ class UserController extends Controller
     // mengedit username user itu sendiri SELALU gagal "username sudah
     // dipakai". Password sekarang opsional (diisi = ganti).
     $request->validate([
-        'username' => 'required|unique:users,username,' . (int) $id . ',id_user',
+        'username' => 'max:255|required|unique:users,username,' . (int) $id . ',id_user',
         'password' => 'nullable|min:8',
         'id_role' => 'required|exists:roles,id_role'
     ]);

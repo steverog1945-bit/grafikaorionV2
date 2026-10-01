@@ -111,8 +111,9 @@ public function storeAjax(Request $request)
     }
     // 1. Validasi ketat di sisi Server
     $request->validate([
-        'nama_konsumen' => 'required|string|max:255',
-        'id_golongan'   => 'required',
+        'nama_konsumen' => 'required|string|max:100',
+        'telepon'       => 'nullable|max:20',
+        'id_golongan'   => 'required|exists:golongan_konsumen,id_golongan',
         'tipe_konsumen' => 'nullable|in:permanent,temporary',
     ]);
 

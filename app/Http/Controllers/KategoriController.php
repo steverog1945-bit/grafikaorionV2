@@ -33,7 +33,7 @@ class KategoriController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_kategori' => 'required|unique:kategori,nama_kategori|max:100',
+            'nama_kategori' => 'required|unique:kategori,nama_kategori|max:50',
             'kode_kategori' => 'required|unique:kategori,kode_kategori|max:5',
         ], [
             'nama_kategori.unique' => 'Nama kategori sudah ada!',
@@ -56,7 +56,7 @@ class KategoriController extends Controller
     public function update(Request $request, $id)
 {
     $request->validate([
-        'nama_kategori' => 'required|max:100|unique:kategori,nama_kategori,'.$id.',id_kategori',
+        'nama_kategori' => 'required|max:50|unique:kategori,nama_kategori,'.$id.',id_kategori',
         'kode_kategori' => 'required|max:5|unique:kategori,kode_kategori,'.$id.',id_kategori',
     ]);
 

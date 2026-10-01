@@ -71,7 +71,7 @@ public function index(Request $request)
     {
         // Validasi dasar
         $request->validate([
-            'nama_produk' => 'required',
+            'nama_produk' => 'required|max:100',
             'metode_hitung' => 'required',
             'id_bahan' => 'required|array'
         ]);
