@@ -27,14 +27,18 @@
         </x-slot:actions>
     </x-page-header>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <div class="bg-white rounded-lg border border-slate-200 px-4 py-3">
             <p class="text-[11px] font-medium text-slate-400">Pengeluaran Jahit Bulan Ini</p>
             <p class="text-lg font-medium text-slate-900 mt-0.5">{{ $rp($totalBulanIni) }}</p>
         </div>
         <div class="bg-white rounded-lg border border-slate-200 px-4 py-3">
-            <p class="text-[11px] font-medium text-slate-400">Penjahit Aktif</p>
-            <p class="text-lg font-medium text-slate-900 mt-0.5">{{ $penjahitAktif->count() }}</p>
+            <p class="text-[11px] font-medium text-slate-400">Belum Dibayar ke Penjahit</p>
+            <p class="text-lg font-medium {{ $totalBelumDibayar > 0 ? 'text-amber-600' : 'text-slate-900' }} mt-0.5">{{ $rp($totalBelumDibayar) }}</p>
+        </div>
+        <div class="bg-white rounded-lg border border-slate-200 px-4 py-3">
+            <p class="text-[11px] font-medium text-slate-400">Saldo Kas Kecil</p>
+            <p class="text-lg font-medium text-slate-900 mt-0.5">{{ $rp(max(0, $saldoKasKecil)) }}</p>
         </div>
         <div class="bg-white rounded-lg border border-slate-200 px-4 py-3">
             <p class="text-[11px] font-medium text-slate-400">Nota Menunggu Jahit</p>
@@ -61,6 +65,7 @@
                     <th class="text-left">Telepon</th>
                     <th class="text-right">Pcs Bulan Ini</th>
                     <th class="text-right">Upah Bulan Ini</th>
+                    <th class="text-right">Belum Dibayar</th>
                     <th class="text-center">Status</th>
                     <th class="text-right">Aksi</th>
                 </tr>
@@ -77,11 +82,18 @@
                     <td class="text-sm text-slate-600">{{ $p->telepon ?: '-' }}</td>
                     <td class="text-right text-sm text-slate-600">{{ angka($p->qty_bulan_ini, 2) }}</td>
                     <td class="text-right text-sm font-medium text-slate-700">{{ $rp($p->total_bulan_ini) }}</td>
+                    <td class="text-right text-sm font-medium {{ $p->belum_dibayar > 0 ? 'text-amber-600' : 'text-slate-400' }}">{{ $rp($p->belum_dibayar) }}</td>
                     <td class="text-center text-sm">
                         <span class="{{ $p->aktif ? 'text-emerald-600' : 'text-slate-400' }}">{{ $p->aktif ? 'Aktif' : 'Nonaktif' }}</span>
                     </td>
                     <td class="text-right">
                         <div class="flex items-center justify-end gap-1">
+                            @if($p->belum_dibayar > 0)
+                                <x-button size="sm" onclick="bukaBayar({{ $p->id_penjahit }})">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    Bayar
+                                </x-button>
+                            @endif
                             <button type="button" class="w-9 h-9 flex items-center justify-center text-slate-400 rounded-lg transition-all hover:text-indigo-500 hover:bg-indigo-50" title="Ubah penjahit"
                                     onclick='ubahPenjahit(@json($p))'>
                                 <i class="fas fa-pen text-[11px]"></i>
@@ -99,7 +111,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6">
+                    <td colspan="7">
                         <x-empty-state title="Belum ada penjahit"
                                        description="Daftarkan penjahit lebih dulu. Setiap catatan jahit menyebut siapa yang mengerjakan, supaya upah per orang bisa direkap." />
                     </td>
@@ -209,6 +221,7 @@
                     <th class="text-right">Qty</th>
                     <th class="text-right">Harga</th>
                     <th class="text-right">Total</th>
+                    <th class="text-left">Pembayaran</th>
                     <th class="text-left">Dicatat Oleh</th>
                     <th class="text-right">Aksi</th>
                 </tr>
@@ -235,8 +248,21 @@
                     <td class="text-right text-sm text-slate-600">{{ angka($r->qty, 4) }}</td>
                     <td class="text-right text-sm text-slate-600">{{ $rp($r->harga_snapshot) }}</td>
                     <td class="text-right text-sm font-medium text-slate-700">{{ $rp($r->total) }}</td>
+                    <td class="text-sm whitespace-nowrap">
+                        @if($r->id_kas_kecil)
+                            <span class="text-emerald-600">Sudah dibayar</span>
+                            <p class="text-[11px] text-slate-400">KK-{{ $r->id_kas_kecil }}, {{ \Carbon\Carbon::parse($r->dibayar_at)->translatedFormat('d M Y') }}</p>
+                        @else
+                            <span class="text-amber-600">Belum dibayar</span>
+                        @endif
+                    </td>
                     <td class="text-sm text-slate-500">{{ $r->username ?? '-' }}</td>
                     <td class="text-right">
+                        @if($r->id_kas_kecil)
+                            <span class="inline-flex w-9 h-9 items-center justify-center text-slate-300" title="Sudah dibayar. Batalkan pengeluaran KK-{{ $r->id_kas_kecil }} di Kas Kecil bila perlu dikoreksi.">
+                                <i class="fas fa-lock text-[11px]"></i>
+                            </span>
+                        @else
                         <form action="{{ route('jasa-jahit.catat.destroy', $r->id_jasa_jahit_catat) }}" method="POST" class="inline"
                               data-konfirmasi="Hapus catatan ini? Kalau angkanya salah, catat ulang yang benar setelah menghapus.">
                             @csrf
@@ -245,11 +271,12 @@
                                 <i class="fas fa-trash text-[11px]"></i>
                             </button>
                         </form>
+                        @endif
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9">
+                    <td colspan="10">
                         <x-empty-state title="Belum ada pengeluaran jahit"
                                        description="Catat dari tombol Catat Jahit Jersey atau Catat Jahit Nota." />
                     </td>
@@ -375,6 +402,45 @@
     </form>
 </x-modal>
 @endforeach
+
+{{-- ================= BAYAR PENJAHIT (Kas Kecil) ================= --}}
+<x-modal id="bayar-penjahit" title="Bayar Penjahit" subtitle="Dibayar tunai dari Kas Kecil dan langsung masuk jurnal" icon="fa-money-bill-wave" maxWidth="2xl">
+    <form action="{{ route('jasa-jahit.bayar') }}" method="POST" class="space-y-4" id="form-bayar-penjahit" data-konfirmasi="Bayar upah ini dari Kas Kecil? Uang tercatat keluar dan masuk jurnal. Kalau keliru, batalkan lewat pengajuan di Kas Kecil.">
+        @csrf
+        <input type="hidden" name="id_penjahit" id="bayar-penjahit-id">
+        <p class="text-sm text-slate-600">Penjahit: <span class="font-medium text-slate-900" id="bayar-penjahit-nama"></span></p>
+        <div class="rounded-lg border border-slate-200 max-h-80 overflow-y-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-[11px] text-slate-400">
+                        <th class="px-4 py-2 w-8"><input type="checkbox" id="bayar-semua" checked class="rounded border-slate-300 text-indigo-600" onchange="pilihSemuaBayar(this.checked)" aria-label="Pilih semua"></th>
+                        <th class="text-left font-medium px-2 py-2">Tanggal</th>
+                        <th class="text-left font-medium px-2 py-2">Jenis Jahit</th>
+                        <th class="text-left font-medium px-2 py-2">Order</th>
+                        <th class="text-right font-medium px-2 py-2">Qty</th>
+                        <th class="text-right font-medium px-4 py-2">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="bayar-daftar"></tbody>
+            </table>
+        </div>
+        <div class="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 space-y-1">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-medium text-slate-500">Dibayar sekarang</span>
+                <span class="text-base font-medium text-slate-900" id="bayar-total">Rp 0</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-medium text-slate-500">Saldo Kas Kecil</span>
+                <span class="text-sm text-slate-600">{{ $rp(max(0, $saldoKasKecil)) }}</span>
+            </div>
+            <p class="text-[11px] text-rose-500 hidden" id="bayar-kurang">Saldo Kas Kecil tidak cukup. Isi Kas Kecil dulu atau kurangi catatan yang dibayar.</p>
+        </div>
+        <x-slot:footer>
+            <x-button type="button" variant="secondary" onclick="toggleModal('bayar-penjahit')">Batal</x-button>
+            <x-button type="submit" id="bayar-kirim">Bayar dari Kas Kecil</x-button>
+        </x-slot:footer>
+    </form>
+</x-modal>
 
 {{-- ================= CATAT JAHIT JERSEY ================= --}}
 <x-modal id="jahit-jersey" title="Catat Jahit Jersey" subtitle="Jumlah baju dihitung dari isi order, tarif dari daftar tarif jersey" icon="fa-shirt" maxWidth="2xl">
@@ -532,6 +598,41 @@
         const qty = parseFloat(document.getElementById('catat-qty').value) || 0;
         const harga = cleanRupiah(document.getElementById('catat-harga').value);
         document.getElementById('catat-total').textContent = rupiahJahit(qty * harga);
+    }
+
+    // ---- Bayar penjahit: daftar catatan yang belum dibayar, semuanya tercentang. Centang dilepas untuk membayar sebagian.
+    const dataBelumDibayar = @json($belumDibayar);
+    const namaPenjahit = @json($penjahit->pluck('nama', 'id_penjahit'));
+    const saldoKasKecil = {{ (float) $saldoKasKecil }};
+
+    function bukaBayar(id) {
+        document.getElementById('bayar-penjahit-id').value = id;
+        document.getElementById('bayar-penjahit-nama').textContent = namaPenjahit[id] || '';
+        document.getElementById('bayar-semua').checked = true;
+        document.getElementById('bayar-daftar').innerHTML = (dataBelumDibayar[id] || []).map(c => '<tr class="border-t border-slate-100">'
+            + '<td class="px-4 py-2"><input type="checkbox" name="catat[]" value="' + c.id_jasa_jahit_catat + '" data-total="' + c.total + '" checked class="rounded border-slate-300 text-indigo-600" onchange="hitungBayar()"></td>'
+            + '<td class="px-2 py-2 text-slate-600 whitespace-nowrap">' + esc(new Date(c.tgl_catat + 'T00:00:00').toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'})) + '</td>'
+            + '<td class="px-2 py-2 text-slate-700">' + esc(c.nama_jahit) + '</td>'
+            + '<td class="px-2 py-2 text-slate-500">' + esc(c.order_number || c.nomor_nota || 'Tanpa order') + '</td>'
+            + '<td class="px-2 py-2 text-right text-slate-600">' + Number(c.qty) + '</td>'
+            + '<td class="px-4 py-2 text-right text-slate-700">' + rupiahJahit(c.total) + '</td></tr>').join('');
+        hitungBayar();
+        toggleModal('bayar-penjahit');
+    }
+
+    function pilihSemuaBayar(nyala) {
+        document.querySelectorAll('#bayar-daftar input[type=checkbox]').forEach(cb => cb.checked = nyala);
+        hitungBayar();
+    }
+
+    function hitungBayar() {
+        let total = 0;
+        document.querySelectorAll('#bayar-daftar input[type=checkbox]:checked').forEach(cb => total += parseFloat(cb.dataset.total) || 0);
+        document.getElementById('bayar-total').textContent = rupiahJahit(total);
+        const kurang = total > saldoKasKecil;
+        document.getElementById('bayar-kurang').classList.toggle('hidden', !kurang);
+        const tombol = document.querySelector('button[form="form-bayar-penjahit"][type=submit], #form-bayar-penjahit button[type=submit]');
+        if (tombol) tombol.disabled = kurang || total <= 0;
     }
 
     // ---- Catat jahit jersey: rincian dimuat dari server, qty per tarif bisa dikurangi (mis. baru sebagian selesai).

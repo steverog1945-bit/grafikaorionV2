@@ -22,6 +22,8 @@ class KasKecilService
             DB::table('kas_manual')->where('keterangan', 'like', "%[KK-{$kasKecil->id}]%")->delete();
             // Pembayaran komisi desainer dibatalkan -> komisi kembali Belum dibayar.
             DB::table('transaksi_detail')->where('id_kas_kecil_komisi', $kasKecil->id)->update(['komisi_status' => 'Belum', 'komisi_dibayar_at' => null, 'id_kas_kecil_komisi' => null]);
+            // Pembayaran upah jahit dibatalkan -> catatan jahitnya kembali belum dibayar.
+            DB::table('jasa_jahit_catat')->where('id_kas_kecil', $kasKecil->id)->update(['id_kas_kecil' => null, 'dibayar_at' => null, 'updated_at' => now()]);
             $kasKecil->delete();
         });
     }

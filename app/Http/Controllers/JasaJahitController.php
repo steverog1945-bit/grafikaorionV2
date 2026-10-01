@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PembayaranHutangService;
 use App\Services\TarifJahitJerseyService;
+use App\Services\UpahJahitService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -50,10 +52,10 @@ class JasaJahitController extends Controller
                 DB::table('jasa_jahit_catat')
                     ->whereNotNull('id_penjahit')
                     ->groupBy('id_penjahit')
-                    ->selectRaw('id_penjahit, COUNT(*) jumlah_catatan, SUM(CASE WHEN tgl_catat >= ? THEN total ELSE 0 END) total_bulan_ini, SUM(CASE WHEN tgl_catat >= ? THEN qty ELSE 0 END) qty_bulan_ini', [now()->startOfMonth()->toDateString(), now()->startOfMonth()->toDateString()]),
+                    ->selectRaw('id_penjahit, COUNT(*) jumlah_catatan, SUM(CASE WHEN tgl_catat >= ? THEN total ELSE 0 END) total_bulan_ini, SUM(CASE WHEN tgl_catat >= ? THEN qty ELSE 0 END) qty_bulan_ini, SUM(CASE WHEN id_kas_kecil IS NULL THEN total ELSE 0 END) belum_dibayar', [now()->startOfMonth()->toDateString(), now()->startOfMonth()->toDateString()]),
                 'c', 'c.id_penjahit', '=', 'p.id_penjahit'
             )
-            ->select('p.*', DB::raw('COALESCE(c.jumlah_catatan, 0) jumlah_catatan'), DB::raw('COALESCE(c.total_bulan_ini, 0) total_bulan_ini'), DB::raw('COALESCE(c.qty_bulan_ini, 0) qty_bulan_ini'))
+            ->select('p.*', DB::raw('COALESCE(c.jumlah_catatan, 0) jumlah_catatan'), DB::raw('COALESCE(c.total_bulan_ini, 0) total_bulan_ini'), DB::raw('COALESCE(c.qty_bulan_ini, 0) qty_bulan_ini'), DB::raw('COALESCE(c.belum_dibayar, 0) belum_dibayar'))
             ->orderByDesc('p.aktif')
             ->orderBy('p.nama')
             ->get();
@@ -76,6 +78,20 @@ class JasaJahitController extends Controller
             ->limit(100)
             ->get();
 
+        // Catatan yang belum dibayar, dikelompokkan per penjahit untuk modal Bayar Penjahit.
+        $belumDibayar = DB::table('jasa_jahit_catat as c')
+            ->join('jasa_jahit as j', 'j.id_jasa_jahit', '=', 'c.id_jasa_jahit')
+            ->leftJoin('transaksi_detail as d', 'd.id_detail', '=', 'c.id_transaksi_detail')
+            ->leftJoin('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+            ->leftJoin('jersey_orders as jo', 'jo.id', '=', 'c.id_jersey_order')
+            ->whereNotNull('c.id_penjahit')
+            ->whereNull('c.id_kas_kecil')
+            ->orderBy('c.tgl_catat')
+            ->get(['c.id_jasa_jahit_catat', 'c.id_penjahit', 'c.tgl_catat', 'c.qty', 'c.total', 'j.nama_jahit', 'jo.order_number', 't.nomor_nota'])
+            ->groupBy('id_penjahit');
+        $totalBelumDibayar = (float) DB::table('jasa_jahit_catat')->whereNull('id_kas_kecil')->sum('total');
+        $saldoKasKecil = PembayaranHutangService::saldoKasKecil();
+
         $totalBulanIni = (float) DB::table('jasa_jahit_catat')->where('tgl_catat', '>=', now()->startOfMonth()->toDateString())->sum('total');
 
         $satuan = DB::table('satuan')->orderBy('nama_satuan')->get();
@@ -84,7 +100,7 @@ class JasaJahitController extends Controller
         $kerah = DB::table('jersey_collar_types')->orderBy('sort_order')->orderBy('name')->get(['id', 'name']);
 
         return view('jasa-jahit.index', compact(
-            'jenis', 'penjahit', 'orderan', 'orderJersey', 'riwayat', 'totalBulanIni', 'satuan', 'finishing', 'lengan', 'kerah'
+            'jenis', 'penjahit', 'belumDibayar', 'totalBelumDibayar', 'saldoKasKecil', 'orderan', 'orderJersey', 'riwayat', 'totalBulanIni', 'satuan', 'finishing', 'lengan', 'kerah'
         ));
     }
 
@@ -386,17 +402,40 @@ class JasaJahitController extends Controller
         return redirect()->back()->with('success', "Jahit jersey {$nomor} dicatat: " . array_sum(array_column($baris, 'qty')) . ' baju, Rp ' . number_format($total, 0, ',', '.') . '.');
     }
 
+    /** Bayar upah penjahit dari Kas Kecil untuk catatan yang dipilih. */
+    public function bayar(Request $request)
+    {
+        $data = $request->validate([
+            'id_penjahit' => 'required|exists:penjahit,id_penjahit',
+            'catat'       => 'required|array|min:1',
+            'catat.*'     => 'integer',
+        ], ['catat.required' => 'Pilih minimal satu catatan yang dibayar.']);
+
+        try {
+            $hasil = UpahJahitService::bayar((int) $data['id_penjahit'], array_map('intval', $data['catat']));
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', "Upah {$hasil['nama']} Rp " . number_format($hasil['total'], 0, ',', '.') . " ({$hasil['jumlah']} catatan) dibayar dari Kas Kecil, nomor KK-{$hasil['id_kas_kecil']}.");
+    }
+
     public function destroyCatat($id)
     {
         // Tidak ada ubah catatan. Kalau salah, hapus lalu catat ulang yang benar.
-        $nama = DB::table('jasa_jahit_catat as c')
+        $catat = DB::table('jasa_jahit_catat as c')
             ->join('jasa_jahit as j', 'j.id_jasa_jahit', '=', 'c.id_jasa_jahit')
             ->where('c.id_jasa_jahit_catat', $id)
-            ->value('j.nama_jahit');
+            ->first(['j.nama_jahit', 'c.id_kas_kecil']);
 
-        if (! $nama) {
+        if (! $catat) {
             return redirect()->back()->with('error', 'Catatan tidak ditemukan.');
         }
+        // Uangnya sudah keluar: koreksi lewat pembatalan pengeluaran Kas Kecil, supaya kas dan jurnal ikut kembali.
+        if ($catat->id_kas_kecil) {
+            return redirect()->back()->with('error', "Catatan ini sudah dibayar lewat KK-{$catat->id_kas_kecil}. Ajukan pembatalan pengeluaran itu di Kas Kecil dulu. Setelah disetujui, catatannya kembali belum dibayar dan bisa dihapus.");
+        }
+        $nama = $catat->nama_jahit;
 
         DB::table('jasa_jahit_catat')->where('id_jasa_jahit_catat', $id)->delete();
 

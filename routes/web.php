@@ -147,6 +147,8 @@ Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () 
         ->whereNumber('id')->name('jasa-jahit.penjahit.destroy');
     Route::get('/jasa-jahit/jersey/{id}/rincian', [\App\Http\Controllers\JasaJahitController::class, 'rincianJersey'])
         ->whereNumber('id')->name('jasa-jahit.jersey.rincian');
+    Route::post('/jasa-jahit/bayar', [\App\Http\Controllers\JasaJahitController::class, 'bayar'])
+        ->name('jasa-jahit.bayar');
     Route::post('/jasa-jahit/catat-jersey', [\App\Http\Controllers\JasaJahitController::class, 'storeCatatJersey'])
         ->name('jasa-jahit.catat-jersey.store');
     Route::post('/jasa-jahit/catat', [\App\Http\Controllers\JasaJahitController::class, 'storeCatat'])
