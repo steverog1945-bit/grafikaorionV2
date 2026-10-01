@@ -31,7 +31,12 @@ class BackupService
                 mkdir($dir, 0755, true);
             }
 
-            $filename = "backup_{$tipe}_" . $startedAt->format('Ymd_His') . '.sql';
+            // Dua cadangan di detik yang sama tidak boleh saling menimpa: beri akhiran _2, _3, ...
+            $dasar = "backup_{$tipe}_" . $startedAt->format('Ymd_His');
+            $filename = $dasar . '.sql';
+            for ($n = 2; file_exists($dir . DIRECTORY_SEPARATOR . $filename); $n++) {
+                $filename = $dasar . '_' . $n . '.sql';
+            }
             $filePath = $dir . DIRECTORY_SEPARATOR . $filename;
 
             $dump = self::dump();
@@ -131,7 +136,8 @@ class BackupService
         $maxSimpan = config("backup.retention.{$tipe}", 7);
 
         $files = collect(glob($dir . DIRECTORY_SEPARATOR . '*.sql'))
-            ->sortByDesc(fn (string $f) => filemtime($f))
+            // Urut waktu ubah lalu nama (berisi cap waktu), supaya berkas di detik yang sama tetap urut benar.
+            ->sortByDesc(fn (string $f) => sprintf('%012d', filemtime($f)) . basename($f))
             ->values();
 
         foreach ($files->slice($maxSimpan) as $fileLama) {

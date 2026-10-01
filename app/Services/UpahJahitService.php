@@ -39,10 +39,7 @@ class UpahJahitService
             if ($total <= 0) {
                 throw new \RuntimeException('Total upah yang dipilih Rp 0, tidak ada yang perlu dibayar.');
             }
-            $saldo = PembayaranHutangService::saldoKasKecil();
-            if ($total > $saldo) {
-                throw new \RuntimeException('Saldo Kas Kecil (Rp ' . number_format(max(0, $saldo), 0, ',', '.') . ') tidak cukup untuk membayar Rp ' . number_format($total, 0, ',', '.') . '.');
-            }
+            KasKecilService::pastikanSaldoCukup($total);
 
             $kategori = DB::table('kategori_kas_kecil')->where('nama_kategori', self::KATEGORI)->first();
             if (! $kategori || ! $kategori->kode_akun) {

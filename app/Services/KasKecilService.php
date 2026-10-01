@@ -8,6 +8,21 @@ use Illuminate\Support\Facades\DB;
 /** Dipanggil lewat approval 'batalkan_kas_kecil' (lihat ApprovalController). */
 class KasKecilService
 {
+    /**
+     * Pastikan saldo Kas Kecil (akun 1005 menurut jurnal) cukup untuk mengeluarkan $nominal.
+     * Wajib dipanggil di dalam DB::transaction: baris akun 1005 dikunci sampai transaksi selesai, jadi dua
+     * pengeluaran bersamaan tidak sama-sama lolos dengan membaca saldo yang sama. Dipakai oleh pengeluaran
+     * manual, bayar hutang lewat Kas Kecil, komisi desainer, dan upah jahit.
+     */
+    public static function pastikanSaldoCukup(float $nominal): void
+    {
+        DB::table('bag_akun')->where('kode_akun', '1005')->lockForUpdate()->first();
+        $saldo = PembayaranHutangService::saldoKasKecil();
+        if (round($nominal, 2) > $saldo + 0.01) {
+            throw new \RuntimeException('Saldo Kas Kecil (Rp ' . number_format(max(0, $saldo), 0, ',', '.') . ') tidak cukup untuk mengeluarkan Rp ' . number_format($nominal, 0, ',', '.') . '. Isi Kas Kecil dulu.');
+        }
+    }
+
     public static function batalkan(int $id): void
     {
         DB::transaction(function () use ($id) {

@@ -289,4 +289,19 @@ class AlurParalelTest extends TestCase
         $this->assertSame(3, DB::table('kartu_stok')->where('id_bahan', $bahan)->where('tipe', 'OUT')->count());
         $this->assertRantaiKartuStok($bahan, 100);
     }
+
+    public function test_pengeluaran_kas_kecil_bersamaan_tidak_membuat_saldo_minus(): void
+    {
+        \App\Services\AccountingService::postKasKecilMasuk('KK-SALDO', '3000', 100000);
+        $kat = DB::table('kategori_kas_kecil')->where('jenis', 'Keluar')->whereNotNull('kode_akun')->value('id_kategori_kas_kecil')
+            ?? DB::table('kategori_kas_kecil')->insertGetId(['nama_kategori' => 'Uji Beban', 'jenis' => 'Keluar', 'kode_akun' => '5100']);
+
+        // Tiga pengeluaran Rp 60.000 bersamaan dari saldo Rp 100.000: hanya satu yang boleh lolos.
+        $this->tembak(array_fill(0, 3, ['uri' => '/kas-kecil', 'data' => [
+            'tanggal' => now()->toDateString(), 'jenis' => 'Keluar', 'id_kategori' => $kat, 'keterangan' => 'Uji paralel', 'nominal' => 60000,
+        ]]));
+
+        $this->assertSame(1, DB::table('kas_kecil')->where('jenis', 'Keluar')->count());
+        $this->assertEquals(40000, (float) DB::table('jurnal_umum')->where('kode_akun', '1005')->sum(DB::raw('debet - kredit')));
+    }
 }

@@ -44,4 +44,15 @@ class PanjangIsianTest extends TestCase
         $this->post('/stock-opname', ['tanggal' => $besok])->assertSessionHasErrors('tanggal');
         $this->post('/purchase-order', ['tanggal' => $besok])->assertSessionHasErrors('tanggal');
     }
+
+    public function test_pengeluaran_kas_kecil_melebihi_saldo_ditolak(): void
+    {
+        \App\Services\AccountingService::postKasKecilMasuk('KK-SALDO', '3000', 50000);
+        $kat = DB::table('kategori_kas_kecil')->insertGetId(['nama_kategori' => 'Uji Beban', 'jenis' => 'Keluar', 'kode_akun' => '5100']);
+        $data = ['tanggal' => now()->toDateString(), 'jenis' => 'Keluar', 'id_kategori' => $kat, 'keterangan' => 'Beli lakban'];
+
+        $this->post('/kas-kecil', $data + ['nominal' => 60000])->assertSessionHas('error');
+        $this->assertSame(0, DB::table('kas_kecil')->count());
+        $this->post('/kas-kecil', $data + ['nominal' => 50000])->assertSessionHas('success');
+    }
 }

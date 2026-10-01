@@ -56,7 +56,8 @@ class BerkasAmanTest extends TestCase
 
     public function test_format_desain_biner_boleh_selama_bukan_tipe_terlarang(): void
     {
-        $biner = random_bytes(256);
+        // Isi biner tetap, bukan random_bytes: sesekali byte acak terbaca sebagai teks/skrip sehingga tes gagal acak.
+        $biner = str_repeat("\x00\xFF\x10\x80\x8B\x03\xC4\x00", 32);
         foreach (['a.ai', 'b.psd', 'c.cdr', 'd.eps'] as $nama) {
             $this->assertNull(BerkasAman::periksa($this->berkas($nama, $biner)), "$nama biner umum harus boleh");
         }

@@ -84,7 +84,12 @@ class KasKecilController extends Controller
             return back()->withInput()->with('error', 'Kas kasir belum dibuka - buka kas dulu, karena uang pengisi Kas Kecil diambil dari laci.');
         }
 
+        try {
         $kasKecil = DB::transaction(function () use ($data, $kategori, $dariLaci, $sesi) {
+            // Uang fisik tidak bisa minus: pengeluaran ditolak bila saldo Kas Kecil tidak cukup.
+            if ($data['jenis'] === 'Keluar') {
+                \App\Services\KasKecilService::pastikanSaldoCukup((float) $data['nominal']);
+            }
             $kk = KasKecil::create($data);
 
             if ($dariLaci) {
@@ -102,6 +107,9 @@ class KasKecilController extends Controller
 
             return $kk;
         });
+        } catch (\RuntimeException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
 
         if (!$kategori->kode_akun) {
             return back()->with('error', "Catatan tersimpan, TAPI kategori \"{$kategori->nama_kategori}\" belum dihubungkan ke akun manapun - nominal ini belum ikut terhitung di jurnal/Laba Rugi. Lengkapi pemetaan akunnya lewat menu Kategori Kas Kecil.");

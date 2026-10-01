@@ -91,6 +91,12 @@ class KomisiDesainTest extends TestCase
 
         $this->actingAs($this->admin)->get('/laporan/biaya-desain')->assertOk()->assertSee('Tanpa desainer')->assertSee('40.000');
 
+        // Kas Kecil kosong: komisi tidak bisa dibayar (uang fisik tidak bisa minus).
+        $this->post('/laporan/biaya-desain/bayar', [
+            'id_desainer' => $this->desain->id_user, 'tgl_dari' => now()->startOfMonth()->toDateString(), 'tgl_sampai' => now()->toDateString(),
+        ])->assertSessionHas('error');
+        \App\Services\AccountingService::postKasKecilMasuk('KK-SALDO', '3000', 100000);
+
         $this->post('/laporan/biaya-desain/bayar', [
             'id_desainer' => $this->desain->id_user, 'tgl_dari' => now()->startOfMonth()->toDateString(), 'tgl_sampai' => now()->toDateString(),
         ])->assertSessionHas('success');
@@ -98,7 +104,7 @@ class KomisiDesainTest extends TestCase
         $kk = DB::table('kas_kecil')->first();
         $this->assertEquals(40000, (float) $kk->nominal);
         $this->assertSame('Keluar', $kk->jenis);
-        $this->assertEquals(-40000, (float) DB::table('jurnal_umum')->where('kode_akun', '1005')->sum(DB::raw('debet - kredit')));
+        $this->assertEquals(60000, (float) DB::table('jurnal_umum')->where('kode_akun', '1005')->sum(DB::raw('debet - kredit')));
         $this->assertEquals(40000, (float) DB::table('jurnal_umum')->where('kode_akun', '5210')->sum(DB::raw('debet - kredit')));
         $this->assertSame('Dibayar', DB::table('transaksi_detail')->whereNotNull('id_desainer')->value('komisi_status'));
 

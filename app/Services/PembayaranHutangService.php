@@ -97,8 +97,8 @@ class PembayaranHutangService
                 throw new \RuntimeException('Nominal melebihi sisa hutang (Rp ' . number_format($sisa, 0, ',', '.') . ').');
             }
 
-            if ($metode === 'Kas Kecil' && $nominal > self::saldoKasKecil() + self::TOLERANSI) {
-                throw new \RuntimeException('Saldo Kas Kecil (Rp ' . number_format(max(0, self::saldoKasKecil()), 0, ',', '.') . ') tidak cukup untuk pembayaran ini.');
+            if ($metode === 'Kas Kecil') {
+                KasKecilService::pastikanSaldoCukup($nominal);
             }
 
             $idPembayaran = DB::table('pembayaran_hutang')->insertGetId([

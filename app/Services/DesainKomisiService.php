@@ -66,6 +66,7 @@ class DesainKomisiService
                 throw new \RuntimeException('Tidak ada komisi yang belum dibayar pada rentang ini.');
             }
             $total = round((float) DB::table('transaksi_detail')->whereIn('id_detail', $ids)->sum('komisi_desain'), 2);
+            KasKecilService::pastikanSaldoCukup($total);
             $kategori = DB::table('kategori_kas_kecil')->where('nama_kategori', 'Komisi Desainer')->first();
             if (!$kategori || !$kategori->kode_akun) {
                 throw new \RuntimeException('Kategori Kas Kecil "Komisi Desainer" belum dipetakan ke akun Beban.');
