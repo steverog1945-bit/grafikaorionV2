@@ -49,7 +49,7 @@ class PenyesuaianStokService
                 ->where('id_bahan', $bahan->id_bahan)
                 ->update(['stok' => $stokSesudah]);
 
-            DB::table('kartu_stok')->insert([
+            $idKartu = DB::table('kartu_stok')->insertGetId([
                 'id_bahan'     => $bahan->id_bahan,
                 'tanggal'      => now(),
                 'tipe'         => $payload['tipe'],
@@ -62,6 +62,13 @@ class PenyesuaianStokService
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ]);
+
+            // Nilai Persediaan di jurnal ikut stok (selisih x harga rata-rata), referensi unik per pergerakan.
+            AccountingService::postSelisihPersediaan(
+                'ADJ-' . $idKartu,
+                "Penyesuaian stok {$bahan->nama_bahan}: {$payload['keterangan']}",
+                ($stokSesudah - $stokSebelum) * (float) $bahan->harga_rata_rata
+            );
         });
     }
 }

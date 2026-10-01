@@ -99,12 +99,13 @@ class PenjualanBarangController extends Controller
             'items' => 'required|array|min:1',
             'items.*.tipe' => 'required|in:bahan,jasa,custom',
             'items.*.qty' => 'required|numeric|min:0.01',
-            'items.*.harga' => 'required|numeric|min:0',
+            // Harga manual per transaksi (sesuai rancangan halaman ini), tetapi tidak boleh 0: layar sudah menolaknya,
+            // server juga, supaya kiriman ulang/form lama tidak menyimpan baris gratis tanpa sengaja.
+            'items.*.harga' => 'required|numeric|gt:0',
             // Bahan Baku: wajib pilih dari master (stok ikut berkurang).
             'items.*.id_bahan' => 'required_if:items.*.tipe,bahan|nullable|exists:bahan_baku,id_bahan',
-            // Jasa: wajib pilih dari Master Jasa. Nama & harga tetap
-            // ikut dikirim tapi server TIDAK mempercayainya - keduanya
-            // diambil ulang dari database (lihat store()).
+            // Jasa: wajib pilih dari Master Jasa. Nama diambil ulang dari master; harga master hanya isian awal
+            // di layar dan boleh ditimpa kasir, jadi harga yang dikirim yang dipakai.
             'items.*.id_jasa' => 'required_if:items.*.tipe,jasa|nullable|exists:jasa,id_jasa',
             // Custom/Lainnya: barang/jasa yang tidak ada di data bahan baku,
             // nama diisi bebas, TIDAK memotong stok apa pun.
@@ -174,12 +175,8 @@ class PenjualanBarangController extends Controller
                 $subtotal = $qty * $harga;
                 $grandTotal += $subtotal;
 
-                // JASA: id_jasa dan harga diambil ULANG dari database,
-                // bukan mempercayai yang dikirim form. Alasannya sama
-                // dengan harga bahan baku: role tanpa hak ubah harga harus
-                // tetap mendapat harga master, dan kalau nama/harga
-                // yang dikirim tidak cocok dengan master, yang tercatat
-                // harus master - bukan input yang bisa dimanipulasi.
+                // JASA: jasa dan namanya diambil ulang dari master (bukan nama kiriman form). Harganya mengikuti
+                // isian kasir: harga master hanya isian awal di layar dan boleh disesuaikan per transaksi.
                 if (($item['tipe'] ?? '') === 'jasa') {
                     $jasa = DB::table('jasa')->where('id_jasa', $item['id_jasa'])->first();
                     if (! $jasa) {

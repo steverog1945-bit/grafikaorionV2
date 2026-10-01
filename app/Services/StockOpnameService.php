@@ -64,6 +64,13 @@ class StockOpnameService
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);
+
+                // Nilai Persediaan di jurnal ikut stok fisik (selisih x harga rata-rata).
+                AccountingService::postSelisihPersediaan(
+                    $opname->nomor,
+                    "Selisih stock opname {$opname->nomor} - {$bahan->nama_bahan}",
+                    ($stokFisik - $stokSebelum) * (float) $bahan->harga_rata_rata
+                );
             }
 
             $opname->update(['status' => 'Disetujui']);

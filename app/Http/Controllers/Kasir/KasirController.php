@@ -501,6 +501,11 @@ class KasirController extends Controller
                 $status = 'Belum Bayar';
             }
 
+            // Total nota berubah (diskon/potongan/biaya item): piutang & pendapatan di jurnal ikut disamakan.
+            if ($transaksiRow->status_nota !== 'Dibatalkan') {
+                AccountingService::sesuaikanTotalNota($transaksiRow->nomor_nota, (float) $grandTotalFinal);
+            }
+
             $updateData = [
                 'total_bayar'       => $grandTotalFinal,
                 'status_pembayaran' => $status,

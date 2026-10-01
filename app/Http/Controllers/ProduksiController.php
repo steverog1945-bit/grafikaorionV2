@@ -247,11 +247,22 @@ class ProduksiController extends Controller
                 return;
             }
 
+            $kartuSebelum = (int) DB::table('kartu_stok')->max('id');
             $ringkasanStok = StokReversalService::kembalikan(
                 $detail,
                 'BATAL-SPK-' . $id,
                 'Pembatalan produksi (SPK #' . $id . ') - stok dikembalikan'
             );
+
+            // Bahan yang kembali ke gudang bukan lagi HPP: nilainya (qty x harga rata-rata) kembali ke Persediaan.
+            // Referensi nomor nota, jadi pembatalan nota sesudahnya membalik sisa HPP-nya saja (tidak dua kali).
+            $nilaiKembali = (float) DB::table('kartu_stok as k')->join('bahan_baku as b', 'b.id_bahan', '=', 'k.id_bahan')
+                ->where('k.id', '>', $kartuSebelum)->where('k.tipe', 'IN')->where('k.referensi', 'BATAL-SPK-' . $id)
+                ->sum(DB::raw('k.qty * b.harga_rata_rata'));
+            $noNota = DB::table('transaksi')->where('id_transaksi', $detail->id_transaksi)->value('nomor_nota');
+            if ($noNota) {
+                \App\Services\AccountingService::postPembalikanHppItem($noNota, "Pembalikan HPP batal SPK #{$id} (bahan kembali ke stok)", $nilaiKembali);
+            }
         });
 
         if ($pesanError) {

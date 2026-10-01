@@ -273,6 +273,75 @@ class AccountingService
         self::postJournal(now()->toDateString(), $noOrder, ($biaya > 0 ? 'HPP kain jersey ' : 'Pembalikan HPP kain jersey ') . $noOrder, $lines);
     }
 
+    /**
+     * Selisih stok hasil stock opname / penyesuaian manual: $nilai positif = stok bertambah (Dr Persediaan /
+     * Cr Selisih Persediaan), negatif = berkurang (Dr Selisih Persediaan / Cr Persediaan). Nilai 0 tidak dijurnal
+     * (bahan tanpa harga rata-rata).
+     */
+    public static function postSelisihPersediaan(string $noReferensi, string $keterangan, float $nilai): void
+    {
+        $abs = round(abs($nilai), 2);
+        if ($abs <= 0) {
+            return;
+        }
+
+        self::postJournal(now()->toDateString(), $noReferensi, $keterangan, $nilai > 0
+            ? [['kode_akun' => self::AKUN_PERSEDIAAN_BAHAN, 'debet' => $abs], ['kode_akun' => '5230', 'kredit' => $abs]]
+            : [['kode_akun' => '5230', 'debet' => $abs], ['kode_akun' => self::AKUN_PERSEDIAAN_BAHAN, 'kredit' => $abs]]);
+    }
+
+    /**
+     * Total nota berubah setelah dijurnal (diskon/potongan/biaya item diubah di layar pembayaran kasir): pendapatan
+     * nota di jurnal disamakan dengan total baru, selisihnya Dr/Cr Piutang lawan Pendapatan dengan porsi akun
+     * pendapatan seperti jurnal yang ada. Rekonsiliasi, bukan tambahan: menyimpan ulang total yang sama tidak menjurnal
+     * apa pun. Referensi nomor nota, jadi pembatalan nota tetap membalik semuanya. Nota tanpa jurnal penjualan (data
+     * lama) dilewati.
+     */
+    public static function sesuaikanTotalNota(string $noNota, float $totalBaru): void
+    {
+        $baris = DB::table('jurnal_umum')->where('no_referensi', $noNota)
+            ->whereIn('kode_akun', [self::AKUN_PENDAPATAN_PENJUALAN, self::AKUN_PENDAPATAN_JASA])
+            ->selectRaw('kode_akun, SUM(kredit - debet) AS nilai')->groupBy('kode_akun')->pluck('nilai', 'kode_akun');
+        if ($baris->isEmpty()) {
+            return;
+        }
+
+        $kini = round((float) $baris->sum(), 2);
+        $selisih = round($totalBaru - $kini, 2);
+        if (abs($selisih) < 0.01) {
+            return;
+        }
+
+        $porsiJasa = $kini > 0 ? (float) ($baris[self::AKUN_PENDAPATAN_JASA] ?? 0) / $kini : 0.0;
+        $jasa = round($selisih * $porsiJasa, 2);
+        $barang = round($selisih - $jasa, 2);
+
+        $lines = [$selisih > 0
+            ? ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'debet' => $selisih]
+            : ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'kredit' => -$selisih]];
+        foreach ([self::AKUN_PENDAPATAN_PENJUALAN => $barang, self::AKUN_PENDAPATAN_JASA => $jasa] as $akun => $nilai) {
+            if (abs($nilai) >= 0.01) {
+                $lines[] = $nilai > 0 ? ['kode_akun' => $akun, 'kredit' => $nilai] : ['kode_akun' => $akun, 'debet' => -$nilai];
+            }
+        }
+
+        self::postJournal(now()->toDateString(), $noNota, "Penyesuaian total nota {$noNota} di kasir (diskon/potongan/harga)", $lines);
+    }
+
+    /** Bahan item yang dibatalkan kembali ke stok: Dr Persediaan / Cr HPP senilai bahan yang kembali. */
+    public static function postPembalikanHppItem(string $noNota, string $keterangan, float $nilai): void
+    {
+        $nilai = round($nilai, 2);
+        if ($nilai <= 0) {
+            return;
+        }
+
+        self::postJournal(now()->toDateString(), $noNota, $keterangan, [
+            ['kode_akun' => self::AKUN_PERSEDIAAN_BAHAN, 'debet' => $nilai],
+            ['kode_akun' => self::AKUN_HPP, 'kredit' => $nilai],
+        ]);
+    }
+
     public static function postBebanRework(string $noReferensi, string $keterangan, float $nominal): void
     {
         if ($nominal <= 0) {

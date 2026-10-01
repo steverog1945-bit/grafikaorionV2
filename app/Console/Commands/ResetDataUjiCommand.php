@@ -37,6 +37,13 @@ class ResetDataUjiCommand extends Command
 
     public function handle(): int
     {
+        // Mengosongkan seluruh transaksi: tidak pernah boleh jalan di production, termasuk dengan --force.
+        if (app()->environment('production')) {
+            $this->error('Ditolak: perintah ini menghapus seluruh data transaksi dan tidak boleh dijalankan di lingkungan production.');
+
+            return self::FAILURE;
+        }
+
         $idJersey = $this->option('jersey') !== null ? (int) $this->option('jersey') : null;
         $dry = (bool) $this->option('dry-run');
 
