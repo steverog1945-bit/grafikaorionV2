@@ -125,6 +125,7 @@ class AlurParalelTest extends TestCase
         $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         DB::table('konsumen_deposit')->insert(['id_konsumen' => $kons, 'tipe' => 'Setoran', 'nominal' => 100000, 'metode_bayar' => 'Tunai', 'tgl_deposit' => now()->toDateString(), 'created_at' => now(), 'updated_at' => now()]);
         \App\Services\AccountingService::postSetoranDeposit('DEP-PAR-X', 100000, 'Tunai');
+        DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'saldo_awal' => 500000, 'status_lock' => 'open', 'created_at' => now()->subMinute(), 'updated_at' => now()]);
 
         $this->tembak(array_fill(0, 6, ['uri' => '/konsumen-deposit/kembalikan', 'data' => [
             'id_konsumen' => $kons, 'nominal' => 60000, 'metode_bayar' => 'Tunai', 'alasan' => 'Uji paralel',

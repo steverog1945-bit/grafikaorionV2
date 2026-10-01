@@ -27,6 +27,8 @@ class DepositPengembalianTest extends TestCase
         $this->idKons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         DB::table('konsumen_deposit')->insert(['id_konsumen' => $this->idKons, 'tipe' => 'Setoran', 'nominal' => 100000, 'metode_bayar' => 'Tunai', 'tgl_deposit' => now()->toDateString(), 'created_at' => now(), 'updated_at' => now()]);
         AccountingService::postSetoranDeposit('DEP-UJI-1', 100000, 'Tunai');
+        // Pengembalian tunai keluar dari laci: perlu sesi kas yang terbuka dan berisi cukup uang.
+        DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => User::factory()->create()->id_user, 'saldo_awal' => 500000, 'status_lock' => 'open', 'created_at' => now()->subMinute(), 'updated_at' => now()]);
     }
 
     private function admin(): User
@@ -70,5 +72,37 @@ class DepositPengembalianTest extends TestCase
     public function test_alasan_wajib(): void
     {
         $this->kirim($this->admin(), ['nominal' => 1000, 'alasan' => ''])->assertSessionHasErrors('alasan');
+    }
+
+    public function test_deposit_tunai_ikut_menggerakkan_hitungan_laci(): void
+    {
+        $admin = $this->admin();
+        $kas = DB::table('kas_harian')->where('status_lock', 'open')->first();
+        $awal = \App\Services\KasSesiService::saldoLaci($kas);
+
+        $this->actingAs($admin)->post('/konsumen-deposit', [
+            'id_konsumen' => $this->idKons, 'nominal' => 25000, 'metode_bayar' => 'Tunai', 'tgl_deposit' => now()->toDateString(),
+        ])->assertSessionHas('success');
+        $this->kirim($admin, ['nominal' => 10000])->assertSessionHas('success');
+
+        $this->assertEquals($awal + 25000 - 10000, \App\Services\KasSesiService::saldoLaci($kas));
+
+        // Transfer tidak menyentuh laci.
+        $this->actingAs($admin)->post('/konsumen-deposit', [
+            'id_konsumen' => $this->idKons, 'nominal' => 5000, 'metode_bayar' => 'Transfer', 'tgl_deposit' => now()->toDateString(),
+        ])->assertSessionHas('success');
+        $this->assertEquals($awal + 15000, \App\Services\KasSesiService::saldoLaci($kas));
+    }
+
+    public function test_pengembalian_tunai_tidak_boleh_melebihi_isi_laci_atau_tanpa_sesi(): void
+    {
+        DB::table('kas_harian')->update(['saldo_awal' => 20000]);
+        $this->kirim($this->admin(), ['nominal' => 30000])->assertSessionHas('error');
+
+        DB::table('kas_harian')->update(['status_lock' => 'closed']);
+        $this->kirim($this->admin(), ['nominal' => 10000])->assertSessionHas('error');
+        $this->kirim($this->admin(), ['nominal' => 10000, 'metode_bayar' => 'Transfer'])->assertSessionHas('success');
+
+        $this->assertEquals(10000, (float) DB::table('konsumen_deposit')->where('tipe', 'Pengembalian')->sum('nominal'));
     }
 }

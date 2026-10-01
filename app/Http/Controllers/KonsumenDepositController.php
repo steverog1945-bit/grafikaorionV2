@@ -59,6 +59,26 @@ class KonsumenDepositController extends Controller
         return view('konsumen-deposit.index', compact('saldoPerKonsumen', 'riwayat', 'konsumen', 'saldoMap'));
     }
 
+    /**
+     * Deposit tunai berarti uang masuk/keluar LACI kasir. Jurnalnya sudah memakai akun Kas (1000), jadi di sini
+     * cukup baris cermin di Kas Tidak Terduga (tanpa jurnal kedua) supaya hitungan laci saat closing ikut benar.
+     * Pola sama dengan "Isi Kas Kecil dari laci" (KasKecilController).
+     */
+    private static function cerminLaci(string $status, float $nominal, string $keterangan, bool $periksaIsi): void
+    {
+        $sesi = \App\Services\KasSesiService::aktif();
+        if (! $sesi) {
+            throw new \RuntimeException('Kas kasir belum dibuka. Deposit tunai masuk atau keluar dari laci, jadi buka kas dulu (atau pakai metode Transfer).');
+        }
+        if ($periksaIsi) {
+            \App\Services\KasSesiService::pastikanLaciCukup($sesi, $nominal);
+        }
+        DB::table('kas_manual')->insert([
+            'id_kas' => $sesi->id_kas, 'waktu' => now(), 'keterangan' => $keterangan, 'status' => $status,
+            'nominal' => $nominal, 'id_user' => Auth::id(), 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -92,6 +112,10 @@ class KonsumenDepositController extends Controller
             \App\Services\AuditLogger::log('created', 'konsumen_deposit', $idDeposit, null, $dataDeposit, "Setoran deposit {$noReferensi}");
 
             AccountingService::postSetoranDeposit($noReferensi, (float) $request->nominal, $request->metode_bayar);
+            if ($request->metode_bayar === 'Tunai') {
+                $nama = DB::table('konsumen')->where('id_konsumen', $request->id_konsumen)->value('nama_konsumen');
+                self::cerminLaci('Masuk', (float) $request->nominal, "Setoran deposit {$nama} [{$noReferensi}]", false);
+            }
 
             DB::commit();
             return redirect()->back()->with('success', 'Deposit berhasil dicatat.');
@@ -139,6 +163,10 @@ class KonsumenDepositController extends Controller
                 $id = DB::table('konsumen_deposit')->insertGetId($baris);
                 \App\Services\AuditLogger::log('created', 'konsumen_deposit', $id, null, $baris, "Pengembalian deposit {$noReferensi}");
                 AccountingService::postPengembalianDeposit($noReferensi, (float) $data['nominal'], $data['metode_bayar']);
+                if ($data['metode_bayar'] === 'Tunai') {
+                    $nama = DB::table('konsumen')->where('id_konsumen', $data['id_konsumen'])->value('nama_konsumen');
+                    self::cerminLaci('Keluar', (float) $data['nominal'], "Pengembalian deposit {$nama} [{$noReferensi}]", true);
+                }
             });
         } catch (\Throwable $e) {
             return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal mengembalikan deposit'));

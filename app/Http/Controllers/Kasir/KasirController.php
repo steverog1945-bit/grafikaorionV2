@@ -635,6 +635,10 @@ class KasirController extends Controller
                 throw new \Exception('Anda tidak dapat melakukan transaksi. Cek kembali saldo kas kasir Anda. Kas kasir akan terus berjalan sebelum terjadi closing kas kasir.');
             }
 
+            if ($request->status === 'Keluar') {
+                KasSesiService::pastikanLaciCukup($kas, (float) $request->nominal);
+            }
+
             $idKasManual = DB::table('kas_manual')->insertGetId([
                 'id_kas'      => $kas->id_kas,
                 'waktu'       => now(),

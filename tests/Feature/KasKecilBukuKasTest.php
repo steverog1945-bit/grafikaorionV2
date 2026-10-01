@@ -105,4 +105,22 @@ class KasKecilBukuKasTest extends TestCase
         $this->assertEquals(0.0, $this->saldo('1005') + 0);
         $this->assertEquals(0.0, $this->saldo('1000') + 0);
     }
+
+    public function test_uang_keluar_dari_laci_tidak_boleh_melebihi_isi_laci(): void
+    {
+        DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => auth()->id(), 'saldo_awal' => 100000, 'status_lock' => 'open', 'created_at' => now()->subMinute(), 'updated_at' => now()]);
+
+        // Kas tidak terduga keluar melebihi isi laci.
+        $this->post('/kasir/kas-manual', ['keterangan' => 'Beli galon', 'status' => 'Keluar', 'nominal' => 150000])->assertSessionHas('error');
+        $this->assertSame(0, DB::table('kas_manual')->count());
+
+        // Isi Kas Kecil dari laci melebihi isi laci.
+        $kat = DB::table('kategori_kas_kecil')->where('nama_kategori', 'Isi dari Kas Laci')->first();
+        $this->post('/kas-kecil', ['tanggal' => now()->toDateString(), 'jenis' => 'Masuk', 'id_kategori' => $kat->id_kategori_kas_kecil, 'keterangan' => 'Modal', 'nominal' => 150000])
+            ->assertSessionHas('error');
+        $this->assertSame(0, DB::table('kas_kecil')->count());
+
+        // Yang pas tetap boleh.
+        $this->post('/kasir/kas-manual', ['keterangan' => 'Beli galon', 'status' => 'Keluar', 'nominal' => 100000])->assertSessionHas('success');
+    }
 }

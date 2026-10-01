@@ -93,6 +93,7 @@ class KasKecilController extends Controller
             $kk = KasKecil::create($data);
 
             if ($dariLaci) {
+                \App\Services\KasSesiService::pastikanLaciCukup($sesi, (float) $data['nominal']);
                 DB::table('kas_manual')->insert([
                     'id_kas' => $sesi->id_kas, 'waktu' => now(), 'keterangan' => "Setor ke Kas Kecil [KK-{$kk->id}] - {$data['keterangan']}",
                     'status' => 'Keluar', 'nominal' => $data['nominal'], 'id_user' => Auth::id(), 'created_at' => now(), 'updated_at' => now(),

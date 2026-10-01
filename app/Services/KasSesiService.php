@@ -44,6 +44,37 @@ class KasSesiService
         return !empty($kas->waktu_tutup) ? Carbon::parse($kas->waktu_tutup) : now();
     }
 
+    /**
+     * Uang tunai yang seharusnya ada di laci untuk sesi ini: saldo awal + pembayaran tunai selama sesi
+     * + kas tidak terduga masuk - kas tidak terduga keluar. Rumus sama dengan Preview Closing.
+     */
+    public static function saldoLaci(object $kas): float
+    {
+        $tunai = (float) DB::table('pembayaran_riwayat')
+            ->where('tgl_bayar', '>=', self::mulai($kas))
+            ->where('tgl_bayar', '<=', self::akhir($kas))
+            ->where('metode', 'Tunai')
+            ->sum('nominal');
+        $manual = DB::table('kas_manual')->where('id_kas', $kas->id_kas)
+            ->selectRaw("COALESCE(SUM(CASE WHEN status = 'Masuk' THEN nominal ELSE 0 END), 0) masuk, COALESCE(SUM(CASE WHEN status = 'Keluar' THEN nominal ELSE 0 END), 0) keluar")
+            ->first();
+
+        return round((float) $kas->saldo_awal + $tunai + (float) $manual->masuk - (float) $manual->keluar, 2);
+    }
+
+    /**
+     * Tolak pengambilan uang dari laci yang melebihi isinya. Wajib dipanggil di dalam transaksi: baris sesi kas
+     * dikunci, jadi dua pengambilan bersamaan tidak sama-sama lolos.
+     */
+    public static function pastikanLaciCukup(object $kas, float $nominal): void
+    {
+        $kas = DB::table('kas_harian')->where('id_kas', $kas->id_kas)->lockForUpdate()->first();
+        $saldo = self::saldoLaci($kas);
+        if (round($nominal, 2) > $saldo + 0.01) {
+            throw new \RuntimeException('Uang di laci menurut sistem Rp ' . number_format(max(0, $saldo), 0, ',', '.') . ', tidak cukup untuk mengeluarkan Rp ' . number_format($nominal, 0, ',', '.') . '.');
+        }
+    }
+
     public static function umurJam(object $kas): int
     {
         return (int) self::mulai($kas)->diffInHours(now());
