@@ -251,17 +251,7 @@ class BahanBakuController extends Controller
         // FK RESTRICT yang menolak hapus bahan berriwayat, tetapi FK itu tidak
         // ada di database produksi (hilang saat pemulihan crash) - tanpa cek
         // ini bahan berriwayat terhapus dan meninggalkan kartu_stok/BOM orphan.
-        $dipakai = [];
-        foreach ([
-            'kartu stok' => 'kartu_stok', 'BOM produk' => 'bom_detail', 'kedatangan bahan' => 'kedatangan_bahan_detail',
-            'pembelian' => 'pembelian_bahan_detail', 'nota penjualan' => 'transaksi_detail', 'purchase order' => 'purchase_order_details',
-            'purchase request' => 'purchase_request_details', 'stock opname' => 'stock_opname_details', 'waste' => 'waste_log',
-            'material jersey' => 'jersey_materials', 'potong stok jersey' => 'jersey_order_potong_stok',
-        ] as $label => $tabel) {
-            if (DB::table($tabel)->where('id_bahan', $id)->exists()) {
-                $dipakai[] = $label;
-            }
-        }
+        $dipakai = self::pemakaianBahan((int) $id);
         if ($dipakai !== []) {
             return back()->with('error', 'Bahan tidak bisa dihapus karena sudah tercatat di: ' . implode(', ', $dipakai) . '. Nonaktifkan saja agar riwayatnya tetap utuh.');
         }
@@ -296,6 +286,28 @@ class BahanBakuController extends Controller
             : 'Bahan dinonaktifkan - tidak akan muncul lagi di pilihan transaksi baru.');
     }
 
+    /**
+     * Riwayat yang membuat bahan tidak boleh dihapus (dipakai hapus satuan dan massal).
+     *
+     * @return array<int, string>
+     */
+    private static function pemakaianBahan(int $id): array
+    {
+        $dipakai = [];
+        foreach ([
+            'kartu stok' => 'kartu_stok', 'BOM produk' => 'bom_detail', 'kedatangan bahan' => 'kedatangan_bahan_detail',
+            'pembelian' => 'pembelian_bahan_detail', 'nota penjualan' => 'transaksi_detail', 'purchase order' => 'purchase_order_details',
+            'purchase request' => 'purchase_request_details', 'stock opname' => 'stock_opname_details', 'waste' => 'waste_log',
+            'material jersey' => 'jersey_materials', 'potong stok jersey' => 'jersey_order_potong_stok',
+        ] as $label => $tabel) {
+            if (DB::table($tabel)->where('id_bahan', $id)->exists()) {
+                $dipakai[] = $label;
+            }
+        }
+
+        return $dipakai;
+    }
+
     public function bulkDelete(Request $request)
     {
         $ids = $request->ids;
@@ -304,24 +316,32 @@ class BahanBakuController extends Controller
             return back()->with('error', 'Tidak ada data dipilih.');
         }
 
-        // Setiap bahan dihapus satu per satu (bukan satu transaksi gabungan)
-        // supaya bahan yang masih terikat riwayat transaksi (FK constraint)
-        // tidak ikut menggagalkan penghapusan bahan lain yang sebenarnya aman.
+        // Satu per satu, dengan pengecekan riwayat yang sama dengan hapus satuan: sebelumnya hanya mengandalkan FK,
+        // padahal sebagian tabel riwayat tidak punya FK sehingga bahan berriwayat ikut terhapus.
         $berhasil = 0;
-        $gagal = 0;
+        $ditahan = [];
 
         foreach ($ids as $id) {
+            $bahan = BahanBaku::find($id);
+            if (!$bahan) {
+                continue;
+            }
+            if (self::pemakaianBahan((int) $id) !== []) {
+                $ditahan[] = $bahan->nama_bahan;
+                continue;
+            }
             try {
-                BahanBaku::destroy($id);
+                $bahan->delete();
                 $berhasil++;
             } catch (\Exception $e) {
-                $gagal++;
+                report($e);
+                $ditahan[] = $bahan->nama_bahan;
             }
         }
 
         $pesan = "{$berhasil} bahan berhasil dihapus.";
-        if ($gagal > 0) {
-            $pesan .= " {$gagal} bahan gagal dihapus karena masih terikat riwayat transaksi.";
+        if ($ditahan !== []) {
+            $pesan .= ' Tidak dihapus karena sudah punya riwayat transaksi (nonaktifkan saja): ' . implode(', ', $ditahan) . '.';
         }
 
         return back()->with($berhasil > 0 ? 'success' : 'error', $pesan);

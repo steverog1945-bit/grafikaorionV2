@@ -221,95 +221,94 @@ public function bulkDelete(Request $request)
 
     $kedatangan = KedatanganBahan::with('detail')->findOrFail($id);
 
-    DB::transaction(function () use ($request, $kedatangan) {
+    // Faktur, hutang, dan persediaan mengacu ke qty kedatangan ini: mengubahnya diam-diam membuat ketiganya tidak cocok.
+    $faktur = PembelianBahan::withTrashed()->where('id_kedatangan', $kedatangan->id_kedatangan)->first();
+    if ($faktur) {
+        return back()->withInput()->with('error', "Kedatangan {$kedatangan->no_surat_jalan} sudah difakturkan ({$faktur->no_faktur}), jadi tidak bisa diubah. Bila qty-nya salah, batalkan fakturnya dulu lewat Pembelian Bahan (perlu persetujuan).");
+    }
 
-        // 🔴 1. Jika sebelumnya Selesai → kembalikan stok lama, DAN catat ke
-        // kartu_stok (sebelumnya cuma decrement() langsung - stok berubah
-        // tapi tidak ada baris ledger yang menjelaskan kenapa).
-        if ($kedatangan->status == 'Selesai') {
-            foreach ($kedatangan->detail as $old) {
-                $bahan = BahanBaku::where('id_bahan', $old->id_bahan)->lockForUpdate()->first();
-                if (!$bahan) continue;
+    // Form edit tidak mengirim status: status lama dipertahankan. Sebelumnya jatuh ke 'Draft', sehingga setiap edit
+    // kedatangan yang sudah divalidasi diam-diam menarik seluruh stoknya kembali.
+    $statusLama = $kedatangan->status;
+    $statusBaru = in_array($request->input('status'), ['Draft', 'Selesai'], true) ? $request->input('status') : $statusLama;
 
-                $stokSebelum = $bahan->stok;
-                $stokSesudah = $stokSebelum - $old->qty;
+    try {
+        DB::transaction(function () use ($request, $kedatangan, $statusLama, $statusBaru) {
+            // Stok bergeser sebesar selisih per bahan (qty baru bila Selesai - qty lama bila Selesai), satu baris kartu
+            // per bahan, dan ditolak bila hasilnya minus (bahan sudah terpakai).
+            $selisih = [];
+            if ($statusLama === 'Selesai') {
+                foreach ($kedatangan->detail as $old) {
+                    $selisih[$old->id_bahan] = ($selisih[$old->id_bahan] ?? 0) - (float) $old->qty;
+                }
+            }
+            if ($statusBaru === 'Selesai') {
+                foreach ($request->id_bahan as $key => $idBahan) {
+                    $selisih[$idBahan] = ($selisih[$idBahan] ?? 0) + (float) $request->qty[$key];
+                }
+            }
+
+            $kedatangan->update([
+                'no_surat_jalan' => $request->no_surat_jalan,
+                'tgl_datang'     => $request->tgl_datang,
+                'id_supplier'    => $request->id_supplier,
+                'id_gudang'      => $request->id_gudang ?? 1,
+                'status'         => $statusBaru,
+                'keterangan'     => $request->keterangan,
+                'id_platform'       => $request->filled('id_platform') ? (int) $request->id_platform : null,
+                'nama_toko_online'  => $request->filled('id_platform') ? $request->nama_toko_online : null,
+                'no_pesanan_online' => $request->filled('id_platform') ? $request->no_pesanan_online : null,
+                'no_resi'           => $request->filled('id_platform') ? $request->no_resi : null,
+            ]);
+
+            $kedatangan->detail()->delete();
+            foreach ($request->id_bahan as $key => $idBahan) {
+                KedatanganBahanDetail::create([
+                    'id_kedatangan' => $kedatangan->id_kedatangan,
+                    'id_bahan'      => $idBahan,
+                    'qty'           => $request->qty[$key],
+                    'satuan'        => $request->satuan[$key] ?? '',
+                    'status'        => 'OK',
+                ]);
+            }
+
+            foreach ($selisih as $idBahan => $delta) {
+                if (abs($delta) < 0.0001) {
+                    continue;
+                }
+                $bahan = BahanBaku::where('id_bahan', $idBahan)->lockForUpdate()->first();
+                if (!$bahan) {
+                    continue;
+                }
+                $stokSebelum = (float) $bahan->stok;
+                $stokSesudah = $stokSebelum + $delta;
+                if ($stokSesudah < -0.0001) {
+                    throw new \RuntimeException("Stok {$bahan->nama_bahan} sudah terpakai (sisa " . angka($stokSebelum, 2) . ', berkurang ' . angka(-$delta, 2) . ' bila diubah). Perubahan dibatalkan; koreksi lewat penyesuaian stok bila memang salah catat.');
+                }
                 $bahan->update(['stok' => $stokSesudah]);
 
                 DB::table('kartu_stok')->insert([
-                    'id_bahan'     => $old->id_bahan,
+                    'id_bahan'     => $idBahan,
                     'tanggal'      => now(),
-                    'tipe'         => 'OUT',
-                    'qty'          => $old->qty,
+                    'tipe'         => $delta > 0 ? 'IN' : 'OUT',
+                    'qty'          => abs($delta),
                     'stok_sebelum' => $stokSebelum,
                     'stok_sesudah' => $stokSesudah,
-                    'referensi'    => $kedatangan->no_surat_jalan,
-                    'keterangan'   => 'Edit kedatangan bahan - stok lama dikembalikan sebelum diganti data baru',
+                    'referensi'    => $request->no_surat_jalan,
+                    'keterangan'   => 'Edit kedatangan bahan - selisih qty',
                     'created_by'   => auth()->id(),
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);
             }
-        }
 
-        // 🔵 2. Update header
-        $kedatangan->update([
-            'no_surat_jalan' => $request->no_surat_jalan,
-            'tgl_datang'     => $request->tgl_datang,
-            'id_supplier'    => $request->id_supplier,
-            'id_gudang'      => $request->id_gudang ?? 1,
-            'status'         => $request->status ?? 'Draft',
-                'keterangan'     => $request->keterangan,
-            'id_platform'       => $request->filled('id_platform') ? (int) $request->id_platform : null,
-            'nama_toko_online'  => $request->filled('id_platform') ? $request->nama_toko_online : null,
-            'no_pesanan_online' => $request->filled('id_platform') ? $request->no_pesanan_online : null,
-            'no_resi'           => $request->filled('id_platform') ? $request->no_resi : null,
+            \App\Services\PurchaseOrderService::sinkronPenerimaan($kedatangan->id_purchase_order);
+        });
+    } catch (\RuntimeException $e) {
+        return back()->withInput()->with('error', $e->getMessage());
+    }
 
-        ]);
-
-        // 🔵 3. Hapus detail lama
-        $kedatangan->detail()->delete();
-
-        // 🔵 4. Insert detail baru
-        foreach ($request->id_bahan as $key => $id_bahan) {
-
-            KedatanganBahanDetail::create([
-                'id_kedatangan' => $kedatangan->id_kedatangan,
-                'id_bahan'      => $id_bahan,
-                'qty'           => $request->qty[$key],
-                'satuan'        => $request->satuan[$key] ?? '',
-                'status'        => 'OK',
-            ]);
-
-            // 🟢 5. Tambah stok jika status selesai - juga dicatat ke
-            // kartu_stok (sebelumnya cuma increment() langsung).
-            if (($request->status ?? 'Draft') == 'Selesai') {
-                $bahan = BahanBaku::where('id_bahan', $id_bahan)->lockForUpdate()->first();
-                if ($bahan) {
-                    $stokSebelum = $bahan->stok;
-                    $stokSesudah = $stokSebelum + $request->qty[$key];
-                    $bahan->update(['stok' => $stokSesudah]);
-
-                    DB::table('kartu_stok')->insert([
-                        'id_bahan'     => $id_bahan,
-                        'tanggal'      => now(),
-                        'tipe'         => 'IN',
-                        'qty'          => $request->qty[$key],
-                        'stok_sebelum' => $stokSebelum,
-                        'stok_sesudah' => $stokSesudah,
-                        'referensi'    => $request->no_surat_jalan,
-                        'keterangan'   => 'Edit kedatangan bahan - stok baru ditambahkan',
-                        'created_by'   => auth()->id(),
-                        'created_at'   => now(),
-                        'updated_at'   => now(),
-                    ]);
-                }
-            }
-        }
-
-        \App\Services\PurchaseOrderService::sinkronPenerimaan($kedatangan->id_purchase_order);
-    });
-
-    if (($request->status ?? 'Draft') === 'Selesai') {
+    if ($statusBaru === 'Selesai') {
         \App\Support\JalurLanjut::set('Berikutnya: catat faktur/tagihan supplier', 'pembelian-bahan.create', 'Buat Faktur Pembelian');
     } else {
         session()->flash('lanjut', ['teks' => 'Berikutnya: cek qty fisik, lalu klik Validasi agar stok bertambah', 'url' => null, 'tombol' => '']);

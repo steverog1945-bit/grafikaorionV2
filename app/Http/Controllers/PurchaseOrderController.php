@@ -208,7 +208,14 @@ class PurchaseOrderController extends Controller
                 return 'Purchase Order ini sudah ada barang yang diterima, tidak bisa dibatalkan.';
             }
 
+            // Kedatangan Draft dari PO ini masih bisa divalidasi belakangan dan menambah stok dari PO yang sudah batal.
+            $draft = DB::table('kedatangan_bahan')->where('id_purchase_order', $po->id)->where('status', '!=', 'Selesai')->pluck('no_surat_jalan');
+            if ($draft->isNotEmpty()) {
+                return 'Purchase Order ini masih punya kedatangan yang belum divalidasi (' . $draft->implode(', ') . '). Hapus kedatangan itu dulu di Kedatangan Bahan, baru PO bisa dibatalkan.';
+            }
+
             $po->update(['status' => 'Dibatalkan']);
+            $this->lepaskanPr($po);
 
             return null;
         });
@@ -281,9 +288,37 @@ class PurchaseOrderController extends Controller
             return back()->with('error', 'Cuma Purchase Order berstatus Draft yang bisa dihapus.');
         }
 
-        $purchaseOrder->delete();
+        DB::transaction(function () use ($purchaseOrder) {
+            $purchaseOrder->delete();
+            $this->lepaskanPr($purchaseOrder);
+        });
 
         return redirect()->route('purchase-order.index')->with('success', 'Purchase Order dihapus.');
+    }
+
+    /**
+     * PR yang PO-nya dibatalkan/dihapus kembali ke Disetujui supaya bisa dibuatkan PO pengganti tanpa persetujuan
+     * ulang. Sebelumnya PR tertahan di 'Diproses PO' selamanya, padahal PO baru hanya bisa dibuat dari PR Disetujui.
+     * Tetap 'Diproses PO' bila masih ada PO lain yang aktif untuk PR itu.
+     */
+    private function lepaskanPr(PurchaseOrder $po): void
+    {
+        if (!$po->id_purchase_request) {
+            return;
+        }
+
+        $pr = PurchaseRequest::whereKey($po->id_purchase_request)->lockForUpdate()->first();
+        if (!$pr || $pr->status !== 'Diproses PO') {
+            return;
+        }
+
+        $masihAda = PurchaseOrder::where('id_purchase_request', $pr->id)
+            ->where('id', '!=', $po->id)
+            ->where('status', '!=', 'Dibatalkan')
+            ->exists();
+        if (!$masihAda) {
+            $pr->update(['status' => 'Disetujui']);
+        }
     }
 
     private function validasi(Request $request): array
