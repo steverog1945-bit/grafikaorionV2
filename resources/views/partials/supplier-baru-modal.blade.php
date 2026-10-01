@@ -1,13 +1,13 @@
 {{-- Modal "Pemasok Baru" - pola sama dengan modal Konsumen Baru di Input Pesanan. Param: $selectId (id <select> supplier). --}}
 <x-modal id="supplier-baru" title="Input Pemasok Baru" maxWidth="md">
     <div class="space-y-5">
-        <x-form.group label="Nama Perusahaan/Vendor">
+        <x-form.group label="Nama Perusahaan/Vendor" dalam>
             <x-form.input type="text" id="new_supplier_nama" placeholder="Contoh: PT. Sumber Kertas" />
         </x-form.group>
-        <x-form.group label="No. Telepon / Sales">
+        <x-form.group label="No. Telepon / Sales" dalam>
             <x-form.input type="text" id="new_supplier_kontak" placeholder="08xx xxxx xxxx" />
         </x-form.group>
-        <x-form.group label="Alamat Lengkap">
+        <x-form.group label="Alamat Lengkap" dalam>
             <textarea id="new_supplier_alamat" placeholder="Jl. Raya Percetakan No. 1..."
                       class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
         </x-form.group>

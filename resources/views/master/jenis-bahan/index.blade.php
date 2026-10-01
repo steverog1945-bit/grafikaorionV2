@@ -93,19 +93,19 @@
           dengan gaya `text-xs font-medium` - gaya yang cuma dipakai
           13 kali di seluruh aplikasi. Yang dominan justru micro-label
           10px uppercase, dan aplikasi sudah menyediakannya sebagai
-          <x-form.group>. Modal ini sekarang memakai komponen itu,
+          <x-form.group dalam>. Modal ini sekarang memakai komponen itu,
           bersama x-form.input, sehingga label, isian, tanda wajib,
           pesan error, dan teks bantuannya sama persis dengan form
           lain - bukan ditiru ulang. --}}
 <x-modal id="jenis-bahan-tambah" title="Tambah Jenis Bahan" maxWidth="md">
     <form action="{{ route('jenis-bahan.store') }}" method="POST" class="space-y-4">
         @csrf
-        <x-form.group label="Nama Jenis" name="nama_jenis" required>
+        <x-form.group label="Nama Jenis" name="nama_jenis" required dalam>
             <x-form.input type="text" name="nama_jenis" id="nama_jenis"
                          placeholder="Contoh: Vinyl, Kertas, Kain" />
         </x-form.group>
         <x-form.group label="Keterangan Singkat" name="keterangan"
-                      help="Dipakai sebagai petunjuk saat memilih bahan. Boleh dikosongkan.">
+                      help="Dipakai sebagai petunjuk saat memilih bahan. Boleh dikosongkan." dalam>
             <textarea name="keterangan" id="keterangan" rows="3"
                       placeholder="Contoh: Bahan deterrent untuk cetak outdoor"
                       class="w-full bg-white border border-slate-200 rounded-md py-2 px-3 text-sm font-normal text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"></textarea>
@@ -125,11 +125,11 @@
 <x-modal id="jenis-bahan-edit" title="Edit Jenis Bahan" maxWidth="md">
     <form id="formEditJenisBahan" method="POST" class="space-y-4">
         @csrf @method('PUT')
-        <x-form.group label="Nama Jenis" name="nama_jenis" required>
+        <x-form.group label="Nama Jenis" name="nama_jenis" required dalam>
             <x-form.input type="text" name="nama_jenis" id="edit_nama_jenis" />
         </x-form.group>
         <x-form.group label="Keterangan Singkat" name="keterangan"
-                      help="Dipakai sebagai petunjuk saat memilih bahan. Boleh dikosongkan.">
+                      help="Dipakai sebagai petunjuk saat memilih bahan. Boleh dikosongkan." dalam>
             <textarea name="keterangan" id="edit_keterangan" rows="3"
                       class="w-full bg-white border border-slate-200 rounded-md py-2 px-3 text-sm font-normal text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"></textarea>
         </x-form.group>

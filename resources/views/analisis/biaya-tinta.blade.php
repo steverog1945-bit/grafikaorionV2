@@ -130,28 +130,28 @@
     <x-modal id="pengaturan-tinta" title="Pengaturan Pemakaian Tinta" maxWidth="md">
         <form method="POST" action="{{ route('laporan.biaya-tinta.simpan') }}" class="space-y-5">
             @csrf
-            <x-form.group label="Mesin" required>
+            <x-form.group label="Mesin" required dalam>
                 <x-form.select name="id_mesin" id="pt_id_mesin" required>
                     @foreach($mesin as $m)<option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>@endforeach
                 </x-form.select>
             </x-form.group>
-            <x-form.group label="Bahan Tinta" required>
+            <x-form.group label="Bahan Tinta" required dalam>
                 <x-form.select name="id_bahan" id="pt_id_bahan" required>
                     @foreach($bahanTinta as $b)<option value="{{ $b->id_bahan }}">{{ $b->nama_bahan }}</option>@endforeach
                 </x-form.select>
             </x-form.group>
             <div class="grid grid-cols-2 gap-4">
-                <x-form.group label="Dasar Hitung" required>
+                <x-form.group label="Dasar Hitung" required dalam>
                     <x-form.select name="dasar" id="pt_dasar" required>
                         <option value="m2">per m²</option>
                         <option value="lembar">per lembar</option>
                     </x-form.select>
                 </x-form.group>
-                <x-form.group label="Pemakaian" required help="Dalam satuan hitung bahan (ml/gram/pcs).">
+                <x-form.group label="Pemakaian" required help="Dalam satuan hitung bahan (ml/gram/pcs)." dalam>
                     <x-form.input type="number" step="0.000001" min="0" name="pemakaian" id="pt_pemakaian" required />
                 </x-form.group>
             </div>
-            <x-form.group label="Keterangan">
+            <x-form.group label="Keterangan" dalam>
                 <x-form.input type="text" name="keterangan" id="pt_keterangan" maxlength="255" />
             </x-form.group>
             <div class="pt-4 flex gap-3">

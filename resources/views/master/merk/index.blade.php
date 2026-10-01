@@ -98,16 +98,16 @@
          icon="fa-tag" maxWidth="md">
     <form action="{{ route('merk.store') }}" method="POST" class="space-y-4">
         @csrf
-        <div>
-            <label class="block text-[10px]">Nama Merk</label>
-            <input type="text" name="nama_merk" placeholder="Contoh: 3M, Fujifilm" required
+        <div class="ld">
+            <input id="ld_nama_merk_0" type="text" name="nama_merk" placeholder="Contoh: 3M, Fujifilm" required
                    class="w-full text-sm font-medium text-slate-700">
+            <label class="ld-label" for="ld_nama_merk_0">Nama Merk<span class="ld-wajib" aria-hidden="true">*</span></label>
         </div>
 
-        <div>
-            <label class="block text-[10px]">Keterangan Singkat</label>
-            <textarea name="keterangan" placeholder="Keterangan merk..."
+        <div class="ld">
+            <textarea id="ld_keterangan_1" name="keterangan" placeholder="Keterangan merk..."
                       class="w-full text-sm font-medium text-slate-700"></textarea>
+            <label class="ld-label" for="ld_keterangan_1">Keterangan Singkat</label>
         </div>
 
         <x-slot:footer>
@@ -123,16 +123,16 @@
          icon="fa-pen" maxWidth="md">
     <form id="formEditMerk" method="POST" class="space-y-4">
         @csrf @method('PUT')
-        <div>
-            <label class="block text-[10px]">Nama Merk</label>
-            <input type="text" name="nama_merk" id="edit_nama_merk" required
+        <div class="ld">
+            <input placeholder=" " type="text" name="nama_merk" id="edit_nama_merk" required
                    class="w-full text-sm font-medium text-slate-700">
+            <label class="ld-label" for="edit_nama_merk">Nama Merk<span class="ld-wajib" aria-hidden="true">*</span></label>
         </div>
 
-        <div>
-            <label class="block text-[10px]">Keterangan Singkat</label>
-            <textarea name="keterangan" id="edit_keterangan"
+        <div class="ld">
+            <textarea placeholder=" " name="keterangan" id="edit_keterangan"
                       class="w-full text-sm font-medium text-slate-700"></textarea>
+            <label class="ld-label" for="edit_keterangan">Keterangan Singkat</label>
         </div>
 
         <x-slot:footer>

@@ -94,7 +94,7 @@
     <x-modal id="tolak-approval" title="Tolak Pengajuan" maxWidth="sm">
         <form id="form-tolak-approval" method="POST">
             @csrf @method('PATCH')
-            <x-form.group label="Alasan Penolakan">
+            <x-form.group label="Alasan Penolakan" dalam>
                 <textarea name="catatan" required rows="4" placeholder="Jelaskan kenapa pengajuan ini ditolak" class="w-full rounded-xl border-slate-200 text-sm p-3"></textarea>
             </x-form.group>
             <div class="pt-4 flex gap-3">

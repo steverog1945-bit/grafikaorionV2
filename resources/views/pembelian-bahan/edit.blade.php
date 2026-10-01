@@ -12,20 +12,20 @@
 
         <x-card class="mb-8">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <x-form.group label="No. Faktur Vendor" name="no_faktur" required>
+                <x-form.group label="No. Faktur Vendor" name="no_faktur" required dalam>
                     <x-form.input type="text" name="no_faktur" value="{{ $pembelian->no_faktur }}" readonly class="opacity-60 cursor-not-allowed" title="Nomor faktur tidak bisa diubah karena dipakai sebagai referensi jurnal akuntansi" />
                 </x-form.group>
 
-                <x-form.group label="Tanggal Transaksi" name="tgl_transaksi" required>
+                <x-form.group label="Tanggal Transaksi" name="tgl_transaksi" required dalam>
                     <x-form.input type="date" name="tgl_transaksi" value="{{ \Carbon\Carbon::parse($pembelian->tgl_transaksi)->format('Y-m-d') }}" required />
                 </x-form.group>
 
-                <x-form.group label="Pemasok (Locked)">
+                <x-form.group label="Pemasok (Locked)" dalam>
                     <input type="text" value="{{ $pembelian->kedatangan->supplier->nama_supplier ?? 'Umum' }}" readonly
                         class="w-full bg-slate-100 border-none rounded-xl p-3 text-sm font-medium text-slate-400 cursor-not-allowed">
                 </x-form.group>
 
-                <x-form.group label="Status Pembayaran">
+                <x-form.group label="Status Pembayaran" dalam>
                     <div class="p-3 bg-slate-100 rounded-xl text-sm font-medium text-slate-400 flex items-center gap-2 h-[46px]">
                         <i class="fas fa-lock text-[10px]"></i> {{ $pembelian->status_pembayaran }}
                     </div>

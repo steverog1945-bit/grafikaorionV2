@@ -66,7 +66,7 @@
                 Setelah ditutup, periode <b id="tutup-nama-periode"></b> tidak bisa lagi menerima jurnal baru
                 (penjualan, pembayaran, pembelian, dsb bertanggal periode ini akan gagal diposting) sampai dibuka kembali.
             </p>
-            <x-form.group label="Catatan (opsional)">
+            <x-form.group label="Catatan (opsional)" dalam>
                 <textarea name="catatan" rows="3" placeholder="Mis. Laporan keuangan bulan ini sudah difinalkan" class="w-full rounded-xl border-slate-200 text-sm p-3"></textarea>
             </x-form.group>
             <div class="pt-4 flex gap-3">

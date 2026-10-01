@@ -100,7 +100,7 @@
     <x-modal id="tolak-edit" title="Tolak Permintaan Edit" maxWidth="sm">
         <form id="form-tolak" method="POST">
             @csrf @method('PATCH')
-            <x-form.group label="Alasan Penolakan">
+            <x-form.group label="Alasan Penolakan" dalam>
                 <textarea name="catatan" required rows="4" placeholder="Jelaskan kenapa permintaan ini ditolak" class="w-full rounded-xl border-slate-200 text-sm p-3"></textarea>
             </x-form.group>
             <div class="pt-4 flex gap-3">

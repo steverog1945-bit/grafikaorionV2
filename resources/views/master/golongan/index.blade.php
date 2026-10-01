@@ -93,12 +93,12 @@
          icon="fa-layer-group" maxWidth="md">
     <form action="{{ route('golongan.store') }}" method="POST" class="space-y-4">
         @csrf
-        <x-form.group label="Nama Golongan" name="nama_golongan" required>
+        <x-form.group label="Nama Golongan" name="nama_golongan" required dalam>
             <x-form.input type="text" name="nama_golongan"
                          placeholder="Contoh: Reseller, Member, Umum" />
         </x-form.group>
         <x-form.group label="Keterangan Singkat" name="keterangan"
-                      help="Dipakai sebagai catatan saat memilih golongan. Boleh dikosongkan.">
+                      help="Dipakai sebagai catatan saat memilih golongan. Boleh dikosongkan." dalam>
             <textarea name="keterangan" placeholder="Contoh: Pelanggan dengan harga khusus"
                       class="w-full bg-white border border-slate-200 rounded-md py-2 px-3 text-sm font-normal text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"></textarea>
         </x-form.group>
@@ -119,10 +119,10 @@
          icon="fa-pen" maxWidth="md">
     <form id="formEditGolongan" method="POST" class="space-y-4">
         @csrf @method('PUT')
-        <x-form.group label="Nama Golongan" name="nama_golongan" required>
+        <x-form.group label="Nama Golongan" name="nama_golongan" required dalam>
             <x-form.input type="text" name="nama_golongan" id="edit_nama_golongan" />
         </x-form.group>
-        <x-form.group label="Keterangan Singkat" name="keterangan">
+        <x-form.group label="Keterangan Singkat" name="keterangan" dalam>
             <textarea name="keterangan" id="edit_keterangan"
                       class="w-full bg-white border border-slate-200 rounded-md py-2 px-3 text-sm font-normal text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"></textarea>
         </x-form.group>

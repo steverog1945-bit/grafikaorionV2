@@ -274,10 +274,10 @@
                 Sisa tagihan order ini: Rp {{ number_format($order->sisa_tagihan, 0, ',', '.') }}
             </div>
             <div class="grid grid-cols-2 gap-3 mb-4">
-                <x-form.group label="Tanggal Bayar">
+                <x-form.group label="Tanggal Bayar" dalam>
                     <x-form.input type="date" name="tanggal_bayar" value="{{ now()->format('Y-m-d') }}" required />
                 </x-form.group>
-                <x-form.group label="Jumlah (Rp)">
+                <x-form.group label="Jumlah (Rp)" dalam>
                     <input type="text" inputmode="numeric" name="jumlah_display" id="pembayaran-jumlah-display" required
                         class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                         placeholder="0">
@@ -289,7 +289,7 @@
                 <span id="pembayaran-hitung-label" class="text-slate-500">Sisa setelah pembayaran ini</span>
                 <span id="pembayaran-hitung-nilai" class="font-medium text-slate-700">Rp {{ number_format($order->sisa_tagihan, 0, ',', '.') }}</span>
             </div>
-            <x-form.group label="Metode Bayar" class="mb-4">
+            <x-form.group label="Metode Bayar" class="mb-4" dalam>
                 <x-form.select name="metode_bayar">
                     @foreach(['Tunai', 'Transfer', 'QRIS', 'Lainnya'] as $m)
                         <option value="{{ $m }}">{{ $m }}</option>
@@ -306,7 +306,7 @@
                 <input type="hidden" name="bukti_path" id="bukti-path">
                 <p class="bukti-status text-[10px] mt-1"></p>
             </div>
-            <x-form.group label="Keterangan (opsional)" class="mb-4">
+            <x-form.group label="Keterangan (opsional)" class="mb-4" dalam>
                 <input type="text" name="keterangan" placeholder="mis. Cicilan ke-2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </x-form.group>
             <div class="pt-2 flex gap-3">

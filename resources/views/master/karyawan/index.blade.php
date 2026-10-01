@@ -126,11 +126,11 @@
                         <form action="{{ url('karyawan/update/'.$k->id_karyawan) }}" method="POST" class="space-y-4">
                             @csrf @method('PUT')
 
-                            <x-form.group label="Nama Lengkap" name="nama_karyawan" required>
+                            <x-form.group label="Nama Lengkap" name="nama_karyawan" required dalam>
                                 <x-form.input type="text" name="nama_karyawan" value="{{ $k->nama_karyawan }}" />
                             </x-form.group>
 
-                            <x-form.group label="Divisi / Bagian" name="bagian">
+                            <x-form.group label="Divisi / Bagian" name="bagian" dalam>
                                 <x-form.select name="bagian" onchange="toggleMesinField(this, 'mesin_wrapper_edit{{ $k->id_karyawan }}')">
                                     @foreach(['Admin', 'Desain', 'Produksi', 'Kasir', 'Gudang'] as $div)
                                         <option value="{{ $div }}" {{ $k->bagian == $div ? 'selected' : '' }}>{{ $div }}</option>
@@ -138,14 +138,14 @@
                                 </x-form.select>
                             </x-form.group>
 
-                            <x-form.group label="Status Karyawan" name="status_aktif">
+                            <x-form.group label="Status Karyawan" name="status_aktif" dalam>
                                 <x-form.select name="status_aktif">
                                     <option value="1" {{ $k->status_aktif == 1 ? 'selected' : '' }}>Aktif</option>
                                     <option value="0" {{ $k->status_aktif == 0 ? 'selected' : '' }}>Non-Aktif / Resign</option>
                                 </x-form.select>
                             </x-form.group>
 
-                            <x-form.group label="Nomor Telepon" name="telepon">
+                            <x-form.group label="Nomor Telepon" name="telepon" dalam>
                                 <x-form.input type="text" name="telepon" value="{{ $k->telepon }}" />
                             </x-form.group>
 
@@ -153,7 +153,7 @@
                                  jadi pembungkusnya harus tetap memakai id itu. --}}
                             <div id="mesin_wrapper_edit{{ $k->id_karyawan }}" class="{{ in_array($k->bagian, ['Produksi', 'Desain']) ? '' : 'hidden' }}">
                                 <x-form.group label="Mesin / Divisi yang Ditangani"
-                                              help="Kosongkan berarti tidak dibatasi, tetap melihat semua divisi di SPK. Hanya berlaku untuk bagian Produksi dan Desain.">
+                                              help="Kosongkan berarti tidak dibatasi, tetap melihat semua divisi di SPK. Hanya berlaku untuk bagian Produksi dan Desain." dalam>
                                     <div class="grid grid-cols-2 gap-2 bg-slate-50 rounded-md p-3">
                                         @foreach($daftarMesin as $m)
                                             <label class="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
@@ -192,11 +192,11 @@
     <form action="{{ route('karyawan.store') }}" method="POST" class="space-y-4">
         @csrf
 
-        <x-form.group label="Nama Lengkap" name="nama_karyawan" required>
+        <x-form.group label="Nama Lengkap" name="nama_karyawan" required dalam>
             <x-form.input type="text" name="nama_karyawan" placeholder="Contoh: Budi Santoso" />
         </x-form.group>
 
-        <x-form.group label="Pilih Bagian" name="bagian" required>
+        <x-form.group label="Pilih Bagian" name="bagian" required dalam>
             <x-form.select name="bagian" onchange="toggleMesinField(this, 'mesin_wrapper_tambah')">
                 <option value="Admin">Admin</option>
                 <option value="Desain">Desain</option>
@@ -206,7 +206,7 @@
             </x-form.select>
         </x-form.group>
 
-        <x-form.group label="Kontak Telepon" name="telepon" required>
+        <x-form.group label="Kontak Telepon" name="telepon" required dalam>
             <x-form.input type="text" name="telepon" placeholder="0812xxxx" />
         </x-form.group>
 
@@ -214,7 +214,7 @@
              jadi id-nya wajib dipertahankan. --}}
         <div id="mesin_wrapper_tambah" class="hidden">
             <x-form.group label="Mesin / Divisi yang Ditangani"
-                          help="Kosongkan berarti tidak dibatasi, tetap melihat semua divisi di SPK. Hanya berlaku untuk bagian Produksi dan Desain.">
+                          help="Kosongkan berarti tidak dibatasi, tetap melihat semua divisi di SPK. Hanya berlaku untuk bagian Produksi dan Desain." dalam>
                 <div class="grid grid-cols-2 gap-2 bg-slate-50 rounded-md p-3">
                     @foreach($daftarMesin as $m)
                         <label class="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">

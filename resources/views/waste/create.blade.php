@@ -27,7 +27,7 @@
         <form method="POST" action="{{ route('waste.store') }}" class="space-y-5">
             @csrf
 
-            <x-form.group label="Bahan">
+            <x-form.group label="Bahan" dalam>
                 <x-form.select name="id_bahan" id="id_bahan" required>
                     <option value="">-- Pilih Bahan --</option>
                     @foreach($bahanList as $b)
@@ -40,7 +40,7 @@
                 <div>
                     {{-- Input mengikuti SATUAN HITUNG bahan: Panjang x Lebar (luas) atau jumlah (pcs/lembar/meter) --}}
                     <div id="waste-blok-qty">
-                        <x-form.group label="Qty Waste">
+                        <x-form.group label="Qty Waste" dalam>
                             <div class="flex items-center gap-2">
                                 <x-form.input type="number" step="0.0001" min="0.0001" name="qty" id="waste-qty" value="{{ old('qty') }}" />
                                 <span id="waste-unit" class="shrink-0 px-3 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-medium uppercase">-</span>
@@ -58,7 +58,7 @@
                     </div>
                     <p id="waste-konversi" class="mt-2 text-[11px] font-medium text-slate-500"></p>
                 </div>
-                <x-form.group label="Jenis">
+                <x-form.group label="Jenis" dalam>
                     <x-form.select name="jenis" required>
                         <option value="Normal" {{ old('jenis') === 'Normal' ? 'selected' : '' }}>Normal (susut wajar proses cetak)</option>
                         <option value="Abnormal" {{ old('jenis') === 'Abnormal' ? 'selected' : '' }}>Abnormal (rusak, salah potong, hilang)</option>
@@ -66,7 +66,7 @@
                 </x-form.group>
             </div>
 
-            <x-form.group label="Terkait Item Order (opsional - masuk biaya Biaya Pekerjaan order itu)">
+            <x-form.group label="Terkait Item Order (opsional - masuk biaya Biaya Pekerjaan order itu)" dalam>
                 <x-form.select name="id_detail" id="id_detail">
                     <option value="">-- Tidak terkait order tertentu --</option>
                     @foreach($items as $i)
@@ -75,7 +75,7 @@
                 </x-form.select>
             </x-form.group>
 
-            <x-form.group label="Alasan">
+            <x-form.group label="Alasan" dalam>
                 <x-form.input type="text" name="alasan" maxlength="255" value="{{ old('alasan') }}" placeholder="Mis. sisa potongan roll, basah kena air" required />
             </x-form.group>
 

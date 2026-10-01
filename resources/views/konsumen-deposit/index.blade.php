@@ -155,40 +155,40 @@
          icon="fa-money-bill-transfer" maxWidth="md">
 <form action="{{ route('konsumen-deposit.store') }}" method="POST" class="space-y-4">
                 @csrf
-                <div>
-                    <label class="block text-[10px] mb-2">Konsumen</label>
-                    <select name="id_konsumen" required
+                <div class="ld">
+                    <select id="ld_id_konsumen_0" name="id_konsumen" required
                             class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
                         <option value="">-- Pilih Konsumen --</option>
                         @foreach($konsumen as $k)
                             <option value="{{ $k->id_konsumen }}">{{ $k->nama_konsumen }}</option>
                         @endforeach
                     </select>
+                    <label class="ld-label" for="ld_id_konsumen_0">Konsumen<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
-                <div>
-                    <label class="block text-[10px] mb-2">Nominal Deposit</label>
-                    <input type="text" inputmode="numeric" autocomplete="off" name="nominal" placeholder="0" required
+                <div class="ld">
+                    <input id="ld_nominal_1" type="text" inputmode="numeric" autocomplete="off" name="nominal" placeholder="0" required
                            class="w-full py-3.5 text-sm text-slate-700 format-ribuan">
+                    <label class="ld-label" for="ld_nominal_1">Nominal Deposit<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] mb-2">Tanggal</label>
-                        <input type="date" name="tgl_deposit" value="{{ date('Y-m-d') }}" required
+                    <div class="ld">
+                        <input placeholder=" " id="ld_tgl_deposit_2" type="date" name="tgl_deposit" value="{{ date('Y-m-d') }}" required
                                class="w-full py-3.5 text-sm font-medium text-slate-700">
+                        <label class="ld-label" for="ld_tgl_deposit_2">Tanggal<span class="ld-wajib" aria-hidden="true">*</span></label>
                     </div>
-                    <div>
-                        <label class="block text-[10px] mb-2">Metode</label>
-                        <select name="metode_bayar" required
+                    <div class="ld">
+                        <select id="ld_metode_bayar_3" name="metode_bayar" required
                                 class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
                             <option value="Tunai">Tunai</option>
                             <option value="Transfer">Transfer</option>
                         </select>
+                        <label class="ld-label" for="ld_metode_bayar_3">Metode<span class="ld-wajib" aria-hidden="true">*</span></label>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-[10px] mb-2">Keterangan</label>
-                    <textarea name="keterangan" placeholder="Keterangan setoran (opsional)..."
+                <div class="ld">
+                    <textarea id="ld_keterangan_4" name="keterangan" placeholder="Keterangan setoran (opsional)..."
                               class="w-full py-3.5 text-sm font-medium text-slate-700"></textarea>
+                    <label class="ld-label" for="ld_keterangan_4">Keterangan</label>
                 </div>
 
                 <x-slot:footer>
@@ -203,31 +203,31 @@
          icon="fa-hand-holding-dollar" maxWidth="md">
 <form action="{{ route('konsumen-deposit.kembalikan') }}" method="POST" class="space-y-4">
     @csrf
-    <div>
-        <label class="block text-[10px] mb-2">Konsumen</label>
-        <select name="id_konsumen" required class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
+    <div class="ld">
+        <select id="ld_id_konsumen_5" name="id_konsumen" required class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
             <option value="">-- Pilih Konsumen --</option>
             @foreach($saldoPerKonsumen->where('saldo_deposit', '>', 0) as $s)
                 <option value="{{ $s->id_konsumen }}">{{ $s->nama_konsumen }} (saldo Rp {{ number_format($s->saldo_deposit, 0, ',', '.') }})</option>
             @endforeach
         </select>
+        <label class="ld-label" for="ld_id_konsumen_5">Konsumen<span class="ld-wajib" aria-hidden="true">*</span></label>
     </div>
     <div class="grid grid-cols-2 gap-4">
-        <div>
-            <label class="block text-[10px] mb-2">Nominal</label>
-            <input type="text" inputmode="numeric" autocomplete="off" name="nominal" placeholder="0" required class="w-full py-3.5 text-sm text-slate-700 format-ribuan">
+        <div class="ld">
+            <input id="ld_nominal_6" type="text" inputmode="numeric" autocomplete="off" name="nominal" placeholder="0" required class="w-full py-3.5 text-sm text-slate-700 format-ribuan">
+            <label class="ld-label" for="ld_nominal_6">Nominal<span class="ld-wajib" aria-hidden="true">*</span></label>
         </div>
-        <div>
-            <label class="block text-[10px] mb-2">Dibayarkan lewat</label>
-            <select name="metode_bayar" required class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
+        <div class="ld">
+            <select id="ld_metode_bayar_7" name="metode_bayar" required class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
                 <option value="Tunai">Tunai</option>
                 <option value="Transfer">Transfer</option>
             </select>
+            <label class="ld-label" for="ld_metode_bayar_7">Dibayarkan lewat<span class="ld-wajib" aria-hidden="true">*</span></label>
         </div>
     </div>
-    <div>
-        <label class="block text-[10px] mb-2">Alasan</label>
-        <textarea name="alasan" required minlength="5" maxlength="500" placeholder="Mis. nota dibatalkan, pelanggan minta uangnya kembali" class="w-full py-3.5 text-sm font-medium text-slate-700"></textarea>
+    <div class="ld">
+        <textarea id="ld_alasan_8" name="alasan" required minlength="5" maxlength="500" placeholder="Mis. nota dibatalkan, pelanggan minta uangnya kembali" class="w-full py-3.5 text-sm font-medium text-slate-700"></textarea>
+        <label class="ld-label" for="ld_alasan_8">Alasan<span class="ld-wajib" aria-hidden="true">*</span></label>
     </div>
     <x-slot:footer>
         <x-button type="button" variant="secondary" onclick="toggleModal('deposit-kembali')">Batal</x-button>

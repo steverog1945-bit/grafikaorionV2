@@ -41,7 +41,7 @@
                             <img loading="lazy" decoding="async" id="preview-logo" src="" alt="Logo" class="w-full h-full object-contain hidden" 
                         @endif
                     </div>
-                    <x-form.group label="Logo Perusahaan" name="logo" help="PNG/JPG/WEBP, maks 2MB. Kosongkan kalau tidak ingin mengubah.">
+                    <x-form.group label="Logo Perusahaan" name="logo" help="PNG/JPG/WEBP, maks 2MB. Kosongkan kalau tidak ingin mengubah." dalam>
                         <input type="file" name="logo" accept="image/png,image/jpeg,image/webp"
                             onchange="previewLogoAplikasi(this)"
                             class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-xs font-medium text-slate-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-indigo-600 file:text-white">
@@ -61,21 +61,21 @@
                     <div class="text-[11px] font-medium text-slate-400 uppercase tracking-widest"><i class="fas fa-swatchbook mr-1.5"></i> Tampilan Logo di Sidebar</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-5">
-                            <x-form.group label="Ukuran Logo" name="logo_ukuran">
+                            <x-form.group label="Ukuran Logo" name="logo_ukuran" dalam>
                                 <x-form.select name="logo_ukuran" id="opt-logo-ukuran">
                                     <option value="kecil" @selected($lg['ukuran'] === 'kecil')>Kecil</option>
                                     <option value="sedang" @selected($lg['ukuran'] === 'sedang')>Sedang (disarankan)</option>
                                     <option value="besar" @selected($lg['ukuran'] === 'besar')>Besar</option>
                                 </x-form.select>
                             </x-form.group>
-                            <x-form.group label="Gaya Latar Logo" name="logo_gaya" help="Polos = tanpa kotak, dengan kilau lembut. Kaca = kotak transparan. Putih = kotak putih (untuk logo gelap).">
+                            <x-form.group label="Gaya Latar Logo" name="logo_gaya" help="Polos = tanpa kotak, dengan kilau lembut. Kaca = kotak transparan. Putih = kotak putih (untuk logo gelap)." dalam>
                                 <x-form.select name="logo_gaya" id="opt-logo-gaya">
                                     <option value="polos" @selected($lg['gaya'] === 'polos')>Polos (tanpa kotak)</option>
                                     <option value="kaca" @selected($lg['gaya'] === 'kaca')>Kaca (transparan)</option>
                                     <option value="putih" @selected($lg['gaya'] === 'putih')>Kotak putih</option>
                                 </x-form.select>
                             </x-form.group>
-                            <x-form.group label="Saat Sidebar Diringkas" name="logo_ringkas" help="Potong = tampilkan lambang di sisi kiri logo. Penuh = logo utuh diperkecil. Jika Logo Ikon diunggah, ikon itu yang dipakai.">
+                            <x-form.group label="Saat Sidebar Diringkas" name="logo_ringkas" help="Potong = tampilkan lambang di sisi kiri logo. Penuh = logo utuh diperkecil. Jika Logo Ikon diunggah, ikon itu yang dipakai." dalam>
                                 <x-form.select name="logo_ringkas" id="opt-logo-ringkas">
                                     <option value="potong" @selected($lg['ringkas'] === 'potong')>Potong otomatis (lambang kiri)</option>
                                     <option value="penuh" @selected($lg['ringkas'] === 'penuh')>Logo penuh diperkecil</option>
@@ -95,7 +95,7 @@
                                     @endif
                                 </div>
                             </div>
-                            <x-form.group label="Logo Ikon (opsional, persegi)" name="logo_ikon" help="Dipakai saat sidebar diringkas. PNG/JPG/WEBP, maks 1MB.">
+                            <x-form.group label="Logo Ikon (opsional, persegi)" name="logo_ikon" help="Dipakai saat sidebar diringkas. PNG/JPG/WEBP, maks 1MB." dalam>
                                 <input type="file" name="logo_ikon" accept="image/png,image/jpeg,image/webp"
                                     class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-xs font-medium text-slate-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-indigo-600 file:text-white">
                             </x-form.group>
@@ -111,32 +111,32 @@
                     </div>
                 </div>
 
-                <x-form.group label="Nama Aplikasi" name="nama_aplikasi" required>
+                <x-form.group label="Nama Aplikasi" name="nama_aplikasi" required dalam>
                     <x-form.input type="text" name="nama_aplikasi" value="{{ old('nama_aplikasi', $setting->nama_aplikasi) }}" required />
                 </x-form.group>
 
-                <x-form.group label="Alamat" name="alamat">
+                <x-form.group label="Alamat" name="alamat" dalam>
                     <textarea name="alamat" rows="3" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ old('alamat', $setting->alamat) }}</textarea>
                 </x-form.group>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <x-form.group label="Telepon" name="telepon">
+                    <x-form.group label="Telepon" name="telepon" dalam>
                         <x-form.input type="text" name="telepon" value="{{ old('telepon', $setting->telepon) }}" placeholder="08xx / 021xx" />
                     </x-form.group>
 
-                    <x-form.group label="Fax" name="fax">
+                    <x-form.group label="Fax" name="fax" dalam>
                         <x-form.input type="text" name="fax" value="{{ old('fax', $setting->fax) }}" placeholder="- (kosongkan kalau tidak ada)" />
                     </x-form.group>
 
-                    <x-form.group label="Email" name="email">
+                    <x-form.group label="Email" name="email" dalam>
                         <x-form.input type="email" name="email" value="{{ old('email', $setting->email) }}" placeholder="info@perusahaan.com" />
                     </x-form.group>
 
-                    <x-form.group label="Website" name="website">
+                    <x-form.group label="Website" name="website" dalam>
                         <x-form.input type="text" name="website" value="{{ old('website', $setting->website) }}" placeholder="http://perusahaan.com" />
                     </x-form.group>
 
-                    <x-form.group label="Alamat Akses Aplikasi (untuk QR di HP)" name="url_akses">
+                    <x-form.group label="Alamat Akses Aplikasi (untuk QR di HP)" name="url_akses" dalam>
                         <x-form.input type="text" name="url_akses" value="{{ old('url_akses', $setting->url_akses) }}" placeholder="http://192.168.1.10/percetakan-app/public" />
                         <p class="text-[11px] text-slate-400 mt-1.5 ml-2">Alamat yang bisa dibuka dari HP (satu Wi-Fi dengan komputer kasir, atau alamat internet bila sudah online). Dipakai pada QR di cetakan SPK. Kosong = alamat halaman saat ini.</p>
                     </x-form.group>
@@ -155,7 +155,7 @@
             <div class="flex flex-col lg:flex-row gap-5 items-start">
                 <div class="w-full lg:w-[58%] space-y-5">
                     <x-card class="space-y-6">
-                        <x-form.group label="Format Cetak Nota" name="format_nota" help="Berlaku GLOBAL untuk semua nota - kasir tidak perlu pilih format tiap kali cetak.">
+                        <x-form.group label="Format Cetak Nota" name="format_nota" help="Berlaku GLOBAL untuk semua nota - kasir tidak perlu pilih format tiap kali cetak." dalam>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 @foreach(['thermal' => ['Thermal (58mm)', 'Struk kasir, kertas gulung'], 'a4' => ['A4 / A5', 'Invoice kertas biasa'], 'continuous' => ['Continuous Form', 'Kertas sambung/dot-matrix']] as $val => $label)
                                 <label class="relative flex flex-col gap-1 p-4 rounded-xl border-2 cursor-pointer {{ old('format_nota', $setting->format_nota ?? 'a4') === $val ? 'border-indigo-500 bg-indigo-50' : 'border-slate-100' }}">
@@ -167,11 +167,11 @@
                             </div>
                         </x-form.group>
 
-                        <x-form.group label="Prefix Nomor Nota" name="nomor_nota_prefix" help="Contoh hasil: {{ old('nomor_nota_prefix', $setting->nomor_nota_prefix ?? 'INV') }}-20260918-001">
+                        <x-form.group label="Prefix Nomor Nota" name="nomor_nota_prefix" help="Contoh hasil: {{ old('nomor_nota_prefix', $setting->nomor_nota_prefix ?? 'INV') }}-20260918-001" dalam>
                             <x-form.input type="text" name="nomor_nota_prefix" value="{{ old('nomor_nota_prefix', $setting->nomor_nota_prefix ?? 'INV') }}" maxlength="20" placeholder="INV" />
                         </x-form.group>
 
-                        <x-form.group label="Pembulatan Nota" name="pembulatan_nota" help="Hanya memengaruhi TAMPILAN nota cetak (baris 'Pembulatan' & 'Total Tagihan') - Grand Total dan seluruh pencatatan akuntansi tetap presisi asli, tidak berubah.">
+                        <x-form.group label="Pembulatan Nota" name="pembulatan_nota" help="Hanya memengaruhi TAMPILAN nota cetak (baris 'Pembulatan' & 'Total Tagihan') - Grand Total dan seluruh pencatatan akuntansi tetap presisi asli, tidak berubah." dalam>
                             {{-- SENGAJA pakai array List [value, label] per baris, BUKAN array
                                  asosiatif ('100' => ..., dst) - PHP otomatis mengubah kunci array
                                  yang berupa string angka murni ('100','500','1000') jadi int,
@@ -187,7 +187,7 @@
                             </div>
                         </x-form.group>
 
-                        <x-form.group label="Footer Nota" help="Ditampilkan di bagian bawah nota - rekening pembayaran, syarat & ketentuan, dst. Kosongkan untuk memakai pesan default.">
+                        <x-form.group label="Footer Nota" help="Ditampilkan di bagian bawah nota - rekening pembayaran, syarat & ketentuan, dst. Kosongkan untuk memakai pesan default." dalam>
                             {{-- Editor ringan (contenteditable + execCommand) - bukan
                                  library WYSIWYG pihak ketiga, cukup untuk kebutuhan
                                  tebal/miring/garis bawah/daftar. HTML yang tersimpan

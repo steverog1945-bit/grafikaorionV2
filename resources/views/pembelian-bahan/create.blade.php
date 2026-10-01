@@ -42,7 +42,7 @@
             @endif
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <x-form.group label="No. Surat Jalan">
+                <x-form.group label="No. Surat Jalan" dalam>
                     <div class="relative group cursor-pointer" onclick="openModal('sj-picker')" role="button" tabindex="-1" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openModal('sj-picker'); }">
                         <input type="text" id="display_no_sj" readonly class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner pr-11 cursor-pointer" placeholder="Pilih SJ...">
                         <input type="hidden" name="id_kedatangan" id="id_kedatangan">
@@ -50,24 +50,24 @@
                     </div>
                 </x-form.group>
 
-                <x-form.group label="Pemasok">
+                <x-form.group label="Pemasok" dalam>
                     <input type="text" id="display_supplier" readonly class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-500 shadow-inner" placeholder="-">
                 </x-form.group>
 
-                <x-form.group label="Tgl Transaksi">
+                <x-form.group label="Tgl Transaksi" dalam>
                     <x-form.input type="date" name="tgl_transaksi" value="{{ date('Y-m-d') }}" required />
                 </x-form.group>
 
-                <x-form.group label="No. Faktur Vendor">
+                <x-form.group label="No. Faktur Vendor" dalam>
                     <x-form.input type="text" name="no_faktur" required placeholder="Contoh: INV/9910" />
                 </x-form.group>
 
                 <div id="info-online-faktur" class="hidden md:col-span-4 rounded-2xl bg-orange-50 border border-orange-100 px-5 py-3 text-sm font-medium text-orange-700"></div>
-                <x-form.group label="Ongkir (Rp)"><x-form.input type="text" inputmode="numeric" name="ongkir" id="ongkir" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
-                <x-form.group label="Biaya Layanan (Rp)"><x-form.input type="text" inputmode="numeric" name="biaya_layanan" id="biaya_layanan" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
-                <x-form.group label="Voucher / Diskon Platform (Rp)"><x-form.input type="text" inputmode="numeric" name="voucher" id="voucher" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
+                <x-form.group label="Ongkir (Rp)" dalam><x-form.input type="text" inputmode="numeric" name="ongkir" id="ongkir" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
+                <x-form.group label="Biaya Layanan (Rp)" dalam><x-form.input type="text" inputmode="numeric" name="biaya_layanan" id="biaya_layanan" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
+                <x-form.group label="Voucher / Diskon Platform (Rp)" dalam><x-form.input type="text" inputmode="numeric" name="voucher" id="voucher" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
 
-                <x-form.group label="Opsi Pajak">
+                <x-form.group label="Opsi Pajak" dalam>
                     <div class="bg-slate-50 rounded-xl p-3 flex items-center justify-between shadow-inner h-[46px]">
                         <span class="text-xs font-medium text-slate-500 uppercase">PPN 11%</span>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -77,7 +77,7 @@
                     </div>
                 </x-form.group>
 
-                <x-form.group label="Metode Bayar">
+                <x-form.group label="Metode Bayar" dalam>
                     <x-form.select name="tipe_pembelian" id="tipe_pembelian" onchange="toggleTempo()" required>
                         <option value="Cash">CASH / TUNAI</option>
                         <option value="Tempo">TEMPO / KREDIT</option>
@@ -85,7 +85,7 @@
                 </x-form.group>
 
                 <div id="tempo_group" class="hidden">
-                    <x-form.group label="Durasi Tempo (Hari)">
+                    <x-form.group label="Durasi Tempo (Hari)" dalam>
                         <input type="number" name="tempo_hari" id="tempo_hari" min="1" max="365" value="30" oninput="calculateDueDate(); tandaiPilihanTempo()"
                             class="w-full bg-rose-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-rose-500/30 shadow-inner" placeholder="30">
                         {{-- Pilihan cepat termin pembayaran; angka bebas tetap bisa diketik --}}
@@ -99,7 +99,7 @@
                 </div>
 
                 <div id="due_date_group" class="hidden">
-                    <x-form.group label="Tgl Jatuh Tempo">
+                    <x-form.group label="Tgl Jatuh Tempo" dalam>
                         <p class="text-[11px] font-medium text-indigo-500 mt-1.5 ml-1 hidden" id="info-jatuh-tempo"></p>
                         <input type="date" name="jatuh_tempo_tgl" id="jatuh_tempo_tgl" readonly
                             class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-500 shadow-inner cursor-not-allowed">

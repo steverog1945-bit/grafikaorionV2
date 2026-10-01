@@ -15,7 +15,7 @@
         <form method="POST" action="{{ route('qc.store') }}" class="space-y-6">
             @csrf
 
-            <x-form.group label="Item Order (sudah berstatus Cetak/Selesai)">
+            <x-form.group label="Item Order (sudah berstatus Cetak/Selesai)" dalam>
                 <x-form.select name="id_detail" id="id_detail" required>
                     <option value="">-- Pilih Item --</option>
                     @foreach($items as $i)
@@ -27,10 +27,10 @@
             </x-form.group>
 
             <div class="grid grid-cols-2 gap-5">
-                <x-form.group label="Qty Diperiksa">
+                <x-form.group label="Qty Diperiksa" dalam>
                     <x-form.input type="number" min="1" name="qty_diperiksa" id="qty_diperiksa" value="{{ old('qty_diperiksa') }}" required />
                 </x-form.group>
-                <x-form.group label="Qty Reject">
+                <x-form.group label="Qty Reject" dalam>
                     <x-form.input type="number" min="0" name="qty_reject" id="qty_reject" value="{{ old('qty_reject', 0) }}" required />
                 </x-form.group>
             </div>
@@ -47,7 +47,7 @@
                 </div>
             </div>
 
-            <x-form.group label="Catatan (opsional)">
+            <x-form.group label="Catatan (opsional)" dalam>
                 <textarea name="catatan" rows="3" class="w-full rounded-xl border-slate-200 text-sm p-3">{{ old('catatan') }}</textarea>
             </x-form.group>
 

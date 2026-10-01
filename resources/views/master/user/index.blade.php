@@ -66,24 +66,24 @@
          icon="fa-user-gear" maxWidth="md">
 <form action="{{ route('users.store') }}" method="POST" class="space-y-4">
             @csrf
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Tautkan Karyawan</label>
+            <div class="ld">
                 <select name="id_karyawan" id="pilih_karyawan_baru" onchange="autoPilihRole(this, 'id_role_baru')" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500 transition" required>
                     <option value="">-- Pilih Nama Karyawan --</option>
                     @foreach($karyawan as $k)
                         <option value="{{ $k->id_karyawan }}" data-bagian="{{ $k->bagian }}">{{ $k->nama_karyawan }} ({{ $k->bagian }})</option>
                     @endforeach
                 </select>
+                <label class="ld-label" for="pilih_karyawan_baru">Tautkan Karyawan<span class="ld-wajib" aria-hidden="true">*</span></label>
             </div>
 
             <div class="grid grid-cols-1 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                    <input type="text" name="username" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500 transition" placeholder="contoh: admin_cetak" required>
+                <div class="ld">
+                    <input id="ld_username_1" type="text" name="username" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500 transition" placeholder="contoh: admin_cetak" required>
+                    <label class="ld-label" for="ld_username_1">Username<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Password Awal</label>
-                    <input type="password" name="password" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500 transition" placeholder="••••••••" required>
+                <div class="ld">
+                    <input id="ld_password_2" type="password" name="password" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500 transition" placeholder="••••••••" required>
+                    <label class="ld-label" for="ld_password_2">Password Awal<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
             </div>
 
@@ -115,23 +115,23 @@
 <form id="formEditUser" method="POST" class="space-y-4">
             @csrf
             @method('PUT')
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                <input type="text" name="username" id="edit_username" class="w-full border-slate-200 px-4 outline-none focus:ring-amber-500 transition" required>
+            <div class="ld">
+                <input placeholder=" " type="text" name="username" id="edit_username" class="w-full border-slate-200 px-4 outline-none focus:ring-amber-500 transition" required>
+                <label class="ld-label" for="edit_username">Username<span class="ld-wajib" aria-hidden="true">*</span></label>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Role / Tingkat Akses</label>
+            <div class="ld">
                 <select name="id_role" id="edit_id_role" class="w-full border-slate-200 px-4 outline-none focus:ring-amber-500 transition" required>
                     @foreach($roles as $r)
                         <option value="{{ $r->id_role }}">{{ $r->nama_role }}</option>
                     @endforeach
                 </select>
+                <label class="ld-label" for="edit_id_role">Role / Tingkat Akses<span class="ld-wajib" aria-hidden="true">*</span></label>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Password Baru (opsional)</label>
-                <input type="password" name="password" class="w-full border-slate-200 px-4 outline-none focus:ring-amber-500 transition" placeholder="Kosongkan jika tidak diubah">
+            <div class="ld">
+                <input id="ld_password_5" type="password" name="password" class="w-full border-slate-200 px-4 outline-none focus:ring-amber-500 transition" placeholder="Kosongkan jika tidak diubah">
+                <label class="ld-label" for="ld_password_5">Password Baru (opsional)</label>
             </div>
 
             <div class="flex justify-end gap-3 mt-8">

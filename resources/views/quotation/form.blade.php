@@ -43,7 +43,7 @@
 
         <x-card class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <x-form.group label="Pelanggan terdaftar (opsional)">
+                <x-form.group label="Pelanggan terdaftar (opsional)" dalam>
                     <x-form.select name="id_konsumen" id="id_konsumen" :disabled="! $editable">
                         <option value="">-- Prospek / belum terdaftar --</option>
                         @foreach($konsumenList as $k)
@@ -51,23 +51,23 @@
                         @endforeach
                     </x-form.select>
                 </x-form.group>
-                <x-form.group label="Golongan harga">
+                <x-form.group label="Golongan harga" dalam>
                     <x-form.select name="id_golongan" id="id_golongan" :disabled="! $editable">
                         @foreach($golonganList as $g)
                             <option value="{{ $g->id_golongan }}" {{ old('id_golongan', $quotation->id_golongan ?? '') == $g->id_golongan ? 'selected' : '' }}>{{ $g->nama_golongan }}</option>
                         @endforeach
                     </x-form.select>
                 </x-form.group>
-                <x-form.group label="Nama pelanggan">
+                <x-form.group label="Nama pelanggan" dalam>
                     <x-form.input type="text" name="nama_pelanggan" id="nama_pelanggan" value="{{ old('nama_pelanggan', $quotation->nama_pelanggan ?? '') }}" required :disabled="! $editable" />
                 </x-form.group>
-                <x-form.group label="Telepon / WhatsApp">
+                <x-form.group label="Telepon / WhatsApp" dalam>
                     <x-form.input type="text" name="telepon" id="telepon" value="{{ old('telepon', $quotation->telepon ?? '') }}" :disabled="! $editable" />
                 </x-form.group>
-                <x-form.group label="Tanggal">
+                <x-form.group label="Tanggal" dalam>
                     <x-form.input type="date" name="tanggal" value="{{ old('tanggal', $quotation ? $quotation->tanggal->toDateString() : now()->toDateString()) }}" required :disabled="! $editable" />
                 </x-form.group>
-                <x-form.group label="Berlaku sampai">
+                <x-form.group label="Berlaku sampai" dalam>
                     <x-form.input type="date" name="berlaku_sampai" value="{{ old('berlaku_sampai', $quotation ? $quotation->berlaku_sampai->toDateString() : now()->addDays(7)->toDateString()) }}" required :disabled="! $editable" />
                 </x-form.group>
             </div>
@@ -132,7 +132,7 @@
 
         <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
             <x-card>
-                <x-form.group label="Catatan / syarat (opsional)">
+                <x-form.group label="Catatan / syarat (opsional)" dalam>
                     <textarea name="catatan" rows="4" class="w-full rounded-xl border-slate-200 text-sm p-3" {{ $editable ? '' : 'disabled' }}>{{ old('catatan', $quotation->catatan ?? '') }}</textarea>
                 </x-form.group>
             </x-card>

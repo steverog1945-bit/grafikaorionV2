@@ -184,17 +184,17 @@
                     data-id-produk="{{ $p->id_produk }}" data-id-golongan="{{ $g->id_golongan }}" data-satuan-rentang="{{ $satuanRentang }}">
                     @csrf
                     <input type="hidden" name="id_golongan" value="{{ $g->id_golongan }}">
-                    <div>
-                        <label class="block text-[9px] font-medium text-emerald-700 uppercase mb-1.5">Min ({{ $satuanRentang }})</label>
+                    <div class="ld">
                         <input type="number" name="range_min" placeholder="Min" value="{{ $defaultMin }}" min="{{ $stepRentang }}" step="{{ $stepRentang }}" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-medium shadow-sm">
+                        <label class="ld-label">Min ({{ $satuanRentang }})<span class="ld-wajib" aria-hidden="true">*</span></label>
                     </div>
-                    <div>
-                        <label class="block text-[9px] font-medium text-emerald-700 uppercase mb-1.5">Max ({{ $satuanRentang }})</label>
+                    <div class="ld">
                         <input type="number" name="range_max" placeholder="~ (tak terbatas)" min="{{ $stepRentang }}" step="{{ $stepRentang }}" class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-medium shadow-sm">
+                        <label class="ld-label">Max ({{ $satuanRentang }})</label>
                     </div>
-                    <div>
-                        <label class="block text-[9px] font-medium text-emerald-700 uppercase mb-1.5">Harga (Rp)</label>
+                    <div class="ld">
                         <input type="text" inputmode="numeric" name="harga_jual" placeholder="0" required class="w-full border-none rounded-xl py-2.5 px-3 text-sm font-medium shadow-sm format-ribuan">
+                        <label class="ld-label">Harga (Rp)<span class="ld-wajib" aria-hidden="true">*</span></label>
                     </div>
                     <div class="flex items-end">
                         <x-button type="submit" variant="success" class="w-full !py-2.5">

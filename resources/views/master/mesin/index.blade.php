@@ -155,14 +155,14 @@
     <form action="{{ url('mesin') }}" method="POST" class="space-y-4">
         @csrf
 
-        <div>
-            <label for="mesin-nama" class="block text-xs font-medium text-slate-700 mb-1.5">Nama Mesin Produksi</label>
+        <div class="ld">
             <input type="text" name="nama_mesin" id="mesin-nama" placeholder="Contoh: Roland RF-640" required>
+            <label class="ld-label" for="mesin-nama">Nama Mesin Produksi<span class="ld-wajib" aria-hidden="true">*</span></label>
         </div>
 
-        <div>
-            <label for="mesin-tipe" class="block text-xs font-medium text-slate-700 mb-1.5">Tipe / Teknologi Mesin</label>
+        <div class="ld">
             <input type="text" name="tipe_mesin" id="mesin-tipe" placeholder="Contoh: Eco-Solvent" required>
+            <label class="ld-label" for="mesin-tipe">Tipe / Teknologi Mesin<span class="ld-wajib" aria-hidden="true">*</span></label>
         </div>
 
         <label class="flex items-start gap-3 cursor-pointer rounded-md bg-slate-50 px-4 py-3">

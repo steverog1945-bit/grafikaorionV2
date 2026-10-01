@@ -107,12 +107,12 @@
         @csrf
         <div id="methodFieldKategoriKasKecil"></div>
 
-        <x-form.group label="Nama Kategori" name="nama_kategori" required>
+        <x-form.group label="Nama Kategori" name="nama_kategori" required dalam>
             <x-form.input type="text" name="nama_kategori" id="inputNamaKategoriKasKecil"
                          placeholder="Contoh: Beban Internet" />
         </x-form.group>
 
-        <x-form.group label="Jenis" name="jenis" help="Menentukan akun mana yang boleh dipilih di bawah.">
+        <x-form.group label="Jenis" name="jenis" help="Menentukan akun mana yang boleh dipilih di bawah." dalam>
             <x-form.select name="jenis" id="inputJenisKategoriKasKecil" onchange="saringAkunKategoriKasKecil()">
                 <option value="Keluar">Pengeluaran</option>
                 <option value="Masuk">Pemasukan</option>
@@ -120,7 +120,7 @@
         </x-form.group>
 
         <x-form.group label="Akun Terkait" name="kode_akun"
-                      help="Pengeluaran dipetakan ke akun Beban, pemasukan ke akun Pendapatan atau Modal. Nomornya otomatis masuk jurnal dan Laba Rugi setiap kali kategori ini dipakai di Kas Kecil.">
+                      help="Pengeluaran dipetakan ke akun Beban, pemasukan ke akun Pendapatan atau Modal. Nomornya otomatis masuk jurnal dan Laba Rugi setiap kali kategori ini dipakai di Kas Kecil." dalam>
             <x-form.select name="kode_akun" id="inputKodeAkunKategoriKasKecil">
                 <option value="">-- Belum Dipetakan --</option>
                 @foreach($akunBeban as $akun)

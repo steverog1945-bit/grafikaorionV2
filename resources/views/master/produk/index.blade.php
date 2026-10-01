@@ -171,17 +171,17 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
                     <div class="md:col-span-2">
-                        <x-form.group label="Nama Produk">
+                        <x-form.group label="Nama Produk" dalam>
                             <x-form.input type="text" name="nama_produk" id="input_nama_produk" required class="!bg-white !shadow-sm !py-2.5" />
                         </x-form.group>
                     </div>
-                    <x-form.group label="Barcode">
+                    <x-form.group label="Barcode" dalam>
                         <x-form.input type="text" name="barcode" placeholder="ID-001" class="!bg-white !shadow-sm !py-2.5" />
                     </x-form.group>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                    <x-form.group label="Mesin / Divisi Produksi">
+                    <x-form.group label="Mesin / Divisi Produksi" dalam>
                         <x-form.select name="id_mesin" id="input_id_mesin" onchange="filterBahanByMesin(this.value)" class="!bg-white !shadow-sm !text-indigo-600 !py-2.5">
                             <option value="">-- Pilih Mesin --</option>
                             @foreach($mesin as $m)
@@ -189,7 +189,7 @@
                             @endforeach
                         </x-form.select>
                     </x-form.group>
-                    <x-form.group label="Metode Hitung Order">
+                    <x-form.group label="Metode Hitung Order" dalam>
                         <x-form.select name="metode_hitung" onchange="toggleMinOrderFields()" class="!bg-white !shadow-sm !py-2.5">
                             <option value="ukuran">Berdasarkan Ukuran Cetak (m²)</option>
                             <option value="quantity">Berdasarkan Satuan (Pcs)</option>
@@ -204,7 +204,7 @@
                      tanpa minimum). Sekarang eksplisit seperti pada referensi -
                      pilih Tidak akan menyembunyikan & mengosongkan field ukuran/qty
                      minimumnya (tersimpan 0, sama artinya "tanpa minimum"). --}}
-                <x-form.group label="Minimal Order">
+                <x-form.group label="Minimal Order" dalam>
                     <x-form.select id="input_pakai_min_order" onchange="toggleMinOrderFields()" class="!bg-white !shadow-sm !py-2.5">
                         <option value="ya">Menggunakan Minimal Order</option>
                         <option value="tidak">Tanpa Minimal Order</option>
@@ -212,16 +212,16 @@
                 </x-form.group>
 
                 <div id="field_min_ukuran" class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                    <x-form.group label="Ukuran Min Order - Panjang (cm)">
+                    <x-form.group label="Ukuran Min Order - Panjang (cm)" dalam>
                         <x-form.input type="number" name="min_p" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-2.5" />
                     </x-form.group>
-                    <x-form.group label="Ukuran Min Order - Lebar (cm)">
+                    <x-form.group label="Ukuran Min Order - Lebar (cm)" dalam>
                         <x-form.input type="number" name="min_l" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-2.5" />
                     </x-form.group>
                 </div>
 
                 <div id="field_min_qty">
-                    <x-form.group label="Min Order (Pcs)">
+                    <x-form.group label="Min Order (Pcs)" dalam>
                         <x-form.input type="number" name="min_order_qty" step="1" min="0" placeholder="0" class="!bg-white !shadow-sm !py-2.5" />
                     </x-form.group>
                 </div>
@@ -231,7 +231,7 @@
                     <span><span class="block text-[11px] font-medium text-slate-600 uppercase tracking-wide">Cetak SPK lengkap</span><span class="block text-[11px] text-slate-400">SPK memuat gambar, konsumen, desainer, kebutuhan bahan, dan finishing (seperti SPK order jersey) - untuk cetakan tertentu mis. Century + bahan TC yang ada finishing jahit.</span></span>
                 </label>
 
-                <x-form.group label="Keterangan">
+                <x-form.group label="Keterangan" dalam>
                     <textarea name="keterangan" rows="2" placeholder="Catatan tambahan produk (opsional)" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20"></textarea>
                 </x-form.group>
             </div>
@@ -254,8 +254,7 @@
 
                 <div id="tab-panel-bahan" class="p-5">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        <div class="md:col-span-1">
-                            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Pilih Bahan</label>
+                        <div class="ld md:col-span-1">
                             <select id="temp_id_bahan" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
                                 <option value="">-- Pilih Bahan --</option>
                                 @foreach($bahan_baku as $bb)
@@ -267,9 +266,9 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <label class="ld-label" for="temp_id_bahan">Pilih Bahan</label>
                         </div>
-                        <div class="md:col-span-1">
-                            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cara Hitung Pemakaian</label>
+                        <div class="ld md:col-span-1">
                             <select id="temp_rumus" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
                                 <option value="(P*L)/10000">Luas (m²) - [P*L/10000]</option>
                                 <option value="Q">Quantity (1:1) - [Satuan]</option>
@@ -315,10 +314,11 @@
                                     <option value="{{ $f->id_finishing }}" data-nama="{{ $f->nama_finishing }}">{{ $f->nama_finishing }}</option>
                                 @endforeach
                             </select>
+                            <label class="ld-label" for="temp_rumus">Cara Hitung Pemakaian</label>
                         </div>
-                        <div class="md:col-span-1">
-                            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Qty per Produk</label>
-                            <input type="number" id="temp_finishing_qty" value="1" min="0.01" step="0.01" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
+                        <div class="ld md:col-span-1">
+                            <input placeholder=" " type="number" id="temp_finishing_qty" value="1" min="0.01" step="0.01" class="w-full bg-white border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500/20">
+                            <label class="ld-label" for="temp_finishing_qty">Qty per Produk</label>
                         </div>
                         <div class="md:col-span-1 flex items-end">
                             <x-button type="button" variant="success" onclick="addFinishingToTable()" class="w-full">

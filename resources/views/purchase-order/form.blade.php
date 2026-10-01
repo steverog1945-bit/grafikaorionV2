@@ -58,7 +58,7 @@
 
         <x-card class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <x-form.group>
+                <x-form.group dalam>
                     <div class="flex items-center justify-between mb-2 ml-2 mr-1">
                         <label class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Pemasok</label>
                         @if($editable)
@@ -75,19 +75,19 @@
                         @endforeach
                     </x-form.select>
                 </x-form.group>
-                <x-form.group label="Tanggal PO" name="tanggal">
+                <x-form.group label="Tanggal PO" name="tanggal" dalam>
                     {{-- Input polos (bukan x-form.input): echo kondisional di dalam
                          tag komponen terbukti membuat input tidak dirender. --}}
                     <input type="date" name="tanggal" value="{{ old('tanggal', $po ? $po->tanggal->toDateString() : now()->toDateString()) }}" required
                         class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                         {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
-                <x-form.group label="Estimasi Kedatangan" name="tgl_pengiriman_estimasi">
+                <x-form.group label="Estimasi Kedatangan" name="tgl_pengiriman_estimasi" dalam>
                     <input type="date" name="tgl_pengiriman_estimasi" value="{{ old('tgl_pengiriman_estimasi', $po?->tgl_pengiriman_estimasi?->toDateString()) }}"
                         class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                         {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
-                <x-form.group label="Termin Pembayaran" name="termin_pembayaran">
+                <x-form.group label="Termin Pembayaran" name="termin_pembayaran" dalam>
                     <input type="text" name="termin_pembayaran" value="{{ old('termin_pembayaran', $po->termin_pembayaran ?? '') }}" placeholder="Mis. Net 30 / Tunai"
                         class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                         {{ $editable ? '' : 'readonly' }} />
@@ -142,7 +142,7 @@
 
         <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
             <x-card>
-                <x-form.group label="Catatan (opsional)">
+                <x-form.group label="Catatan (opsional)" dalam>
                     <textarea name="catatan" rows="4" class="w-full rounded-xl border-slate-200 text-sm p-3" {{ $editable ? '' : 'readonly' }}>{{ old('catatan', $po->catatan ?? '') }}</textarea>
                 </x-form.group>
             </x-card>
@@ -206,13 +206,13 @@
         @if($po->status !== 'Selesai')
         <form method="POST" action="{{ route('purchase-order.kedatangan', $po->id) }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             @csrf
-            <x-form.group label="No. Surat Jalan">
+            <x-form.group label="No. Surat Jalan" dalam>
                 <x-form.input type="text" name="no_surat_jalan" required placeholder="SJ-001" />
             </x-form.group>
-            <x-form.group label="Tanggal Datang">
+            <x-form.group label="Tanggal Datang" dalam>
                 <x-form.input type="date" name="tgl_datang" value="{{ now()->toDateString() }}" required />
             </x-form.group>
-            <x-form.group label="Gudang">
+            <x-form.group label="Gudang" dalam>
                 <x-form.select name="id_gudang">
                     @foreach($gudangList as $g)<option value="{{ $g->id_gudang }}">{{ $g->nama_gudang }}</option>@endforeach
                 </x-form.select>

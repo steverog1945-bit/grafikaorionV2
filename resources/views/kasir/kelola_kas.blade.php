@@ -38,16 +38,16 @@
             <x-modal id="kas-manual" title="Alur Kas Kasir" maxWidth="sm">
                 <form action="{{ route('kasir.kas-manual.store') }}" method="POST" class="space-y-5">
                     @csrf
-                    <x-form.group label="Waktu">
+                    <x-form.group label="Waktu" dalam>
                         <x-form.input type="text" value="{{ now()->format('d-m-Y H:i:s') }}" disabled class="!bg-slate-100 !text-slate-400" />
                     </x-form.group>
 
-                    <x-form.group label="Keterangan" required>
+                    <x-form.group label="Keterangan" required dalam>
                         <textarea name="keterangan" rows="3" required placeholder="Contoh: Beli perlengkapan kebersihan, sumbangan kas dari pemilik, dll"
                             class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
                     </x-form.group>
 
-                    <x-form.group label="Status" required>
+                    <x-form.group label="Status" required dalam>
                         <div class="grid grid-cols-2 gap-3">
                             <label class="relative flex items-center gap-2 py-3 px-4 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 font-medium text-xs cursor-pointer transition-all status-manual-option">
                                 <input type="radio" name="status" value="Masuk" class="accent-emerald-600" checked onchange="toggleStatusManual(this)">
@@ -60,7 +60,7 @@
                         </div>
                     </x-form.group>
 
-                    <x-form.group label="Nominal / Jumlah" required>
+                    <x-form.group label="Nominal / Jumlah" required dalam>
                         <x-form.input type="text" inputmode="numeric" name="nominal" required placeholder="0" class="text-xl font-medium format-ribuan" />
                     </x-form.group>
 

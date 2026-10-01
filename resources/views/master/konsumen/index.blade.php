@@ -159,15 +159,15 @@
     <x-modal id="edit-konsumen" title="Perbarui Data Konsumen" maxWidth="md">
         <form id="formEditKonsumen" method="POST" class="space-y-5">
             @csrf @method('PUT')
-            <x-form.group label="Nama Lengkap">
+            <x-form.group label="Nama Lengkap" dalam>
                 <x-form.input type="text" name="nama_konsumen" id="edit_nama" required />
             </x-form.group>
 
             <div class="grid grid-cols-2 gap-4">
-                <x-form.group label="No. Telepon/WA">
+                <x-form.group label="No. Telepon/WA" dalam>
                     <x-form.input type="text" name="telepon" id="edit_telepon" required />
                 </x-form.group>
-                <x-form.group label="Golongan">
+                <x-form.group label="Golongan" dalam>
                     <x-form.select name="id_golongan" id="edit_golongan">
                         @foreach($golongan as $g)
                             <option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>
@@ -176,14 +176,14 @@
                 </x-form.group>
             </div>
 
-            <x-form.group label="Tipe Konsumen">
+            <x-form.group label="Tipe Konsumen" dalam>
                 <x-form.select name="tipe_konsumen" id="edit_tipe_konsumen">
                     <option value="temporary">Guest (Temporary)</option>
                     <option value="permanent">Member (Permanent)</option>
                 </x-form.select>
             </x-form.group>
 
-            <x-form.group label="Alamat Domisili">
+            <x-form.group label="Alamat Domisili" dalam>
                 <textarea name="alamat" id="edit_alamat" rows="2"
                           class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-amber-500/20 shadow-inner"></textarea>
             </x-form.group>

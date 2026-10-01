@@ -236,14 +236,13 @@
          icon="fa-pen" maxWidth="md">
     <form id="formEditJasa" method="POST" class="space-y-4">
         @csrf @method('PUT')
-        <div>
-            <label class="block text-[10px]">Nama Jasa</label>
-            <input type="text" name="nama_jasa" id="edit_nama_jasa" required
+        <div class="ld">
+            <input placeholder=" " type="text" name="nama_jasa" id="edit_nama_jasa" required
                    class="w-full text-sm font-medium text-slate-700">
+            <label class="ld-label" for="edit_nama_jasa">Nama Jasa<span class="ld-wajib" aria-hidden="true">*</span></label>
         </div>
 
-        <div>
-            <label class="block text-[10px]">Divisi (Mesin)</label>
+        <div class="ld">
             <select name="id_mesin" id="edit_id_mesin"
                     class="w-full text-sm font-medium text-slate-700 appearance-none">
                 <option value="">-- Tanpa Divisi --</option>
@@ -251,10 +250,10 @@
                     <option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>
                 @endforeach
             </select>
+            <label class="ld-label" for="edit_id_mesin">Divisi (Mesin)</label>
         </div>
 
-        <div>
-            <label class="block text-[10px]">Unit Hitung</label>
+        <div class="ld">
             <select name="id_satuan" id="edit_id_satuan"
                     class="w-full text-sm font-medium text-slate-700 appearance-none">
                 <option value="">-- Pilih Satuan --</option>
@@ -262,31 +261,32 @@
                     <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
                 @endforeach
             </select>
+            <label class="ld-label" for="edit_id_satuan">Unit Hitung</label>
         </div>
 
-        <div>
-            <label class="block text-[10px]">Harga Dasar (Rp) <span class="normal-case font-normal text-slate-400">- opsional, titik awal di Kasir</span></label>
+        <div class="ld">
             <input type="text" inputmode="numeric" name="harga_default" id="edit_harga_default" placeholder="0"
                    class="w-full text-sm font-medium text-slate-700 format-ribuan">
+            <label class="ld-label" for="edit_harga_default">Harga Dasar (Rp) - opsional, titik awal di Kasir</label>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-[10px]">Biaya Operasional (Rp)</label>
+            <div class="ld">
                 <input type="text" inputmode="numeric" name="biaya_operasional" id="edit_biaya_operasional" placeholder="0"
                        class="w-full text-sm font-medium text-slate-700 format-ribuan">
+                <label class="ld-label" for="edit_biaya_operasional">Biaya Operasional (Rp)</label>
             </div>
-            <div>
-                <label class="block text-[10px]">Biaya Tinta (Rp)</label>
+            <div class="ld">
                 <input type="text" inputmode="numeric" name="biaya_tinta" id="edit_biaya_tinta" placeholder="0"
                        class="w-full text-sm font-medium text-slate-700 format-ribuan">
+                <label class="ld-label" for="edit_biaya_tinta">Biaya Tinta (Rp)</label>
             </div>
         </div>
 
-        <div>
-            <label class="block text-[10px]">Keterangan Singkat</label>
-            <textarea name="keterangan" id="edit_keterangan"
+        <div class="ld">
+            <textarea placeholder=" " name="keterangan" id="edit_keterangan"
                       class="w-full text-sm font-medium text-slate-700"></textarea>
+            <label class="ld-label" for="edit_keterangan">Keterangan Singkat</label>
         </div>
 
         <x-slot:footer>

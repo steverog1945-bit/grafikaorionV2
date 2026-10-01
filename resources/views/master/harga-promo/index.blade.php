@@ -115,7 +115,7 @@
     <x-modal id="tambah-promo" title="Buat Harga Promo" maxWidth="md">
         <form action="{{ route('harga-promo.store') }}" method="POST" class="space-y-5">
             @csrf
-            <x-form.group label="Produk" name="id_produk" required>
+            <x-form.group label="Produk" name="id_produk" required dalam>
                 <x-form.select name="id_produk" required>
                     <option value="">-- Pilih Produk --</option>
                     @foreach($produk as $pr)
@@ -124,15 +124,15 @@
                 </x-form.select>
             </x-form.group>
 
-            <x-form.group label="Harga Promo (Rp, berlaku semua golongan)" name="harga_promo" required>
+            <x-form.group label="Harga Promo (Rp, berlaku semua golongan)" name="harga_promo" required dalam>
                 <x-form.input type="text" inputmode="numeric" name="harga_promo" required class="format-ribuan" />
             </x-form.group>
 
             <div class="grid grid-cols-2 gap-4">
-                <x-form.group label="Tanggal Mulai" name="tgl_mulai" required>
+                <x-form.group label="Tanggal Mulai" name="tgl_mulai" required dalam>
                     <x-form.input type="date" name="tgl_mulai" required />
                 </x-form.group>
-                <x-form.group label="Tanggal Selesai" name="tgl_selesai" required>
+                <x-form.group label="Tanggal Selesai" name="tgl_selesai" required dalam>
                     <x-form.input type="date" name="tgl_selesai" required />
                 </x-form.group>
             </div>
@@ -148,7 +148,7 @@
     <x-modal id="edit-promo" title="Perbarui Harga Promo" maxWidth="md">
         <form id="formEditPromo" method="POST" class="space-y-5">
             @csrf @method('PUT')
-            <x-form.group label="Produk">
+            <x-form.group label="Produk" dalam>
                 <x-form.select name="id_produk" id="edit_id_produk" required>
                     @foreach($produk as $pr)
                         <option value="{{ $pr->id_produk }}">{{ $pr->nama_produk }}</option>
@@ -156,15 +156,15 @@
                 </x-form.select>
             </x-form.group>
 
-            <x-form.group label="Harga Promo (Rp)">
+            <x-form.group label="Harga Promo (Rp)" dalam>
                 <x-form.input type="text" inputmode="numeric" name="harga_promo" id="edit_harga_promo" required class="format-ribuan" />
             </x-form.group>
 
             <div class="grid grid-cols-2 gap-4">
-                <x-form.group label="Tanggal Mulai">
+                <x-form.group label="Tanggal Mulai" dalam>
                     <x-form.input type="date" name="tgl_mulai" id="edit_tgl_mulai" required />
                 </x-form.group>
-                <x-form.group label="Tanggal Selesai">
+                <x-form.group label="Tanggal Selesai" dalam>
                     <x-form.input type="date" name="tgl_selesai" id="edit_tgl_selesai" required />
                 </x-form.group>
             </div>

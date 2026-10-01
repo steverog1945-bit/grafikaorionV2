@@ -153,12 +153,12 @@
     <x-modal id="tambah-finishing" title="Finishing Baru" maxWidth="md">
         <form action="{{ route('finishing.store') }}" method="POST" class="space-y-5">
             @csrf
-            <x-form.group label="Nama Finishing" name="nama_finishing" required>
+            <x-form.group label="Nama Finishing" name="nama_finishing" required dalam>
                 <x-form.input type="text" name="nama_finishing" placeholder="Contoh: Laminasi Doff" required />
             </x-form.group>
 
             <div class="grid grid-cols-2 gap-4">
-                <x-form.group label="Mesin/Divisi" name="id_mesin">
+                <x-form.group label="Mesin/Divisi" name="id_mesin" dalam>
                     <x-form.select name="id_mesin">
                         <option value="">-- Umum --</option>
                         @foreach($mesin as $m)
@@ -166,7 +166,7 @@
                         @endforeach
                     </x-form.select>
                 </x-form.group>
-                <x-form.group label="Metode Hitung" name="metode_hitung" required>
+                <x-form.group label="Metode Hitung" name="metode_hitung" required dalam>
                     <x-form.select name="metode_hitung" required>
                         <option value="luas">Luas (m²)</option>
                         <option value="keliling">Keliling (m) - mis. jahit tepi</option>
@@ -175,7 +175,7 @@
                 </x-form.group>
             </div>
 
-            <x-form.group label="Kategori Berlaku" name="id_kategori" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Input Pesanan.">
+            <x-form.group label="Kategori Berlaku" name="id_kategori" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Input Pesanan." dalam>
                 <x-form.select name="id_kategori">
                     <option value="">-- Semua Kategori --</option>
                     @foreach($kategori as $kat)
@@ -184,11 +184,11 @@
                 </x-form.select>
             </x-form.group>
 
-            <x-form.group label="Harga Default (Rp)" name="harga_default" required>
+            <x-form.group label="Harga Default (Rp)" name="harga_default" required dalam>
                 <x-form.input type="text" inputmode="numeric" name="harga_default" required class="format-ribuan" />
             </x-form.group>
 
-            <x-form.group label="Keterangan" name="keterangan">
+            <x-form.group label="Keterangan" name="keterangan" dalam>
                 <textarea name="keterangan" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
             </x-form.group>
 
@@ -203,12 +203,12 @@
     <x-modal id="edit-finishing" title="Perbarui Finishing" maxWidth="md">
         <form id="formEditFinishing" method="POST" class="space-y-5">
             @csrf @method('PUT')
-            <x-form.group label="Nama Finishing">
+            <x-form.group label="Nama Finishing" dalam>
                 <x-form.input type="text" name="nama_finishing" id="edit_nama_finishing" required />
             </x-form.group>
 
             <div class="grid grid-cols-2 gap-4">
-                <x-form.group label="Mesin/Divisi">
+                <x-form.group label="Mesin/Divisi" dalam>
                     <x-form.select name="id_mesin" id="edit_id_mesin">
                         <option value="">-- Umum --</option>
                         @foreach($mesin as $m)
@@ -216,7 +216,7 @@
                         @endforeach
                     </x-form.select>
                 </x-form.group>
-                <x-form.group label="Metode Hitung">
+                <x-form.group label="Metode Hitung" dalam>
                     <x-form.select name="metode_hitung" id="edit_metode_hitung" required>
                         <option value="luas">Luas (m²)</option>
                         <option value="keliling">Keliling (m) - mis. jahit tepi</option>
@@ -225,7 +225,7 @@
                 </x-form.group>
             </div>
 
-            <x-form.group label="Kategori Berlaku" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Input Pesanan.">
+            <x-form.group label="Kategori Berlaku" help="Kosongkan supaya finishing ini muncul untuk semua kategori produk di Input Pesanan." dalam>
                 <x-form.select name="id_kategori" id="edit_id_kategori">
                     <option value="">-- Semua Kategori --</option>
                     @foreach($kategori as $kat)
@@ -234,11 +234,11 @@
                 </x-form.select>
             </x-form.group>
 
-            <x-form.group label="Harga Default (Rp)">
+            <x-form.group label="Harga Default (Rp)" dalam>
                 <x-form.input type="text" inputmode="numeric" name="harga_default" id="edit_harga_default" required class="format-ribuan" />
             </x-form.group>
 
-            <x-form.group label="Keterangan">
+            <x-form.group label="Keterangan" dalam>
                 <textarea name="keterangan" id="edit_keterangan" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-amber-500/20 shadow-inner"></textarea>
             </x-form.group>
 

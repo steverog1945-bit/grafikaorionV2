@@ -488,9 +488,9 @@
         <form id="form-edit-simple" class="space-y-4">
             <input type="hidden" id="edit-simple-entity">
             <input type="hidden" id="edit-simple-id">
-            <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Nama</label>
-                <input type="text" id="edit-simple-name" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <div class="ld">
+                <input placeholder=" " type="text" id="edit-simple-name" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="ld-label" for="edit-simple-name">Nama<span class="ld-wajib" aria-hidden="true">*</span></label>
             </div>
             <div id="edit-simple-has-sleeve-collar-wrapper" class="hidden">
                 <label class="flex items-center gap-2 text-xs font-medium text-slate-500 cursor-pointer">
@@ -498,9 +498,9 @@
                     Punya Lengan &amp; Kerah
                 </label>
             </div>
-            <div id="edit-simple-price-surcharge-wrapper" class="hidden">
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Tambahan Harga (Rp)</label>
-                <input type="text" inputmode="numeric" id="edit-simple-price-surcharge" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <div id="edit-simple-price-surcharge-wrapper" class="ld hidden">
+                <input placeholder=" " type="text" inputmode="numeric" id="edit-simple-price-surcharge" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="ld-label" for="edit-simple-price-surcharge">Tambahan Harga (Rp)</label>
             </div>
             <div class="pt-2 flex gap-3">
                 <button type="button" onclick="closeModal('edit-simple')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium uppercase">Batal</button>
@@ -513,19 +513,19 @@
         <form id="form-edit-komponen-scope" class="space-y-4">
             <input type="hidden" id="edit-komponen-scope-id">
             <p class="text-xs text-slate-400">Kosongkan supaya komponen ini berlaku untuk semua barang. Isi salah satu/keduanya supaya komponen ini cuma dihitung &amp; ditampilkan di SPK barang dengan Tipe Produk/Kategori yang cocok.</p>
-            <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
+            <div class="ld">
                 <select id="edit-komponen-scope-tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Semua Tipe Produk --</option>
                     @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                 </select>
+                <label class="ld-label" for="edit-komponen-scope-tipe">Tipe Produk</label>
             </div>
-            <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Kategori</label>
+            <div class="ld">
                 <select id="edit-komponen-scope-kategori" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Semua Kategori --</option>
                     @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                 </select>
+                <label class="ld-label" for="edit-komponen-scope-kategori">Kategori</label>
             </div>
             <div class="pt-2 flex gap-3">
                 <button type="button" onclick="closeModal('edit-komponen-scope')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium uppercase">Batal</button>
@@ -537,25 +537,25 @@
     <x-modal id="edit-ukuran" title="Ubah Ukuran" maxWidth="sm">
         <form id="form-edit-ukuran" class="space-y-4">
             <input type="hidden" id="edit-ukuran-id">
-            <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Nama</label>
-                <input type="text" id="edit-ukuran-name" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <div class="ld">
+                <input placeholder=" " type="text" id="edit-ukuran-name" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="ld-label" for="edit-ukuran-name">Nama<span class="ld-wajib" aria-hidden="true">*</span></label>
             </div>
-            <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Urutan Tampil</label>
-                <input type="number" id="edit-ukuran-sort" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <div class="ld">
+                <input placeholder=" " type="number" id="edit-ukuran-sort" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="ld-label" for="edit-ukuran-sort">Urutan Tampil</label>
             </div>
-            <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Kelompok</label>
+            <div class="ld">
                 <select id="edit-ukuran-kelompok" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"><option value="dewasa">Dewasa</option><option value="anak">Anak</option></select>
+                <label class="ld-label" for="edit-ukuran-kelompok">Kelompok</label>
             </div>
-            <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Selisih Harga (%) dari harga tier</label>
+            <div class="ld">
                 <input type="number" step="0.5" min="-90" max="100" id="edit-ukuran-percent" placeholder="mis. -20 untuk diskon 20%" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="ld-label" for="edit-ukuran-percent">Selisih Harga (%) dari harga tier</label>
             </div>
-            <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Tambahan Harga (Rp)</label>
-                <input type="text" inputmode="numeric" id="edit-ukuran-surcharge" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <div class="ld">
+                <input placeholder=" " type="text" inputmode="numeric" id="edit-ukuran-surcharge" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="ld-label" for="edit-ukuran-surcharge">Tambahan Harga (Rp)</label>
             </div>
             <div class="pt-2 flex gap-3">
                 <button type="button" onclick="closeModal('edit-ukuran')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium uppercase">Batal</button>
@@ -567,42 +567,42 @@
     <x-modal id="edit-harga" title="Ubah Tier Harga" maxWidth="sm">
         <form id="form-edit-harga" class="space-y-4">
             <input type="hidden" id="edit-harga-id">
-            <div>
-                <label class="block text-[10px] font-medium text-indigo-500 uppercase tracking-widest mb-2">Bahan</label>
+            <div class="ld">
                 <select id="edit-harga-bahan" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Semua Bahan --</option>
                     @foreach($materials->where('is_active', true) as $m)<option class="opsi-bahan" value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
                 </select>
+                <label class="ld-label" for="edit-harga-bahan">Bahan</label>
             </div>
             <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
+                <div class="ld">
                     <select id="edit-harga-tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                         <option value="">-- Semua --</option>
                         @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
                     </select>
+                    <label class="ld-label" for="edit-harga-tipe">Tipe Produk</label>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Kategori</label>
+                <div class="ld">
                     <select id="edit-harga-kategori" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                         <option value="">-- Semua --</option>
                         @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                     </select>
+                    <label class="ld-label" for="edit-harga-kategori">Kategori</label>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Qty Min</label>
-                    <input type="number" id="edit-harga-qty-min" min="1" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <div class="ld">
+                    <input placeholder=" " type="number" id="edit-harga-qty-min" min="1" required class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <label class="ld-label" for="edit-harga-qty-min">Qty Min<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Qty Max</label>
+                <div class="ld">
                     <input type="number" id="edit-harga-qty-max" min="1" placeholder="~ (kosongkan)" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <label class="ld-label" for="edit-harga-qty-max">Qty Max</label>
                 </div>
             </div>
-            <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Harga per Pcs (Rp)</label>
-                <input type="text" inputmode="numeric" id="edit-harga-price" required class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <div class="ld">
+                <input placeholder=" " type="text" inputmode="numeric" id="edit-harga-price" required class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label class="ld-label" for="edit-harga-price">Harga per Pcs (Rp)<span class="ld-wajib" aria-hidden="true">*</span></label>
             </div>
             <div class="pt-2 flex gap-3">
                 <button type="button" onclick="closeModal('edit-harga')" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium uppercase">Batal</button>

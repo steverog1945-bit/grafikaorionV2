@@ -87,32 +87,32 @@
          icon="fa-chart-pie" maxWidth="md">
 <form action="{{ route('akun.store') }}" method="POST" class="space-y-4">
                 @csrf
-                <div>
-                    <label class="block text-[10px]">Kode Akun</label>
-                    <input type="text" name="kode_akun" placeholder="Contoh: 1300" required
+                <div class="ld">
+                    <input id="ld_kode_akun_0" type="text" name="kode_akun" placeholder="Contoh: 1300" required
                            class="w-full text-sm font-medium text-slate-700">
+                    <label class="ld-label" for="ld_kode_akun_0">Kode Akun<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
-                <div>
-                    <label class="block text-[10px]">Nama Akun</label>
-                    <input type="text" name="nama_akun" placeholder="Contoh: Perlengkapan Kantor" required
+                <div class="ld">
+                    <input id="ld_nama_akun_1" type="text" name="nama_akun" placeholder="Contoh: Perlengkapan Kantor" required
                            class="w-full text-sm font-medium text-slate-700">
+                    <label class="ld-label" for="ld_nama_akun_1">Nama Akun<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
-                <div>
-                    <label class="block text-[10px]">Tipe Akun</label>
-                    <select name="tipe_akun" required class="w-full text-sm font-medium text-slate-700">
+                <div class="ld">
+                    <select id="ld_tipe_akun_2" name="tipe_akun" required class="w-full text-sm font-medium text-slate-700">
                         <option value="Aset">Aset</option>
                         <option value="Kewajiban">Kewajiban</option>
                         <option value="Modal">Modal</option>
                         <option value="Pendapatan">Pendapatan</option>
                         <option value="Beban">Beban</option>
                     </select>
+                    <label class="ld-label" for="ld_tipe_akun_2">Tipe Akun<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
-                <div>
-                    <label class="block text-[10px]">Saldo Normal</label>
-                    <select name="saldo_normal" required class="w-full text-sm font-medium text-slate-700">
+                <div class="ld">
+                    <select id="ld_saldo_normal_3" name="saldo_normal" required class="w-full text-sm font-medium text-slate-700">
                         <option value="Debet">Debet</option>
                         <option value="Kredit">Kredit</option>
                     </select>
+                    <label class="ld-label" for="ld_saldo_normal_3">Saldo Normal<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
 
                 <x-slot:footer>
@@ -127,18 +127,17 @@
          icon="fa-pen" maxWidth="md">
 <form id="formEditAkun" method="POST" class="space-y-4">
                 @csrf @method('PUT')
-                <div>
-                    <label class="block text-[10px]">Kode Akun</label>
-                    <input type="text" name="kode_akun" id="edit_kode_akun" required
+                <div class="ld">
+                    <input placeholder=" " type="text" name="kode_akun" id="edit_kode_akun" required
                            class="w-full text-sm font-medium text-slate-700">
+                    <label class="ld-label" for="edit_kode_akun">Kode Akun<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
-                <div>
-                    <label class="block text-[10px]">Nama Akun</label>
-                    <input type="text" name="nama_akun" id="edit_nama_akun" required
+                <div class="ld">
+                    <input placeholder=" " type="text" name="nama_akun" id="edit_nama_akun" required
                            class="w-full text-sm font-medium text-slate-700">
+                    <label class="ld-label" for="edit_nama_akun">Nama Akun<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
-                <div>
-                    <label class="block text-[10px]">Tipe Akun</label>
+                <div class="ld">
                     <select name="tipe_akun" id="edit_tipe_akun" required class="w-full text-sm font-medium text-slate-700">
                         <option value="Aset">Aset</option>
                         <option value="Kewajiban">Kewajiban</option>
@@ -146,13 +145,14 @@
                         <option value="Pendapatan">Pendapatan</option>
                         <option value="Beban">Beban</option>
                     </select>
+                    <label class="ld-label" for="edit_tipe_akun">Tipe Akun<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
-                <div>
-                    <label class="block text-[10px]">Saldo Normal</label>
+                <div class="ld">
                     <select name="saldo_normal" id="edit_saldo_normal" required class="w-full text-sm font-medium text-slate-700">
                         <option value="Debet">Debet</option>
                         <option value="Kredit">Kredit</option>
                     </select>
+                    <label class="ld-label" for="edit_saldo_normal">Saldo Normal<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
 
                 <x-slot:footer>

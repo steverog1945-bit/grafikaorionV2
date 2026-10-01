@@ -158,7 +158,7 @@
         </p>
         <form id="form-request-edit" method="POST">
             @csrf
-            <x-form.group label="Alasan / Kesalahan yang Perlu Dikoreksi">
+            <x-form.group label="Alasan / Kesalahan yang Perlu Dikoreksi" dalam>
                 <textarea name="alasan" id="req-alasan" rows="4" required placeholder="Contoh: salah ukuran, seharusnya 200x100cm bukan 100x100cm" class="w-full rounded-xl border-slate-200 text-sm p-3"></textarea>
             </x-form.group>
             <div class="pt-4 flex gap-3">

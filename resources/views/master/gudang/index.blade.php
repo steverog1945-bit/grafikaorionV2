@@ -94,25 +94,25 @@
          icon="fa-warehouse" maxWidth="md">
     <form action="{{ route('gudang.store') }}" method="POST" class="space-y-4">
         @csrf
-        <div>
-            <label class="block text-[10px] mb-2">Nama Gudang</label>
-            <input type="text" name="nama_gudang" placeholder="Contoh: Gudang Utama" required
+        <div class="ld">
+            <input id="ld_nama_gudang_0" type="text" name="nama_gudang" placeholder="Contoh: Gudang Utama" required
                    class="w-full py-3.5 text-sm font-medium text-slate-700">
+            <label class="ld-label" for="ld_nama_gudang_0">Nama Gudang<span class="ld-wajib" aria-hidden="true">*</span></label>
         </div>
-        <div>
-            <label class="block text-[10px] mb-2">Alamat</label>
-            <textarea name="alamat" placeholder="Alamat gudang..."
+        <div class="ld">
+            <textarea id="ld_alamat_1" name="alamat" placeholder="Alamat gudang..."
                       class="w-full py-3.5 text-sm font-medium text-slate-700"></textarea>
+            <label class="ld-label" for="ld_alamat_1">Alamat</label>
         </div>
-        <div>
-            <label class="block text-[10px] mb-2">Penanggung Jawab</label>
-            <input type="text" name="penanggung_jawab" placeholder="Nama PIC gudang"
+        <div class="ld">
+            <input id="ld_penanggung_jawab_2" type="text" name="penanggung_jawab" placeholder="Nama PIC gudang"
                    class="w-full py-3.5 text-sm font-medium text-slate-700">
+            <label class="ld-label" for="ld_penanggung_jawab_2">Penanggung Jawab</label>
         </div>
-        <div>
-            <label class="block text-[10px] mb-2">Telepon</label>
-            <input type="text" name="telepon" placeholder="08xxxxxxxxxx"
+        <div class="ld">
+            <input id="ld_telepon_3" type="text" name="telepon" placeholder="08xxxxxxxxxx"
                    class="w-full py-3.5 text-sm font-medium text-slate-700">
+            <label class="ld-label" for="ld_telepon_3">Telepon</label>
         </div>
 
         <x-slot:footer>
@@ -128,25 +128,25 @@
          icon="fa-pen" maxWidth="md">
     <form id="formEditGudang" method="POST" class="space-y-4">
         @csrf @method('PUT')
-        <div>
-            <label class="block text-[10px] mb-2">Nama Gudang</label>
-            <input type="text" name="nama_gudang" id="edit_nama_gudang" required
+        <div class="ld">
+            <input placeholder=" " type="text" name="nama_gudang" id="edit_nama_gudang" required
                    class="w-full py-3.5 text-sm font-medium text-slate-700">
+            <label class="ld-label" for="edit_nama_gudang">Nama Gudang<span class="ld-wajib" aria-hidden="true">*</span></label>
         </div>
-        <div>
-            <label class="block text-[10px] mb-2">Alamat</label>
-            <textarea name="alamat" id="edit_alamat"
+        <div class="ld">
+            <textarea placeholder=" " name="alamat" id="edit_alamat"
                       class="w-full py-3.5 text-sm font-medium text-slate-700"></textarea>
+            <label class="ld-label" for="edit_alamat">Alamat</label>
         </div>
-        <div>
-            <label class="block text-[10px] mb-2">Penanggung Jawab</label>
-            <input type="text" name="penanggung_jawab" id="edit_penanggung_jawab"
+        <div class="ld">
+            <input placeholder=" " type="text" name="penanggung_jawab" id="edit_penanggung_jawab"
                    class="w-full py-3.5 text-sm font-medium text-slate-700">
+            <label class="ld-label" for="edit_penanggung_jawab">Penanggung Jawab</label>
         </div>
-        <div>
-            <label class="block text-[10px] mb-2">Telepon</label>
-            <input type="text" name="telepon" id="edit_telepon"
+        <div class="ld">
+            <input placeholder=" " type="text" name="telepon" id="edit_telepon"
                    class="w-full py-3.5 text-sm font-medium text-slate-700">
+            <label class="ld-label" for="edit_telepon">Telepon</label>
         </div>
 
         <x-slot:footer>

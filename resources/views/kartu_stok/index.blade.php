@@ -182,7 +182,7 @@
             @csrf
             {{-- Optimistic locking: stok yang terlihat saat formulir dibuka; ditolak server bila sudah berubah. --}}
             <input type="hidden" name="stok_dibuka" id="adj_stok_dibuka" value="">
-            <x-form.group label="Bahan" name="id_bahan" required>
+            <x-form.group label="Bahan" name="id_bahan" required dalam>
                 <x-form.select name="id_bahan" id="adj_id_bahan" required>
                     <option value="">-- Pilih Bahan --</option>
                     @foreach($bahan as $b)
@@ -193,7 +193,7 @@
 
             <p class="text-[11px] text-slate-400 -mt-3 ml-1">Stok saat ini: <span id="adj_stok_display" class="font-medium text-slate-600">-</span> <span id="adj_satuan_display" class="inline-flex px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium uppercase"></span></p>
 
-            <x-form.group label="Jenis Penyesuaian" name="tipe" required>
+            <x-form.group label="Jenis Penyesuaian" name="tipe" required dalam>
                 <x-form.select name="tipe" id="adj_tipe" onchange="toggleAdjTipe()" required>
                     <option value="OUT">Barang Keluar (rusak, sample, hilang)</option>
                     <option value="ADJUSTMENT">Revisi Stok / Hasil Opname Fisik</option>
@@ -207,12 +207,12 @@
             </div>
 
             <div id="adj_wrapper_stok_baru" class="hidden">
-                <x-form.group label="Stok Sebenarnya (Hasil Hitung Fisik)" name="stok_baru">
+                <x-form.group label="Stok Sebenarnya (Hasil Hitung Fisik)" name="stok_baru" dalam>
                     <div class="flex items-center gap-2"><x-form.input type="text" inputmode="decimal" name="stok_baru" id="adj_stok_baru" class="input-desimal" autocomplete="off" placeholder="0" /><span class="adj-unit shrink-0 px-3 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-medium uppercase">-</span></div>
                 </x-form.group>
             </div>
 
-            <x-form.group label="Keterangan / Alasan" name="keterangan" required>
+            <x-form.group label="Keterangan / Alasan" name="keterangan" required dalam>
                 <textarea name="keterangan" rows="2" required placeholder="Contoh: Rusak saat produksi, hasil stock opname bulanan, dsb."
                     class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
             </x-form.group>

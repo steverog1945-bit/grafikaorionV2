@@ -9,7 +9,7 @@
         <form method="POST" action="{{ route('stock-opname.store') }}" class="space-y-5">
             @csrf
 
-            <x-form.group label="Gudang">
+            <x-form.group label="Gudang" dalam>
                 <x-form.select name="id_gudang">
                     <option value="">-- Tidak spesifik --</option>
                     @foreach($gudangList as $g)
@@ -18,11 +18,11 @@
                 </x-form.select>
             </x-form.group>
 
-            <x-form.group label="Tanggal Opname">
+            <x-form.group label="Tanggal Opname" dalam>
                 <x-form.input type="date" name="tanggal" value="{{ old('tanggal', now()->toDateString()) }}" required />
             </x-form.group>
 
-            <x-form.group label="Catatan (opsional)">
+            <x-form.group label="Catatan (opsional)" dalam>
                 <textarea name="catatan" rows="3" class="w-full rounded-xl border-slate-200 text-sm p-3">{{ old('catatan') }}</textarea>
             </x-form.group>
 

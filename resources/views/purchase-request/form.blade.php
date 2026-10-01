@@ -51,7 +51,7 @@
 
         <x-card class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <x-form.group label="Tanggal" name="tanggal">
+                <x-form.group label="Tanggal" name="tanggal" dalam>
                     {{-- Input polos (bukan x-form.input): echo kondisional di dalam
                          tag komponen terbukti membuat input tidak dirender - pola
                          input polos ini yang dipakai qty/harga dan tampil normal. --}}
@@ -59,7 +59,7 @@
                         class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                         {{ $editable ? '' : 'readonly' }} />
                 </x-form.group>
-                <x-form.group label="Rencana supplier (opsional)" name="id_supplier_rencana">
+                <x-form.group label="Rencana supplier (opsional)" name="id_supplier_rencana" dalam>
                     <select name="id_supplier_rencana" class="w-full rounded-xl border-slate-200 text-sm p-2" {{ $editable ? '' : 'disabled' }}>
                         <option value="">Belum ditentukan</option>
                         @foreach($supplierList as $s)
@@ -67,7 +67,7 @@
                         @endforeach
                     </select>
                 </x-form.group>
-                <x-form.group label="Catatan (opsional)" name="catatan">
+                <x-form.group label="Catatan (opsional)" name="catatan" dalam>
                     <input type="text" name="catatan" value="{{ old('catatan', $pr->catatan ?? '') }}" placeholder="Mis. stok Flexi Korea tinggal 15 m2"
                         class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
                         {{ $editable ? '' : 'readonly' }} />

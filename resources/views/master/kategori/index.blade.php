@@ -103,13 +103,13 @@
         @csrf
         <div id="methodField"></div>
 
-        <x-form.group label="Nama Kategori" name="nama_kategori" required>
+        <x-form.group label="Nama Kategori" name="nama_kategori" required dalam>
             <x-form.input type="text" name="nama_kategori" id="input_nama"
                          placeholder="Contoh: Kertas Art Paper" class="uppercase" />
         </x-form.group>
 
         <x-form.group label="Kode Singkatan" name="kode_kategori" required
-                      help="Maksimal 5 huruf, dipakai sebagai penanda cepat di tabel.">
+                      help="Maksimal 5 huruf, dipakai sebagai penanda cepat di tabel." dalam>
             <x-form.input type="text" name="kode_kategori" id="input_kode" maxlength="5"
                          placeholder="Contoh: AP" class="uppercase tracking-widest" />
         </x-form.group>

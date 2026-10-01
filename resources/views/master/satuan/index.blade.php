@@ -123,13 +123,13 @@
         @csrf
         <div id="methodField"></div>
 
-        <x-form.group label="Label Satuan" name="nama_satuan" required>
+        <x-form.group label="Label Satuan" name="nama_satuan" required dalam>
             <x-form.input type="text" name="nama_satuan" id="input_nama" maxlength="20"
                          placeholder="Contoh: RIM, PACK, LEMBAR" class="uppercase tracking-wide" />
         </x-form.group>
 
         <x-form.group label="Konversi (Opsional)" name="nilai_konversi" required
-                      help="Catatan konversi, tidak dipakai otomatis oleh sistem. Isi 1 kalau tidak ada catatan khusus.">
+                      help="Catatan konversi, tidak dipakai otomatis oleh sistem. Isi 1 kalau tidak ada catatan khusus." dalam>
             <x-form.input type="number" step="0.01" name="nilai_konversi" id="input_nilai" placeholder="1.00" required />
         </x-form.group>
 

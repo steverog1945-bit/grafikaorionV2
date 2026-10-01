@@ -233,32 +233,32 @@
         <div id="methodField"></div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <x-form.group label="Nama Bahan" required class="sm:col-span-2">
+            <x-form.group label="Nama Bahan" required class="sm:col-span-2" dalam>
                 <x-form.input type="text" name="nama_bahan" id="input_nama_bahan" required />
             </x-form.group>
-            <x-form.group label="Kode SKU" required>
+            <x-form.group label="Kode SKU" required dalam>
                 <x-form.input type="text" name="kode_bahan" id="input_kode_bahan" required />
             </x-form.group>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <x-form.group label="Mesin Alokasi" required>
+            <x-form.group label="Mesin Alokasi" required dalam>
                 <x-form.select name="id_mesin" id="input_id_mesin" required>
                     @foreach($mesin as $m)<option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>@endforeach
                 </x-form.select>
             </x-form.group>
-            <x-form.group label="Kategori" required>
+            <x-form.group label="Kategori" required dalam>
                 <x-form.select name="id_kategori" id="input_id_kategori" required>
                     @foreach($kategori as $k)<option value="{{ $k->id_kategori }}">{{ $k->nama_kategori }}</option>@endforeach
                 </x-form.select>
             </x-form.group>
-            <x-form.group label="Merk (Opsional)">
+            <x-form.group label="Merk (Opsional)" dalam>
                 <x-form.select name="id_merk" id="input_id_merk">
                     <option value="">-- Tanpa Merk --</option>
                     @foreach($merk as $m)<option value="{{ $m->id_merk }}">{{ $m->nama_merk }}</option>@endforeach
                 </x-form.select>
             </x-form.group>
-            <x-form.group label="Jenis Bahan (Opsional)">
+            <x-form.group label="Jenis Bahan (Opsional)" dalam>
                 <x-form.select name="id_jenis_bahan" id="input_id_jenis_bahan">
                     <option value="">-- Tanpa Jenis --</option>
                     @foreach($jenisBahan as $j)<option value="{{ $j->id_jenis_bahan }}">{{ $j->nama_jenis }}</option>@endforeach
@@ -267,13 +267,13 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5 border-t border-slate-100">
-            <x-form.group label="Satuan Stok (Beli)" required>
+            <x-form.group label="Satuan Stok (Beli)" required dalam>
                 <x-form.select name="id_satuan_stok" id="input_id_satuan_stok" required>
                     <option value="">Pilih Satuan</option>
                     @foreach($satuan as $s)<option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>@endforeach
                 </x-form.select>
             </x-form.group>
-            <x-form.group label="Satuan Hitung (Pakai)" required>
+            <x-form.group label="Satuan Hitung (Pakai)" required dalam>
                 <x-form.select name="id_satuan_hitung" id="input_id_satuan_hitung" required>
                     <option value="">Pilih Satuan</option>
                     @foreach($satuan as $s)<option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>@endforeach
@@ -286,32 +286,32 @@
                 <i class="fas fa-ruler-combined mr-1"></i> Dimensi Roll (Opsional - bahan roll m²)
             </p>
             <div class="grid grid-cols-2 gap-4">
-                <x-form.group label="Lebar Roll (m)">
+                <x-form.group label="Lebar Roll (m)" dalam>
                     <x-form.input type="number" step="0.01" name="lebar_roll" id="input_lebar_roll" oninput="hitungNilaiKonversiRoll()" placeholder="Contoh: 1.5" class="!bg-white" />
                 </x-form.group>
-                <x-form.group label="Panjang Roll (m)">
+                <x-form.group label="Panjang Roll (m)" dalam>
                     <x-form.input type="number" step="0.01" name="panjang_roll" id="input_panjang_roll" oninput="hitungNilaiKonversiRoll()" placeholder="Contoh: 50" class="!bg-white" />
                 </x-form.group>
             </div>
         </div>
 
-        <x-form.group label="Nilai Konversi (1 Satuan Stok = ? Satuan Hitung)" required help="Contoh: 1 Rim = 500 Lembar, isi 500. Bahan roll terisi otomatis dari dimensi di atas.">
+        <x-form.group label="Nilai Konversi (1 Satuan Stok = ? Satuan Hitung)" required help="Contoh: 1 Rim = 500 Lembar, isi 500. Bahan roll terisi otomatis dari dimensi di atas." dalam>
             <x-form.input type="number" step="0.001" name="nilai_konversi" id="input_nilai_konversi" required value="1" />
         </x-form.group>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-5 border-t border-slate-100">
-            <x-form.group label="Stok Awal" required>
+            <x-form.group label="Stok Awal" required dalam>
                 <x-form.input type="number" step="0.001" name="stok" id="input_stok" required value="0" class="disabled:opacity-60 disabled:cursor-not-allowed" />
                 <p id="stok_locked_hint" class="hidden mt-1.5 ml-2 text-xs text-slate-400">
                     <i class="fas fa-lock mr-0.5"></i> Ubah lewat
                     <a href="{{ route('kartu-stok.index') }}" class="text-indigo-500 font-medium hover:underline" target="_blank">Kartu Stok &rarr; Penyesuaian</a>
                 </p>
             </x-form.group>
-            <x-form.group label="Stok Minimal" required>
+            <x-form.group label="Stok Minimal" required dalam>
                 <x-form.input type="number" step="0.001" name="stok_minimal" id="input_stok_minimal" required value="0" />
             </x-form.group>
             <div id="blok_harga_awal">
-                <x-form.group label="Harga Beli / Satuan Stok" help="Opsional. Menjadi harga rata-rata awal (dasar HPP).">
+                <x-form.group label="Harga Beli / Satuan Stok" help="Opsional. Menjadi harga rata-rata awal (dasar HPP)." dalam>
                     <x-form.input class="format-ribuan-desimal" type="text" inputmode="decimal" autocomplete="off" name="harga_beli" id="input_harga_beli" placeholder="0" />
                 </x-form.group>
             </div>

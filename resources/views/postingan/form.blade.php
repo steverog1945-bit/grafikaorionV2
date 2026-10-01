@@ -35,10 +35,10 @@
             {{-- ============ KIRI: JUDUL & EDITOR ============ --}}
             <div class="w-full lg:w-[68%] space-y-6">
                 <x-card>
-                    <x-form.group label="Judul" required>
+                    <x-form.group label="Judul" required dalam>
                         <x-form.input type="text" name="judul" value="{{ old('judul', $post->judul) }}" required maxlength="200" placeholder="Judul yang jelas dan singkat" class="!text-lg !font-medium" />
                     </x-form.group>
-                    <x-form.group label="Ringkasan (tampil di daftar; kosongkan untuk otomatis)" class="mt-4">
+                    <x-form.group label="Ringkasan (tampil di daftar; kosongkan untuk otomatis)" class="mt-4" dalam>
                         <textarea name="ringkasan" rows="2" maxlength="300" placeholder="Satu-dua kalimat pembuka..." class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ old('ringkasan', $post->ringkasan) }}</textarea>
                     </x-form.group>
                 </x-card>
@@ -87,13 +87,13 @@
             <div class="w-full lg:w-[32%] space-y-6 lg:sticky lg:top-24">
                 <x-card>
                     <h3 class="text-sm font-medium text-slate-800 mb-4">Penerbitan</h3>
-                    <x-form.group label="Status" required>
+                    <x-form.group label="Status" required dalam>
                         <x-form.select name="status" id="status-post">
                             <option value="draft" {{ old('status', $post->status) === 'draft' ? 'selected' : '' }}>Draft (belum terlihat orang lain)</option>
                             <option value="terbit" {{ old('status', $post->status) === 'terbit' ? 'selected' : '' }}>Terbit</option>
                         </x-form.select>
                     </x-form.group>
-                    <x-form.group label="Jadwal terbit (opsional)" class="mt-4" help="Isi waktu di masa depan agar terbit otomatis pada saat itu (status harus Terbit).">
+                    <x-form.group label="Jadwal terbit (opsional)" class="mt-4" help="Isi waktu di masa depan agar terbit otomatis pada saat itu (status harus Terbit)." dalam>
                         <x-form.input type="datetime-local" name="terbit_at" value="{{ $terbitAtInput }}" />
                     </x-form.group>
                     <label class="mt-4 flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 cursor-pointer" title="Postingan disematkan selalu tampil paling atas dan di dashboard">
@@ -108,16 +108,16 @@
 
                 <x-card>
                     <h3 class="text-sm font-medium text-slate-800 mb-4">Kategori &amp; Tag</h3>
-                    <x-form.group label="Kategori">
+                    <x-form.group label="Kategori" dalam>
                         <x-form.select name="id_kategori">
                             <option value="">-- Tanpa kategori --</option>
                             @foreach($kategoriList as $k)<option value="{{ $k->id }}" {{ (string) old('id_kategori', $post->id_kategori) === (string) $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>@endforeach
                         </x-form.select>
                     </x-form.group>
-                    <x-form.group label="atau buat kategori baru" class="mt-4">
+                    <x-form.group label="atau buat kategori baru" class="mt-4" dalam>
                         <x-form.input type="text" name="kategori_baru" value="{{ old('kategori_baru') }}" maxlength="60" placeholder="mis. Info Pemasok" />
                     </x-form.group>
-                    <x-form.group label="Tag (pisahkan koma)" class="mt-4">
+                    <x-form.group label="Tag (pisahkan koma)" class="mt-4" dalam>
                         <x-form.input type="text" name="tags" value="{{ old('tags', $post->tags) }}" maxlength="255" placeholder="banner, laminasi, sop" />
                     </x-form.group>
                 </x-card>

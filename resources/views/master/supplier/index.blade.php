@@ -95,15 +95,15 @@
     <x-modal id="tambah-supplier" title="Input Pemasok Baru" maxWidth="md">
         <form action="{{ route('supplier.store') }}" method="POST" class="space-y-5">
             @csrf
-            <x-form.group label="Nama Perusahaan/Vendor" name="nama_supplier" required>
+            <x-form.group label="Nama Perusahaan/Vendor" name="nama_supplier" required dalam>
                 <x-form.input type="text" name="nama_supplier" placeholder="Contoh: PT. Sumber Kertas" required />
             </x-form.group>
 
-            <x-form.group label="No. Telepon / Sales" name="kontak" required>
+            <x-form.group label="No. Telepon / Sales" name="kontak" required dalam>
                 <x-form.input type="text" name="kontak" placeholder="08xx xxxx xxxx" required />
             </x-form.group>
 
-            <x-form.group label="Alamat Lengkap" name="alamat">
+            <x-form.group label="Alamat Lengkap" name="alamat" dalam>
                 <textarea name="alamat" placeholder="Jl. Raya Percetakan No. 1..."
                           class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
             </x-form.group>
@@ -119,15 +119,15 @@
     <x-modal id="edit-supplier" title="Perbarui Data Pemasok" maxWidth="md">
         <form id="formEditSupplier" method="POST" class="space-y-5">
             @csrf @method('PUT')
-            <x-form.group label="Nama Perusahaan/Vendor">
+            <x-form.group label="Nama Perusahaan/Vendor" dalam>
                 <x-form.input type="text" name="nama_supplier" id="edit_nama_supplier" required />
             </x-form.group>
 
-            <x-form.group label="No. Telepon / Sales">
+            <x-form.group label="No. Telepon / Sales" dalam>
                 <x-form.input type="text" name="kontak" id="edit_kontak" required />
             </x-form.group>
 
-            <x-form.group label="Alamat Lengkap">
+            <x-form.group label="Alamat Lengkap" dalam>
                 <textarea name="alamat" id="edit_alamat"
                           class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
             </x-form.group>
