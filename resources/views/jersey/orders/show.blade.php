@@ -232,12 +232,14 @@
                     @foreach($designers as $d)<option value="{{ $d->id }}" @selected($order->jersey_designer_id === $d->id)>{{ $d->name }}</option>@endforeach
                 </x-form.select>
             </x-form.group>
+            @bolehHarga
             <x-form.group label="Diskon (Rp)">
                 <input type="text" inputmode="numeric" name="discount" value="{{ number_format($order->discount, 0, ',', '.') }}" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </x-form.group>
             <x-form.group label="Biaya Tambahan (Rp)">
                 <input type="text" inputmode="numeric" name="additional_charge" value="{{ number_format($order->additional_charge, 0, ',', '.') }}" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </x-form.group>
+            @endbolehHarga
             <div class="md:col-span-3">
                 <x-form.group label="Catatan">
                     <textarea name="notes" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $order->notes }}</textarea>

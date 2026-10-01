@@ -304,8 +304,9 @@ class JerseyOrderController extends Controller
                     : null,
                 'notes' => $data['notes'] ?? null,
                 'total' => 0,
-                'discount' => $data['discount'] ?? 0,
-                'additional_charge' => $data['additional_charge'] ?? 0,
+                // Diskon dan biaya tambahan adalah keputusan harga: role tanpa hak harga tidak bisa mengisinya.
+                'discount' => \App\Support\AksesHarga::bolehLihat() ? ($data['discount'] ?? 0) : 0,
+                'additional_charge' => \App\Support\AksesHarga::bolehLihat() ? ($data['additional_charge'] ?? 0) : 0,
                 'deposit' => 0,
                 'status_pembayaran' => 'Belum Bayar',
                 'created_by' => Auth::id(),
@@ -718,6 +719,11 @@ class JerseyOrderController extends Controller
         $data['designer_name'] = !empty($data['jersey_designer_id'])
             ? JerseyDesigner::find($data['jersey_designer_id'])?->name
             : null;
+
+        // Role tanpa hak harga tidak melihat kolom diskon/biaya tambahan; nilai lama dipertahankan, bukan dikosongkan.
+        if (! \App\Support\AksesHarga::bolehLihat()) {
+            unset($data['discount'], $data['additional_charge']);
+        }
 
         // Dibungkus transaction - update() dan recalculateTotal() (yang juga
         // memanggil recalculatePembayaran(), total 3 statement UPDATE

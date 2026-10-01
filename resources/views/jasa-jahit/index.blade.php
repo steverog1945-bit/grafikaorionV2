@@ -88,7 +88,7 @@
                     </td>
                     <td class="text-right">
                         <div class="flex items-center justify-end gap-1">
-                            @if($p->belum_dibayar > 0)
+                            @if($p->belum_dibayar > 0 && $bolehBayar)
                                 <x-button size="sm" onclick="bukaBayar({{ $p->id_penjahit }})">
                                     <i class="fas fa-money-bill-wave"></i>
                                     Bayar

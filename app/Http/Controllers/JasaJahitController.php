@@ -91,6 +91,7 @@ class JasaJahitController extends Controller
             ->groupBy('id_penjahit');
         $totalBelumDibayar = (float) DB::table('jasa_jahit_catat')->whereNull('id_kas_kecil')->sum('total');
         $saldoKasKecil = PembayaranHutangService::saldoKasKecil();
+        $bolehBayar = \App\Support\Izin::bolehKeluarkanKasKecil($request->user());
 
         $totalBulanIni = (float) DB::table('jasa_jahit_catat')->where('tgl_catat', '>=', now()->startOfMonth()->toDateString())->sum('total');
 
@@ -100,7 +101,7 @@ class JasaJahitController extends Controller
         $kerah = DB::table('jersey_collar_types')->orderBy('sort_order')->orderBy('name')->get(['id', 'name']);
 
         return view('jasa-jahit.index', compact(
-            'jenis', 'penjahit', 'belumDibayar', 'totalBelumDibayar', 'saldoKasKecil', 'orderan', 'orderJersey', 'riwayat', 'totalBulanIni', 'satuan', 'finishing', 'lengan', 'kerah'
+            'jenis', 'penjahit', 'belumDibayar', 'totalBelumDibayar', 'saldoKasKecil', 'bolehBayar', 'orderan', 'orderJersey', 'riwayat', 'totalBulanIni', 'satuan', 'finishing', 'lengan', 'kerah'
         ));
     }
 
@@ -405,6 +406,10 @@ class JasaJahitController extends Controller
     /** Bayar upah penjahit dari Kas Kecil untuk catatan yang dipilih. */
     public function bayar(Request $request)
     {
+        if (! \App\Support\Izin::bolehKeluarkanKasKecil($request->user())) {
+            abort(403, 'Membayar penjahit mengeluarkan uang Kas Kecil, jadi butuh hak tambah di menu Kas Kecil.');
+        }
+
         $data = $request->validate([
             'id_penjahit' => 'required|exists:penjahit,id_penjahit',
             'catat'       => 'required|array|min:1',

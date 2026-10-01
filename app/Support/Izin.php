@@ -99,6 +99,19 @@ class Izin
     }
 
     /** Boleh melakukan $aksi pada salah satu menu di $idMenus? */
+    /** Menu Kas Kecil (config/menu_access.php: 'kas-kecil' => [39]). */
+    public const MENU_KAS_KECIL = 39;
+
+    /**
+     * Mengeluarkan uang Kas Kecil dari modul lain (bayar upah jahit, bayar komisi desainer) mensyaratkan hak TAMBAH
+     * di menu Kas Kecil juga - bukan hanya hak di modul asalnya. Tanpa ini, siapa pun yang diberi hak mencatat di
+     * Jasa Jahit otomatis bisa mengeluarkan uang Kas Kecil.
+     */
+    public static function bolehKeluarkanKasKecil(?User $user): bool
+    {
+        return self::boleh($user, [self::MENU_KAS_KECIL], 'add');
+    }
+
     public static function boleh(?User $user, array $idMenus, string $aksi = 'view'): bool
     {
         if (!$user) {

@@ -90,12 +90,14 @@
                     <div class="border-t border-slate-100 my-4"></div>
 
                     <div class="space-y-4">
+                        @bolehHarga
                         <x-form.group label="Diskon (Rp)">
                             <x-form.input type="text" inputmode="numeric" name="discount" value="{{ old('discount', 0) }}" class="format-ribuan" />
                         </x-form.group>
                         <x-form.group label="Biaya Tambahan (Rp)">
                             <x-form.input type="text" inputmode="numeric" name="additional_charge" value="{{ old('additional_charge', 0) }}" class="format-ribuan" />
                         </x-form.group>
+                        @endbolehHarga
                         <x-form.group label="Deposit / DP (Rp)">
                             <x-form.input type="text" inputmode="numeric" name="deposit" value="{{ old('deposit', 0) }}" class="format-ribuan" />
                         </x-form.group>

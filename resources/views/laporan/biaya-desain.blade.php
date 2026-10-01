@@ -154,7 +154,7 @@
                     <td class="p-3 text-right text-xs text-emerald-600">Rp {{ number_format($r->komisi_dibayar, 0, ',', '.') }}</td>
                     @unless($milikSendiri)
                     <td class="p-3 text-center no-print">
-                        @if($r->id_desainer && $r->komisi_belum > 0)
+                        @if($r->id_desainer && $r->komisi_belum > 0 && \App\Support\Izin::bolehKeluarkanKasKecil(auth()->user()))
                         <form method="POST" action="{{ route('laporan.biaya-desain.bayar') }}" onsubmit="return konfirmasiBayarKomisi(event, this, {{ json_encode($r->nama) }}, {{ (float) $r->komisi_belum }})">
                             @csrf
                             <input type="hidden" name="id_desainer" value="{{ $r->id_desainer }}">

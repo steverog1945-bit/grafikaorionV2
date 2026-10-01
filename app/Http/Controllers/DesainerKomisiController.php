@@ -81,6 +81,9 @@ class DesainerKomisiController extends Controller
         if ($this->hanyaMilikSendiri()) {
             abort(403);
         }
+        if (! \App\Support\Izin::bolehKeluarkanKasKecil($request->user())) {
+            abort(403, 'Membayar komisi mengeluarkan uang Kas Kecil, jadi butuh hak tambah di menu Kas Kecil.');
+        }
         $data = $request->validate(['id_desainer' => 'required|integer', 'tgl_dari' => 'required|date', 'tgl_sampai' => 'required|date|after_or_equal:tgl_dari']);
 
         try {

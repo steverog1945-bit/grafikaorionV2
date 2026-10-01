@@ -148,4 +148,47 @@ class JerseyOrderHttpTest extends TestCase
         $r->assertSessionHasNoErrors();
         $this->assertSame(1, DB::table('jersey_order_items')->count());
     }
+
+    /** Role tanpa hak harga (Operator Desain) yang boleh menginput order jersey lewat menu 42. */
+    private function operatorDesain(): User
+    {
+        $role = Role::factory()->create(['nama_role' => 'Desain Uji ' . uniqid(), 'boleh_lihat_harga' => 0]);
+        DB::table('menus')->insertOrIgnore(['id_menu' => 42, 'nama_menu' => 'Order Jersey (Input Order)', 'url_link' => 'jersey/create', 'parent_id' => 0]);
+        DB::table('role_permissions')->insert(['id_role' => $role->id_role, 'id_menu' => 42, 'can_view' => 1, 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1]);
+
+        return User::factory()->create(['id_role' => $role->id_role]);
+    }
+
+    public function test_role_tanpa_hak_harga_tidak_bisa_mengisi_diskon_saat_membuat_order(): void
+    {
+        $desain = $this->operatorDesain();
+
+        $this->actingAs($desain)->get('/jersey/create')->assertOk()->assertDontSee('name="discount"', false);
+        $this->actingAs($desain)->post('/jersey/store', $this->payload([$this->pemain(1, 'M')]) + ['discount' => 50000, 'additional_charge' => 10000])
+            ->assertSessionHasNoErrors();
+
+        $o = \App\Models\JerseyOrder::latest('id')->first();
+        $this->assertEquals(0, (float) $o->discount);
+        $this->assertEquals(0, (float) $o->additional_charge);
+    }
+
+    public function test_role_tanpa_hak_harga_mengubah_status_tidak_menghapus_atau_mengubah_diskon(): void
+    {
+        $this->actingAs($this->admin)->post('/jersey/store', $this->payload([$this->pemain(1, 'M')]) + ['discount' => 20000])->assertSessionHasNoErrors();
+        $o = \App\Models\JerseyOrder::latest('id')->first();
+        $this->assertEquals(20000, (float) $o->discount);
+        $total = (float) $o->total;
+
+        $desain = $this->operatorDesain();
+        $this->actingAs($desain)->get("/jersey/{$o->id}")->assertOk()->assertDontSee('name="discount"', false);
+
+        // Form tanpa kolom diskon (yang dilihat role ini), lalu percobaan mengirim diskon lewat permintaan buatan.
+        $this->actingAs($desain)->put("/jersey/{$o->id}", ['status' => 'proses', 'notes' => 'mulai potong'])->assertSessionHas('success');
+        $this->actingAs($desain)->put("/jersey/{$o->id}", ['status' => 'proses', 'discount' => 999999])->assertSessionHas('success');
+
+        $o->refresh();
+        $this->assertEquals(20000, (float) $o->discount);
+        $this->assertEquals($total, (float) $o->total);
+        $this->assertSame('proses', $o->status);
+    }
 }
