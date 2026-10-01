@@ -35,7 +35,7 @@
                             <i class="fas fa-plus text-[9px]"></i> Baru
                         </button>
                     </div>
-                    <select id="select_konsumen" name="id_konsumen" class="select2-konsumen-barang w-full" required>
+                    <select id="select_konsumen" name="id_konsumen" class="select2-konsumen-barang w-full">
                         <option value="">-- Cari Nama / No. HP --</option>
                         @foreach($konsumen as $k)
                             <option value="{{ $k->id_konsumen }}">{{ $k->nama_konsumen }}{{ $k->telepon ? ' - ' . $k->telepon : '' }}</option>
@@ -132,6 +132,7 @@
                                         data-divisi="{{ $j->id_mesin }}"
                                         data-nama="{{ $j->nama_jasa }}"
                                         data-satuan="{{ $j->nama_satuan }}"
+                                        data-tipe-satuan="{{ $j->tipe_satuan }}"
                                         data-harga="{{ $j->harga_default ?? 0 }}"
                                         data-biaya="{{ (float) $j->biaya_operasional + (float) $j->biaya_tinta }}">{{ $j->nama_jasa }}</option>
                             @endforeach
@@ -145,8 +146,23 @@
                         </p>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-medium text-slate-400 mb-2 ml-2">Qty</label>
-                        <input type="number" id="input_qty_jasa" min="0.01" step="0.01" value="1" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-center focus:ring-2 focus:ring-emerald-500/20 shadow-inner">
+                        <label class="block text-[10px] font-medium text-slate-400 mb-2 ml-2" id="label_qty_jasa">Qty</label>
+                        <input type="number" id="input_qty_jasa" min="0.01" step="0.01" value="1" oninput="hitungQtyJasa()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-center focus:ring-2 focus:ring-emerald-500/20 shadow-inner">
+                    </div>
+                </div>
+                {{-- Ukuran untuk jasa bersatuan luas (m2, cm2) atau panjang (m, cm), mengikuti tipe satuan di Master Satuan. --}}
+                <div id="blok_ukuran_jasa" class="hidden grid grid-cols-1 md:grid-cols-4 gap-4 items-end mt-4">
+                    <div>
+                        <label class="block text-[10px] font-medium text-slate-400 mb-2 ml-2" id="label_p_jasa">Panjang</label>
+                        <input type="number" id="input_p_jasa" min="0" step="0.01" oninput="hitungQtyJasa()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-center focus:ring-2 focus:ring-emerald-500/20 shadow-inner">
+                    </div>
+                    <div id="wrap_l_jasa">
+                        <label class="block text-[10px] font-medium text-slate-400 mb-2 ml-2" id="label_l_jasa">Lebar</label>
+                        <input type="number" id="input_l_jasa" min="0" step="0.01" oninput="hitungQtyJasa()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-center focus:ring-2 focus:ring-emerald-500/20 shadow-inner">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-medium text-slate-400 mb-2 ml-2">Total dihitung</label>
+                        <div id="info_qty_jasa" class="w-full bg-slate-50 rounded-xl py-3 px-4 text-sm font-medium text-slate-700">-</div>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mt-4">
@@ -253,6 +269,17 @@
 <script>
     $(document).ready(function () {
         $('.select2-konsumen-barang').select2({ placeholder: '-- Cari Nama / No. HP --', allowClear: true, width: '100%' });
+
+        // Select yang disembunyikan select2 tidak bisa menampilkan pesan "wajib diisi" bawaan browser,
+        // jadi tombol simpan tampak tidak bereaksi. Periksa sendiri dan beri tahu dengan jelas.
+        document.getElementById('form-penjualan-barang').addEventListener('submit', function (e) {
+            if (!$('#select_konsumen').val()) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                Swal.fire('Data belum lengkap', 'Pilih konsumen dulu.', 'warning');
+                $('#select_konsumen').select2('open');
+            }
+        }, true);
         $('.select2-bahan-barang').select2({
             width: '100%',
             matcher: function (params, data) {
@@ -347,6 +374,45 @@
         const harga = parseFloat(opt.dataset.harga) || 0;
         document.getElementById('input_harga_jasa').value = harga > 0 ? formatRupiah(harga) : '';
         hitungBiayaJasa();
+        aturUkuranJasa();
+    }
+
+    // Satuan jasa menentukan isian: Luas -> panjang x lebar x jumlah, Panjang -> panjang x jumlah, lainnya qty saja.
+    function satuanJasaTerpilih() {
+        const sel = document.getElementById('select_jasa_barang');
+        const opt = sel && sel.value ? sel.options[sel.selectedIndex] : null;
+        const satuan = opt ? (opt.dataset.satuan || 'pcs') : 'pcs';
+        return { tipe: opt ? (opt.dataset.tipeSatuan || 'Barang') : 'Barang', satuan, dasar: /^cm/i.test(satuan) ? 'cm' : 'm' };
+    }
+
+    function aturUkuranJasa() {
+        const s = satuanJasaTerpilih();
+        const berukuran = s.tipe === 'Luas' || s.tipe === 'Panjang';
+        document.getElementById('blok_ukuran_jasa').classList.toggle('hidden', !berukuran);
+        document.getElementById('wrap_l_jasa').classList.toggle('hidden', s.tipe !== 'Luas');
+        document.getElementById('label_p_jasa').textContent = 'Panjang (' + s.dasar + ')';
+        document.getElementById('label_l_jasa').textContent = 'Lebar (' + s.dasar + ')';
+        document.getElementById('label_qty_jasa').textContent = berukuran ? 'Jumlah (pcs)' : 'Qty (' + s.satuan + ')';
+        hitungQtyJasa();
+    }
+
+    // Qty yang ditagihkan dalam satuan jasa. Untuk satuan biasa sama dengan isian Qty.
+    function hitungQtyJasa() {
+        const s = satuanJasaTerpilih();
+        const jumlah = parseFloat(document.getElementById('input_qty_jasa').value) || 0;
+        const p = parseFloat(document.getElementById('input_p_jasa').value) || 0;
+        const l = parseFloat(document.getElementById('input_l_jasa').value) || 0;
+        let qty = jumlah;
+        if (s.tipe === 'Luas') qty = p * l * jumlah;
+        if (s.tipe === 'Panjang') qty = p * jumlah;
+        qty = Math.round(qty * 10000) / 10000;
+        const info = document.getElementById('info_qty_jasa');
+        if (info) {
+            info.textContent = s.tipe === 'Luas'
+                ? p.toLocaleString('id-ID') + ' x ' + l.toLocaleString('id-ID') + ' ' + s.dasar + ' x ' + jumlah.toLocaleString('id-ID') + ' pcs = ' + qty.toLocaleString('id-ID') + ' ' + s.satuan
+                : p.toLocaleString('id-ID') + ' ' + s.dasar + ' x ' + jumlah.toLocaleString('id-ID') + ' pcs = ' + qty.toLocaleString('id-ID') + ' ' + s.satuan;
+        }
+        return { qty, p, l, jumlah, tipe: s.tipe, dasar: s.dasar };
     }
 
     function hitungBiayaJasa() {
@@ -362,18 +428,21 @@
     // tambahan - satu-satunya pembeda adalah field id_jasa (dipakai
     // server untuk mengisi hpp dari biaya master).
     function tambahJasaKeDaftar() {
-        const idKonsumen = $('#id_konsumen').val();
-        if (!idKonsumen) return Swal.fire('Data belum lengkap', 'Pilih pelanggan dulu', 'error');
+        // Id field konsumen di halaman ini select_konsumen (bukan id_konsumen seperti di Input Pesanan).
+        if (!$('#select_konsumen').val()) return Swal.fire('Data belum lengkap', 'Pilih konsumen dulu.', 'warning');
 
         const sel = document.getElementById('select_jasa_barang');
         const idJasa = sel.value;
         if (!idJasa) return Swal.fire('Data belum lengkap', 'Pilih jasa dulu.', 'warning');
 
         const opt = sel.options[sel.selectedIndex];
-        const qty = parseFloat(document.getElementById('input_qty_jasa').value) || 0;
+        const ukuran = hitungQtyJasa();
+        const qty = ukuran.qty;
         const harga = cleanRupiah(document.getElementById('input_harga_jasa').value);
         const biaya = parseFloat(opt.dataset.biaya || 0) || 0;
 
+        if (ukuran.tipe === 'Luas' && (ukuran.p <= 0 || ukuran.l <= 0)) return Swal.fire('Data belum lengkap', 'Isi panjang dan lebar.', 'warning');
+        if (ukuran.tipe === 'Panjang' && ukuran.p <= 0) return Swal.fire('Data belum lengkap', 'Isi ukuran panjang.', 'warning');
         if (qty <= 0) return Swal.fire('Data belum lengkap', 'Qty jasa harus lebih dari 0.', 'warning');
         if (harga <= 0) return Swal.fire('Data belum lengkap', 'Harga satuan jasa harus diisi.', 'warning');
 
@@ -401,14 +470,21 @@
     function dorongJasaKeDaftar() {
         const sel = document.getElementById('select_jasa_barang');
         const opt = sel.options[sel.selectedIndex];
-        const qty = parseFloat(document.getElementById('input_qty_jasa').value) || 0;
+        const ukuran = hitungQtyJasa();
+        const qty = ukuran.qty;
         const harga = cleanRupiah(document.getElementById('input_harga_jasa').value);
+        const berukuran = ukuran.tipe === 'Luas' || ukuran.tipe === 'Panjang';
 
         daftarBahan.push({
             tipe: 'jasa',
             id_jasa: sel.value,
             nama: opt.dataset.nama,
             satuan: opt.dataset.satuan || 'Pcs',
+            // Keterangan ukuran untuk daftar, mis. "2 x 1,5 m x 3 pcs".
+            ukuran: berukuran ? document.getElementById('info_qty_jasa').textContent.split(' = ')[0] : '',
+            p: berukuran ? ukuran.p : '',
+            l: ukuran.tipe === 'Luas' ? ukuran.l : '',
+            jumlah: berukuran ? ukuran.jumlah : '',
             qty: qty,
             harga: harga,
             biaya: parseFloat(opt.dataset.biaya || 0) || 0,
@@ -422,6 +498,9 @@
 
         $('#select_jasa_barang').val('');
         document.getElementById('input_qty_jasa').value = 1;
+        document.getElementById('input_p_jasa').value = '';
+        document.getElementById('input_l_jasa').value = '';
+        aturUkuranJasa();
         document.getElementById('input_harga_jasa').value = '';
         document.getElementById('info_biaya_jasa').textContent = '-';
 
@@ -607,7 +686,7 @@
             }
             const namaSub = document.createElement('p');
             namaSub.className = 'text-[11px] text-slate-400';
-            namaSub.textContent = `${item.qty} ${item.satuan} x Rp ${item.harga.toLocaleString('id-ID')}`;
+            namaSub.textContent = (item.ukuran ? item.ukuran + ' = ' : '') + `${item.qty.toLocaleString('id-ID')} ${item.satuan} x Rp ${item.harga.toLocaleString('id-ID')}`;
             namaEl.append(namaTitle, namaSub);
 
             const subtotalEl = document.createElement('span');
@@ -629,7 +708,7 @@
             const fields = item.tipe === 'custom'
                 ? ['tipe', 'nama', 'qty', 'harga']
                 : item.tipe === 'jasa'
-                    ? ['tipe', 'id_jasa', 'qty', 'harga']
+                    ? ['tipe', 'id_jasa', 'qty', 'harga', 'p', 'l', 'jumlah']
                     : ['tipe', 'id_bahan', 'qty', 'harga'];
             fields.forEach(field => {
                 const input = document.createElement('input');

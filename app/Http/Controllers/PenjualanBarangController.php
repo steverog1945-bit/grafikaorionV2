@@ -63,7 +63,8 @@ class PenjualanBarangController extends Controller
                 'jasa.harga_default',
                 'jasa.biaya_operasional',
                 'jasa.biaya_tinta',
-                DB::raw('COALESCE(satuan.nama_satuan, "Pcs") as nama_satuan')
+                DB::raw('COALESCE(satuan.nama_satuan, "Pcs") as nama_satuan'),
+                DB::raw('COALESCE(satuan.tipe_satuan, "Barang") as tipe_satuan')
             )
             ->orderBy('jasa.nama_jasa')
             ->get();
@@ -106,6 +107,10 @@ class PenjualanBarangController extends Controller
             // Custom/Lainnya: barang/jasa yang tidak ada di data bahan baku,
             // nama diisi bebas, TIDAK memotong stok apa pun.
             'items.*.nama' => 'required_if:items.*.tipe,custom|nullable|string|max:255',
+            // Jasa bersatuan luas/panjang: ukuran dan jumlah keping. Qty dihitung ulang di server.
+            'items.*.p' => 'nullable|numeric|min:0',
+            'items.*.l' => 'nullable|numeric|min:0',
+            'items.*.jumlah' => 'nullable|numeric|min:0.01',
         ]);
 
         // Order (belum tentu pembayaran) HANYA boleh dibuat selama toko
@@ -156,6 +161,13 @@ class PenjualanBarangController extends Controller
 
             foreach ($request->items as $index => $item) {
                 $qty = (float) $item['qty'];
+                $ukuran = null;
+                if (($item['tipe'] ?? '') === 'jasa') {
+                    $ukuran = self::ukuranJasa((int) $item['id_jasa'], $item);
+                    if ($ukuran) {
+                        $qty = $ukuran['qty'];
+                    }
+                }
                 $harga = (float) $item['harga'];
                 $subtotal = $qty * $harga;
                 $grandTotal += $subtotal;
@@ -172,7 +184,9 @@ class PenjualanBarangController extends Controller
                         throw new \Exception('Jasa pada baris ' . ($index + 1) . ' tidak ditemukan.');
                     }
 
-                    $hppJasa = (float) $jasa->harga_default;
+                    // hpp_snapshot = biaya bahan sesuai BOM; jasa tidak ber-BOM sehingga 0, sama dengan
+                    // jalur Input Pesanan (lihat LaporanController::hpp). Dulu diisi harga jual master.
+                    $hppJasa = 0;
 
                     DB::table('transaksi_detail')->insert([
                         'id_transaksi'        => $idTransaksi,
@@ -180,8 +194,8 @@ class PenjualanBarangController extends Controller
                         'id_jasa'             => $jasa->id_jasa,
                         'id_bahan'            => null,
                         'nama_file'           => $jasa->nama_jasa,
-                        'p_ukuran'            => 0,
-                        'l_ukuran'            => 0,
+                        'p_ukuran'            => $ukuran['p'] ?? 0,
+                        'l_ukuran'            => $ukuran['l'] ?? 0,
                         'qty'                 => $qty,
                         'biaya_cetak'         => $subtotal,
                         'biaya_desain'        => 0,
@@ -304,5 +318,37 @@ class PenjualanBarangController extends Controller
             DB::rollBack();
             return redirect()->back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal menyimpan'))->withInput();
         }
+    }
+
+    /**
+     * Qty jasa menurut tipe satuannya di master: Luas = panjang x lebar x jumlah, Panjang = panjang x jumlah,
+     * selain itu qty biasa (null). Tipe satuan diambil dari database, bukan dari form.
+     *
+     * @return array{qty: float, p: float, l: float}|null
+     */
+    private static function ukuranJasa(int $idJasa, array $item): ?array
+    {
+        $tipe = DB::table('jasa')->leftJoin('satuan', 'satuan.id_satuan', '=', 'jasa.id_satuan')
+            ->where('jasa.id_jasa', $idJasa)->value('satuan.tipe_satuan');
+        $p = (float) ($item['p'] ?? 0);
+        $l = (float) ($item['l'] ?? 0);
+        $jumlah = (float) ($item['jumlah'] ?? 1) ?: 1;
+
+        if ($tipe === 'Luas') {
+            if ($p <= 0 || $l <= 0) {
+                throw new \RuntimeException('Jasa bersatuan luas perlu panjang dan lebar.');
+            }
+
+            return ['qty' => round($p * $l * $jumlah, 4), 'p' => $p, 'l' => $l];
+        }
+        if ($tipe === 'Panjang') {
+            if ($p <= 0) {
+                throw new \RuntimeException('Jasa bersatuan panjang perlu ukuran panjang.');
+            }
+
+            return ['qty' => round($p * $jumlah, 4), 'p' => $p, 'l' => 0];
+        }
+
+        return null;
     }
 }
