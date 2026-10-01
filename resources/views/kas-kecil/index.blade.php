@@ -42,7 +42,7 @@
     @unless($adaSaldoAwal)
         <x-card class="mb-6 no-print">
             @if($bolehSaldoAwal)
-                <form method="POST" action="{{ route('kas-kecil.saldo-awal') }}" class="flex flex-wrap items-end gap-4"
+                <form method="POST" action="{{ route('kas-kecil.saldo-awal') }}" class="flex flex-wrap items-center gap-4"
                       data-konfirmasi="Tetapkan saldo awal Kas Kecil? Nominal ini dicatat sebagai modal yang sudah ada di Kas Kecil.">
                     @csrf
                     <div class="flex-1 min-w-[220px]">
@@ -71,7 +71,8 @@
     <x-card class="mb-6 no-print">
         <form method="POST" action="{{ route('kas-kecil.store') }}" id="form-kas-kecil">
             @csrf
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <style>.kk-label-tersembunyi > label { visibility: hidden; }</style>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-start">
                 <x-form.group label="Jenis" required>
                     <x-form.select name="jenis" id="kk-jenis" required>
                         <option value="Keluar" {{ old('jenis', 'Keluar') === 'Keluar' ? 'selected' : '' }}>Pengeluaran</option>
@@ -95,11 +96,13 @@
                 <x-form.group label="Nominal (Rp)" required>
                     <x-form.input type="text" inputmode="numeric" name="nominal" value="{{ old('nominal') }}" required placeholder="0" class="format-ribuan" />
                 </x-form.group>
-                <div class="flex items-end">
-                    <x-button type="submit" class="w-full">
+                {{-- Label tak terlihat dengan gaya yang sama membuat tombol sejajar tepat dengan kolom isian, tidak terdorong
+                     oleh tautan "Kelola Kategori" di bawah kolom kategori. --}}
+                <x-form.group label="Catat" class="kk-label-tersembunyi">
+                    <x-button type="submit" class="w-full" style="height: 38px">
                         <i class="fas fa-plus"></i> Catat
                     </x-button>
-                </div>
+                </x-form.group>
             </div>
             <x-form.group label="Keterangan" class="mt-4" required>
                 <x-form.input type="text" name="keterangan" value="{{ old('keterangan') }}" required placeholder="mis. Beli tinta printer & kertas HVS untuk admin" />
