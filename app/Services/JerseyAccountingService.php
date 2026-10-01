@@ -65,6 +65,8 @@ class JerseyAccountingService
             // Pembayaran lama (sebelum integrasi akuntansi) tidak punya
             // referensi jurnal - tidak ada yang perlu dibalik.
             if ($payment->no_referensi_jurnal) {
+                // Pembayaran tunai masuk Kas Kecil: void menarik uangnya kembali, jadi tidak boleh membuat saldo minus.
+                KasKecilService::pastikanPemasukanBisaDitarik($payment->no_referensi_jurnal, 'Pembayaran jersey tunai ini');
                 AccountingService::reverseByReferensi($payment->no_referensi_jurnal);
             }
 

@@ -76,7 +76,7 @@ class KasKecilController extends Controller
 
         // Kategori sekarang tabel referensi tetap (dropdown), bukan lagi
         // isian bebas - lihat migrasi create_kategori_kas_kecil_table.
-        $kategoriList = KategoriKasKecil::whereNotIn('kode_akun', ['1000', '1005'])->orWhereNull('kode_akun')->orderBy('nama_kategori')->get();
+        $kategoriList = KategoriKasKecil::whereNotNull('kode_akun')->whereNotIn('kode_akun', ['1000', '1005'])->orderBy('nama_kategori')->get();
         // Saldo sebenarnya (seluruh waktu, menurut jurnal), bukan selisih dalam rentang filter.
         $saldoKasKecil = \App\Services\PembayaranHutangService::saldoKasKecil();
         $adaSaldoAwal = KasKecil::where('sumber', 'saldo_awal')->exists();
@@ -113,6 +113,12 @@ class KasKecilController extends Controller
             return back()->withInput()->withErrors(['id_kategori' => "Kategori \"{$kategori->nama_kategori}\" adalah kategori " . ($kategori->jenis === 'Masuk' ? 'pemasukan' : 'pengeluaran') . ', tidak cocok dengan jenis yang dipilih.']);
         }
 
+        // Tanpa akun tidak ada jurnal, padahal saldo Kas Kecil dihitung dari jurnal: pengeluarannya tidak mengurangi
+        // saldo dan penjaga "tidak boleh minus" terlewati. Kategorinya harus dilengkapi dulu.
+        if (!$kategori->kode_akun) {
+            return back()->withInput()->with('error', "Kategori \"{$kategori->nama_kategori}\" belum dihubungkan ke akun, jadi belum bisa dipakai. Lengkapi akunnya lewat menu Kategori Kas Kecil, lalu catat lagi.");
+        }
+
         // Kas Kecil tidak menyentuh laci kasir, dan tidak bisa "mengisi dirinya sendiri".
         if (in_array($kategori->kode_akun, ['1000', '1005'], true)) {
             return back()->withInput()->with('error', "Kategori \"{$kategori->nama_kategori}\" tidak bisa dipakai: Kas Kecil terpisah dari laci kasir. Uang tambahan dari pemilik dicatat dengan kategori setoran pemilik.");
@@ -126,20 +132,14 @@ class KasKecilController extends Controller
             }
             $kk = KasKecil::create($data);
 
-            if ($kategori->kode_akun) {
-                $data['jenis'] === 'Masuk'
-                    ? AccountingService::postKasKecilMasuk('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal)
-                    : AccountingService::postKasKecil('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal);
-            }
+            $data['jenis'] === 'Masuk'
+                ? AccountingService::postKasKecilMasuk('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal)
+                : AccountingService::postKasKecil('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal);
 
             return $kk;
         });
         } catch (\RuntimeException $e) {
             return back()->withInput()->with('error', $e->getMessage());
-        }
-
-        if (!$kategori->kode_akun) {
-            return back()->with('error', "Catatan tersimpan, TAPI kategori \"{$kategori->nama_kategori}\" belum dihubungkan ke akun manapun - nominal ini belum ikut terhitung di jurnal/Laba Rugi. Lengkapi pemetaan akunnya lewat menu Kategori Kas Kecil.");
         }
 
         return back()->with('success', ($data['jenis'] === 'Masuk' ? 'Pemasukan' : 'Pengeluaran') . ' kas kecil berhasil dicatat & masuk ke jurnal akuntansi.');

@@ -23,6 +23,25 @@ class KasKecilService
         }
     }
 
+    /**
+     * Membatalkan pemasukan yang masuk ke Kas Kecil (saldo awal, setoran pemilik, pembayaran jersey tunai) menarik
+     * uangnya kembali. Bila uang itu sudah terpakai, pembatalan ditolak: saldo Kas Kecil tidak boleh minus.
+     * Wajib di dalam transaksi (mengunci akun 1005 lewat pastikanSaldoCukup).
+     */
+    public static function pastikanPemasukanBisaDitarik(string $noReferensi, string $label): void
+    {
+        $masuk = round((float) DB::table('jurnal_umum')->where('no_referensi', $noReferensi)->where('kode_akun', '1005')->sum(DB::raw('debet - kredit')), 2);
+        if ($masuk <= 0) {
+            return;
+        }
+
+        DB::table('bag_akun')->where('kode_akun', '1005')->lockForUpdate()->first();
+        $saldo = PembayaranHutangService::saldoKasKecil();
+        if ($masuk > $saldo + 0.01) {
+            throw new \RuntimeException("{$label} tidak bisa dibatalkan: uangnya (Rp " . number_format($masuk, 0, ',', '.') . ') sudah terpakai, saldo Kas Kecil tinggal Rp ' . number_format(max(0, $saldo), 0, ',', '.') . '. Batalkan dulu pengeluaran yang memakainya, atau catat setoran pemilik bila uangnya memang ada.');
+        }
+    }
+
     public static function batalkan(int $id): void
     {
         DB::transaction(function () use ($id) {
@@ -32,6 +51,7 @@ class KasKecilService
                 throw new \RuntimeException('Catatan kas kecil tidak ditemukan atau sudah dibatalkan.');
             }
 
+            self::pastikanPemasukanBisaDitarik('KK-' . $kasKecil->id, 'Pemasukan Kas Kecil ini');
             AccountingService::reverseByReferensi('KK-' . $kasKecil->id);
             // Setoran dari laci: baris cerminnya di Kas Tak Terduga ikut dibatalkan (laci kembali).
             DB::table('kas_manual')->where('keterangan', 'like', "%[KK-{$kasKecil->id}]%")->delete();

@@ -121,8 +121,8 @@
 
         <x-form.group label="Akun Terkait" name="kode_akun"
                       help="Pengeluaran dipetakan ke akun Beban, pemasukan ke akun Pendapatan atau Modal. Nomornya otomatis masuk jurnal dan Laba Rugi setiap kali kategori ini dipakai di Kas Kecil." dalam>
-            <x-form.select name="kode_akun" id="inputKodeAkunKategoriKasKecil">
-                <option value="">-- Belum Dipetakan --</option>
+            <x-form.select name="kode_akun" id="inputKodeAkunKategoriKasKecil" required>
+                <option value="">-- Pilih akun --</option>
                 @foreach($akunBeban as $akun)
                     <option value="{{ $akun->kode_akun }}" data-jenis="{{ $akun->tipe_akun === 'Beban' ? 'Keluar' : 'Masuk' }}">{{ $akun->kode_akun }} - {{ $akun->nama_akun }}</option>
                 @endforeach
