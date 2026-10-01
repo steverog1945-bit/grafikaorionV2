@@ -116,6 +116,52 @@ class AuditIntegritasCommand extends Command
             }
         }
 
+        // 7. Buku Kas Kecil (catatan tunai) harus sama dengan saldo akun 1005 di jurnal. Selisih biasanya berarti ada
+        //    kategori tanpa akun (catatan tanpa jurnal) atau jurnal 1005 tanpa catatan buku.
+        if (DB::getSchemaBuilder()->hasTable('kas_kecil')) {
+            $buku = (float) DB::table('kas_kecil')->whereNull('deleted_at')->where('metode', 'Tunai')
+                ->selectRaw("COALESCE(SUM(CASE WHEN jenis = 'Masuk' THEN nominal ELSE -nominal END), 0) s")->value('s');
+            $jurnal = (float) DB::table('jurnal_umum')->where('kode_akun', '1005')->selectRaw('COALESCE(SUM(debet - kredit), 0) s')->value('s');
+            if (abs($buku - $jurnal) > 0.01) {
+                $adaTemuan = true;
+                $hasil[] = ['kas_kecil_tidak_sinkron', 'Kas Kecil', 'buku=' . round($buku, 2) . ' jurnal 1005=' . round($jurnal, 2)];
+            }
+        }
+
+        // 8. Piutang Usaha (1100) = sisa tagihan nota aktif + sisa tagihan order jersey yang sudah terjurnal.
+        $sisaNota = (float) DB::table('transaksi as t')->where('t.status_nota', '!=', 'Dibatalkan')
+            ->leftJoinSub(DB::table('pembayaran_riwayat')->selectRaw('id_transaksi, SUM(nominal) s')->groupBy('id_transaksi'), 'b', 'b.id_transaksi', '=', 't.id_transaksi')
+            ->selectRaw('COALESCE(SUM(t.total_bayar - COALESCE(b.s, 0)), 0) s')->value('s');
+        $sisaJersey = 0.0;
+        if (DB::getSchemaBuilder()->hasTable('jersey_orders')) {
+            $sisaJersey = (float) DB::table('jersey_orders')->sum('total_terjurnal')
+                - (float) DB::table('jersey_order_payments')->whereNull('deleted_at')->sum('jumlah');
+        }
+        $piutang = (float) DB::table('jurnal_umum')->where('kode_akun', '1100')->selectRaw('COALESCE(SUM(debet - kredit), 0) s')->value('s');
+        if (abs($piutang - ($sisaNota + $sisaJersey)) > 0.01) {
+            $adaTemuan = true;
+            $hasil[] = ['piutang_tidak_sinkron', 'Piutang Usaha 1100', 'jurnal=' . round($piutang, 2) . ' sisa tagihan nota=' . round($sisaNota, 2) . ' jersey=' . round($sisaJersey, 2)];
+        }
+
+        // 9. Collation kolom teks harus seragam; campuran membuat kueri gabungan gagal hanya di database ini.
+        if (DB::getDriverName() === 'mysql') {
+            $campur = DB::table('information_schema.columns')->whereRaw('table_schema = DATABASE()')
+                ->whereNotNull('collation_name')->whereNotIn('collation_name', ['utf8mb4_unicode_ci', 'utf8mb4_bin'])
+                ->selectRaw('table_name, column_name, collation_name')->get();
+            foreach ($campur as $c) {
+                $adaTemuan = true;
+                $hasil[] = ['collation_campuran', "{$c->table_name}.{$c->column_name}", $c->collation_name . ' (php artisan migrate)'];
+            }
+        }
+
+        // Hasil terakhir disimpan untuk lonceng notifikasi dan halaman Audit Bulanan (dijalankan terjadwal tiap hari).
+        \Illuminate\Support\Facades\Cache::forever('audit_integritas_terakhir', [
+            'waktu' => now()->toDateTimeString(),
+            'jumlah' => count($hasil),
+            'temuan' => array_slice($hasil, 0, 50),
+        ]);
+        \Illuminate\Support\Facades\Cache::forget('notif:integritas');
+
         if ($this->option('json')) {
             $this->line(json_encode(['ok' => !$adaTemuan, 'temuan' => $hasil], JSON_PRETTY_PRINT));
         } elseif ($adaTemuan) {

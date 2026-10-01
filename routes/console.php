@@ -16,4 +16,7 @@ Schedule::command('backup:run daily')->dailyAt('01:00')->withoutOverlapping();
 Schedule::command('backup:run weekly')->weeklyOn(1, '01:30')->withoutOverlapping();
 // Perawatan data: cache/sesi kedaluwarsa, log audit lama ke arsip. Setelah backup harian.
 Schedule::command('data:rapikan')->dailyAt('03:00')->withoutOverlapping();
+// Pemeriksaan pembukuan (jurnal seimbang, Kas Kecil vs jurnal, piutang vs sisa tagihan, stok, collation).
+// Temuan muncul di lonceng notifikasi dan halaman Audit Bulanan.
+Schedule::command('audit:integritas')->dailyAt('04:00')->withoutOverlapping();
 Schedule::command('backup:run monthly')->monthlyOn(1, '02:00')->withoutOverlapping();

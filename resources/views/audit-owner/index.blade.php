@@ -146,6 +146,22 @@
         </x-slot:subtitle>
     </x-page-header>
 
+    @php($integritas = \Illuminate\Support\Facades\Cache::get('audit_integritas_terakhir'))
+    @if($integritas && $integritas['jumlah'] > 0)
+        <div class="lembar no-print mb-6 px-5 py-4 border-rose-200">
+            <p class="text-sm font-medium text-rose-700">Pemeriksaan pembukuan menemukan {{ $integritas['jumlah'] }} hal yang perlu dicek</p>
+            <p class="text-xs text-slate-500 mt-0.5">Diperiksa {{ \Carbon\Carbon::parse($integritas['waktu'])->translatedFormat('d M Y, H:i') }}. Jalankan ulang setelah diperbaiki: <code>php artisan audit:integritas</code></p>
+            <ul class="mt-3 space-y-1 text-[13px] text-slate-700">
+                @foreach(array_slice($integritas['temuan'], 0, 10) as [$jenis, $target, $detail])
+                    <li><span class="font-medium">{{ str_replace('_', ' ', $jenis) }}</span>: {{ $target }} <span class="text-slate-500">({{ $detail }})</span></li>
+                @endforeach
+            </ul>
+            @if($integritas['jumlah'] > 10)
+                <p class="text-xs text-slate-500 mt-2">Dan {{ $integritas['jumlah'] - 10 }} lainnya.</p>
+            @endif
+        </div>
+    @endif
+
     {{-- Filter: satu baris tenang, tanpa kotak besar --}}
     <div class="lembar no-print mb-6 px-5 py-3.5">
         <form method="GET" class="flex flex-wrap items-center gap-3">

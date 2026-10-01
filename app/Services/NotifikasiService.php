@@ -63,6 +63,8 @@ class NotifikasiService
         $hariIni = now()->toDateString();
 
         return [
+            ['key' => 'integritas', 'label' => 'Temuan pemeriksaan pembukuan', 'routes' => ['audit-owner.index'], 'tone' => 'rose',
+                'hitung' => fn () => (int) (Cache::get('audit_integritas_terakhir')['jumlah'] ?? 0)],
             ['key' => 'approval', 'label' => 'Pengajuan menunggu persetujuan', 'routes' => ['approval.index'], 'tone' => 'rose',
                 'hitung' => fn () => DB::table('approval_requests')->where('status', 'Menunggu')->count()],
             ['key' => 'kasir-bayar', 'label' => 'Nota belum dibayar', 'routes' => ['kasir.index'], 'tone' => 'amber',
