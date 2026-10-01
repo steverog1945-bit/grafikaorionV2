@@ -73,4 +73,23 @@ class IzinKasKecilTest extends TestCase
         $this->actingAs($u)->post('/kas-kecil/saldo-awal', ['tanggal' => now()->toDateString(), 'nominal' => 1000000])->assertForbidden();
         $this->actingAs($u)->get('/kas-kecil')->assertOk()->assertSee('Minta Administrator menetapkannya');
     }
+
+    /** Peta hak untuk tampilan diturunkan dari aturan yang sama dengan middleware. */
+    public function test_peta_hak_tampilan_sama_dengan_aturan_server(): void
+    {
+        $u = $this->pengguna([7]);
+        DB::table('role_permissions')->where('id_role', $u->id_role)->where('id_menu', 7)->update(['can_edit' => 0, 'can_delete' => 0]);
+
+        $peta = \App\Support\Izin::petaUntukTampilan($u);
+        $this->assertFalse($peta['admin']);
+        $this->assertSame('1100', $peta['aturan']['konsumen']);
+        $this->assertSame('0000', $peta['aturan']['kas-kecil']);
+
+        $html = $this->actingAs($u)->get('/konsumen')->assertOk()->getContent();
+        $this->assertStringContainsString('rapikanTombolHak', $html);
+        $this->assertStringContainsString('"konsumen":"1100"', $html);
+
+        $admin = User::factory()->create(['id_role' => Role::factory()->create(['nama_role' => 'Administrator'])->id_role]);
+        $this->assertTrue(\App\Support\Izin::petaUntukTampilan($admin)['admin']);
+    }
 }

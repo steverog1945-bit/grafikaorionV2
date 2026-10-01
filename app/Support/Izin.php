@@ -140,6 +140,33 @@ class Izin
     }
 
     /** Id menu yang boleh DILIHAT (untuk sidebar). */
+    /**
+     * Peta hak untuk tampilan: dipakai skrip di layout untuk menyembunyikan tombol aksi yang pasti ditolak server
+     * (hapus, aktif/nonaktif, ubah). Isinya diturunkan dari aturan yang SAMA dengan CheckMenuAccess, jadi tampilan
+     * tidak pernah lebih longgar atau lebih ketat dari server. Server tetap penjaga utamanya.
+     *
+     * @return array{admin: bool, bacaSaja: bool, bebas: string[], postBaca: string[], hargaTertutup: string[], aturan: array<string, string>}
+     */
+    public static function petaUntukTampilan(User $user): array
+    {
+        $admin = self::adalahAdmin($user);
+        $aturan = [];
+        if (! $admin) {
+            foreach ((array) config('menu_access.rules', []) as $prefix => $menuIds) {
+                $aturan[$prefix] = implode('', array_map(fn ($a) => self::boleh($user, $menuIds, $a) ? '1' : '0', self::AKSI));
+            }
+        }
+
+        return [
+            'admin' => $admin,
+            'bacaSaja' => in_array(optional($user->role)->nama_role, (array) config('menu_access.roles_baca_saja', []), true),
+            'bebas' => array_values((array) config('menu_access.always_allow', [])),
+            'postBaca' => array_values((array) config('menu_access.post_baca', [])),
+            'hargaTertutup' => \App\Support\AksesHarga::bolehLihat($user) ? [] : array_values((array) config('menu_access.khusus_harga', [])),
+            'aturan' => $aturan,
+        ];
+    }
+
     public static function menuTerlihat(User $user): array
     {
         return array_keys(array_filter(self::peta($user), fn ($h) => $h['view']));

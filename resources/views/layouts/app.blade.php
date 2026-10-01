@@ -2148,6 +2148,77 @@
         document.querySelectorAll('button:disabled.opacity-60').forEach(function (t) { t.disabled = false; t.classList.remove('opacity-60'); });
     });
     </script>
+    @auth
+    <script>
+    // Sembunyikan tombol aksi yang pasti ditolak server untuk pengguna ini (aturan sama dengan CheckMenuAccess):
+    // form baris (hapus, aktif/nonaktif) menurut alamat tujuannya, dan tombol "Ubah" pembuka modal menurut hak ubah
+    // modul halaman ini. Hanya kerapian tampilan; server tetap menolak bila dipaksa.
+    (function () {
+        const hak = @json(\App\Support\Izin::petaUntukTampilan(Auth::user()));
+        if (hak.admin) return;
+        const dasar = new URL(@json(url('/'))).pathname.replace(/\/$/, '');
+        const AKSI = { view: 0, add: 1, edit: 2, delete: 3 };
+
+        function jalur(url) {
+            try { return decodeURIComponent(new URL(url, location.href).pathname).replace(dasar, '').replace(/^\/+|\/+$/g, ''); } catch (e) { return null; }
+        }
+        function cocok(p, pola) { return p === pola || p.startsWith(pola + '/'); }
+        function boleh(p, aksi) {
+            if (p === null) return true;
+            if (hak.bebas.some(b => cocok(p, b))) return true;
+            if (aksi !== 'view' && hak.bacaSaja) return false;
+            if (hak.hargaTertutup.some(h => cocok(p, h) || (h.includes('*') && new RegExp('^' + h.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*') + '$').test(p)))) return false;
+            if (aksi === 'add' && hak.postBaca.includes(p)) aksi = 'view';
+            let pilih = null;
+            for (const pre in hak.aturan) if (cocok(p, pre) && (pilih === null || pre.length > pilih.length)) pilih = pre;
+            if (pilih === null) return false;
+            const bit = hak.aturan[pilih];
+            return bit[0] === '1' && bit[AKSI[aksi]] === '1';
+        }
+        function aksiForm(f) {
+            const m = (f.querySelector('input[name="_method"]')?.value || f.getAttribute('method') || 'GET').toUpperCase();
+            return m === 'GET' ? 'view' : m === 'POST' ? 'add' : m === 'DELETE' ? 'delete' : 'edit';
+        }
+        // Form baris = form tanpa isian yang terlihat (hanya tombol + input tersembunyi).
+        function formBaris(f) {
+            return !f.querySelector('input:not([type=hidden]):not([type=submit]):not([type=button]), select, textarea');
+        }
+        function rapikan(akar) {
+            akar.querySelectorAll('form').forEach(f => {
+                if (f.dataset.hakDiperiksa) return;
+                f.dataset.hakDiperiksa = '1';
+                const aksi = aksiForm(f);
+                if (aksi !== 'view' && formBaris(f) && !boleh(jalur(f.action), aksi)) f.style.display = 'none';
+            });
+            // Tombol "Ubah" pembuka modal: alamat form-nya diisi saat diklik, jadi pakai hak ubah modul halaman ini.
+            if (!boleh(jalur(location.href), 'edit')) {
+                akar.querySelectorAll('[aria-label="Ubah"], [title="Ubah"], [onclick^="openEdit"], [onclick^="edit"]').forEach(b => {
+                    if (b.closest('form') && !formBaris(b.closest('form'))) return;
+                    b.style.display = 'none';
+                });
+            }
+            // Tombol pembuka modal: diperiksa terhadap form di dalam modal yang dibukanya (aksi + alamat tujuan).
+            akar.querySelectorAll('[onclick*="openModal("], [onclick*="toggleModal("]').forEach(b => {
+                const m = (b.getAttribute('onclick') || '').match(/(?:openModal|toggleModal)\(\s*['"]([^'"]+)['"]/);
+                const form = m && document.querySelector('#modal-' + CSS.escape(m[1]) + ' form');
+                if (!form) return;
+                const aksi = aksiForm(form);
+                if (aksi !== 'view' && !boleh(jalur(form.getAttribute('action') ? form.action : location.href), aksi)) b.style.display = 'none';
+            });
+            // Tautan ke halaman ubah/buat milik modul lain atau modul ini.
+            akar.querySelectorAll('a[href]').forEach(a => {
+                const p = jalur(a.href);
+                if (!p || a.dataset.hakDiperiksa) return;
+                a.dataset.hakDiperiksa = '1';
+                const m = p.match(/(^|\/)(create|edit)(\/|$)/);
+                if (m && !boleh(p, m[2] === 'create' ? 'add' : 'edit')) a.style.display = 'none';
+            });
+        }
+        document.addEventListener('DOMContentLoaded', () => rapikan(document));
+        window.rapikanTombolHak = rapikan;
+    })();
+    </script>
+    @endauth
     @stack('scripts')
 </body>
 </html>
