@@ -186,9 +186,8 @@ Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () 
     Route::get('/penjualan/kasir', [PenjualanController::class, 'create'])
         ->name('penjualan.create');
 
-    // sekali.jalan: satu submit_id hanya membuat satu nota di server (percobaan ulang/dua tab tidak menggandakan).
+    // Satu submit_id hanya membuat satu nota di server (SubmitSekaliJalan terpasang di grup web).
     Route::post('/penjualan/store', [PenjualanController::class, 'store'])
-        ->middleware('sekali.jalan')
         ->name('penjualan.store');
 
     Route::get('/penjualan/riwayat', [PenjualanController::class, 'riwayat'])

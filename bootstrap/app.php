@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // respons 403/404/422 dan redirect juga, bukan cuma halaman sukses.
         $middleware->append(\App\Http\Middleware\HeaderKeamanan::class);
 
+        // Satu submit_id = satu transaksi untuk SEMUA permintaan tulis (klik ganda, coba ulang, dua tab).
+        // Tidak melakukan apa pun bila permintaan tidak membawa submit_id. Lihat docblock SubmitSekaliJalan.
+        $middleware->appendToGroup('web', \App\Http\Middleware\SubmitSekaliJalan::class);
+
         $middleware->alias([
             'menu.access' => \App\Http\Middleware\CheckMenuAccess::class,
             'restrict.input-only' => \App\Http\Middleware\RestrictInputOnlyRoles::class,

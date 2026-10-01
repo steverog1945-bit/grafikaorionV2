@@ -2101,6 +2101,27 @@
     })();
     </script>
     <script>
+    // Setiap form yang dikirim langsung oleh browser membawa submit_id. Server (SubmitSekaliJalan) memproses satu
+    // submit_id sekali saja, jadi klik ganda, coba ulang setelah jaringan putus, atau dua tab tidak menggandakan
+    // transaksi. Form yang dikirim lewat skrip (defaultPrevented) tidak diberi id: skripnya bisa mengirim ulang
+    // dengan sah tanpa memuat ulang halaman.
+    document.addEventListener('submit', function (e) {
+        const form = e.target;
+        if (e.defaultPrevented || !(form instanceof HTMLFormElement) || (form.getAttribute('method') || 'get').toLowerCase() === 'get') return;
+        let isian = form.querySelector('input[name="submit_id"]');
+        if (!isian) {
+            isian = document.createElement('input');
+            isian.type = 'hidden';
+            isian.name = 'submit_id';
+            form.appendChild(isian);
+        }
+        if (!isian.value) isian.value = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+    }, false);
+    // Halaman yang dibuka lagi dari tombol kembali memakai id baru untuk kiriman berikutnya.
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted) document.querySelectorAll('form input[name="submit_id"]').forEach(function (i) { if (!i.closest('[data-submit-id-tetap]')) i.value = ''; });
+    });
+
     // Klik ganda pada tombol simpan tidak boleh mengirim form dua kali (kasir di LAN sering menekan lagi
     // saat halaman terasa lambat). Server tetap penjaga utama (kunci baris, submit_id); ini hanya mencegah
     // pesan "sudah diproses" yang membingungkan. Tombol aktif lagi bila halaman tidak berpindah (mis. unduhan).
