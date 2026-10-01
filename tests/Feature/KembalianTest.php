@@ -42,6 +42,13 @@ class KembalianTest extends TestCase
         $this->assertEquals(71360, (float) $bayar->kembalian);
         $this->assertEquals(128640, (float) DB::table('kas_kecil')->where('sumber', 'jersey')->value('nominal'));
         $this->assertEquals(128640, (float) DB::table('jurnal_umum')->where('kode_akun', '1005')->sum('debet'));
+
+        foreach (['thermal', 'normal'] as $format) {
+            $nota = $this->get("/jersey/{$o->id}/print/{$format}")->assertOk()->getContent();
+            $this->assertMatchesRegularExpression('/Uang Diterima<\/td><td class="t">:<\/td><td class="v">Rp 200\.000/', $nota);
+            $this->assertMatchesRegularExpression('/Kembali<\/td><td class="t">:<\/td><td class="v">Rp 71\.360/', $nota);
+            $this->assertMatchesRegularExpression('/Sisa Tagihan<\/td><td class="t">:<\/td><td class="v">Rp 0/', $nota);
+        }
     }
 
     public function test_kasir_uang_lebih_tersimpan_dan_nota_mencetak_kembalian(): void

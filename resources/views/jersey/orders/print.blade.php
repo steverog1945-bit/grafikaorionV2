@@ -103,15 +103,23 @@
 
         <div class="divider divider-tight"></div>
 
-        @php $kembaliJersey = (float) $order->payments()->sum('kembalian'); @endphp
+        @php
+            // Uang yang diserahkan pelanggan dan kembaliannya tersimpan per pembayaran; nominal pembayaran
+            // (Deposit/DP) tetap sebesar yang masuk kas.
+            $kembaliJersey = (float) $order->payments()->sum('kembalian');
+            $uangDiterimaJersey = (float) $order->payments()->sum(\Illuminate\Support\Facades\DB::raw('COALESCE(uang_diterima, jumlah)'));
+            $sisaJersey = max(0, (float) $order->total - (float) $order->deposit);
+        @endphp
         <table class="table-compact ringkas-jersey">
             <tr><td class="l">Diskon</td><td class="t">:</td><td class="v">Rp {{ number_format($order->discount, 0, ',', '.') }}</td></tr>
             <tr><td class="l">Biaya Tambahan</td><td class="t">:</td><td class="v">Rp {{ number_format($order->additional_charge, 0, ',', '.') }}</td></tr>
             <tr class="tebal"><td class="l">TOTAL</td><td class="t">:</td><td class="v">Rp {{ number_format($order->total, 0, ',', '.') }}</td></tr>
             <tr><td class="l">Deposit/DP</td><td class="t">:</td><td class="v">Rp {{ number_format($order->deposit, 0, ',', '.') }}</td></tr>
             @if($kembaliJersey > 0)
+            <tr><td class="l">Uang Diterima</td><td class="t">:</td><td class="v">Rp {{ number_format($uangDiterimaJersey, 0, ',', '.') }}</td></tr>
             <tr><td class="l">Kembali</td><td class="t">:</td><td class="v">Rp {{ number_format($kembaliJersey, 0, ',', '.') }}</td></tr>
             @endif
+            <tr class="tebal"><td class="l">Sisa Tagihan</td><td class="t">:</td><td class="v">Rp {{ number_format($sisaJersey, 0, ',', '.') }}</td></tr>
         </table>
 
         @if($order->notes)
