@@ -127,26 +127,7 @@
     <x-modal id="tambah-konsumen" title="Input Konsumen Baru" maxWidth="md">
         <form action="{{ route('konsumen.store') }}" method="POST" class="space-y-5">
             @csrf
-            <x-form.group label="Nama lengkap" name="nama_konsumen" required dalam>
-                <x-form.input type="text" name="nama_konsumen" required placeholder=" " />
-            </x-form.group>
-
-            <div class="grid grid-cols-2 gap-4">
-                <x-form.group label="Telepon/WA" name="telepon" required dalam>
-                    <x-form.input type="text" name="telepon" required placeholder=" " inputmode="tel" />
-                </x-form.group>
-                <x-form.group label="Golongan" name="id_golongan" dalam>
-                    <x-form.select name="id_golongan">
-                        @foreach($golongan as $g)
-                            <option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>
-                        @endforeach
-                    </x-form.select>
-                </x-form.group>
-            </div>
-
-            <x-form.group label="Alamat" name="alamat" dalam>
-                <textarea name="alamat" rows="2" placeholder=" "></textarea>
-            </x-form.group>
+            @include('master.konsumen._field', ['awalan' => ''])
 
             <div class="pt-4 flex gap-3">
                 <x-button type="button" variant="secondary" onclick="closeModal('tambah-konsumen')" class="flex-1">Batalkan</x-button>
@@ -159,34 +140,7 @@
     <x-modal id="edit-konsumen" title="Perbarui Data Konsumen" maxWidth="md">
         <form id="formEditKonsumen" method="POST" class="space-y-5">
             @csrf @method('PUT')
-            <x-form.group label="Nama Lengkap" dalam>
-                <x-form.input type="text" name="nama_konsumen" id="edit_nama" required />
-            </x-form.group>
-
-            <div class="grid grid-cols-2 gap-4">
-                <x-form.group label="No. Telepon/WA" dalam>
-                    <x-form.input type="text" name="telepon" id="edit_telepon" required />
-                </x-form.group>
-                <x-form.group label="Golongan" dalam>
-                    <x-form.select name="id_golongan" id="edit_golongan">
-                        @foreach($golongan as $g)
-                            <option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>
-                        @endforeach
-                    </x-form.select>
-                </x-form.group>
-            </div>
-
-            <x-form.group label="Tipe Konsumen" dalam>
-                <x-form.select name="tipe_konsumen" id="edit_tipe_konsumen">
-                    <option value="temporary">Guest (Temporary)</option>
-                    <option value="permanent">Member (Permanent)</option>
-                </x-form.select>
-            </x-form.group>
-
-            <x-form.group label="Alamat Domisili" dalam>
-                <textarea name="alamat" id="edit_alamat" rows="2"
-                          class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-amber-500/20 shadow-inner"></textarea>
-            </x-form.group>
+            @include('master.konsumen._field', ['awalan' => 'edit_'])
 
             <div class="pt-4 flex gap-3">
                 <x-button type="button" variant="secondary" onclick="closeModal('edit-konsumen')" class="flex-1">Batalkan</x-button>

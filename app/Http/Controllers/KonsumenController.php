@@ -69,10 +69,11 @@ class KonsumenController extends Controller
 {
     // 1. Validasi input
     $request->validate([
-        'nama_konsumen' => 'required|max:255',
-        'telepon' => 'required',
-        'id_golongan' => 'required|numeric',
+        'nama_konsumen' => 'required|string|max:100',
+        'telepon'       => 'required|max:20',
+        'id_golongan'   => 'required|exists:golongan_konsumen,id_golongan',
         'tipe_konsumen' => 'nullable|in:permanent,temporary',
+        'alamat'        => 'nullable|max:500',
     ]);
 
     // 2. Update data ke database
@@ -150,7 +151,9 @@ public function storeAjax(Request $request)
         $request->validate([
             'nama_konsumen' => 'required|string|max:100',
             'id_golongan'   => 'required|exists:golongan_konsumen,id_golongan',
-            'telepon'       => 'required'
+            'telepon'       => 'required|max:20',
+            'tipe_konsumen' => 'nullable|in:permanent,temporary',
+            'alamat'        => 'nullable|max:500',
         ]);
 
         $idBaru = DB::table('konsumen')->insertGetId([
