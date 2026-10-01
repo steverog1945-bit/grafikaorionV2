@@ -138,7 +138,7 @@
                         </x-form.select>
                     </x-form.group>
                     <x-form.group label="Pilih Produk">
-                        <select id="select_produk" onchange="getDetailProduk()" class="select2-produk w-full" disabled>
+                        <select id="select_produk" onchange="getDetailProduk()" class="select2-produk w-full" disabled data-qp-saring="#filter_kategori" data-qp-kunci="Pilih kategori dulu, baru produk.">
                             <option value="">-- Ketik Nama Produk --</option>
                             @foreach($produk as $p)
                                 <option value="{{ $p->id_produk }}" data-kategori="{{ $p->id_kategori }}" data-metode="{{ $p->metode_hitung }}" data-siap-cetak="{{ in_array((int) $p->id_produk, $produkSiapCetak, true) ? 1 : 0 }}">{{ $p->nama_produk }}</option>

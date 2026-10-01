@@ -75,6 +75,11 @@
     --}}
     <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
+    <script>
+        // Default semua dialog dan notifikasi (lihat ui-refresh.css bagian 24): tombol tutup bulat di pojok,
+        // urutan Batal lalu aksi utama di kanan, dan gaya tombol dari CSS aplikasi (bukan warna bawaan SweetAlert).
+        window.Swal = Swal.mixin({ buttonsStyling: false, showCloseButton: true, reverseButtons: true, closeButtonHtml: '&times;', closeButtonAriaLabel: 'Tutup' });
+    </script>
     
     <style>
     :root { --sidebar-width: 288px; --sidebar-width-collapsed: 96px; }
@@ -2061,17 +2066,20 @@
     // bukan kotak confirm() bawaan peramban (tampilannya berbeda-beda dan tidak mengikuti tema aplikasi).
     (function () {
         function tampil(pesan, lanjut) {
+            // Bentuk seperti contoh pemilik: kalimat pertama jadi judul ("Hapus platform ini?"), sisanya keterangan,
+            // tombol aksi memakai kata kerjanya sendiri ("Hapus", "Batalkan"), merah bila merusak.
+            const kata = (pesan.match(/^(hapus|batalkan|reset|terbitkan|jalankan|proses|buka)/i) || [])[0];
             const merusak = /^(hapus|batalkan|reset)/i.test(pesan);
+            const pecah = pesan.match(/^(.*?\?)\s*(.*)$/s);
             Swal.fire({
-                icon: merusak ? 'warning' : 'question',
-                title: merusak ? 'Yakin?' : 'Lanjutkan?',
-                text: pesan,
+                icon: merusak ? 'warning' : 'info',
+                title: pecah ? pecah[1] : pesan,
+                text: pecah ? pecah[2] : '',
                 showCancelButton: true,
-                confirmButtonText: merusak ? 'Ya, lanjutkan' : 'Lanjutkan',
+                confirmButtonText: kata ? kata.charAt(0).toUpperCase() + kata.slice(1).toLowerCase() : 'Lanjutkan',
                 cancelButtonText: 'Batal',
-                reverseButtons: true,
                 focusCancel: merusak,
-                confirmButtonColor: merusak ? '#dc2626' : '#4f46e5'
+                customClass: { confirmButton: merusak ? 'tombol-bahaya' : '' }
             }).then(function (r) { if (r.isConfirmed) lanjut(); });
         }
         document.addEventListener('submit', function (e) {

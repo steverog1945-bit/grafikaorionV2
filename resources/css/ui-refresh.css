@@ -1052,164 +1052,173 @@ legend.text-\[10px\].uppercase {
       font-size: 13px !important;
    }
    /* ==========================================================================
-      24. KONFIRMASI GLOBAL - satu gaya untuk semua dialog SweetAlert2
+      24. DIALOG DAN NOTIFIKASI - satu gaya untuk semua SweetAlert2
 
-      17 berkas memanggil Swal.fire() dengan customClass inline yang
-      berbeda-beda (rounded-[2rem], rounded-lg, px-6 py-2.5, dst). Daripada
-      menyentuhnya satu per satu, gaya ditentukan di sini dengan
-      !important - satu tempat, semua dialog seragam.
+      Mengikuti contoh dari pemilik ("Delete file?"): kartu putih bersudut
+      besar dengan bayangan lembut, judul besar rata kiri, tombol tutup
+      bulat abu-abu di pojok kanan atas, keterangan abu-abu di bawahnya,
+      tanpa ikon, lalu dua tombol di kanan: Batal bergaris dan aksi utama
+      solid. Aksi yang merusak (hapus, batal) merah; aksi biasa hitam.
 
-      Yang ditiru dari gambar: popup putih radius 12px, judul besar tebal
-      gelap, deskripsi abu-abu, tombol Cancel putih ber-border, tombol
-      Delete merah solid, tombol X lingkaran abu-abu.
+      Berlaku untuk semua panggilan Swal.fire() di aplikasi (default di
+      layouts/app.blade.php: tombol tutup, urutan Batal-Aksi, tanpa gaya
+      bawaan), termasuk toast notifikasi, supaya semuanya senada.
       ======================================================================== */
+   .swal2-container { padding: 16px !important; }
+   .swal2-container.swal2-backdrop-show { background: rgba(24, 24, 27, 0.32) !important; }
 
-   /* Popup: putih, radius 12px, shadow lembut. !important menimpa
-      customClass popup:'rounded-[2rem]' di beberapa berkas. */
-   .swal2-popup {
-      border-radius: 12px !important;
-      box-shadow: 0 10px 40px rgba(15, 23, 42, .12) !important;
-      padding: 18px !important;
-   }
-
-   /* Judul: besar, tebal, gelap. */
-   .swal2-title {
-      font-size: 20px !important;
-      font-weight: 600 !important;
-      color: #171717 !important;
-      padding: 0 !important;
-      margin: 0 0 6px !important;
-      text-align: left !important;
-   }
-
-   /* Deskripsi: abu-abu, 14px. */
-   .swal2-html-container {
-      font-size: 14px !important;
-      color: #6f6f6f !important;
-      margin: 0 0 12px !important;
-      text-align: left !important;
-   }
-
-   /* Tombol Cancel: putih, border abu-abu, teks gelap. */
-   .swal2-cancel {
-      background: #ffffff !important;
-      border: 1px solid #e2e8f0 !important;
-      color: #475569 !important;
-      border-radius: 8px !important;
-      font-size: 14px !important;
-      font-weight: 500 !important;
-      padding: 10px 20px !important;
-      box-shadow: none !important;
-   }
-   .swal2-cancel:hover {
-      background: #f8fafc !important;
-      border-color: #cbd5e1 !important;
-   }
-   .swal2-cancel:focus {
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, .15) !important;
-   }
-
-   /* Tombol Confirm/Delete: merah solid, teks putih.
-
-      Merah secara BUKAN default - merah dipakai untuk aksi destruktif
-      (hapus, batalkan, hapus permanen). Dialog konfirmasi yang bukan
-      destruktif (mis. "Simpan?") harus menimpanya dengan
-      confirmButtonColor sendiri, dan itu sudah bekerja karena aturan
-      di bawah hanya menetapkan warna dasar.
-
-      Alasan merah dipakai sebagai warna dasar: sebagian besar dialog
-      konfirmasi di aplikasi ini memang destruktif, dan gambar acuan
-      menunjukkan tombol merah. */
-   .swal2-confirm {
-      background: #dc2626 !important;
-      border-color: #dc2626 !important;
-      color: #ffffff !important;
-      border-radius: 8px !important;
-      font-size: 14px !important;
-      font-weight: 500 !important;
-      padding: 10px 20px !important;
-      box-shadow: none !important;
-   }
-   .swal2-confirm:hover {
-      background: #b91c1c !important;
-   }
-   .swal2-confirm:focus {
-      box-shadow: 0 0 0 3px rgba(220, 38, 38, .2) !important;
-   }
-
-   /* Kalau dialog memakai ikon warning/error, tombol confirm merah.
-      Dikenali lewat kelas .swal2-icon yang ada di dalam popup. */
-   .swal2-popup:has(.swal2-icon--warning) .swal2-confirm,
-   .swal2-popup:has(.swal2-icon--error) .swal2-confirm,
-   .swal2-popup:has(.swal2-icon--question) .swal2-confirm {
-      background: #dc2626 !important;
-      border-color: #dc2626 !important;
-      color: #ffffff !important;
-   }
-   .swal2-popup:has(.swal2-icon--warning) .swal2-confirm:hover,
-   .swal2-popup:has(.swal2-icon--error) .swal2-confirm:hover,
-   .swal2-popup:has(.swal2-icon--question) .swal2-confirm:hover {
-      background: #b91c1c !important;
-   }
-
-   /* Tombol X: lingkaran abu-abu, ikon gelap. */
-   .swal2-close {
-      background: #f1f5f9 !important;
-      border-radius: 50% !important;
-      color: #64748b !important;
-      font-size: 14px !important;
-      width: 32px !important;
-      height: 32px !important;
-      top: 16px !important;
-      right: 16px !important;
-   }
-   .swal2-close:hover {
-      background: #e2e8f0 !important;
-      color: #334155 !important;
-   }
-   .swal2-close:focus {
-      box-shadow: none !important;
-   }
-
-   /* Ikon di KIRI judul, sebaris dengan teksnya, tanpa saling menimpa.
-
-      Sebelumnya ikon position:absolute di pojok kiri, sementara judul dan isi
-      mulai dari tepi kiri yang sama (padding-left judul dibatalkan oleh
-      "padding: 0"), sehingga ikon menumpuk di atas tulisan. Sekarang popup
-      berupa grid dua kolom: ikon di kolom 1, judul dan isi di kolom 2,
-      tombol/isian melebar di bawah. Toast tidak ikut diubah. */
    .swal2-popup:not(.swal2-toast) {
-      display: grid !important;
-      grid-template-columns: 32px minmax(0, 1fr);
-      column-gap: 14px;
-      align-items: start;
-      justify-items: stretch;
+      display: flex !important;
+      flex-direction: column !important;
+      width: min(34rem, calc(100vw - 32px)) !important;
+      padding: 28px 28px 24px !important;
+      border-radius: 28px !important;
+      background: #fcfcfd !important;
+      border: 0 !important;
+      box-shadow: 0 24px 60px rgba(24, 24, 27, 0.14), 0 2px 6px rgba(24, 24, 27, 0.05) !important;
+      text-align: left !important;
+      position: relative !important;
    }
-   .swal2-popup:not(.swal2-toast) > * { grid-column: 1 / -1; }
-   .swal2-popup:not(.swal2-toast) > .swal2-icon {
-      grid-column: 1;
-      grid-row: 1 / span 2;
-      position: static !important;
-      width: 32px !important;
-      height: 32px !important;
-      margin: 2px 0 0 !important;
-      border-width: 2px !important;
-      justify-self: start;
-   }
-   .swal2-popup:not(.swal2-toast) > .swal2-icon .swal2-icon-content { font-size: 16px !important; }
-   .swal2-popup:not(.swal2-toast) > .swal2-title { grid-column: 2; grid-row: 1; align-self: center; }
-   .swal2-popup:not(.swal2-toast) > .swal2-html-container { grid-column: 2; grid-row: 2; }
-   /* Tanpa ikon: teks memakai seluruh lebar. */
-   .swal2-popup:not(.swal2-toast):not(:has(> .swal2-icon[style*="display: flex"])) > .swal2-title,
-   .swal2-popup:not(.swal2-toast):not(:has(> .swal2-icon[style*="display: flex"])) > .swal2-html-container { grid-column: 1 / -1; }
-   /* Tanpa judul: isi naik ke baris pertama di samping ikon. */
-   .swal2-popup:not(.swal2-toast):has(> .swal2-title[style*="display: none"]) > .swal2-html-container { grid-row: 1; align-self: center; }
-   .swal2-popup:not(.swal2-toast) > .swal2-actions { margin-top: 16px !important; }
-   .swal2-popup:not(.swal2-toast) > .swal2-close { grid-column: auto; }
 
-   /* Footer (tombol-tombol): rapat, kanan. */
-   .swal2-actions {
+   /* Ikon status tidak dipakai: arti dialog terbaca dari judul dan warna tombol. */
+   .swal2-popup .swal2-icon { display: none !important; }
+
+   .swal2-popup:not(.swal2-toast) .swal2-title {
+      order: 1;
       margin: 0 !important;
-      gap: 10px !important;
-      justify-content: flex-end !important;
+      padding: 0 44px 0 0 !important;
+      font-size: 24px !important;
+      line-height: 1.25 !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.02em !important;
+      color: #232326 !important;
+      text-align: left !important;
    }
+
+   .swal2-popup:not(.swal2-toast) .swal2-html-container {
+      order: 2;
+      margin: 10px 0 0 !important;
+      padding: 0 !important;
+      font-size: 16px !important;
+      line-height: 1.55 !important;
+      color: #8c8c93 !important;
+      text-align: left !important;
+   }
+   /* Kata yang ditebalkan (mis. nama berkas, nomor nota) tampil gelap seperti di contoh. */
+   .swal2-popup .swal2-html-container b,
+   .swal2-popup .swal2-html-container strong { color: #232326 !important; font-weight: 500 !important; }
+
+   /* Isian di dalam dialog (alasan, jumlah, dst.) */
+   .swal2-popup .swal2-input, .swal2-popup .swal2-textarea, .swal2-popup .swal2-select {
+      order: 3;
+      margin: 16px 0 0 !important;
+      width: 100% !important;
+      border-radius: 14px !important;
+      border: 1px solid #d9d9de !important;
+      box-shadow: none !important;
+      font-size: 15px !important;
+   }
+   .swal2-popup .swal2-validation-message { order: 4; margin: 12px 0 0 !important; border-radius: 12px !important; background: #fdecec !important; color: #b42318 !important; font-size: 14px !important; }
+
+   .swal2-popup:not(.swal2-toast) .swal2-actions {
+      order: 5;
+      width: 100% !important;
+      margin: 28px 0 0 !important;
+      padding: 0 !important;
+      gap: 12px !important;
+      justify-content: flex-end !important;
+      flex-wrap: wrap !important;
+   }
+
+   .swal2-popup .swal2-styled,
+   .swal2-popup .swal2-actions button {
+      margin: 0 !important;
+      min-width: 132px;
+      height: 52px;
+      padding: 0 26px !important;
+      border-radius: 16px !important;
+      font-size: 17px !important;
+      font-weight: 500 !important;
+      box-shadow: none !important;
+      transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease, border-color 150ms ease;
+   }
+   .swal2-popup .swal2-actions button:active { transform: scale(0.97); }
+   .swal2-popup .swal2-actions button:focus-visible { outline: 2px solid #4f46e5 !important; outline-offset: 2px !important; }
+
+   /* Batal: putih bergaris, teks gelap. */
+   .swal2-popup .swal2-cancel {
+      background: #ffffff !important;
+      color: #232326 !important;
+      border: 1.5px solid #d4d4d8 !important;
+   }
+   .swal2-popup .swal2-cancel:hover { background: #f4f4f5 !important; border-color: #a1a1aa !important; }
+
+   /* Aksi utama biasa: hitam. */
+   .swal2-popup .swal2-confirm, .swal2-popup .swal2-deny {
+      background: #232326 !important;
+      color: #ffffff !important;
+      border: 1.5px solid #232326 !important;
+   }
+   .swal2-popup .swal2-confirm:hover { background: #000000 !important; }
+
+   /* Aksi yang merusak (dialog berstatus warning/error/question, atau ditandai kelas tombol-bahaya): merah. */
+   .swal2-popup:has(.swal2-icon.swal2-warning[style*="flex"]) .swal2-confirm,
+   .swal2-popup:has(.swal2-icon.swal2-error[style*="flex"]) .swal2-confirm,
+   .swal2-popup:has(.swal2-icon.swal2-question[style*="flex"]) .swal2-confirm,
+   .swal2-popup .swal2-confirm.tombol-bahaya,
+   .swal2-popup .swal2-deny {
+      background: #ee2b2e !important;
+      border-color: #c81e21 !important;
+      color: #ffffff !important;
+   }
+   .swal2-popup:has(.swal2-icon.swal2-warning[style*="flex"]) .swal2-confirm:hover,
+   .swal2-popup:has(.swal2-icon.swal2-error[style*="flex"]) .swal2-confirm:hover,
+   .swal2-popup:has(.swal2-icon.swal2-question[style*="flex"]) .swal2-confirm:hover,
+   .swal2-popup .swal2-confirm.tombol-bahaya:hover { background: #d71f22 !important; }
+   /* Pemberitahuan sukses atau info tanpa tombol Batal tetap hitam (bukan merah). */
+   .swal2-popup:has(.swal2-icon.swal2-question[style*="flex"]):not(:has(.swal2-cancel[style*="inline"])) .swal2-confirm { background: #232326 !important; border-color: #232326 !important; }
+
+   /* Tombol tutup: lingkaran abu-abu di pojok kanan atas. */
+   .swal2-popup .swal2-close {
+      position: absolute !important;
+      top: 24px !important;
+      right: 24px !important;
+      width: 36px !important;
+      height: 36px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border-radius: 50% !important;
+      background: #ececee !important;
+      color: #232326 !important;
+      font-size: 22px !important;
+      line-height: 1 !important;
+      box-shadow: none !important;
+      transition: background-color 150ms ease;
+   }
+   .swal2-popup .swal2-close:hover { background: #dedee2 !important; color: #000000 !important; }
+   .swal2-popup .swal2-close:focus-visible { outline: 2px solid #4f46e5 !important; outline-offset: 2px !important; }
+
+   /* Toast (notifikasi singkat di pojok): kartu yang sama, versi ringkas. */
+   .swal2-popup.swal2-toast {
+      padding: 14px 18px !important;
+      border-radius: 18px !important;
+      background: #fcfcfd !important;
+      box-shadow: 0 16px 40px rgba(24, 24, 27, 0.14), 0 1px 4px rgba(24, 24, 27, 0.06) !important;
+      align-items: center !important;
+   }
+   .swal2-popup.swal2-toast .swal2-title { margin: 0 !important; font-size: 15px !important; font-weight: 500 !important; color: #232326 !important; text-align: left !important; }
+   .swal2-popup.swal2-toast .swal2-html-container { margin: 2px 0 0 !important; font-size: 14px !important; color: #8c8c93 !important; text-align: left !important; }
+   .swal2-popup.swal2-toast .swal2-close { position: static !important; width: 28px !important; height: 28px !important; font-size: 18px !important; margin-left: 10px !important; }
+   .swal2-popup.swal2-toast .swal2-timer-progress-bar { background: #d4d4d8 !important; }
+
+   /* Layar sempit: tombol berbagi lebar penuh supaya mudah ditekan. */
+   @media (max-width: 480px) {
+      .swal2-popup:not(.swal2-toast) { padding: 24px 20px 20px !important; border-radius: 24px !important; }
+      .swal2-popup:not(.swal2-toast) .swal2-title { font-size: 21px !important; }
+      .swal2-popup:not(.swal2-toast) .swal2-actions button { flex: 1 1 0; min-width: 0; }
+   }
+
+   html.dark .swal2-popup { background: #1c1c1f !important; }
+   html.dark .swal2-popup .swal2-title, html.dark .swal2-popup .swal2-html-container b { color: #f4f4f5 !important; }
+   html.dark .swal2-popup .swal2-cancel { background: transparent !important; color: #f4f4f5 !important; border-color: #3f3f46 !important; }
+   html.dark .swal2-popup .swal2-close { background: #2a2a2e !important; color: #f4f4f5 !important; }

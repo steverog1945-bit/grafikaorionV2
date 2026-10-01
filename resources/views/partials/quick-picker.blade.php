@@ -76,8 +76,13 @@
         ));
 
         function ambilOpsi(el) {
+            // data-qp-saring="#id_penyaring": hanya opsi yang data-kategori-nya sama dengan nilai penyaring
+            // (mis. produk mengikuti kategori yang dipilih), sama dengan aturan dropdown aslinya.
+            const penyaring = el.dataset.qpSaring ? document.querySelector(el.dataset.qpSaring) : null;
+            const nilaiSaring = penyaring ? penyaring.value : null;
             return Array.from(el.options)
-                .filter((o) => o.value !== '')      // buang placeholder kosong
+                .filter((o) => o.value !== '' && !o.disabled && !o.hidden)      // buang placeholder dan opsi nonaktif
+                .filter((o) => !penyaring || (nilaiSaring !== '' && o.dataset.kategori === nilaiSaring))
                 .map((o) => ({ value: o.value, label: o.textContent.trim() }));
         }
 
@@ -101,6 +106,12 @@
         }
 
         function buka(el) {
+            // Dropdown yang sedang dikunci (mis. Produk sebelum Kategori dipilih) tidak boleh dibuka lewat pencari.
+            if (el.disabled) {
+                const ket = el.dataset.qpKunci || 'Lengkapi isian sebelumnya terlebih dahulu.';
+                if (window.Swal) Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: ket, showConfirmButton: false, timer: 2500 });
+                return;
+            }
             target = el;
             semuaOpsi = ambilOpsi(el);
 
@@ -268,6 +279,10 @@
                 btn.innerHTML = '<i class="fas fa-magnifying-glass"></i>';
                 btn.addEventListener('click', bukaPencari);
                 btn._qpHidup = true; // properti JS tidak ikut tersalin oleh cloneNode
+                // Tombol ikut terkunci bila dropdown-nya dikunci, dan ikut terbuka saat kuncinya dilepas.
+                const samakanKunci = function () { btn.disabled = el.disabled; btn.classList.toggle('opacity-40', el.disabled); btn.classList.toggle('cursor-not-allowed', el.disabled); };
+                samakanKunci();
+                new MutationObserver(samakanKunci).observe(el, { attributes: true, attributeFilter: ['disabled'] });
 
                 const induk = anchor.parentNode;
                 const grup = document.createElement('div');
