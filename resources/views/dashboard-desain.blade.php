@@ -114,8 +114,6 @@
 
 @include('partials.dashboard-info-terbaru')
 
-@include('partials.dashboard-finishing-panduan')
-
 @endif
 </div>
 @endsection

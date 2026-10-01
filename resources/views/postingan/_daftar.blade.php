@@ -19,21 +19,23 @@
             <h1 class="text-3xl sm:text-4xl font-medium text-white tracking-tight mt-2 leading-tight">Info &amp; Panduan</h1>
             <p class="text-indigo-100 mt-3 text-sm sm:text-base leading-relaxed">Pengumuman, SOP kerja, tips finishing, dan hasil karya terbaik. Semua tim membaca dari satu tempat.</p>
 
-            <form method="GET" action="{{ $basisUrl }}" class="mt-7 flex flex-col sm:flex-row gap-3 max-w-2xl" data-no-autosubmit>
+            <form method="GET" action="{{ $basisUrl }}" class="mt-7 flex flex-col sm:flex-row sm:flex-wrap gap-3" data-no-autosubmit>
                 @foreach($paramTetap as $pn => $pv)<input type="hidden" name="{{ $pn }}" value="{{ $pv }}">@endforeach
                 @if($kategoriSlug)<input type="hidden" name="kategori" value="{{ $kategoriSlug }}">@endif
-                <div class="relative flex-1">
+                <div class="relative flex-1 min-w-[220px]">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input type="text" name="cari" value="{{ $cari }}" placeholder="Cari judul, isi, atau tag..." class="w-full rounded-2xl border-none bg-white py-3.5 pl-12 pr-4 text-sm font-medium text-slate-700 shadow-lg focus:ring-4 focus:ring-white/30">
                 </div>
                 <button type="submit" class="rounded-2xl bg-slate-900/80 hover:bg-slate-900 text-white px-7 py-3.5 text-xs font-medium uppercase tracking-widest transition-all" title="Cari postingan">Cari</button>
+                {{-- Satu baris dengan pencarian (bukan ditempel absolut di pojok) supaya tidak menabrak kolom cari
+                     saat layar menyempit; di layar kecil turun ke baris sendiri. --}}
+                @if($pengelola)
+                <a href="{{ route('postingan.create') }}" title="Tulis postingan baru" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-white text-indigo-600 px-6 py-3.5 text-xs font-medium uppercase tracking-widest shadow-lg hover:bg-indigo-50 transition-all whitespace-nowrap">
+                    <i class="fas fa-pen-nib"></i> Tulis Postingan
+                </a>
+                @endif
             </form>
         </div>
-        @if($pengelola)
-        <a href="{{ route('postingan.create') }}" title="Tulis postingan baru" class="relative mt-6 sm:mt-0 sm:absolute sm:right-10 sm:bottom-10 inline-flex items-center gap-2 rounded-2xl bg-white text-indigo-600 px-6 py-3.5 text-xs font-medium uppercase tracking-widest shadow-lg hover:bg-indigo-50 transition-all">
-            <i class="fas fa-pen-nib"></i> Tulis Postingan
-        </a>
-        @endif
     </div>
 
     {{-- ================= KATEGORI & FILTER ================= --}}

@@ -10,7 +10,7 @@
             @endif
         </p>
 
-        <div class="flex flex-col sm:flex-row items-center gap-3">
+        <div class="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 max-w-full">
             {{-- Lompat langsung ke halaman berapa pun - link bernomor bawaan
                  Laravel cuma menampilkan JENDELA halaman di sekitar posisi
                  sekarang (+ awal/akhir), jadi kalau data banyak (puluhan
@@ -73,7 +73,8 @@
                     }
                 }
             @endphp
-            <div class="flex items-center gap-1">
+            {{-- flex-wrap: di layar sempit nomor halaman turun ke baris berikut, tidak melebar keluar layar. --}}
+            <div class="flex flex-wrap items-center justify-center gap-1 max-w-full">
                 <a href="{{ $paginatorBerQuery->previousPageUrl() ?? '#' }}" @class(['w-8 h-8 flex items-center justify-center rounded-lg text-xs', 'text-slate-300 pointer-events-none' => $paginatorBerQuery->onFirstPage(), 'text-slate-500 hover:bg-slate-50' => !$paginatorBerQuery->onFirstPage()])>
                     <i class="fas fa-chevron-left text-[10px]"></i>
                 </a>

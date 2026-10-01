@@ -49,6 +49,8 @@
 
     /* Panel berisi tabel */
     .lembar-p { padding: 12px 16px 8px; }
+    /* Tabel lebar (mis. pemakaian bahan) menggulir di dalam kartunya sendiri di layar sempit, bukan menggeser seluruh halaman. */
+    @media screen { .lembar-p { overflow-x: auto; } }
     .k-judul { font-size: 10px; font-weight: 700; color: var(--lembar-muted); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
     .k-ket { font-size: 10.5px; color: var(--lembar-muted); margin-bottom: 8px; }
 

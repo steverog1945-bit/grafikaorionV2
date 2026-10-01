@@ -312,3 +312,15 @@ Nota: tata letak nota kasir sudah aktif di server (diverifikasi dengan merender 
 | Pemilih surat jalan di Pembelian Bahan hanya bisa diklik mouse | Enter/Spasi membuka pemilih |
 | 28 tombol yang hanya berisi ikon tanpa nama (pembaca layar membaca "tombol" saja) | diberi `aria-label` dan `title` sesuai ikon (Hapus, Ubah, Tutup, dst.) |
 Sudah benar dan dipertahankan: cincin fokus global, Esc menutup modal, fokus pertama masuk ke isian modal, tidak ada elemen `onclick` lain yang tak terjangkau keyboard.
+
+## 32. Pemeriksaan visual setelah login, responsif, dan GitHub
+Masuk dengan akun uji di salinan database `percetakan_erp_beban` (server `php artisan serve` port 8766), lalu 74 halaman menu + halaman depan diperiksa pada lebar 375, 768, dan 1024 px: tabrakan antartombol/isian dan gulir mendatar.
+| Temuan | Perbaikan |
+|---|---|
+| Info & Panduan: tombol Tulis Postingan ditempel absolut di pojok sehingga menabrak kolom cari saat layar menyempit | tombol masuk ke baris pencarian dan turun ke baris sendiri di layar kecil; diperiksa 375/768/1024: tidak bertabrakan |
+| Paginasi melebar keluar layar di 375 px pada daftar dengan banyak halaman (SPK, Produksi, Collecting, Kasir, Jersey, Approval, dll.) | nomor halaman membungkus ke baris berikut |
+| Audit Bulanan: tabel lebar menggeser seluruh halaman | tabel menggulir di dalam kartunya |
+| Tanggal tampil berbahasa Inggris ("Thursday, 01 October", "Oct") | `APP_LOCALE=id` dan 66 format tanggal memakai `translatedFormat` |
+| Panduan visual finishing di tiga dashboard | dihapus sesuai permintaan; informasi semacam itu kini lewat Postingan |
+| Halaman baca tulisan: gambar sampul lebih lebar (1.120 px) dari kolom tulisan (720 px) | judul, sampul, isi, tag, dan "Tulisan lain" kini satu kolom 720 px; diukur di 375/768/1280: tepi kiri dan kanan sama persis |
+**GitHub** (`steverog1945-bit/percetakan-app`): repositori **publik** (terbaca tanpa login). Cabang `main` di GitHub berisi `oriondb.sql` (dump lengkap: pengguna dan hash password, karyawan, konsumen) dan folder `backups/` (2.336 berkas, 543 MB: salinan mentah folder data MySQL termasuk tabel `mysql.user`, dump SQL, skrip pemulihan). `.env` dan `APP_KEY` tidak pernah masuk. Di komputer ini berkas-berkas itu sudah tidak dilacak git dan `.gitignore` kini menolak backup, dump SQL, dan berkas data MySQL. Riwayat di GitHub tetap memuatnya sampai dihapus dengan penulisan ulang riwayat (menunggu persetujuan pemilik).
