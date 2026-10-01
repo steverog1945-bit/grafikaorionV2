@@ -24,3 +24,16 @@ oriondb.sql.tmp
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Data dan backup TIDAK PERNAH masuk git (berisi data pelanggan, karyawan, hash password).
+/backups
+*.sql
+*.sql.gz
+*.ibd
+*.frm
+*.MAD
+*.MAI
+ibdata*
+ib_logfile*
+/storage/app/private/*
+!/storage/app/private/.gitignore
