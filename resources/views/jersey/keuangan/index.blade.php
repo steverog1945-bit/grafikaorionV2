@@ -47,6 +47,7 @@
             <tr>
                 <th class="px-4 py-3 text-center w-10">#</th>
                 <th class="px-4 py-3 text-left">No. Order</th>
+                <th class="px-4 py-3 text-left whitespace-nowrap">Tgl Pesan</th>
                 <th class="px-4 py-3 text-left">Pelanggan</th>
                 <th class="px-4 py-3 text-right">Total</th>
                 <th class="px-4 py-3 text-right">Dibayar</th>
@@ -61,6 +62,7 @@
             <tr class="hover:bg-slate-50/50 {{ $o->jatuh_tempo ? 'bg-rose-50/40' : '' }}">
                 <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $piutang->firstItem() + $i }}</td>
                 <td class="px-4 py-3 font-medium text-slate-700">{{ $o->order_number }}</td>
+                <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">{{ $o->order_date ? \Carbon\Carbon::parse($o->order_date)->translatedFormat('d M Y') : '-' }}</td>
                 <td class="px-4 py-3">
                     <p class="font-medium text-slate-700">{{ $o->konsumen->nama_konsumen ?? $o->customer_name }}</p>
                     @if($o->team_name)<p class="text-[11px] text-slate-400">{{ $o->team_name }}</p>@endif
@@ -69,7 +71,7 @@
                 <td class="px-4 py-3 text-right text-emerald-600 font-medium">Rp {{ number_format($o->deposit, 0, ',', '.') }}</td>
                 <td class="px-4 py-3 text-right font-medium text-rose-600">Rp {{ number_format($o->sisa_tagihan, 0, ',', '.') }}</td>
                 <td class="px-4 py-3 text-center text-xs">
-                    {{ $o->deadline ? $o->deadline->format('d/m/Y') : '-' }}
+                    {{ $o->deadline ? \Carbon\Carbon::parse($o->deadline)->translatedFormat('d M Y') : '-' }}
                     @if($o->jatuh_tempo)
                         <span class="block mt-1 px-2 py-0.5 rounded-md bg-rose-100 text-rose-600 text-[9px] font-medium uppercase tracking-widest">Jatuh Tempo</span>
                     @endif
@@ -82,7 +84,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="9"><x-empty-state title="Tidak ada piutang" description="Semua order jersey sudah lunas, atau belum ada order sama sekali." /></td></tr>
+            <tr><td colspan="10"><x-empty-state title="Tidak ada piutang" description="Semua order jersey sudah lunas, atau belum ada order sama sekali." /></td></tr>
             @endforelse
         </tbody>
     </x-table>

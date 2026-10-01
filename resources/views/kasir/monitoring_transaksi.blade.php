@@ -9,7 +9,7 @@
                 <i class="fas fa-barcode"></i>
                 Scan Barcode
             </x-button>
-            <x-button href="{{ url('/kasir/waiting-list') }}" variant="warning" class="relative">
+            <x-button href="{{ url('/kasir/waiting-list') }}" class="relative">
                 <i class="fas fa-inbox"></i>
                 Antrean Baru
                 @if($waitingCount > 0)
@@ -31,15 +31,13 @@
          siapa pun yang membuka Monitoring langsung tahu kondisinya tanpa
          perlu masuk ke halaman lain dulu. --}}
     @if(!$kasAktif)
-    <div class="mb-6 flex flex-wrap items-center gap-3 bg-amber-50 border-2 border-amber-200 rounded-2xl px-5 py-4">
-        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-lg">
-            <i class="fas fa-exclamation-triangle"></i>
-        </div>
+    <div class="mb-6 flex flex-wrap items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
+        <i class="fas fa-triangle-exclamation text-amber-500 text-lg shrink-0"></i>
         <div class="flex-1 min-w-[180px]">
-            <p class="text-sm font-medium text-amber-800 uppercase tracking-wide">Kas Kasir Belum Dibuka</p>
+            <p class="text-sm font-medium text-amber-800">Kas kasir belum dibuka</p>
             <p class="text-xs text-amber-600 mt-0.5">Pencatatan pembayaran baru terkunci sampai saldo kas hari ini dibuka.</p>
         </div>
-        <x-button href="{{ route('kasir.kelola') }}" variant="warning" class="shrink-0 w-full sm:w-auto">
+        <x-button href="{{ route('kasir.kelola') }}" class="shrink-0 w-full sm:w-auto">
             <i class="fas fa-wallet"></i> Buka Kas Sekarang
         </x-button>
     </div>
@@ -97,8 +95,8 @@
             </x-button>
 
             @if(request()->anyFilled(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar']))
-                <a href="{{ route('kasir.index') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
-                    Reset
+                <a href="{{ route('kasir.index') }}" class="h-[42px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
+                    <i class="fas fa-undo-alt text-sm"></i>
                 </a>
             @endif
         </form>
@@ -135,7 +133,7 @@
                     <div class="text-[10px] text-slate-400">Kasir: {{ $t->username }}</div>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-medium text-slate-700 uppercase">{{ $t->nama_konsumen }}</span>
+                    <span class="text-[13px] font-medium text-slate-700">{{ $t->nama_konsumen }}</span>
                 </td>
                 <td class="px-6 py-5 text-right">
                     <span class="text-[13px] font-medium text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>
@@ -147,7 +145,7 @@
                          cuma bisa dilihat lewat modal Riwayat Proses terpisah. --}}
                     @if($t->status_pembayaran === 'DP')
                         <div class="text-[10px] text-emerald-500 font-medium mt-0.5">Terbayar Rp {{ number_format($t->total_masuk ?? 0, 0, ',', '.') }}</div>
-                        <div class="text-[10px] text-amber-500 font-medium">Sisa Rp {{ number_format($t->total_bayar - ($t->total_masuk ?? 0), 0, ',', '.') }}</div>
+                        <div class="text-[10px] text-amber-500 font-medium">Sisa Rp {{ number_format(max(0, $t->total_bayar - ($t->total_masuk ?? 0)), 0, ',', '.') }}</div>
                     @endif
                 </td>
                 <td class="px-4 py-5 text-center">
@@ -274,7 +272,7 @@
                     </div>
                 `,
                 icon: undefined,
-                customClass: { popup: 'rounded-[2rem]' }
+                customClass: {}
             });
         } catch (e) {
             Swal.fire('Error', 'Gagal memuat history.', 'error');

@@ -38,6 +38,7 @@
             <tr>
                 <th class="px-4 py-3 text-center w-10">#</th>
                 <th class="px-4 py-3 text-left">No. Order</th>
+                <th class="px-4 py-3 text-left whitespace-nowrap">Tgl Pesan</th>
                 <th class="px-4 py-3 text-left">Pelanggan / Tim</th>
                 <th class="px-4 py-3 text-left">Barang</th>
                 <th class="px-4 py-3 text-center">Deadline</th>
@@ -52,6 +53,7 @@
             <tr class="hover:bg-slate-50/50">
                 <td class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $orders->firstItem() + $i }}</td>
                 <td class="px-4 py-3 font-medium text-slate-700">{{ $o->order_number }}</td>
+                <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">{{ $o->order_date ? \Carbon\Carbon::parse($o->order_date)->translatedFormat('d M Y') : '-' }}</td>
                 <td class="px-4 py-3">
                     <p class="font-medium text-slate-700">{{ $o->konsumen->nama_konsumen ?? $o->customer_name }}</p>
                     @if($o->team_name)<p class="text-[11px] text-slate-400">{{ $o->team_name }}</p>@endif
@@ -60,7 +62,7 @@
                     {{ $o->lines->pluck('nama_barang')->implode(', ') ?: '-' }}
                     @if($o->lines->count() > 1)<span class="text-slate-300"> ({{ $o->lines->count() }} jenis)</span>@endif
                 </td>
-                <td class="px-4 py-3 text-center text-xs">{{ $o->deadline ? \Carbon\Carbon::parse($o->deadline)->format('d/m/Y') : '-' }}</td>
+                <td class="px-4 py-3 text-center text-xs">{{ $o->deadline ? \Carbon\Carbon::parse($o->deadline)->translatedFormat('d M Y') : '-' }}</td>
                 <td class="px-4 py-3 text-center"><x-badge :status="$o->status" /></td>
                 <td class="px-4 py-3 text-center"><x-badge :status="$o->status_pembayaran" /></td>
                 @bolehHarga<td class="px-4 py-3 text-right font-medium">Rp {{ number_format($o->total, 0, ',', '.') }}</td>@endbolehHarga
@@ -71,7 +73,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="9"><x-empty-state title="Belum ada order jersey" description="Klik 'Order Baru' untuk membuat order pertama." /></td></tr>
+            <tr><td colspan="10"><x-empty-state title="Belum ada order jersey" description="Klik 'Order Baru' untuk membuat order pertama." /></td></tr>
             @endforelse
         </tbody>
     </x-table>

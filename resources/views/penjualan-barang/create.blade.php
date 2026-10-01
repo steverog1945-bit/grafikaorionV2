@@ -2,7 +2,7 @@
 
 @section('content')
 @include('partials.rupiah-format-script')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-4xl mx-auto">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Penjualan dan Jasa"
                    subtitle="Jual bahan baku, barang lain, atau jasa langsung ke konsumen - tanpa proses cetak/produksi. Harga diisi manual per transaksi." />
@@ -21,6 +21,8 @@
     <form action="{{ route('penjualan-barang.store') }}" method="POST" id="form-penjualan-barang">
         @csrf
 
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-7 xl:col-span-8">
         <x-card class="mb-5">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form.group label="Nomor Nota (contoh)">
@@ -193,20 +195,23 @@
             </div>
         </x-card>
 
+        </div>
+
+        <div class="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-6">
         <x-card class="mb-5">
             <h3 class="text-sm font-medium text-slate-800 mb-4">Daftar Barang Dijual</h3>
-            <div id="daftar-bahan-kosong" class="text-center py-10 text-slate-300 italic text-sm">Belum ada barang ditambahkan.</div>
+            <div id="daftar-bahan-kosong" class="text-center py-10 text-slate-400 text-sm">Belum ada barang ditambahkan.</div>
             <div id="daftar-bahan-list" class="divide-y divide-slate-50"></div>
             <div id="wrapper-input-items"></div>
 
             <div class="flex items-center justify-between gap-4 flex-wrap mt-5 bg-indigo-600 rounded-2xl px-6 py-4">
-                <span class="text-xs font-medium text-indigo-200 uppercase tracking-widest">Grand Total</span>
+                <span class="text-xs font-medium text-indigo-100">Total</span>
                 <span id="grand-total-bahan" class="text-2xl font-medium text-white">Rp 0</span>
             </div>
         </x-card>
 
-        <div class="flex justify-end">
-            <x-button type="submit" id="btn-submit-penjualan-barang" class="!px-12 !py-5" disabled>Simpan &amp; Lanjut Bayar</x-button>
+        <x-button type="submit" id="btn-submit-penjualan-barang" class="w-full !py-4" disabled>Simpan &amp; Lanjut Bayar</x-button>
+        </div>
         </div>
     </form>
 </div>
@@ -214,32 +219,32 @@
 {{-- MODAL KONSUMEN BARU --}}
 <x-modal id="konsumen-baru" title="Daftar Konsumen Baru" maxWidth="md">
     <div class="space-y-5">
-        <x-form.group label="Nama Lengkap">
-            <x-form.input type="text" id="new_nama" placeholder="Masukkan nama pelanggan..." />
+        <x-form.group label="Nama lengkap" required dalam>
+            <x-form.input type="text" id="new_nama" maxlength="100" />
         </x-form.group>
-        <x-form.group label="Nomor WhatsApp">
-            <x-form.input type="number" id="new_hp" placeholder="0812xxxx" />
+        <x-form.group label="Telepon/WA" required dalam>
+            <x-form.input type="text" id="new_hp" inputmode="tel" maxlength="20" />
         </x-form.group>
-        <x-form.group label="Tipe Harga (Golongan)">
+        <x-form.group label="Golongan" required dalam>
             <x-form.select id="new_id_golongan">
                 @foreach($golongan as $g)
                     <option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>
                 @endforeach
             </x-form.select>
         </x-form.group>
-        <x-form.group label="Tipe Konsumen">
+        <x-form.group label="Tipe konsumen">
             <div class="flex gap-2">
                 <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-medium cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:text-indigo-600 text-slate-500">
-                    <input type="radio" name="new_tipe_konsumen" value="temporary" checked class="accent-indigo-600"> Temporary
+                    <input type="radio" name="new_tipe_konsumen" value="temporary" checked class="accent-indigo-600"> Guest (sekali pesan)
                 </label>
                 <label class="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-xs font-medium cursor-pointer has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-300 has-[:checked]:text-emerald-600 text-slate-500">
-                    <input type="radio" name="new_tipe_konsumen" value="permanent" class="accent-emerald-600"> Permanent
+                    <input type="radio" name="new_tipe_konsumen" value="permanent" class="accent-emerald-600"> Member (pelanggan tetap)
                 </label>
             </div>
         </x-form.group>
 
         <x-button onclick="saveKonsumen()" class="w-full">
-            SIMPAN PELANGGAN
+            Simpan Konsumen
         </x-button>
     </div>
 </x-modal>

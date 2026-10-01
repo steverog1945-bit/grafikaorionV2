@@ -9,9 +9,20 @@ use Illuminate\Support\Facades\DB;
 class FinishingController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        $data = Finishing::with(['mesin', 'kategori'])->orderBy('nama_finishing')->get();
+        // Pencarian dan penyaring sama dengan halaman master lain (Jasa, Konsumen).
+        $data = Finishing::with(['mesin', 'kategori'])
+            ->when($request->filled('search'), fn ($q) => $q->where(fn ($w) => $w
+                ->where('nama_finishing', 'like', '%' . $request->search . '%')
+                ->orWhere('keterangan', 'like', '%' . $request->search . '%')))
+            ->when($request->filled('id_mesin'), fn ($q) => $q->where('id_mesin', $request->id_mesin))
+            ->when($request->filled('id_kategori'), fn ($q) => $request->id_kategori === 'semua'
+                ? $q->whereNull('id_kategori')
+                : $q->where('id_kategori', $request->id_kategori))
+            ->when($request->filled('metode_hitung'), fn ($q) => $q->where('metode_hitung', $request->metode_hitung))
+            ->orderBy('nama_finishing')
+            ->get();
         $mesin = DB::table('mesin')->orderBy('nama_mesin')->get();
         $kategori = DB::table('kategori')->orderBy('nama_kategori')->get();
 
