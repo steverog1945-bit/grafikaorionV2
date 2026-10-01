@@ -28,7 +28,7 @@
         @endforeach
     </div>
     <div class="flex flex-wrap gap-x-8 gap-y-1 text-xs text-slate-500 mb-8 px-1">
-        <span>Order terakhir: <b>{{ $ringkasan['order_terakhir'] ? \Carbon\Carbon::parse($ringkasan['order_terakhir'])->format('d M Y') : '-' }}</b></span>
+        <span>Order terakhir: <b>{{ $ringkasan['order_terakhir'] ? \Carbon\Carbon::parse($ringkasan['order_terakhir'])->translatedFormat('d M Y') : '-' }}</b></span>
         <span>Belum diambil: <b>{{ $ringkasan['belum_diambil'] }}</b> nota</span>
         <span>Penawaran: <b>{{ $ringkasan['jumlah_penawaran'] }}</b> ({{ $ringkasan['penawaran_jadi_order'] }} jadi order)</span>
         <span>Order Jersey: <b>{{ $ringkasan['jumlah_jersey'] }}</b> (Rp {{ number_format($ringkasan['omzet_jersey'], 0, ',', '.') }})</span>
@@ -52,7 +52,7 @@
                     </div>
                     <div class="text-sm font-medium {{ $k['nominal'] < 0 ? 'text-rose-500' : 'text-slate-700' }}">Rp {{ number_format($k['nominal'], 0, ',', '.') }}</div>
                 </div>
-                <div class="text-xs text-slate-400">{{ $k['waktu']->format('d M Y H:i') }}{{ $k['detail'] ? ' - ' . $k['detail'] : '' }}</div>
+                <div class="text-xs text-slate-400">{{ $k['waktu']->translatedFormat('d M Y H:i') }}{{ $k['detail'] ? ' - ' . $k['detail'] : '' }}</div>
             </div>
         </div>
         @empty

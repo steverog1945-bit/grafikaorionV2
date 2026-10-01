@@ -49,7 +49,7 @@ class PembayaranHutangService
         return [
             'id' => (int) $pembelian->id_pembelian, 'no_faktur' => $pembelian->no_faktur, 'total' => (float) $pembelian->grand_total,
             'dibayar' => round((float) $pembelian->grand_total - $sisa, 2), 'sisa' => $sisa,
-            'jatuh_tempo' => $jatuhTempo ? \Carbon\Carbon::parse($jatuhTempo)->format('d M Y') : '-', 'telat_hari' => $telat,
+            'jatuh_tempo' => $jatuhTempo ? \Carbon\Carbon::parse($jatuhTempo)->translatedFormat('d M Y') : '-', 'telat_hari' => $telat,
         ];
     }
 

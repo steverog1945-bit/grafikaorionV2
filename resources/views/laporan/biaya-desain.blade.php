@@ -215,7 +215,7 @@
             @forelse($data as $row)
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-6 py-4 text-[12px] font-medium text-slate-700">{{ $row->nomor_nota }}</td>
-                <td class="px-4 py-4 text-[12px] text-slate-500">{{ \Carbon\Carbon::parse($row->tgl_order)->format('d M Y') }}</td>
+                <td class="px-4 py-4 text-[12px] text-slate-500">{{ \Carbon\Carbon::parse($row->tgl_order)->translatedFormat('d M Y') }}</td>
                 <td class="px-4 py-4 text-[12px] text-slate-600"><span class="font-medium">{{ $row->nama_file }}</span><div class="text-[10px] text-slate-400">{{ $row->nama_konsumen ?? '-' }}</div></td>
                 <td class="px-4 py-4 text-[12px] {{ $row->id_desainer ? 'text-slate-700 font-medium' : 'text-amber-500 font-medium' }}">{{ $row->id_desainer ? $row->nama_desainer : 'Tanpa desainer' }}</td>
                 <td class="px-4 py-4 text-[12px] text-right text-slate-600">Rp {{ number_format($row->biaya_desain, 0, ',', '.') }}</td>
@@ -223,7 +223,7 @@
                 <td class="px-4 py-4 text-[12px] text-right font-medium text-indigo-600">Rp {{ number_format($row->komisi_desain, 0, ',', '.') }}</td>
                 <td class="px-6 py-4 text-center">
                     @if($row->komisi_status === 'Dibayar')
-                        <span class="text-[10px] font-medium uppercase text-emerald-600 bg-emerald-50 rounded px-2 py-1" title="Dibayar {{ \Carbon\Carbon::parse($row->komisi_dibayar_at)->format('d M Y H:i') }}">Dibayar</span>
+                        <span class="text-[10px] font-medium uppercase text-emerald-600 bg-emerald-50 rounded px-2 py-1" title="Dibayar {{ \Carbon\Carbon::parse($row->komisi_dibayar_at)->translatedFormat('d M Y H:i') }}">Dibayar</span>
                     @elseif($row->komisi_status === 'Belum')
                         <span class="text-[10px] font-medium uppercase text-amber-600 bg-amber-50 rounded px-2 py-1" title="Menunggu pembayaran komisi">Belum</span>
                     @else

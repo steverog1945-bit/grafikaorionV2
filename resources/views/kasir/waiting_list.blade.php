@@ -43,7 +43,7 @@
                 </div>
 
                 <h3 class="mt-4 text-lg font-medium text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors line-clamp-2">{{ $w->nama_konsumen }}</h3>
-                <p class="mt-1 text-xs text-slate-400"><i class="far fa-clock mr-1"></i>{{ \Carbon\Carbon::parse($w->tgl_order)->format('d M Y, H:i') }}</p>
+                <p class="mt-1 text-xs text-slate-400"><i class="far fa-clock mr-1"></i>{{ \Carbon\Carbon::parse($w->tgl_order)->translatedFormat('d M Y, H:i') }}</p>
 
                 <div class="mt-5 rounded-2xl bg-slate-50 px-4 py-4 text-center">
                     <p class="text-[11px] font-medium text-slate-400 mb-1">Estimasi Tagihan</p>

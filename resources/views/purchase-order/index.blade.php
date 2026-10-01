@@ -45,7 +45,7 @@
             <tr class="hover:bg-slate-50/30 transition-all">
                 <td class="px-8 py-5"><span class="text-[13px] font-medium text-slate-700">{{ $p->nomor }}</span></td>
                 <td class="px-6 py-5"><span class="text-sm font-medium text-slate-600">{{ $p->supplier?->nama_supplier ?? '-' }}</span></td>
-                <td class="px-6 py-5"><span class="text-xs text-slate-500">{{ $p->tanggal->format('d M Y') }}</span></td>
+                <td class="px-6 py-5"><span class="text-xs text-slate-500">{{ $p->tanggal->translatedFormat('d M Y') }}</span></td>
                 <td class="px-6 py-5 text-right"><span class="text-sm font-medium text-slate-700">Rp {{ number_format($p->total, 0, ',', '.') }}</span></td>
                 <td class="px-6 py-5 text-center">
                     @php $variantMap = ['Draft' => 'info', 'Dipesan' => 'warning', 'Diterima Sebagian' => 'warning', 'Selesai' => 'success', 'Dibatalkan' => 'danger']; @endphp

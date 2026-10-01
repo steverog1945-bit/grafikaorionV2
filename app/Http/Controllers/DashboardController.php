@@ -128,7 +128,7 @@ class DashboardController extends Controller
         $tren = collect(range(6, 0))->map(function ($i) use ($orderPerHari, $kasPerHari) {
             $d = now()->subDays($i);
 
-            return ['label' => $d->translatedFormat('D'), 'tgl' => $d->format('d M'), 'order' => (int) ($orderPerHari[$d->format('Y-m-d')] ?? 0), 'kas' => (float) ($kasPerHari[$d->format('Y-m-d')] ?? 0)];
+            return ['label' => $d->translatedFormat('D'), 'tgl' => $d->translatedFormat('d M'), 'order' => (int) ($orderPerHari[$d->format('Y-m-d')] ?? 0), 'kas' => (float) ($kasPerHari[$d->format('Y-m-d')] ?? 0)];
         });
 
         // Pekerjaan yang menunggu tindakan (sama dengan lonceng notifikasi, khusus role ini).

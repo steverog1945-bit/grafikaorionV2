@@ -122,7 +122,7 @@
             <tr class="group hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $transaksi->firstItem() + $i }}</td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->format('d M Y') }}</span>
+                    <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->translatedFormat('d M Y') }}</span>
                     <div class="text-[10px] text-slate-400">{{ \Carbon\Carbon::parse($t->tgl_order)->format('H:i') }}</div>
                 </td>
                 <td class="px-4 py-5 text-center">

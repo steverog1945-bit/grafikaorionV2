@@ -165,8 +165,8 @@
                 </div>
                 <p class="text-[12px] text-slate-500 mt-1.5">
                     <span class="font-medium text-slate-700">{{ $p->nama_supplier ?? '-' }}</span>
-                    &middot; {{ \Carbon\Carbon::parse($p->tgl_transaksi)->format('d M Y') }}
-                    @if($p->jatuh_tempo_tgl) &middot; Jatuh Tempo: {{ \Carbon\Carbon::parse($p->jatuh_tempo_tgl)->format('d M Y') }} @endif
+                    &middot; {{ \Carbon\Carbon::parse($p->tgl_transaksi)->translatedFormat('d M Y') }}
+                    @if($p->jatuh_tempo_tgl) &middot; Jatuh Tempo: {{ \Carbon\Carbon::parse($p->jatuh_tempo_tgl)->translatedFormat('d M Y') }} @endif
                 </p>
             </div>
             <div class="text-right shrink-0">

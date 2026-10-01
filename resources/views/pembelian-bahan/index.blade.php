@@ -115,7 +115,7 @@
 
                     <td class="px-4 py-5">
                         <span class="text-[12px] font-medium text-slate-600">
-                            {{ \Carbon\Carbon::parse($item->tgl_transaksi)->format('d M Y') }}
+                            {{ \Carbon\Carbon::parse($item->tgl_transaksi)->translatedFormat('d M Y') }}
                         </span>
                     </td>
                     <td class="px-4 py-5">

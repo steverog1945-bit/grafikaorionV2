@@ -48,7 +48,7 @@
                     <span class="text-[13px] font-medium text-slate-700">{{ $p->nomor }}</span>
                     @if($p->catatan)<div class="text-[11px] text-slate-400">{{ $p->catatan }}</div>@endif
                 </td>
-                <td class="px-6 py-5"><span class="text-xs text-slate-500">{{ $p->tanggal->format('d M Y') }}</span></td>
+                <td class="px-6 py-5"><span class="text-xs text-slate-500">{{ $p->tanggal->translatedFormat('d M Y') }}</span></td>
                 <td class="px-6 py-5 align-top">
                     {{-- Tiga item pertama tampil langsung; sisanya lewat "lainnya" supaya baris tidak memanjang. --}}
                     @forelse($p->details->take(3) as $d)

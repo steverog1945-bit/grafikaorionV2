@@ -158,7 +158,7 @@
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-4 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-6 py-4 text-[12px] font-medium text-slate-700">{{ $row->nomor_nota }}</td>
-                <td class="px-4 py-4 text-[12px] text-slate-500">{{ \Carbon\Carbon::parse($row->tgl_order)->format('d M Y') }}</td>
+                <td class="px-4 py-4 text-[12px] text-slate-500">{{ \Carbon\Carbon::parse($row->tgl_order)->translatedFormat('d M Y') }}</td>
                 <td class="px-4 py-4 text-[12px] font-medium text-slate-600">{{ $row->nama_item }}</td>
                 <td class="px-4 py-4 text-[11px] text-slate-400 uppercase">{{ $row->divisi }}</td>
                 <td class="px-4 py-4 text-[12px] text-center text-slate-600">{{ number_format($row->qty, 0, ',', '.') }}</td>

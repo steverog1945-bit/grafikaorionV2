@@ -146,7 +146,7 @@ class StockOpnameController extends Controller
                 $stockOpname->id,
                 [],
                 "Stock Opname {$stockOpname->nomor} ({$selisih->count()} bahan selisih)",
-                "Hasil hitung fisik {$stockOpname->tanggal->format('d M Y')}"
+                "Hasil hitung fisik {$stockOpname->tanggal->translatedFormat('d M Y')}"
             );
 
             $stockOpname->update(['status' => 'Diajukan']);

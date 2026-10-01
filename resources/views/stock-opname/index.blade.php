@@ -50,7 +50,7 @@
                     @endif
                 </td>
                 <td class="px-6 py-5">
-                    <span class="text-xs text-slate-500">{{ $o->tanggal->format('d M Y') }}</span>
+                    <span class="text-xs text-slate-500">{{ $o->tanggal->translatedFormat('d M Y') }}</span>
                 </td>
                 <td class="px-6 py-5">
                     <span class="text-sm font-medium text-slate-600">{{ $o->pembuat?->username ?? '-' }}</span>

@@ -17,7 +17,7 @@
             @if($terakhirPerTipe[$tipe])
                 @php $b = $terakhirPerTipe[$tipe]; @endphp
                 <x-badge :status="$b->status" :variant="$b->status === 'Sukses' ? 'success' : 'danger'" />
-                <div class="text-sm font-medium text-slate-700 mt-2">{{ $b->started_at?->format('d M Y H:i') }}</div>
+                <div class="text-sm font-medium text-slate-700 mt-2">{{ $b->started_at?->translatedFormat('d M Y H:i') }}</div>
                 <div class="text-xs text-slate-400 mt-1">
                     {{ $b->ukuran_bytes ? angka($b->ukuran_bytes / 1024, 1) . ' KB' : '-' }}
                 </div>
@@ -69,10 +69,10 @@
                     <span class="text-xs text-slate-500">{{ $r->ukuran_bytes ? angka($r->ukuran_bytes / 1024, 1) . ' KB' : '-' }}</span>
                 </td>
                 <td class="px-6 py-5">
-                    <span class="text-xs text-slate-500">{{ $r->started_at?->format('d M Y H:i:s') }}</span>
+                    <span class="text-xs text-slate-500">{{ $r->started_at?->translatedFormat('d M Y H:i:s') }}</span>
                 </td>
                 <td class="px-6 py-5">
-                    <span class="text-xs text-slate-500">{{ $r->finished_at?->format('d M Y H:i:s') ?? '-' }}</span>
+                    <span class="text-xs text-slate-500">{{ $r->finished_at?->translatedFormat('d M Y H:i:s') ?? '-' }}</span>
                 </td>
                 <td class="px-8 py-5 max-w-sm">
                     @if($r->status === 'Gagal')

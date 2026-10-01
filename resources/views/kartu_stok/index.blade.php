@@ -149,7 +149,7 @@
                 </td>
                 <td class="px-4 py-5">
                     @if($b->mutasi_terakhir)
-                        <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($b->mutasi_terakhir)->format('d M Y') }}</span>
+                        <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($b->mutasi_terakhir)->translatedFormat('d M Y') }}</span>
                         <span class="block text-[10px] text-slate-400">{{ $b->jumlah_mutasi }} mutasi</span>
                     @else
                         <span class="text-[11px] text-slate-300 italic">Belum ada</span>

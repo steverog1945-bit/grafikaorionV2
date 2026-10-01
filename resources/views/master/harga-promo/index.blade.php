@@ -63,7 +63,7 @@
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] font-medium text-slate-600">
-                        {{ \Carbon\Carbon::parse($p->tgl_mulai)->format('d M Y') }} - {{ \Carbon\Carbon::parse($p->tgl_selesai)->format('d M Y') }}
+                        {{ \Carbon\Carbon::parse($p->tgl_mulai)->translatedFormat('d M Y') }} - {{ \Carbon\Carbon::parse($p->tgl_selesai)->translatedFormat('d M Y') }}
                     </span>
                 </td>
                 <td class="px-4 py-5 text-center">

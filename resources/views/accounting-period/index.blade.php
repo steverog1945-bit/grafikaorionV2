@@ -30,7 +30,7 @@
                     <x-badge :status="$p['status']" :variant="$p['status'] === 'Closed' ? 'danger' : 'success'" />
                 </td>
                 <td class="px-6 py-5">
-                    <span class="text-xs text-slate-500">{{ $p['closed_at']?->format('d M Y H:i') ?? '-' }}</span>
+                    <span class="text-xs text-slate-500">{{ $p['closed_at']?->translatedFormat('d M Y H:i') ?? '-' }}</span>
                 </td>
                 <td class="px-6 py-5 max-w-xs">
                     <span class="text-xs text-slate-500">{{ $p['catatan'] ?? '-' }}</span>

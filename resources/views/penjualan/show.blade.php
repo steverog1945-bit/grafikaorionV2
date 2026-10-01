@@ -26,7 +26,7 @@
                 <p class="text-sm font-medium text-rose-700 uppercase tracking-wide">Nota Ini Dibatalkan</p>
                 <p class="text-sm text-rose-600 mt-1">
                     Dibatalkan oleh <b>{{ $transaksi->nama_pembatal_nota ?? '-' }}</b>
-                    pada {{ $transaksi->tgl_dibatalkan_nota ? \Carbon\Carbon::parse($transaksi->tgl_dibatalkan_nota)->format('d M Y, H:i') : '-' }}.
+                    pada {{ $transaksi->tgl_dibatalkan_nota ? \Carbon\Carbon::parse($transaksi->tgl_dibatalkan_nota)->translatedFormat('d M Y, H:i') : '-' }}.
                 </p>
                 @if($transaksi->alasan_batal_nota)
                     <p class="text-sm text-rose-600 mt-1"><b>Alasan:</b> {{ $transaksi->alasan_batal_nota }}</p>
@@ -54,7 +54,7 @@
                     <span class="text-xs text-slate-500">PO: {{ $transaksi->no_po }}</span>
                 @endif
             </div>
-            <p class="text-sm text-slate-600">{{ \Carbon\Carbon::parse($transaksi->tgl_order)->format('d M Y, H:i') }}</p>
+            <p class="text-sm text-slate-600">{{ \Carbon\Carbon::parse($transaksi->tgl_order)->translatedFormat('d M Y, H:i') }}</p>
             <p class="text-xs text-slate-400 mt-1">Kasir: {{ $transaksi->nama_kasir ?? '-' }}</p>
         </x-card>
 

@@ -169,7 +169,7 @@
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-6 py-5">
-                    <span class="text-[13px] font-medium text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d M Y') }}</span>
+                    <span class="text-[13px] font-medium text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->translatedFormat('d M Y') }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[10px] font-medium uppercase rounded px-2 py-1 {{ $k->jenis === 'Masuk' ? 'text-emerald-600 bg-emerald-50' : 'text-rose-500 bg-rose-50' }}">{{ $k->jenis === 'Masuk' ? 'Masuk' : 'Keluar' }}</span>

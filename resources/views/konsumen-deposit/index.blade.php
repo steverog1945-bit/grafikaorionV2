@@ -88,7 +88,7 @@
             <tbody>
                     @forelse($riwayat as $r)
                     <tr>
-                        <td class="text-sm text-slate-600 font-medium">{{ \Carbon\Carbon::parse($r->tgl_deposit)->format('d M Y') }}</td>
+                        <td class="text-sm text-slate-600 font-medium">{{ \Carbon\Carbon::parse($r->tgl_deposit)->translatedFormat('d M Y') }}</td>
                         <td class="text-sm font-medium text-slate-700">{{ $r->nama_konsumen }}</td>
                         <td class="text-center">
                             <span class="badge {{ $r->tipe === 'Setoran' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }}">

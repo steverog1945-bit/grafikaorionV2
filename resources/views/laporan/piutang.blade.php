@@ -109,7 +109,7 @@
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td data-label="No. Nota" class="px-6 py-5"><span class="text-[13px] font-medium text-slate-700 uppercase">{{ $p->nomor_nota }}</span></td>
-                <td data-label="Tanggal" class="px-4 py-5"><span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($p->tgl_order)->format('d M Y') }}</span></td>
+                <td data-label="Tanggal" class="px-4 py-5"><span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($p->tgl_order)->translatedFormat('d M Y') }}</span></td>
                 <td data-label="Konsumen" class="px-4 py-5"><span class="text-[12px] font-medium text-slate-700 uppercase">{{ $p->nama_konsumen }}</span></td>
                 <td data-label="Total Transaksi" class="px-4 py-5 text-right"><span class="text-[12px] text-slate-500">Rp {{ number_format($p->total_bayar, 0, ',', '.') }}</span></td>
                 <td data-label="Sudah Dibayar" class="px-4 py-5 text-right"><span class="text-[12px] text-emerald-600 font-medium">Rp {{ number_format($p->total_dibayar, 0, ',', '.') }}</span></td>

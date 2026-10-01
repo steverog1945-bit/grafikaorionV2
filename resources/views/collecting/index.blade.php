@@ -97,7 +97,7 @@
                     <span class="text-[12px] font-medium text-slate-700 uppercase">{{ $item->nama_konsumen }}</span>
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->format('d M Y') }}</span>
+                    <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->translatedFormat('d M Y') }}</span>
                 </td>
                 <td class="px-4 py-5 text-center">
                     <div class="inline-flex items-center gap-2">
@@ -125,7 +125,7 @@
                 <td class="px-4 py-5 text-center">
                     @if($item->status_collecting === 'Sudah Diambil')
                         <x-badge variant="success">Sudah Diambil</x-badge>
-                        <div class="text-[9px] text-slate-400 mt-1">{{ \Carbon\Carbon::parse($item->tgl_collecting)->format('d M Y H:i') }} &middot; {{ $item->diambil_oleh ?? '-' }}</div>
+                        <div class="text-[9px] text-slate-400 mt-1">{{ \Carbon\Carbon::parse($item->tgl_collecting)->translatedFormat('d M Y H:i') }} &middot; {{ $item->diambil_oleh ?? '-' }}</div>
                     @else
                         <x-badge variant="info">Belum Diambil</x-badge>
                     @endif

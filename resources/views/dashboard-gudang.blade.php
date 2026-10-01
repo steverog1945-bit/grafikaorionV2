@@ -68,7 +68,7 @@
             <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-all">
                 <div>
                     <div class="text-[13px] font-medium text-slate-700">{{ $k->no_surat_jalan ?: '-' }}</div>
-                    <div class="text-[11px] text-slate-400">{{ $k->nama_supplier ?? '-' }} &middot; {{ \Carbon\Carbon::parse($k->tgl_datang)->format('d M Y') }}</div>
+                    <div class="text-[11px] text-slate-400">{{ $k->nama_supplier ?? '-' }} &middot; {{ \Carbon\Carbon::parse($k->tgl_datang)->translatedFormat('d M Y') }}</div>
                 </div>
                 <x-badge :status="$k->status" />
             </div>

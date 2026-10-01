@@ -8,7 +8,7 @@
          aplikasi) - dirombak memakai komponen bersama supaya senada,
          TANPA mengubah satu pun data/field yang ditampilkan. --}}
     <x-page-header title="Faktur Pembelian {{ $pembelian->no_faktur }}">
-        <x-slot:subtitle>{{ \Carbon\Carbon::parse($pembelian->tgl_transaksi)->format('d F Y') }}</x-slot:subtitle>
+        <x-slot:subtitle>{{ \Carbon\Carbon::parse($pembelian->tgl_transaksi)->translatedFormat('d F Y') }}</x-slot:subtitle>
         <x-slot:actions>
             <x-button href="{{ route('pembelian-bahan.index') }}" variant="secondary">
                 <i class="fas fa-arrow-left"></i> Kembali ke List
@@ -89,7 +89,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3 py-3 {{ !$loop->first ? 'border-t border-slate-50' : '' }} text-sm {{ $b->voided_at ? 'opacity-50' : '' }}">
                 <div>
                     <span class="font-medium text-slate-700 {{ $b->voided_at ? 'line-through' : '' }}">Rp {{ number_format($b->nominal, 0, ',', '.') }}</span>
-                    <span class="text-xs text-slate-400 ml-2">{{ \Carbon\Carbon::parse($b->tanggal)->format('d M Y') }} - {{ $b->metode }}</span>
+                    <span class="text-xs text-slate-400 ml-2">{{ \Carbon\Carbon::parse($b->tanggal)->translatedFormat('d M Y') }} - {{ $b->metode }}</span>
                     @if($b->keterangan)<div class="text-[11px] text-slate-400">{{ $b->keterangan }}</div>@endif
                     @if($b->voided_at)<div class="text-[11px] text-rose-500">Di-void: {{ $b->void_alasan }}</div>@endif
                 </div>

@@ -193,7 +193,7 @@
         <div class="mb-6 space-y-2">
             @foreach($po->kedatangan as $k)
                 <div class="flex items-center justify-between text-sm p-3 rounded-xl bg-slate-50">
-                    <span class="font-medium text-slate-700">SJ {{ $k->no_surat_jalan }} - {{ $k->tgl_datang?->format('d M Y') }}</span>
+                    <span class="font-medium text-slate-700">SJ {{ $k->no_surat_jalan }} - {{ $k->tgl_datang?->translatedFormat('d M Y') }}</span>
                     <span class="flex items-center gap-3">
                         <x-badge :status="$k->status" :variant="$k->status === 'Selesai' ? 'success' : 'info'" />
                         <a href="{{ route('kedatangan-bahan.edit', $k->id_kedatangan) }}" class="text-indigo-600 text-xs font-medium uppercase">Buka</a>

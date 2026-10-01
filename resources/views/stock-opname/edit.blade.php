@@ -8,7 +8,7 @@
     <x-page-header title="Stok Opname {{ $stockOpname->nomor }}">
         <x-slot:subtitle>
             <i class="fas fa-clipboard-list text-amber-400"></i>
-            {{ $stockOpname->tanggal->format('d M Y') }} - {{ $stockOpname->gudang?->nama_gudang ?? 'Semua Gudang' }}
+            {{ $stockOpname->tanggal->translatedFormat('d M Y') }} - {{ $stockOpname->gudang?->nama_gudang ?? 'Semua Gudang' }}
         </x-slot:subtitle>
         <x-slot:actions>
             @php

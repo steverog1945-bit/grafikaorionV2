@@ -168,7 +168,7 @@
                         <td class="px-6 py-5 text-center">
                             @if($bt)
                                 <span class="text-[13px] font-medium tabular-nums text-slate-700">Rp {{ number_format($bt->harga, 0, ',', '.') }}</span>
-                                <span class="block text-[10px] font-medium text-slate-400 mt-0.5" title="Faktur {{ $bt->no_faktur }}">{{ \Carbon\Carbon::parse($bt->tgl_transaksi)->format('d M Y') }}</span>
+                                <span class="block text-[10px] font-medium text-slate-400 mt-0.5" title="Faktur {{ $bt->no_faktur }}">{{ \Carbon\Carbon::parse($bt->tgl_transaksi)->translatedFormat('d M Y') }}</span>
                             @else
                                 <span class="text-[11px] font-medium text-slate-300 italic" title="Belum ada faktur pembelian untuk bahan ini">Belum pernah dibeli</span>
                             @endif

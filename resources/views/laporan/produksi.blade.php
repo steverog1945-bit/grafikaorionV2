@@ -215,7 +215,7 @@
                 <td data-label="SPK" class="px-6 py-5"><span class="text-[12px] font-medium text-slate-500">#{{ $d->id_detail }}</span></td>
                 <td data-label="Nama File" class="px-4 py-5"><span class="text-[13px] font-medium text-slate-700 uppercase">{{ $d->nama_file }}</span> <div class="text-[10px] text-slate-400">{{ $d->nomor_nota }}</div></td>
                 <td data-label="Konsumen" class="px-4 py-5"><span class="text-[12px] font-medium text-slate-700 uppercase">{{ $d->nama_konsumen }}</span></td>
-                <td data-label="Tanggal" class="px-4 py-5"><span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($d->tgl_order)->format('d M Y') }}</span></td>
+                <td data-label="Tanggal" class="px-4 py-5"><span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($d->tgl_order)->translatedFormat('d M Y') }}</span></td>
                 <td data-label="Divisi" class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $d->divisi ?? '-' }}</span></td>
                 <td data-label="Desainer" class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $d->desainer ?? '-' }}</span></td>
                 <td data-label="Ukuran" class="px-4 py-5"><span class="text-[12px] text-slate-500">{{ $d->p_ukuran > 0 && $d->l_ukuran > 0 ? number_format($d->p_ukuran, 0, ',', '.') . 'x' . number_format($d->l_ukuran, 0, ',', '.') . ' cm' : '-' }}</span></td>

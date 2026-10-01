@@ -59,7 +59,7 @@
                     @endif
                 </td>
                 <td class="px-6 py-5">
-                    <span class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($r->created_at)->format('d M Y H:i') }}</span>
+                    <span class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($r->created_at)->translatedFormat('d M Y H:i') }}</span>
                 </td>
                 <td class="px-6 py-5 text-center">
                     @php

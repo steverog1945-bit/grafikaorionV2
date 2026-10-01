@@ -47,9 +47,9 @@
             @php $variantMap = ['Draft' => 'info', 'Terkirim' => 'warning', 'Disetujui' => 'success', 'Ditolak' => 'danger', 'Menjadi Order' => 'success', 'Kedaluwarsa' => 'danger']; @endphp
             @forelse($daftar as $q)
             <tr class="hover:bg-slate-50/30">
-                <td class="px-8 py-4"><span class="text-[13px] font-medium text-slate-700">{{ $q->nomor }}</span><div class="text-[11px] text-slate-400">{{ $q->tanggal->format('d M Y') }}</div></td>
+                <td class="px-8 py-4"><span class="text-[13px] font-medium text-slate-700">{{ $q->nomor }}</span><div class="text-[11px] text-slate-400">{{ $q->tanggal->translatedFormat('d M Y') }}</div></td>
                 <td class="px-6 py-4 text-sm font-medium text-slate-600">{{ $q->nama_pelanggan }}</td>
-                <td class="px-6 py-4 text-xs text-slate-500">{{ $q->berlaku_sampai->format('d M Y') }}</td>
+                <td class="px-6 py-4 text-xs text-slate-500">{{ $q->berlaku_sampai->translatedFormat('d M Y') }}</td>
                 <td class="px-6 py-4 text-right text-sm font-medium text-slate-700">Rp {{ number_format($q->total, 0, ',', '.') }}</td>
                 <td class="px-6 py-4 text-center"><x-badge :status="$q->status_efektif" :variant="$variantMap[$q->status_efektif] ?? 'info'" /></td>
                 <td class="px-8 py-4 text-right">

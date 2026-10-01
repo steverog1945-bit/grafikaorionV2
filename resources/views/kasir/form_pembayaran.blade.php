@@ -39,7 +39,7 @@
                     <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-400 flex items-center justify-center shrink-0"><i class="fas fa-user text-lg"></i></div>
                     <div class="flex-1 min-w-0">
                         <p class="text-lg font-medium text-slate-800 truncate">{{ $transaksi->nama_konsumen }}</p>
-                        <p class="text-xs text-slate-400 mt-0.5">Nota <span class="font-medium text-slate-500">#{{ $transaksi->nomor_nota }}</span> &middot; {{ \Carbon\Carbon::parse($transaksi->tgl_order)->format('d M Y, H:i') }}</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Nota <span class="font-medium text-slate-500">#{{ $transaksi->nomor_nota }}</span> &middot; {{ \Carbon\Carbon::parse($transaksi->tgl_order)->translatedFormat('d M Y, H:i') }}</p>
                     </div>
                     <span class="px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-500 text-[11px] font-medium tracking-wide">{{ $transaksi->nama_golongan ?? '-' }}</span>
                 </div>

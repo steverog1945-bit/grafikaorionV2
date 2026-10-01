@@ -98,7 +98,7 @@
                         @endif
                     </td>
                     <td class="px-4 py-5">
-                        <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->format('d M Y') }}</span>
+                        <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->translatedFormat('d M Y') }}</span>
                     </td>
                     <td class="px-4 py-5 text-center">
                         <span class="text-[13px] font-medium text-slate-700">{{ angka($item->qty, 4) }}</span>

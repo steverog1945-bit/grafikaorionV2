@@ -260,8 +260,8 @@
                     &middot; Desainer: {{ $o->designer->name ?? $o->designer_name ?? '-' }}
                 </p>
                 <p class="text-[11px] text-slate-400 mt-0.5">
-                    {{ \Carbon\Carbon::parse($o->order_date)->format('d M Y') }}
-                    @if($o->deadline) &middot; Deadline: {{ \Carbon\Carbon::parse($o->deadline)->format('d M Y') }} @endif
+                    {{ \Carbon\Carbon::parse($o->order_date)->translatedFormat('d M Y') }}
+                    @if($o->deadline) &middot; Deadline: {{ \Carbon\Carbon::parse($o->deadline)->translatedFormat('d M Y') }} @endif
                 </p>
             </div>
             <div class="text-right shrink-0">

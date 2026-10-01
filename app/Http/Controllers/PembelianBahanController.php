@@ -535,7 +535,7 @@ public function pelunasanInfo(Request $request)
             'fakturs' => [$r], 'saldo_kas_kecil' => $saldoKasKecil, 'action' => route('pembelian.pelunasan', $p->id_pembelian),
             'riwayat' => DB::table('pembayaran_hutang')->where('id_pembelian', $p->id_pembelian)->whereNull('voided_at')->orderBy('tanggal')->orderBy('id')
                 ->get(['tanggal', 'nominal', 'metode', 'keterangan'])->map(fn ($b) => [
-                    'tanggal' => \Carbon\Carbon::parse($b->tanggal)->format('d M Y'), 'nominal' => (float) $b->nominal, 'metode' => $b->metode, 'keterangan' => $b->keterangan,
+                    'tanggal' => \Carbon\Carbon::parse($b->tanggal)->translatedFormat('d M Y'), 'nominal' => (float) $b->nominal, 'metode' => $b->metode, 'keterangan' => $b->keterangan,
                 ]),
         ]);
     }

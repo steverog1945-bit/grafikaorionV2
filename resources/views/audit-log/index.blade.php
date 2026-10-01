@@ -57,7 +57,7 @@
             @forelse($logs as $i => $log)
             <tr class="hover:bg-slate-50/50 transition-all align-top">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $logs->firstItem() + $i }}</td>
-                <td class="px-4 py-5 text-[12px] text-slate-600 whitespace-nowrap">{{ $log->created_at?->format('d M Y H:i:s') }}</td>
+                <td class="px-4 py-5 text-[12px] text-slate-600 whitespace-nowrap">{{ $log->created_at?->translatedFormat('d M Y H:i:s') }}</td>
                 <td class="px-4 py-5 text-[12px] font-medium text-slate-700">{{ $log->user_label ?? $log->user?->username ?? '-' }}</td>
                 <td class="px-4 py-5">
                     @php

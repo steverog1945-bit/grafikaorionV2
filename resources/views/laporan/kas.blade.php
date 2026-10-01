@@ -160,7 +160,7 @@
         <div class="px-6 py-4 bg-slate-50/80 border-b border-slate-100 flex flex-wrap items-start justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-[14px] font-medium text-slate-800">{{ \Carbon\Carbon::parse($k->tgl_kas)->format('d M Y') }}</span>
+                    <span class="text-[14px] font-medium text-slate-800">{{ \Carbon\Carbon::parse($k->tgl_kas)->translatedFormat('d M Y') }}</span>
                     @if($k->status_lock === 'open')
                         <x-badge variant="warning">Masih Buka</x-badge>
                     @else

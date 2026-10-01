@@ -69,7 +69,7 @@
                 $cek = collect(json_decode($q->checklist ?? '[]', true))->filter()->keys()->map(fn ($k) => \App\Services\QcService::CHECKLIST[$k] ?? $k)->implode(', ');
             @endphp
             <tr>
-                <td class="px-8 py-4"><span class="text-[13px] font-medium text-slate-700">{{ $q->nomor }}</span><div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($q->tanggal)->format('d M Y') }} - {{ $q->username }}</div></td>
+                <td class="px-8 py-4"><span class="text-[13px] font-medium text-slate-700">{{ $q->nomor }}</span><div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($q->tanggal)->translatedFormat('d M Y') }} - {{ $q->username }}</div></td>
                 <td class="px-6 py-4 text-xs text-slate-500">{{ $q->nomor_nota }} - {{ $q->nama_file }}</td>
                 <td class="px-6 py-4 text-right text-sm">{{ angka($q->qty_diperiksa, 4) }}</td>
                 <td class="px-6 py-4 text-right text-sm text-emerald-600 font-medium">{{ $q->qty_lolos }}</td>

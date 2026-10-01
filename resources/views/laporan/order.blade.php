@@ -270,7 +270,7 @@
                     @if($t->no_po) &middot; No. PO: {{ $t->no_po }} @endif
                 </p>
                 <p class="text-[11px] text-slate-400 mt-0.5">
-                    {{ \Carbon\Carbon::parse($t->tgl_order)->format('d M Y') }}
+                    {{ \Carbon\Carbon::parse($t->tgl_order)->translatedFormat('d M Y') }}
                     @if($t->created_at) &middot; {{ \Carbon\Carbon::parse($t->created_at)->format('H:i') }} @endif
                     @if($t->nama_operator) &middot; Operator: {{ $t->nama_operator }} @endif
                 </p>

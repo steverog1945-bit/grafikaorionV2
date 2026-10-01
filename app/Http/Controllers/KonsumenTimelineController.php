@@ -56,7 +56,7 @@ class KonsumenTimelineController extends Controller
 
         foreach ($penawaran as $q) {
             $kejadian->push(['waktu' => Carbon::parse($q->tanggal), 'jenis' => 'Penawaran', 'ikon' => 'file-signature', 'warna' => 'amber',
-                'judul' => "Penawaran {$q->nomor}", 'detail' => $q->status . ' - berlaku s/d ' . Carbon::parse($q->berlaku_sampai)->format('d M Y'),
+                'judul' => "Penawaran {$q->nomor}", 'detail' => $q->status . ' - berlaku s/d ' . Carbon::parse($q->berlaku_sampai)->translatedFormat('d M Y'),
                 'nominal' => (float) $q->total, 'url' => route('quotation.edit', $q->id)]);
         }
 

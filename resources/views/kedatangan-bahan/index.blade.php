@@ -75,7 +75,7 @@
 
                     <td class="px-4 py-5">
                         <span class="text-[13px] font-medium text-slate-700 uppercase block">{{ $k->no_surat_jalan }}</span>
-                        <span class="text-[11px] text-slate-400 font-medium mt-0.5 block">{{ optional($k->tgl_datang)->format('d M Y') }}</span>
+                        <span class="text-[11px] text-slate-400 font-medium mt-0.5 block">{{ optional($k->tgl_datang)->translatedFormat('d M Y') }}</span>
                     </td>
 
                     <td class="px-4 py-5">

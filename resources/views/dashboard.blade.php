@@ -180,7 +180,7 @@
             <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-all">
                 <div class="min-w-0">
                     <div class="text-[13px] font-medium text-slate-700 uppercase">{{ $o->nomor_nota }}</div>
-                    <div class="text-[11px] text-slate-400 truncate">{{ $o->nama_konsumen }} &middot; {{ \Carbon\Carbon::parse($o->tgl_order)->format('d M Y H:i') }}</div>
+                    <div class="text-[11px] text-slate-400 truncate">{{ $o->nama_konsumen }} &middot; {{ \Carbon\Carbon::parse($o->tgl_order)->translatedFormat('d M Y H:i') }}</div>
                 </div>
                 <div class="text-right shrink-0">
                     <div class="text-sm font-medium text-slate-800">Rp {{ number_format($o->total_bayar, 0, ',', '.') }}</div>

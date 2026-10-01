@@ -15,7 +15,7 @@
     if ($quotation && $quotation->telepon) {
         $no = preg_replace('/\D+/', '', $quotation->telepon);
         $no = str_starts_with($no, '0') ? '62' . substr($no, 1) : $no;
-        $pesan = "Yth. {$quotation->nama_pelanggan},\nBerikut penawaran {$quotation->nomor} sebesar Rp " . number_format($quotation->total, 0, ',', '.') . ", berlaku sampai " . $quotation->berlaku_sampai->format('d M Y') . ". Terima kasih.";
+        $pesan = "Yth. {$quotation->nama_pelanggan},\nBerikut penawaran {$quotation->nomor} sebesar Rp " . number_format($quotation->total, 0, ',', '.') . ", berlaku sampai " . $quotation->berlaku_sampai->translatedFormat('d M Y') . ". Terima kasih.";
         $wa = 'https://wa.me/' . $no . '?text=' . rawurlencode($pesan);
     }
 @endphp

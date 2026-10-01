@@ -76,7 +76,7 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($data as $r)
             <tr class="hover:bg-slate-50/30">
-                <td class="px-8 py-4"><span class="text-[13px] font-medium text-slate-700">{{ $r->nomor_nota }}</span><div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($r->tgl_order)->format('d M Y') }} - {{ $r->nama_konsumen ?? '-' }}</div></td>
+                <td class="px-8 py-4"><span class="text-[13px] font-medium text-slate-700">{{ $r->nomor_nota }}</span><div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($r->tgl_order)->translatedFormat('d M Y') }} - {{ $r->nama_konsumen ?? '-' }}</div></td>
                 <td class="px-4 py-4 text-right text-sm">{{ number_format($r->omzet, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-right text-sm text-slate-500">{{ number_format($r->hpp, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-right text-sm {{ $r->biaya_rework > 0 ? 'text-rose-500 font-medium' : 'text-slate-300' }}">{{ number_format($r->biaya_rework, 0, ',', '.') }}</td>

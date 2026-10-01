@@ -37,7 +37,7 @@
     @if($pengambilan)
     <x-card class="mb-8">
         <h3 class="text-xs font-medium text-slate-800 uppercase tracking-widest mb-2">Serah Terima</h3>
-        <div class="text-sm text-slate-600">{{ $pengambilan->jenis }}{{ $pengambilan->nama_penerima ? ' - ' . $pengambilan->nama_penerima : '' }} - {{ \Carbon\Carbon::parse($pengambilan->created_at)->format('d M Y H:i') }}{{ $pengambilan->catatan ? ' - ' . $pengambilan->catatan : '' }}</div>
+        <div class="text-sm text-slate-600">{{ $pengambilan->jenis }}{{ $pengambilan->nama_penerima ? ' - ' . $pengambilan->nama_penerima : '' }} - {{ \Carbon\Carbon::parse($pengambilan->created_at)->translatedFormat('d M Y H:i') }}{{ $pengambilan->catatan ? ' - ' . $pengambilan->catatan : '' }}</div>
     </x-card>
     @endif
 
@@ -48,7 +48,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3 py-3 {{ !$loop->last ? 'border-b border-slate-50' : '' }}">
             <div class="min-w-0">
                 <a href="{{ $b['url'] }}" target="_blank" class="text-sm font-medium text-slate-700 hover:text-indigo-600 break-all">{{ $b['nama'] }}</a>
-                <div class="text-[11px] text-slate-400">{{ $b['item'] }}{{ $b['info'] ? ' - ' . $b['info'] : '' }}{{ $b['waktu'] ? ' - ' . \Carbon\Carbon::parse($b['waktu'])->format('d M Y H:i') : '' }}</div>
+                <div class="text-[11px] text-slate-400">{{ $b['item'] }}{{ $b['info'] ? ' - ' . $b['info'] : '' }}{{ $b['waktu'] ? ' - ' . \Carbon\Carbon::parse($b['waktu'])->translatedFormat('d M Y H:i') : '' }}</div>
             </div>
             <a href="{{ $b['url'] }}" target="_blank" class="text-xs font-medium text-indigo-600 uppercase">Buka</a>
         </div>

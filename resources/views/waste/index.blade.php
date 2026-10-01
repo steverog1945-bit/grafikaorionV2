@@ -58,7 +58,7 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($daftar as $w)
             <tr>
-                <td class="px-8 py-4"><span class="text-[13px] font-medium text-slate-700">{{ $w->nomor }}</span><div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($w->tanggal)->format('d M Y') }} - {{ $w->username }}</div></td>
+                <td class="px-8 py-4"><span class="text-[13px] font-medium text-slate-700">{{ $w->nomor }}</span><div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($w->tanggal)->translatedFormat('d M Y') }} - {{ $w->username }}</div></td>
                 <td class="px-6 py-4 text-sm font-medium text-slate-600">{{ $w->nama_bahan }}</td>
                 <td class="px-6 py-4 text-right text-sm">{{ angka($w->qty, 4) }} {{ $w->satuan_stok }}</td>
                 <td class="px-6 py-4 text-center"><x-badge :status="$w->jenis" :variant="$w->jenis === 'Normal' ? 'warning' : 'danger'" /></td>
