@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AccountingService;
+
 use App\Services\KasSesiService;
 use App\Services\DocumentNumberService;
 
@@ -310,6 +312,22 @@ class PenjualanBarangController extends Controller
             }
 
             DB::table('transaksi')->where('id_transaksi', $idTransaksi)->update(['total_bayar' => $grandTotal]);
+
+            // Jurnal penjualan, pola sama dengan Input Pesanan (PenjualanController::store): barang (bahan + custom)
+            // lewat postPenjualan beserta HPP bahan, jasa lewat postPenjualanJasa. Sebelumnya menu ini tidak menjurnal
+            // sama sekali: piutang & pendapatan tidak tercatat, stok keluar tanpa HPP, dan pembayarannya membuat piutang
+            // minus. Di dalam transaksi yang sama, jadi gagal jurnal = seluruh nota batal.
+            $ringkas = DB::table('transaksi_detail')->where('id_transaksi', $idTransaksi)
+                ->selectRaw('COALESCE(SUM(CASE WHEN id_jasa IS NULL THEN subtotal ELSE 0 END), 0) barang,
+                             COALESCE(SUM(CASE WHEN id_jasa IS NOT NULL THEN subtotal ELSE 0 END), 0) jasa,
+                             COALESCE(SUM(CASE WHEN id_bahan IS NOT NULL THEN hpp_snapshot ELSE 0 END), 0) hpp')
+                ->first();
+            if ((float) $ringkas->barang > 0) {
+                AccountingService::postPenjualan($no_nota, round((float) $ringkas->barang, 2), round((float) $ringkas->hpp, 2));
+            }
+            if ((float) $ringkas->jasa > 0) {
+                AccountingService::postPenjualanJasa($no_nota, round((float) $ringkas->jasa, 2));
+            }
 
             DB::commit();
 
