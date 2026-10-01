@@ -139,6 +139,16 @@ Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () 
         ->name('jasa-jahit.update');
     Route::delete('/jasa-jahit/{id}', [\App\Http\Controllers\JasaJahitController::class, 'destroy'])
         ->name('jasa-jahit.destroy');
+    Route::post('/jasa-jahit/penjahit', [\App\Http\Controllers\JasaJahitController::class, 'storePenjahit'])
+        ->name('jasa-jahit.penjahit.store');
+    Route::put('/jasa-jahit/penjahit/{id}', [\App\Http\Controllers\JasaJahitController::class, 'updatePenjahit'])
+        ->whereNumber('id')->name('jasa-jahit.penjahit.update');
+    Route::delete('/jasa-jahit/penjahit/{id}', [\App\Http\Controllers\JasaJahitController::class, 'destroyPenjahit'])
+        ->whereNumber('id')->name('jasa-jahit.penjahit.destroy');
+    Route::get('/jasa-jahit/jersey/{id}/rincian', [\App\Http\Controllers\JasaJahitController::class, 'rincianJersey'])
+        ->whereNumber('id')->name('jasa-jahit.jersey.rincian');
+    Route::post('/jasa-jahit/catat-jersey', [\App\Http\Controllers\JasaJahitController::class, 'storeCatatJersey'])
+        ->name('jasa-jahit.catat-jersey.store');
     Route::post('/jasa-jahit/catat', [\App\Http\Controllers\JasaJahitController::class, 'storeCatat'])
         ->name('jasa-jahit.catat.store');
     Route::delete('/jasa-jahit/catat/{id}', [\App\Http\Controllers\JasaJahitController::class, 'destroyCatat'])
