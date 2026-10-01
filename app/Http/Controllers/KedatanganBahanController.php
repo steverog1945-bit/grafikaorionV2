@@ -193,62 +193,21 @@ public function bulkDelete(Request $request)
         return back()->with('error', 'Tidak ada data dipilih');
     }
 
-    DB::transaction(function () use ($ids) {
-
-        foreach ($ids as $id) {
-
-            $kedatangan = KedatanganBahan::with('detail')
-                ->where('id_kedatangan', $id)
-                ->first();
-
-            if (!$kedatangan) continue;
-
-            // 🔴 Kurangi stok jika selesai - dan CATAT ke kartu_stok. Sebelumnya
-            // baris ini cuma decrement() langsung tanpa insert kartu_stok sama
-            // sekali, jadi begitu kedatangan yang sudah "Selesai" dihapus,
-            // bahan_baku.stok turun tapi kartu_stok tetap menyimpan baris IN
-            // lama seolah stok itu masih berlaku - ledger dan angka live jadi
-            // tidak nyambung, tidak bisa dipertanggungjawabkan lagi.
-            if ($kedatangan->status == 'Selesai') {
-                foreach ($kedatangan->detail as $d) {
-                    $bahan = BahanBaku::where('id_bahan', $d->id_bahan)->lockForUpdate()->first();
-                    if (!$bahan) continue;
-
-                    $stokSebelum = $bahan->stok;
-                    $stokSesudah = $stokSebelum - $d->qty;
-                    $bahan->update(['stok' => $stokSesudah]);
-
-                    DB::table('kartu_stok')->insert([
-                        'id_bahan'     => $d->id_bahan,
-                        'tanggal'      => now(),
-                        'tipe'         => 'OUT',
-                        'qty'          => $d->qty,
-                        'stok_sebelum' => $stokSebelum,
-                        'stok_sesudah' => $stokSesudah,
-                        'referensi'    => $kedatangan->no_surat_jalan,
-                        'keterangan'   => 'Pembatalan kedatangan bahan (hapus massal) - stok dikembalikan',
-                        'created_by'   => auth()->id(),
-                        'created_at'   => now(),
-                        'updated_at'   => now(),
-                    ]);
+    // Semua-atau-tidak-sama-sekali: satu kedatangan ditolak = seluruh penghapusan massal batal.
+    try {
+        DB::transaction(function () use ($ids) {
+            foreach ($ids as $id) {
+                $kedatangan = KedatanganBahan::with('detail')->where('id_kedatangan', $id)->first();
+                if ($kedatangan) {
+                    $this->hapusKedatangan($kedatangan, 'Pembatalan kedatangan bahan (hapus massal) - stok dikembalikan');
                 }
             }
+        });
+    } catch (\RuntimeException $e) {
+        return back()->with('error', $e->getMessage());
+    }
 
-            // Hapus pembelian terkait
-            PembelianBahan::where('id_kedatangan', $id)->delete();
-
-            // Hapus detail
-            $kedatangan->detail()->delete();
-
-            // Hapus header
-            $idPo = $kedatangan->id_purchase_order;
-            $kedatangan->delete();
-            \App\Services\PurchaseOrderService::sinkronPenerimaan($idPo);
-        }
-    });
-
-    return redirect()->route('kedatangan-bahan.index')
-        ->with('success', 'Data berhasil dihapus');
+    return redirect()->route('kedatangan-bahan.index')->with('success', 'Data kedatangan terpilih berhasil dihapus.');
 }
     public function update(Request $request, $id)
 {
@@ -384,17 +343,44 @@ public function ajaxBahan(Request $request)
 {
     $kedatangan = KedatanganBahan::with('detail')->findOrFail($id);
 
-    DB::transaction(function() use($kedatangan) {
+    try {
+        DB::transaction(fn () => $this->hapusKedatangan($kedatangan, 'Kedatangan bahan dihapus - stok dikembalikan'));
+    } catch (\RuntimeException $e) {
+        return back()->with('error', $e->getMessage());
+    }
 
-        // 🔴 Kurangi stok jika sudah selesai - dan catat ke kartu_stok
-        // (sebelumnya cuma decrement() langsung, sama seperti bulkDelete()).
+    return redirect()->route('kedatangan-bahan.index')
+        ->with('success','Data kedatangan berhasil dihapus.');
+}
+
+    /**
+     * Satu-satunya jalur hapus kedatangan (satuan dan massal). Wajib dipanggil di dalam transaksi.
+     * - Kedatangan yang punya faktur (aktif maupun yang sudah dibatalkan) tidak boleh dihapus: faktur dibatalkan lewat
+     *   approval Pembelian Bahan (jurnal hutang & persediaan dibalik di sana). Sebelumnya hapus massal ikut menghapus
+     *   fakturnya diam-diam tanpa membalik jurnal.
+     * - Kedatangan yang sudah divalidasi mengembalikan stok; bila stoknya sudah terpakai sehingga akan minus, ditolak.
+     */
+    private function hapusKedatangan(KedatanganBahan $kedatangan, string $keterangan): void
+    {
+        $faktur = PembelianBahan::withTrashed()->where('id_kedatangan', $kedatangan->id_kedatangan)->first();
+        if ($faktur) {
+            throw new \RuntimeException($faktur->trashed()
+                ? "Kedatangan {$kedatangan->no_surat_jalan} punya riwayat faktur {$faktur->no_faktur} (sudah dibatalkan), jadi disimpan sebagai jejak dan tidak bisa dihapus."
+                : "Kedatangan {$kedatangan->no_surat_jalan} sudah difakturkan ({$faktur->no_faktur}). Batalkan fakturnya dulu lewat Pembelian Bahan (perlu persetujuan), baru kedatangannya bisa dihapus.");
+        }
+
         if ($kedatangan->status == 'Selesai') {
             foreach ($kedatangan->detail as $d) {
                 $bahan = BahanBaku::where('id_bahan', $d->id_bahan)->lockForUpdate()->first();
-                if (!$bahan) continue;
+                if (!$bahan) {
+                    continue;
+                }
 
-                $stokSebelum = $bahan->stok;
-                $stokSesudah = $stokSebelum - $d->qty;
+                $stokSebelum = (float) $bahan->stok;
+                $stokSesudah = $stokSebelum - (float) $d->qty;
+                if ($stokSesudah < -0.0001) {
+                    throw new \RuntimeException("Stok {$bahan->nama_bahan} dari kedatangan {$kedatangan->no_surat_jalan} sudah terpakai (sisa " . angka($stokSebelum, 2) . ', perlu ' . angka((float) $d->qty, 2) . '). Kedatangan tidak bisa dihapus; koreksi lewat penyesuaian stok bila memang salah catat.');
+                }
                 $bahan->update(['stok' => $stokSesudah]);
 
                 DB::table('kartu_stok')->insert([
@@ -405,7 +391,7 @@ public function ajaxBahan(Request $request)
                     'stok_sebelum' => $stokSebelum,
                     'stok_sesudah' => $stokSesudah,
                     'referensi'    => $kedatangan->no_surat_jalan,
-                    'keterangan'   => 'Kedatangan bahan dihapus - stok dikembalikan',
+                    'keterangan'   => $keterangan,
                     'created_by'   => auth()->id(),
                     'created_at'   => now(),
                     'updated_at'   => now(),
@@ -413,12 +399,9 @@ public function ajaxBahan(Request $request)
             }
         }
 
+        $idPo = $kedatangan->id_purchase_order;
         $kedatangan->detail()->delete();
         $kedatangan->delete();
-        \App\Services\PurchaseOrderService::sinkronPenerimaan($kedatangan->id_purchase_order);
-    });
-
-    return redirect()->route('kedatangan-bahan.index')
-        ->with('success','Data kedatangan berhasil dihapus.');
-}
+        \App\Services\PurchaseOrderService::sinkronPenerimaan($idPo);
+    }
 }
