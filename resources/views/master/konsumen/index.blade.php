@@ -127,15 +127,15 @@
     <x-modal id="tambah-konsumen" title="Input Konsumen Baru" maxWidth="md">
         <form action="{{ route('konsumen.store') }}" method="POST" class="space-y-5">
             @csrf
-            <x-form.group label="Nama Lengkap" name="nama_konsumen" required>
-                <x-form.input type="text" name="nama_konsumen" required />
+            <x-form.group label="Nama lengkap" name="nama_konsumen" required dalam>
+                <x-form.input type="text" name="nama_konsumen" required placeholder=" " />
             </x-form.group>
 
             <div class="grid grid-cols-2 gap-4">
-                <x-form.group label="No. Telepon/WA" name="telepon" required>
-                    <x-form.input type="text" name="telepon" required />
+                <x-form.group label="Telepon/WA" name="telepon" required dalam>
+                    <x-form.input type="text" name="telepon" required placeholder=" " inputmode="tel" />
                 </x-form.group>
-                <x-form.group label="Golongan" name="id_golongan">
+                <x-form.group label="Golongan" name="id_golongan" dalam>
                     <x-form.select name="id_golongan">
                         @foreach($golongan as $g)
                             <option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>
@@ -144,9 +144,8 @@
                 </x-form.group>
             </div>
 
-            <x-form.group label="Alamat Domisili" name="alamat">
-                <textarea name="alamat" rows="2"
-                          class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
+            <x-form.group label="Alamat" name="alamat" dalam>
+                <textarea name="alamat" rows="2" placeholder=" "></textarea>
             </x-form.group>
 
             <div class="pt-4 flex gap-3">

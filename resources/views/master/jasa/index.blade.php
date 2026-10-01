@@ -173,62 +173,54 @@
          icon="fa-screwdriver-wrench" maxWidth="md">
     <form action="{{ route('jasa.store') }}" method="POST" class="space-y-4">
         @csrf
-        <div>
-            <label class="block text-[10px]">Nama Jasa</label>
-            <input type="text" name="nama_jasa" placeholder="Contoh: Instalasi, Laminasi Luar" required
-                   class="w-full text-sm font-medium text-slate-700">
+        <div class="ld">
+            <input type="text" name="nama_jasa" id="tambah_nama_jasa" placeholder=" " required>
+            <label class="ld-label" for="tambah_nama_jasa">Nama jasa<span class="ld-wajib" aria-hidden="true">*</span></label>
         </div>
 
-        <div>
-            {{-- Divisi = mesin pengerjaan, sama seperti produk.id_mesin. --}}
-            {{-- Kosongkan kalau jasa ini belum ditugaskan ke mesin mana. --}}
-            <label class="block text-[10px]">Divisi (Mesin) <span class="normal-case font-normal text-slate-400">- siapa yang mengerjakan</span></label>
-            <select name="id_mesin"
-                    class="w-full text-sm font-medium text-slate-700 appearance-none">
+        {{-- Divisi = mesin pengerjaan, sama seperti produk.id_mesin. Kosongkan bila belum ditugaskan. --}}
+        <div class="ld">
+            <select name="id_mesin" id="tambah_id_mesin">
                 <option value="">-- Tanpa Divisi --</option>
                 @foreach($mesin as $m)
                     <option value="{{ $m->id_mesin }}">{{ $m->nama_mesin }}</option>
                 @endforeach
             </select>
+            <label class="ld-label" for="tambah_id_mesin">Divisi yang mengerjakan</label>
         </div>
 
-        <div>
-            <label class="block text-[10px]">Unit Hitung</label>
-            <select name="id_satuan"
-                    class="w-full text-sm font-medium text-slate-700 appearance-none">
+        <div class="ld">
+            <select name="id_satuan" id="tambah_id_satuan">
                 <option value="">-- Pilih Satuan --</option>
                 @foreach($satuan as $s)
                     <option value="{{ $s->id_satuan }}">{{ $s->nama_satuan }}</option>
                 @endforeach
             </select>
+            <label class="ld-label" for="tambah_id_satuan">Unit hitung</label>
         </div>
 
-        <div>
-            <label class="block text-[10px]">Harga Dasar (Rp) <span class="normal-case font-normal text-slate-400">- opsional, titik awal di Kasir</span></label>
-            <input type="text" inputmode="numeric" name="harga_default" placeholder="0"
-                   class="w-full text-sm font-medium text-slate-700 format-ribuan">
+        <div class="ld">
+            <input type="text" inputmode="numeric" name="harga_default" id="tambah_harga_default" placeholder=" " class="format-ribuan">
+            <label class="ld-label" for="tambah_harga_default">Harga dasar (Rp), opsional</label>
         </div>
 
         {{-- Biaya ini dipotong dari harga jual untuk menghitung margin. --}}
         {{-- Kalau dibiarkan 0, margin jasa selalu terlihat 100% di laporan - --}}
         {{-- bukan karena jasanya gratis, tapi karena biayanya belum dicatat. --}}
         <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-[10px]">Biaya Operasional (Rp)</label>
-                <input type="text" inputmode="numeric" name="biaya_operasional" placeholder="0"
-                       class="w-full text-sm font-medium text-slate-700 format-ribuan">
+            <div class="ld">
+                <input type="text" inputmode="numeric" name="biaya_operasional" id="tambah_biaya_operasional" placeholder=" " class="format-ribuan">
+                <label class="ld-label" for="tambah_biaya_operasional">Biaya operasional (Rp)</label>
             </div>
-            <div>
-                <label class="block text-[10px]">Biaya Tinta (Rp)</label>
-                <input type="text" inputmode="numeric" name="biaya_tinta" placeholder="0"
-                       class="w-full text-sm font-medium text-slate-700 format-ribuan">
+            <div class="ld">
+                <input type="text" inputmode="numeric" name="biaya_tinta" id="tambah_biaya_tinta" placeholder=" " class="format-ribuan">
+                <label class="ld-label" for="tambah_biaya_tinta">Biaya tinta (Rp)</label>
             </div>
         </div>
 
-        <div>
-            <label class="block text-[10px]">Keterangan Singkat</label>
-            <textarea name="keterangan" placeholder="Keterangan jasa..."
-                      class="w-full text-sm font-medium text-slate-700"></textarea>
+        <div class="ld">
+            <textarea name="keterangan" id="tambah_keterangan" placeholder=" "></textarea>
+            <label class="ld-label" for="tambah_keterangan">Keterangan singkat</label>
         </div>
 
         <x-slot:footer>

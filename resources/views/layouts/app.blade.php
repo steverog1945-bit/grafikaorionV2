@@ -156,7 +156,9 @@
     }
 
     /* Tampilan lebar: penanda grup yang berisi halaman aktif */
-    aside .menu-group-toggle.has-active > span { color: #fff; }
+    /* Sidebar terang: judul grup aktif gelap (dulu putih untuk sidebar gelap, sehingga hilang di latar putih). */
+    aside .menu-group-toggle.has-active > span { color: #1e293b; }
+    html.dark aside .menu-group-toggle.has-active > span { color: #f1f5f9; }
     aside .menu-group-toggle.has-active > span::after {
         content: ''; display: inline-block; width: 6px; height: 6px; margin-left: 8px; border-radius: 999px;
         background: #818cf8; vertical-align: middle;
