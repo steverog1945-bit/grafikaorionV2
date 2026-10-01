@@ -262,11 +262,11 @@ class RollbackAtomikTest extends TestCase
             ->assertSessionHas('success');
         $this->assertEquals(40000, $this->saldo('1100'));
 
-        // Batal: item Penjualan dan Jasa langsung Selesai, jadi aturan aplikasi menolak pembatalan (arahkan ke retur).
-        // Penolakan harus aman: tidak ada yang berubah.
+        // Batal nota Penjualan dan Jasa kini boleh diajukan (status Selesai item langsung tidak mengunci), tetapi hanya
+        // pengajuan: stok dan jurnal tidak berubah sebelum Administrator menyetujui.
         $sebelum = $this->potret();
-        $this->patch("/penjualan/{$t->id_transaksi}/batalkan-nota", ['alasan' => 'Salah input'])->assertSessionHas('error');
-        $this->assertSame($sebelum, $this->potret());
+        $this->patch("/penjualan/{$t->id_transaksi}/batalkan-nota", ['alasan' => 'Salah input'])->assertSessionHas('success');
+        $this->assertSame(array_diff_key($sebelum, ['approval' => 1]), array_diff_key($this->potret(), ['approval' => 1]));
 
         // Lunasi sisanya: piutang nol, dan rekonsiliasi pembukuan lulus.
         $this->post('/kasir/proses-bayar', ['id_transaksi' => $t->id_transaksi, 'jumlah_bayar' => '40.000', 'metode_pembayaran' => 'Tunai', 'submit_id' => 'pb-2'])

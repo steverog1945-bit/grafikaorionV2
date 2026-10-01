@@ -483,12 +483,16 @@ class AccountingService
      * jurnal uang yang benar-benar diterima - membaliknya tanpa membatalkan
      * pembayaran_riwayat-nya akan membuat uang tercatat masuk tapi hilang
      * dari buku besar. Koreksi pembayaran memakai jalur void tersendiri.
+     *
+     * $termasukHpp = false: nota batal yang bahannya TIDAK dikembalikan ke stok (sudah terpakai/rusak). Pasangan
+     * HPP/Persediaan dibiarkan: bahannya memang sudah keluar, jadi nilai Persediaan tetap sama dengan stok fisik.
      */
-    public static function reversePenjualan(string $noNota): void
+    public static function reversePenjualan(string $noNota, bool $termasukHpp = true): void
     {
         $baris = DB::table('jurnal_umum')
             ->where('no_referensi', $noNota)
             ->where('no_referensi', 'not like', $noNota . '-BYR-%')
+            ->when(!$termasukHpp, fn ($q) => $q->whereNotIn('kode_akun', [self::AKUN_HPP, self::AKUN_PERSEDIAAN_BAHAN]))
             ->get();
 
         if ($baris->isEmpty()) {

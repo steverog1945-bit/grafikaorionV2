@@ -11,6 +11,11 @@
             <x-button href="{{ route('penjualan.riwayat') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali ke Riwayat
             </x-button>
+            @if($transaksi->status_nota !== 'Dibatalkan' && \App\Support\Izin::boleh(auth()->user(), [3, 16, 48, 61]))
+                <x-button href="{{ route('kasir.print-opsi', $transaksi->id_transaksi) }}" target="_blank" variant="outline">
+                    <i class="fas fa-print"></i> Cetak Nota
+                </x-button>
+            @endif
             @if($transaksi->status_nota !== 'Dibatalkan')
                 <x-button type="button" variant="danger" onclick="batalkanNota()">
                     <i class="fas fa-ban"></i> Batalkan Nota

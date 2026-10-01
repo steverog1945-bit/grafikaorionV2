@@ -38,7 +38,7 @@
                     <select id="select_konsumen" name="id_konsumen" class="select2-konsumen-barang w-full">
                         <option value="">-- Cari Nama / No. HP --</option>
                         @foreach($konsumen as $k)
-                            <option value="{{ $k->id_konsumen }}">{{ $k->nama_konsumen }}{{ $k->telepon ? ' - ' . $k->telepon : '' }}</option>
+                            <option value="{{ $k->id_konsumen }}" @selected((string) old('id_konsumen', request('id_konsumen')) === (string) $k->id_konsumen)>{{ $k->nama_konsumen }}{{ $k->telepon ? ' - ' . $k->telepon : '' }}</option>
                         @endforeach
                     </select>
                 </div>

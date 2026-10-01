@@ -115,6 +115,11 @@
                         <a href="{{ route('penjualan.show', $t->id_transaksi) }}" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-medium uppercase text-indigo-600 hover:bg-indigo-50 transition-all">
                             <i class="far fa-eye"></i> Lihat
                         </a>
+                        @if($t->status_nota !== 'Dibatalkan' && \App\Support\Izin::boleh(auth()->user(), [3, 16, 48, 61]))
+                            <a href="{{ route('kasir.print-opsi', $t->id_transaksi) }}" target="_blank" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[11px] font-medium uppercase text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all" title="Cetak nota">
+                                <i class="fas fa-print"></i> Cetak
+                            </a>
+                        @endif
 
                         @if($t->status_nota !== 'Dibatalkan' && \App\Support\Izin::boleh(auth()->user(), [3], 'edit'))
                             @if($t->edit_request_status === 'Menunggu')

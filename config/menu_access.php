@@ -82,6 +82,8 @@ return [
         'kategori' => [15],
 
         'kasir' => [16],
+        // Cetak ulang nota (baca saja) dari Riwayat/Detail Penjualan dan dari Penjualan dan Jasa.
+        'kasir/print-opsi' => [3, 16, 48, 61],
 
         'kedatangan-bahan' => [17],
         'ajax/bahan' => [17],

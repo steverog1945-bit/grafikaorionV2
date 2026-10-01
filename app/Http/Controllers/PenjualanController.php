@@ -850,6 +850,20 @@ public function show($id)
 }
 
 /**
+ * Item hasil produksi (punya id_produk). Bahan, jasa, dan item custom dari Penjualan dan Jasa langsung berstatus
+ * Selesai sejak nota dibuat karena tidak lewat produksi, jadi status itu tidak boleh mengunci koreksi/pembatalan.
+ */
+private static function adaItemProduksi($items): bool
+{
+    return $items->contains(fn ($i) => !empty($i->id_produk));
+}
+
+private static function itemProduksiSelesai($items): ?object
+{
+    return $items->first(fn ($i) => !empty($i->id_produk) && $i->status_spk === 'Selesai');
+}
+
+/**
  * Membatalkan SELURUH nota (bukan per-item SPK seperti
  * ProduksiController::cancel) - untuk kasus nota salah input (salah
  * konsumen, duplikat, dsb). Ini SOFT-CANCEL: nota TIDAK dihapus dari
@@ -889,13 +903,13 @@ public function batalkanNota(Request $request, $id)
         return back()->with('error', 'Nota ini sudah dibatalkan sebelumnya.');
     }
 
-    if ($transaksi->status_collecting === 'Sudah Diambil') {
+    $items = DB::table('transaksi_detail')->where('id_transaksi', $id)->get();
+
+    if (self::adaItemProduksi($items) && $transaksi->status_collecting === 'Sudah Diambil') {
         return back()->with('error', 'Nota ini tidak bisa dibatalkan - barang sudah diambil konsumen (Collecting). Gunakan proses retur manual kalau memang diperlukan.');
     }
 
-    $items = DB::table('transaksi_detail')->where('id_transaksi', $id)->get();
-
-    $sudahSelesai = $items->firstWhere('status_spk', 'Selesai');
+    $sudahSelesai = self::itemProduksiSelesai($items);
     if ($sudahSelesai) {
         return back()->with('error', 'Nota ini tidak bisa dibatalkan - ada item ("' . $sudahSelesai->nama_file . '") yang sudah Selesai diproduksi. Gunakan proses retur manual kalau memang diperlukan.');
     }
@@ -978,7 +992,8 @@ public function eksekusiPembatalanNota(int $id, array $payload): array
     // dibayar penuh berubah jadi saldo kas/bank atas nota yang batal -
     // ditindaklanjuti (retur uang / deposit) lewat proses manual &
     // terlihat di Laporan Piutang yang sudah mengecualikan nota batal.
-    AccountingService::reversePenjualan($transaksi->nomor_nota);
+    // Bahan tidak dikembalikan = sudah terpakai: HPP-nya tetap biaya (lihat reversePenjualan).
+    AccountingService::reversePenjualan($transaksi->nomor_nota, $kembalikanStok);
     $this->kreditkanPembayaranNotaBatal($transaksi);
 
     DB::table('transaksi')->where('id_transaksi', $id)->update([
@@ -1265,13 +1280,13 @@ public function applyApprovedEdit($id)
         }
 
         $items = DB::table('transaksi_detail')->where('id_transaksi', $transaksi->id_transaksi)->get();
-        $sudahSelesai = $items->firstWhere('status_spk', 'Selesai');
+        $sudahSelesai = self::itemProduksiSelesai($items);
         if ($sudahSelesai) {
             $pesanError = 'Nota ini tidak bisa dikoreksi - ada item ("' . $sudahSelesai->nama_file . '") yang sudah Selesai diproduksi.';
 
             return;
         }
-        if ($transaksi->status_collecting === 'Sudah Diambil') {
+        if (self::adaItemProduksi($items) && $transaksi->status_collecting === 'Sudah Diambil') {
             $pesanError = 'Nota ini tidak bisa dikoreksi - barang sudah diambil konsumen.';
 
             return;
@@ -1306,6 +1321,7 @@ public function applyApprovedEdit($id)
         ]);
 
         $transaksiHasil = $transaksi;
+        $transaksiHasil->penjualanLangsung = !self::adaItemProduksi($items);
     });
 
     if ($sudahDibatalkanSebelumnya) {
@@ -1315,7 +1331,8 @@ public function applyApprovedEdit($id)
         return back()->with('error', $pesanError);
     }
 
-    return redirect()->route('penjualan.create', ['id_konsumen' => $transaksiHasil->id_konsumen])
+    // Nota Penjualan dan Jasa (tanpa item produk) diganti lewat Penjualan dan Jasa juga, bukan Input Order.
+    return redirect()->route($transaksiHasil->penjualanLangsung ? 'penjualan-barang.create' : 'penjualan.create', ['id_konsumen' => $transaksiHasil->id_konsumen])
         ->with('success', 'Nota lama sudah dibatalkan, stok & jurnal sudah dikembalikan. Silakan buat nota pengganti dengan data yang benar (nota lama tetap bisa dilihat di Riwayat untuk referensi).');
 }
 }

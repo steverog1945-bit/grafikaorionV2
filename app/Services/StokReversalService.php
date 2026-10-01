@@ -59,7 +59,7 @@ class StokReversalService
     public static function kembalikan(object $detail, string $referensi, string $keterangan): array
     {
         if (!$detail->id_produk) {
-            return [];
+            return !empty($detail->id_bahan) ? self::kembalikanBahanLangsung($detail, $referensi, $keterangan) : [];
         }
 
         $produk = DB::table('produk')->where('id_produk', $detail->id_produk)->first();
@@ -218,6 +218,34 @@ class StokReversalService
             ],
             $keterangan
         );
+    }
+
+    /**
+     * Item Penjualan dan Jasa (bahan dijual langsung, kolom id_bahan): stok dipotong persis qty item saat nota
+     * dibuat (kartu OUT), jadi yang dikembalikan juga persis qty itu. Sekali per item: jejak audit mode
+     * bahan-langsung untuk id_detail yang sama berarti stoknya sudah pernah kembali.
+     */
+    private static function kembalikanBahanLangsung(object $detail, string $referensi, string $keterangan): array
+    {
+        $idDetail = (int) ($detail->id_detail ?? 0);
+
+        return DB::transaction(function () use ($detail, $idDetail, $referensi, $keterangan) {
+            DB::table('transaksi_detail')->where('id_detail', $idDetail)->lockForUpdate()->first();
+            $sudah = \App\Models\AuditLog::where('event', 'stok_reversal')
+                ->where('auditable_type', 'transaksi_detail')
+                ->where('auditable_id', $idDetail)
+                ->where('new_values', 'like', '%"mode":"bahan-langsung"%')
+                ->exists();
+            if ($idDetail <= 0 || $sudah || (float) $detail->qty <= 0) {
+                return [];
+            }
+
+            $hasil = self::tambahkanKembali((int) $detail->id_bahan, (float) $detail->qty, $referensi, $keterangan);
+            $ringkasan = $hasil !== null ? [$hasil] : [];
+            self::logReversal($idDetail, 'bahan-langsung', $ringkasan, $referensi, $keterangan);
+
+            return $ringkasan;
+        });
     }
 
     /** Jalur akurat: qty persis seperti yang dipotong saat order dibuat, sudah dalam satuan stok - tanpa konversi/rumus BOM apa pun lagi. */
