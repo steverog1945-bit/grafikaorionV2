@@ -59,10 +59,10 @@
                     <a href="{{ url('/kartu-stok/'.$bahan->id_bahan) }}?{{ http_build_query(array_merge(request()->except(['awal', 'akhir']), ['awal' => $a1, 'akhir' => $a2])) }}" class="px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-widest {{ $awal === $a1 && $akhir === $a2 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' }}">{{ $lbl }}</a>
                 @endforeach
             </div>
-            <button type="submit" class="h-[46px] px-6 flex items-center justify-center bg-indigo-600 text-white rounded-xl text-[11px] font-medium uppercase tracking-widest hover:bg-indigo-700 transition-all">
+            <button type="submit" class="h-[38px] px-6 flex items-center justify-center bg-indigo-600 text-white rounded-xl text-[11px] font-medium uppercase tracking-widest hover:bg-indigo-700 transition-all">
                 <i class="fas fa-filter mr-1"></i> Tampilkan
             </button>
-            <a href="{{ url('/kartu-stok/'.$bahan->id_bahan) }}" class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
+            <a href="{{ url('/kartu-stok/'.$bahan->id_bahan) }}" class="h-[38px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
                 <i class="fas fa-undo-alt text-sm"></i>
             </a>
         </form>

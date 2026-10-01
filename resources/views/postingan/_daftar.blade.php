@@ -19,7 +19,7 @@
             <h1 class="text-3xl sm:text-4xl font-medium text-white tracking-tight mt-2 leading-tight">Info &amp; Panduan</h1>
             <p class="text-indigo-100 mt-3 text-sm sm:text-base leading-relaxed">Pengumuman, SOP kerja, tips finishing, dan hasil karya terbaik. Semua tim membaca dari satu tempat.</p>
 
-            <form method="GET" action="{{ $basisUrl }}" class="mt-7 flex flex-col sm:flex-row sm:flex-wrap gap-3" data-no-autosubmit>
+            <form method="GET" action="{{ $basisUrl }}" class="mt-7 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3" data-no-autosubmit>
                 @foreach($paramTetap as $pn => $pv)<input type="hidden" name="{{ $pn }}" value="{{ $pv }}">@endforeach
                 @if($kategoriSlug)<input type="hidden" name="kategori" value="{{ $kategoriSlug }}">@endif
                 <div class="relative flex-1 min-w-[220px]">

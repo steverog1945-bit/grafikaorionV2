@@ -48,7 +48,7 @@
 
             @if(request()->anyFilled(['search', 'category']) || request('status', 'aktif') !== 'aktif')
                 <a href="{{ route('produk.index') }}"
-                   class="h-[46px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all"
+                   class="h-[38px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all"
                    title="Reset Filter">
                     <i class="fas fa-undo-alt text-sm"></i>
                 </a>

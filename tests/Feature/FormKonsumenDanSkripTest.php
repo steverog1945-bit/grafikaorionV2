@@ -126,4 +126,16 @@ class FormKonsumenDanSkripTest extends TestCase
         }
         $this->assertSame([], $temuan, 'Fungsi dipanggil dari atribut tetapi tidak didefinisikan');
     }
+
+    /** Kolom isian setinggi 38px; tombol Filter/reset 46px membuat baris penyaring tidak sejajar. */
+    public function test_tombol_baris_penyaring_setinggi_kolom_isian(): void
+    {
+        $temuan = [];
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(resource_path('views'))) as $f) {
+            if (str_ends_with($f->getFilename(), '.blade.php') && str_contains(file_get_contents($f->getPathname()), 'class="h-[46px] px-')) {
+                $temuan[] = $f->getFilename();
+            }
+        }
+        $this->assertSame([], $temuan);
+    }
 }
