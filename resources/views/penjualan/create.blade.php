@@ -1591,7 +1591,7 @@
 
             const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
             btn.innerText = "UPDATE ITEM";
-            btn.classList.replace('bg-emerald-500', 'bg-amber-500'); btn.classList.replace('hover:bg-emerald-600', 'hover:bg-amber-600'); btn.classList.replace('', '');
+            btn.classList.replace('bg-emerald-500', 'bg-amber-500'); btn.classList.replace('hover:bg-emerald-600', 'hover:bg-amber-600');
 
             hitungSubtotal();
             document.getElementById('nama_file').focus();
@@ -1648,7 +1648,7 @@
 
         const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
         btn.innerText = "TAMBAH";
-        btn.classList.replace('bg-amber-500', 'bg-emerald-500'); btn.classList.replace('hover:bg-amber-600', 'hover:bg-emerald-600'); btn.classList.replace('', '');
+        btn.classList.replace('bg-amber-500', 'bg-emerald-500'); btn.classList.replace('hover:bg-amber-600', 'hover:bg-emerald-600');
 
         document.getElementById('nama_file').focus();
     }
