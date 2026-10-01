@@ -36,6 +36,8 @@ class AccountingService
     private const AKUN_HUTANG_USAHA = '2000';
     private const AKUN_HUTANG_DEPOSIT = '2100';
     private const AKUN_MODAL = '3000';
+    // Pembelian bahan & pelunasan hutangnya dibayar pemilik di luar semua kas: dicatat sebagai dana pemilik.
+    private const AKUN_DANA_PEMILIK_PEMBELIAN = '3100';
     private const AKUN_PENDAPATAN_PENJUALAN = '4000';
     private const AKUN_PENDAPATAN_JASA = '4100';
     private const AKUN_PENDAPATAN_LAIN_LAIN = '4200';
@@ -214,12 +216,11 @@ class AccountingService
 
     /**
      * Faktur pembelian bahan baku dicatat (PembelianBahanController::store).
-     * Cash -> langsung Cr Kas. Tempo -> Cr Hutang Usaha (dilunasi belakangan
-     * lewat postPelunasanHutang).
+     * Cash -> Cr Dana Pemilik untuk Pembelian (dibayar pemilik di luar kas). Tempo -> Cr Hutang Usaha.
      */
     public static function postPembelianBahan(string $noFaktur, float $grandTotal, string $tipePembelian): void
     {
-        $akunLawan = $tipePembelian === 'Cash' ? self::AKUN_KAS : self::AKUN_HUTANG_USAHA;
+        $akunLawan = $tipePembelian === 'Cash' ? self::AKUN_DANA_PEMILIK_PEMBELIAN : self::AKUN_HUTANG_USAHA;
 
         self::postJournal(now()->toDateString(), $noFaktur, "Pembelian bahan baku {$noFaktur}", [
             ['kode_akun' => self::AKUN_PERSEDIAAN_BAHAN, 'debet' => $grandTotal],
@@ -227,16 +228,12 @@ class AccountingService
         ]);
     }
 
-    /**
-     * Pelunasan hutang pembelian (PembelianBahanController::pelunasan).
-     * Tidak ada pilihan Kas/Bank di form pelunasan saat ini, jadi
-     * disederhanakan ke Kas - lihat catatan laporan ke user.
-     */
+    /** Pelunasan hutang pembelian sekaligus: dibayar pemilik di luar kas. */
     public static function postPelunasanHutang(string $noFaktur, float $grandTotal): void
     {
         self::postJournal(now()->toDateString(), $noFaktur, "Pelunasan hutang {$noFaktur}", [
             ['kode_akun' => self::AKUN_HUTANG_USAHA, 'debet' => $grandTotal],
-            ['kode_akun' => self::AKUN_KAS, 'kredit' => $grandTotal],
+            ['kode_akun' => self::AKUN_DANA_PEMILIK_PEMBELIAN, 'kredit' => $grandTotal],
         ]);
     }
 
@@ -244,12 +241,12 @@ class AccountingService
      * Pembayaran (cicilan/pelunasan) hutang pembelian lewat
      * PembayaranHutangService. Referensi jurnal dibuat unik per pembayaran
      * (mis. "FAK-001/BYR-7") supaya bisa di-void sendiri tanpa ikut
-     * membalik jurnal faktur atau pembayaran lain. Tunai -> Kas, Transfer -> Bank.
+     * membalik jurnal faktur atau pembayaran lain. Metode (Transfer/Tunai) hanya keterangan cara pemilik membayar:
+     * uangnya di luar semua kas usaha, jadi lawannya selalu Dana Pemilik untuk Pembelian.
      */
     public static function postPembayaranHutang(string $noReferensi, string $noFaktur, float $nominal, string $metode): void
     {
-        // Kas Kecil = simpanan darurat (akun 1005), dipakai hanya bila dipilih.
-        $akunKeluar = $metode === 'Transfer' ? self::AKUN_BANK : ($metode === 'Kas Kecil' ? self::AKUN_KAS_KECIL : self::AKUN_KAS);
+        $akunKeluar = self::AKUN_DANA_PEMILIK_PEMBELIAN;
 
         self::postJournal(now()->toDateString(), $noReferensi, "Pembayaran hutang {$noFaktur} ({$metode})", [
             ['kode_akun' => self::AKUN_HUTANG_USAHA, 'debet' => $nominal],

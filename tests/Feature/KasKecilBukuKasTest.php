@@ -77,50 +77,56 @@ class KasKecilBukuKasTest extends TestCase
         $this->assertSame(0, DB::table('kas_kecil')->where('sumber', 'jersey')->count());
     }
 
-    public function test_isi_kas_kecil_dari_laci_memindahkan_saldo_dan_mengurangi_laci_tanpa_beban(): void
+    public function test_kas_kecil_terpisah_dari_laci(): void
     {
-        $kat = DB::table('kategori_kas_kecil')->where('nama_kategori', 'Isi dari Kas Laci')->first();
-        $payload = ['tanggal' => now()->toDateString(), 'jenis' => 'Masuk', 'id_kategori' => $kat->id_kategori_kas_kecil, 'keterangan' => 'Modal kas kecil', 'nominal' => 200000];
+        DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => auth()->id(), 'saldo_awal' => 500000, 'status_lock' => 'open', 'created_at' => now()->subMinute(), 'updated_at' => now()]);
 
-        // Tanpa sesi kas aktif -> ditolak.
-        $this->post('/kas-kecil', $payload)->assertSessionHas('error');
+        $this->assertFalse(DB::table('kategori_kas_kecil')->where('kode_akun', '1000')->exists(), 'kategori "Isi dari Kas Laci" sudah dihapus');
+        $laci = DB::table('kategori_kas_kecil')->insertGetId(['nama_kategori' => 'Coba dari laci', 'jenis' => 'Masuk', 'kode_akun' => '1000']);
+        $this->post('/kas-kecil', ['tanggal' => now()->toDateString(), 'jenis' => 'Masuk', 'id_kategori' => $laci, 'keterangan' => 'Modal', 'nominal' => 100000])
+            ->assertSessionHas('error');
         $this->assertSame(0, DB::table('kas_kecil')->count());
-
-        $idKas = DB::table('kas_harian')->insertGetId(['tgl_kas' => now()->toDateString(), 'id_user' => auth()->id(), 'saldo_awal' => 500000, 'status_lock' => 'open', 'created_at' => now(), 'updated_at' => now()]);
-        $this->post('/kas-kecil', $payload)->assertSessionHas('success');
-
-        $this->assertEquals(200000, $this->saldo('1005'));
-        $this->assertEquals(-200000, $this->saldo('1000'));
-        $this->assertEquals(0, $this->saldo('5100') + $this->saldo('4200'), 'bukan beban/pendapatan');
-        $manual = DB::table('kas_manual')->where('id_kas', $idKas)->first();
-        $this->assertSame('Keluar', $manual->status);
-        $this->assertEquals(200000, (float) $manual->nominal);
-
-        // Pembatalan (approval) mengembalikan laci dan membalik jurnal.
-        $kk = DB::table('kas_kecil')->first();
-        $this->delete("/kas-kecil/{$kk->id}", ['alasan' => 'salah'])->assertSessionHas('success');
-        $req = ApprovalRequest::where('tipe_aksi', 'batalkan_kas_kecil')->firstOrFail();
-        $this->patch("/approval/{$req->id}/approve", ['catatan' => 'OK']);
         $this->assertSame(0, DB::table('kas_manual')->count());
-        $this->assertEquals(0.0, $this->saldo('1005') + 0);
-        $this->assertEquals(0.0, $this->saldo('1000') + 0);
+
+        // Kategori baru juga tidak bisa dipetakan ke akun laci atau Kas Kecil itu sendiri.
+        $this->post('/kategori-kas-kecil', ['nama_kategori' => 'Isi laci lagi', 'jenis' => 'Masuk', 'kode_akun' => '1000'])->assertSessionHasErrors('kode_akun');
     }
 
     public function test_uang_keluar_dari_laci_tidak_boleh_melebihi_isi_laci(): void
     {
         DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => auth()->id(), 'saldo_awal' => 100000, 'status_lock' => 'open', 'created_at' => now()->subMinute(), 'updated_at' => now()]);
 
-        // Kas tidak terduga keluar melebihi isi laci.
         $this->post('/kasir/kas-manual', ['keterangan' => 'Beli galon', 'status' => 'Keluar', 'nominal' => 150000])->assertSessionHas('error');
         $this->assertSame(0, DB::table('kas_manual')->count());
-
-        // Isi Kas Kecil dari laci melebihi isi laci.
-        $kat = DB::table('kategori_kas_kecil')->where('nama_kategori', 'Isi dari Kas Laci')->first();
-        $this->post('/kas-kecil', ['tanggal' => now()->toDateString(), 'jenis' => 'Masuk', 'id_kategori' => $kat->id_kategori_kas_kecil, 'keterangan' => 'Modal', 'nominal' => 150000])
-            ->assertSessionHas('error');
-        $this->assertSame(0, DB::table('kas_kecil')->count());
-
-        // Yang pas tetap boleh.
         $this->post('/kasir/kas-manual', ['keterangan' => 'Beli galon', 'status' => 'Keluar', 'nominal' => 100000])->assertSessionHas('success');
+    }
+
+    public function test_saldo_awal_kas_kecil_sekali_oleh_administrator(): void
+    {
+        $this->post('/kas-kecil/saldo-awal', ['tanggal' => now()->toDateString(), 'nominal' => 10000000])->assertSessionHas('success');
+
+        $this->assertEquals(10000000, $this->saldo('1005'));
+        $this->assertEquals(-10000000, $this->saldo('3000'), 'lawannya Modal');
+        $this->assertSame('saldo_awal', DB::table('kas_kecil')->value('sumber'));
+
+        // Kedua kalinya ditolak.
+        $this->post('/kas-kecil/saldo-awal', ['tanggal' => now()->toDateString(), 'nominal' => 5000000])->assertSessionHas('error');
+        $this->assertEquals(10000000, $this->saldo('1005'));
+
+        // Belanja ATK berkurang dari saldo itu.
+        $atk = DB::table('kategori_kas_kecil')->where('jenis', 'Keluar')->where('kode_akun', '5160')->value('id_kategori_kas_kecil')
+            ?? DB::table('kategori_kas_kecil')->insertGetId(['nama_kategori' => 'ATK', 'jenis' => 'Keluar', 'kode_akun' => '5160']);
+        $this->post('/kas-kecil', ['tanggal' => now()->toDateString(), 'jenis' => 'Keluar', 'id_kategori' => $atk, 'keterangan' => 'Kertas HVS', 'nominal' => 250000])
+            ->assertSessionHas('success');
+        $this->assertEquals(9750000, $this->saldo('1005'));
+        $this->get('/kas-kecil')->assertOk()->assertSee('Saldo Kas Kecil Saat Ini')->assertSee('9.750.000')->assertDontSee('Saldo awal Kas Kecil belum ditetapkan');
+    }
+
+    public function test_saldo_awal_hanya_administrator(): void
+    {
+        $kasir = \App\Models\User::factory()->create(['id_role' => \App\Models\Role::factory()->create(['nama_role' => 'Kasir'])->id_role]);
+
+        $this->actingAs($kasir)->post('/kas-kecil/saldo-awal', ['tanggal' => now()->toDateString(), 'nominal' => 10000000])->assertForbidden();
+        $this->assertSame(0, DB::table('kas_kecil')->count());
     }
 }

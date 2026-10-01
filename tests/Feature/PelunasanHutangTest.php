@@ -46,28 +46,20 @@ class PelunasanHutangTest extends TestCase
         $this->getJson("/pembelian-bahan/pelunasan-info?supplier={$this->idSup}")->assertOk()->assertJsonPath('sisa', 1500000)->assertJsonCount(2, 'fakturs');
     }
 
-    public function test_bayar_dari_kas_kecil_dijurnal_ke_1005_dicatat_di_buku_kas_kecil_dan_ditolak_bila_saldo_kurang(): void
+    public function test_pembayaran_bahan_di_luar_semua_kas_dan_tidak_memakai_kas_kecil(): void
     {
         $f = $this->faktur('F-A', 1000000, now()->addDays(3)->toDateString());
 
-        // Saldo kas kecil kosong -> ditolak.
-        $this->patch("/pembelian-bahan/pelunasan/{$f}", ['nominal' => 100000, 'metode' => 'Kas Kecil'])->assertSessionHas('error');
+        // Kas Kecil bukan sumber pembayaran bahan.
+        $this->patch("/pembelian-bahan/pelunasan/{$f}", ['nominal' => 100000, 'metode' => 'Kas Kecil', 'tanggal' => now()->toDateString()])->assertSessionHas('error');
         $this->assertSame(0, DB::table('pembayaran_hutang')->count());
 
-        // Isi kas kecil (pemasukan manual) lalu bayar.
-        $kat = DB::table('kategori_kas_kecil')->where('nama_kategori', 'Tambahan Modal / Setoran Pemilik')->first();
-        $this->post('/kas-kecil', ['tanggal' => now()->toDateString(), 'jenis' => 'Masuk', 'id_kategori' => $kat->id_kategori_kas_kecil, 'keterangan' => 'Modal', 'nominal' => 300000]);
-        $this->patch("/pembelian-bahan/pelunasan/{$f}", ['nominal' => 100000, 'metode' => 'Kas Kecil', 'tanggal' => now()->toDateString(), 'keterangan' => 'darurat'])->assertSessionHas('success');
+        $this->patch("/pembelian-bahan/pelunasan/{$f}", ['nominal' => 100000, 'metode' => 'Transfer', 'tanggal' => now()->toDateString(), 'keterangan' => 'bukti BCA'])->assertSessionHas('success');
 
-        $this->assertEquals(200000, $this->saldo('1005'));
+        $this->assertEquals(-100000, $this->saldo('3100'), 'tercatat sebagai dana pemilik');
+        $this->assertEquals(0.0, $this->saldo('1000') + $this->saldo('1005') + $this->saldo('1010'), 'tidak ada kas yang berkurang');
         $this->assertEquals(100000, $this->saldo('2000'));
-        $baris = DB::table('kas_kecil')->where('sumber', 'hutang')->first();
-        $this->assertSame('Keluar', $baris->jenis);
-        $this->assertEquals(100000, (float) $baris->nominal);
-
-        // Tidak bisa dibatalkan dari Kas Kecil; melebihi saldo ditolak.
-        $this->delete("/kas-kecil/{$baris->id}")->assertSessionHas('error');
-        $this->patch("/pembelian-bahan/pelunasan/{$f}", ['nominal' => 250000, 'metode' => 'Kas Kecil'])->assertSessionHas('error');
+        $this->assertSame(0, DB::table('kas_kecil')->count());
     }
 
     public function test_bayar_supplier_dibagi_ke_faktur_paling_lama_jatuh_tempo_dulu(): void

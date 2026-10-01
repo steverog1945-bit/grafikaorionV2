@@ -48,11 +48,10 @@
                 <x-form.input type="date" name="tanggal" id="pl-tanggal" required />
             </div>
             <div class="sm:col-span-2">
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sumber Pembayaran</label>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cara Bayar</label>
                 <x-form.select name="metode" id="pl-metode" onchange="plGantiSumber()">
-                    <option value="Tunai">Tunai - Kas laci</option>
-                    <option value="Transfer">Transfer - Bank</option>
-                    <option value="Kas Kecil" id="pl-opt-kaskecil">Kas Kecil (simpanan darurat)</option>
+                    <option value="Transfer">Transfer</option>
+                    <option value="Tunai">Tunai</option>
                 </x-form.select>
                 <p class="text-[11px] font-medium mt-2 ml-2 text-slate-400" id="pl-info-sumber"></p>
             </div>
@@ -118,7 +117,7 @@
         rBox.classList.toggle('hidden', !(d.riwayat && d.riwayat.length));
 
         document.getElementById('pl-tanggal').value = new Date().toISOString().slice(0, 10);
-        document.getElementById('pl-metode').value = 'Tunai';
+        document.getElementById('pl-metode').value = 'Transfer';
         plIsiNominal(1);
         plGantiSumber();
         openModal('pelunasan-hutang');
@@ -132,21 +131,11 @@
         el.select();
     }
 
+    // Pembayaran bahan dilakukan pemilik di luar semua kas: dicatat apa adanya tanpa mengurangi kas laci, Kas Kecil, atau bank.
     function plGantiSumber() {
-        const m = document.getElementById('pl-metode').value, info = document.getElementById('pl-info-sumber');
-        const saldo = plData ? plData.saldo_kas_kecil : 0;
-        const opt = document.getElementById('pl-opt-kaskecil');
-        opt.textContent = 'Kas Kecil (simpanan darurat) - saldo ' + plRp(saldo);
-        if (m === 'Kas Kecil') {
-            info.className = 'text-[11px] font-medium mt-2 ml-2 text-amber-600';
-            info.textContent = saldo > 0 ? 'Kas Kecil adalah simpanan darurat - gunakan hanya bila memang dibutuhkan. Saldo saat ini ' + plRp(saldo) + '.' : 'Saldo Kas Kecil kosong - pilih sumber lain.';
-        } else if (m === 'Transfer') {
-            info.className = 'text-[11px] font-medium mt-2 ml-2 text-slate-400';
-            info.textContent = 'Dicatat keluar dari akun Bank.';
-        } else {
-            info.className = 'text-[11px] font-medium mt-2 ml-2 text-slate-400';
-            info.textContent = 'Dicatat keluar dari Kas (uang laci kasir).';
-        }
+        const info = document.getElementById('pl-info-sumber');
+        info.className = 'text-[11px] font-medium mt-2 ml-2 text-slate-400';
+        info.textContent = 'Dibayar pemilik di luar kas. Tercatat sebagai dana pemilik, tidak mengurangi kas laci, Kas Kecil, atau bank.';
     }
 
     document.getElementById('form-pelunasan').addEventListener('submit', function (e) {
@@ -155,7 +144,6 @@
         let pesan = null;
         if (!nominal || nominal <= 0) pesan = 'Nominal harus lebih dari 0.';
         else if (nominal > plData.sisa + 0.01) pesan = 'Nominal melebihi sisa hutang ' + plRp(plData.sisa) + '.';
-        else if (m === 'Kas Kecil' && nominal > plData.saldo_kas_kecil + 0.01) pesan = 'Saldo Kas Kecil (' + plRp(plData.saldo_kas_kecil) + ') tidak cukup.';
         if (pesan) { e.preventDefault(); Swal.fire('Periksa lagi', pesan, 'warning'); return; }
         document.getElementById('pl-nominal').value = nominal; // kirim angka murni
         document.getElementById('pl-submit').disabled = true;

@@ -16,7 +16,7 @@
     <div class="print:hidden">
         <x-page-header title="Kas Kecil">
             <x-slot:subtitle>
-                Buku kas kecil: pengeluaran kebutuhan kecil (ATK, konsumsi, ongkos kirim, dst) &amp; pemasukan - pembayaran order jersey masuk otomatis, pemasukan lain dicatat manual
+                Pembukuan terpisah dari laci kasir. Masuk: saldo awal, pembayaran order jersey (otomatis), setoran pemilik. Keluar: belanja kecil kebutuhan toko seperti ATK, komisi desainer, upah jahit.
             </x-slot:subtitle>
             <x-slot:actions>
                 <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
@@ -37,6 +37,35 @@
             </ul>
         </div>
     @endif
+
+    {{-- SALDO AWAL: sekali, oleh Administrator, sebelum pemakaian Kas Kecil dihitung --}}
+    @unless($adaSaldoAwal)
+        <x-card class="mb-6 no-print">
+            @if($bolehSaldoAwal)
+                <form method="POST" action="{{ route('kas-kecil.saldo-awal') }}" class="flex flex-wrap items-end gap-4"
+                      data-konfirmasi="Tetapkan saldo awal Kas Kecil? Nominal ini dicatat sebagai modal yang sudah ada di Kas Kecil.">
+                    @csrf
+                    <div class="flex-1 min-w-[220px]">
+                        <p class="text-sm font-medium text-slate-900">Saldo awal Kas Kecil belum ditetapkan</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Isi uang yang sudah ada di Kas Kecil sebelum pencatatan dimulai. Hanya sekali.</p>
+                    </div>
+                    <div class="w-full md:w-44">
+                        <x-form.group label="Tanggal" name="tanggal" required dalam>
+                            <x-form.input type="date" name="tanggal" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}" required />
+                        </x-form.group>
+                    </div>
+                    <div class="w-full md:w-56">
+                        <x-form.group label="Saldo awal (Rp)" name="nominal" required dalam>
+                            <x-form.input type="text" inputmode="numeric" name="nominal" required class="format-ribuan" />
+                        </x-form.group>
+                    </div>
+                    <x-button type="submit">Tetapkan Saldo Awal</x-button>
+                </form>
+            @else
+                <p class="text-sm text-amber-700"><i class="fas fa-circle-info text-xs"></i> Saldo awal Kas Kecil belum ditetapkan. Minta Administrator menetapkannya.</p>
+            @endif
+        </x-card>
+    @endunless
 
     {{-- FORM TAMBAH --}}
     <x-card class="mb-6 no-print">
@@ -123,21 +152,22 @@
     {{-- RESUME - kartu berwarna di layar (tidak diubah), tabel standar
          polos khusus cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm min-w-0">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Pemasukan Tunai</p>
-            <h3 class="text-2xl font-medium text-emerald-600 mt-1">Rp {{ number_format($masukTunai, 0, ',', '.') }}</h3>
+            <h3 class="text-xl font-medium break-words text-emerald-600 mt-1">Rp {{ number_format($masukTunai, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm min-w-0">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Pemasukan Non-Tunai</p>
-            <h3 class="text-2xl font-medium text-slate-700 mt-1">Rp {{ number_format($masukNonTunai, 0, ',', '.') }}</h3>
+            <h3 class="text-xl font-medium break-words text-slate-700 mt-1">Rp {{ number_format($masukNonTunai, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm min-w-0">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Pengeluaran</p>
-            <h3 class="text-2xl font-medium text-rose-500 mt-1">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
+            <h3 class="text-xl font-medium break-words text-rose-500 mt-1">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Saldo Tunai (sesuai filter)</p>
-            <h3 class="text-2xl font-medium text-slate-900 mt-1">Rp {{ number_format($masukTunai - $totalPengeluaran, 0, ',', '.') }}</h3>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm min-w-0">
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Saldo Kas Kecil Saat Ini</p>
+            <h3 class="text-xl font-medium break-words {{ $saldoKasKecil < 0 ? 'text-rose-600' : 'text-slate-900' }} mt-1">Rp {{ number_format($saldoKasKecil, 0, ',', '.') }}</h3>
+            <p class="text-[11px] text-slate-400 mt-1">Seluruh catatan, tidak terpengaruh filter</p>
         </div>
     </div>
     <div class="hidden print:block">
@@ -146,7 +176,7 @@
             'Pemasukan Tunai' => 'Rp ' . number_format($masukTunai, 0, ',', '.'),
             'Pemasukan Non-Tunai' => 'Rp ' . number_format($masukNonTunai, 0, ',', '.'),
             'Total Pengeluaran' => 'Rp ' . number_format($totalPengeluaran, 0, ',', '.'),
-            'Saldo Tunai (sesuai filter)' => 'Rp ' . number_format($masukTunai - $totalPengeluaran, 0, ',', '.'),
+            'Saldo Kas Kecil saat ini' => 'Rp ' . number_format($saldoKasKecil, 0, ',', '.'),
         ]" />
     </div>
 
@@ -176,7 +206,7 @@
                     @if($k->metode !== 'Tunai')<span class="text-[10px] font-medium uppercase text-slate-500 bg-slate-100 rounded px-2 py-1 ml-1">{{ $k->metode }}</span>@endif
                 </td>
                 <td class="px-4 py-5">
-                    <span class="text-[11px] font-medium uppercase text-slate-600 bg-slate-100 rounded px-2 py-1">{{ $k->sumber === 'jersey' ? 'Pesanan Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Pemasok' : ($k->kategori->nama_kategori ?? '-')) }}</span>
+                    <span class="text-[11px] font-medium uppercase text-slate-600 bg-slate-100 rounded px-2 py-1">{{ $k->sumber === 'jersey' ? 'Pesanan Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Pemasok' : ($k->sumber === 'saldo_awal' ? 'Saldo Awal' : ($k->kategori->nama_kategori ?? '-'))) }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <span class="text-[12px] text-slate-600">{{ $k->keterangan }}</span>
@@ -188,7 +218,7 @@
                     <span class="text-[12px] font-medium {{ $k->jenis === 'Masuk' ? 'text-emerald-600' : 'text-rose-500' }}">{{ $k->jenis === 'Masuk' ? '+' : '-' }} Rp {{ number_format($k->nominal, 0, ',', '.') }}</span>
                 </td>
                 <td class="px-4 py-5 text-center no-print">
-                    @if($k->sumber !== 'manual')
+                    @if(! in_array($k->sumber, ['manual', 'saldo_awal'], true))
                     <span class="text-slate-300" title="Otomatis dari {{ $k->sumber === 'hutang' ? 'pembayaran hutang supplier' : 'pembayaran order jersey' }}"><i class="fas fa-link text-xs"></i></span>
                     @else
                     <form method="POST" action="{{ route('kas-kecil.destroy', $k->id) }}" onsubmit="return konfirmasiHapusKasKecil(event, this)">
@@ -218,7 +248,7 @@
                 <td class="px-3 py-1.5 text-center text-slate-400">{{ $data->firstItem() + $i }}</td>
                 <td class="px-3 py-1.5 font-medium text-slate-700">{{ \Carbon\Carbon::parse($k->tanggal)->format('d/m/Y') }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->jenis === 'Masuk' ? 'Masuk' : 'Keluar' }}{{ $k->metode !== 'Tunai' ? ' (' . $k->metode . ')' : '' }}</td>
-                <td class="px-3 py-1.5 text-slate-600">{{ $k->sumber === 'jersey' ? 'Pesanan Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Pemasok' : ($k->kategori->nama_kategori ?? '-')) }}</td>
+                <td class="px-3 py-1.5 text-slate-600">{{ $k->sumber === 'jersey' ? 'Pesanan Jersey' : ($k->sumber === 'hutang' ? 'Bayar Hutang Pemasok' : ($k->sumber === 'saldo_awal' ? 'Saldo Awal' : ($k->kategori->nama_kategori ?? '-'))) }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->keterangan }}</td>
                 <td class="px-3 py-1.5 text-slate-600">{{ $k->user->username ?? '-' }}</td>
                 <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ $k->jenis === 'Masuk' ? '' : '-' }}{{ number_format($k->nominal, 0, ',', '.') }}</td>

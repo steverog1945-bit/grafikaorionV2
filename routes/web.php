@@ -167,6 +167,8 @@ Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () 
 
     Route::get('/kas-kecil', [\App\Http\Controllers\KasKecilController::class, 'index'])->name('kas-kecil.index');
     Route::post('/kas-kecil', [\App\Http\Controllers\KasKecilController::class, 'store'])->name('kas-kecil.store');
+    Route::post('/kas-kecil/saldo-awal', [\App\Http\Controllers\KasKecilController::class, 'saldoAwal'])
+        ->middleware('hanya.admin')->name('kas-kecil.saldo-awal');
     Route::delete('/kas-kecil/{kasKecil}', [\App\Http\Controllers\KasKecilController::class, 'destroy'])->name('kas-kecil.destroy');
     Route::post('/kas-kecil/upload-bukti', [\App\Http\Controllers\KasKecilController::class, 'uploadBukti'])->name('kas-kecil.upload-bukti');
 

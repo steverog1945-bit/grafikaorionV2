@@ -69,10 +69,11 @@ class HutangSupplierTest extends TestCase
 
         PembayaranHutangService::bayar($p->id_pembelian, 600000, 'Transfer');
         $this->assertEquals('Lunas', $p->fresh()->status_pembayaran);
-        // Hutang Usaha (2000) kembali nol; Kas keluar 400rb, Bank keluar 600rb.
+        // Hutang Usaha (2000) kembali nol. Pembayaran bahan dilakukan pemilik di luar semua kas: Kas, Kas Kecil
+        // dan Bank tidak berubah; seluruhnya tercatat sebagai Dana Pemilik untuk Pembelian (3100).
         $this->assertEquals(0.0, -$this->saldo('2000') + 0);
-        $this->assertEquals(-400000, $this->saldo('1000'));
-        $this->assertEquals(-600000, $this->saldo('1010'));
+        $this->assertEquals(0.0, $this->saldo('1000') + $this->saldo('1005') + $this->saldo('1010'));
+        $this->assertEquals(-1000000, $this->saldo('3100'));
     }
 
     public function test_nominal_melebihi_sisa_atau_faktur_lunas_ditolak(): void
@@ -206,5 +207,14 @@ class HutangSupplierTest extends TestCase
         $response->assertOk()->assertSee('PT Kertas Jaya')->assertSee('telat 45 hari');
         $this->assertEquals(900000, (float) $response->viewData('total')['total']);
         $this->assertEquals(900000, (float) $response->viewData('total')['b60']);
+    }
+
+    public function test_pembelian_lunas_dibayar_pemilik_tidak_mengurangi_kas(): void
+    {
+        \App\Services\AccountingService::postPembelianBahan('F-LUNAS', 750000, 'Cash');
+
+        $this->assertEquals(750000, $this->saldo('1200'), 'persediaan bertambah');
+        $this->assertEquals(-750000, $this->saldo('3100'), 'dana pemilik untuk pembelian');
+        $this->assertEquals(0.0, $this->saldo('1000') + $this->saldo('1005') + $this->saldo('1010'));
     }
 }

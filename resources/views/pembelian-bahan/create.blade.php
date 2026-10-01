@@ -79,8 +79,8 @@
 
                 <x-form.group label="Metode Bayar" dalam>
                     <x-form.select name="tipe_pembelian" id="tipe_pembelian" onchange="toggleTempo()" required>
-                        <option value="Cash">CASH / TUNAI</option>
-                        <option value="Tempo">TEMPO / KREDIT</option>
+                        <option value="Cash">Lunas (dibayar pemilik)</option>
+                        <option value="Tempo">Tempo (hutang ke pemasok)</option>
                     </x-form.select>
                 </x-form.group>
 

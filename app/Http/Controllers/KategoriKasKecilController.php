@@ -38,8 +38,7 @@ class KategoriKasKecilController extends Controller
         $akunBeban = DB::table('bag_akun')
             ->where('is_active', 1)
             ->where(fn ($q) => $q->where(fn ($b) => $b->where('tipe_akun', 'Beban')->where('kode_akun', '!=', '5000'))
-                ->orWhere(fn ($m) => $m->whereIn('tipe_akun', ['Pendapatan', 'Modal'])->whereNotIn('kode_akun', ['4000', '4300']))
-                ->orWhere('kode_akun', '1000'))
+                ->orWhere(fn ($m) => $m->whereIn('tipe_akun', ['Pendapatan', 'Modal'])->whereNotIn('kode_akun', ['4000', '4300'])))
             ->orderBy('kode_akun')
             ->get();
 
@@ -51,7 +50,7 @@ class KategoriKasKecilController extends Controller
         $request->validate([
             'nama_kategori' => 'required|string|max:100|unique:kategori_kas_kecil,nama_kategori',
             'jenis' => 'required|in:Keluar,Masuk',
-            'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun|max:20',
+            'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun|not_in:1000,1005|max:20',
         ], [
             'nama_kategori.unique' => 'Nama kategori sudah ada!',
         ]);
@@ -70,7 +69,7 @@ class KategoriKasKecilController extends Controller
         $request->validate([
             'nama_kategori' => 'required|string|max:100|unique:kategori_kas_kecil,nama_kategori,' . $kategoriKasKecil->id_kategori_kas_kecil . ',id_kategori_kas_kecil',
             'jenis' => 'required|in:Keluar,Masuk',
-            'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun|max:20',
+            'kode_akun' => 'nullable|string|exists:bag_akun,kode_akun|not_in:1000,1005|max:20',
         ], [
             'nama_kategori.unique' => 'Nama kategori sudah ada!',
         ]);

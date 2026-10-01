@@ -61,7 +61,7 @@ class PembayaranHutangService
             'tanggal' => $tanggal,
             'nominal' => $nominal,
             'metode' => 'Tunai',
-            'keterangan' => 'Dibayar tunai saat faktur dibuat',
+            'keterangan' => 'Dibayar pemilik saat faktur dibuat',
             'bagian_faktur' => true,
             'id_user' => Auth::id(),
             'created_at' => now(),
@@ -71,8 +71,11 @@ class PembayaranHutangService
 
     public static function bayar(int $idPembelian, float $nominal, string $metode, ?string $tanggal = null, ?string $keterangan = null): void
     {
-        if (!in_array($metode, ['Tunai', 'Transfer', 'Kas Kecil'], true)) {
-            throw new \RuntimeException('Sumber pembayaran tidak dikenal.');
+        // Pembelian bahan dibayar pemilik di luar semua kas: tidak dari laci, tidak dari Kas Kecil.
+        if (!in_array($metode, ['Tunai', 'Transfer'], true)) {
+            throw new \RuntimeException($metode === 'Kas Kecil'
+                ? 'Pembayaran bahan tidak memakai Kas Kecil. Pilih cara bayar Transfer atau Tunai (dibayar pemilik).'
+                : 'Cara bayar tidak dikenal.');
         }
 
         DB::transaction(function () use ($idPembelian, $nominal, $metode, $tanggal, $keterangan) {
@@ -97,9 +100,6 @@ class PembayaranHutangService
                 throw new \RuntimeException('Nominal melebihi sisa hutang (Rp ' . number_format($sisa, 0, ',', '.') . ').');
             }
 
-            if ($metode === 'Kas Kecil') {
-                KasKecilService::pastikanSaldoCukup($nominal);
-            }
 
             $idPembayaran = DB::table('pembayaran_hutang')->insertGetId([
                 'id_pembelian' => $idPembelian,
@@ -116,17 +116,6 @@ class PembayaranHutangService
             DB::table('pembayaran_hutang')->where('id', $idPembayaran)->update(['no_referensi_jurnal' => $ref]);
 
             AccountingService::postPembayaranHutang($ref, $pembelian->no_faktur, $nominal, $metode);
-
-            // Dari Kas Kecil: catat juga di buku Kas Kecil (baris cermin, jurnalnya sudah di atas - tidak dijurnal ulang).
-            if ($metode === 'Kas Kecil') {
-                $supplier = DB::table('kedatangan_bahan as k')->leftJoin('supplier as s', 's.id_supplier', '=', 'k.id_supplier')
-                    ->where('k.id_kedatangan', $pembelian->id_kedatangan)->value('s.nama_supplier');
-                DB::table('kas_kecil')->insert([
-                    'tanggal' => $tanggal ?: now()->toDateString(), 'jenis' => 'Keluar', 'sumber' => 'hutang', 'id_referensi' => $idPembayaran, 'metode' => 'Tunai',
-                    'id_kategori' => null, 'keterangan' => "Bayar hutang {$pembelian->no_faktur}" . ($supplier ? " ke {$supplier}" : ''), 'nominal' => $nominal,
-                    'id_user' => Auth::id(), 'created_at' => now(), 'updated_at' => now(),
-                ]);
-            }
 
             self::sinkronStatus($idPembelian);
         });

@@ -10,14 +10,47 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Kas Kecil - pengeluaran non-bahan-utama bernilai kecil (ATK, konsumsi,
- * ongkos kirim, dst) yang sebelumnya tidak punya tempat pencatatan sama
- * sekali. Sengaja terpisah dari kas_harian/kas_manual (kas fisik laci
- * kasir) dan dari pembelian_bahan (belanja bahan baku utama) - lihat
- * catatan desain di migrasi create_kas_kecil_table.
+ * Kas Kecil: pembukuan terpisah yang TIDAK menyentuh laci kasir.
+ * - Uang masuk: saldo awal (sekali), pembayaran order jersey (otomatis), setoran pemilik, pemasukan lain.
+ * - Uang keluar: belanja kecil kebutuhan toko (ATK, konsumsi, ongkos kirim, dst), komisi desainer, upah jahit.
+ *   Belanja bahan baku utama tetap lewat Pembelian Bahan.
+ * Saldo yang berlaku adalah saldo akun 1005 di jurnal; pengeluaran ditolak bila saldonya tidak cukup.
  */
 class KasKecilController extends Controller
 {
+    /**
+     * Saldo awal Kas Kecil: uang yang sudah ada sebelum pembukuan dimulai. Hanya sekali (bisa dibatalkan lewat
+     * pengajuan pembatalan biasa lalu ditetapkan ulang). Jurnal: Dr Kas Kecil (1005) / Cr Modal (3000).
+     */
+    public function saldoAwal(Request $request)
+    {
+        $data = $request->validate([
+            'tanggal' => ['required', 'date', new \App\Rules\TanggalTransaksi],
+            'nominal' => 'required|numeric|min:1',
+        ]);
+
+        try {
+            DB::transaction(function () use ($data) {
+                DB::table('bag_akun')->where('kode_akun', '1005')->lockForUpdate()->first();
+                if (KasKecil::where('sumber', 'saldo_awal')->exists()) {
+                    throw new \RuntimeException('Saldo awal Kas Kecil sudah ditetapkan. Untuk mengubahnya, ajukan pembatalan catatan saldo awal lalu tetapkan ulang.');
+                }
+                $kk = KasKecil::create([
+                    'tanggal' => $data['tanggal'], 'jenis' => 'Masuk', 'sumber' => 'saldo_awal', 'metode' => 'Tunai', 'id_kategori' => null,
+                    'keterangan' => 'Saldo awal Kas Kecil', 'nominal' => $data['nominal'], 'id_user' => Auth::id(),
+                ]);
+                AccountingService::postJournal($data['tanggal'], 'KK-' . $kk->id, 'Saldo awal Kas Kecil', [
+                    ['kode_akun' => '1005', 'debet' => (float) $data['nominal'], 'kredit' => 0],
+                    ['kode_akun' => '3000', 'debet' => 0, 'kredit' => (float) $data['nominal']],
+                ]);
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Saldo awal Kas Kecil Rp ' . number_format((float) $data['nominal'], 0, ',', '.') . ' dicatat.');
+    }
+
     public function index(Request $request)
     {
         $query = KasKecil::with(['user', 'kategori'])->orderByDesc('tanggal')->orderByDesc('id');
@@ -43,9 +76,13 @@ class KasKecilController extends Controller
 
         // Kategori sekarang tabel referensi tetap (dropdown), bukan lagi
         // isian bebas - lihat migrasi create_kategori_kas_kecil_table.
-        $kategoriList = KategoriKasKecil::orderBy('nama_kategori')->get();
+        $kategoriList = KategoriKasKecil::whereNotIn('kode_akun', ['1000', '1005'])->orWhereNull('kode_akun')->orderBy('nama_kategori')->get();
+        // Saldo sebenarnya (seluruh waktu, menurut jurnal), bukan selisih dalam rentang filter.
+        $saldoKasKecil = \App\Services\PembayaranHutangService::saldoKasKecil();
+        $adaSaldoAwal = KasKecil::where('sumber', 'saldo_awal')->exists();
+        $bolehSaldoAwal = optional(Auth::user()->role)->nama_role === 'Administrator';
 
-        return view('kas-kecil.index', compact('data', 'tglDari', 'tglSampai', 'totalPengeluaran', 'masukTunai', 'masukNonTunai', 'kategoriList'));
+        return view('kas-kecil.index', compact('data', 'tglDari', 'tglSampai', 'totalPengeluaran', 'masukTunai', 'masukNonTunai', 'kategoriList', 'saldoKasKecil', 'adaSaldoAwal', 'bolehSaldoAwal'));
     }
 
     public function store(Request $request)
@@ -76,29 +113,18 @@ class KasKecilController extends Controller
             return back()->withInput()->withErrors(['id_kategori' => "Kategori \"{$kategori->nama_kategori}\" adalah kategori " . ($kategori->jenis === 'Masuk' ? 'pemasukan' : 'pengeluaran') . ', tidak cocok dengan jenis yang dipilih.']);
         }
 
-        // Kategori pemasukan berakun 1000 = uang diambil dari LACI kasir untuk mengisi Kas Kecil: butuh sesi kas aktif,
-        // dan laci berkurang (baris cermin di Kas Tak Terduga, tanpa jurnal kedua - jurnalnya satu: Dr 1005 / Cr 1000).
-        $dariLaci = $data['jenis'] === 'Masuk' && $kategori->kode_akun === '1000';
-        $sesi = $dariLaci ? \App\Services\KasSesiService::aktif() : null;
-        if ($dariLaci && !$sesi) {
-            return back()->withInput()->with('error', 'Kas kasir belum dibuka - buka kas dulu, karena uang pengisi Kas Kecil diambil dari laci.');
+        // Kas Kecil tidak menyentuh laci kasir, dan tidak bisa "mengisi dirinya sendiri".
+        if (in_array($kategori->kode_akun, ['1000', '1005'], true)) {
+            return back()->withInput()->with('error', "Kategori \"{$kategori->nama_kategori}\" tidak bisa dipakai: Kas Kecil terpisah dari laci kasir. Uang tambahan dari pemilik dicatat dengan kategori setoran pemilik.");
         }
 
         try {
-        $kasKecil = DB::transaction(function () use ($data, $kategori, $dariLaci, $sesi) {
+        $kasKecil = DB::transaction(function () use ($data, $kategori) {
             // Uang fisik tidak bisa minus: pengeluaran ditolak bila saldo Kas Kecil tidak cukup.
             if ($data['jenis'] === 'Keluar') {
                 \App\Services\KasKecilService::pastikanSaldoCukup((float) $data['nominal']);
             }
             $kk = KasKecil::create($data);
-
-            if ($dariLaci) {
-                \App\Services\KasSesiService::pastikanLaciCukup($sesi, (float) $data['nominal']);
-                DB::table('kas_manual')->insert([
-                    'id_kas' => $sesi->id_kas, 'waktu' => now(), 'keterangan' => "Setor ke Kas Kecil [KK-{$kk->id}] - {$data['keterangan']}",
-                    'status' => 'Keluar', 'nominal' => $data['nominal'], 'id_user' => Auth::id(), 'created_at' => now(), 'updated_at' => now(),
-                ]);
-            }
 
             if ($kategori->kode_akun) {
                 $data['jenis'] === 'Masuk'
