@@ -121,4 +121,10 @@ class KasirUbahHargaJurnalTest extends TestCase
         $this->assertEquals(65000, (float) DB::table('transaksi')->where('id_transaksi', $this->nota->id_transaksi)->value('total_bayar'));
         $this->assertGreaterThanOrEqual(0, $this->saldo('1100'), 'piutang nota menjadi minus');
     }
+
+    public function test_pemeriksaan_antrean_kasir_menghitung_nota_baru_yang_belum_dibayar(): void
+    {
+        // Nota dari setUp: Belum Bayar, tgl_order berisi jam (bukan tepat 00:00).
+        $this->getJson('/kasir/check-pembayaran')->assertOk()->assertJson(['total' => 1]);
+    }
 }

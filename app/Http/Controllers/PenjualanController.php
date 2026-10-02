@@ -588,6 +588,11 @@ class PenjualanController extends Controller
         // postPenjualan() yang sudah teruji untuk order produk-only tidak
         // perlu diubah sama sekali - order campuran produk+jasa cukup
         // menjalankan keduanya dalam transaction yang sama.
+        // Nota bertotal Rp 0 tidak pernah bisa lunas (selalu di antrean Belum Bayar) dan jurnal HPP-nya terlewat padahal
+        // stok bahan sudah terpotong. Ditolak di sini (di dalam transaksi, jadi potongan stok ikut batal).
+        if ($totalProdukSemua + $totalJasaSemua <= 0) {
+            throw new \RuntimeException('Total nota Rp 0: isi biaya cetak/harga barangnya dulu. Nota tanpa nilai tidak bisa dilunasi dan bahannya tidak tercatat sebagai biaya.');
+        }
         if ($totalProdukSemua > 0) {
             AccountingService::postPenjualan($noNota, $totalProdukSemua, $totalHppMaterialSemua);
         }

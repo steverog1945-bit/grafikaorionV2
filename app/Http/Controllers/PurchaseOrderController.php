@@ -244,6 +244,13 @@ class PurchaseOrderController extends Controller
                 return ['error' => "Purchase Order berstatus {$po->status} tidak bisa menerima barang."];
             }
 
+            // Sisa PO dihitung dari kedatangan yang SUDAH divalidasi. Draft yang masih menunggu berisi sisa yang sama,
+            // jadi Draft kedua akan memasukkan stok dua kali bila keduanya divalidasi.
+            $draft = DB::table('kedatangan_bahan')->where('id_purchase_order', $po->id)->where('status', '!=', 'Selesai')->value('no_surat_jalan');
+            if ($draft) {
+                return ['error' => "Masih ada kedatangan {$draft} dari PO ini yang belum divalidasi. Validasi (atau hapus) kedatangan itu dulu, baru catat kedatangan berikutnya."];
+            }
+
             $sisa = $po->details()->whereRaw('qty > qty_diterima')->get();
 
             if ($sisa->isEmpty()) {

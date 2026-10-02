@@ -66,7 +66,7 @@ class TintaStokTest extends TestCase
     {
         $this->actingAs($this->admin)->postJson('/penjualan/store', [
             'id_konsumen' => $this->idKonsumen, 'id_golongan' => $this->idGol,
-            'items' => [['id_produk' => $this->idProduk, 'nama_file' => 'a', 'p' => 100, 'l' => 200, 'qty_input' => 3]],
+            'items' => [['id_produk' => $this->idProduk, 'nama_file' => 'a', 'p' => 100, 'l' => 200, 'qty_input' => 3, 'biaya_cetak' => 50000]],
         ])->assertOk();
 
         // 60 ml / 1000 = 0,06 botol

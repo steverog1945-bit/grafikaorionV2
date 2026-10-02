@@ -1117,8 +1117,9 @@ public function getHistory($id)
         // halaman kasir. Kalau nota batal ikut dihitung, bunyi notifikasi
         // tetap berbunyi padahal tidak ada yang bisa dilayani - kasir
         // lalu datang ke meja dan mendapati daftar kosong.
+        // Definisinya sama persis dengan $waitingCount di index(): semua nota Belum Bayar yang tidak batal. Dulu hanya
+        // where tgl_order = tanggal hari ini, padahal tgl_order berisi jam, jadi hasilnya selalu 0 dan notifikasi mati.
         $count = DB::table('transaksi')
-            ->where('tgl_order', date('Y-m-d'))
             ->where('status_pembayaran', 'Belum Bayar')
             ->where('status_nota', '!=', 'Dibatalkan')
             ->count();

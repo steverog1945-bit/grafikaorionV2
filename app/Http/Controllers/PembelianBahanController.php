@@ -204,6 +204,7 @@ public function kedatanganDetail(Request $request)
             // tidak pernah dibaca sama sekali oleh server - grand_total yang
             // tersimpan bisa berbeda dari yang dilihat operator saat entry.
             $grandTotal = 0;
+            $barisAvg = [];
 
             foreach($request->id_bahan as $i=>$idBahan){
 
@@ -233,29 +234,8 @@ public function kedatanganDetail(Request $request)
                 // di atas), jadi ini murni faktur/tagihan atas barang yang sama —
                 // menambah stok lagi di sini akan menghitung barang dua kali.
 
-                // Perbarui harga_rata_rata (moving average cost) bahan ini supaya
-                // HPP snapshot di transaksi_detail (PenjualanController::store)
-                // mencerminkan biaya beli terkini. Stok saat ini SUDAH termasuk
-                // batch qty ini (ditambahkan saat validasi kedatangan), jadi
-                // stok-sebelum-batch-ini = stok sekarang - qty batch ini.
-                $bahanUntukAvg = DB::table('bahan_baku')->where('id_bahan', $idBahan)->lockForUpdate()->first();
-
-                if ($bahanUntukAvg) {
-                    $stokSebelumBatch = (float) $bahanUntukAvg->stok - $qty;
-                    $avgLama = (float) $bahanUntukAvg->harga_rata_rata;
-
-                    if ($stokSebelumBatch > 0 && $avgLama > 0) {
-                        $avgBaru = (($avgLama * $stokSebelumBatch) + ($qty * $harga)) / ($stokSebelumBatch + $qty);
-                    } else {
-                        // Belum ada histori biaya (avg lama 0) atau stok sebelum
-                        // batch ini tidak valid - pakai harga batch ini apa adanya.
-                        $avgBaru = $harga;
-                    }
-
-                    DB::table('bahan_baku')->where('id_bahan', $idBahan)->update([
-                        'harga_rata_rata' => round($avgBaru, 2),
-                    ]);
-                }
+                // Harga rata-rata diperbarui SETELAH total faktur akhir diketahui (lihat di bawah).
+                $barisAvg[] = ['id_bahan' => (int) $idBahan, 'qty' => $qty, 'subtotal' => $subtotal];
             }
 
             if ($includePajak) {
@@ -265,6 +245,35 @@ public function kedatanganDetail(Request $request)
             // Biaya belanja online: ongkir & biaya layanan menambah tagihan, voucher/diskon platform menguranginya
             // (setelah PPN - dihitung sama persis dengan form). Total tidak boleh negatif.
             $grandTotal = max(0, $grandTotal + (float) ($request->ongkir ?? 0) + (float) ($request->biaya_layanan ?? 0) - (float) ($request->voucher ?? 0));
+
+            // Harga rata-rata bergerak (moving average) per bahan.
+            // - Harga satuan EFEKTIF = bagian baris ini dari total faktur akhir (setelah diskon, potongan, PPN, ongkir,
+            //   biaya layanan, voucher) dibagi qty: dasar yang sama dengan jurnal Persediaan (grand total).
+            // - Stok acuan = stok tepat sebelum barang kedatangan ini masuk (baris IN di kartu stok saat validasi),
+            //   bukan stok saat faktur dibuat: faktur sering datang belakangan setelah sebagian barang terpakai.
+            $totalBaris = array_sum(array_column($barisAvg, 'subtotal'));
+            $faktor = $totalBaris > 0 ? $grandTotal / $totalBaris : 1;
+            foreach ($barisAvg as $b) {
+                if ($b['qty'] <= 0) {
+                    continue;
+                }
+                $bahanUntukAvg = DB::table('bahan_baku')->where('id_bahan', $b['id_bahan'])->lockForUpdate()->first();
+                if (!$bahanUntukAvg) {
+                    continue;
+                }
+                $hargaEfektif = ($b['subtotal'] * $faktor) / $b['qty'];
+                $stokSaatMasuk = DB::table('kartu_stok')->where('id_bahan', $b['id_bahan'])->where('tipe', 'IN')
+                    ->where('referensi', $kedatangan->no_surat_jalan)->orderBy('id')->value('stok_sebelum');
+                $stokSebelumBatch = $stokSaatMasuk !== null ? (float) $stokSaatMasuk : (float) $bahanUntukAvg->stok - $b['qty'];
+                $avgLama = (float) $bahanUntukAvg->harga_rata_rata;
+
+                $avgBaru = ($stokSebelumBatch > 0 && $avgLama > 0)
+                    ? (($avgLama * $stokSebelumBatch) + ($b['qty'] * $hargaEfektif)) / ($stokSebelumBatch + $b['qty'])
+                    // Belum ada histori biaya atau stok sebelumnya kosong/minus: harga batch ini apa adanya.
+                    : $hargaEfektif;
+
+                DB::table('bahan_baku')->where('id_bahan', $b['id_bahan'])->update(['harga_rata_rata' => round($avgBaru, 2)]);
+            }
 
             if ($request->tipe_pembelian == 'Cash') {
                 $pembelian->status_pembayaran = 'Lunas';

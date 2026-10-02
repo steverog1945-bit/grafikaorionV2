@@ -148,4 +148,38 @@ class UpdateKedatanganTest extends TestCase
         $this->edit($id, 'SJ-B', 90)->assertSessionMissing('error');
         $this->assertEquals(90, $this->stok());
     }
+
+    private function faktur(int $idKed, string $no, float $qty, float $harga, bool $ppn = false)
+    {
+        return $this->post('/pembelian-bahan', ['id_kedatangan' => $idKed, 'no_faktur' => $no, 'tgl_transaksi' => now()->toDateString(), 'tipe_pembelian' => 'Tempo',
+            'id_bahan' => [$this->bahan], 'qty' => [$qty], 'harga' => [(string) $harga], 'diskon' => ['0'], 'potongan' => ['0']] + ($ppn ? ['include_pajak' => 1] : []));
+    }
+
+    private function avg(): float
+    {
+        return round((float) DB::table('bahan_baku')->where('id_bahan', $this->bahan)->value('harga_rata_rata'), 2);
+    }
+
+    public function test_harga_rata_rata_memakai_stok_saat_barang_masuk_bukan_saat_faktur(): void
+    {
+        DB::table('bahan_baku')->where('id_bahan', $this->bahan)->update(['stok' => 100, 'harga_rata_rata' => 10]);
+        $id = $this->kedatanganDivalidasi('SJ-AVG', 50);   // stok 150
+        DB::table('bahan_baku')->where('id_bahan', $this->bahan)->update(['stok' => 10]); // 140 terpakai sebelum faktur datang
+
+        $this->faktur($id, 'FAK-AVG', 50, 20)->assertSessionHas('success');
+
+        // (100 x 10 + 50 x 20) / 150 = 13,33. Rumus lama memakai stok 10 - 50 (negatif) sehingga menjadi 20.
+        $this->assertEquals(13.33, $this->avg());
+    }
+
+    public function test_harga_rata_rata_memakai_harga_efektif_termasuk_ppn_seperti_jurnal_persediaan(): void
+    {
+        DB::table('bahan_baku')->where('id_bahan', $this->bahan)->update(['harga_rata_rata' => 0]);
+        $id = $this->kedatanganDivalidasi('SJ-PPN', 10);
+
+        $this->faktur($id, 'FAK-PPN', 10, 100, true)->assertSessionHas('success');
+
+        // Jurnal Persediaan = 10 x 100 x 1,11 = 1.110, jadi harga satuan efektif 111.
+        $this->assertEquals(111, $this->avg());
+    }
 }

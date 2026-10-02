@@ -104,4 +104,16 @@ class PoBatalPrTest extends TestCase
 
         $this->assertSame('Dipesan', $po->fresh()->status);
     }
+
+    public function test_kedatangan_draft_kedua_dari_sisa_po_yang_sama_ditolak(): void
+    {
+        $po = $this->poDari($this->prDisetujui());
+        $this->patch(route('purchase-order.terbitkan', $po->id));
+        $this->post(route('purchase-order.kedatangan', $po->id), ['no_surat_jalan' => 'SJ-1', 'tgl_datang' => now()->toDateString()]);
+
+        // Sisa yang sama sudah menunggu di Draft SJ-1: Draft kedua akan membuat stok masuk dua kali bila keduanya divalidasi.
+        $this->post(route('purchase-order.kedatangan', $po->id), ['no_surat_jalan' => 'SJ-2', 'tgl_datang' => now()->toDateString()])->assertSessionHas('error');
+
+        $this->assertSame(1, DB::table('kedatangan_bahan')->where('id_purchase_order', $po->id)->count());
+    }
 }

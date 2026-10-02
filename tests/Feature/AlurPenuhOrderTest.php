@@ -108,4 +108,15 @@ class AlurPenuhOrderTest extends TestCase
             ->assertViewHas('totalPemasukan', 50000.0)->assertViewHas('uangDiterima', 50000.0);
         $this->get("/akuntansi/laba-rugi?awal={$hari}&akhir={$hari}")->assertOk()->assertViewHas('labaBersih', 45000.0);
     }
+
+    public function test_input_order_bertotal_nol_ditolak_tanpa_memotong_stok(): void
+    {
+        $r = $this->postJson('/penjualan/store', ['id_konsumen' => $this->kons, 'id_golongan' => $this->gol, 'submit_id' => 'nol-1',
+            'items' => [['id_produk' => $this->produk, 'nama_file' => 'gratis.pdf', 'p' => 0, 'l' => 0, 'qty_input' => 5, 'biaya_cetak' => 0]]]);
+
+        $this->assertFalse($r->isSuccessful());
+        $this->assertStringContainsString('Rp 0', (string) $r->json('msg'));
+        $this->assertSame(0, DB::table('transaksi')->count());
+        $this->assertEquals(100, (float) DB::table('bahan_baku')->where('id_bahan', $this->bahan)->value('stok'), 'stok terpotong untuk nota yang tidak jadi');
+    }
 }
