@@ -33,13 +33,22 @@
                 <td class="px-6 py-4 text-xs text-slate-500">{{ $r->nomor_nota }} - {{ $r->nama_file }}</td>
                 <td class="px-6 py-4 text-right text-sm font-medium">{{ angka($r->qty_rework, 4) }}</td>
                 @bolehHarga<td class="px-6 py-4 text-right text-sm">{{ $r->status === 'Selesai' ? 'Rp ' . number_format($r->biaya_material, 0, ',', '.') : '-' }}</td>@endbolehHarga
-                <td class="px-6 py-4 text-center"><x-badge :status="$r->status" :variant="$r->status === 'Selesai' ? 'success' : 'warning'" /></td>
+                <td class="px-6 py-4 text-center"><x-badge :status="$r->status" :variant="match ($r->status) { 'Selesai' => 'success', 'Ditutup' => 'info', default => 'warning' }" /></td>
                 <td class="px-8 py-4 text-right">
                     @if($r->status === 'Dibuka' && $bisaUbah)
-                    <form method="POST" action="{{ route('qc.rework.proses', $r->id) }}" data-konfirmasi="Proses rework? Material tambahan sesuai BOM akan dikeluarkan dari stok dan dijurnal sebagai beban.">
+                    <div class="flex items-center justify-end gap-2">
+                    <form method="POST" action="{{ route('qc.rework.proses', $r->id) }}" data-konfirmasi="Proses rework? Material tambahan sesuai BOM akan dikeluarkan dari stok dan dijurnal sebagai beban. Stok boleh menjadi minus bila belum direstock.">
                         @csrf
                         <x-button type="submit" size="sm" variant="success"><i class="fas fa-tools"></i> Proses Rework</x-button>
                     </form>
+                    <form method="POST" action="{{ route('qc.rework.tutup', $r->id) }}" class="form-tutup-rework">
+                        @csrf
+                        <input type="hidden" name="alasan">
+                        <x-button type="submit" size="sm" variant="secondary">Tutup</x-button>
+                    </form>
+                    </div>
+                    @elseif($r->status === 'Ditutup' && $r->catatan)
+                    <span class="text-[11px] text-slate-400">{{ \Illuminate\Support\Str::after($r->catatan, 'Ditutup tanpa cetak ulang: ') }}</span>
                     @endif
                 </td>
             </tr>
@@ -85,3 +94,32 @@
     <x-table.pagination :paginator="$inspeksi" />
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Menutup rework tanpa cetak ulang wajib beralasan (tercatat di rework dan log aktivitas).
+    document.querySelectorAll('.form-tutup-rework').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            if (form.dataset.siap) return;
+            e.preventDefault();
+            Swal.fire({
+                title: 'Tutup rework tanpa cetak ulang?',
+                text: 'Tidak ada material yang dikeluarkan dan tidak ada biaya yang dijurnal.',
+                input: 'textarea',
+                inputPlaceholder: 'Alasan (wajib), mis. pelanggan menerima hasil apa adanya',
+                inputValidator: (v) => !v ? 'Alasan wajib diisi' : null,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Tutup Rework',
+                cancelButtonText: 'Batal',
+                customClass: { popup: 'rounded-2xl' }
+            }).then(function (hasil) {
+                if (!hasil.isConfirmed) return;
+                form.querySelector('[name=alasan]').value = hasil.value;
+                form.dataset.siap = '1';
+                form.requestSubmit ? form.requestSubmit() : form.submit();
+            });
+        });
+    });
+</script>
+@endpush

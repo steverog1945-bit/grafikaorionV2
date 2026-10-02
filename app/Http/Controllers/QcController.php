@@ -80,6 +80,22 @@ class QcController extends Controller
             return back()->with('error', \App\Support\PesanError::untuk($e));
         }
 
-        return back()->with('success', 'Rework selesai diproses. Biaya material Rp ' . number_format($biaya, 0, ',', '.') . ' dicatat ke stok & jurnal.');
+        $kembali = back()->with('success', 'Rework selesai diproses. Biaya material Rp ' . number_format($biaya, 0, ',', '.') . ' dicatat ke stok & jurnal.');
+        $minus = QcService::reworkStokMinus($id);
+
+        return $minus ? $kembali->with('warning', 'Stok ' . implode('; ', $minus) . '. Segera restock atau lakukan stock opname.') : $kembali;
+    }
+
+    public function tutupRework(Request $request, int $id)
+    {
+        $data = $request->validate(['alasan' => 'required|string|max:500'], ['alasan.required' => 'Alasan menutup rework wajib diisi.']);
+
+        try {
+            QcService::tutupRework($id, $data['alasan']);
+        } catch (\RuntimeException $e) {
+            return back()->with('error', \App\Support\PesanError::untuk($e));
+        }
+
+        return back()->with('success', 'Rework ditutup tanpa cetak ulang.');
     }
 }

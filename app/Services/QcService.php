@@ -87,7 +87,11 @@ class QcService
         });
     }
 
-    /** Memproses rework: keluarkan material tambahan sesuai BOM & jurnalkan biayanya. Mengembalikan biaya material. */
+    /**
+     * Memproses rework: keluarkan material tambahan sesuai BOM & jurnalkan biayanya. Mengembalikan biaya material.
+     * Bahan cetak ulang sudah terpakai secara fisik, jadi stok yang kurang tidak menghalangi (sama seperti order baru):
+     * stok boleh minus, dan pemanggil memberi peringatan lewat reworkStokMinus().
+     */
     public static function prosesRework(int $idRework): float
     {
         return DB::transaction(function () use ($idRework) {
@@ -116,7 +120,7 @@ class QcService
                     $konversi = (float) ($bahan->nilai_konversi ?? 0) > 0 ? (float) $bahan->nilai_konversi : 1.0;
 
                     $total += StokKeluarService::keluarkan(
-                        (int) $bom->id_bahan, $qtyPakai / $konversi, $rw->nomor, "Material rework {$rw->nomor}"
+                        (int) $bom->id_bahan, $qtyPakai / $konversi, $rw->nomor, "Material rework {$rw->nomor}", true
                     );
                 }
             }
@@ -132,6 +136,40 @@ class QcService
             ]);
 
             return $total;
+        });
+    }
+
+    /** Peringatan bahan yang stoknya menjadi minus karena rework ini. */
+    public static function reworkStokMinus(int $idRework): array
+    {
+        $nomor = DB::table('rework')->where('id', $idRework)->value('nomor');
+
+        return DB::table('kartu_stok as ks')->join('bahan_baku as b', 'b.id_bahan', '=', 'ks.id_bahan')
+            ->where('ks.referensi', $nomor)->where('ks.tipe', 'OUT')->where('ks.stok_sesudah', '<', 0)
+            ->get(['b.nama_bahan', 'b.satuan_stok', 'ks.stok_sesudah'])
+            ->map(fn ($r) => "{$r->nama_bahan} menjadi minus (" . angka((float) $r->stok_sesudah, 2) . " {$r->satuan_stok})")
+            ->all();
+    }
+
+    /** Rework yang tidak jadi dicetak ulang (mis. pelanggan menerima hasilnya): ditutup dengan alasan, tanpa stok & jurnal. */
+    public static function tutupRework(int $idRework, string $alasan): void
+    {
+        DB::transaction(function () use ($idRework, $alasan) {
+            $rw = DB::table('rework')->where('id', $idRework)->lockForUpdate()->first();
+
+            if (!$rw) {
+                throw new \RuntimeException('Rework tidak ditemukan.');
+            }
+            if ($rw->status !== 'Dibuka') {
+                throw new \RuntimeException("Rework {$rw->nomor} sudah {$rw->status}.");
+            }
+
+            DB::table('rework')->where('id', $idRework)->update([
+                'status' => 'Ditutup',
+                'catatan' => trim(($rw->catatan ? $rw->catatan . ' | ' : '') . 'Ditutup tanpa cetak ulang: ' . $alasan),
+                'selesai_at' => now(), 'updated_at' => now(),
+            ]);
+            AuditLogger::log('updated', 'rework', $idRework, ['status' => 'Dibuka'], ['status' => 'Ditutup'], "Rework {$rw->nomor} ditutup tanpa cetak ulang: {$alasan}");
         });
     }
 }

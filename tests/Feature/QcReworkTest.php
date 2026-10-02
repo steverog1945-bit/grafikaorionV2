@@ -138,21 +138,37 @@ class QcReworkTest extends TestCase
         $this->assertEquals('Lulus', DB::table('qc_inspeksi')->where('id', $hasil['id_qc'])->value('hasil'));
     }
 
-    public function test_stok_tidak_cukup_menggagalkan_rework_tanpa_efek_samping(): void
+    /** Bahan untuk cetak ulang sudah terpakai: stok kurang tidak menghalangi rework (sama seperti order), stok jadi minus + peringatan. */
+    public function test_stok_kurang_rework_tetap_diproses_dengan_peringatan_stok_minus(): void
     {
         $r = QcService::catat($this->idDetail, 100, 5, [], null);
         DB::table('bahan_baku')->where('id_bahan', $this->idBahan)->update(['stok' => 2]);
 
-        try {
-            QcService::prosesRework($r['id_rework']);
-            $this->fail('Seharusnya gagal');
-        } catch (\RuntimeException $e) {
-            $this->assertStringContainsString('tidak cukup', $e->getMessage());
-        }
+        $this->post("/qc/rework/{$r['id_rework']}/proses")->assertSessionHas('success')
+            ->assertSessionHas('warning', fn ($v) => str_contains($v, 'Kertas Stiker') && str_contains($v, 'minus'));
 
-        $this->assertEquals('Dibuka', DB::table('rework')->value('status'));
-        $this->assertEquals(2, (float) DB::table('bahan_baku')->where('id_bahan', $this->idBahan)->value('stok'));
+        $this->assertEquals('Selesai', DB::table('rework')->value('status'));
+        $this->assertEquals(-3, (float) DB::table('bahan_baku')->where('id_bahan', $this->idBahan)->value('stok'));
+        $this->assertEquals(50000, $this->saldo('5240'));
+    }
+
+    /** Rework yang tidak jadi dicetak ulang ditutup dengan alasan: tanpa stok keluar, tanpa jurnal, tidak lagi menunggu. */
+    public function test_rework_bisa_ditutup_tanpa_cetak_ulang_dengan_alasan(): void
+    {
+        $r = QcService::catat($this->idDetail, 100, 5, [], null);
+
+        $this->post("/qc/rework/{$r['id_rework']}/tutup", ['alasan' => ''])->assertSessionHasErrors('alasan');
+        $this->post("/qc/rework/{$r['id_rework']}/tutup", ['alasan' => 'Pelanggan menerima hasil apa adanya'])->assertSessionHas('success');
+
+        $rw = DB::table('rework')->first();
+        $this->assertSame('Ditutup', $rw->status);
+        $this->assertStringContainsString('Pelanggan menerima', $rw->catatan);
+        $this->assertEquals(100, (float) DB::table('bahan_baku')->where('id_bahan', $this->idBahan)->value('stok'));
         $this->assertEquals(0, DB::table('jurnal_umum')->count());
+
+        $this->post("/qc/rework/{$r['id_rework']}/proses")->assertSessionHas('error');
+        $this->post("/qc/rework/{$r['id_rework']}/tutup", ['alasan' => 'lagi'])->assertSessionHas('error');
+        $this->get('/qc')->assertOk()->assertSee('Ditutup');
     }
 
     public function test_halaman_qc_render_dan_alur_lewat_http(): void

@@ -1481,6 +1481,10 @@
         @if(session('error'))
             Swal.fire({ icon: 'error', title: 'Tidak berhasil', text: "{{ session('error') }}", customClass: { popup: 'rounded-2xl' } });
         @endif
+        @if(session('warning'))
+            {{-- Ditampilkan setelah toast sukses (bila ada) supaya peringatannya tidak tertutup. --}}
+            setTimeout(() => Swal.fire({ icon: 'warning', title: 'Perhatian', text: @json(session('warning')), customClass: { popup: 'rounded-2xl' } }), {{ session('success') ? 600 : 0 }});
+        @endif
     </script>
     <script>
     let currentTransactionCount = null;

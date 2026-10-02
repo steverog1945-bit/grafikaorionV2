@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Pengeluaran stok bahan baku non-penjualan (rework, waste): kunci baris
- * bahan, tolak kalau stok tidak cukup, kurangi stok, catat ke kartu_stok
+ * bahan, tolak kalau stok tidak cukup (kecuali $bolehMinus), kurangi stok, catat ke kartu_stok
  * (OUT), dan kembalikan nilai biaya (qty x harga_rata_rata) untuk dijurnal
  * pemanggil. Harus dipanggil di dalam DB::transaction() pemanggil.
  */
 class StokKeluarService
 {
-    public static function keluarkan(int $idBahan, float $qty, string $referensi, string $keterangan): float
+    public static function keluarkan(int $idBahan, float $qty, string $referensi, string $keterangan, bool $bolehMinus = false): float
     {
         if ($qty <= 0) {
             return 0.0;
@@ -27,7 +27,7 @@ class StokKeluarService
 
         $stokSebelum = (float) $bahan->stok;
 
-        if ($qty > $stokSebelum + 0.0001) {
+        if (!$bolehMinus && $qty > $stokSebelum + 0.0001) {
             throw new \RuntimeException("Stok {$bahan->nama_bahan} tidak cukup (tersisa " . angka($stokSebelum, 2) . ", dibutuhkan " . angka($qty, 2) . ').');
         }
 

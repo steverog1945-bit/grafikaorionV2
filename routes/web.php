@@ -621,6 +621,7 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::post('/waste', [\App\Http\Controllers\WasteController::class, 'store'])->name('waste.store');
 
     Route::post('/qc/rework/{id}/proses', [\App\Http\Controllers\QcController::class, 'prosesRework'])->name('qc.rework.proses');
+    Route::post('/qc/rework/{id}/tutup', [\App\Http\Controllers\QcController::class, 'tutupRework'])->name('qc.rework.tutup');
 
     Route::post('/purchase-order/{purchaseOrder}/kedatangan', [\App\Http\Controllers\PurchaseOrderController::class, 'catatKedatangan'])->name('purchase-order.kedatangan');
     Route::patch('/purchase-order/{purchaseOrder}/batalkan', [\App\Http\Controllers\PurchaseOrderController::class, 'batalkan'])->name('purchase-order.batalkan');
