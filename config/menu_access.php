@@ -82,6 +82,8 @@ return [
         'kategori' => [15],
 
         'kasir' => [16],
+        // Pengaturan Aplikasi (identitas toko, logo, nota) bisa diberikan ke peran lain lewat menu 37.
+        'pengaturan-aplikasi' => [37],
         // Cetak ulang nota (baca saja) dari Riwayat/Detail Penjualan dan dari Penjualan dan Jasa.
         'kasir/print-opsi' => [3, 16, 48, 61],
 

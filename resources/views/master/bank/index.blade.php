@@ -98,7 +98,7 @@
             <input type="text" name="atas_nama" id="edit_atas_nama" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500" required>
         </div>
 
-        <button type="submit" class="w-full text-white shadow-lg mt-2 transition active:scale-95">Update Rekening</button>
+        <button type="submit" class="w-full text-white shadow-lg mt-2 transition active:scale-95">Perbarui Rekening</button>
     </form>
 </x-modal>
 <script>

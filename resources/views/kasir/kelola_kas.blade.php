@@ -275,7 +275,7 @@ function aksiKas(tipe) {
                     f.querySelector('input[name=jumlah]').value = result.value;
                     f.submit();
                 } else {
-                    Swal.fire('Error', 'Jumlah tidak valid', 'error');
+                    Swal.fire('Jumlah tidak valid', 'Isi jumlah uang dengan angka lebih dari nol.', 'error');
                 }
             }
         });

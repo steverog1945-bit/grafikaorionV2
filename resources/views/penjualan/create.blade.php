@@ -552,7 +552,7 @@
                 input.value = '';
             }
         } catch (e) {
-            Swal.fire('Error', 'Upload thumbnail gagal, cek koneksi.', 'error');
+            Swal.fire('Gagal mengunggah', 'Gambar belum terunggah. Periksa jaringan lalu coba lagi.', 'error');
             input.value = '';
         } finally {
             input.disabled = false;
@@ -770,7 +770,7 @@
             // { message: "...", errors: {...} } - fetch tidak melempar exception
             // untuk status non-2xx, jadi baris di atas tetap ke-handle oleh blok
             // if/else; catch ini murni untuk kegagalan jaringan/parsing.
-            Swal.fire('Error', 'Cek koneksi database', 'error');
+            Swal.fire('Gagal menyimpan', 'Data belum tersimpan. Periksa jaringan lalu coba lagi.', 'error');
         }
     }
 
@@ -1739,7 +1739,7 @@
             } else {
                 Swal.fire('Gagal!', result.msg || 'Terjadi kesalahan.', 'error');
             }
-        } catch (e) { Swal.fire('Error!', 'Gagal sistem.', 'error'); }
+        } catch (e) { Swal.fire('Gagal', 'Permintaan tidak bisa diproses. Muat ulang halaman lalu coba lagi.', 'error'); }
         finally {
             sedangMenyimpan = false;
             if (btn) { btn.disabled = false; btn.classList.remove('opacity-50', 'pointer-events-none'); }

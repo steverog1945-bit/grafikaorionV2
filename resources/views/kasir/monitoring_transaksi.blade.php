@@ -275,7 +275,7 @@
                 customClass: {}
             });
         } catch (e) {
-            Swal.fire('Error', 'Gagal memuat history.', 'error');
+            Swal.fire('Gagal memuat', 'Riwayat pembayaran tidak bisa dimuat. Coba lagi.', 'error');
         }
     }
 

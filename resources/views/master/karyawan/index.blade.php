@@ -169,7 +169,7 @@
 
                             <x-slot:footer>
                                 <x-button type="button" variant="secondary" onclick="closeModal('karyawan-edit-{{ $k->id_karyawan }}')">Batal</x-button>
-                                <x-button type="submit">Update Profil</x-button>
+                                <x-button type="submit">Perbarui Profil</x-button>
                             </x-slot:footer>
                         </form>
                     </x-modal>

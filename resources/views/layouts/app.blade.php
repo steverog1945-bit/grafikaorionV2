@@ -1219,7 +1219,7 @@
     </a>
     @endif
     
-@if($cekAkses(4))
+@if($isAdministrator)
 <a href="{{ url('/setting-akses') }}" 
    class="{{ $menuClass }} {{ Request::is('setting-akses', 'setting-akses/*') ? $activeClass : $nonActiveClass }}">
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('setting-akses', 'setting-akses/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1257,7 +1257,7 @@
 </a>
 @endif
 
-@if($cekAkses(4))
+@if($isAdministrator)
 <a href="{{ route('menu-editor.index') }}" class="{{ $menuClass }} {{ Request::is('menu-editor', 'menu-editor/*') ? $activeClass : $nonActiveClass }}">
     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('menu-editor', 'menu-editor/*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />

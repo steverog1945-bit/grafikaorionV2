@@ -499,7 +499,7 @@
 
         } catch (error) {
             console.error(error);
-            Swal.fire('Error', 'Gagal mengambil data. Pastikan Route /produk/{id} sudah benar.', 'error');
+            Swal.fire('Gagal memuat', 'Data produk tidak bisa dimuat. Muat ulang halaman lalu coba lagi.', 'error');
         }
     }
 
@@ -573,7 +573,7 @@
                 <div class="flex items-center gap-3">
                     <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
                     <input type="hidden" name="id_bahan[]" value="${id}">
-                    <span class="font-medium">${nama}</span>
+                    <span class="font-medium">${escapeHtml(nama)}</span>
                     <small class="text-slate-400">${satuan ? '('+satuan+')' : ''}</small>
                 </div>
             </td>
@@ -639,7 +639,7 @@
                 <div class="flex items-center gap-3">
                     <div class="w-2 h-2 rounded-full bg-purple-400"></div>
                     <input type="hidden" name="id_finishing[]" value="${id}">
-                    <span class="font-medium">${nama}</span>
+                    <span class="font-medium">${escapeHtml(nama)}</span>
                 </div>
             </td>
             <td class="p-3">

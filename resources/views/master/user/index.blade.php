@@ -40,9 +40,11 @@
                 </td>
                 <td class="px-8 py-5 text-right">
                     <div class="flex justify-end gap-2">
+                        @if(optional(auth()->user()->role)->nama_role === 'Administrator')
                         <x-button href="{{ route('akses.user', $u->id_user) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Hak Akses per modul (lihat/tambah/kelola/hapus)">
                             <i class="fas fa-user-lock text-sm"></i>
                         </x-button>
+                        @endif
                         <x-button type="button" size="icon" variant="ghost" onclick='openEditUser({{ json_encode($u) }})' class="border border-slate-100 hover:text-amber-500" title="Edit">
                             <i class="far fa-edit text-sm"></i>
                         </x-button>

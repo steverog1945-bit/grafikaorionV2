@@ -903,7 +903,7 @@
         const data = await kirimJson(`{{ url('/jersey/master/materials') }}/${idMaterial}/bahan`, 'PATCH', { id_bahan: idBahan || null });
         if (!data) return;
         const info = document.getElementById('info-sinkron-' + idMaterial);
-        info.innerHTML = data.bahan ? `Stok <b>${data.bahan.stok.toLocaleString('id-ID')} ${data.bahan.satuan}</b> &middot; Rp ${Math.round(data.bahan.harga).toLocaleString('id-ID')}/${data.bahan.satuan}` : '';
+        info.innerHTML = data.bahan ? `Stok <b>${data.bahan.stok.toLocaleString('id-ID')} ${escHtml(data.bahan.satuan)}</b> &middot; Rp ${Math.round(data.bahan.harga).toLocaleString('id-ID')}/${escHtml(data.bahan.satuan)}` : '';
         tampilkanToastJersey(data.message);
     }
 
@@ -1007,7 +1007,7 @@
         const namaKategori = row.jersey_category_id
             ? (document.querySelector(`#form-add-komponen [name="jersey_category_id"] option[value="${row.jersey_category_id}"]`)?.textContent ?? null)
             : null;
-        return namaKategori ? `${namaTipe} &middot; ${namaKategori}` : namaTipe;
+        return namaKategori ? `${escHtml(namaTipe)} &middot; ${escHtml(namaKategori)}` : escHtml(namaTipe);
     }
 
     document.getElementById('form-add-komponen').addEventListener('submit', async (e) => {

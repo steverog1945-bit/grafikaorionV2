@@ -402,15 +402,13 @@ function loadBahan() {
             rows = '<tr><td colspan="5" class="text-center py-6 text-slate-400">Data bahan tidak ditemukan.</td></tr>';
         } else {
             response.data.forEach(function(item) {
-                const safeNama = item.nama_bahan.replace(/'/g, "\\'");
                 rows += `
                     <tr class="hover:bg-slate-50 transition border-b border-slate-50">
-                        <td class="px-6 py-4 font-medium text-slate-700">${item.kode_bahan ?? '-'}</td>
-                        <td class="px-6 py-4 text-slate-600 font-medium">${item.nama_bahan}</td>
-                        <td class="px-6 py-4 text-slate-500 font-medium">${item.stok}</td>
+                        <td class="px-6 py-4 font-medium text-slate-700">${escHtml(item.kode_bahan ?? '-')}</td>
+                        <td class="px-6 py-4 text-slate-600 font-medium">${escHtml(item.nama_bahan)}</td>
+                        <td class="px-6 py-4 text-slate-500 font-medium">${escHtml(item.stok)}</td>
                         <td class="px-6 py-4 text-center">
-                            <button type="button"
-                                onclick="selectBahan(${item.id_bahan}, '${safeNama}', '${item.satuan_stok}')"
+                            <button type="button" data-pilih-bahan data-id="${Number(item.id_bahan)}" data-nama="${escHtml(item.nama_bahan)}" data-satuan="${escHtml(item.satuan_stok ?? '')}"
                                 class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-medium uppercase tracking-widest transition">
                                 Pilih
                             </button>
@@ -419,11 +417,13 @@ function loadBahan() {
             });
         }
         tbody.html(rows);
+        // Nama bahan dibaca dari data-atribut (sudah ter-escape), jadi tanda kutip di nama tidak mematikan tombolnya.
+        tbody.find('[data-pilih-bahan]').on('click', function () { selectBahan(Number(this.dataset.id), this.dataset.nama, this.dataset.satuan); });
         $('#page-info').text(`Hal ${response.current_page} dari ${response.last_page}`);
         $('#prev-page').prop('disabled', !response.prev_page_url);
         $('#next-page').prop('disabled', !response.next_page_url);
     }).fail(function() {
-        tbody.html('<tr><td colspan="5" class="text-center py-6 text-rose-500 font-medium">Gagal memuat data. Periksa Route/Controller.</td></tr>');
+        tbody.html('<tr><td colspan="5" class="text-center py-6 text-rose-500 font-medium">Gagal memuat daftar bahan. Muat ulang halaman lalu coba lagi.</td></tr>');
     });
 }
 

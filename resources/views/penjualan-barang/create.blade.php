@@ -540,7 +540,7 @@
                 Swal.fire('Gagal', res.message || 'Data tidak dapat disimpan.', 'error');
             }
         } catch (e) {
-            Swal.fire('Error', 'Cek koneksi database', 'error');
+            Swal.fire('Gagal menyimpan', 'Data belum tersimpan. Periksa jaringan lalu coba lagi.', 'error');
         }
     }
 

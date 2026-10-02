@@ -225,7 +225,7 @@
             } else { usulan.classList.add('hidden'); }
             const boxOnline = document.getElementById('info-online-faktur');
             if (data.online) {
-                boxOnline.innerHTML = `<i class="fas fa-shopping-bag mr-2"></i>Pembelian online: <b>${data.online.platform || '-'}</b>${data.online.toko ? ' &middot; toko ' + data.online.toko : ''}${data.online.no_pesanan ? ' &middot; pesanan ' + data.online.no_pesanan : ''}${data.online.resi ? ' &middot; resi ' + data.online.resi : ''}`;
+                boxOnline.innerHTML = `<i class="fas fa-shopping-bag mr-2"></i>Pembelian online: <b>${escHtml(data.online.platform || '-')}</b>${data.online.toko ? ' &middot; toko ' + escHtml(data.online.toko) : ''}${data.online.no_pesanan ? ' &middot; pesanan ' + escHtml(data.online.no_pesanan) : ''}${data.online.resi ? ' &middot; resi ' + escHtml(data.online.resi) : ''}`;
                 boxOnline.classList.remove('hidden');
             } else { boxOnline.classList.add('hidden'); }
 
@@ -235,13 +235,13 @@
                     tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/50 transition-colors">
                         <td class="px-6 py-6">
-                            <p class="font-medium text-slate-700 text-xs uppercase">${item.nama_bahan}</p>
-                            <p class="text-[10px] text-slate-400 font-medium tracking-widest uppercase">${item.kode_bahan}</p>
-                            <input type="hidden" name="id_bahan[]" value="${item.id_bahan}">
+                            <p class="font-medium text-slate-700 text-xs uppercase">${escHtml(item.nama_bahan)}</p>
+                            <p class="text-[10px] text-slate-400 font-medium tracking-widest uppercase">${escHtml(item.kode_bahan)}</p>
+                            <input type="hidden" name="id_bahan[]" value="${Number(item.id_bahan)}">
                         </td>
                         <td class="px-4 py-6 text-center">
                             <input type="number" name="qty[]" step="0.01" value="${item.qty}" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner w-24 text-center">
-                            <p class="text-[10px] font-medium text-slate-400 mt-1.5 uppercase tracking-widest">${item.satuan || 'Pcs'}</p>
+                            <p class="text-[10px] font-medium text-slate-400 mt-1.5 uppercase tracking-widest">${escHtml(item.satuan || 'Pcs')}</p>
                         </td>
                         <td class="px-4 py-6">
                             <input type="text" inputmode="numeric" name="harga[]" value="" placeholder="0" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan">
@@ -270,7 +270,7 @@
 
         } catch (error) {
             console.error("Error fetching detail:", error);
-            Swal.fire('Error', 'Gagal mengambil data detail. Pastikan koneksi aman.', 'error');
+            Swal.fire('Gagal memuat', 'Rincian surat jalan tidak bisa dimuat. Periksa jaringan lalu coba lagi.', 'error');
         }
     }
 
