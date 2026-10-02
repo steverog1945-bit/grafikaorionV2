@@ -155,7 +155,7 @@
     function confirmDeleteKategori(id, nama) {
         Swal.fire({
             title: 'Hapus Kategori?',
-            html: `Kategori <b>${nama}</b> akan dihapus permanen.`,
+            html: `Kategori <b>${escHtml(nama)}</b> akan dihapus permanen.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

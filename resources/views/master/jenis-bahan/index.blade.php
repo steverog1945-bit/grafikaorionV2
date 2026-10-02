@@ -152,7 +152,7 @@
     function confirmDeleteJenisBahan(id, nama) {
         Swal.fire({
             title: 'Hapus Jenis Bahan?',
-            html: `Jenis bahan <b>${nama}</b> akan dihapus permanen.`,
+            html: `Jenis bahan <b>${escHtml(nama)}</b> akan dihapus permanen.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

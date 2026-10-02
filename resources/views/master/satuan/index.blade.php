@@ -174,7 +174,7 @@
     function confirmDeleteSatuan(id, nama) {
         Swal.fire({
             title: 'Hapus Satuan?',
-            html: `Satuan <b>${nama}</b> akan dihapus permanen.<br><small class="text-amber-600 font-medium">Perhitungan konversi stok yang menggunakan satuan ini mungkin akan kacau.</small>`,
+            html: `Satuan <b>${escHtml(nama)}</b> akan dihapus permanen.<br><small class="text-amber-600 font-medium">Perhitungan konversi stok yang menggunakan satuan ini mungkin akan kacau.</small>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

@@ -734,7 +734,7 @@
         }
 
         if (kurang.length > 0) {
-            const daftar = kurang.map(k => `<li>${k}</li>`).join('');
+            const daftar = kurang.map(k => `<li>${escHtml(k)}</li>`).join('');
             Swal.fire({
                 title: 'Lengkapi Data Pesanan Lebih Dulu',
                 html: `<ul style="text-align:left; font-size:12.5px; padding-left:1.2em;">${daftar}</ul>`,
@@ -759,7 +759,7 @@
         }
 
         if (peringatan.length > 0) {
-            const daftar = peringatan.map(p => `<li>${p}</li>`).join('');
+            const daftar = peringatan.map(p => `<li>${escHtml(p)}</li>`).join('');
             const konfirmasi = await Swal.fire({
                 title: 'Ada Komponen Belum Lengkap',
                 html: `<ul style="text-align:left; font-size:12.5px; padding-left:1.2em;">${daftar}</ul>`,

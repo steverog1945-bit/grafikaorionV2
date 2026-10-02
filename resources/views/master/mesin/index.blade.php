@@ -195,7 +195,7 @@
     function confirmDeleteMesin(id, nama) {
         Swal.fire({
             title: 'Hapus Mesin?',
-            html: `Mesin <b>${nama}</b> akan dihapus permanen.`,
+            html: `Mesin <b>${escHtml(nama)}</b> akan dihapus permanen.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

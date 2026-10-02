@@ -269,7 +269,7 @@
         e.preventDefault();
         Swal.fire({
             title: 'Bayar komisi desain?',
-            html: `Komisi belum dibayar untuk <b>${nama}</b> pada periode ini sebesar <b>Rp ${Math.round(nominal).toLocaleString('id-ID')}</b> akan dicatat sebagai pengeluaran Kas Kecil (kategori Komisi Desainer).`,
+            html: `Komisi belum dibayar untuk <b>${escHtml(nama)}</b> pada periode ini sebesar <b>Rp ${Math.round(nominal).toLocaleString('id-ID')}</b> akan dicatat sebagai pengeluaran Kas Kecil (kategori Komisi Desainer).`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#4f46e5',

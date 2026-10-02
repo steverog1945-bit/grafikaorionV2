@@ -154,7 +154,7 @@
     function confirmDeleteMerk(id, nama) {
         Swal.fire({
             title: 'Hapus Merk?',
-            html: `Merk <b>${nama}</b> akan dihapus permanen.`,
+            html: `Merk <b>${escHtml(nama)}</b> akan dihapus permanen.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

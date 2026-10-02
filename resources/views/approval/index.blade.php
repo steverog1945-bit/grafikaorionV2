@@ -116,7 +116,7 @@
     function confirmSetujui(id, ringkasan) {
         Swal.fire({
             title: 'Setujui pengajuan ini?',
-            html: `<b>${ringkasan}</b> akan dieksekusi begitu Anda menyetujui - tindakan ini tidak bisa dibatalkan.`,
+            html: `<b>${escHtml(ringkasan)}</b> akan dieksekusi begitu Anda menyetujui - tindakan ini tidak bisa dibatalkan.`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#10b981',

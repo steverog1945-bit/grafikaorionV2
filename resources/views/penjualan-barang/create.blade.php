@@ -581,7 +581,7 @@
         if (qty > stokTersedia) {
             Swal.fire({
                 title: 'Qty Melebihi Stok',
-                html: `Stok tersedia cuma <b>${stokTersedia}</b> ${opt.dataset.satuan}, tapi qty diisi <b>${qty}</b>. Tetap lanjutkan?<br><small class="text-slate-400">Stok bisa jadi minus - pastikan barang fisiknya memang ada.</small>`,
+                html: `Stok tersedia cuma <b>${stokTersedia}</b> ${escHtml(opt.dataset.satuan)}, tapi qty diisi <b>${qty}</b>. Tetap lanjutkan?<br><small class="text-slate-400">Stok bisa jadi minus - pastikan barang fisiknya memang ada.</small>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Ya, Lanjutkan',

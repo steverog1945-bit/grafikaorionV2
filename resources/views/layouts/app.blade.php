@@ -2134,6 +2134,13 @@
     // submit_id sekali saja, jadi klik ganda, coba ulang setelah jaringan putus, atau dua tab tidak menggandakan
     // transaksi. Form yang dikirim lewat skrip (defaultPrevented) tidak diberi id: skripnya bisa mengirim ulang
     // dengan sah tanpa memuat ulang halaman.
+    // Teks dari data (nama master, nomor nota, ringkasan pengajuan) yang disisipkan ke dialog ber-html WAJIB lewat
+    // fungsi ini: tanpa itu nama berisi <img onerror=...> dijalankan sebagai skrip di sesi orang yang membuka dialog.
+    window.escHtml = function (v) {
+        return String(v ?? '').replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    };
     function beriSubmitId(form) {
         if (!(form instanceof HTMLFormElement) || (form.getAttribute('method') || 'get').toLowerCase() === 'get') return;
         let isian = form.querySelector('input[name="submit_id"]');

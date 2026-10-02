@@ -502,7 +502,7 @@
     function confirmCopyHargaGolongan(idProduk, idGolongan, namaGolongan) {
         Swal.fire({
             title: `Copy Harga "${namaGolongan}" ke Semua Golongan Lain?`,
-            html: `Seluruh tier harga golongan <b>${namaGolongan}</b> akan disalin ke SEMUA golongan lain untuk produk ini.<br><small class="text-slate-400">Tier harga yang sudah ada di golongan lain akan DIGANTI TOTAL, bukan digabung.</small>`,
+            html: `Seluruh tier harga golongan <b>${escHtml(namaGolongan)}</b> akan disalin ke SEMUA golongan lain untuk produk ini.<br><small class="text-slate-400">Tier harga yang sudah ada di golongan lain akan DIGANTI TOTAL, bukan digabung.</small>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#4f46e5',

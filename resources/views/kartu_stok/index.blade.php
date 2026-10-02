@@ -279,9 +279,9 @@
         document.getElementById('adj_qty').value = tipe === 'OUT' ? String(nilai) : document.getElementById('adj_qty').value;
         document.getElementById('adj_stok_baru').value = tipe !== 'OUT' ? String(nilai) : document.getElementById('adj_stok_baru').value;
         const teks = tipe === 'OUT'
-            ? `Keluarkan <b>${nilai.toLocaleString('id-ID')} ${satuan}</b> dari <b>${opt.dataset.nama}</b>?`
-            : `Set stok <b>${opt.dataset.nama}</b> menjadi <b>${nilai.toLocaleString('id-ID')} ${satuan}</b>?`;
-        Swal.fire({ title: 'Cek satuan sebelum lanjut', html: teks + `<br><small class="text-slate-400">Satuan stok bahan ini: ${satuan}. Pastikan angka BUKAN dalam satuan lain.</small>`, icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, benar', cancelButtonText: 'Periksa lagi' })
+            ? `Keluarkan <b>${nilai.toLocaleString('id-ID')} ${escHtml(satuan)}</b> dari <b>${escHtml(opt.dataset.nama)}</b>?`
+            : `Set stok <b>${escHtml(opt.dataset.nama)}</b> menjadi <b>${nilai.toLocaleString('id-ID')} ${escHtml(satuan)}</b>?`;
+        Swal.fire({ title: 'Cek satuan sebelum lanjut', html: teks + `<br><small class="text-slate-400">Satuan stok bahan ini: ${escHtml(satuan)}. Pastikan angka BUKAN dalam satuan lain.</small>`, icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, benar', cancelButtonText: 'Periksa lagi' })
             .then(r => { if (r.isConfirmed) { this.__ok = true; this.requestSubmit(); } });
     });
 

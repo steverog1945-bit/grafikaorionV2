@@ -191,7 +191,7 @@
     function confirmApplyEdit(idTransaksi, nomorNota) {
         Swal.fire({
             title: 'Proses koreksi nota ini?',
-            html: `Nota <b>${nomorNota}</b> akan DIBATALKAN (stok & jurnal otomatis dikembalikan), lalu Anda diarahkan ke Input Pesanan untuk membuat nota pengganti dengan data yang benar.<br><small class="text-slate-400">Nota lama tetap tersimpan di riwayat untuk referensi/audit.</small>`,
+            html: `Nota <b>${escHtml(nomorNota)}</b> akan DIBATALKAN (stok & jurnal otomatis dikembalikan), lalu Anda diarahkan ke Input Pesanan untuk membuat nota pengganti dengan data yang benar.<br><small class="text-slate-400">Nota lama tetap tersimpan di riwayat untuk referensi/audit.</small>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#059669',

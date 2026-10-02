@@ -122,7 +122,7 @@
     function confirmSetujui(idRequest, nomorNota) {
         Swal.fire({
             title: 'Setujui edit nota ini?',
-            html: `Nota <b>${nomorNota}</b> akan bisa dikoreksi kasir setelah ini disetujui (nota lama dibatalkan otomatis saat kasir memproses koreksinya).`,
+            html: `Nota <b>${escHtml(nomorNota)}</b> akan bisa dikoreksi kasir setelah ini disetujui (nota lama dibatalkan otomatis saat kasir memproses koreksinya).`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#10b981',

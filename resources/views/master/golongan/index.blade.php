@@ -146,7 +146,7 @@
     function confirmDeleteGolongan(id, nama) {
         Swal.fire({
             title: 'Hapus Golongan?',
-            html: `Golongan <b>${nama}</b> akan dihapus permanen.`,
+            html: `Golongan <b>${escHtml(nama)}</b> akan dihapus permanen.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

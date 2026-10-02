@@ -185,7 +185,7 @@
     function confirmToggleAktif(id, namaAkun, sedangAktif) {
         Swal.fire({
             title: sedangAktif ? 'Nonaktifkan Akun?' : 'Aktifkan Akun?',
-            html: `Akun <b>${namaAkun}</b> akan di${sedangAktif ? 'nonaktifkan' : 'aktifkan'}.`,
+            html: `Akun <b>${escHtml(namaAkun)}</b> akan di${sedangAktif ? 'nonaktifkan' : 'aktifkan'}.`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#4f46e5',
@@ -206,7 +206,7 @@
     function confirmDeleteAkun(id, namaAkun) {
         Swal.fire({
             title: 'Hapus Akun?',
-            html: `Akun <b>${namaAkun}</b> akan dihapus permanen. Hanya bisa dihapus kalau belum pernah dipakai di jurnal.`,
+            html: `Akun <b>${escHtml(namaAkun)}</b> akan dihapus permanen. Hanya bisa dihapus kalau belum pernah dipakai di jurnal.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

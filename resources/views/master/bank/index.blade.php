@@ -120,7 +120,7 @@
     function confirmDeleteBank(id, label) {
         Swal.fire({
             title: 'Hapus Rekening?',
-            html: `Rekening <b>${label}</b> akan dihapus permanen.`,
+            html: `Rekening <b>${escHtml(label)}</b> akan dihapus permanen.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',

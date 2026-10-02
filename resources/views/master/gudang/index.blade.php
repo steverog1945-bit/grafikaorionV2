@@ -170,7 +170,7 @@
     function confirmDeleteGudang(id, nama) {
         Swal.fire({
             title: 'Hapus Gudang?',
-            html: `Gudang <b>${nama}</b> akan dihapus permanen.`,
+            html: `Gudang <b>${escHtml(nama)}</b> akan dihapus permanen.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
