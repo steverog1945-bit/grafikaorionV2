@@ -77,10 +77,14 @@ class TintaEpsonRolandCommand extends Command
                     }
                 }
 
-                DB::table('pemakaian_tinta')->updateOrInsert(
-                    ['id_mesin' => $idMesinEpson, 'id_bahan' => $idBahan, 'dasar' => 'm2'],
-                    ['pemakaian' => $pakaiPerWarna, 'is_active' => 1, 'keterangan' => 'Estimasi awal: total 10 ml/m2 dibagi rata 9 warna - koreksi dengan pemakaian nyata', 'created_at' => now(), 'updated_at' => now()]
-                );
+                // Hanya diisi bila belum ada: angka yang sudah dikoreksi dengan pemakaian nyata tidak ditimpa saat dijalankan ulang.
+                $kunci = ['id_mesin' => $idMesinEpson, 'id_bahan' => $idBahan, 'dasar' => 'm2'];
+                if (!DB::table('pemakaian_tinta')->where($kunci)->exists()) {
+                    DB::table('pemakaian_tinta')->insert($kunci + [
+                        'pemakaian' => $pakaiPerWarna, 'is_active' => 1, 'keterangan' => 'Estimasi awal: total 10 ml/m2 dibagi rata 9 warna - koreksi dengan pemakaian nyata',
+                        'created_at' => now(), 'updated_at' => now(),
+                    ]);
+                }
             }
 
             // Cleaner: satuan kartrid (botol) 350 ml, bukan "ml" dengan harga per kartrid.

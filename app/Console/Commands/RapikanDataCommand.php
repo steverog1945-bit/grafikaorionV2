@@ -39,6 +39,7 @@ class RapikanDataCommand extends Command
         if (Schema::hasTable('audit_logs') && Schema::hasTable('audit_logs_arsip')) {
             $batasTanggal = now()->subMonths($bulan)->startOfDay()->toDateTimeString();
             $dipindah = 0;
+            $gagal = false;
             $jumlah = DB::table('audit_logs')->where('created_at', '<', $batasTanggal)->count();
             if (!$pratinjau) {
                 // Bertahap per 5.000 baris supaya tabel tidak terkunci lama saat kasir sedang bekerja.
@@ -47,11 +48,22 @@ class RapikanDataCommand extends Command
                     if ($id->isEmpty()) {
                         break;
                     }
-                    DB::transaction(function () use ($id) {
-                        $daftar = $id->implode(',');
-                        DB::statement("INSERT IGNORE INTO audit_logs_arsip SELECT * FROM audit_logs WHERE id IN ({$daftar})");
-                        DB::table('audit_logs')->whereIn('id', $id)->delete();
-                    });
+                    // INSERT biasa (bukan IGNORE): baris yang gagal tersalin, mis. id sudah terpakai di arsip, menggagalkan
+                    // batch ini dan log aslinya tidak ikut terhapus. Jumlah yang tersalin dicek sebelum menghapus.
+                    try {
+                        DB::transaction(function () use ($id) {
+                            $daftar = $id->implode(',');
+                            $tersalin = DB::affectingStatement("INSERT INTO audit_logs_arsip SELECT * FROM audit_logs WHERE id IN ({$daftar})");
+                            if ($tersalin !== $id->count()) {
+                                throw new \RuntimeException("hanya {$tersalin} dari {$id->count()} baris tersalin ke arsip");
+                            }
+                            DB::table('audit_logs')->whereIn('id', $id)->delete();
+                        });
+                    } catch (\Throwable $e) {
+                        $this->error('Pemindahan log audit ke arsip dihentikan, log yang belum tersalin tidak dihapus: ' . $e->getMessage());
+                        $gagal = true;
+                        break;
+                    }
                     $dipindah += $id->count();
                 } while (true);
             }
@@ -65,6 +77,6 @@ class RapikanDataCommand extends Command
 
         $this->table(['Data', $pratinjau ? 'Akan diproses' : 'Diproses'], $hasil);
 
-        return self::SUCCESS;
+        return empty($gagal) ? self::SUCCESS : self::FAILURE;
     }
 }

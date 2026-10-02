@@ -35,6 +35,18 @@ class RapikanDataTest extends TestCase
         $this->actingAs($admin)->get('/log-aktivitas')->assertOk()->assertDontSee('Log lama sekali');
     }
 
+    /** Id yang sudah ada di arsip (mis. sisa restore) tidak boleh membuat log asli terhapus tanpa tersalin. */
+    public function test_log_tidak_dihapus_bila_gagal_masuk_arsip(): void
+    {
+        $id = DB::table('audit_logs')->insertGetId(['event' => 'updated', 'auditable_type' => 'transaksi', 'auditable_id' => 1, 'keterangan' => 'Log asli', 'created_at' => now()->subMonths(30)]);
+        DB::table('audit_logs_arsip')->insert(['id' => $id, 'event' => 'updated', 'auditable_type' => 'transaksi', 'auditable_id' => 9, 'keterangan' => 'Baris lain', 'created_at' => now()->subMonths(40)]);
+
+        $this->assertSame(1, Artisan::call('data:rapikan'));
+
+        $this->assertSame(['Log asli'], DB::table('audit_logs')->pluck('keterangan')->all());
+        $this->assertSame(['Baris lain'], DB::table('audit_logs_arsip')->pluck('keterangan')->all());
+    }
+
     public function test_pratinjau_tidak_mengubah_apa_pun(): void
     {
         DB::table('audit_logs')->insert(['event' => 'updated', 'auditable_type' => 'transaksi', 'auditable_id' => 1, 'keterangan' => 'Lama', 'created_at' => now()->subMonths(30)]);
