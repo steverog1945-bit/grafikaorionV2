@@ -294,7 +294,7 @@ class AlurParalelTest extends TestCase
     public function test_pengeluaran_kas_kecil_bersamaan_tidak_membuat_saldo_minus(): void
     {
         \App\Services\AccountingService::postKasKecilMasuk('KK-SALDO', '3000', 100000);
-        $kat = DB::table('kategori_kas_kecil')->where('jenis', 'Keluar')->whereNotNull('kode_akun')->value('id_kategori_kas_kecil')
+        $kat = DB::table('kategori_kas_kecil')->where('jenis', 'Keluar')->whereNotNull('kode_akun')->where('dibayar_pemilik', false)->value('id_kategori_kas_kecil')
             ?? DB::table('kategori_kas_kecil')->insertGetId(['nama_kategori' => 'Uji Beban', 'jenis' => 'Keluar', 'kode_akun' => '5100']);
 
         // Tiga pengeluaran Rp 60.000 bersamaan dari saldo Rp 100.000: hanya satu yang boleh lolos.
@@ -304,5 +304,53 @@ class AlurParalelTest extends TestCase
 
         $this->assertSame(1, DB::table('kas_kecil')->where('jenis', 'Keluar')->count());
         $this->assertEquals(40000, (float) DB::table('jurnal_umum')->where('kode_akun', '1005')->sum(DB::raw('debet - kredit')));
+    }
+
+    /** Kedatangan Draft dengan 40 m2 Flexi, gudang & supplier siap. */
+    private function kedatanganDraft(string $sj): array
+    {
+        $mesin = DB::table('mesin')->insertGetId(['nama_mesin' => 'Mesin', 'tipe_mesin' => 'Digital']);
+        $kat = DB::table('kategori')->insertGetId(['nama_kategori' => 'Kategori']);
+        $bahan = DB::table('bahan_baku')->insertGetId([
+            'kode_bahan' => 'BHN-KD', 'nama_bahan' => 'Flexi', 'stok' => 0, 'harga_rata_rata' => 0, 'nilai_konversi' => 1,
+            'id_mesin' => $mesin, 'id_kategori' => $kat, 'satuan_stok' => 'm2', 'status' => 'aktif', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $sup = DB::table('supplier')->insertGetId(['nama_supplier' => 'PT A', 'alamat' => '-', 'kontak' => '0']);
+        $gudang = DB::table('gudang')->insertGetId(['nama_gudang' => 'Utama']);
+        $ked = DB::table('kedatangan_bahan')->insertGetId(['no_surat_jalan' => $sj, 'id_supplier' => $sup, 'id_gudang' => $gudang, 'tgl_datang' => now()->toDateString(),
+            'status' => 'Draft', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('kedatangan_bahan_detail')->insert(['id_kedatangan' => $ked, 'id_bahan' => $bahan, 'qty' => 40, 'satuan' => 'm2', 'status' => 'OK']);
+
+        return [$ked, $bahan];
+    }
+
+    public function test_validasi_kedatangan_yang_sama_enam_kali_bersamaan_stok_bertambah_sekali(): void
+    {
+        [$ked, $bahan] = $this->kedatanganDraft('SJ-PAR-V');
+
+        $this->tembak(array_fill(0, 6, ['uri' => "/kedatangan-bahan/validate/{$ked}", 'metode' => 'PATCH', 'data' => []]));
+
+        $this->assertSame('Selesai', DB::table('kedatangan_bahan')->where('id_kedatangan', $ked)->value('status'));
+        $this->assertEquals(40, (float) DB::table('bahan_baku')->where('id_bahan', $bahan)->value('stok'), 'stok bertambah lebih dari sekali');
+        $this->assertSame(1, DB::table('kartu_stok')->where('id_bahan', $bahan)->where('tipe', 'IN')->count());
+    }
+
+    public function test_faktur_untuk_kedatangan_yang_sama_enam_kali_bersamaan_hanya_satu_hutang(): void
+    {
+        [$ked, $bahan] = $this->kedatanganDraft('SJ-PAR-F');
+        DB::table('kedatangan_bahan')->where('id_kedatangan', $ked)->update(['status' => 'Selesai']);
+
+        $permintaan = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $permintaan[] = ['uri' => '/pembelian-bahan', 'data' => [
+                'id_kedatangan' => $ked, 'no_faktur' => 'F-PAR-' . $i, 'tgl_transaksi' => now()->toDateString(), 'tipe_pembelian' => 'Tempo',
+                'id_bahan' => [$bahan], 'qty' => [40], 'harga' => ['10000'], 'diskon' => ['0'], 'potongan' => ['0'],
+            ]];
+        }
+        $this->tembak($permintaan);
+
+        $this->assertSame(1, DB::table('pembelian_bahan')->where('id_kedatangan', $ked)->whereNull('deleted_at')->count(), 'kedatangan yang sama difakturkan lebih dari sekali');
+        $this->assertEquals(400000, -(float) DB::table('jurnal_umum')->where('kode_akun', '2000')->sum(DB::raw('debet - kredit')), 'hutang tercatat ganda');
+        $this->assertEquals((float) DB::table('jurnal_umum')->sum('debet'), (float) DB::table('jurnal_umum')->sum('kredit'));
     }
 }
