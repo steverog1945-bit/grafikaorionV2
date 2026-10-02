@@ -358,6 +358,14 @@ class KasirController extends Controller
 
             $grandTotalFinal = $totalNotaBaru - $diskon;
 
+            // Diskon/potongan/biaya item tidak boleh menurunkan total di bawah uang yang sudah diterima: piutang nota
+            // menjadi minus dan kelebihannya menggantung tanpa kembalian maupun deposit.
+            $sudahDiterima = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id_transaksi)->sum('nominal');
+            if ($grandTotalFinal < $sudahDiterima - 0.01) {
+                throw new \Exception('Total nota baru (Rp ' . number_format($grandTotalFinal, 0, ',', '.') . ') lebih kecil dari uang yang sudah diterima (Rp '
+                    . number_format($sudahDiterima, 0, ',', '.') . '). Kurangi diskon/potongan, atau batalkan pembayarannya dulu lewat void.');
+            }
+
             // P0-2: nota yang sudah Dibatalkan TIDAK boleh menerima pembayaran
             // baru (form bisa saja dibuka sebelum nota dibatalkan, disubmit
             // sesudahnya). Submit tanpa uang (koreksi harga/status) tetap

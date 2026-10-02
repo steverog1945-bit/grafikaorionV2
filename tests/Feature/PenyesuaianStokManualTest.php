@@ -177,4 +177,23 @@ class PenyesuaianStokManualTest extends TestCase
         $this->actingAs($admin)->post('/kartu-stok/adjustment', ['id_bahan' => $idBahan, 'tipe' => 'OUT', 'qty' => 'abc', 'keterangan' => 'x'])->assertSessionHasErrors('qty');
         $this->assertEquals(100, DB::table('bahan_baku')->where('id_bahan', $idBahan)->value('stok'));
     }
+
+    public function test_administrator_dengan_administrator_lain_pengajuannya_menunggu_bukan_ditolak(): void
+    {
+        $role = Role::factory()->create(['nama_role' => 'Administrator']);
+        $adminA = User::factory()->create(['id_role' => $role->id_role]);
+        $adminB = User::factory()->create(['id_role' => $role->id_role]);
+        $idBahan = $this->buatBahan(100);
+
+        $this->actingAs($adminA)->post('/kartu-stok/adjustment', ['id_bahan' => $idBahan, 'tipe' => 'OUT', 'qty' => 5, 'keterangan' => 'Rusak'])
+            ->assertSessionHas('success');
+
+        // Ada Administrator lain: pengajuan menunggu dia (pemisahan tugas), tidak langsung ditolak.
+        $req = ApprovalRequest::where('tipe_aksi', 'penyesuaian_stok_manual')->firstOrFail();
+        $this->assertSame('Menunggu', $req->status);
+        $this->assertEquals(100, (float) DB::table('bahan_baku')->where('id_bahan', $idBahan)->value('stok'));
+
+        $this->actingAs($adminB)->patch("/approval/{$req->id}/approve", ['catatan' => 'OK'])->assertSessionHas('success');
+        $this->assertEquals(95, (float) DB::table('bahan_baku')->where('id_bahan', $idBahan)->value('stok'));
+    }
 }

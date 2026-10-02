@@ -205,6 +205,14 @@ class KartuStokController extends Controller
         // Administrator = satu-satunya penyetuju, jadi pengajuannya langsung disetujui & dijalankan (tetap tercatat di
         // Approval Workflow + Kartu Stok sebagai jejak audit). Role lain tetap menunggu persetujuan Administrator.
         if (optional(Auth::user()->role)->nama_role === 'Administrator') {
+            // Pemisahan tugas: bila ada Administrator lain, pengajuan menunggu persetujuannya (ApprovalService menolak
+            // menyetujui pengajuan sendiri). Dulu jalur ini memanggil tolak sehingga penyesuaian admin selalu gagal.
+            $adaAdminLain = DB::table('users')->join('roles', 'roles.id_role', '=', 'users.id_role')
+                ->where('roles.nama_role', 'Administrator')->where('users.id_user', '!=', Auth::id())->exists();
+            if ($adaAdminLain) {
+                return back()->with('success', 'Penyesuaian stok diajukan. Karena ada Administrator lain, stok berubah setelah dia menyetujuinya di menu Approval.');
+            }
+
             try {
                 ApprovalService::setujui($pengajuan, fn (array $payload) => \App\Services\PenyesuaianStokService::eksekusi($payload), 'Disetujui otomatis (diajukan oleh Administrator)');
             } catch (\Throwable $e) {

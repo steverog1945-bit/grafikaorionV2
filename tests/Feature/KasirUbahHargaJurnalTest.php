@@ -110,4 +110,15 @@ class KasirUbahHargaJurnalTest extends TestCase
         $this->assertSame('Lunas', $t->status_pembayaran);
         $this->assertEquals(0, $this->saldo('1100'), 'pelanggan yang sudah membayar sesuai kesepakatan masih tercatat berutang');
     }
+
+    public function test_diskon_tidak_boleh_membuat_total_di_bawah_uang_yang_sudah_dibayar(): void
+    {
+        $this->bayar('40.000', '0', 'u-1')->assertSessionHas('success');
+
+        // Total 65.000 - diskon 30.000 = 35.000, padahal sudah dibayar 40.000.
+        $this->bayar('0', '30.000', 'u-2')->assertSessionHas('error');
+
+        $this->assertEquals(65000, (float) DB::table('transaksi')->where('id_transaksi', $this->nota->id_transaksi)->value('total_bayar'));
+        $this->assertGreaterThanOrEqual(0, $this->saldo('1100'), 'piutang nota menjadi minus');
+    }
 }

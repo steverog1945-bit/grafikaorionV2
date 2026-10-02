@@ -137,4 +137,15 @@ class UpdateKedatanganTest extends TestCase
 
         $this->assertSame($sebelum, $this->potret(), 'isian tidak sah tetap mengubah stok/detail');
     }
+
+    public function test_edit_boleh_lagi_setelah_fakturnya_dibatalkan(): void
+    {
+        $id = $this->kedatanganDivalidasi('SJ-B', 100);
+        \App\Models\PembelianBahan::create(['id_kedatangan' => $id, 'no_faktur' => 'FAK-B', 'tgl_transaksi' => now()->toDateString(), 'tipe_pembelian' => 'Tempo',
+            'status_pembayaran' => 'Hutang', 'grand_total' => 100000, 'jatuh_tempo_tgl' => now()->addDays(10)->toDateString()])->delete();
+
+        // Faktur sudah dibatalkan (jurnalnya dibalik): qty kedatangan yang salah sekarang bisa dikoreksi.
+        $this->edit($id, 'SJ-B', 90)->assertSessionMissing('error');
+        $this->assertEquals(90, $this->stok());
+    }
 }

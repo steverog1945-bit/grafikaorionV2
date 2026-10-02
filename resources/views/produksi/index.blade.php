@@ -215,7 +215,7 @@
                     <input id="swal-alasan-batal" class="swal2-input" placeholder="Alasan pembatalan (opsional)">
                     <label class="flex items-start gap-2 text-sm text-slate-600 mt-3 px-1 cursor-pointer">
                         <input type="checkbox" id="swal-kembalikan-stok" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                        <span>Kembalikan bahan baku yang sudah dipotong ke stok<br><small class="text-slate-400">Centang HANYA kalau materialnya belum benar-benar dipakai/rusak - berlaku untuk tindakan apapun di atas.</small></span>
+                        <span>Kembalikan bahan baku yang sudah dipotong ke stok<br><small class="text-slate-400">Hanya untuk Batal permanen, dan HANYA kalau materialnya belum dipakai/rusak.</small></span>
                     </label>
                 </div>
             `,

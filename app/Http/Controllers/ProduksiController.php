@@ -212,6 +212,12 @@ class ProduksiController extends Controller
         // memang belum dipakai). Rumusnya lihat StokReversalService - PERSIS
         // sama dengan rumus potong stok saat order dibuat.
         $kembalikanStok = $request->boolean('kembalikan_stok');
+        // Bahan hanya boleh kembali ke stok bila item benar-benar berhenti (Batal). Item yang diantrekan ulang/ditunda
+        // akan dicetak lagi, dan cetak ulang TIDAK memotong stok: bila bahannya dikembalikan sekarang, pemakaian
+        // cetak ulang itu tidak pernah tercatat (stok sistem lebih besar dari fisik, HPP hilang).
+        if ($kembalikanStok && $statusBaru !== 'Batal') {
+            return back()->with('error', 'Pengembalian bahan ke stok hanya untuk "Batal permanen". Item yang dikembalikan ke antrean atau ditunda akan dicetak lagi memakai bahan yang sama, jadi bahannya tetap tercatat terpakai.');
+        }
         $ringkasanStok = [];
         $pesanError = null;
 

@@ -979,6 +979,17 @@ public function eksekusiPembatalanNota(int $id, array $payload): array
     }
 
     $items = DB::table('transaksi_detail')->where('id_transaksi', $id)->get();
+
+    // Keadaan bisa berubah selama pengajuan menunggu: item produk selesai diproduksi atau barang sudah diambil.
+    // Pemeriksaan saat pengajuan diulang di sini (setelah nota dikunci); bila tidak lolos, pengajuan tetap Menunggu
+    // untuk ditolak, bukan membatalkan nota yang barangnya sudah di tangan pelanggan.
+    if (self::adaItemProduksi($items) && $transaksi->status_collecting === 'Sudah Diambil') {
+        throw new \RuntimeException("Nota {$transaksi->nomor_nota} tidak bisa dibatalkan: barangnya sudah diambil pelanggan sejak pengajuan dibuat. Tolak pengajuan ini; gunakan retur manual bila perlu.");
+    }
+    if ($selesai = self::itemProduksiSelesai($items)) {
+        throw new \RuntimeException("Nota {$transaksi->nomor_nota} tidak bisa dibatalkan: item \"{$selesai->nama_file}\" sudah selesai diproduksi sejak pengajuan dibuat. Tolak pengajuan ini.");
+    }
+
     $kembalikanStok = (bool) ($payload['kembalikan_stok'] ?? false);
     $hppTerpakai = self::hppItemBatalTanpaKembali($items);
     $ringkasanStok = [];

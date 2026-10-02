@@ -140,7 +140,9 @@ public function kedatanganDetail(Request $request)
 
         $request->validate([
             'id_kedatangan'=>'required',
-            'no_faktur'=>'required|max:255',
+            // Unik termasuk faktur yang sudah dibatalkan (soft delete): pembalikan jurnal faktur memakai nomor ini,
+            // jadi nomor kembar ikut membalik jurnal faktur lain. Dulu hanya tertahan indeks unik sebagai galat sistem.
+            'no_faktur'=>'required|max:255|unique:pembelian_bahan,no_faktur',
             'tgl_transaksi'=>'required',
             'tipe_pembelian'=>'required|in:Cash,Tempo',
             'id_bahan'=>'required|array|min:1',
@@ -151,6 +153,8 @@ public function kedatanganDetail(Request $request)
             'ongkir'=>'nullable|numeric|min:0',
             'biaya_layanan'=>'nullable|numeric|min:0',
             'voucher'=>'nullable|numeric|min:0',
+        ], [
+            'no_faktur.unique' => 'Nomor faktur ini sudah pernah dipakai (termasuk faktur yang sudah dibatalkan). Pakai nomor lain, misalnya dengan akhiran -2.',
         ]);
 
         DB::beginTransaction();

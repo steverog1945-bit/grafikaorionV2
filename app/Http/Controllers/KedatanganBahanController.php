@@ -234,7 +234,8 @@ public function bulkDelete(Request $request)
             $kedatangan->load('detail');
 
             // Faktur, hutang, dan persediaan mengacu ke qty kedatangan ini: mengubahnya diam-diam membuat ketiganya tidak cocok.
-            $faktur = PembelianBahan::withTrashed()->where('id_kedatangan', $kedatangan->id_kedatangan)->first();
+            // Faktur yang sudah dibatalkan (jurnalnya dibalik) tidak lagi mengacu ke qty ini, jadi tidak menahan koreksi.
+            $faktur = PembelianBahan::where('id_kedatangan', $kedatangan->id_kedatangan)->first();
             if ($faktur) {
                 throw new \RuntimeException("Kedatangan {$kedatangan->no_surat_jalan} sudah difakturkan ({$faktur->no_faktur}), jadi tidak bisa diubah. Bila qty-nya salah, batalkan fakturnya dulu lewat Pembelian Bahan (perlu persetujuan).");
             }

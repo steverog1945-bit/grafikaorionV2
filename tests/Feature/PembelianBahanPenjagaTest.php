@@ -90,4 +90,17 @@ class PembelianBahanPenjagaTest extends TestCase
     {
         $this->faktur(999999, 'F-N')->assertSessionHas('error', 'Kedatangan bahan tidak ditemukan.');
     }
+
+    public function test_nomor_faktur_kembar_ditolak_dengan_pesan_termasuk_faktur_yang_sudah_dibatalkan(): void
+    {
+        $this->faktur($this->kedatangan(), 'FAK-SAMA')->assertSessionHas('success');
+
+        // Nomor yang sama untuk kedatangan lain: ditolak dengan pesan di kolom nomor faktur, bukan galat sistem.
+        $this->faktur($this->kedatangan(), 'FAK-SAMA')->assertSessionHasErrors('no_faktur');
+
+        // Faktur yang sudah dibatalkan (soft delete) tetap memegang nomornya: pembalikan jurnal memakai nomor itu.
+        DB::table('pembelian_bahan')->where('no_faktur', 'FAK-SAMA')->update(['deleted_at' => now()]);
+        $this->faktur($this->kedatangan(), 'FAK-SAMA')->assertSessionHasErrors('no_faktur');
+        $this->assertSame(1, DB::table('pembelian_bahan')->where('no_faktur', 'FAK-SAMA')->count());
+    }
 }

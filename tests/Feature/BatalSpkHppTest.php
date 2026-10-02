@@ -111,4 +111,36 @@ class BatalSpkHppTest extends TestCase
         $this->assertEquals(96000, $this->saldo('1200'), 'nilai persediaan lebih besar dari stok fisik');
         $this->assertEquals((float) DB::table('jurnal_umum')->sum('debet'), (float) DB::table('jurnal_umum')->sum('kredit'));
     }
+
+    public function test_persetujuan_batal_nota_ditolak_bila_barang_sudah_jadi_atau_diambil_sejak_diajukan(): void
+    {
+        // Diajukan saat item masih antre.
+        $this->patch("/penjualan/{$this->idTransaksi}/batalkan-nota", ['alasan' => 'batal', 'kembalikan_stok' => 1])->assertSessionHas('success');
+        $req = ApprovalRequest::where('tipe_aksi', 'batalkan_nota')->firstOrFail();
+
+        // Sambil menunggu persetujuan, produksi menyelesaikan item dan barang diambil pelanggan.
+        DB::table('transaksi_detail')->where('id_detail', $this->idDetail)->update(['status_spk' => 'Selesai']);
+        DB::table('transaksi')->where('id_transaksi', $this->idTransaksi)->update(['status_collecting' => 'Sudah Diambil']);
+
+        $this->patch("/approval/{$req->id}/approve", ['catatan' => 'ok'])->assertSessionHas('error');
+
+        $this->assertSame('Aktif', DB::table('transaksi')->where('id_transaksi', $this->idTransaksi)->value('status_nota'), 'nota yang barangnya sudah diserahkan ikut batal');
+        $this->assertSame('Selesai', DB::table('transaksi_detail')->where('id_detail', $this->idDetail)->value('status_spk'));
+        $this->assertEquals(96, (float) DB::table('bahan_baku')->where('id_bahan', $this->bahan)->value('stok'), 'stok bahan yang sudah jadi barang dikembalikan');
+        $this->assertSame('Menunggu', $req->fresh()->status, 'pengajuan seharusnya tetap menunggu untuk ditolak');
+    }
+
+    public function test_kembalikan_stok_hanya_untuk_batal_permanen_bukan_antre_ulang(): void
+    {
+        // Diantrekan ulang = akan dicetak lagi tanpa potong stok: bahannya tidak boleh dikembalikan.
+        $this->patch("/produksi/{$this->idDetail}/cancel", ['tindakan' => 'antre', 'kembalikan_stok' => 1, 'alasan_batal' => 'cetak ulang'])->assertSessionHas('error');
+
+        $this->assertEquals(96, (float) DB::table('bahan_baku')->where('id_bahan', $this->bahan)->value('stok'));
+        $this->assertSame('Antre', DB::table('transaksi_detail')->where('id_detail', $this->idDetail)->value('status_spk'));
+        $this->assertSame(1, DB::table('transaksi_detail_bahan_pakai')->where('id_detail', $this->idDetail)->count(), 'catatan pemakaian bahan hilang');
+
+        // Diantrekan ulang tanpa pengembalian stok tetap boleh.
+        $this->patch("/produksi/{$this->idDetail}/cancel", ['tindakan' => 'pending', 'alasan_batal' => 'tunggu konfirmasi'])->assertSessionMissing('error');
+        $this->assertSame('Pending', DB::table('transaksi_detail')->where('id_detail', $this->idDetail)->value('status_spk'));
+    }
 }
