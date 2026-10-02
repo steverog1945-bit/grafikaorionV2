@@ -306,6 +306,10 @@ class JasaJahitController extends Controller
         ], ['id_penjahit.required' => 'Pilih penjahitnya dulu.', 'id_penjahit.exists' => 'Penjahit tidak ditemukan atau sudah nonaktif.']);
 
         $jenis = DB::table('jasa_jahit')->where('id_jasa_jahit', $request->id_jasa_jahit)->first();
+        // Upah jahit jersey dicatat dari order jerseynya: di sana dibatasi sisa baju per tarif, jadi tidak bisa terbayar dua kali.
+        if (!empty($jenis->untuk_jersey)) {
+            return redirect()->back()->withInput()->with('error', "Jenis \"{$jenis->nama_jahit}\" adalah upah jahit jersey. Catat dari halaman order jerseynya supaya jumlahnya tidak melebihi baju yang dipesan.");
+        }
 
         // Harga katalog dipakai kecuali kasir mengisi harga yang benar-benar disepakati kali ini.
         $harga = $request->filled('harga') ? (float) $request->harga : (float) $jenis->harga_borongan;
@@ -442,7 +446,11 @@ class JasaJahitController extends Controller
         }
         $nama = $catat->nama_jahit;
 
-        DB::table('jasa_jahit_catat')->where('id_jasa_jahit_catat', $id)->delete();
+        // Hanya baris yang masih belum dibayar: pembayaran yang masuk di sela pengecekan tidak ikut terhapus.
+        $terhapus = DB::table('jasa_jahit_catat')->where('id_jasa_jahit_catat', $id)->whereNull('id_kas_kecil')->delete();
+        if ($terhapus === 0) {
+            return redirect()->back()->with('error', 'Catatan ini baru saja dibayar, jadi tidak dihapus. Muat ulang halaman.');
+        }
 
         return redirect()->back()->with('success', "Catatan jahit \"{$nama}\" dihapus.");
     }

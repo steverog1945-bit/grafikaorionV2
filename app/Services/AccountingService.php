@@ -407,12 +407,13 @@ class AccountingService
     }
 
     /** Pembayaran Order Jersey: Tunai -> Kas, metode lain (Transfer/QRIS/Lainnya) -> Bank. */
-    public static function postPembayaranJersey(string $noReferensi, string $noOrder, float $nominal, string $metode): void
+    public static function postPembayaranJersey(string $noReferensi, string $noOrder, float $nominal, string $metode, ?string $tanggal = null): void
     {
         // Pelunasan jersey tunai diterima di luar laci -> masuk Kas Kecil (1005), bukan Kas laci.
         $akunMasuk = $metode === 'Tunai' ? self::AKUN_KAS_KECIL : self::AKUN_BANK;
 
-        self::postJournal(now()->toDateString(), $noReferensi, "Pembayaran order jersey {$noOrder} ({$metode})", [
+        // Tanggal jurnal = tanggal bayar (sama dengan baris buku Kas Kecil), bukan tanggal input.
+        self::postJournal($tanggal ?: now()->toDateString(), $noReferensi, "Pembayaran order jersey {$noOrder} ({$metode})", [
             ['kode_akun' => $akunMasuk, 'debet' => $nominal],
             ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'kredit' => $nominal],
         ]);

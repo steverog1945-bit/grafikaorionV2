@@ -87,6 +87,15 @@ class JerseyOrder extends Model
 
             $subtotalLines = (float) $this->lines()->sum('subtotal');
             $total = max(0, $subtotalLines - (float) $this->discount + (float) $this->additional_charge);
+
+            // Diskon, kurangi barang, atau hapus barang tidak boleh membuat total di bawah uang yang sudah diterima:
+            // piutang jadi minus, kelebihan bayar tidak terlihat (status tetap Lunas), dan tidak ada jalur pengembalian.
+            $sudahDibayar = (float) $this->payments()->sum('jumlah');
+            if ($total < $sudahDibayar - 0.01) {
+                throw new \RuntimeException('Total order baru (Rp ' . number_format($total, 0, ',', '.') . ') lebih kecil dari pembayaran yang sudah diterima (Rp '
+                    . number_format($sudahDibayar, 0, ',', '.') . '). Batalkan dulu pembayaran yang berlebih lewat void pembayaran (perlu persetujuan), lalu ubah ordernya.');
+            }
+
             $this->update(['total' => $total]);
             \App\Services\JerseyAccountingService::sinkronPendapatan($this);
             $this->recalculatePembayaran();

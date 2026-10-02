@@ -39,6 +39,12 @@ class JerseyStokService
 
         $peringatan = [];
         $totalBiaya = 0.0;
+        // Kain yang belum dihubungkan ke bahan baku tidak terpotong dan tidak ber-HPP; dulu dilewati tanpa kabar.
+        $tanpaBahan = DB::table('jersey_order_lines as l')->join('jersey_materials as m', 'm.id', '=', 'l.jersey_material_id')
+            ->where('l.jersey_order_id', $order->id)->whereNull('m.id_bahan')->distinct()->pluck('m.name');
+        if ($tanpaBahan->isNotEmpty()) {
+            $peringatan[] = 'Kain ' . $tanpaBahan->implode(', ') . ' belum dihubungkan ke bahan baku (Master Jersey), jadi stoknya tidak terpotong dan HPP-nya tidak tercatat.';
+        }
         foreach (self::kebutuhan($order->id) as $idBahan => $kg) {
             $bahan = DB::table('bahan_baku')->where('id_bahan', $idBahan)->lockForUpdate()->first();
             if (!$bahan) {
@@ -55,6 +61,9 @@ class JerseyStokService
             $biaya = round($kg * (float) $bahan->harga_rata_rata, 2);
             DB::table('jersey_order_potong_stok')->insert(['jersey_order_id' => $order->id, 'id_bahan' => $idBahan, 'qty' => $kg, 'biaya' => $biaya, 'created_at' => now(), 'updated_at' => now()]);
             $totalBiaya += $biaya;
+            if ($biaya <= 0) {
+                $peringatan[] = "Bahan {$bahan->nama_bahan} belum punya harga rata-rata, jadi HPP kainnya tercatat Rp 0. Isi harga lewat faktur pembelian.";
+            }
             if ($sesudah < 0) {
                 $peringatan[] = "Stok {$bahan->nama_bahan} menjadi minus (" . angka($sesudah, 2) . " {$bahan->satuan_stok}) - segera restock.";
             }

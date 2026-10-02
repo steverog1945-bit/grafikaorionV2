@@ -140,13 +140,32 @@ class JerseyOrderController extends Controller
      * rules dieksekusi ulang untuk setiap baris pemain (N panggilan), tidak
      * boleh berubah jadi N query.
      */
+    /**
+     * Ukuran yang boleh dipakai: yang aktif di master, ditambah (saat mengelola order yang SUDAH ada) ukuran yang
+     * sudah dipakai order itu walau kini dinonaktifkan. Tanpa ini order berjalan tertahan setelah master ukuran
+     * dinonaktifkan: Kelola Barang dan barang susulan selalu ditolak.
+     */
+    private function ukuranDiizinkanQuery()
+    {
+        $idOrder = request()->attributes->get('jersey.order_id');
+
+        return JerseySize::query()->where(function ($q) use ($idOrder) {
+            $q->where('is_active', true);
+            if ($idOrder) {
+                $baris = DB::table('jersey_order_lines')->where('jersey_order_id', $idOrder)->pluck('id');
+                $q->orWhereIn('id', DB::table('jersey_order_size_quantities')->whereIn('jersey_order_line_id', $baris)->pluck('jersey_size_id')->filter())
+                    ->orWhereIn('name', DB::table('jersey_order_items')->whereIn('jersey_order_line_id', $baris)->pluck('size')->filter());
+            }
+        });
+    }
+
     private function ukuranMasterAktif(): \Illuminate\Support\Collection
     {
         // Cache di atribut REQUEST (bukan `static`): `static` hidup selama proses PHP, jadi pada server
         // berumur panjang (Octane/worker) daftar ukuran akan basi setelah Master Ukuran diubah.
         $req = request();
         if (!$req->attributes->has('jersey.ukuran_aktif')) {
-            $req->attributes->set('jersey.ukuran_aktif', JerseySize::where('is_active', true)->pluck('name'));
+            $req->attributes->set('jersey.ukuran_aktif', $this->ukuranDiizinkanQuery()->pluck('name'));
         }
 
         return $req->attributes->get('jersey.ukuran_aktif');
@@ -161,7 +180,7 @@ class JerseyOrderController extends Controller
     {
         $req = request();
         if (!$req->attributes->has('jersey.ukuran_id')) {
-            $req->attributes->set('jersey.ukuran_id', JerseySize::where('is_active', true)->pluck('id', 'name'));
+            $req->attributes->set('jersey.ukuran_id', $this->ukuranDiizinkanQuery()->pluck('id', 'name'));
         }
 
         return $req->attributes->get('jersey.ukuran_id');
@@ -181,7 +200,7 @@ class JerseyOrderController extends Controller
             return;
         }
 
-        $sah = JerseySize::whereIn('id', $ids)->where('is_active', true)->pluck('id');
+        $sah = $this->ukuranDiizinkanQuery()->whereIn('id', $ids)->pluck('id');
         $tidakSah = $ids->diff($sah);
         if ($tidakSah->isNotEmpty()) {
             throw \Illuminate\Validation\ValidationException::withMessages([
@@ -733,7 +752,13 @@ class JerseyOrderController extends Controller
         // pembayaran belum ikut disesuaikan - order jadi tidak konsisten.
         $peringatan = [];
         $statusLama = $order->status;
-        DB::transaction(function () use ($order, $data, &$peringatan, $statusLama) {
+        try {
+        DB::transaction(function () use ($request, $order, $data, &$peringatan, $statusLama) {
+            // Kunci baris order lalu cek versi lagi: dua simpan bersamaan antre, yang kedua tahu datanya sudah berubah.
+            $terkunci = JerseyOrder::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            if (\App\Support\VersiBaris::bentrok($request, $terkunci)) {
+                throw new \RuntimeException(\App\Support\VersiBaris::pesan($terkunci));
+            }
             $order->update($data);
             $order->recalculateTotal();
             // Hanya saat STATUS berubah: proses/selesai/diambil = kain dipotong dari stok; kembali ke "baru" = stok dikembalikan.
@@ -742,6 +767,9 @@ class JerseyOrderController extends Controller
                 $peringatan = \App\Services\JerseyStokService::selaraskan($order);
             }
         });
+        } catch (\RuntimeException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
 
         return back()->with('success', 'Order jersey berhasil diperbarui.' . ($peringatan ? ' ' . implode(' ', $peringatan) : ''));
     }
@@ -772,6 +800,7 @@ class JerseyOrderController extends Controller
      */
     public function updateLines(Request $request, JerseyOrder $order)
     {
+        $request->attributes->set('jersey.order_id', $order->id);
         if (\App\Support\VersiBaris::bentrok($request, $order->fresh())) {
             return back()->withInput()->with('error', \App\Support\VersiBaris::pesan($order->fresh()));
         }
@@ -835,6 +864,11 @@ class JerseyOrderController extends Controller
 
         DB::beginTransaction();
         try {
+            // Kunci baris order SEBELUM hapus-lalu-buat-ulang: dua simpan bersamaan tidak lagi menghasilkan barang ganda.
+            $terkunci = JerseyOrder::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            if (\App\Support\VersiBaris::bentrok($request, $terkunci)) {
+                throw new \RuntimeException(\App\Support\VersiBaris::pesan($terkunci));
+            }
             $order->lines()->delete();
 
             $adaLineValid = false;
@@ -874,6 +908,7 @@ class JerseyOrderController extends Controller
      */
     public function storeLineSusulan(Request $request, JerseyOrder $order)
     {
+        $request->attributes->set('jersey.order_id', $order->id);
         $data = $request->validate([
             'lines' => 'required|array|min:1',
             'lines.*.nama_barang' => 'required|string|max:255',
@@ -933,6 +968,7 @@ class JerseyOrderController extends Controller
 
         DB::beginTransaction();
         try {
+            JerseyOrder::whereKey($order->id)->lockForUpdate()->firstOrFail();
             $adaLineValid = false;
             foreach ($data['lines'] as $lineData) {
                 if ($this->simpanBarisOrder($order, $lineData, susulan: true)) {
@@ -964,7 +1000,25 @@ class JerseyOrderController extends Controller
         // pembayaran) tidak boleh dihapus langsung - jurnalnya harus dibalik,
         // jadi diajukan lewat Approval Workflow. Order yang belum bernilai
         // (total_terjurnal 0, tanpa pembayaran) masih boleh dihapus langsung.
-        if ((float) $order->total_terjurnal > 0 || $order->payments()->exists()) {
+        // Pemeriksaan dan penghapusan di dalam satu transaksi berkunci: pembayaran yang masuk di sela-sela tidak ikut
+        // terhapus bersama ordernya.
+        try {
+            $perluApproval = DB::transaction(function () use ($order) {
+                $terkunci = JerseyOrder::whereKey($order->id)->lockForUpdate()->firstOrFail();
+                if ((float) $terkunci->total_terjurnal > 0 || $terkunci->payments()->exists()) {
+                    return true;
+                }
+                \App\Services\JerseyAccountingService::pastikanTanpaUpahJahitTertunda($terkunci);
+                \App\Services\JerseyStokService::kembalikan($terkunci);
+                $terkunci->delete();
+
+                return false;
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        if ($perluApproval) {
             $alasan = $request->input('alasan') ?: 'Pembatalan order jersey';
 
             $sudahAda = \App\Models\ApprovalRequest::where('tipe_aksi', 'batalkan_order_jersey')
@@ -986,10 +1040,6 @@ class JerseyOrderController extends Controller
             return back()->with('success', 'Pengajuan pembatalan order dikirim untuk persetujuan Administrator.');
         }
 
-        DB::transaction(function () use ($order) {
-            \App\Services\JerseyStokService::kembalikan($order);
-            $order->delete();
-        });
         return redirect()->route('jersey.orders.index')->with('success', 'Order jersey berhasil dihapus.');
     }
 

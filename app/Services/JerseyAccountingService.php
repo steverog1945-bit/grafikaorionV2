@@ -36,11 +36,25 @@ class JerseyAccountingService
         });
     }
 
+    /**
+     * Order yang dihapus/dibatalkan meninggalkan catatan upah jahit tanpa order (FK nullOnDelete). Catatan yang BELUM
+     * dibayar akan tetap bisa dibayar dari Kas Kecil untuk order yang sudah tidak ada, jadi harus dihapus dulu.
+     * Upah yang sudah dibayar tetap biaya yang sah (pekerjaannya sudah terjadi) dan tidak menahan pembatalan.
+     */
+    public static function pastikanTanpaUpahJahitTertunda(JerseyOrder $order): void
+    {
+        $tertunda = DB::table('jasa_jahit_catat')->where('id_jersey_order', $order->id)->whereNull('id_kas_kecil')->count();
+        if ($tertunda > 0) {
+            throw new \RuntimeException("Order {$order->order_number} masih punya {$tertunda} catatan upah jahit yang belum dibayar. Hapus catatan itu di Jasa Jahit dulu, lalu batalkan ordernya.");
+        }
+    }
+
     public static function catatPembayaran(JerseyOrder $order, JerseyOrderPayment $payment): void
     {
         $ref = "{$order->order_number}/BYR-{$payment->id}";
 
-        AccountingService::postPembayaranJersey($ref, $order->order_number, (float) $payment->jumlah, $payment->metode_bayar);
+        $tanggal = $payment->tanggal_bayar ? \Illuminate\Support\Carbon::parse($payment->tanggal_bayar)->toDateString() : null;
+        AccountingService::postPembayaranJersey($ref, $order->order_number, (float) $payment->jumlah, $payment->metode_bayar, $tanggal);
 
         DB::table('jersey_order_payments')->where('id', $payment->id)->update(['no_referensi_jurnal' => $ref]);
 
@@ -91,6 +105,7 @@ class JerseyAccountingService
             if ($order->payments()->exists()) {
                 throw new \RuntimeException("Order {$order->order_number} masih punya pembayaran - void pembayarannya dulu.");
             }
+            self::pastikanTanpaUpahJahitTertunda($order);
 
             AccountingService::postPendapatanJersey($order->order_number, -1 * (float) $order->total_terjurnal);
             JerseyStokService::kembalikan($order); // stok kain kembali bila sudah dipotong

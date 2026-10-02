@@ -2134,9 +2134,8 @@
     // submit_id sekali saja, jadi klik ganda, coba ulang setelah jaringan putus, atau dua tab tidak menggandakan
     // transaksi. Form yang dikirim lewat skrip (defaultPrevented) tidak diberi id: skripnya bisa mengirim ulang
     // dengan sah tanpa memuat ulang halaman.
-    document.addEventListener('submit', function (e) {
-        const form = e.target;
-        if (e.defaultPrevented || !(form instanceof HTMLFormElement) || (form.getAttribute('method') || 'get').toLowerCase() === 'get') return;
+    function beriSubmitId(form) {
+        if (!(form instanceof HTMLFormElement) || (form.getAttribute('method') || 'get').toLowerCase() === 'get') return;
         let isian = form.querySelector('input[name="submit_id"]');
         if (!isian) {
             isian = document.createElement('input');
@@ -2145,7 +2144,18 @@
             form.appendChild(isian);
         }
         if (!isian.value) isian.value = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+    }
+    document.addEventListener('submit', function (e) {
+        if (!e.defaultPrevented) beriSubmitId(e.target);
     }, false);
+    // Banyak form memeriksa isian lebih dulu (preventDefault) lalu mengirim dengan form.submit(), yang TIDAK memicu
+    // event submit. Tanpa ini form seperti order dan Kelola Barang Jersey terkirim tanpa submit_id, sehingga klik
+    // ganda di sana tidak tertahan. Kiriman lewat form.submit() selalu meninggalkan halaman, jadi aman diberi id.
+    const kirimFormAsli = HTMLFormElement.prototype.submit;
+    HTMLFormElement.prototype.submit = function () {
+        beriSubmitId(this);
+        return kirimFormAsli.call(this);
+    };
     // Halaman yang dibuka lagi dari tombol kembali memakai id baru untuk kiriman berikutnya.
     window.addEventListener('pageshow', function (e) {
         if (e.persisted) document.querySelectorAll('form input[name="submit_id"]').forEach(function (i) { if (!i.closest('[data-submit-id-tetap]')) i.value = ''; });

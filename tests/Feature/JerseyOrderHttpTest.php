@@ -191,4 +191,61 @@ class JerseyOrderHttpTest extends TestCase
         $this->assertEquals($total, (float) $o->total);
         $this->assertSame('proses', $o->status);
     }
+
+    private function orderBernilai(int $tambahan): object
+    {
+        $this->actingAs($this->admin)->post('/jersey/store', $this->payload([$this->pemain(1, 'XL')]) + ['additional_charge' => $tambahan])->assertSessionHasNoErrors();
+
+        return DB::table('jersey_orders')->latest('id')->first();
+    }
+
+    public function test_total_order_tidak_boleh_turun_di_bawah_uang_yang_sudah_dibayar(): void
+    {
+        $o = $this->orderBernilai(100000);
+        $this->actingAs($this->admin)->post("/jersey/keuangan/{$o->id}/bayar", ['tanggal_bayar' => now()->toDateString(), 'jumlah' => (float) $o->total, 'metode_bayar' => 'Transfer']);
+
+        // Diskon setelah lunas: total akan di bawah pembayaran -> ditolak dengan pesan, total tidak berubah.
+        $this->actingAs($this->admin)->put("/jersey/{$o->id}", ['status' => 'baru', 'discount' => 50000, 'additional_charge' => 100000])->assertSessionHas('error');
+
+        $this->assertEquals((float) $o->total, (float) DB::table('jersey_orders')->where('id', $o->id)->value('total'));
+        $this->assertGreaterThanOrEqual(0, (float) DB::table('jurnal_umum')->where('kode_akun', '1100')->sum(DB::raw('debet - kredit')), 'piutang menjadi minus');
+    }
+
+    public function test_jurnal_pembayaran_bertanggal_sama_dengan_tanggal_bayar(): void
+    {
+        $o = $this->orderBernilai(100000);
+        $kemarin = now()->subDay()->toDateString();
+        $this->actingAs($this->admin)->post("/jersey/keuangan/{$o->id}/bayar", ['tanggal_bayar' => $kemarin, 'jumlah' => 50000, 'metode_bayar' => 'Transfer'])->assertSessionHasNoErrors();
+
+        $this->assertSame($kemarin, (string) DB::table('jurnal_umum')->where('kode_akun', '1010')->value('tgl_jurnal'));
+    }
+
+    public function test_order_dengan_upah_jahit_belum_dibayar_tidak_bisa_dihapus(): void
+    {
+        $o = $this->orderBernilai(0);
+        $pj = DB::table('penjahit')->insertGetId(['nama' => 'Bu Sri', 'aktif' => true, 'created_at' => now(), 'updated_at' => now()]);
+        $jenis = DB::table('jasa_jahit')->insertGetId(['nama_jahit' => 'Jahit Jersey', 'harga_borongan' => 5000, 'untuk_jersey' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('jasa_jahit_catat')->insert(['id_jasa_jahit' => $jenis, 'id_penjahit' => $pj, 'id_jersey_order' => $o->id, 'qty' => 1, 'harga_snapshot' => 5000, 'total' => 5000,
+            'tgl_catat' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'created_at' => now(), 'updated_at' => now()]);
+
+        $this->actingAs($this->admin)->delete("/jersey/{$o->id}")->assertSessionHas('error');
+        $this->assertTrue(DB::table('jersey_orders')->where('id', $o->id)->exists());
+
+        // Upah jahit jersey tidak bisa dicatat lewat form jahit biasa (melewati batas sisa baju per order).
+        $this->actingAs($this->admin)->post('/jasa-jahit/catat', ['id_penjahit' => $pj, 'id_jasa_jahit' => $jenis, 'qty' => 5, 'tgl_catat' => now()->toDateString()])
+            ->assertSessionHas('error');
+        $this->assertSame(1, DB::table('jasa_jahit_catat')->count());
+    }
+
+    public function test_ukuran_yang_dinonaktifkan_setelah_dipakai_order_tetap_bisa_dikelola(): void
+    {
+        $o = $this->orderBernilai(0);
+        DB::table('jersey_sizes')->where('name', 'XL')->update(['is_active' => false]);
+
+        $this->actingAs($this->admin)->put("/jersey/{$o->id}/lines", $this->payload([$this->pemain(1, 'XL'), $this->pemain(2, 'XL')]))->assertSessionHasNoErrors();
+        $this->assertSame(2, DB::table('jersey_order_items')->count());
+
+        // Order baru tetap tidak boleh memakai ukuran nonaktif.
+        $this->actingAs($this->admin)->post('/jersey/store', $this->payload([$this->pemain(1, 'XL')]))->assertSessionHasErrors('lines.0.items.0.size');
+    }
 }
