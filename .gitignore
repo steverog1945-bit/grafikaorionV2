@@ -37,3 +37,18 @@ ibdata*
 ib_logfile*
 /storage/app/private/*
 !/storage/app/private/.gitignore
+
+# Data bisnis mentah (harga beli, daftar harga) bahan impor sekali jalan: tetap di komputer, tidak ke GitHub.
+/docs/draft-input/
+# Arsip bisa berisi salinan database atau berkas pelanggan.
+*.zip
+*.7z
+*.rar
+# Alat lokal (paket skill pihak ketiga, skrip pribadi) bukan bagian aplikasi.
+/.agents/
+/.claude/skills/
+/anti-slop-main/
+/skills-main/
+/skills-lock.json
+/push-all.bat
+/pull-all.bat
