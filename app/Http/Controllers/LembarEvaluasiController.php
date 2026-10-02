@@ -48,30 +48,30 @@ class LembarEvaluasiController extends Controller
             fwrite($out, "\xEF\xBB\xBF"); // BOM UTF-8 supaya Excel membaca huruf dengan benar
 
             if ($jenis === 'bahan') {
-                fputcsv($out, ['Kode', 'Bahan', 'Mesin', 'Kategori', 'Satuan Stok', 'Stok', 'Stok Minimal', 'Harga Rata-rata', 'Nilai Persediaan'], ';');
+                fputcsv($out, \App\Support\CsvAman::baris(['Kode', 'Bahan', 'Mesin', 'Kategori', 'Satuan Stok', 'Stok', 'Stok Minimal', 'Harga Rata-rata', 'Nilai Persediaan']), ';');
                 foreach (Evaluasi::bahanBaku($idMesin, $idKategori, $status) as $b) {
-                    fputcsv($out, [$b->kode_bahan, $b->nama_bahan, $b->nama_mesin, $b->nama_kategori, $b->satuan_stok, (float) $b->stok, (float) $b->stok_minimal, (float) $b->harga_rata_rata, $b->nilai], ';');
+                    fputcsv($out, \App\Support\CsvAman::baris([$b->kode_bahan, $b->nama_bahan, $b->nama_mesin, $b->nama_kategori, $b->satuan_stok, (float) $b->stok, (float) $b->stok_minimal, (float) $b->harga_rata_rata, $b->nilai]), ';');
                 }
             } elseif ($jenis === 'bom') {
-                fputcsv($out, ['Produk', 'Mesin', 'Satuan Jual', 'Bahan', 'Rumus', 'Pemakaian per Satuan Jual', 'Biaya Bahan per Satuan Jual', 'HPP per Satuan Jual'], ';');
+                fputcsv($out, \App\Support\CsvAman::baris(['Produk', 'Mesin', 'Satuan Jual', 'Bahan', 'Rumus', 'Pemakaian per Satuan Jual', 'Biaya Bahan per Satuan Jual', 'HPP per Satuan Jual']), ';');
                 foreach (Evaluasi::bom($idMesin) as $p) {
                     foreach ($p->baris as $r) {
-                        fputcsv($out, [$p->nama_produk, $p->nama_mesin, $p->satuan_jual, $r->nama_bahan, $r->cara_hitung_pemakaian, round($r->pakai, 4), $r->biaya, $p->hpp], ';');
+                        fputcsv($out, \App\Support\CsvAman::baris([$p->nama_produk, $p->nama_mesin, $p->satuan_jual, $r->nama_bahan, $r->cara_hitung_pemakaian, round($r->pakai, 4), $r->biaya, $p->hpp]), ';');
                     }
                     if ($p->tanpa_bom) {
-                        fputcsv($out, [$p->nama_produk, $p->nama_mesin, $p->satuan_jual, '(belum ada BOM)', '', '', '', ''], ';');
+                        fputcsv($out, \App\Support\CsvAman::baris([$p->nama_produk, $p->nama_mesin, $p->satuan_jual, '(belum ada BOM)', '', '', '', '']), ';');
                     }
                 }
             } else {
                 $h = Evaluasi::harga($idMesin);
-                fputcsv($out, array_merge(['Produk', 'Mesin', 'Satuan Jual', 'HPP per Satuan Jual', 'Qty Dari', 'Qty Sampai'], $h['golongan']->pluck('nama_golongan')->all()), ';');
+                fputcsv($out, \App\Support\CsvAman::baris(array_merge(['Produk', 'Mesin', 'Satuan Jual', 'HPP per Satuan Jual', 'Qty Dari', 'Qty Sampai'], $h['golongan']->pluck('nama_golongan')->all())), ';');
                 foreach ($h['produk'] as $p) {
                     foreach ($p->tier as $t) {
                         $baris = [$p->nama_produk, $p->nama_mesin, $p->satuan_jual, $p->hpp, $t->min, $t->max ?? 'tak terbatas'];
                         foreach ($h['golongan'] as $g) {
                             $baris[] = $t->per_golongan[$g->id_golongan] ?? '';
                         }
-                        fputcsv($out, $baris, ';');
+                        fputcsv($out, \App\Support\CsvAman::baris($baris), ';');
                     }
                 }
             }

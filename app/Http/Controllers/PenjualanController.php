@@ -709,7 +709,7 @@ class PenjualanController extends Controller
 
         return response()->json([
             'status' => 'error',
-            'msg' => $e->getMessage()
+            'msg' => \App\Support\PesanError::untuk($e)
         ], 500);
     }
 }

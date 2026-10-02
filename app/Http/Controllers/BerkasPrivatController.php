@@ -13,12 +13,44 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class BerkasPrivatController extends Controller
 {
-    public const FOLDER = ['order_thumbnails', 'jersey_thumbnails', 'jersey_bukti_bayar', 'kas_kecil_bukti', 'bukti_serah_terima', 'berkas_order'];
+    public const FOLDER = ['order_thumbnails', 'jersey_thumbnails', 'jersey_bukti_bayar', 'kas_kecil_bukti', 'bukti_serah_terima', 'berkas_order', 'design_proofs'];
+
+    /**
+     * Folder -> prefix rute di config/menu_access.php yang berhak melihat isinya. Id menunya dibaca dari konfigurasi
+     * yang sama dengan pengecekan rute, jadi selalu sinkron. Login saja tidak cukup: bukti Kas Kecil tidak untuk
+     * operator produksi, berkas order tidak untuk staf yang tidak menangani order.
+     */
+    private const MENU_FOLDER = [
+        'kas_kecil_bukti'    => ['kas-kecil'],
+        'jersey_bukti_bayar' => ['jersey'],
+        'jersey_thumbnails'  => ['jersey'],
+        'order_thumbnails'   => ['penjualan', 'berkas-order', 'spk', 'spk-desain', 'produksi', 'collecting', 'kasir', 'qc'],
+        'berkas_order'       => ['penjualan', 'berkas-order', 'spk', 'spk-desain', 'produksi', 'collecting', 'kasir', 'qc'],
+        'design_proofs'      => ['penjualan', 'berkas-order', 'spk', 'spk-desain', 'produksi', 'qc'],
+        'bukti_serah_terima' => ['collecting', 'penjualan', 'kasir'],
+    ];
+
+    private static function menuUntuk(string $folder): array
+    {
+        $aturan = (array) config('menu_access.rules', []);
+        $id = [];
+        foreach (self::MENU_FOLDER[$folder] ?? [] as $prefix) {
+            foreach ($aturan as $kunci => $menu) {
+                if ($kunci === $prefix || str_starts_with($kunci, $prefix . '/')) {
+                    $id = array_merge($id, (array) $menu);
+                }
+            }
+        }
+
+        return array_values(array_unique($id));
+    }
 
     public function tampil(string $folder, string $path): BinaryFileResponse
     {
         abort_unless(in_array($folder, self::FOLDER, true), 404);
         abort_if(str_contains($path, '..') || str_contains($path, "\0") || str_contains($path, '\\'), 404);
+
+        abort_unless(\App\Support\Izin::boleh(auth()->user(), self::menuUntuk($folder), 'view'), 403);
 
         $relatif = $folder . '/' . $path;
         $disk = Storage::disk('public');
@@ -26,7 +58,8 @@ class BerkasPrivatController extends Controller
 
         $respons = response()->file($disk->path($relatif), [
             'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control' => 'private, max-age=3600',
+            // Singkat: komputer bersama tidak menyimpan bukti bayar/berkas pelanggan lama setelah pengguna keluar.
+            'Cache-Control' => 'private, max-age=300',
         ]);
 
         // Berkas yang bisa membawa skrip tidak boleh menjalankannya (unggahan lama mungkin tidak melalui BerkasAman).

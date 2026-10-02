@@ -86,7 +86,37 @@ class Izin
         }
         $nama = DB::table('roles')->where('id_role', $idRole)->value('nama_role');
 
-        return $aktor !== null && $nama !== null && $nama !== 'Administrator';
+        return $aktor !== null && $nama !== null && $nama !== 'Administrator'
+            && self::tercakup(self::petaRole($idRole), self::peta($aktor));
+    }
+
+    /**
+     * Hak $target tercakup hak $aktor: setiap menu+aksi yang boleh bagi target juga boleh bagi aktor. Pengelola akun
+     * non-admin hanya boleh memberi peran / mengelola akun yang haknya tidak melebihi haknya sendiri; tanpa ini ia
+     * bisa mengganti kata sandi akun Owner/penyetuju lalu masuk dengan hak yang lebih tinggi (naik hak menyamping).
+     */
+    private static function tercakup(array $target, array $aktor): bool
+    {
+        foreach ($target as $idMenu => $hak) {
+            foreach ($hak as $aksi => $boleh) {
+                if ($boleh && empty($aktor[$idMenu][$aksi])) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /** @return array<int, array<string,bool>> hak per menu milik sebuah role (tanpa hak per-user). */
+    private static function petaRole(int $idRole): array
+    {
+        $peta = [];
+        foreach (DB::table('role_permissions')->where('id_role', $idRole)->get() as $r) {
+            $peta[(int) $r->id_menu] = ['view' => (bool) $r->can_view, 'add' => (bool) $r->can_add, 'edit' => (bool) $r->can_edit, 'delete' => (bool) $r->can_delete];
+        }
+
+        return $peta;
     }
 
     public static function bolehKelolaUser(?User $aktor, User $target): bool
@@ -95,7 +125,8 @@ class Izin
             return true;
         }
 
-        return $aktor && (int) $aktor->id_user !== (int) $target->id_user && !self::adalahAdmin($target);
+        return $aktor && (int) $aktor->id_user !== (int) $target->id_user && !self::adalahAdmin($target)
+            && self::tercakup(self::peta($target), self::peta($aktor));
     }
 
     /** Menu Kas Kecil (config/menu_access.php: 'kas-kecil' => [39]). */

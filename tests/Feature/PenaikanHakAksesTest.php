@@ -172,4 +172,26 @@ class PenaikanHakAksesTest extends TestCase
 
         $this->assertDatabaseHas('users', ['username' => 'admin2']);
     }
+
+    public function test_pengelola_tidak_bisa_memberi_atau_mengambil_alih_hak_yang_tidak_dimilikinya(): void
+    {
+        // Role "Penyetuju" punya menu Approval (50) yang tidak dimiliki pengelola.
+        $penyetuju = Role::factory()->create(['nama_role' => 'Penyetuju Uji']);
+        DB::table('menus')->insertOrIgnore(['id_menu' => 50, 'nama_menu' => 'Approval', 'url_link' => 'approval', 'parent_id' => 0]);
+        DB::table('role_permissions')->insert(['id_role' => $penyetuju->id_role, 'id_menu' => 50, 'can_view' => 1, 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 0]);
+
+        // Membuat akun dengan role yang haknya melebihi pengelola: ditolak.
+        $this->actingAs($this->pengelola)->post('/users/store', [
+            'id_karyawan' => $this->karyawan('Calon Penyetuju'), 'username' => 'calonpenyetuju', 'password' => 'rahasia123', 'id_role' => $penyetuju->id_role,
+        ])->assertForbidden();
+        $this->assertDatabaseMissing('users', ['username' => 'calonpenyetuju']);
+
+        // Mengganti kata sandi akun penyetuju lalu masuk sebagai dia: ditolak.
+        $akunPenyetuju = User::factory()->create(['id_role' => $penyetuju->id_role]);
+        $hashLama = $akunPenyetuju->password;
+        $this->actingAs($this->pengelola)->put("/users/update/{$akunPenyetuju->id_user}", [
+            'username' => $akunPenyetuju->username, 'password' => 'passwordbaru1', 'id_role' => $penyetuju->id_role,
+        ])->assertForbidden();
+        $this->assertSame($hashLama, $akunPenyetuju->fresh()->password);
+    }
 }

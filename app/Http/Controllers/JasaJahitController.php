@@ -423,7 +423,7 @@ class JasaJahitController extends Controller
         try {
             $hasil = UpahJahitService::bayar((int) $data['id_penjahit'], array_map('intval', $data['catat']));
         } catch (\RuntimeException $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->with('error', \App\Support\PesanError::untuk($e));
         }
 
         return redirect()->back()->with('success', "Upah {$hasil['nama']} Rp " . number_format($hasil['total'], 0, ',', '.') . " ({$hasil['jumlah']} catatan) dibayar dari Kas Kecil, nomor KK-{$hasil['id_kas_kecil']}.");

@@ -43,8 +43,10 @@ class SettingHargaController extends Controller
             $query->where('produk.id_mesin', $request->category);
         }
 
-        $sort = $request->get('sort', 'produk.nama_produk');
-        $direction = $request->get('direction', 'asc');
+        // Daftar putih: kolom urut dari URL tidak boleh bebas (mengurutkan berdasar kolom mana pun dari join, atau
+        // memicu galat 500 dengan nilai sembarang).
+        $sort = in_array($request->get('sort'), ['produk.nama_produk', 'mesin.nama_mesin', 'produk.id_produk'], true) ? $request->get('sort') : 'produk.nama_produk';
+        $direction = $request->get('direction') === 'desc' ? 'desc' : 'asc';
         $query->orderBy($sort, $direction);
 
         $produk = $query->paginate(20)->withQueryString();

@@ -65,7 +65,8 @@ class DesignProofService
                     DB::table('design_proofs')->where('id', $terakhir->id)->update(['status' => 'Digantikan', 'updated_at' => now()]);
                 }
 
-                $path = $file->store("design_proofs/{$idDetail}", 'public');
+                // Lewat BerkasAman (isi berkas diperiksa, ekstensi daftar putih, nama acak), sama dengan unggahan lain.
+                $path = \App\Support\BerkasAman::simpan($file, "design_proofs/{$idDetail}", 'public');
                 $revisi = ($terakhir->revisi_no ?? 0) + 1;
 
                 $id = DB::table('design_proofs')->insertGetId([

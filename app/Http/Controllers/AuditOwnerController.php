@@ -81,7 +81,7 @@ class AuditOwnerController extends Controller
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
             foreach ($baris as $b) {
-                fputcsv($out, $b, ';');
+                fputcsv($out, \App\Support\CsvAman::baris($b), ';');
             }
             fclose($out);
         }, $fn, ['Content-Type' => 'text/csv; charset=UTF-8']);

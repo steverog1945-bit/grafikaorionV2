@@ -45,7 +45,7 @@ class KasKecilController extends Controller
                 ]);
             });
         } catch (\RuntimeException $e) {
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', \App\Support\PesanError::untuk($e));
         }
 
         return back()->with('success', 'Saldo awal Kas Kecil Rp ' . number_format((float) $data['nominal'], 0, ',', '.') . ' dicatat.');
@@ -151,7 +151,7 @@ class KasKecilController extends Controller
             return $kk;
         });
         } catch (\RuntimeException $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            return back()->withInput()->with('error', \App\Support\PesanError::untuk($e));
         }
 
         if ($dibayarPemilik) {

@@ -683,10 +683,13 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/pengaturan-jam-kerja', [\App\Http\Controllers\JamKerjaController::class, 'index'])->name('jam-kerja.index');
     Route::post('/pengaturan-jam-kerja', [\App\Http\Controllers\JamKerjaController::class, 'update'])->name('jam-kerja.update');
 
+    // Menu Editor bisa menyembunyikan menu dan menambah tautan ke luar di sidebar semua orang: hanya Administrator.
+    Route::middleware('hanya.admin')->group(function () {
     Route::get('/menu-editor', [\App\Http\Controllers\MenuEditorController::class, 'index'])->name('menu-editor.index');
     Route::post('/menu-editor', [\App\Http\Controllers\MenuEditorController::class, 'update'])->name('menu-editor.update');
     Route::post('/menu-editor/tambah', [\App\Http\Controllers\MenuEditorController::class, 'store'])->name('menu-editor.store');
     Route::delete('/menu-editor/{id}', [\App\Http\Controllers\MenuEditorController::class, 'destroy'])->whereNumber('id')->name('menu-editor.destroy');
+    });
 
     /*
     |--------------------------------------------------------------------------

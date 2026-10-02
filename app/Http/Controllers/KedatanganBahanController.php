@@ -204,7 +204,7 @@ public function bulkDelete(Request $request)
             }
         });
     } catch (\RuntimeException $e) {
-        return back()->with('error', $e->getMessage());
+        return back()->with('error', \App\Support\PesanError::untuk($e));
     }
 
     return redirect()->route('kedatangan-bahan.index')->with('success', 'Data kedatangan terpilih berhasil dihapus.');
@@ -317,7 +317,7 @@ public function bulkDelete(Request $request)
             return $statusBaru;
         });
     } catch (\RuntimeException $e) {
-        return back()->withInput()->with('error', $e->getMessage());
+        return back()->withInput()->with('error', \App\Support\PesanError::untuk($e));
     }
 
     if ($statusBaru === 'Selesai') {
@@ -357,7 +357,7 @@ public function ajaxBahan(Request $request)
     try {
         DB::transaction(fn () => $this->hapusKedatangan($kedatangan, 'Kedatangan bahan dihapus - stok dikembalikan'));
     } catch (\RuntimeException $e) {
-        return back()->with('error', $e->getMessage());
+        return back()->with('error', \App\Support\PesanError::untuk($e));
     }
 
     return redirect()->route('kedatangan-bahan.index')
