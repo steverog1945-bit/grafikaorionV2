@@ -140,7 +140,7 @@ class RollbackAtomikTest extends TestCase
     public function test_waste_batal_seluruhnya_bila_jurnal_gagal(): void
     {
         $this->bahan(50);
-        $this->gagalkanAkun('5200');
+        $this->gagalkanAkun('5240');
         $sebelum = $this->potret();
         $aksi = fn () => $this->post('/waste', ['id_bahan' => DB::table('bahan_baku')->value('id_bahan'), 'qty' => 3, 'jenis' => 'Normal', 'alasan' => 'Sisa potongan']);
 

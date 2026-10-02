@@ -354,6 +354,7 @@ class AccountingService
         ]);
     }
 
+    /** Bahan terbuang (waste) atau dipakai cetak ulang (rework): Dr 5240 Beban Waste & Rework / Cr Persediaan. */
     public static function postBebanRework(string $noReferensi, string $keterangan, float $nominal): void
     {
         if ($nominal <= 0) {
@@ -361,7 +362,7 @@ class AccountingService
         }
 
         self::postJournal(now()->toDateString(), $noReferensi, $keterangan, [
-            ['kode_akun' => '5200', 'debet' => $nominal],
+            ['kode_akun' => '5240', 'debet' => $nominal],
             ['kode_akun' => self::AKUN_PERSEDIAAN_BAHAN, 'kredit' => $nominal],
         ]);
     }

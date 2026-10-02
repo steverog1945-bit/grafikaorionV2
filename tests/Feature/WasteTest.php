@@ -54,7 +54,8 @@ class WasteTest extends TestCase
         $this->assertEquals(['Diterapkan', 60000.0], [$w->status, (float) $w->biaya]); // 3 x 20.000
         $this->assertStringStartsWith('WS-', $w->nomor);
         $this->assertDatabaseHas('kartu_stok', ['id_bahan' => $this->idBahan, 'tipe' => 'OUT', 'qty' => 3, 'referensi' => $w->nomor]);
-        $this->assertEquals(60000, $this->saldo('5200'));
+        $this->assertEquals(60000, $this->saldo('5240'));
+        $this->assertEquals(0, $this->saldo('5200'), 'waste tidak boleh tercampur dengan Biaya Operasional Kantor');
         $this->assertEquals(-60000, $this->saldo('1200'));
         $this->assertEquals(0, ApprovalRequest::count());
     }
@@ -71,7 +72,7 @@ class WasteTest extends TestCase
 
         $this->assertEquals(45, $this->stok());
         $this->assertEquals('Diterapkan', DB::table('waste_log')->value('status'));
-        $this->assertEquals(100000, $this->saldo('5200'));
+        $this->assertEquals(100000, $this->saldo('5240'));
     }
 
     public function test_waste_abnormal_ditolak_tidak_mengubah_stok(): void

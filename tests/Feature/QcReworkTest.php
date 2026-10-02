@@ -112,7 +112,8 @@ class QcReworkTest extends TestCase
         $this->assertEquals(50000, $biaya); // 5 lembar x Rp 10.000
         $this->assertEquals(95, (float) DB::table('bahan_baku')->where('id_bahan', $this->idBahan)->value('stok'));
         $this->assertDatabaseHas('kartu_stok', ['id_bahan' => $this->idBahan, 'tipe' => 'OUT', 'qty' => 5, 'stok_sebelum' => 100, 'stok_sesudah' => 95]);
-        $this->assertEquals(50000, $this->saldo('5200'));
+        $this->assertEquals(50000, $this->saldo('5240'));
+        $this->assertEquals(0, $this->saldo('5200'), 'rework tidak boleh tercampur dengan Biaya Operasional Kantor');
         $this->assertEquals(-50000, $this->saldo('1200'));
         $this->assertEquals(['Selesai', 50000.0], [DB::table('rework')->value('status'), (float) DB::table('rework')->value('biaya_material')]);
 
