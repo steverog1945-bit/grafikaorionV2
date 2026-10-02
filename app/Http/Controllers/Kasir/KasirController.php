@@ -792,7 +792,8 @@ public function previewClosing()
         ->where('transaksi.status_nota', '!=', 'Dibatalkan')
         ->select(
             DB::raw("COALESCE(mesin.nama_mesin, 'Jasa / Lain-lain') as kategori"),
-            DB::raw('SUM(transaksi_detail.subtotal) as total')
+            // Setelah diskon nota, supaya piutang = total nota - terbayar (diskon bukan piutang).
+            DB::raw('SUM(' . \App\Support\OmzetBersih::sql('transaksi_detail', 'transaksi') . ') as total')
         )
         ->groupBy('kategori')
         ->orderByDesc('total')

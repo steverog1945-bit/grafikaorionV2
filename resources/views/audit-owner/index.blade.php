@@ -222,7 +222,9 @@
                 <tbody>
                 @forelse($k['kas_masuk'] as $r)<tr><td>{{ $r->metode }}</td><td class="num">{{ $r->jumlah }}</td><td class="num">{{ $rp($r->total) }}</td></tr>@empty<tr><td colspan="3" class="kosong">Belum ada pembayaran nota bulan ini.</td></tr>@endforelse
                 <tr><td colspan="2" class="font-medium">Total</td><td class="num font-medium">{{ $rp($k['kas_masuk_total']) }}</td></tr>
+                <tr><td>Setoran deposit pelanggan</td><td class="num">-</td><td class="num">{{ $rp($k['setoran_deposit']) }}</td></tr>
                 <tr><td>Pembayaran order jersey</td><td class="num">-</td><td class="num">{{ $rp($k['pembayaran_jersey']) }}</td></tr>
+                @if($k['pemakaian_deposit'] > 0)<tr><td class="text-slate-500">Nota dibayar dari saldo deposit (bukan uang baru)</td><td class="num">-</td><td class="num text-slate-500">{{ $rp($k['pemakaian_deposit']) }}</td></tr>@endif
                 </tbody>
             </table>
         </div>
@@ -232,8 +234,8 @@
                 <thead><tr><th>Uraian</th><th class="num">Jumlah</th><th class="num">Nilai</th></tr></thead>
                 <tbody>
                 <tr><td>Pembelian bahan (faktur)</td><td class="num">{{ $k['pembelian_jumlah'] }}</td><td class="num">{{ $rp($k['pembelian_total']) }}</td></tr>
-                <tr><td>Pembayaran hutang supplier</td><td class="num">-</td><td class="num">{{ $rp($k['pembayaran_hutang']) }}</td></tr>
-                @foreach($k['kas_kecil'] as $r)<tr><td>Kas kecil &middot; {{ $r->kategori }}</td><td class="num">{{ $r->jumlah }}</td><td class="num">{{ $rp($r->total) }}</td></tr>@endforeach
+                <tr><td>Pembayaran hutang supplier (dana pemilik)</td><td class="num">-</td><td class="num">{{ $rp($k['pembayaran_hutang']) }}</td></tr>
+                @foreach($k['kas_kecil'] as $r)<tr><td>Kas kecil &middot; {{ $r->kategori }}@if($r->pemilik) (dibayar pemilik)@endif</td><td class="num">{{ $r->jumlah }}</td><td class="num">{{ $rp($r->total) }}</td></tr>@endforeach
                 @foreach($k['kas_manual'] as $r)<tr><td>Kas manual &middot; {{ $r->status }}</td><td class="num">{{ $r->jumlah }}</td><td class="num">{{ $rp($r->total) }}</td></tr>@endforeach
                 @if($k['kas_kecil']->isEmpty() && $k['kas_manual']->isEmpty())<tr><td colspan="3" class="kosong">Belum ada pengeluaran lain.</td></tr>@endif
                 </tbody>

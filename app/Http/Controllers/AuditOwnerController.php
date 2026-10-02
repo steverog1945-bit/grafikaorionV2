@@ -47,8 +47,10 @@ class AuditOwnerController extends Controller
         $seksi('1. RINGKASAN KEUANGAN', ['Uraian', 'Nilai'], [
             ['Omzet nota (tidak termasuk batal)', $k['omzet']], ['Jumlah nota', $k['jumlah_nota']], ['HPP material', $k['hpp']],
             ['Rework (biaya material)', $k['rework']], ['Waste diterapkan', $k['waste']], ['Laba kotor', $k['laba_kotor']], ['Margin %', $k['margin']],
-            ['Omzet jersey', $k['omzet_jersey']], ['Kas masuk (pembayaran nota)', $k['kas_masuk_total']], ['Pembayaran jersey', $k['pembayaran_jersey']],
-            ['Pembelian bahan', $k['pembelian_total']], ['Pembayaran hutang', $k['pembayaran_hutang']], ['Kas kecil keluar', $k['kas_kecil_total']],
+            ['Omzet jersey', $k['omzet_jersey']], ['Kas masuk (pembayaran nota, tanpa saldo deposit)', $k['kas_masuk_total']], ['Setoran deposit pelanggan', $k['setoran_deposit']],
+            ['Nota dibayar dari saldo deposit', $k['pemakaian_deposit']], ['Pembayaran jersey', $k['pembayaran_jersey']],
+            ['Pembelian bahan', $k['pembelian_total']], ['Pembayaran hutang (dana pemilik)', $k['pembayaran_hutang']], ['Kas kecil keluar', $k['kas_kecil_total']],
+            ['Biaya dibayar pemilik', $k['kas_kecil_pemilik']],
             ['Nota dibatalkan (jumlah)', $k['nota_dibatalkan_jumlah']], ['Nota dibatalkan (nilai)', $k['nota_dibatalkan_nilai']],
             ['Saldo kas (buku besar)', $k['saldo_kas']], ['Saldo bank', $k['saldo_bank']], ['Piutang', $k['piutang']], ['Hutang', $k['hutang']],
         ]);

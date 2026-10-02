@@ -68,7 +68,7 @@
 
         <x-card>
             <h3 class="text-xs font-medium text-slate-800 uppercase tracking-widest mb-1">Estimasi Bulan Depan</h3>
-            <p class="text-[11px] text-slate-400 mb-4">Rata-rata 3 bulan penuh ({{ $estimasi['periode'] }}). Acuan kasar, bukan prediksi.</p>
+            <p class="text-[11px] text-slate-400 mb-4">Rata-rata 3 bulan penuh ({{ $estimasi['periode'] }}). Acuan kasar, bukan prediksi. Kas keluar = biaya dari kas usaha; hutang supplier dan biaya yang dibayar pemilik tidak termasuk.</p>
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between"><span class="text-slate-500">Omzet</span><b>{{ $rp($estimasi['omzet']) }}</b></div>
                 <div class="flex justify-between"><span class="text-slate-500">Belanja bahan</span><b>{{ $rp($estimasi['belanja_bahan']) }}</b></div>

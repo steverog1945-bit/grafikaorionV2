@@ -103,7 +103,7 @@ class DashboardEksekutifService
             ->where('t.status_nota', '!=', 'Dibatalkan')
             ->whereTanggalAntara('t.tgl_order', [$dari->toDateString(), $sampai->toDateString()])
             ->groupBy(DB::raw("COALESCE(p.nama_produk, j.nama_jasa, d.nama_file)"))
-            ->selectRaw("COALESCE(p.nama_produk, j.nama_jasa, d.nama_file) as nama, SUM(d.qty) as qty, SUM(d.subtotal) as omzet")
+            ->selectRaw("COALESCE(p.nama_produk, j.nama_jasa, d.nama_file) as nama, SUM(d.qty) as qty, SUM(" . \App\Support\OmzetBersih::sql() . ") as omzet")
             ->orderByDesc('omzet')->limit($limit)->get();
     }
 
@@ -133,9 +133,15 @@ class DashboardEksekutifService
 
         $omzet = (float) DB::table('transaksi')->where('status_nota', '!=', 'Dibatalkan')->where('tgl_order', '>=', $awal)->where('tgl_order', '<', $akhir)->sum('total_bayar');
         $belanja = (float) DB::table('pembelian_bahan')->whereNull('deleted_at')->where('tgl_transaksi', '>=', $awal->toDateString())->where('tgl_transaksi', '<', $akhir->toDateString())->sum('grand_total');
-        $kasMasuk = (float) DB::table('pembayaran_riwayat')->where('metode', '!=', 'Deposit')->where('tgl_bayar', '>=', $awal)->where('tgl_bayar', '<', $akhir)->sum('nominal');
-        $kasKeluar = (float) DB::table('pembayaran_hutang')->whereNull('voided_at')->where('tanggal', '>=', $awal->toDateString())->where('tanggal', '<', $akhir->toDateString())->sum('nominal')
-            + (float) DB::table('kas_kecil')->whereNull('deleted_at')->where('jenis', 'Keluar')->where('tanggal', '>=', $awal->toDateString())->where('tanggal', '<', $akhir->toDateString())->sum('nominal');
+        // Uang masuk ke kas usaha: pembayaran nota (bukan dari saldo deposit) + setoran deposit baru.
+        $kasMasuk = (float) DB::table('pembayaran_riwayat')->where('metode', '!=', 'Deposit')->where('tgl_bayar', '>=', $awal)->where('tgl_bayar', '<', $akhir)->sum('nominal')
+            + (float) DB::table('konsumen_deposit')->where('tipe', 'Setoran')->whereIn('metode_bayar', ['Tunai', 'Transfer'])
+                ->where('tgl_deposit', '>=', $awal->toDateString())->where('tgl_deposit', '<', $akhir->toDateString())->sum('nominal');
+        // Uang keluar dari kas usaha: biaya Kas Kecil. Pembayaran hutang supplier dan biaya "Dibayar Pemilik" memakai
+        // uang pemilik (Dana Pemilik 3100/3200), bukan kas usaha. Hutang lama yang dibayar dari Kas Kecil sudah
+        // tercatat sebagai baris Kas Kecil.
+        $kasKeluar = (float) DB::table('kas_kecil')->whereNull('deleted_at')->where('jenis', 'Keluar')->where('metode', '!=', 'Dibayar Pemilik')
+            ->where('tanggal', '>=', $awal->toDateString())->where('tanggal', '<', $akhir->toDateString())->sum('nominal');
 
         return [
             'omzet' => round($omzet / 3, 2),
@@ -166,7 +172,7 @@ class DashboardEksekutifService
         };
 
         return $q->groupBy(DB::raw($ekspresi))
-            ->selectRaw("{$ekspresi} as nama, COUNT(DISTINCT t.id_transaksi) as jumlah_nota, SUM(d.qty) as qty, SUM(d.subtotal) as omzet, SUM(d.hpp_snapshot) as hpp")
+            ->selectRaw("{$ekspresi} as nama, COUNT(DISTINCT t.id_transaksi) as jumlah_nota, SUM(d.qty) as qty, SUM(" . \App\Support\OmzetBersih::sql() . ") as omzet, SUM(d.hpp_snapshot) as hpp")
             ->orderByDesc('omzet')->get()
             ->map(function ($r) {
                 $r->laba = round((float) $r->omzet - (float) $r->hpp, 2);

@@ -341,7 +341,9 @@ class LaporanController extends Controller
         $query = DB::table('pembelian_bahan')
             ->leftJoin('kedatangan_bahan', 'pembelian_bahan.id_kedatangan', '=', 'kedatangan_bahan.id_kedatangan')
             ->leftJoin('supplier', 'kedatangan_bahan.id_supplier', '=', 'supplier.id_supplier')
-            ->select('pembelian_bahan.*', 'supplier.nama_supplier');
+            ->select('pembelian_bahan.*', 'supplier.nama_supplier')
+            // Faktur yang dibatalkan (soft delete, jurnalnya sudah dibalik) bukan belanja.
+            ->whereNull('pembelian_bahan.deleted_at');
 
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
@@ -356,7 +358,11 @@ class LaporanController extends Controller
 
         $ringkasanQuery = clone $query;
         $totalBelanja = (clone $ringkasanQuery)->sum('pembelian_bahan.grand_total');
-        $totalHutang = (clone $ringkasanQuery)->where('pembelian_bahan.status_pembayaran', '!=', 'Lunas')->sum('pembelian_bahan.grand_total');
+        // Hutang = SISA faktur (total dikurangi pembayaran yang tidak di-void), sama dengan Laporan Hutang Supplier dan
+        // akun Hutang Usaha; dulu memakai total faktur penuh sehingga cicilan tidak mengurangi angkanya.
+        $totalHutang = (float) (clone $ringkasanQuery)->where('pembelian_bahan.status_pembayaran', '!=', 'Lunas')
+            ->select(DB::raw('COALESCE(SUM(pembelian_bahan.grand_total - COALESCE((SELECT SUM(ph.nominal) FROM pembayaran_hutang ph WHERE ph.id_pembelian = pembelian_bahan.id_pembelian AND ph.voided_at IS NULL), 0)), 0) AS sisa'))
+            ->value('sisa');
         $jumlahFaktur = (clone $ringkasanQuery)->count();
 
         $data = $query->orderByDesc('pembelian_bahan.tgl_transaksi')->paginate(20)->withQueryString();
@@ -697,7 +703,7 @@ class LaporanController extends Controller
             ->where('t.tgl_order', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00')
             ->groupBy('t.id_transaksi', 't.nomor_nota', 't.tgl_order', 'k.nama_konsumen')
             ->selectRaw("t.id_transaksi, t.nomor_nota, t.tgl_order, k.nama_konsumen,
-                SUM(d.subtotal) as omzet, SUM(d.hpp_snapshot) as hpp,
+                SUM(" . \App\Support\OmzetBersih::sql() . ") as omzet, SUM(d.hpp_snapshot) as hpp,
                 (SELECT COALESCE(SUM(r.biaya_material), 0) FROM rework r JOIN transaksi_detail d2 ON d2.id_detail = r.id_detail
                     WHERE d2.id_transaksi = t.id_transaksi AND r.status = 'Selesai') as biaya_rework,
                 (SELECT COALESCE(SUM(w.biaya), 0) FROM waste_log w JOIN transaksi_detail d3 ON d3.id_detail = w.id_detail
@@ -743,7 +749,8 @@ class LaporanController extends Controller
 
         $resumeQuery = clone $query;
         $jumlahItem = $resumeQuery->count();
-        $totalOmzet = (clone $query)->sum('transaksi_detail.subtotal');
+        $omzetBersih = \App\Support\OmzetBersih::sql('transaksi_detail', 'transaksi');
+        $totalOmzet = (float) (clone $query)->sum(DB::raw($omzetBersih));
         $totalHpp = (clone $query)->sum('transaksi_detail.hpp_snapshot');
         $totalMargin = $totalOmzet - $totalHpp;
         $marginPersen = $totalOmzet > 0 ? ($totalMargin / $totalOmzet) * 100 : 0;
@@ -751,11 +758,11 @@ class LaporanController extends Controller
         $breakdownDivisi = (clone $query)
             ->select(
                 DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya') as divisi"),
-                DB::raw('SUM(transaksi_detail.subtotal) as total_omzet'),
+                DB::raw("SUM({$omzetBersih}) as total_omzet"),
                 DB::raw('SUM(transaksi_detail.hpp_snapshot) as total_hpp')
             )
             ->groupBy(DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya')"))
-            ->orderByDesc(DB::raw('SUM(transaksi_detail.subtotal)'))
+            ->orderByDesc('total_omzet')
             ->get()
             ->map(function ($d) {
                 $d->margin = $d->total_omzet - $d->total_hpp;
@@ -771,7 +778,7 @@ class LaporanController extends Controller
                 DB::raw("COALESCE(produk.nama_produk, jasa.nama_jasa, transaksi_detail.nama_file) as nama_item"),
                 DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya') as divisi"),
                 'transaksi_detail.qty',
-                'transaksi_detail.subtotal',
+                DB::raw("{$omzetBersih} as subtotal"),
                 'transaksi_detail.hpp_snapshot'
             )
             ->orderByDesc('transaksi.tgl_order')

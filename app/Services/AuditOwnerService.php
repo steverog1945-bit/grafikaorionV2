@@ -45,18 +45,25 @@ class AuditOwnerService
         $nota = DB::table('transaksi')->whereTanggalAntara('tgl_order', $tgl);
         $batal = (clone $nota)->where('status_nota', 'Dibatalkan');
 
-        $kasMasuk = DB::table('pembayaran_riwayat')->whereTanggalAntara('tgl_bayar', $tgl)
+        // Pembayaran dari saldo deposit bukan uang baru (uangnya sudah masuk saat setoran), jadi dipisah dari kas masuk.
+        $kasMasuk = DB::table('pembayaran_riwayat')->whereTanggalAntara('tgl_bayar', $tgl)->where('metode', '!=', 'Deposit')
             ->selectRaw('metode, COUNT(*) jumlah, SUM(nominal) total')->groupBy('metode')->orderBy('metode')->get();
+        $pemakaianDeposit = (float) DB::table('pembayaran_riwayat')->whereTanggalAntara('tgl_bayar', $tgl)->where('metode', 'Deposit')->sum('nominal');
+        $setoranDeposit = (float) DB::table('konsumen_deposit')->where('tipe', 'Setoran')->whereIn('metode_bayar', ['Tunai', 'Transfer'])
+            ->whereBetween('tgl_deposit', $tgl)->sum('nominal');
 
         $pembayaranJersey = (float) DB::table('jersey_order_payments')->whereNull('deleted_at')->whereBetween('tanggal_bayar', $tgl)->sum('jumlah');
 
         $pembelian = DB::table('pembelian_bahan')->whereNull('deleted_at')->whereBetween('tgl_transaksi', $tgl);
-        $bayarHutang = (float) DB::table('pembayaran_hutang')->whereNull('voided_at')->whereBetween('tanggal', $tgl)->sum('nominal');
+        // Cicilan/pelunasan hutang dengan uang pemilik. Pembayaran awal faktur Cash sudah masuk nilai faktur, dan hutang
+        // lama yang dibayar dari Kas Kecil sudah tampil sebagai baris Kas Kecil.
+        $bayarHutang = (float) DB::table('pembayaran_hutang')->whereNull('voided_at')->where('bagian_faktur', false)->where('metode', '!=', 'Kas Kecil')
+            ->whereBetween('tanggal', $tgl)->sum('nominal');
 
         $kasKecil = DB::table('kas_kecil as k')->leftJoin('kategori_kas_kecil as c', 'c.id_kategori_kas_kecil', '=', 'k.id_kategori')
             ->whereNull('k.deleted_at')->where('k.jenis', 'Keluar')->whereBetween('k.tanggal', $tgl)
-            ->selectRaw("COALESCE(c.nama_kategori, 'Tanpa kategori') as kategori, COUNT(*) as jumlah, SUM(k.nominal) as total")
-            ->groupBy('kategori')->orderByDesc('total')->get();
+            ->selectRaw("COALESCE(c.nama_kategori, 'Tanpa kategori') as kategori, k.metode = 'Dibayar Pemilik' as pemilik, COUNT(*) as jumlah, SUM(k.nominal) as total")
+            ->groupBy('kategori', 'pemilik')->orderBy('pemilik')->orderByDesc('total')->get();
 
         $kasManual = DB::table('kas_manual')->whereTanggalAntara('waktu', $tgl)
             ->selectRaw('status, COUNT(*) jumlah, SUM(nominal) total')->groupBy('status')->get();
@@ -67,12 +74,15 @@ class AuditOwnerService
             'nota_dibatalkan' => (clone $batal)->orderBy('tgl_dibatalkan_nota')->get(['nomor_nota', 'total_bayar', 'alasan_batal_nota', 'tgl_dibatalkan_nota']),
             'kas_masuk' => $kasMasuk,
             'kas_masuk_total' => (float) $kasMasuk->sum('total'),
+            'setoran_deposit' => $setoranDeposit,
+            'pemakaian_deposit' => $pemakaianDeposit,
             'pembayaran_jersey' => $pembayaranJersey,
             'pembelian_jumlah' => (clone $pembelian)->count(),
             'pembelian_total' => (float) (clone $pembelian)->sum('grand_total'),
             'pembayaran_hutang' => $bayarHutang,
             'kas_kecil' => $kasKecil,
-            'kas_kecil_total' => (float) $kasKecil->sum('total'),
+            'kas_kecil_total' => (float) $kasKecil->where('pemilik', 0)->sum('total'),
+            'kas_kecil_pemilik' => (float) $kasKecil->where('pemilik', 1)->sum('total'),
             'kas_manual' => $kasManual,
             'nota_belum_lunas' => DB::table('transaksi')->where('status_nota', '!=', 'Dibatalkan')->where('status_pembayaran', '!=', 'Lunas')->count(),
         ];

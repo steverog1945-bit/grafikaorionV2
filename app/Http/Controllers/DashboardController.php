@@ -68,7 +68,8 @@ class DashboardController extends Controller
         $piutangRow = DB::table('transaksi')
             ->where('status_pembayaran', '!=', 'Lunas')
             ->where('status_nota', '!=', 'Dibatalkan')
-            ->selectRaw('COALESCE(SUM(total_bayar),0) as total, COUNT(*) as jumlah')
+            // Sisa tagihan (total - yang sudah dibayar), bukan total nota: nota DP sudah sebagian lunas.
+            ->selectRaw('COALESCE(SUM(GREATEST(0, total_bayar - COALESCE((SELECT SUM(pr.nominal) FROM pembayaran_riwayat pr WHERE pr.id_transaksi = transaksi.id_transaksi), 0))), 0) as total, COUNT(*) as jumlah')
             ->first();
         $piutang = (float) ($piutangRow->total ?? 0);
 
@@ -93,7 +94,7 @@ class DashboardController extends Controller
         [$notaLengkap, $notaBelumLengkap] = $this->ringkasanCollecting();
 
         $piutangCount = (int) ($piutangRow->jumlah ?? 0);
-        $kasMasukHariIni = DB::table('pembayaran_riwayat')->whereBetween('tgl_bayar', [$mulaiHariIni, $akhirHariIni])->sum('nominal');
+        $kasMasukHariIni = self::uangMasuk($mulaiHariIni, $akhirHariIni);
 
         $kasAktifSemua = KasSesiService::aktif();
         $kasAktif = ($kasAktifSemua && (int) $kasAktifSemua->id_user === (int) auth()->id()) ? $kasAktifSemua : null;
@@ -118,13 +119,18 @@ class DashboardController extends Controller
             ->get();
 
         // Pembanding hari kemarin + tren 7 hari terakhir (jumlah order & kas masuk per hari).
-        $kasMasukKemarin = (float) DB::table('pembayaran_riwayat')->whereBetween('tgl_bayar', [$mulaiKemarin, $akhirKemarin])->sum('nominal');
+        $kasMasukKemarin = self::uangMasuk($mulaiKemarin, $akhirKemarin);
         $awal7 = now()->subDays(6)->startOfDay();
         $orderPerHari = DB::table('transaksi')->where('tgl_order', '>=', $awal7)->where('tgl_order', '<', $akhirHariIni)->where('status_nota', '!=', 'Dibatalkan')
             ->selectRaw('DATE(tgl_order) as tgl, COUNT(*) as n')->groupBy('tgl')->pluck('n', 'tgl');
         $kasPerHari = DB::table('pembayaran_riwayat')->where('tgl_bayar', '>=', $awal7)
-            ->where('tgl_bayar', '<', $akhirHariIni)
+            ->where('tgl_bayar', '<', $akhirHariIni)->where('metode', '!=', 'Deposit')
             ->selectRaw('DATE(tgl_bayar) as tgl, SUM(nominal) as total')->groupBy('tgl')->pluck('total', 'tgl');
+        $setoranPerHari = self::setoranDeposit()->where('tgl_deposit', '>=', $awal7->toDateString())->where('tgl_deposit', '<', $akhirHariIni)
+            ->selectRaw('tgl_deposit as tgl, SUM(nominal) as total')->groupBy('tgl_deposit')->pluck('total', 'tgl');
+        foreach ($setoranPerHari as $tgl => $nominal) {
+            $kasPerHari[$tgl] = (float) ($kasPerHari[$tgl] ?? 0) + (float) $nominal;
+        }
         $tren = collect(range(6, 0))->map(function ($i) use ($orderPerHari, $kasPerHari) {
             $d = now()->subDays($i);
 
@@ -354,6 +360,22 @@ class DashboardController extends Controller
      * detik. Boundary pakai string 'Y-m-d H:i:s' - format yang MySQL pahami
      * sebagai datetime literal, tanpa menebak timezone aplikasi.
      */
+    /** Setoran deposit uang baru (Tunai/Transfer). Kredit Nota Batal hanya memindah uang nota lama ke saldo pelanggan. */
+    private static function setoranDeposit()
+    {
+        return DB::table('konsumen_deposit')->where('tipe', 'Setoran')->whereIn('metode_bayar', ['Tunai', 'Transfer']);
+    }
+
+    /**
+     * Uang masuk dalam rentang [mulai, akhir): pembayaran nota selain dari saldo deposit (uang itu sudah masuk saat
+     * setoran) + setoran deposit baru.
+     */
+    private static function uangMasuk(string $mulai, string $akhir): float
+    {
+        return (float) DB::table('pembayaran_riwayat')->whereBetween('tgl_bayar', [$mulai, $akhir])->where('metode', '!=', 'Deposit')->sum('nominal')
+            + (float) self::setoranDeposit()->where('tgl_deposit', '>=', substr($mulai, 0, 10))->where('tgl_deposit', '<', substr($akhir, 0, 10))->sum('nominal');
+    }
+
     private static function rentangHari(string $tanggal): array
     {
         return [
