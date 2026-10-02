@@ -334,13 +334,33 @@ class KasirController extends Controller
                         throw new \Exception("Potongan untuk item \"{$detailRow->nama_file}\" tidak boleh lebih besar dari total item itu sendiri.");
                     }
 
+                    // Komisi desainer mengikuti biaya desain. Persen tetap dari saat nota dibuat; item yang baru diberi biaya
+                    // desain memakai desainer default dan kelasnya sekarang. Komisi yang sudah dibayar mengunci biaya desain.
+                    $komisi = [];
+                    if (abs($biayaDesainBaru - (float) $detailRow->biaya_desain) > 0.001) {
+                        if ($detailRow->komisi_status === 'Dibayar') {
+                            throw new \Exception("Komisi desain item \"{$detailRow->nama_file}\" sudah dibayar ke desainer - biaya desain tidak bisa diubah lagi.");
+                        }
+                        $idDesainer = $detailRow->id_desainer ?: ($biayaDesainBaru > 0 ? \App\Services\DesainKomisiService::tentukanDesainer(null) : null);
+                        $persen = $detailRow->id_desainer && (float) $detailRow->biaya_desain > 0
+                            ? (float) $detailRow->komisi_desain_persen
+                            : \App\Services\DesainKomisiService::hitung($idDesainer, $biayaDesainBaru)['persen'];
+                        $nilaiKomisi = $idDesainer && $biayaDesainBaru > 0 ? round($biayaDesainBaru * $persen / 100, 2) : 0.0;
+                        $komisi = [
+                            'id_desainer' => $idDesainer,
+                            'komisi_desain_persen' => $persen,
+                            'komisi_desain' => $nilaiKomisi,
+                            'komisi_status' => $nilaiKomisi > 0 ? 'Belum' : null,
+                        ];
+                    }
+
                     DB::table('transaksi_detail')->where('id_detail', $id_detail)->update([
                         'biaya_cetak'     => $biayaCetakBaru,
                         'biaya_desain'    => $biayaDesainBaru,
                         'biaya_finishing' => $biayaFinishingBaru,
                         'potongan'        => $potonganBaru,
                         'subtotal'        => $subtotalBaru,
-                    ]);
+                    ] + $komisi);
                 }
             }
 

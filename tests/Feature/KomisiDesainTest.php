@@ -148,4 +148,25 @@ class KomisiDesainTest extends TestCase
         $this->delete("/pengaturan-desainer/kelas/{$id}")->assertSessionHas('error'); // masih dipakai
         $this->get('/pengaturan-desainer')->assertOk()->assertSee('Junior');
     }
+
+    /** Koreksi biaya desain di kasir ikut menghitung ulang komisi (persen tetap dari saat nota dibuat). */
+    public function test_koreksi_biaya_desain_di_kasir_menghitung_ulang_komisi(): void
+    {
+        $this->setKelas(40);
+        $this->nota($this->admin, 100000, $this->desain->id_user)->assertOk();
+        DB::table('kelas_desainer')->update(['persen_komisi' => 10]);
+        $d = DB::table('transaksi_detail')->first();
+
+        $this->actingAs($this->admin)->post('/kasir/proses-bayar', ['id_transaksi' => $d->id_transaksi, 'jumlah_bayar' => 0, 'metode_pembayaran' => 'Tunai', 'submit_id' => 'k7-a',
+            'items' => [$d->id_detail => ['biaya_cetak' => 50000, 'biaya_desain' => 150000, 'biaya_finishing' => 0]]])->assertSessionHasNoErrors();
+        $d = DB::table('transaksi_detail')->first();
+        $this->assertEquals(150000, (float) $d->biaya_desain);
+        $this->assertEquals(60000, (float) $d->komisi_desain);
+
+        // Komisi sudah dibayar: biaya desain tidak boleh berubah lagi (komisi yang dibayar jadi tidak cocok).
+        DB::table('transaksi_detail')->update(['komisi_status' => 'Dibayar']);
+        $this->actingAs($this->admin)->post('/kasir/proses-bayar', ['id_transaksi' => $d->id_transaksi, 'jumlah_bayar' => 0, 'metode_pembayaran' => 'Tunai', 'submit_id' => 'k7-b',
+            'items' => [$d->id_detail => ['biaya_cetak' => 50000, 'biaya_desain' => 50000, 'biaya_finishing' => 0]]])->assertSessionHas('error');
+        $this->assertEquals(150000, (float) DB::table('transaksi_detail')->value('biaya_desain'));
+    }
 }
