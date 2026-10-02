@@ -231,7 +231,7 @@
                         <span class="text-sm text-slate-400">Diskon (Nota)</span>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 font-medium text-[11px]">Rp</span>
-                            <input type="text" id="input-diskon" name="diskon" value="0"
+                            <input type="text" id="input-diskon" name="diskon" value="{{ number_format((float) ($transaksi->diskon ?? 0), 0, ',', '.') }}"
                                 class="format-ribuan w-36 h-9 bg-white border border-slate-100 rounded-xl text-right text-sm text-slate-700 font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 pl-9">
                         </div>
                     </div>

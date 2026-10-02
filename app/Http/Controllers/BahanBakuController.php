@@ -322,20 +322,30 @@ class BahanBakuController extends Controller
         $ditahan = [];
 
         foreach ($ids as $id) {
-            $bahan = BahanBaku::find($id);
-            if (!$bahan) {
-                continue;
-            }
-            if (self::pemakaianBahan((int) $id) !== []) {
-                $ditahan[] = $bahan->nama_bahan;
-                continue;
-            }
+            // Per bahan satu transaksi dengan baris bahan dikunci: setiap pergerakan stok juga mengunci baris ini, jadi
+            // riwayat baru tidak bisa menyelip di antara pemeriksaan riwayat dan penghapusan.
             try {
-                $bahan->delete();
-                $berhasil++;
+                $hasil = DB::transaction(function () use ($id) {
+                    $bahan = BahanBaku::whereKey($id)->lockForUpdate()->first();
+                    if (!$bahan) {
+                        return null;
+                    }
+                    if (self::pemakaianBahan((int) $id) !== []) {
+                        return $bahan->nama_bahan;
+                    }
+                    $bahan->delete();
+
+                    return true;
+                });
             } catch (\Exception $e) {
                 report($e);
-                $ditahan[] = $bahan->nama_bahan;
+                $hasil = (string) (BahanBaku::whereKey($id)->value('nama_bahan') ?? "#{$id}");
+            }
+
+            if ($hasil === true) {
+                $berhasil++;
+            } elseif (is_string($hasil)) {
+                $ditahan[] = $hasil;
             }
         }
 

@@ -34,9 +34,16 @@ class PembayaranHutangService
     }
 
     /** Saldo Kas Kecil (akun 1005) menurut jurnal - simpanan darurat di luar laci. */
-    public static function saldoKasKecil(): float
+    /**
+     * $terkunci = true dipakai PENJAGA saldo di dalam transaksi: hitungan dibaca sebagai locking read, yang selalu
+     * melihat data terbaru yang sudah di-commit. Pembacaan biasa di MySQL (REPEATABLE READ) memakai potret yang
+     * terbentuk pada bacaan biasa pertama di transaksi; bila potret itu terbentuk sebelum kunci didapat, dua
+     * pengeluaran bersamaan sama-sama melihat saldo lama dan sama-sama lolos (saldo minus).
+     */
+    public static function saldoKasKecil(bool $terkunci = false): float
     {
-        return round((float) DB::table('jurnal_umum')->where('kode_akun', '1005')->sum(DB::raw('debet - kredit')), 2);
+        return round((float) DB::table('jurnal_umum')->where('kode_akun', '1005')->when($terkunci, fn ($q) => $q->sharedLock())
+            ->sum(DB::raw('debet - kredit')), 2);
     }
 
     /** Ringkasan satu faktur untuk layar pelunasan. */

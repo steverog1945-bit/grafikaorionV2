@@ -236,11 +236,16 @@ class StokReversalService
                 ->where('auditable_id', $idDetail)
                 ->where('new_values', 'like', '%"mode":"bahan-langsung"%')
                 ->exists();
+            // Penanda utama ada di kartu stok (tidak pernah diarsipkan): setiap pengembalian item ini membawa tanda
+            // "(item #id)". Log audit di atas hanya lapisan kedua, karena data:rapikan memindahkannya ke arsip setelah 24 bulan.
+            $penanda = "(item #{$idDetail})";
+            $sudah = $sudah || DB::table('kartu_stok')->where('id_bahan', (int) $detail->id_bahan)->where('tipe', 'IN')
+                ->where('keterangan', 'like', '%' . $penanda)->exists();
             if ($idDetail <= 0 || $sudah || (float) $detail->qty <= 0) {
                 return [];
             }
 
-            $hasil = self::tambahkanKembali((int) $detail->id_bahan, (float) $detail->qty, $referensi, $keterangan);
+            $hasil = self::tambahkanKembali((int) $detail->id_bahan, (float) $detail->qty, $referensi, $keterangan . ' ' . $penanda);
             $ringkasan = $hasil !== null ? [$hasil] : [];
             self::logReversal($idDetail, 'bahan-langsung', $ringkasan, $referensi, $keterangan);
 

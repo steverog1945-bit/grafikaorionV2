@@ -221,10 +221,14 @@ class KasirController extends Controller
             // data pada bacaan pertama; bila kunci baru diambil setelah bacaan lain, proses yang menunggu
             // kunci tetap menghitung "total sudah dibayar" dari potret lama dan ikut mencatat pembayaran.
             // Terbukti dengan uji proses paralel: 6 pelunasan bersamaan semuanya tercatat (6x tagihan).
-            DB::table('transaksi')->where('id_transaksi', $id_transaksi)->lockForUpdate()->first();
+            $notaTerkunci = DB::table('transaksi')->where('id_transaksi', $id_transaksi)->lockForUpdate()->first();
             $uangDiterimaSekarang = (float) (str_replace('.', '', $request->jumlah_bayar) ?: 0);
             $kembalian = 0.0;
-            $diskon = (float) str_replace('.', '', $request->diskon ?? 0);
+            // Diskon nota tersimpan di transaksi. Isian "0" berarti diskon sengaja dihapus; isian yang tidak dikirim sama
+            // sekali berarti diskon yang sudah disepakati tetap berlaku (bukan kembali ke harga sebelum diskon).
+            $diskon = $request->filled('diskon')
+                ? (float) str_replace('.', '', $request->diskon)
+                : (float) ($notaTerkunci->diskon ?? 0);
             $metode = $request->metode_pembayaran;
 
             if ($uangDiterimaSekarang < 0) {
@@ -422,7 +426,7 @@ class KasirController extends Controller
                     // yang sudah disetor sebelumnya (lihat KonsumenDepositController).
                     // Validasi saldo di sini juga (bukan cuma client-side) supaya
                     // tidak bisa "bayar" dari saldo yang tidak ada.
-                    $saldoDeposit = KonsumenDepositController::saldoUntuk((int) $transaksiRow->id_konsumen);
+                    $saldoDeposit = KonsumenDepositController::saldoUntuk((int) $transaksiRow->id_konsumen, true);
                     if ($uangDiterimaSekarang > $saldoDeposit) {
                         throw new \Exception("Saldo deposit tidak cukup. Tersedia: Rp " . number_format($saldoDeposit, 0, ',', '.'));
                     }
@@ -508,6 +512,7 @@ class KasirController extends Controller
 
             $updateData = [
                 'total_bayar'       => $grandTotalFinal,
+                'diskon'            => $diskon,
                 'status_pembayaran' => $status,
                 'updated_at'        => now()
             ];

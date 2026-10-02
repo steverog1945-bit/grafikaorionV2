@@ -143,7 +143,7 @@ class KonsumenDepositController extends Controller
                 // Mutex per konsumen sebelum membaca saldo (sama seperti pembayaran via deposit).
                 DB::table('konsumen')->where('id_konsumen', $data['id_konsumen'])->lockForUpdate()->first();
 
-                $saldo = self::saldoUntuk((int) $data['id_konsumen']);
+                $saldo = self::saldoUntuk((int) $data['id_konsumen'], true);
                 if ((float) $data['nominal'] > $saldo) {
                     throw new \RuntimeException('Nominal melebihi saldo deposit. Saldo tersedia: Rp ' . number_format($saldo, 0, ',', '.'));
                 }
@@ -179,13 +179,19 @@ class KonsumenDepositController extends Controller
      * Saldo deposit tersedia untuk satu konsumen (dipakai KasirController
      * saat validasi pembayaran metode Deposit).
      */
-    public static function saldoUntuk(int $idKonsumen): float
+    /**
+     * $terkunci = true dipakai PENJAGA saldo di dalam transaksi: hitungan dibaca sebagai locking read, yang selalu
+     * melihat data terbaru yang sudah di-commit. Pembacaan biasa di MySQL (REPEATABLE READ) memakai potret yang
+     * terbentuk pada bacaan biasa pertama di transaksi; bila potret itu terbentuk sebelum kunci didapat, dua
+     * pengeluaran bersamaan sama-sama melihat saldo lama dan sama-sama lolos (saldo minus).
+     */
+    public static function saldoUntuk(int $idKonsumen, bool $terkunci = false): float
     {
         $setoran = (float) DB::table('konsumen_deposit')
-            ->where('id_konsumen', $idKonsumen)->where('tipe', 'Setoran')->sum('nominal');
+            ->where('id_konsumen', $idKonsumen)->where('tipe', 'Setoran')->when($terkunci, fn ($q) => $q->sharedLock())->sum('nominal');
         // Pemakaian (bayar nota) dan Pengembalian (uang dikembalikan) sama-sama mengurangi saldo.
         $pemakaian = (float) DB::table('konsumen_deposit')
-            ->where('id_konsumen', $idKonsumen)->whereIn('tipe', ['Pemakaian', 'Pengembalian'])->sum('nominal');
+            ->where('id_konsumen', $idKonsumen)->whereIn('tipe', ['Pemakaian', 'Pengembalian'])->when($terkunci, fn ($q) => $q->sharedLock())->sum('nominal');
 
         return $setoran - $pemakaian;
     }

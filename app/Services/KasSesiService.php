@@ -48,14 +48,21 @@ class KasSesiService
      * Uang tunai yang seharusnya ada di laci untuk sesi ini: saldo awal + pembayaran tunai selama sesi
      * + kas tidak terduga masuk - kas tidak terduga keluar. Rumus sama dengan Preview Closing.
      */
-    public static function saldoLaci(object $kas): float
+    /**
+     * $terkunci = true dipakai PENJAGA saldo di dalam transaksi: hitungan dibaca sebagai locking read, yang selalu
+     * melihat data terbaru yang sudah di-commit. Pembacaan biasa di MySQL (REPEATABLE READ) memakai potret yang
+     * terbentuk pada bacaan biasa pertama di transaksi; bila potret itu terbentuk sebelum kunci didapat, dua
+     * pengeluaran bersamaan sama-sama melihat saldo lama dan sama-sama lolos (saldo minus).
+     */
+    public static function saldoLaci(object $kas, bool $terkunci = false): float
     {
         $tunai = (float) DB::table('pembayaran_riwayat')
             ->where('tgl_bayar', '>=', self::mulai($kas))
             ->where('tgl_bayar', '<=', self::akhir($kas))
             ->where('metode', 'Tunai')
+            ->when($terkunci, fn ($q) => $q->sharedLock())
             ->sum('nominal');
-        $manual = DB::table('kas_manual')->where('id_kas', $kas->id_kas)
+        $manual = DB::table('kas_manual')->where('id_kas', $kas->id_kas)->when($terkunci, fn ($q) => $q->sharedLock())
             ->selectRaw("COALESCE(SUM(CASE WHEN status = 'Masuk' THEN nominal ELSE 0 END), 0) masuk, COALESCE(SUM(CASE WHEN status = 'Keluar' THEN nominal ELSE 0 END), 0) keluar")
             ->first();
 
@@ -69,7 +76,7 @@ class KasSesiService
     public static function pastikanLaciCukup(object $kas, float $nominal): void
     {
         $kas = DB::table('kas_harian')->where('id_kas', $kas->id_kas)->lockForUpdate()->first();
-        $saldo = self::saldoLaci($kas);
+        $saldo = self::saldoLaci($kas, true);
         if (round($nominal, 2) > $saldo + 0.01) {
             throw new \RuntimeException('Uang di laci menurut sistem Rp ' . number_format(max(0, $saldo), 0, ',', '.') . ', tidak cukup untuk mengeluarkan Rp ' . number_format($nominal, 0, ',', '.') . '.');
         }

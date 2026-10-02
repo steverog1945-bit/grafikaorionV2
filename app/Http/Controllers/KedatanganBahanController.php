@@ -211,29 +211,39 @@ public function bulkDelete(Request $request)
 }
     public function update(Request $request, $id)
 {
+    // Aturan isi sama dengan form tambah (store): qty yang tidak sah tidak boleh sampai ke perhitungan selisih stok.
     $request->validate([
         'no_surat_jalan' => 'required|max:255',
         'tgl_datang'     => ['required', 'date', new \App\Rules\TanggalTransaksi],
-        'id_supplier'    => 'required',
+        'id_supplier'    => 'required|exists:supplier,id_supplier',
+        'id_gudang'      => 'nullable|exists:gudang,id_gudang',
         'id_bahan'       => 'required|array|min:1',
-        'qty'            => 'required|array|min:1',
+        'id_bahan.*'     => 'required|exists:bahan_baku,id_bahan',
+        'qty'            => 'required|array|size:' . count((array) $request->input('id_bahan', [])),
+        'qty.*'          => 'required|numeric|min:0.01',
+    ], [
+        'qty.size' => 'Jumlah baris qty harus sama dengan jumlah bahan.',
     ]);
 
-    $kedatangan = KedatanganBahan::with('detail')->findOrFail($id);
-
-    // Faktur, hutang, dan persediaan mengacu ke qty kedatangan ini: mengubahnya diam-diam membuat ketiganya tidak cocok.
-    $faktur = PembelianBahan::withTrashed()->where('id_kedatangan', $kedatangan->id_kedatangan)->first();
-    if ($faktur) {
-        return back()->withInput()->with('error', "Kedatangan {$kedatangan->no_surat_jalan} sudah difakturkan ({$faktur->no_faktur}), jadi tidak bisa diubah. Bila qty-nya salah, batalkan fakturnya dulu lewat Pembelian Bahan (perlu persetujuan).");
-    }
-
-    // Form edit tidak mengirim status: status lama dipertahankan. Sebelumnya jatuh ke 'Draft', sehingga setiap edit
-    // kedatangan yang sudah divalidasi diam-diam menarik seluruh stoknya kembali.
-    $statusLama = $kedatangan->status;
-    $statusBaru = in_array($request->input('status'), ['Draft', 'Selesai'], true) ? $request->input('status') : $statusLama;
-
     try {
-        DB::transaction(function () use ($request, $kedatangan, $statusLama, $statusBaru) {
+        $statusBaru = DB::transaction(function () use ($request, $id) {
+            // Baris kedatangan dikunci lebih dulu, baru detail lama dan faktur dibaca: dua edit bersamaan antre (tidak
+            // menghitung selisih dari detail lama yang sama dua kali), dan faktur tidak bisa dibuat di sela pengecekan
+            // (PembelianBahanController::store mengunci baris yang sama).
+            $kedatangan = KedatanganBahan::whereKey($id)->lockForUpdate()->firstOrFail();
+            $kedatangan->load('detail');
+
+            // Faktur, hutang, dan persediaan mengacu ke qty kedatangan ini: mengubahnya diam-diam membuat ketiganya tidak cocok.
+            $faktur = PembelianBahan::withTrashed()->where('id_kedatangan', $kedatangan->id_kedatangan)->first();
+            if ($faktur) {
+                throw new \RuntimeException("Kedatangan {$kedatangan->no_surat_jalan} sudah difakturkan ({$faktur->no_faktur}), jadi tidak bisa diubah. Bila qty-nya salah, batalkan fakturnya dulu lewat Pembelian Bahan (perlu persetujuan).");
+            }
+
+            // Form edit tidak mengirim status: status lama dipertahankan. Sebelumnya jatuh ke 'Draft', sehingga setiap edit
+            // kedatangan yang sudah divalidasi diam-diam menarik seluruh stoknya kembali.
+            $statusLama = $kedatangan->status;
+            $statusBaru = in_array($request->input('status'), ['Draft', 'Selesai'], true) ? $request->input('status') : $statusLama;
+
             // Stok bergeser sebesar selisih per bahan (qty baru bila Selesai - qty lama bila Selesai), satu baris kartu
             // per bahan, dan ditolak bila hasilnya minus (bahan sudah terpakai).
             $selisih = [];
@@ -303,6 +313,8 @@ public function bulkDelete(Request $request)
             }
 
             \App\Services\PurchaseOrderService::sinkronPenerimaan($kedatangan->id_purchase_order);
+
+            return $statusBaru;
         });
     } catch (\RuntimeException $e) {
         return back()->withInput()->with('error', $e->getMessage());

@@ -82,4 +82,33 @@ class BatalSpkHppTest extends TestCase
         $this->assertEquals(96000, $this->saldo('1200'));
         $this->assertEquals(4000, $this->saldo('5000'));
     }
+
+    public function test_pembalikan_hpp_memakai_nilai_saat_order_bukan_harga_rata_rata_terbaru(): void
+    {
+        // Harga rata-rata naik setelah order dibuat (mis. ada pembelian baru yang lebih mahal).
+        DB::table('bahan_baku')->where('id_bahan', $this->bahan)->update(['harga_rata_rata' => 2000]);
+
+        $this->patch("/produksi/{$this->idDetail}/cancel", ['kembalikan_stok' => 1, 'alasan_batal' => 'salah ukuran'])->assertSessionMissing('error');
+
+        // HPP yang dulu dijurnal 4.000 (4 m2 x 1.000): yang dibalik juga 4.000, bukan 4 x 2.000.
+        $this->assertEquals(0, $this->saldo('5000'));
+        $this->assertEquals(100000, $this->saldo('1200'));
+    }
+
+    public function test_batal_spk_tanpa_kembali_lalu_batal_nota_dengan_kembali_hpp_item_itu_tetap_biaya(): void
+    {
+        // Bahan item ini sudah terpakai: SPK dibatalkan TANPA pengembalian.
+        $this->patch("/produksi/{$this->idDetail}/cancel", ['alasan_batal' => 'bahan rusak'])->assertSessionMissing('error');
+
+        // Notanya kemudian dibatalkan dengan pilihan kembalikan stok (berlaku untuk item yang masih aktif).
+        $this->patch("/penjualan/{$this->idTransaksi}/batalkan-nota", ['alasan' => 'batal', 'kembalikan_stok' => 1]);
+        $req = ApprovalRequest::where('tipe_aksi', 'batalkan_nota')->firstOrFail();
+        $this->patch("/approval/{$req->id}/approve", ['catatan' => 'ok']);
+
+        $this->assertSame('Dibatalkan', DB::table('transaksi')->where('id_transaksi', $this->idTransaksi)->value('status_nota'));
+        $this->assertEquals(96, (float) DB::table('bahan_baku')->where('id_bahan', $this->bahan)->value('stok'), 'bahan yang sudah terpakai tidak kembali');
+        $this->assertEquals(4000, $this->saldo('5000'), 'HPP bahan yang terpakai ikut terbalik');
+        $this->assertEquals(96000, $this->saldo('1200'), 'nilai persediaan lebih besar dari stok fisik');
+        $this->assertEquals((float) DB::table('jurnal_umum')->sum('debet'), (float) DB::table('jurnal_umum')->sum('kredit'));
+    }
 }

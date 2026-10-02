@@ -124,4 +124,27 @@ class PengeluaranPemilikTest extends TestCase
         $r->assertViewHas('selisih', 65000.0 - 515000.0);
         $r->assertSee('Beban Listrik &amp; Telepon', false)->assertSee('Beban Perlengkapan Toko');
     }
+
+    public function test_pembayaran_dari_saldo_deposit_tidak_dihitung_dua_kali_sebagai_uang_masuk(): void
+    {
+        $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
+        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'A', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'saldo_awal' => 0, 'status_lock' => 'open', 'created_at' => now()->subMinute()]);
+
+        // Uang masuk sekali: setoran deposit 40.000 lewat transfer.
+        $this->post('/konsumen-deposit', ['id_konsumen' => $kons, 'nominal' => 40000, 'metode_bayar' => 'Transfer', 'tgl_deposit' => now()->toDateString()])
+            ->assertSessionHas('success');
+
+        // Nota 25.000 dibayar dari saldo deposit: bukan uang masuk baru.
+        $this->post('/penjualan-barang/store', ['id_konsumen' => $kons, 'items' => [['tipe' => 'custom', 'nama' => 'Stiker', 'qty' => 1, 'harga' => 25000]]])
+            ->assertSessionHasNoErrors();
+        $t = DB::table('transaksi')->latest('id_transaksi')->first();
+        $this->post('/kasir/proses-bayar', ['id_transaksi' => $t->id_transaksi, 'jumlah_bayar' => '25.000', 'metode_pembayaran' => 'Deposit', 'submit_id' => 'dp-1'])
+            ->assertSessionHas('success');
+
+        $hari = now()->toDateString();
+        $this->get("/akuntansi/perbandingan?awal={$hari}&akhir={$hari}")->assertOk()
+            ->assertViewHas('uangDiterima', 0.0)
+            ->assertViewHas('setoranDeposit', 40000.0);
+    }
 }

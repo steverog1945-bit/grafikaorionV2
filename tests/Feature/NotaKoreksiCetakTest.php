@@ -160,4 +160,20 @@ class NotaKoreksiCetakTest extends TestCase
         $this->assertEquals(0, $this->saldo('1100'));
         $this->assertEquals((float) DB::table('jurnal_umum')->sum('debet'), (float) DB::table('jurnal_umum')->sum('kredit'));
     }
+
+    public function test_pengembalian_stok_penjualan_langsung_tetap_sekali_walau_log_audit_diarsipkan(): void
+    {
+        $t = $this->notaPenjualanLangsung();
+        $item = DB::table('transaksi_detail')->where('id_transaksi', $t->id_transaksi)->whereNotNull('id_bahan')->first();
+
+        \App\Services\StokReversalService::kembalikan($item, 'BATAL-UJI', 'uji pengembalian');
+        $this->assertEquals(50, $this->stok());
+
+        // Log audit lebih tua dari 24 bulan dipindah ke arsip oleh data:rapikan: penanda di log itu hilang.
+        DB::table('audit_logs')->where('event', 'stok_reversal')->delete();
+
+        \App\Services\StokReversalService::kembalikan($item, 'BATAL-UJI', 'uji pengembalian');
+        $this->assertEquals(50, $this->stok(), 'stok bahan dikembalikan dua kali');
+        $this->assertSame(1, DB::table('kartu_stok')->where('id_bahan', $this->bahan)->where('tipe', 'IN')->count());
+    }
 }

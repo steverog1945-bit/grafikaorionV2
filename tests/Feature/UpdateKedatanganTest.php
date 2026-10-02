@@ -123,4 +123,18 @@ class UpdateKedatanganTest extends TestCase
 
         $this->assertSame($sebelum, $this->potret());
     }
+
+    public function test_edit_dengan_qty_tidak_sah_ditolak_validasi_tanpa_perubahan(): void
+    {
+        $id = $this->kedatanganDivalidasi('SJ-V', 100);
+        $sebelum = $this->potret();
+        $isian = ['no_surat_jalan' => 'SJ-V', 'id_supplier' => $this->sup, 'tgl_datang' => now()->toDateString(), 'id_gudang' => $this->gudang];
+
+        $this->put("/kedatangan-bahan/{$id}", $isian + ['id_bahan' => [$this->bahan], 'qty' => [-500]])->assertSessionHasErrors('qty.0');
+        $this->put("/kedatangan-bahan/{$id}", $isian + ['id_bahan' => [$this->bahan], 'qty' => ['seratus']])->assertSessionHasErrors('qty.0');
+        $this->put("/kedatangan-bahan/{$id}", $isian + ['id_bahan' => [999999], 'qty' => [10]])->assertSessionHasErrors('id_bahan.0');
+        $this->put("/kedatangan-bahan/{$id}", $isian + ['id_bahan' => [$this->bahan, $this->bahan], 'qty' => [10]])->assertSessionHasErrors('qty');
+
+        $this->assertSame($sebelum, $this->potret(), 'isian tidak sah tetap mengubah stok/detail');
+    }
 }

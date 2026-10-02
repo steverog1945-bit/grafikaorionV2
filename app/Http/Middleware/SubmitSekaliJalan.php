@@ -32,7 +32,9 @@ class SubmitSekaliJalan
 
     /**
      * Kunci "sedang diproses" sengaja pendek (sedikit di atas max_execution_time 120 detik): bila proses mati mendadak
-     * sehingga kunci tidak pernah dilepas, operator hanya tertahan beberapa menit, bukan 15 menit.
+     * sehingga kunci tidak pernah dilepas, operator hanya tertahan beberapa menit, bukan 15 menit. Tidak ada permintaan
+     * web yang bisa berjalan lebih lama dari batas itu (tidak ada set_time_limit di aplikasi, dan di Windows batasnya
+     * waktu nyata termasuk menunggu database), jadi kunci tidak kedaluwarsa selagi pengiriman pertama masih berjalan.
      */
     private const TTL_DIPROSES_MENIT = 3;
 
@@ -43,7 +45,11 @@ class SubmitSekaliJalan
             return $next($request);
         }
 
-        $kunci = 'submit:' . optional($request->route())->getName() . ':' . $request->path() . ':' . Auth::id() . ':' . $id;
+        // Sidik isi kiriman ikut menjadi kunci: submit_id yang sama dengan isi BERBEDA (form yang id-nya tidak berganti)
+        // adalah kiriman baru dan diproses, bukan dijawab dengan hasil kiriman sebelumnya tanpa menyimpan apa pun.
+        $isi = $request->except(['submit_id', '_token', '_method']);
+        $sidik = md5(serialize($isi));
+        $kunci = 'submit:' . optional($request->route())->getName() . ':' . $request->path() . ':' . Auth::id() . ':' . $id . ':' . $sidik;
 
         if (!Cache::add($kunci, 'diproses', now()->addMinutes(self::TTL_DIPROSES_MENIT))) {
             return $this->ulangan($request, Cache::get($kunci));

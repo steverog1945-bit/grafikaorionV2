@@ -46,7 +46,7 @@ class SubmitSekaliJalanTambahanTest extends TestCase
             // Proses yang berjalan sangat lama: selama ia berjalan, kunci "diproses" milik middleware dipegang.
             Route::post('/uji-kirim/lama', function () use ($uji) {
                 $uji->travel(4)->minutes();
-                $uji->masihTerkunci = Cache::has('submit:uji.lama:uji-kirim/lama:' . auth()->id() . ':l-1');
+                $uji->masihTerkunci = Cache::has('submit:uji.lama:uji-kirim/lama:' . auth()->id() . ':l-1:' . md5(serialize([])));
 
                 return redirect('/uji-kirim/selesai');
             })->name('uji.lama');
@@ -79,5 +79,18 @@ class SubmitSekaliJalanTambahanTest extends TestCase
         $this->post('/uji-kirim/lama', ['submit_id' => 'l-1']);
 
         $this->assertFalse($this->masihTerkunci, 'kunci "diproses" masih berlaku setelah 4 menit');
+    }
+
+    public function test_submit_id_sama_dengan_isi_berbeda_tetap_diproses(): void
+    {
+        // Form yang submit_id-nya tidak berganti (mis. halaman tidak dimuat ulang) mengirim isi BARU: harus disimpan,
+        // bukan dijawab "sudah tersimpan" dengan hasil kiriman sebelumnya.
+        $this->post('/uji-kirim/sukses', ['submit_id' => 'h-1', 'nominal' => 1000])->assertSessionHas('success');
+        $this->post('/uji-kirim/sukses', ['submit_id' => 'h-1', 'nominal' => 2000])->assertSessionHas('success');
+        $this->assertSame(2, $this->jalan, 'isi baru dengan submit_id lama tidak disimpan');
+
+        // Isi yang sama persis tetap dianggap kiriman ulang.
+        $this->post('/uji-kirim/sukses', ['submit_id' => 'h-1', 'nominal' => 2000]);
+        $this->assertSame(2, $this->jalan);
     }
 }

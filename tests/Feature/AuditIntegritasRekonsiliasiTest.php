@@ -76,4 +76,16 @@ class AuditIntegritasRekonsiliasiTest extends TestCase
 
         $this->assertSame([], $this->temuan());
     }
+
+    public function test_nota_lama_tanpa_jurnal_tidak_membuat_alarm_piutang_permanen(): void
+    {
+        // Nota dari sebelum integrasi akuntansi: punya tagihan, tetapi tidak pernah dijurnal ke Piutang.
+        $kasir = User::factory()->create();
+        $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
+        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Lama', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        DB::table('transaksi')->insert(['nomor_nota' => 'INV-LAMA-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => $kasir->id_user,
+            'tgl_order' => now()->subYear(), 'total_bayar' => 75000, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif']);
+
+        $this->assertNotContains('piutang_tidak_sinkron', $this->temuan());
+    }
 }

@@ -129,7 +129,10 @@ class AuditIntegritasCommand extends Command
         }
 
         // 8. Piutang Usaha (1100) = sisa tagihan nota aktif + sisa tagihan order jersey yang sudah terjurnal.
+        //    Hanya nota yang piutangnya pernah dijurnal: nota lama dari sebelum integrasi akuntansi tidak punya jurnal
+        //    Piutang sama sekali, jadi menghitungnya hanya membuat alarm permanen yang menutupi temuan sungguhan.
         $sisaNota = (float) DB::table('transaksi as t')->where('t.status_nota', '!=', 'Dibatalkan')
+            ->whereExists(fn ($q) => $q->select(DB::raw(1))->from('jurnal_umum as j')->whereColumn('j.no_referensi', 't.nomor_nota')->where('j.kode_akun', '1100'))
             ->leftJoinSub(DB::table('pembayaran_riwayat')->selectRaw('id_transaksi, SUM(nominal) s')->groupBy('id_transaksi'), 'b', 'b.id_transaksi', '=', 't.id_transaksi')
             ->selectRaw('COALESCE(SUM(t.total_bayar - COALESCE(b.s, 0)), 0) s')->value('s');
         $sisaJersey = 0.0;

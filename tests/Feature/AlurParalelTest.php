@@ -353,4 +353,32 @@ class AlurParalelTest extends TestCase
         $this->assertEquals(400000, -(float) DB::table('jurnal_umum')->where('kode_akun', '2000')->sum(DB::raw('debet - kredit')), 'hutang tercatat ganda');
         $this->assertEquals((float) DB::table('jurnal_umum')->sum('debet'), (float) DB::table('jurnal_umum')->sum('kredit'));
     }
+
+    public function test_komisi_empat_desainer_dibayar_bersamaan_kas_kecil_tidak_minus(): void
+    {
+        // Kas Kecil Rp100.000, empat desainer masing-masing berhak Rp40.000: hanya dua yang boleh dibayar.
+        \App\Services\AccountingService::postKasKecilMasuk('KK-SALDO', '3000', 100000);
+        $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
+        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $produk = DB::table('produk')->insertGetId(['nama_produk' => 'Desain', 'metode_hitung' => 'quantity', 'status' => 'aktif']);
+        $permintaan = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $desainer = User::factory()->create();
+            $t = DB::table('transaksi')->insertGetId(['nomor_nota' => 'INV-KOM-' . $i, 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => $this->admin->id_user,
+                'tgl_order' => now(), 'total_bayar' => 100000, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif']);
+            DB::table('transaksi_detail')->insert(['id_transaksi' => $t, 'id_produk' => $produk, 'nama_file' => 'd.pdf', 'p_ukuran' => 0, 'l_ukuran' => 0, 'qty' => 1,
+                'status_urgensi' => 'Normal', 'status_finishing' => 'Standar', 'subtotal' => 100000, 'hpp_snapshot' => 0, 'harga_jual_snapshot' => 100000,
+                'status_spk' => 'Selesai', 'biaya_cetak' => 0, 'biaya_desain' => 100000, 'id_desainer' => $desainer->id_user, 'komisi_desain' => 40000, 'komisi_status' => 'Belum']);
+            $permintaan[] = ['uri' => '/laporan/biaya-desain/bayar', 'data' => [
+                'id_desainer' => $desainer->id_user, 'tgl_dari' => now()->startOfMonth()->toDateString(), 'tgl_sampai' => now()->toDateString(),
+            ]];
+        }
+
+        $this->tembak($permintaan);
+
+        $saldo = (float) DB::table('jurnal_umum')->where('kode_akun', '1005')->sum(DB::raw('debet - kredit'));
+        $this->assertGreaterThanOrEqual(0, $saldo, 'saldo Kas Kecil minus: dua pembayaran membaca saldo lama');
+        $this->assertSame(2, DB::table('transaksi_detail')->where('komisi_status', 'Dibayar')->count());
+        $this->assertEquals(20000, $saldo);
+    }
 }

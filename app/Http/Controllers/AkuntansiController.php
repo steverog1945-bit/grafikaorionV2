@@ -187,8 +187,13 @@ class AkuntansiController extends Controller
         $pendapatanJasa = round((float) ($pendapatan['4100'] ?? 0), 2);
         $totalPemasukan = round($pendapatanPenjualan + $pendapatanJasa, 2);
 
+        // Uang yang benar-benar masuk dari pembayaran nota. Pembayaran memakai saldo Deposit bukan uang baru: uangnya
+        // sudah masuk saat setoran deposit, yang ditampilkan terpisah.
         $uangDiterima = round((float) DB::table('pembayaran_riwayat')
-            ->where('tgl_bayar', '>=', $awal . ' 00:00:00')->where('tgl_bayar', '<=', $akhir . ' 23:59:59')->sum('nominal'), 2);
+            ->where('tgl_bayar', '>=', $awal . ' 00:00:00')->where('tgl_bayar', '<=', $akhir . ' 23:59:59')
+            ->where('metode', '!=', 'Deposit')->sum('nominal'), 2);
+        $setoranDeposit = round((float) DB::table('konsumen_deposit')->where('tipe', 'Setoran')
+            ->where('tgl_deposit', '>=', $awal)->where('tgl_deposit', '<=', $akhir)->sum('nominal'), 2);
 
         $pengeluaran = DB::table('kas_kecil as k')
             ->leftJoin('kategori_kas_kecil as c', 'c.id_kategori_kas_kecil', '=', 'k.id_kategori')
@@ -207,7 +212,7 @@ class AkuntansiController extends Controller
             ->where('kode_akun', '3100')->sum(DB::raw('kredit - debet')), 2);
 
         return view('akuntansi.perbandingan', compact(
-            'awal', 'akhir', 'pendapatanPenjualan', 'pendapatanJasa', 'totalPemasukan', 'uangDiterima',
+            'awal', 'akhir', 'pendapatanPenjualan', 'pendapatanJasa', 'totalPemasukan', 'uangDiterima', 'setoranDeposit',
             'kasKecil', 'pemilik', 'totalKasKecil', 'totalPemilik', 'totalPengeluaran', 'selisih', 'bahanDariPemilik'
         ));
     }

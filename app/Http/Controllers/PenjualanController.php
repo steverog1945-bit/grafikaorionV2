@@ -626,7 +626,7 @@ class PenjualanController extends Controller
             // menyebabkan deposit terpakai melebihi yang disetor.
             DB::table('konsumen')->where('id_konsumen', $request->id_konsumen)->lockForUpdate()->first();
 
-            $saldoDeposit = KonsumenDepositController::saldoUntuk((int) $request->id_konsumen);
+            $saldoDeposit = KonsumenDepositController::saldoUntuk((int) $request->id_konsumen, true);
 
             if ($saldoDeposit > 0) {
                 $jumlahPakai = min($saldoDeposit, $grand_total);
@@ -853,6 +853,23 @@ public function show($id)
  * Item hasil produksi (punya id_produk). Bahan, jasa, dan item custom dari Penjualan dan Jasa langsung berstatus
  * Selesai sejak nota dibuat karena tidak lewat produksi, jadi status itu tidak boleh mengunci koreksi/pembatalan.
  */
+/**
+ * HPP item yang SPK-nya sudah dibatalkan TANPA pengembalian bahan (baris snapshot pemakaian masih ada, karena
+ * snapshot dihapus saat bahan dikembalikan). Bahan itu sudah terpakai, jadi HPP-nya tetap biaya walau notanya batal.
+ */
+private static function hppItemBatalTanpaKembali($items): float
+{
+    $nilai = 0.0;
+    foreach ($items as $i) {
+        if ($i->status_spk === 'Batal' && !empty($i->id_produk)
+            && DB::table('transaksi_detail_bahan_pakai')->where('id_detail', $i->id_detail)->exists()) {
+            $nilai += (float) $i->hpp_snapshot;
+        }
+    }
+
+    return round($nilai, 2);
+}
+
 private static function adaItemProduksi($items): bool
 {
     return $items->contains(fn ($i) => !empty($i->id_produk));
@@ -963,6 +980,7 @@ public function eksekusiPembatalanNota(int $id, array $payload): array
 
     $items = DB::table('transaksi_detail')->where('id_transaksi', $id)->get();
     $kembalikanStok = (bool) ($payload['kembalikan_stok'] ?? false);
+    $hppTerpakai = self::hppItemBatalTanpaKembali($items);
     $ringkasanStok = [];
 
     foreach ($items as $item) {
@@ -994,6 +1012,9 @@ public function eksekusiPembatalanNota(int $id, array $payload): array
     // terlihat di Laporan Piutang yang sudah mengecualikan nota batal.
     // Bahan tidak dikembalikan = sudah terpakai: HPP-nya tetap biaya (lihat reversePenjualan).
     AccountingService::reversePenjualan($transaksi->nomor_nota, $kembalikanStok);
+    if ($kembalikanStok) {
+        AccountingService::postHppBahanTerpakai($transaksi->nomor_nota, $hppTerpakai);
+    }
     $this->kreditkanPembayaranNotaBatal($transaksi);
 
     DB::table('transaksi')->where('id_transaksi', $id)->update([
@@ -1292,6 +1313,7 @@ public function applyApprovedEdit($id)
             return;
         }
 
+        $hppTerpakai = self::hppItemBatalTanpaKembali($items);
         foreach ($items as $item) {
             if ($item->status_spk === 'Batal') {
                 continue;
@@ -1305,6 +1327,7 @@ public function applyApprovedEdit($id)
         }
 
         AccountingService::reversePenjualan($transaksi->nomor_nota);
+        AccountingService::postHppBahanTerpakai($transaksi->nomor_nota, $hppTerpakai);
         $this->kreditkanPembayaranNotaBatal($transaksi);
 
         DB::table('transaksi')->where('id_transaksi', $transaksi->id_transaksi)->update([

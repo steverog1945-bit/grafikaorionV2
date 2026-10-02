@@ -61,7 +61,10 @@
                     <span class="text-slate-700">Total Pemasukan</span>
                     <span class="text-emerald-700">{{ $rp($totalPemasukan) }}</span>
                 </div>
-                <p class="text-[11px] text-slate-400 mt-2">Uang yang sudah diterima dari pelanggan pada periode ini: Rp {{ $rp($uangDiterima) }}. Sisanya masih piutang.</p>
+                <p class="text-[11px] text-slate-400 mt-2">Uang yang sudah diterima dari pembayaran nota pada periode ini: Rp {{ $rp($uangDiterima) }}. Sisanya masih piutang atau dibayar dari saldo deposit.</p>
+                @if($setoranDeposit > 0)
+                <p class="text-[11px] text-slate-400 mt-1">Setoran deposit pelanggan pada periode ini: Rp {{ $rp($setoranDeposit) }} (uang masuk lebih dulu, dipakai untuk nota berikutnya).</p>
+                @endif
             </div>
 
             <div>
@@ -133,7 +136,8 @@
 
         <x-laporan.resume-table title="Ringkasan" :rows="[
             'Total Pemasukan' => $rp($totalPemasukan),
-            'Uang sudah diterima' => $rp($uangDiterima),
+            'Uang diterima dari nota' => $rp($uangDiterima),
+            'Setoran deposit' => $rp($setoranDeposit),
             'Pengeluaran dari Kas Kecil' => $rp($totalKasKecil),
             'Dibayar langsung pemilik' => $rp($totalPemilik),
             ($selisih >= 0 ? 'Pemasukan lebih besar' : 'Pengeluaran lebih besar') => $rp(abs($selisih)),

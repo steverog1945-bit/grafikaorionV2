@@ -248,19 +248,30 @@ class ProduksiController extends Controller
             }
 
             $kartuSebelum = (int) DB::table('kartu_stok')->max('id');
+            // Item era snapshot: bahan yang dipotong tercatat di transaksi_detail_bahan_pakai dan HPP-nya = hpp_snapshot.
+            $adaSnapshot = DB::table('transaksi_detail_bahan_pakai')->where('id_detail', $id)->exists();
             $ringkasanStok = StokReversalService::kembalikan(
                 $detail,
                 'BATAL-SPK-' . $id,
                 'Pembatalan produksi (SPK #' . $id . ') - stok dikembalikan'
             );
 
-            // Bahan yang kembali ke gudang bukan lagi HPP: nilainya (qty x harga rata-rata) kembali ke Persediaan.
-            // Referensi nomor nota, jadi pembatalan nota sesudahnya membalik sisa HPP-nya saja (tidak dua kali).
-            $nilaiKembali = (float) DB::table('kartu_stok as k')->join('bahan_baku as b', 'b.id_bahan', '=', 'k.id_bahan')
-                ->where('k.id', '>', $kartuSebelum)->where('k.tipe', 'IN')->where('k.referensi', 'BATAL-SPK-' . $id)
-                ->sum(DB::raw('k.qty * b.harga_rata_rata'));
+            // Bahan yang kembali ke gudang bukan lagi HPP: nilainya kembali ke Persediaan. Nilainya HPP yang DULU dijurnal
+            // untuk item ini (hpp_snapshot, dihitung dengan harga rata-rata saat order), bukan harga rata-rata hari ini;
+            // kalau tidak, Persediaan dan HPP bergeser sebesar selisih harga. Nota lama tanpa snapshot memakai harga
+            // terkini (tidak ada data lain). Referensi nomor nota, jadi pembatalan nota sesudahnya membalik sisa HPP-nya saja.
+            $nilaiKembali = 0.0;
+            if ($ringkasanStok !== []) {
+                $nilaiKembali = $adaSnapshot
+                    ? (float) $detail->hpp_snapshot
+                    : (float) DB::table('kartu_stok as k')->join('bahan_baku as b', 'b.id_bahan', '=', 'k.id_bahan')
+                        ->where('k.id', '>', $kartuSebelum)->where('k.tipe', 'IN')->where('k.referensi', 'BATAL-SPK-' . $id)
+                        ->sum(DB::raw('k.qty * b.harga_rata_rata'));
+            }
             $noNota = DB::table('transaksi')->where('id_transaksi', $detail->id_transaksi)->value('nomor_nota');
-            if ($noNota) {
+            // Hanya bila HPP nota ini memang pernah dijurnal (nota lama sebelum integrasi akuntansi tidak punya).
+            $adaHpp = $noNota && DB::table('jurnal_umum')->where('no_referensi', $noNota)->where('kode_akun', '5000')->exists();
+            if ($adaHpp) {
                 \App\Services\AccountingService::postPembalikanHppItem($noNota, "Pembalikan HPP batal SPK #{$id} (bahan kembali ke stok)", $nilaiKembali);
             }
         });

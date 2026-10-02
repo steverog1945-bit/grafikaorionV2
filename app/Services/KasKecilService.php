@@ -17,7 +17,7 @@ class KasKecilService
     public static function pastikanSaldoCukup(float $nominal): void
     {
         DB::table('bag_akun')->where('kode_akun', '1005')->lockForUpdate()->first();
-        $saldo = PembayaranHutangService::saldoKasKecil();
+        $saldo = PembayaranHutangService::saldoKasKecil(true);
         if (round($nominal, 2) > $saldo + 0.01) {
             throw new \RuntimeException('Saldo Kas Kecil (Rp ' . number_format(max(0, $saldo), 0, ',', '.') . ') tidak cukup untuk mengeluarkan Rp ' . number_format($nominal, 0, ',', '.') . '. Isi Kas Kecil dulu.');
         }
@@ -30,13 +30,14 @@ class KasKecilService
      */
     public static function pastikanPemasukanBisaDitarik(string $noReferensi, string $label): void
     {
-        $masuk = round((float) DB::table('jurnal_umum')->where('no_referensi', $noReferensi)->where('kode_akun', '1005')->sum(DB::raw('debet - kredit')), 2);
+        // Kunci dulu, baru baca (keduanya terkunci): lihat catatan di PembayaranHutangService::saldoKasKecil().
+        DB::table('bag_akun')->where('kode_akun', '1005')->lockForUpdate()->first();
+        $masuk = round((float) DB::table('jurnal_umum')->where('no_referensi', $noReferensi)->where('kode_akun', '1005')->sharedLock()->sum(DB::raw('debet - kredit')), 2);
         if ($masuk <= 0) {
             return;
         }
 
-        DB::table('bag_akun')->where('kode_akun', '1005')->lockForUpdate()->first();
-        $saldo = PembayaranHutangService::saldoKasKecil();
+        $saldo = PembayaranHutangService::saldoKasKecil(true);
         if ($masuk > $saldo + 0.01) {
             throw new \RuntimeException("{$label} tidak bisa dibatalkan: uangnya (Rp " . number_format($masuk, 0, ',', '.') . ') sudah terpakai, saldo Kas Kecil tinggal Rp ' . number_format(max(0, $saldo), 0, ',', '.') . '. Batalkan dulu pengeluaran yang memakainya, atau catat setoran pemilik bila uangnya memang ada.');
         }

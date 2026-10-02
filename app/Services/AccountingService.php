@@ -340,6 +340,24 @@ class AccountingService
         ]);
     }
 
+    /**
+     * Nota dibatalkan dengan pengembalian bahan, tetapi ada item yang SPK-nya sudah dibatalkan lebih dulu TANPA
+     * pengembalian (bahannya terpakai/rusak). reversePenjualan membalik seluruh HPP nota; HPP item itu dicatat lagi
+     * (Dr HPP / Cr Persediaan) supaya Persediaan tetap sama dengan stok fisik.
+     */
+    public static function postHppBahanTerpakai(string $noNota, float $nilai): void
+    {
+        $nilai = round($nilai, 2);
+        if ($nilai <= 0) {
+            return;
+        }
+
+        self::postJournal(now()->toDateString(), $noNota, "HPP bahan terpakai pada item batal {$noNota} (bahan tidak kembali)", [
+            ['kode_akun' => self::AKUN_HPP, 'debet' => $nilai],
+            ['kode_akun' => self::AKUN_PERSEDIAAN_BAHAN, 'kredit' => $nilai],
+        ]);
+    }
+
     /** Bahan item yang dibatalkan kembali ke stok: Dr Persediaan / Cr HPP senilai bahan yang kembali. */
     public static function postPembalikanHppItem(string $noNota, string $keterangan, float $nilai): void
     {

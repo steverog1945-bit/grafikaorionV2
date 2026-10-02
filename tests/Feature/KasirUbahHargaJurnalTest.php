@@ -90,4 +90,24 @@ class KasirUbahHargaJurnalTest extends TestCase
 
         $this->assertSame($sebelum, DB::table('transaksi')->count());
     }
+
+    public function test_diskon_tersimpan_tidak_hilang_di_pembayaran_berikutnya(): void
+    {
+        // DP dengan diskon 6.500: total menjadi 58.500.
+        $this->bayar('20.000', '6.500', 'g-1')->assertSessionHas('success');
+        $this->assertEquals(58500, (float) DB::table('transaksi')->where('id_transaksi', $this->nota->id_transaksi)->value('total_bayar'));
+
+        // Form pelunasan dibuka lagi: diskon yang sudah disepakati tampil, bukan kembali 0.
+        $this->get(route('kasir.bayarForm', $this->nota->id_transaksi))->assertOk()
+            ->assertSee('id="input-diskon" name="diskon" value="6.500"', false);
+
+        // Pelunasan tanpa isian diskon (klien lama/permintaan tanpa field itu): diskon tersimpan tetap berlaku.
+        $this->post('/kasir/proses-bayar', ['id_transaksi' => $this->nota->id_transaksi, 'jumlah_bayar' => '38.500', 'metode_pembayaran' => 'Transfer', 'submit_id' => 'g-2'])
+            ->assertSessionHas('success');
+
+        $t = DB::table('transaksi')->where('id_transaksi', $this->nota->id_transaksi)->first();
+        $this->assertEquals(58500, (float) $t->total_bayar, 'diskon hilang di pembayaran berikutnya');
+        $this->assertSame('Lunas', $t->status_pembayaran);
+        $this->assertEquals(0, $this->saldo('1100'), 'pelanggan yang sudah membayar sesuai kesepakatan masih tercatat berutang');
+    }
 }
