@@ -164,8 +164,11 @@
             <h3 class="text-xl font-medium break-words text-slate-700 mt-1">Rp {{ number_format($masukNonTunai, 0, ',', '.') }}</h3>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm min-w-0">
-            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Pengeluaran</p>
+            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Pengeluaran dari Kas Kecil</p>
             <h3 class="text-xl font-medium break-words text-rose-500 mt-1">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
+            @if($pengeluaranPemilik > 0)
+                <p class="text-[11px] text-slate-400 mt-1">Dibayar langsung pemilik: Rp {{ number_format($pengeluaranPemilik, 0, ',', '.') }}</p>
+            @endif
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm min-w-0">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Saldo Kas Kecil Saat Ini</p>
@@ -178,7 +181,8 @@
             'Jumlah Catatan' => number_format($data->total(), 0, ',', '.'),
             'Pemasukan Tunai' => 'Rp ' . number_format($masukTunai, 0, ',', '.'),
             'Pemasukan Non-Tunai' => 'Rp ' . number_format($masukNonTunai, 0, ',', '.'),
-            'Total Pengeluaran' => 'Rp ' . number_format($totalPengeluaran, 0, ',', '.'),
+            'Pengeluaran dari Kas Kecil' => 'Rp ' . number_format($totalPengeluaran, 0, ',', '.'),
+            'Dibayar langsung pemilik' => 'Rp ' . number_format($pengeluaranPemilik, 0, ',', '.'),
             'Saldo Kas Kecil saat ini' => 'Rp ' . number_format($saldoKasKecil, 0, ',', '.'),
         ]" />
     </div>

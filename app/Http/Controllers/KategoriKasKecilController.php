@@ -59,6 +59,8 @@ class KategoriKasKecilController extends Controller
             'nama_kategori' => $request->nama_kategori,
             'jenis' => $request->jenis,
             'kode_akun' => $request->kode_akun ?: null,
+            // Hanya pengeluaran yang bisa dibayar langsung pemilik.
+            'dibayar_pemilik' => $request->jenis === 'Keluar' && $request->boolean('dibayar_pemilik'),
         ]);
 
         return redirect()->route('kategori-kas-kecil.index')->with('success', 'Kategori kas kecil baru berhasil disimpan.');
@@ -78,6 +80,7 @@ class KategoriKasKecilController extends Controller
             'nama_kategori' => $request->nama_kategori,
             'jenis' => $request->jenis,
             'kode_akun' => $request->kode_akun ?: null,
+            'dibayar_pemilik' => $request->jenis === 'Keluar' && $request->boolean('dibayar_pemilik'),
         ]);
 
         return redirect()->route('kategori-kas-kecil.index')->with('success', 'Kategori kas kecil berhasil diperbarui.');

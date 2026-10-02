@@ -11,7 +11,9 @@ class KategoriKasKecil extends Model
     protected $table = 'kategori_kas_kecil';
     protected $primaryKey = 'id_kategori_kas_kecil';
 
-    protected $fillable = ['nama_kategori', 'jenis', 'kode_akun'];
+    protected $fillable = ['nama_kategori', 'jenis', 'kode_akun', 'dibayar_pemilik'];
+
+    protected $casts = ['dibayar_pemilik' => 'boolean'];
 
     public function kasKecil()
     {

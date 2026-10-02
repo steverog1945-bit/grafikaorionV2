@@ -328,6 +328,18 @@ class AccountingService
         self::postJournal(now()->toDateString(), $noNota, "Penyesuaian total nota {$noNota} di kasir (diskon/potongan/harga)", $lines);
     }
 
+    /**
+     * Biaya yang dibayar langsung oleh pemilik (bukan dari laci atau Kas Kecil): Dr Beban / Cr 3200 Dana Pemilik
+     * untuk Biaya Operasional. Beban tetap masuk Laba Rugi, tanpa ada kas yang berkurang.
+     */
+    public static function postBiayaDibayarPemilik(string $noReferensi, string $kodeAkunBeban, float $nominal): void
+    {
+        self::postJournal(now()->toDateString(), $noReferensi, "Biaya dibayar langsung pemilik {$noReferensi}", [
+            ['kode_akun' => $kodeAkunBeban, 'debet' => $nominal],
+            ['kode_akun' => '3200', 'kredit' => $nominal],
+        ]);
+    }
+
     /** Bahan item yang dibatalkan kembali ke stok: Dr Persediaan / Cr HPP senilai bahan yang kembali. */
     public static function postPembalikanHppItem(string $noNota, string $keterangan, float $nilai): void
     {

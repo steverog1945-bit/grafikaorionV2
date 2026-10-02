@@ -38,7 +38,7 @@ class KasKecilTidakMinusTest extends TestCase
 
     private function keluar(float $nominal): int
     {
-        $this->post('/kas-kecil', ['tanggal' => now()->toDateString(), 'jenis' => 'Keluar', 'id_kategori' => $this->kategori('Beban Perlengkapan Kantor'),
+        $this->post('/kas-kecil', ['tanggal' => now()->toDateString(), 'jenis' => 'Keluar', 'id_kategori' => $this->kategori('Beban Perlengkapan Toko'),
             'keterangan' => 'Beli ATK', 'nominal' => $nominal])->assertSessionHas('success');
 
         return (int) DB::table('kas_kecil')->where('jenis', 'Keluar')->latest('id')->value('id');

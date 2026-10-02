@@ -63,6 +63,9 @@
                             <i class="fas fa-exclamation-triangle"></i> Belum Dipetakan
                         </span>
                     @endif
+                    @if($kat->dibayar_pemilik)
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-sky-50 text-sky-700 border border-sky-100 ml-1" title="Dicatat tanpa mengurangi saldo Kas Kecil">Dibayar pemilik</span>
+                    @endif
                 </td>
                 <td class="px-8 py-5 text-right">
                     <div class="flex justify-end gap-2">
@@ -129,6 +132,11 @@
             </x-form.select>
         </x-form.group>
 
+        <label id="barisDibayarPemilik" class="flex items-start gap-3 text-sm text-slate-600 cursor-pointer">
+            <input type="checkbox" name="dibayar_pemilik" value="1" id="inputDibayarPemilikKategoriKasKecil" class="mt-1 accent-indigo-600">
+            <span>Dibayar langsung pemilik<br><small class="text-slate-400">Tetap dicatat sebagai biaya, tetapi tidak mengurangi saldo Kas Kecil.</small></span>
+        </label>
+
         <x-slot:footer>
             <x-button type="button" variant="secondary" onclick="closeModal('kategori-kas-kecil')">Batal</x-button>
             <x-button type="submit">Simpan Kategori</x-button>
@@ -151,6 +159,7 @@
         document.getElementById('inputJenisKategoriKasKecil').value = o.jenis || 'Keluar';
         saringAkunKategoriKasKecil();
         document.getElementById('inputKodeAkunKategoriKasKecil').value = o.akun || '';
+        document.getElementById('inputDibayarPemilikKategoriKasKecil').checked = !!o.pemilik;
     }
 
     function openTambahModalKategoriKasKecil() {
@@ -170,6 +179,7 @@
             nama: data.nama_kategori,
             jenis: data.jenis,
             akun: data.kode_akun,
+            pemilik: data.dibayar_pemilik,
         });
         openModal('kategori-kas-kecil');
     }
@@ -180,6 +190,8 @@
         const sel = document.getElementById('inputKodeAkunKategoriKasKecil');
         [...sel.options].forEach(o => { if (o.value) { const cocok = o.dataset.jenis === jenis; o.hidden = !cocok; o.disabled = !cocok; } });
         if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = '';
+        // Hanya pengeluaran yang bisa dibayar langsung pemilik.
+        document.getElementById('barisDibayarPemilik').hidden = jenis !== 'Keluar';
     }
 
     function confirmDeleteKategoriKasKecil(id, nama) {

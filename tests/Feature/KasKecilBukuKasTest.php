@@ -114,8 +114,8 @@ class KasKecilBukuKasTest extends TestCase
         $this->assertEquals(10000000, $this->saldo('1005'));
 
         // Belanja ATK berkurang dari saldo itu.
-        $atk = DB::table('kategori_kas_kecil')->where('jenis', 'Keluar')->where('kode_akun', '5160')->value('id_kategori_kas_kecil')
-            ?? DB::table('kategori_kas_kecil')->insertGetId(['nama_kategori' => 'ATK', 'jenis' => 'Keluar', 'kode_akun' => '5160']);
+        $atk = DB::table('kategori_kas_kecil')->where('jenis', 'Keluar')->where('kode_akun', '5170')->value('id_kategori_kas_kecil')
+            ?? DB::table('kategori_kas_kecil')->insertGetId(['nama_kategori' => 'ATK', 'jenis' => 'Keluar', 'kode_akun' => '5170']);
         $this->post('/kas-kecil', ['tanggal' => now()->toDateString(), 'jenis' => 'Keluar', 'id_kategori' => $atk, 'keterangan' => 'Kertas HVS', 'nominal' => 250000])
             ->assertSessionHas('success');
         $this->assertEquals(9750000, $this->saldo('1005'));

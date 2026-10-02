@@ -5,6 +5,7 @@
         'akuntansi.neraca-saldo' => ['Neraca Saldo', 'fa-balance-scale'],
         'akuntansi.laba-rugi'    => ['Laba Rugi', 'fa-chart-line'],
         'akuntansi.neraca'       => ['Neraca', 'fa-file-invoice-dollar'],
+        'akuntansi.perbandingan' => ['Perbandingan', 'fa-scale-unbalanced'],
     ];
 @endphp
 <div class="flex flex-wrap gap-2 mb-8">

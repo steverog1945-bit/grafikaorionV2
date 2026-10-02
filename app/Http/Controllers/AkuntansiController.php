@@ -170,6 +170,48 @@ class AkuntansiController extends Controller
         ));
     }
 
+    /**
+     * Perbandingan pemasukan Input Order dengan pengeluaran pada periode yang sama, dibaca dari data yang sudah ada:
+     * pendapatan nota (jurnal 4000/4100, nota batal sudah terbalik), uang yang benar-benar diterima, pengeluaran dari
+     * Kas Kecil, dan biaya yang dibayar langsung pemilik (per kategori). Pembelian bahan yang dibayar pemilik
+     * ditampilkan sebagai keterangan, tidak ikut selisih (bahan masuk persediaan, bukan biaya).
+     */
+    public function perbandingan(Request $request)
+    {
+        $awal = $request->get('awal', now()->startOfMonth()->toDateString());
+        $akhir = $request->get('akhir', now()->toDateString());
+
+        $pendapatan = DB::table('jurnal_umum')->whereBetween('tgl_jurnal', [$awal, $akhir])->whereIn('kode_akun', ['4000', '4100'])
+            ->selectRaw('kode_akun, SUM(kredit - debet) AS nilai')->groupBy('kode_akun')->pluck('nilai', 'kode_akun');
+        $pendapatanPenjualan = round((float) ($pendapatan['4000'] ?? 0), 2);
+        $pendapatanJasa = round((float) ($pendapatan['4100'] ?? 0), 2);
+        $totalPemasukan = round($pendapatanPenjualan + $pendapatanJasa, 2);
+
+        $uangDiterima = round((float) DB::table('pembayaran_riwayat')
+            ->where('tgl_bayar', '>=', $awal . ' 00:00:00')->where('tgl_bayar', '<=', $akhir . ' 23:59:59')->sum('nominal'), 2);
+
+        $pengeluaran = DB::table('kas_kecil as k')
+            ->leftJoin('kategori_kas_kecil as c', 'c.id_kategori_kas_kecil', '=', 'k.id_kategori')
+            ->whereNull('k.deleted_at')->where('k.jenis', 'Keluar')
+            ->where('k.tanggal', '>=', $awal)->where('k.tanggal', '<=', $akhir)
+            ->selectRaw("COALESCE(c.nama_kategori, 'Tanpa kategori') AS kategori, k.metode = 'Dibayar Pemilik' AS pemilik, SUM(k.nominal) AS total")
+            ->groupBy('kategori', 'pemilik')->orderBy('kategori')->get();
+        $kasKecil = $pengeluaran->where('pemilik', 0)->values();
+        $pemilik = $pengeluaran->where('pemilik', 1)->values();
+        $totalKasKecil = round((float) $kasKecil->sum('total'), 2);
+        $totalPemilik = round((float) $pemilik->sum('total'), 2);
+        $totalPengeluaran = round($totalKasKecil + $totalPemilik, 2);
+        $selisih = round($totalPemasukan - $totalPengeluaran, 2);
+
+        $bahanDariPemilik = round((float) DB::table('jurnal_umum')->whereBetween('tgl_jurnal', [$awal, $akhir])
+            ->where('kode_akun', '3100')->sum(DB::raw('kredit - debet')), 2);
+
+        return view('akuntansi.perbandingan', compact(
+            'awal', 'akhir', 'pendapatanPenjualan', 'pendapatanJasa', 'totalPemasukan', 'uangDiterima',
+            'kasKecil', 'pemilik', 'totalKasKecil', 'totalPemilik', 'totalPengeluaran', 'selisih', 'bahanDariPemilik'
+        ));
+    }
+
     public function neraca(Request $request)
     {
         $tanggal = $request->get('tanggal', now()->toDateString());

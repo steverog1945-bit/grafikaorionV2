@@ -69,7 +69,9 @@ class KasKecilController extends Controller
         }
 
         // Ringkasan buku kas: pemasukan tunai (kas fisik), pemasukan non-tunai (mis. transfer jersey) & pengeluaran.
-        $totalPengeluaran = (float) (clone $query)->where('jenis', 'Keluar')->sum('nominal');
+        // Pengeluaran yang benar-benar dari uang Kas Kecil; biaya yang dibayar langsung pemilik dihitung terpisah.
+        $totalPengeluaran = (float) (clone $query)->where('jenis', 'Keluar')->where('metode', '!=', 'Dibayar Pemilik')->sum('nominal');
+        $pengeluaranPemilik = (float) (clone $query)->where('jenis', 'Keluar')->where('metode', 'Dibayar Pemilik')->sum('nominal');
         $masukTunai = (float) (clone $query)->where('jenis', 'Masuk')->where('metode', 'Tunai')->sum('nominal');
         $masukNonTunai = (float) (clone $query)->where('jenis', 'Masuk')->where('metode', '!=', 'Tunai')->sum('nominal');
         $data = $query->paginate(20)->withQueryString();
@@ -82,7 +84,7 @@ class KasKecilController extends Controller
         $adaSaldoAwal = KasKecil::where('sumber', 'saldo_awal')->exists();
         $bolehSaldoAwal = optional(Auth::user()->role)->nama_role === 'Administrator';
 
-        return view('kas-kecil.index', compact('data', 'tglDari', 'tglSampai', 'totalPengeluaran', 'masukTunai', 'masukNonTunai', 'kategoriList', 'saldoKasKecil', 'adaSaldoAwal', 'bolehSaldoAwal'));
+        return view('kas-kecil.index', compact('data', 'tglDari', 'tglSampai', 'totalPengeluaran', 'pengeluaranPemilik', 'masukTunai', 'masukNonTunai', 'kategoriList', 'saldoKasKecil', 'adaSaldoAwal', 'bolehSaldoAwal'));
     }
 
     public function store(Request $request)
@@ -124,22 +126,36 @@ class KasKecilController extends Controller
             return back()->withInput()->with('error', "Kategori \"{$kategori->nama_kategori}\" tidak bisa dipakai: Kas Kecil terpisah dari laci kasir. Uang tambahan dari pemilik dicatat dengan kategori setoran pemilik.");
         }
 
+        // Biaya yang dibayar langsung pemilik: dicatat sebagai data dan beban, tetapi bukan uang Kas Kecil.
+        $dibayarPemilik = $data['jenis'] === 'Keluar' && $kategori->dibayar_pemilik;
+        if ($dibayarPemilik) {
+            $data['metode'] = 'Dibayar Pemilik';
+        }
+
         try {
-        $kasKecil = DB::transaction(function () use ($data, $kategori) {
-            // Uang fisik tidak bisa minus: pengeluaran ditolak bila saldo Kas Kecil tidak cukup.
-            if ($data['jenis'] === 'Keluar') {
+        $kasKecil = DB::transaction(function () use ($data, $kategori, $dibayarPemilik) {
+            // Uang fisik tidak bisa minus: pengeluaran dari Kas Kecil ditolak bila saldonya tidak cukup.
+            if ($data['jenis'] === 'Keluar' && !$dibayarPemilik) {
                 \App\Services\KasKecilService::pastikanSaldoCukup((float) $data['nominal']);
             }
             $kk = KasKecil::create($data);
 
-            $data['jenis'] === 'Masuk'
-                ? AccountingService::postKasKecilMasuk('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal)
-                : AccountingService::postKasKecil('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal);
+            if ($dibayarPemilik) {
+                AccountingService::postBiayaDibayarPemilik('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal);
+            } elseif ($data['jenis'] === 'Masuk') {
+                AccountingService::postKasKecilMasuk('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal);
+            } else {
+                AccountingService::postKasKecil('KK-' . $kk->id, $kategori->kode_akun, (float) $kk->nominal);
+            }
 
             return $kk;
         });
         } catch (\RuntimeException $e) {
             return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        if ($dibayarPemilik) {
+            return back()->with('success', "Biaya \"{$kategori->nama_kategori}\" dicatat sebagai dibayar langsung pemilik. Saldo Kas Kecil tidak berubah.");
         }
 
         return back()->with('success', ($data['jenis'] === 'Masuk' ? 'Pemasukan' : 'Pengeluaran') . ' kas kecil berhasil dicatat & masuk ke jurnal akuntansi.');
