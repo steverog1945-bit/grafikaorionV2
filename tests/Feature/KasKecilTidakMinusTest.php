@@ -131,6 +131,22 @@ class KasKecilTidakMinusTest extends TestCase
         $this->assertEquals(0, round((float) DB::table('jurnal_umum')->where('no_referensi', 'like', 'JO-KMB/BYR-%')->sum(DB::raw('debet - kredit')), 2));
     }
 
+    /** Akun kategori harus cocok dengan jenisnya: pengeluaran ke Beban/Modal, pemasukan ke Pendapatan/Modal. */
+    public function test_akun_kategori_harus_sesuai_jenis(): void
+    {
+        foreach ([['Keluar', '1100'], ['Keluar', '4200'], ['Keluar', '5000'], ['Masuk', '5100'], ['Masuk', '4000'], ['Masuk', '4300'], ['Masuk', '2100'], ['Keluar', '1010']] as [$jenis, $akun]) {
+            $this->post('/kategori-kas-kecil', ['nama_kategori' => "Uji {$jenis} {$akun}", 'jenis' => $jenis, 'kode_akun' => $akun])
+                ->assertSessionHasErrors('kode_akun');
+        }
+        $this->assertSame(0, DB::table('kategori_kas_kecil')->where('nama_kategori', 'like', 'Uji %')->count());
+
+        foreach ([['Keluar', '5100'], ['Keluar', '3000'], ['Masuk', '4200'], ['Masuk', '3000']] as [$jenis, $akun]) {
+            $this->post('/kategori-kas-kecil', ['nama_kategori' => "Sah {$jenis} {$akun}", 'jenis' => $jenis, 'kode_akun' => $akun])
+                ->assertSessionHasNoErrors();
+        }
+        $this->assertSame(4, DB::table('kategori_kas_kecil')->where('nama_kategori', 'like', 'Sah %')->count());
+    }
+
     public function test_kategori_tanpa_akun_tidak_bisa_dipakai_dan_tidak_bisa_dibuat(): void
     {
         $this->post('/kas-kecil/saldo-awal', ['tanggal' => now()->toDateString(), 'nominal' => 100000]);

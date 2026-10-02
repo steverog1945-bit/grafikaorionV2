@@ -45,12 +45,37 @@ class KategoriKasKecilController extends Controller
         return view('master.kategori-kas-kecil.index', compact('kategori', 'akunBeban'));
     }
 
+    /**
+     * Akun lawan harus cocok dengan jenis: pengeluaran ke Beban (selain HPP 5000) atau Modal, pemasukan ke Pendapatan
+     * (selain Penjualan 4000 dan Jersey 4300 yang dijurnal otomatis) atau Modal. Akun kas, bank, piutang, dan hutang
+     * ditolak: catatan Kas Kecil ke akun itu membuat neraca salah tanpa terlihat di laporan biaya.
+     */
+    private static function aturanAkun(?string $jenis): array
+    {
+        return ['required', 'string', 'max:20', function ($atribut, $nilai, $gagal) use ($jenis) {
+            $akun = DB::table('bag_akun')->where('kode_akun', $nilai)->first(['kode_akun', 'tipe_akun']);
+            if (!$akun) {
+                $gagal('Akun tidak ditemukan.');
+
+                return;
+            }
+            $sah = $jenis === 'Masuk'
+                ? ($akun->tipe_akun === 'Pendapatan' && !in_array($akun->kode_akun, ['4000', '4300'], true)) || $akun->tipe_akun === 'Modal'
+                : ($akun->tipe_akun === 'Beban' && $akun->kode_akun !== '5000') || $akun->tipe_akun === 'Modal';
+            if (!$sah) {
+                $gagal($jenis === 'Masuk'
+                    ? 'Kategori pemasukan harus memakai akun Pendapatan (selain Penjualan/Jersey) atau Modal.'
+                    : 'Kategori pengeluaran harus memakai akun Beban (selain HPP) atau Modal.');
+            }
+        }];
+    }
+
     public function store(Request $request)
     {
         $request->validate([
             'nama_kategori' => 'required|string|max:100|unique:kategori_kas_kecil,nama_kategori',
             'jenis' => 'required|in:Keluar,Masuk',
-            'kode_akun' => 'required|string|exists:bag_akun,kode_akun|not_in:1000,1005|max:20',
+            'kode_akun' => self::aturanAkun($request->jenis),
         ], [
             'nama_kategori.unique' => 'Nama kategori sudah ada!',
         ]);
@@ -71,7 +96,7 @@ class KategoriKasKecilController extends Controller
         $request->validate([
             'nama_kategori' => 'required|string|max:100|unique:kategori_kas_kecil,nama_kategori,' . $kategoriKasKecil->id_kategori_kas_kecil . ',id_kategori_kas_kecil',
             'jenis' => 'required|in:Keluar,Masuk',
-            'kode_akun' => 'required|string|exists:bag_akun,kode_akun|not_in:1000,1005|max:20',
+            'kode_akun' => self::aturanAkun($request->jenis),
         ], [
             'nama_kategori.unique' => 'Nama kategori sudah ada!',
         ]);
