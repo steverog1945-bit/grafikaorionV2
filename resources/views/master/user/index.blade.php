@@ -100,10 +100,8 @@
             </div>
 
             <div class="flex justify-end gap-3 mt-8">
-                <button type="button" onclick="toggleModal('user-tambah')" class="text-sm hover:text-slate-700 transition">Batal</button>
-                <button type="submit" class="bg-indigo-600 text-white shadow-lg active:scale-95">
-                    Aktifkan Akun
-                </button>
+                <x-button type="button" variant="secondary" onclick="toggleModal('user-tambah')">Batal</x-button>
+                <x-button type="submit">Aktifkan Akun</x-button>
             </div>
         </form>
 </x-modal>
@@ -137,10 +135,8 @@
             </div>
 
             <div class="flex justify-end gap-3 mt-8">
-                <button type="button" onclick="toggleModal('user-edit')" class="text-sm hover:text-slate-700 transition">Batal</button>
-                <button type="submit" class="text-white shadow-lg active:scale-95">
-                    Simpan Perubahan
-                </button>
+                <x-button type="button" variant="secondary" onclick="toggleModal('user-edit')">Batal</x-button>
+                <x-button type="submit">Simpan Perubahan</x-button>
             </div>
         </form>
 </x-modal>

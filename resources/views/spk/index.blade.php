@@ -105,7 +105,7 @@
                     </td>
                     <td class="px-4 py-5 text-center">
                         <button type="button" onclick="toggleUrgent({{ $item->id_detail }})"
-                            class="text-lg {{ $item->status_urgent ? 'text-rose-500' : 'text-slate-200 hover:text-rose-300' }}" title="Tandai urgent">
+                            class="text-lg {{ $item->status_urgent ? 'text-rose-500' : 'text-slate-400 hover:text-rose-500' }}" title="Tandai urgent">
                             <i class="fas fa-fire"></i>
                         </button>
                     </td>

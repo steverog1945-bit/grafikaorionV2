@@ -119,7 +119,7 @@
                         <input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" {{ $editable ? '' : 'disabled' }}></div>
                     <div class="text-right">
                         @if(isset($r['subtotal']))<div class="text-[10px] font-medium text-slate-400 uppercase">Subtotal</div><div class="text-sm font-medium text-indigo-600">Rp {{ number_format($r['subtotal'], 0, ',', '.') }}</div>@endif
-                        @if($editable)<button type="button" onclick="this.closest('[data-row]').remove()" class="mt-1 text-slate-300 hover:text-rose-500 text-xs"><i class="fas fa-trash-alt"></i> Hapus baris</button>@endif
+                        @if($editable)<button type="button" onclick="this.closest('[data-row]').remove()" class="mt-1 text-slate-500 hover:text-rose-500 text-xs"><i class="fas fa-trash-alt"></i> Hapus baris</button>@endif
                     </div>
                 </div>
             </x-card>
@@ -208,7 +208,7 @@
                 <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Biaya finishing</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][biaya_finishing]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
                 <div data-blok-produk><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Biaya desain</label><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][biaya_desain]" class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal"></div>
                 <div class="col-span-2 md:col-span-2"><label class="block text-[10px] font-medium text-slate-400 uppercase mb-1">Catatan baris</label><input type="text" maxlength="255" name="items[__I__][catatan]" class="w-full rounded-xl border-slate-200 text-xs p-2"></div>
-                <div class="text-right"><button type="button" onclick="this.closest('[data-row]').remove()" class="text-slate-300 hover:text-rose-500 text-xs"><i class="fas fa-trash-alt"></i> Hapus baris</button></div>
+                <div class="text-right"><button type="button" onclick="this.closest('[data-row]').remove()" class="text-slate-500 hover:text-rose-500 text-xs"><i class="fas fa-trash-alt"></i> Hapus baris</button></div>
             </div>
         </x-card>
     </template>

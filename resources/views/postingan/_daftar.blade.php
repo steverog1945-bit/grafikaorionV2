@@ -70,7 +70,7 @@
     <a href="{{ route('postingan.show', $unggulan->slug) }}" class="group grid grid-cols-1 lg:grid-cols-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-8 hover:shadow-xl transition-all">
         <div class="relative min-h-[240px] lg:min-h-[340px] {{ $warnaKartu[$unggulan->id % count($warnaKartu)] }}">
             @if($unggulan->url_sampul)<img src="{{ $unggulan->url_sampul }}" alt="{{ $unggulan->judul }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">@endif
-            @if($unggulan->disematkan)<span class="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-amber-600"><i class="fas fa-thumbtack"></i> Disematkan</span>@endif
+            @if($unggulan->disematkan)<span class="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-amber-400/90 px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-amber-950"><i class="fas fa-thumbtack"></i> Disematkan</span>@endif
         </div>
         <div class="p-8 lg:p-12 flex flex-col justify-center">
             <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-indigo-500">Terbaru{{ $unggulan->kategori ? ' · ' . $unggulan->kategori->nama : '' }}</p>

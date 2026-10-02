@@ -198,7 +198,7 @@
                             <td class="p-2 text-center">
                                 <form id="delete-payment-form-{{ $p->id }}" action="{{ route('jersey.keuangan.bayar.destroy', $p->id) }}" method="POST" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="button" onclick="confirmHapusPembayaran({{ $p->id }})" class="text-slate-300 hover:text-rose-500" title="Hapus"><i class="far fa-trash-alt"></i></button>
+                                    <button type="button" onclick="confirmHapusPembayaran({{ $p->id }})" class="text-slate-500 hover:text-rose-500" title="Hapus"><i class="far fa-trash-alt"></i></button>
                                 </form>
                             </td>
                         </tr>

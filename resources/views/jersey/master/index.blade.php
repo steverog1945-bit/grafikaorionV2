@@ -235,7 +235,7 @@
                             <th class="p-2.5 text-center whitespace-nowrap" data-component-th="{{ $comp->id }}">
                                 {{ $comp->name }} <span class="text-slate-300 font-normal">(m)</span>
                                 <button type="button" onclick="bukaEditScopeKomponen({{ $comp->id }}, {{ $comp->jersey_product_type_id ?? 'null' }}, {{ $comp->jersey_category_id ?? 'null' }})" class="ml-1 text-slate-300 hover:text-indigo-500" title="Atur cakupan Tipe Produk/Kategori"><i class="fas fa-sliders-h"></i></button>
-                                <button type="button" onclick="nonaktifkanKomponen({{ $comp->id }})" class="ml-1 text-slate-300 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
+                                <button type="button" onclick="nonaktifkanKomponen({{ $comp->id }})" class="ml-1 text-slate-500 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
                                 <div class="text-[9px] font-normal normal-case text-slate-400 mt-0.5" data-component-scope="{{ $comp->id }}">{{ $comp->productType->name ?? 'Semua Tipe' }} @if($comp->category)&middot; {{ $comp->category->name }}@endif</div>
                             </th>
                             @endforeach
@@ -1032,8 +1032,8 @@
         headRowMeter.insertAdjacentHTML('beforeend', `
             <th class="p-2.5 text-center whitespace-nowrap" data-component-th="${data.row.id}">
                 ${escapeHtmlJersey(data.row.name)} <span class="text-slate-300 font-normal">(m)</span>
-                <button type="button" onclick="bukaEditScopeKomponen(${data.row.id}, ${data.row.jersey_product_type_id ?? 'null'}, ${data.row.jersey_category_id ?? 'null'})" class="ml-1 text-slate-300 hover:text-indigo-500" title="Atur cakupan Tipe Produk/Kategori"><i class="fas fa-sliders-h"></i></button>
-                <button type="button" onclick="nonaktifkanKomponen(${data.row.id})" class="ml-1 text-slate-300 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
+                <button type="button" onclick="bukaEditScopeKomponen(${data.row.id}, ${data.row.jersey_product_type_id ?? 'null'}, ${data.row.jersey_category_id ?? 'null'})" class="ml-1 text-slate-500 hover:text-indigo-500" title="Atur cakupan Tipe Produk/Kategori"><i class="fas fa-sliders-h"></i></button>
+                <button type="button" onclick="nonaktifkanKomponen(${data.row.id})" class="ml-1 text-slate-500 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
                 <div class="text-[9px] font-normal normal-case text-slate-400 mt-0.5" data-component-scope="${data.row.id}">${labelCakupanKomponen(data.row)}</div>
             </th>`);
         document.querySelectorAll('#tbody-estimasi-meter tr[data-size-id]').forEach(row => {

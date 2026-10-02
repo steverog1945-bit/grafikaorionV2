@@ -582,7 +582,7 @@
                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-medium uppercase tracking-widest">${rumus}</span>
             </td>
             <td class="p-3 text-center">
-                <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmpty();" class="text-slate-300 hover:text-rose-500" aria-label="Hapus" title="Hapus">
+                <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmpty();" class="text-slate-500 hover:text-rose-500" aria-label="Hapus" title="Hapus">
                     <i class="far fa-trash-alt"></i>
                 </button>
             </td>
@@ -647,7 +647,7 @@
                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-50 text-purple-600 text-[10px] font-medium uppercase tracking-widest">${qty}</span>
             </td>
             <td class="p-3 text-center">
-                <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmptyFinishing();" class="text-slate-300 hover:text-rose-500" aria-label="Hapus" title="Hapus">
+                <button type="button" onclick="document.getElementById('${rowId}').remove(); checkEmptyFinishing();" class="text-slate-500 hover:text-rose-500" aria-label="Hapus" title="Hapus">
                     <i class="far fa-trash-alt"></i>
                 </button>
             </td>

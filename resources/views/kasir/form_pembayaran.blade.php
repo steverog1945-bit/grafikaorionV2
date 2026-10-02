@@ -106,7 +106,7 @@
                                 <p class="disp-subtotal text-base font-medium text-slate-800">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</p>
                             </div>
 
-                            <button type="button" onclick="openCustomHarga({{ $item->id_detail }})" class="w-9 h-9 inline-flex items-center justify-center rounded-xl bg-white text-slate-300 hover:text-indigo-500 hover:shadow-sm border border-slate-100 transition-all" title="Ubah harga item ini">
+                            <button type="button" onclick="openCustomHarga({{ $item->id_detail }})" class="w-9 h-9 inline-flex items-center justify-center rounded-xl bg-white text-slate-500 hover:text-indigo-500 hover:shadow-sm border border-slate-100 transition-all" title="Ubah harga item ini">
                                 <i class="far fa-edit text-xs"></i>
                             </button>
 

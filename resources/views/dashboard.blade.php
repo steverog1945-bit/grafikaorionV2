@@ -22,7 +22,7 @@
     // Perubahan dibanding kemarin: [teks, kelas warna, ikon]
     $delta = function (float $sekarang, float $lalu) {
         if ($lalu <= 0) {
-            return $sekarang > 0 ? ['baru hari ini', 'text-slate-400', 'fa-minus'] : ['belum ada data', 'text-slate-300', 'fa-minus'];
+            return $sekarang > 0 ? ['baru hari ini', 'text-slate-400', 'fa-minus'] : ['belum ada data', 'text-slate-400', 'fa-minus'];
         }
         $p = ($sekarang - $lalu) / $lalu * 100;
         if (abs($p) < 0.5) return ['sama seperti kemarin', 'text-slate-400', 'fa-minus'];

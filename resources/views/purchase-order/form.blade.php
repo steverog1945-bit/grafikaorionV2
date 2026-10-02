@@ -123,7 +123,7 @@
                     <td class="px-4 py-3 text-right"><span class="text-sm font-medium text-slate-700" data-subtotal>0</span></td>
                     <td class="px-4 py-3"><input type="text" maxlength="255" name="items[{{ $i }}][catatan]" value="{{ $r['catatan'] ?? '' }}" class="w-full rounded-xl border-slate-200 text-xs p-2" placeholder="mis. merk sama dengan PR" {{ $editable ? '' : 'readonly' }}></td>
                     @if($po && !$editable)<td class="px-4 py-3 text-right text-sm text-slate-500">{{ angka($r['qty_diterima'] ?? 0, 2) }}</td>@endif
-                    @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove(); hitungTotal()" class="text-slate-300 hover:text-rose-500" aria-label="Hapus" title="Hapus"><i class="fas fa-trash-alt"></i></button></td>@endif
+                    @if($editable)<td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove(); hitungTotal()" class="text-slate-500 hover:text-rose-500" aria-label="Hapus" title="Hapus"><i class="fas fa-trash-alt"></i></button></td>@endif
                 </tr>
                 @endforeach
             </tbody>
@@ -236,7 +236,7 @@
             <td class="px-4 py-3"><input type="text" inputmode="decimal" autocomplete="off" name="items[__I__][harga]" data-harga class="w-full rounded-xl border-slate-200 text-sm p-2 text-right format-ribuan-desimal" required></td>
             <td class="px-4 py-3 text-right"><span class="text-sm font-medium text-slate-700" data-subtotal>0</span></td>
             <td class="px-4 py-3"><input type="text" maxlength="255" name="items[__I__][catatan]" class="w-full rounded-xl border-slate-200 text-xs p-2" placeholder="mis. merk sama dengan PR"></td>
-            <td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove(); hitungTotal()" class="text-slate-300 hover:text-rose-500" aria-label="Hapus" title="Hapus"><i class="fas fa-trash-alt"></i></button></td>
+            <td class="px-4 py-3 text-center"><button type="button" onclick="this.closest('tr').remove(); hitungTotal()" class="text-slate-500 hover:text-rose-500" aria-label="Hapus" title="Hapus"><i class="fas fa-trash-alt"></i></button></td>
         </tr>
     </template>
 </div>

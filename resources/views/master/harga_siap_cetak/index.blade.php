@@ -128,7 +128,7 @@
         tr.innerHTML = `<td class="px-3 py-2"><input type="text" inputmode="decimal" class="${hscCls} hsc-min" value="${t.min}"></td>
             <td class="px-3 py-2"><input type="text" inputmode="decimal" class="${hscCls} hsc-max" value="${t.max ?? ''}" placeholder="tanpa batas"></td>`
             + hscGolongan.map(g => `<td class="px-3 py-2"><input type="text" inputmode="numeric" class="${hscCls} hsc-harga format-ribuan" data-gol="${g.id_golongan}" value="${t.harga[g.id_golongan] ? Number(t.harga[g.id_golongan]).toLocaleString('id-ID') : ''}" placeholder="-"></td>`).join('')
-            + `<td class="px-2"><button type="button" onclick="this.closest('tr').remove()" title="Hapus rentang ini" class="w-8 h-8 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50"><i class="far fa-trash-alt text-xs"></i></button></td>`;
+            + `<td class="px-2"><button type="button" onclick="this.closest('tr').remove()" title="Hapus rentang ini" class="w-8 h-8 rounded-lg text-slate-500 hover:text-rose-500 hover:bg-rose-50"><i class="far fa-trash-alt text-xs"></i></button></td>`;
         document.getElementById('hsc-isi').appendChild(tr);
     }
 

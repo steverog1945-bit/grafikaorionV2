@@ -132,7 +132,7 @@
                                         </td>
                                         <td class="px-4 py-2 text-center">
                                             <button type="button" onclick="removeRow(this)"
-                                                class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-300 hover:text-white hover:bg-rose-500 transition-all mx-auto" aria-label="Hapus" title="Hapus">
+                                                class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-white hover:bg-rose-500 transition-all mx-auto" aria-label="Hapus" title="Hapus">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </td>
@@ -186,7 +186,7 @@
         </td>
         <td class="px-4 py-2 text-center">
             <button type="button" onclick="removeRow(this)"
-                class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-300 hover:text-white hover:bg-rose-500 transition-all mx-auto" aria-label="Hapus" title="Hapus">
+                class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-white hover:bg-rose-500 transition-all mx-auto" aria-label="Hapus" title="Hapus">
                 <i class="fas fa-trash-alt text-sm"></i>
             </button>
         </td>

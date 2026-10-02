@@ -72,7 +72,7 @@
         <input type="text" name="nama_bank" placeholder="Nama Bank (BCA, Mandiri, dll)" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500" required>
         <input type="text" name="nomor_rekening" placeholder="Nomor Rekening" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500" required>
         <input type="text" name="atas_nama" placeholder="Atas Nama (Pemilik)" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500" required>
-        <button type="submit" class="w-full bg-indigo-600 text-white shadow-lg mt-2 transition active:scale-95">Simpan Rekening</button>
+        <x-button type="submit" class="w-full mt-2">Simpan Rekening</x-button>
     </form>
 </x-modal>
 <x-modal id="bank-edit" title="Edit Bank"
@@ -98,7 +98,7 @@
             <input type="text" name="atas_nama" id="edit_atas_nama" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500" required>
         </div>
 
-        <button type="submit" class="w-full text-white shadow-lg mt-2 transition active:scale-95">Perbarui Rekening</button>
+        <x-button type="submit" class="w-full mt-2">Perbarui Rekening</x-button>
     </form>
 </x-modal>
 <script>

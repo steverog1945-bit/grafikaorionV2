@@ -29,7 +29,7 @@
                 </form>
                 @if(!($dipakai[$p->id] ?? 0))
                 <form method="POST" action="{{ route('platform-belanja.destroy', $p->id) }}" data-konfirmasi="Hapus platform ini?">@csrf @method('DELETE')
-                    <button type="submit" class="w-9 h-9 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
+                    <button type="submit" class="w-9 h-9 rounded-lg text-slate-500 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
                 </form>
                 @endif
             </div>

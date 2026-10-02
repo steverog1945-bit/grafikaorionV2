@@ -74,7 +74,7 @@
             <tr class="hover:bg-slate-50/30">
                 <td class="px-8 py-3 pl-14">
                     <a href="{{ route('pembelian-bahan.show', $f->id_pembelian) }}" class="text-[12px] font-medium text-slate-600 hover:text-indigo-600">{{ $f->no_faktur }}</a>
-                    <button type="button" onclick="bukaPelunasan('faktur', {{ $f->id_pembelian }})" title="Bayar / cicil faktur ini" class="no-print ml-2 text-slate-300 hover:text-indigo-600"><i class="fas fa-money-bill-wave text-[11px]"></i></button>
+                    <button type="button" onclick="bukaPelunasan('faktur', {{ $f->id_pembelian }})" title="Bayar / cicil faktur ini" class="no-print ml-2 text-slate-500 hover:text-indigo-600"><i class="fas fa-money-bill-wave text-[11px]"></i></button>
                     <div class="text-[10px] text-slate-400">Jatuh tempo {{ \Carbon\Carbon::parse($f->jatuh_tempo_tgl ?: $f->tgl_transaksi)->translatedFormat('d M Y') }}{{ $f->hari_telat ? ' - telat ' . $f->hari_telat . ' hari' : '' }}</div>
                 </td>
                 @foreach(['belum', 'b30', 'b60', 'b60plus'] as $b)
