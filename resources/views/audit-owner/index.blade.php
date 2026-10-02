@@ -108,25 +108,32 @@
         .lembar, .lembar-btn, .lembar-input, .t tbody tr { transition: none !important; }
     }
 
+    /* Cetak mengikuti laporan lain: kop perusahaan (partials.print-report-header), panel polos bergaris tipis
+       tanpa sudut bulat/bayangan, judul tabel & kepala kolom 10px, isi 11px (skala x-laporan.print-table),
+       kartu angka diganti tabel ringkasan (x-laporan.resume-table). Tampilan layar tidak berubah. */
     @media print {
         @page { size: A4 landscape; margin: 10mm; }
         aside, .no-print, .topbar { display: none !important; }
-        main { margin-left: 0 !important; padding: 0 8mm !important; }
+        main { margin-left: 0 !important; padding: 28px 32px !important; }
         body { background: #fff !important; }
-        .lembar, .lembar-e {
-            background: #fff !important;
-            border: 1px solid #cbd5e1 !important;
-            box-shadow: none !important;
+        .lembar, .lembar-e, .lembar:hover {
+            background: #fff !important; border: 1px solid #e2e8f0 !important; border-radius: 0 !important;
+            box-shadow: none !important; padding: 0 !important; margin-bottom: 16px !important; overflow: hidden;
         }
-        .lembar:hover { background: #fff !important; }
-        .t th { background: #f1f5f9 !important; color: #475569 !important; border-bottom: 1px solid #94a3b8 !important; }
-        .t td { color: #1e293b !important; border-bottom: 1px solid #e2e8f0 !important; padding: 3px 6px !important; font-size: 10px !important; }
-        .t th { padding: 3px 6px !important; font-size: 9px !important; }
-        .lembar-e .l { color: #475569 !important; }
-        .lembar-e .v { color: #0f172a !important; }
-        .bab-no { background: #1e293b !important; color: #fff !important; }
-        .bab-judul, .k-judul, .k-ket, .lembar-muted-print { color: #334155 !important; }
+        .k-judul {
+            font-size: 10px !important; font-weight: 500 !important; color: #334155 !important; text-transform: uppercase; letter-spacing: 0.025em;
+            background: #f8fafc !important; border-bottom: 1px solid #e2e8f0; padding: 8px 12px; margin: 0 !important;
+        }
+        .k-ket { font-size: 10px !important; color: #64748b !important; padding: 6px 12px 0; margin: 0 0 6px !important; }
+        .pil { border: 0 !important; background: transparent !important; padding: 0 6px !important; font-size: 10px !important; color: #64748b !important; }
+        .t th { background: #f8fafc !important; color: #64748b !important; font-size: 10px !important; font-weight: 500 !important; padding: 6px 12px !important; border-bottom: 1px solid #e2e8f0 !important; }
+        .t td { color: #1e293b !important; font-size: 11px !important; padding: 6px 12px !important; border-bottom: 1px solid #f1f5f9 !important; }
+        .t tbody tr:hover { background: transparent !important; }
+        .bab-no { display: none !important; }
+        .bab-judul { font-size: 12px !important; font-weight: 600 !important; color: #0f172a !important; margin-top: 8px; }
         .blok { break-inside: avoid; }
+        .text-rose-600 { color: #be123c !important; }
+        .text-emerald-600 { color: #047857 !important; }
     }
 </style>
 
@@ -137,14 +144,18 @@
     $sc = $a['salah_cetak'];
 @endphp
 
-<div class="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1500px] mx-auto">
+@include('partials.print-report-header', ['docTitle' => 'Audit Bulanan ' . $bulan->translatedFormat('F Y'), 'tglDari' => $bulan->copy()->startOfMonth()->toDateString(), 'tglSampai' => $bulan->copy()->endOfMonth()->toDateString()])
 
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8 print:py-0 max-w-[1500px] mx-auto">
+
+    <div class="print:hidden">
     <x-page-header title="Audit Bulanan">
         <x-slot:subtitle>
             <i class="fas fa-clipboard-check text-emerald-500"></i>
             Seluruh input {{ $bulan->translatedFormat('F Y') }} dalam satu halaman &middot; hanya-baca
         </x-slot:subtitle>
     </x-page-header>
+    </div>
 
     @php($integritas = \Illuminate\Support\Facades\Cache::get('audit_integritas_terakhir'))
     @if($integritas && $integritas['jumlah'] > 0)
@@ -180,7 +191,19 @@
         <h2 class="bab-judul">Keuangan bulan ini</h2>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-3 blok">
+    <div class="hidden print:block blok">
+        <x-laporan.resume-table title="Ringkasan keuangan" :rows="[
+            'Omzet nota (' . $k['jumlah_nota'] . ' nota)' => e($rp($k['omzet'])),
+            'Omzet jersey (' . $k['jumlah_jersey'] . ' order)' => e($rp($k['omzet_jersey'])),
+            'Biaya aktual (HPP + rework + waste)' => e($rp($k['biaya_aktual'])),
+            'Laba kotor (margin ' . $n($k['margin'], 1) . '%)' => e($rp($k['laba_kotor'])),
+            'Saldo kas (buku besar)' => e($rp($k['saldo_kas'])),
+            'Saldo bank' => e($rp($k['saldo_bank'])),
+            'Piutang (' . $k['nota_belum_lunas'] . ' nota belum lunas)' => e($rp($k['piutang'])),
+            'Hutang supplier' => e($rp($k['hutang'])),
+        ]" />
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-3 blok print:hidden">
         <div class="lembar lembar-e"><div class="l">Omzet nota &middot; {{ $k['jumlah_nota'] }} nota</div><div class="v">{{ $rp($k['omzet']) }}</div></div>
         <div class="lembar lembar-e"><div class="l">Omzet jersey &middot; {{ $k['jumlah_jersey'] }} order</div><div class="v">{{ $rp($k['omzet_jersey']) }}</div></div>
         <div class="lembar lembar-e"><div class="l">Biaya aktual &middot; HPP + rework + waste</div><div class="v">{{ $rp($k['biaya_aktual']) }}</div></div>
@@ -292,7 +315,15 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-3 blok">
+    <div class="hidden print:block blok">
+        <x-laporan.resume-table title="Ringkasan salah cetak" :rows="[
+            'Biaya waste diterapkan' => e($rp($sc['waste_biaya'])),
+            'Waste abnormal' => e($sc['waste_abnormal'] . ' kejadian'),
+            'Biaya rework selesai' => e($rp($sc['rework_biaya'])),
+            'Reject QC' => e($n($sc['qc_reject'], 4) . ' / ' . $n($sc['qc_diperiksa'], 4) . ' (' . $n($sc['qc_persen_reject'], 2) . '%)'),
+        ]" />
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-3 blok print:hidden">
         <div class="lembar lembar-e"><div class="l">Biaya waste diterapkan</div><div class="v">{{ $rp($sc['waste_biaya']) }}</div></div>
         <div class="lembar lembar-e"><div class="l">Waste abnormal</div><div class="v">{{ $sc['waste_abnormal'] }} <small>kejadian</small></div></div>
         <div class="lembar lembar-e"><div class="l">Biaya rework selesai</div><div class="v">{{ $rp($sc['rework_biaya']) }}</div></div>
