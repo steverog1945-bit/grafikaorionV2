@@ -205,7 +205,13 @@ class LaporanController extends Controller
         // satu total besar lintas divisi yang unitnya beda-beda). Baris
         // mentah dikelompokkan PER DIVISI di PHP (bukan cuma di-flatten)
         // supaya tiap divisi punya subtotalnya sendiri di view.
-        $ringkasanMentah = (clone $base)
+        // Ringkasan hanya pekerjaan yang berlaku: nota dibatalkan dan SPK Batal tidak dihitung (kecuali yang
+        // difilter memang status Batal). Detail di bawah tetap menampilkannya sebagai jejak.
+        $ringkasanQuery = (clone $base)->where('transaksi.status_nota', '!=', 'Dibatalkan');
+        if ($request->status_spk !== 'Batal') {
+            $ringkasanQuery->where('transaksi_detail.status_spk', '!=', 'Batal');
+        }
+        $ringkasanMentah = $ringkasanQuery
             ->select(
                 'mesin.nama_mesin as divisi',
                 'produk.nama_produk',

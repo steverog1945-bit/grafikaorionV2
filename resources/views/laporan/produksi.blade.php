@@ -98,7 +98,8 @@
          digabung jadi satu tabel/angka besar lintas divisi, karena luas
          (m2) satu divisi tidak sepadan dijumlah dengan pcs/m2 divisi lain
          (mesin/proses produksi berbeda). --}}
-    <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Ringkasan per Divisi</p>
+    <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1 px-1 print:hidden">Ringkasan per Divisi</p>
+    <p class="text-[11px] text-slate-400 mb-3 px-1 print:hidden">Nota dibatalkan dan SPK Batal tidak dihitung di ringkasan.</p>
     @forelse($ringkasanPerDivisi as $div)
     <x-card :title="$div->divisi" class="mb-4 break-inside-avoid print:hidden" :padding="false">
         <div class="overflow-x-auto">

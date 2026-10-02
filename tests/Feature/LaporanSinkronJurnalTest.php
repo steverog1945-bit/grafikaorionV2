@@ -160,4 +160,23 @@ class LaporanSinkronJurnalTest extends TestCase
         $this->assertEqualsWithDelta(250000, $k['kas_kecil_pemilik'], 0.01);
         $this->assertEqualsWithDelta(600000, $k['pembayaran_hutang'], 0.01);
     }
+
+    /** Ringkasan produksi tidak menghitung nota dibatalkan dan SPK Batal; detailnya tetap tampil sebagai jejak. */
+    public function test_ringkasan_produksi_tanpa_nota_batal_dan_spk_batal(): void
+    {
+        $k = $this->konsumen();
+        $produk = DB::table('produk')->insertGetId(['nama_produk' => 'Kartu Nama', 'metode_hitung' => 'quantity', 'status' => 'Aktif']);
+        $aktif = $this->nota($k, 'N-AKTIF', 100000, 'Belum Bayar');
+        $batal = $this->nota($k, 'N-BATAL', 100000, 'Belum Bayar');
+        DB::table('transaksi')->where('id_transaksi', $batal)->update(['status_nota' => 'Dibatalkan']);
+        foreach ([[$aktif, 5, 'Selesai'], [$aktif, 7, 'Batal'], [$batal, 11, 'Antre']] as [$t, $qty, $status]) {
+            DB::table('transaksi_detail')->insert(['id_transaksi' => $t, 'id_produk' => $produk, 'nama_file' => 'f', 'p_ukuran' => 0, 'l_ukuran' => 0,
+                'qty' => $qty, 'qty_cetak' => $qty, 'subtotal' => 1, 'status_spk' => $status]);
+        }
+
+        $hari = now()->toDateString();
+        $this->get("/laporan/produksi?tgl_dari={$hari}&tgl_sampai={$hari}")->assertOk()
+            ->assertViewHas('totalOrderKeseluruhan', fn ($v) => (float) $v === 5.0)
+            ->assertViewHas('totalCetakKeseluruhan', fn ($v) => (float) $v === 5.0);
+    }
 }
