@@ -10,14 +10,13 @@ use Illuminate\Support\Facades\Storage;
 /**
  * Berkas Order (LEVEL 3, bagian 35 dokumen audit): satu tempat untuk semua
  * berkas sebuah nota, dikelompokkan per kategori:
- *   Design (thumbnail order), Proof & Approved Design (Design Proof),
- *   Production File, QC Photo, Lainnya (order_berkas), dan Delivery Proof
+ *   Design (thumbnail order), Production File, QC Photo, Lainnya (order_berkas), dan Delivery Proof
  *   (foto bukti serah terima di tabel pengambilan).
  * Berkas TIDAK bisa dihapus dari sini - berfungsi sebagai bukti.
  */
 class BerkasOrderController extends Controller
 {
-    private const URUTAN = ['Design', 'Proof', 'Approved Design', 'Production File', 'QC Photo', 'Delivery Proof', 'Lainnya'];
+    private const URUTAN = ['Design', 'Production File', 'QC Photo', 'Delivery Proof', 'Lainnya'];
 
     public function show(int $idTransaksi)
     {
@@ -38,14 +37,6 @@ class BerkasOrderController extends Controller
             if ($it->thumbnail) {
                 $berkas->push(['kategori' => 'Design', 'item' => $it->nama_file, 'nama' => basename($it->thumbnail), 'url' => $url($it->thumbnail), 'info' => 'Thumbnail order', 'waktu' => $it->created_at]);
             }
-        }
-
-        $proofs = DB::table('design_proofs')->whereIn('id_detail', $items->pluck('id_detail'))->orderBy('revisi_no')->get();
-        foreach ($proofs as $p) {
-            $berkas->push([
-                'kategori' => $p->status === 'Disetujui' ? 'Approved Design' : 'Proof', 'item' => $namaItem[$p->id_detail] ?? '-', 'nama' => $p->nama_file_asli,
-                'url' => $url($p->file_path), 'info' => "Revisi #{$p->revisi_no} - {$p->status}", 'waktu' => $p->created_at,
-            ]);
         }
 
         foreach (DB::table('order_berkas')->where('id_transaksi', $idTransaksi)->orderBy('id')->get() as $b) {

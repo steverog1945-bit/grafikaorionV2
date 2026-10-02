@@ -14,7 +14,6 @@ use App\Models\User;
 use App\Services\AccountingService;
 use App\Services\ApprovalService;
 use App\Services\BackupService;
-use App\Services\DesignProofService;
 use App\Services\DocumentNumberService;
 use App\Services\HargaService;
 use App\Services\JerseyAccountingService;
@@ -25,7 +24,6 @@ use App\Services\QuotationService;
 use App\Services\WasteService;
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -291,31 +289,6 @@ class IsiDataDemoCommand extends Command
         }
 
         return "{$lunas} lunas, {$dp} DP, {$diambil} sudah diambil";
-    }
-
-    private function designProof(): string
-    {
-        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
-        $tmp = tempnam(sys_get_temp_dir(), 'demo');
-        file_put_contents($tmp, $png);
-        $jumlah = 0;
-
-        $item = DB::table('transaksi_detail as d')->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
-            ->whereIn('t.id_transaksi', collect($this->nota)->pluck('id_transaksi'))->where('d.status_spk', 'Desain')->whereNotNull('d.id_produk')->pluck('d.id_detail');
-
-        foreach ($item as $idx => $idDetail) {
-            $file = new UploadedFile($tmp, 'proof-demo.png', 'image/png', null, true);
-            $proof = DesignProofService::unggah((int) $idDetail, $file, 'Proof DEMO');
-            $jumlah++;
-
-            if ($idx === 0) {
-                DesignProofService::catatKeputusan((int) $proof->id, 'Disetujui', 'WhatsApp', 'Setuju via chat (DEMO)');
-            }
-        }
-
-        @unlink($tmp);
-
-        return "{$jumlah} proof (1 disetujui, sisanya menunggu review)";
     }
 
     private function qcRework(): string

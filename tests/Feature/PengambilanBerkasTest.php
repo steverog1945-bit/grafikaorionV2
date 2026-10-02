@@ -95,19 +95,13 @@ class PengambilanBerkasTest extends TestCase
 
     public function test_berkas_order_mengelompokkan_semua_kategori(): void
     {
-        DB::table('design_proofs')->insert([
-            ['id_detail' => $this->idDetail, 'revisi_no' => 1, 'file_path' => 'design_proofs/1/a.jpg', 'nama_file_asli' => 'proof1.jpg', 'status' => 'Digantikan', 'created_at' => now(), 'updated_at' => now()],
-            ['id_detail' => $this->idDetail, 'revisi_no' => 2, 'file_path' => 'design_proofs/1/b.jpg', 'nama_file_asli' => 'final.jpg', 'status' => 'Disetujui', 'created_at' => now(), 'updated_at' => now()],
-        ]);
         $this->post("/berkas-order/{$this->idNota}/unggah", ['kategori' => 'Production File', 'file' => UploadedFile::fake()->create('cetak.pdf', 100, 'application/pdf'), 'id_detail' => $this->idDetail])->assertSessionHas('success');
         $this->post("/berkas-order/{$this->idNota}/unggah", ['kategori' => 'QC Photo', 'file' => $this->foto('qc.jpg')])->assertSessionHas('success');
         $this->patch("/collecting/{$this->idNota}/proses", ['jenis' => 'Dikirim', 'nama_penerima' => 'Kurir', 'bukti' => $this->foto('kirim.jpg')]);
 
         $grup = $this->get("/berkas-order/{$this->idNota}")->assertOk()->assertSee('Berkas Order INV-PB-1')->viewData('grup');
 
-        $this->assertEquals(['Design', 'Proof', 'Approved Design', 'Production File', 'QC Photo', 'Delivery Proof'], $grup->keys()->all());
-        $this->assertEquals('proof1.jpg', $grup['Proof'][0]['nama']);
-        $this->assertEquals('final.jpg', $grup['Approved Design'][0]['nama']);
+        $this->assertEquals(['Design', 'Production File', 'QC Photo', 'Delivery Proof'], $grup->keys()->all());
         $this->assertEquals('cetak.pdf', $grup['Production File'][0]['nama']);
         $this->assertStringContainsString('Kurir', $grup['Delivery Proof'][0]['info']);
     }

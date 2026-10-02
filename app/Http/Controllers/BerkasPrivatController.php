@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class BerkasPrivatController extends Controller
 {
-    public const FOLDER = ['order_thumbnails', 'jersey_thumbnails', 'jersey_bukti_bayar', 'kas_kecil_bukti', 'bukti_serah_terima', 'berkas_order', 'design_proofs'];
+    public const FOLDER = ['order_thumbnails', 'jersey_thumbnails', 'jersey_bukti_bayar', 'kas_kecil_bukti', 'bukti_serah_terima', 'berkas_order'];
 
     /**
      * Folder -> prefix rute di config/menu_access.php yang berhak melihat isinya. Id menunya dibaca dari konfigurasi
@@ -26,7 +26,6 @@ class BerkasPrivatController extends Controller
         'jersey_thumbnails'  => ['jersey'],
         'order_thumbnails'   => ['penjualan', 'berkas-order', 'spk', 'spk-desain', 'produksi', 'collecting', 'kasir', 'qc'],
         'berkas_order'       => ['penjualan', 'berkas-order', 'spk', 'spk-desain', 'produksi', 'collecting', 'kasir', 'qc'],
-        'design_proofs'      => ['penjualan', 'berkas-order', 'spk', 'spk-desain', 'produksi', 'qc'],
         'bukti_serah_terima' => ['collecting', 'penjualan', 'kasir'],
     ];
 

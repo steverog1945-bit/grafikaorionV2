@@ -26,7 +26,7 @@ class ResetDataUjiCommand extends Command
     /** Tabel yang dikosongkan seluruhnya. */
     private const KOSONGKAN = [
         'transaksi', 'transaksi_detail', 'transaksi_detail_finishing', 'pembayaran_riwayat', 'pengambilan', 'nota_edit_request',
-        'design_proofs', 'qc_inspeksi', 'rework', 'waste_log', 'order_berkas', 'quotations', 'quotation_items',
+        'qc_inspeksi', 'rework', 'waste_log', 'order_berkas', 'quotations', 'quotation_items',
         'kas_harian', 'kas_manual', 'kas_kecil', 'konsumen_deposit',
         'purchase_requests', 'purchase_request_details', 'purchase_orders', 'purchase_order_details',
         'pembelian_bahan', 'pembelian_bahan_detail', 'pembayaran_hutang', 'kedatangan_bahan', 'kedatangan_bahan_detail',
