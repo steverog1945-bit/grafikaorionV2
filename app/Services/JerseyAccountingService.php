@@ -80,8 +80,13 @@ class JerseyAccountingService
             // referensi jurnal - tidak ada yang perlu dibalik.
             if ($payment->no_referensi_jurnal) {
                 // Pembayaran tunai masuk Kas Kecil: void menarik uangnya kembali, jadi tidak boleh membuat saldo minus.
-                KasKecilService::pastikanPemasukanBisaDitarik($payment->no_referensi_jurnal, 'Pembayaran jersey tunai ini');
-                AccountingService::reverseByReferensi($payment->no_referensi_jurnal);
+                // Koreksi kembalian (jersey:koreksi-pembukuan) mengurangi pembayaran lewat jurnal terpisah "-KMB":
+                // uang yang benar-benar masuk = jurnal pembayaran + koreksinya, dan keduanya ikut dibalik.
+                $referensi = [$payment->no_referensi_jurnal, $payment->no_referensi_jurnal . '-KMB'];
+                KasKecilService::pastikanPemasukanBisaDitarik($referensi, 'Pembayaran jersey tunai ini');
+                foreach ($referensi as $ref) {
+                    AccountingService::reverseByReferensi($ref);
+                }
             }
 
             $order = $payment->order;

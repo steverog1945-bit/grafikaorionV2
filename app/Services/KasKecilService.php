@@ -28,11 +28,12 @@ class KasKecilService
      * uangnya kembali. Bila uang itu sudah terpakai, pembatalan ditolak: saldo Kas Kecil tidak boleh minus.
      * Wajib di dalam transaksi (mengunci akun 1005 lewat pastikanSaldoCukup).
      */
-    public static function pastikanPemasukanBisaDitarik(string $noReferensi, string $label): void
+    /** @param string|string[] $noReferensi satu referensi, atau beberapa (mis. pembayaran + jurnal koreksinya) */
+    public static function pastikanPemasukanBisaDitarik(string|array $noReferensi, string $label): void
     {
         // Kunci dulu, baru baca (keduanya terkunci): lihat catatan di PembayaranHutangService::saldoKasKecil().
         DB::table('bag_akun')->where('kode_akun', '1005')->lockForUpdate()->first();
-        $masuk = round((float) DB::table('jurnal_umum')->where('no_referensi', $noReferensi)->where('kode_akun', '1005')->sharedLock()->sum(DB::raw('debet - kredit')), 2);
+        $masuk = round((float) DB::table('jurnal_umum')->whereIn('no_referensi', (array) $noReferensi)->where('kode_akun', '1005')->sharedLock()->sum(DB::raw('debet - kredit')), 2);
         if ($masuk <= 0) {
             return;
         }

@@ -114,6 +114,23 @@ class KasKecilTidakMinusTest extends TestCase
         $this->assertSame(0, DB::table('jersey_order_payments')->whereNull('deleted_at')->count());
     }
 
+    /** Pembayaran yang dikoreksi kembaliannya (jurnal -KMB) lalu di-void: jurnal koreksinya ikut dibalik, Kas Kecil kembali 0. */
+    public function test_void_pembayaran_jersey_yang_dikoreksi_kembalian_membalik_jurnal_koreksi(): void
+    {
+        $o = JerseyOrder::create(['order_number' => 'JO-KMB', 'order_date' => now()->toDateString(), 'customer_name' => 'Tim', 'additional_charge' => 500000]);
+        $o->recalculateTotal();
+        $this->post("/jersey/keuangan/{$o->id}/bayar", ['tanggal_bayar' => now()->toDateString(), 'jumlah' => 300000, 'metode_bayar' => 'Tunai']);
+        // Data lama: tagihan sebenarnya 250.000, pembayaran tunai 300.000 (50.000 kembalian ikut tercatat).
+        DB::table('jersey_orders')->where('id', $o->id)->update(['total' => 250000]);
+        $this->artisan('jersey:koreksi-pembukuan', ['--terapkan' => true])->assertSuccessful();
+        $this->assertEquals(250000, $this->saldo());
+
+        \App\Services\JerseyAccountingService::voidPembayaran((int) DB::table('jersey_order_payments')->value('id'), 'salah input');
+
+        $this->assertEquals(0, $this->saldo());
+        $this->assertEquals(0, round((float) DB::table('jurnal_umum')->where('no_referensi', 'like', 'JO-KMB/BYR-%')->sum(DB::raw('debet - kredit')), 2));
+    }
+
     public function test_kategori_tanpa_akun_tidak_bisa_dipakai_dan_tidak_bisa_dibuat(): void
     {
         $this->post('/kas-kecil/saldo-awal', ['tanggal' => now()->toDateString(), 'nominal' => 100000]);
