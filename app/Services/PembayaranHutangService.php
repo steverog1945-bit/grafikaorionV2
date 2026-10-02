@@ -33,8 +33,9 @@ class PembayaranHutangService
         return max(0.0, round((float) $pembelian->grand_total - self::totalDibayar((int) $pembelian->id_pembelian), 2));
     }
 
-    /** Saldo Kas Kecil (akun 1005) menurut jurnal - simpanan darurat di luar laci. */
     /**
+     * Saldo Kas Kecil (akun 1005) menurut jurnal - simpanan darurat di luar laci.
+     *
      * $terkunci = true dipakai PENJAGA saldo di dalam transaksi: hitungan dibaca sebagai locking read, yang selalu
      * melihat data terbaru yang sudah di-commit. Pembacaan biasa di MySQL (REPEATABLE READ) memakai potret yang
      * terbentuk pada bacaan biasa pertama di transaksi; bila potret itu terbentuk sebelum kunci didapat, dua
