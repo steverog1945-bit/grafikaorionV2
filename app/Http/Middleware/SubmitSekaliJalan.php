@@ -27,7 +27,14 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class SubmitSekaliJalan
 {
-    private const TTL_MENIT = 15;
+    /** Hasil sukses diingat selama ini untuk menjawab kiriman ulang. */
+    private const TTL_HASIL_MENIT = 15;
+
+    /**
+     * Kunci "sedang diproses" sengaja pendek (sedikit di atas max_execution_time 120 detik): bila proses mati mendadak
+     * sehingga kunci tidak pernah dilepas, operator hanya tertahan beberapa menit, bukan 15 menit.
+     */
+    private const TTL_DIPROSES_MENIT = 3;
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -38,7 +45,7 @@ class SubmitSekaliJalan
 
         $kunci = 'submit:' . optional($request->route())->getName() . ':' . $request->path() . ':' . Auth::id() . ':' . $id;
 
-        if (!Cache::add($kunci, 'diproses', now()->addMinutes(self::TTL_MENIT))) {
+        if (!Cache::add($kunci, 'diproses', now()->addMinutes(self::TTL_DIPROSES_MENIT))) {
             return $this->ulangan($request, Cache::get($kunci));
         }
 
@@ -51,7 +58,7 @@ class SubmitSekaliJalan
 
         $hasil = $this->hasilSukses($request, $respons);
         if ($hasil !== null) {
-            Cache::put($kunci, $hasil, now()->addMinutes(self::TTL_MENIT));
+            Cache::put($kunci, $hasil, now()->addMinutes(self::TTL_HASIL_MENIT));
         } else {
             Cache::forget($kunci);
         }
@@ -65,12 +72,17 @@ class SubmitSekaliJalan
         if ($respons instanceof JsonResponse) {
             $data = $respons->getData(true);
 
-            return $respons->isSuccessful() && is_array($data) && ($data['status'] ?? null) === 'success' ? ['json' => $data] : null;
+            // Dua bentuk yang dipakai aplikasi ini: {status: 'success'} dan {success: true} (master Jersey, harga).
+            $sukses = is_array($data) && (($data['status'] ?? null) === 'success' || ($data['success'] ?? null) === true);
+
+            return $respons->isSuccessful() && $sukses ? ['json' => $data] : null;
         }
 
-        // Form biasa: sukses = redirect dengan pesan sukses dan tanpa pesan galat/validasi.
+        // Form biasa: sukses = redirect dengan pesan sukses yang di-flash OLEH PERMINTAAN INI, tanpa galat/validasi.
+        // Pesan sukses dari permintaan sebelumnya yang belum sempat tampil masih ada di sesi dan tidak boleh dihitung.
         $sesi = $request->hasSession() ? $request->session() : null;
-        if ($respons->isRedirection() && $sesi && $sesi->has('success') && !$sesi->has('error') && !$sesi->has('errors')) {
+        $baru = $sesi ? (array) $sesi->get('_flash.new', []) : [];
+        if ($respons->isRedirection() && in_array('success', $baru, true) && !in_array('error', $baru, true) && !in_array('errors', $baru, true)) {
             return ['redirect' => $respons->headers->get('Location'), 'success' => (string) $sesi->get('success')];
         }
 

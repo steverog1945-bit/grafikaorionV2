@@ -51,4 +51,29 @@ class AuditIntegritasRekonsiliasiTest extends TestCase
     {
         $this->assertNotContains('collation_campuran', $this->temuan());
     }
+
+    public function test_bahan_aktif_bersaldo_tanpa_harga_rata_rata_ketahuan(): void
+    {
+        $mesin = DB::table('mesin')->insertGetId(['nama_mesin' => 'M', 'tipe_mesin' => 'x']);
+        $kat = DB::table('kategori')->insertGetId(['nama_kategori' => 'K', 'kode_kategori' => 'K']);
+        $bahan = fn (string $kode, float $stok, string $status) => DB::table('bahan_baku')->insert(['kode_bahan' => $kode, 'nama_bahan' => 'Bahan ' . $kode,
+            'id_mesin' => $mesin, 'id_kategori' => $kat, 'stok' => $stok, 'nilai_konversi' => 1, 'harga_rata_rata' => 0, 'satuan_stok' => 'm2', 'status' => $status]);
+        $bahan('KOSONG', 0, 'aktif');
+        $bahan('NONAKTIF', 5, 'nonaktif');
+        $this->assertNotContains('bahan_tanpa_harga', $this->temuan(), 'bahan tanpa stok/nonaktif tidak perlu dilaporkan');
+
+        // Dijual atau dipakai produksi, HPP-nya tercatat 0 dan laba terlihat lebih besar dari kenyataan.
+        $bahan('ADA', 10, 'aktif');
+        $this->assertContains('bahan_tanpa_harga', $this->temuan());
+    }
+
+    public function test_biaya_dibayar_pemilik_tidak_dianggap_kas_kecil_tidak_sinkron(): void
+    {
+        $this->actingAs(User::factory()->create(['id_role' => Role::factory()->create(['nama_role' => 'Administrator'])->id_role]));
+        $listrik = DB::table('kategori_kas_kecil')->where('nama_kategori', 'Beban Listrik & Telepon')->value('id_kategori_kas_kecil');
+        $this->post('/kas-kecil', ['tanggal' => now()->toDateString(), 'jenis' => 'Keluar', 'id_kategori' => $listrik, 'keterangan' => 'Listrik', 'nominal' => 300000])
+            ->assertSessionHas('success');
+
+        $this->assertSame([], $this->temuan());
+    }
 }

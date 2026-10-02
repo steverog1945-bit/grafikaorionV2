@@ -98,7 +98,6 @@ class Izin
         return $aktor && (int) $aktor->id_user !== (int) $target->id_user && !self::adalahAdmin($target);
     }
 
-    /** Boleh melakukan $aksi pada salah satu menu di $idMenus? */
     /** Menu Kas Kecil (config/menu_access.php: 'kas-kecil' => [39]). */
     public const MENU_KAS_KECIL = 39;
 
@@ -112,6 +111,7 @@ class Izin
         return self::boleh($user, [self::MENU_KAS_KECIL], 'add');
     }
 
+    /** Boleh melakukan $aksi pada salah satu menu di $idMenus? */
     public static function boleh(?User $user, array $idMenus, string $aksi = 'view'): bool
     {
         if (!$user) {
@@ -139,7 +139,6 @@ class Izin
         return false;
     }
 
-    /** Id menu yang boleh DILIHAT (untuk sidebar). */
     /**
      * Peta hak untuk tampilan: dipakai skrip di layout untuk menyembunyikan tombol aksi yang pasti ditolak server
      * (hapus, aktif/nonaktif, ubah). Isinya diturunkan dari aturan yang SAMA dengan CheckMenuAccess, jadi tampilan
@@ -167,6 +166,7 @@ class Izin
         ];
     }
 
+    /** Id menu yang boleh DILIHAT (untuk sidebar). */
     public static function menuTerlihat(User $user): array
     {
         return array_keys(array_filter(self::peta($user), fn ($h) => $h['view']));

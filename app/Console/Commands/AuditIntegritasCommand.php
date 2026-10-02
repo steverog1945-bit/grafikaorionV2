@@ -154,6 +154,16 @@ class AuditIntegritasCommand extends Command
             }
         }
 
+        // 10. Bahan aktif yang masih punya stok wajib punya harga rata-rata: tanpa itu setiap pemakaian/penjualannya
+        //     tercatat HPP 0 (laba terlihat lebih besar) dan selisih opname tidak bernilai. Isi lewat faktur pembelian
+        //     atau harga beli di master bahan.
+        foreach (DB::table('bahan_baku')->where('status', 'aktif')->where('stok', '>', 0)
+            ->where(fn ($q) => $q->whereNull('harga_rata_rata')->orWhere('harga_rata_rata', '<=', 0))
+            ->orderBy('nama_bahan')->get(['nama_bahan', 'stok']) as $b) {
+            $adaTemuan = true;
+            $hasil[] = ['bahan_tanpa_harga', $b->nama_bahan, 'stok ' . round((float) $b->stok, 2) . ' tanpa harga rata-rata (HPP tercatat 0)'];
+        }
+
         // Hasil terakhir disimpan untuk lonceng notifikasi dan halaman Audit Bulanan (dijalankan terjadwal tiap hari).
         \Illuminate\Support\Facades\Cache::forever('audit_integritas_terakhir', [
             'waktu' => now()->toDateTimeString(),
