@@ -169,6 +169,34 @@
     body.sidebar-collapsed aside nav > a.sb-active::before { left: -14px; }
     aside .menu-group-items a.sb-active::before { content: none; }
 
+    /* Menu aktif dan menu yang disorot: tab yang menempel ke tepi kanan sidebar, sisi kiri membulat, dengan lekukan
+       cekung di atas dan bawahnya (mengikuti referensi pemilik). Lekukan dibuat dari bayangan berwarna padat (bukan
+       gradien); warna tab dan lekukan berasal dari satu variabel --tab supaya selalu sama. Hanya CSS, tanpa skrip.
+       Mode ringkas (rel ikon) tidak memakai bentuk ini. */
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group {
+        --tab: transparent;
+        margin-right: -16px; /* nav ber-padding 16px: tab menyentuh tepi kanan area menu */
+        border-radius: 12px 0 0 12px;
+        transition: color .14s ease;
+    }
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: #f1f5f9; }
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: #eef2ff; }
+    html.dark body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: #334155; }
+    html.dark body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: #1e1b4b; }
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover,
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { background: var(--tab) !important; }
+    /* Lekukan atas (pseudo milik tautan) dan bawah (pseudo milik label teksnya, yang diposisikan terhadap tautan). */
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group::after,
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group > span:first-of-type::after {
+        content: ''; position: absolute; right: 0; width: 14px; height: 14px; pointer-events: none;
+    }
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group::after {
+        bottom: 100%; border-bottom-right-radius: 14px; box-shadow: 7px 7px 0 7px var(--tab);
+    }
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group > span:first-of-type::after {
+        top: 100%; border-top-right-radius: 14px; box-shadow: 7px -7px 0 7px var(--tab);
+    }
+
     /* Flyout grup & tooltip untuk rel ringkas */
     #railFlyout, #railTip { position: fixed; z-index: 70; display: none; }
     #railFlyout {
