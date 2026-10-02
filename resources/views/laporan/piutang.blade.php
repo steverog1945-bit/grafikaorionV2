@@ -73,11 +73,11 @@
     {{-- RESUME - kartu berwarna di layar (tidak diubah), tabel standar
          polos khusus cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Jumlah Nota</p>
             <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($jumlahNota, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Piutang</p>
             <h3 class="text-2xl font-medium text-rose-500 mt-1">Rp {{ number_format($totalPiutang, 0, ',', '.') }}</h3>
         </div>

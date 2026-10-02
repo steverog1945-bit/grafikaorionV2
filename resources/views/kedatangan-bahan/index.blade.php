@@ -209,7 +209,7 @@
             showCancelButton: true,
             confirmButtonColor: '#4f46e5',
             confirmButtonText: 'Ya, Selesaikan!',
-            customClass: { popup: 'rounded-[2.5rem]' }
+            customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');
@@ -230,7 +230,7 @@
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
             confirmButtonText: 'Ya, Hapus',
-            customClass: { popup: 'rounded-[2.5rem]' }
+            customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');
@@ -252,7 +252,7 @@
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
             confirmButtonText: 'Ya, Hapus Semua',
-            customClass: { popup: 'rounded-[2.5rem]' }
+            customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
             if (result.isConfirmed) {
                 document.getElementById('bulk-delete-form').submit();

@@ -14,7 +14,7 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     @forelse($transaksi as $t)
-    <div class="bg-white rounded-[2rem] border-2 border-slate-100 p-6 hover:border-indigo-500 transition-all group shadow-sm">
+    <div class="bg-white rounded-2xl border-2 border-slate-100 p-6 hover:border-indigo-500 transition-all group shadow-sm">
         <div class="flex justify-between items-start mb-4">
             <span class="bg-slate-100 text-slate-600 px-4 py-1 rounded-xl text-[10px] font-medium uppercase">#{{ $t->nomor_nota }}</span>
             <span class="text-[10px] font-medium text-slate-400">{{ date('H:i', strtotime($t->tgl_order)) }}</span>

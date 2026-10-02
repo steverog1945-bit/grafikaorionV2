@@ -189,7 +189,7 @@
                 </p>
                 <h3><a href="{{ route('publik.baca', $unggulan->slug) }}">{{ $unggulan->judul }}</a></h3>
                 @if($unggulan->ringkasan)<p class="bl-ringkas">{{ $unggulan->ringkasan }}</p>@endif
-                <a class="bl-baca" href="{{ route('publik.baca', $unggulan->slug) }}">Baca tulisan <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <a class="bl-baca" href="{{ route('publik.baca', $unggulan->slug) }}">Baca tulisan</a>
             </div>
         </div>
         @endif

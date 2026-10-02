@@ -40,7 +40,7 @@
             <div class="w-full lg:w-[64%] space-y-4">
                 <div id="wrapper-lines" class="space-y-4">
                     @foreach($order->lines as $line)
-                    <div class="jersey-line-card bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden" data-prefix="lines[{{ $line->id }}]">
+                    <div class="jersey-line-card bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden" data-prefix="lines[{{ $line->id }}]">
                         @include('jersey.orders._line-card-fields', ['idx' => $line->id, 'line' => $line, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
                     </div>
                     @endforeach
@@ -77,7 +77,7 @@
 
 {{-- ===================== TEMPLATE 1 BARIS BARANG (kosong, untuk "+ Tambah Jenis Barang") ===================== --}}
 <template id="template_baris_barang">
-    <div class="jersey-line-card bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+    <div class="jersey-line-card bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         @include('jersey.orders._line-card-fields', ['idx' => '__LINE__', 'line' => null, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
     </div>
 </template>

@@ -212,7 +212,7 @@
             confirmButtonColor: '#e11d48',
             confirmButtonText: 'Ya, Tandai',
             cancelButtonText: 'Batal',
-            customClass: { popup: 'rounded-[2rem]' }
+            customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.getElementById('bulk-action-form');
@@ -232,7 +232,7 @@
             confirmButtonColor: '#4f46e5',
             confirmButtonText: 'Ya, Ambil Semua',
             cancelButtonText: 'Batal',
-            customClass: { popup: 'rounded-[2rem]' }
+            customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.getElementById('bulk-action-form');
@@ -263,7 +263,7 @@
             confirmButtonColor: isAntre ? '#4f46e5' : '#e11d48',
             confirmButtonText: isAntre ? 'Ya, Kembalikan' : 'Ya, Batalkan',
             cancelButtonText: 'Kembali',
-            customClass: { popup: 'rounded-[2rem]' }
+            customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');
@@ -285,7 +285,7 @@
             confirmButtonColor: '#4f46e5',
             confirmButtonText: 'Ya, Ambil',
             cancelButtonText: 'Batal',
-            customClass: { popup: 'rounded-[2rem]' }
+            customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');

@@ -82,15 +82,15 @@
     {{-- RESUME - kartu berwarna di layar (tampilan yang sudah pas, tidak
          diubah), tabel standar polos khusus saat dicetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Jumlah Transaksi</p>
             <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($jumlahTransaksi, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Transaksi</p>
             <h3 class="text-2xl font-medium text-indigo-600 mt-1">Rp {{ number_format($totalTransaksi, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Piutang (sisa tagihan riil)</p>
             <h3 class="text-2xl font-medium text-rose-500 mt-1">Rp {{ number_format($totalPiutang, 0, ',', '.') }}</h3>
         </div>
@@ -248,7 +248,7 @@
     <div class="print:hidden">
     @forelse($data as $t)
     @php $itemNota = $itemPerNota->get($t->id_transaksi, collect()); @endphp
-    <div class="nota-block bg-white rounded-3xl border border-slate-100 shadow-sm mb-5 overflow-hidden {{ $t->status_nota === 'Dibatalkan' ? 'opacity-60' : '' }}">
+    <div class="nota-block bg-white rounded-2xl border border-slate-100 shadow-sm mb-5 overflow-hidden {{ $t->status_nota === 'Dibatalkan' ? 'opacity-60' : '' }}">
         {{-- HEADER NOTA - konsumen, golongan, operator, tipe order semua
              langsung terlihat (tidak perlu klik apa pun), sesuai referensi
              yang diacu user. --}}

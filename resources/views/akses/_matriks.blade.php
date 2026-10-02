@@ -4,7 +4,7 @@
     $ada = fn ($idMenu, $a) => (bool) ($izin[$idMenu][$a] ?? false);
     $modeUser = isset($izinRole);
 @endphp
-<div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse" id="matriks-izin">
             <thead>

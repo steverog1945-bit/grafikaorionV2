@@ -15,7 +15,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {{-- INFO PANEL (Kiri) --}}
         <div class="lg:col-span-1">
-            <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+            <div class="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
                 <div class="relative z-10">
                     <div class="w-14 h-14 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-slate-200">
                         <i class="fas fa-exchange-alt text-xl"></i>
@@ -41,7 +41,7 @@
         {{-- TABLE DATA (Kanan) --}}
         <div class="lg:col-span-3">
             {{-- FILTER & SEARCH --}}
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
                 <form method="GET" action="{{ route('satuan.index') }}" class="flex flex-wrap items-end gap-4">
                     <div class="flex-1 min-w-[260px]">
                         <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Satuan</label>

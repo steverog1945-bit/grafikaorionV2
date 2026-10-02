@@ -11,7 +11,7 @@
 @endphp
 
     {{-- ================= HERO ================= --}}
-    <div class="relative overflow-hidden rounded-[2rem] bg-indigo-600 px-6 sm:px-12 py-12 mb-8 shadow-sm hero-postingan">
+    <div class="relative overflow-hidden rounded-2xl bg-indigo-600 px-6 sm:px-12 py-12 mb-8 shadow-sm hero-postingan">
         <div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-white/10"></div>
         <div class="absolute right-24 -bottom-24 w-64 h-64 rounded-full bg-white/10"></div>
         <div class="relative max-w-3xl">
@@ -67,7 +67,7 @@
 
     {{-- ================= UNGGULAN ================= --}}
     @if($unggulan)
-    <a href="{{ route('postingan.show', $unggulan->slug) }}" class="group grid grid-cols-1 lg:grid-cols-2 bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden mb-8 hover:shadow-xl transition-all">
+    <a href="{{ route('postingan.show', $unggulan->slug) }}" class="group grid grid-cols-1 lg:grid-cols-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-8 hover:shadow-xl transition-all">
         <div class="relative min-h-[240px] lg:min-h-[340px] {{ $warnaKartu[$unggulan->id % count($warnaKartu)] }}">
             @if($unggulan->url_sampul)<img src="{{ $unggulan->url_sampul }}" alt="{{ $unggulan->judul }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">@endif
             @if($unggulan->disematkan)<span class="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-amber-600"><i class="fas fa-thumbtack"></i> Disematkan</span>@endif
@@ -81,7 +81,7 @@
                 <span><i class="far fa-calendar mr-1"></i>{{ optional($unggulan->terbit_at)->translatedFormat('d M Y') }}</span>
                 <span><i class="far fa-clock mr-1"></i>{{ $unggulan->menit_baca }} menit baca</span>
             </div>
-            <span class="mt-6 inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-widest text-indigo-600">Baca selengkapnya <i class="fas fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i></span>
+            <span class="mt-6 inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-widest text-indigo-600">Baca selengkapnya</span>
         </div>
     </a>
     @endif
@@ -90,7 +90,7 @@
     @if($posts->count())
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         @foreach($posts as $p)
-        <article class="group relative flex flex-col bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all">
+        <article class="group relative flex flex-col bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all">
             <a href="{{ route('postingan.show', $p->slug) }}" class="block relative aspect-[16/9] {{ $warnaKartu[$p->id % count($warnaKartu)] }} overflow-hidden">
                 @if($p->url_sampul)
                     <img src="{{ $p->url_sampul }}" alt="{{ $p->judul }}" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
@@ -123,11 +123,11 @@
         @endforeach
     </div>
 
-    <div class="mt-8 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="mt-8 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <x-table.pagination :paginator="$posts" />
     </div>
     @elseif(!$unggulan)
-    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm py-12">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm py-12">
         <x-empty-state :title="$tanpaFilter ? 'Belum ada postingan' : 'Tidak ada postingan yang cocok'" :description="$tanpaFilter ? ($pengelola ? 'Klik Tulis Postingan untuk membuat pengumuman pertama.' : 'Postingan akan muncul di sini.') : 'Ubah atau reset penyaring.'" />
     </div>
     @endif
@@ -147,7 +147,7 @@
 <script>
     function konfirmasiHapusPostingan(e, form, judul) {
         e.preventDefault();
-        Swal.fire({ title: 'Hapus postingan?', html: `<b>${judul.replace(/[<>&]/g, '')}</b> akan dihapus dari daftar.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal', customClass: { popup: 'rounded-3xl' } })
+        Swal.fire({ title: 'Hapus postingan?', html: `<b>${judul.replace(/[<>&]/g, '')}</b> akan dihapus dari daftar.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal', customClass: { popup: 'rounded-2xl' } })
             .then(r => { if (r.isConfirmed) form.submit(); });
         return false;
     }

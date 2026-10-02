@@ -26,7 +26,7 @@
         @include('akuntansi._subnav')
     </div>
 
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 mb-6 no-print">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 no-print">
         <form method="GET" class="flex flex-wrap items-end gap-4">
             <div class="min-w-[260px]">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Akun</label>
@@ -51,7 +51,7 @@
     </div>
 
     @if($akun)
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden print:hidden">
         <div class="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
             <div>
                 <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">{{ $akun->kode_akun }}</span>
@@ -131,7 +131,7 @@
         </x-laporan.print-table>
     </div>
     @else
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-16 text-center text-slate-400 italic no-print">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-16 text-center text-slate-400 italic no-print">
         Belum ada akun terdaftar. Tambah akun dulu di Chart of Accounts.
     </div>
     @endif

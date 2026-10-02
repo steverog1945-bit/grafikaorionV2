@@ -16,7 +16,7 @@
     <a href="{{ $pengelola ? route('postingan.index') : route('dashboard', ['tab' => 'info']) }}" class="no-print inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-widest text-slate-400 hover:text-indigo-600 mb-5" title="Kembali ke daftar postingan"><i class="fas fa-arrow-left"></i> Info &amp; Panduan</a>
 
     {{-- ================= HERO ================= --}}
-    <header class="hero-postingan relative overflow-hidden rounded-[2rem] {{ $warnaSampul }} min-h-[300px] sm:min-h-[400px] flex items-end shadow-xl">
+    <header class="hero-postingan relative overflow-hidden rounded-2xl {{ $warnaSampul }} min-h-[300px] sm:min-h-[400px] flex items-end shadow-xl">
         @if($post->url_sampul)<img src="{{ $post->url_sampul }}" alt="{{ $post->judul }}" class="absolute inset-0 w-full h-full object-cover">@endif
         <div class="absolute inset-0 bg-slate-900/55"></div>
         <div class="relative p-6 sm:p-10 w-full">
@@ -63,7 +63,7 @@
     </div>
 
     {{-- ================= ISI ================= --}}
-    <article class="cetak-artikel bg-white rounded-[2rem] border border-slate-100 shadow-sm mt-6 px-6 sm:px-12 py-10">
+    <article class="cetak-artikel bg-white rounded-2xl border border-slate-100 shadow-sm mt-6 px-6 sm:px-12 py-10">
         @if($post->ringkasan)<p class="ringkasan-post text-lg text-slate-500 leading-relaxed font-medium border-l-4 border-indigo-400 pl-5 mb-8">{{ $post->ringkasan }}</p>@endif
         <div class="prose-post" lang="id">{!! $post->isi_html !!}</div>
 
@@ -108,7 +108,7 @@
     }
     function konfirmasiHapusPostingan(e, form) {
         e.preventDefault();
-        Swal.fire({ title: 'Hapus postingan ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal', customClass: { popup: 'rounded-3xl' } })
+        Swal.fire({ title: 'Hapus postingan ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal', customClass: { popup: 'rounded-2xl' } })
             .then(r => { if (r.isConfirmed) form.submit(); });
         return false;
     }

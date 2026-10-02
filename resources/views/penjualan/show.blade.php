@@ -170,7 +170,7 @@
             confirmButtonColor: '#e11d48',
             confirmButtonText: 'Ya, Batalkan Nota',
             cancelButtonText: 'Kembali',
-            customClass: { popup: 'rounded-[2rem]' },
+            customClass: { popup: 'rounded-2xl' },
             preConfirm: () => {
                 const alasan = document.getElementById('swal-alasan-nota').value.trim();
                 if (!alasan) {

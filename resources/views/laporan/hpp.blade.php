@@ -65,19 +65,19 @@
 
     {{-- RESUME - kartu berwarna di layar, tabel standar polos khusus cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Omzet</p>
             <h3 class="text-xl font-medium text-slate-900 mt-1">Rp {{ number_format($totalOmzet, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total HPP Bahan</p>
             <h3 class="text-xl font-medium text-slate-900 mt-1">Rp {{ number_format($totalHpp, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm">
             <p class="text-[10px] font-medium text-emerald-500 uppercase tracking-widest">Margin Kotor</p>
             <h3 class="text-xl font-medium text-emerald-600 mt-1">Rp {{ number_format($totalMargin, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm">
             <p class="text-[10px] font-medium text-emerald-500 uppercase tracking-widest">Margin %</p>
             <h3 class="text-xl font-medium text-emerald-600 mt-1">{{ number_format($marginPersen, 1, ',', '.') }}%</h3>
         </div>

@@ -63,23 +63,23 @@
     {{-- RESUME - kartu berwarna di layar (tidak diubah), tabel standar
          polos khusus cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Jumlah Sesi</p>
             <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($jumlahSesi, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Tunai Masuk</p>
             <h3 class="text-2xl font-medium text-emerald-600 mt-1">Rp {{ number_format($totalTunaiMasuk, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Transfer Masuk</p>
             <h3 class="text-2xl font-medium text-indigo-600 mt-1">Rp {{ number_format($totalTransferMasuk, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Debit Masuk</p>
             <h3 class="text-2xl font-medium text-sky-600 mt-1">Rp {{ number_format($totalDebitMasuk, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Selisih</p>
             <h3 class="text-2xl font-medium {{ $totalSelisih < 0 ? 'text-rose-500' : 'text-slate-900' }} mt-1">Rp {{ number_format($totalSelisih, 0, ',', '.') }}</h3>
         </div>
@@ -156,7 +156,7 @@
     <div class="print:hidden">
     @forelse($data as $k)
     @php $manual = $manualPerSesi->get($k->id_kas, collect()); @endphp
-    <div class="sesi-block bg-white rounded-3xl border border-slate-100 shadow-sm mb-5 overflow-hidden">
+    <div class="sesi-block bg-white rounded-2xl border border-slate-100 shadow-sm mb-5 overflow-hidden">
         <div class="px-6 py-4 bg-slate-50/80 border-b border-slate-100 flex flex-wrap items-start justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 flex-wrap">

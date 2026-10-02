@@ -242,7 +242,7 @@
                 </div>
 
                 {{-- ---------- ESTIMASI HARGA ---------- --}}
-                <div class="rounded-3xl bg-indigo-50 border border-indigo-100 px-6 py-5 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="rounded-2xl bg-indigo-50 border border-indigo-100 px-6 py-5 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
                         <p class="text-[10px] font-medium text-indigo-400 uppercase tracking-widest">Harga Estimasi</p>
                         <h2 id="display_subtotal" class="text-3xl font-medium text-indigo-600 tracking-tight mt-1">Rp 0</h2>

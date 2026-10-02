@@ -2,7 +2,7 @@
     // Wrapper luar SENGAJA dibuat polos (tanpa bg/radius/border sendiri).
     // Permukaan visual (background, border, radius 8px) dibawa oleh
     // .modern-table-wrapper di dalam. Sebelumnya wrapper luar juga punya
-    // rounded-[2rem] + border + shadow, sehingga tabel punya dua lapis
+    // rounded-2xl + border + shadow, sehingga tabel punya dua lapis
     // radius (32px di luar, 8px di dalam) dan dua garis border bertumpuk
     // yang terlihat tidak senada dengan .card mana pun.
     'wrapperClass' => 'overflow-hidden',

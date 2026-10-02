@@ -13,7 +13,7 @@
     </x-page-header>
 
     {{-- FILTER & SEARCH --}}
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-8">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8">
         <form method="GET" action="{{ route('bank.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[260px]">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Rekening</label>
@@ -33,7 +33,7 @@
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     @forelse($bank as $b)
-    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative group hover:shadow-md transition-all">
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:shadow-md transition-all">
         <div class="flex justify-between items-start mb-4">
             <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-xs font-medium uppercase">{{ $b->nama_bank }}</span>
             <div class="flex gap-2">

@@ -17,7 +17,7 @@
     </x-page-header>
 
     {{-- FILTER & SEARCH --}}
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-8">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8">
         <form method="GET" action="{{ url('/karyawan') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[260px]">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Karyawan</label>
@@ -275,7 +275,7 @@
             confirmButtonColor: '#e11d48',
             confirmButtonText: 'Ya, Hapus!',
             cancelButtonText: 'Batal',
-            customClass: { popup: 'rounded-[2.5rem]' }
+            customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
             if (result.isConfirmed) {
                 document.getElementById(`delete-form-${id}`).submit();

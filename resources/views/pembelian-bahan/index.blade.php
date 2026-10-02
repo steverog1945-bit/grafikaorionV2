@@ -59,17 +59,17 @@
 
     {{-- HITUNGAN JATUH TEMPO (seluruh faktur berhutang) - klik untuk menyaring --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <a href="{{ route('pembelian-bahan.index', ['jt' => 'telat']) }}" title="Faktur yang sudah lewat jatuh tempo dan belum lunas" class="rounded-3xl border p-5 transition-all hover:shadow-md {{ request('jt') === 'telat' ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-100' }}">
+        <a href="{{ route('pembelian-bahan.index', ['jt' => 'telat']) }}" title="Faktur yang sudah lewat jatuh tempo dan belum lunas" class="rounded-2xl border p-5 transition-all hover:shadow-md {{ request('jt') === 'telat' ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-100' }}">
             <p class="text-[10px] font-medium text-rose-500 uppercase tracking-widest">Telat Jatuh Tempo</p>
             <p class="text-2xl font-medium text-rose-600 mt-1">{{ $ringkasJt['telat']['n'] }} <span class="text-xs font-medium text-slate-400">faktur</span></p>
             <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['telat']['nilai'], 0, ',', '.') }}</p>
         </a>
-        <a href="{{ route('pembelian-bahan.index', ['jt' => '7hari']) }}" title="Faktur yang jatuh tempo dalam 7 hari ke depan" class="rounded-3xl border p-5 transition-all hover:shadow-md {{ request('jt') === '7hari' ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100' }}">
+        <a href="{{ route('pembelian-bahan.index', ['jt' => '7hari']) }}" title="Faktur yang jatuh tempo dalam 7 hari ke depan" class="rounded-2xl border p-5 transition-all hover:shadow-md {{ request('jt') === '7hari' ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100' }}">
             <p class="text-[10px] font-medium text-amber-500 uppercase tracking-widest">Jatuh Tempo &le; 7 Hari</p>
             <p class="text-2xl font-medium text-amber-600 mt-1">{{ $ringkasJt['minggu']['n'] }} <span class="text-xs font-medium text-slate-400">faktur</span></p>
             <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['minggu']['nilai'], 0, ',', '.') }}</p>
         </a>
-        <a href="{{ route('pembelian-bahan.index', ['jt' => 'aman']) }}" title="Faktur berhutang dengan jatuh tempo lebih dari 7 hari lagi" class="rounded-3xl border p-5 transition-all hover:shadow-md {{ request('jt') === 'aman' ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-100' }}">
+        <a href="{{ route('pembelian-bahan.index', ['jt' => 'aman']) }}" title="Faktur berhutang dengan jatuh tempo lebih dari 7 hari lagi" class="rounded-2xl border p-5 transition-all hover:shadow-md {{ request('jt') === 'aman' ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-100' }}">
             <p class="text-[10px] font-medium text-emerald-500 uppercase tracking-widest">Belum Jatuh Tempo</p>
             <p class="text-2xl font-medium text-emerald-600 mt-1">{{ $ringkasJt['aman']['n'] }} <span class="text-xs font-medium text-slate-400">faktur</span></p>
             <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['aman']['nilai'], 0, ',', '.') }}</p>
@@ -251,7 +251,7 @@
             showCancelButton: true,
             confirmButtonColor: '#10b981',
             confirmButtonText: 'Catat Pembayaran',
-            customClass: { popup: 'rounded-[2rem]' },
+            customClass: { popup: 'rounded-2xl' },
             preConfirm: () => {
                 const nominal = cleanUangDesimal(document.getElementById('swal-nominal').value);
                 if (!nominal || nominal <= 0 || nominal > sisa + 0.01) {
@@ -287,7 +287,7 @@
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
             confirmButtonText: 'Ajukan Pembatalan',
-            customClass: { popup: 'rounded-[2rem]' }
+            customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');
@@ -309,7 +309,7 @@
             showCancelButton: true,
             confirmButtonColor: '#e11d48',
             confirmButtonText: 'Ya, Ajukan Semua',
-            customClass: { popup: 'rounded-[2rem]' }
+            customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
             if (result.isConfirmed) {
                 document.getElementById('bulk-delete-form').submit();

@@ -26,7 +26,7 @@
         @include('akuntansi._subnav')
     </div>
 
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 mb-6 no-print">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 no-print">
         <form method="GET" class="flex flex-wrap items-end gap-4">
             <div>
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Per Tanggal</label>

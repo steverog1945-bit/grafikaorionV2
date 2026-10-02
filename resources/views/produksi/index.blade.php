@@ -181,7 +181,7 @@
             confirmButtonColor: '#10b981',
             confirmButtonText: 'Ya, Selesai',
             cancelButtonText: 'Batal',
-            customClass: { popup: 'rounded-[2rem]' }
+            customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');
@@ -224,7 +224,7 @@
             confirmButtonColor: '#e11d48',
             confirmButtonText: 'Ya, Lanjutkan',
             cancelButtonText: 'Kembali',
-            customClass: { popup: 'rounded-[2rem]' },
+            customClass: { popup: 'rounded-2xl' },
             preConfirm: () => ({
                 tindakan: document.querySelector('input[name="swal-tindakan"]:checked')?.value || 'batal',
                 alasan: document.getElementById('swal-alasan-batal').value,
@@ -260,7 +260,7 @@
             title: 'SPK #' + id,
             html: catatan ? `<div class="text-left text-sm">${escapeHtml(catatan)}</div>` : '<div class="text-slate-400 italic text-sm">Belum ada catatan produksi.</div>',
             icon: 'info',
-            customClass: { popup: 'rounded-[2rem]' }
+            customClass: { popup: 'rounded-2xl' }
         });
     }
 </script>

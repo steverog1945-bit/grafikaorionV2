@@ -71,19 +71,19 @@
     {{-- RESUME - kartu berwarna di layar, tabel standar polos khusus
          cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Jumlah Bahan Aktif</p>
             <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($jumlahBahan, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Stok Habis</p>
             <h3 class="text-2xl font-medium text-rose-500 mt-1">{{ number_format($jumlahHabis, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Stok Menipis</p>
             <h3 class="text-2xl font-medium text-amber-500 mt-1">{{ number_format($jumlahMenipis, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Belum Ada Batas Minimal</p>
             <h3 class="text-2xl font-medium text-sky-500 mt-1">{{ number_format($jumlahBelumAdaBatas, 0, ',', '.') }}</h3>
         </div>

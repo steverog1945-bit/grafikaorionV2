@@ -27,7 +27,7 @@
             </x-form.group>
 
             <x-button type="submit" variant="primary" class="w-full">
-                <i class="fas fa-arrow-right"></i> Lanjut Isi Hasil Hitung Fisik
+                Lanjut Isi Hasil Hitung Fisik
             </x-button>
         </form>
     </x-card>

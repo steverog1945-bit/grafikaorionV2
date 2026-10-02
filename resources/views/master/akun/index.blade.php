@@ -29,7 +29,7 @@
     <div class="space-y-8">
         @foreach($urutanTipe as $tipe)
             @if($grouped->has($tipe))
-            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
                     <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border uppercase {{ $warnaTipe[$tipe] }}">{{ $tipe }}</span>
                     <span class="text-[11px] text-slate-400">{{ $grouped[$tipe]->count() }} akun</span>

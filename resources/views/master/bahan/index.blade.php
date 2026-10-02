@@ -12,7 +12,7 @@
     </x-page-header>
 
     {{-- FILTER & SEARCH --}}
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-8">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8">
         <form method="GET" action="{{ route('bahan.index') }}" id="filterForm" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[300px]">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Material</label>
@@ -69,7 +69,7 @@
     </div>
 
     {{-- TABLE --}}
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <form id="bulk-delete-form" method="POST" action="{{ route('bahan.bulk-delete') }}">
             @csrf
         <x-table bare>

@@ -82,15 +82,15 @@
     {{-- RESUME - kartu berwarna di layar (tidak diubah), tabel standar
          polos khusus cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Jumlah Order</p>
             <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($jumlahOrder, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Transaksi</p>
             <h3 class="text-2xl font-medium text-indigo-600 mt-1">Rp {{ number_format($totalTransaksi, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Piutang (sisa tagihan)</p>
             <h3 class="text-2xl font-medium text-rose-500 mt-1">Rp {{ number_format($totalPiutang, 0, ',', '.') }}</h3>
         </div>
@@ -244,7 +244,7 @@
     <div class="print:hidden">
     @forelse($data as $o)
     @php $lineOrder = $linePerOrder->get($o->id, collect()); @endphp
-    <div class="order-block bg-white rounded-3xl border border-slate-100 shadow-sm mb-5 overflow-hidden">
+    <div class="order-block bg-white rounded-2xl border border-slate-100 shadow-sm mb-5 overflow-hidden">
         <div class="px-6 py-4 bg-slate-50/80 border-b border-slate-100 flex flex-wrap items-start justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 flex-wrap">

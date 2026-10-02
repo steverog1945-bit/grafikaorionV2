@@ -3,7 +3,7 @@
 @section('content')
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
     
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
         <div class="flex items-center gap-3 mb-6">
             <span class="text-2xl">⚙️</span>
             <h2 class="text-xl font-medium text-slate-800">Daftar Mesin</h2>
@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 h-fit">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 h-fit">
         <div class="flex items-center gap-3 mb-6">
             <span class="text-2xl">🏷️</span>
             <h2 class="text-xl font-medium text-slate-800">Kategori Bahan</h2>

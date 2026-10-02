@@ -166,7 +166,7 @@
                 <input type="hidden" name="id_bahan[]">
                 <input type="text" name="nama_bahan_display[]"
                     class="w-full bg-slate-50 border-transparent rounded-xl p-4 font-medium text-slate-700 text-[11px] uppercase placeholder:text-slate-300"
-                    placeholder="KLIK CARI BAHAN →" readonly required>
+                    placeholder="Klik untuk mencari bahan" readonly required>
                 <button type="button" onclick="openBahanModal(this)"
                     class="px-4 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm" aria-label="Cari" title="Cari">
                     <i class="fas fa-search text-xs"></i>
@@ -218,9 +218,9 @@
         </table>
     </div>
     <div class="mt-6 flex justify-between items-center bg-slate-50 p-4 rounded-2xl">
-        <button id="prev-page" class="px-5 py-2 hover:bg-white hover:shadow-sm rounded-xl text-[10px] font-medium uppercase tracking-widest disabled:opacity-30 transition-all">← Prev</button>
+        <button id="prev-page" class="px-5 py-2 hover:bg-white hover:shadow-sm rounded-xl text-[10px] font-medium uppercase tracking-widest disabled:opacity-30 transition-all">‹ Sebelumnya</button>
         <span id="page-info" class="text-[10px] font-medium text-slate-400 uppercase tracking-widest"></span>
-        <button id="next-page" class="px-5 py-2 hover:bg-white hover:shadow-sm rounded-xl text-[10px] font-medium uppercase tracking-widest disabled:opacity-30 transition-all">Next →</button>
+        <button id="next-page" class="px-5 py-2 hover:bg-white hover:shadow-sm rounded-xl text-[10px] font-medium uppercase tracking-widest disabled:opacity-30 transition-all">Berikutnya ›</button>
     </div>
 </x-modal>
 

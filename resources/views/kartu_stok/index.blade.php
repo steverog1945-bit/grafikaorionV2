@@ -17,7 +17,7 @@
 
     {{-- FILTER LENGKAP --}}
     @php $adaFilter = request()->anyFilled(['search', 'kategori', 'mesin', 'satuan', 'status_stok', 'dari', 'sampai', 'tipe']) || request('status', 'aktif') !== 'aktif' || request('urut', 'nama') !== 'nama'; @endphp
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
         <form method="GET" action="{{ route('kartu-stok.index') }}" class="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
             <div class="col-span-2">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Bahan</label>

@@ -72,15 +72,15 @@
     {{-- RESUME - kartu berwarna di layar (tidak diubah), tabel standar
          polos khusus cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Jumlah Faktur</p>
             <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($jumlahFaktur, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Belanja Bahan</p>
             <h3 class="text-2xl font-medium text-indigo-600 mt-1">Rp {{ number_format($totalBelanja, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Sisa Hutang (belum Lunas)</p>
             <h3 class="text-2xl font-medium text-rose-500 mt-1">Rp {{ number_format($totalHutang, 0, ',', '.') }}</h3>
         </div>
@@ -154,7 +154,7 @@
     <div class="print:hidden">
     @forelse($data as $p)
     @php $item = $itemPerFaktur->get($p->id_pembelian, collect()); @endphp
-    <div class="faktur-block bg-white rounded-3xl border border-slate-100 shadow-sm mb-5 overflow-hidden">
+    <div class="faktur-block bg-white rounded-2xl border border-slate-100 shadow-sm mb-5 overflow-hidden">
         <div class="px-6 py-4 bg-slate-50/80 border-b border-slate-100 flex flex-wrap items-start justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 flex-wrap">

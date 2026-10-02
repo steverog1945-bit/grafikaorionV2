@@ -14,7 +14,7 @@
 
     {{-- Antrean terkunci selama kas belum dibuka --}}
     @if(!$kasAktif)
-    <div class="mb-6 flex flex-wrap items-center gap-4 rounded-3xl bg-amber-50 border border-amber-100 px-6 py-4">
+    <div class="mb-6 flex flex-wrap items-center gap-4 rounded-2xl bg-amber-50 border border-amber-100 px-6 py-4">
         <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="fas fa-exclamation-triangle"></i></div>
         <div class="flex-1 min-w-[200px]">
             <p class="text-sm font-medium text-amber-800">Kas kasir belum dibuka</p>
@@ -33,7 +33,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
         @forelse($waiting as $w)
         {{-- tgl_order (bukan created_at) = waktu pesanan masuk yang sebenarnya --}}
-        <div class="group relative rounded-3xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] hover:shadow-[0_16px_40px_rgba(79,70,229,0.10)] hover:border-indigo-100 transition-all duration-300 overflow-hidden">
+        <div class="group relative rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] hover:shadow-[0_16px_40px_rgba(79,70,229,0.10)] hover:border-indigo-100 transition-all duration-300 overflow-hidden">
             <div class="absolute inset-x-0 top-0 h-1 bg-indigo-300 opacity-70"></div>
 
             <div class="p-6">
@@ -64,7 +64,7 @@
             </div>
         </div>
         @empty
-        <div class="col-span-full rounded-3xl bg-white border border-dashed border-slate-200 p-16 text-center">
+        <div class="col-span-full rounded-2xl bg-white border border-dashed border-slate-200 p-16 text-center">
             <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-5"><i class="fas fa-mug-hot text-2xl"></i></div>
             <h3 class="text-slate-700 font-medium">Tidak ada antrean baru</h3>
             <p class="text-slate-400 text-sm mt-1">Semua pesanan sudah masuk ke sistem pembayaran.</p>

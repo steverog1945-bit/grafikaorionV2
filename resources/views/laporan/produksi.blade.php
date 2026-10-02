@@ -76,11 +76,11 @@
          berwarna di layar (tidak diubah), tabel standar polos khusus
          cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Order (Semua Divisi)</p>
             <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($totalOrderKeseluruhan, 0, ',', '.') }} pcs</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Cetak (Semua Divisi)</p>
             <h3 class="text-2xl font-medium text-emerald-600 mt-1">{{ number_format($totalCetakKeseluruhan, 0, ',', '.') }} pcs</h3>
         </div>

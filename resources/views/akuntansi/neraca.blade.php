@@ -26,7 +26,7 @@
         @include('akuntansi._subnav')
     </div>
 
-    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 mb-6 no-print">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 no-print">
         <form method="GET" class="flex flex-wrap items-end gap-4">
             <div>
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Per Tanggal</label>
@@ -40,7 +40,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 print:hidden">
         {{-- AKTIVA --}}
-        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="px-8 py-5 border-b border-slate-100">
                 <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100 uppercase">Aktiva (Aset)</span>
             </div>
@@ -61,7 +61,7 @@
         </div>
 
         {{-- PASIVA --}}
-        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="px-8 py-5 border-b border-slate-100">
                 <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100 uppercase">Kewajiban</span>
             </div>
@@ -123,7 +123,7 @@
          Sengaja ikut tercetak (bukan no-print) - ini bagian dari nilai
          tambah "penjelasan profesional" yang diminta, bukan cuma alat
          bantu di layar. --}}
-    <div class="mt-6 bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden print:hidden">
+    <div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden print:hidden">
         <div class="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
                 <i class="fas fa-chart-simple text-sm"></i>

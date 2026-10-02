@@ -170,7 +170,7 @@
                 html: `Masih ada item pada nota <b>${nomorNota}</b> yang belum selesai dikerjakan. Semua item harus Selesai/Batal dulu sebelum bisa ditandai diambil.`,
                 icon: 'warning',
                 confirmButtonColor: '#4f46e5',
-                customClass: { popup: 'rounded-[2rem]' }
+                customClass: { popup: 'rounded-2xl' }
             });
             return;
         }

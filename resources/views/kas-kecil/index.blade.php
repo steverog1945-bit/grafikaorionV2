@@ -155,22 +155,22 @@
     {{-- RESUME - kartu berwarna di layar (tidak diubah), tabel standar
          polos khusus cetak. --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm min-w-0">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm min-w-0">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Pemasukan Tunai</p>
             <h3 class="text-xl font-medium break-words text-emerald-600 mt-1">Rp {{ number_format($masukTunai, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm min-w-0">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm min-w-0">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Pemasukan Non-Tunai</p>
             <h3 class="text-xl font-medium break-words text-slate-700 mt-1">Rp {{ number_format($masukNonTunai, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm min-w-0">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm min-w-0">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Pengeluaran dari Kas Kecil</p>
             <h3 class="text-xl font-medium break-words text-rose-500 mt-1">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
             @if($pengeluaranPemilik > 0)
                 <p class="text-[11px] text-slate-400 mt-1">Dibayar langsung pemilik: Rp {{ number_format($pengeluaranPemilik, 0, ',', '.') }}</p>
             @endif
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm min-w-0">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm min-w-0">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Saldo Kas Kecil Saat Ini</p>
             <h3 class="text-xl font-medium break-words {{ $saldoKasKecil < 0 ? 'text-rose-600' : 'text-slate-900' }} mt-1">Rp {{ number_format($saldoKasKecil, 0, ',', '.') }}</h3>
             <p class="text-[11px] text-slate-400 mt-1">Seluruh catatan, tidak terpengaruh filter</p>

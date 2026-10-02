@@ -202,7 +202,7 @@
     .sidebar-logo.logo-gaya-kaca { padding: 8px 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; }
     html.dark .sidebar-logo.logo-gaya-kaca { background: #1e293b; border-color: #334155; }
     /* Gaya putih */
-    .sidebar-logo.logo-gaya-putih { padding: 10px 16px; border-radius: 18px; background: #fff; box-shadow: 0 10px 30px rgba(2,6,23,0.35); }
+    .sidebar-logo.logo-gaya-putih { padding: 10px 16px; border-radius: 16px; background: #fff; border: 1px solid #e2e8f0; }
 
     /* Mode ringkas */
     body.sidebar-collapsed aside .sidebar-logo .logo-full { display: none; }
@@ -212,8 +212,9 @@
     body.sidebar-collapsed aside .sidebar-logo .logo-crop { display: block; width: 46px; height: 54px; overflow: hidden; position: relative; z-index: 1; }
     body.sidebar-collapsed aside .sidebar-logo .logo-crop img { height: 54px; width: auto; max-width: none; display: block; }
     body.sidebar-collapsed aside .sidebar-logo .logo-penuh { max-width: 60px; max-height: 46px; object-fit: contain; }
+    /* Logo tampil apa adanya saat menu disembunyikan: tanpa bayangan gelap di belakangnya. */
     body.sidebar-collapsed aside .sidebar-logo.logo-gaya-polos img,
-    body.sidebar-collapsed aside .sidebar-logo .logo-icon img { filter: drop-shadow(0 0 1px rgba(255,255,255,0.95)) drop-shadow(0 6px 12px rgba(2,6,23,0.45)); }
+    body.sidebar-collapsed aside .sidebar-logo .logo-icon img { filter: none; }
     body.sidebar-collapsed aside .sidebar-logo.logo-gaya-kaca,
     body.sidebar-collapsed aside .sidebar-logo.logo-gaya-putih { padding: 8px; border-radius: 16px; }
 
@@ -1442,7 +1443,7 @@
                     title: @json(session('success')),
                     text: @json($lanjut['teks'] ?? ''),
                     showConfirmButton: {{ !empty($lanjut['url']) ? 'true' : 'false' }},
-                    confirmButtonText: @json(($lanjut['tombol'] ?? 'Lanjut') . ' →'),
+                    confirmButtonText: @json($lanjut['tombol'] ?? 'Lanjut'),
                     confirmButtonColor: '#4f46e5', showCloseButton: true
                 }).then(r => { if (r.isConfirmed) window.location.href = @json($lanjut['url'] ?? '#'); });
             @else
@@ -1450,7 +1451,7 @@
             @endif
         @endif
         @if(session('error'))
-            Swal.fire({ icon: 'error', title: 'Tidak berhasil', text: "{{ session('error') }}", customClass: { popup: 'rounded-3xl' } });
+            Swal.fire({ icon: 'error', title: 'Tidak berhasil', text: "{{ session('error') }}", customClass: { popup: 'rounded-2xl' } });
         @endif
     </script>
     <script>

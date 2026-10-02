@@ -92,23 +92,23 @@
 
     {{-- RESUME --}}
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-6 print:hidden">
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest" title="Jumlah item order yang memakai biaya desain">Item Berbiaya Desain</p>
             <h3 class="text-2xl font-medium text-slate-900 mt-1">{{ number_format($total->item, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest" title="Jumlah biaya desain yang ditagihkan ke konsumen">Total Biaya Desain</p>
             <h3 class="text-2xl font-medium text-slate-900 mt-1">Rp {{ number_format($total->biaya, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest" title="Bagian desainer = biaya desain x persen kelasnya">Total Komisi</p>
             <h3 class="text-2xl font-medium text-indigo-600 mt-1">Rp {{ number_format($total->komisi, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-amber-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-amber-100 shadow-sm">
             <p class="text-[10px] font-medium text-amber-500 uppercase tracking-widest" title="Komisi yang masih harus dibayarkan ke desainer">Komisi Belum Dibayar</p>
             <h3 class="text-2xl font-medium text-amber-600 mt-1">Rp {{ number_format($total->belum, 0, ',', '.') }}</h3>
         </div>
-        <div class="bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm">
             <p class="text-[10px] font-medium text-emerald-500 uppercase tracking-widest" title="Biaya desain dikurangi komisi - bagian toko">Bagian Toko</p>
             <h3 class="text-2xl font-medium text-emerald-600 mt-1">Rp {{ number_format($total->bersih, 0, ',', '.') }}</h3>
         </div>

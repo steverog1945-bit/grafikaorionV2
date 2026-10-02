@@ -140,7 +140,7 @@
                     <div class="flex justify-between"><span class="text-slate-500 font-medium">Biaya layanan</span><span class="font-medium text-slate-700" id="rincian-layanan">Rp 0</span></div>
                     <div class="flex justify-between"><span class="text-slate-500 font-medium">Voucher / diskon platform</span><span class="font-medium text-rose-500" id="rincian-voucher">- Rp 0</span></div>
                 </div>
-                <div class="rounded-3xl bg-indigo-50 border border-indigo-100 px-8 py-6 text-right">
+                <div class="rounded-2xl bg-indigo-50 border border-indigo-100 px-8 py-6 text-right">
                     <p class="text-[10px] font-medium text-indigo-400 uppercase tracking-widest">Net Total Faktur</p>
                     <p class="text-4xl font-medium text-indigo-600 mt-1" id="total-footer">Rp 0</p>
                     <p class="text-[11px] font-medium text-indigo-300 mt-1">Jumlah yang harus dibayar ke supplier</p>

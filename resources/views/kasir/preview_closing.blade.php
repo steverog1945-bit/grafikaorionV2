@@ -23,7 +23,7 @@
         <span>Tutup paksa: sesi kas ini milik kasir lain. Isi <b>alasan</b> pada kolom keterangan; tindakan ini dicatat di Log Aktivitas.</span>
     </div>
 @endif
-<div class="max-w-4xl mx-auto p-6 bg-white rounded-3xl shadow-xl">
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-2xl shadow-xl">
 
     {{-- REKAP TRANSAKSI - nota Order yang tgl_order-nya HARI INI, dipecah per
          Mesin/Divisi (lihat KasirController::previewClosing()). "Nota
@@ -111,7 +111,7 @@
         </div>
     </div>
 
-    <form action="{{ route('kasir.simpan-closing') }}" method="POST" class="bg-slate-900 p-8 rounded-3xl text-white" id="form-closing">
+    <form action="{{ route('kasir.simpan-closing') }}" method="POST" class="bg-slate-900 p-8 rounded-2xl text-white" id="form-closing">
         @csrf
         <input type="hidden" name="id_kas" value="{{ $kas->id_kas }}">
         <input type="hidden" name="saldo_sistem" value="{{ $saldo_akhir_sistem }}">

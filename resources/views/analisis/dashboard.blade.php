@@ -95,9 +95,9 @@
     </div>
 
     <div class="mt-6 flex flex-wrap gap-4 text-xs font-medium uppercase tracking-widest">
-        <a href="{{ route('laporan.profitabilitas') }}" class="text-indigo-600 hover:underline">Profitabilitas per produk/pelanggan/mesin &rarr;</a>
-        <a href="{{ route('laporan.pemakaian-bahan') }}" class="text-indigo-600 hover:underline">Analisis pemakaian bahan &rarr;</a>
-        <a href="{{ route('laporan.job-costing') }}" class="text-indigo-600 hover:underline">Job costing per nota &rarr;</a>
+        <a href="{{ route('laporan.profitabilitas') }}" class="text-indigo-600 hover:underline">Profitabilitas per produk/pelanggan/mesin</a>
+        <a href="{{ route('laporan.pemakaian-bahan') }}" class="text-indigo-600 hover:underline">Analisis pemakaian bahan</a>
+        <a href="{{ route('laporan.job-costing') }}" class="text-indigo-600 hover:underline">Job costing per nota</a>
     </div>
 </div>
 @endsection
