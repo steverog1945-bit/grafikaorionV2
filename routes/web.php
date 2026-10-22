@@ -43,11 +43,60 @@ use App\Http\Controllers\SettingAplikasiController;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+// Homepage publik. Dulu route ini bernama 'login', tapi itu rapuh:
+// route('login') berarti '/' , dan ketika Landing Page Builder aktif '/' bisa
+// menyajikan halaman builder yang tidak memuat form login -> staf terkunci.
+// Nama 'login' sekarang menunjuk /masuk (lihat baris berikutnya) yang selalu
+// menyediakan form masuk. Homepage tetap di '/' seperti sebelumnya.
+Route::get('/', [AuthController::class, 'showLogin'])->name('beranda');
+
+// Endpoint login khusus staf. Ini yang jadi tujuan route('login'), jadi
+// middleware auth, HanyaAdministrator, dan seluruh kode yang memanggil
+// route('login') otomatis mendarat di halaman yang benar-benar punya form
+// login - apa pun nilai feature flag.
+//
+// URL memakai /masuk (bukan /login) supaya tidak pernah bertabrakan dengan
+// POST /login di baris bawah, dan tetap backward-compatible karena tidak ada
+// kode yang meng-hardcode URL /login sebagai GET.
+// Method: formLogin() sengaja MELOMPATI resolver builder, jadi halaman ini
+// mustahil menyajikan konten builder.
+Route::get('/masuk', [AuthController::class, 'formLogin'])->name('login');
+
 // Tulisan yang ditandai publik bisa dibaca tanpa login.
 Route::get('/baca/{slug}', [\App\Http\Controllers\PublikController::class, 'baca'])->where('slug', '[a-z0-9-]+')->name('publik.baca');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Berkas PWA (manifest + service worker) - publik supaya bisa dipasang bahkan
+// sebelum masuk. Sengaja memakai ekstensi .webmanifest/.js (bukan .json) karena
+// .htaccess root memblokir .json di luar folder public/.
+Route::get('/manifest.webmanifest', [\App\Http\Controllers\PwaController::class, 'manifest'])->name('pwa.manifest');
+Route::get('/sw.js', [\App\Http\Controllers\PwaController::class, 'serviceWorker'])->name('pwa.sw');
+
+/*
+| Katalog Produk PUBLIK - DINONAKTIFKAN (keputusan operator final).
+|
+| Rute publik /katalog-produk beserta route detailnya DIHAPUS dari daftar
+| route. Keputusan: "Katalog Produk Publik tidak digunakan lagi."
+|
+| Yang SENGAJA TIDAK disentuh:
+|  - Route internal ERP  : Route::resource('produk', ...) dan /produk/{id}
+|  - Tabel & data produk  : tidak ada perubahan skema maupun data
+|  - app/Http/Controllers/KatalogProdukController.php : file tetap ada
+|  - resources/views/publik/katalog-produk.blade.php     : file tetap ada
+|
+| Controller dan view sengaja dibiarkan (bukan dihapus) supaya fitur ini
+| bisa dihidupkan lagi tanpa menulis ulang dari nol bila suatu saat
+| dibutuhkan. Yang dimatikan adalah PINTU MASUKNYA, bukan datanya.
+|
+| Tamu tidak lagi bisa membuka /katalog-produk - URL tersebut sekarang 404.
+| Toda navigasi publik (Landing Page, artikel, footer) memakai anchor
+| #produk atau WhatsApp resmi, bukan /katalog-produk.
+*/
+
+// Landing Page publik - menampilkan published revision jika ada, tanpa bergantung pada Gate B
+Route::get('/landing-page', [\App\Http\Controllers\LandingPageBuilderController::class, 'publicLandingPage'])
+    ->name('landing-page.public');
 
 
 
@@ -76,6 +125,7 @@ Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () 
     */
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard/api/kpi', [DashboardController::class, 'kpiApi'])->name('dashboard.kpi-api');
 
 
 
@@ -196,14 +246,37 @@ Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () 
     Route::get('/penjualan/{id}', [PenjualanController::class, 'show'])
         ->whereNumber('id')->name('penjualan.show');
 
+    // Tambah item susulan ke nota yang sudah berjalan. Dipisah dari store() supaya
+    // alur Input Order yang ada tidak disentuh sama sekali. Hanya boleh dilakukan
+    // oleh operator yang membuat nota itu, di hari yang sama, dan hanya pada nota
+    // yang transaksinya sudah dibuka kasir (Diterima Kasir) dan masih Aktif.
+    Route::post('/penjualan/{id}/tambah-item', [PenjualanController::class, 'tambahItemSusulan'])
+        ->whereNumber('id')->name('penjualan.tambah-item');
+
     Route::patch('/penjualan/{id}/batalkan-nota', [PenjualanController::class, 'batalkanNota'])
         ->middleware('restrict.input-only')
         ->name('penjualan.batalkan-nota');
 
-    // Alur Edit Nota (lihat catatan di PenjualanController::show) - path
-    // 'edit-nota/...' sengaja bukan '/penjualan/{id}/...' polos untuk yang
-    // GET (edit-approval) supaya tidak pernah tertangkap wildcard
-    // penjualan.show ({id}) di atas kalau suatu saat urutan berubah.
+    // EDIT NOTA (selisih) - layar Input Pesanan yang sama, terisi item
+    // nota yang mau dikoreksi. Penyimpanan memakai SELISIH per item:
+    // item yang tidak berubah tidak menyentuh stok sama sekali, item yang
+    // berubah mengembalikan pemakaian bahan lamanya lalu memotong yang
+    // baru, item yang dihapus mengembalikan stoknya, item baru memotong
+    // stok. Nota TIDAK dibatalkan, pembayaran tidak diubah, jurnal
+    // hanya disesuaikan sebesar selisihnya.
+    //
+    // Hanya boleh oleh operator yang membuat nota itu (sama seperti
+    // tambah item susulan). Prefix path-nya sama dengan '/penjualan'
+    // supaya Operator Desain (menu 41) ikut boleh akses.
+    Route::post('/penjualan/{id}/update-item', [PenjualanController::class, 'updateItemNota'])
+        ->whereNumber('id')
+        ->name('penjualan.update-item');
+
+    // Alur Edit Nota LAMA (batal + buat ulang lewat persetujuan
+    // Administrator). Dibiarkan tetap hidup supaya permintaan lama di
+    // nota_edit_request masih bisa dibaca & ditindaklanjuti, tapi TIDAK
+    // lagi dipakai tombol Edit di layar - alur yang aktif sekarang
+    // adalah edit selisih di atas.
     Route::post('/penjualan/{id}/request-edit', [PenjualanController::class, 'requestEditNota'])
         ->middleware('restrict.input-only')
         ->name('penjualan.request-edit');
@@ -213,6 +286,9 @@ Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () 
         ->name('penjualan.edit-approve');
     Route::patch('/penjualan/edit-nota/{id}/reject', [PenjualanController::class, 'rejectEditNota'])
         ->name('penjualan.edit-reject');
+Route::post('/penjualan/{id}/edit-langsung', [PenjualanController::class, 'editLangsung'])
+    ->name('penjualan.edit-langsung');
+
     Route::post('/penjualan/edit-nota/{id}/apply', [PenjualanController::class, 'applyApprovedEdit'])
         ->name('penjualan.edit-apply');
 
@@ -290,6 +366,9 @@ Route::middleware(['auth', 'menu.access', 'throttle.write'])->group(function () 
 
         Route::get('/bayar-form/{id}',
             [KasirController::class, 'bayarForm'])->name('bayarForm');
+
+        Route::post('/terima/{id}',
+            [KasirController::class, 'terimaTransaksi'])->name('terimaTransaksi');
 
         Route::post('/proses-bayar',
             [KasirController::class, 'prosesBayar'])->name('prosesBayar');
@@ -498,7 +577,11 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::post('/spk/bulk-ambil', [SpkController::class, 'bulkAmbil'])->name('spk.bulk-ambil');
     Route::patch('/spk/{id}/ambil', [SpkController::class, 'ambilPekerjaan'])->name('spk.ambil');
     Route::patch('/spk/{id}/resolve-pending', [SpkController::class, 'resolvePending'])->name('spk.resolve-pending');
-    Route::get('/spk/{id}/print/{format?}', [SpkController::class, 'printSpk'])->name('spk.print');
+    // CATATAN: method-nya bernama print(), bukan printSpk(). Method printSpk()
+// tidak pernah ada -> route lama ini memanggil method yang tidak ada dan
+// berakhir "Call to undefined method SpkController::printSpk()" (HTTP 500)
+// saat Kasir/Desainer menekan tombol cetak SPK.
+    Route::get('/spk/{id}/print/{format?}', [SpkController::class, 'print'])->name('spk.print');
     // SPK lengkap untuk DESAINER (gambar, konsumen, bahan, finishing) - tim produksi tetap memakai SPK thermal di atas.
     Route::get('/spk-desain/{id}', [SpkController::class, 'printDesain'])->whereNumber('id')->name('spk.desain');
     Route::get('/spk/cek-antrian-baru', [SpkController::class, 'cekAntrianBaru'])->name('spk.cek-antrian-baru');
@@ -519,15 +602,31 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/laporan/piutang', [LaporanController::class, 'piutang'])->name('laporan.piutang');
     Route::get('/laporan/stok-bahan', [LaporanController::class, 'stokBahan'])->name('laporan.stok-bahan');
     Route::get('/laporan/hpp', [LaporanController::class, 'hpp'])->name('laporan.hpp');
-
-    // Biaya Desain per operator + komisi/bagi hasil (Operator Desain hanya melihat miliknya).
+// Biaya Desain per operator + komisi/bagi hasil (Operator Desain hanya melihat miliknya).
     Route::get('/laporan/biaya-desain', [\App\Http\Controllers\DesainerKomisiController::class, 'laporan'])->name('laporan.biaya-desain');
     Route::post('/laporan/biaya-desain/bayar', [\App\Http\Controllers\DesainerKomisiController::class, 'bayar'])->name('laporan.biaya-desain.bayar');
-    Route::get('/pengaturan-desainer', [\App\Http\Controllers\DesainerKomisiController::class, 'pengaturan'])->name('desainer.pengaturan');
-    Route::post('/pengaturan-desainer/kelas', [\App\Http\Controllers\DesainerKomisiController::class, 'simpanKelas'])->name('desainer.kelas.store');
-    Route::put('/pengaturan-desainer/kelas/{id}', [\App\Http\Controllers\DesainerKomisiController::class, 'updateKelas'])->whereNumber('id')->name('desainer.kelas.update');
-    Route::delete('/pengaturan-desainer/kelas/{id}', [\App\Http\Controllers\DesainerKomisiController::class, 'hapusKelas'])->whereNumber('id')->name('desainer.kelas.destroy');
-    Route::post('/pengaturan-desainer/anggota/{idUser}', [\App\Http\Controllers\DesainerKomisiController::class, 'tetapkanKelas'])->whereNumber('idUser')->name('desainer.anggota');
+
+    // Pengaturan bagi hasil desainer dikunci hanya.admin, sama seperti
+    // /setting-akses dan /menu-editor.
+    //
+    // Alasannya sama dengan catatan di blok HanyaAdministrator di bawah:
+    // menu.access membaca izin dari role_permissions, dan halaman ini
+    // MENULIS data yang menjadi sumber Cookbook biaya (persen komisi, kelas
+    // desainer, keterkaitan kelas ke user). Tanpa gembok tambahan, role
+    // non-Administrator yang kebetulan memegang izin menu "Bagi Hasil
+    // Desainer" bisa menaikkan komisi desainer dari 5% menjadi 100% dan
+    // mengaitkan kelas miliknya ke user lain - terbukti lewat
+    // tests/Feature/SecAuditTest.php.
+    //
+    // Yang TIDAK dikunci: /laporan/biaya-desain dan pembayarannya. Operator
+    // Desain harus tetap bisa melihat dan ditransfer komisinya sendiri.
+    Route::middleware('hanya.admin')->group(function () {
+        Route::get('/pengaturan-desainer', [\App\Http\Controllers\DesainerKomisiController::class, 'pengaturan'])->name('desainer.pengaturan');
+        Route::post('/pengaturan-desainer/kelas', [\App\Http\Controllers\DesainerKomisiController::class, 'simpanKelas'])->name('desainer.kelas.store');
+        Route::put('/pengaturan-desainer/kelas/{id}', [\App\Http\Controllers\DesainerKomisiController::class, 'updateKelas'])->whereNumber('id')->name('desainer.kelas.update');
+        Route::delete('/pengaturan-desainer/kelas/{id}', [\App\Http\Controllers\DesainerKomisiController::class, 'hapusKelas'])->whereNumber('id')->name('desainer.kelas.destroy');
+        Route::post('/pengaturan-desainer/anggota/{idUser}', [\App\Http\Controllers\DesainerKomisiController::class, 'tetapkanKelas'])->whereNumber('idUser')->name('desainer.anggota');
+    });
 
     // Log Aktivitas (Audit Trail, roadmap LEVEL 1) - baca-saja, khusus
     // Administrator (lihat config/menu_access.php).
@@ -613,6 +712,7 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::patch('/quotation/{quotation}', [\App\Http\Controllers\QuotationController::class, 'update'])->name('quotation.update');
     Route::patch('/quotation/{quotation}/kirim', [\App\Http\Controllers\QuotationController::class, 'kirim'])->name('quotation.kirim');
     Route::patch('/quotation/{quotation}/tanggapi', [\App\Http\Controllers\QuotationController::class, 'tanggapi'])->name('quotation.tanggapi');
+    Route::post('/quotation/{quotation}/buat-nota', [\App\Http\Controllers\QuotationController::class, 'buatNota'])->name('quotation.buat-nota');
     Route::delete('/quotation/{quotation}', [\App\Http\Controllers\QuotationController::class, 'destroy'])->name('quotation.destroy');
 
     // Waste Management (LEVEL 2) - abnormal waste lewat Approval Workflow.
@@ -690,6 +790,37 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::post('/menu-editor', [\App\Http\Controllers\MenuEditorController::class, 'update'])->name('menu-editor.update');
     Route::post('/menu-editor/tambah', [\App\Http\Controllers\MenuEditorController::class, 'store'])->name('menu-editor.store');
     Route::delete('/menu-editor/{id}', [\App\Http\Controllers\MenuEditorController::class, 'destroy'])->whereNumber('id')->name('menu-editor.destroy');
+    });
+
+    // Landing Page Builder - Draft Persistence API (Checkpoint 3C).
+    // Admin authorization via hanya.admin middleware.
+    Route::middleware('hanya.admin')->group(function () {
+        Route::get('/setting/landing-page-builder', [\App\Http\Controllers\LandingPageBuilderController::class, 'index'])->name('landing-page-builder.index');
+
+        // Draft API
+        Route::get('/setting/landing-page-builder/draft', [\App\Http\Controllers\LandingPageBuilderController::class, 'showDraft'])->name('landing-page-builder.draft.show');
+        Route::put('/setting/landing-page-builder/draft', [\App\Http\Controllers\LandingPageBuilderController::class, 'saveDraft'])->name('landing-page-builder.draft.save');
+
+        // Revisions
+        Route::get('/setting/landing-page-builder/revisions', [\App\Http\Controllers\LandingPageBuilderController::class, 'listRevisions'])->name('landing-page-builder.revisions.list');
+        Route::get('/setting/landing-page-builder/revisions/{revisionNumber}', [\App\Http\Controllers\LandingPageBuilderController::class, 'showRevision'])->name('landing-page-builder.revisions.show');
+
+        // Publish
+        Route::post('/setting/landing-page-builder/publish', [\App\Http\Controllers\LandingPageBuilderController::class, 'publish'])->name('landing-page-builder.publish');
+
+        // Restore
+        Route::post('/setting/landing-page-builder/revisions/{revisionNumber}/restore', [\App\Http\Controllers\LandingPageBuilderController::class, 'restoreRevision'])->name('landing-page-builder.revisions.restore');
+
+        // Media Manager
+        Route::post('/setting/landing-page-builder/media', [\App\Http\Controllers\LandingPageBuilderController::class, 'uploadMedia'])->name('landing-page-builder.media.upload');
+        Route::get('/setting/landing-page-builder/media', [\App\Http\Controllers\LandingPageBuilderController::class, 'listMedia'])->name('landing-page-builder.media.list');
+        Route::delete('/setting/landing-page-builder/media/{id}', [\App\Http\Controllers\LandingPageBuilderController::class, 'deleteMedia'])->name('landing-page-builder.media.delete');
+
+        // Preview Renderer
+        Route::get('/setting/landing-page-builder/preview/draft', [\App\Http\Controllers\LandingPageBuilderController::class, 'previewDraft'])->name('landing-page-builder.preview.draft');
+        Route::get('/setting/landing-page-builder/preview/draft/iframe', [\App\Http\Controllers\LandingPageBuilderController::class, 'previewDraftIframe'])->name('landing-page-builder.preview.draft.iframe');
+        Route::get('/setting/landing-page-builder/preview/published', [\App\Http\Controllers\LandingPageBuilderController::class, 'previewPublished'])->name('landing-page-builder.preview.published');
+        Route::get('/setting/landing-page-builder/preview/revision/{revisionNumber}', [\App\Http\Controllers\LandingPageBuilderController::class, 'previewRevision'])->name('landing-page-builder.preview.revision');
     });
 
     /*

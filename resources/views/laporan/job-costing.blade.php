@@ -79,8 +79,8 @@
                 <td class="px-8 py-4"><span class="text-[13px] font-medium text-slate-700">{{ $r->nomor_nota }}</span><div class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($r->tgl_order)->translatedFormat('d M Y') }} - {{ $r->nama_konsumen ?? '-' }}</div></td>
                 <td class="px-4 py-4 text-right text-sm">{{ number_format($r->omzet, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-right text-sm text-slate-500">{{ number_format($r->hpp, 0, ',', '.') }}</td>
-                <td class="px-4 py-4 text-right text-sm {{ $r->biaya_rework > 0 ? 'text-rose-500 font-medium' : 'text-slate-300' }}">{{ number_format($r->biaya_rework, 0, ',', '.') }}</td>
-                <td class="px-4 py-4 text-right text-sm {{ $r->biaya_waste > 0 ? 'text-rose-500 font-medium' : 'text-slate-300' }}">{{ number_format($r->biaya_waste, 0, ',', '.') }}</td>
+                <td class="px-4 py-4 text-right text-sm {{ $r->biaya_rework > 0 ? 'text-rose-500 font-medium' : 'text-slate-500' }}">{{ number_format($r->biaya_rework, 0, ',', '.') }}</td>
+                <td class="px-4 py-4 text-right text-sm {{ $r->biaya_waste > 0 ? 'text-rose-500 font-medium' : 'text-slate-500' }}">{{ number_format($r->biaya_waste, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-right text-sm font-medium">{{ number_format($r->biaya_aktual, 0, ',', '.') }}</td>
                 <td class="px-4 py-4 text-right text-sm font-medium {{ $r->laba < 0 ? 'text-rose-600' : 'text-emerald-600' }}">{{ number_format($r->laba, 0, ',', '.') }} <span class="text-[10px] text-slate-400">({{ angka($r->margin, 1) }}%)</span></td>
                 <td class="px-8 py-4 text-right text-xs text-slate-400">{{ $r->margin_estimasi }}%</td>

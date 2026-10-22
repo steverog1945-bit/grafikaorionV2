@@ -46,7 +46,7 @@
                     <div class="relative group cursor-pointer" onclick="openModal('sj-picker')" role="button" tabindex="-1" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openModal('sj-picker'); }">
                         <input type="text" id="display_no_sj" readonly class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner pr-11 cursor-pointer" placeholder="Pilih SJ...">
                         <input type="hidden" name="id_kedatangan" id="id_kedatangan">
-                        <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-hover:text-indigo-500"></i>
+                        <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-indigo-500"></i>
                     </div>
                 </x-form.group>
 
@@ -141,7 +141,7 @@
                     <div class="flex justify-between"><span class="text-slate-500 font-medium">Voucher / diskon platform</span><span class="font-medium text-rose-500" id="rincian-voucher">- Rp 0</span></div>
                 </div>
                 <div class="rounded-2xl bg-indigo-50 border border-indigo-100 px-8 py-6 text-right">
-                    <p class="text-[10px] font-medium text-indigo-400 uppercase tracking-widest">Net Total Faktur</p>
+                    <p class="text-[10px] font-medium text-indigo-600 uppercase tracking-widest">Net Total Faktur</p>
                     <p class="text-4xl font-medium text-indigo-600 mt-1" id="total-footer">Rp 0</p>
                     <p class="text-[11px] font-medium text-indigo-300 mt-1">Jumlah yang harus dibayar ke supplier</p>
                 </div>
@@ -163,7 +163,7 @@
     <div class="overflow-y-auto max-h-[400px] pr-2">
         <table class="w-full text-left">
             <thead>
-                <tr class="text-[10px] font-medium text-slate-300 uppercase tracking-widest border-b border-slate-100">
+                <tr class="text-[10px] font-medium text-slate-500 uppercase tracking-widest border-b border-slate-100">
                     <th class="pb-4">No. Surat Jalan</th>
                     <th class="pb-4">Pemasok</th>
                     <th class="pb-4 text-center">Tgl Datang</th>

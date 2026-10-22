@@ -188,8 +188,8 @@
             html: `Akun <b>${escHtml(namaAkun)}</b> akan di${sedangAktif ? 'nonaktifkan' : 'aktifkan'}.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#4f46e5',
-            cancelButtonColor: '#f8fafc',
+            confirmButtonColor: '#006C7B',
+            cancelButtonColor: '#FAFBF9',
             confirmButtonText: 'Ya, Lanjutkan',
             cancelButtonText: 'Batal',
             customClass: {
@@ -209,8 +209,8 @@
             html: `Akun <b>${escHtml(namaAkun)}</b> akan dihapus permanen. Hanya bisa dihapus kalau belum pernah dipakai di jurnal.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f8fafc',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#FAFBF9',
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
             customClass: {

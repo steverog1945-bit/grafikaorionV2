@@ -52,3 +52,16 @@ ib_logfile*
 /skills-lock.json
 /push-all.bat
 /pull-all.bat
+
+# Snapshot plugin & keadaan agen pihak ketiga (ribuan berkas, bukan bagian ERP).
+/skills/
+/.codeartsdoer/
+/.aider-desk/
+/.hermes/
+/.zencoder/
+/.qwen/
+
+# Skrip uji coba sementara & berkas bantu audit lokal.
+/storage/app/audit/
+/public/upload-test/
+storage/framework/views/*.php

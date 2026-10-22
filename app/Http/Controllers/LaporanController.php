@@ -49,6 +49,8 @@ class LaporanController extends Controller
         // Default rekap HARI INI SAJA - berlaku sama di semua laporan,
         // supaya begitu dibuka langsung menampilkan pergerakan hari itu
         // tanpa perlu isi filter dulu.
+                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
+                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
         $query->where('transaksi.tgl_order', '>=', $tglDari . ' 00:00:00')
@@ -174,6 +176,8 @@ class LaporanController extends Controller
         // Default rekap HARI INI SAJA (bukan lagi seluruh riwayat) - berlaku
         // sama di semua laporan, supaya begitu dibuka langsung menampilkan
         // pergerakan hari itu tanpa perlu isi filter dulu.
+                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
+                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
         $base->where('transaksi.tgl_order', '>=', $tglDari . ' 00:00:00')
@@ -293,6 +297,8 @@ class LaporanController extends Controller
                 DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama_kasir')
             );
 
+                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
+                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
 
@@ -351,6 +357,8 @@ class LaporanController extends Controller
             // Faktur yang dibatalkan (soft delete, jurnalnya sudah dibalik) bukan belanja.
             ->whereNull('pembelian_bahan.deleted_at');
 
+                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
+                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
         $query->where('pembelian_bahan.tgl_transaksi', '>=', $tglDari . ' 00:00:00')->where('pembelian_bahan.tgl_transaksi', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
@@ -404,6 +412,8 @@ class LaporanController extends Controller
         $query = \App\Models\JerseyOrder::with(['konsumen', 'designer']);
 
         // Default rekap HARI INI SAJA - berlaku sama di semua laporan.
+                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
+                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
         $query->where('order_date', '>=', $tglDari . ' 00:00:00')
@@ -553,6 +563,8 @@ class LaporanController extends Controller
             }, 'total_dibayar');
 
         // Default rekap HARI INI SAJA - sama seperti laporan lain.
+                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
+                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
         $query->where('transaksi.tgl_order', '>=', $tglDari . ' 00:00:00')
@@ -698,6 +710,8 @@ class LaporanController extends Controller
      */
     public function jobCosting(Request $request)
     {
+                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
+                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->startOfMonth()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
 
@@ -737,6 +751,8 @@ class LaporanController extends Controller
 
     public function hpp(Request $request)
     {
+                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
+                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
         $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
         $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
 

@@ -6,7 +6,7 @@
 
     <x-page-header title="Harga Promo">
         <x-slot:subtitle>
-            Master <span class="mx-1 text-slate-300">/</span> Harga Promo Berlaku Waktu Terbatas
+            Master <span class="mx-1 text-slate-500">/</span> Harga Promo Berlaku Waktu Terbatas
         </x-slot:subtitle>
         <x-slot:actions>
             <x-button onclick="openModal('tambah-promo')">
@@ -203,9 +203,9 @@
             html: `Menghapus promo untuk <b>${escapeHtml(nama)}</b>? Harga akan kembali normal seketika.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f1f5f9',
-            cancelButtonText: '<span style="color: #64748b">Batal</span>',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#F1F5F1',
+            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) {

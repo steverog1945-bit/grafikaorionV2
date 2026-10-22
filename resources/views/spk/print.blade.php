@@ -30,7 +30,7 @@
             @foreach($finishingItems as $fin)
             <tr><td colspan="2" style="font-weight:500; padding-top:6px;">Finishing: {{ $fin->nama_finishing }} ({{ $fin->status_finishing }}){{ $fin->metode_hitung === 'quantity' && $fin->qty_pakai ? ' x ' . angka((float) $fin->qty_pakai, 2) : '' }}{{ $fin->catatan ? ' - ' . $fin->catatan : '' }}</td></tr>
             @endforeach
-            @if($finishingItems->isEmpty() && $detail->nama_finishing)
+            @if($finishingItems->isEmpty() && ($detail->nama_finishing ?? null))
             <tr><td colspan="2" style="font-weight:500; padding-top:6px;">Finishing: {{ $detail->nama_finishing }}</td></tr>
             @endif
             @if($detail->status_urgent)
@@ -62,7 +62,7 @@
              pada label sepanjang 10px, 1px sudah cukup untuk
              membuat huruf bersenggolan. --}}
         <div style="font-size:10px; letter-spacing:0.5px; margin-top:2px;">TRX{{ $detail->id_transaksi }}</div>
-            <div style="font-size:9px; color:#64748b;">Scan dengan kamera HP untuk membuka pembayaran</div>
+            <div style="font-size:9px; color:#4A5B53;">Scan dengan kamera HP untuk membuka pembayaran</div>
         </div>
 
         @if($detail->catatan_produksi)

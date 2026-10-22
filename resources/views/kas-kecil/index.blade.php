@@ -226,7 +226,7 @@
                 </td>
                 <td class="px-4 py-5 text-center no-print">
                     @if(! in_array($k->sumber, ['manual', 'saldo_awal'], true))
-                    <span class="text-slate-300" title="Otomatis dari {{ $k->sumber === 'hutang' ? 'pembayaran hutang supplier' : 'pembayaran order jersey' }}"><i class="fas fa-link text-xs"></i></span>
+                    <span class="text-slate-500" title="Otomatis dari {{ $k->sumber === 'hutang' ? 'pembayaran hutang supplier' : 'pembayaran order jersey' }}"><i class="fas fa-link text-xs"></i></span>
                     @else
                     <form method="POST" action="{{ route('kas-kecil.destroy', $k->id) }}" onsubmit="return konfirmasiHapusKasKecil(event, this)">
                         @csrf @method('DELETE')
@@ -301,7 +301,7 @@
             text: 'Catatan baru dibatalkan setelah disetujui Administrator; jurnalnya akan dibalik.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Ajukan',
             cancelButtonText: 'Batal',
             customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },

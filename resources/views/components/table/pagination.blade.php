@@ -75,19 +75,19 @@
             @endphp
             {{-- flex-wrap: di layar sempit nomor halaman turun ke baris berikut, tidak melebar keluar layar. --}}
             <div class="flex flex-wrap items-center justify-center gap-1 max-w-full">
-                <a href="{{ $paginatorBerQuery->previousPageUrl() ?? '#' }}" @class(['w-8 h-8 flex items-center justify-center rounded-lg text-xs', 'text-slate-300 pointer-events-none' => $paginatorBerQuery->onFirstPage(), 'text-slate-500 hover:bg-slate-50' => !$paginatorBerQuery->onFirstPage()])>
+                <a href="{{ $paginatorBerQuery->previousPageUrl() ?? '#' }}" @class(['w-8 h-8 flex items-center justify-center rounded-lg text-xs', 'text-slate-500 pointer-events-none' => $paginatorBerQuery->onFirstPage(), 'text-slate-500 hover:bg-slate-50' => !$paginatorBerQuery->onFirstPage()])>
                     <i class="fas fa-chevron-left text-[10px]"></i>
                 </a>
                 @foreach($segmenHalaman as $segmen)
                     @if($segmen['tipe'] === 'gap')
-                        <span class="w-8 h-8 flex items-center justify-center text-xs text-slate-300">&hellip;</span>
+                        <span class="w-8 h-8 flex items-center justify-center text-xs text-slate-500">&hellip;</span>
                     @else
                         <a href="{{ $segmen['url'] }}" @class(['w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium', 'bg-indigo-600 text-white' => $segmen['nomor'] == $paginatorBerQuery->currentPage(), 'text-slate-500 hover:bg-slate-50' => $segmen['nomor'] != $paginatorBerQuery->currentPage()])>
                             {{ $segmen['nomor'] }}
                         </a>
                     @endif
                 @endforeach
-                <a href="{{ $paginatorBerQuery->nextPageUrl() ?? '#' }}" @class(['w-8 h-8 flex items-center justify-center rounded-lg text-xs', 'text-slate-300 pointer-events-none' => !$paginatorBerQuery->hasMorePages(), 'text-slate-500 hover:bg-slate-50' => $paginatorBerQuery->hasMorePages()])>
+                <a href="{{ $paginatorBerQuery->nextPageUrl() ?? '#' }}" @class(['w-8 h-8 flex items-center justify-center rounded-lg text-xs', 'text-slate-500 pointer-events-none' => !$paginatorBerQuery->hasMorePages(), 'text-slate-500 hover:bg-slate-50' => $paginatorBerQuery->hasMorePages()])>
                     <i class="fas fa-chevron-right text-[10px]"></i>
                 </a>
             </div>

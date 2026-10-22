@@ -36,7 +36,7 @@
 
                 {{-- Info nota & konsumen --}}
                 <div class="flex flex-wrap items-center gap-4 rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] px-6 py-5">
-                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-400 flex items-center justify-center shrink-0"><i class="fas fa-user text-lg"></i></div>
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0"><i class="fas fa-user text-lg"></i></div>
                     <div class="flex-1 min-w-0">
                         <p class="text-lg font-medium text-slate-800 truncate">{{ $transaksi->nama_konsumen }}</p>
                         <p class="text-xs text-slate-400 mt-0.5">Nota <span class="font-medium text-slate-500">#{{ $transaksi->nomor_nota }}</span> &middot; {{ \Carbon\Carbon::parse($transaksi->tgl_order)->translatedFormat('d M Y, H:i') }}</p>
@@ -69,41 +69,49 @@
                             }
                         @endphp
                         <div class="item-row group flex flex-wrap items-center gap-4 rounded-2xl bg-slate-50/60 hover:bg-slate-50 border border-transparent hover:border-slate-100 px-4 py-3.5 transition-all" data-id="{{ $item->id_detail }}">
-                            <span class="w-6 text-xs font-medium text-slate-300">{{ $i + 1 }}</span>
+                            <span class="w-6 text-xs font-medium text-slate-500">{{ $i + 1 }}</span>
                             @if($item->thumbnail)
-                                <img loading="lazy" decoding="async" src="{{ asset('storage/'.$item->thumbnail) }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0">
+                                @if(\App\Support\BerkasDesain::bisaDitampilkan($item->thumbnail))
+                                    <img loading="lazy" decoding="async" src="{{ asset('storage/'.$item->thumbnail) }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0">
+                                @else
+                                    {{-- Berkas desain non-gambar (CDR, AI, EPS, PSD)
+                                         tidak bisa ditampilkan peramban - pakai
+                                         thumbnail default supaya kotaknya tidak
+                                         kosong. Nama file tetap dari berkas asli. --}}
+                                    <img loading="lazy" decoding="async" src="{{ asset('storage/default-thumbnail.png') }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0 opacity-50" title="Berkas desain {{ strtoupper(\App\Support\BerkasDesain::ekstensi($item->thumbnail)) }}">
+                                @endif
                             @else
-                                <div class="w-12 h-12 rounded-xl bg-white border border-slate-100 shrink-0 flex items-center justify-center text-slate-300"><i class="far fa-image"></i></div>
+                                <div class="w-12 h-12 rounded-xl bg-white border border-slate-100 shrink-0 flex items-center justify-center text-slate-500"><i class="far fa-image"></i></div>
                             @endif
 
                             <div class="flex-1 min-w-[180px]">
-                                <p class="text-sm font-medium text-slate-700 truncate">{{ $item->nama_produk ?? $item->nama_jasa ?? $item->nama_file }}</p>
+                                <p class="item-nama text-sm font-medium text-slate-700 truncate">{{ $item->nama_produk ?? $item->nama_jasa ?? $item->nama_file }}</p>
                                 @if($item->nama_produk || $item->nama_jasa)
                                     <p class="text-xs text-slate-400 truncate">{{ $item->nama_file }}</p>
                                 @endif
                                 <p class="disp-biaya-tambahan text-[11px] text-slate-400 mt-1">{!! \App\Support\HtmlBersih::bersihkan($bagianBiaya) !!}</p>
                             </div>
 
-                            <div class="text-right w-28">
-                                <p class="text-[10px] text-slate-300 font-medium uppercase tracking-wide">Harga</p>
-                                <p class="disp-harga text-sm font-medium text-slate-600">Rp {{ number_format($hargaSatuan, 0, ',', '.') }}</p>
+                            <div class="text-right w-28 flex flex-col justify-center h-12">
+                                <p class="text-[10px] leading-4 text-slate-500 font-medium uppercase tracking-wide">Harga</p>
+                                <p class="disp-harga text-sm leading-5 font-medium text-slate-600">Rp {{ number_format($hargaSatuan, 0, ',', '.') }}</p>
                             </div>
 
-                            <div class="text-center w-24">
-                                <p class="text-[10px] text-slate-300 font-medium uppercase tracking-wide">Qty</p>
-                                <p class="text-sm font-medium text-slate-600">
+                            <div class="text-center w-24 flex flex-col justify-center h-12">
+                                <p class="text-[10px] leading-4 text-slate-500 font-medium uppercase tracking-wide">Qty</p>
+                                <p class="text-sm leading-5 font-medium text-slate-600">
                                     @if($item->metode_hitung == 'ukuran')
                                         {{ number_format($item->qty_hitung, 2, ',', '.') }} m²
-                                        <span class="block text-[10px] text-slate-300 font-normal">{{ angka($item->qty, 4) }} pcs</span>
+                                        <span class="block text-[10px] text-slate-500 font-normal">{{ angka($item->qty, 4) }} pcs</span>
                                     @else
                                         {{ angka($item->qty, 4) }} <span class="text-[11px] text-slate-400 font-normal">{{ $item->id_jasa ? 'Jasa' : ($item->id_bahan ? 'Bahan' : 'Pcs') }}</span>
                                     @endif
                                 </p>
                             </div>
 
-                            <div class="text-right w-32">
-                                <p class="text-[10px] text-slate-300 font-medium uppercase tracking-wide">Subtotal</p>
-                                <p class="disp-subtotal text-base font-medium text-slate-800">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</p>
+                            <div class="text-right w-32 flex flex-col justify-center h-12">
+                                <p class="text-[10px] leading-4 text-slate-500 font-medium uppercase tracking-wide">Subtotal</p>
+                                <p class="disp-subtotal text-base leading-6 font-medium text-slate-800">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</p>
                             </div>
 
                             <button type="button" onclick="openCustomHarga({{ $item->id_detail }})" class="w-9 h-9 inline-flex items-center justify-center rounded-xl bg-white text-slate-500 hover:text-indigo-500 hover:shadow-sm border border-slate-100 transition-all" title="Ubah harga item ini">
@@ -192,20 +200,41 @@
                     </div>
                     <div id="wrapper-deposit-info" class="hidden mt-5 rounded-2xl bg-indigo-50/60 border border-indigo-100 px-4 py-3">
                         <p class="text-xs font-medium text-indigo-600">Saldo deposit: Rp {{ number_format($saldoDeposit, 0, ',', '.') }}</p>
-                        <p class="text-[11px] text-indigo-400 mt-0.5">Jumlah bayar tidak boleh melebihi saldo ini.</p>
+                        <p class="text-[11px] text-indigo-600 mt-0.5">Jumlah bayar tidak boleh melebihi saldo ini.</p>
                     </div>
 
                     <div class="mt-6">
-                        <label id="label-uang-diterima" class="block text-[11px] font-medium text-slate-400 mb-2">Uang Diterima</label>
+                        {{-- Nota yang sudah lunas: field ini diisi nominal yang
+                             BENAR-BENAR sudah diterima, lalu dikunci readonly.
+                             Tujuannya bukti pendataan dan pengingat kasir, bukan
+                             entri baru - tanpa kuncian ini nominal tersebut
+                             bisa terkirim dua kali dan uang nota terpotong
+                             seluruhnya. --}}
+                        <label id="label-uang-diterima" class="block text-[11px] font-medium text-slate-400 mb-2">
+                            {{ $notaSudahLunas ? 'Uang Diterima (sudah lunas)' : 'Uang Diterima' }}
+                        </label>
                         <div class="relative">
-                            <span class="absolute left-5 top-1/2 -translate-y-1/2 font-medium text-slate-300 text-lg">Rp</span>
+                            <span id="prefix-uang-diterima" class="absolute left-5 top-1/2 -translate-y-1/2 font-medium text-slate-500 text-lg">Rp</span>
                             <input type="text" id="input-bayar-mask"
-                                   class="format-ribuan w-full h-14 pl-14 pr-4 rounded-2xl border border-slate-100 bg-slate-50/60 text-xl font-medium text-indigo-600 focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50 transition-all"
+                                   @if($notaSudahLunas) readonly data-terkunci="1" title="Nominal yang sudah tercatat - tidak bisa diubah karena nota ini sudah lunas." @endif
+                                   class="format-ribuan w-full h-14 pl-14 pr-4 rounded-2xl border border-slate-100 bg-slate-50/60 text-xl font-medium text-indigo-600 focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50 transition-all read-only:opacity-80 read-only:cursor-not-allowed"
                                    placeholder="0">
                             <input type="hidden" name="jumlah_bayar" id="input-bayar-asli">
                         </div>
+
+                        @if($notaSudahLunas)
+                        <p class="mt-2 flex items-start gap-1.5 text-[11px] text-emerald-600">
+                            <i class="fas fa-circle-check mt-0.5"></i>
+                            <span>Nominal di atas adalah uang yang sudah tercatat untuk nota ini
+                                @if($penerimaan->isNotEmpty())
+                                    ({{ $penerimaan->pluck('metode')->unique()->join(', ') }}, {{ $penerimaan->count() }} kali bayar)
+                                @endif
+                                - jadi pengingat, bukan pembayaran baru.</span>
+                        </p>
+                        @endif
+
                         <div class="mt-2.5 flex justify-end">
-                            <button type="button" id="btn-bayar-pas" onclick="setUangPas()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-500 text-[11px] font-medium transition-all">
+                            <button type="button" id="btn-bayar-pas" onclick="setUangPas()" @if($notaSudahLunas) disabled title="Nota ini sudah lunas" @endif class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-500 text-[11px] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                                 <i class="fas fa-money-bill-wave"></i> Bayar Sisa Tagihan
                             </button>
                         </div>
@@ -230,7 +259,7 @@
                     <div class="flex justify-between items-center mb-3">
                         <span class="text-sm text-slate-400">Diskon (Nota)</span>
                         <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 font-medium text-[11px]">Rp</span>
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium text-[11px]">Rp</span>
                             <input type="text" id="input-diskon" name="diskon" value="{{ number_format((float) ($transaksi->diskon ?? 0), 0, ',', '.') }}"
                                 class="format-ribuan w-36 h-9 bg-white border border-slate-100 rounded-xl text-right text-sm text-slate-700 font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 pl-9">
                         </div>
@@ -249,7 +278,7 @@
                     <div class="h-px bg-indigo-100/70 my-4"></div>
 
                     <div class="flex justify-between items-end">
-                        <span class="text-xs font-medium text-indigo-400">{{ $totalTerbayar > 0 ? 'Sisa Tagihan' : 'Grand Total' }}</span>
+                        <span class="text-xs font-medium text-indigo-600">{{ $totalTerbayar > 0 ? 'Sisa Tagihan' : 'Grand Total' }}</span>
                         <input type="hidden" id="grand_total_hidden" name="total_akhir" value="0">
                         <span id="display-grand-total" class="text-3xl font-medium text-slate-800 tracking-tight">Rp 0</span>
                     </div>
@@ -261,13 +290,22 @@
                         </div>
                         <span id="label-selisih" class="block text-[11px] text-slate-400 mt-2">Kalkulasi</span>
                         <div id="display-selisih" class="text-xl font-medium text-slate-700">Rp 0</div>
+
+                        {{-- Metode pembayaran ikut ditampilkan di sini. Keterangan
+                             "sudah bayar" tanpa metode tidak bisa dipakai saat
+                             rekonsiliasi uang laci, jadi kasir harus bisa melihat
+                             uang nota ini masuk lewat Tunai atau Transfer. --}}
+                        <div class="flex justify-between items-center mt-3 pt-3 border-t border-indigo-100/60">
+                            <span class="text-[11px] font-medium text-slate-400">Metode</span>
+                            <span id="metode-label" class="text-[11px] font-medium text-slate-600">-</span>
+                        </div>
                     </div>
 
                     <div class="mt-5 grid grid-cols-2 gap-3">
                         <button type="button" onclick="simpanSaja()" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white border border-slate-100 hover:border-indigo-200 text-slate-500 hover:text-indigo-600 font-medium text-xs transition-all">
                             <i class="fas fa-inbox"></i> Simpan
                         </button>
-                        <button type="submit" {{ !$kasAktif ? 'disabled title="Kas belum dibuka - lihat peringatan di atas"' : '' }} class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-xs shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
+                        <button type="submit" id="btn-bayar" @if(!$kasAktif || $notaSudahLunas) disabled title="{{ !$kasAktif ? 'Kas belum dibuka - lihat peringatan di atas' : 'Nota ini sudah lunas - tidak ada sisa yang perlu dibayar' }}" @endif class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-xs shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
                             <i class="fas fa-cash-register"></i> Bayar
                         </button>
                     </div>
@@ -377,6 +415,10 @@
         return teks;
     }
 
+    // TRUE begitu kasir mengetik nominal sendiri. Lihat penjelasannya di
+    // dalam calculateInvoice().
+    let nominalSudahDiisiManual = false;
+
     function calculateInvoice() {
         let totalKotor = 0;
 
@@ -399,20 +441,43 @@
         const totalTerbayarSebelumnya = parseFloat(document.getElementById('total_terbayar_hidden').value) || 0;
 
         let grandTotalNota = totalKotor - diskon;
-        let sisaTagihan = grandTotalNota - totalTerbayarSebelumnya;
+        let sisaTagihan = Math.round(grandTotalNota - totalTerbayarSebelumnya);
 
         document.getElementById('total-kotor').innerText = 'Rp ' + formatRupiah(totalKotor);
         document.getElementById('display-grand-total').innerText = 'Rp ' + formatRupiah(sisaTagihan);
         document.getElementById('grand_total_hidden').value = sisaTagihan;
 
-        // Kalau kasir sedang di mode "Lunas Penuh", Uang Diterima otomatis
-        // mengikuti sisa tagihan terbaru (mis. setelah Custom Harga mengubah
-        // total) - supaya tidak ketinggalan angka lama. Mode "DP/Sebagian"
-        // TIDAK disentuh di sini, murni ketikan manual kasir.
+        // Uang Diterima hanya diisi otomatis SEBELUM kasir mengetik nominal sendiri.
+        // Sebelumnya baris ini berjalan setiap calculateInvoice() dipanggil,
+        // termasuk setiap kali kasir menekan tombol angka - sehingga ketikan
+        // apa pun langsung tertimpa kembali dengan sisa tagihan, dan kasir
+        // tidak pernah bisa menginput nominal pembayaran yang sebenarnya.
+        // Aturan barunya: begitu kasir menyentuh field ini, angkanya miliknya
+        // sampai mode pembayaran diganti atau tombol "Bayar Sisa Tagihan" ditekan.
+        // NOTA SUDAH LUNAS = tidak ada sisa tagihan DAN uangnya sudah tercatat.
+        // Dicek lebih dulu sebelum cabang "belum bayar". Bug lama ada di sini:
+        // kolom atas menulis "Sudah dibayar Rp ..." padahal baris paling bawah
+        // - yang lebih dulu diuji dengan `bayar <= 0` - menampilkan
+        // "BELUM BAYAR". Satu layar jadi memuat dua status yang bertentangan
+        // untuk nota yang sama, dan kasir tidak tahu mana yang benar.
+        const notaSudahLunas = sisaTagihan <= 0 && totalTerbayarSebelumnya > 0;
+
         const tipeBayar = document.querySelector('input[name="tipe_bayar"]:checked')?.value;
-        if (tipeBayar === 'lunas') {
-            document.getElementById('input-bayar-mask').value = formatRupiah(Math.max(0, sisaTagihan));
+        if (notaSudahLunas) {
+            // Nominal yang sama persis dengan yang sudah tercatat, supaya field ini
+            // jadi bukti pendataan dan pengingat kasir, bukan entri pembayaran
+            // baru. Input dikunci readonly dan tombol bayar dimatikan supaya
+            // nominal ini tidak bisa tanpa sengaja terkirim dua kali.
+            nominalSudahDiisiManual = true;
+            document.getElementById('input-bayar-mask').value = formatRupiah(totalTerbayarSebelumnya);
         }
+        // Nominal TIDAK diisi otomatis lagi untuk nota yang belum lunas:
+        // kasir mengetik sendiri atau menekan tombol "Bayar Sisa Tagihan"
+        // di bawah. Default 0 supaya tidak terlihat seolah sudah dibayar
+        // sebelum nominal benar-benar diisi - status LUNAS yang tertera
+        // lebih dulu sebelum nominal diisi adalah yang membingungkan kasir.
+        // (Cabang 'lunas' yang sebelumnya mengisi sisaTagihan otomatis
+        // dihapus; tombol 'Bayar Sisa Tagihan' tetap tersedia.)
 
         const inputMask = document.getElementById('input-bayar-mask');
         let bayar = cleanRupiah(inputMask.value);
@@ -422,29 +487,55 @@
         const displaySelisih = document.getElementById('display-selisih');
         const statusLabel = document.getElementById('status-label');
         const labelSelisih = document.getElementById('label-selisih');
+        const metodeLabel = document.getElementById('metode-label');
 
-        if (bayar <= 0) {
+        // Metode pembayaran ikut ditampilkan di bawah status, karena keterangan
+        // "sudah bayar" tanpa metode tidak bisa dipakai saat rekonsiliasi laci.
+        const metodeTerpakai = [...document.querySelectorAll('[name="metode_pembayaran"]:checked, select[name="metode_pembayaran"]')]
+            .map(el => el.value).filter(Boolean);
+        if (metodeLabel) {
+            metodeLabel.innerText = metodeTerpakai.length ? metodeTerpakai.join(', ') : '-';
+        }
+
+        if (notaSudahLunas) {
+            statusLabel.innerText = "LUNAS";
+            statusLabel.className = "chip chip-success rounded-sm";
+            labelSelisih.innerText = "SUDAH DITERIMA";
+            displaySelisih.innerText = 'Rp ' + formatRupiah(totalTerbayarSebelumnya);
+        } else if (bayar <= 0) {
             statusLabel.innerText = "BELUM BAYAR";
-            statusLabel.className = "px-2.5 py-1 rounded-full bg-rose-50 text-rose-500 text-[10px] font-medium";
+            statusLabel.className = "chip chip-danger rounded-sm";
             labelSelisih.innerText = "SISA PIUTANG";
             displaySelisih.innerText = 'Rp ' + formatRupiah(Math.abs(sisaTagihan));
         } else if (bayar < sisaTagihan) {
             statusLabel.innerText = "PIUTANG / DP";
-            statusLabel.className = "px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-medium";
+            statusLabel.className = "chip chip-warning rounded-sm";
             labelSelisih.innerText = "KEKURANGAN";
             displaySelisih.innerText = 'Rp ' + formatRupiah(Math.abs(selisih));
         } else {
             statusLabel.innerText = "LUNAS";
-            statusLabel.className = "px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-medium";
-            const metodeDipilih = document.querySelector('[name="metode_pembayaran"]:checked, select[name="metode_pembayaran"]')?.value;
+            statusLabel.className = "chip chip-success rounded-sm";
+            const metodeDipilih = metodeTerpakai[0];
             labelSelisih.innerText = selisih > 0 && metodeDipilih && metodeDipilih !== 'Tunai' ? "LEBIH (non-tunai tidak ada kembalian)" : "KEMBALIAN";
             displaySelisih.innerText = 'Rp ' + formatRupiah(selisih);
+        }
+
+        // "Jenis Pembayaran" (Lunas / DP) ikut nominal yang diketik kasir.
+        // Nota yang field-nya terkunci (sudah lunas) tidak disentuh - statusnya
+        // sudah pasti dan nominalnya bukan milik kasir.
+        if (document.getElementById('input-bayar-mask').dataset.terkunci !== '1') {
+            terapkanTipeBayarOtomatis(bayar, sisaTagihan);
         }
     }
 
     document.addEventListener('input', function (e) {
         if (e.target.classList.contains('format-ribuan')) {
             e.target.value = formatRupiah(e.target.value);
+            // Field Uang Diterima: dari sekarang angkanya milik kasir, jadi
+            // calculateInvoice() tidak boleh menimpanya dengan sisa tagihan.
+            if (e.target.id === 'input-bayar-mask') {
+                nominalSudahDiisiManual = true;
+            }
             calculateInvoice();
         }
         if (e.target.classList.contains('format-ribuan-modal')) {
@@ -454,9 +545,69 @@
     });
 
     function setUangPas() {
+        // Nota sudah lunas: nominal yang tampil adalah bukti pendataan, bukan
+        // tagihan. Tombol ini sengaja tidak boleh mengubahnya - kalau boleh,
+        // angka 0 dari sisa tagihan akan menimpa nominal yang sudah tercatat
+        // dan membuat kasir mengira nota ini belum dibayar.
+        if (document.getElementById('input-bayar-mask').dataset.terkunci === '1') return;
+
         const sisa = document.getElementById('grand_total_hidden').value;
+        // Tombol ini berarti kasir sengaja meminta angka pas, jadi penanda
+        // "sudah diisi manual" harus dilepas supaya mode Lunas tetap bisa
+        // mengikuti sisa tagihan kalau total berubah lagi.
+        nominalSudahDiisiManual = false;
         document.getElementById('input-bayar-mask').value = formatRupiah(Math.max(0, sisa));
         calculateInvoice();
+    }
+
+    // "Jenis Pembayaran" (Lunas / DP) IKUTI nominal yang diketik kasir.
+    //
+    // Dulu pil ini hanya berubah kalau diklik atau kasir menekan "Bayar
+    // Sisa Tagihan" - jadi kasir yang mengetik 50.000 dari tagihan 80.000
+    // masih melihat pil "Lunas" padahal pembayarannya sebagian, dan
+    // kembaliannya tidak terbaca. Sekarang: nominal kurang dari sisa
+    // tagihan = DP, nominal cukup atau lebih = Lunas (selisih lebihnya
+    // sudah dihitung sebagai KEMBALIAN di calculateInvoice()).
+    //
+    // Fungsi ini SENGAJA tidak memanggil onTipeBayarChange(): fungsi itu
+    // mengisi ulang field Uang Diterima, jadi memanggilnya dari sini akan
+    // menimpa angka yang sedang diketik kasir. Yang diubah hanya radio
+    // yang terpilih, label pilnya, dan visibilitas tombol.
+    function terapkanTipeBayarOtomatis(bayar, sisaTagihan) {
+        const radioLunas = document.querySelector('input[name="tipe_bayar"][value="lunas"]');
+        const radioDp = document.querySelector('input[name="tipe_bayar"][value="dp"]');
+        if (!radioLunas || !radioDp) return;
+
+        // Nominal 0 = belum ada pembayaran, bukan DP - pil dibiarkan
+        // seperti yang sedang aktif supaya tidak berkedip bolak-balik
+        // saat kasir baru mulai mengetik.
+        if (bayar <= 0) return;
+
+        const radio = bayar >= sisaTagihan ? radioLunas : radioDp;
+        if (radio.checked) return; // sudah sesuai, jangan sentuh apa pun
+
+        radio.checked = true;
+
+        document.querySelectorAll('.tipe-bayar-option').forEach(label => {
+            const isChecked = label.querySelector('input').checked;
+            label.classList.toggle('border-indigo-500', isChecked);
+            label.classList.toggle('bg-indigo-50', isChecked);
+            label.classList.toggle('text-indigo-700', isChecked);
+            label.classList.toggle('border-slate-100', !isChecked);
+            label.classList.toggle('text-slate-400', !isChecked);
+        });
+
+        // Tombol "Bayar Sisa Tagihan" & judul field mengikuti mode baru.
+        // Field-nya sendiri tidak disentuh - angka kasir tetap utuh.
+        const btnBayarPas = document.getElementById('btn-bayar-pas');
+        const labelUangDiterima = document.getElementById('label-uang-diterima');
+        if (bayar >= sisaTagihan) {
+            btnBayarPas.classList.add('hidden');
+            labelUangDiterima.innerText = 'Uang Diterima';
+        } else {
+            btnBayarPas.classList.remove('hidden');
+            labelUangDiterima.innerText = 'Uang Diterima (DP / Sebagian)';
+        }
     }
 
     // Toggle "Jenis Pembayaran" murni bantuan UX - lihat catatan di atas
@@ -478,9 +629,23 @@
         const btnBayarPas = document.getElementById('btn-bayar-pas');
         const labelUangDiterima = document.getElementById('label-uang-diterima');
 
+        // Nota sudah lunas = field Uang Diterima terkunci dan berisi nominal
+        // yang sudah tercatat. Mengubah mode pembayaran TIDAK boleh menyentuh
+        // isian itu (menjadikan "0" dan membuat nota yang lunas tampil
+        // seolah belum dibayar). Kopas pil, tombol, dan label saja.
+        if (document.getElementById('input-bayar-mask').dataset.terkunci === '1') {
+            nominalSudahDiisiManual = true;
+            btnBayarPas.classList.add('hidden');
+            return;
+        }
+
+        // Ganti mode = pilihan baru, jadi penanda dilepas dan angka diisi ulang
+        // sesuai mode yang dipilih.
+        nominalSudahDiisiManual = false;
+
         if (tipe === 'lunas') {
             btnBayarPas.classList.add('hidden');
-            labelUangDiterima.innerText = 'Uang Diterima (Otomatis - Lunas)';
+            labelUangDiterima.innerText = 'Uang Diterima';
             setUangPas();
         } else {
             btnBayarPas.classList.remove('hidden');
@@ -528,7 +693,10 @@
     // saja (banner di atas cuma informasi, bukan kuncian).
     function autoTerapkanDeposit() {
         if (saldoDepositTersedia <= 0) return;
-        const sisaTagihan = parseFloat(document.getElementById('grand_total_hidden').value) || 0;
+        // Nota sudah lunas: tidak ada sisa yang perlu dibayar, dan nominal
+        // terkunci tidak boleh ditimpa deposit.
+        if (document.getElementById('input-bayar-mask').dataset.terkunci === '1') return;
+        const sisaTagihan = Math.round(parseFloat(document.getElementById('grand_total_hidden').value) || 0);
         if (sisaTagihan <= 0) return;
 
         document.getElementById('metode-tunai').checked = false;
@@ -576,7 +744,14 @@
 
         chNilaiAsli = { cetak, desain, finishing, potongan };
 
-        document.getElementById('ch-nama-item').innerText = row.querySelector('td:nth-child(2) .font-medium').innerText;
+        // Nama produk diambil lewat kelas .item-nama. Selector lama memakai
+    // "td:nth-child(2) .font-medium", padahal baris item di form ini bukan
+    // tabel melainkan div flex - tidak ada satu pun elemen <td>. Akibatnya
+    // querySelector mengembalikan null, fungsi ini berhenti di tengah jalan,
+    // dan tombol "Ubah harga" kelihatan hidup tetapi tidak pernah membuka
+// modal apa pun.
+    const elNama = row.querySelector('.item-nama');
+    document.getElementById('ch-nama-item').innerText = elNama ? elNama.innerText.trim() : 'Item';
         document.getElementById('ch-cetak').value = formatRupiah(cetak);
         document.getElementById('ch-desain').value = formatRupiah(desain);
         document.getElementById('ch-finishing').value = formatRupiah(finishing);
@@ -662,7 +837,7 @@
                 text: 'Biaya Cetak, Desain, dan Finishing semuanya kosong - subtotal item ini akan tersimpan Rp 0. Lanjutkan?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#e11d48',
+                confirmButtonColor: '#93481A',
                 confirmButtonText: 'Ya, Simpan Rp 0',
                 cancelButtonText: 'Batal, Saya Cek Lagi'
             });
@@ -690,8 +865,17 @@
     }
 
     function simpanSaja() {
+        const terkunci = document.getElementById('input-bayar-mask').dataset.terkunci === '1';
+        // Yang menentukan "ada pembayaran baru atau tidak" adalah hidden
+        // input-bayar-asli, BUKAN field yang terlihat. Untuk nota yang sudah
+        // lunas, hidden harus 0 supaya nominal yang ditampilkan sebagai bukti
+        // pendataan tidak terkirim lagi dan tercatat dua kali - sementara
+        // field yang tetap dibiarkan terlihat supaya kasir masih bisa melihat
+        // nominal yang sudah masuk beserta methodsnya.
         document.getElementById('input-bayar-asli').value = 0;
-        document.getElementById('input-bayar-mask').value = 0;
+        if (!terkunci) {
+            document.getElementById('input-bayar-mask').value = 0;
+        }
         document.getElementById('form-pembayaran').submit();
     }
 
@@ -708,7 +892,7 @@
                 title: 'Saldo Deposit Tidak Cukup',
                 text: 'Jumlah bayar melebihi saldo deposit yang tersedia (Rp ' + formatRupiah(saldoDepositTersedia) + ').',
                 icon: 'error',
-                confirmButtonColor: '#4f46e5',
+                confirmButtonColor: '#006C7B',
             });
         }
     });

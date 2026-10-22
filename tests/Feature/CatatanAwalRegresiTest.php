@@ -83,9 +83,11 @@ class CatatanAwalRegresiTest extends TestCase
 
     public function test_logout_membuang_halaman_terakhir_dan_login_berikutnya_ke_dashboard(): void
     {
+        config(['landing_page_builder.enabled' => false]);
         $u = User::factory()->create(['username' => 'budi_uji', 'password' => Hash::make('rahasia123')]);
 
-        $this->actingAs($u)->withSession(['url.intended' => url('/kasir')])->post('/logout')->assertRedirect('/');
+        // Gate B OFF: logout mendarat di halaman login publik /masuk.
+        $this->actingAs($u)->withSession(['url.intended' => url('/kasir')])->post('/logout')->assertRedirect(route('login'));
         $this->assertGuest();
         $this->assertNull(session('url.intended'));
 

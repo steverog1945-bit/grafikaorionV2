@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
- * Alur penuh satu pesanan lewat layar aplikasi: Input Order -> DP di kasir -> ambil SPK -> produksi selesai ->
+ * Alur penuh satu pesanan lewat layar aplikasi: Input Order (Menunggu Kasir) -> kasir Terima Transaksi
+ * (Diterima Kasir, SPK aktif) -> DP di kasir -> ambil SPK -> produksi selesai ->
  * collecting ditahan karena belum lunas -> pelunasan -> collecting. Di akhir: stok, status nota, buku besar, dan
  * audit:integritas harus cocok satu sama lain, dan laporan Perbandingan membaca angka yang sama.
  */
@@ -68,6 +69,11 @@ class AlurPenuhOrderTest extends TestCase
         $detail = DB::table('transaksi_detail')->where('id_transaksi', $nota->id_transaksi)->first();
         $this->assertEquals(50000, (float) $nota->total_bayar);
         $this->assertEquals(95, (float) DB::table('bahan_baku')->where('id_bahan', $this->bahan)->value('stok'));
+        $this->assertSame('Menunggu Kasir', $nota->status_order);
+
+        // 1b. Kasir Terima Transaksi: SPK aktif, bayarForm terbuka.
+        $this->post(route('kasir.terimaTransaksi', $nota->id_transaksi), ['submit_id' => 'alur-terima'])->assertSessionHas('success');
+        $this->assertSame('Diterima Kasir', DB::table('transaksi')->where('id_transaksi', $nota->id_transaksi)->value('status_order'));
 
         // 2. DP tunai 20.000 di kasir.
         $this->bayar($nota->id_transaksi, '20.000', 'Tunai', 'alur-dp')->assertSessionHas('success');
@@ -87,7 +93,7 @@ class AlurPenuhOrderTest extends TestCase
         $this->patch("/collecting/{$nota->id_transaksi}/proses", ['jenis' => 'Diambil Sendiri'])->assertSessionHas('success');
 
         $akhir = DB::table('transaksi')->where('id_transaksi', $nota->id_transaksi)->first();
-        $this->assertSame(['Aktif', 'Lunas', 'Sudah Diambil'], [$akhir->status_nota, $akhir->status_pembayaran, $akhir->status_collecting]);
+        $this->assertSame(['Aktif', 'Diterima Kasir', 'Lunas', 'Sudah Diambil'], [$akhir->status_nota, $akhir->status_order, $akhir->status_pembayaran, $akhir->status_collecting]);
 
         // Buku besar: piutang habis, pendapatan & HPP sesuai, uang di laci dan bank, persediaan = stok x harga.
         $this->assertEquals(0, $this->saldo('1100'), 'nota lunas masih menyisakan piutang');

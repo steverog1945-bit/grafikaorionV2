@@ -156,6 +156,10 @@ class PenjualanBarangController extends Controller
                 'total_bayar' => 0,
                 'status_pembayaran' => 'Belum Bayar',
                 'status_nota' => 'Aktif',
+                // Penjualan barang langsung: tidak lewat antrean produksi/SPK
+                // (semua detail 'Selesai'), kasir melayani saat itu juga -
+                // dianggap sudah diterima agar bisa langsung dibayar.
+                'status_order' => 'Diterima Kasir',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

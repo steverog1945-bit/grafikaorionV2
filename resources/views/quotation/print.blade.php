@@ -5,18 +5,18 @@
     <title>Penawaran {{ $quotation->nomor }}</title>
     <link rel="stylesheet" href="{{ asset('vendor/fonts/inter.css') }}">
     <style>
-        body { font-family: 'Inter', Arial, Helvetica, sans-serif; color: #1e293b; margin: 32px; font-size: 13px; line-height: 1.5; }
-        h1 { font-size: 20px; margin: 0 0 4px; } .muted { color: #64748b; }
+        body { font-family: 'Inter', Arial, Helvetica, sans-serif; color: #2A3731; margin: 32px; font-size: 13px; line-height: 1.5; }
+        h1 { font-size: 20px; margin: 0 0 4px; } .muted { color: #4A5B53; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border-bottom: 1px solid #e2e8f0; padding: 8px 6px; text-align: left; vertical-align: top; }
-        th { background: #f8fafc; font-size: 13px; font-weight: 600; }
+        th, td { border-bottom: 1px solid #E2EAE4; padding: 8px 6px; text-align: left; vertical-align: top; }
+        th { background: #FAFBF9; font-size: 13px; font-weight: 600; }
         .r { text-align: right; } .total td { font-weight: bold; border-bottom: 0; }
-        .kop { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1e293b; padding-bottom: 12px; }
+        .kop { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #2A3731; padding-bottom: 12px; }
         .surat p { margin: 12px 0 0; }
         .perihal { margin-top: 16px; } .perihal td { border: 0; padding: 1px 12px 1px 0; }
         .ketentuan { margin: 8px 0 0; padding-left: 18px; } .ketentuan li { margin-bottom: 3px; }
         .ttd { display: flex; justify-content: space-between; gap: 40px; margin-top: 36px; page-break-inside: avoid; }
-        .ttd > div { width: 45%; } .ttd .ruang { height: 64px; } .ttd .garis { border-top: 1px solid #1e293b; padding-top: 4px; }
+        .ttd > div { width: 45%; } .ttd .ruang { height: 64px; } .ttd .garis { border-top: 1px solid #2A3731; padding-top: 4px; }
         .aksi { margin-bottom: 16px; } @media print { .aksi { display: none; } body { margin: 12mm; } }
     </style>
 </head>

@@ -6,7 +6,7 @@
     <x-page-header title="Product Engineering">
         <x-slot:subtitle>
             <i class="fas fa-microchip text-slate-500"></i>
-            Engineering <span class="text-slate-300">/</span> Spesifikasi & Kalkulasi Stok
+            Engineering <span class="text-slate-500">/</span> Spesifikasi & Kalkulasi Stok
         </x-slot:subtitle>
         <x-slot:actions>
             <x-button onclick="openTambahModal()">
@@ -297,7 +297,7 @@
                         </thead>
                         <tbody id="bom_table_body" class="divide-y divide-slate-50 text-[12px] font-medium text-slate-600">
                             <tr id="empty_state">
-                                <td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
+                                <td colspan="3" class="p-5 text-center text-slate-500 italic">Belum ada bahan baku yang ditambahkan.</td>
                             </tr>
                         </tbody>
                     </x-table>
@@ -338,7 +338,7 @@
                         </thead>
                         <tbody id="finishing_table_body" class="divide-y divide-slate-50 text-[12px] font-medium text-slate-600">
                             <tr id="empty_state_finishing">
-                                <td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
+                                <td colspan="3" class="p-5 text-center text-slate-500 italic">Belum ada finishing yang ditambahkan.</td>
                             </tr>
                         </tbody>
                     </x-table>
@@ -375,11 +375,11 @@
 
         document.getElementById('bom_table_body').innerHTML = `
             <tr id="empty_state">
-                <td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada bahan baku yang ditambahkan.</td>
+                <td colspan="3" class="p-5 text-center text-slate-500 italic">Belum ada bahan baku yang ditambahkan.</td>
             </tr>`;
         document.getElementById('finishing_table_body').innerHTML = `
             <tr id="empty_state_finishing">
-                <td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada finishing yang ditambahkan.</td>
+                <td colspan="3" class="p-5 text-center text-slate-500 italic">Belum ada finishing yang ditambahkan.</td>
             </tr>`;
         switchBomTab('bahan');
 
@@ -478,7 +478,7 @@
                     renderBahanRow(item.id_bahan, item.nama_bahan, item.cara_hitung_pemakaian, item.satuan_stok);
                 });
             } else {
-                tbody.innerHTML = '<tr id="empty_state"><td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>';
+                tbody.innerHTML = '<tr id="empty_state"><td colspan="3" class="p-5 text-center text-slate-500 italic">Belum ada bahan baku.</td></tr>';
             }
 
             const tbodyFinishing = document.getElementById('finishing_table_body');
@@ -489,7 +489,7 @@
                     renderFinishingRow(item.id_finishing, item.nama_finishing, item.qty);
                 });
             } else {
-                tbodyFinishing.innerHTML = '<tr id="empty_state_finishing"><td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada finishing.</td></tr>';
+                tbodyFinishing.innerHTML = '<tr id="empty_state_finishing"><td colspan="3" class="p-5 text-center text-slate-500 italic">Belum ada finishing.</td></tr>';
             }
 
             switchBomTab('bahan');
@@ -593,7 +593,7 @@
     function checkEmpty() {
         const tbody = document.getElementById('bom_table_body');
         if (tbody.children.length === 0) {
-            tbody.innerHTML = `<tr id="empty_state"><td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada bahan baku.</td></tr>`;
+            tbody.innerHTML = `<tr id="empty_state"><td colspan="3" class="p-5 text-center text-slate-500 italic">Belum ada bahan baku.</td></tr>`;
         }
     }
 
@@ -658,7 +658,7 @@
     function checkEmptyFinishing() {
         const tbody = document.getElementById('finishing_table_body');
         if (tbody.children.length === 0) {
-            tbody.innerHTML = `<tr id="empty_state_finishing"><td colspan="3" class="p-5 text-center text-slate-300 italic">Belum ada finishing.</td></tr>`;
+            tbody.innerHTML = `<tr id="empty_state_finishing"><td colspan="3" class="p-5 text-center text-slate-500 italic">Belum ada finishing.</td></tr>`;
         }
     }
 
@@ -677,7 +677,7 @@
                 : `<b>${escapeHtml(namaProduk)}</b> akan muncul lagi di pilihan produk saat membuat nota baru.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: mauNonaktifkan ? '#64748b' : '#10b981',
+            confirmButtonColor: mauNonaktifkan ? '#4A5B53' : '#10b981',
             confirmButtonText: mauNonaktifkan ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan',
             cancelButtonText: 'Batal',
             customClass: {
@@ -695,7 +695,7 @@
             html: `Menghapus <b>${escapeHtml(name)}</b>?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) document.getElementById(`delete-form-${id}`).submit();

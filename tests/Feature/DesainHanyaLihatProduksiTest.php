@@ -28,7 +28,7 @@ class DesainHanyaLihatProduksiTest extends TestCase
 
         $g = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
         $k = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'P', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $g]);
-        $t = DB::table('transaksi')->insertGetId(['nomor_nota' => 'N-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $k, 'id_user_kasir' => $this->desain->id_user, 'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif']);
+        $t = DB::table('transaksi')->insertGetId(['nomor_nota' => 'N-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $k, 'id_user_kasir' => $this->desain->id_user, 'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir']);
         $p = DB::table('produk')->insertGetId(['nama_produk' => 'P1', 'metode_hitung' => 'quantity', 'status' => 'Aktif']);
         $this->idDetail = DB::table('transaksi_detail')->insertGetId(['id_transaksi' => $t, 'id_produk' => $p, 'nama_file' => 'F', 'p_ukuran' => 0, 'l_ukuran' => 0, 'qty' => 1, 'subtotal' => 1, 'status_spk' => 'Cetak']);
     }

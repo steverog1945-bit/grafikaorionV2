@@ -7,7 +7,7 @@
 
     <x-page-header title="Pengambilan">
         <x-slot:subtitle>
-            Produksi &amp; Logistik <span class="mx-1 text-slate-300">/</span> Kelengkapan Pesanan Sebelum Diambil
+            Produksi &amp; Logistik <span class="mx-1 text-slate-500">/</span> Kelengkapan Pesanan Sebelum Diambil
         </x-slot:subtitle>
         <x-slot:actions>
             <x-button href="{{ route('produksi.index') }}" variant="secondary">
@@ -33,11 +33,13 @@
             <div class="w-full md:w-44">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
                 <x-form.input type="date" name="tgl_dari" value="{{ request('tgl_dari') }}" />
+                @error('tgl_dari')<p class="text-[11px] text-rose-500 font-medium mt-1 ml-2">{{ $message }}</p>@enderror
             </div>
 
             <div class="w-full md:w-44">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Sampai</label>
                 <x-form.input type="date" name="tgl_sampai" value="{{ request('tgl_sampai') }}" />
+                @error('tgl_sampai')<p class="text-[11px] text-rose-500 font-medium mt-1 ml-2">{{ $message }}</p>@enderror
             </div>
 
             <div class="w-full md:w-48">
@@ -169,7 +171,7 @@
                 title: 'Belum Bisa Diproses',
                 html: `Masih ada item pada nota <b>${escHtml(nomorNota)}</b> yang belum selesai dikerjakan. Semua item harus Selesai/Batal dulu sebelum bisa ditandai diambil.`,
                 icon: 'warning',
-                confirmButtonColor: '#4f46e5',
+                confirmButtonColor: '#006C7B',
                 customClass: { popup: 'rounded-2xl' }
             });
             return;
@@ -194,7 +196,7 @@
                     <label style="font-weight:700">Foto bukti (opsional)</label>
                     <input id="sw-bukti" type="file" accept="image/*" style="margin-top:6px;width:100%">
                     ${belumLunas ? `
-                    <div style="margin-top:14px;padding:10px 12px;border:1px solid #fcd34d;background:#fffbeb;border-radius:6px">
+                    <div style="margin-top:14px;padding:10px 12px;border:1px solid #F2B565;background:#FEF6EA;border-radius:6px">
                         <b style="color:#92400e">Nota ini belum lunas (${statusBayar}).</b>
                         <div style="margin:4px 0 8px;color:#78350f">Barang boleh diserahkan hanya dengan sengaja. Tulis alasannya, misalnya pelanggan tetap dengan jatuh tempo atau ada persetujuan pemilik.</div>
                         <input id="sw-alasan-belum-lunas" class="swal2-input" style="margin:0;width:100%" maxlength="500" placeholder="Alasan menyerahkan sebelum lunas">
@@ -203,7 +205,7 @@
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#10b981',
-            cancelButtonColor: '#f8fafc',
+            cancelButtonColor: '#FAFBF9',
             confirmButtonText: 'Ya, Sudah Diserahkan',
             cancelButtonText: 'Batal',
             customClass: {

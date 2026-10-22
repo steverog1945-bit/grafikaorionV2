@@ -15,7 +15,7 @@
     <div class="print:hidden">
         <x-page-header title="Laporan HPP & Margin">
             <x-slot:subtitle>
-                Laporan <span class="mx-1 text-slate-300">/</span> Estimasi Margin Keuntungan per Transaksi
+                Laporan <span class="mx-1 text-slate-500">/</span> Estimasi Margin Keuntungan per Transaksi
             </x-slot:subtitle>
             <x-slot:actions>
                 <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">

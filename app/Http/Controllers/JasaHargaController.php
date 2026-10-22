@@ -25,6 +25,19 @@ class JasaHargaController extends Controller
             'harga'     => 'required|numeric|min:0',
         ]);
 
+        // Aturan bisnis: satu jasa hanya boleh punya satu tier untuk satu rentang
+        // qty. Tanpa ini, klik ganda pada form tier (yang dikirim lewat fetch()
+        // JSON, jadi tidak pernah membawa submit_id dan tidak terlindungi
+        // SubmitSekaliJalan) membuat tier kembar - lalu qty 1-10 punya dua harga
+        // dan mana yang dipakai bergantung urutan baris.
+        // Bentuk respons dibuat sama persis dengan SettingHargaController
+        // supaya helper JS di ketiga halaman bisa sama.
+        if (\App\Support\CekRentangHarga::tumpangTindih(
+            'jasa_harga', 'id_jasa', (int) $idJasa, [], $request->range_min, $request->range_max
+        )) {
+            return response()->json(['success' => false, 'message' => 'Rentang qty ini tumpang tindih dengan tier yang sudah ada. Sesuaikan dulu Min/Max-nya.'], 422);
+        }
+
         $id = DB::table('jasa_harga')->insertGetId([
             'id_jasa'    => $idJasa,
             'range_min'  => $request->range_min,

@@ -160,7 +160,9 @@ class QuotationTest extends TestCase
 
         $this->get('/quotation')->assertOk()->assertSee($q->nomor)->assertSee('Terkirim');
         $this->get('/quotation/create')->assertOk()->assertSee('Banner Flexi');
-        $this->get("/quotation/{$q->id}/edit")->assertOk()->assertSee('wa.me/6281234567890', false)->assertSee('Buat Order dari Penawaran');
+        // Tombol "Buat Nota dari Penawaran" hanya muncul setelah pelanggan menyetujui.
+        QuotationService::tanggapi($q->fresh(), 'Disetujui');
+        $this->get("/quotation/{$q->id}/edit")->assertOk()->assertSee('wa.me/6281234567890', false)->assertSee('Buat Nota dari Penawaran');
         $this->get("/quotation/{$q->id}/cetak")->assertOk()->assertSee('PENAWARAN')->assertSee('455.000');
     }
 

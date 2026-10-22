@@ -82,10 +82,10 @@
                     <td class="px-6 py-3 text-sm text-slate-700">
                         <span class="text-xs text-slate-400">{{ $r->no_referensi }}</span>: {{ $r->keterangan }}
                     </td>
-                    <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
+                    <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-medium' : 'text-slate-500' }}">
                         {{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}
                     </td>
-                    <td class="px-6 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
+                    <td class="px-6 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-medium' : 'text-slate-500' }}">
                         {{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}
                     </td>
                     <td class="px-8 py-3 text-right text-sm font-medium text-slate-800">{{ number_format($r->saldo_berjalan, 0, ',', '.') }}</td>

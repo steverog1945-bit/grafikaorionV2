@@ -37,7 +37,8 @@ class HanyaAdministrator
             return redirect()->route('login');
         }
 
-        if (optional($user->role)->nama_role !== 'Administrator') {
+        $roleName = optional($user->role)->nama_role ?? '';
+        if (! str_starts_with($roleName, 'Administrator')) {
             abort(403, 'Hanya Administrator yang boleh mengubah hak akses. Hubungi Administrator jika Anda merasa kekurangan akses.');
         }
 

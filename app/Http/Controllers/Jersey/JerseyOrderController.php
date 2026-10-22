@@ -67,19 +67,73 @@ class JerseyOrderController extends Controller
      * karena line-nya sendiri belum tentu tersimpan ke database saat user
      * memilih file (order masih dalam proses diisi di form). Dipakai baik
      * dari input file biasa maupun tempel (Ctrl+V) gambar dari clipboard.
+     *
+     * Format yang diterima lebar (semua gambar umum + dokumen desain pdf,
+     * cdr, ai, eps, psd) - lihat App\Support\BerkasDesain untuk alasannya.
+     * Ekstensi dicek dari nama file asal, bukan tebakan MIME, karena CDR dan
+     * sebagian besar format desain punya MIME generik yang ditolak aturan
+     * mimes. Ekstensi asli juga dipertahankan di nama berkas di disk.
      */
     public function uploadThumbnail(Request $request)
     {
-        $request->validate([
-            'thumbnail' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
-        ]);
+        $file = $request->file('thumbnail');
 
-        $path = $request->file('thumbnail')->store('jersey_thumbnails', 'public');
+        // Format & ukuran dicek sendiri (bukan aturan 'mimes'), karena aturan
+        // itu menebak ekstensi dari MIME - CDR & sebagian besar format desain
+        // punya MIME generik (application/octet-stream) yang akan ditolak
+        // padahal berkasnya benar. Daftar formatnya satu sumber kebenaran di
+        // App\Support\BerkasDesain.
+        //
+        // Error-nya tetap error validasi Laravel (422 + errors.thumbnail),
+        // sama seperti jalur validasi lain di endpoint ini.
+        $validator = \Illuminate\Support\Facades\Validator::make(
+            ['thumbnail' => $file],
+            [
+                'thumbnail' => [
+                    'required',
+                    'file',
+                    function ($attribute, $value, $fail) {
+                        if (!$value instanceof \Illuminate\Http\UploadedFile) {
+                            return;
+                        }
+
+                        $ekstensi = \App\Support\BerkasDesain::ekstensi($value->getClientOriginalExtension());
+                        if (!\App\Support\BerkasDesain::diizinkan($ekstensi)) {
+                            $fail('Format file tidak didukung. Yang boleh: ' . \App\Support\BerkasDesain::daftarFormat() . '.');
+
+                            return;
+                        }
+
+                        $maksKb = \App\Support\BerkasDesain::maksKilobyte($ekstensi);
+                        if ($value->getSize() > $maksKb * 1024) {
+                            $fail('Ukuran file terlalu besar (maksimal ' . number_format($maksKb / 1024, 0, ',', '.') . ' MB).');
+                        }
+                    },
+                ],
+            ]
+        );
+
+        if ($validator->fails()) {
+            throw new \Illuminate\Validation\ValidationException($validator);
+        }
+
+        $ekstensi = \App\Support\BerkasDesain::ekstensi($file->getClientOriginalExtension());
+
+        // Berkas desain yang tidak bisa dirender (CDR, AI, EPS, PSD) disimpan
+        // apa adanya sebagai sumber desain; PDF sudah dirender jadi gambar
+        // di peramban (pdf.js) sebelum diunggah.
+        $path = $file->storeAs(
+            'jersey_thumbnails',
+            \Illuminate\Support\Str::random(40) . '.' . $ekstensi,
+            'public'
+        );
 
         return response()->json([
             'status' => 'success',
             'path' => $path,
             'url' => asset('storage/' . $path),
+            'bisa_ditampilkan' => \App\Support\BerkasDesain::bisaDitampilkan($ekstensi),
+            'nama_asli' => $file->getClientOriginalName(),
         ]);
     }
 
@@ -97,9 +151,8 @@ class JerseyOrderController extends Controller
         $peringatan = [];
 
         foreach ($request->input('lines', []) as $i => $lineData) {
-            $items = array_values(array_filter($lineData['items'] ?? [], fn ($it) => trim($it['player_name'] ?? '') !== ''));
-            $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
-            $qty = count($items) + array_sum(array_map('intval', $sizeQuantitiesMentah));
+            $sumber = $this->sumberQtyBaris($lineData);
+            $qty = $sumber['qty'];
             if ($qty <= 0) {
                 continue; // baris kosong - sama seperti store(), dilewati saja
             }
@@ -210,6 +263,56 @@ class JerseyOrderController extends Controller
     }
 
     /**
+     * Sumber qty satu baris barang, DITENTUKAN oleh mode-nya.
+     *
+     * Bug yang diperbaiki di sini: dulu qty dihitung
+     * `count($items) + array_sum($size_quantities)` untuk SEMUA mode.
+     *
+     * Di mode "Daftar Pemain", form Kelola Barang (edit-lines.blade.php)
+     * merender input size_quantities dengan nilai lama dari database - karena
+     * _line-card-fields.blade.php selalu mengisi $sizeQtyMap tanpa melihat
+     * mode. Wrapper-nya memang disembunyikan, tapi "tersembunyi" bukan berarti
+     * "tidak terkirim", jadi 35 pemain + size_quantities 35 = 70.
+     *
+     * Client sebenarnya sudah mengosongkan qty per ukuran saat mode diganti
+     * ke Daftar Pemain (toggleLineType), tapi saat halaman dibuka ulang dalam
+     * mode Daftar Pemain tidak ada pergantian mode - tidak ada yang mengosongkan
+     * apa pun. Server tidak boleh bergantung pada sesuatu yang hanya terjadi
+     * saat ada klik.
+     *
+     * Aturan per mode:
+     *   quantity_only : qty per ukuran saja
+     *   player_list   : daftar pemain saja
+     *   mixed         : dua-duanya, memang dua sumber yang berbeda
+     *
+     * Dipakai cekKelengkapan(), validasiQtyTerisi(), dan hitungHargaBaris()
+     * supaya ketiganya tidak bisa berbeda kesimpulan lagi.
+     */
+    private function sumberQtyBaris(array $lineData): array
+    {
+        $mode = (string) ($lineData['order_type'] ?? 'quantity_only');
+
+        $items = array_values(array_filter(
+            $lineData['items'] ?? [],
+            fn ($it) => trim((string) ($it['player_name'] ?? '')) !== ''
+        ));
+        $sizeQty = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
+
+        $pakaiItems = in_array($mode, ['player_list', 'mixed'], true);
+        $pakaiSizeQty = in_array($mode, ['quantity_only', 'mixed'], true);
+
+        $itemsDipakai = $pakaiItems ? $items : [];
+        $sizeQtyDipakai = $pakaiSizeQty ? $sizeQty : [];
+
+        return [
+            'mode' => $mode,
+            'items' => $itemsDipakai,
+            'sizeQuantities' => $sizeQtyDipakai,
+            'qty' => count($itemsDipakai) + array_sum(array_map('intval', $sizeQtyDipakai)),
+        ];
+    }
+
+    /**
      * Audit kelengkapan: WAJIB minimal satu sumber qty terisi per baris
      * berisi (pemain berukuran atau qty per ukuran > 0). Dipakai ketiga
      * jalur simpan (store/updateLines/susulan) sebelum transaksi dibuka.
@@ -217,9 +320,10 @@ class JerseyOrderController extends Controller
     private function validasiQtyTerisi(array $lines): void
     {
         foreach ($lines as $i => $lineData) {
-            $items = array_values(array_filter($lineData['items'] ?? [], fn ($it) => trim($it['player_name'] ?? '') !== ''));
-            $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
-            $qty = count($items) + array_sum(array_map('intval', $sizeQuantitiesMentah));
+            $sumber = $this->sumberQtyBaris($lineData);
+            $items = $sumber['items'];
+            $sizeQuantitiesMentah = $sumber['sizeQuantities'];
+            $qty = $sumber['qty'];
 
             if ($qty <= 0) {
                 continue; // baris kosong - dilewati (konsisten dengan hitungHargaBaris)
@@ -255,8 +359,15 @@ class JerseyOrderController extends Controller
             'lines.*.jersey_product_type_id' => 'required|exists:jersey_product_types,id',
             'lines.*.jersey_category_id' => 'required|exists:jersey_categories,id',
             'lines.*.jersey_material_id' => 'required|exists:jersey_materials,id',
-            'lines.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
-            'lines.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
+            // Mode "Daftar Pemain" (order_type = player_list) menyembunyikan
+            // dropdown lengan/kerah default di level baris - pemakaiannya jadi
+            // per pemain (lihat rules items.* di bawah). Kalau baris ini tetap
+            // `required` polos, order mode Daftar Pemain tidak akan pernah bisa
+            // disimpan karena user tidak punya UI untuk mengisinya.
+            // Kolom di database sudah nullable dan diisi di baris penyimpan
+            // memakai `!empty(...) ? (int) : null`, jadi null aman.
+            'lines.*.jersey_sleeve_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_sleeve_types,id'],
+            'lines.*.jersey_collar_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_collar_types,id'],
             'lines.*.keterangan' => 'nullable|string|max:2000',
             'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
@@ -419,7 +530,7 @@ class JerseyOrderController extends Controller
         $collarSurchargeById = $this->cacheMaster['collarSurchargeById'] ??= JerseyCollarType::pluck('price_surcharge', 'id');
 
         // Kunci 'size' dipaksa ada di sini, bukan hanya dijaga di tempat
-        // dipakai. Alasannya bukan kerapian: filter di bawah hanya
+        // dipakai. Alasannya bukan kerapian: sumberQtyBaris() hanya
         // memeriksa player_name, jadi baris pemain yang namanya sudah
         // terisi tapi ukurannya masih kosong tetap lolos. Dua loop di
         // bawah membaca $item['size'] secara langsung, dan tanpa
@@ -428,14 +539,20 @@ class JerseyOrderController extends Controller
         // baris itu yang gagal, tapi seluruh preview harga untuk order
         // ini. Gejalanya mudah terjadi karena operator mengetik nama dulu
         // dan ukuran menyusul.
-        $items = array_values(array_filter(array_map(function ($i) {
+        //
+        // Catatan: sumberQtyBaris() juga ikut membuang sumber qty yang tidak
+        // relevan untuk modenya, jadi $items/$sizeQuantitiesMentah di bawah
+        // sudah sesuai mode - mode Daftar Pemain tidak lagi ikut menghitung
+        // size_quantities sisa (bug qty 35 -> 70).
+        $sumber = $this->sumberQtyBaris($lineData);
+        $items = array_map(function ($i) {
             $i['size'] = trim((string) ($i['size'] ?? ''));
 
             return $i;
-        }, $lineData['items'] ?? []), fn ($i) => trim($i['player_name'] ?? '') !== ''));
-        $sizeQuantitiesMentah = array_filter($lineData['size_quantities'] ?? [], fn ($q) => (int) $q > 0);
+        }, $sumber['items']);
+        $sizeQuantitiesMentah = $sumber['sizeQuantities'];
 
-        $qty = count($items) + array_sum(array_map('intval', $sizeQuantitiesMentah));
+        $qty = $sumber['qty'];
         if ($qty <= 0) {
             return null; // baris kosong (line ditambahkan tapi tidak diisi) - dilewati, bukan error
         }
@@ -815,8 +932,15 @@ class JerseyOrderController extends Controller
             'lines.*.jersey_product_type_id' => 'required|exists:jersey_product_types,id',
             'lines.*.jersey_category_id' => 'required|exists:jersey_categories,id',
             'lines.*.jersey_material_id' => 'required|exists:jersey_materials,id',
-            'lines.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
-            'lines.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
+            // Mode "Daftar Pemain" (order_type = player_list) menyembunyikan
+            // dropdown lengan/kerah default di level baris - pemakaiannya jadi
+            // per pemain (lihat rules items.* di bawah). Kalau baris ini tetap
+            // `required` polos, order mode Daftar Pemain tidak akan pernah bisa
+            // disimpan karena user tidak punya UI untuk mengisinya.
+            // Kolom di database sudah nullable dan diisi di baris penyimpan
+            // memakai `!empty(...) ? (int) : null`, jadi null aman.
+            'lines.*.jersey_sleeve_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_sleeve_types,id'],
+            'lines.*.jersey_collar_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_collar_types,id'],
             'lines.*.keterangan' => 'nullable|string|max:2000',
             'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
@@ -919,8 +1043,15 @@ class JerseyOrderController extends Controller
             'lines.*.jersey_product_type_id' => 'required|exists:jersey_product_types,id',
             'lines.*.jersey_category_id' => 'required|exists:jersey_categories,id',
             'lines.*.jersey_material_id' => 'required|exists:jersey_materials,id',
-            'lines.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
-            'lines.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
+            // Mode "Daftar Pemain" (order_type = player_list) menyembunyikan
+            // dropdown lengan/kerah default di level baris - pemakaiannya jadi
+            // per pemain (lihat rules items.* di bawah). Kalau baris ini tetap
+            // `required` polos, order mode Daftar Pemain tidak akan pernah bisa
+            // disimpan karena user tidak punya UI untuk mengisinya.
+            // Kolom di database sudah nullable dan diisi di baris penyimpan
+            // memakai `!empty(...) ? (int) : null`, jadi null aman.
+            'lines.*.jersey_sleeve_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_sleeve_types,id'],
+            'lines.*.jersey_collar_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_collar_types,id'],
             'lines.*.keterangan' => 'nullable|string|max:2000',
             'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',

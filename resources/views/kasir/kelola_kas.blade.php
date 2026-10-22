@@ -90,6 +90,7 @@
         <i class="fas {{ $kasBasi ? 'fa-triangle-exclamation text-amber-500' : 'fa-clock text-slate-400' }} text-lg"></i>
         <div class="text-sm font-medium {{ $kasBasi ? 'text-amber-800' : 'text-slate-600' }}">
             Sesi kas dibuka <b>{{ $mulaiTampil->translatedFormat('d F Y, H:i') }}</b> oleh <b>{{ $pemilikSesi }}</b> ({{ $umurJam }} jam).
+            Saldo awal laci saat kasir membuka sesi ini <b>Rp {{ number_format((float) $kasAktif->saldo_awal, 0, ',', '.') }}</b>.
             @if($kasBasi)
                 Sesi ini sudah lebih dari 24 jam dan <b>belum di-closing</b> - lakukan closing supaya uang laci direkonsiliasi
                 @if(!$saya) (Administrator dapat menutup paksa dengan alasan)@endif.
@@ -99,6 +100,84 @@
         </div>
     </div>
 @endif
+
+{{-- ==============================================================
+     REKAP CLOSING TERSIMPAN - Muncul tepat setelah closing sukses.
+     Opsi print bukan pelengkap yang harus dicari-cari: rekap harian
+     diambil pada saat uang dihitung, jadi pintasan ke cetak harus ada
+     di halaman yang dituju setelah closing.
+     Thermal untuk strip yang ditempel di laci, A4 untuk arsip.
+     ============================================================== --}}
+@if($kasBaruDitutup)
+<div class="mb-6 rounded-xl border-2 border-emerald-500 bg-emerald-50 p-5">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+        <div class="min-w-0">
+            <h3 class="text-sm font-semibold text-emerald-900">Rekap Closing Sesi #{{ $kasBaruDitutup->id_kas }} Tersimpan</h3>
+            <p class="mt-0.5 text-xs text-emerald-800">
+                Ditutup {{ \Carbon\Carbon::parse($kasBaruDitutup->waktu_tutup)->format('d/m/Y H:i') }}
+                oleh {{ $kasBaruDitutup->nama_kasir ?? '-' }} &middot; uang laci sudah terkunci.
+            </p>
+            <dl class="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 text-xs sm:grid-cols-4">
+                <div>
+                    <dt class="text-emerald-700">Saldo awal</dt>
+                    <dd class="font-medium text-emerald-900 tabular-nums">Rp {{ number_format((float) $kasBaruDitutup->saldo_awal, 0, ',', '.') }}</dd>
+                </div>
+                <div>
+                    <dt class="text-emerald-700">Total isi laci</dt>
+                    <dd class="font-medium text-emerald-900 tabular-nums">Rp {{ number_format((float) $kasBaruDitutup->saldo_fisik, 0, ',', '.') }}</dd>
+                </div>
+                <div>
+                    <dt class="text-emerald-700">Saldo akhir sistem</dt>
+                    <dd class="font-medium text-emerald-900 tabular-nums">Rp {{ number_format((float) $kasBaruDitutup->saldo_akhir, 0, ',', '.') }}</dd>
+                </div>
+                <div>
+                    <dt class="text-emerald-700">Selisih</dt>
+                    <dd class="font-medium tabular-nums {{ (float) $kasBaruDitutup->selisih == 0 ? 'text-emerald-900' : ((float) $kasBaruDitutup->selisih < 0 ? 'text-rose-600' : 'text-amber-700') }}">
+                        {{ (float) $kasBaruDitutup->selisih < 0 ? '-' : '' }} Rp {{ number_format(abs((float) $kasBaruDitutup->selisih), 0, ',', '.') }}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        {{-- Aksen dipakai di sini saja:(print = momen yang paling butuh
+             perhatian di halaman ini. Tombol lain tetap netral,
+             supaya mata langsung tahu ke mana harus pergi. --}}
+        <div class="flex shrink-0 flex-col gap-2">
+            <a href="{{ route('kasir.print-closing', ['id' => $kasBaruDitutup->id_kas, 'format' => 'thermal']) }}"
+               target="_blank" rel="noopener"
+               class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-emerald-700 active:scale-[0.97] whitespace-nowrap">
+                <i class="fas fa-receipt text-xs"></i> Cetak Thermal 58mm
+            </a>
+            <a href="{{ route('kasir.print-closing', ['id' => $kasBaruDitutup->id_kas, 'format' => 'a4']) }}"
+               target="_blank" rel="noopener"
+               class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 px-4 py-2.5 text-[13px] font-medium text-emerald-700 transition-colors hover:bg-emerald-50 active:scale-[0.97] whitespace-nowrap">
+                <i class="fas fa-file-lines text-xs"></i> Cetak A4 Lengkap
+            </a>
+        </div>
+    </div>
+</div>
+@endif
+
+{{-- SHORTCUT ke laporan riwayat closing.
+     Riwayat TIDAK ditampilkan di sini. Halaman ini sudah memuat mutasi
+     pembayaran dan mutasi kas tidak terduga untuk sesi berjalan; ditambah
+     26 hari kerja riwayat closing, halamannya jadi panjang sekali dan
+     kedua tabel saling menggeser. Laporan Kas yang punya filter tanggal,
+     paginasi 20/halaman, dan tombol print per sesi adalah tempat yang
+     tepat - dan pintasan ke sana tetap satu klik dari sini. --}}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-5 py-4">
+    <div class="flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0"><i class="fas fa-book text-xs"></i></span>
+        <div>
+            <p class="text-sm font-medium text-slate-800">Laporan Riwayat Closing</p>
+            <p class="text-xs text-slate-500 mt-0.5">Rekap harian yang sudah tutup, lengkap dengan pilihan cetak A4 dan thermal</p>
+        </div>
+    </div>
+    <a href="{{ route('laporan.kas', ['status_lock' => 'closed', 'tgl_dari' => now()->subDays(30)->format('Y-m-d'), 'tgl_sampai' => now()->format('Y-m-d')]) }}"
+       class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-[13px] font-medium text-slate-700 transition-colors hover:bg-slate-50 active:scale-[0.97] whitespace-nowrap">
+        <i class="fas fa-list text-xs"></i> Buka Laporan
+    </a>
+</div>
 
 {{-- SALDO ROLLING - kas kemarin (atau sesi terakhir sebelum hari ini)
      ditutup dengan status "Rolling", saldonya jadi saran saldo awal hari
@@ -172,7 +251,7 @@
                     </span>
                 </td>
                 <td class="p-4 text-center">
-                    <x-badge :status="$m->status_pembayaran" />
+                    <x-badge :status="$m->display_status_pembayaran" />
                 </td>
             </tr>
             @empty
@@ -256,33 +335,84 @@ function toggleStatusManual(input) {
 }
 
 function aksiKas(tipe) {
-    if(tipe === 'open') {
+    if(tipe !== 'open') return;
+
+    // Saldo awal = total UANG YANG SEKARANG masih di laci, bukan tambahan atas
+    // sesi sebelumnya dan bukan angka sistem. Sesi kas dihitung terpisah
+    // (tidak ada penjumlahan antar sesi), jadi angka yang sama akan muncul
+    // lagi di sesi berikutnya - itu bring-forward, bukan addition.
+    const acuanRolling   = {{ $saldoRolling !== null ? (float) $saldoRolling : 'null' }};
+    const tglAcuan       = {!! $saldoRolling !== null ? "'" . \Carbon\Carbon::parse($kasSebelumnya->tgl_kas)->format('d/m/Y') . "'" : 'null' !!};
+    const rp             = (n) => 'Rp ' + Number(n).toLocaleString('id-ID');
+
+    Swal.fire({
+        title: 'Buka Saldo Awal',
+        html: acuanRolling !== null
+            ? 'Sesi sebelumnya (' + tglAcuan + ') ditutup dengan <b>isi laci ' + rp(acuanRolling) + '</b>.<br>'
+              + 'Uang itu tetap di laci, jadi itulah titik awal sesi ini - <b>bukan</b> tambahan di atasnya.<br>'
+              + 'Kalau uang di laci sekarang berbeda, ganti angkanya lalu isi alasannya.'
+            : 'Masukkan jumlah modal awal yang ada di laci kasir sekarang.',
+        input: 'number',
+        inputValue: acuanRolling !== null ? Math.round(acuanRolling) : 0,
+        inputAttributes: { min: 0 },
+        showCancelButton: true,
+        confirmButtonText: 'Buka Kas',
+        cancelButtonText: 'Batal',
+        didOpen: (el) => { el.querySelector('#swal-input')?.focus(); el.querySelector('#swal-input')?.select(); },
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        const nominal = Number(result.value);
+        if (!(nominal >= 0)) {
+            Swal.fire('Jumlah tidak valid', 'Isi jumlah uang dengan angka nol atau lebih.', 'error');
+            return;
+        }
+
+        // Selisih hanya relevan kalau ada sesi sebelumnya yang jadi acuan.
+        const beda = acuanRolling !== null && Math.abs(nominal - acuanRolling) > 0.005;
+        if (!beda) {
+            kirim(nominal, '');
+            return;
+        }
+
+        // Selisih uang laci saat buka sesi harus bisa dijelaskan. Tanpa ini,
+        // selisih hilang tanpa jejak - dan persis itulah yang terjadi di
+        // oriondb: sesi #3 dibuka Rp100.000 padahal sesi #2 menutup dengan
+        // isi laci Rp436.193, tanpa catatan apa pun.
+        const arah = nominal < acuanRolling ? 'kurang' : 'lebih';
         Swal.fire({
-            title: 'Buka Saldo Awal',
-            text: {!! $saldoRolling !== null ? "'Saldo di-rolling dari sesi sebelumnya sudah terisi otomatis - ubah kalau berbeda dari laci fisik sekarang:'" : "'Masukkan jumlah modal awal yang ada di laci kasir sekarang:'" !!},
-            input: 'number',
-            inputValue: {{ $saldoRolling !== null ? (int) $saldoRolling : 0 }},
-            inputAttributes: { min: 0 },
+            title: 'Saldo awal berbeda dari isi laci sebelumnya',
+            html: 'Sesi sebelumnya ditutup dengan isi laci <b>' + rp(acuanRolling) + '</b>.<br>'
+                + 'Anda mengetik <b>' + rp(nominal) + '</b> - ' + arah + ' <b>'
+                + rp(Math.abs(nominal - acuanRolling)) + '</b>.<br><br>'
+                + 'Tuliskan kenapa. Catatan ini tersimpan bersama sesi kas dan ikut dicetak di rekap closing.',
+            input: 'text',
+            inputPlaceholder: 'Contoh: sebagian uang dipakai owner, ada di laci dalam amplop',
+            inputAttributes: { maxlength: 500 },
             showCancelButton: true,
-            confirmButtonText: 'Buka Kas',
+            confirmButtonText: 'Simpan & Buka Kas',
             cancelButtonText: 'Batal',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                if(result.value >= 0) {
-                    // P0-1: kirim via POST + CSRF (sebelumnya GET query string
-                    // tanpa verifikasi CSRF - celah CSRF nyata).
-                    const f = document.getElementById('form-open-kas');
-                    f.querySelector('input[name=jumlah]').value = result.value;
-                    f.submit();
-                } else {
-                    Swal.fire('Jumlah tidak valid', 'Isi jumlah uang dengan angka lebih dari nol.', 'error');
+            inputValidator: (v) => {
+                if (!v || !v.trim()) {
+                    return 'Alasan wajib diisi kalau saldo awal berbeda dari isi laci sebelumnya.';
                 }
-            }
+            },
+        }).then((r2) => {
+            if (r2.isConfirmed) kirim(nominal, r2.value.trim());
         });
+    });
+
+    function kirim(nominal, alasan) {
+        // P0-1: kirim via POST + CSRF (sebelumnya GET query string tanpa
+        // verifikasi CSRF - celah CSRF nyata).
+        const f = document.getElementById('form-open-kas');
+        f.querySelector('input[name=jumlah]').value = nominal;
+        f.querySelector('input[name=keterangan_pembukaan]').value = alasan;
+        f.submit();
     }
 }
 </script>
 
 {{-- P0-1: form POST + CSRF untuk Buka Kas (dipakai JS aksiKas('open') di atas) --}}
-<form id="form-open-kas" action="{{ route('kasir.store-kas') }}" method="POST" class="hidden">@csrf<input type="hidden" name="jumlah" value="0"></form>
+<form id="form-open-kas" action="{{ route('kasir.store-kas') }}" method="POST" class="hidden">@csrf<input type="hidden" name="jumlah" value="0"><input type="hidden" name="keterangan_pembukaan" value=""></form>
 @endsection

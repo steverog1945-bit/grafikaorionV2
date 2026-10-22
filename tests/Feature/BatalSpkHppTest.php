@@ -38,7 +38,7 @@ class BatalSpkHppTest extends TestCase
         $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'A', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $produk = DB::table('produk')->insertGetId(['nama_produk' => 'Banner', 'metode_hitung' => 'quantity', 'status' => 'aktif']);
         $this->idTransaksi = DB::table('transaksi')->insertGetId(['nomor_nota' => 'INV-SPK', 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => $admin->id_user,
-            'tgl_order' => now(), 'total_bayar' => 50000, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_collecting' => 'Belum Diambil', 'created_at' => now()]);
+            'tgl_order' => now(), 'total_bayar' => 50000, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir', 'status_collecting' => 'Belum Diambil', 'created_at' => now()]);
         $this->idDetail = DB::table('transaksi_detail')->insertGetId(['id_transaksi' => $this->idTransaksi, 'id_produk' => $produk, 'nama_file' => 'banner.pdf', 'p_ukuran' => 2, 'l_ukuran' => 2,
             'qty' => 1, 'status_urgensi' => 'Normal', 'status_finishing' => 'Standar', 'subtotal' => 50000, 'hpp_snapshot' => 4000, 'harga_jual_snapshot' => 50000,
             'status_spk' => 'Antre', 'biaya_cetak' => 50000, 'biaya_desain' => 0]);

@@ -5,7 +5,7 @@
 
     <x-page-header :title="'Kartu Stok: ' . $bahan->nama_bahan">
         <x-slot:subtitle>
-            Bahan Baku &amp; Logistik <span class="mx-1 text-slate-300">/</span> Riwayat Pergerakan Stok
+            Bahan Baku &amp; Logistik <span class="mx-1 text-slate-500">/</span> Riwayat Pergerakan Stok
         </x-slot:subtitle>
         <x-slot:actions>
             <x-button href="{{ url('/kartu-stok') }}" variant="secondary">

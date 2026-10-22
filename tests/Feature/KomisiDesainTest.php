@@ -48,6 +48,15 @@ class KomisiDesainTest extends TestCase
         DB::table('users')->where('id_user', $this->desain->id_user)->update(['id_kelas_desainer' => $id]);
     }
 
+    /** Izin menu "Input Order" (id_menu 41) + Transaksi Baru (3) untuk Operator Desain. */
+    private function beriIzinInputOrder(): void
+    {
+        foreach ([3, 41] as $id) {
+            DB::table('menus')->insertOrIgnore(['id_menu' => $id, 'nama_menu' => "M{$id}", 'url_link' => "m{$id}", 'parent_id' => 0]);
+            DB::table('role_permissions')->insert(['id_role' => $this->desain->id_role, 'id_menu' => $id, 'can_view' => 1, 'can_add' => 1, 'can_edit' => 0, 'can_delete' => 0]);
+        }
+    }
+
     public function test_komisi_dihitung_dari_kelas_saat_nota_dibuat_dan_tidak_berubah_setelahnya(): void
     {
         $this->setKelas(40);
@@ -64,8 +73,7 @@ class KomisiDesainTest extends TestCase
         $this->assertEquals(40000, (float) DB::table('transaksi_detail')->value('komisi_desain'));
     }
 
-    public function test_operator_desain_yang_membuat_nota_otomatis_menjadi_desainer_dan_tanpa_biaya_tidak_ada_komisi(): void
-    {
+    public function test_operator_desain_yang_membuat_nota_otomatis_menjadi_desainer_dan_tanpa_biaya_tidak_ada_komisi(): void    {
         $this->setKelas(50);
         foreach ([3, 41] as $id) {
             DB::table('menus')->insertOrIgnore(['id_menu' => $id, 'nama_menu' => "M{$id}", 'url_link' => "m{$id}", 'parent_id' => 0]);
@@ -81,6 +89,43 @@ class KomisiDesainTest extends TestCase
         $this->assertNull($d->id_desainer);
         $this->assertEquals(0, (float) $d->komisi_desain);
         $this->assertNull($d->komisi_status);
+    }
+
+    /**
+     * Desainer TERKUNCI: Operator Desain yang membuat nota tidak boleh
+     * menunjuk nama desainer lain - nilai dari browser diabaikan server.
+     */
+    public function test_operator_desain_tidak_bisa_menunjuk_desainer_lain(): void
+    {
+        $this->setKelas(40);
+        $this->beriIzinInputOrder();
+        $rekan = User::factory()->create(['id_role' => $this->desain->id_role]);
+
+        // Yang dikirim: id_desainer = rekannya. Server harus mengunci ke
+        // desainer yang sedang login.
+        $this->nota($this->desain, 100000, $rekan->id_user)->assertOk();
+
+        $d = DB::table('transaksi_detail')->first();
+        $this->assertEquals($this->desain->id_user, $d->id_desainer, 'desainer harus terkunci ke yang sedang login');
+        $this->assertEquals(40000, (float) $d->komisi_desain);
+    }
+
+    /** Layar Input Pesanan untuk Operator Desain menampilkan nama sendiri secara terkunci, tanpa dropdown. */
+    public function test_layar_input_pesanan_operator_desain_menampilkan_desainer_terkunci(): void
+    {
+        $this->beriIzinInputOrder();
+
+        $this->actingAs($this->desain)->get('/penjualan/kasir')->assertOk()
+            ->assertSee('otomatis (Anda)', false)
+            ->assertDontSee('<select id="input_desainer"', false);
+    }
+
+    /** Role lain (Administrator) tetap bebas memilih desainer yang benar-benar mengerjakan. */
+    public function test_role_bukan_operator_desain_tetap_bisa_memilih_desainer(): void
+    {
+        $this->actingAs($this->admin)->get('/penjualan/kasir')->assertOk()
+            ->assertSee('<select id="input_desainer"', false)
+            ->assertDontSee('otomatis (Anda)', false);
     }
 
     public function test_laporan_bayar_komisi_membuat_pengeluaran_kas_kecil_dan_batal_mengembalikan_status(): void
@@ -156,6 +201,8 @@ class KomisiDesainTest extends TestCase
         $this->nota($this->admin, 100000, $this->desain->id_user)->assertOk();
         DB::table('kelas_desainer')->update(['persen_komisi' => 10]);
         $d = DB::table('transaksi_detail')->first();
+        // Flow baru: kasir terima dulu sebelum koreksi di pembayaran.
+        $this->actingAs($this->admin)->post(route('kasir.terimaTransaksi', $d->id_transaksi), ['submit_id' => 'k7-terima'])->assertSessionHas('success');
 
         $this->actingAs($this->admin)->post('/kasir/proses-bayar', ['id_transaksi' => $d->id_transaksi, 'jumlah_bayar' => 0, 'metode_pembayaran' => 'Tunai', 'submit_id' => 'k7-a',
             'items' => [$d->id_detail => ['biaya_cetak' => 50000, 'biaya_desain' => 150000, 'biaya_finishing' => 0]]])->assertSessionHasNoErrors();

@@ -38,6 +38,7 @@ class KasirUbahHargaJurnalTest extends TestCase
             ['tipe' => 'jasa', 'id_jasa' => $jasa, 'qty' => 1, 'harga' => 20000],
         ]])->assertSessionHasNoErrors();
         $this->nota = DB::table('transaksi')->latest('id_transaksi')->first();
+        DB::table('transaksi')->where('id_transaksi', $this->nota->id_transaksi)->update(['status_order' => 'Diterima Kasir']);
     }
 
     private function saldo(string $kode): float
@@ -124,7 +125,13 @@ class KasirUbahHargaJurnalTest extends TestCase
 
     public function test_pemeriksaan_antrean_kasir_menghitung_nota_baru_yang_belum_dibayar(): void
     {
-        // Nota dari setUp: Belum Bayar, tgl_order berisi jam (bukan tepat 00:00).
+        // Antrean baru = Menunggu Kasir. Nota setUp sudah Diterima, jadi
+        // buat satu nota Menunggu Kasir murni untuk pemeriksaan ini.
+        DB::table('transaksi')->insert([
+            'nomor_nota' => 'N-ANTRE-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $this->nota->id_konsumen,
+            'id_user_kasir' => $this->nota->id_user_kasir, 'tgl_order' => now(), 'total_bayar' => 1000,
+            'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Menunggu Kasir',
+        ]);
         $this->getJson('/kasir/check-pembayaran')->assertOk()->assertJson(['total' => 1]);
     }
 }

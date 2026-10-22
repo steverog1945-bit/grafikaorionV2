@@ -83,7 +83,7 @@
                     @php $tiersGol = $hargaProduk->where('id_golongan', $g->id_golongan); @endphp
                     <span id="harga-summary-{{ $p->id_produk }}-{{ $g->id_golongan }}">
                         @if($tiersGol->isEmpty())
-                            <span class="text-slate-300 italic text-[10px]">Belum Diatur</span>
+                            <span class="text-slate-500 italic text-[10px]">Belum Diatur</span>
                         @elseif($tiersGol->count() === 1)
                             @php $satu = $tiersGol->first(); @endphp
                             <span class="text-slate-700 font-medium">Rp{{ number_format($satu->harga_jual, 0, ',', '.') }}</span>
@@ -157,7 +157,7 @@
                     id="harga-tab-btn-{{ $p->id_produk }}-{{ $g->id_golongan }}"
                     class="flex-1 min-w-[110px] py-3 px-2 text-[11px] font-medium uppercase tracking-widest transition-all whitespace-nowrap {{ $i === 0 ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-500' : 'text-slate-400 border-b-2 border-transparent hover:text-slate-600' }}">
                     {{ $g->nama_golongan }}
-                    <span class="ml-1 text-[9px] {{ $jumlahTierGol > 0 ? 'text-indigo-400' : 'text-slate-300' }}">({{ $jumlahTierGol }})</span>
+                    <span class="ml-1 text-[9px] {{ $jumlahTierGol > 0 ? 'text-indigo-600' : 'text-slate-500' }}">({{ $jumlahTierGol }})</span>
                 </button>
                 @endforeach
             </div>
@@ -230,7 +230,7 @@
                     </thead>
                     <tbody id="tier-tbody-produk-{{ $p->id_produk }}-gol-{{ $g->id_golongan }}" class="divide-y divide-slate-50" data-id-produk="{{ $p->id_produk }}" data-id-golongan="{{ $g->id_golongan }}">
                         <tr class="tier-empty-msg-produk" {{ $tiersProdukGol->isNotEmpty() ? 'hidden' : '' }}>
-                            <td colspan="4" class="p-5 text-center text-slate-300 italic">Belum ada harga untuk golongan ini - order akan ditolak di Kasir sampai diisi.</td>
+                            <td colspan="4" class="p-5 text-center text-slate-500 italic">Belum ada harga untuk golongan ini - order akan ditolak di Kasir sampai diisi.</td>
                         </tr>
                         @foreach($tiersProdukGol as $t)
                         <tr class="tier-row-produk" data-id="{{ $t->id_harga }}">
@@ -394,13 +394,13 @@
             const badge = tabBtn.querySelector('span');
             if (badge) {
                 badge.textContent = `(${rows.length})`;
-                badge.classList.toggle('text-indigo-400', rows.length > 0);
-                badge.classList.toggle('text-slate-300', rows.length === 0);
+                badge.classList.toggle('text-indigo-600', rows.length > 0);
+                badge.classList.toggle('text-slate-500', rows.length === 0);
             }
         }
 
         if (rows.length === 0) {
-            cell.innerHTML = '<span class="text-slate-300 italic text-[10px]">Belum Diatur</span>';
+            cell.innerHTML = '<span class="text-slate-500 italic text-[10px]">Belum Diatur</span>';
             return;
         }
 
@@ -464,7 +464,17 @@
         if (e.target.matches('.tier-add-form-produk')) {
             e.preventDefault();
             const form = e.target;
+            // Pagar klik ganda. Form ini dikirim lewat fetch() JSON jadi tidak
+            // pernah membawa submit_id dan tidak terlindungi SubmitSekaliJalan.
+            // Pagar sesungguhnya ada di server (CekRentangHarga menolak rentang
+            // bertabrakan); yang ini supaya operator tidak mengirim dua kali dan
+            // tidak melihat pesan "rentang tumpang tindih" untuk kliknya sendiri.
+            const tombol = form.querySelector('button[type="submit"]');
+            if (tombol) { tombol.disabled = true; tombol.classList.add('opacity-60'); }
             const data = await submitHargaTierFormAjax(form, 'POST');
+            // Tombol hidup lagi baik sukses maupun gagal: form di-reset setelah
+            // sukses supaya operator bisa menambah tier lagi.
+            if (tombol) { tombol.disabled = false; tombol.classList.remove('opacity-60'); }
             if (!data) return;
             const idProduk = form.dataset.idProduk;
             const idGolongan = form.dataset.idGolongan;
@@ -505,9 +515,9 @@
             html: `Seluruh tier harga golongan <b>${escHtml(namaGolongan)}</b> akan disalin ke SEMUA golongan lain untuk produk ini.<br><small class="text-slate-400">Tier harga yang sudah ada di golongan lain akan DIGANTI TOTAL, bukan digabung.</small>`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#4f46e5',
-            cancelButtonColor: '#f1f5f9',
-            cancelButtonText: '<span style="color: #64748b">Batal</span>',
+            confirmButtonColor: '#006C7B',
+            cancelButtonColor: '#F1F5F1',
+            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
             confirmButtonText: 'Ya, Salin ke Semua',
         }).then(async (result) => {
             if (!result.isConfirmed) return;
@@ -541,7 +551,7 @@
             const form = document.querySelector(`.tier-add-form-produk[data-id-produk="${idProduk}"][data-id-golongan="${idGolongan}"]`);
             const stepRentang = form ? (form.querySelector('[name="range_min"]').step || '1') : '1';
 
-            const emptyRowHtml = `<tr class="tier-empty-msg-produk" ${daftarTier.length ? 'hidden' : ''}><td colspan="4" class="p-5 text-center text-slate-300 italic">Belum ada harga untuk golongan ini - order akan ditolak di Kasir sampai diisi.</td></tr>`;
+            const emptyRowHtml = `<tr class="tier-empty-msg-produk" ${daftarTier.length ? 'hidden' : ''}><td colspan="4" class="p-5 text-center text-slate-500 italic">Belum ada harga untuk golongan ini - order akan ditolak di Kasir sampai diisi.</td></tr>`;
             const rowsHtml = daftarTier.map(t => buildHargaTierRowHtml(t, stepRentang)).join('');
             tbody.innerHTML = emptyRowHtml + rowsHtml;
 
@@ -556,9 +566,9 @@
             text: 'Order dengan qty di rentang ini tidak akan punya harga lagi sampai diatur ulang.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f1f5f9',
-            cancelButtonText: '<span style="color: #64748b">Batal</span>',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#F1F5F1',
+            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
         }).then(async (result) => {
             if (!result.isConfirmed) return;

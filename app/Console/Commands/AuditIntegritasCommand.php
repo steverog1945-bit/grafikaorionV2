@@ -53,11 +53,14 @@ class AuditIntegritasCommand extends Command
         }
 
         // 3. Saldo akun di arah yang salah (Aset/Beban normal Debet tapi
-        // negatif, Kewajiban/Modal/Pendapatan normal Kredit tapi negatif)
+        // negatif, Kewajiban/Modal/Pendapatan normal Kredit tapi negatif).
+        // Pengecualian: 5230 Selisih Persediaan - akun contra-beban yang
+        // memang bisa negatif (kelebihan stok = kredit, mengurangi beban).
         $saldoPerAkun = DB::table('jurnal_umum as j')
             ->join('bag_akun as a', 'j.kode_akun', '=', 'a.kode_akun')
             ->select('a.kode_akun', 'a.nama_akun', 'a.saldo_normal',
                 DB::raw('SUM(j.debet) as total_debet'), DB::raw('SUM(j.kredit) as total_kredit'))
+            ->whereNotIn('a.kode_akun', ['5230'])
             ->groupBy('a.kode_akun', 'a.nama_akun', 'a.saldo_normal')
             ->get();
 

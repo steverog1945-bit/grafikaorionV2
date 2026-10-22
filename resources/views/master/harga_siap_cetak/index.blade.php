@@ -6,7 +6,7 @@
 
     <x-page-header title="Harga File Siap Cetak">
         <x-slot:subtitle>
-            Master <span class="mx-1 text-slate-300">/</span> Harga khusus order dengan file dari pelanggan (tanpa desain tim) - terpisah dari Price List biasa
+            Master <span class="mx-1 text-slate-500">/</span> Harga khusus order dengan file dari pelanggan (tanpa desain tim) - terpisah dari Price List biasa
         </x-slot:subtitle>
     </x-page-header>
 

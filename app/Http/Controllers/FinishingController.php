@@ -42,7 +42,15 @@ class FinishingController extends Controller
             'harga_default'  => 'required|numeric|min:0',
             'id_mesin'       => 'nullable|exists:mesin,id_mesin',
             'id_kategori'    => 'nullable|exists:kategori,id_kategori',
-            'metode_hitung'  => 'required|in:luas,keliling,quantity',
+            // LINEAR_GRID = Potong Manual (biaya dari meter garis potong x
+            // tarif per meter + minimum charge). Dulu metode ini TIDAK ada
+            // di daftar, padahal master Potong Manual memakainya - artinya
+            // finishing Potong Manual tidak bisa dibuat maupun diubah tarifnya
+            // lewat halaman ini, harus lewat SQL.
+            'metode_hitung'  => 'required|in:luas,keliling,quantity,LINEAR_GRID',
+            // Lantai biaya finishing per item (dipakai mode Potong Manual).
+            // 0 = tidak ada minimum charge.
+            'minimum_charge' => 'nullable|numeric|min:0',
             'keterangan'     => 'nullable|string',
         ]);
 
@@ -58,7 +66,9 @@ class FinishingController extends Controller
             'harga_default'  => 'required|numeric|min:0',
             'id_mesin'       => 'nullable|exists:mesin,id_mesin',
             'id_kategori'    => 'nullable|exists:kategori,id_kategori',
-            'metode_hitung'  => 'required|in:luas,keliling,quantity',
+            // Sama seperti store() - LINEAR_GRID (Potong Manual) boleh.
+            'metode_hitung'  => 'required|in:luas,keliling,quantity,LINEAR_GRID',
+            'minimum_charge' => 'nullable|numeric|min:0',
             'keterangan'     => 'nullable|string',
         ]);
 

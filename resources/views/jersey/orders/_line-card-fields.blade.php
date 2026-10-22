@@ -79,13 +79,26 @@
         <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Thumbnail Desain <span class="text-rose-500">*</span></label>
         <div class="flex items-center gap-3">
             <div class="thumbnail-dropzone w-16 h-16 rounded-lg bg-slate-50 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer transition-all hover:border-indigo-400 hover:bg-indigo-50/30" tabindex="0" onclick="this.querySelector('.thumbnail-file-input').click()" title="Klik, tempel (Ctrl+V), atau pilih file">
-                <i class="fas fa-camera text-slate-300 text-sm thumbnail-placeholder {{ ($line->thumbnail ?? null) ? 'hidden' : '' }}"></i>
-                <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-preview {{ ($line->thumbnail ?? null) ? '' : 'hidden' }}" src="{{ ($line->thumbnail ?? null) ? asset('storage/' . $line->thumbnail) : '' }}" alt="">
-                <input type="file" accept="image/*" onchange="uploadThumbnailLine(this)" class="hidden thumbnail-file-input">
+                @php
+                    // Berkas desain non-gambar (PDF, CDR, AI, EPS) tidak bisa
+                    // ditampilkan peramban - kotak pratinjau menampilkan ikon
+                    // berkas, bukan gambar rusak. Elemen <img> tetap ada di
+                    // DOM (hidden) karena JS mencari .thumbnail-preview saat
+                    // berkas baru diunggah.
+                    $punyaBerkas = ($line->thumbnail ?? null) !== null;
+                    $thumbTampil = $punyaBerkas && \App\Support\BerkasDesain::bisaDitampilkan($line->thumbnail);
+                    $extThumb = $punyaBerkas ? strtoupper(\App\Support\BerkasDesain::ekstensi($line->thumbnail)) : '';
+                @endphp
+                <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-preview {{ $thumbTampil ? '' : 'hidden' }}" src="{{ $thumbTampil ? asset('storage/' . $line->thumbnail) : '' }}" alt="">
+                {{-- Thumbnail default untuk berkas desain non-gambar (CDR, AI, EPS,
+                     PSD) - supaya kotaknya tidak kosong. Nama file tetap dari
+                     berkas asli (status & path). --}}
+                <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-placeholder {{ ($punyaBerkas && !$thumbTampil) ? '' : 'hidden' }}" src="{{ asset('storage/default-thumbnail.png') }}" alt="Berkas desain" style="opacity: 0.5;">
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/svg+xml,image/tiff,application/pdf,.pdf,.cdr,.ai,.eps,.psd,.tif,.tiff,.heic" onchange="uploadThumbnailLine(this)" class="hidden thumbnail-file-input">
             </div>
             <div class="flex-1 min-w-0">
                 <input type="hidden" name="lines[{{ $idx }}][thumbnail]" value="{{ $line->thumbnail ?? '' }}" class="thumbnail-path" required>
-                <p class="text-[11px] text-slate-400 thumbnail-status leading-snug">{{ ($line->thumbnail ?? null) ? 'Thumbnail siap. Klik kotak untuk mengganti.' : 'Klik atau tempel (Ctrl+V) gambar desain di sini.' }}</p>
+                <p class="text-[11px] text-slate-400 thumbnail-status leading-snug">{{ $punyaBerkas ? ($thumbTampil ? 'Thumbnail siap. Klik kotak untuk mengganti.' : 'Berkas desain siap (' . $extThumb . '). File ada di server, dibuka tim produksi.') : 'Klik atau tempel (Ctrl+V) gambar desain di sini.' }}</p>
             </div>
         </div>
     </div>
@@ -142,11 +155,25 @@
                         ingin ditampilkan lagi, taruh di tempat yang
                         tidak mengubah tinggi baris.
                     --}}
+                    {{--
+                        Nilai size_quantities SELALU diisi dari database,
+                        termasuk saat mode-nya Daftar Pemain - sengaja, supaya
+                        berpindah ke mode Campuran tidak menghapus data yang
+                        sudah ada.
+
+                        Tapi di mode Daftar Pemain inputnya DISABLE, bukan
+                        sekadar disembunyikan. Wrapper `hidden` hanya
+                        menyembunyikan tampilan; input di dalamnya tetap
+                        terkirim ke server. Itulah sumber bug qty 35 -> 70:
+                        35 pemain + sisa size_quantities 35 dijumlahkan.
+                        Disable = tidak terkirim sama sekali, jadi tidak ada
+                        data basi yang bisa ikut terhitung.
+                    --}}
                     <label class="block text-[10px] font-medium text-slate-400 uppercase text-center mb-1 leading-tight">
                         {{ $namaUkuran }}
                         @if($usiaUkuran)<span class="block text-[9px] text-amber-600 normal-case font-medium">{{ $usiaUkuran }}</span>@endif
                     </label>
-                    <input type="number" inputmode="numeric" name="lines[{{ $idx }}][size_quantities][{{ $s->id }}]" min="0" value="{{ $sizeQtyMap[$s->id] ?? 0 }}" onfocus="this.select()" class="input-qty-ukuran w-full bg-white border border-slate-100 rounded-lg p-2 text-xs font-medium text-center focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300">
+                    <input type="number" inputmode="numeric" name="lines[{{ $idx }}][size_quantities][{{ $s->id }}]" min="0" value="{{ $sizeQtyMap[$s->id] ?? 0 }}" onfocus="this.select()" {{ $otIsi === 'player_list' ? 'disabled' : '' }} class="input-qty-ukuran w-full bg-white border border-slate-100 rounded-lg p-2 text-xs font-medium text-center focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed">
                 </div>
                 @endforeach
             </div>
@@ -167,8 +194,8 @@
         <div class="overflow-x-auto">
         <table class="w-full text-xs">
             <thead><tr class="text-[10px] text-slate-400 uppercase">
-                <th class="p-1 text-left">Nama</th><th class="p-1 text-left w-16">No.</th><th class="p-1 text-left w-20">Ukuran</th>
-                <th class="p-1 text-left w-20">Gender</th><th class="p-1 text-left w-24 col-lengan-kerah">Lengan</th><th class="p-1 text-left col-lengan-kerah">Kerah</th><th class="p-1 w-8"></th>
+                <th class="p-1 text-left">Nama</th><th class="p-1 text-left w-12">No.</th><th class="p-1 text-left w-40">Ukuran</th>
+                <th class="p-1 text-left w-14">Gender</th><th class="p-1 text-left w-24 col-lengan-kerah">Lengan</th><th class="p-1 text-left col-lengan-kerah">Kerah</th><th class="p-1 w-8"></th>
             </tr></thead>
             <tbody class="tbody-pemain divide-y divide-slate-50">
                 @if($line)

@@ -6,7 +6,7 @@
     <x-page-header title="Kedatangan Bahan">
         <x-slot:subtitle>
             <i class="fas fa-truck-loading text-slate-500"></i>
-            Logistik <span class="text-slate-300">/</span> Manajemen Surat Jalan
+            Logistik <span class="text-slate-500">/</span> Manajemen Surat Jalan
         </x-slot:subtitle>
         <x-slot:actions>
             <x-button href="{{ route('kedatangan-bahan.create') }}">
@@ -68,7 +68,7 @@
                         @if($k->status == 'Draft')
                             <input type="checkbox" name="ids[]" value="{{ $k->id_kedatangan }}" class="row-checkbox rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
                         @else
-                            <i class="fas fa-lock text-slate-300 text-xs"></i>
+                            <i class="fas fa-lock text-slate-500 text-xs"></i>
                         @endif
                     </td>
                     <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $kedatangans->firstItem() + $i }}</td>
@@ -113,7 +113,7 @@
                                     <i class="fas fa-trash text-xs"></i>
                                 </x-button>
                             @else
-                                <span class="text-[11px] font-medium text-slate-300 uppercase italic">
+                                <span class="text-[11px] font-medium text-slate-500 uppercase italic">
                                     <i class="fas fa-check-double mr-1"></i> Terverifikasi
                                 </span>
                             @endif
@@ -207,7 +207,7 @@
             html: `Konfirmasi barang <b>${escapeHtml(noSj)}</b> telah diterima.<br><small class="text-rose-500 font-medium uppercase underline">Stok bertambah otomatis!</small>`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#4f46e5',
+            confirmButtonColor: '#006C7B',
             confirmButtonText: 'Ya, Selesaikan!',
             customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
@@ -228,7 +228,7 @@
             title: 'Hapus data ini?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Hapus',
             customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
@@ -250,7 +250,7 @@
             text: "Data draft yang terpilih akan dihapus selamanya.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Hapus Semua',
             customClass: { popup: 'rounded-2xl' }
         }).then((result) => {

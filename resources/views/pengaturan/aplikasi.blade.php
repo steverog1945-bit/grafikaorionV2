@@ -37,7 +37,7 @@
                         @if($setting->logo_path)
                             <img loading="lazy" decoding="async" id="preview-logo" src="{{ asset('storage/' . $setting->logo_path) }}" alt="Logo" class="w-full h-full object-contain">
                         @else
-                            <i id="preview-logo-placeholder" class="fas fa-image text-slate-300 text-2xl"></i>
+                            <i id="preview-logo-placeholder" class="fas fa-image text-slate-500 text-2xl"></i>
                             <img loading="lazy" decoding="async" id="preview-logo" src="" alt="Logo" class="w-full h-full object-contain hidden" 
                         @endif
                     </div>
@@ -85,7 +85,7 @@
                         <div class="space-y-4">
                             <div>
                                 <div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Pratinjau (latar sidebar)</div>
-                                <div class="rounded-2xl px-6 py-8 flex items-center justify-center min-h-[130px]" style="background:#0f172a">
+                                <div class="rounded-2xl px-6 py-8 flex items-center justify-center min-h-[130px]" style="background:#1A231F">
                                     @if($setting->logo_path)
                                         <div id="pratinjau-logo" class="sidebar-logo logo-{{ $lg['ukuran'] }} logo-gaya-{{ $lg['gaya'] }}">
                                             <img loading="lazy" decoding="async" id="pratinjau-logo-img" class="logo-full" src="{{ asset('storage/' . $setting->logo_path) }}" alt="Pratinjau logo">
@@ -141,6 +141,21 @@
                         <p class="text-[11px] text-slate-400 mt-1.5 ml-2">Alamat yang bisa dibuka dari HP (satu Wi-Fi dengan komputer kasir, atau alamat internet bila sudah online). Dipakai pada QR di cetakan SPK. Kosong = alamat halaman saat ini.</p>
                     </x-form.group>
                 </div>
+
+                {{-- Toggle "Wajib persetujuan Administrator untuk Edit Nota" DIHAPUS.
+
+                     Alasannya: alur edit nota yang lama membatalkan nota,
+                     mengembalikan seluruh stok, dan membalik jurnal - itu
+                     operasi besar, makanya perlu persetujuan. Sekarang Edit
+                     Nota memakai alur SELISIH: nota tidak dibatalkan, item
+                     yang tidak disentuh sama sekali tidak menyentuh stok, dan
+                     yang efek hanya sebesar selisihnya. Koreksi nominal
+                     seperti ini tidak perlu persetujuan Administrator -
+                         sama seperti koreksi harga di layar pembayaran kasir.
+
+                     Tabel nota_edit_request & endpoint alur lama tetap
+                     dibiarkan supaya riwayat permintaan yang sudah pernah
+                     dibuat masih bisa dibaca. --}}
 
                 <div class="pt-4 flex justify-end border-t border-slate-100">
                     <x-button type="submit" class="!px-10">Simpan Pengaturan</x-button>

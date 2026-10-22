@@ -6,7 +6,7 @@
     <x-page-header title="Persetujuan Edit Nota">
         <x-slot:subtitle>
             <i class="fas fa-user-shield text-amber-400"></i>
-            Khusus Administrator <span class="text-slate-300">/</span> Anti-penyalahgunaan edit nota
+            Khusus Administrator <span class="text-slate-500">/</span> Anti-penyalahgunaan edit nota
         </x-slot:subtitle>
         <x-slot:actions>
             <x-button href="{{ route('penjualan.riwayat') }}" variant="outline">

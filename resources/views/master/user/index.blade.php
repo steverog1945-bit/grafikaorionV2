@@ -84,7 +84,7 @@
                     <label class="ld-label" for="ld_username_1">Username<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
                 <div class="ld">
-                    <input id="ld_password_2" type="password" name="password" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500 transition" placeholder="••••••••" required>
+                    <input id="ld_password_2" type="password" name="password" minlength="8" class="w-full border-slate-200 px-4 outline-none focus:ring-indigo-500 transition" placeholder="••••••••" required>
                     <label class="ld-label" for="ld_password_2">Password Awal<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
             </div>
@@ -130,7 +130,7 @@
             </div>
 
             <div class="ld">
-                <input id="ld_password_5" type="password" name="password" class="w-full border-slate-200 px-4 outline-none focus:ring-amber-500 transition" placeholder="Kosongkan jika tidak diubah">
+                <input id="ld_password_5" type="password" name="password" minlength="8" class="w-full border-slate-200 px-4 outline-none focus:ring-amber-500 transition" placeholder="Kosongkan jika tidak diubah">
                 <label class="ld-label" for="ld_password_5">Password Baru (opsional)</label>
             </div>
 
@@ -180,9 +180,9 @@
             html: `Menghapus akun <b>@${escapeHtml(username)}</b>? Karyawan terkait tidak akan bisa login lagi sampai dibuatkan akun baru.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f1f5f9',
-            cancelButtonText: '<span style="color: #64748b">Batal</span>',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#F1F5F1',
+            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) {

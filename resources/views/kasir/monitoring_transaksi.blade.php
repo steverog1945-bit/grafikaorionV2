@@ -3,7 +3,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Monitoring Kasir" subtitle="Pantau pembayaran, cetak nota, dan riwayat proses pesanan.">
+    <x-page-header title="Monitoring Kasir" subtitle="Daftar order yang transaksinya sudah dibuka kasir. Order yang masih menunggu ada di Antrean Baru.">
         <x-slot:actions>
             <x-button type="button" onclick="bukaScanBarcode()" variant="secondary">
                 <i class="fas fa-barcode"></i>
@@ -19,9 +19,13 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- Notifikasi order baru. Yang naik adalah jumlah ANTREAN, bukan isi
+         tabel ini: order baru hanya masuk ke Monitoring setelah kasir menekan
+         "Terima Transaksi". Karena itu tombolnya membuka Antrean Baru, bukan
+         reload halaman ini (reload tidak akan memunculkan apa-apa). --}}
     <div id="new-data-alert" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[100]">
-        <button onclick="location.reload()" class="bg-indigo-600 text-white px-6 py-3 rounded-full shadow-2xl font-medium text-sm flex items-center gap-3 border-4 border-white">
-            <i class="fas fa-bell"></i> Ada transaksi baru masuk - klik untuk tampilkan
+        <button onclick="window.location.href='{{ url('/kasir/waiting-list') }}'" class="bg-indigo-600 text-white px-6 py-3 rounded-full shadow-2xl font-medium text-sm flex items-center gap-3 border-4 border-white">
+            <i class="fas fa-bell"></i> Order baru masuk antrean - klik untuk buka antrean
         </button>
     </div>
 
@@ -83,6 +87,7 @@
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Transaksi</label>
                 <x-form.select name="status_bayar">
                     <option value="">-- Semua Status --</option>
+                    <option value="Belum Lunas" {{ request('status_bayar') === 'Belum Lunas' ? 'selected' : '' }}>Belum Lunas (Belum Bayar + DP)</option>
                     <option value="Belum Bayar" {{ request('status_bayar') === 'Belum Bayar' ? 'selected' : '' }}>Belum Bayar</option>
                     <option value="DP" {{ request('status_bayar') === 'DP' ? 'selected' : '' }}>DP / Panjar</option>
                     <option value="Lunas" {{ request('status_bayar') === 'Lunas' ? 'selected' : '' }}>Lunas</option>
@@ -142,20 +147,48 @@
                          (lihat KasirController::index()) tapi tidak pernah
                          ditampilkan di sini, jadi begitu status berubah dari DP
                          ke Lunas, jejak cicilannya seolah "menghilang" karena
-                         cuma bisa dilihat lewat modal Riwayat Proses terpisah. --}}
-                    @if($t->status_pembayaran === 'DP')
+                         cuma bisa dilihat lewat modal Riwayat Proses terpisah.
+
+                         Syaratnya memakai display_status_pembayaran, yaitu status
+                         TURUNAN yang sama dipakai badge di sebelah kanan,
+                         bukan lagi kolom transaksi.status_pembayaran. Kolom itu
+                         salinan denormalisasi yang bisa tertinggal dari
+                         pembayaran_riwayat. Kalau keduanya berbeda, badge di
+                         sebelah kanan memakai status turunan sementara rincian
+                         ini memakai kolom salinan, sehingga kasir bisa melihat
+                         badge DP tanpa melihat nominal yang sudah dibayar. --}}
+                    @if($t->display_status_pembayaran === 'DP')
                         <div class="text-[10px] text-emerald-500 font-medium mt-0.5">Terbayar Rp {{ number_format($t->total_masuk ?? 0, 0, ',', '.') }}</div>
                         <div class="text-[10px] text-amber-500 font-medium">Sisa Rp {{ number_format(max(0, $t->total_bayar - ($t->total_masuk ?? 0)), 0, ',', '.') }}</div>
                     @endif
                 </td>
                 <td class="px-4 py-5 text-center">
-                    <x-badge :status="$t->status_pembayaran" />
+                    <x-badge :status="$t->display_status_pembayaran" />
+                    {{---status_order hanya bisa 'Diterima Kasir' di halaman ini
+                         (KasirController::index() sudah menyaringnya). Kedua
+                         cabang di bawah dipertahankan sebagai jaring pengaman
+                         kalau syarat itu suatu saat dilonggarkan lagi. --}}
+                    @if(($t->status_order ?? null) === 'Menunggu Kasir')
+                        <div class="mt-1"><span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-100">Menunggu Kasir</span></div>
+                    @elseif(($t->status_order ?? null) === 'Diterima Kasir')
+                        <div class="mt-1"><span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">Sudah Diterima</span></div>
+                    @endif
                 </td>
                 <td class="px-8 py-5 text-center">
                     <div class="flex items-center justify-center gap-2">
-                        <x-button href="{{ url('/kasir/bayar-form/'.$t->id_transaksi) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-emerald-600" title="Input Pembayaran">
-                            <i class="fas fa-money-bill-wave text-xs"></i>
-                        </x-button>
+                        @if(($t->status_order ?? 'Diterima Kasir') === 'Menunggu Kasir')
+                            <form method="POST" action="{{ route('kasir.terimaTransaksi', $t->id_transaksi) }}" class="inline">
+                                @csrf
+                                <input type="hidden" name="submit_id" value="terima-mon-{{ $t->id_transaksi }}-{{ $i }}">
+                                <x-button type="submit" size="icon" variant="ghost" class="border border-indigo-100 hover:text-indigo-600" title="Terima Transaksi">
+                                    <i class="fas fa-check-circle text-xs"></i>
+                                </x-button>
+                            </form>
+                        @else
+                            <x-button href="{{ url('/kasir/bayar-form/'.$t->id_transaksi) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-emerald-600" title="Input Pembayaran">
+                                <i class="fas fa-money-bill-wave text-xs"></i>
+                            </x-button>
+                        @endif
 
                         {{-- Format kertas (thermal/A4/continuous) sekarang GLOBAL dari
                              Pengaturan Aplikasi - dulu dropdown 2 pilihan di sini,
@@ -173,7 +206,7 @@
             @empty
             <tr>
                 <td colspan="8">
-                    <x-empty-state title="Tidak ada transaksi" description="Sesuaikan filter, atau tunggu order baru diproses dari antrean SPK/Kasir." />
+                    <x-empty-state title="Tidak ada transaksi" description="Order yang transaksinya sudah dibuka kasir akan tampil di sini. Order yang masih menunggu ada di Antrean Baru." />
                 </td>
             </tr>
             @endforelse
@@ -203,7 +236,7 @@
 
         <div class="flex items-center gap-3">
             <div class="flex-1 h-px bg-slate-100"></div>
-            <span class="text-[10px] font-medium text-slate-300 uppercase">Atau</span>
+            <span class="text-[10px] font-medium text-slate-500 uppercase">Atau</span>
             <div class="flex-1 h-px bg-slate-100"></div>
         </div>
 
@@ -279,8 +312,10 @@
         }
     }
 
-    // Polling notifikasi transaksi baru masuk ke antrean (Belum Bayar) -
-    // dipertahankan dari versi sebelumnya, cuma tampilan banner-nya diubah.
+    // Polling jumlah antrean baru (endpoint /kasir/check-pembayaran menghitung
+    // nota status_order='Menunggu Kasir', sama persis dengan lencana "Antrean
+    // Baru"). Yang dipantau adalah ANTREAN, bukan tabel ini - makanya banner
+    // mengarah ke Antrean Baru.
     let initialWaitingCount = {{ $waitingCount ?? 0 }};
 
     function checkNewTransaction() {

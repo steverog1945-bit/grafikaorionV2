@@ -8,17 +8,22 @@
         // success
         'aktif'      => 'success', 'active'    => 'success', 'selesai'  => 'success',
         'completed'  => 'success', 'lunas'     => 'success', 'paid'     => 'success',
-        'ok'         => 'success',
+        'ok'         => 'success', 'sudah diambil' => 'success',
 
         // warning
         'draft'      => 'warning', 'pending'   => 'warning', 'proses'   => 'warning',
         'processing' => 'warning', 'dp'        => 'warning', 'partial'  => 'warning',
-        'antre'      => 'warning', 'desain'    => 'warning', 'cetak'    => 'warning',
+
+        // info
+        'desain'     => 'info',    'cetak'     => 'info',
+
+        // secondary
+        'antre'      => 'secondary', 'belum diambil' => 'secondary',
 
         // danger
         'nonaktif'   => 'danger',  'inactive'  => 'danger',  'batal'    => 'danger',
         'cancelled'  => 'danger',  'canceled'  => 'danger',  'hutang'   => 'danger',
-        'unpaid'     => 'danger',  'belum bayar' => 'danger',
+        'unpaid'     => 'danger',  'belum bayar' => 'danger', 'dibatalkan' => 'danger',
     ];
 
     $resolved = $variant ?? $map[strtolower(trim((string) $status))] ?? 'info';

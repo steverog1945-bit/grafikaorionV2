@@ -94,7 +94,7 @@
 
             if (fisik === null || isNaN(fisik)) {
                 selisihEl.textContent = '-';
-                selisihEl.className = 'text-sm font-medium text-slate-300';
+                selisihEl.className = 'text-sm font-medium text-slate-500';
                 return;
             }
 
@@ -113,7 +113,7 @@
             text: 'Hasil hitung fisik yang belum disimpan akan disimpan otomatis. Stok baru berubah setelah disetujui Administrator.',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#4f46e5',
+            confirmButtonColor: '#006C7B',
             confirmButtonText: 'Ya, Simpan & Ajukan',
             cancelButtonText: 'Batal'
         }).then((result) => {

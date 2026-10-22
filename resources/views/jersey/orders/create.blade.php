@@ -84,7 +84,7 @@
                          di bawah untuk pesan default sebelum ada barang sama
                          sekali. --}}
                     <div id="ringkasan-daftar-barang" class="divide-y divide-slate-50">
-                        <p class="text-xs text-slate-300 italic text-center py-5">Belum ada barang ditambahkan.</p>
+                        <p class="text-xs text-slate-500 italic text-center py-5">Belum ada barang ditambahkan.</p>
                     </div>
 
                     <div class="border-t border-slate-100 my-4"></div>
@@ -179,7 +179,7 @@
                     : 'Qty per ukuran yang sudah diisi akan <b>dikosongkan</b> - mode <b>Daftar Pemain</b> tidak memakai qty per ukuran. Kalau dibiarkan, qty itu tetap terkirim &amp; ikut terhitung ke harga (penumpukan harga).',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#e11d48',
+                confirmButtonColor: '#93481A',
                 confirmButtonText: 'Ya, Kosongkan & Ganti Mode',
                 cancelButtonText: 'Batal',
                 customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
@@ -194,7 +194,20 @@
             if (typeof hitungUlangQtyUkuran === 'function') hitungUlangQtyUkuran();
         }
 
-        card.querySelector('.wrapper-qty-ukuran')?.classList.toggle('hidden', tipe === 'player_list');
+        // Mode Daftar Pemain: qty per ukuran TIDAK dipakai sama sekali, jadi
+        // inputnya dinonaktifkan - bukan cuma disembunyikan. Wrapper `hidden`
+        // hanya menyembunyikan tampilan; input di dalamnya tetap terkirim ke
+        // server, dan itulah sumber bug qty 35 -> 70 (35 pemain + sisa
+        // size_quantities 35 dijumlahkan). Disable = tidak terkirim sama sekali.
+        // Mode Campuran tetap memakai keduanya, jadi tidak dinonaktifkan.
+        const wrapperQty = card.querySelector('.wrapper-qty-ukuran');
+        if (wrapperQty) {
+            const bukanModePemain = tipe === 'player_list';
+            wrapperQty.classList.toggle('hidden', bukanModePemain);
+            wrapperQty.querySelectorAll('input, select').forEach(el => {
+                el.disabled = bukanModePemain;
+            });
+        }
         card.querySelector('.wrapper-daftar-pemain')?.classList.toggle('hidden', tipe === 'quantity_only');
         if (tipe !== 'quantity_only' && card.querySelectorAll('.tbody-pemain .baris-pemain').length === 0) {
             tambahBarisPemain(card.querySelector('.wrapper-daftar-pemain button'));
@@ -248,7 +261,32 @@
         if (!card) return;
         const orderType = card.querySelector('input[name$="[order_type]"]:checked')?.value || 'quantity_only';
         const tampilkanDefault = orderType !== 'player_list';
-        card.querySelectorAll('.wrapper-lengan-kerah-default').forEach(el => el.classList.toggle('hidden', !tampilkanDefault));
+        card.querySelectorAll('.wrapper-lengan-kerah-default').forEach(el => {
+            el.classList.toggle('hidden', !tampilkanDefault);
+            // Atribut `required` WAJIB ikut dilepas saat wrapper disembunyikan.
+            //
+            // Bug yang diperbaiki di sini: dropdown Lengan/Kerah punya
+            // `required` di HTML, tapi wrapper-nya disembunyikan (display:none)
+            // di mode Daftar Pemain. Browser menjalankan constraint validation
+            // SEBELUM event submit menyala; saat menemukan <select required>
+            // yang kosong DAN tersembunyi, Chrome tidak bisa memfokuskannya
+            // lalu membatalkan submit tanpa pesan apa pun:
+            //
+            //   An invalid form control with name='lines[0][jersey_sleeve_type_id]'
+            //   is not focusable.
+            //
+            // Akibatnya klik "Simpan Order" diam-diam tidak terjadi apa-apa:
+            // tidak ada request ke server, tidak ada pesan error, tombol
+            // tetap aktif. Terverifikasi di browser - submit event tidak
+            // pernah terpicu sama sekali.
+            //
+            // Field-nya tetap ENABLED (tidak `disabled`) supaya nilainya
+            // tetap terkirim ke server, dan validasi server tetap menolak
+            // order tanpa lengan/kerah pada mode yang memintanya.
+            el.querySelectorAll('select, input').forEach(f => {
+                f.required = tampilkanDefault;
+            });
+        });
     }
 
     // ---- Thumbnail: upload via klik-pilih-file ATAU tempel (Ctrl+V) ----
@@ -296,31 +334,60 @@
         // partials/image-compress-script.blade.php) - gambar asli beresolusi
         // penuh tidak pernah ikut terkirim ke server, cuma hasil kompresnya
         // (thumbnail ini murni acuan visual produksi, bukan untuk dicetak).
+        //
+        // Format gambar dikompres sampai 200 KB supaya tetap jernih saat
+        // dicetak di SPK. PDF dirender jadi gambar oleh pdf.js. Format berkas
+        // desain lain (CDR, AI, EPS) tidak bisa dirender peramban, jadi
+        // dikirim apa adanya.
         let fileUpload = file;
         try {
-            const compressed = await compressImage(file);
-            fileUpload = new File([compressed], file.name.replace(/\.[^./]+$/, '') + '.jpg', { type: 'image/jpeg' });
+            const prepared = await siapkanBerkasUntukUnggah(file, file.name);
+            fileUpload = prepared.file;
         } catch (e) { /* gagal kompres (jarang) - lanjut pakai file asli */ }
         statusEl.textContent = 'Mengunggah...';
         const formData = new FormData();
         formData.append('thumbnail', fileUpload);
         formData.append('_token', '{{ csrf_token() }}');
         try {
-            const res = await fetch('{{ route("jersey.orders.upload-thumbnail") }}', { method: 'POST', body: formData });
+            const res = await fetch('{{ route("jersey.orders.upload-thumbnail") }}', { method: 'POST', headers: { 'Accept': 'application/json' }, body: formData });
             const data = await res.json();
             if (data.status === 'success') {
                 card.querySelector('.thumbnail-path').value = data.path;
                 const img = card.querySelector('.thumbnail-preview');
-                img.src = data.url;
-                img.classList.remove('hidden');
-                card.querySelectorAll('.thumbnail-placeholder').forEach(el => el.classList.add('hidden'));
-                statusEl.textContent = 'Thumbnail siap. Klik kotak untuk mengganti.';
+                if (data.bisa_ditampilkan) {
+                    img.src = data.url;
+                    img.classList.remove('hidden');
+                    card.querySelectorAll('.thumbnail-placeholder').forEach(el => el.classList.add('hidden'));
+                    statusEl.textContent = 'Thumbnail siap. Klik kotak untuk mengganti.';
+                } else {
+                    // Berkas desain non-gambar: kotak pratinjau menampilkan
+                    // ikon, bukan gambar rusak. Filenya tetap tersimpan di
+                    // server untuk dibuka tim produksi.
+                    img.removeAttribute('src');
+                    img.classList.add('hidden');
+                    const ext = (data.nama_asli || '').split('.').pop() || '';
+                    statusEl.textContent = 'Berkas desain siap' + (ext ? ' (' + ext.toUpperCase() + ')' : '') + '. File ada di server, dibuka tim produksi.';
+                }
             } else {
-                statusEl.textContent = 'Gagal mengunggah, coba lagi.';
+                // Pesan galat validasi ada di errors.thumbnail[0] (mis.
+                // "Ukuran file terlalu besar (maksimal 10 MB).") - data.message
+                // cuma kalimat generik bahasa Inggris dari Laravel.
+                const pesan = (data.errors && data.errors.thumbnail && data.errors.thumbnail[0]) || data.message || data.msg || 'Gagal mengunggah, coba lagi.';
+                statusEl.textContent = pesan;
                 statusEl.classList.add('text-rose-500');
+                Swal.fire('Berkas desain belum terunggah', pesan, 'error');
             }
         } catch (e) {
-            statusEl.textContent = 'Gagal mengunggah, coba lagi.';
+            // Respons bukan JSON (res.json() gagal) - hampir selalu karena body
+            // POST melewati post_max_size PHP (40 MB): PHP membuang seluruh
+            // unggahan dan menjawab halaman galat, bukan JSON.
+            if (fileUpload.size > 30 * 1024 * 1024) {
+                statusEl.textContent = 'Ukuran berkas ' + Math.round(fileUpload.size / (1024 * 1024)) + ' MB melampaui batas server (39 MB). Kecilkan dokumen, lalu unggah lagi.';
+                Swal.fire('Berkas terlalu besar', statusEl.textContent, 'error');
+            } else {
+                statusEl.textContent = 'Gagal mengunggah, coba lagi.';
+                Swal.fire('Gagal mengunggah', 'Periksa jaringan lalu coba lagi.', 'error');
+            }
             statusEl.classList.add('text-rose-500');
         }
     }
@@ -404,7 +471,7 @@
                 img.className = 'w-full h-full object-cover';
                 thumbWrap.appendChild(img);
             } else {
-                thumbWrap.innerHTML = '<i class="fas fa-tshirt text-slate-300 text-xs"></i>';
+                thumbWrap.innerHTML = '<i class="fas fa-tshirt text-slate-500 text-xs"></i>';
             }
             baris.appendChild(thumbWrap);
 
@@ -428,7 +495,7 @@
         });
 
         if (!ringkasanEl.children.length) {
-            ringkasanEl.innerHTML = '<p class="text-xs text-slate-300 italic text-center py-5">Belum ada barang ditambahkan.</p>';
+            ringkasanEl.innerHTML = '<p class="text-xs text-slate-500 italic text-center py-5">Belum ada barang ditambahkan.</p>';
         }
 
         const totalEl = document.getElementById('preview-total-order');
@@ -444,8 +511,15 @@
         if (e.target.closest('.jersey-line-card')) jadwalkanPreviewHarga();
     });
 
+    // Penanda submit sedang berjalan. Tanpa ini, klik "Simpan Order" dua
+    // kali saat request pertama masih diproses menghasilkan 2 POST ke
+    // jersey.orders.store - jadi 2 order + 2 detail order.
+    let sedangMenyimpan = false;
+
     document.getElementById('jersey-order-form').addEventListener('submit', async function (e) {
         e.preventDefault();
+
+        if (sedangMenyimpan) return;
 
         // Baris pemain kosong dibuang dulu - baris tersembunyi (mis. mode
         // diganti ke Qty per Ukuran) tetap terkirim ke server kalau tidak
@@ -546,7 +620,7 @@
                 html: `<ul style="text-align:left; font-size:12.5px; padding-left:1.2em;">${daftar}</ul>`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#e11d48',
+                confirmButtonColor: '#93481A',
                 confirmButtonText: 'Ya, Simpan Sekarang',
                 cancelButtonText: 'Batal, Saya Cek Lagi',
                 customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
@@ -563,6 +637,29 @@
         this.querySelectorAll('input.format-ribuan').forEach(input => {
             input.value = cleanRupiah(input.value);
         });
+
+        // ---- Loading state ----
+        // Disetel tepat sebelum this.submit() (navigasi penuh), supaya tidak
+        // pernah tertahan kalau ada validasi di atas yang menolak. Tombol
+        // dinonaktifkan sebagai pagar kedua; sedangMenyimpan sudah menolak
+        // klik kedua sebelum spinner sempat tampil.
+        sedangMenyimpan = true;
+        const btnSimpan = this.querySelector('button[type="submit"]');
+        if (btnSimpan) {
+            btnSimpan.disabled = true;
+            btnSimpan.classList.add('opacity-70', 'cursor-not-allowed');
+            btnSimpan.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Menyimpan...';
+        }
+
+        // Pagar pengaman: kalau navigasi entah bagaimana tidak terjadi, form
+        // jangan sampai terkunci selamanya dengan tombol mati.
+        setTimeout(() => {
+            if (!btnSimpan) return;
+            sedangMenyimpan = false;
+            btnSimpan.disabled = false;
+            btnSimpan.classList.remove('opacity-70', 'cursor-not-allowed');
+            btnSimpan.innerHTML = 'Simpan Order';
+        }, 20000);
 
         this.submit();
     });

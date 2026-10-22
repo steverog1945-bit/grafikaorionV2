@@ -47,7 +47,7 @@ class PembayaranParalelTest extends TestCase
         $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $id = DB::table('transaksi')->insertGetId([
             'nomor_nota' => $nomor, 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => $this->kasir->id_user,
-            'tgl_order' => now(), 'total_bayar' => $total, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_collecting' => 'Belum Diambil',
+            'tgl_order' => now(), 'total_bayar' => $total, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir', 'status_collecting' => 'Belum Diambil',
         ]);
         DB::table('transaksi_detail')->insert([
             'id_transaksi' => $id, 'nama_file' => 'a.pdf', 'p_ukuran' => 1, 'l_ukuran' => 1, 'qty' => 1, 'status_urgent' => 0,

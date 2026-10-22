@@ -85,9 +85,13 @@ class JerseyFinanceController extends Controller
             if ($sisa <= 0) {
                 throw new \RuntimeException('Order ini sudah lunas - tidak ada sisa tagihan.');
             }
-            // Tunai: uang yang diserahkan boleh lebih dari sisa tagihan; yang dicatat sebesar sisa, selebihnya kembalian.
-            if ($data['metode_bayar'] === 'Tunai' && (float) $data['jumlah'] - $sisa > 0.004) {
-                $kembalian = round((float) $data['jumlah'] - $sisa, 2);
+            // Tunai: uang fisik yang diserahkan (uang_diterima) boleh lebih
+            // dari sisa tagihan; yang dicatat sebesar sisa, selebihnya kembalian.
+            // Mendukung dua cara input: jumlah=uang diserahkan (test 5) atau
+            // jumlah=sisa + uang_diterima=uang diserahkan (test 4).
+            $uangDiterima = (float) ($data['uang_diterima'] ?? $data['jumlah']);
+            if ($data['metode_bayar'] === 'Tunai' && $uangDiterima - $sisa > 0.004) {
+                $kembalian = round($uangDiterima - $sisa, 2);
                 $data['jumlah'] = $sisa;
             }
             if ((float) $data['jumlah'] - $sisa > 0.004) {

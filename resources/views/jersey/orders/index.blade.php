@@ -60,7 +60,7 @@
                 </td>
                 <td class="px-4 py-3 text-xs text-slate-500">
                     {{ $o->lines->pluck('nama_barang')->implode(', ') ?: '-' }}
-                    @if($o->lines->count() > 1)<span class="text-slate-300"> ({{ $o->lines->count() }} jenis)</span>@endif
+                    @if($o->lines->count() > 1)<span class="text-slate-500"> ({{ $o->lines->count() }} jenis)</span>@endif
                 </td>
                 <td class="px-4 py-3 text-center text-xs">{{ $o->deadline ? \Carbon\Carbon::parse($o->deadline)->translatedFormat('d M Y') : '-' }}</td>
                 <td class="px-4 py-3 text-center"><x-badge :status="$o->status" /></td>

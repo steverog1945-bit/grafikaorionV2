@@ -16,7 +16,7 @@
     <div class="print:hidden">
         <x-page-header title="Laporan Rekap Transaksi Order">
             <x-slot:subtitle>
-                Laporan <span class="mx-1 text-slate-300">/</span> Rekap Order &amp; Piutang
+                Laporan <span class="mx-1 text-slate-500">/</span> Rekap Order &amp; Piutang
             </x-slot:subtitle>
             <x-slot:actions>
                 <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
@@ -323,7 +323,7 @@
             </table>
         </div>
         @else
-        <p class="text-[11px] text-slate-300 italic p-4">Tidak ada rincian item untuk nota ini.</p>
+        <p class="text-[11px] text-slate-500 italic p-4">Tidak ada rincian item untuk nota ini.</p>
         @endif
 
         {{-- TOTAL PER NOTA --}}

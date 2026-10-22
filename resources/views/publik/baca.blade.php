@@ -1,85 +1,89 @@
-@extends('publik.layout')
+@extends('publik.layout-artikel')
 
 @section('judul', $post->judul . ' - ' . \App\Models\AppSetting::current()->nama_aplikasi)
 @section('deskripsi', $post->ringkasan)
 
 @push('font')
-    {{-- Nunito untuk isi artikel (kelas prose-post), sudah ada di server. --}}
+    {{-- Font untuk isi artikel (prose) --}}
     <link rel="stylesheet" href="{{ asset('vendor/fonts/majalah.css') }}">
 @endpush
 
 @section('gaya')
-        /* Garis kemajuan baca: digerakkan lewat transform (tanpa layout ulang). */
-        .bl-maju { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: var(--tinta); transform: scaleX(0); transform-origin: left; z-index: 30; }
-        .bl-artikel { max-width: 720px; margin: 0 auto; padding-top: 3rem; }
-        .bl-kembali { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem; color: var(--tinta-3); transition: color 150ms ease; }
-        .bl-kembali i { font-size: 0.75rem; transition: transform 180ms var(--keluar); }
-        .bl-meta { display: flex; flex-wrap: wrap; gap: 0.375rem 0.75rem; margin: 2rem 0 0; font-size: 0.875rem; color: var(--tinta-3); }
-        .bl-meta b { color: var(--tinta); font-weight: 500; }
-        .bl-artikel h1 { font-weight: 650; font-size: clamp(2rem, 4.4vw, 3rem); line-height: 1.1; letter-spacing: -0.03em; margin: 0.75rem 0 0; text-wrap: balance; }
-        .bl-dek { margin: 1.25rem 0 0; font-size: 1.1875rem; line-height: 1.55; color: var(--tinta-2); }
-        /* Sampul selebar kolom tulisan (720px) supaya judul, gambar, isi, dan tag lurus satu garis. */
-        .bl-sampul { max-width: 720px; margin: 2.5rem auto 0; border-radius: 6px; overflow: hidden; background: #eeeae4; }
-        .bl-sampul img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-        .bl-isi { max-width: 720px; margin: 2.5rem auto 0; }
-        .bl-isi .prose-post { color: #2b2926; }
-        .bl-isi .prose-post img { border-radius: 6px; height: auto; }
-        .bl-ekor { max-width: 720px; margin: 2.5rem auto 0; padding-top: 1.5rem; border-top: 1px solid var(--garis); display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; }
-        .bl-tag { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; font-size: 0.875rem; color: var(--tinta-3); }
-        .bl-bagi { display: flex; gap: 0.5rem; }
-        .bl-lain { max-width: 720px; margin: 4.5rem auto 4rem; padding-top: 1.5rem; border-top: 1px solid var(--tinta); }
-        .bl-lain > h2 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 1.75rem; }
-        .bl-daftar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem 1.25rem; }
-        .bl-kartu-taut { display: block; }
-        .bl-gambar { overflow: hidden; border-radius: 6px; background: #eeeae4; aspect-ratio: 3 / 2; }
-        .bl-gambar img { width: 100%; height: 100%; object-fit: cover; transition: transform 320ms var(--keluar); }
-        .bl-kartu .bl-meta { margin-top: 1rem; font-size: 0.8125rem; }
-        .bl-kartu .bl-meta span { color: var(--tinta); font-weight: 500; }
-        .bl-kartu h3 { font-weight: 600; font-size: 1.1875rem; line-height: 1.3; letter-spacing: -0.015em; margin: 0.375rem 0 0; }
-        .bl-ringkas { margin: 0.5rem 0 0; color: var(--tinta-2); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-        @media (hover: hover) {
-            .bl-kembali:hover { color: var(--tinta); }
-            .bl-kembali:hover i { transform: translateX(-3px); }
-            .bl-kartu-taut:hover .bl-gambar img { transform: scale(1.03); }
-            .bl-kartu-taut:hover h3 { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
-        }
-        @media (max-width: 900px) { .bl-daftar { grid-template-columns: 1fr; } .bl-artikel { padding-top: 2rem; } }
+    /* Scroll progress bar sudah ada di layout, gunakan id lp-progress */
+    /* Article-specific tweaks */
+    .lp-article .prose-post { color: var(--orion-brand-navy); line-height: 1.8; }
+    .lp-article .prose-post img { border-radius: 8px; }
+    /* Pastikan progress bar di header terlihat */
+    .lp-progress { background: var(--orion-electric-violet); }
 @endsection
 
 @section('isi')
-<div class="bl-maju" id="bl-maju" aria-hidden="true"></div>
-<div class="bl-lebar">
+@php
+    // "Semua tulisan" menuju daftar artikel di Landing Page Published.
+    //
+    // route('landing-page.public') dipakai, BUKAN url('/')+'#artikel':
+    //   - Gate B ON  : '/' menampilkan Builder, tapi pada fallback (revisi
+    //                  belum valid) '/' bisa jadi halaman lain.
+    //   - Gate B OFF : '/' memakai homepage existing yang anchor-nya
+    //                  'tulisan', bukan 'artikel' -> tautan mati.
+    //
+    // route('landing-page.public') selalu menampilkan snapshot PUBLISHED,
+    // dan section 'posts' milik Builder memang ber-anchor 'artikel'.
+    $lpBerandaArtikel = route('landing-page.public') . '#artikel';
+@endphp
+<div class="lp-article">
     <article>
-        <header class="bl-artikel">
-            <a class="bl-kembali" href="{{ url('/') }}#tulisan"><i class="fas fa-arrow-left" aria-hidden="true"></i> Semua tulisan</a>
-            <p class="bl-meta">
+        <header>
+            <a class="lp-back" href="{{ $lpBerandaArtikel }}"><i class="fas fa-arrow-left" aria-hidden="true"></i> Semua tulisan</a>
+            <p class="lp-meta">
                 @if($post->kategori)<b>{{ $post->kategori->nama }}</b>@endif
                 <time datetime="{{ optional($post->terbit_at)->toDateString() }}">{{ optional($post->terbit_at)->locale('id')->translatedFormat('d F Y') }}</time>
                 <span>{{ $post->menit_baca }} menit baca</span>
             </p>
             <h1>{{ $post->judul }}</h1>
-            @if($post->ringkasan)<p class="bl-dek">{{ $post->ringkasan }}</p>@endif
+            @if($post->ringkasan)<p class="lp-dek">{{ $post->ringkasan }}</p>@endif
         </header>
 
-        @if($post->url_sampul)<div class="bl-sampul"><img src="{{ $post->url_sampul }}" alt=""></div>@endif
+        @if($post->url_sampul)
+        <div class="lp-cover"><img src="{{ $post->url_sampul }}" alt=""></div>
+        @endif
 
-        <div class="bl-isi" id="bl-isi"><div class="prose-post" lang="id">{!! $post->isi_html !!}</div></div>
+        <div class="lp-body"><div class="prose-post" lang="id">{!! $post->isi_html !!}</div></div>
 
-        <div class="bl-ekor">
-            <div class="bl-tag">
-                @foreach($post->daftar_tag as $tg)<span>#{{ $tg }}</span>@endforeach
+        <div class="lp-ekor">
+            <div class="lp-tags">
+                @foreach($post->daftar_tag as $tg)<span class="lp-tag">#{{ $tg }}</span>@endforeach
             </div>
-            <div class="bl-bagi">
-                <button type="button" class="bl-tombol bl-tombol-garis" id="bl-salin"><i class="far fa-copy" aria-hidden="true"></i> <span>Salin tautan</span></button>
-                <a class="bl-tombol bl-tombol-garis" target="_blank" rel="noopener" href="https://wa.me/?text={{ urlencode($post->judul . ' ' . route('publik.baca', $post->slug)) }}"><i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+            <div class="lp-share">
+                <button type="button" class="lp-share-btn" id="lp-salin"><i class="far fa-copy" aria-hidden="true"></i> <span>Salin tautan</span></button>
+                <a class="lp-share-btn" target="_blank" rel="noopener noreferrer" href="https://wa.me/?text={{ urlencode($post->judul . ' ' . route('publik.baca', $post->slug)) }}"><i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
             </div>
         </div>
     </article>
 
     @if($lain->isNotEmpty())
-    <section class="bl-lain">
+    <section class="lp-related">
         <h2>Tulisan lain</h2>
-        <div class="bl-daftar">@include('publik._kartu', ['posts' => $lain])</div>
+        <div class="lp-related-grid">
+            @foreach($lain as $lp)
+            <a class="lp-related-card lp-kartu-taut" href="{{ route('publik.baca', $lp->slug) }}">
+                <div class="lp-related-media">
+                    @if($lp->url_sampul)
+                        <img src="{{ $lp->url_sampul }}" alt="">
+                    @else
+                        <div class="lp-portfolio-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--orion-brand-light);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        </div>
+                    @endif
+                </div>
+                <div class="lp-related-body">
+                    @if($lp->kategori)<span class="lp-related-kategori">{{ $lp->kategori->nama }}</span>@endif
+                    <h3 class="lp-related-title">{{ $lp->judul }}</h3>
+                    <p class="lp-related-meta">{{ optional($lp->terbit_at)->locale('id')->translatedFormat('d F Y') }} · {{ $lp->menit_baca }} menit</p>
+                </div>
+            </a>
+            @endforeach
+        </div>
     </section>
     @endif
 </div>
@@ -88,23 +92,36 @@
 @push('skrip')
 <script>
 (function () {
-    var garis = document.getElementById('bl-maju'), isi = document.getElementById('bl-isi'), tunggu = false;
-    function hitung() {
-        var r = isi.getBoundingClientRect(), total = r.height - window.innerHeight * 0.6;
-        var maju = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : (r.top < 0 ? 1 : 0);
-        garis.style.transform = 'scaleX(' + maju + ')';
-        tunggu = false;
-    }
-    window.addEventListener('scroll', function () { if (!tunggu) { tunggu = true; requestAnimationFrame(hitung); } }, { passive: true });
-    hitung();
+    'use strict';
 
-    var salin = document.getElementById('bl-salin'), teks = salin.querySelector('span');
-    salin.addEventListener('click', function () {
-        var selesai = function () { teks.textContent = 'Tautan tersalin'; setTimeout(function () { teks.textContent = 'Salin tautan'; }, 1800); };
-        if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(location.href).then(selesai); return; }
-        var t = document.createElement('textarea'); t.value = location.href; document.body.appendChild(t); t.select();
-        try { document.execCommand('copy'); selesai(); } finally { t.remove(); }
-    });
+    // --- Scroll progress bar (menggunakan lp-progress di header) ---
+    var progress = document.getElementById('lp-progress');
+    var article = document.querySelector('.lp-body');
+    function updateProgress() {
+        if (!progress || !article) return;
+        var r = article.getBoundingClientRect();
+        var total = r.height - window.innerHeight * 0.6;
+        var maju = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : (r.top < 0 ? 1 : 0);
+        progress.style.transform = 'scaleX(' + maju + ')';
+    }
+    window.addEventListener('scroll', function () { requestAnimationFrame(updateProgress); }, { passive: true });
+    updateProgress();
+
+    // --- Copy link ---
+    var salin = document.getElementById('lp-salin'), teks = salin ? salin.querySelector('span') : null;
+    if (salin && teks) {
+        salin.addEventListener('click', function () {
+            var selesai = function () { teks.textContent = 'Tautan tersalin'; setTimeout(function () { teks.textContent = 'Salin tautan'; }, 1800); };
+            if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(location.href).then(selesai); return; }
+            var t = document.createElement('textarea'); t.value = location.href; document.body.appendChild(t); t.select();
+            try { document.execCommand('copy'); selesai(); } finally { t.remove(); }
+        });
+    }
+
+    // Smooth scroll anchor ditangani partial bersama di layout
+    // (pengaturan.partials.smooth-scroll) - offset header sticky dinamis,
+    // idempoten, dan menghormati prefers-reduced-motion. Handler di sini
+    // sebelumnya membuat listener klik ganda pada elemen yang sama.
 })();
 </script>
 @endpush

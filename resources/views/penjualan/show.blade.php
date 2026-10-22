@@ -3,7 +3,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Detail Transaksi {{ $transaksi->nomor_nota }}" subtitle="Tampilan baca saja • edit tersimpan belum didukung untuk menjaga integritas stok & jurnal akuntansi">
+    <x-page-header title="Detail Transaksi {{ $transaksi->nomor_nota }}" subtitle="Nota tersimpan - koreksi item dilakukan lewat Edit, dan hanya selisihnya yang menyentuh stok & jurnal">
         <x-slot:actions>
             <x-button href="{{ route('berkas-order.show', $transaksi->id_transaksi) }}" variant="outline">
                 <i class="fas fa-folder-open"></i> Berkas Order
@@ -11,9 +11,28 @@
             <x-button href="{{ route('penjualan.riwayat') }}" variant="outline">
                 <i class="fas fa-arrow-left"></i> Kembali ke Riwayat
             </x-button>
-            @if($transaksi->status_nota !== 'Dibatalkan' && \App\Support\Izin::boleh(auth()->user(), [3, 16, 48, 61]))
+            @if($transaksi->status_nota !== 'Dibatalkan' && \App\Support\Izin::boleh(auth()->user(), [3, 16, 48]))
                 <x-button href="{{ route('kasir.print-opsi', $transaksi->id_transaksi) }}" target="_blank" variant="outline">
                     <i class="fas fa-print"></i> Cetak Nota
+                </x-button>
+            @endif
+            @php
+                $bisaTambahItem = $transaksi->status_nota === 'Aktif'
+                    && in_array($transaksi->status_order, ['Menunggu Kasir', 'Diterima Kasir'], true)
+                    && (int) $transaksi->id_user_kasir === (int) auth()->id()
+                    && \Carbon\Carbon::parse($transaksi->tgl_order)->toDateString() === now()->toDateString();
+                // Syarat edit selisih - sumbernya sama dengan server saat
+                // menyimpan (NotaEditService).
+                $syaratEdit = \App\Services\NotaEditService::bolehEdit($transaksi);
+            @endphp
+            @if($syaratEdit['boleh'])
+                <x-button href="{{ route('penjualan.create', ['edit' => $transaksi->id_transaksi]) }}" variant="outline">
+                    <i class="far fa-edit"></i> Edit Nota
+                </x-button>
+            @endif
+            @if($bisaTambahItem)
+                <x-button href="{{ route('penjualan.create', ['susulan' => $transaksi->id_transaksi]) }}" variant="primary">
+                    <i class="fas fa-plus"></i> Tambah Order Susulan
                 </x-button>
             @endif
             @if($transaksi->status_nota !== 'Dibatalkan')
@@ -23,6 +42,19 @@
             @endif
         </x-slot:actions>
     </x-page-header>
+
+    {{-- Form "Tambah Item Susulan" yang dulu ada di halaman ini sudah
+         DIHAPUS. Alasannya: form itu cuma punya 1 item sederhana (produk +
+         qty + ukuran + 2 nominal) dan TIDAK punya fitur yang dipakai kasir
+         setiap hari - thumbnail, urgency, catatan produksi, desainer,
+         finishing, cek stok, dan harga live.
+
+         Sekarang tombol "Tambah Order Susulan" di atas membuka LAYAR INPUT
+         PESANAN yang sama (penjualan.create mode susulan), jadi kasir
+         memakai form yang sama seperti saat membuat order - dan item
+         susulan ikut punya semua fitur itu. Item yang disusun di sana dikirim
+         ke endpoint yang sama (POST /penjualan/{id}/tambah-item) dengan
+         validasi harga yang identik dengan nota baru. --}}
 
     @if($transaksi->status_nota === 'Dibatalkan')
         <div class="mb-8 bg-rose-50 border border-rose-200 rounded-2xl p-5 flex items-start gap-4">
@@ -96,19 +128,34 @@
                 <td class="px-6 py-4 text-xs text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-6 py-4">
                     @if($item->thumbnail)
-                        <img loading="lazy" decoding="async" src="{{ asset('storage/' . $item->thumbnail) }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100">
+                        @if(\App\Support\BerkasDesain::bisaDitampilkan($item->thumbnail))
+                            <img loading="lazy" decoding="async" src="{{ asset('storage/' . $item->thumbnail) }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100">
+                        @else
+                            {{-- Berkas desain non-gambar (CDR, AI, EPS, PSD) tidak
+                                 bisa ditampilkan peramban - pakai thumbnail
+                                 default supaya kotaknya tidak kosong. Nama
+                                 file tetap dari berkas asli (kolom Nama File). --}}
+                            <img loading="lazy" decoding="async" src="{{ asset('storage/default-thumbnail.png') }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 opacity-50" title="Berkas desain {{ strtoupper(\App\Support\BerkasDesain::ekstensi($item->thumbnail)) }}">
+                        @endif
                     @else
-                        <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300"><i class="far fa-image"></i></div>
+                        <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500"><i class="far fa-image"></i></div>
                     @endif
                 </td>
                 <td class="px-6 py-4">
-                    <p class="text-sm font-medium text-slate-700">{{ $item->nama_file }}</p>
-                    <p class="text-xs text-slate-400">{{ $item->nama_produk ?? ($item->nama_jasa ? '🔧 ' . $item->nama_jasa : '-') }}</p>
+                    <p class="text-sm font-medium text-slate-700 flex items-center gap-2 flex-wrap">
+                        {{ $item->nama_file }}
+                        @if(!empty($item->is_susulan))
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-medium uppercase tracking-wide shrink-0" title="Item ini ditambahkan setelah nota dibuat (order susulan)">
+                                <i class="fas fa-plus text-[8px]"></i> Susulan
+                            </span>
+                        @endif
+                    </p>
+                    <p class="text-xs text-slate-400">{{ $item->nama_produk ?? ($item->nama_jasa ? ' ' . $item->nama_jasa : '-') }}</p>
                     @forelse(($finishingItems[$item->id_detail] ?? collect()) as $fin)
-                        <p class="text-[11px] text-indigo-500 font-medium mt-1">✨ {{ $fin->nama_finishing }} ({{ $fin->status_finishing }}){{ $fin->metode_hitung === 'quantity' && $fin->qty_pakai ? ' × ' . angka((float) $fin->qty_pakai, 2) : '' }}@bolehHarga <span class="text-slate-400 font-medium">&middot; Rp {{ number_format($fin->biaya, 0, ',', '.') }}</span>@endbolehHarga @if($fin->catatan)<span class="text-slate-400 font-medium">&middot; {{ $fin->catatan }}</span>@endif</p>
+                        <p class="text-[11px] text-indigo-500 font-medium mt-1"> {{ $fin->nama_finishing }} ({{ $fin->status_finishing }}){{ $fin->metode_hitung === 'quantity' && $fin->qty_pakai ? ' x ' . angka((float) $fin->qty_pakai, 2) : '' }}@bolehHarga <span class="text-slate-400 font-medium">&middot; Rp {{ number_format($fin->biaya, 0, ',', '.') }}</span>@endbolehHarga @if($fin->catatan)<span class="text-slate-400 font-medium">&middot; {{ $fin->catatan }}</span>@endif</p>
                     @empty
                         @if($item->nama_finishing)
-                        <p class="text-[11px] text-indigo-500 font-medium mt-1">✨ {{ $item->nama_finishing }} ({{ $item->status_finishing ?? 'Standar' }})</p>
+                        <p class="text-[11px] text-indigo-500 font-medium mt-1"> {{ $item->nama_finishing }} ({{ $item->status_finishing ?? 'Standar' }})</p>
                         @endif
                     @endforelse
                 </td>
@@ -167,7 +214,7 @@
             `,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Batalkan Nota',
             cancelButtonText: 'Kembali',
             customClass: { popup: 'rounded-2xl' },

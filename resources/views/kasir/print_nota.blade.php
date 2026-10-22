@@ -38,6 +38,12 @@
         .nota .ringkas tr.tebal td { font-weight: 500; }
 
         .nota .deposit td.v { text-align: right; white-space: nowrap; font-weight: 500; }
+
+        /* Status & rincian uang diterima: diberi jarak dari blok ringkasan
+           supaya tidak terlihat sebagai satu tabel panjang tanpa judul. */
+        .nota .status-nota { margin-top: 6px; }
+        .nota .diterima { margin-top: 4px; }
+        .nota .diterima td.l { font-size: 11px; }
         .nota .penutup { text-align: center; margin-top: 6px; }
         .nota .footer-note { color: #000 !important; font-size: inherit; }
     </style>
@@ -53,7 +59,11 @@
             <tr><td class="l">Waktu</td><td class="t">:</td><td>{{ \Carbon\Carbon::parse($transaksi->tgl_order)->format('d/m/Y H:i:s') }}</td></tr>
             <tr><td class="l">Konsumen</td><td class="t">:</td><td>{{ $transaksi->nama_konsumen }}</td></tr>
             <tr><td class="l">Telp</td><td class="t">:</td><td>{{ $transaksi->telepon ?: '-' }}</td></tr>
-            <tr><td class="l">Kasir</td><td class="t">:</td><td>{{ $transaksi->nama_kasir ?? '-' }}</td></tr>
+            {{-- Label "Operator", bukan "Kasir". Yang mencatat order ini
+                 adalah operator - struk yang ditulis "Kasir" sering
+                 dikira sebagai nama orang yang menerima uang, padahal
+                 belum tentu orang yang sama. --}}
+            <tr><td class="l">Operator</td><td class="t">:</td><td>{{ $transaksi->nama_kasir ?? '-' }}</td></tr>
         </table>
 
         <div class="garis"></div>
@@ -63,10 +73,28 @@
                 <tr><th style="width:14%">Qty</th><th>Produk</th><th class="r" style="width:32%">Total</th></tr>
             </thead>
             <tbody>
+                {{-- UKURAN TIDAK DICETAK untuk produk ber-metode hitung 'ukuran'
+                     (roll/banner). Ukuran yang diketik operator mengikuti ukuran
+                     bahan, jadi bisa BERBEDA dari ukuran file asli - memprintingnya
+                     membuat konsumen salah paham dan sempat dikomplain.
+
+                     Hanya berlaku pada produk ber-metode 'ukuran' (product jadi
+                     satuannya, operator yang menentukan Panjang/Lebar). Produk per
+                     lembar (A3, foto, dll) tidak punya ukuran sama sekali di form,
+                     jadi tidak ada yang perlu disembunyikan.
+
+                     PENTING: jangan tulis teks "@" diikuti "php" di dalam
+                     komentar Blade. Blade menyimpan blok PHP mentah SEBELUM
+                     komentar dibuang, jadi teks "@"+"php" di sini ikut menelan
+                     blok PHP asli yang ada di bawahnya - termasuk seluruh isi
+                     loop dan penutup tabel. --}}
                 @foreach($items as $item)
                     @php
                         $hargaSatuan = (float) $item->qty > 0 ? (float) $item->subtotal / (float) $item->qty : (float) $item->subtotal;
-                        $ukuran = $item->p_ukuran > 0 && $item->l_ukuran > 0 ? ' / ' . angka($item->p_ukuran, 1) . 'x' . angka($item->l_ukuran, 1) . ' cm' : '';
+                        $ukuran = ($item->metode_hitung_produk ?? null) !== 'ukuran'
+                            && $item->p_ukuran > 0 && $item->l_ukuran > 0
+                            ? ' / ' . angka($item->p_ukuran, 1) . 'x' . angka($item->l_ukuran, 1) . ' cm'
+                            : '';
                     @endphp
                     <tr>
                         <td class="qty">{{ angka($item->qty, 2) }}x</td>
@@ -104,6 +132,37 @@
             <tr><td class="l">Krg. Bayar</td><td class="t">:</td><td class="v">{{ number_format($kurangBayar, 0, ',', '.') }}</td></tr>
             <tr><td class="l">Kembali</td><td class="t">:</td><td class="v">{{ number_format($kembali, 0, ',', '.') }}</td></tr>
         </table>
+
+        {{-- STATUS PEMBAYARAN - dicetak eksplisit karena nota yang belum
+             dibayar sama sekali sebelumnya tidak terlihat dari nominal:
+             "Total Bayar 0" saja tidak menjelaskan apakah itu karena belum
+             bayar atau karena tagihannya memang 0. --}}
+        <table class="ringkas status-nota">
+            {{-- Dicetak kapital: printer thermal huruf kecil mudah pecah, dan
+                 "LUNAS" / "BELUM BAYAR" jauh lebih cepat terbaca sekilas
+                 dibandingkan huruf campuran - status justru hal pertama
+                 yang dicari pembaca nota. --}}
+            <tr class="tebal"><td class="l">Status Bayar</td><td class="t">:</td><td class="v">{{ \Illuminate\Support\Str::upper($statusPembayaranNota) }}</td></tr>
+            <tr><td class="l">Metode Bayar</td><td class="t">:</td><td class="v">{{ $metodePembayaranNota !== '' ? $metodePembayaranNota : '-' }}</td></tr>
+        </table>
+
+        {{-- RINCIAN UANG DITERIMA - satu baris per pembayaran yang benar-benar
+             tercatat, nominal dan metodenya apa adanya. Baris "Total Bayar" di
+             atas hanya menjumlahkannya, jadi tanpa rincian ini tidak ada yang
+             bisa mencocokkan nominal nota dengan uang yang benar-benar masuk
+             ke laci. --}}
+        @if($penerimaanNota->isNotEmpty())
+        <table class="ringkas diterima">
+            <tr class="tebal"><td class="l">Uang Diterima</td><td class="t">:</td><td class="v"></td></tr>
+            @foreach($penerimaanNota as $p)
+            <tr>
+                <td class="l">{{ \Carbon\Carbon::parse($p->tgl_bayar)->format('d/m H:i') }} - {{ $p->metode }}</td>
+                <td class="t">:</td>
+                <td class="v">{{ number_format($p->nominal, 0, ',', '.') }}</td>
+            </tr>
+            @endforeach
+        </table>
+        @endif
 
         <div class="garis"></div>
 

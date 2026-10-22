@@ -15,7 +15,7 @@
     <div class="print:hidden">
         <x-page-header title="Laporan Daftar Piutang">
             <x-slot:subtitle>
-                Laporan <span class="mx-1 text-slate-300">/</span> Nota Belum Lunas (Sisa Tagihan Riil)
+                Laporan <span class="mx-1 text-slate-500">/</span> Nota Belum Lunas (Sisa Tagihan Riil)
             </x-slot:subtitle>
             <x-slot:actions>
                 <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">

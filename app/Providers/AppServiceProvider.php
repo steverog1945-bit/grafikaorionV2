@@ -24,6 +24,23 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // CATATAN instalasi subdirektori (XAMPP -> http://localhost/grafikaorion/public)
+        //
+        // SENGAJA TIDAK memakai URL::forceRootUrl() di sini.
+        //
+        // forceRootUrl() memaksa SEMUA URL - termasuk yang dipakai untuk menyusun
+        // request di dalam test client Laravel (MakesHttpRequests::prepareUrlForRequest
+        // memanggil url($uri)). Akibatnya $this->get('/') dijalankan sebagai
+        // "http://localhost/grafikaorion/public/" sehingga path info-nya jadi
+        // "/grafikaorion/public/" - tidak ada route yang cocok, dan SEMUA test
+        // yang memanggil route apa pun akan 404.
+        //
+        // Installer subdirektori sebenarnya sudah ditangani Laravel dengan sendirinya:
+        // UrlGenerator::root() memakai request()->root(), dan request itu dibangun
+        // dari SCRIPT_NAME/SERVER_NAME Apache, yang pada XAMPP sudah bernilai
+        // "/grafikaorion/public/index.php". Jadi route(), url(), dan asset()
+        // otomatis benar tanpa perlu dipaksa.
+
         Paginator::useTailwind();
 
         // Hardening P0-4: batasi percobaan login (per kombinasi username+IP,
@@ -91,6 +108,11 @@ class AppServiceProvider extends ServiceProvider
 
         // @bolehHarga ... @else ... @endbolehHarga : tampilkan hanya untuk role yang berhak melihat harga/nilai uang.
         \Illuminate\Support\Facades\Blade::if('bolehHarga', fn () => \App\Support\AksesHarga::bolehLihat());
+
+        // @bolehDesain ... @else ... @endbolehDesain : tampilkan hanya untuk role yang berhak
+        // MENGINPUT nilai Biaya Desain. Sengaja Terpisah dari @bolehHarga: hak ini cuma membuka
+        // satu field (Biaya Desain), tidak membuka harga produk/cetak/finishing maupun halaman harga.
+        \Illuminate\Support\Facades\Blade::if('bolehDesain', fn () => \App\Support\AksesHarga::bolehInputBiayaDesain());
 
         // @versi($row) : kolom tersembunyi versi baris untuk optimistic locking (lihat App\Support\VersiBaris).
         \Illuminate\Support\Facades\Blade::directive('versi', fn ($e) => "<?php echo \App\Support\VersiBaris::field({$e}); ?>");

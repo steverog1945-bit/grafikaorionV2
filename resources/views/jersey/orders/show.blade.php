@@ -86,9 +86,17 @@
                 <div class="flex items-center gap-4">
                     <div class="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
                         @if($line->thumbnail)
-                            <img loading="lazy" decoding="async" src="{{ asset('storage/' . $line->thumbnail) }}" class="w-full h-full object-cover">
+                            @if(\App\Support\BerkasDesain::bisaDitampilkan($line->thumbnail))
+                                <img loading="lazy" decoding="async" src="{{ asset('storage/' . $line->thumbnail) }}" class="w-full h-full object-cover">
+                            @else
+                                {{-- Berkas desain non-gambar (CDR, AI, EPS, PSD) tidak
+                                     bisa ditampilkan peramban - pakai thumbnail
+                                     default supaya kotaknya tidak kosong. Nama
+                                     file tetap dari berkas asli. --}}
+                                <img loading="lazy" decoding="async" src="{{ asset('storage/default-thumbnail.png') }}" class="w-full h-full object-cover opacity-50" title="Berkas desain {{ strtoupper(\App\Support\BerkasDesain::ekstensi($line->thumbnail)) }}">
+                            @endif
                         @else
-                            <i class="fas fa-image text-slate-300"></i>
+                            <i class="fas fa-image text-slate-500"></i>
                         @endif
                     </div>
                     <div>
@@ -192,7 +200,7 @@
                                 @if($p->bukti_path)
                                     <a href="{{ asset('storage/' . $p->bukti_path) }}" target="_blank" class="text-indigo-500 hover:text-indigo-700"><i class="fas fa-image"></i></a>
                                 @else
-                                    <span class="text-slate-300">-</span>
+                                    <span class="text-slate-500">-</span>
                                 @endif
                             </td>
                             <td class="p-2 text-center">
@@ -302,7 +310,7 @@
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">Bukti Bayar (opsional)</label>
                 <div class="bukti-dropzone relative border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-300" tabindex="0" onclick="document.getElementById('bukti-file-input').click()">
                     <img loading="lazy" decoding="async" class="bukti-preview hidden mx-auto max-h-32 rounded-lg mb-2" 
-                    <p class="bukti-placeholder text-[11px] text-slate-400"><i class="fas fa-receipt mb-1 block text-lg text-slate-300"></i>Klik, Tempel (Ctrl+V), atau Pilih File</p>
+                    <p class="bukti-placeholder text-[11px] text-slate-400"><i class="fas fa-receipt mb-1 block text-lg text-slate-500"></i>Klik, Tempel (Ctrl+V), atau Pilih File</p>
                     <input type="file" id="bukti-file-input" class="hidden" accept="image/*">
                 </div>
                 <input type="hidden" name="bukti_path" id="bukti-path">
@@ -343,7 +351,7 @@
             html: 'Order <b>{{ $order->order_number }}</b> beserta seluruh barang & rinciannya akan dihapus. Jika order sudah diakui sebagai pendapatan atau sudah ada pembayaran, ini hanya MENGAJUKAN pembatalan ke Administrator (jurnal dibalik setelah disetujui).',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Lanjutkan',
             cancelButtonText: 'Batal',
             customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
@@ -358,7 +366,7 @@
             html: 'Pembayaran baru di-void dan jurnalnya dibalik setelah disetujui Administrator di Alur Persetujuan.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Lanjutkan',
             cancelButtonText: 'Batal',
             customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
@@ -413,7 +421,7 @@
         formData.append('bukti', fileUpload);
         formData.append('_token', '{{ csrf_token() }}');
         try {
-            const res = await fetch('{{ route("jersey.keuangan.upload-bukti") }}', { method: 'POST', body: formData });
+            const res = await fetch('{{ route("jersey.keuangan.upload-bukti") }}', { method: 'POST', headers: { 'Accept': 'application/json' }, body: formData });
             const data = await res.json();
             if (data.status === 'success') {
                 document.getElementById('bukti-path').value = data.path;
@@ -423,7 +431,7 @@
                 document.querySelector('.bukti-placeholder').classList.add('hidden');
                 statusEl.textContent = 'Bukti siap. Klik kotak untuk mengganti.';
             } else {
-                statusEl.textContent = 'Gagal mengunggah, coba lagi.';
+                statusEl.textContent = data.message || 'Gagal mengunggah, coba lagi.';
                 statusEl.classList.add('text-rose-500');
             }
         } catch (e) {
@@ -496,7 +504,7 @@
                     : 'Qty per ukuran yang sudah diisi akan <b>dikosongkan</b> - mode <b>Daftar Pemain</b> tidak memakai qty per ukuran. Kalau dibiarkan, qty itu tetap terkirim &amp; ikut terhitung ke harga (penumpukan harga).',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#e11d48',
+                confirmButtonColor: '#93481A',
                 confirmButtonText: 'Ya, Kosongkan & Ganti Mode',
                 cancelButtonText: 'Batal',
                 customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
@@ -511,7 +519,20 @@
             if (typeof hitungUlangQtyUkuran === 'function') hitungUlangQtyUkuran();
         }
 
-        card.querySelector('.wrapper-qty-ukuran')?.classList.toggle('hidden', tipe === 'player_list');
+        // Mode Daftar Pemain: qty per ukuran TIDAK dipakai sama sekali, jadi
+        // inputnya dinonaktifkan - bukan cuma disembunyikan. Wrapper `hidden`
+        // hanya menyembunyikan tampilan; input di dalamnya tetap terkirim ke
+        // server, dan itulah sumber bug qty 35 -> 70 (35 pemain + sisa
+        // size_quantities 35 dijumlahkan). Disable = tidak terkirim sama sekali.
+        // Mode Campuran tetap memakai keduanya, jadi tidak dinonaktifkan.
+        const wrapperQty = card.querySelector('.wrapper-qty-ukuran');
+        if (wrapperQty) {
+            const bukanModePemain = tipe === 'player_list';
+            wrapperQty.classList.toggle('hidden', bukanModePemain);
+            wrapperQty.querySelectorAll('input, select').forEach(el => {
+                el.disabled = bukanModePemain;
+            });
+        }
         card.querySelector('.wrapper-daftar-pemain')?.classList.toggle('hidden', tipe === 'quantity_only');
         if (tipe !== 'quantity_only' && card.querySelectorAll('.tbody-pemain .baris-pemain').length === 0) {
             tambahBarisPemain(card.querySelector('.wrapper-daftar-pemain button'));
@@ -612,7 +633,17 @@
         if (!card) return;
         const orderType = card.querySelector('input[name$="[order_type]"]:checked')?.value || 'quantity_only';
         const tampilkanDefault = orderType !== 'player_list';
-        card.querySelectorAll('.wrapper-lengan-kerah-default').forEach(el => el.classList.toggle('hidden', !tampilkanDefault));
+        card.querySelectorAll('.wrapper-lengan-kerah-default').forEach(el => {
+            el.classList.toggle('hidden', !tampilkanDefault);
+            // Sama seperti create & edit-lines: `required` harus dilepas saat
+            // wrapper disembunyikan. Tanpa ini, modal "Tambah Baris Susulan"
+            // di mode Daftar Pemain diam-diam tidak tersimpan: Chrome
+            // membatalkan submit karena <select required> tersembunyi tidak
+            // bisa difokus ("... is not focusable"), tanpa pesan apa pun.
+            el.querySelectorAll('select, input').forEach(f => {
+                f.required = tampilkanDefault;
+            });
+        });
     }
 
     // CATATAN PENTING: paste TIDAK dipasang langsung ke elemen dropzone
@@ -655,32 +686,57 @@
         statusEl.textContent = 'Memampatkan gambar...';
         statusEl.classList.remove('text-rose-500');
         // Dikompres di browser dulu - lihat catatan di
-        // jersey/orders/create.blade.php::prosesUploadThumbnail().
+        // jersey/orders/create.blade.php::prosesUploadThumbnail(). PDF
+        // dirender jadi gambar; format berkas desain lain (CDR, AI, EPS)
+        // dikirim apa adanya.
         let fileUpload = file;
         try {
-            const compressed = await compressImage(file);
-            fileUpload = new File([compressed], file.name.replace(/\.[^./]+$/, '') + '.jpg', { type: 'image/jpeg' });
+            const prepared = await siapkanBerkasUntukUnggah(file, file.name);
+            fileUpload = prepared.file;
         } catch (e) { /* gagal kompres (jarang) - lanjut pakai file asli */ }
         statusEl.textContent = 'Mengunggah...';
         const formData = new FormData();
         formData.append('thumbnail', fileUpload);
         formData.append('_token', '{{ csrf_token() }}');
         try {
-            const res = await fetch('{{ route("jersey.orders.upload-thumbnail") }}', { method: 'POST', body: formData });
+            const res = await fetch('{{ route("jersey.orders.upload-thumbnail") }}', { method: 'POST', headers: { 'Accept': 'application/json' }, body: formData });
             const data = await res.json();
             if (data.status === 'success') {
                 card.querySelector('.thumbnail-path').value = data.path;
                 const img = card.querySelector('.thumbnail-preview');
-                img.src = data.url;
-                img.classList.remove('hidden');
-                card.querySelectorAll('.thumbnail-placeholder').forEach(el => el.classList.add('hidden'));
-                statusEl.textContent = 'Thumbnail siap. Klik kotak untuk mengganti.';
+                if (data.bisa_ditampilkan) {
+                    img.src = data.url;
+                    img.classList.remove('hidden');
+                    card.querySelectorAll('.thumbnail-placeholder').forEach(el => el.classList.add('hidden'));
+                    statusEl.textContent = 'Thumbnail siap. Klik kotak untuk mengganti.';
+                } else {
+                    // Berkas desain non-gambar: kotak pratinjau menampilkan
+                    // ikon, bukan gambar rusak.
+                    img.removeAttribute('src');
+                    img.classList.add('hidden');
+                    const ext = (data.nama_asli || '').split('.').pop() || '';
+                    statusEl.textContent = 'Berkas desain siap' + (ext ? ' (' + ext.toUpperCase() + ')' : '') + '. File ada di server, dibuka tim produksi.';
+                }
             } else {
-                statusEl.textContent = 'Gagal mengunggah, coba lagi.';
+                // Pesan galat validasi ada di errors.thumbnail[0] (mis.
+                // "Ukuran file terlalu besar (maksimal 10 MB).") - data.message
+                // cuma kalimat generik bahasa Inggris dari Laravel.
+                const pesan = (data.errors && data.errors.thumbnail && data.errors.thumbnail[0]) || data.message || data.msg || 'Gagal mengunggah, coba lagi.';
+                statusEl.textContent = pesan;
                 statusEl.classList.add('text-rose-500');
+                Swal.fire('Berkas desain belum terunggah', pesan, 'error');
             }
         } catch (e) {
-            statusEl.textContent = 'Gagal mengunggah, coba lagi.';
+            // Respons bukan JSON (res.json() gagal) - hampir selalu karena body
+            // POST melewati post_max_size PHP (40 MB): PHP membuang seluruh
+            // unggahan dan menjawab halaman galat, bukan JSON.
+            if (fileUpload.size > 30 * 1024 * 1024) {
+                statusEl.textContent = 'Ukuran berkas ' + Math.round(fileUpload.size / (1024 * 1024)) + ' MB melampaui batas server (39 MB). Kecilkan dokumen, lalu unggah lagi.';
+                Swal.fire('Berkas terlalu besar', statusEl.textContent, 'error');
+            } else {
+                statusEl.textContent = 'Gagal mengunggah, coba lagi.';
+                Swal.fire('Gagal mengunggah', 'Periksa jaringan lalu coba lagi.', 'error');
+            }
             statusEl.classList.add('text-rose-500');
         }
     }
@@ -693,8 +749,16 @@
         }
     });
 
+    // Penanda submit sedang berjalan untuk modal Tambah Barang Susulan. Handler
+    // di bawah mengambil alih submit, jadi penaga global di layouts/app.blade.php
+    // tidak berlaku - dan penaga server tidak ada di jalur ini karena form
+    // disubmit lewat form.submit() tanpa submit_id baru setiap klik.
+    let sedangSimpanSusulan = false;
+
     document.getElementById('form-tambah-susulan').addEventListener('submit', async function (e) {
         e.preventDefault();
+
+        if (sedangSimpanSusulan) return;
 
         document.querySelectorAll('#modal-tambah-susulan .baris-pemain').forEach(row => {
             if (row.querySelector('[name*="player_name"]').value.trim() === '') row.remove();
@@ -765,13 +829,33 @@
                 html: `<ul style="text-align:left; font-size:12.5px; padding-left:1.2em;">${daftar}</ul>`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#e11d48',
+                confirmButtonColor: '#93481A',
                 confirmButtonText: 'Ya, Simpan Sekarang',
                 cancelButtonText: 'Batal, Saya Cek Lagi',
                 customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
             });
             if (!konfirmasi.isConfirmed) return;
         }
+
+        // ---- Penaga kirim ganda + loading state ----
+        // Disetel tepat sebelum submit supaya tidak pernah tertahan kalau ada
+        // validasi di atas yang menolak.
+        sedangSimpanSusulan = true;
+        const btnSimpan = this.querySelector('button[type="submit"]');
+        if (btnSimpan) {
+            btnSimpan.disabled = true;
+            btnSimpan.classList.add('opacity-60', 'cursor-not-allowed');
+            btnSimpan.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Menyimpan...';
+        }
+
+        // Pagar pengaman: kalau navigasi tidak terjadi, tombol jangan terkunci.
+        setTimeout(() => {
+            sedangSimpanSusulan = false;
+            if (!btnSimpan) return;
+            btnSimpan.disabled = false;
+            btnSimpan.classList.remove('opacity-60', 'cursor-not-allowed');
+            btnSimpan.innerHTML = 'Simpan Barang Susulan';
+        }, 20000);
 
         this.submit();
     });

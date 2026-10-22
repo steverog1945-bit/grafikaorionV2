@@ -59,7 +59,11 @@ class AuthTest extends TestCase
     {
         $response = $this->get('/dashboard');
 
-        $response->assertRedirect('/');
+        // Checkpoint 4E.1: tujuan redirect adalah route('login') yang kini
+        // menunjuk /masuk - endpoint yang selalu memuat form login. Sebelumnya
+        // route('login') = '/', yang bisa jadi halaman builder tanpa form.
+        $response->assertRedirect(route('login'));
+        $response->assertRedirect(url('/masuk'));
     }
 
     public function test_user_yang_sudah_login_bisa_akses_dashboard(): void
@@ -73,6 +77,9 @@ class AuthTest extends TestCase
 
     public function test_logout_menghapus_sesi(): void
     {
+        // Gate B OFF adalah konfigurasi default proyek ini.
+        config(['landing_page_builder.enabled' => false]);
+
         $user = User::factory()->create();
 
         $this->actingAs($user);
@@ -80,7 +87,23 @@ class AuthTest extends TestCase
 
         $response = $this->post('/logout');
 
-        $response->assertRedirect('/');
+        // Sesi berakhir dan staf diarahkan ke halaman login publik /masuk.
+        // Sebelumnya tujuan ini '/' yang me-render halaman depan lama.
+        $response->assertRedirect(route('login'));
+        $this->assertGuest();
+    }
+
+    public function test_logout_dengan_gate_b_aktif_kembali_ke_beranda_publik(): void
+    {
+        config(['landing_page_builder.enabled' => true]);
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+        $response = $this->post('/logout');
+
+        // Gate B ON: '/' adalah Landing Page Published, jadi staf yang keluar
+        // mendarat di beranda publik - bukan Dashboard, bukan form login.
+        $response->assertRedirect(route('beranda'));
         $this->assertGuest();
     }
 

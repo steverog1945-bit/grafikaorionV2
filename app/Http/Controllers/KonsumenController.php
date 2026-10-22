@@ -93,22 +93,23 @@ class KonsumenController extends Controller
 }
 public function storeAjax(Request $request)
 {
-    // VALIDASI SESI KAS SEBELUM SIMPAN KONSUMEN
-    // Menggunakan kas_harian (tabel sesi kas yang sesungguhnya dipakai di seluruh
-    // modul Kasir). Sebelumnya kode ini mengecek tabel kas_sesi, yang tidak pernah
-    // diisi data oleh bagian manapun dari aplikasi, sehingga pengecekan ini selalu
-    // gagal walau kasir sudah membuka sesi kas hari itu.
-    $sesi = KasSesiService::aktifUntukTransaksi();
-    if ($sesi && (int) $sesi->id_user !== (int) auth()->id()) {
-        $sesi = null;
-    }
-
-    if (!$sesi) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Gagal: Sesi Kas belum dibuka. Silahkan buka saldo awal dulu.'
-        ], 403);
-    }
+    // PENDAFTARAN KONSUMEN ADALAH MASTER DATA, BUKAN TRANSAKSI.
+    //
+    // Guard sesi kas yang pernah ada di sini membuat pendaftaran konsumen gagal
+    // dengan "Sesi Kas belum dibuka" walaupun laci sudah dibuka (oleh kasir
+    // lain), atau sesi sudah melewati jam Closing. Itu tidak sesuai aturan
+    // bisnis: master data tidak bergantung pada Sesi Kas OPEN, tidak
+    // bergantung pada usia sesi, dan tidak bergantung pada siapa pemilik laci.
+    //
+    // Yang tetap berlaku persis seperti sebelum:
+    //   - autentikasi + hak akses  (middleware route, TIDAK diubah)
+    //   - proteksi CSRF           (middleware web, TIDAK diubah)
+    //   - validasi field server   (baris di bawah, TIDAK diubah)
+    //   - kontrak JSON response   (TIDAK diubah, tetap {status, data})
+    //
+    // Aturan sesi kas untuk TRANSAKSI (buat nota, bayar, kas manual) tetap
+    // utuh di PenjualanController dan KasirController.
+    //
     // 1. Validasi ketat di sisi Server
     $request->validate([
         'nama_konsumen' => 'required|string|max:100',
@@ -118,6 +119,18 @@ public function storeAjax(Request $request)
     ]);
 
     try {
+        $existing = DB::table('konsumen')
+            ->whereRaw('LOWER(nama_konsumen) = ?', [mb_strtolower(trim($request->nama_konsumen))])
+            ->first();
+        if ($existing) {
+            $gol = DB::table('golongan_konsumen')->where('id_golongan', $existing->id_golongan)->value('nama_golongan');
+            return response()->json([
+                'status'  => 'duplicate',
+                'message' => 'Konsumen dengan nama ini sudah terdaftar. Memilih data yang ada.',
+                'data'    => (object) array_merge((array) $existing, ['nama_golongan' => $gol]),
+            ], 422);
+        }
+
         // 2. Simpan menggunakan DB Table agar tidak masalah dengan Model fillable
         $id = DB::table('konsumen')->insertGetId([
             'nama_konsumen' => $request->nama_konsumen,
@@ -156,6 +169,18 @@ public function storeAjax(Request $request)
             'tipe_konsumen' => 'nullable|in:permanent,temporary',
             'alamat'        => 'nullable|max:500',
         ]);
+
+        // Deteksi duplikat: nama yang sama (case-insensitive) sudah terdaftar.
+        // Konsumen dengan nama sama boleh ada kalau dibedakan (mis. telepon/alamat),
+        // tapi sebelum menyimpan, kasir harus diberi tahu dan diminta menambah
+        // pembeda supaya tidak tertukar di nota/riwayat.
+        $duplikat = DB::table('konsumen')
+            ->whereRaw('LOWER(nama_konsumen) = ?', [mb_strtolower(trim($request->nama_konsumen))])
+            ->first();
+        if ($duplikat) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Konsumen dengan nama "' . $request->nama_konsumen . '" sudah terdaftar (telepon ' . ($duplikat->telepon ?: '-') . '). Jika ini orang yang berbeda, tambahkan pembeda pada nama (mis. "' . $request->nama_konsumen . ' - Kantor") atau isi telepon yang berbeda, lalu simpan lagi.');
+        }
 
         $idBaru = DB::table('konsumen')->insertGetId([
             'nama_konsumen' => $request->nama_konsumen,

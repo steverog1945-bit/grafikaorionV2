@@ -173,8 +173,8 @@
             html: `Gudang <b>${escHtml(nama)}</b> akan dihapus permanen.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f8fafc',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#FAFBF9',
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
             customClass: {

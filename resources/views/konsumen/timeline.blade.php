@@ -48,7 +48,7 @@
                 <div class="flex flex-wrap justify-between gap-2">
                     <div class="text-sm font-medium text-slate-700">
                         @if($k['url'])<a href="{{ $k['url'] }}" class="hover:text-indigo-600">{{ $k['judul'] }}</a>@else{{ $k['judul'] }}@endif
-                        <span class="ml-2 text-[10px] font-medium uppercase tracking-widest text-slate-300">{{ $k['jenis'] }}</span>
+                        <span class="ml-2 text-[10px] font-medium uppercase tracking-widest text-slate-500">{{ $k['jenis'] }}</span>
                     </div>
                     <div class="text-sm font-medium {{ $k['nominal'] < 0 ? 'text-rose-500' : 'text-slate-700' }}">Rp {{ number_format($k['nominal'], 0, ',', '.') }}</div>
                 </div>

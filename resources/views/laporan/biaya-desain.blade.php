@@ -15,7 +15,7 @@
     <div class="print:hidden">
         <x-page-header title="Laporan Biaya & Komisi Desain">
             <x-slot:subtitle>
-                Laporan <span class="mx-1 text-slate-300">/</span> Biaya desain yang diterapkan tiap operator &amp; bagi hasil (komisi) menurut kelasnya{{ $milikSendiri ? ' - hanya menampilkan milik Anda' : '' }}
+                Laporan <span class="mx-1 text-slate-500">/</span> Biaya desain yang diterapkan tiap operator &amp; bagi hasil (komisi) menurut kelasnya{{ $milikSendiri ? ' - hanya menampilkan milik Anda' : '' }}
             </x-slot:subtitle>
             <x-slot:actions>
                 <x-button type="button" onclick="window.print()" variant="secondary" class="no-print" title="Cetak laporan sesuai filter yang tampil">
@@ -165,7 +165,7 @@
                             </button>
                         </form>
                         @else
-                        <span class="text-slate-300" title="{{ $r->id_desainer ? 'Tidak ada komisi yang perlu dibayar' : 'Item tanpa desainer tidak mendapat komisi' }}">-</span>
+                        <span class="text-slate-500" title="{{ $r->id_desainer ? 'Tidak ada komisi yang perlu dibayar' : 'Item tanpa desainer tidak mendapat komisi' }}">-</span>
                         @endif
                     </td>
                     @endunless
@@ -227,7 +227,7 @@
                     @elseif($row->komisi_status === 'Belum')
                         <span class="text-[10px] font-medium uppercase text-amber-600 bg-amber-50 rounded px-2 py-1" title="Menunggu pembayaran komisi">Belum</span>
                     @else
-                        <span class="text-slate-300" title="Tidak ada komisi (tanpa desainer atau persen kelas 0%)">-</span>
+                        <span class="text-slate-500" title="Tidak ada komisi (tanpa desainer atau persen kelas 0%)">-</span>
                     @endif
                 </td>
             </tr>
@@ -272,7 +272,7 @@
             html: `Komisi belum dibayar untuk <b>${escHtml(nama)}</b> pada periode ini sebesar <b>Rp ${Math.round(nominal).toLocaleString('id-ID')}</b> akan dicatat sebagai pengeluaran Kas Kecil (kategori Komisi Desainer).`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#4f46e5',
+            confirmButtonColor: '#006C7B',
             confirmButtonText: 'Ya, Bayar',
             cancelButtonText: 'Batal',
             customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },

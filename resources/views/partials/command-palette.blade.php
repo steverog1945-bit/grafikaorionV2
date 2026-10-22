@@ -290,13 +290,13 @@
     /* ----------------------------------------------------------------------
        Render
        ---------------------------------------------------------------------- */
-    const IKON_CARI = '<i class="fas fa-search text-slate-300"></i>';
+    const IKON_CARI = '<i class="fas fa-search text-slate-500"></i>';
 
     function render() {
         if (!cocok.length) {
             daftar.innerHTML = `
                 <div class="px-4 py-10 text-center">
-                    <div class="text-slate-300 mb-2">${IKON_CARI}</div>
+                    <div class="text-slate-500 mb-2">${IKON_CARI}</div>
                     <p class="text-sm text-slate-600">Tidak ada menu yang cocok</p>
                     <p class="text-xs text-slate-500 mt-1">
                         ${input.value.trim()

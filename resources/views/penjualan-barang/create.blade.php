@@ -520,7 +520,7 @@
         try {
             const response = await fetch('{{ url('/konsumen/store-ajax') }}', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
                 body: JSON.stringify({
                     nama_konsumen: nama,
                     telepon: hp,

@@ -31,17 +31,17 @@
         @foreach([['Total Hutang', 'total', 'text-slate-800'], ['Belum Jatuh Tempo', 'belum', 'text-emerald-600'], ['Telat 1-30 hari', 'b30', 'text-amber-500'], ['Telat 31-60 hari', 'b60', 'text-orange-500'], ['Telat > 60 hari', 'b60plus', 'text-rose-600']] as [$label, $key, $warna])
         <x-card>
             <div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">{{ $label }}</div>
-            <div class="text-lg font-medium {{ $warna }}">Rp {{ number_format($total[$key], 0, ',', '.') }}</div>
+            <div class="text-lg font-medium {{ $warna }}">Rp {{ angka($total[$key]) }}</div>
         </x-card>
         @endforeach
     </div>
     <div class="hidden print:block">
         <x-laporan.resume-table title="Resume" :rows="[
-            'Total Hutang' => 'Rp ' . number_format($total['total'], 0, ',', '.'),
-            'Belum Jatuh Tempo' => 'Rp ' . number_format($total['belum'], 0, ',', '.'),
-            'Telat 1-30 hari' => 'Rp ' . number_format($total['b30'], 0, ',', '.'),
-            'Telat 31-60 hari' => 'Rp ' . number_format($total['b60'], 0, ',', '.'),
-            'Telat > 60 hari' => 'Rp ' . number_format($total['b60plus'], 0, ',', '.'),
+            'Total Hutang' => 'Rp ' . angka($total['total']),
+            'Belum Jatuh Tempo' => 'Rp ' . angka($total['belum']),
+            'Telat 1-30 hari' => 'Rp ' . angka($total['b30']),
+            'Telat 31-60 hari' => 'Rp ' . angka($total['b60']),
+            'Telat > 60 hari' => 'Rp ' . angka($total['b60plus']),
         ]" />
     </div>
 
@@ -66,9 +66,9 @@
                     @endif
                 </td>
                 @foreach(['belum', 'b30', 'b60', 'b60plus'] as $b)
-                    <td class="px-4 py-4 text-right text-sm font-medium text-slate-600">{{ $s[$b] ? number_format($s[$b], 0, ',', '.') : '-' }}</td>
+                    <td class="px-4 py-4 text-right text-sm font-medium text-slate-600">{{ $s[$b] ? angka($s[$b]) : '-' }}</td>
                 @endforeach
-                <td class="px-8 py-4 text-right font-medium text-indigo-600">{{ number_format($s['total'], 0, ',', '.') }}</td>
+                <td class="px-8 py-4 text-right font-medium text-indigo-600">{{ angka($s['total']) }}</td>
             </tr>
             @foreach($s['faktur'] as $f)
             <tr class="hover:bg-slate-50/30">
@@ -78,9 +78,9 @@
                     <div class="text-[10px] text-slate-400">Jatuh tempo {{ \Carbon\Carbon::parse($f->jatuh_tempo_tgl ?: $f->tgl_transaksi)->translatedFormat('d M Y') }}{{ $f->hari_telat ? ' - telat ' . $f->hari_telat . ' hari' : '' }}</div>
                 </td>
                 @foreach(['belum', 'b30', 'b60', 'b60plus'] as $b)
-                    <td class="px-4 py-3 text-right text-xs text-slate-500">{{ $f->bucket === $b ? number_format($f->sisa, 0, ',', '.') : '' }}</td>
+                    <td class="px-4 py-3 text-right text-xs text-slate-500">{{ $f->bucket === $b ? angka($f->sisa) : '' }}</td>
                 @endforeach
-                <td class="px-8 py-3 text-right text-xs font-medium text-slate-600">{{ number_format($f->sisa, 0, ',', '.') }}</td>
+                <td class="px-8 py-3 text-right text-xs font-medium text-slate-600">{{ angka($f->sisa) }}</td>
             </tr>
             @endforeach
             @empty
@@ -96,17 +96,17 @@
             <tr class="bg-slate-50">
                 <td class="px-3 py-1.5 font-medium text-slate-700 uppercase">{{ $s['nama'] }}</td>
                 @foreach(['belum', 'b30', 'b60', 'b60plus'] as $b)
-                    <td class="px-3 py-1.5 text-right font-medium text-slate-600">{{ $s[$b] ? number_format($s[$b], 0, ',', '.') : '-' }}</td>
+                    <td class="px-3 py-1.5 text-right font-medium text-slate-600">{{ $s[$b] ? angka($s[$b]) : '-' }}</td>
                 @endforeach
-                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($s['total'], 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ angka($s['total']) }}</td>
             </tr>
             @foreach($s['faktur'] as $f)
             <tr>
                 <td class="px-3 py-1.5 pl-6 text-slate-600">{{ $f->no_faktur }} <span class="text-slate-400">- jatuh tempo {{ \Carbon\Carbon::parse($f->jatuh_tempo_tgl ?: $f->tgl_transaksi)->format('d/m/Y') }}{{ $f->hari_telat ? ', telat ' . $f->hari_telat . ' hari' : '' }}</span></td>
                 @foreach(['belum', 'b30', 'b60', 'b60plus'] as $b)
-                    <td class="px-3 py-1.5 text-right text-slate-600">{{ $f->bucket === $b ? number_format($f->sisa, 0, ',', '.') : '' }}</td>
+                    <td class="px-3 py-1.5 text-right text-slate-600">{{ $f->bucket === $b ? angka($f->sisa) : '' }}</td>
                 @endforeach
-                <td class="px-3 py-1.5 text-right text-slate-700">{{ number_format($f->sisa, 0, ',', '.') }}</td>
+                <td class="px-3 py-1.5 text-right text-slate-700">{{ angka($f->sisa) }}</td>
             </tr>
             @endforeach
             @empty

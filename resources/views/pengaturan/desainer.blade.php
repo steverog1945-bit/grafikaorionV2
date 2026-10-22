@@ -5,7 +5,7 @@
 
     <x-page-header title="Bagi Hasil Desainer">
         <x-slot:subtitle>
-            Pengaturan <span class="mx-1 text-slate-300">/</span> Kelas desainer &amp; persen komisi dari biaya desain
+            Pengaturan <span class="mx-1 text-slate-500">/</span> Kelas desainer &amp; persen komisi dari biaya desain
         </x-slot:subtitle>
     </x-page-header>
 

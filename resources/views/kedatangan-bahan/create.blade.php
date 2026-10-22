@@ -87,7 +87,7 @@
                     <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
                         <div>
                             <h3 class="text-xs font-medium text-slate-800 uppercase tracking-widest">Daftar Bahan Masuk</h3>
-                            <p class="text-[10px] text-indigo-400 font-medium uppercase mt-1">Pastikan Qty & Item sesuai fisik</p>
+                            <p class="text-[10px] text-indigo-600 font-medium uppercase mt-1">Pastikan Qty & Item sesuai fisik</p>
                         </div>
                         <x-button type="button" id="btn-add-row" size="sm">
                             <i class="fas fa-plus-circle"></i> Tambah Item
@@ -165,7 +165,7 @@
             <div class="flex gap-2">
                 <input type="hidden" name="id_bahan[]">
                 <input type="text" name="nama_bahan_display[]"
-                    class="w-full bg-slate-50 border-transparent rounded-xl p-4 font-medium text-slate-700 text-[11px] uppercase placeholder:text-slate-300"
+                    class="w-full bg-slate-50 border-transparent rounded-xl p-4 font-medium text-slate-700 text-[11px] uppercase placeholder:text-slate-500"
                     placeholder="Klik untuk mencari bahan" readonly required>
                 <button type="button" onclick="openBahanModal(this)"
                     class="px-4 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm" aria-label="Cari" title="Cari">
@@ -325,8 +325,8 @@ function removeRow(btn) {
         text: 'Item yang dihapus tidak akan disimpan ke database.',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#e11d48',
-        cancelButtonColor: '#64748b',
+        confirmButtonColor: '#93481A',
+        cancelButtonColor: '#4A5B53',
         confirmButtonText: 'Ya, Hapus'
     }).then((result) => {
         if (result.isConfirmed) {

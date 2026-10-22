@@ -233,8 +233,8 @@
                             <th class="p-2.5 text-left sticky left-0 bg-white z-10">Ukuran</th>
                             @foreach($components->where('is_active', true) as $comp)
                             <th class="p-2.5 text-center whitespace-nowrap" data-component-th="{{ $comp->id }}">
-                                {{ $comp->name }} <span class="text-slate-300 font-normal">(m)</span>
-                                <button type="button" onclick="bukaEditScopeKomponen({{ $comp->id }}, {{ $comp->jersey_product_type_id ?? 'null' }}, {{ $comp->jersey_category_id ?? 'null' }})" class="ml-1 text-slate-300 hover:text-indigo-500" title="Atur cakupan Tipe Produk/Kategori"><i class="fas fa-sliders-h"></i></button>
+                                {{ $comp->name }} <span class="text-slate-500 font-normal">(m)</span>
+                                <button type="button" onclick="bukaEditScopeKomponen({{ $comp->id }}, {{ $comp->jersey_product_type_id ?? 'null' }}, {{ $comp->jersey_category_id ?? 'null' }})" class="ml-1 text-slate-500 hover:text-indigo-500" title="Atur cakupan Tipe Produk/Kategori"><i class="fas fa-sliders-h"></i></button>
                                 <button type="button" onclick="nonaktifkanKomponen({{ $comp->id }})" class="ml-1 text-slate-500 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
                                 <div class="text-[9px] font-normal normal-case text-slate-400 mt-0.5" data-component-scope="{{ $comp->id }}">{{ $comp->productType->name ?? 'Semua Tipe' }} @if($comp->category)&middot; {{ $comp->category->name }}@endif</div>
                             </th>
@@ -269,7 +269,7 @@
                             <th class="p-2.5 text-left sticky left-0 bg-white z-10">Ukuran</th>
                             @foreach($components->where('is_active', true) as $comp)
                             <th class="p-2.5 text-center whitespace-nowrap" data-component-th-berat="{{ $comp->id }}">
-                                {{ $comp->name }} <span class="text-slate-300 font-normal">(g)</span>
+                                {{ $comp->name }} <span class="text-slate-500 font-normal">(g)</span>
                             </th>
                             @endforeach
                             <th class="p-2.5 text-center whitespace-nowrap bg-indigo-50 text-indigo-600">Total (Berat)</th>
@@ -310,7 +310,7 @@
                         </thead>
                         <tbody>
                             @forelse($sleeveTypes->where('is_active', true) as $x)@break @empty
-                            <tr><td class="p-3 text-center text-slate-300 italic">Belum ada Tipe Lengan aktif - tambah dulu di tab Tipe Lengan.</td></tr>
+                            <tr><td class="p-3 text-center text-slate-500 italic">Belum ada Tipe Lengan aktif - tambah dulu di tab Tipe Lengan.</td></tr>
                             @endforelse
                             @if($sleeveTypes->where('is_active', true)->isNotEmpty())
                             @foreach($sizes as $s)
@@ -347,7 +347,7 @@
                         </thead>
                         <tbody>
                             @forelse($collarTypes->where('is_active', true) as $x)@break @empty
-                            <tr><td class="p-3 text-center text-slate-300 italic">Belum ada Tipe Kerah aktif - tambah dulu di tab Tipe Kerah.</td></tr>
+                            <tr><td class="p-3 text-center text-slate-500 italic">Belum ada Tipe Kerah aktif - tambah dulu di tab Tipe Kerah.</td></tr>
                             @endforelse
                             @if($collarTypes->where('is_active', true)->isNotEmpty())
                             @foreach($sizes as $s)
@@ -695,7 +695,7 @@
             if (!noMatchRow) {
                 noMatchRow = document.createElement('tr');
                 noMatchRow.className = 'row-no-match';
-                noMatchRow.innerHTML = `<td colspan="${colspan}" class="p-6 text-center text-slate-300 text-xs italic"><i class="fas fa-search mr-2"></i>Tidak ada data yang cocok dengan pencarian/filter.</td>`;
+                noMatchRow.innerHTML = `<td colspan="${colspan}" class="p-6 text-center text-slate-500 text-xs italic"><i class="fas fa-search mr-2"></i>Tidak ada data yang cocok dengan pencarian/filter.</td>`;
                 tbody.appendChild(noMatchRow);
             }
         } else if (noMatchRow) {
@@ -1031,7 +1031,7 @@
         const headRowMeter = document.getElementById('tabel-estimasi').querySelector('thead tr');
         headRowMeter.insertAdjacentHTML('beforeend', `
             <th class="p-2.5 text-center whitespace-nowrap" data-component-th="${data.row.id}">
-                ${escapeHtmlJersey(data.row.name)} <span class="text-slate-300 font-normal">(m)</span>
+                ${escapeHtmlJersey(data.row.name)} <span class="text-slate-500 font-normal">(m)</span>
                 <button type="button" onclick="bukaEditScopeKomponen(${data.row.id}, ${data.row.jersey_product_type_id ?? 'null'}, ${data.row.jersey_category_id ?? 'null'})" class="ml-1 text-slate-500 hover:text-indigo-500" title="Atur cakupan Tipe Produk/Kategori"><i class="fas fa-sliders-h"></i></button>
                 <button type="button" onclick="nonaktifkanKomponen(${data.row.id})" class="ml-1 text-slate-500 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
                 <div class="text-[9px] font-normal normal-case text-slate-400 mt-0.5" data-component-scope="${data.row.id}">${labelCakupanKomponen(data.row)}</div>
@@ -1049,7 +1049,7 @@
         const headRowBerat = document.getElementById('tabel-estimasi-berat-tbl').querySelector('thead tr');
         headRowBerat.insertAdjacentHTML('beforeend', `
             <th class="p-2.5 text-center whitespace-nowrap" data-component-th-berat="${data.row.id}">
-                ${escapeHtmlJersey(data.row.name)} <span class="text-slate-300 font-normal">(g)</span>
+                ${escapeHtmlJersey(data.row.name)} <span class="text-slate-500 font-normal">(g)</span>
             </th>`);
         document.querySelectorAll('#tbody-estimasi-berat tr[data-size-id]').forEach(row => {
             const sizeId = row.dataset.sizeId;
@@ -1068,7 +1068,7 @@
             html: 'Kolomnya akan hilang dari matriks (meter & berat). <small class="text-slate-400">Data tersimpan, bisa dikembalikan lewat database bila perlu.</small>',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#64748b',
+            confirmButtonColor: '#4A5B53',
             confirmButtonText: 'Ya, Nonaktifkan',
             cancelButtonText: 'Batal',
             customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
@@ -1378,7 +1378,7 @@
             html: 'Tier harga ini akan dihapus permanen.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Hapus!',
             cancelButtonText: 'Batal',
             customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },

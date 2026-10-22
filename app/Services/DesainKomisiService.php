@@ -34,6 +34,44 @@ class DesainKomisiService
         return $user && optional($user->role)->nama_role === self::ROLE_DESAIN ? (int) $user->id_user : null;
     }
 
+    /**
+     * Id user yang HARUS jadi desainer, atau null bila nama desainer boleh dipilih.
+     *
+     * Kunci ini berlaku kalau pengguna yang sedang login punya role Operator
+     * Desain: orang yang mengerjakan desain itu adalah dirinya sendiri, jadi
+     * tidak ada alasan memilih nama desainer lain. Tanpa kunci ini, komisi
+     * bisa dialihkan ke rekan yang tidak mengerjakan apa pun dan laporan
+     * biaya desain kehilangan maknanya.
+     *
+     * Role lain (Kasir, Administrator, Owner, ...) TIDAK dikunci di sini:
+     * mereka bukan yang mengerjakan desain, jadi tetap perlu memilih
+     * desainer yang benar-benar bekerja pada item itu.
+     */
+    public static function desainerTerkunci(): ?int
+    {
+        $user = Auth::user();
+
+        return $user && optional($user->role)->nama_role === self::ROLE_DESAIN ? (int) $user->id_user : null;
+    }
+
+    /**
+     * Sama seperti tentukanDesainer(), tapi untuk Operator Desain hasilnya
+     * SELALU dirinya sendiri - nilai dari browser diabaikan sepenuhnya.
+     *
+     * Dipakai saat nota dibuat (PenjualanController::store) supaya
+     * penguncian di layar Input Pesanan tidak bisa dilewati dengan mengedit
+     * payload dari DevTools.
+     */
+    public static function kunciDesainer(?int $dipilih): ?int
+    {
+        $terkunci = self::desainerTerkunci();
+        if ($terkunci) {
+            return $terkunci;
+        }
+
+        return self::tentukanDesainer($dipilih);
+    }
+
     /** @return array{persen: float, komisi: float} */
     public static function hitung(?int $idDesainer, float $biayaDesain): array
     {

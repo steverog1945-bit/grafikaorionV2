@@ -31,6 +31,8 @@ class SettingAplikasiController extends Controller
             'logo_gaya' => 'nullable|in:polos,kaca,putih',
             'logo_ringkas' => 'nullable|in:potong,penuh',
             'libur_kas_minggu' => 'nullable|boolean',
+            'batasi_jam_kerja' => 'nullable|boolean',
+            'approval_edit_nota' => 'nullable|boolean',
             'format_nota' => 'nullable|in:thermal,a4,continuous',
             'nomor_nota_prefix' => 'nullable|string|max:20|regex:/^[A-Za-z0-9\-]+$/',
             'nota_footer_text' => 'nullable|string|max:5000',
@@ -48,6 +50,8 @@ class SettingAplikasiController extends Controller
             'website' => $data['website'] ?? null,
             'url_akses' => isset($data['url_akses']) ? rtrim($data['url_akses'], '/') : null,
             'libur_kas_minggu' => $request->boolean('libur_kas_minggu'),
+            'batasi_jam_kerja' => $request->boolean('batasi_jam_kerja'),
+            'approval_edit_nota' => $request->boolean('approval_edit_nota'),
             'format_nota' => $data['format_nota'] ?? 'a4',
             'nomor_nota_prefix' => $data['nomor_nota_prefix'] ?? 'INV',
             'nota_footer_text' => $this->sanitizeFooterHtml($data['nota_footer_text'] ?? null),
@@ -122,7 +126,15 @@ class SettingAplikasiController extends Controller
         // pembulatan, tanpa perlu bikin transaksi asli dulu untuk mengecek.
         $totalTagihanAsli = 200300.0;
         $totalTagihanBulat = AppSetting::bulatkan($totalTagihanAsli, $pembulatanQuery);
-        $totalTerbayar = $totalTagihanAsli;
+        // Contoh sengaja menunjukkan pembayaran dua kali: DP 100.000 Tunai lalu
+        // pelunasan 100.300 Transfer. Gunanya supaya preview ini sekaligus
+        // membuktikan blok "Status Bayar / Metode Bayar / Uang Diterima" ikut
+        // berubah kalau nota asli berubah - bukan hanya tampil di halaman kasir.
+        $penerimaanNota = collect([
+            (object) ['nominal' => 100000.0, 'metode' => 'Tunai', 'tgl_bayar' => now()->setTime(10, 15), 'kembalian' => 0],
+            (object) ['nominal' => 100300.0, 'metode' => 'Transfer', 'tgl_bayar' => now()->setTime(14, 40), 'kembalian' => 0],
+        ]);
+        $totalTerbayar = (float) $penerimaanNota->sum('nominal');
 
         $transaksi = (object) [
             'nomor_nota' => $prefix . '-' . now()->format('Ymd') . '-001',
@@ -135,8 +147,11 @@ class SettingAplikasiController extends Controller
             'id_konsumen' => 0,
         ];
         $items = collect([
-            (object) ['nama_file' => 'Banner Outdoor 3x1m Custom Full Desain Logo Perusahaan', 'qty' => 2, 'subtotal' => 150300, 'biaya_cetak' => 150300, 'biaya_desain' => 0, 'biaya_finishing' => 0, 'p_ukuran' => 300, 'l_ukuran' => 100],
-            (object) ['nama_file' => 'Stiker A3', 'qty' => 5, 'subtotal' => 50000, 'biaya_cetak' => 40000, 'biaya_desain' => 0, 'biaya_finishing' => 10000, 'p_ukuran' => 0, 'l_ukuran' => 0],
+            // Produk ber-metode 'ukuran' (roll/banner): ukuran TIDAK ikut
+            // tercetak di nota, jadi contoh ini memperlihatkan efeknya.
+            (object) ['nama_file' => 'Banner Outdoor 3x1m Custom Full Desain Logo Perusahaan', 'qty' => 2, 'subtotal' => 150300, 'biaya_cetak' => 150300, 'biaya_desain' => 0, 'biaya_finishing' => 0, 'p_ukuran' => 300, 'l_ukuran' => 100, 'metode_hitung_produk' => 'ukuran'],
+            // Produk per lembar (A3): tidak punya ukuran di form.
+            (object) ['nama_file' => 'Stiker A3', 'qty' => 5, 'subtotal' => 50000, 'biaya_cetak' => 40000, 'biaya_desain' => 0, 'biaya_finishing' => 10000, 'p_ukuran' => 0, 'l_ukuran' => 0, 'metode_hitung_produk' => 'quantity'],
         ]);
 
         return view('kasir.print_nota', [
@@ -155,6 +170,9 @@ class SettingAplikasiController extends Controller
             'depositTerpakaiTransaksiIni' => 0,
             'saldoDepositSaatIni' => 0,
             'konsumenPernahPakaiDeposit' => false,
+            'penerimaanNota' => $penerimaanNota,
+            'statusPembayaranNota' => \App\Services\StatusPembayaran::dari($totalTagihanBulat, $totalTerbayar),
+            'metodePembayaranNota' => $penerimaanNota->pluck('metode')->unique()->implode(', '),
             'footerNotaOverride' => $footerNota,
         ]);
     }

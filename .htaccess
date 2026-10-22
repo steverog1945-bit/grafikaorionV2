@@ -19,8 +19,25 @@
     RewriteRule ^(app|bootstrap|config|database|routes|resources|tests|docs|scripts|vendor|node_modules|storage|backups|\.claude)(/|$) - [F,L,NC]
     # 3) Ekstensi sensitif di mana pun di luar public/
     RewriteRule ^(?!public/).*\.(sql|log|ini|md|lock|json|txt|bak|dump|sh|bat|cmd|ps1|yml|yaml|xml|dist|env|zip|gz|7z|rar|tar|old|orig|swp)$ - [F,L,NC]
+    
     # 4) Skrip internal & berkas kerja di root
     RewriteRule ^(artisan|phpunit\.xml|vite\.config\.js)$ - [F,L,NC]
+    # 5) Skrip PHP di luar public/ TIDAK BOLEH dieksekusi lewat browser.
+    #
+    #    Celah ini nyata dan sudah exploited: front controller di bawah hanya
+    #    mengambil alih berkas yang TIDAK ada di disk (RewriteCond !-f), jadi
+    #    setiap .php yang tersimpan di root akan dieksekusi Apache langsung.
+    #    Aturan 3 di atas tidak menangkap .php, dan menambahkannya ke daftar
+    #    ekstensi terlarang pun TIDAK akan menutup celah ini - .php bukan
+    #    sekadar berkas data, dia berkas yang dijalankan.
+    #
+    #    Dikonfirmasi dengan eksekusi nyata: _update_harga.php dipanggil lewat
+    #    HTTP dan menulis ke database operasional oriondb.
+    #
+    #    Pengecualian hanya index.php (front controller) dan apa pun di bawah
+    #    public/, yang punya .htaccess sendiri.
+    
+    RewriteRule ^(?!public/)(?!index\.php$).*\.php$ - [F,L,NC]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

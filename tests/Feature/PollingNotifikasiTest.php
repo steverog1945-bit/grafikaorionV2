@@ -75,7 +75,7 @@ class PollingNotifikasiTest extends TestCase
         $idTransaksi = \Illuminate\Support\Facades\DB::table('transaksi')->insertGetId([
             'nomor_nota' => 'TEST-001', 'tipe_order' => 'Reguler', 'id_konsumen' => $konsumen,
             'id_user_kasir' => $admin->id_user, 'tgl_order' => now(), 'total_bayar' => 0,
-            'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif',
+            'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir',
         ]);
         \Illuminate\Support\Facades\DB::table('transaksi_detail')->insert([
             'id_transaksi' => $idTransaksi, 'nama_file' => 'test.pdf', 'p_ukuran' => 1, 'l_ukuran' => 1,

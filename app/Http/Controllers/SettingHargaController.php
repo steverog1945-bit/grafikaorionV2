@@ -249,14 +249,23 @@ class SettingHargaController extends Controller
      */
     private function tumpangTindih($idProduk, $idGolongan, $min, $max, $excludeId = null): bool
     {
-        return DB::table('setting_harga')
-            ->where('id_produk', $idProduk)
-            ->where('id_golongan', $idGolongan)
-            ->when($excludeId, fn ($q) => $q->where('id_harga', '!=', $excludeId))
-            ->where('range_min', '<=', $max ?? 999999999)
-            ->where(function ($q) use ($min) {
-                $q->whereNull('range_max')->orWhere('range_max', '>=', $min);
-            })
-            ->exists();
+        // Arahkan ke implementasi bersama supaya aturan "satu tier per rentang"
+        // hanya ada satu di aplikasi ini. Audit C1 menemukan aturan ini hanya
+        // ada di SettingHargaController, sementara finishing_harga dan
+        // jasa_harga tidak punya sama sekali - padahal ketiganya punya form
+        // tier dengan cara yang persis sama.
+        //
+        // Kolom primary key tabel ini bukan "id" melainkan id_harga, jadi
+        // diteruskan secara eksplisit.
+        return \App\Support\CekRentangHarga::tumpangTindih(
+            'setting_harga',
+            'id_produk',
+            $idProduk,
+            ['id_golongan' => $idGolongan],
+            $min,
+            $max,
+            $excludeId,
+            'id_harga'
+        );
     }
 }

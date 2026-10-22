@@ -57,7 +57,7 @@ class KembalianTest extends TestCase
         $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $id = DB::table('transaksi')->insertGetId([
             'nomor_nota' => 'INV-KMB-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => $this->admin->id_user,
-            'tgl_order' => now(), 'total_bayar' => 80000, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_collecting' => 'Belum Diambil',
+            'tgl_order' => now(), 'total_bayar' => 80000, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir', 'status_collecting' => 'Belum Diambil',
         ]);
         DB::table('transaksi_detail')->insert([
             'id_transaksi' => $id, 'nama_file' => 'Id Card', 'p_ukuran' => 0, 'l_ukuran' => 0, 'qty' => 10, 'status_urgent' => 0,

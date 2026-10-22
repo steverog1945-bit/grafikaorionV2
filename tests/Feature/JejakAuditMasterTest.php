@@ -134,6 +134,8 @@ class JejakAuditMasterTest extends TestCase
             'items' => [['id_produk' => $idProduk, 'nama_file' => 'a.pdf', 'p' => 0, 'l' => 0, 'qty_input' => 5, 'biaya_cetak' => 50000]],
         ])->assertOk();
         $idTrx = (int) DB::table('transaksi')->value('id_transaksi');
+        // Flow baru: kasir terima dulu sebelum bisa membayar.
+        $this->post(route('kasir.terimaTransaksi', $idTrx), ['submit_id' => 'uji-terima-1'])->assertSessionHas('success');
 
         $payload = ['id_transaksi' => $idTrx, 'jumlah_bayar' => '20.000', 'metode_pembayaran' => 'Tunai', 'submit_id' => 'uji-123'];
         $this->post('/kasir/proses-bayar', $payload);

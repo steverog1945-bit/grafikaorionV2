@@ -54,6 +54,8 @@ class CollectingController extends Controller
         }
 
         // Perf dataset besar: rentang sargable (DATE() mematikan index tgl_order).
+                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
+                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
         if ($request->filled('tgl_dari')) {
             $query->where('transaksi.tgl_order', '>=', $request->tgl_dari . ' 00:00:00');
         }

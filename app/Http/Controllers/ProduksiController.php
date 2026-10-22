@@ -17,11 +17,17 @@ class ProduksiController extends Controller
      */
     public function index(Request $request)
     {
+        // §8I: tolak format tanggal yang rusak sebelum dipakai di
+        // Carbon::parse() di bawah - tanpa ini input rusak melempar 500.
+        $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
+
         $query = DB::table('transaksi_detail')
             ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->join('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
             ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
+            ->where('transaksi.status_nota', 'Aktif')
+            ->where('transaksi.status_order', 'Diterima Kasir')
             ->select(
                 'transaksi_detail.id_detail',
                 'transaksi_detail.nama_file',
@@ -95,9 +101,39 @@ class ProduksiController extends Controller
 
         $produksi = $query->orderByDesc('transaksi_detail.id_detail')->paginate(20)->withQueryString();
 
-        $jumlahAntreAwal = DB::table('transaksi_detail')->whereIn('status_spk', ['Desain', 'Cetak'])->count();
+        $jumlahAntreAwal = DB::table('transaksi_detail as d')
+            ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+            ->whereIn('d.status_spk', ['Desain', 'Cetak'])
+            ->where('t.status_nota', 'Aktif')
+            ->where('t.status_order', 'Diterima Kasir')
+            ->count();
 
         return view('produksi.index', compact('produksi', 'jumlahAntreAwal', 'divisis'));
+    }
+
+    /**
+     * Gate order lifecycle untuk mutasi produksi - induk transaksi wajib
+     * status_order='Diterima Kasir'.
+     */
+    private static function pastikanOrderDiterima(int $idDetail): ?string
+    {
+        $order = DB::table('transaksi_detail as d')
+            ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+            ->where('d.id_detail', $idDetail)
+            ->select('t.status_nota', 't.status_order', 't.nomor_nota')
+            ->first();
+
+        if (!$order) {
+            return 'Item SPK tidak ditemukan.';
+        }
+        if (($order->status_nota ?? null) === 'Dibatalkan' || ($order->status_order ?? null) === 'Dibatalkan') {
+            return "Nota {$order->nomor_nota} sudah dibatalkan - produksi tidak bisa diproses.";
+        }
+        if (($order->status_order ?? 'Menunggu Kasir') !== 'Diterima Kasir') {
+            return "Nota {$order->nomor_nota} belum diterima Kasir - produksi belum aktif.";
+        }
+
+        return null;
     }
 
     public function simpanQty(Request $request, $id)
@@ -117,6 +153,10 @@ class ProduksiController extends Controller
 
             if (!$detail) {
                 $pesanError = 'Item SPK tidak ditemukan.';
+                return;
+            }
+
+            if ($pesanError = self::pastikanOrderDiterima((int) $id)) {
                 return;
             }
 
@@ -162,10 +202,17 @@ class ProduksiController extends Controller
                 return;
             }
 
+            if ($pesanError = self::pastikanOrderDiterima((int) $id)) {
+                return;
+            }
+
             if (in_array($detail->status_spk, ['Selesai', 'Batal'])) {
                 $pesanError = 'Item ini sudah ' . $detail->status_spk . '.';
                 return;
             }
+
+            // §9: tolak transisi SPK yang tidak sah ke Selesai.
+            \App\Services\StatusTransitionGuard::validateStatusSpk((string) $detail->status_spk, 'Selesai');
 
             DB::table('transaksi_detail')->where('id_detail', $id)->update([
                 // Kalau qty_cetak belum pernah diisi, dianggap sesuai qty order.
@@ -233,10 +280,17 @@ class ProduksiController extends Controller
                 return;
             }
 
+            if ($pesanError = self::pastikanOrderDiterima((int) $id)) {
+                return;
+            }
+
             if (in_array($detail->status_spk, ['Selesai', 'Batal'])) {
                 $pesanError = 'Item ini sudah ' . $detail->status_spk . ', tidak bisa dibatalkan.';
                 return;
             }
+
+            // §9: tolak transisi SPK yang tidak sah sebelum ubah status.
+            \App\Services\StatusTransitionGuard::validateStatusSpk((string) $detail->status_spk, $statusBaru);
 
             DB::table('transaksi_detail')->where('id_detail', $id)->update([
                 'status_spk' => $statusBaru,
@@ -309,7 +363,12 @@ class ProduksiController extends Controller
      */
     public function cekAntrianBaru()
     {
-        $total = DB::table('transaksi_detail')->whereIn('status_spk', ['Desain', 'Cetak'])->count();
+        $total = DB::table('transaksi_detail as d')
+            ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+            ->whereIn('d.status_spk', ['Desain', 'Cetak'])
+            ->where('t.status_nota', 'Aktif')
+            ->where('t.status_order', 'Diterima Kasir')
+            ->count();
         return response()->json(['total' => $total]);
     }
 }

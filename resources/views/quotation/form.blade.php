@@ -178,8 +178,9 @@
                         <x-button type="submit" variant="danger"><i class="fas fa-times"></i> Pelanggan Menolak</x-button></form>
                 @endif
 
-                @if(($quotation->status === 'Terkirim' && $efektif !== 'Kedaluwarsa') || $quotation->status === 'Disetujui')
-                    <x-button :href="route('penjualan.create', ['quotation' => $quotation->id])" variant="primary"><i class="fas fa-shopping-cart"></i> Buat Order dari Penawaran</x-button>
+                @if($quotation->status === 'Disetujui')
+                    <form method="POST" action="{{ route('quotation.buat-nota', $quotation->id) }}">@csrf
+                        <x-button type="submit" variant="primary"><i class="fas fa-receipt"></i> Buat Nota dari Penawaran</x-button></form>
                 @endif
 
                 @if($quotation->status === 'Menjadi Order' && $quotation->id_transaksi)

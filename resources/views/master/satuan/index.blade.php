@@ -102,7 +102,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="px-8 py-20 text-center text-slate-300  text-sm">Belum ada data satuan.</td>
+                        <td colspan="4" class="px-8 py-20 text-center text-slate-500  text-sm">Belum ada data satuan.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -177,8 +177,8 @@
             html: `Satuan <b>${escHtml(nama)}</b> akan dihapus permanen.<br><small class="text-amber-600 font-medium">Perhitungan konversi stok yang menggunakan satuan ini mungkin akan kacau.</small>`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f8fafc',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#FAFBF9',
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
             customClass: {

@@ -79,9 +79,29 @@ class ProduksiCekCommand extends Command
             ? $this->catat('OK', 'Berkas', 'public/storage tersedia')
             : $this->catat('GAGAL', 'Berkas', 'public/storage belum ada: gambar/berkas unggahan tidak tampil', 'php artisan storage:link');
 
-        is_file(base_path('bootstrap/cache/config.php'))
-            ? $this->catat('OK', 'Performa', 'Konfigurasi ter-cache')
-            : $this->catat('WASPADA', 'Performa', 'Konfigurasi belum di-cache', 'php artisan config:cache (jalankan ulang setiap .env berubah).');
+        // Cache konfigurasi. Dua hal yang harus dicek di sini, karena
+        // keduanya pernah jadi penyebab error 500 untuk pengguna:
+        //   - cache yang menunjuk DATABASE UJI: aplikasi web lalu melayani
+        //     permintaan ke database test, tempat tabelnya belum lengkap ->
+        //     "table doesn't exist" / "unknown column" di semua halaman.
+        //   - cache yang TIDAK PUNYA app.key: berarti berkasnya rusak atau
+        //     terpotong -> "No application encryption key has been specified".
+        $pathCache = base_path('bootstrap/cache/config.php');
+        if (is_file($pathCache)) {
+            $cache = @include $pathCache;
+            $dbCache = (string) (is_array($cache) ? ($cache['database']['connections']['mysql']['database'] ?? '') : '');
+            $keyCache = is_array($cache) ? (string) ($cache['app']['key'] ?? '') : '';
+
+            if ($keyCache === '') {
+                $this->catat('GAGAL', 'Aplikasi', 'Cache konfigurasi tidak punya app.key (berkas rusak/terpotong)', 'php artisan config:clear lalu php artisan app:config-cache');
+            } elseif (preg_match('/testing|_test|_uji/i', $dbCache)) {
+                $this->catat('GAGAL', 'Aplikasi', "Cache konfigurasi menunjuk database uji ({$dbCache})", 'php artisan config:clear, lalu bangun ulang dengan php artisan app:config-cache');
+            } else {
+                $this->catat('OK', 'Aplikasi', "Cache konfigurasi aman (database {$dbCache})");
+            }
+        } else {
+            $this->catat('WASPADA', 'Performa', 'Konfigurasi belum di-cache', 'Di server produksi: php artisan app:config-cache. Di komputer development JANGAN di-cache - konfigurasi ter-cache mengalahkan phpunit.xml sehingga test bisa mengosongkan database asli.');
+        }
 
         // Zona waktu: PHP (aplikasi) dan MySQL harus menunjuk jam yang sama.
         try {

@@ -526,7 +526,7 @@ public function pelunasan(Request $request, $id)
             $request->input('keterangan')
         );
 
-        return redirect()->back()->with('success', 'Pembayaran hutang Rp ' . number_format($nominal, 0, ',', '.') . ' berhasil dicatat.');
+        return redirect()->back()->with('success', 'Pembayaran hutang Rp ' . \App\Support\Angka::format($nominal, 2) . ' berhasil dicatat.');
     } catch (\Exception $e) {
         return redirect()->back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal membayar'));
     }
@@ -579,7 +579,7 @@ public function bayarSupplier(Request $request, $idSupplier)
         return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal membayar'));
     }
 
-    return back()->with('success', 'Pembayaran hutang Rp ' . number_format((float) $data['nominal'], 0, ',', '.') . ' dibagi ke ' . count($hasil) . ' faktur: ' . collect($hasil)->map(fn ($h) => "{$h['no_faktur']} (Rp " . number_format($h['nominal'], 0, ',', '.') . ')')->implode(', ') . '.');
+    return back()->with('success', 'Pembayaran hutang Rp ' . \App\Support\Angka::format((float) $data['nominal'], 2) . ' dibagi ke ' . count($hasil) . ' faktur: ' . collect($hasil)->map(fn ($h) => "{$h['no_faktur']} (Rp " . \App\Support\Angka::format((float) $h['nominal'], 2) . ')')->implode(', ') . '.');
 }
 
 public function getKedatanganDetail(Request $request)

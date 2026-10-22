@@ -84,6 +84,14 @@ class AksesController extends Controller
         $validated = $request->validate([
             'role_id' => ['required', 'integer', 'exists:roles,id_role'],
             'boleh_lihat_harga' => ['nullable', 'boolean'],
+            // Hak menginput Biaya Desain - SENGAJA terpisah dari boleh_lihat_harga.
+            // Role Operator Desain bekerja di desain tapi tidak boleh melihat harga,
+            // jadi memakai centang "boleh melihat harga" hanya demi satu field itu
+            // akan memberi izin jauh melebihi kebutuhan (buka semua harga produk,
+            // cetak, finishing, dan halaman harga). Nilai baru TIDAK ikut masuk
+            // ke versiRole() di bawah - mengubah centang ini tidak mengubah isi
+            // matriks hak akses, jadi tidak boleh menggagalkan optimistic locking.
+            'boleh_input_biaya_desain' => ['nullable', 'boolean'],
         ]);
 
         $role = Role::findOrFail((int) $validated['role_id']);
@@ -96,7 +104,15 @@ class AksesController extends Controller
         }
         $matriks = $this->bacaMatriks($request);
 
-        DB::transaction(function () use ($role, $matriks, $request) {
+        // $validated WAJIB ikut ditangkap. Closure PHP tidak mewarisi variabel lokal
+        // secara otomatis: tanpa baris ini, $validated di dalam closure
+        // undefined -> null -> `?? false` selalu jatuh ke false, jadi kedua
+        // centang (boleh_lihat_harga DAN boleh_input_biaya_desain) selalu
+        // tersimpan 0 apa pun yang diklik. Bug lama: baris boleh_lihat_harga
+        // sudah ters seperti ini sejak awal, hanya saja tidak ada test yang
+        // menyentuh jalur simpan form ini - nilainya di database selalu diisi
+        // langsung. Baris boleh_input_biaya_desain mewarisi bug yang sama.
+        DB::transaction(function () use ($role, $matriks, $validated) {
             DB::table('role_permissions')->where('id_role', $role->id_role)->delete();
             $baris = [];
             foreach ($matriks as $idMenu => $f) {
@@ -108,6 +124,10 @@ class AksesController extends Controller
                 DB::table('role_permissions')->insert($baris);
             }
             $role->boleh_lihat_harga = $role->nama_role === 'Administrator' || (bool) ($validated['boleh_lihat_harga'] ?? false);
+            // Administrator tetap selalu boleh; role lain mengikuti centang.
+            // Tidak dikunci oleh $hargaTerkunci: role yang tidak boleh melihat
+            // harga pun boleh menginput Biaya Desain kalau dicentang.
+            $role->boleh_input_biaya_desain = $role->nama_role === 'Administrator' || (bool) ($validated['boleh_input_biaya_desain'] ?? false);
             $role->save();
         });
 

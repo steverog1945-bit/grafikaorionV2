@@ -47,6 +47,58 @@ class DashboardController extends Controller
     }
 
     /**
+     * API JSON untuk KPI dashboard real-time (polling dari blade via fetch).
+     * Hanya mengembalikan angka kunci - tanpa HTML - supaya ringan dan cepat.
+     */
+    public function kpiApi()
+    {
+        $today = now()->format('Y-m-d');
+        [$mulaiHariIni, $akhirHariIni] = self::rentangHari($today);
+        [$mulaiKemarin, $akhirKemarin] = self::rentangHari(now()->subDay()->format('Y-m-d'));
+
+        $piutangRow = DB::table('transaksi')
+            ->where('status_pembayaran', '!=', 'Lunas')
+            ->where('status_nota', '!=', 'Dibatalkan')
+            ->selectRaw('COALESCE(SUM(GREATEST(0, total_bayar - COALESCE((SELECT SUM(pr.nominal) FROM pembayaran_riwayat pr WHERE pr.id_transaksi = transaksi.id_transaksi), 0))), 0) as total, COUNT(*) as jumlah')
+            ->first();
+
+        $orderHariIni = DB::table('transaksi')->whereBetween('tgl_order', [$mulaiHariIni, $akhirHariIni])->where('status_nota', '!=', 'Dibatalkan')->count();
+        $nilaiOrderHariIni = (float) DB::table('transaksi')->whereBetween('tgl_order', [$mulaiHariIni, $akhirHariIni])->where('status_nota', '!=', 'Dibatalkan')->sum('total_bayar');
+
+        $statusSpk = DB::table('transaksi_detail')
+            ->select('status_spk', DB::raw('COUNT(*) as jumlah'))
+            ->groupBy('status_spk')
+            ->pluck('jumlah', 'status_spk');
+        $spkAntre = (int) ($statusSpk['Antre'] ?? 0);
+        $spkProses = (int) (($statusSpk['Desain'] ?? 0) + ($statusSpk['Cetak'] ?? 0));
+        $spkSelesai = (int) ($statusSpk['Selesai'] ?? 0);
+
+        $urgentAktif = DB::table('transaksi_detail')
+            ->where('status_urgent', 1)
+            ->whereNotIn('status_spk', ['Selesai', 'Batal'])
+            ->count();
+
+        $kasMasukHariIni = (float) self::uangMasuk($mulaiHariIni, $akhirHariIni);
+
+        $kasAktifSemua = KasSesiService::aktif();
+        $kasAktif = $kasAktifSemua ? (bool) $kasAktifSemua : false;
+
+        return response()->json([
+            'piutang' => (float) ($piutangRow->total ?? 0),
+            'piutang_count' => (int) ($piutangRow->jumlah ?? 0),
+            'order_hari_ini' => (int) $orderHariIni,
+            'nilai_order_hari_ini' => $nilaiOrderHariIni,
+            'kas_masuk_hari_ini' => $kasMasukHariIni,
+            'spk_antre' => $spkAntre,
+            'spk_proses' => $spkProses,
+            'spk_selesai' => $spkSelesai,
+            'urgent_aktif' => (int) $urgentAktif,
+            'kas_aktif' => $kasAktif,
+            'updated_at' => now()->toDateTimeString(),
+        ]);
+    }
+
+    /**
      * Dashboard penuh - Administrator & Kasir (satu-satunya role yang boleh
      * lihat nominal, sesuai instruksi eksplisit). Logika sama persis dengan
      * versi sebelum dashboard dipecah per role.

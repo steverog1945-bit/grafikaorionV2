@@ -13,7 +13,12 @@ class Role extends Model
     protected $primaryKey = 'id_role';
     public $timestamps = false;
 
-    protected $casts = ['boleh_lihat_harga' => 'boolean'];
+    protected $fillable = ['nama_role'];
+
+    protected $casts = [
+        'boleh_lihat_harga' => 'boolean',
+        'boleh_input_biaya_desain' => 'boolean',
+    ];
 
     public function menus()
     {

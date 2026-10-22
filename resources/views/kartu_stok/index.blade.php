@@ -5,7 +5,7 @@
 
     <x-page-header title="Kartu Stok">
         <x-slot:subtitle>
-            Bahan Baku &amp; Logistik <span class="mx-1 text-slate-300">/</span> Riwayat Pergerakan Stok per Bahan
+            Bahan Baku &amp; Logistik <span class="mx-1 text-slate-500">/</span> Riwayat Pergerakan Stok per Bahan
         </x-slot:subtitle>
         <x-slot:actions>
             <x-button onclick="openModal('penyesuaian-stok')">
@@ -152,7 +152,7 @@
                         <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($b->mutasi_terakhir)->translatedFormat('d M Y') }}</span>
                         <span class="block text-[10px] text-slate-400">{{ $b->jumlah_mutasi }} mutasi</span>
                     @else
-                        <span class="text-[11px] text-slate-300 italic">Belum ada</span>
+                        <span class="text-[11px] text-slate-500 italic">Belum ada</span>
                     @endif
                 </td>
                 <td class="px-8 py-5 text-center">

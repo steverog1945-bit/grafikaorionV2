@@ -31,6 +31,7 @@ class SpkController extends Controller
             ->join('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
             ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
             ->where('transaksi.status_nota', 'Aktif')
+            ->where('transaksi.status_order', 'Diterima Kasir')
             ->select(
                 'transaksi_detail.id_detail',
                 'transaksi_detail.nama_file',
@@ -46,6 +47,60 @@ class SpkController extends Controller
                 'mesin.nama_mesin as divisi',
                 DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as pembuat_nota')
             );
+
+        // --- FILTER TANGGAL ---
+        // Halaman ini adalah antrean kerja harian, jadi tanpa parameter dari
+        // operator rentangnya HARI INI. Default itu disengaja, tapi WAJIB
+        // ikut tertulis di form filter (lihat resources/views/spk/index.blade.php):
+        // filter yang aktif tapi tidak kelihatan membuat operator mengira
+        // tabelnya kosong, padahal order-nya cuma tersaring.
+        $hariIni = now()->startOfDay();                  // 00:00:00 hari ini (Asia/Jakarta)
+        $hariEsok = $hariIni->copy()->addDay();           // 00:00:00 esok
+
+        $tglDari = $request->filled('tgl_dari')
+            ? \Carbon\Carbon::parse($request->tgl_dari)->startOfDay()
+            : $hariIni->copy();
+
+        // $tglSampai selalu berarti "hari terakhir yang diperiksa", bukan batas
+        // atas. Sebelumnya defaultnya $hariEsok sementara isian form memakai
+        // endOfDay(), jadi dua jalur itu menghitung batas atas berbeda.
+        $tglSampai = $request->filled('tgl_sampai')
+            ? \Carbon\Carbon::parse($request->tgl_sampai)->endOfDay()
+            : $hariIni->copy()->endOfDay();
+
+        // Form bisa mengirim tgl_dari > tgl_sampai. Tukar supaya rentangnya
+        // tetap sah, bukan kosong tanpa penjelasan.
+        if ($tglDari->gt($tglSampai)) {
+            $tmp = $tglDari;
+            $tglDari = $tglSampai;
+            $tglSampai = $tmp;
+        }
+
+        // Batas atas eksklusif = 00:00:00 hari setelah tglSampai.
+        // Dihitung di Carbon lalu diformat, BUKAN menempelkan ' +1 day' ke
+        // string hasil format(). MySQL membaca bagian depan saja lalu
+        // diam-diam membuang sisanya (Warning 1292), sehingga batasnya turun
+        // menjadi < 23:59:59 dan order pada detik terakhir hilang.
+        $batasAtas = $tglSampai->copy()->addDay()->startOfDay()->format('Y-m-d H:i:s');
+
+        $tunggakanAktif = $request->boolean('tunggakan_aktif')
+            && !$request->filled('tgl_dari')
+            && !$request->filled('tgl_sampai');
+
+        if ($tunggakanAktif) {
+            // "Tunggakan Aktif" menggantikan rentang tanggal, bukan ditumpuk
+            // dengannya. Sebelumnya keduanya selalu dipasang bersamaan, jadi
+            // syarat ">= hari ini" (rentang tanggal) dan "< hari ini" (tunggakan)
+            // saling meniadakan dan checkbox ini tidak pernah bisa mengembalikan
+            // satu baris pun. Sekarang operator menandainya untuk melihat order
+            // LAMA yang belum selesai, bukan order hari ini.
+            $query->where('transaksi.tgl_order', '<', $hariIni->format('Y-m-d H:i:s'));
+            $query->whereIn('transaksi_detail.status_spk', ['Antre', 'Desain', 'Cetak', 'Pending']);
+            $query->whereNotIn('transaksi_detail.status_spk', ['Batal', 'Selesai']);
+        } else {
+            $query->where('transaksi.tgl_order', '>=', $tglDari->format('Y-m-d H:i:s'));
+            $query->where('transaksi.tgl_order', '<', $batasAtas);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -91,6 +146,35 @@ class SpkController extends Controller
         // bukan hard-code. Submenu akan otomatis bertambah kalau ada mesin/divisi baru.
         $divisis = \App\Services\DivisiService::daftar($mesinDiizinkan, ['Antre']);
 
+        // Berapa pekerjaan yang MASIH antre tapi tidak terlihat, semata karena
+        // tgl_order-nya di luar rentang tanggal yang sedang aktif.
+        //
+        // Kenapa perlu dihitung: halaman ini terbuka di rentang HARI INI,
+        // sedangkan lonceng notifikasi sengaja menghitung seluruh pekerjaan
+        // yang menunggu tanpa memfilter tanggal (lihat NotifikasiService).
+        // Tanpa angka ini, operator melihat lonceng berbunyi lalu membuka
+        // halaman dan mendapati tabel kosong, lalu menyimpulkan SPK-nya hilang
+        // padahal masih menggantung. Diberi tahu lewat angka, operator bisa
+        // sendiri memutuskan mau membuka rentang tanggalnya.
+        //
+        // Mode Tunggakan Aktif tidak memakai rentang tanggal sama sekali, jadi
+        // tidak ada yang bisa tertinggal di sana.
+        $tertinggal = 0;
+        if (! $tunggakanAktif) {
+            $tertinggal = DB::table('transaksi_detail')
+                ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
+                ->join('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+                ->where('transaksi_detail.status_spk', 'Antre')
+                ->where('transaksi.status_nota', 'Aktif')
+                ->where('transaksi.status_order', 'Diterima Kasir')
+                ->where(function ($q) use ($tglDari, $batasAtas) {
+                    $q->where('transaksi.tgl_order', '<', $tglDari->format('Y-m-d H:i:s'))
+                      ->orWhere('transaksi.tgl_order', '>=', $batasAtas);
+                })
+                ->when($mesinDiizinkan, fn ($q) => $q->whereIn('produk.id_mesin', $mesinDiizinkan))
+                ->count();
+        }
+
         // Jumlah SAAT halaman dimuat - pembanding untuk x-polling-notifikasi,
         // pakai query PERSIS sama dengan cekAntrianBaru() supaya banner
         // tidak salah muncul di awal (lihat catatan di komponennya).
@@ -98,9 +182,37 @@ class SpkController extends Controller
             ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
             ->where('transaksi_detail.status_spk', 'Antre')
             ->where('transaksi.status_nota', 'Aktif')
+            ->where('transaksi.status_order', 'Diterima Kasir')
+            ->where('transaksi.tgl_order', '>=', $hariIni->format('Y-m-d H:i:s'))
+            ->where('transaksi.tgl_order', '<', $hariEsok->format('Y-m-d H:i:s'))
             ->count();
 
-        return view('spk.index', compact('spk', 'divisis', 'jumlahAntreAwal'));
+        return view('spk.index', compact('spk', 'divisis', 'jumlahAntreAwal', 'tglDari', 'tglSampai', 'tertinggal', 'tunggakanAktif'));
+    }
+
+    /**
+     * Gate order lifecycle untuk SEMUA mutasi SPK: induk transaksi wajib
+     * status_order='Diterima Kasir'. Mencegah bypass filter UI via URL/request manual.
+     */
+    private static function pastikanOrderDiterima(int $idDetail): ?string
+    {
+        $order = DB::table('transaksi_detail as d')
+            ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+            ->where('d.id_detail', $idDetail)
+            ->select('t.status_nota', 't.status_order', 't.nomor_nota')
+            ->first();
+
+        if (!$order) {
+            return 'Item SPK tidak ditemukan.';
+        }
+        if (($order->status_nota ?? null) === 'Dibatalkan' || ($order->status_order ?? null) === 'Dibatalkan') {
+            return "Nota {$order->nomor_nota} sudah dibatalkan - SPK tidak bisa diproses.";
+        }
+        if (($order->status_order ?? 'Menunggu Kasir') !== 'Diterima Kasir') {
+            return "Nota {$order->nomor_nota} belum diterima Kasir - SPK belum aktif.";
+        }
+
+        return null;
     }
 
     public function toggleUrgent($id)
@@ -109,6 +221,10 @@ class SpkController extends Controller
 
         if (!$detail) {
             return back()->with('error', 'Item SPK tidak ditemukan.');
+        }
+
+        if ($pesan = self::pastikanOrderDiterima((int) $id)) {
+            return back()->with('error', $pesan);
         }
 
         DB::table('transaksi_detail')->where('id_detail', $id)->update([
@@ -126,39 +242,23 @@ class SpkController extends Controller
             return back()->with('error', 'Tidak ada data dipilih.');
         }
 
-        DB::table('transaksi_detail')->whereIn('id_detail', $ids)->update([
+        $boleh = DB::table('transaksi_detail as d')
+            ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+            ->whereIn('d.id_detail', $ids)
+            ->where('t.status_nota', 'Aktif')
+            ->where('t.status_order', 'Diterima Kasir')
+            ->pluck('d.id_detail')
+            ->all();
+
+        if ($boleh === []) {
+            return back()->with('error', 'Item yang dipilih belum diterima Kasir - SPK belum aktif.');
+        }
+
+        DB::table('transaksi_detail')->whereIn('id_detail', $boleh)->update([
             'status_urgent' => true,
         ]);
 
-        return back()->with('success', count($ids) . ' item ditandai urgent.');
-    }
-
-    /**
-     * Versi bulk dari ambilPekerjaan() - hanya menyentuh item yang masih
-     * berstatus 'Antre' (whereIn + where sekaligus, satu query) supaya item
-     * yang sudah diambil/diproses orang lain di antara waktu checkbox
-     * dicentang dan tombol ditekan tidak ikut ter-overwrite.
-     */
-    public function bulkAmbil(Request $request)
-    {
-        $ids = $request->ids;
-
-        if (!$ids) {
-            return back()->with('error', 'Tidak ada data dipilih.');
-        }
-
-        $diambil = DB::table('transaksi_detail')
-            ->whereIn('id_detail', $ids)
-            ->where('status_spk', 'Antre')
-            ->update(['status_spk' => 'Desain']);
-
-        $dilewati = count($ids) - $diambil;
-        $pesan = "{$diambil} pekerjaan diambil, sekarang ada di halaman Produksi.";
-        if ($dilewati > 0) {
-            $pesan .= " {$dilewati} item dilewati karena sudah diambil/diproses sebelumnya.";
-        }
-
-        return back()->with($diambil > 0 ? 'success' : 'error', $pesan);
+        return back()->with('success', count($boleh) . ' item ditandai urgent.');
     }
 
     /**
@@ -170,8 +270,12 @@ class SpkController extends Controller
      */
     public function ambilPekerjaan($id)
     {
+        if ($pesan = self::pastikanOrderDiterima((int) $id)) {
+            return back()->with('error', $pesan);
+        }
+
         // UPDATE...WHERE satu query atomik (pola sama seperti bulkAmbil() di
-        // atas) - bukan cek-lalu-update terpisah, supaya dua klik "Ambil
+        // atas) - tidak cek-lalu-update terpisah, supaya dua klik "Ambil
         // Pekerjaan" nyaris bersamaan pada item yang sama tidak bisa
         // sama-sama lolos cek status 'Antre' yang sudah basi.
         $diambil = DB::table('transaksi_detail')
@@ -209,12 +313,19 @@ class SpkController extends Controller
             return back()->with('error', 'Item ini bukan status Pending (status saat ini: ' . $detail->status_spk . ').');
         }
 
+        if ($pesan = self::pastikanOrderDiterima((int) $id)) {
+            return back()->with('error', $pesan);
+        }
+
         $tindakan = $request->input('tindakan');
         if (!in_array($tindakan, ['antre', 'batal'])) {
             return back()->with('error', 'Tindakan tidak valid.');
         }
 
         $statusBaru = $tindakan === 'antre' ? 'Antre' : 'Batal';
+
+        // §9: guard transisi SPK dari Pending ke Antre/Batal.
+        \App\Services\StatusTransitionGuard::validateStatusSpk((string) $detail->status_spk, $statusBaru);
 
         DB::table('transaksi_detail')->where('id_detail', $id)->update([
             'status_spk' => $statusBaru,
@@ -231,42 +342,42 @@ class SpkController extends Controller
      * Cetak SPK (thermal/A4) - dipakai sebagai surat kerja saat produksi
      * berjalan maupun sebagai bukti selesai setelah status_spk = Selesai.
      * Satu view melayani kedua kebutuhan karena datanya sama, hanya status
-     * yang beda.
+     * yang berbeda.
      */
-    /** SPK lengkap (dicetak desainer) - hanya untuk produk yang ditandai 'Cetak SPK lengkap'. */
-    public function printDesain(Request $request, $id)
+    public function print($id, $format = 'thermal')
     {
-        $ok = DB::table('transaksi_detail as d')->join('produk as p', 'p.id_produk', '=', 'd.id_produk')->where('d.id_detail', $id)->where('p.spk_lengkap', true)->exists();
-        abort_unless($ok, 404, 'Produk ini tidak memakai SPK lengkap.');
-
-        return $this->printSpk($request, $id, 'lengkap');
-    }
-
-    public function printSpk(Request $request, $id, $format = 'a4')
-    {
-        $format = in_array($format, ['thermal', 'lengkap'], true) ? $format : 'a4';
-
-        $detail = DB::table('transaksi_detail')
-            ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
-            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
-            ->join('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
-            ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
-            ->leftJoin('finishing', 'transaksi_detail.id_finishing', '=', 'finishing.id_finishing')
-            ->where('transaksi_detail.id_detail', $id)
-            ->select(
-                'transaksi_detail.*',
-                'transaksi.nomor_nota',
-                'transaksi.tgl_order',
-                'konsumen.nama_konsumen',
-                'produk.nama_produk',
-                'produk.metode_hitung',
-                'produk.spk_lengkap',
-                'konsumen.telepon as telepon_konsumen',
-                'mesin.nama_mesin as divisi',
-                'finishing.nama_finishing',
-                DB::raw('(SELECT COALESCE(k.nama_karyawan, u.username) FROM users u LEFT JOIN karyawan k ON k.id_karyawan = u.id_karyawan WHERE u.id_user = transaksi.id_user_kasir) as pembuat_nota'),
-                DB::raw('(SELECT r.nama_role FROM users u JOIN roles r ON r.id_role = u.id_role WHERE u.id_user = transaksi.id_user_kasir) as role_pembuat')
-            )
+        // Daftar kolom dipilih eksplisit (bukan ->first() tanpa select) supaya
+        // setiap kolom yang dipakai kedua view cetak dijamin ada di hasil
+        // query. Sebelumnya view membaca properti yang TIDAK pernah di-select
+        // (telepon_konsumen, role_pembuat, maker_nota, d.l, d.p, dst) sehingga
+        // halaman cetak SPK lengkap berakhir HTTP 500 dengan
+        // "Undefined property: stdClass::$telepon_konsumen".
+        $detail = DB::table('transaksi_detail as d')
+            ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+            ->join('konsumen as k', 't.id_konsumen', '=', 'k.id_konsumen')
+            ->join('produk as pr', 'd.id_produk', '=', 'pr.id_produk')
+            ->leftJoin('mesin as m', 'pr.id_mesin', '=', 'm.id_mesin')
+            ->join('users as u', 't.id_user_kasir', '=', 'u.id_user')
+            ->leftJoin('karyawan as kr', 'u.id_karyawan', '=', 'kr.id_karyawan')
+            ->leftJoin('roles as r', 'u.id_role', '=', 'r.id_role')
+            ->where('d.id_detail', $id)
+            ->select([
+                'd.*',
+                't.nomor_nota',
+                't.tgl_order',
+                't.total_bayar',
+                't.diskon',
+                't.status_pembayaran',
+                't.id_konsumen as id_konsumen',
+                'k.nama_konsumen as nama_konsumen',
+                'k.telepon as telepon_konsumen',
+                'k.alamat as alamat_konsumen',
+                'pr.nama_produk as nama_produk',
+                'pr.metode_hitung as metode_hitung',
+                'm.nama_mesin as divisi',
+                'kr.nama_karyawan as pembuat_nota',
+                'r.nama_role as role_pembuat',
+            ])
             ->first();
 
         if (!$detail) {
@@ -292,21 +403,223 @@ class SpkController extends Controller
             return view('spk.print-lengkap', compact('detail', 'finishingItems', 'bahan'));
         }
 
-        return view('spk.print', compact('detail', 'format', 'finishingItems'));
+        // $format WAJIB ikut dikirim: partials/print-style.blade.php membaca
+        // $format di dozens tempat untuk menentukan ukuran font, padding, dan
+        // lebar kertas. Tanpa ini halaman cetak SPK thermal berakhir
+        // HTTP 500 ("Undefined variable $format").
+        return view('spk.print', compact('detail', 'finishingItems', 'format'));
     }
 
     /**
-     * Polling notifikasi "ada SPK baru" - dipakai x-polling-notifikasi di
-     * spk/index.blade.php supaya operator tahu ada order baru masuk
-     * antrian dari divisi lain (Input Order) tanpa manual refresh.
+     * SPK LENGKAP untuk tim desain (route 'spk.desain' -> /spk-desain/{id}).
+     *
+     * Alasan method ini ada: route tersebut sempat menunjuk ke
+     * SpkController::printDesain yang TIDAK PERNAH ADA di kelas ini, sehingga
+     * setiap klik "SPK Lengkap" berakhir HTTP 500
+     * ("Call to undefined method SpkController::printDesain()").
+     *
+     * Isinya sengaja memanggil print($id, 'lengkap') supaya ada SATU sumber
+     * data (gambar konsumen, bahan, finishing, perkiraan panjang roll)
+     * dan tidak ada lagi jalur print yang terpisah yang bisa bazelino sendiri.
+     */
+    public function printDesain($id)
+    {
+        // Gate: SPK lengkap hanya untuk produk yang ditandai spk_lengkap di
+        // master produk. Tanpa gate ini, produk yang TIDAK ditanda masih bisa
+        // dibuka lewat URL dan memakai alur cetak lengkap yang mestinya
+        // hanya untuk tim desain.
+        $boleh = DB::table('transaksi_detail as d')
+            ->join('produk as pr', 'd.id_produk', '=', 'pr.id_produk')
+            ->where('d.id_detail', $id)
+            ->value('pr.spk_lengkap');
+
+        if (!$boleh) {
+            abort(404, 'SPK lengkap tidak tersedia untuk produk ini.');
+        }
+
+        return $this->print($id, 'lengkap');
+    }
+
+    /**
+     * Setujui/Pilih finishing untuk item SPK (modal finishinng di halaman SPK).
+     */
+    public function finishing($id)
+    {
+        $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
+
+        if (!$detail) {
+            abort(404, 'Item SPK tidak ditemukan.');
+        }
+
+        $finishing = \App\Models\Finishing::orderBy('nama_finishing')->get();
+
+        return view('spk.finishing', compact('detail', 'finishing'));
+    }
+
+    /**
+     * Terima finishing pilihan dan simpan ke transaksi_detail_finishing.
+     */
+    public function simpanFinishing(Request $request, $id)
+    {
+        $request->validate([
+            'finishing' => 'required|array',
+            'finishing.*.id_finishing' => 'exists:finishing,id_finishing',
+            'finishing.*.status_finishing' => 'required|in:Standar,Custom',
+            'finishing.*.biaya' => 'nullable|numeric|min:0',
+            'finishing.*.catatan' => 'nullable|string|max:255',
+        ]);
+
+        $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
+
+        if (!$detail) {
+            return back()->with('error', 'Item SPK tidak ditemukan.');
+        }
+
+        // Hapus finishing lama untuk item ini
+        DB::table('transaksi_detail_finishing')->where('id_detail', $id)->delete();
+
+        // Simpan finishing baru
+        foreach ($request->finishing as $fin) {
+            DB::table('transaksi_detail_finishing')->insert([
+                'id_detail' => $id,
+                'id_finishing' => $fin['id_finishing'],
+                'status_finishing' => $fin['status_finishing'],
+                'qty_pakai' => $fin['qty_pakai'] ?? null,
+                'biaya' => $fin['biaya'] ?? 0,
+                'catatan' => $fin['catatan'] ?? null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return back()->with('success', 'Finishing berhasil disimpan.');
+    }
+
+    /**
+     * Polling notifikasi "ada item baru masuk Produksi" - operator produksi
+     * tahu ada pekerjaan baru (dipindah dari SPK lewat "Ambil Pekerjaan")
+     * tanpa manual refresh.
      */
     public function cekAntrianBaru()
     {
-        $total = DB::table('transaksi_detail')
-            ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
-            ->where('transaksi_detail.status_spk', 'Antre')
-            ->where('transaksi.status_nota', 'Aktif')
+        $hariIni = now()->startOfDay();
+        $hariEsok = now()->startOfDay()->addDay();
+
+        // Item 'Antre' = pekerjaan yang sudah DITERIMA Kasir tapi belum diambil
+        // operator produksi. Itulah antrean SPK yang perlu dikejutkan lewat
+        // polling. ('Desain'/'Cetak' dipakai endpoint Produksi, karena item
+        // berpindah ke sana setelahoperator menekan "Ambil Pekerjaan".)
+        $total = DB::table('transaksi_detail as d')
+            ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+            ->where('t.status_nota', 'Aktif')
+            ->where('t.status_order', 'Diterima Kasir')
+            ->where('t.tgl_order', '>=', $hariIni->format('Y-m-d H:i:s'))
+            ->where('t.tgl_order', '<', $hariEsok->format('Y-m-d H:i:s'))
+            ->where('d.status_spk', 'Antre')
             ->count();
         return response()->json(['total' => $total]);
+    }
+
+    /**
+     * Ambil Satu Pekerjaan: ambil SPK dari antrean (Antre) ke Produksi
+     * (Desain). Selalu pakai metode POST ke URL ini.
+     */
+    public function ambilSatu($id)
+    {
+        if ($pesan = self::pastikanOrderDiterima((int) $id)) {
+            return back()->with('error', $pesan);
+        }
+
+        $diambil = DB::table('transaksi_detail')
+            ->where('id_detail', $id)
+            ->where('status_spk', 'Antre')
+            ->update(['status_spk' => 'Desain']);
+
+        if ($diambil === 0) {
+            $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
+            if (!$detail) {
+                return back()->with('error', 'Item SPK tidak ditemukan.');
+            }
+            return back()->with('error', 'Item ini sudah diambil/diproses sebelumnya (status: ' . $detail->status_spk . ').');
+        }
+
+        return back()->with('success', 'Pekerjaan diambil, item sekarang ada di halaman Produksi.');
+    }
+
+    /**
+     * Bulk ambil: pindahkan banyak item dari antrean ke produksi sekaligus.
+     */
+    public function bulkAmbil(Request $request)
+    {
+        $ids = $request->ids;
+
+        if (!$ids) {
+            return back()->with('error', 'Tidak ada data dipilih.');
+        }
+
+        // Gate: hanya item dari nota yang sudah diterima kasir.
+        $boleh = DB::table('transaksi_detail as d')
+            ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+            ->whereIn('d.id_detail', $ids)
+            ->where('t.status_nota', 'Aktif')
+            ->where('t.status_order', 'Diterima Kasir')
+            ->pluck('d.id_detail')
+            ->all();
+
+        if ($boleh === []) {
+            return back()->with('error', 'Item yang dipilih belum diterima Kasir - SPK belum aktif.');
+        }
+
+        $diambil = DB::table('transaksi_detail')
+            ->whereIn('id_detail', $boleh)
+            ->where('status_spk', 'Antre')
+            ->update(['status_spk' => 'Desain']);
+
+        $dilewati = count($ids) - $diambil;
+        $pesan = "{$diambil} pekerjaan diambil, sekarang ada di halaman Produksi.";
+        if ($dilewati > 0) {
+            $pesan .= " {$dilewati} item dilewati karena sudah diambil/diproses sebelumnya.";
+        }
+
+        return back()->with($diambil > 0 ? 'success' : 'error', $pesan);
+    }
+
+    /**
+     * Setujui/Pilih finishing untuk item SPK (modal finishinng di halaman SPK).
+     */
+    public function finishingPost(Request $request, $id)
+    {
+        $request->validate([
+            'finishing' => 'required|array',
+            'finishing.*.id_finishing' => 'exists:finishing,id_finishing',
+            'finishing.*.status_finishing' => 'required|in:Standar,Custom',
+            'finishing.*.biaya' => 'nullable|numeric|min:0',
+            'finishing.*.catatan' => 'nullable|string|max:255',
+        ]);
+
+        $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
+
+        if (!$detail) {
+            return back()->with('error', 'Item SPK tidak ditemukan.');
+        }
+
+        // Hapus finishing lama untuk item ini
+        DB::table('transaksi_detail_finishing')->where('id_detail', $id)->delete();
+
+        // Simpan finishing baru
+        foreach ($request->finishing as $fin) {
+            DB::table('transaksi_detail_finishing')->insert([
+                'id_detail' => $id,
+                'id_finishing' => $fin['id_finishing'],
+                'status_finishing' => $fin['status_finishing'],
+                'qty_pakai' => $fin['qty_pakai'] ?? null,
+                'biaya' => $fin['biaya'] ?? 0,
+                'catatan' => $fin['catatan'] ?? null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return back()->with('success', 'Finishing berhasil disimpan.');
     }
 }

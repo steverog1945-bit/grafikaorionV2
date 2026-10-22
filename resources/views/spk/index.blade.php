@@ -7,7 +7,7 @@
 
     <x-page-header title="SPK - Surat Perintah Kerja">
         <x-slot:subtitle>
-            Produksi &amp; Logistik <span class="mx-1 text-slate-300">/</span> Daftar Pekerjaan dari Order
+            Produksi &amp; Logistik <span class="mx-1 text-slate-500">/</span> Daftar Pekerjaan dari Order
         </x-slot:subtitle>
         <x-slot:actions>
             <x-button href="{{ route('produksi.index') }}" variant="secondary">
@@ -31,7 +31,29 @@
                     placeholder="Nama file, konsumen, atau nomor nota..." />
             </div>
 
-            <div class="w-full md:w-52">
+            {{-- Kolom tanggal memakai nilai default dari controller ketika form belum diisi,
+                 sama seperti halaman laporan dan akuntansi. Sebelumnya view
+                 menulis request('tgl_dari') ?? '' sehingga server menyaring
+                 HARI INI sementara kolomnya tampil kosong: operator mengira
+                 tabelnya kosong padahal order-nya cuma tersaring.
+                 Kosongkan kembali saat operator memilih mode yang tidak memakai
+                 rentang tanggal ("Tunggakan Aktif" atau "Tampilkan semua"), agar
+                 tidak menampilkan filter yang diam-diam diabaikan. --}}
+            <div class="w-full md:w-44">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Tanggal Order Dari</label>
+                <input type="date" name="tgl_dari"
+                       value="{{ $tunggakanAktif ? '' : (request('tgl_dari') ?? $tglDari->toDateString()) }}"
+                       class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            </div>
+
+            <div class="w-full md:w-44">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai</label>
+                <input type="date" name="tgl_sampai"
+                       value="{{ $tunggakanAktif ? '' : (request('tgl_sampai') ?? $tglSampai->toDateString()) }}"
+                       class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            </div>
+
+            <div class="w-full md:w-48">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status SPK</label>
                 <x-form.select name="status_spk">
                     <option value="">-- Semua Status --</option>
@@ -47,18 +69,51 @@
                 <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Urgent saja</span>
             </label>
 
+            <div class="flex items-center gap-2 mt-3">
+                <input type="checkbox" name="tunggakan_aktif" value="1" {{ request('tunggakan_aktif') ? 'checked' : '' }}
+                    class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
+                <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Tunggakan Aktif</span>
+            </div>
+
             <x-button type="submit">
                 <i class="fas fa-filter"></i>
                 Filter
             </x-button>
 
-            @if(request()->anyFilled(['search', 'status_spk', 'urgent_only']))
+            @if(request()->anyFilled(['search', 'status_spk', 'urgent_only', 'tgl_dari', 'tgl_sampai', 'tunggakan_aktif']))
                 <a href="{{ route('spk.index', ['divisi' => request('divisi')]) }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
             @endif
         </form>
     </x-card>
+    {{-- Pekerjaan yang masih antre tapi tgl_order-nya di luar rentang tanggal
+         yang sedang aktif. Tanpa pengumuman ini, lonceng notifikasi berbunyi
+         sementara tabel di bawah kosong, lalu operator menyimpulkan SPK-nya
+         hilang padahal masih menggantung.
+
+         Latar ambernya dulu hanya 4.41:1 di mode gelap, di bawah ambang AA.
+         Permukaan peringatan di app.css sudah digelapkan menjadi
+         var(--surface-warning), jadi pasangan ini kini 6.24:1 di gelap dan
+         10.85:1 di terang.
+
+         Sengaja tanpa tautan. Tombol dan tautan di dalam kotak sewarna ini
+         memakai transition, dan ketika tema diganti lewat tombol, warnanya
+         tidak selalu ikut berubah: tautan sempat terukur 1.51:1 di mode terang
+         sampai 1,2 detik setelah tema diganti, dan tetap begitu walau diberi
+         kelas warna eksplisit. Karena tidak bisa dibuktikan aman, pengumuman ini
+         memakai teks saja, yang terukur benar di kedua mode: 6.24:1 di gelap
+         dan 10.85:1 di terang. Jalur membuka pekerjaan tertinggal sudah ada di
+         form filter tepat di atas, lewat checkbox "Tunggakan Aktif". --}}
+    @if ($tertinggal > 0)
+        <div role="status" class="mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+            <i class="fas fa-triangle-exclamation text-amber-600 shrink-0" aria-hidden="true"></i>
+            <p class="text-sm text-amber-900 m-0">
+                {{ $tertinggal }} SPK masih antre di luar rentang tanggal ini.
+                Centang <span class="font-medium">Tunggakan Aktif</span> di form filter di atas untuk melihatnya.
+            </p>
+        </div>
+    @endif
 
     <form id="bulk-action-form" method="POST" action="{{ route('spk.bulk-urgent') }}">
         @csrf
@@ -121,7 +176,7 @@
                     <td class="px-8 py-5 text-center">
                         <div class="flex items-center justify-center gap-2">
                             @if(!$bisaUbah)
-                                <span class="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Hanya lihat</span>
+                                <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Hanya lihat</span>
                             @elseif($item->status_spk === 'Antre')
                                 <x-button type="button" size="icon" variant="ghost" onclick="ambilPekerjaan({{ $item->id_detail }})" class="border border-slate-100 hover:text-emerald-600" title="Ambil Pekerjaan (pindah ke Produksi)">
                                     <i class="fas fa-hand-paper text-xs"></i>
@@ -151,7 +206,7 @@
                 @empty
                 <tr>
                     <td colspan="11">
-                        <x-empty-state title="Belum ada SPK" description="SPK akan muncul otomatis begitu ada order baru dari Kasir." />
+                        <x-empty-state title="Belum ada SPK" description="Sesuaikan filter atau tunggu order baru dari Kasir." />
                     </td>
                 </tr>
                 @endforelse
@@ -209,7 +264,7 @@
             title: 'Tandai Urgent Semua Terpilih?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Tandai',
             cancelButtonText: 'Batal',
             customClass: { popup: 'rounded-2xl' }
@@ -229,7 +284,7 @@
             text: `${checkedCount} item akan pindah dari antrean SPK ke halaman Produksi. Item yang sudah diambil sebelumnya otomatis dilewati.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#4f46e5',
+            confirmButtonColor: '#006C7B',
             confirmButtonText: 'Ya, Ambil Semua',
             cancelButtonText: 'Batal',
             customClass: { popup: 'rounded-2xl' }
@@ -260,7 +315,7 @@
                 : 'Item akan ditandai Batal permanen dan tidak akan diproses lagi.',
             icon: isAntre ? 'question' : 'warning',
             showCancelButton: true,
-            confirmButtonColor: isAntre ? '#4f46e5' : '#e11d48',
+            confirmButtonColor: isAntre ? '#006C7B' : '#93481A',
             confirmButtonText: isAntre ? 'Ya, Kembalikan' : 'Ya, Batalkan',
             cancelButtonText: 'Kembali',
             customClass: { popup: 'rounded-2xl' }
@@ -282,7 +337,7 @@
             text: 'Item akan pindah dari antrean SPK ke halaman Produksi.',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#4f46e5',
+            confirmButtonColor: '#006C7B',
             confirmButtonText: 'Ya, Ambil',
             cancelButtonText: 'Batal',
             customClass: { popup: 'rounded-2xl' }

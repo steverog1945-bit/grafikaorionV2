@@ -88,6 +88,32 @@ class AccountingService
         $baris = [];
 
         DB::transaction(function () use ($lines, $tglJurnal, $noReferensi, $keterangan, $now, &$baris) {
+            // CATATAN PENTING - jangan tambahkan penolak "referensi sudah ada"
+            // di sini.
+            //
+            // Descobaan pertama untuk menutup jurnal ganda memang ditambahkan
+            // di titik ini, dan langsung merusak dua alur keuangan yang SAH:
+            //
+            //   1. Koreksi order jersey lewat selisih
+            //      (JerseyAkuntansiTest::test_total_order_diakui_sebagai_pendapatan_jersey_dan_dikoreksi_lewat_selisih)
+            //   2. Menghapus diskon lagi agar piutang kembali seperti semula
+            //      (KasirUbahHargaJurnalTest::test_diskon_dihapus_lagi_mengembalikan_piutang_semula)
+            //
+            // Keduanya mem-posting jurnal dengan no_referensi dan keterangan
+            // yang SAMA persis, bukan karena bug: di akuntansi, menyatakan
+            // koreksi memakai referensi yang sama adalah cara yang benar untuk
+            // mencatat koreksi. Menolaknya berarti operator tidak bisa
+            // mengoreksi nominal yang sudah pernah tercatat.
+            //
+            // Jadi duplicate journal TIDAK dicegah di level service ini.
+            // Pagar yang benar untuk double-submit ada di lapisan request:
+            // SubmitSekaliJalan (satu submit_id = satu proses) plus
+            // lockForUpdate pada baris yang diproses. Itu yang mencegah dua
+            // request user menghasilkan satu jurnal ganda.
+            //
+            // Yang tetap dijaga di sini adalah integritas yang tidak bisa
+            // ditawar: minimal 2 baris, debet = kredit, dan DB::transaction
+            // supaya tidak ada jurnal separuh.
             foreach ($lines as $line) {
                 $debet = (float) ($line['debet'] ?? 0);
                 $kredit = (float) ($line['kredit'] ?? 0);
@@ -299,7 +325,23 @@ class AccountingService
      */
     public static function sesuaikanTotalNota(string $noNota, float $totalBaru): void
     {
-        $baris = DB::table('jurnal_umum')->where('no_referensi', $noNota)
+        // Pendapatan satu nota bisa tersebar di beberapa baris jurnal: nota
+        // yang mendapat item susulan dijurnal dengan sufiks "-susulan" (lihat
+        // PenjualanController::store). Kalau hanya baris dengan referensi
+        // PERSIS nota yang dihitung, tambahan item itu seolah belum pernah
+        // terjurnal - rekonsiliasi lalu menganggap total nota masih kurang
+        // sebesar tambahan itu, lalu menjurnal Piutang Usahanya lebih besar
+        // dari tagihan yang sebenarnya (akibatnya Piutang Usaha 1100 tidak
+        // sinkron dengan sisa tagihan nota).
+        //
+        // Semua referensi milik nota ini ikut dihitung. Nomor nota berformat
+        // tetap (ORG-YYYYMMDD-NNN), jadi tidak ada nota lain yang bisa
+        // tertangkap pola "NOMOR-%" ini.
+        $baris = DB::table('jurnal_umum')
+            ->where(function ($q) use ($noNota) {
+                $q->where('no_referensi', $noNota)
+                    ->orWhere('no_referensi', 'like', $noNota . '-%');
+            })
             ->whereIn('kode_akun', [self::AKUN_PENDAPATAN_PENJUALAN, self::AKUN_PENDAPATAN_JASA])
             ->selectRaw('kode_akun, SUM(kredit - debet) AS nilai')->groupBy('kode_akun')->pluck('nilai', 'kode_akun');
         if ($baris->isEmpty()) {
@@ -344,15 +386,18 @@ class AccountingService
      * Nota dibatalkan dengan pengembalian bahan, tetapi ada item yang SPK-nya sudah dibatalkan lebih dulu TANPA
      * pengembalian (bahannya terpakai/rusak). reversePenjualan membalik seluruh HPP nota; HPP item itu dicatat lagi
      * (Dr HPP / Cr Persediaan) supaya Persediaan tetap sama dengan stok fisik.
+     *
+     * $keterangan opsional: dipakai alur EDIT SELISIH, di mana HPP naik
+     * karena pemakaian bahan bertambah - bukan karena bahan tidak kembali.
      */
-    public static function postHppBahanTerpakai(string $noNota, float $nilai): void
+    public static function postHppBahanTerpakai(string $noNota, float $nilai, ?string $keterangan = null): void
     {
         $nilai = round($nilai, 2);
         if ($nilai <= 0) {
             return;
         }
 
-        self::postJournal(now()->toDateString(), $noNota, "HPP bahan terpakai pada item batal {$noNota} (bahan tidak kembali)", [
+        self::postJournal(now()->toDateString(), $noNota, $keterangan ?: "HPP bahan terpakai pada item batal {$noNota} (bahan tidak kembali)", [
             ['kode_akun' => self::AKUN_HPP, 'debet' => $nilai],
             ['kode_akun' => self::AKUN_PERSEDIAAN_BAHAN, 'kredit' => $nilai],
         ]);

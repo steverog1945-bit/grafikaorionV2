@@ -17,16 +17,16 @@
         .divider { border-top: 1px dashed #000 !important; }
         @endif
         .info td { padding: 2px 4px; }
-        .info td.label { width: 22%; color: #64748b; }
+        .info td.label { width: 22%; color: #4A5B53; }
         .info td.sep { width: 2%; }
-        .item-table th, .item-table td { padding: 5px 6px; border-bottom: 1px solid #e2e8f0; }
+        .item-table th, .item-table td { padding: 5px 6px; border-bottom: 1px solid #E2EAE4; }
         .item-table tfoot td { border-bottom: none; }
         .ringkas { width: 46%; margin-left: auto; }
         .ringkas td { padding: 2px 4px; }
-        .toolbar { text-align: center; margin-bottom: 18px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; }
+        .toolbar { text-align: center; margin-bottom: 18px; padding: 12px; background: #FAFBF9; border: 1px solid #E2EAE4; border-radius: 12px; }
         .toolbar .pilih { display: inline-flex; gap: 6px; margin-right: 12px; vertical-align: middle; }
-        .toolbar .pilih a { padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; text-decoration: none; color: #475569; background: #fff; border: 1px solid #e2e8f0; }
-        .toolbar .pilih a.aktif { background: #eef2ff; color: #4f46e5; border-color: #c7d2fe; }
+        .toolbar .pilih a { padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; text-decoration: none; color: #3F4F47; background: #fff; border: 1px solid #E2EAE4; }
+        .toolbar .pilih a.aktif { background: #EAF6F7; color: #006C7B; border-color: #B6E4EC; }
         .toolbar .info-kertas { display: block; margin-top: 8px; font-size: 11px; color: #94a3b8; }
         @media print { .toolbar { display: none !important; } }
     </style>

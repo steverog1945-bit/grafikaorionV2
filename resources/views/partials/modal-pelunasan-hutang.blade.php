@@ -1,7 +1,11 @@
 {{--
     Modal pelunasan hutang supplier (satu faktur, atau semua hutang satu supplier sekaligus).
     Dipakai di Pembelian Bahan & Laporan Hutang. Buka lewat: bukaPelunasan('faktur', idFaktur) / bukaPelunasan('supplier', idSupplier).
-    Memakai partials.rupiah-format-script (format-ribuan, cleanRupiah) yang sudah dimuat halaman pemanggil.
+    Memakai partials.rupiah-format-script (angkaId, formatUangDariAngka, cleanUangDesimal, format-ribuan-desimal)
+    yang dimuat global lewat layouts/app. Nominal ditampilkan & divalidasi EXACT (pecahan dipertahankan):
+    grand_total bisa berpecahan (mis. PPN 11%), jadi Math.round/cleanRupiah di sini DILARANG - pernah membuat
+    sisa Rp 999,60 tampil "Rp 1.000" lalu nominal 1000 itu ditolak, dan operator tidak bisa melunasi.
+    (plRp didefinisikan di blok script bawah memakai angkaId.)
 --}}
 <x-modal id="pelunasan-hutang" title="Pelunasan Hutang Pemasok" maxWidth="2xl">
     <form method="POST" id="form-pelunasan" action="#">
@@ -37,7 +41,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
             <div>
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Nominal Dibayar (Rp)</label>
-                <x-form.input type="text" inputmode="numeric" name="nominal" id="pl-nominal" class="format-ribuan" autocomplete="off" required />
+                <x-form.input type="text" inputmode="decimal" name="nominal" id="pl-nominal" class="format-ribuan-desimal" autocomplete="off" required />
                 <div class="flex gap-2 mt-2">
                     <button type="button" onclick="plIsiNominal(1)" title="Isi nominal dengan seluruh sisa hutang" class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-medium uppercase tracking-widest hover:bg-indigo-100">Lunasi penuh</button>
                     <button type="button" onclick="plIsiNominal(0.5)" title="Isi nominal dengan setengah dari sisa hutang" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-medium uppercase tracking-widest hover:bg-slate-200">Setengah</button>
@@ -75,7 +79,8 @@
 </x-modal>
 
 <script>
-    const plRp = n => 'Rp ' + Math.round(n || 0).toLocaleString('id-ID');
+    // Exact: pecahan dipertahankan ("999,6", bukan "1.000"). Nilai bulat tampil sama seperti sebelumnya.
+    const plRp = n => 'Rp ' + angkaId(n, 2);
     const plEsc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     let plData = null;
 
@@ -124,9 +129,9 @@
     }
 
     function plIsiNominal(bagian) {
-        const n = Math.round(plData.sisa * bagian);
+        // Exact: sisa pecahan diisi apa adanya ("999,6"), bukan Math.round.
         const el = document.getElementById('pl-nominal');
-        el.value = n.toLocaleString('id-ID');
+        el.value = formatUangDariAngka(plData.sisa * bagian);
         el.focus();
         el.select();
     }
@@ -139,13 +144,14 @@
     }
 
     document.getElementById('form-pelunasan').addEventListener('submit', function (e) {
-        const nominal = cleanRupiah(document.getElementById('pl-nominal').value);
-        const m = document.getElementById('pl-metode').value;
+        // cleanUangDesimal: "1.000" -> 1000, "999,6" -> 999.6. Validasi lawan sisa EXACT.
+        // Nilai input SENGAJA tidak ditulis ulang ke angka polos di sini: pembersih global
+        // (bersihkanFormUang) yang mengubah tampilan Indonesia menjadi angka kirim untuk server.
+        const nominal = cleanUangDesimal(document.getElementById('pl-nominal').value);
         let pesan = null;
         if (!nominal || nominal <= 0) pesan = 'Nominal harus lebih dari 0.';
         else if (nominal > plData.sisa + 0.01) pesan = 'Nominal melebihi sisa hutang ' + plRp(plData.sisa) + '.';
         if (pesan) { e.preventDefault(); Swal.fire('Periksa lagi', pesan, 'warning'); return; }
-        document.getElementById('pl-nominal').value = nominal; // kirim angka murni
         document.getElementById('pl-submit').disabled = true;
     });
 </script>

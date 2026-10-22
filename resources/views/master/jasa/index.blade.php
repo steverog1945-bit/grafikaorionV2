@@ -112,7 +112,7 @@
                                 @elseif($j->harga_default)
                                     <span class="text-sm font-medium text-slate-700">Rp {{ number_format($j->harga_default, 0, ',', '.') }}</span>
                                 @else
-                                    <span class="text-[10px] text-slate-300 italic">Manual di Kasir</span>
+                                    <span class="text-[10px] text-slate-500 italic">Manual di Kasir</span>
                                 @endif
                             </span>
                         </td>
@@ -301,7 +301,7 @@
 @foreach($jasa as $j)
 <x-modal id="harga-jasa-{{ $j->id_jasa }}" title="Harga Bertingkat: {{ $j->nama_jasa }}"
          subtitle="Harga jual menyesuaikan jumlah, makin banyak makin murah per pcs"
-         icon="fa-layer-group" maxWidth="lg">
+         icon="fa-layer-group" maxWidth="xl">
     <div class="mb-4 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs text-slate-500">
         @if($j->harga_default)
             Harga Dasar (<b>Rp {{ number_format($j->harga_default, 0, ',', '.') }}</b>) dipakai kalau qty tidak cocok tier manapun di bawah, atau belum ada tier sama sekali.
@@ -320,7 +320,7 @@
             <form action="{{ route('jasa.harga.update', $t->id_jasa_harga) }}" class="tier-edit-form-jasa flex items-center gap-2 flex-1">
                 @csrf
                 <input type="number" name="range_min" value="{{ angka_polos($t->range_min, 4) }}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                <span class="text-[10px] text-slate-300 font-medium">s/d</span>
+                <span class="text-[10px] text-slate-500 font-medium">s/d</span>
                 <input type="number" name="range_max" value="{{ angka_polos($t->range_max, 4) }}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                 <span class="text-[10px] text-slate-400">=</span>
                 <span class="text-[10px] text-slate-400">Rp</span>
@@ -339,7 +339,7 @@
     <form action="{{ route('jasa.harga.store', $j->id_jasa) }}" class="tier-add-form-jasa flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-jasa="{{ $j->id_jasa }}">
         @csrf
         <input type="number" name="range_min" placeholder="Min" min="1" required class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
-        <span class="text-[10px] text-slate-300 font-medium">s/d</span>
+        <span class="text-[10px] text-slate-500 font-medium">s/d</span>
         <input type="number" name="range_max" placeholder="~" min="1" class="w-16 text-xs text-center bg-white border-none rounded-lg py-2">
         <span class="text-[10px] text-slate-400">=</span>
         <span class="text-[10px] text-slate-400">Rp</span>
@@ -394,7 +394,7 @@
                 <form action="{{ url('/jasa-harga') }}/${t.id_jasa_harga}" class="tier-edit-form-jasa flex items-center gap-2 flex-1">
                     <input type="hidden" name="_token" value="${csrfTokenJasa}">
                     <input type="number" name="range_min" value="${t.range_min}" min="1" required class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                    <span class="text-[10px] text-slate-300 font-medium">s/d</span>
+                    <span class="text-[10px] text-slate-500 font-medium">s/d</span>
                     <input type="number" name="range_max" value="${t.range_max ?? ''}" min="1" placeholder="~" class="w-16 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>
@@ -426,7 +426,7 @@
         } else if (hargaDefault) {
             cell.innerHTML = `<span class="text-sm font-medium text-slate-700">Rp ${new Intl.NumberFormat('id-ID').format(hargaDefault)}</span>`;
         } else {
-            cell.innerHTML = '<span class="text-[10px] text-slate-300 italic">Manual di Kasir</span>';
+            cell.innerHTML = '<span class="text-[10px] text-slate-500 italic">Manual di Kasir</span>';
         }
     }
 
@@ -456,7 +456,17 @@
         if (e.target.matches('.tier-add-form-jasa')) {
             e.preventDefault();
             const form = e.target;
+            // Pagar klik ganda. Form ini dikirim lewat fetch() JSON jadi tidak
+            // pernah membawa submit_id dan tidak terlindungi SubmitSekaliJalan.
+            // Pagar sesungguhnya ada di server (CekRentangHarga menolak rentang
+            // bertabrakan); yang ini supaya operator tidak mengirim dua kali dan
+            // tidak melihat pesan "rentang tumpang tindih" untuk kliknya sendiri.
+            const tombol = form.querySelector('button[type="submit"]');
+            if (tombol) { tombol.disabled = true; tombol.classList.add('opacity-60'); }
             const data = await submitJasaTierFormAjax(form, 'POST');
+            // Tombol hidup lagi baik sukses maupun gagal: form di-reset setelah
+            // sukses supaya operator bisa menambah tier lagi.
+            if (tombol) { tombol.disabled = false; tombol.classList.remove('opacity-60'); }
             if (!data) return;
             const idJasa = form.dataset.idJasa;
             const container = document.getElementById('tier-container-jasa-' + idJasa);
@@ -478,9 +488,9 @@
             title: 'Hapus Tier Harga Ini?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f1f5f9',
-            cancelButtonText: '<span style="color: #64748b">Batal</span>',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#F1F5F1',
+            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
         }).then(async (result) => {
             if (!result.isConfirmed) return;
@@ -515,8 +525,8 @@
             html: `Jasa <b>${escHtml(nama)}</b> akan dihapus permanen.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f8fafc',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#FAFBF9',
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
             customClass: {

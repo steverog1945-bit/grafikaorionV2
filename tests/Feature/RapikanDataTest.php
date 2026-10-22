@@ -29,7 +29,14 @@ class RapikanDataTest extends TestCase
         $this->assertContains('Log bulan ini', $utama);
         $this->assertNotContains('Log lama sekali', $utama);
         $this->assertSame(['Log lama sekali'], DB::table('audit_logs_arsip')->pluck('keterangan')->all());
-        $this->assertSame(['segar'], DB::table('cache')->pluck('key')->all());
+        // Kunci milik perintah ini ('basi'/'segar') diuji secara keanggotaan, bukan exact-match
+        // seluruh tabel: proses lain yang sah (mis. sesi server browser di database testing yang
+        // memakai cache driver database) dapat meninggalkan kunci BELUM kedaluwarsa seperti
+        // 'orion-grafika-cache-app_settings_current' - perintah memang TIDAK boleh menghapusnya,
+        // jadi test tidak boleh menuntut tabel hanya berisi kunci miliknya.
+        $kunci = DB::table('cache')->pluck('key')->all();
+        $this->assertContains('segar', $kunci);
+        $this->assertNotContains('basi', $kunci);
 
         $this->actingAs($admin)->get('/log-aktivitas?arsip=1')->assertOk()->assertSee('Log lama sekali')->assertDontSee('Log bulan ini');
         $this->actingAs($admin)->get('/log-aktivitas')->assertOk()->assertDontSee('Log lama sekali');

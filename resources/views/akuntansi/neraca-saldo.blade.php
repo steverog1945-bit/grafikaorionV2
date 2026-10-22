@@ -64,10 +64,10 @@
                         @endif
                     </td>
                     <td class="px-6 py-3 text-xs text-slate-400">{{ $r->tipe_akun }}</td>
-                    <td class="px-6 py-3 text-right text-sm {{ $r->kolom_debet > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
+                    <td class="px-6 py-3 text-right text-sm {{ $r->kolom_debet > 0 ? 'text-slate-700 font-medium' : 'text-slate-500' }}">
                         {{ $r->kolom_debet > 0 ? number_format($r->kolom_debet, 0, ',', '.') : '-' }}
                     </td>
-                    <td class="px-8 py-3 text-right text-sm {{ $r->kolom_kredit > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
+                    <td class="px-8 py-3 text-right text-sm {{ $r->kolom_kredit > 0 ? 'text-slate-700 font-medium' : 'text-slate-500' }}">
                         {{ $r->kolom_kredit > 0 ? number_format($r->kolom_kredit, 0, ',', '.') : '-' }}
                     </td>
                 </tr>

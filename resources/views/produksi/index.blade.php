@@ -7,7 +7,7 @@
 
     <x-page-header title="Produksi">
         <x-slot:subtitle>
-            Produksi &amp; Logistik <span class="mx-1 text-slate-300">/</span> Progres Pengerjaan SPK
+            Produksi &amp; Logistik <span class="mx-1 text-slate-500">/</span> Progres Pengerjaan SPK
         </x-slot:subtitle>
         <x-slot:actions>
             <x-button href="{{ route('spk.index') }}" variant="secondary">
@@ -47,7 +47,15 @@
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Produksi</label>
                 <x-form.select name="status_produksi">
-                    <option value="progress" {{ request('status_produksi', 'progress') === 'progress' ? 'selected' : '' }}>On Progress</option>
+                    {{-- Opsi "semua" harus ada supaya nilai yang dikirim lewat
+                         link "Lihat di Produksi" / "Lihat progres di Produksi"
+                         (status_produksi=semua) terbaca oleh dropdown. Kalau
+                         tidak ada, dropdown menampilkan "On Progress" dan
+                         operator mengira filter-nya progress - saat menekan
+                         "Filter" daftar jadi kosong karena statusnya
+                         ternyata Selesai/Batal. --}}
+                    <option value="semua" {{ request('status_produksi') === 'semua' ? 'selected' : '' }}>Semua Status</option>
+                    <option value="progress" {{ request('status_produksi', 'progress') === 'progress' ? 'selected' : '' }}>On Progress (Desain + Cetak)</option>
                     <option value="selesai" {{ request('status_produksi') === 'selesai' ? 'selected' : '' }}>Selesai</option>
                     <option value="pending" {{ request('status_produksi') === 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="batal" {{ request('status_produksi') === 'batal' ? 'selected' : '' }}>Dibatalkan</option>
@@ -221,7 +229,7 @@
             `,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Lanjutkan',
             cancelButtonText: 'Kembali',
             customClass: { popup: 'rounded-2xl' },

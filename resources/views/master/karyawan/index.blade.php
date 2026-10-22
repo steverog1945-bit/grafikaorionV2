@@ -6,7 +6,7 @@
     <x-page-header title="Master Karyawan">
         <x-slot:subtitle>
             <i class="fas fa-users text-slate-500"></i>
-            SDM <span class="mx-1 text-slate-300">/</span> Manajemen Profil &amp; Produksi
+            SDM <span class="mx-1 text-slate-500">/</span> Manajemen Profil &amp; Produksi
         </x-slot:subtitle>
         <x-slot:actions>
             <x-button onclick="openModal('karyawan-tambah')">
@@ -272,7 +272,7 @@
             html: `Anda akan menghapus data <b>${escapeHtml(name)}</b>.<br><small class="text-slate-400 uppercase font-medium tracking-widest">Tindakan ini permanen!</small>`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Hapus!',
             cancelButtonText: 'Batal',
             customClass: { popup: 'rounded-2xl' }

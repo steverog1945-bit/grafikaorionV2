@@ -14,7 +14,7 @@
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1300px] mx-auto">
 
     <x-page-header :title="$edit ? 'Edit Postingan' : 'Tulis Postingan'">
-        <x-slot:subtitle>Info &amp; Panduan <span class="mx-1 text-slate-300">/</span> {{ $edit ? 'Ubah isi, gambar, dan pengaturan terbit' : 'Buat pengumuman, SOP, tips, atau hasil karya' }}</x-slot:subtitle>
+        <x-slot:subtitle>Info &amp; Panduan <span class="mx-1 text-slate-500">/</span> {{ $edit ? 'Ubah isi, gambar, dan pengaturan terbit' : 'Buat pengumuman, SOP, tips, atau hasil karya' }}</x-slot:subtitle>
         <x-slot:actions>
             <x-button href="{{ $edit ? route('postingan.show', $post->slug) : route('postingan.index') }}" variant="secondary"><i class="fas fa-arrow-left"></i> Kembali</x-button>
         </x-slot:actions>

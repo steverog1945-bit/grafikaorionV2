@@ -70,8 +70,25 @@ class NotifikasiService
             ['key' => 'kasir-bayar', 'label' => 'Nota belum dibayar', 'routes' => ['kasir.index'], 'tone' => 'amber',
                 'hitung' => fn () => DB::table('transaksi')->where('status_pembayaran', 'Belum Bayar')->where('status_nota', '!=', 'Dibatalkan')->count()],
             ['key' => 'spk-antre', 'label' => 'SPK antre dikerjakan', 'routes' => ['spk.index'], 'tone' => 'amber',
+                // Harus memakai syarat yang sama dengan tabel /spk
+                // (SpkController::index): status_nota Aktif dan status_order
+                // Diterima Kasir. Sebelumnya syarat kedua tidak ada, sehingga
+                // lonceng ikut menghitung nota yang transaksinya belum dibuka
+                // kasir sama sekali, sementara tabel /spk tidak pernah
+                // menampilkannya. Akibatnya lonceng berbunyi lalu operator
+                // membuka halaman dan mendapati tabel kosong.
+                //
+                // Tanggal SENGAJA tidak ikut di sini. Tabel /spk terbuka di
+                // rentang hari ini, tapi kalau lonceng ikut difilter tanggal
+                // yang sama, order tertinggal dari hari-hari sebelumnya akan
+                // hilang dari keduanya dan pekerjaan itu menggantung tanpa
+                // ada yang tahu. Lonceng tetap menghitung seluruh
+                // pekerjaan yang menunggu, berapa pun umurnya.
                 'hitung' => fn () => DB::table('transaksi_detail as d')->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
-                    ->where('d.status_spk', 'Antre')->where('t.status_nota', '!=', 'Dibatalkan')->count()],
+                    ->where('d.status_spk', 'Antre')
+                    ->where('t.status_nota', 'Aktif')
+                    ->where('t.status_order', 'Diterima Kasir')
+                    ->count()],
             ['key' => 'produksi', 'label' => 'Item sedang diproses (desain/cetak)', 'routes' => ['produksi.index'], 'tone' => 'indigo',
                 'hitung' => fn () => DB::table('transaksi_detail as d')->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
                     ->whereIn('d.status_spk', ['Desain', 'Cetak'])->where('t.status_nota', '!=', 'Dibatalkan')->count()],

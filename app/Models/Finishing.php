@@ -14,6 +14,9 @@ class Finishing extends Model
     protected $fillable = [
         'nama_finishing',
         'harga_default',
+        // Lantai biaya finishing per item. Dipakai metode LINEAR_GRID
+        // (Potong Manual). 0 = tidak ada minimum charge.
+        'minimum_charge',
         'id_satuan',
         'id_kategori',
         'id_mesin',

@@ -186,7 +186,7 @@
                                 </form>
                             @else
                                 {{-- Sudah dipakai: menghapus akan menghilangkan riwayat pengeluaran. --}}
-                                <span class="w-9 h-9 flex items-center justify-center text-slate-300" title="Sudah dipakai di catatan, tidak bisa dihapus">
+                                <span class="w-9 h-9 flex items-center justify-center text-slate-500" title="Sudah dipakai di catatan, tidak bisa dihapus">
                                     <i class="fas fa-lock text-[11px]"></i>
                                 </span>
                             @endif
@@ -259,7 +259,7 @@
                     <td class="text-sm text-slate-500">{{ $r->username ?? '-' }}</td>
                     <td class="text-right">
                         @if($r->id_kas_kecil)
-                            <span class="inline-flex w-9 h-9 items-center justify-center text-slate-300" title="Sudah dibayar. Batalkan pengeluaran KK-{{ $r->id_kas_kecil }} di Kas Kecil bila perlu dikoreksi.">
+                            <span class="inline-flex w-9 h-9 items-center justify-center text-slate-500" title="Sudah dibayar. Batalkan pengeluaran KK-{{ $r->id_kas_kecil }} di Kas Kecil bila perlu dikoreksi.">
                                 <i class="fas fa-lock text-[11px]"></i>
                             </span>
                         @else
@@ -668,7 +668,7 @@
                 + '<td class="px-2 py-2 text-right text-slate-600">' + b.qty + '</td>'
                 + '<td class="px-2 py-2 text-right ' + (b.sudah > 0 ? 'text-amber-600' : 'text-slate-400') + '">' + b.sudah + '</td>'
                 + '<td class="px-2 py-2 text-right"><input type="number" min="0" max="' + sisa + '" step="1" value="' + sisa + '" name="qty[' + b.id_jasa_jahit + ']" data-harga="' + b.harga + '"'
-                + ' class="w-20 text-right rounded-lg border border-slate-200 bg-[#f5f7fa] px-2 py-1.5 text-sm" oninput="hitungTotalJersey()"' + (sisa === 0 ? ' disabled' : '') + '></td>'
+                + ' class="w-20 text-right rounded-lg border border-slate-200 bg-[#FAFBF9] px-2 py-1.5 text-sm" oninput="hitungTotalJersey()"' + (sisa === 0 ? ' disabled' : '') + '></td>'
                 + '<td class="px-4 py-2 text-right text-slate-700" data-subtotal></td></tr>';
         });
         if (!d.baris.length) {

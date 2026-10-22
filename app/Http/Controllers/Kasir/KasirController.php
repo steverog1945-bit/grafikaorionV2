@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Kasir;
 
 use App\Services\KasSesiService;
+use App\Services\StatusPembayaran;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -15,41 +16,67 @@ class KasirController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Hitung jumlah antrean baru (status 'Belum Bayar', nota yang
-        //    belum dibatalkan).
-        //
-        //    Pengecualian 'Dibatalkan' WAJIB di sini, bukan hanya di query
-        //    utama di bawah. Kedua query itu dibaca kasir sebagai satu
-        //    angka yang sama: daftar di layar says "N antrean", lencana di
-        //    sidebar says "N". Kalau hanya daftar yang menyingkirkan nota
-        //    batal, lencana tetap menghitungnya dan kasir membuka halaman
-        //    karena dikira ada antrean - lalu tidak ada apa-apa yang bisa
-        //    dilayani. Itu persis yang dilaporkan.
+        // §8I catch-up: tolak format tanggal yang rusak sebelum dipakai di
+        // Carbon::parse() di bawah - tanpa ini input rusak melempar 500.
+        $request->validate(['tgl_mulai' => 'nullable|date', 'tgl_selesai' => 'nullable|date']);
+
+        // 1. Hitung jumlah antrean baru = order menunggu diterima kasir
+        //    (status_order='Menunggu Kasir', nota belum dibatalkan) - SAMA
+        //    PERSIS dengan waitingList() agar lencana & daftar sinkron.
         $waitingCount = DB::table('transaksi')
-            ->where('status_pembayaran', 'Belum Bayar')
+            ->where('status_order', 'Menunggu Kasir')
             ->where('status_nota', '!=', 'Dibatalkan')
             ->count();
 
-        // 2. Query Monitoring Utama - SEMUA status (Belum Bayar/DP/Lunas)
-        // sekarang ikut ditampilkan & bisa difilter di sini (sebelumnya
-        // Belum Bayar dikecualikan paksa dari halaman ini sama sekali, cuma
-        // bisa dilihat lewat "Antrean Baru" terpisah - operator yang ingin
-        // rekap SEMUA nota, termasuk yang benar-benar belum disentuh kasir,
-        // tidak punya satu tempat untuk itu).
+        // 2. Query Monitoring Utama - SEMUA status pembayaran (Belum Bayar/DP/
+        // Lunas) ikut ditampilkan & bisa difilter di sini, TAPI hanya untuk
+        // nota yang transaksinya sudah dibuka kasir (lihat syarat status_order
+        // di bawah). Status pembayaran dan status order adalah dua hal berbeda:
+        // nota yang sudah "Diterima Kasir" tapi uangnya belum masuk tetap
+        // berstatus "Belum Bayar" dan memang harus bisa ditagih dari sini.
         $query = DB::table('transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->join('users', 'transaksi.id_user_kasir', '=', 'users.id_user')
+            // Total uang diterima per nota, dihitung sekali lewat LEFT JOIN
+            // teragregasi. Dipakai untuk status turunan DAN untuk filter, bukan
+            // hanya tampilan - kalau filter memakai kolom salinan sementara
+            // badge memakai status turunan, kasir bisa memfilter "Belum
+            // Lunas" lalu bertemu nota yang badge-nya justru "LUNAS".
+            ->leftJoin(
+                DB::raw('(SELECT id_transaksi, SUM(nominal) AS jml_terbayar FROM pembayaran_riwayat GROUP BY id_transaksi) pr'),
+                'pr.id_transaksi', '=', 'transaksi.id_transaksi'
+            )
             ->select(
                 'transaksi.*',
                 'konsumen.nama_konsumen',
                 'users.username',
-                DB::raw("(SELECT SUM(nominal) FROM pembayaran_riwayat WHERE pembayaran_riwayat.id_transaksi = transaksi.id_transaksi) as total_masuk")
+                DB::raw('COALESCE(pr.jml_terbayar, 0) as total_masuk'),
+                // Kolom transaksi.status_pembayaran hanya salinan, dan pernah
+                // menampilkan dua cerita bertentangan di layar yang sama: badge
+                // "Lunas" sementara catatan pembayarannya belum ada uang masuk
+                // sepeser pun. Badge sekarang diturunkan langsung dari catatan
+                // pembayaran memakai aturan yang sama persis dengan
+                // Transaksi::display_status_pembayaran, jadi angka-angka di
+                // layar tidak mungkin saling bertentangan.
+                DB::raw(StatusPembayaran::sqlCase('transaksi.total_bayar', 'COALESCE(pr.jml_terbayar, 0)') . ' as display_status_pembayaran')
             )
             // Nota yang sudah dibatalkan (lihat PenjualanController::batalkanNota)
             // tidak perlu terus "dimonitor" pembayarannya di sini - sebelumnya
             // luput dikecualikan waktu fitur batal-nota ditambahkan, jadi nota
             // DP/Lunas yang belakangan dibatalkan tetap nyangkut di daftar ini.
-            ->where('transaksi.status_nota', '!=', 'Dibatalkan');
+            ->where('transaksi.status_nota', '!=', 'Dibatalkan')
+            // Alur linear kasir: tabel ini hanya menampilkan nota yang
+            // TRANSYKSINYA SUDAH DIBUKA kasir. Nota yang baru diinput dan belum
+            // dibuka tetap hidup di "Antrean Baru" (lihat waitingList()).
+            //
+            // Tanpa syarat ini kedua halaman membaca kumpulan baris yang sama:
+            // nota waitingList() (status_order='Menunggu Kasir') ikut muncul di
+            // tabel ini karena query ini tidak pernah menyaring status_order,
+            // sehingga kasir melihat nota yang sama di dua tempat dan tidak tahu
+            // harus lewat mana. Kebalikan dari biasanya, "Belum Bayar" tetap
+            // ikut tampil di sini - yang menentukan bukan status pembayaran,
+            // tapi apakah transaksinya sudah dibuka.
+            ->where('transaksi.status_order', 'Diterima Kasir');
 
         if ($request->filled('id_konsumen')) {
             $query->where('transaksi.id_konsumen', $request->id_konsumen);
@@ -60,7 +87,9 @@ class KasirController extends Controller
         }
 
         // Perf dataset besar: rentang sargable, bukan whereDate() (DATE()
-        // mematikan index (tgl_order,status_nota)).
+        // mematikan index (tgl_order,status_nota)). Tanpa filter tanggal
+        // dari operator, TIDAK ada batas yang dipaksakan - seluruh nota
+        // yang transaksinya sudah dibuka tetap ditampilkan.
         if ($request->filled('tgl_mulai')) {
             $query->where('transaksi.tgl_order', '>=', $request->tgl_mulai . ' 00:00:00');
         }
@@ -75,10 +104,27 @@ class KasirController extends Controller
         // dibuka TANPA filter apa pun (nav pertama dari sidebar), default-nya
         // tampilkan yang masih perlu ditagih saja (Belum Bayar + DP) - nota
         // yang sudah Lunas tetap bisa dicari kapan saja lewat filter status.
+        //
+        // Filter memakai status TURUNAN, sama persis dengan kolom yang dipakai
+        // badge. Kalau filter masih membaca kolom salinan
+        // transaksi.status_pembayaran, nota yang salinannya tertinggal akan
+        // muncul di daftar "Belum Lunas" dengan badge "LUNAS" - persis
+        // ambiguitas yang dikeluhkan kasir.
+        $statusTurunan = StatusPembayaran::sqlCase('transaksi.total_bayar', 'COALESCE(pr.jml_terbayar, 0)');
+
         if ($request->filled('status_bayar')) {
-            $query->where('transaksi.status_pembayaran', $request->status_bayar);
+            // "Belum Lunas" bukan nilai status, melainkan gabungan dua status
+            // (Belum Bayar + DP) - keduanya berarti masih ada sisa tagihan
+            // yang harus ditagih. Tanpa cabang khusus ini, memilih "Belum
+            // Lunas" akan mengembalikan daftar kosong karena tidak ada nota
+            // berstatus persis bernama "Belum Lunas".
+            if ($request->status_bayar === 'Belum Lunas') {
+                $query->whereIn(DB::raw("({$statusTurunan})"), ['Belum Bayar', 'DP']);
+            } else {
+                $query->whereRaw("({$statusTurunan}) = ?", [$request->status_bayar]);
+            }
         } elseif (!$request->has('status_filtered')) {
-            $query->whereIn('transaksi.status_pembayaran', ['Belum Bayar', 'DP']);
+            $query->whereIn(DB::raw("({$statusTurunan})"), ['Belum Bayar', 'DP']);
         }
 
         // COALESCE ke tgl_order - baris 'Belum Bayar' yang belum pernah
@@ -99,26 +145,21 @@ class KasirController extends Controller
             ->orderBy('konsumen.nama_konsumen')
             ->get();
 
+        // tglMulaiDefault / tglSelesaiDefault sengaja TIDAK ikut di compact():
+        // rentang tanggal default pernah dipaksakan ke query, lalu dibatalkan
+        // lagi - tanpa filter dari operator, semua nota yang transaksinya sudah
+        // dibuka tetap ditampilkan. compact() dengan variabel yang tidak ada
+        // akan memunculkan warning "Undefined variable" di PHP 8.
         return view('kasir.monitoring_transaksi', compact('transaksi', 'waitingCount', 'konsumenList'));
     }
 
     public function waitingList()
     {
-        // Pastikan hanya mengambil status 'Belum Bayar' DAN nota yang
-        // belum dibatalkan. Urut berdasar tgl_order (BUKAN created_at) -
-        // transaksi dibuat lewat DB::table()->insertGetId() di
-        // PenjualanController::store(), yang tidak otomatis mengisi
-        // created_at (selalu NULL), sementara tgl_order SELALU diisi
-        // now() saat order dibuat.
-        //
-        // Tanpa syarat status_nota, nota yang dibatalkan dengan alasan
-        // tetap muncul di sini. Alasan pembatalannya ada (kolom
-        // alasan_batal_nota) tapi kasir tidak punya cara memintanya,
-        // jadi yang tersisa hanya membukanya dan menemukan form
-        // pembayaran yang memang menolak.
+        // Antrean Baru: transaksi yang menunggu Kasir menerima (status_order = Menunggu Kasir)
+        // dan belum dibatalkan. Urut berdasar tgl_order (BUKAN created_at).
         $waiting = DB::table('transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
-            ->where('transaksi.status_pembayaran', 'Belum Bayar')
+            ->where('transaksi.status_order', 'Menunggu Kasir')
             ->where('transaksi.status_nota', '!=', 'Dibatalkan')
             ->select('transaksi.*', 'konsumen.nama_konsumen')
             ->orderBy('transaksi.tgl_order', 'desc')
@@ -147,6 +188,13 @@ class KasirController extends Controller
                 ->with('error', "Nota {$transaksi->nomor_nota} sudah DIBATALKAN - pembayaran tidak bisa diproses.");
         }
 
+        // Gate: transaksi harus sudah diterima Kasir (status_order = Diterima Kasir)
+        // agar form pembayaran bisa diproses. Jika belum, arahkan ke halaman terima.
+        if ($transaksi->status_order !== 'Diterima Kasir') {
+            return redirect()->route('kasir.index')
+                ->with('error', "Transaksi {$transaksi->nomor_nota} belum diterima Kasir. Klik 'Terima Transaksi' terlebih dahulu.");
+        }
+
         // LEFT JOIN (bukan INNER) - baris Jasa punya id_produk NULL (lihat
         // migrasi add_jasa_support_to_transaksi_detail). INNER JOIN produk
         // sebelumnya diam-diam membuang baris Jasa dari halaman ini sama
@@ -156,6 +204,7 @@ class KasirController extends Controller
             ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
             ->leftJoin('jasa', 'transaksi_detail.id_jasa', '=', 'jasa.id_jasa')
             ->where('transaksi_detail.id_transaksi', $id)
+            ->where('transaksi_detail.status_spk', '!=', 'Batal')
             ->select(
                 'transaksi_detail.*',
                 'produk.nama_produk',
@@ -177,8 +226,29 @@ class KasirController extends Controller
                 : (float) $item->qty;
         }
 
-        $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
+        $totalTerbayar = (float) (DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0);
         $sisaTagihan = $transaksi->total_bayar - $totalTerbayar;
+
+        // Rincian "uang yang benar-benar sudah diterima" - dipakai untuk
+        // mengisi field Uang Diterima dengan nominal yang sama persis pada
+        // nota yang sudah lunas (bukti pendataan, bukan entri baru), sekaligus
+        // menampilkan metode pembayarannya (Tunai/Transfer/Debit/Deposit) di
+        // bawah status. Tanpa daftar ini, form hanya tahu totalnya sehingga
+        // metode yang mana tidak bisa ditampilkan.
+        $penerimaan = DB::table('pembayaran_riwayat')
+            ->where('id_transaksi', $id)
+            ->orderBy('tgl_bayar')
+            ->orderBy('id_pembayaran')
+            ->select('nominal', 'metode', 'tgl_bayar', 'kembalian')
+            ->get();
+
+        // Status memakai aturan yang sama dengan seluruh halaman lain (lihat
+        // App\Services\StatusPembayaran) - bukan kolom salinan, supaya form
+        // tidak pernah menampilkan "LUNAS" di satu baris dan "BELUM BAYAR" di
+        // baris paling bawah untuk nota yang sama.
+        $statusPembayaran = StatusPembayaran::dari((float) $transaksi->total_bayar, $totalTerbayar);
+        $notaSudahLunas   = $statusPembayaran === StatusPembayaran::LUNAS && $totalTerbayar > 0;
+
         $banks = DB::table('bank_perusahaan')->orderBy('nama_bank')->get();
         $saldoDeposit = KonsumenDepositController::saldoUntuk($transaksi->id_konsumen);
 
@@ -192,7 +262,95 @@ class KasirController extends Controller
             ->where('tipe', 'Setoran')
             ->exists();
 
-        return view('kasir.form_pembayaran', compact('transaksi', 'items', 'totalTerbayar', 'sisaTagihan', 'banks', 'saldoDeposit', 'depositSudahHabis'));
+        return view('kasir.form_pembayaran', compact('transaksi', 'items', 'totalTerbayar', 'sisaTagihan', 'banks', 'saldoDeposit', 'depositSudahHabis', 'penerimaan', 'statusPembayaran', 'notaSudahLunas'));
+    }
+
+    /**
+     * Terima Transaksi - business action POST yang mengubah status_order
+     * Menunggu Kasir -> Diterima Kasir secara atomik + mengaktifkan SPK
+     * idempotent. GET bayarForm() tetap READ-only.
+     */
+    public function terimaTransaksi(Request $request, $id)
+    {
+        if (!$request->isMethod('post')) {
+            abort(405, 'Method Not Allowed. Gunakan POST untuk menerima transaksi.');
+        }
+
+        $request->validate(['submit_id' => 'required|string|max:100']);
+
+        $submitId = (string) $request->input('submit_id');
+        $sudahDiproses = (array) $request->session()->get('terima_submit_id', []);
+        if (in_array($submitId, $sudahDiproses, true)) {
+            return $this->responTerima($request, 'error', 'Transaksi ini sudah pernah diterima. Cek Monitoring Kasir sebelum mencoba lagi.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $transaksi = DB::table('transaksi')
+                ->where('id_transaksi', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$transaksi) {
+                throw new \Exception('Transaksi tidak ditemukan.');
+            }
+            if (($transaksi->status_nota ?? null) === 'Dibatalkan' || ($transaksi->status_order ?? null) === 'Dibatalkan') {
+                throw new \Exception('Transaksi tidak dapat diterima karena sudah dibatalkan.');
+            }
+            if (($transaksi->status_order ?? 'Menunggu Kasir') === 'Diterima Kasir') {
+                throw new \Exception('Transaksi sudah diterima oleh Kasir.');
+            }
+
+            // Guard state machine tunggal - Diterima->Menunggu & Batal->Terima ditolak di sini.
+            \App\Services\StatusTransitionGuard::validateStatusOrder(
+                (string) ($transaksi->status_order ?? 'Menunggu Kasir'),
+                'Diterima Kasir'
+            );
+
+            DB::table('transaksi')
+                ->where('id_transaksi', $id)
+                ->update(['status_order' => 'Diterima Kasir', 'updated_at' => now()]);
+
+            // SPK idempotent: detail 'Antre' SUDAH dibuat saat nota disimpan
+            // (PenjualanController::store) dalam transaksi yang sama - di sini
+            // TIDAK ada insert baru, jadi retry tidak bisa membuat SPK #124.
+            // Touch updated_at saja agar baris aktif tercatat tersentuh.
+            DB::table('transaksi_detail')
+                ->where('id_transaksi', $id)
+                ->where('status_spk', 'Antre')
+                ->update(['updated_at' => now()]);
+
+            $sudahDiproses[] = $submitId;
+            while (count($sudahDiproses) > 50) {
+                array_shift($sudahDiproses);
+            }
+            $request->session()->put('terima_submit_id', $sudahDiproses);
+
+            DB::commit();
+
+            return $this->responTerima($request, 'success', 'Transaksi berhasil diterima. SPK siap diproses.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            $pesan = collect($e->errors())->flatten()->first() ?: 'Transaksi tidak dapat diterima karena statusnya sudah berubah.';
+            return $this->responTerima($request, 'error', $pesan);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->responTerima($request, 'error', $e->getMessage());
+        }
+    }
+
+    private function responTerima(Request $request, string $tipe, string $pesan)
+    {
+        if ($request->wantsJson() || $request->expectsJson()) {
+            return response()->json(
+                ['ok' => $tipe === 'success', 'message' => $pesan],
+                $tipe === 'success' ? 200 : 422
+            );
+        }
+
+        return $tipe === 'success'
+            ? redirect()->route('kasir.index')->with('success', $pesan)
+            : back()->with('error', $pesan);
     }
 
     public function prosesBayar(Request $request)
@@ -222,6 +380,14 @@ class KasirController extends Controller
             // kunci tetap menghitung "total sudah dibayar" dari potret lama dan ikut mencatat pembayaran.
             // Terbukti dengan uji proses paralel: 6 pelunasan bersamaan semuanya tercatat (6x tagihan).
             $notaTerkunci = DB::table('transaksi')->where('id_transaksi', $id_transaksi)->lockForUpdate()->first();
+            if (!$notaTerkunci) {
+                throw new \Exception('Nota tidak ditemukan.');
+            }
+            // Gate order lifecycle: pembayaran hanya untuk nota yang sudah
+            // diterima kasir. Mencegah bypass bayarForm via POST langsung.
+            if (($notaTerkunci->status_order ?? 'Menunggu Kasir') !== 'Diterima Kasir') {
+                throw new \Exception("Nota {$notaTerkunci->nomor_nota} belum diterima Kasir - klik 'Terima Transaksi' di Antrian Baru terlebih dahulu.");
+            }
             $uangDiterimaSekarang = (float) (str_replace('.', '', $request->jumlah_bayar) ?: 0);
             $kembalian = 0.0;
             // Diskon nota tersimpan di transaksi. Isian "0" berarti diskon sengaja dihapus; isian yang tidak dikirim sama
@@ -364,7 +530,10 @@ class KasirController extends Controller
                 }
             }
 
-            $totalNotaBaru = DB::table('transaksi_detail')->where('id_transaksi', $id_transaksi)->sum('subtotal');
+            $totalNotaBaru = DB::table('transaksi_detail')
+                ->where('id_transaksi', $id_transaksi)
+                ->where('status_spk', '!=', 'Batal')
+                ->sum('subtotal');
 
             if ($diskon > $totalNotaBaru) {
                 throw new \Exception("Diskon tidak boleh lebih besar dari total nota.");
@@ -538,6 +707,12 @@ class KasirController extends Controller
                 AccountingService::sesuaikanTotalNota($transaksiRow->nomor_nota, (float) $grandTotalFinal);
             }
 
+            // §9: guard status pembayaran - menolak mundur (Lunas -> DP/Belum Bayar).
+            \App\Services\StatusTransitionGuard::validateStatusPembayaran(
+                (string) $transaksiRow->status_pembayaran,
+                $status
+            );
+
             $updateData = [
                 'total_bayar'       => $grandTotalFinal,
                 'diskon'            => $diskon,
@@ -601,11 +776,15 @@ class KasirController extends Controller
         // lanjut jadi SARAN saldo awal hari ini (tetap bisa ditimpa manual
         // di prompt "Buka Saldo Kasir" - bukan otomatis dipaksakan).
         $saldoRolling = null;
+        $kasSebelumnya = null;
         if (!$kasAktif) {
+            // Tanpa filter tanggal, sama seperti guard di storeKas(). Filter
+            // tgl_kas < hari_ini membuat sesi yang baru saja ditutup di hari
+            // yang sama tidak terlihat, sehingga saran menunjuk ke sesi yang
+            // sudah lama - padahal uangnya masih di laci itu juga.
             $kasSebelumnya = DB::table('kas_harian')
                 ->where('status_lock', 'closed')
-                ->where('tgl_kas', '<', $hari_ini)
-                ->orderByDesc('tgl_kas')
+                ->orderByDesc('waktu_tutup')
                 ->first();
             if ($kasSebelumnya && $kasSebelumnya->status_rolling === 'Rolling') {
                 $saldoRolling = (float) $kasSebelumnya->saldo_fisik;
@@ -615,8 +794,16 @@ class KasirController extends Controller
         $mutasi = DB::table('pembayaran_riwayat')
             ->join('transaksi', 'pembayaran_riwayat.id_transaksi', '=', 'transaksi.id_transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+            ->leftJoin(
+                DB::raw('(SELECT id_transaksi, SUM(nominal) AS jml_terbayar FROM pembayaran_riwayat GROUP BY id_transaksi) pr'),
+                'pr.id_transaksi', '=', 'transaksi.id_transaksi'
+            )
             ->where('pembayaran_riwayat.tgl_bayar', '>=', $mulaiSesi)
-            ->select('pembayaran_riwayat.*', 'transaksi.nomor_nota', 'transaksi.status_pembayaran', 'konsumen.nama_konsumen')
+            // Status turunan, bukan kolom salinan - supaya badge di daftar
+            // mutasi dan badge di Monitoring Kasir tidak pernah berbeda untuk
+            // nota yang sama.
+            ->select('pembayaran_riwayat.*', 'transaksi.nomor_nota', 'konsumen.nama_konsumen')
+            ->selectRaw(StatusPembayaran::sqlCase('transaksi.total_bayar', 'COALESCE(pr.jml_terbayar, 0)') . ' as display_status_pembayaran')
             ->orderBy('pembayaran_riwayat.tgl_bayar', 'desc')
             ->get();
 
@@ -640,7 +827,30 @@ class KasirController extends Controller
             'nominal_manual_keluar' => $mutasiManual->where('status', 'Keluar')->sum('nominal'),
         ]]);
 
-        return view('kasir.kelola_kas', compact('kasAktif', 'mutasi', 'mutasiManual', 'data_kas', 'saldoRolling'));
+        // Sesi yang baru saja ditutup (id_kas datang dari flash simpanClosing).
+        // Kalau kasir sudah membuka sesi baru di sebelum sempat mencetak, flash
+        // ini sudah habis. Untuk sesi yang barusan ditutup, pintasan ke
+        // Laporan Kas (filter status_lock=closed) ada di halaman Kelola Kas, dan
+        // Laporan Kas itu punya tombol print per sesi.
+        $kasBaruDitutup = null;
+        if ($idBaru = session('kas_baru_ditutup')) {
+            $kasBaruDitutup = DB::table('kas_harian')
+                ->leftJoin('users', 'kas_harian.id_user', '=', 'users.id_user')
+                ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')
+                ->where('kas_harian.id_kas', $idBaru)
+                ->select('kas_harian.*', DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama_kasir'))
+                ->first();
+        }
+
+        return view('kasir.kelola_kas', compact(
+            'kasAktif',
+            'mutasi',
+            'mutasiManual',
+            'data_kas',
+            'saldoRolling',
+            'kasSebelumnya',
+            'kasBaruDitutup'
+        ));
     }
 
     /**
@@ -703,8 +913,15 @@ class KasirController extends Controller
     // P0-1: endpoint sekarang POST + CSRF (lihat routes/web.php &
     // kelola_kas.blade.php). Nominal divalidasi numerik di server -
     // sebelumnya cuma 'required' lalu langsung str_replace titik.
-    $request->validate(['jumlah' => 'required|numeric|min:0']);
+    $request->validate([
+        'jumlah' => 'required|numeric|min:0',
+        // Wajib HANYA kalau saldo awal berbeda dari isi laci sesi sebelumnya.
+        // Dicek di dalam transaksi, bukan di sini, karena bergantung pada
+        // sesi mana yang terakhir ditutup.
+        'keterangan_pembukaan' => 'nullable|string|max:500',
+    ]);
     $nominal = (float) str_replace('.', '', $request->jumlah);
+    $keteranganPembukaan = (string) $request->keterangan_pembukaan;
 
     if ($nominal < 0) {
         return redirect()->route('kasir.kelola')->with('error', 'Nominal saldo awal tidak boleh negatif.');
@@ -737,7 +954,7 @@ class KasirController extends Controller
     // padahal baris di atas justru menegaskan itu harus eksklusif. Karena
     // belum ada baris kas_harian yang bisa di-lock (sesi barunya belum
     // ada), app_settings dipakai sebagai baris pengganti untuk lock.
-    return DB::transaction(function () use ($nominal) {
+    return DB::transaction(function () use ($nominal, $keteranganPembukaan) {
         DB::table('app_settings')->lockForUpdate()->first();
 
         $kasAktifSiapaPun = KasSesiService::aktif();
@@ -755,18 +972,66 @@ class KasirController extends Controller
             return redirect()->route('kasir.kelola')->with('error', "Sesi kas milik {$namaKasirAktif} (dibuka {$tglBuka}) belum di-closing. Hanya satu sesi kas yang boleh aktif dalam satu waktu - closing dulu sebelum membuka sesi baru (Administrator dapat menutup paksa).");
         }
 
+        // Saldo awal yang diketik harus sama dengan UANG YANG BENAR-BENARNA
+        // masih di laci. Kalau sesi sebelumnya ditutup dengan status
+        // "Rolling", isi laci sesi itu adalah titik awal yang benar - bukan
+        // angka sistem, dan bukan tambahan atas sesi sebelumnya.
+        //
+        // Tanpa guard ini, selisih saat buka kas hilang tanpa jejak. Bukti
+        // nyata di oriondb: sesi #2 ditutup dengan isi laci Rp436.193
+        // (status_rolling = 'Rolling'), lalu sesi #3 dibuka dengan
+        // saldo_awal Rp100.000 - sistem sudah menawarkan Rp436.193 lewat
+        // saran, tapi diam saja. Rp336.193 tidak tercatat di mana pun.
+        //
+        // ACUAN = sesi tertutup yang paling baru, TANPA filter tanggal.
+        // Filter lama tgl_kas < hari_ini hanya benar untuk "bawa saldo dari
+        // sebelum hari ini", tapi salah begitu kasir menutup lalu membuka
+        // sesi di hari yang sama: sesi yang baru ditutup tgl_kas-nya sama
+        // dengan hari ini sehingga tidak terlihat, dan acuan jatuh ke sesi
+        // yang lebih lama. Akibatnya saldo yang BENAR justru ditolak minta
+        // alasan - persis skenario yang paling sering dipakai kasir.
+        // Karena hanya satu sesi boleh aktif sekaligus, sesi tertutup
+        // terakhir menurut waktu_tutup selalu embody uang yang ada di laci.
+        $kasSebelumnya = DB::table('kas_harian')
+            ->where('status_lock', 'closed')
+            ->orderByDesc('waktu_tutup')
+            ->first();
+
+        $isiLaciSebelumnya = ($kasSebelumnya && $kasSebelumnya->status_rolling === 'Rolling')
+            ? (float) $kasSebelumnya->saldo_fisik
+            : null;
+
+        // 0.005 tolerateansi floating point; selisih 1 rupiah pun tetap
+        // dianggap berbeda karena uang tidak pernah berdesimal.
+        $beda = $isiLaciSebelumnya !== null && abs($nominal - $isiLaciSebelumnya) > 0.005;
+
+        if ($beda && trim((string) $keteranganPembukaan) === '') {
+            $tgl = \Carbon\Carbon::parse($kasSebelumnya->tgl_kas)->format('d/m/Y');
+            return redirect()->route('kasir.kelola')->with('error', 'Saldo awal Rp '
+                . number_format($nominal, 0, ',', '.')
+                . ' TIDAK sama dengan isi laci sesi sebelumnya ('
+                . $tgl . ') yang Rp ' . number_format($isiLaciSebelumnya, 0, ',', '.')
+                . ' - selisih Rp ' . number_format(abs($nominal - $isiLaciSebelumnya), 0, ',', '.')
+                . '. Hitung ulang uang di laci. Kalau memang berbeda, isi alasan pembukaannya.');
+        }
+
         DB::table('kas_harian')->insert([
             'tgl_kas'     => now()->format('Y-m-d'),
             'id_user'     => auth()->id(),
             'saldo_awal'  => $nominal,
             'saldo_akhir' => $nominal,
             'status_lock' => 'open',
+            'keterangan_pembukaan' => $beda ? trim($keteranganPembukaan) : null,
             'created_at'  => now(),
             'updated_at'  => now()
         ]);
 
+        $pesan = $beda
+            ? ' Kas Berhasil Dibuka dengan catatan selisih: ' . $keteranganPembukaan
+            : '';
+
         // Setelah simpan, lempar ke halaman monitoring
-        return redirect()->route('kasir.index')->with('success', 'Kas Berhasil Dibuka!');
+        return redirect()->route('kasir.index')->with('success', 'Kas Berhasil Dibuka!' . $pesan);
     });
 }
 /**
@@ -804,7 +1069,13 @@ public function previewClosing()
     // REKAP TRANSAKSI - nota yang ORDER-nya dibuat hari ini (tgl_order),
     // dipecah per Mesin/Divisi produk (Jasa & produk tanpa mesin masuk
     // "Jasa / Lain-lain"). Ini "Nota Order Cetak" di referensi.
-    $rekapKategori = DB::table('transaksi_detail')
+    //
+    // Divisi yang TIDAK ada pekerjaannya tetap dimunculkan dengan angka nol.
+    // Versi sebelumnya hanya/grouping dari transaksi_detail, jadi divisi
+    // sepi lenyap dari laporan - padahal absennya itu informasi: divisi itu
+    // tidak menerima order hari ini. Kalau daftar divisi ikut berubah-ubah
+    // setiap hari, operator tidak bisa membandingkan hari ini dengan kemarin.
+    $omzetPerDivisi = DB::table('transaksi_detail')
         ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
         ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
         ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
@@ -816,8 +1087,27 @@ public function previewClosing()
             DB::raw('SUM(' . \App\Support\OmzetBersih::sql('transaksi_detail', 'transaksi') . ') as total')
         )
         ->groupBy('kategori')
-        ->orderByDesc('total')
-        ->get();
+        ->get()
+        ->keyBy('kategori');
+
+    // Sumber daftar divisi adalah tabel mesin, bukan hasil transaksi - supaya
+    // lengkap dan tidak bergantung pada ada/tidaknya order.
+    $semuaDivisi = DB::table('mesin')->orderBy('nama_mesin')->pluck('nama_mesin');
+
+    // Bucket "Jasa / Lain-lain" tidak punya baris di tabel mesin (produk tanpa
+    // mesin, atau baris jasa), jadi ditambahkan kalau memang ada isinya.
+    $divisiAda = $omzetPerDivisi->keys()->reject(fn ($k) => $semuaDivisi->contains($k))->values();
+
+    $rekapKategori = $semuaDivisi->concat($divisiAda)
+        ->map(fn ($nama) => (object) [
+            'kategori' => $nama,
+            'total' => (float) ($omzetPerDivisi[$nama]->total ?? 0),
+            'ada_order' => isset($omzetPerDivisi[$nama]),
+        ])
+        // Yang ada pekerjaannya dulu, lalu yang nol - diurutkan nama supaya
+        // posisinya tidak bergeser antar hari.
+        ->sortBy([['ada_order', 'desc'], ['total', 'desc'], ['kategori', 'asc']])
+        ->values();
 
     $totalNotaOrder = (float) $rekapKategori->sum('total');
 
@@ -969,7 +1259,15 @@ public function simpanClosing(Request $request)
         }
 
         DB::commit();
-        return redirect()->route('kasir.kelola')->with('success', 'Kas Berhasil Ditutup dan Dikunci. Selisih: Rp ' . number_format($selisih, 0, ',', '.'));
+
+        // Flash id_kas-nya supaya halaman Kelola Kas bisa langsung
+        // menampilkan pilihan cetak (A4 & thermal). Opsi print bukan
+        // PELENGKAP yang harus dicari-cari setelah closing - rekap harian
+        // diambil tepat setelah uang dihitung, jadi pintasan ke cetak harus
+        // ada di halaman yang dituju setelah closing, bukan di halaman lain.
+        return redirect()->route('kasir.kelola')
+            ->with('success', 'Kas Berhasil Ditutup dan Dikunci. Selisih: Rp ' . number_format($selisih, 0, ',', '.'))
+            ->with('kas_baru_ditutup', (int) $id_kas);
 
     } catch (\Exception $e) {
         DB::rollBack();
@@ -1004,9 +1302,28 @@ public function printOpsi(Request $request, $id)
         abort(404, 'Transaksi tidak ditemukan.');
     }
 
+    // Metode hitung produk ikut diambil karena nota TIDAK mencetak ukuran
+    // untuk produk ber-metode 'ukuran' (ukuran di form mengikuti ukuran
+    // bahan, bisa berbeda dari file asli - lihat kasir/print_nota.blade.php).
+    // Produk yang sudah dihapus (id_protek tidak ketemu) tetap aman:
+    // metode_hitung_produk null, jadi ukuran tidak ikut tercetak.
     $items = DB::table('transaksi_detail')
-        ->where('id_transaksi', $id)
-        ->select('nama_file', 'qty', 'subtotal', 'biaya_cetak', 'biaya_desain', 'biaya_finishing', 'p_ukuran', 'l_ukuran', 'id_bahan', 'id_produk', 'id_jasa')
+        ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
+        ->where('transaksi_detail.id_transaksi', $id)
+        ->select(
+            'transaksi_detail.nama_file',
+            'transaksi_detail.qty',
+            'transaksi_detail.subtotal',
+            'transaksi_detail.biaya_cetak',
+            'transaksi_detail.biaya_desain',
+            'transaksi_detail.biaya_finishing',
+            'transaksi_detail.p_ukuran',
+            'transaksi_detail.l_ukuran',
+            'transaksi_detail.id_bahan',
+            'transaksi_detail.id_produk',
+            'transaksi_detail.id_jasa',
+            DB::raw('produk.metode_hitung as metode_hitung_produk')
+        )
         ->get();
 
     $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
@@ -1038,6 +1355,24 @@ public function printOpsi(Request $request, $id)
         max(0, $totalTerbayar - $totalTagihanBulat)
     );
     $kurangBayar = max(0, $totalTagihanBulat - $totalTerbayar);
+
+    // Rincian "Uang Diterima": satu baris per pembayaran yang benar-benar
+    // tercatat, lengkap dengan nominal dan metodenya (Tunai/Transfer/Debit/
+    // Deposit). Baris "Total Bayar" di ringkasan hanya menjumlahkan angka,
+    // sehingga kasir dan pelanggan tidak pernah bisa mencocokkan nominal di
+    // nota dengan uang yang benar-benar masuk ke laci. Keterangan status
+    // (LUNAS / BELUM BAYAR / DP) ikut dicetak dari aturan yang sama dengan
+    // halaman kasir, supaya nota dan layar tidak pernah berbeda pendapat
+    // tentang status nota ini.
+    $penerimaanNota = DB::table('pembayaran_riwayat')
+        ->where('id_transaksi', $id)
+        ->orderBy('tgl_bayar')
+        ->orderBy('id_pembayaran')
+        ->select('nominal', 'metode', 'tgl_bayar', 'kembalian')
+        ->get();
+
+    $statusPembayaranNota = StatusPembayaran::dari((float) $transaksi->total_bayar, (float) $totalTerbayar);
+    $metodePembayaranNota = $penerimaanNota->pluck('metode')->unique()->implode(', ');
 
     // Info deposit - dipakai buat baris "Penggunaan deposit pada transaksi
     // ini" & "Saldo deposit anda saat ini" di nota (lihat referensi user).
@@ -1071,7 +1406,8 @@ public function printOpsi(Request $request, $id)
         'transaksi', 'items', 'totalTerbayar', 'format',
         'totalCetak', 'totalDesain', 'totalFinishing', 'kembali', 'kurangBayar',
         'totalTagihanAsli', 'totalTagihanBulat', 'pembulatan',
-        'depositTerpakaiTransaksiIni', 'saldoDepositSaatIni', 'konsumenPernahPakaiDeposit'
+        'depositTerpakaiTransaksiIni', 'saldoDepositSaatIni', 'konsumenPernahPakaiDeposit',
+        'penerimaanNota', 'statusPembayaranNota', 'metodePembayaranNota'
     ))->header('Cache-Control', 'no-store, max-age=0');
 }
 
@@ -1094,7 +1430,45 @@ public function printReport($id, $format)
 
     $format = $format === 'thermal' ? 'thermal' : 'a4';
 
-    return view('kasir.print_closing', compact('kas', 'format'));
+    // Sesi yang belum ditutup belum punya angka fisik/selisih - cetakan tanpa
+    // itu hanya setengah jadi dan bisa dipakai sebagai bukti rekonsiliasi
+    // walaupun angka yang belum final.
+    if ($kas->status_lock !== 'closed') {
+        return redirect()->route('kasir.kelola')
+            ->with('error', 'Rekap closing belum bisa dicetak untuk sesi yang masih berjalan. Selesaikan closing dulu.');
+    }
+
+    // Angka yang SUDAH tersimpan di kas_harian dipakai apa adanya (tunai,
+    // transfer, debit, pengeluaran, saldo akhir, saldo fisik, selisih).
+    // Dihitung ulang dari pembayaran_riwayat berisiko Cetak berbeda dari
+    // yang tersimpan bila ada pembayaran terlanjur masuk ke sesi.
+    //
+    // Yang BELUM tersimpan dan harus dihitung ulang:
+    //   - Kas Masuk / Kas Keluar manual. Kas tidak punya kolom totalnya,
+    //     hanya sisa pengeluarannya (total_tunai_keluar) - jadi hasil
+    //     penjumlahan di sini wajib sama seperti yang dipakai previewClosing().
+    //   - Deposit. Tidak pernah ikut closing (tidak menyentuh uang fisik),
+    //     tapi tetap perlu dicatat di laporan.
+    $manual = DB::table('kas_manual')
+        ->where('id_kas', $kas->id_kas)
+        ->select(
+            DB::raw("SUM(CASE WHEN status = 'Masuk' THEN nominal ELSE 0 END) as manual_masuk"),
+            DB::raw("SUM(CASE WHEN status = 'Keluar' THEN nominal ELSE 0 END) as manual_keluar")
+        )->first();
+
+    $deposit = DB::table('pembayaran_riwayat')
+        ->where('tgl_bayar', '>=', KasSesiService::mulai($kas))
+        ->where('tgl_bayar', '<=', $kas->waktu_tutup ?: now())
+        ->where('metode', 'Deposit')
+        ->sum('nominal');
+
+    return view('kasir.print_closing', [
+        'kas' => $kas,
+        'format' => $format,
+        'manualMasuk' => (float) ($manual->manual_masuk ?? 0),
+        'manualKeluar' => (float) ($manual->manual_keluar ?? 0),
+        'depositMasuk' => (float) ($deposit ?? 0),
+    ]);
 }
 
 /**
@@ -1138,10 +1512,11 @@ public function getHistory($id)
         // halaman kasir. Kalau nota batal ikut dihitung, bunyi notifikasi
         // tetap berbunyi padahal tidak ada yang bisa dilayani - kasir
         // lalu datang ke meja dan mendapati daftar kosong.
-        // Definisinya sama persis dengan $waitingCount di index(): semua nota Belum Bayar yang tidak batal. Dulu hanya
-        // where tgl_order = tanggal hari ini, padahal tgl_order berisi jam, jadi hasilnya selalu 0 dan notifikasi mati.
+        // Definisinya sama persis dengan $waitingCount di index() dan
+        // waitingList(): order yang menunggu diterima kasir. Nota yang sudah
+        // Diterima Kasir tapi belum dibayar bukan "baru" lagi.
         $count = DB::table('transaksi')
-            ->where('status_pembayaran', 'Belum Bayar')
+            ->where('status_order', 'Menunggu Kasir')
             ->where('status_nota', '!=', 'Dibatalkan')
             ->count();
 

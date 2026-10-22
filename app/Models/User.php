@@ -25,7 +25,7 @@ class User extends Authenticatable
     // ceroboh (mis. pakai $request->all()) tidak bisa diam-diam mengubah
     // role/password lewat form field yang tidak seharusnya.
     protected $fillable = [
-        'id_karyawan', 'username',
+        'id_karyawan', 'username', 'api_token',
     ];
     public function karyawan()
     {

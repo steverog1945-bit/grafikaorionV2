@@ -27,7 +27,26 @@
         <div class="hero">
             <div class="hero-thumb">
                 @if($detail->thumbnail)
-                    <img src="{{ asset('storage/' . $detail->thumbnail) }}" alt="Gambar desain">
+                    @if(\App\Support\BerkasDesain::bisaDitampilkan($detail->thumbnail))
+                        <img src="{{ asset('storage/' . $detail->thumbnail) }}" alt="Gambar desain">
+                    @else
+                        {{-- Berkas desain yang bukan gambar (CDR, AI, EPS):
+                             peramban tidak bisa menampilkannya, dan server
+                             tidak punya konverter (tidak ada ImageMagick/
+                             Ghostscript/LibreOffice di sini), jadi yang
+                             dicetak ke SPK adalah format berkasnya. Sumber
+                             filenya tetap tersimpan di server untuk dibuka
+                             tim produksi - nama desainnya sudah tercetak di
+                             judul SPK di sebelah kanan.
+
+                             PDF tidak masuk sini: PDF sudah dirender jadi
+                             gambar di peramban (pdf.js) sebelum diunggah. --}}
+                        <img src="{{ asset('storage/default-thumbnail.png') }}" alt="Berkas desain ({{ strtoupper(\App\Support\BerkasDesain::ekstensi($detail->thumbnail)) }})" style="max-width: 200px; max-height: 200px; opacity: 0.55;">
+                        <span class="placeholder" style="padding: 4px 0 0;">
+                            <strong>{{ strtoupper(\App\Support\BerkasDesain::ekstensi($detail->thumbnail)) }}</strong><br>
+                            <small>Berkas desain - sumber file ada di server, dibuka tim produksi</small>
+                        </span>
+                    @endif
                 @else
                     <span class="placeholder">Belum ada gambar desain</span>
                 @endif

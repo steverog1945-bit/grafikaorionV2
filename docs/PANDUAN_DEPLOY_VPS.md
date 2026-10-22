@@ -377,7 +377,12 @@ php artisan optimize
 Di server produksi ini **boleh** dan dianjurkan. Larangan `config:cache` hanya berlaku untuk komputer
 pengembangan (karena tes otomatis bisa salah mengarah ke database asli).
 
-**Setiap kali `.env` diubah**, jalankan `php artisan optimize:clear && php artisan optimize`.
+Gunakan `php artisan app:config-cache` (bukan `config:cache`): perintah ini menulis cache secara
+atomik dan menolak menulis kalau `app.key` kosong atau konfigurasinya menunjuk database uji.
+`config:cache` biasa menulis berkas tanpa atomik - ada saat berkasnya terisi separuh, dan permintaan
+web yang membacanya pada saat itu mendapat error 500 di seluruh halaman.
+
+**Setiap kali `.env` diubah**, jalankan `php artisan optimize:clear && php artisan app:config-cache`.
 
 ---
 

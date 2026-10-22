@@ -51,6 +51,7 @@
                     <option value="luas" @selected(request('metode_hitung') === 'luas')>Luas (m²)</option>
                     <option value="keliling" @selected(request('metode_hitung') === 'keliling')>Keliling (m)</option>
                     <option value="quantity" @selected(request('metode_hitung') === 'quantity')>Satuan (Pcs)</option>
+                    <option value="LINEAR_GRID" @selected(request('metode_hitung') === 'LINEAR_GRID')>Potong Manual (meter potong)</option>
                 </select>
             </div>
             <button type="submit" class="h-[38px] px-6 bg-indigo-600 text-white rounded-xl text-[11px] font-medium uppercase tracking-widest hover:bg-indigo-700">Filter</button>
@@ -91,16 +92,25 @@
                     @if($d->kategori)
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase">{{ $d->kategori->nama_kategori }}</span>
                     @else
-                        <span class="text-[11px] text-slate-300 italic">Semua Kategori</span>
+                        <span class="text-[11px] text-slate-500 italic">Semua Kategori</span>
                     @endif
                 </td>
                 <td class="px-4 py-5 text-center">
                     <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
-                        {{ match($d->metode_hitung) { 'luas' => 'Luas (m²)', 'keliling' => 'Keliling (m)', default => 'Satuan (Pcs)' } }}
+                        {{ match($d->metode_hitung) { 'luas' => 'Luas (m²)', 'keliling' => 'Keliling (m)', 'LINEAR_GRID' => 'Potong Manual (m)', default => 'Satuan (Pcs)' } }}
                     </span>
                 </td>
                 <td class="px-4 py-5 text-right">
                     <span class="text-[13px] font-medium text-slate-800">Rp {{ number_format($d->harga_default, 0, ',', '.') }}</span>
+                    @if($d->metode_hitung === 'LINEAR_GRID')
+                        <div class="text-[10px] text-slate-400 mt-0.5">tarif per meter potong</div>
+                        <div class="text-[10px] text-slate-500 mt-0.5">
+                            minimum charge Rp {{ number_format((float) ($d->minimum_charge ?? 0), 0, ',', '.') }}
+                            @if((float) ($d->minimum_charge ?? 0) <= 0)
+                                <span class="italic text-slate-400">(tanpa minimum)</span>
+                            @endif
+                        </div>
+                    @endif
                 </td>
                 <td class="px-8 py-5 text-right">
                     <div class="flex justify-end gap-2">
@@ -141,7 +151,7 @@
     @foreach($data as $d)
     <x-modal id="harga-finishing-{{ $d->id_finishing }}" title="Harga Bertingkat: {{ $d->nama_finishing }}"
          subtitle="Harga jual menyesuaikan jumlah, makin banyak makin murah per pcs"
-         icon="fa-layer-group" maxWidth="lg">
+         icon="fa-layer-group" maxWidth="xl">
         <div class="mb-4 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs text-slate-500">
             Harga Default (<b>Rp {{ number_format($d->harga_default, 0, ',', '.') }}</b>) dipakai kalau qty tidak cocok tier manapun di bawah, atau belum ada tier sama sekali. Kasir tetap bisa menimpa manual di Input Order - ini hanya acuan/starting point.
         </div>
@@ -152,7 +162,7 @@
             // ('luas'/'keliling'/'quantity' - lihat perbaikan qty acuan
             // finishing sesi sebelumnya), sama seperti Daftar Harga produk -
             // luas m² & keliling meter boleh pecahan, Pcs wajib bulat.
-            $satuanRentangFinishing = match($d->metode_hitung) { 'luas' => 'm²', 'keliling' => 'm', default => 'Pcs' };
+            $satuanRentangFinishing = match($d->metode_hitung) { 'luas' => 'm²', 'keliling' => 'm', 'LINEAR_GRID' => 'meter', default => 'Pcs' };
             $stepRentangFinishing = $d->metode_hitung === 'quantity' ? '1' : '0.01';
         @endphp
 
@@ -163,7 +173,7 @@
                 <form action="{{ route('finishing.harga.update', $t->id_finishing_harga) }}" class="tier-edit-form-finishing flex items-center gap-2 flex-1">
                     @csrf
                     <input type="number" name="range_min" value="{{ angka_polos($t->range_min, 4) }}" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                    <span class="text-[10px] text-slate-300 font-medium">s/d</span>
+                    <span class="text-[10px] text-slate-500 font-medium">s/d</span>
                     <input type="number" name="range_max" value="{{ angka_polos($t->range_max, 4) }}" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentangFinishing }}</span>
                     <span class="text-[10px] text-slate-400">=</span>
@@ -183,7 +193,7 @@
         <form action="{{ route('finishing.harga.store', $d->id_finishing) }}" class="tier-add-form-finishing flex items-center gap-2 bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-2" data-id-finishing="{{ $d->id_finishing }}" data-satuan-rentang="{{ $satuanRentangFinishing }}">
             @csrf
             <input type="number" name="range_min" placeholder="Min" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" required class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
-            <span class="text-[10px] text-slate-300 font-medium">s/d</span>
+            <span class="text-[10px] text-slate-500 font-medium">s/d</span>
             <input type="number" name="range_max" placeholder="~" min="{{ $stepRentangFinishing }}" step="{{ $stepRentangFinishing }}" class="w-20 text-xs text-center bg-white border-none rounded-lg py-2">
             <span class="text-[9px] text-slate-400 uppercase shrink-0">{{ $satuanRentangFinishing }}</span>
             <span class="text-[10px] text-slate-400">=</span>
@@ -222,6 +232,7 @@
                         <option value="luas">Luas (m²)</option>
                         <option value="keliling">Keliling (m) - mis. jahit tepi</option>
                         <option value="quantity">Satuan (Pcs)</option>
+                        <option value="LINEAR_GRID">Potong Manual - tarif per meter potong</option>
                     </x-form.select>
                 </x-form.group>
             </div>
@@ -235,8 +246,12 @@
                 </x-form.select>
             </x-form.group>
 
-            <x-form.group label="Harga Default (Rp)" name="harga_default" required dalam>
+            <x-form.group label="Harga Default (Rp)" name="harga_default" help="Untuk metode Potong Manual, angka ini dibaca sebagai tarif per meter potong (biaya = meter garis potong x tarif, ditambah minimum charge di bawah)." dalam>
                 <x-form.input type="text" inputmode="numeric" name="harga_default" required class="format-ribuan" />
+            </x-form.group>
+
+            <x-form.group label="Minimum Charge (Rp)" name="minimum_charge" help="Lantai biaya finishing per item - hanya dipakai metode Potong Manual. Isi 0 kalau tidak ada minimum charge (biaya persis hasil rumus)." dalam>
+                <x-form.input type="text" inputmode="numeric" name="minimum_charge" value="0" class="format-ribuan" />
             </x-form.group>
 
             <x-form.group label="Keterangan" name="keterangan" dalam>
@@ -272,6 +287,7 @@
                         <option value="luas">Luas (m²)</option>
                         <option value="keliling">Keliling (m) - mis. jahit tepi</option>
                         <option value="quantity">Satuan (Pcs)</option>
+                        <option value="LINEAR_GRID">Potong Manual - tarif per meter potong</option>
                     </x-form.select>
                 </x-form.group>
             </div>
@@ -285,8 +301,12 @@
                 </x-form.select>
             </x-form.group>
 
-            <x-form.group label="Harga Default (Rp)" dalam>
+            <x-form.group label="Harga Default (Rp)" help="Untuk metode Potong Manual, angka ini dibaca sebagai tarif per meter potong (biaya = meter garis potong x tarif, ditambah minimum charge di bawah)." dalam>
                 <x-form.input type="text" inputmode="numeric" name="harga_default" id="edit_harga_default" required class="format-ribuan" />
+            </x-form.group>
+
+            <x-form.group label="Minimum Charge (Rp)" help="Lantai biaya finishing per item - hanya dipakai metode Potong Manual. Isi 0 kalau tidak ada minimum charge (biaya persis hasil rumus)." dalam>
+                <x-form.input type="text" inputmode="numeric" name="minimum_charge" id="edit_minimum_charge" value="0" class="format-ribuan" />
             </x-form.group>
 
             <x-form.group label="Keterangan" dalam>
@@ -317,6 +337,7 @@
         document.getElementById('edit_id_kategori').value = data.id_kategori || '';
         document.getElementById('edit_metode_hitung').value = data.metode_hitung || 'luas';
         document.getElementById('edit_harga_default').value = formatRupiahDariAngka(data.harga_default);
+        document.getElementById('edit_minimum_charge').value = formatRupiahDariAngka(data.minimum_charge || 0);
         document.getElementById('edit_keterangan').value = data.keterangan || '';
 
         openModal('edit-finishing');
@@ -341,7 +362,7 @@
                 <form action="{{ url('/finishing-harga') }}/${t.id_finishing_harga}" class="tier-edit-form-finishing flex items-center gap-2 flex-1">
                     <input type="hidden" name="_token" value="${csrfToken}">
                     <input type="number" name="range_min" value="${t.range_min}" min="${stepRentang}" step="${stepRentang}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
-                    <span class="text-[10px] text-slate-300 font-medium">s/d</span>
+                    <span class="text-[10px] text-slate-500 font-medium">s/d</span>
                     <input type="number" name="range_max" value="${t.range_max ?? ''}" min="${stepRentang}" step="${stepRentang}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[9px] text-slate-400 uppercase shrink-0">${satuanRentang}</span>
                     <span class="text-[10px] text-slate-400">=</span>
@@ -389,7 +410,17 @@
         if (e.target.matches('.tier-add-form-finishing')) {
             e.preventDefault();
             const form = e.target;
+            // Pagar klik ganda. Form ini dikirim lewat fetch() JSON jadi tidak
+            // pernah membawa submit_id dan tidak terlindungi SubmitSekaliJalan.
+            // Pagar sesungguhnya ada di server (CekRentangHarga menolak rentang
+            // bertabrakan); yang ini supaya operator tidak mengirim dua kali dan
+            // tidak melihat pesan "rentang tumpang tindih" untuk kliknya sendiri.
+            const tombol = form.querySelector('button[type="submit"]');
+            if (tombol) { tombol.disabled = true; tombol.classList.add('opacity-60'); }
             const data = await submitTierFormAjax(form, 'POST');
+            // Tombol hidup lagi baik sukses maupun gagal: form di-reset setelah
+            // sukses supaya operator bisa menambah tier lagi.
+            if (tombol) { tombol.disabled = false; tombol.classList.remove('opacity-60'); }
             if (!data) return;
             const idFinishing = form.dataset.idFinishing;
             const container = document.getElementById('tier-container-finishing-' + idFinishing);
@@ -411,9 +442,9 @@
             title: 'Hapus Tier Harga Ini?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f1f5f9',
-            cancelButtonText: '<span style="color: #64748b">Batal</span>',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#F1F5F1',
+            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
         }).then(async (result) => {
             if (!result.isConfirmed) return;
@@ -446,9 +477,9 @@
             html: `Menghapus <b>${escapeHtml(name)}</b>? Data yang dihapus tidak dapat dikembalikan.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f1f5f9',
-            cancelButtonText: '<span style="color: #64748b">Batal</span>',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#F1F5F1',
+            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) {

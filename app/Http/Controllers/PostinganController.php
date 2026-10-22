@@ -146,7 +146,12 @@ class PostinganController extends Controller
 
         $isi = HtmlBersih::bersihkan($data['isi']);
         // Alamat gambar dari storage disimpan sebagai penanda supaya tidak terikat domain/subfolder.
+        // asset() bisa menghasilkan URL absolut (http://...) ATAU path relatif
+        // (root-relative) tergantung ASSET_URL - jadi kedua bentuk dicocokkan.
+        // Kalau hanya bentuk absolut yang dikenali, gambar yang baru diunggah
+        // akan tersimpan memakai domain/subfolder saat itu.
         $isi = preg_replace('#https?://[^"\']*?/storage/(posts/[^"\']+)#i', '@@STORAGE@@/$1', $isi);
+        $isi = preg_replace('#(?<![\w/])/[^"\']*?/storage/(posts/[^"\']+)#i', '@@STORAGE@@/$1', $isi);
         if (trim(strip_tags($isi, '<img>')) === '') {
             throw \Illuminate\Validation\ValidationException::withMessages(['isi' => 'Isi postingan tidak boleh kosong.']);
         }

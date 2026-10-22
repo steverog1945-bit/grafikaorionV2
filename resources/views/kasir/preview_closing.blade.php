@@ -40,13 +40,26 @@
             <div class="px-5 py-3 text-xs font-medium text-emerald-800 uppercase">Nota Order Cetak</div>
             <div class="px-5 py-3 text-sm font-medium text-slate-700 text-right">Rp {{ rupiah($totalNotaOrder, false) }}</div>
         </div>
+        {{-- Semua divisi dari tabel mesin dimunculkan, termasuk yang nol.
+             Divisi sepi tidak disembunyikan: absennya order itu sendiri
+             informasi, dan daftar yang berubah-ubah tiap hari tidak bisa
+             dipakai membandingkan hari ini dengan kemarin. Yang punya
+             order diberi latar dan teks penuh; yang kosong tetap terbaca
+             tapi turun kelas supaya tidak bersaing dengan angka riil. --}}
         @forelse($rekapKategori as $rk)
-        <div class="grid grid-cols-2 border-b border-slate-100 bg-sky-50/40">
-            <div class="px-5 py-2.5 text-xs font-medium text-slate-600 pl-8">{{ $rk->kategori }}</div>
-            <div class="px-5 py-2.5 text-xs font-medium text-slate-500 text-right">Rp {{ rupiah($rk->total, false) }}</div>
+        <div class="grid grid-cols-2 px-5 py-2.5 border-b border-slate-100 {{ $rk->ada_order ? 'bg-sky-50/40' : '' }}">
+            <div class="text-xs font-medium pl-8 {{ $rk->ada_order ? 'text-slate-600' : 'text-slate-400' }}">
+                {{ $rk->kategori }}
+                @unless($rk->ada_order)<span class="font-normal">tanpa order</span>@endunless
+            </div>
+            <div class="text-xs font-medium text-right tabular-nums {{ $rk->ada_order ? 'text-slate-500' : 'text-slate-400' }}">
+                Rp {{ rupiah($rk->total, false) }}
+            </div>
         </div>
         @empty
-        <div class="px-5 py-4 text-xs text-slate-400 italic text-center">Belum ada nota order hari ini.</div>
+        <div class="px-5 py-4 text-xs text-slate-400 italic text-center border-b border-slate-100">
+            Tidak ada divisi yang terdaftar di master mesin, jadi rekap per divisi tidak bisa ditampilkan.
+        </div>
         @endforelse
 
         <div class="grid grid-cols-2 bg-rose-50 border-b border-t border-slate-200">
@@ -105,7 +118,7 @@
                      (juga Debit & Deposit) TIDAK pernah ikut closing kas -
                      murni laporan keuangan, tidak menyentuh keadaan fisik laci
                      sama sekali (tidak ada di SALDO AKHIR LACI, tidak ada di
-                     Saldo Revisi, tidak mempengaruhi Selisih). --}}
+                     Total Isi Laci, tidak mempengaruhi Selisih). --}}
                 <p class="text-[10px] text-blue-500 mt-4 font-medium">*Transfer/Debit/Deposit HANYA laporan keuangan - tidak ikut ditutup/dicocokkan di closing kas ini, karena tidak berwujud uang fisik di laci. Deposit sendiri sudah masuk kas saat konsumen setor deposit dulu, bukan hari ini.</p>
             </div>
         </div>
@@ -120,10 +133,11 @@
         <input type="hidden" name="debit_masuk" value="{{ $pemasukan->debit_masuk ?? 0 }}">
         <input type="hidden" name="tunai_keluar" value="{{ $pengeluaran_tunai }}">
 
-        {{-- "Saldo Revisi" di referensi = field ini (uang fisik hasil hitung
-             manual di laci) - nama disamakan konsepnya, cuma label mengikuti
-             yang sudah dipakai sebelumnya di app ini supaya konsisten. --}}
-        <label class="block text-center text-sm font-medium text-slate-400 mb-2 uppercase">Saldo Revisi (Uang Fisik di Laci)</label>
+        {{-- Total isi laci. Field ini DIAMAKAI "Saldo Revisi" di referensi
+             pemilik aplikasi, tapi nama itu tidak menjelaskan apa pun bagi
+             operator yang biasa dipakai kasir - di sini labelnya diganti
+             jadi "Total Isi Laci (dihitung fisik)". --}}
+        <label class="block text-center text-sm font-medium text-slate-400 mb-2 uppercase">Total Isi Laci (dihitung fisik)</label>
         <input type="text" inputmode="numeric" autocomplete="off" name="saldo_fisik" id="input-saldo-fisik" oninput="hitungSelisihLive()" class="w-full bg-transparent text-center text-4xl font-medium text-white border-b-2 border-slate-700 focus:outline-none focus:border-emerald-500 mb-2 format-ribuan" placeholder="0" required>
 
         {{-- Selisih DIHITUNG LIVE di browser (saldo fisik yang diketik vs

@@ -15,7 +15,7 @@
     <div class="print:hidden">
         <x-page-header title="Laporan Stok Bahan Baku">
             <x-slot:subtitle>
-                Laporan <span class="mx-1 text-slate-300">/</span> Evaluasi Pengadaan &amp; Pembelanjaan Bahan - kondisi stok saat ini, bukan rekap transaksi periode
+                Laporan <span class="mx-1 text-slate-500">/</span> Evaluasi Pengadaan &amp; Pembelanjaan Bahan - kondisi stok saat ini, bukan rekap transaksi periode
             </x-slot:subtitle>
             <x-slot:actions>
                 <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">

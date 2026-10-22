@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -26,6 +27,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle.write' => \App\Http\Middleware\ThrottleWriteRequests::class,
             'hanya.admin' => \App\Http\Middleware\HanyaAdministrator::class,
             'sekali.jalan' => \App\Http\Middleware\SubmitSekaliJalan::class,
+            'api.auth' => \App\Http\Middleware\ApiAuth::class,
+        ]);
+
+        // API middleware group: hanya api.auth (tanpa throttle/cookie/encrypt).
+        // Throttle bisa ditambahkan kalau butuh rate limiting.
+        // Tanpa grup ini, route api/ pakai grup 'web' bawaan (EncryptCookies, dll)
+        // yang butuh APP_KEY untuk encrypt cookie.
+        $middleware->group('api', [
+            // \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
         ]);
 
         // Otorisasi menu WAJIB berjalan sebelum route-model binding. Bawaan

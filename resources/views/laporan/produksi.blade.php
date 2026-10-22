@@ -15,7 +15,7 @@
     <div class="print:hidden">
         <x-page-header title="Laporan Produksi">
             <x-slot:subtitle>
-                Laporan <span class="mx-1 text-slate-300">/</span> Rekap Produksi per Divisi &amp; Produk
+                Laporan <span class="mx-1 text-slate-500">/</span> Rekap Produksi per Divisi &amp; Produk
             </x-slot:subtitle>
             <x-slot:actions>
                 <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">

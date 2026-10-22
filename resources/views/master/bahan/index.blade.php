@@ -118,7 +118,7 @@
                                 </span>
                                 <span class="text-[9px] text-slate-400 font-medium uppercase">{{ $b->kategori->nama_kategori ?? 'Umum' }}</span>
                                 @if($b->merk || $b->jenisBahan)
-                                    <span class="text-[9px] text-indigo-400 font-medium uppercase">
+                                    <span class="text-[9px] text-indigo-600 font-medium uppercase">
                                         {{ $b->merk->nama_merk ?? '' }}{{ $b->merk && $b->jenisBahan ? ' • ' : '' }}{{ $b->jenisBahan->nama_jenis ?? '' }}
                                     </span>
                                 @endif
@@ -153,7 +153,7 @@
                                 @if((float) $b->harga_rata_rata > 0)
                                     <span class="text-[13px] font-medium tabular-nums text-slate-700">Rp {{ number_format($b->harga_rata_rata, 0, ',', '.') }}</span>
                                     <span class="text-xs font-medium text-slate-400">/ {{ $b->satuan_stok }}</span>
-                                    <i class="fas fa-pen text-[10px] text-slate-300 opacity-0 group-hover/harga:opacity-100 transition-opacity self-center"></i>
+                                    <i class="fas fa-pen text-[10px] text-slate-500 opacity-0 group-hover/harga:opacity-100 transition-opacity self-center"></i>
                                 @else
                                     <span class="text-xs font-medium text-amber-600"><i class="fas fa-exclamation-triangle mr-1"></i>Belum ada harga</span>
                                 @endif
@@ -170,12 +170,12 @@
                                 <span class="text-[13px] font-medium tabular-nums text-slate-700">Rp {{ number_format($bt->harga, 0, ',', '.') }}</span>
                                 <span class="block text-[10px] font-medium text-slate-400 mt-0.5" title="Faktur {{ $bt->no_faktur }}">{{ \Carbon\Carbon::parse($bt->tgl_transaksi)->translatedFormat('d M Y') }}</span>
                             @else
-                                <span class="text-[11px] font-medium text-slate-300 italic" title="Belum ada faktur pembelian untuk bahan ini">Belum pernah dibeli</span>
+                                <span class="text-[11px] font-medium text-slate-500 italic" title="Belum ada faktur pembelian untuk bahan ini">Belum pernah dibeli</span>
                             @endif
                         </td>
                         <td class="px-6 py-5 text-center">
                             @if($selisihPersen === null)
-                                <span class="text-slate-300">-</span>
+                                <span class="text-slate-500">-</span>
                             @elseif(abs($selisihRp) < 0.5)
                                 <span class="text-[11px] font-medium text-slate-400" title="Harga beli terakhir sama dengan harga rata-rata">Sama</span>
                             @else
@@ -414,8 +414,8 @@
             text: "Data yang dihapus tidak dapat dikembalikan.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#4f46e5',
-            cancelButtonColor: '#f8fafc',
+            confirmButtonColor: '#006C7B',
+            cancelButtonColor: '#FAFBF9',
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
             customClass: {
@@ -443,8 +443,8 @@
                 : `<b>${escapeHtml(namaBahan)}</b> akan muncul lagi di pilihan transaksi baru.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: mauNonaktifkan ? '#64748b' : '#10b981',
-            cancelButtonColor: '#f8fafc',
+            confirmButtonColor: mauNonaktifkan ? '#4A5B53' : '#10b981',
+            cancelButtonColor: '#FAFBF9',
             confirmButtonText: mauNonaktifkan ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan',
             cancelButtonText: 'Batal',
             customClass: {
@@ -535,8 +535,8 @@
             text: `${checkedCount} bahan terpilih akan dihapus. Bahan yang masih terikat riwayat transaksi otomatis dilewati.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f8fafc',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#FAFBF9',
             confirmButtonText: 'Ya, Hapus Semua',
             cancelButtonText: 'Batal',
             customClass: {

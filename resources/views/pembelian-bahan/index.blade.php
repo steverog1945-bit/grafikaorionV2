@@ -5,7 +5,7 @@
 
     <x-page-header title="Pembelian Bahan">
         <x-slot:subtitle>
-            Logistik <span class="mx-1 text-slate-300">/</span> Manajemen Faktur Pembelian
+            Logistik <span class="mx-1 text-slate-500">/</span> Manajemen Faktur Pembelian
         </x-slot:subtitle>
         <x-slot:actions>
             <x-button href="{{ route('pembelian-bahan.create') }}">
@@ -62,17 +62,17 @@
         <a href="{{ route('pembelian-bahan.index', ['jt' => 'telat']) }}" title="Faktur yang sudah lewat jatuh tempo dan belum lunas" class="rounded-2xl border p-5 transition-all hover:shadow-md {{ request('jt') === 'telat' ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-100' }}">
             <p class="text-[10px] font-medium text-rose-500 uppercase tracking-widest">Telat Jatuh Tempo</p>
             <p class="text-2xl font-medium text-rose-600 mt-1">{{ $ringkasJt['telat']['n'] }} <span class="text-xs font-medium text-slate-400">faktur</span></p>
-            <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['telat']['nilai'], 0, ',', '.') }}</p>
+            <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ angka($ringkasJt['telat']['nilai']) }}</p>
         </a>
         <a href="{{ route('pembelian-bahan.index', ['jt' => '7hari']) }}" title="Faktur yang jatuh tempo dalam 7 hari ke depan" class="rounded-2xl border p-5 transition-all hover:shadow-md {{ request('jt') === '7hari' ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100' }}">
             <p class="text-[10px] font-medium text-amber-500 uppercase tracking-widest">Jatuh Tempo &le; 7 Hari</p>
             <p class="text-2xl font-medium text-amber-600 mt-1">{{ $ringkasJt['minggu']['n'] }} <span class="text-xs font-medium text-slate-400">faktur</span></p>
-            <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['minggu']['nilai'], 0, ',', '.') }}</p>
+            <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ angka($ringkasJt['minggu']['nilai']) }}</p>
         </a>
         <a href="{{ route('pembelian-bahan.index', ['jt' => 'aman']) }}" title="Faktur berhutang dengan jatuh tempo lebih dari 7 hari lagi" class="rounded-2xl border p-5 transition-all hover:shadow-md {{ request('jt') === 'aman' ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-100' }}">
             <p class="text-[10px] font-medium text-emerald-500 uppercase tracking-widest">Belum Jatuh Tempo</p>
             <p class="text-2xl font-medium text-emerald-600 mt-1">{{ $ringkasJt['aman']['n'] }} <span class="text-xs font-medium text-slate-400">faktur</span></p>
-            <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ number_format($ringkasJt['aman']['nilai'], 0, ',', '.') }}</p>
+            <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ angka($ringkasJt['aman']['nilai']) }}</p>
         </a>
     </div>
     @if(request()->filled('jt'))
@@ -130,7 +130,7 @@
                         @else
                             <x-badge variant="warning">Hutang</x-badge>
                             @if($item->sisa_hutang < $item->grand_total)
-                                <div class="text-[9px] text-rose-500 font-medium mt-1">Sisa Rp {{ number_format($item->sisa_hutang, 0, ',', '.') }}</div>
+                                <div class="text-[9px] text-rose-500 font-medium mt-1">Sisa Rp {{ angka($item->sisa_hutang) }}</div>
                             @endif
                         @endif
                     </td>
@@ -157,7 +157,7 @@
 
                     <td class="px-4 py-5 text-right">
                         <span class="text-[14px] font-medium text-indigo-600">
-                            Rp {{ number_format($item->grand_total, 0, ',', '.') }}
+                            Rp {{ angka($item->grand_total) }}
                         </span>
                     </td>
 
@@ -285,7 +285,7 @@
             inputValidator: (v) => !v ? 'Alasan wajib diisi' : null,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ajukan Pembatalan',
             customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
@@ -307,7 +307,7 @@
             text: 'Tiap faktur diajukan ke Alur Persetujuan; tidak ada yang langsung dihapus.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
+            confirmButtonColor: '#93481A',
             confirmButtonText: 'Ya, Ajukan Semua',
             customClass: { popup: 'rounded-2xl' }
         }).then((result) => {

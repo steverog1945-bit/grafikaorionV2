@@ -31,6 +31,19 @@ class FinishingHargaController extends Controller
             'harga'     => 'required|numeric|min:0',
         ]);
 
+        // Aturan bisnis: satu finishing hanya boleh punya satu tier untuk satu
+        // rentang qty. Tanpa ini, klik ganda pada form tier (yang dikirim lewat
+        // fetch() JSON, jadi tidak pernah membawa submit_id dan tidak
+        // terlindungi SubmitSekaliJalan) membuat tier kembar - lalu qty 1-10
+        // punya dua harga dan mana yang dipakai bergantung urutan baris.
+        // Bentuk respons dibuat sama persis dengan SettingHargaController
+        // supaya helper JS di ketiga halaman bisa sama.
+        if (\App\Support\CekRentangHarga::tumpangTindih(
+            'finishing_harga', 'id_finishing', (int) $idFinishing, [], $request->range_min, $request->range_max
+        )) {
+            return response()->json(['success' => false, 'message' => 'Rentang qty ini tumpang tindih dengan tier yang sudah ada. Sesuaikan dulu Min/Max-nya.'], 422);
+        }
+
         $id = DB::table('finishing_harga')->insertGetId([
             'id_finishing' => $idFinishing,
             'range_min'    => $request->range_min,

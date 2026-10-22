@@ -89,7 +89,7 @@
                 <td colspan="5" class="py-24 text-center">
                     <div class="flex flex-col items-center">
                         <i class="fas fa-folder-open text-slate-100 text-6xl mb-4"></i>
-                        <p class="text-slate-300 font-medium text-sm">Belum ada kategori yang terdaftar.</p>
+                        <p class="text-slate-500 font-medium text-sm">Belum ada kategori yang terdaftar.</p>
                     </div>
                 </td>
             </tr>
@@ -200,8 +200,8 @@
             html: `Kategori <b>${escHtml(nama)}</b> akan dihapus permanen.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#f8fafc',
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#FAFBF9',
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
             customClass: {

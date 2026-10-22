@@ -85,7 +85,14 @@ return [
         // Pengaturan Aplikasi (identitas toko, logo, nota) bisa diberikan ke peran lain lewat menu 37.
         'pengaturan-aplikasi' => [37],
         // Cetak ulang nota (baca saja) dari Riwayat/Detail Penjualan dan dari Penjualan dan Jasa.
-        'kasir/print-opsi' => [3, 16, 48, 61],
+        // JANGAN pernah menambahkan id_menu 61 ("Riwayat Nota") ke daftar ini.
+        // 61 dipakai supaya role bisa MELIHAT daftar nota, dan role itu tidak
+        // otomatis berhak mencetak nota - Operator Desain punya 61 (butuh untuk
+        // membaca riwayat order) tapi tidak boleh mencetak ulang nota yang memuat
+        // nilai. Ikut-ikutan seperti ini muncul karena dua hal ini digabung dalam
+        // satu daftar id_menu, padahal itu dua izin berbeda. Role yang memang
+        // boleh mencetak nota diberi menu Kasir (16) atau Transaksi Baru (3).
+        'kasir/print-opsi' => [3, 16, 48],
 
         'kedatangan-bahan' => [17],
         'ajax/bahan' => [17],

@@ -18,7 +18,7 @@
         <div class="mb-6 flex max-w-full gap-1.5 overflow-x-auto rounded-2xl border border-slate-200/70 bg-white p-1.5 shadow-sm" role="tablist">
             <a href="{{ route($routeName, request()->except(['divisi', 'page'])) }}"
                class="group inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-[12px] font-medium transition-all {{ $aktifDivisi === null ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800' }}">
-                <i class="fas fa-layer-group text-[11px] {{ $aktifDivisi === null ? 'text-indigo-100' : 'text-slate-300 group-hover:text-indigo-400' }}"></i>
+                <i class="fas fa-layer-group text-[11px] {{ $aktifDivisi === null ? 'text-indigo-100' : 'text-slate-500 group-hover:text-indigo-600' }}"></i>
                 {{ $terbatasDivisi ? 'Semua Divisi Saya' : 'Semua Divisi' }}
             </a>
             @foreach($divisis as $d)

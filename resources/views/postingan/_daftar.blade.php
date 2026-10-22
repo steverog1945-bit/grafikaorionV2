@@ -147,7 +147,7 @@
 <script>
     function konfirmasiHapusPostingan(e, form, judul) {
         e.preventDefault();
-        Swal.fire({ title: 'Hapus postingan?', html: `<b>${judul.replace(/[<>&]/g, '')}</b> akan dihapus dari daftar.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal', customClass: { popup: 'rounded-2xl' } })
+        Swal.fire({ title: 'Hapus postingan?', html: `<b>${judul.replace(/[<>&]/g, '')}</b> akan dihapus dari daftar.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#93481A', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal', customClass: { popup: 'rounded-2xl' } })
             .then(r => { if (r.isConfirmed) form.submit(); });
         return false;
     }

@@ -3,7 +3,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Antrean Pesanan Baru" subtitle="Daftar transaksi yang belum diproses pembayarannya oleh kasir.">
+    <x-page-header title="Antrean Pesanan Baru" subtitle="Daftar order menunggu diterima kasir. SPK baru aktif setelah kasir menekan Terima Transaksi.">
         <x-slot:actions>
             <x-button href="{{ route('kasir.index') }}" variant="secondary">
                 <i class="fas fa-arrow-left"></i>
@@ -52,9 +52,13 @@
 
                 <div class="mt-5">
                     @if($kasAktif)
-                        <a href="{{ url('/kasir/bayar-form/'.$w->id_transaksi) }}" class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-xs shadow-sm transition-all">
-                            <i class="fas fa-cash-register"></i> Buka Transaksi
-                        </a>
+                        <form method="POST" action="{{ route('kasir.terimaTransaksi', $w->id_transaksi) }}">
+                            @csrf
+                            <input type="hidden" name="submit_id" value="terima-{{ $w->id_transaksi }}-{{ $loop->index }}">
+                            <button type="submit" class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-xs shadow-sm transition-all">
+                                <i class="fas fa-check-circle"></i> Terima Transaksi
+                            </button>
+                        </form>
                     @else
                         <span class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-slate-100 text-slate-400 font-medium text-xs cursor-not-allowed" title="Kas belum dibuka">
                             <i class="fas fa-lock"></i> Terkunci

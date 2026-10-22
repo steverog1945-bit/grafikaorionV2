@@ -85,7 +85,7 @@ class RollbackAtomikTest extends TestCase
     {
         $id = DB::table('transaksi')->insertGetId([
             'nomor_nota' => 'INV-RB-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $this->kons, 'id_user_kasir' => $this->admin->id_user,
-            'tgl_order' => now(), 'total_bayar' => $total, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_collecting' => 'Belum Diambil',
+            'tgl_order' => now(), 'total_bayar' => $total, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir', 'status_collecting' => 'Belum Diambil',
         ]);
         DB::table('transaksi_detail')->insert([
             'id_transaksi' => $id, 'nama_file' => 'a.pdf', 'p_ukuran' => 1, 'l_ukuran' => 1, 'qty' => 1, 'status_urgent' => 0,

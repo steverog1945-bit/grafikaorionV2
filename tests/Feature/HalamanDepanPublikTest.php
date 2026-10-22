@@ -102,9 +102,41 @@ class HalamanDepanPublikTest extends TestCase
         $this->actingAs(User::factory()->create())->get('/')->assertRedirect(route('dashboard'));
     }
 
-    public function test_ditolak_dari_halaman_dalam_membuka_dialog_masuk_sekali(): void
+    public function test_ditolak_dari_halaman_dalam_mendapat_form_masuk(): void
     {
-        $this->get('/dashboard')->assertRedirect('/');
+        // Checkpoint 4E.1: route('login') menunjuk /masuk, jadi tamu yang
+        // ditolak mendarat di endpoint login (bukan homepage).
+        $this->get('/dashboard')->assertRedirect(route('login'));
+
+        // Form-nya benar-benar ada dan siap pakai, bukan dialog yang harus
+        // dibuka lebih dulu.
+        $r = $this->get(route('login'));
+        $r->assertOk();
+        $r->assertViewIs('masuk');
+        $r->assertSee('name="_token"', false);
+        $r->assertSee('name="username"', false);
+        $r->assertSee('name="password"', false);
+    }
+
+    public function test_endpoint_login_menyediakan_form_di_setiap_permintaan(): void
+    {
+        // /masuk selalu menyediakan form pada setiap permintaan - berbeda dari
+        // '/' yang memakai dialog "sekali" saat url.intended masih ada.
+        $this->get(route('login'))->assertOk()->assertViewIs('masuk')
+            ->assertSee('name="username"', false)
+            ->assertSee('name="password"', false);
+
+        // Permintaan kedua tetap sama - tidak ada state yang "terpakai".
+        $this->get(route('login'))->assertOk()->assertViewIs('masuk')
+            ->assertSee('name="username"', false)
+            ->assertSee('name="password"', false);
+    }
+
+    public function test_homepage_buka_dialog_masuk_hanya_sekali_berikutnya(): void
+    {
+        // Perilaku lama homepage '/' dipertahankan: dialog terbuka sekali
+        // setelah ditolak, lalu tidak lagi pada kunjungan berikutnya.
+        $this->get('/dashboard')->assertRedirect(route('login'));
 
         $this->get('/')->assertSee('buka();', false);
         $this->get('/')->assertDontSee('buka();', false);

@@ -5,7 +5,7 @@
 
 <div class="empty-state">
     @isset($icon)
-        <div class="flex justify-center mb-3 text-slate-300">{{ $icon }}</div>
+        <div class="flex justify-center mb-3 text-slate-500">{{ $icon }}</div>
     @endisset
 
     <p class="font-medium text-slate-500">{{ $title }}</p>

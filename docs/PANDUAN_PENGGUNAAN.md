@@ -268,12 +268,15 @@ Setara juga bisa langsung: `php scripts/db_dump_commit.php [--push] ["pesan"]`.
 Checklist teknis - hanya dijalankan setelah aplikasi dinyatakan sempurna dan siap online (lihat memori proyek):
 
 1. **`.env` produksi:** `APP_ENV=production`, `APP_DEBUG=false` (sebelum ini, error apa pun tampil lengkap ke pengunjung - kebocoran informasi). `SESSION_SECURE_COOKIE=true` bila situs sudah HTTPS.
-2. **Cache konfigurasi & rute** - dijalankan ulang setiap kali `.env`/route/config berubah setelahnya (`config:clear` dulu sebelum edit `.env`, baru `config:cache` lagi):
+2. **Cache konfigurasi & rute** - dijalankan ulang setiap kali `.env`/route/config berubah setelahnya (`config:clear` dulu sebelum edit `.env`, baru bangun cache lagi):
    ```
-   php artisan config:cache
+   php artisan app:config-cache
    php artisan route:cache
    php artisan view:cache
    ```
+   **Pakai `app:config-cache`, bukan `config:cache`.** Perintah bawaan menulis berkas cache konfigurasi tanpa atomik: ada saat berkasnya terisi separuh, dan permintaan web yang kebetulan membacanya mendapat error 500 "No application encryption key has been specified" di SELURUH halaman. Perintah `app:config-cache` menulis secara atomik (tulis berkas sementara lalu rename), membersihkan environment yang diwarisi dari proses lain, dan MENOLAK menulis cache kalau `app.key` kosong atau konfigurasinya menunjuk database uji.
+
+   > **Di komputer development cache konfigurasi TIDAK boleh di-build.** Konfigurasi ter-cache mengalahkan `phpunit.xml`, sehingga test otomatis bisa berjalan di database asli dan mengosongkannya. Kalau `app:config-cache` dipakai di sini, jalankan `php artisan config:clear` SETELAH test selesai - jangan tinggalkan cache-nya.
 3. **Scheduler benar-benar berjalan** - jadwal `Schedule::command(...)` di `routes/console.php` (backup harian/mingguan/bulanan) tidak aktif dengan sendirinya. Perlu cron (`* * * * * php artisan schedule:run`) atau Windows Task Scheduler tiap menit.
 4. **`BACKUP_SECONDARY_DISK`** diatur ke disk di luar server (lihat bagian Backup & Recovery di atas) - backup yang hanya ada di server yang sama tidak melindungi dari kerusakan server itu sendiri.
 5. **Build aset produksi:** `npm install && npm run build` di server (folder `public/build` tidak ikut git).

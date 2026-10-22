@@ -22,7 +22,7 @@
        packages/ui/src/styles/theme.css repo sst/opencode):
          teks utama #171717, teks sekunder #6f6f6f, teks tersier #8f8f8f,
          garis #e5e5e5, aksen #034cff, sukses #2dba26, kritis #ed4831.
-       Sebelumnya dokumen cetak memakai indigo (#4f46e5) dan abu-abu
+       Sebelumnya dokumen cetak memakai indigo (#006C7B) dan abu-abu
        kebiruan yang tidak ada di palet itu sama sekali. Untuk dokumen
        yang keluar dari printer, warna yang tidak ada di palet berarti
        tinta yang tidak disengaja.
@@ -44,14 +44,34 @@
         background: #ffffff;
         font-size: {{ $format === 'thermal' ? '11px' : '12px' }};
         line-height: 1.5;
+        {{-- THERMAL: halaman di layar DISAMPAI jadi selebar kertas (80mm),
+             bukan selebar jendela browser. Gunanya: yang dilihat operator
+             persis yang akan keluar dari printer, dan "Save as PDF" dari
+             dialog cetak menghasilkan halaman selebar kertas - bukan A4
+             dengan ruang kosong excessive. Lebar halaman saat CETAK diatur
+             oleh aturan @page di bawah. --}}
+        {{ $format === 'thermal' ? 'width: 80mm; margin: 0 auto;' : '' }}
     }
 
     {{-- Lebar kertas. 'continuous' (kertas sambung / dot-matrix) memakai
          ukuran font yang SAMA dengan A4 di seluruh style ini - dua-duanya
          "bukan thermal", hanya lebar kertasnya berbeda. --}}
     .sheet {
-        max-width: {{ $format === 'thermal' ? '58mm' : ($format === 'continuous' ? '190mm' : '480px') }};
-        margin: 0 auto;
+        max-width: {{ $format === 'thermal' ? '80mm' : ($format === 'continuous' ? '190mm' : '480px') }};
+        /* THERMAL: blok nota ditarik ke KIRI, bukan dipusatkan di halaman.
+
+           Alasan (permintaan pemilik): printer thermal kadang kena error
+           koneksi dan yang keluar hanya bagian kiri kertas. Kalau nota
+           dipusatkan, bagian kiri yang tercetak bisa jadi memotong
+           kepala struk - nama toko, nomor nota, dan item pertama - yaitu
+           bagian yang justru paling dibutuhkan saat CETAK ULANG.
+
+           Yang dipindah hanya LETAK bloknya. Isi di dalamnya tetap
+           terpusat persis seperti sebelumnya (kepala dokumen center, tabel
+           tetap kiri-kanan), jadi tidak ada yang berubah secara visual
+           selain posisinya di halaman. Format lain (A4 / continuous)
+           tetap dipusatkan. */
+        margin: {{ $format === 'thermal' ? '0' : '0 auto' }};
     }
 
     /* ----------------------------------------------------------------------
@@ -220,5 +240,39 @@
     @media print {
         .no-print { display: none !important; }
         body { padding: 0; }
+        {{-- THERMAL: halaman cetak = ukuran kertasnya sendiri (80mm), margin
+             nol. Tanpa aturan ini, browser mencetak di kertas default (A4)
+             dan nota thermal cuma occupying 80mm di pojok kiri atas - sisa
+             kertas jadi ruang kosong yang ikut ter-simpan ke PDF.
+
+             "size: 80mm auto" = lebar 80mm, tinggi ikut isi (struk thermal
+             memang kertas kontinu, bukan kertas fixed). --}}
+        @page {
+            size: {{ $format === 'thermal' ? '80mm auto' : 'auto' }};
+            margin: 0;
+        }
     }
 </style>
+
+{{-- THERMAL: langsung buka dialog cetak begitu halaman selesai dimuat.
+
+     Tanpa preview: operator buka halaman cetak, dialognya sudah muncul,
+     jadi cukup menekan Enter (atau pilih printer + Print). Tujuannya
+     memperpendek jalan dari "buka nota -> klik cetak -> pilih printer ->
+     print" menjadi "buka nota -> Enter".
+
+     Delay 300ms supaya logo/gambar sempat selesai dimuat - kalau langsung
+     dipanggil, logo bisa belum tampil di kertas. --}}
+@if($format === 'thermal')
+<script>
+    window.addEventListener('load', function () {
+        // Hanya kalau halaman ini dibuka langsung (bukan di dalam iframe).
+        // Pratinjau nota di Pengaturan Aplikasi memakai iframe - kalau
+        // auto-cetak ikut jalan di sana, membuka Pengaturan Aplikasi akan
+        // memunculkan dialog cetak yang tidak diminta, dan dialog itu
+        // memblokir halaman sampai ditutup.
+        if (window.top !== window.self) return;
+        setTimeout(function () { window.print(); }, 300);
+    });
+</script>
+@endif

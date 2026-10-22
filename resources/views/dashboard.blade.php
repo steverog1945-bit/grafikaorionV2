@@ -66,6 +66,24 @@
 </div>
 
 {{-- ============ KPI ============ --}}
+{{-- Baris status real-time: titik "live" berdenyut + jam pembaruan terakhir,
+     diletakkan tepat DI ATAS kartu yang memang ia perbarui (sebelumnya tersemat
+     sendirian di samping judul sapaan sehingga terasa mengambang). Warna hanya
+     memakai palet yang sudah punya pasangan mode gelap/terang di app.css
+     (emerald/slate), jadi tampilannya benar tanpa menyentuh CSS global. --}}
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div class="flex items-center gap-2.5">
+        <span class="relative flex h-2 w-2" title="Angka pada kartu di bawah diperbarui otomatis dari server">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span class="text-[11px] font-medium text-slate-500 uppercase tracking-[0.2em]">Pembaruan Langsung</span>
+    </div>
+    <p class="text-[11px] text-slate-400">
+        Diperbarui otomatis <span id="dashboard-updated-at" class="font-medium text-slate-500">{{ now()->format('H.i') }}</span>
+        &middot; tiap 30 detik
+    </p>
+</div>
 <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
     <a href="{{ $u('penjualan.riwayat') }}" title="Jumlah order hari ini dan nilainya" class="bg-white p-5 rounded-lg border border-slate-100 shadow-sm hover:shadow-md transition-all">
         <div class="flex items-center justify-between"><p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Order Hari Ini</p><span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center"><i class="fas fa-receipt text-xs"></i></span></div>
@@ -134,7 +152,7 @@
             <a href="{{ $it['url'] }}" class="flex items-center gap-3 px-6 py-3.5 hover:bg-slate-50/60 transition-all" title="Buka {{ $it['label'] }}">
                 <span class="min-w-[2rem] h-8 px-2 rounded-xl flex items-center justify-center text-xs font-medium {{ $nadaTone[$it['tone']] ?? $nadaTone['indigo'] }}">{{ $it['count'] > 99 ? '99+' : $it['count'] }}</span>
                 <span class="flex-1 text-[12px] font-medium text-slate-600 leading-snug">{{ $it['label'] }}</span>
-                <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
+                <i class="fas fa-chevron-right text-[10px] text-slate-500"></i>
             </a>
             @empty
             <div class="px-6 py-10"><x-empty-state title="Semua beres" description="Tidak ada pekerjaan yang menunggu tindakan." /></div>
@@ -221,4 +239,56 @@
 
 @endif
 </div>
+
+@push('scripts')
+<script>
+    // Dashboard real-time KPI polling (refresh tiap 30 detik, tanpa reload halaman).
+    (function () {
+        var interval = 30000;
+        var cards = {
+            piutang: document.querySelector('a[href*="piutang"] .text-3xl'),
+            order: document.querySelector('a[href*="riwayat"] .text-3xl'),
+            kas: document.querySelector('a[href*="laporan.kas"] .text-3xl'),
+            spkAntre: null,
+            spkProses: null,
+            spkSelesai: null,
+            urgent: null,
+        };
+        var updatedAt = null;
+
+        function formatRupiah(n) {
+            return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function update(data) {
+            if (!data) return;
+            if (cards.piutang) cards.piutang.textContent = "Rp " + formatRupiah(Math.round(data.piutang));
+            if (cards.order) cards.order.textContent = data.order_hari_ini;
+            if (cards.kas) cards.kas.textContent = "Rp " + formatRupiah(Math.round(data.kas_masuk_hari_ini));
+            if (updatedAt) {
+                updatedAt.textContent = new Date(data.updated_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                // Kedip halus sekali saat angka benar-benar disegarkan, supaya
+                // pembaruan terasa hidup tanpa mengubah layout.
+                if (updatedAt.animate) updatedAt.animate([{ opacity: 0.3 }, { opacity: 1 }], { duration: 450, easing: 'ease-out' });
+            }
+        }
+
+        function fetchKpi() {
+            fetch('{{ route('dashboard.kpi-api') }}', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            })
+                .then(function (r) { return r.json(); })
+                .then(update)
+                .catch(function () { /* silent - coba lagi pada interval berikutnya */ });
+        }
+
+        // Indikator pembaruan kini menetap di baris status di atas kartu KPI
+        // (dipasang langsung oleh Blade), bukan ditambal ke judul sapaan.
+        updatedAt = document.getElementById('dashboard-updated-at');
+
+        fetchKpi();
+        setInterval(fetchKpi, interval);
+    })();
+</script>
+@endpush
 @endsection

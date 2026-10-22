@@ -7,6 +7,8 @@
        variabel --lembar-* sehingga mode terang dan gelap memakai
        struktur yang sama, cukup ganti nilai variabelnya. Tanpa blur
        dan tanpa latar tembus pandang.
+       Mengikuti design system: radius 8px (panel), 6px (input/chip),
+       font-size 13px (body), 10px uppercase (label), font-weight 500/700.
        ============================================================ */
     .lembar {
         --lembar-bg: #ffffff;
@@ -18,7 +20,7 @@
         --lembar-muted: #5b6472;
         background: var(--lembar-bg);
         border: 1px solid var(--lembar-border);
-        border-radius: 16px;
+        border-radius: 8px;
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
         transition:
             background 220ms cubic-bezier(0.32, 0.72, 0, 1),
@@ -30,79 +32,79 @@
         --lembar-hover: #16213a;
         --lembar-border: #26314a;
         --lembar-line: #1d2942;
-        --lembar-head: #17223b;
-        --lembar-ink: #f1f5f9;
+        --lembar-head: #01434D;
+        --lembar-ink: #F1F5F1;
         --lembar-muted: #94a3b8;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.30);
     }
-    html.dark .lembar:hover { border-color: #33415f; }
+    html.dark .lembar:hover { border-color: #0A4C57; }
 
     /* Kartu angka: mungil, satu fakta per kartu */
     .lembar-e {
         padding: 10px 14px 11px;
-        border-radius: 14px;
+        border-radius: 6px;
         cursor: default;
     }
-    .lembar-e .l { font-size: 9.5px; font-weight: 700; color: var(--lembar-muted); text-transform: uppercase; letter-spacing: 0.07em; line-height: 1.35; }
-    .lembar-e .v { font-size: 15px; font-weight: 800; color: var(--lembar-ink); margin-top: 3px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-    .lembar-e .v small { font-size: 10.5px; font-weight: 700; }
+    .lembar-e .l { font-size: 10px; font-weight: 500; color: var(--lembar-muted); text-transform: uppercase; letter-spacing: 0.06em; line-height: 1.35; }
+    .lembar-e .v { font-size: 13px; font-weight: 700; color: var(--lembar-ink); margin-top: 2px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .lembar-e .v small { font-size: 10px; font-weight: 600; }
 
     /* Panel berisi tabel */
     .lembar-p { padding: 12px 16px 8px; }
     /* Tabel lebar (mis. pemakaian bahan) menggulir di dalam kartunya sendiri di layar sempit, bukan menggeser seluruh halaman. */
     @media screen { .lembar-p { overflow-x: auto; } }
-    .k-judul { font-size: 10px; font-weight: 700; color: var(--lembar-muted); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-    .k-ket { font-size: 10.5px; color: var(--lembar-muted); margin-bottom: 8px; }
+    .k-judul { font-size: 10px; font-weight: 500; color: var(--lembar-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .k-ket { font-size: 12px; color: var(--lembar-muted); margin-bottom: 8px; }
 
     /* Tabel: rapat, tenang, baris bernafas */
     .t { width: 100%; border-collapse: collapse; }
-    .t th { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--lembar-muted); text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--lembar-border); background: var(--lembar-head); white-space: nowrap; }
-    .t td { font-size: 12px; color: var(--lembar-ink); padding: 6px 10px; border-bottom: 1px solid var(--lembar-line); vertical-align: top; font-variant-numeric: tabular-nums; }
+    .t th { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0; color: var(--lembar-muted); text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--lembar-border); background: var(--lembar-head); white-space: nowrap; }
+    .t td { font-size: 13px; color: var(--lembar-ink); padding: 10px 16px; border-bottom: 1px solid var(--lembar-line); vertical-align: top; font-variant-numeric: tabular-nums; }
     .t tbody tr:last-child td { border-bottom: 0; }
-    .t tbody tr { transition: background 140ms cubic-bezier(0.32, 0.72, 0, 1); }
+    .t tbody tr { transition: background 140ms cubic-bezier(0.23, 1, 0.32, 1); }
     .t tbody tr:hover { background: var(--lembar-head); }
     .t td.num, .t th.num { text-align: right; font-variant-numeric: tabular-nums; }
-    .t .kosong { color: var(--lembar-muted); font-style: italic; }
+    .t .kosong { color: var(--lembar-muted); opacity: 0.7; }
 
     /* Filter & tombol lembar */
     .lembar-input {
         background: #ffffff;
         border: 1px solid #cfd6e2;
-        border-radius: 10px; padding: 8px 12px;
-        font-size: 13px; font-weight: 600; color: #1d2433;
+        border-radius: 6px; padding: 8px 12px;
+        font-size: 13px; font-weight: 500; color: #1d2433;
         box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
-        transition: border-color 140ms cubic-bezier(0.32, 0.72, 0, 1), box-shadow 140ms cubic-bezier(0.32, 0.72, 0, 1), background 140ms cubic-bezier(0.32, 0.72, 0, 1);
+        transition: border-color 140ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 140ms cubic-bezier(0.23, 1, 0.32, 1), background 140ms cubic-bezier(0.23, 1, 0.32, 1);
     }
-    .lembar-input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px #dfe2fb; background: #ffffff; }
-    html.dark .lembar-input { background: #17223b; border-color: #33415f; color: #e2e8f0; }
-    html.dark .lembar-input:focus { background: #17223b; border-color: #818cf8; box-shadow: 0 0 0 3px #2a3560; }
+    .lembar-input:focus { outline: none; border-color: #006C7B; box-shadow: 0 0 0 3px #D2EBEE; background: #ffffff; }
+    html.dark .lembar-input { background: #01434D; border-color: #0A4C57; color: #E2EAE4; }
+    html.dark .lembar-input:focus { background: #01434D; border-color: #5FC4D4; box-shadow: 0 0 0 3px #2a3560; }
 
     .lembar-btn {
         display: inline-flex; align-items: center; gap: 7px;
         padding: 8px 16px; border-radius: 999px;
-        font-size: 12.5px; font-weight: 600; color: #1d2433;
+        font-size: 13px; font-weight: 500; color: #1d2433;
         background: #ffffff;
         border: 1px solid #cfd6e2;
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-        transition: all 140ms cubic-bezier(0.32, 0.72, 0, 1);
+        transition: all 140ms cubic-bezier(0.23, 1, 0.32, 1);
         cursor: pointer;
     }
     .lembar-btn:hover { background: #f4f6fa; border-color: #b9c2d3; }
     .lembar-btn:active { transform: scale(0.97); }
-    html.dark .lembar-btn { background: #17223b; border-color: #33415f; color: #e2e8f0; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
+    html.dark .lembar-btn { background: #01434D; border-color: #0A4C57; color: #E2EAE4; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
     html.dark .lembar-btn:hover { background: #1f2c49; border-color: #4a5a7d; }
-    .lembar-btn-utama { background: #4f46e5; border-color: #4338ca; color: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.18); }
-    .lembar-btn-utama:hover { background: #4338ca; border-color: #3730a3; }
-    html.dark .lembar-btn-utama { background: #6366f1; color: #fff; }
+    .lembar-btn-utama { background: #006C7B; border-color: #005663; color: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.18); }
+    .lembar-btn-utama:hover { background: #005663; border-color: #01434D; }
+    html.dark .lembar-btn-utama { background: #04727E; color: #fff; }
 
     /* Pil status kecil di judul panel */
-    .pil { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 10.5px; font-weight: 600; color: var(--lembar-muted); background: var(--lembar-head); border: 1px solid var(--lembar-line); text-transform: none; letter-spacing: 0; }
+    .pil { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 500; color: var(--lembar-muted); background: var(--lembar-head); border: 1px solid var(--lembar-line); text-transform: none; letter-spacing: 0; }
 
     /* Nomor bab */
     .bab-no { width: 20px; height: 20px; border-radius: 999px; background: #1d2433; color: #fff; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    html.dark .bab-no { background: #e2e8f0; color: #0f172a; }
-    .bab-judul { font-size: 13px; font-weight: 700; color: #334155; letter-spacing: -0.01em; }
-    html.dark .bab-judul { color: #cbd5e1; }
+    html.dark .bab-no { background: #E2EAE4; color: #1A231F; }
+    .bab-judul { font-size: 13px; font-weight: 700; color: #3F4F47; letter-spacing: -0.01em; }
+    html.dark .bab-judul { color: #C9D6CE; }
 
     @media (prefers-reduced-motion: reduce) {
         .lembar, .lembar-btn, .lembar-input, .t tbody tr { transition: none !important; }
@@ -117,20 +119,20 @@
         main { margin-left: 0 !important; padding: 28px 32px !important; }
         body { background: #fff !important; }
         .lembar, .lembar-e, .lembar:hover {
-            background: #fff !important; border: 1px solid #e2e8f0 !important; border-radius: 0 !important;
+            background: #fff !important; border: 1px solid #E2EAE4 !important; border-radius: 3px !important;
             box-shadow: none !important; padding: 0 !important; margin-bottom: 16px !important; overflow: hidden;
         }
         .k-judul {
-            font-size: 10px !important; font-weight: 500 !important; color: #334155 !important; text-transform: uppercase; letter-spacing: 0.025em;
-            background: #f8fafc !important; border-bottom: 1px solid #e2e8f0; padding: 8px 12px; margin: 0 !important;
+            font-size: 10px !important; font-weight: 500 !important; color: #3F4F47 !important; text-transform: uppercase; letter-spacing: 0.06em;
+            background: #FAFBF9 !important; border-bottom: 1px solid #E2EAE4; padding: 8px 12px; margin: 0 !important;
         }
-        .k-ket { font-size: 10px !important; color: #64748b !important; padding: 6px 12px 0; margin: 0 0 6px !important; }
-        .pil { border: 0 !important; background: transparent !important; padding: 0 6px !important; font-size: 10px !important; color: #64748b !important; }
-        .t th { background: #f8fafc !important; color: #64748b !important; font-size: 10px !important; font-weight: 500 !important; padding: 6px 12px !important; border-bottom: 1px solid #e2e8f0 !important; }
-        .t td { color: #1e293b !important; font-size: 11px !important; padding: 6px 12px !important; border-bottom: 1px solid #f1f5f9 !important; }
+        .k-ket { font-size: 12px !important; color: #4A5B53 !important; padding: 6px 12px 0; margin: 0 0 6px !important; }
+        .pil { border: 0 !important; background: transparent !important; padding: 0 6px !important; font-size: 10px !important; color: #4A5B53 !important; }
+        .t th { background: #FAFBF9 !important; color: #4A5B53 !important; font-size: 10px !important; font-weight: 500 !important; padding: 6px 12px !important; border-bottom: 1px solid #E2EAE4 !important; }
+        .t td { color: #2A3731 !important; font-size: 11px !important; padding: 6px 12px !important; border-bottom: 1px solid #F1F5F1 !important; }
         .t tbody tr:hover { background: transparent !important; }
         .bab-no { display: none !important; }
-        .bab-judul { font-size: 12px !important; font-weight: 600 !important; color: #0f172a !important; margin-top: 8px; }
+        .bab-judul { font-size: 12px !important; font-weight: 600 !important; color: #1A231F !important; margin-top: 8px; }
         .blok { break-inside: avoid; }
         .text-rose-600 { color: #be123c !important; }
         .text-emerald-600 { color: #047857 !important; }

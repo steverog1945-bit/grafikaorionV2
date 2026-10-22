@@ -16,7 +16,7 @@
     <div class="print:hidden">
         <x-page-header title="Laporan Belanja Bahan">
             <x-slot:subtitle>
-                Laporan <span class="mx-1 text-slate-300">/</span> Pembukuan Pembelian Bahan Baku - terpisah dari Laporan Kas &amp; Keuangan Jersey
+                Laporan <span class="mx-1 text-slate-500">/</span> Pembukuan Pembelian Bahan Baku - terpisah dari Laporan Kas &amp; Keuangan Jersey
             </x-slot:subtitle>
             <x-slot:actions>
                 <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
@@ -208,7 +208,7 @@
             </table>
         </div>
         @else
-        <p class="text-[11px] text-slate-300 italic p-4">Tidak ada rincian bahan untuk faktur ini.</p>
+        <p class="text-[11px] text-slate-500 italic p-4">Tidak ada rincian bahan untuk faktur ini.</p>
         @endif
 
         <div class="px-6 py-4 bg-slate-50/60 border-t border-slate-100 flex justify-end">

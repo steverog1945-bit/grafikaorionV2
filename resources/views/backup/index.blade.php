@@ -60,7 +60,7 @@
                 </td>
                 <td class="px-6 py-5 text-center">
                     @if($r->offsite_status === null)
-                        <span class="text-[10px] text-slate-300 italic" title="BACKUP_SECONDARY_DISK belum diatur di .env">Tidak diatur</span>
+                        <span class="text-[10px] text-slate-500 italic" title="BACKUP_SECONDARY_DISK belum diatur di .env">Tidak diatur</span>
                     @else
                         <x-badge :status="$r->offsite_status" :variant="$r->offsite_status === 'Sukses' ? 'success' : 'danger'" />
                     @endif

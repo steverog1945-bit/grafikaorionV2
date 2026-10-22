@@ -16,7 +16,7 @@
     <div class="print:hidden">
         <x-page-header title="Laporan Kas">
             <x-slot:subtitle>
-                Laporan <span class="mx-1 text-slate-300">/</span> Rekap Sesi Kas Harian
+                Laporan <span class="mx-1 text-slate-500">/</span> Rekap Sesi Kas Harian
             </x-slot:subtitle>
             <x-slot:actions>
                 <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
@@ -170,8 +170,36 @@
                 <p class="text-[12px] text-slate-500 mt-1.5">
                     Kasir: <span class="font-medium text-slate-700">{{ $k->nama_kasir ?? '-' }}</span>
                     &middot; Saldo Awal: Rp {{ number_format($k->saldo_awal, 0, ',', '.') }}
+                    @if($k->keterangan_pembukaan)
+                        &middot; <span class="text-amber-700">saldo awal berbeda dari isi laci sebelumnya</span>
+                    @endif
                 </p>
+                @if($k->keterangan_pembukaan)
+                <p class="text-[11px] text-amber-700 mt-1 max-w-xl">
+                    Alasan pembuka: {{ $k->keterangan_pembukaan }}
+                </p>
+                @endif
             </div>
+
+            {{-- Print per sesi. Hanya sesi yang sudah TUTUP yang bisa
+                 dicetak: angka isi laci dan selisih baru ada setelah
+                 closing, dan rekap yang dicetak sebelum angka final
+                 bukan bukti rekonsiliasi.
+                 Thermal untuk strip yang ditempel di laci, A4 untuk arsip. --}}
+            @if($k->status_lock === 'closed')
+            <div class="flex items-center gap-2 no-print">
+                <a href="{{ route('kasir.print-closing', ['id' => $k->id_kas, 'format' => 'thermal']) }}"
+                   target="_blank" rel="noopener" title="Cetak thermal 58mm"
+                   class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-2.5 py-1.5 text-[12px] font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900">
+                    <i class="fas fa-receipt text-[10px]"></i> Thermal
+                </a>
+                <a href="{{ route('kasir.print-closing', ['id' => $k->id_kas, 'format' => 'a4']) }}"
+                   target="_blank" rel="noopener" title="Cetak A4 lengkap"
+                   class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-2.5 py-1.5 text-[12px] font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900">
+                    <i class="fas fa-file-lines text-[10px]"></i> A4 Lengkap
+                </a>
+            </div>
+            @endif
         </div>
 
         @if($manual->isNotEmpty())
@@ -206,7 +234,7 @@
             </table>
         </div>
         @else
-        <p class="text-[11px] text-slate-300 italic p-4">Tidak ada transaksi manual pada sesi ini.</p>
+        <p class="text-[11px] text-slate-500 italic p-4">Tidak ada transaksi manual pada sesi ini.</p>
         @endif
 
         <div class="px-6 py-4 bg-slate-50/60 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2">
@@ -215,7 +243,7 @@
             <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Debit Masuk</span> <span class="font-medium text-sky-600">Rp {{ number_format($k->total_debit_masuk ?? 0, 0, ',', '.') }}</span></p>
             <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Tunai Keluar</span> <span class="font-medium text-rose-500">Rp {{ number_format($k->total_tunai_keluar, 0, ',', '.') }}</span></p>
             <p class="text-[12px] text-slate-500 flex justify-between gap-3"><span>Saldo Fisik</span> <span class="font-medium text-slate-700">{{ $k->saldo_fisik !== null ? 'Rp ' . number_format($k->saldo_fisik, 0, ',', '.') : '-' }}</span></p>
-            <p class="text-[13px] font-medium flex justify-between gap-3 {{ $k->selisih === null ? 'text-slate-300' : ($k->selisih < 0 ? 'text-rose-500' : ($k->selisih > 0 ? 'text-amber-500' : 'text-emerald-600')) }}">
+            <p class="text-[13px] font-medium flex justify-between gap-3 {{ $k->selisih === null ? 'text-slate-500' : ($k->selisih < 0 ? 'text-rose-500' : ($k->selisih > 0 ? 'text-amber-500' : 'text-emerald-600')) }}">
                 <span>Selisih</span> <span>{{ $k->selisih !== null ? 'Rp ' . number_format($k->selisih, 0, ',', '.') : '-' }}</span>
             </p>
         </div>

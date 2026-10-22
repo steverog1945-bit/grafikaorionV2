@@ -156,7 +156,7 @@ Klik ganda pada form biasa (bukan POS) bergantung pada penjagaan server: aman, t
 |---|---|
 | `bind-address` MySQL (H-4 / S9) | SELESAI. Layanan Windows `ORION_MariaDB` di-restart pemilik; terverifikasi `127.0.0.1:3306` (bukan lagi `0.0.0.0`), aplikasi tetap 200. Catatan: MariaDB di server ini berjalan sebagai layanan Windows, bukan lewat XAMPP Control Panel |
 | `produksi:cek` | 0 gagal, 4 waspada, 13 sesuai |
-| `config:cache` | SENGAJA tidak dijalankan di komputer ini: konfigurasi ter-cache mengalahkan `phpunit.xml`, sehingga tes (RefreshDatabase) akan berjalan di database asli dan mengosongkannya. Jalankan hanya di server yang tidak dipakai menjalankan tes |
+| `config:cache` | SENGAJA tidak dijalankan di komputer ini: konfigurasi ter-cache mengalahkan `phpunit.xml`, sehingga tes (RefreshDatabase) akan berjalan di database asli dan mengosongkannya. Jalankan hanya di server yang tidak dipakai menjalankan tes. Di server pakai `php artisan app:config-cache` (menulis atomik + menolak konfigurasi yang menunjuk database uji) - `config:cache` biasa menulis berkas tanpa atomik dan sempat membuat seluruh halaman error 500 ("No application encryption key has been specified") |
 | Antislop 3 | SELESAI: 8 ikon sihir/petir diganti ikon yang menggambarkan isinya |
 | Antislop 7 | Diperiksa: panah yang tersisa menunjukkan arah nyata (tautan lanjut, halaman berikut); dibiarkan |
 

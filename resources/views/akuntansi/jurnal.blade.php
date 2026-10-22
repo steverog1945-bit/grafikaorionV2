@@ -66,10 +66,10 @@
                         <span class="inline-flex items-center px-2 py-1 rounded-lg bg-slate-50 text-slate-600 font-medium">{{ $r->kode_akun }}</span>
                         <div class="text-[10px] text-slate-400 mt-1">{{ $r->nama_akun }}</div>
                     </td>
-                    <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
+                    <td class="px-6 py-3 text-right text-sm {{ $r->debet > 0 ? 'text-slate-700 font-medium' : 'text-slate-500' }}">
                         {{ $r->debet > 0 ? number_format($r->debet, 0, ',', '.') : '-' }}
                     </td>
-                    <td class="px-8 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-medium' : 'text-slate-300' }}">
+                    <td class="px-8 py-3 text-right text-sm {{ $r->kredit > 0 ? 'text-slate-700 font-medium' : 'text-slate-500' }}">
                         {{ $r->kredit > 0 ? number_format($r->kredit, 0, ',', '.') : '-' }}
                     </td>
                 </tr>

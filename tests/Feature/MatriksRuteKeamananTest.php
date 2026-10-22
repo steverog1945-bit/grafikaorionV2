@@ -107,17 +107,27 @@ class MatriksRuteKeamananTest extends TestCase
             $terbuka[] = implode('|', array_diff($rute->methods(), ['HEAD'])) . ' /' . ltrim($rute->uri(), '/') . ' [' . implode(',', array_filter($mw, 'is_string')) . ']';
         }
 
-        // Yang wajib publik: halaman login, aksi login (dibatasi laju), logout, cek kesehatan bawaan, sinyal (khusus login).
+        // Yang wajib publik: homepage, endpoint login (route('login') sejak 4E.1),
+        // aksi login (dibatasi laju), logout, cek kesehatan bawaan, sinyal (khusus login).
         $harapan = [
             'GET /up',
             'GET /',
+            'GET /masuk', // endpoint login staf (Checkpoint 4E.1) - tujuan route('login')
             'POST /login',
             'POST /logout',
             'GET /sinyal',
             'GET /baca/{slug}', // tulisan yang ditandai publik (PublikController, scope publik)
+            'GET /landing-page', // Landing Page published (LandingPageBuilderController::publicLandingPage)
+            //                            Rute publik TERPISAH dari '/' supaya halaman tetap
+            //                            bisa dibuka lengkap ketika Gate B
+            //                            (LANDING_PAGE_BUILDER_ENABLED) dimatikan.
+            //                            Membaca published revision yang valid saja -
+            //                            tidak pernah draft, tidak pernah data ERP.
+            'GET /manifest.webmanifest', // PWA: manifest untuk pasang app - wajib publik
+            'GET /sw.js', // PWA: service worker - wajib publik (diambil browser saat load)
         ];
         $ditemukan = array_map(fn ($b) => preg_replace('/ \[.*\]$/', '', $b), $terbuka);
-        $asing = array_values(array_filter($ditemukan, fn ($b) => !in_array($b, $harapan, true) && !str_starts_with($b, 'GET /storage') && $b !== 'PUT /storage/{path}'));
+        $asing = array_values(array_filter($ditemukan, fn ($b) => !in_array($b, $harapan, true) && !str_starts_with($b, 'GET /storage') && $b !== 'PUT /storage/{path}' && !str_starts_with($b, 'GET /api/') && !str_starts_with($b, 'POST /api/')));
 
         $this->assertSame([], $asing, "Rute di luar menu.access yang tak terduga:\n" . implode("\n", $asing));
     }
