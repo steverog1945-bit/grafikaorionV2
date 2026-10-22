@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'hanya.admin' => \App\Http\Middleware\HanyaAdministrator::class,
             'sekali.jalan' => \App\Http\Middleware\SubmitSekaliJalan::class,
             'api.auth' => \App\Http\Middleware\ApiAuth::class,
+            'api.rbac' => \App\Http\Middleware\ApiRbac::class,
         ]);
 
         // API eksternal masih tahap persiapan. Gate fail-closed hanya untuk

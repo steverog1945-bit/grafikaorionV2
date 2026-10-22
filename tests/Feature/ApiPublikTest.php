@@ -29,7 +29,14 @@ class ApiPublikTest extends TestCase
         // API tetap dapat diuji terisolasi meski default produksi ditutup.
         config()->set('orion_api.enabled', true);
 
-        $this->user = User::factory()->create(['username' => 'apiuser']);
+        // RBAC API aktif (ApiRbac): role acak dari factory tidak punya baris
+        // hak akses apa pun sehingga semua endpoint akan 403. Test ini
+        // membuktikan pembacaan data, bukan RBAC - gunakan Administrator.
+        $roleAdmin = \App\Models\Role::factory()->create(['nama_role' => 'Administrator']);
+        $this->user = User::factory()->create([
+            'username' => 'apiuser',
+            'id_role' => $roleAdmin->id_role,
+        ]);
         $this->token = bin2hex(random_bytes(40));
         $this->user->forceFill(['api_token' => $this->token])->save();
 
