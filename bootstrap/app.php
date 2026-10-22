@@ -30,12 +30,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.auth' => \App\Http\Middleware\ApiAuth::class,
         ]);
 
-        // API middleware group: hanya api.auth (tanpa throttle/cookie/encrypt).
-        // Throttle bisa ditambahkan kalau butuh rate limiting.
-        // Tanpa grup ini, route api/ pakai grup 'web' bawaan (EncryptCookies, dll)
-        // yang butuh APP_KEY untuk encrypt cookie.
+        // API eksternal masih tahap persiapan. Gate fail-closed hanya untuk
+        // routes/api.php; semua route ERP web tetap utuh.
+        // Aktifkan hanya setelah RBAC, limiter dan checkout API diperbaiki.
         $middleware->group('api', [
-            // \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+            \App\Http\Middleware\ApiPreparationGate::class,
         ]);
 
         // Otorisasi menu WAJIB berjalan sebelum route-model binding. Bawaan

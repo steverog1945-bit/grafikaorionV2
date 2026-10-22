@@ -94,12 +94,15 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('orion-pwa-') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
 function isAsetStatis(url) {
+  // Dua bentuk URL privat: /storage/... dan /public/storage/...
+  // Tidak boleh disimpan di CacheStorage walaupun berakhiran gambar.
+  if (url.pathname.indexOf('/storage/') !== -1) return false;
   return /\.(?:css|js|mjs|woff2?|ttf|otf|eot|png|jpe?g|svg|gif|webp|ico)$/i.test(url.pathname)
     || url.pathname.indexOf('/build/') !== -1;
 }
@@ -124,7 +127,7 @@ self.addEventListener('fetch', (event) => {
       caches.match(req).then((hit) => {
         if (hit) return hit;
         return fetch(req).then((res) => {
-          if (res && res.ok) {
+          if (res && res.ok && !/\b(?:private|no-store)\b/i.test(res.headers.get('Cache-Control') || '')) {
             const salinan = res.clone();
             caches.open(CACHE).then((cache) => cache.put(req, salinan));
           }
@@ -140,7 +143,7 @@ self.addEventListener('fetch', (event) => {
 
 JS;
 
-        $sw = str_replace('__CACHE_KEY__', 'orion-pwa-' . config('app.version', 'v1'), $sw);
+        $sw = str_replace('__CACHE_KEY__', 'orion-pwa-v2', $sw);
         $sw = str_replace('__OFFLINE_URL__', $offlineUrl, $sw);
 
         return response($sw, 200, [

@@ -61,6 +61,10 @@ class PwaTest extends TestCase
         // Aset statis pakai cache-first (kecepatan), tapi API tak di-cache:
         // blok terakhir sengaja tidak memanggil respondWith untuk non-aset.
         $this->assertStringContainsString('isAsetStatis', $js);
+        $this->assertStringContainsString("url.pathname.indexOf('/storage/') !== -1", $js);
+        $this->assertStringContainsString('orion-pwa-v2', $js);
+        $this->assertStringContainsString("k.startsWith('orion-pwa-')", $js);
+        $this->assertStringContainsString("res.headers.get('Cache-Control')", $js);
     }
 
     public function test_berkas_ikon_dan_halaman_offline_ada(): void

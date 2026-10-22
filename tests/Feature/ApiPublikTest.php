@@ -26,6 +26,9 @@ class ApiPublikTest extends TestCase
     {
         parent::setUp();
 
+        // API tetap dapat diuji terisolasi meski default produksi ditutup.
+        config()->set('orion_api.enabled', true);
+
         $this->user = User::factory()->create(['username' => 'apiuser']);
         $this->token = bin2hex(random_bytes(40));
         $this->user->forceFill(['api_token' => $this->token])->save();
