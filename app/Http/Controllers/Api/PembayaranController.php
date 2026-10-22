@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Support\Izin;
 
 /**
  * Pembayaran - API Publik (read-only).
@@ -35,6 +36,12 @@ class PembayaranController extends Controller
             ->orderByDesc('pembayaran_riwayat.tgl_bayar')
             ->orderByDesc('pembayaran_riwayat.id_pembayaran');
 
+        // Kasir hanya boleh melihat pembayaran atas nota miliknya.
+        // Administrator boleh melihat seluruh nota untuk audit/pemulihan.
+        if (!Izin::adalahAdmin($request->user())) {
+            $q->where('transaksi.id_user_kasir', $request->user()->id_user);
+        }
+
         if ($request->filled('id_transaksi')) {
             $q->where('pembayaran_riwayat.id_transaksi', $request->integer('id_transaksi'));
         }
@@ -48,9 +55,17 @@ class PembayaranController extends Controller
         ]);
     }
 
-    public function untukTransaksi($id)
+    public function untukTransaksi(Request $request, $id)
     {
-        $transaksi = DB::table('transaksi')->where('id_transaksi', $id)->first();
+        $q = DB::table('transaksi')->where('id_transaksi', $id);
+
+        // Endpoint ini harus memiliki proteksi kepemilikan setara
+        // TransaksiController::show(), bukan sekadar pemeriksaan menu Kasir.
+        if (!Izin::adalahAdmin($request->user())) {
+            $q->where('id_user_kasir', $request->user()->id_user);
+        }
+
+        $transaksi = $q->first();
         if (!$transaksi) {
             return response()->json(['error' => 'Nota tidak ditemukan.'], 404);
         }

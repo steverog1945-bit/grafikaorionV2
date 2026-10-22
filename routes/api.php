@@ -25,11 +25,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('auth')->group(function () {
-    Route::post('/token', [AuthController::class, 'generateToken'])->name('api.auth.token');
+    Route::post('/token', [AuthController::class, 'generateToken'])->name('api.auth.token')
+        ->middleware('throttle:api-token');
     Route::post('/logout', [AuthController::class, 'logout'])->name('api.auth.logout')->middleware('api.auth');
 });
 
-Route::middleware('api.auth')->group(function () {
+Route::middleware(['throttle:api', 'api.auth', 'api.rbac'])->group(function () {
     // Master data (read-only untuk API publik)
     Route::get('/konsumen', [ApiKonsumenController::class, 'index'])->name('api.konsumen.index');
     Route::get('/konsumen/{id}', [ApiKonsumenController::class, 'show'])->name('api.konsumen.show');
