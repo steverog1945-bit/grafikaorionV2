@@ -157,26 +157,30 @@ Instalan PWA di perangkat Android/iOS nyata: **NOT TESTED** (menunggu perangkat 
 
 **Positif terkonfirmasi** (tanpa aksi): idempotensi web per-user; guard bayar/terima/SPK/closing; limiter login; penomoran atomik; jurnal seimbang; CSP; SQLi aman; web RBAC ketat; guard kepemilikan sesi kas.
 
-## 10. Rencana patch (TIDAK diterapkan sebelum persetujuan)
+## 10. Rencana patch — status pelaksanaan (per 22-10-2026)
 
-1. **API-1**: limiter grup `api` (mis. 60/menit per IP) + limiter khusus `/api/auth/token` (5/menit) di `AppServiceProvider`; pasang middleware throttle di grup api; hapus duplikasi blok (P3 #9).
-2. **API-2**: gate role di grup API — selaraskan hak endpoint API dengan permission menu web (`role_permissions`); minimal laporan kas/piutang/pembayaran/konsumen dibatasi admin/kasir; SPK & stok sesuai hak divisi.
-3. **API-3**: API store melewati jalur service yang sama dengan web (pemotongan stok + kartu + HPP + jurnal, finishing/diskon/hak biaya desain), idempotensi via header `X-Submit-Id` dengan logika SubmitSekaliJalan, blokir produk nonaktif.
-4. **API-5**: simpan token sebagai hash (SHA-256), otentikasi by hash, hapus dukungan query param, tambah `expires_at` + rotasi (butuh migration + regenerasi semua token — **wajib persetujuan owner**).
-5. **PWA**: patch §8 (guard `/storage/` + kunci v2) — satu berkas PwaController, tanpa sentuhan Apache/env; P0 HTTPS via mkcert.
-6. Perapihan: docblock `ApiPublikTest` + test store API (payload idempoten), filter produk aktif di show, parameter stok narrowing.
+| # | Item | Status |
+|---|---|---|
+| 1 | **API-1 limiter** — `api-token` 5/menit (username+IP, mirroring `/login` web) + `api` 60/menit per IP untuk seluruh endpoint ber-token; throttle dipasang SEBELUM identitas sehingga menyapu banjir token salah/berbahaya | ✅ diterapkan di branch `fix/api-rbac-rate-limiter-20261022` — bukti: `ApiRateLimitTest` (brute ke-6 → 429; ke-61 → 429; username lain di IP yang sama tak ikut terkunci) |
+| 2 | **API-2 RBAC** — middleware `ApiRbac` fail-closed: peta endpoint→id_menu selaras `menu_access.php` (sumber kebenaran SAMA: `Izin::boleh`, termasuk aturan hanya-lihat & syarat view untuk aksi tulis); endpoint belum dipetakan = 403; Administrator lolos (jalur pemulihan) | ✅ diterapkan di branch yang sama — bukti: `ApiRbacTest` (token tanpa hak ditolak di semua endpoint; kasir diterima di modulnya dan ditolak di laporan kas/piutang/stok/SPK/KPI) |
+| 3 | **API-3 kesetaraan checkout** (idempotensi + stok/kartu/HPP/jurnal + finishing/diskon) | ⏳ tahap berikutnya (disetujui owner) |
+| 4 | **API-5** token hash + expiry + rotasi + hapus `?api_token=` | ⏳ menyusul (wajib persetujuan owner: regenerasi semua token) |
+| 5 | **PWA** guard `/storage/` + kunci `orion-pwa-v2` | ✅ sudah merge ke main (`4caacd7a`, PR #1) — suite 1361/1361 pasca-merge |
+| 6 | Perapihan: docblock `ApiPublikTest`, block produk nonaktif, narrowing stok | ⏳ menyusul |
+
+**Catatan kunci:** `ORION_PUBLIC_API_ENABLED` tetap tidak di-set → `orion_api.enabled=false`; seluruh `/api/*` masih tertutup fail-closed 503 (gate berjalan lebih dulu dari throttle/RBAC). Patches #1–#2 SAMA SEKALI tidak membuka jalur API baru — hanya menyiapkan lapisan yang benar ketika API dipersilakan.
 
 ## 11. Hasil PASS / FAIL / BLOCKED / NOT TESTED
 
-- **PASS**: suite penuh serial 1358/1358; skenario C & E..K di §7; RBAC web; limiter login; konsistensi stok & jurnal jalur web; SQLi aman.
-- **FAIL (temuan audit, bukan error test)**: API-1 (no limiter), API-2 (no RBAC), API-3 (checkout API tidak setara web) — §6a.
+- **PASS**: suite penuh serial 1372/1372 pasca-patch RBAC+limiter (6.168 assertion, 540s); 1361/1361 pasca-merge PR #1; skenario C & E..K di §7; RBAC web; limiter login; konsistensi stok & jurnal jalur web; SQLi aman; smoke PWA live Apache (sw.js kunci v2 + guard `/storage/` + hormati Cache-Control, manifest & login 200).
+- **FAIL (temuan audit, bukan error test)**: API-3 (checkout API tidak setara web) — §6a. API-1 & API-2 TERSISIH diperbaiki di branch (§10).
 - **BLOCKED**: —
 - **NOT TESTED**: perangkat nyata Android/iOS (instalan PWA, perilaku cache privat di device); akun berbeda di perangkat yang sama; uji per-role UI selain Administrator (tidak ada kredensial role lain); benchmark dataset ukuran besar.
 
 ## 12. Perubahan yang memerlukan persetujuan operator
 
-- Semua patch §10 (limiter API, RBAC API, idempotensi & kesetaraan store, hashing token) — **tidak ada yang diterapkan**.
-- Patch PWA §8 (isAsetStatis, kunci cache, mkcert HTTPS LAN + `SESSION_SECURE`).
+- **Sudah dieksekusi atas persetujuan owner**: PR #1 bergabung ke main (Tahap 1-2: smoke login/Order/bayar/SPK/PWA pada jalur terisolasi + PWA live Apache read-only); patch API-1 & API-2 limiter/RBAC di branch `fix/api-rbac-rate-limiter-20261022` (menunggu review/merge owner — TIDAK merge otomatis).
+- **Menunggu keputusan owner**: patch API-3 (kesetaraan checkout), API-5 (token hash — menghapus `?api_token=` + regenerasi token), item §10 #6.
 - Keputusan kebijakan ketat Jersey (tetap dulu sampai owner memutuskan).
 - Pembersihan lanjutan: arsip `_scan_*`/`REPORT_*` sisa di repo, dan arsip hasil audit `storage/app/audit/*` (lokal, di-ignore git).
 
