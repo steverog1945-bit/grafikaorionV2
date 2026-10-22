@@ -42,6 +42,13 @@ class ApiRbac
             return $this->tolak('Autentikasi API diperlukan.');
         }
 
+        // Sama seperti CheckMenuAccess: Owner dan role baca-saja tidak boleh
+        // menjalankan aksi tulis walaupun baris izin menandai can_add=true.
+        if (Izin::aksiDariMetode($request->method()) !== 'view'
+            && in_array(optional($user->role)->nama_role, (array) config('menu_access.roles_baca_saja', []), true)) {
+            return $this->tolak('Role ini hanya boleh melihat data.');
+        }
+
         // Path request tanpa prefix 'api/' (contoh: 'transaksi/12/pembayaran').
         $path = trim($request->path(), '/');
         $path = str_starts_with($path, 'api/') ? substr($path, 4) : $path;
@@ -49,8 +56,16 @@ class ApiRbac
         // Pilih peta dengan prefix TERPANJANG yang cocok (konsisten dengan
         // CheckMenuAccess: 'laporan/kas' memenangkan 'laporan').
         $tercocok = null;
-        $definisi = null;
+
+        // Route spesifik didahulukan dari prefix. Contoh: /transaksi/{id}/pembayaran
+        // adalah modul PEMBAYARAN, bukan riwayat nota, walau URL-nya diawali transaksi/.
+        // Kunci nama route dibaca secara literal karena mengandung tanda titik.
+        $routeName = $request->route()?->getName();
+        $routeMenus = (array) config('orion_api.route_menus', []);
+        $definisi = $routeName ? ($routeMenus[$routeName] ?? null) : null;
+
         foreach ((array) config('orion_api.menus', []) as $prefix => $def) {
+            if ($definisi !== null) break;
             if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
                 if ($tercocok === null || strlen($prefix) > strlen($tercocok)) {
                     $tercocok = $prefix;

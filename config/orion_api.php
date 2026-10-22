@@ -23,6 +23,11 @@ return [
     | sebelum dipetakan. Aksi diambil dari metode HTTP: GET/view, POST/add,
     | PUT-PATCH/edit, DELETE/delete (Izin::aksiDariMetode).
     */
+    // Rute dinamis yang haknya berbeda dari prefix induk.
+    'route_menus' => [
+        'api.transaksi.pembayaran' => ['GET' => [16]],
+    ],
+
     'menus' => [
         // Master data untuk integrasi kasir/input order - selaras dengan
         // 'api/penjualan' dan 'konsumen/store-ajax' => [3, 41] di web:

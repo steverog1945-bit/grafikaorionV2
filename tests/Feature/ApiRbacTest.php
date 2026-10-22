@@ -138,6 +138,71 @@ class ApiRbacTest extends TestCase
         $this->getJson('/api/dashboard/kpi', $this->auth($token))->assertForbidden();
     }
 
+    public function test_riwayat_nota_saja_tidak_bisa_membaca_pembayaran_tersarang(): void
+    {
+        [, $token] = $this->bikinUser('Riwayat Saja Uji', [61 => ['view']]);
+
+        // Sebelumnya prefix transaksi GET ([3,61]) membolehkan route pembayaran.
+        $this->getJson('/api/transaksi/1/pembayaran', $this->auth($token))
+            ->assertForbidden();
+    }
+
+    public function test_owner_tetap_baca_saja_meski_permission_add_dicentang(): void
+    {
+        [, $token] = $this->bikinUser('Owner', [
+            3 => ['view', 'add'],
+            41 => ['view', 'add'],
+            61 => ['view'],
+        ]);
+
+        $this->getJson('/api/transaksi', $this->auth($token))->assertOk();
+        $this->postJson('/api/transaksi', [], $this->auth($token))
+            ->assertForbidden();
+    }
+
+    public function test_pembayaran_tidak_membocorkan_nota_kasir_lain(): void
+    {
+        [$kasirA, $tokenA] = $this->bikinUser('Kasir A', [16 => ['view']]);
+        [$kasirB, $tokenB] = $this->bikinUser('Kasir B', [16 => ['view']]);
+        [, $tokenAdmin] = $this->bikinUser('Administrator');
+
+        $idGolongan = DB::table('golongan_konsumen')->insertGetId([
+            'nama_golongan' => 'Retail API Audit', 'keterangan' => '-',
+        ]);
+        $idKonsumen = DB::table('konsumen')->insertGetId([
+            'nama_konsumen' => 'Konsumen Scope API', 'telepon' => '0800',
+            'alamat' => '-', 'id_golongan' => $idGolongan,
+            'tipe_konsumen' => 'temporary', 'tgl_registrasi' => now(),
+        ]);
+        $notaA = DB::table('transaksi')->insertGetId([
+            'nomor_nota' => 'RBAC-OWN-A', 'tgl_order' => now(),
+            'id_konsumen' => $idKonsumen, 'total_bayar' => 100000,
+            'status_pembayaran' => 'DP', 'status_nota' => 'Aktif',
+            'status_order' => 'Diterima Kasir', 'id_user_kasir' => $kasirA->id_user,
+        ]);
+        $notaB = DB::table('transaksi')->insertGetId([
+            'nomor_nota' => 'RBAC-OWN-B', 'tgl_order' => now(),
+            'id_konsumen' => $idKonsumen, 'total_bayar' => 100000,
+            'status_pembayaran' => 'DP', 'status_nota' => 'Aktif',
+            'status_order' => 'Diterima Kasir', 'id_user_kasir' => $kasirB->id_user,
+        ]);
+        DB::table('pembayaran_riwayat')->insert([
+            ['id_transaksi' => $notaA, 'nominal' => 10000, 'metode' => 'Tunai', 'tgl_bayar' => now()],
+            ['id_transaksi' => $notaB, 'nominal' => 20000, 'metode' => 'Tunai', 'tgl_bayar' => now()],
+        ]);
+
+        $this->getJson('/api/transaksi/' . $notaA . '/pembayaran', $this->auth($tokenA))->assertOk();
+        $this->getJson('/api/transaksi/' . $notaB . '/pembayaran', $this->auth($tokenA))->assertNotFound();
+        $this->getJson('/api/transaksi/' . $notaB . '/pembayaran', $this->auth($tokenB))->assertOk();
+        $this->getJson('/api/transaksi/' . $notaB . '/pembayaran', $this->auth($tokenAdmin))->assertOk();
+
+        $this->getJson('/api/pembayaran', $this->auth($tokenA))
+            ->assertOk()->assertJsonFragment(['nomor_nota' => 'RBAC-OWN-A'])
+            ->assertDontSee('RBAC-OWN-B');
+        $this->getJson('/api/pembayaran', $this->auth($tokenAdmin))
+            ->assertOk()->assertJsonFragment(['nomor_nota' => 'RBAC-OWN-B']);
+    }
+
     public function test_role_tanpa_hak_tidak_membaca_apa_pun(): void
     {
         // Profil "satu token salah satu staf": role tanpa baris hak sama sekali
