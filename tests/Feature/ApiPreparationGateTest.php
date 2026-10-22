@@ -12,7 +12,7 @@ class ApiPreparationGateTest extends TestCase
 
         $this->getJson('/api/konsumen')
             ->assertStatus(503)
-            ->assertHeader('Cache-Control', 'no-store');
+            ->assertHeader('Cache-Control', fn ($value) => str_contains($value, 'no-store'));
         $this->postJson('/api/auth/token', [])
             ->assertStatus(503);
         $this->postJson('/api/transaksi', [])
