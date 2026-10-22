@@ -95,6 +95,37 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(120)->by('poll' . ($id ?: $request->ip()));
         });
 
+        // API publik: penyerahan token (/api/auth/token) itu "login kedua" -
+        // brute-force password lewat jalur API harus digembok seperti /login
+        // web. Kuncinya username+IP (bukan IP saja) supaya satu IP kantor
+        // dengan banyak user tidak saling mengunci.
+        RateLimiter::for('api-token', function (Request $request) {
+            $kunci = \Illuminate\Support\Str::lower((string) $request->input('username')) . '|' . $request->ip();
+
+            return Limit::perMinute(5)->by($kunci)->response(
+                fn (Request $r, array $headers) => response()->json(
+                    ['message' => 'Terlalu banyak percobaan token. Coba lagi dalam beberapa saat.'],
+                    429
+                )
+            );
+        });
+
+        // Seluruh endpoint API ber-token: 60 permintaan/menit per klien.
+        // Pemanggilannya SEBELUM api.auth (lihat routes/api.php) - pada lapis
+        // ini user belum ada, jadi kuncinya IP: menyapu juga banjir permintaan
+        // dengan token salah/berbahaya yang belum tersentuh limiter token.
+        // Batas longgar untuk satu IP integrasi sah; bila satu IP kantor
+        // memakai beberapa aplikasi sekaligus dan terasa sempit, naikkan di
+        // sini - bukan membuang limiter.
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip())->response(
+                fn (Request $r, array $headers) => response()->json(
+                    ['message' => 'Terlalu banyak permintaan API. Coba lagi sebentar.'],
+                    429
+                )
+            );
+        });
+
         // whereTanggalAntara('kolom', [dari, sampai]): rentang tanggal inklusif yang tetap memakai indeks.
         // Pengganti whereBetween(DB::raw("DATE(kolom)"), ...): DATE() di kolom membuat MySQL memindai seluruh
         // tabel (terukur 16 sampai 59 detik per query pada 700 ribu baris audit dan kartu stok).
