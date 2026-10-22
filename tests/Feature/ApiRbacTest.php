@@ -109,9 +109,8 @@ class ApiRbacTest extends TestCase
         $this->getJson('/api/produk', $this->auth($token))->assertOk();
         $this->getJson('/api/pembayaran', $this->auth($token))->assertOk();
 
-        // POST /api/transaksi: RBAC lolos (hak add menu 3), validasi
-        // controller yang menolak payload kosong - 422, BUKAN 403.
-        $this->postJson('/api/transaksi', [], $this->auth($token))->assertStatus(422);
+        // RBAC lolos (hak add), tetapi checkout API ditutup hingga paritas lengkap.
+        $this->postJson('/api/transaksi', [], $this->auth($token))->assertStatus(503);
 
         // Laporan keuangan/su/data milik admin: role Kasir tidak diberi
         // menu 25/29/44/22/1/46/60 => 403.

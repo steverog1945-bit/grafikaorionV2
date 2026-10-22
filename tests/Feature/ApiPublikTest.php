@@ -13,7 +13,7 @@ use Tests\TestCase;
  *
  * Dua hal yang dijaga di sini:
  *  - Tanpa token (atau token salah) berhenti di 401, bukan bocor data.
- *  - Endpoint hanya membaca; tidak ada yang menulis ke database.
+ *  - Endpoint GET hanya membaca; POST checkout ditutup hingga setara dengan web.
  */
 class ApiPublikTest extends TestCase
 {
