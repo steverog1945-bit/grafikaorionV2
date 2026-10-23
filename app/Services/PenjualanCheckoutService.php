@@ -19,7 +19,7 @@ use Carbon\Carbon;
  */
 class PenjualanCheckoutService
 {
-    public function store(Request $request)
+    public function store(Request $request, ?array $konteksApi = null)
 {
     if (!$request->items || count($request->items) == 0) {
         return response()->json(['status' => 'error', 'msg' => 'Keranjang kosong!'], 400);
@@ -164,12 +164,19 @@ class PenjualanCheckoutService
     // Di sini setiap item dihitung ULANG dari data master (produk + setting_harga)
     // menggunakan hanya input mentah yang tidak bisa "dipalsukan" jadi lebih murah
     // (p, l, qty) - harga per unit dan subtotal akhir murni hasil hitungan server.
-    $hargaTerkunci = !\App\Support\AksesHarga::bolehLihat(Auth::user());
+    //
+    // API-3: adapter checkout API memanggil store() dengan konteks
+    // ['jalur' => 'api'] - HARGA SELALU TERKUNCI server tanpa kecuali (token API
+    // tidak punya sesi layar kasir; memercayakan "biaya_cetak" dari kanal API =
+    // celah memangkas harga langsung) dan Biaya Desain selalu 0. Kanal web tidak
+    // berubah: default konteksnya 'web', perilaku persis sebelum refactor ini.
+    $jalurApi = (is_array($konteksApi) && ($konteksApi['jalur'] ?? 'web') === 'api');
+    $hargaTerkunci = $jalurApi ? true : !\App\Support\AksesHarga::bolehLihat(Auth::user());
     // Hak menginput Biaya Desain dipisah dari hak melihat harga (lihat catatan
     // pemisahan di dalam validasiItems()). Dihitung SEKALI di sini, bukan
     // tiap baris item, dan TIDAK bergantung pada $hargaTerkunci: role boleh
-    // salah satu atau keduanya.
-    $bolehInputBiayaDesain = \App\Support\AksesHarga::bolehInputBiayaDesain(Auth::user());
+    // salah satu atau keduanya. Jalur API: selalu tidak (lihat di atas).
+    $bolehInputBiayaDesain = $jalurApi ? false : \App\Support\AksesHarga::bolehInputBiayaDesain(Auth::user());
 
     try {
         $itemsTervalidasi = $this->validasiItems($request, (int) $idGolongan, $hargaTerkunci, $bolehInputBiayaDesain);

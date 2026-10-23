@@ -40,11 +40,12 @@ Route::middleware(['throttle:api', 'api.auth', 'api.rbac'])->group(function () {
     // Transaksi
     Route::get('/transaksi', [ApiTransaksiController::class, 'index'])->name('api.transaksi.index');
     Route::get('/transaksi/{id}', [ApiTransaksiController::class, 'show'])->name('api.transaksi.show');
-    // API-3: store lama tidak mencatat stok, kartu stok, HPP, jurnal, dan idempotensi.
-    // Pengaman ini tetap berlaku walaupun API eksternal kelak diaktifkan.
-    Route::post('/transaksi', fn () => response()->json([
-        'message' => 'Checkout API belum tersedia; gunakan alur ERP web.',
-    ], 503)->header('Cache-Control', 'no-store'))->name('api.transaksi.store');
+    // API-3: checkout via PenjualanCheckoutService (jalur bisnis web yang sama)
+    // + idempotensi X-Submit-Id tahan-crash. Gate dua lapis di adapter:
+    // orion_api.enabled sekali lagi orion_api.checkout.enabled, keduanya default
+    // OFF → 503 no-store (pengganti hard-disable ini, perilaku default tetap
+    // tertutup sama persis).
+    Route::post('/transaksi', [ApiTransaksiController::class, 'store'])->name('api.transaksi.store');
 
     // Dashboard KPI
     Route::get('/dashboard/kpi', [ApiDashboardController::class, 'kpi'])->name('api.dashboard.kpi');
