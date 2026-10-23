@@ -67,8 +67,7 @@ class ApiRbacTest extends TestCase
         }
 
         $user = User::factory()->create(['id_role' => $role->id_role]);
-        $token = bin2hex(random_bytes(40));
-        $user->forceFill(['api_token' => $token])->save();
+        $token = \Tests\Support\TokenApiPengujian::token($user);
 
         return [$user, $token];
     }

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\TokenApiPengujian;
 use Tests\TestCase;
 
 /**
@@ -86,8 +87,7 @@ class ApiRateLimitTest extends TestCase
 
         $role = Role::factory()->create(['nama_role' => 'Administrator']);
         $user = User::factory()->create(['id_role' => $role->id_role]);
-        $token = bin2hex(random_bytes(40));
-        $user->forceFill(['api_token' => $token])->save();
+        $token = TokenApiPengujian::token($user);
 
         $headerApi = ['Authorization' => 'Bearer ' . $token, 'Accept' => 'application/json'];
 

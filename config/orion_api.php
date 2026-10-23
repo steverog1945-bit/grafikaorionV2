@@ -26,6 +26,13 @@ return [
     'idempotensi_tunggu_detik' => 10,
     'idempotensi_tua_detik' => 300,
 
+    /*
+    | API-5: masa berlaku token Bearer dalam jam. Rotasi via POST
+    | /api/auth/token selalu menghasilkan kedaluwarsa baru dicacah dari
+    | "sekarang" di sini; kedaluwarsa kadaluwarsa/NULL => 401 fail-closed.
+    */
+    'token_masa_aktif_jam' => (int) env('ORION_API_TOKEN_MASA_AKTIF_JAM', 24),
+
 
     /*
     | Peta RBAC endpoint API: prefix path (TANPA 'api/') => daftar id_menu

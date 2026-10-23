@@ -14,7 +14,9 @@ class User extends Authenticatable
     // password TIDAK pernah masuk audit_logs (hash pun tidak perlu
     // tersimpan di sana - riwayat "kapan password diganti" cukup dari
     // event 'updated'-nya sendiri, isinya tidak relevan/berisiko disimpan).
-    protected array $hiddenFromAudit = ['password', 'remember_token'];
+    // API-5: api_token (legacy) & api_token_hash ikut disembunyikan -
+    // kredensial tidak boleh tumpah ke audit_logs, bentuk apa pun.
+    protected array $hiddenFromAudit = ['password', 'remember_token', 'api_token', 'api_token_hash'];
 
     protected $table = 'users';
     protected $primaryKey = 'id_user';
@@ -23,10 +25,16 @@ class User extends Authenticatable
     // sensitif/privilege) - diisi lewat assignment eksplisit di
     // UserController, bukan mass-assignment, supaya endpoint baru yang
     // ceroboh (mis. pakai $request->all()) tidak bisa diam-diam mengubah
-    // role/password lewat form field yang tidak seharusnya.
+    // role/password lewat form field yang tidak seharusnya. API-5:
+    // api_token juga dikeluarkan dari $fillable - token hanya ditulis
+    // lewat App\Services\ApiTokenService (hash + kedaluwarsa).
     protected $fillable = [
-        'id_karyawan', 'username', 'api_token',
+        'id_karyawan', 'username',
     ];
+
+    // Kredensial API tidak boleh tumpah dari serialisasi JSON apa pun.
+    protected $hidden = ['api_token', 'api_token_hash'];
+
     public function karyawan()
     {
     return $this->belongsTo(Karyawan::class, 'id_karyawan');

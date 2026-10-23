@@ -68,8 +68,7 @@ class ApiCheckoutTest extends TestCase
             ['id_role' => $role->id_role, 'id_menu' => 61, 'can_view' => 1, 'can_add' => 0, 'can_edit' => 0, 'can_delete' => 0],
         ]);
         $this->kasir = User::factory()->create(['id_role' => $role->id_role]);
-        $this->token = bin2hex(random_bytes(40));
-        $this->kasir->forceFill(['api_token' => $this->token])->save();
+        $this->token = \Tests\Support\TokenApiPengujian::token($this->kasir);
 
         $this->buatFixtureProduk();
         $this->bukaSesiKas($this->kasir->id_user);
@@ -202,8 +201,7 @@ class ApiCheckoutTest extends TestCase
         // (a) role tanpa baris hak apa pun.
         $roleKosong = Role::factory()->create(['nama_role' => 'Tanpa Hak Uji']);
         $uKosong = User::factory()->create(['id_role' => $roleKosong->id_role]);
-        $tokKosong = bin2hex(random_bytes(40));
-        $uKosong->forceFill(['api_token' => $tokKosong])->save();
+        $tokKosong = \Tests\Support\TokenApiPengujian::token($uKosong);
 
         $r = $this->postJson('/api/transaksi', $this->payloadCheckout([$this->itemSederhana($this->produk, 5)]), $this->hPost('rbac-1', $tokKosong));
         $r->assertForbidden();
@@ -218,8 +216,7 @@ class ApiCheckoutTest extends TestCase
             ['id_role' => $roleOwner->id_role, 'id_menu' => 3, 'can_view' => 1, 'can_add' => 0, 'can_edit' => 0, 'can_delete' => 0],
         ]);
         $uOwner = User::factory()->create(['id_role' => $roleOwner->id_role]);
-        $tokOwner = bin2hex(random_bytes(40));
-        $uOwner->forceFill(['api_token' => $tokOwner])->save();
+        $tokOwner = \Tests\Support\TokenApiPengujian::token($uOwner);
 
         $r = $this->postJson('/api/transaksi', $this->payloadCheckout([$this->itemSederhana($this->produk, 5)]), $this->hPost('rbac-2', $tokOwner));
         $r->assertForbidden();
@@ -230,8 +227,7 @@ class ApiCheckoutTest extends TestCase
             ['id_role' => $roleOwnerPaksa->id_role, 'id_menu' => 3, 'can_view' => 1, 'can_add' => 1, 'can_edit' => 0, 'can_delete' => 0],
         ]);
         $uOwnerPaksa = User::factory()->create(['id_role' => $roleOwnerPaksa->id_role]);
-        $tokOwnerPaksa = bin2hex(random_bytes(40));
-        $uOwnerPaksa->forceFill(['api_token' => $tokOwnerPaksa])->save();
+        $tokOwnerPaksa = \Tests\Support\TokenApiPengujian::token($uOwnerPaksa);
 
         $r2 = $this->postJson('/api/transaksi', $this->payloadCheckout([$this->itemSederhana($this->produk, 5)]), $this->hPost('rbac-3', $tokOwnerPaksa));
         $r2->assertForbidden();
