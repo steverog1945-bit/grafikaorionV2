@@ -567,10 +567,11 @@ class ApiCheckoutTest extends TestCase
         $this->assertEquals(100.0, $this->nilaiStok());
     }
 
-    public function test_klaim_orphan_tua_dilepas_dan_checkout_tetap_selesai(): void
+    public function test_klaim_lebih_dari_lima_menit_tidak_boleh_direbut_otomatis(): void
     {
-        // Runner mati - row 'diproses' melewati batas tua → kunci dilepas,
-        // pengiriman baru dgn X-Submit-Id sama tetap bisa selesai.
+        // Updated_at tua tidak membuktikan proses pertama mati: request awal
+        // mungkin tetap bekerja, termasuk menunggu lock database. Jika
+        // klaim dihapus, request kedua berisiko membuat nota dan jurnal kedua.
         $items = [$this->itemSederhana($this->produk, 5)];
         DB::table('api_checkout_idempotensi')->insert([
             'id_user' => $this->kasir->id_user, 'submit_id' => 'idem-4',
@@ -579,11 +580,27 @@ class ApiCheckoutTest extends TestCase
         ]);
 
         $r = $this->postJson('/api/transaksi', $this->payloadCheckout($items), $this->hPost('idem-4'));
-        $r->assertStatus(201);
-        $this->assertSame(1, DB::table('transaksi')->count());
+        $r->assertStatus(409)->assertHeaderContains('Cache-Control', 'no-store');
+        $this->assertSame(0, DB::table('transaksi')->count());
+        $this->assertEquals(100.0, $this->nilaiStok());
+        $this->assertSame(1, DB::table('api_checkout_idempotensi')->where('submit_id', 'idem-4')->count());
+    }
 
-        $row = DB::table('api_checkout_idempotensi')->where('submit_id', 'idem-4')->first();
-        $this->assertSame('sah', $row->status);
+    public function test_klaim_sah_tanpa_referensi_nota_tidak_berubah_jadi_checkout_baru(): void
+    {
+        $items = [$this->itemSederhana($this->produk, 5)];
+        DB::table('api_checkout_idempotensi')->insert([
+            'id_user' => $this->kasir->id_user, 'submit_id' => 'idem-5',
+            'payload_hash' => $this->sidikPayload($items),
+            'status' => 'sah', 'id_transaksi' => null,
+            'created_at' => now()->subMinutes(10), 'updated_at' => now()->subMinutes(10),
+        ]);
+
+        $r = $this->postJson('/api/transaksi', $this->payloadCheckout($items), $this->hPost('idem-5'));
+        $r->assertStatus(409)->assertHeaderContains('Cache-Control', 'no-store');
+        $this->assertSame(0, DB::table('transaksi')->count());
+        $this->assertEquals(100.0, $this->nilaiStok());
+        $this->assertSame('sah', DB::table('api_checkout_idempotensi')->where('submit_id', 'idem-5')->value('status'));
     }
 
     /* ================================================================

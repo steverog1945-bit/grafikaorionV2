@@ -262,22 +262,31 @@ class TransaksiController extends Controller
                 return response()->json(['message' => 'X-Submit-Id ini sudah dipakai untuk payload berbeda.'], 409)
                     ->header('Cache-Control', 'no-store');
             }
-            if ($row->status === 'sah' && $row->id_transaksi) {
-                $replay = $this->responDariNota((int) $row->id_transaksi);
+            if ($row->status === 'sah') {
+                // Klaim sudah sah adalah bukti pembayaran/nota pernah dibuat.
+                // Hilang atau tidak cocoknya nota adalah masalah integritas;
+                // JANGAN lepaskan klaim dan membuat nota kedua.
+                $replay = $row->id_transaksi
+                    ? $this->responDariNota((int) $row->id_transaksi)
+                    : null;
                 if ($replay === null) {
-                    // Nota hilang (kasus yang seharusnya tak terjadi): lepas
-                    // kunci lama agar checkout dapat dijalankan ulang sah.
-                    DB::table($tabel)->where('id_user', $user->id_user)->where('submit_id', $submitId)->delete();
-                    continue;
+                    report(new \RuntimeException('API-3: klaim checkout sudah sah tetapi nota tidak bisa ditemukan; user='
+                        . $user->id_user . ', idempotensi=' . $row->id));
+                    return response()->json([
+                        'message' => 'Checkout ini sudah tercatat tetapi nota belum bisa diverifikasi; hubungi administrator.',
+                    ], 409)->header('Cache-Control', 'no-store');
                 }
                 return $replay; // 200 + ulang=true
             }
             if ($row->status === 'gagal'
                 || Carbon::parse($row->updated_at)->lt(now()->subSeconds((int) config('orion_api.idempotensi_tua_detik', 300)))) {
-                // Orphan (runner mati) atau gagal lama: lepas kunci supaya
-                // ubah-kirim yang sah tetap mungkin.
-                DB::table($tabel)->where('id_user', $user->id_user)->where('submit_id', $submitId)->delete();
-                continue;
+                // >300 detik BUKAN bukti runner telah mati! Bila checkout
+                // pertama masih hidup, menghapus klaim ini dapat melahirkan
+                // nota/stok/jurnal ganda. Wajib fail-closed dan rekonsiliasi
+                // klaim oleh administrator dengan bukti DB, bukan auto-reclaim.
+                return response()->json([
+                    'message' => 'Checkout masih memerlukan verifikasi; X-Submit-Id tidak boleh dipakai ulang otomatis.',
+                ], 409)->header('Cache-Control', 'no-store');
             }
 
             // diproses, masih muda: tunduk menunggu hasil runner.
