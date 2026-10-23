@@ -32,8 +32,12 @@ class User extends Authenticatable
         'id_karyawan', 'username',
     ];
 
-    // Kredensial API tidak boleh tumpah dari serialisasi JSON apa pun.
-    protected $hidden = ['api_token', 'api_token_hash'];
+    // Kredensial (web & API) tidak boleh tumpah dari serialisasi JSON
+    // mana pun: password (bcrypt) dan remember_token (recall sesi) kini
+    // ikut disembunyikan bersama kredensial API - SEC-USER-001. Pembacaan
+    // atribut langsung (Hash::check, setRememberToken, dsb.) TIDAK
+    // terpengaruh - $hidden hanya lapis serialisasi, bukan akses atribut.
+    protected $hidden = ['password', 'remember_token', 'api_token', 'api_token_hash'];
 
     public function karyawan()
     {
