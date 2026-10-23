@@ -7,6 +7,27 @@ return [
     'enabled' => (bool) env('ORION_PUBLIC_API_ENABLED', false),
 
     /*
+    | Gate khusus CHECKOUT API (Api\TransaksiController::store) - TERPISAH
+    | dari 'enabled' di atas (yang menggerakkan gate baca ApiPreparationGate):
+    | bahkan saat ORION_PUBLIC_API_ENABLED sudah dibuka, POST /api/transaksi
+    | tetap 503 fail-closed sampai flag ini pula persilakan. Default OFF.
+    */
+    'checkout' => [
+        'enabled' => (bool) env('ORION_API_CHECKOUT_ENABLED', false),
+    ],
+
+    /*
+    | Idempotensi X-Submit-Id (tabel api_checkout_idempotensi, bukan cache):
+    | tunggu_detik  = masa permintaan lain menunggu hasil checkout in-flight
+    |                 sebelum tunduk dgn 409 "masih diproses".
+    | tua_detik     = row 'diproses' lebih tua dari ini diasumsikan klaim
+    |                 orphan (runner mati) dan boleh direbut ulang.
+    */
+    'idempotensi_tunggu_detik' => 10,
+    'idempotensi_tua_detik' => 300,
+
+
+    /*
     | Peta RBAC endpoint API: prefix path (TANPA 'api/') => daftar id_menu
     | yang boleh mengakses. Sumber kebenarannya SAMA dengan web: tabel
     | role_permissions/user_weights lewat App\Support\Izin::boleh(), jadi
