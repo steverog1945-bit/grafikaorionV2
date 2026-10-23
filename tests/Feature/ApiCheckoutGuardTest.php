@@ -17,8 +17,7 @@ class ApiCheckoutGuardTest extends TestCase
         config()->set('orion_api.enabled', true);
         $role = Role::factory()->create(['nama_role' => 'Administrator']);
         $user = User::factory()->create(['id_role' => $role->id_role]);
-        $token = bin2hex(random_bytes(40));
-        $user->forceFill(['api_token' => $token])->save();
+        $token = \Tests\Support\TokenApiPengujian::token($user);
 
         $sebelum = [
             DB::table('transaksi')->count(),

@@ -37,8 +37,7 @@ class ApiPublikTest extends TestCase
             'username' => 'apiuser',
             'id_role' => $roleAdmin->id_role,
         ]);
-        $this->token = bin2hex(random_bytes(40));
-        $this->user->forceFill(['api_token' => $this->token])->save();
+        $this->token = \Tests\Support\TokenApiPengujian::token($this->user);
 
         // Satu nota + satu item produksi + satu bahan + satu pembayaran,
         // cukup untuk membuktikan tiap endpoint membaca data nyata.
