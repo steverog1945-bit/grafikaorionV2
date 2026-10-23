@@ -17,9 +17,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 |
 | Rute ini diakses oleh aplikasi eksternal (mobile app, e-commerce,
-| integrasi pihak ketiga). Autentikasi lewat header
-| `Authorization: Bearer <api_token>` atau query parameter
-| `?api_token=<api_token>`. Token dihasilkan via POST /api/auth/token.
+| integrasi pihak ketiga). Autentikasi HANYA lewat header
+| `Authorization: Bearer <api_token>` - parameter query `?api_token=`
+| DITOLAK 401 (token di URL bocor ke access log/Referer). Token di-
+| hasilkan via POST /api/auth/token (hash SHA-256 + kedaluwarsa 24 jam).
 |
 | Semua respons dalam format JSON.
 */
