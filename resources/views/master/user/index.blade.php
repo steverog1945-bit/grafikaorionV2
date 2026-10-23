@@ -45,12 +45,23 @@
                             <i class="fas fa-user-lock text-sm"></i>
                         </x-button>
                         @endif
-                        <x-button type="button" size="icon" variant="ghost" onclick='openEditUser({{ json_encode($u) }})' class="border border-slate-100 hover:text-amber-500" title="Edit">
+                        {{-- SEC-USER-001/002: payload edit hanya 3 field yang benar-benar dipakai
+                             openEditUser + flag JSON_HEX_* supaya JSON tidak pernah
+                             mengandung ' < > & di dalam nilai (kutip ganda dari
+                             json_encode tetap di-escape e() saat render).
+                             DELIBERAT: atribut double-quoted - kunci array memakai
+                             single-quote, dan parser tag komponen Blade menggalat nilai
+                             pada quote - delimiter ganda itu yang membuat tag valid.
+                             JANGAN diganti @json mentah (unescaped). --}}
+                        <x-button type="button" size="icon" variant="ghost" onclick="openEditUser({{ json_encode(['id_user' => $u->id_user, 'username' => $u->username, 'id_role' => $u->id_role], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }})" class="border border-slate-100 hover:text-amber-500" title="Edit">
                             <i class="far fa-edit text-sm"></i>
                         </x-button>
                         <form action="{{ url('/users/delete/'.$u->id_user) }}" method="POST" class="inline" id="delete-form-user-{{ $u->id_user }}">
                             @csrf @method('DELETE')
-                            <x-button type="button" size="icon" variant="ghost" onclick="confirmDeleteUser('{{ $u->id_user }}', '{{ $u->username }}')" class="border border-slate-100 hover:text-rose-500" title="Hapus">
+                            {{-- SEC-USER-002: id selalu int, username di-encode JSON_HEX_* -
+                                 apostrof/quote di username tidak lagi bisa memutus string JS
+                                 di dalam atribut HTML (dahulu: username dimasukkan mentah). --}}
+                            <x-button type="button" size="icon" variant="ghost" onclick="confirmDeleteUser({{ (int) $u->id_user }}, {{ json_encode($u->username, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }})" class="border border-slate-100 hover:text-rose-500" title="Hapus">
                                 <i class="far fa-trash-alt text-sm"></i>
                             </x-button>
                         </form>
