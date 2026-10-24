@@ -1,0 +1,110 @@
+/* ==========================================================================
+   MOBILE-01 Fase 2 & 3 - MASTER BAHAN BAKU (pilot) + tubuh tabel modern
+   Pendekatan: transformasi PRESENTASI dari DOM tabel yang sama -
+   wrapper tabel dibuat kontainer scroll horizontal dgn petunjuk; kolom
+   angka tidak begitu benang-curut biar baris lega. Checkbox, bulk,
+   pagination, filter 100% dari DOM sama (tidak ada duplikasi tombol).
+   ====== ==================================================================== */
+@media screen and (max-width: 767.98px) {
+
+    /* ---------- Fase 3 (umum): kontainer tabel .modern-table-wrapper ------
+       Setiap tabel yang menggunakannya di mobile BISA menggeser di dalam
+       kontainernya sendiri; body tidak ikut melebar. Hint tampil hanya
+       pada tabel yang dilipat aturan min-width (pilot), lihat bawah. */
+    .modern-table-wrapper {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+    }
+
+    /* Sel tabel tetap lega tapi tidak makan tempat berlebihan */
+    .modern-table thead th {
+        padding: 12px 12px;
+        font-size: 12px;
+    }
+    .modern-table tbody td {
+        padding: 14px 12px;
+    }
+
+    /* ---------- Fase 2 (pilot): tabel Master Bahan Baku -----------------
+       Halaman ini di-scope lewat id #bulk-delete-form (hanya ada di-
+       halaman bahan). 9 kolom = min-width 720px -> scroll dgn kolom
+       yang tetap terbaca, bukan teks kecil diperas. */
+    #bulk-delete-form .modern-table {
+        min-width: 760px;
+    }
+    #bulk-delete-form .modern-table thead th {
+        white-space: nowrap;
+    }
+    /* Kolom angka/status jangan benang-curut biar baris rapi saat digeser */
+    #bulk-delete-form .modern-table tbody td:nth-child(n + 4) {
+        white-space: nowrap;
+    }
+    #bulk-delete-form .modern-table tbody td:nth-child(3) {
+        min-width: 190px;   /* identitas material: nama + SKU */
+    }
+
+    /* Petunjuk visual: tabel bisa digeser (untuk yang min-width) */
+    #bulk-delete-form .modern-table-wrapper {
+        position: relative;
+        /* sisakan ruang di atas tabel: petunjuk "geser" duduk di sana,
+           tidak menimpa teks header kolom */
+        padding-top: 22px;
+    }
+    #bulk-delete-form .modern-table-wrapper::after {
+        content: "⇆ geser";
+        position: absolute;
+        top: 0;
+        right: 10px;
+        z-index: 2;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 500;
+        color: #64748b;
+        background: rgba(226, 232, 240, 0.85);
+        backdrop-filter: blur(2px);
+        pointer-events: none;
+    }
+    html.dark #bulk-delete-form .modern-table-wrapper::after {
+        color: #9DB8AD;
+        background: rgba(4, 38, 44, 0.75);
+    }
+
+    /* Filter panel: padding jelas dirapatkan, kol pencari 320px aman */
+    .max-w-\[1600px\] > .bg-white.rounded-2xl {
+        padding: 14px;
+        margin-bottom: 14px;
+    }
+    .max-w-\[1600px\] > .bg-white.rounded-2xl form {
+        gap: 12px;
+    }
+    .max-w-\[1600px\] > .bg-white.rounded-2xl form .flex-1.min-w-\[300px\] {
+        min-width: 0;        /* 320px viewport aman dari overflow */
+    }
+    .max-w-\[1600px\] > .bg-white.rounded-2xl form > a[href$="/bahan-baku"] {
+        min-height: 42px;    /* tombol reset mudah disentuh */
+    }
+
+    /* Page header (x-page-header): dipisah ke bawah dgn cibiran */
+    .max-w-\[1600px\] > .flex.flex-col[class*="md:flex-row"] {
+        margin-bottom: 16px;
+    }
+    .max-w-\[1600px\] > .flex.flex-col[class*="md:flex-row"] h1.text-3xl {
+        font-size: 1.4rem;
+        line-height: 1.2;
+    }
+
+    /* Pagination & info count: target sentuh memadat nyaman */
+    .max-w-\[1600px\] .border-t.border-slate-100 a.w-8,
+    .max-w-\[1600px\] .border-t.border-slate-100 span.w-8 {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Footer bulk: saat tampil, tombol mudah dijangkau tanpa berlebih di-true */
+    #bulk-footer #btn-bulk-delete {
+        min-height: 46px;
+    }
+}

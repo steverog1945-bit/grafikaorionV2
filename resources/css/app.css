@@ -150,6 +150,14 @@
 @import "./ui-refresh.css";
 
 /* ==========================================================================
+   MOBILE UI REFINEMENT 01 - Lapisan presentasi khusus HP
+   (semua aturan di dalam @media max-width:767px; desktop terpengaruh 0).
+   Diimpor SETELAH ui-refresh.css agar kelas-kelasnya bisa menimpa nilai
+   ui-refresh pada viewport sempit tanpa !important masal.
+   ========================================================================== */
+@import "./mobile-ui.css";
+
+/* ==========================================================================
    DESIGN SYSTEM - ERP PERCETAKAN
    ==========================================================================
    Sebelumnya rule-rule di bawah ini tersebar di 2 blok <style> inline di
