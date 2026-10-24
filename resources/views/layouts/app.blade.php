@@ -1566,7 +1566,6 @@
             ['url' => url('/dashboard'), 'label' => 'Beranda', 'icon' => 'fa-home', 'active' => Request::is('dashboard', 'dashboard/*'), 'boleh' => true],
             ['url' => route('penjualan.create'), 'label' => 'Transaksi', 'icon' => 'fa-cash-register', 'active' => request()->routeIs('penjualan.create'), 'boleh' => \App\Support\JalurLanjut::boleh(route('penjualan.create'))],
             ['url' => url('/bahan-baku'), 'label' => 'Master', 'icon' => 'fa-box', 'active' => Request::is('bahan-baku', 'bahan-baku/*'), 'boleh' => \App\Support\JalurLanjut::boleh(url('/bahan-baku'))],
-            ['url' => route('kasir.index'), 'label' => 'Lainnya', 'icon' => 'fa-ellipsis-h', 'active' => request()->routeIs('kasir.*'), 'boleh' => \App\Support\JalurLanjut::boleh(route('kasir.index'))],
         ];
     @endphp
     <nav class="mobile-bottom-nav" aria-label="Navigasi bawah">
@@ -1578,6 +1577,13 @@
                 </a>
             @endif
         @endforeach
+        {{-- Lainnya: perilakunya benar-benar "menu lainnya" - membuka drawer
+             menu samping yang SUDAH ADA (sidebar dengan izin Blade sendiri).
+             Tanpa rute baru, tanpa permission baru, tanpa salinan menu. --}}
+        <button type="button" class="mobile-nav-item" onclick="toggleMobileMenu()" aria-haspopup="dialog" aria-controls="mainSidebar">
+            <i class="fas fa-ellipsis-h"></i>
+            <span class="mobile-nav-label">Lainnya</span>
+        </button>
     </nav>
 </main>
     </div>

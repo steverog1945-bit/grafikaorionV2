@@ -48,6 +48,12 @@
         border: none;
     }
     #bulk-delete-form table { background: none; }
+    #bulk-delete-form table,
+    #bulk-delete-form table.modern-table {
+        /* Temuan review 02.1: tabel global punya .modern-table{min-width:1000px}.
+           Kartu harus selebar layar HP, TANPA scroll horizontal internal. */
+        min-width: 0;
+    }
 
     /* Kepala tabel jadi strip tunggal berisi centang "Pilih semua" saja;
        kolom header lainnya disembunyikan - label kolom sudah dilengkapi
