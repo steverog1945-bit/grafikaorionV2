@@ -18,3 +18,4 @@
 @import "./mobile-dashboard.css";   /* Fase 1 - dashboard */
 @import "./mobile-bahan.css";       /* Fase 2/3 - master bahan + tabel */
 @import "./mobile-modal.css";       /* Fase 4 - modal & form */
+@import "./mobile-nav.css";         /* Fase 3 - navigasi bawah HP */

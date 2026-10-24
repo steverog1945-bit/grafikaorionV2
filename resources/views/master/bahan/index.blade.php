@@ -91,11 +91,11 @@
                 <tbody class="divide-y divide-slate-50">
                     @forelse($bahan as $i => $b)
                     <tr class="group hover:bg-slate-50/30 transition-all {{ $b->status === 'nonaktif' ? 'opacity-50' : '' }}">
-                        <td class="px-6 py-5 text-center">
+                        <td class="px-6 py-5 text-center" data-label="Pilih">
                             <input type="checkbox" name="ids[]" value="{{ $b->id_bahan }}" class="row-checkbox rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer">
                         </td>
-                        <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $bahan->firstItem() + $i }}</td>
-                        <td class="px-8 py-5">
+                        <td class="px-4 py-5 text-center text-[11px] text-slate-400" data-label="Nomor">{{ $bahan->firstItem() + $i }}</td>
+                        <td class="px-8 py-5" data-label="Identitas">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 font-medium text-xs">
                                     {{ substr($b->nama_bahan, 0, 1) }}
@@ -111,7 +111,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-5 text-center">
+                        <td class="px-6 py-5 text-center" data-label="Spesifikasi">
                             <div class="flex flex-col gap-1 items-center">
                                 <span class="text-[10px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md uppercase">
                                     {{ $b->mesin->nama_mesin ?? '-' }}
@@ -124,7 +124,7 @@
                                 @endif
                             </div>
                         </td>
-                        <td class="px-6 py-5 text-center">
+                        <td class="px-6 py-5 text-center" data-label="Stok">
                             @php
                                 $angka = fn ($v, $d = 2) => angka((float) $v, $d);
                                 $stokHabis = (float) $b->stok <= (float) $b->stok_minimal;
@@ -146,7 +146,7 @@
                                 @endif
                             </div>
                         </td>
-                        <td class="px-6 py-5 text-center">
+                        <td class="px-6 py-5 text-center" data-label="Harga Rata-rata">
                             <button type="button" onclick='koreksiHarga({{ $b->id_bahan }}, @json($b->nama_bahan), {{ (float) $b->harga_rata_rata }}, @json($b->satuan_stok), @json(\App\Support\VersiBaris::token($b)))'
                                     class="group/harga inline-flex items-baseline gap-1.5 px-3 py-1.5 rounded-lg transition-colors {{ (float) $b->harga_rata_rata > 0 ? 'hover:bg-slate-100' : 'bg-amber-50 hover:bg-amber-100' }}"
                                     title="Ubah harga rata-rata (dasar HPP)">
@@ -165,7 +165,7 @@
                             $selisihRp = $bt ? (float) $bt->harga - $rata : 0;
                             $selisihPersen = ($bt && $rata > 0) ? $selisihRp / $rata * 100 : null;
                         @endphp
-                        <td class="px-6 py-5 text-center">
+                        <td class="px-6 py-5 text-center" data-label="Harga Beli Terakhir">
                             @if($bt)
                                 <span class="text-[13px] font-medium tabular-nums text-slate-700">Rp {{ number_format($bt->harga, 0, ',', '.') }}</span>
                                 <span class="block text-[10px] font-medium text-slate-400 mt-0.5" title="Faktur {{ $bt->no_faktur }}">{{ \Carbon\Carbon::parse($bt->tgl_transaksi)->translatedFormat('d M Y') }}</span>
@@ -173,7 +173,7 @@
                                 <span class="text-[11px] font-medium text-slate-500 italic" title="Belum ada faktur pembelian untuk bahan ini">Belum pernah dibeli</span>
                             @endif
                         </td>
-                        <td class="px-6 py-5 text-center">
+                        <td class="px-6 py-5 text-center" data-label="Selisih">
                             @if($selisihPersen === null)
                                 <span class="text-slate-500">-</span>
                             @elseif(abs($selisihRp) < 0.5)
@@ -185,7 +185,7 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="px-8 py-5 text-right">
+                        <td class="px-8 py-5 text-right" data-label="Aksi">
                             <div class="flex justify-end gap-2">
                                 <button type="button" onclick='editBahan(@json($b), @json(\App\Support\VersiBaris::token($b)))' class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" aria-label="Ubah" title="Ubah">
                                     <i class="far fa-edit text-sm"></i>
