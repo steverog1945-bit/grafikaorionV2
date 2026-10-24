@@ -1,0 +1,58 @@
+/* ==========================================================================
+   MOBILE-02 - NAVIGASI BAWAH HP (<768px)
+   Pintasan ke rute yang SUDAH ADA; visibilitas setiap item dikuasai oleh
+   Blade permission yang sama (JalurLanjut::boleh) - tidak ada sistem RBAC
+   baru, tidak ada rute baru. Desktop >=768px: disembunyikan sepenuhnya
+   (0 piksel terpengaruh).
+   ========================================================================== */
+.mobile-bottom-nav {
+    display: none; /* desktop: hilang sepenuhnya */
+}
+
+@media screen and (max-width: 767.98px) {
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        inset-x: 0;
+        bottom: 0;
+        z-index: 50;
+        background: #ffffff;
+        border-top: 1px solid #E2EAE4;
+        padding: max(10px, env(safe-area-inset-bottom)) 10px 12px;
+    }
+    html.dark .mobile-bottom-nav {
+        background: #1A231F;
+        border-top-color: #3F4F47;
+    }
+
+    /* Konten tidak tertutup navigasi bawah */
+    .content-wrapper {
+        padding-bottom: 88px;
+    }
+
+    .mobile-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: #94a3b8;
+        text-decoration: none;
+        min-width: 0;
+    }
+    .mobile-nav-item i.fas {
+        font-size: 20px;
+        line-height: 1;
+        color: currentColor;
+    }
+    .mobile-nav-item.mobile-nav-active {
+        color: #0F6472;
+    }
+    .mobile-nav-label {
+        white-space: nowrap;
+    }
+}
+html.dark .mobile-nav-item { color: #9DB8AD; }
+html.dark .mobile-nav-item.mobile-nav-active { color: #94E2B5; }

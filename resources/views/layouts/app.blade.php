@@ -454,8 +454,8 @@
                             @endif
                         </span>
                     @else
-                        <span class="logo-full text-4xl leading-none">-Â</span>
-                        <span class="logo-icon text-3xl leading-none">-Â</span>
+                        <span class="logo-full text-4xl leading-none">-ï¿½</span>
+                        <span class="logo-icon text-3xl leading-none">-ï¿½</span>
                     @endif
                 </a>
                 <button onclick="toggleMobileMenu()" class="lg:hidden absolute top-3 right-3 w-9 h-9 rounded-full bg-white/10 text-slate-200 hover:bg-white/20 sidebar-brand-text" aria-label="Tutup menu">
@@ -1560,6 +1560,25 @@
     <div class="content-wrapper">
          @yield('content')
     </div>
+
+    @php
+        $navItems = [
+            ['url' => url('/dashboard'), 'label' => 'Beranda', 'icon' => 'fa-home', 'active' => Request::is('dashboard', 'dashboard/*'), 'boleh' => true],
+            ['url' => route('penjualan.create'), 'label' => 'Transaksi', 'icon' => 'fa-cash-register', 'active' => request()->routeIs('penjualan.create'), 'boleh' => \App\Support\JalurLanjut::boleh(route('penjualan.create'))],
+            ['url' => url('/bahan-baku'), 'label' => 'Master', 'icon' => 'fa-box', 'active' => Request::is('bahan-baku', 'bahan-baku/*'), 'boleh' => \App\Support\JalurLanjut::boleh(url('/bahan-baku'))],
+            ['url' => route('kasir.index'), 'label' => 'Lainnya', 'icon' => 'fa-ellipsis-h', 'active' => request()->routeIs('kasir.*'), 'boleh' => \App\Support\JalurLanjut::boleh(route('kasir.index'))],
+        ];
+    @endphp
+    <nav class="mobile-bottom-nav" aria-label="Navigasi bawah">
+        @foreach($navItems as $item)
+            @if($item['boleh'])
+                <a href="{{ $item['url'] }}" class="mobile-nav-item {{ $item['active'] ? 'mobile-nav-active' : '' }}" aria-current="{{ $item['active'] ? 'page' : 'false' }}">
+                    <i class="fas {{ $item['icon'] }}"></i>
+                    <span class="mobile-nav-label">{{ $item['label'] }}</span>
+                </a>
+            @endif
+        @endforeach
+    </nav>
 </main>
     </div>
     {{-- jQuery dan Select2 dilayani sendiri (lihat catatan aset di <head>).

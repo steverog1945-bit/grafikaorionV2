@@ -1,0 +1,21 @@
+/* ==========================================================================
+   MOBILE-UI REFINEMENT 01
+   Lapisan presentasi yang SEMUA aturannya berada dalam
+   @media screen and (max-width: 767.98px).
+
+   Kontrak (jangan dilanggar di file ini):
+   - Desktop (>= 768px) sama sekali tidak terpengaruh: media query menutup
+     seluruh berkas, tidak ada properti yang ditulis untuk layar lebar.
+   - Tidak ada id/name/form/action/event yang diubah - murni CSS.
+   - Selector selalu di-scope ke koridor konten `.max-w-\[1600px\]`
+     + pola spesifik per halaman pilot (bahan) supaya halaman lain
+     tidak terganggu secara tidak sengaja.
+   - Tidak memakai zoom/transform untuk mengecilkan halaman.
+   - Toleran light/dark mode (warna netral/rgba) dan print (print tidak
+     menjalankan max-width:767px ini).
+   ========================================================================== */
+
+@import "./mobile-dashboard.css";   /* Fase 1 - dashboard */
+@import "./mobile-bahan.css";       /* Fase 2/3 - master bahan + tabel */
+@import "./mobile-modal.css";       /* Fase 4 - modal & form */
+@import "./mobile-nav.css";         /* Fase 3 - navigasi bawah HP */

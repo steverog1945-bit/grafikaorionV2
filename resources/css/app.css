@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 /* ==========================================================================
    PALET WARNA - dopelycolors 01
@@ -148,6 +148,14 @@
    MENGHAPUS SATU BARIS ini + file-nya (tag git: tampilan-awal).
    ========================================================================== */
 @import "./ui-refresh.css";
+
+/* ==========================================================================
+   MOBILE UI REFINEMENT 01 - Lapisan presentasi khusus HP
+   (semua aturan di dalam @media max-width:767px; desktop terpengaruh 0).
+   Diimpor SETELAH ui-refresh.css agar kelas-kelasnya bisa menimpa nilai
+   ui-refresh pada viewport sempit tanpa !important masal.
+   ========================================================================== */
+@import "./mobile-ui.css";
 
 /* ==========================================================================
    DESIGN SYSTEM - ERP PERCETAKAN
@@ -1197,3 +1205,7 @@ html.dark .hero-postingan { box-shadow: none; }
 
     .cetak-kaki { display: flex !important; justify-content: space-between; margin-top: 8mm; padding-top: 3pt; border-top: .6pt solid #1A231F; font-family: 'Lora', Georgia, serif; font-size: 8pt; letter-spacing: .06em; color: #3F4F47; }
 }
+
+
+
+
