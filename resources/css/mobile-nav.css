@@ -18,29 +18,53 @@
         z-index: 50;
         background: #ffffff;
         border-top: 1px solid #E2EAE4;
-        padding: max(10px, env(safe-area-inset-bottom)) 10px 12px;
+        /* Temuan review 02.1: safe-area iPhone adalah gesture bar DI BAWAH -
+           jadi env() harus melengkapi padding-BAWAH, bukan yang atas. */
+        padding: 7px 8px calc(10px + env(safe-area-inset-bottom));
+        gap: 2px;
     }
     html.dark .mobile-bottom-nav {
         background: #1A231F;
         border-top-color: #3F4F47;
     }
 
-    /* Konten tidak tertutup navigasi bawah */
+    /* Temuan review 02.1: ruang konten bawah ikut memberi tanggung jawab
+       safe-area, supaya input/footer tidak pernah tertutup nav. */
     .content-wrapper {
-        padding-bottom: 88px;
+        padding-bottom: calc(92px + env(safe-area-inset-bottom));
     }
 
     .mobile-nav-item {
+        flex: 1 1 0;         /* Temuan review 02.1: lebar item seimbang sepanjang bar */
+        min-width: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: 5px;
         font-size: 10px;
         font-weight: 600;
         letter-spacing: 0.02em;
         color: #94a3b8;
         text-decoration: none;
-        min-width: 0;
+        min-height: 44px;    /* Standar sentuh minimal 44x44px */
+        padding: 2px 0;
+        border-radius: 10px;
+        transition: color 0.15s ease;
+    }
+    /* Reset tampilan default <button>, karena "Lainnya" sekarang tombol
+       pembuka menu samping (bukan tautan) */
+    button.mobile-nav-item {
+        background: none;
+        border: 0;
+        padding: 2px 0;
+        font: inherit;
+        cursor: pointer;
+    }
+    .mobile-nav-item:hover,
+    .mobile-nav-item:focus-visible {
+        color: #0F6472;
+        outline: none;
     }
     .mobile-nav-item i.fas {
         font-size: 20px;

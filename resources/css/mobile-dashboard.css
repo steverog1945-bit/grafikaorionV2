@@ -100,20 +100,26 @@
     }
 
     /* 11. Aksi cepat: jajar 2x2, tinggi sentuh seragam 48px, Nota Baru
-       aksen teal premium; Kasir & SPK ghost dengan aksen teal. */
-    .max-w-\[1600px\] a[href$="/penjualan/create"] {
+       aksen teal premium; Kasir & SPK ghost dengan aksen teal.
+       Temuan polish 02.1: tautan "Nota Baru" sungguhan beralamat
+       /penjualan/kasir (rute penjualan.create) - selector
+       a[href$="/penjualan/create"] tidak pernah cocok, sedangkan
+       a[href$="/kasir"] justru menabrak tombol Nota Baru sehingga teks
+       teal jatuh di latar teal (tidak terbaca). Diseleksi ulang:
+       Nota Baru -> /penjualan/kasir, tombol Kasir -> /kasir/monitoring. */
+    .max-w-\[1600px\] a[href$="/penjualan/kasir"] {
         background-color: #0F6472;
         color: #fff;
         min-height: 48px;
     }
-    .max-w-\[1600px\] a[href$="/penjualan/create"] i { color: #fff; }
-    .max-w-\[1600px\] a[href$="/kasir"],
+    .max-w-\[1600px\] a[href$="/penjualan/kasir"] i { color: #fff; }
+    .max-w-\[1600px\] a[href$="/kasir/monitoring"],
     .max-w-\[1600px\] a[href$="/spk"] {
         border-color: #0F6472;
         color: #0F6472;
         min-height: 48px;
     }
-    .max-w-\[1600px\] a[href$="/kasir"] i,
+    .max-w-\[1600px\] a[href$="/kasir/monitoring"] i,
     .max-w-\[1600px\] a[href$="/spk"] i { color: #0F6472; }
 
     /* 12. KPI: jarak kartu lebih rapat, angka tetap utuh & terbaca. */
