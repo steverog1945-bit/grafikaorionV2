@@ -10,7 +10,7 @@ Perbaikan kartu Master Bahan selesai pada branch `fix/mobile-visual-final-polish
 - Base PR: `main` pada `aee1d5d01b0de3c3c6fd6a0fe33545e6f6b082f6`
 - Commit implementasi terbaru: `9a0c56da463e4c004e87c0635541158891331f03`
 - PR #15: [Draft — fix(mobile): compact Master Bahan cards](https://github.com/steverog1945-bit/percetakan-app/pull/15)
-- PR diperiksa sebagai OPEN/Draft sebelum push commit baru. Push non-force dan verifikasi remote masih menjadi langkah delivery.
+- PR #15 tetap OPEN/Draft setelah push normal non-force; branch tidak di-merge atau di-deploy.
 
 ## Perbaikan dan cakupan
 
