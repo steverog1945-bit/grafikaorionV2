@@ -69,3 +69,16 @@ Tidak ada file produk yang diubah dalam tugas bukti ini.
 - Risiko yang terbukti untuk tindak lanjut review: keterbacaan nama/SKU di 320/390 px dan konten kartu di bawah floating nav. Screenshot ini sengaja melaporkan FAIL; tidak mengklaim UI lulus atau pixel-perfect.
 
 **Dampak produksi: ZERO.** Tidak ada akses atau perubahan pada produksi, `.env`, database, migration, server, maupun layanan Windows. Tidak ada perubahan business logic, route/RBAC, service worker/manifest, merge, atau deployment.
+
+## Koreksi tipografi dan densitas — review owner 26 Oktober 2026
+
+**Commit CSS:** `3031b02548bb643e6c5f772bfc72371aa5379be2`. Hanya `resources/css/mobile-bahan.css` yang berubah; PR tetap Draft. Koreksi yang dibuat langsung pada source:
+
+- Menghapus border, padding, radius dan surface pembungkus `.mobile-bahan-records` untuk mencegah *double box*; setiap item material tetap memiliki batas ringan.
+- Merapatkan jarak antaritem dari 6px menjadi 5px; radius item dari 14px menjadi 12px.
+- Memberikan ruang vertikal status `Aktif/Nonaktif` dengan `padding: 3px 8px`, font 10px / 600; memberi `Rincian` padding `3px 8px`, font 11px / 600, dan grid row tambahan untuk mencegah menempel tepi.
+- Menormalkan hierarki teks: nama 14px/600, SKU 11px/400, nomor 11px, stok 13px/700, satuan 11px, harga 13px, Rincian 11px. Warna preset tetap dari CSS tokens dan hanya aktif pada mobile.
+- Tidak mengubah DOM, form, checkbox, handler, route, JS transaksi, atau desktop. Tidak ada data operasional yang diakses.
+
+**Bukti:** diff GitHub terverifikasi. **NOT TESTED:** Vite build untuk commit CSS baru, screenshot perubahan terbaru, runtime Laravel, interaksi drawer/modal, perangkat iOS/Android, dan pixel parity desktop. Semua harus diuji sebelum owner menyetujui merge. Perubahan ini **bukan bukti visual PASS**. Integrasi produksi **belum dilakukan**.
+
