@@ -22,7 +22,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('pengaturan-aplikasi.tema.update') }}" class="space-y-6">
+    <form id="brand-theme-form" method="POST" action="{{ route('pengaturan-aplikasi.tema.update') }}" class="space-y-6">
         @csrf
         <fieldset>
             <legend class="sr-only">Pilih preset tema</legend>
@@ -77,9 +77,9 @@
                 Tema tersimpan pada berkas lokal privat di <code>storage/app/system/brand-theme.json</code>.
                 Berkas hanya berisi ID preset; nilai CSS selalu berasal dari preset tetap aplikasi.
             </p>
-            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-3 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                <i class="fas fa-palette" aria-hidden="true"></i>
-                Terapkan tema
+            <button id="brand-theme-submit" type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-3 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-wait disabled:opacity-70">
+                <i id="brand-theme-submit-icon" class="fas fa-palette" aria-hidden="true"></i>
+                <span id="brand-theme-submit-label" aria-live="polite">Terapkan tema</span>
             </button>
         </div>
     </form>
@@ -114,5 +114,45 @@
         border-color: var(--border-primary);
         background: var(--preview-accent-soft);
     }
+
+    html[data-brand-theme="copilot-light"] .brand-theme-option,
+    html[data-brand-theme="copilot-light"] .brand-theme-option .text-slate-900,
+    html[data-brand-theme="copilot-light"] .brand-theme-option .text-slate-800 {
+        color: var(--text-primary);
+    }
+
+    html[data-brand-theme="copilot-light"] .brand-theme-option .text-slate-600 {
+        color: var(--text-secondary);
+    }
+
+    #brand-theme-submit:disabled {
+        cursor: wait;
+        opacity: .7;
+    }
 </style>
+<script>
+    const themeForm = document.getElementById('brand-theme-form');
+    const themeSubmit = document.getElementById('brand-theme-submit');
+    const showSubmitting = function () {
+        themeSubmit.disabled = true;
+        themeSubmit.setAttribute('aria-busy', 'true');
+        document.getElementById('brand-theme-submit-icon').className = 'fas fa-spinner fa-spin';
+        document.getElementById('brand-theme-submit-label').textContent = 'Menerapkan tema...';
+    };
+
+    themeForm.addEventListener('change', function (event) {
+        if (!event.target.matches('input[name="preset"]')) return;
+
+        if (typeof themeForm.requestSubmit === 'function') {
+            themeForm.requestSubmit(themeSubmit);
+        } else {
+            showSubmitting();
+            themeForm.submit();
+        }
+    });
+
+    themeForm.addEventListener('submit', function () {
+        showSubmitting();
+    });
+</script>
 @endsection

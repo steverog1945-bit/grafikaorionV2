@@ -16,16 +16,16 @@
         inset-x: 0;
         bottom: 0;
         z-index: 50;
-        background: #ffffff;
-        border-top: 1px solid #E2EAE4;
+        background: var(--brand-surface-primary);
+        border-top: 1px solid var(--brand-surface-border);
         /* Temuan review 02.1: safe-area iPhone adalah gesture bar DI BAWAH -
            jadi env() harus melengkapi padding-BAWAH, bukan yang atas. */
         padding: 7px 8px calc(10px + env(safe-area-inset-bottom));
         gap: 2px;
     }
     html.dark .mobile-bottom-nav {
-        background: #1A231F;
-        border-top-color: #3F4F47;
+        background: var(--brand-surface-dark_primary);
+        border-top-color: var(--brand-surface-dark_border);
     }
 
     /* Temuan review 02.1: ruang konten bawah ikut memberi tanggung jawab
@@ -42,10 +42,12 @@
         align-items: center;
         justify-content: center;
         gap: 5px;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        color: #94a3b8;
+        font-family: var(--brand-font-family, inherit);
+        font-size: var(--brand-label-size, 10px);
+        font-weight: var(--brand-weight-medium, 600);
+        letter-spacing: var(--brand-letter-spacing, 0.02em);
+        line-height: var(--brand-line-height, 1.2);
+        color: var(--brand-mobile-nav-inactive-light);
         text-decoration: none;
         min-height: 44px;    /* Standar sentuh minimal 44x44px */
         padding: 2px 0;
@@ -63,8 +65,11 @@
     }
     .mobile-nav-item:hover,
     .mobile-nav-item:focus-visible {
-        color: #0F6472;
-        outline: none;
+        color: var(--brand-mobile-nav-active-light);
+    }
+    .mobile-nav-item:focus-visible {
+        outline: 2px solid var(--brand-accent-light);
+        outline-offset: -2px;
     }
     .mobile-nav-item i.fas {
         font-size: 20px;
@@ -72,11 +77,12 @@
         color: currentColor;
     }
     .mobile-nav-item.mobile-nav-active {
-        color: #0F6472;
+        color: var(--brand-mobile-nav-active-light);
     }
     .mobile-nav-label {
         white-space: nowrap;
     }
 }
-html.dark .mobile-nav-item { color: #9DB8AD; }
-html.dark .mobile-nav-item.mobile-nav-active { color: #94E2B5; }
+html.dark .mobile-nav-item { color: var(--brand-mobile-nav-inactive-dark); }
+html.dark .mobile-nav-item.mobile-nav-active { color: var(--brand-mobile-nav-active-dark); }
+html.dark .mobile-nav-item:focus-visible { outline-color: var(--brand-accent-dark); }

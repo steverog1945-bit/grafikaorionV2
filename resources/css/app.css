@@ -195,9 +195,9 @@
    (token --radius-lg di ui-refresh.css). Nilai di sini sengaja sama
    supaya sumber kode dan hasil render tidak berbeda pikiran. */
 .card {
-    background: #ffffff;
+    background: var(--surface-primary);
     border-radius: 8px;
-    border: 1px solid #E2EAE4;
+    border: 1px solid var(--border-primary);
     box-shadow: none;
     padding: 20px;
     margin-bottom: 20px;
@@ -208,12 +208,12 @@
    terlihat "lebih bulat" atau "lebih kotak" dari panel di atasnya. */
 .modern-table-wrapper {
     width: 100%;
-    background: white;
+    background: var(--surface-primary);
     border-radius: 8px;
     box-shadow: none;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    border: 1px solid #E2EAE4;
+    border: 1px solid var(--border-primary);
     position: relative;
 }
 
@@ -225,7 +225,7 @@
 }
 
 .modern-table thead {
-    background: #FAFBF9;
+    background: var(--surface-secondary);
 }
 
 /* Kepala tabel.
@@ -240,17 +240,17 @@
 .modern-table th {
     font-size: 13px;
     letter-spacing: 0;
-    color: #3F4F47;
+    color: var(--text-secondary);
     font-weight: 500;
     padding: 10px 16px;
-    border-bottom: 1px solid #E2EAE4;
+    border-bottom: 1px solid var(--border-primary);
 }
 
 .modern-table td {
     padding: 10px 16px;
-    border-bottom: 1px solid #E2EAE4;
+    border-bottom: 1px solid var(--border-primary);
     font-size: 13px;
-    color: #1A231F;
+    color: var(--text-primary);
 }
 
 .modern-table tbody tr {
@@ -258,7 +258,7 @@
 }
 
 .modern-table tbody tr:hover {
-    background: #FAFBF9;
+    background: var(--surface-secondary);
 }
 
 /* --- STATUS / BADGE (chip) --- */
@@ -672,17 +672,17 @@ html.dark .pil-pilih:has(:checked) { color: #FFFFFF !important; }
    yang terang dipakai untuk teks, yang gelap untuk latar.
    =================================================================== */
 html.dark {
-    --surface-primary: #1A231F;
-    --surface-secondary: #2A3731;
-    --surface-tertiary: #3F4F47;
-    --border-primary: #3F4F47;
+    --surface-primary: var(--brand-surface-dark_primary, #1A231F);
+    --surface-secondary: var(--brand-surface-dark_secondary, #2A3731);
+    --surface-tertiary: var(--brand-surface-dark_tertiary, #3F4F47);
+    --border-primary: var(--brand-surface-dark_border, #3F4F47);
     --border-secondary: #4A5B53;
-    --text-primary: #F1F5F1;
-    --text-secondary: #C9D6CE;
+    --text-primary: var(--brand-surface-dark_text, #F1F5F1);
+    --text-secondary: var(--brand-surface-dark_text_secondary, #C9D6CE);
     /* Teks tertiary harus terang di atas latar gelap. Nilai terang-mode
        #4A5B53 hanya 3.75:1 di atas #1A231F sehingga gagal untuk teks
        kecil; #9DB8AD memberi rasio jauh di atas ambang AA. */
-    --text-tertiary: #9DB8AD;
+    --text-tertiary: var(--brand-surface-dark_text_tertiary, #9DB8AD);
     --accent-primary: var(--brand-accent-dark, #5FC4D4);
     --accent-hover: var(--brand-accent-hover-dark, #7FD0DE);
     --accent-light: var(--brand-accent-surface-dark, #02363E);
@@ -700,6 +700,70 @@ html.dark {
        latar halaman, jadi menggelapkannya hanya akan menjadikannya lebih
        buruk lagi tanpa memperbaiki teks apa pun. -- */
     --surface-warning: #5E3A00;
+}
+
+html[data-brand-theme="copilot-light"] body {
+    font-family: var(--brand-font-family);
+    font-size: var(--brand-body-size);
+    font-weight: var(--brand-weight-regular);
+    line-height: var(--brand-line-height);
+    letter-spacing: var(--brand-letter-spacing);
+}
+
+html[data-brand-theme="copilot-light"] :is(button, input, select, textarea) {
+    font-family: var(--brand-font-family);
+    letter-spacing: var(--brand-letter-spacing);
+}
+
+html[data-brand-theme="copilot-light"] :is(h1, h2, h3) {
+    font-family: var(--brand-font-family);
+    font-weight: var(--brand-weight-medium);
+    line-height: var(--brand-line-height-compact);
+    letter-spacing: var(--brand-letter-spacing);
+}
+
+html[data-brand-theme="copilot-light"] h1 {
+    font-size: var(--brand-page-title-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(h2, h3) {
+    font-size: var(--brand-heading-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.text-xs) {
+    font-size: var(--brand-label-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.text-sm) {
+    font-size: var(--brand-secondary-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.text-base) {
+    font-size: var(--brand-body-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.text-lg) {
+    font-size: var(--brand-heading-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.text-xl, .text-2xl, .text-3xl) {
+    font-size: var(--brand-page-title-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.font-normal) {
+    font-weight: var(--brand-weight-regular);
+}
+
+html[data-brand-theme="copilot-light"] :is(.font-medium) {
+    font-weight: var(--brand-weight-medium);
+}
+
+html[data-brand-theme="copilot-light"] :is(.font-semibold, .font-bold) {
+    font-weight: var(--brand-weight-strong);
+}
+
+html[data-brand-theme="copilot-light"] :is(.tracking-tighter, .tracking-tight, .tracking-normal, .tracking-wide, .tracking-wider, .tracking-widest) {
+    letter-spacing: var(--brand-letter-spacing);
 }
 
 html.dark body,
@@ -759,17 +823,17 @@ html.dark .select2-container--default .select2-search--dropdown .select2-search_
 html.dark .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: var(--accent-light) !important; color: #fff !important; }
 
 /* Warna status */
-html.dark .bg-indigo-50, html.dark .bg-indigo-50\/60, html.dark .bg-indigo-50\/40 { background-color: rgba(5, 129, 143, .16) !important; }
+html.dark .bg-indigo-50, html.dark .bg-indigo-50\/60, html.dark .bg-indigo-50\/40 { background-color: var(--dark-accent-light) !important; }
 html.dark .bg-emerald-50, html.dark .bg-emerald-50\/60 { background-color: rgba(16, 185, 129, .14) !important; }
 html.dark .bg-rose-50, html.dark .bg-rose-50\/50 { background-color: rgba(244, 63, 94, .14) !important; }
 html.dark .bg-amber-50, html.dark .bg-amber-50\/60 { background-color: rgba(245, 158, 11, .14) !important; }
 html.dark .bg-orange-50 { background-color: rgba(249, 115, 22, .14) !important; }
 html.dark .bg-sky-50, html.dark .bg-blue-50 { background-color: rgba(14, 165, 233, .14) !important; }
 html.dark .bg-teal-50, html.dark .bg-teal-50\/60 { background-color: rgba(20, 184, 166, .14) !important; }
-html.dark .bg-indigo-100 { background-color: rgba(5, 129, 143, .24) !important; }
+html.dark .bg-indigo-100 { background-color: var(--dark-accent-light) !important; }
 html.dark .border-indigo-100, html.dark .border-indigo-200, html.dark .border-emerald-100, html.dark .border-emerald-200,
 html.dark .border-rose-100, html.dark .border-rose-200, html.dark .border-amber-100, html.dark .border-amber-200, html.dark .border-orange-200 { border-color: rgba(148, 163, 184, .25) !important; }
-html.dark .text-indigo-600, html.dark .text-indigo-700 { color: #5FC4D4 !important; }
+html.dark .text-indigo-600, html.dark .text-indigo-700 { color: var(--dark-accent-primary) !important; }
 html.dark .text-emerald-600, html.dark .text-emerald-700 { color: #8FD9C0 !important; }
 html.dark .text-rose-600, html.dark .text-rose-500 { color: #E0A583 !important; }
 html.dark .text-amber-600, html.dark .text-amber-700, html.dark .text-amber-800 { color: #F5C46A !important; }
@@ -789,14 +853,14 @@ html.dark .text-sky-600 { color: #7FD0DE !important; }
    dipakai untuk teks - indigo-500 #04727E hanya 2.7:1 di atas #1A231F dan
    slate-400 #5F7167 hanya 2.6:1 di atas #2A3731. Setelah diukur, semua
    garis bawah memakai lighten ramp yang sudah dihitung kontrasnya. */
-html.dark .text-indigo-300, html.dark .text-indigo-400, html.dark .text-indigo-500 { color: #5FC4D4 !important; }
+html.dark .text-indigo-300, html.dark .text-indigo-400, html.dark .text-indigo-500 { color: var(--dark-accent-primary) !important; }
 html.dark .text-teal-400, html.dark .text-teal-500 { color: #7FD0DE !important; }
 html.dark .text-emerald-300, html.dark .text-emerald-400, html.dark .text-emerald-500 { color: #8FD9C0 !important; }
 html.dark .text-amber-200, html.dark .text-amber-300, html.dark .text-amber-400, html.dark .text-amber-500 { color: #F5C46A !important; }
 html.dark .text-rose-300, html.dark .text-rose-400, html.dark .text-rose-500 { color: #E0A583 !important; }
-html.dark .text-slate-300, html.dark .text-slate-400, html.dark .text-slate-500 { color: #9DB8AD !important; }
-html.dark .text-slate-600 { color: #C9D6CE !important; }
-html.dark .text-slate-700 { color: #F1F5F1 !important; }
+html.dark .text-slate-300, html.dark .text-slate-400, html.dark .text-slate-500 { color: var(--dark-text-tertiary) !important; }
+html.dark .text-slate-600 { color: var(--dark-text-secondary) !important; }
+html.dark .text-slate-700 { color: var(--dark-text-primary) !important; }
 
 /* ----------------------------------------------------------------------
    SHADE TUA YANG BELUM TERCIPAI DI MODE GELAP
@@ -826,7 +890,7 @@ html.dark .text-blue-800,
 html.dark .text-blue-900 { color: #7FD0DE !important; }
 
 html.dark .text-indigo-800,
-html.dark .text-indigo-900 { color: #5FC4D4 !important; }
+html.dark .text-indigo-900 { color: var(--dark-accent-primary) !important; }
 
 html.dark .text-teal-700,
 html.dark .text-teal-800,
@@ -906,10 +970,10 @@ html.dark .bg-white\/80.border-white {
     border-color: #3F4F47 !important;
 }
 
-html.dark .text-slate-400, html.dark .text-slate-500 { color: #9DB8AD !important; }
-html.dark .text-slate-600 { color: #C9D6CE !important; }
-html.dark .text-slate-700 { color: #F1F5F1 !important; }
-html.dark .text-slate-800 { color: #F1F5F1 !important; }
+html.dark .text-slate-400, html.dark .text-slate-500 { color: var(--dark-text-tertiary) !important; }
+html.dark .text-slate-600 { color: var(--dark-text-secondary) !important; }
+html.dark .text-slate-700 { color: var(--dark-text-primary) !important; }
+html.dark .text-slate-800 { color: var(--dark-text-primary) !important; }
 
 html.dark input::placeholder { color: #9DB8AD !important; }
 html.dark textarea::placeholder { color: #9DB8AD !important; }
@@ -991,7 +1055,7 @@ html.dark ::-webkit-scrollbar-thumb { background: var(--border-secondary); }
 /* Shadow & hover */
 html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-lg { --tw-shadow-color: rgba(0, 0, 0, .35); }
 html.dark .hover\:bg-white:hover { background-color: var(--surface-secondary) !important; }
-html.dark .hover\:text-indigo-600:hover, html.dark .hover\:text-indigo-700:hover { color: #9AD4DE !important; }
+html.dark .hover\:text-indigo-600:hover, html.dark .hover\:text-indigo-700:hover { color: var(--dark-accent-primary) !important; }
 html.dark .hover\:text-rose-500:hover, html.dark .hover\:text-rose-600:hover { color: #E0A583 !important; }
 html.dark .hover\:text-emerald-600:hover { color: #8FD9C0 !important; }
 html.dark .hover\:text-amber-500:hover, html.dark .hover\:text-amber-600:hover { color: #F5C46A !important; }
@@ -1013,7 +1077,7 @@ html.dark input[type=file]::file-selector-button { background-color: rgba(5, 129
     html.dark .\!bg-white { background-color: var(--surface-secondary) !important; }
     html.dark .\!bg-slate-100 { background-color: var(--surface-tertiary) !important; }
     html.dark .\!text-slate-400 { color: var(--text-tertiary) !important; }
-    html.dark .\!text-indigo-600 { color: #5FC4D4 !important; }
+    html.dark .\!text-indigo-600 { color: var(--dark-accent-primary) !important; }
 }
 
 html.dark [style*="background:#FAFBF9"], html.dark [style*="background: #FAFBF9"] { background: var(--surface-secondary) !important; color: var(--text-primary); }
@@ -1205,6 +1269,3 @@ html.dark .hero-postingan { box-shadow: none; }
 
     .cetak-kaki { display: flex !important; justify-content: space-between; margin-top: 8mm; padding-top: 3pt; border-top: .6pt solid #1A231F; font-family: 'Lora', Georgia, serif; font-size: 8pt; letter-spacing: .06em; color: #3F4F47; }
 }
-
-
-

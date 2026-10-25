@@ -33,14 +33,14 @@
     --ui-med: 220ms;
 
     /* Token warna - Light mode */
-    --surface-primary: #ffffff;
-    --surface-secondary: #FAFBF9;
-    --surface-tertiary: #F1F5F1;
-    --border-primary: #E2EAE4;
-    --border-secondary: #C9D6CE;
-    --text-primary: #1A231F;
-    --text-secondary: #3F4F47;
-    --text-tertiary: #5F7167;
+    --surface-primary: var(--brand-surface-primary, #ffffff);
+    --surface-secondary: var(--brand-surface-secondary, #FAFBF9);
+    --surface-tertiary: var(--brand-surface-tertiary, #F1F5F1);
+    --border-primary: var(--brand-surface-border, #E2EAE4);
+    --border-secondary: var(--brand-surface-border_strong, #C9D6CE);
+    --text-primary: var(--brand-surface-text, #1A231F);
+    --text-secondary: var(--brand-surface-text_secondary, #3F4F47);
+    --text-tertiary: var(--brand-surface-text_tertiary, #5F7167);
     /* Ikon dekoratif (search, panah, dsb) adalah "non-text content":
        WCAG 1.4.11 menuntut minimal 3:1 terhadap latar, bukan 4.5:1.
        text-slate-400 (#5F7167) hanya 2.56:1 di atas putih sehingga GAGAL,
@@ -53,18 +53,18 @@
     /* Token warna - Dark mode */
     
     
-    --dark-surface-primary: #1A231F;
-    --dark-surface-secondary: #2A3731;
-    --dark-surface-tertiary: #3F4F47;
-    --dark-border-primary: #3F4F47;
+    --dark-surface-primary: var(--brand-surface-dark_primary, #1A231F);
+    --dark-surface-secondary: var(--brand-surface-dark_secondary, #2A3731);
+    --dark-surface-tertiary: var(--brand-surface-dark_tertiary, #3F4F47);
+    --dark-border-primary: var(--brand-surface-dark_border, #3F4F47);
     
-    --dark-text-primary: #F1F5F1;
-    --dark-text-secondary: #C9D6CE;
+    --dark-text-primary: var(--brand-surface-dark_text, #F1F5F1);
+    --dark-text-secondary: var(--brand-surface-dark_text_secondary, #C9D6CE);
     /* Disamakan dengan --text-tertiary mode gelap di app.css (#5F7167).
        Nilai lama #4A5B53 hanya 3.75:1 di atas #1A231F, gagal untuk teks
        kecil. Dua sistem token harus mengantar angka yang sama; kalau
        tidak, perbaikan di satu tempat akan dibatalkan di tempat lain. */
-    --dark-text-tertiary: #9DB8AD;
+    --dark-text-tertiary: var(--brand-surface-dark_text_tertiary, #9DB8AD);
     --dark-icon-muted: #71867A;
     --dark-accent-primary: var(--brand-accent-dark, #5FC4D4);
     --dark-accent-hover: var(--brand-dark-accent-hover, #05818F);
@@ -88,8 +88,8 @@
    1. SIDEBAR - Clean, solid, no gradient
    ========================================================================== */
 aside {
-    background: var(--or-8);
-    border-right: 1px solid var(--or-9);
+    background: var(--brand-sidebar-base, var(--or-8));
+    border-right: 1px solid var(--brand-sidebar-deep, var(--or-9));
     box-shadow: none;
     transition: width var(--ui-med) var(--ui-ease);
 }
@@ -97,13 +97,13 @@ aside {
 /* Sidebar gelap di kedua mode, jadi mode terang tidak boleh menimpanya
    kembali ke surface terang. */
 html:not(.dark) aside {
-    background: var(--or-8);
-    border-right-color: var(--or-9);
+    background: var(--brand-sidebar-base, var(--or-8));
+    border-right-color: var(--brand-sidebar-deep, var(--or-9));
 }
 
 html.dark aside {
-    background: var(--dark-surface-primary);
-    border-right-color: var(--dark-border-primary);
+    background: var(--brand-sidebar-deep, var(--dark-surface-primary));
+    border-right-color: var(--brand-sidebar-border, var(--dark-border-primary));
 }
 
 /* Menu items.
@@ -113,7 +113,7 @@ html.dark aside {
    background putih di atas sidebar gelap. */
 aside nav > a {
     border-radius: var(--radius-md);
-    color: var(--or-teks);
+    color: var(--brand-sidebar-text, var(--or-teks));
     font-size: 13px;
     font-weight: 500;
     padding: 8px 12px;
@@ -123,12 +123,12 @@ aside nav > a {
 
 aside nav > a:hover:not(.sb-active) {
     background: rgb(255 255 255 / 0.06);
-    color: var(--or-judul);
+    color: var(--brand-sidebar-title, var(--or-judul));
 }
 
 aside nav > a.sb-active {
     background: rgb(255 255 255 / 0.12);
-    color: var(--or-judul);
+    color: var(--brand-sidebar-title, var(--or-judul));
     font-weight: 500;
 }
 
@@ -153,7 +153,7 @@ aside nav > a.sb-active i {
    warna teks - tidak ada pembeda bentuk, jadi tidak terlihat dari jarak.
    Dengan latar yang sama, keduanya terasa seperti satu sistem. */
 aside .menu-group-toggle {
-    color: var(--or-teks-lembut);
+    color: var(--brand-sidebar-muted, var(--or-teks-lembut));
     font-size: 13px;
     font-weight: 500;
     letter-spacing: 0;
@@ -165,7 +165,7 @@ aside .menu-group-toggle {
 
 aside .menu-group-toggle:hover {
     background: rgb(255 255 255 / 0.06);
-    color: var(--or-judul);
+    color: var(--brand-sidebar-title, var(--or-judul));
 }
 
 /* Sidebar brand */

@@ -114,18 +114,18 @@
         /* Palet dopelycolors 01: Desert B35A20, Zest E8891D, Sea Mist BFD5C9,
            Niagara 05A3A4, Mosque 006373. Diturunkan menjadi tangga latar gelap
            plus teks terang. Rasio WCAG tiap pasangan tertera di sebelah nilainya. */
-        --or-9:  #04262C;   /* latar terdalam          */
-        --or-8:  #063A44;   /* latar sidebar           */
-        --or-7:  #0A4C57;   /* latar surface           */
-        --or-6:  #0F6472;   /* garis tegas             */
+        --or-9:  var(--brand-sidebar-deep, #04262C);   /* latar terdalam */
+        --or-8:  var(--brand-sidebar-base, #063A44);    /* latar sidebar */
+        --or-7:  var(--brand-sidebar-raised, #0A4C57);  /* latar surface */
+        --or-6:  var(--brand-sidebar-border, #0F6472);  /* garis tegas */
 
-        --or-teks:        #BFD5C9;  /* Sea Mist - 8.00:1 di sidebar */
-        --or-teks-lembut: #9DB8AD;  /* turunan Sea Mist            */
-        --or-judul:       #FFFFFF;  /* judul - 12.38:1             */
-        --or-aksen:       #E8891D;  /* Zest - 4.73:1, khusus sidebar */
-        --or-peringatan:  #F0A882;  /* Desert dinaikkan - 6.27:1   */
+        --or-teks:        var(--brand-sidebar-text, #BFD5C9);
+        --or-teks-lembut: var(--brand-sidebar-muted, #9DB8AD);
+        --or-judul:       var(--brand-sidebar-title, #FFFFFF);
+        --or-aksen:       var(--brand-sidebar-accent, #E8891D);
+        --or-peringatan:  var(--brand-sidebar-warning, #F0A882);
     }
-    body { font-family: var(--brand-font-family, 'Inter'), sans-serif; scroll-behavior: smooth; background-color: #FAFBF9; overflow-x: hidden; }
+    body { font-family: var(--brand-font-family, 'Inter'), sans-serif; color: var(--text-primary); scroll-behavior: smooth; background-color: var(--brand-surface-page, #FAFBF9); overflow-x: hidden; }
 
     /* Sidebar memakai latar gelap dengan teks terang karena kasir berdiri
        di depan layar ini sepanjang shift: latar gelap menekan silau, teks
@@ -147,8 +147,8 @@
     }
 
     html.dark aside {
-        background: var(--or-9);
-        border-right-color: var(--or-6);
+        background: var(--brand-sidebar-deep, var(--or-9));
+        border-right-color: var(--brand-sidebar-border, var(--or-6));
         color: var(--or-teks);
     }
 
