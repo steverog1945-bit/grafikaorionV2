@@ -27,7 +27,7 @@
             <details class="mobile-bahan-filter">
                 <summary>
                     <i class="fas fa-sliders-h" aria-hidden="true"></i>
-                    <span>Filter lanjutan</span>
+                    <span>Filter</span>
                 </summary>
                 <div class="mobile-bahan-filter-fields">
             <div class="w-full md:w-48">

@@ -23,43 +23,70 @@
         min-width: 0;        /* 320px viewport aman dari overflow */
     }
     .mobile-bahan-filter-form > .flex-1.min-w-\[300px\] {
-        flex: 1 0 100%;
+        flex: 1 1 150px;
+        min-width: 0;
+    }
+    #filterForm.mobile-bahan-filter-form {
+        align-items: center;
+        gap: 8px;
+    }
+    #filterForm.mobile-bahan-filter-form > div:first-child > label {
+        display: none;
+    }
+    #filterForm.mobile-bahan-filter-form .relative input {
+        height: 52px;
+        padding-top: 0;
+        padding-bottom: 0;
+        border: 1px solid var(--brand-surface-border, #E2EAE4);
+        border-radius: 999px;
+        background: var(--brand-surface-primary, #ffffff);
+        box-shadow: 0 3px 12px rgb(15 23 42 / 5%);
     }
     .max-w-\[1600px\] > .bg-white.rounded-2xl form > a[href$="/bahan-baku"] {
         min-height: 44px;    /* tombol reset mudah disentuh ibu jari */
     }
 
     .mobile-bahan-filter {
-        flex: 1 0 100%;
+        position: relative;
+        flex: 0 0 auto;
         display: block;
-        width: 100%;
+        width: auto;
     }
     .mobile-bahan-filter > summary {
         display: flex;
         align-items: center;
         gap: 8px;
-        min-height: 44px;
-        padding: 0 12px;
+        min-height: 52px;
+        padding: 0 14px;
         border: 1px solid var(--brand-surface-border, #E2EAE4);
-        border-radius: 10px;
+        border-radius: 999px;
         color: var(--brand-surface-text_secondary, #3F4F47);
-        background: var(--brand-surface-secondary, #FAFBF9);
+        background: var(--brand-surface-primary, #ffffff);
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
         list-style: none;
+        white-space: nowrap;
+        box-shadow: 0 3px 12px rgb(15 23 42 / 5%);
     }
     .mobile-bahan-filter > summary::-webkit-details-marker {
         display: none;
     }
     .mobile-bahan-filter > summary::after {
-        content: "+";
+        content: "";
+        width: 7px;
+        height: 7px;
         margin-left: auto;
-        font-size: 18px;
-        line-height: 1;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: translateY(-2px) rotate(45deg);
+        transition: transform 150ms ease;
     }
     .mobile-bahan-filter[open] > summary::after {
-        content: "\2212";
+        transform: translateY(2px) rotate(225deg);
+    }
+    .mobile-bahan-filter[open] {
+        flex: 1 0 100%;
     }
     .mobile-bahan-filter > summary:focus-visible {
         outline: 2px solid var(--brand-accent-light);
@@ -70,6 +97,10 @@
         grid-template-columns: minmax(0, 1fr);
         gap: 10px;
         padding-top: 12px;
+    }
+    .mobile-bahan-filter[open] > summary {
+        border-radius: 12px;
+        background: var(--brand-surface-secondary, #FAFBF9);
     }
     .mobile-bahan-filter:not([open]) .mobile-bahan-filter-fields {
         display: none;
@@ -149,14 +180,21 @@
     /* Setiap <tr> = satu kartu material */
     #bulk-delete-form tbody tr {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        column-gap: 12px;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) 48px;
+        grid-template-areas:
+            "pick number actions"
+            "identity identity actions"
+            "spec stock actions"
+            "average latest actions"
+            "delta delta actions";
+        column-gap: 8px;
         width: 100%;
         background: var(--brand-surface-primary, #ffffff);
         border: 1px solid var(--brand-surface-border, #E2EAE4);
-        border-radius: 12px;
+        border-radius: 20px;
         margin: 0 0 10px 0;
         padding: 12px;
+        box-shadow: 0 5px 16px rgb(15 23 42 / 5%);
         transition: border-color 0.18s ease;
     }
     #bulk-delete-form tbody tr.group:hover {
@@ -195,7 +233,18 @@
         min-width: 0;
         padding: 5px 0;
     }
-    #bulk-delete-form td:nth-child(3) { grid-column: 1 / -1; }
+    #bulk-delete-form td:nth-child(1) { grid-area: pick; }
+    #bulk-delete-form td:nth-child(2) { grid-area: number; }
+    #bulk-delete-form td:nth-child(3) { grid-area: identity; }
+    #bulk-delete-form td:nth-child(4) { grid-area: spec; }
+    #bulk-delete-form td:nth-child(5) { grid-area: stock; }
+    #bulk-delete-form td:nth-child(6) { grid-area: average; }
+    #bulk-delete-form td:nth-child(7) { grid-area: latest; }
+    #bulk-delete-form td:nth-child(8) { grid-area: delta; }
+    #bulk-delete-form td:nth-child(9) { grid-area: actions; }
+    #bulk-delete-form td:nth-child(3) {
+        padding-top: 8px;
+    }
     #bulk-delete-form td[colspan] {
         grid-column: 1 / -1;
         text-align: center;
@@ -239,6 +288,10 @@
     }
     #bulk-delete-form td:nth-child(3) > div {
         gap: 10px;
+        min-width: 0;
+    }
+    #bulk-delete-form td:nth-child(3) > div > div:last-child {
+        min-width: 0;
     }
     #bulk-delete-form td:nth-child(3) .text-\[14px\] {
         font-size: 15px;
@@ -310,22 +363,22 @@
         font-size: 12px;
     }
 
-    /* Aksi: baris ikon di kanan bawah kartu, sentuh lega */
+    /* Aksi tetap tersedia sebagai target sentuh di sisi kanan kartu. */
     #bulk-delete-form td:nth-child(9) {
-        grid-column: 1 / -1;
-        flex-direction: row;
-        justify-content: flex-end;
-        gap: 8px;
-        padding-top: 8px;
-        margin-top: 2px;
-        border-top: 1px solid var(--brand-surface-border, #E2EAE4);
+        flex-direction: column;
+        justify-content: center;
+        gap: 6px;
+        padding: 0;
+        border-left: 1px solid var(--brand-surface-border, #E2EAE4);
     }
     #bulk-delete-form td:nth-child(9) > div {
-        gap: 8px;
+        flex-direction: column;
+        gap: 6px;
     }
     #bulk-delete-form td:nth-child(9) button {
         width: 44px;
         height: 44px;
+        flex: 0 0 44px;
     }
 
     /* Pagination: target sentuh memadat */
