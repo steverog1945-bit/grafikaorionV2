@@ -112,7 +112,7 @@
                                     <div class="text-[14px] font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">
                                         {{ $b->nama_bahan }}
                                         @if($b->status === 'nonaktif')
-                                            <span class="ml-1 text-[9px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded uppercase align-middle">Nonaktif</span>
+                                            <span class="mobile-bahan-desktop-status ml-1 text-[9px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded uppercase align-middle">Nonaktif</span>
                                         @endif
                                     </div>
                                     <div class="text-[11px] text-slate-400 mt-0.5">{{ $b->kode_bahan }}</div>
@@ -120,19 +120,27 @@
                             </div>
                         </td>
                         <td class="px-6 py-5 text-center" data-label="Spesifikasi">
-                            <div class="flex flex-col gap-1 items-center">
-                                <span class="text-[10px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md uppercase">
-                                    {{ $b->mesin->nama_mesin ?? '-' }}
-                                </span>
-                                <span class="text-[9px] text-slate-400 font-medium uppercase">{{ $b->kategori->nama_kategori ?? 'Umum' }}</span>
-                                @if($b->merk || $b->jenisBahan)
-                                    <span class="text-[9px] text-indigo-600 font-medium uppercase">
-                                        {{ $b->merk->nama_merk ?? '' }}{{ $b->merk && $b->jenisBahan ? ' • ' : '' }}{{ $b->jenisBahan->nama_jenis ?? '' }}
-                                    </span>
-                                @endif
-                            </div>
+                            <details class="mobile-bahan-details">
+                                <summary>Rincian</summary>
+                                <div class="mobile-bahan-details-content">
+                                    <div class="flex flex-col gap-1 items-center">
+                                        <span class="text-[10px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md uppercase">
+                                            {{ $b->mesin->nama_mesin ?? '-' }}
+                                        </span>
+                                        <span class="text-[9px] text-slate-400 font-medium uppercase">{{ $b->kategori->nama_kategori ?? 'Umum' }}</span>
+                                        @if($b->merk || $b->jenisBahan)
+                                            <span class="text-[9px] text-indigo-600 font-medium uppercase">
+                                                {{ $b->merk->nama_merk ?? '' }}{{ $b->merk && $b->jenisBahan ? ' • ' : '' }}{{ $b->jenisBahan->nama_jenis ?? '' }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </details>
                         </td>
                         <td class="px-6 py-5 text-center" data-label="Stok">
+                            <span class="mobile-bahan-status {{ $b->status === 'aktif' ? 'mobile-bahan-status-active' : 'mobile-bahan-status-inactive' }}">
+                                <span aria-hidden="true"></span>{{ $b->status === 'aktif' ? 'Aktif' : 'Nonaktif' }}
+                            </span>
                             @php
                                 $angka = fn ($v, $d = 2) => angka((float) $v, $d);
                                 $stokHabis = (float) $b->stok <= (float) $b->stok_minimal;
