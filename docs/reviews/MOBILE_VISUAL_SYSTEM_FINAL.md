@@ -10,7 +10,7 @@
 - Stacked base: `fix/mobile-pwa-theme-integration`
 - Base SHA: `f4a210f2c05222f1fec15f62e2abf0ded6e25d2b`
 - Implementation commits: `a0d59de`, `971faf5`, `8779182`
-- Draft PR: pending creation
+- Draft PR: [#13](https://github.com/steverog1945-bit/percetakan-app/pull/13), base `fix/mobile-pwa-theme-integration`
 
 ## Scope and module status
 
