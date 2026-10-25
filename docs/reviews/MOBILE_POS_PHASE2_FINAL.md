@@ -8,8 +8,8 @@ Meningkatkan keterbacaan POS dan pembayaran pada viewport mobile tanpa mengubah 
 
 - Branch: `feat/mobile-pos-phase2`
 - Base: `origin/main` (`aee1d5d01b0de3c3c6fd6a0fe33545e6f6b082f6`)
-- PR: belum dibuat saat laporan ini disusun.
-- Commit implementasi: akan dicatat setelah commit dibuat.
+- Draft PR: [#18](https://github.com/steverog1945-bit/percetakan-app/pull/18), base `main`.
+- Commit implementasi awal: `cd40b5685ed2e95cefbf3aaabcbac6cf882b420a`.
 
 ## Implementasi
 
@@ -34,6 +34,7 @@ ID, nama field, nilai, izin, route, form action, kalkulasi, handler, dan data bi
 ## Bukti visual
 
 Semua gambar berikut adalah **STATIC SOURCE-DERIVED PREVIEW**: struktur POS/pembayaran diturunkan dari Blade dan memakai CSS Vite hasil build. Ini bukan screenshot ERP/Laravel asli; nilai dinamis dan runtime tidak dimuat.
+Sembilan screenshot utama juga dilampirkan sebagai GitHub-hosted assets pada deskripsi PR agar tidak bergantung pada localhost.
 
 | Tampilan | Bukti |
 |---|---|
@@ -54,6 +55,6 @@ Perilaku dinamis Blade dan transaksi belum diuji di runtime, sehingga tetap perl
 
 ## Commit dan PR
 
-- Commit perubahan: belum tersedia saat laporan awal ini ditulis.
-- Draft PR: akan dicantumkan setelah dibuat.
+- Commit implementasi: `cd40b5685ed2e95cefbf3aaabcbac6cf882b420a`.
+- Draft PR: [#18](https://github.com/steverog1945-bit/percetakan-app/pull/18).
 - Merge/deploy: tidak dilakukan.
