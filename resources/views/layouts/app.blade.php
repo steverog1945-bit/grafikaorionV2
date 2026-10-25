@@ -20,8 +20,8 @@
          untuk iOS, dan theme-color supaya bilah browser mengikuti tema. Dua
          theme-color (gelap/terang) mencakup kedua mode. --}}
     <link rel="manifest" href="{{ route('pwa.manifest') }}">
-    <meta name="theme-color" content="#1A231F" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#FAFBF9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="{{ $brandTheme['surfaces']['dark_primary'] }}" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="{{ $brandTheme['surfaces']['page'] }}" media="(prefers-color-scheme: light)">
     <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -126,6 +126,13 @@
         --or-peringatan:  var(--brand-sidebar-warning, #F0A882);
     }
     body { font-family: var(--brand-font-family, 'Inter'), sans-serif; color: var(--text-primary); scroll-behavior: smooth; background-color: var(--brand-surface-page, #FAFBF9); overflow-x: hidden; }
+    #sidebarOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: rgba(13, 19, 16, .56);
+    }
 
     /* Sidebar memakai latar gelap dengan teks terang karena kasir berdiri
        di depan layar ini sepanjang shift: latar gelap menekan silau, teks
@@ -198,7 +205,7 @@
     body.sidebar-collapsed aside .menu-group-toggle:hover .rail-icon,
     body.sidebar-collapsed aside .menu-group-toggle.flyout-open .rail-icon { background: rgba(255,255,255,0.14); color: #fff; transform: translateY(-1px); }
     body.sidebar-collapsed aside .menu-group-toggle.has-active .rail-icon {
-        background: #006C7B; color: #fff;
+        background: var(--brand-sidebar-active, #116E7D); color: #fff;
     }
 
     /* Tampilan lebar: penanda grup yang berisi halaman aktif.
@@ -210,10 +217,10 @@
     html.dark aside .menu-group-toggle.has-active > span { color: var(--or-judul); }
     aside .menu-group-toggle.has-active > span::after {
         content: ''; display: inline-block; width: 6px; height: 6px; margin-left: 8px; border-radius: 999px;
-        background: #5FC4D4; vertical-align: middle;
+        background: var(--brand-sidebar-active_mark, #7FD0DE); vertical-align: middle;
     }
     aside nav > a.sb-active::before {
-        content: ''; position: absolute; left: -14px; top: 22%; bottom: 22%; width: 4px; border-radius: 0 4px 4px 0; background: #7FD0DE;
+        content: ''; position: absolute; left: -14px; top: 22%;         bottom: 22%; width: 4px; border-radius: 0 4px 4px 0; background: var(--brand-sidebar-active_mark, #7FD0DE);
     }
     body.sidebar-collapsed aside nav > a.sb-active::before { left: -14px; }
     aside .menu-group-items a.sb-active::before { content: none; }
@@ -228,10 +235,10 @@
         border-radius: 12px 0 0 12px;
         transition: color .14s ease;
     }
-    body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: #0C5A66; }
-    body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: #116E7D; }
-    html.dark body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: #0C5A66; }
-    html.dark body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: #116E7D; }
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: var(--brand-sidebar-hover, #0C5A66); }
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: var(--brand-sidebar-active, #116E7D); }
+    html.dark body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: var(--brand-sidebar-hover, #0C5A66); }
+    html.dark body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: var(--brand-sidebar-active, #116E7D); }
     body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover,
     body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { background: var(--tab) !important; }
     /* Lekukan atas (pseudo milik tautan) dan bawah (pseudo milik label teksnya, yang diposisikan terhadap tautan). */
@@ -250,13 +257,13 @@
     #railFlyout, #railTip { position: fixed; z-index: 70; display: none; }
     #railFlyout {
         min-width: 250px; max-width: 300px; max-height: 78vh; overflow-y: auto; padding: 10px;
-        background: #1A231F; border: 1px solid rgba(255,255,255,0.1); border-radius: 18px;
+        background: var(--brand-surface-dark_primary, #1A231F); border: 1px solid var(--brand-surface-dark_border, #3F4F47); border-radius: 18px;
         box-shadow: 0 24px 60px rgba(2,6,23,0.45);
     }
     #railFlyout .fly-title { padding: 6px 12px 10px; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #94a3b8; }
     #railFlyout a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: #E2EAE4; font-size: 14px; font-weight: 500; text-decoration: none; }
     #railFlyout a:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    #railFlyout a.fly-active { background: #006C7B; color: #fff; }
+    #railFlyout a.fly-active { background: var(--brand-accent-light, #006C7B); color: #fff; }
     #railFlyout a svg { width: 20px; height: 20px; flex-shrink: 0; color: #94a3b8; }
     #railFlyout a:hover svg, #railFlyout a.fly-active svg { color: #fff; }
     #railTip {
@@ -276,10 +283,10 @@
     .sidebar-logo.logo-gaya-polos { padding: 6px 10px; }
     .sidebar-logo.logo-gaya-polos img { position: relative; z-index: 1; }
     /* Gaya kaca: subtle */
-    .sidebar-logo.logo-gaya-kaca { padding: 8px 12px; border-radius: 8px; background: #FAFBF9; border: 1px solid #E2EAE4; }
-    html.dark .sidebar-logo.logo-gaya-kaca { background: #2A3731; border-color: #3F4F47; }
+    .sidebar-logo.logo-gaya-kaca { padding: 8px 12px; border-radius: 8px; background: var(--brand-surface-secondary, #FAFBF9); border: 1px solid var(--brand-surface-border, #E2EAE4); }
+    html.dark .sidebar-logo.logo-gaya-kaca { background: var(--brand-surface-dark_secondary, #2A3731); border-color: var(--brand-surface-dark_border, #3F4F47); }
     /* Gaya putih */
-    .sidebar-logo.logo-gaya-putih { padding: 10px 16px; border-radius: 16px; background: #fff; border: 1px solid #E2EAE4; }
+    .sidebar-logo.logo-gaya-putih { padding: 10px 16px; border-radius: 16px; background: var(--brand-surface-primary, #fff); border: 1px solid var(--brand-surface-border, #E2EAE4); }
 
     /* Mode ringkas */
     body.sidebar-collapsed aside .sidebar-logo .logo-full { display: none; }
@@ -301,7 +308,7 @@
         margin-left: var(--sidebar-width);
         min-height: 100vh;
         padding: 32px 24px;
-        background: #FAFBF9;
+        background: var(--brand-surface-page, #FAFBF9);
         transition: margin-left 0.3s ease, all 0.3s ease;
         display: flex;
         flex-direction: column;
@@ -333,8 +340,8 @@
         align-items: center;
         gap: 12px;
         padding: 18px 24px;
-        border-bottom: 1px solid #E2EAE4;
-        background: #ffffff;
+        border-bottom: 1px solid var(--brand-surface-border, #E2EAE4);
+        background: var(--brand-surface-primary, #ffffff);
     }
 
     /* Topbar mobile - sebelumnya sama persis dengan desktop (padding 18px
@@ -354,27 +361,37 @@
         #topbar-mobile-panel { display: contents; }
         #topbar-mobile-panel > div { display: none !important; }
         #topbar-mobile-isi { position: absolute; right: 0; top: 100%; margin-top: 8px;
-            width: 240px; border-radius: 16px; background: #fff;
-            border: 1px solid #E2EAE4; box-shadow: 0 12px 32px rgb(15 23 42 / .12);
+            width: 240px; border-radius: 16px; background: var(--brand-surface-primary, #fff);
+            border: 1px solid var(--brand-surface-border, #E2EAE4); box-shadow: 0 12px 32px rgb(15 23 42 / .12);
             z-index: 60; overflow: hidden; }
         #topbar-mobile-isi.terbuka { display: block; }
         #topbar-mobile-isi button,
         #topbar-mobile-isi form { width: 100%; }
         #topbar-mobile-isi button { display: flex; align-items: center; gap: 12px;
-            padding: 12px 16px; font-size: 13px; color: #2A3731;
+            padding: 12px 16px; font-size: 13px; color: var(--brand-surface-text_secondary, #2A3731);
             background: transparent; border: 0; text-align: left; }
-        #topbar-mobile-isi button:hover { background: #F1F5F1; }
+        #topbar-mobile-isi button:hover { background: var(--brand-surface-tertiary, #F1F5F1); }
         #topbar-mobile-isi .profil { display: flex; align-items: center; gap: 12px;
-            padding: 12px 16px; border-top: 1px solid #E2EAE4; }
+            padding: 12px 16px; border-top: 1px solid var(--brand-surface-border, #E2EAE4); }
         #topbar-mobile-isi .profil span { min-width: 0; }
         #topbar-mobile-isi .profil b { display: block; font-size: 13px; font-weight: 500;
-            color: #2A3731; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            color: var(--brand-surface-text_secondary, #2A3731); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         #topbar-mobile-isi .profil small { display: block; font-size: 10px; font-weight: 500;
-            color: #4A5B53; text-transform: uppercase; letter-spacing: .04em; }
-        #topbar-mobile-isi form { border-top: 1px solid #E2EAE4; }
+            color: var(--brand-surface-text_tertiary, #4A5B53); text-transform: uppercase; letter-spacing: .04em; }
+        #topbar-mobile-isi form { border-top: 1px solid var(--brand-surface-border, #E2EAE4); }
         #topbar-mobile-isi form button { color: #93481A; }
         #topbar-mobile-isi form button:hover { background: #FAF0EA; }
     }
+    html.dark #topbar-mobile-isi {
+        background: var(--brand-surface-dark_secondary, #2A3731);
+        border-color: var(--brand-surface-dark_border, #3F4F47);
+    }
+    html.dark #topbar-mobile-isi button:not(form button),
+    html.dark #topbar-mobile-isi .profil b { color: var(--brand-surface-dark_text, #F1F5F1); }
+    html.dark #topbar-mobile-isi .profil small { color: var(--brand-surface-dark_text_tertiary, #9DB8AD); }
+    html.dark #topbar-mobile-isi .profil,
+    html.dark #topbar-mobile-isi form { border-color: var(--brand-surface-dark_border, #3F4F47); }
+    html.dark #topbar-mobile-isi button:not(form button):hover { background: var(--brand-surface-dark_tertiary, #3F4F47); }
 
     /* Wadah konten halaman. Sengaja TIDAK diberi warna/card/shadow di sini -
        setiap halaman sudah membangun container & card putihnya sendiri,
@@ -1459,7 +1476,9 @@
             <button type="button" id="topbar-mobile-btn" onclick="toggleTopbarMobile()"
                     class="sm:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-slate-100 transition-all"
                     title="Menu lainnya" aria-label="Menu lainnya" aria-expanded="false">
-                <i class="fas fa-ellipsis-h"></i>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle>
+                </svg>
             </button>
 
             <div id="topbar-mobile-panel" class="contents">
@@ -1574,16 +1593,28 @@
 
     @php
         $navItems = [
-            ['url' => url('/dashboard'), 'label' => 'Beranda', 'icon' => 'fa-home', 'active' => Request::is('dashboard', 'dashboard/*'), 'boleh' => true],
-            ['url' => route('penjualan.create'), 'label' => 'Transaksi', 'icon' => 'fa-cash-register', 'active' => request()->routeIs('penjualan.create'), 'boleh' => \App\Support\JalurLanjut::boleh(route('penjualan.create'))],
-            ['url' => url('/bahan-baku'), 'label' => 'Master', 'icon' => 'fa-box', 'active' => Request::is('bahan-baku', 'bahan-baku/*'), 'boleh' => \App\Support\JalurLanjut::boleh(url('/bahan-baku'))],
+            ['url' => url('/dashboard'), 'label' => 'Beranda', 'icon' => 'home', 'active' => Request::is('dashboard', 'dashboard/*'), 'boleh' => true],
+            ['url' => route('penjualan.create'), 'label' => 'Transaksi', 'icon' => 'transaction', 'active' => request()->routeIs('penjualan.create'), 'boleh' => \App\Support\JalurLanjut::boleh(route('penjualan.create'))],
+            ['url' => url('/bahan-baku'), 'label' => 'Master', 'icon' => 'master', 'active' => Request::is('bahan-baku', 'bahan-baku/*'), 'boleh' => \App\Support\JalurLanjut::boleh(url('/bahan-baku'))],
         ];
     @endphp
     <nav class="mobile-bottom-nav" aria-label="Navigasi bawah">
         @foreach($navItems as $item)
             @if($item['boleh'])
                 <a href="{{ $item['url'] }}" class="mobile-nav-item {{ $item['active'] ? 'mobile-nav-active' : '' }}" aria-current="{{ $item['active'] ? 'page' : 'false' }}">
-                    <i class="fas {{ $item['icon'] }}"></i>
+                    @if($item['icon'] === 'home')
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m3 10 9-7 9 7"></path><path d="M5 9v12h14V9M9 21v-7h6v7"></path>
+                        </svg>
+                    @elseif($item['icon'] === 'transaction')
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M4 10h16v10H4zM6 10V6h12v4M8 6V4h8v2"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 17h8"></path>
+                        </svg>
+                    @else
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m12 3 9 5-9 5-9-5 9-5Z"></path><path d="m3 8 9 5 9-5M3 8v9l9 5 9-5V8M12 13v9"></path>
+                        </svg>
+                    @endif
                     <span class="mobile-nav-label">{{ $item['label'] }}</span>
                 </a>
             @endif
@@ -2146,9 +2177,13 @@
 
             if (sidebar.classList.contains('mobile-open')) {
                 sidebar.classList.remove('mobile-open');
+                document.body.classList.remove('mobile-menu-open');
+                overlay.setAttribute('aria-hidden', 'true');
                 $(overlay).fadeOut();
             } else {
                 sidebar.classList.add('mobile-open');
+                document.body.classList.add('mobile-menu-open');
+                overlay.setAttribute('aria-hidden', 'false');
                 $(overlay).fadeIn();
             }
         }
@@ -2170,6 +2205,8 @@
         window.addEventListener('resize', function() {
             if (window.innerWidth < 1024) {
                 document.body.classList.remove('sidebar-collapsed');
+            } else if (document.getElementById('mainSidebar')?.classList.contains('mobile-open')) {
+                toggleMobileMenu();
             }
         });
 

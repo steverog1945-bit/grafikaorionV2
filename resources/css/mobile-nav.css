@@ -13,9 +13,10 @@
     .mobile-bottom-nav {
         display: flex;
         position: fixed;
-        inset-x: 0;
+        left: 0;
+        right: 0;
         bottom: 0;
-        z-index: 50;
+        z-index: 30;
         background: var(--brand-surface-primary);
         border-top: 1px solid var(--brand-surface-border);
         /* Temuan review 02.1: safe-area iPhone adalah gesture bar DI BAWAH -
@@ -41,7 +42,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 5px;
+        gap: 4px;
         font-family: var(--brand-font-family, inherit);
         font-size: var(--brand-label-size, 10px);
         font-weight: var(--brand-weight-medium, 600);
@@ -60,27 +61,32 @@
         background: none;
         border: 0;
         padding: 2px 0;
-        font: inherit;
         cursor: pointer;
     }
-    .mobile-nav-item:hover,
-    .mobile-nav-item:focus-visible {
+    .mobile-nav-item:hover {
         color: var(--brand-mobile-nav-active-light);
     }
     .mobile-nav-item:focus-visible {
         outline: 2px solid var(--brand-accent-light);
         outline-offset: -2px;
     }
-    .mobile-nav-item i.fas {
-        font-size: 20px;
-        line-height: 1;
+    .mobile-nav-item svg {
+        display: block;
+        flex: 0 0 21px;
+        width: 21px;
+        height: 21px;
         color: currentColor;
+        line-height: 1;
     }
     .mobile-nav-item.mobile-nav-active {
         color: var(--brand-mobile-nav-active-light);
     }
     .mobile-nav-label {
+        display: block;
         white-space: nowrap;
+    }
+    body.mobile-menu-open .mobile-bottom-nav {
+        display: none;
     }
 }
 html.dark .mobile-nav-item { color: var(--brand-mobile-nav-inactive-dark); }
