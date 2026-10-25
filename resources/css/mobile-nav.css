@@ -10,6 +10,31 @@
 }
 
 @media screen and (max-width: 767.98px) {
+    .topbar {
+        min-height: 56px;
+        margin: 8px;
+        padding: 6px 8px;
+        gap: 8px;
+    }
+    .topbar-burger,
+    #topbar-mobile-btn {
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+    }
+    .topbar-burger svg {
+        width: 20px;
+        height: 20px;
+    }
+    .topbar-app-name {
+        min-width: 0;
+        max-width: 38vw;
+        font-size: 13px;
+    }
+    aside#mainSidebar {
+        width: min(86vw, 320px);
+    }
+
     .mobile-bottom-nav {
         display: flex;
         position: fixed;
@@ -17,11 +42,13 @@
         right: 0;
         bottom: 0;
         z-index: 30;
+        width: 100%;
+        box-sizing: border-box;
         background: var(--brand-surface-primary);
         border-top: 1px solid var(--brand-surface-border);
         /* Temuan review 02.1: safe-area iPhone adalah gesture bar DI BAWAH -
            jadi env() harus melengkapi padding-BAWAH, bukan yang atas. */
-        padding: 7px 8px calc(10px + env(safe-area-inset-bottom));
+        padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
         gap: 2px;
     }
     html.dark .mobile-bottom-nav {
@@ -42,16 +69,16 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 3px;
         font-family: var(--brand-font-family, inherit);
-        font-size: var(--brand-label-size, 10px);
+        font-size: var(--brand-label-size, 11px);
         font-weight: var(--brand-weight-medium, 600);
         letter-spacing: var(--brand-letter-spacing, 0.02em);
         line-height: var(--brand-line-height, 1.2);
         color: var(--brand-mobile-nav-inactive-light);
         text-decoration: none;
-        min-height: 44px;    /* Standar sentuh minimal 44x44px */
-        padding: 2px 0;
+        min-height: 48px;
+        padding: 3px 0;
         border-radius: 10px;
         transition: color 0.15s ease;
     }
@@ -60,7 +87,7 @@
     button.mobile-nav-item {
         background: none;
         border: 0;
-        padding: 2px 0;
+        padding: 3px 0;
         cursor: pointer;
     }
     .mobile-nav-item:hover {
@@ -80,10 +107,15 @@
     }
     .mobile-nav-item.mobile-nav-active {
         color: var(--brand-mobile-nav-active-light);
+        background: var(--brand-accent-surface-light);
+    }
+    html.dark .mobile-nav-item.mobile-nav-active {
+        background: var(--brand-accent-surface-dark);
     }
     .mobile-nav-label {
         display: block;
         white-space: nowrap;
+        line-height: 1.2;
     }
     body.mobile-menu-open .mobile-bottom-nav {
         display: none;

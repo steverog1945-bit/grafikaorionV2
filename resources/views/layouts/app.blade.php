@@ -1455,7 +1455,9 @@
     <div class="topbar sticky top-0 shadow-sm z-30 justify-between">
         <div class="flex items-center gap-3 min-w-0">
             <button id="sidebarCollapseToggle" onclick="toggleSidebar()" class="topbar-burger w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all shrink-0" title="Sembunyikan/tampilkan menu">
-                <i class="fas fa-bars"></i>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
             </button>
             <span class="topbar-app-name font-medium text-slate-700 truncate">{{ $appSetting->nama_aplikasi }}</span>
         </div>
@@ -1623,7 +1625,9 @@
              menu samping yang SUDAH ADA (sidebar dengan izin Blade sendiri).
              Tanpa rute baru, tanpa permission baru, tanpa salinan menu. --}}
         <button type="button" class="mobile-nav-item" onclick="toggleMobileMenu()" aria-haspopup="dialog" aria-controls="mainSidebar">
-            <i class="fas fa-ellipsis-h"></i>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle>
+            </svg>
             <span class="mobile-nav-label">Lainnya</span>
         </button>
     </nav>

@@ -1,28 +1,80 @@
 /* ==========================================================================
    MOBILE-02 Fase 2 - MASTER BAHAN BAKU: TAMPILAN KARTU MATERIAL BENAR
    Pendekatan: tabel dirubah menjadi deretan kartu melalui CSS
-   (table/tr/td/th ditampilkan ulang), DOM asli TIDAK disusun ulang -
+   (table/tr/td/th ditampilkan ulang dalam grid), DOM asli TIDAK disusun ulang -
    setiap checkbox, tombol aksi, handler, dan form tetap ada SALAH SATU
    saja. Label kolom diambil dari atribut data-label yang dipasang pada
-   setiap sel. Semua aturan di dalam @media screen and (max-width:767.98px);
-   desktop >=768px nol terpengaruh.
+   setiap sel. Aturan tampilan kartu hanya berlaku di bawah 768px; aturan
+   display:contents pada desktop menghilangkan wrapper filter tanpa mengubah
+   susunan aslinya.
    ========================================================================== */
 @media screen and (max-width: 767.98px) {
 
     /* ---------- Panel filter: surface halus, lega, jarak nyaman ---------- */
     .max-w-\[1600px\] > .bg-white.rounded-2xl {
         padding: 16px;
-        margin-bottom: 16px;
-        border-radius: 18px;
+        margin-bottom: 12px;
+        border-radius: 12px;
     }
     .max-w-\[1600px\] > .bg-white.rounded-2xl form {
-        gap: 10px;
+        gap: 12px;
     }
     .max-w-\[1600px\] > .bg-white.rounded-2xl form .flex-1.min-w-\[300px\] {
         min-width: 0;        /* 320px viewport aman dari overflow */
     }
     .max-w-\[1600px\] > .bg-white.rounded-2xl form > a[href$="/bahan-baku"] {
         min-height: 44px;    /* tombol reset mudah disentuh ibu jari */
+    }
+
+    .mobile-bahan-filter {
+        display: block;
+        width: 100%;
+    }
+    .mobile-bahan-filter > summary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 12px;
+        border: 1px solid var(--brand-surface-border, #E2EAE4);
+        border-radius: 10px;
+        color: var(--brand-surface-text_secondary, #3F4F47);
+        background: var(--brand-surface-secondary, #FAFBF9);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        list-style: none;
+    }
+    .mobile-bahan-filter > summary::-webkit-details-marker {
+        display: none;
+    }
+    .mobile-bahan-filter > summary::after {
+        content: "+";
+        margin-left: auto;
+        font-size: 18px;
+        line-height: 1;
+    }
+    .mobile-bahan-filter[open] > summary::after {
+        content: "\2212";
+    }
+    .mobile-bahan-filter > summary:focus-visible {
+        outline: 2px solid var(--brand-accent-light);
+        outline-offset: 2px;
+    }
+    .mobile-bahan-filter-fields {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+        padding-top: 12px;
+    }
+    .mobile-bahan-filter:not([open]) .mobile-bahan-filter-fields {
+        display: none;
+    }
+    .mobile-bahan-filter-fields > * {
+        min-width: 0;
+    }
+    .mobile-bahan-filter-fields .select2-container {
+        max-width: 100%;
     }
 
     /* Judul halaman: lebih proporsional, tidak mengambang terlalu tinggi */
@@ -92,18 +144,19 @@
 
     /* Setiap <tr> = satu kartu material */
     #bulk-delete-form tbody tr {
-        display: block;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 12px;
         width: 100%;
         background: var(--brand-surface-primary, #ffffff);
         border: 1px solid var(--brand-surface-border, #E2EAE4);
-        border-radius: 16px;
-        margin: 0 0 14px 0;
-        padding: 16px;
-        transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        border-radius: 12px;
+        margin: 0 0 10px 0;
+        padding: 12px;
+        transition: border-color 0.18s ease;
     }
     #bulk-delete-form tbody tr.group:hover {
         border-color: var(--brand-accent-light, #0F6472);
-        box-shadow: 0 8px 24px rgba(15, 100, 114, 0.08);
     }
     #bulk-delete-form tbody tr.opacity-50 {
         opacity: 0.55;
@@ -118,10 +171,10 @@
     #bulk-delete-form td::before {
         content: attr(data-label);
         display: block;
-        font-size: 9px;
+        font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.04em;
         color: var(--brand-surface-text_tertiary, #94a3b8);
         margin-bottom: 3px;
     }
@@ -135,9 +188,12 @@
         display: flex;
         flex-direction: column;
         gap: 6px;
-        padding: 6px 0;
+        min-width: 0;
+        padding: 5px 0;
     }
+    #bulk-delete-form td:nth-child(3) { grid-column: 1 / -1; }
     #bulk-delete-form td[colspan] {
+        grid-column: 1 / -1;
         text-align: center;
         padding: 26px 0;
         color: var(--brand-surface-text_tertiary, #94a3b8);
@@ -149,23 +205,36 @@
         flex-direction: row;
         align-items: center;
         justify-content: flex-start;
-        padding-top: 2px;
+        padding: 0;
+    }
+    #bulk-delete-form td:nth-child(1)::before {
+        margin: 0;
     }
     #bulk-delete-form td:nth-child(1) .row-checkbox {
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
         flex-shrink: 0;
     }
     #bulk-delete-form td:nth-child(2) {
         font-size: 11px;
         color: var(--brand-surface-text_tertiary, #94a3b8);
-        align-self: flex-start;
-        padding-top: 4px;
+        align-items: flex-end;
+        padding: 0;
+    }
+    #bulk-delete-form td:nth-child(2)::before {
+        margin-bottom: 0;
     }
 
     /* Identitas: nama lebih besar & tegas, SKU netral di bawahnya */
     #bulk-delete-form td:nth-child(3) {
-        padding-top: 6px;
+        padding-top: 8px;
+        border-top: 1px solid var(--brand-surface-border, #E2EAE4);
+    }
+    html.dark #bulk-delete-form td:nth-child(3) {
+        border-top-color: var(--brand-surface-dark_border, #3F4F47);
+    }
+    #bulk-delete-form td:nth-child(3) > div {
+        gap: 10px;
     }
     #bulk-delete-form td:nth-child(3) .text-\[14px\] {
         font-size: 15px;
@@ -198,6 +267,20 @@
     #bulk-delete-form td:nth-child(5) .text-xs {
         font-size: 11px;
     }
+    #bulk-delete-form td:nth-child(4),
+    #bulk-delete-form td:nth-child(5),
+    #bulk-delete-form td:nth-child(6),
+    #bulk-delete-form td:nth-child(7),
+    #bulk-delete-form td:nth-child(8) {
+        border-top: 1px solid var(--brand-surface-tertiary, #F1F5F1);
+    }
+    html.dark #bulk-delete-form td:nth-child(4),
+    html.dark #bulk-delete-form td:nth-child(5),
+    html.dark #bulk-delete-form td:nth-child(6),
+    html.dark #bulk-delete-form td:nth-child(7),
+    html.dark #bulk-delete-form td:nth-child(8) {
+        border-top-color: var(--brand-surface-dark_border, #3F4F47);
+    }
 
     /* Tombol koreksi harga: lebar penuh, rapi, ikon selalu terlihat */
     #bulk-delete-form td:nth-child(6) button {
@@ -225,15 +308,20 @@
 
     /* Aksi: baris ikon di kanan bawah kartu, sentuh lega */
     #bulk-delete-form td:nth-child(9) {
+        grid-column: 1 / -1;
         flex-direction: row;
         justify-content: flex-end;
-        gap: 10px;
-        padding-top: 14px;
-        margin-top: 6px;
-        border-top: 1px solid var(--brand-surface-tertiary, #F1F5F1);
+        gap: 8px;
+        padding-top: 8px;
+        margin-top: 2px;
+        border-top: 1px solid var(--brand-surface-border, #E2EAE4);
     }
     #bulk-delete-form td:nth-child(9) > div {
-        gap: 10px;
+        gap: 8px;
+    }
+    #bulk-delete-form td:nth-child(9) button {
+        width: 44px;
+        height: 44px;
     }
 
     /* Pagination: target sentuh memadat */
@@ -255,5 +343,15 @@
     }
     html.dark #bulk-delete-form td:nth-child(3) .text-\[14px\] {
         color: var(--brand-accent-dark, #5FC4D4);
+    }
+}
+
+@media screen and (min-width: 768px) {
+    .mobile-bahan-filter,
+    .mobile-bahan-filter-fields {
+        display: contents;
+    }
+    .mobile-bahan-filter > summary {
+        display: none;
     }
 }

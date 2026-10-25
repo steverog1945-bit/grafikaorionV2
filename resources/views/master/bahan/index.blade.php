@@ -13,7 +13,7 @@
 
     {{-- FILTER & SEARCH --}}
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8">
-        <form method="GET" action="{{ route('bahan.index') }}" id="filterForm" class="flex flex-wrap items-end gap-4">
+        <form method="GET" action="{{ route('bahan.index') }}" id="filterForm" class="mobile-bahan-filter-form flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[300px]">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Material</label>
                 <div class="relative">
@@ -24,6 +24,12 @@
                 </div>
             </div>
 
+            <details class="mobile-bahan-filter">
+                <summary>
+                    <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                    <span>Filter lanjutan</span>
+                </summary>
+                <div class="mobile-bahan-filter-fields">
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
                 <select name="kategori" class="select2-filter w-full">
@@ -65,6 +71,8 @@
             <a href="{{ route('bahan.index') }}" class="h-[38px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
                 <i class="fas fa-undo-alt text-sm"></i>
             </a>
+                </div>
+            </details>
         </form>
     </div>
 
