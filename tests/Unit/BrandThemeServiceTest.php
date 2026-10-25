@@ -61,6 +61,11 @@ class BrandThemeServiceTest extends TestCase
         self::assertSame(['preset' => 'coastal-slate'], json_decode((string) file_get_contents($this->themePath), true));
         self::assertSame(['orion-classic', 'copilot-light', 'coastal-slate', 'deep-ocean'], array_column($themes->presets(), 'id'));
         self::assertArrayHasKey('--brand-font-family', $themes->preset('copilot-light')['variables']);
+        self::assertSame('14px', $themes->preset('copilot-light')['variables']['--brand-body-size']);
+        self::assertSame('12px', $themes->preset('copilot-light')['variables']['--brand-label-size']);
+        self::assertSame('400', $themes->preset('copilot-light')['variables']['--brand-weight-regular']);
+        self::assertSame('0', $themes->preset('copilot-light')['variables']['--brand-letter-spacing']);
+        self::assertSame('#0F6472', $themes->preset('orion-classic')['variables']['--brand-mobile-nav-active-light']);
         self::assertArrayNotHasKey('--brand-font-family', $themes->preset('orion-classic')['variables']);
         self::assertSame('#475569', $themes->preset('copilot-light')['accent']['light']);
         self::assertSame('#F8FAFC', $themes->preset('copilot-light')['surfaces']['page']);

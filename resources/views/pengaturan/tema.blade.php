@@ -131,12 +131,28 @@
     }
 </style>
 <script>
-    document.getElementById('brand-theme-form').addEventListener('submit', function () {
-        const button = document.getElementById('brand-theme-submit');
-        button.disabled = true;
-        button.setAttribute('aria-busy', 'true');
+    const themeForm = document.getElementById('brand-theme-form');
+    const themeSubmit = document.getElementById('brand-theme-submit');
+    const showSubmitting = function () {
+        themeSubmit.disabled = true;
+        themeSubmit.setAttribute('aria-busy', 'true');
         document.getElementById('brand-theme-submit-icon').className = 'fas fa-spinner fa-spin';
         document.getElementById('brand-theme-submit-label').textContent = 'Menerapkan tema...';
+    };
+
+    themeForm.addEventListener('change', function (event) {
+        if (!event.target.matches('input[name="preset"]')) return;
+
+        if (typeof themeForm.requestSubmit === 'function') {
+            themeForm.requestSubmit(themeSubmit);
+        } else {
+            showSubmitting();
+            themeForm.submit();
+        }
+    });
+
+    themeForm.addEventListener('submit', function () {
+        showSubmitting();
     });
 </script>
 @endsection

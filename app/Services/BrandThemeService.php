@@ -44,6 +44,10 @@ class BrandThemeService
                 'light' => '#006C7B', 'hover_light' => '#005663', 'surface_light' => '#EAF6F7',
                 'dark' => '#5FC4D4', 'hover_dark' => '#7FD0DE', 'dark_hover' => '#05818F', 'surface_dark' => '#02363E',
             ],
+            'mobileNavigation' => [
+                'inactive_light' => '#94a3b8', 'active_light' => '#0F6472',
+                'inactive_dark' => '#9DB8AD', 'active_dark' => '#94E2B5',
+            ],
         ],
         'copilot-light' => [
             'name' => 'Copilot Light',
@@ -79,6 +83,17 @@ class BrandThemeService
                 'light' => '#475569', 'hover_light' => '#334155', 'surface_light' => '#F1F5F9',
                 'dark' => '#CBD5E1', 'hover_dark' => '#E2E8F0', 'dark_hover' => '#94A3B8', 'surface_dark' => '#334155',
             ],
+            'mobileNavigation' => [
+                'inactive_light' => '#64748B', 'active_light' => '#475569',
+                'inactive_dark' => '#94A3B8', 'active_dark' => '#CBD5E1',
+            ],
+            'typography' => [
+                'font_family' => "'Segoe UI', Inter, ui-sans-serif, system-ui, sans-serif",
+                'body_size' => '14px', 'secondary_size' => '13px', 'label_size' => '12px',
+                'heading_size' => '18px', 'page_title_size' => '24px',
+                'weight_regular' => '400', 'weight_medium' => '500', 'weight_strong' => '600',
+                'line_height' => '1.45', 'line_height_compact' => '1.25', 'letter_spacing' => '0',
+            ],
         ],
         'coastal-slate' => [
             'name' => 'Coastal Slate',
@@ -113,6 +128,10 @@ class BrandThemeService
                 'light' => '#3F6578', 'hover_light' => '#345261', 'surface_light' => '#EDF4F6',
                 'dark' => '#8CBAC9', 'hover_dark' => '#A6CCD8', 'dark_hover' => '#6E9CAC', 'surface_dark' => '#203944',
             ],
+            'mobileNavigation' => [
+                'inactive_light' => '#526A74', 'active_light' => '#3F6578',
+                'inactive_dark' => '#BDD5DC', 'active_dark' => '#8CBAC9',
+            ],
         ],
         'deep-ocean' => [
             'name' => 'Deep Ocean',
@@ -146,6 +165,10 @@ class BrandThemeService
             'accent' => [
                 'light' => '#146A80', 'hover_light' => '#11586B', 'surface_light' => '#E9F5F7',
                 'dark' => '#56B8CD', 'hover_dark' => '#78C9D9', 'dark_hover' => '#3A9DB3', 'surface_dark' => '#103744',
+            ],
+            'mobileNavigation' => [
+                'inactive_light' => '#4A6871', 'active_light' => '#146A80',
+                'inactive_dark' => '#A4D2DB', 'active_dark' => '#56B8CD',
             ],
         ],
     ];
@@ -291,8 +314,10 @@ class BrandThemeService
             $variables["--color-indigo-{$shade}"] = $color;
         }
 
-        if (isset($preset['font_family'])) {
-            $variables['--brand-font-family'] = $preset['font_family'];
+        if (isset($preset['typography'])) {
+            foreach ($preset['typography'] as $name => $value) {
+                $variables['--brand-' . str_replace('_', '-', $name)] = $value;
+            }
         }
 
         $variables['--brand-accent-light'] = $preset['accent']['light'];
@@ -309,6 +334,10 @@ class BrandThemeService
 
         foreach ($preset['sidebar'] as $name => $color) {
             $variables["--brand-sidebar-{$name}"] = $color;
+        }
+
+        foreach ($preset['mobileNavigation'] as $name => $color) {
+            $variables['--brand-mobile-nav-' . str_replace('_', '-', $name)] = $color;
         }
 
         return [

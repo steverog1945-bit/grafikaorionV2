@@ -702,6 +702,70 @@ html.dark {
     --surface-warning: #5E3A00;
 }
 
+html[data-brand-theme="copilot-light"] body {
+    font-family: var(--brand-font-family);
+    font-size: var(--brand-body-size);
+    font-weight: var(--brand-weight-regular);
+    line-height: var(--brand-line-height);
+    letter-spacing: var(--brand-letter-spacing);
+}
+
+html[data-brand-theme="copilot-light"] :is(button, input, select, textarea) {
+    font-family: var(--brand-font-family);
+    letter-spacing: var(--brand-letter-spacing);
+}
+
+html[data-brand-theme="copilot-light"] :is(h1, h2, h3) {
+    font-family: var(--brand-font-family);
+    font-weight: var(--brand-weight-medium);
+    line-height: var(--brand-line-height-compact);
+    letter-spacing: var(--brand-letter-spacing);
+}
+
+html[data-brand-theme="copilot-light"] h1 {
+    font-size: var(--brand-page-title-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(h2, h3) {
+    font-size: var(--brand-heading-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.text-xs) {
+    font-size: var(--brand-label-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.text-sm) {
+    font-size: var(--brand-secondary-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.text-base) {
+    font-size: var(--brand-body-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.text-lg) {
+    font-size: var(--brand-heading-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.text-xl, .text-2xl, .text-3xl) {
+    font-size: var(--brand-page-title-size);
+}
+
+html[data-brand-theme="copilot-light"] :is(.font-normal) {
+    font-weight: var(--brand-weight-regular);
+}
+
+html[data-brand-theme="copilot-light"] :is(.font-medium) {
+    font-weight: var(--brand-weight-medium);
+}
+
+html[data-brand-theme="copilot-light"] :is(.font-semibold, .font-bold) {
+    font-weight: var(--brand-weight-strong);
+}
+
+html[data-brand-theme="copilot-light"] :is(.tracking-tighter, .tracking-tight, .tracking-normal, .tracking-wide, .tracking-wider, .tracking-widest) {
+    letter-spacing: var(--brand-letter-spacing);
+}
+
 html.dark body,
 html.dark main,
 html.dark #mainContent {
