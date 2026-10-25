@@ -33,6 +33,7 @@ class BrandThemeService
                 'deep' => '#04262C', 'base' => '#063A44', 'raised' => '#0A4C57',
                 'border' => '#0F6472', 'text' => '#BFD5C9', 'muted' => '#9DB8AD',
                 'title' => '#FFFFFF', 'accent' => '#E8891D', 'warning' => '#F0A882',
+                'active' => '#116E7D', 'hover' => '#0C5A66', 'active_mark' => '#7FD0DE',
             ],
             'ramp' => [
                 '50' => '#EAF6F7', '100' => '#D2EBEE', '200' => '#A6D6DD',
@@ -72,6 +73,7 @@ class BrandThemeService
                 'deep' => '#0B1120', 'base' => '#1F2937', 'raised' => '#334155',
                 'border' => '#475569', 'text' => '#E2E8F0', 'muted' => '#CBD5E1',
                 'title' => '#FFFFFF', 'accent' => '#CBD5E1', 'warning' => '#F0A882',
+                'active' => '#334155', 'hover' => '#334155', 'active_mark' => '#CBD5E1',
             ],
             'ramp' => [
                 '50' => '#FFFFFF', '100' => '#F8FAFC', '200' => '#E2E8F0',
@@ -117,6 +119,7 @@ class BrandThemeService
                 'deep' => '#15232A', 'base' => '#2B424E', 'raised' => '#3D535D',
                 'border' => '#49616B', 'text' => '#DCE9ED', 'muted' => '#BDD5DC',
                 'title' => '#FFFFFF', 'accent' => '#8CBAC9', 'warning' => '#F0A882',
+                'active' => '#345261', 'hover' => '#2B424E', 'active_mark' => '#8CBAC9',
             ],
             'ramp' => [
                 '50' => '#EDF4F6', '100' => '#DCE9ED', '200' => '#BDD5DC',
@@ -155,6 +158,7 @@ class BrandThemeService
                 'deep' => '#102126', 'base' => '#1A3037', 'raised' => '#263F47',
                 'border' => '#34515A', 'text' => '#CFE7EC', 'muted' => '#A4D2DB',
                 'title' => '#FFFFFF', 'accent' => '#56B8CD', 'warning' => '#F0A882',
+                'active' => '#11586B', 'hover' => '#104653', 'active_mark' => '#56B8CD',
             ],
             'ramp' => [
                 '50' => '#E9F5F7', '100' => '#CFE7EC', '200' => '#A4D2DB',

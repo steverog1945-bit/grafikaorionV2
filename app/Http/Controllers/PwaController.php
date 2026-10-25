@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Response;
+use App\Services\BrandThemeService;
 
 /**
  * Berkas PWA (manifest + service worker) yang dilayani lewat rute, bukan file
@@ -15,6 +16,7 @@ class PwaController extends Controller
 {
     public function manifest(): Response
     {
+        $theme = app(BrandThemeService::class)->current();
         $manifest = [
             'name'            => 'ORION GRAFIKA',
             'short_name'      => 'ORION',
@@ -25,8 +27,8 @@ class PwaController extends Controller
             'scope'           => url('/'),
             'display'         => 'standalone',
             'orientation'     => 'portrait-primary',
-            'background_color' => '#1A231F',
-            'theme_color'     => '#1A231F',
+            'background_color' => $theme['surfaces']['page'],
+            'theme_color'     => $theme['accent']['light'],
             'icons' => [
                 [
                     'src'    => asset('icons/icon-192.png'),
