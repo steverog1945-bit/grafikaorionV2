@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1500px] mx-auto pb-24">
+<div class="payment-mobile-shell w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1500px] mx-auto pb-24">
 
     <x-page-header title="Input Pembayaran">
         <x-slot:actions>
