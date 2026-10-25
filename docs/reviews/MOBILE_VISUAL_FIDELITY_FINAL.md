@@ -2,60 +2,62 @@
 
 ## Status
 
-The mobile Master Bahan polish is implemented and pushed on `fix/mobile-visual-final-polish`. Draft PR #15 targets `main`. This is a presentation-only change; no merge or deployment was performed.
+Perbaikan kartu Master Bahan selesai pada branch `fix/mobile-visual-final-polish`. Perubahan ini hanya presentasional. Tidak ada runtime Laravel, database, produksi, merge, atau deployment yang digunakan.
 
-## Branch, base, commit, and pull request
+## Branch, commit, dan PR
 
 - Branch: `fix/mobile-visual-final-polish`
-- Base: `origin/main` at `aee1d5d01b0de3c3c6fd6a0fe33545e6f6b082f6`
-- Implementation commit: `97059506c92524767791350cbb2e13b9c98ad443`
-- Draft PR: [#15](https://github.com/steverog1945-bit/percetakan-app/pull/15), base `main`
-- Remote branch matched the implementation commit after a normal, non-force push.
+- Base PR: `main` pada `aee1d5d01b0de3c3c6fd6a0fe33545e6f6b082f6`
+- Commit implementasi terbaru: `9a0c56da463e4c004e87c0635541158891331f03`
+- PR #15: [Draft — fix(mobile): compact Master Bahan cards](https://github.com/steverog1945-bit/percetakan-app/pull/15)
+- PR diperiksa sebagai OPEN/Draft sebelum push commit baru. Push non-force dan verifikasi remote masih menjadi langkah delivery.
 
-## Scope and module status
+## Perbaikan dan cakupan
 
-| Area | Status | Evidence and limits |
+- Konflik minimum-width tabel global dinetralkan khusus daftar Master Bahan pada breakpoint mobile; header kolom desktop disembunyikan dan setiap baris memakai grid kartu.
+- Spacing kartu dipadatkan; identitas, spesifikasi, stok, harga rata-rata, harga beli terakhir, selisih, checkbox, nomor, dan menu aksi tetap bersumber dari sel yang sama.
+- Label dan nilai stok diberi ruang di bawah menu aksi 44×44px pada sudut kartu, menghilangkan tumpang tindih yang terlihat pada preview 390px.
+- Search dan ringkasan Filter tetap satu baris pada preview 320–767px; panel filter terbuka tidak melampaui lebar dokumen.
+- Floating bottom navigation tetap memakai CSS yang ada. Selector CSS menyembunyikannya saat `body.mobile-menu-open`; interaksi drawer/modal ERP sesungguhnya tidak dijalankan.
+- Tidak ada perubahan controller, model, route, transaksi, stok, RBAC, perhitungan, service worker, atau manifest.
+
+## Perbandingan visual dengan referensi owner
+
+Yang sejalan: komposisi kartu material horizontal, identitas dominan, metrik di kolom kanan, tombol aksi di sudut, search/filter ringkas, dan navigasi bawah berbentuk kapsul solid.
+
+Perbedaan nyata: referensi menampilkan status bar/topbar ORION lengkap, chip status beserta hitungan, dan foto produk. Preview ini hanya mengisolasi area halaman Master Bahan; Blade yang tersedia tidak menyediakan chip hitungan maupun foto pada daftar ini, sehingga konten tersebut tidak ditambahkan atau direka. Monogram dan placeholder generik dipakai untuk preview statis. Pada lebar 320px, teks harga dapat membungkus lebih banyak dibanding referensi.
+
+## File pada branch terhadap `origin/main`
+
+- `resources/css/mobile-bahan.css` — layout kartu mobile dan pencegahan overlap stok/menu.
+- `resources/views/master/bahan/index.blade.php` — perubahan sebelumnya di branch PR untuk disclosure aksi mobile; tidak diubah dalam commit perbaikan terbaru.
+- `docs/reviews/MOBILE_VISUAL_FIDELITY_FINAL.md` — laporan ini.
+- `docs/reviews/RELEASE_READINESS.md` — checklist kesiapan rilis.
+
+Dalam commit implementasi terbaru hanya `resources/css/mobile-bahan.css` yang berubah. Blade, form GET/POST, CSRF, sembilan sel data, callback edit/status/delete/koreksi harga, dan urutan/record tidak diubah pada commit ini.
+
+## Tes dan bukti visual
+
+| Pemeriksaan | Status | Batasan |
 |---|---|---|
-| Master Bahan mobile card | Implemented | Existing row template and data fields retained; compact layout applies below 768px. |
-| Material actions | Implemented | Existing edit, status-toggle, and delete buttons appear once inside a mobile disclosure menu. |
-| Search and filter | Implemented | Existing GET form remains; compact search and collapsed filter summary share one row in the static fixture at all four checked widths. |
-| Floating navigation | Unchanged in this branch | Existing navigation on the base was not edited. Its appearance in the screenshots is part of the static mock, not proof of route-driven runtime behavior. |
-| Desktop at/above 768px | Source fallback checked | Disclosure wrappers are reset to `display: contents`, summaries are hidden, the action menu is displayed, and the fixture keeps table rows. Live desktop pixels were not compared. |
-| Other ERP modules | Not changed | No module-wide override or unrelated presentation change was included. |
+| Vite production frontend build (`npm run build`) | PASS | Hanya bundle frontend; bukan boot Laravel. |
+| `php -l` untuk Blade Master Bahan dan komponen tabel | PASS | Syntax PHP saja, bukan render Blade. |
+| `git diff --check` | PASS | Validasi whitespace. |
+| CSS terkompilasi di browser canvas, 320/360/390/430/767px | PASS | Preview statis/source-derived; tidak ada horizontal overflow, heading tabel tersembunyi, row menjadi grid, search/filter sebaris. |
+| Filter dibuka pada viewport mobile | PASS | Lebar panel dan scroll width tidak melampaui viewport dalam preview statis. |
+| Target sentuh menu aksi, search, filter | PASS | 44×44px, 52px tinggi, 52px tinggi. |
+| Fallback desktop 768/1024px | PASS | Bundle mempertahankan table, table-row, header, min-width global; bukan screenshot ERP live. |
+| Modal, Select2, drawer interaktif, runtime Laravel, data ERP | NOT TESTED | Tidak tersedia/ tidak dijalankan untuk tugas ini. |
+| Screenshot ERP asli | NOT AVAILABLE | Screenshot browser yang tersedia adalah preview statis dengan placeholder, bukan halaman Laravel atau data ERP. |
 
-## Implementation and behavior preservation
+Screenshot preview statis pada 320px dan 390px tersedia di browser canvas pada sesi ini. Preview diberi label **STATIC SOURCE-DERIVED PREVIEW — GENERIC PLACEHOLDERS — NOT AN ERP SCREENSHOT**. Gambar tidak disimpan sebagai screenshot repo. Batas browser preview menggunakan scrollbar desktop; safe-area perangkat iPhone tidak dapat dibuktikan dari preview ini.
 
-- `resources/css/mobile-bahan.css` compacts card spacing and specification/stock presentation, keeps the action menu within the card width, and retains 44×44px action targets.
-- `resources/views/master/bahan/index.blade.php` wraps the existing three actions in one mobile disclosure and adds a scoped list wrapper for mobile overflow. It does not clone or reorder the record row.
-- The existing nine cells remain: selection, number, identity, specification, stock, average price, latest purchase price, delta, and actions. Existing GET filtering, POST bulk deletion, CSRF token, callbacks, and record template remain in place.
-- Desktop styling is reset at `min-width: 768px`; no desktop runtime or pixel-identical comparison is claimed.
+## Risiko dan dampak
 
-## Changed files
+- Render Blade sesungguhnya, data dengan nama/harga panjang, drawer/modal aktif, Select2, dan safe-area iPhone perlu smoke-test setelah aplikasi tersedia di lingkungan uji aman.
+- Tidak ada temuan keamanan baru yang diverifikasi: tidak ada perubahan pada jalur authorization atau endpoint. Audit IDOR bukan bagian dari commit CSS ini dan tidak dinyatakan lulus.
+- Dampak produksi: **ZERO**. Tidak ada akses ke produksi, `.env`, database, migration, server, layanan Windows, merge, atau deployment.
 
-- `resources/css/mobile-bahan.css`
-- `resources/views/master/bahan/index.blade.php`
-- `docs/reviews/MOBILE_VISUAL_FIDELITY_FINAL.md`
+## Pola reusable dan prioritas lanjutan
 
-The implementation commit changed only the first two paths. This report is a separate documentation-only commit.
-
-## Validation and visual evidence
-
-- `git diff --check`: passed.
-- Static source contract checks: passed for one repeated row, nine cells, one each of the existing edit/status/delete/price callbacks, exactly three action buttons, and the existing GET/POST forms with CSRF.
-- Browser-canvas static preview checked at **320, 360, 390, and 430px**: the preview root had no horizontal overflow; search and collapsed filter summary aligned on one row; one sample record and all nine cells were present; the three action targets measured at least 44×44px; the expanded action menu stayed within preview width.
-- Expanded filter checked at **320 and 430px**: all five filter/reset controls were visible and within preview width.
-- Static desktop fixture at a 1139px browser viewport: table rows remained `table-row`; filter inputs and three action buttons were rendered while disclosure summaries were hidden. This checks source CSS in a mock only, not the actual ERP.
-- Preview screenshots were captured in the browser canvas at all four widths. The generated HTML fixtures are in the session artifact folder under `files/mobile-visual-preview/index-320.html`, `index-360.html`, `index-390.html`, and `index-430.html`; screenshot images are not committed to the repository.
-- Every preview is labeled **STATIC PREVIEW — SIMULATED CONTENT — NOT AN ERP SCREENSHOT**. The mock uses a fixed 10px bottom inset and does not reproduce real device safe-area values, ERP runtime data, authentication, or actual page geometry.
-
-## Risks and unverified behavior
-
-- No Laravel, Artisan, runtime ERP, or application test suite was run. Real browser behavior, production data density, and device safe-area insets remain unverified.
-- No new security review was performed for this presentation-only change. No route, controller, role, permission, or business callback was changed; route-wide authorization, ownership, and IDOR coverage are not asserted as passing.
-- The action menu intentionally overlays card content when opened; the static preview confirms its bounds remain inside the card, but usability should be checked against real records on a device.
-
-## Safety and impact
-
-- Production impact: **ZERO**. No production system, `.env`, database, migration, server, Windows service, or deployed environment was accessed.
-- No business logic, routes, RBAC, service worker, manifest, or desktop stylesheet outside the scoped Master Bahan rules was changed.
-- The branch is pushed and the PR is draft-only. No merge or deployment was performed.
+Pola yang dapat ditinjau owner sebelum dipakai di modul lain: filter mobile ringkas dengan panel kolaps, kartu dari baris/sel yang sama tanpa duplikasi data, label sel berbasis `data-label`, aksi dalam disclosure 44×44px, token tema yang ada, serta bottom-navigation dengan safe-area. Prioritas modul berikutnya tetap: **POS → SPK → Produksi → Collecting → Jersey → Keuangan → Laporan → Master lainnya**. Tidak ada modul lanjutan yang diimplementasikan dalam PR #15.
