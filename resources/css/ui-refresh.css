@@ -46,9 +46,9 @@
        text-slate-400 (#5F7167) hanya 2.56:1 di atas putih sehingga GAGAL,
        makanya dipakai warna tersendiri yang sudah dihitung. */
     --icon-muted: #76869f;
-    --accent-primary: #006C7B;
-    --accent-hover: #005663;
-    --accent-light: #EAF6F7;
+    --accent-primary: var(--brand-accent-light, #006C7B);
+    --accent-hover: var(--brand-accent-hover-light, #005663);
+    --accent-light: var(--brand-accent-surface-light, #EAF6F7);
 
     /* Token warna - Dark mode */
     
@@ -66,9 +66,9 @@
        tidak, perbaikan di satu tempat akan dibatalkan di tempat lain. */
     --dark-text-tertiary: #9DB8AD;
     --dark-icon-muted: #71867A;
-    --dark-accent-primary: #5FC4D4;
-    --dark-accent-hover: #05818F;
-    --dark-accent-light: #02363E;
+    --dark-accent-primary: var(--brand-accent-dark, #5FC4D4);
+    --dark-accent-hover: var(--brand-dark-accent-hover, #05818F);
+    --dark-accent-light: var(--brand-accent-surface-dark, #02363E);
 
     /* Token radius - KONSISTEN */
     --radius-sm: 4px;   /* chip, badge */
