@@ -1455,7 +1455,8 @@
     <div class="topbar sticky top-0 shadow-sm z-30 justify-between">
         <div class="flex items-center gap-3 min-w-0">
             <button id="sidebarCollapseToggle" onclick="toggleSidebar()" class="topbar-burger w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all shrink-0" title="Sembunyikan/tampilkan menu">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                <i class="fas fa-bars topbar-burger-desktop" aria-hidden="true"></i>
+                <svg class="topbar-burger-mobile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
                     <path d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
             </button>

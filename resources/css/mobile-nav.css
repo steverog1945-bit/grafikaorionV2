@@ -8,6 +8,9 @@
 .mobile-bottom-nav {
     display: none; /* desktop: hilang sepenuhnya */
 }
+.topbar-burger-mobile {
+    display: none;
+}
 
 @media screen and (max-width: 767.98px) {
     .topbar {
@@ -16,13 +19,21 @@
         padding: 6px 8px;
         gap: 8px;
     }
-    .topbar-burger,
+    #mainContent .topbar-burger,
     #topbar-mobile-btn {
         width: 44px;
         height: 44px;
         flex: 0 0 44px;
     }
     .topbar-burger svg {
+        width: 20px;
+        height: 20px;
+    }
+    .topbar-burger-desktop {
+        display: none;
+    }
+    .topbar-burger-mobile {
+        display: block;
         width: 20px;
         height: 20px;
     }
@@ -75,7 +86,7 @@
         font-weight: var(--brand-weight-medium, 600);
         letter-spacing: var(--brand-letter-spacing, 0.02em);
         line-height: var(--brand-line-height, 1.2);
-        color: var(--brand-mobile-nav-inactive-light);
+        color: var(--brand-surface-text_tertiary, var(--text-tertiary, #5F7167));
         text-decoration: none;
         min-height: 48px;
         padding: 3px 0;
