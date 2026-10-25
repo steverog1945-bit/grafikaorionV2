@@ -51,6 +51,11 @@
     .content-wrapper .mobile-bahan-records .modern-table-wrapper {
         overflow: visible;
     }
+    #bulk-delete-form > .modern-table-wrapper {
+        width: 100%;
+        max-width: 100%;
+        overflow: visible;
+    }
 
     .mobile-bahan-filter {
         position: relative;
@@ -143,15 +148,17 @@
     #bulk-delete-form table { background: none; }
     #bulk-delete-form table,
     #bulk-delete-form table.modern-table {
-        /* Temuan review 02.1: tabel global punya .modern-table{min-width:1000px}.
-           Kartu harus selebar layar HP, TANPA scroll horizontal internal. */
+        /* This one table becomes cards; the global ERP table keeps its desktop width. */
+        display: block;
         min-width: 0;
+        max-width: 100%;
+        width: 100%;
+        table-layout: fixed;
     }
 
-    /* Kepala tabel jadi strip tunggal berisi centang "Pilih semua" saja;
-       kolom header lainnya disembunyikan - label kolom sudah dilengkapi
-       melalui data-label pada setiap sel di bawah. */
+    /* Keep the select-all control; hide desktop column headings on mobile. */
     #bulk-delete-form thead {
+        display: block;
         padding: 12px 16px;
         border-bottom: 1px solid var(--brand-surface-border, #E2EAE4);
         background: var(--brand-surface-secondary, #FAFBF9);
@@ -186,16 +193,16 @@
     /* Setiap <tr> = satu kartu material */
     #bulk-delete-form tbody tr {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr) 44px;
+        position: relative;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
         grid-template-areas:
-            "pick number actions"
-            "identity identity identity"
-            "spec stock stock"
-            "average latest latest"
-            "delta delta delta";
-        column-gap: 8px;
-        row-gap: 2px;
+            "identity stock"
+            "spec average"
+            "latest delta";
+        column-gap: 12px;
+        row-gap: 6px;
         width: 100%;
+        min-width: 0;
         background: var(--brand-surface-primary, #ffffff);
         border: 1px solid var(--brand-surface-border, #E2EAE4);
         border-radius: 18px;
@@ -241,18 +248,12 @@
         min-width: 0;
         padding: 3px 0;
     }
-    #bulk-delete-form td:nth-child(1) { grid-area: pick; }
-    #bulk-delete-form td:nth-child(2) { grid-area: number; }
     #bulk-delete-form td:nth-child(3) { grid-area: identity; }
     #bulk-delete-form td:nth-child(4) { grid-area: spec; }
     #bulk-delete-form td:nth-child(5) { grid-area: stock; }
     #bulk-delete-form td:nth-child(6) { grid-area: average; }
     #bulk-delete-form td:nth-child(7) { grid-area: latest; }
     #bulk-delete-form td:nth-child(8) { grid-area: delta; }
-    #bulk-delete-form td:nth-child(9) { grid-area: actions; }
-    #bulk-delete-form td:nth-child(3) {
-        padding-top: 8px;
-    }
     #bulk-delete-form td[colspan] {
         grid-column: 1 / -1;
         text-align: center;
@@ -264,29 +265,23 @@
         grid-area: 1 / 1 / auto / -1;
     }
 
-    /* Kolom centang & nomor: baris paling atas kartu */
+    /* Checkbox, row number, and disclosure stay in the original cells. */
     #bulk-delete-form td:nth-child(1) {
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-start;
-        padding: 0;
-    }
-    #bulk-delete-form td:nth-child(1)::before {
-        margin: 0;
-    }
-    #bulk-delete-form td:nth-child(1) .row-checkbox {
-        width: 20px;
-        height: 20px;
-        flex-shrink: 0;
+        position: absolute;
+        top: 8px;
+        left: 10px;
+        z-index: 1;
     }
     #bulk-delete-form td:nth-child(2) {
-        font-size: 11px;
-        color: var(--brand-surface-text_tertiary, #94a3b8);
-        align-items: flex-end;
-        padding: 0;
+        position: absolute;
+        top: 8px;
+        left: 38px;
+        z-index: 1;
     }
-    #bulk-delete-form td:nth-child(2)::before {
-        margin-bottom: 0;
+    #bulk-delete-form td:nth-child(1) .row-checkbox {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
     }
     #bulk-delete-form td:nth-child(1)::before,
     #bulk-delete-form td:nth-child(2)::before,
@@ -294,25 +289,25 @@
         display: none;
     }
 
-    /* Identitas: nama lebih besar & tegas, SKU netral di bawahnya */
+    /* Product identity leads the card; retain the original monogram. */
     #bulk-delete-form td:nth-child(3) {
-        padding-top: 3px;
-        border-top: 1px solid var(--brand-surface-border, #E2EAE4);
-    }
-    html.dark #bulk-delete-form td:nth-child(3) {
-        border-top-color: var(--brand-surface-dark_border, #3F4F47);
+        min-height: 68px;
+        padding-top: 26px;
     }
     #bulk-delete-form td:nth-child(3) > div {
-        gap: 6px;
+        align-items: flex-start;
+        gap: 8px;
         min-width: 0;
     }
     #bulk-delete-form td:nth-child(3) > div > :first-child {
-        width: 36px;
-        height: 36px;
-        flex-basis: 36px;
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+        border-radius: 10px;
     }
     #bulk-delete-form td:nth-child(3) > div > div:last-child {
         min-width: 0;
+        overflow-wrap: anywhere;
     }
     #bulk-delete-form td:nth-child(3) .text-\[14px\] {
         font-size: 15px;
@@ -326,7 +321,7 @@
         letter-spacing: 0.04em;
     }
 
-    /* Keep specifications and stock details dense without removing their values. */
+    /* Compact specification tags and numeric stock/price columns. */
     #bulk-delete-form td:nth-child(4) > div {
         flex-direction: row;
         flex-wrap: wrap;
@@ -342,9 +337,18 @@
     #bulk-delete-form td:nth-child(5) > .inline-flex {
         flex-direction: row;
         flex-wrap: wrap;
-        justify-content: flex-start;
+        justify-content: flex-end;
         align-items: center;
         gap: 4px 8px;
+    }
+    #bulk-delete-form td:nth-child(5) {
+        padding-top: 26px;
+    }
+    #bulk-delete-form td:nth-child(5)::before,
+    #bulk-delete-form td:nth-child(6)::before,
+    #bulk-delete-form td:nth-child(7)::before,
+    #bulk-delete-form td:nth-child(8)::before {
+        text-align: right;
     }
 
     /* Stok: angka besar, satuan, mini-bar, dan peringatan stok menipis */
@@ -382,13 +386,20 @@
         border-top-color: var(--brand-surface-dark_border, #3F4F47);
     }
 
+    /* The card-corner action button occupies the top-right 40px; keep the
+       stock label and value below it instead of letting the cells overlap. */
+    #bulk-delete-form td:nth-child(5) {
+        padding-top: 48px;
+    }
+
     /* Tombol koreksi harga: lebar penuh, rapi, ikon selalu terlihat */
     #bulk-delete-form td:nth-child(6) button {
         width: 100%;
         min-height: 44px;
         justify-content: flex-start;
         gap: 4px;
-        padding: 6px 8px;
+        padding: 6px;
+        overflow-wrap: anywhere;
     }
     #bulk-delete-form td:nth-child(6) button .fa-pen {
         opacity: 1;
@@ -407,10 +418,12 @@
         font-size: 12px;
     }
 
-    /* Aksi tetap tersedia sebagai target sentuh di sisi kanan kartu. */
+    /* Keep the existing action disclosure anchored to the card corner. */
     #bulk-delete-form td:nth-child(9) {
-        display: block;
-        position: relative;
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        z-index: 2;
         padding: 0;
         border: 0;
     }
@@ -419,8 +432,8 @@
     }
     .mobile-bahan-actions > summary {
         display: grid;
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         place-items: center;
         margin-left: auto;
         border-radius: 12px;
@@ -462,9 +475,22 @@
         height: 44px;
         flex: 0 0 44px;
     }
+    .mobile-bahan-actions > summary {
+        position: relative;
+        z-index: 1;
+    }
     html.dark .mobile-bahan-actions > summary {
         color: var(--brand-surface-dark_text_secondary, #C9D6CE);
         background: var(--brand-surface-dark_tertiary, #3F4F47);
+    }
+
+    @media screen and (max-width: 767.98px) {
+        .content-wrapper .mobile-bahan-records .modern-table {
+            display: block;
+            min-width: 0;
+            max-width: 100%;
+            width: 100%;
+        }
     }
     html.dark .mobile-bahan-action-menu {
         border-color: var(--brand-surface-dark_border, #3F4F47);
