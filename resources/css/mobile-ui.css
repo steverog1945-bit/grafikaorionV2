@@ -1,15 +1,15 @@
 /* ==========================================================================
    MOBILE-UI REFINEMENT 01
-   Lapisan presentasi yang SEMUA aturannya berada dalam
-   @media screen and (max-width: 767.98px).
+   Lapisan presentasi lintas modul yang aktif di bawah 768px. Satu aturan
+   desktop pada mobile-bahan.css meratakan wrapper filter semantik supaya
+   susunan filter desktop tetap seperti sebelum wrapper ditambahkan.
 
    Kontrak (jangan dilanggar di file ini):
-   - Desktop (>= 768px) sama sekali tidak terpengaruh: media query menutup
-     seluruh berkas, tidak ada properti yang ditulis untuk layar lebar.
+   - Tidak ada perubahan visual desktop; hanya wrapper filter diratakan
+     kembali pada >= 768px.
    - Tidak ada id/name/form/action/event yang diubah - murni CSS.
-   - Selector selalu di-scope ke koridor konten `.max-w-\[1600px\]`
-     + pola spesifik per halaman pilot (bahan) supaya halaman lain
-     tidak terganggu secara tidak sengaja.
+   - Selector lintas modul dibatasi ke konten aplikasi; aturan khusus
+     halaman tetap di-scope ke koridor konten `.max-w-\[1600px\]`.
    - Tidak memakai zoom/transform untuk mengecilkan halaman.
    - Toleran light/dark mode (warna netral/rgba) dan print (print tidak
      menjalankan max-width:767px ini).
@@ -19,3 +19,4 @@
 @import "./mobile-bahan.css";       /* Fase 2/3 - master bahan + tabel */
 @import "./mobile-modal.css";       /* Fase 4 - modal & form */
 @import "./mobile-nav.css";         /* Fase 3 - navigasi bawah HP */
+@import "./mobile-erp.css";         /* Fondasi responsif lintas modul ERP */
