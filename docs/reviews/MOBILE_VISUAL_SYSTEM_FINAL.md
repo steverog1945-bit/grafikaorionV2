@@ -1,5 +1,7 @@
 # Mobile ERP Visual System — Implementation Report
 
+This earlier report is superseded for the current branch state by the [visual-fidelity follow-up](MOBILE_VISUAL_FIDELITY_FINAL.md), which records the reference-led changes, current evidence, and scoped security-review limits.
+
 ## Status
 
 The branch provides a shared mobile visual layer wired through the authenticated ERP layout, a mobile navigation refinement, and a responsive Master Bahan presentation. Its common rules apply to all screens rendered inside `.content-wrapper`; they cover narrow content, headings, shared table components, form controls, media, and touch targets. Representative POS, production, reporting, and master-data templates were inspected, but individual screens and workflows across all 194 Blade views were not runtime-verified. Desktop pixel identity and runtime ERP behavior have not been verified.
