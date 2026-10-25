@@ -27,7 +27,7 @@ ID, nama field, nilai, izin, route, form action, kalkulasi, handler, dan data bi
 - **PASS** — `git diff --check`.
 - **PASS** — pemeriksaan PostCSS bahwa stylesheet POS hanya aktif di breakpoint mobile; selector POS/pembayaran hadir pada hasil build.
 - **PASS** — preview browser statis pada 320, 360, 390, 430, 767, 768, 1024, dan 1280 px: tidak ada horizontal overflow; navigasi bawah fixed dan solid pada mobile, tersembunyi mulai 768 px; padding/ukuran total kembali ke nilai desktop.
-- **PASS** — seluruh 11 berkas screenshot PNG berhasil dibuka dan memiliki lebar viewport yang diminta.
+- **PASS** — seluruh 11 berkas screenshot PNG valid dan memiliki lebar viewport yang diminta.
 - **FAIL** — tidak ada pada validasi akhir.
 - **NOT TESTED** — render Laravel/Blade asli, integrasi database, serta alur simpan/bayar. Dependency `vendor` tidak tersedia; runtime/aplikasi dan database tidak dijalankan.
 
