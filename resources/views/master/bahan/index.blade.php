@@ -77,7 +77,7 @@
     </div>
 
     {{-- TABLE --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="mobile-bahan-records bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <form id="bulk-delete-form" method="POST" action="{{ route('bahan.bulk-delete') }}">
             @csrf
         <x-table bare>
@@ -194,7 +194,15 @@
                             @endif
                         </td>
                         <td class="px-8 py-5 text-right" data-label="Aksi">
-                            <div class="flex justify-end gap-2">
+                            <details class="mobile-bahan-actions">
+                                <summary aria-label="Aksi bahan" title="Aksi bahan">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <circle cx="12" cy="5" r="1.8"></circle>
+                                        <circle cx="12" cy="12" r="1.8"></circle>
+                                        <circle cx="12" cy="19" r="1.8"></circle>
+                                    </svg>
+                                </summary>
+                                <div class="mobile-bahan-action-menu flex justify-end gap-2">
                                 <button type="button" onclick='editBahan(@json($b), @json(\App\Support\VersiBaris::token($b)))' class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" aria-label="Ubah" title="Ubah">
                                     <i class="far fa-edit text-sm"></i>
                                 </button>
@@ -203,10 +211,11 @@
                                         title="{{ $b->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan kembali' }}">
                                     <i class="far {{ $b->status === 'aktif' ? 'fa-eye-slash' : 'fa-eye' }} text-sm"></i>
                                 </button>
-                                <button type="button" onclick="singleDelete('{{ $b->id_bahan }}')" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                                <button type="button" onclick="singleDelete('{{ $b->id_bahan }}')" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" aria-label="Hapus" title="Hapus">
                                     <i class="far fa-trash-alt text-sm"></i>
                                 </button>
-                            </div>
+                                </div>
+                            </details>
                         </td>
                     </tr>
                     @empty
