@@ -1,48 +1,71 @@
-# Mobile Master Bahan — Laporan Visual Final
+# ORION GRAFIKA — Mobile Visual Final Evidence
 
-## Status
+## Hasil akhir
 
-Perbaikan presentasi mobile selesai dan dikirim pada branch PR #15. Validasi visual dilakukan pada render statis yang dibentuk dari markup Blade sumber dan CSS bundle Vite aktual; ini **bukan render Laravel atau screenshot ERP live**.
+**FAIL — bukti terbaru belum memenuhi visual fidelity pada semua pemeriksaan.** Perbandingan mandiri owner-vs-hasil 390×844 CSS px dan screenshot hasil 320×844 CSS px tersimpan di PR. Pada preview, beberapa nama/SKU terpotong, dan floating nav menutupi bagian kartu terakhir di viewport 390 px. Tidak ada perubahan kode produk karena permintaan ini adalah bukti/review, bukan redesign.
 
-## Branch, commit, dan PR
+Semua hasil sisi kanan berlabel **STATIC SOURCE-DERIVED PREVIEW**. Ini fixture HTML terisolasi yang mengacu pada struktur/kelas Blade dan bundle CSS Vite; **bukan Blade yang dirender Laravel, bukan ERP live, dan bukan data aplikasi**. Nilai fixture ditranskripsikan dari referensi owner untuk perbandingan visual.
+
+## Branch, PR, dan sumber bukti
 
 - Branch: `fix/mobile-visual-final-polish`
-- Commit implementasi: `13466ae7a2834463a03d7ac13a2f3c260edd0d45`
-- PR #15: [OPEN / Draft — fix(mobile): compact Master Bahan cards](https://github.com/steverog1945-bit/percetakan-app/pull/15), target `main`.
-- Tidak ada merge atau deployment.
+- PR #15: [OPEN / Draft, base `main`](https://github.com/steverog1945-bit/percetakan-app/pull/15).
+- HEAD sumber yang dipreview: `74754e75cce5d9fe5c1d45c17cbe66e4da04b76c` (local dan remote cocok sebelum commit bukti ini).
+- Referensi owner terlampir dibaca dan dipakai sebagai panel kiri.
+- Bundle CSS: `public/build/assets/app-CrV5fo5j.css`, dipilih dari Vite manifest.
+- Browser bukti: Microsoft Edge 156.0.4314.42, DevTools device emulation eksplisit pada 390×844, 320×844, dan 1024×844 CSS px.
+- Tidak ada komentar review PR, merge, atau deployment yang dilakukan.
 
-## File berubah
+## Gambar bukti
 
-- `resources/css/mobile-bahan.css` — layout mobile daftar horizontal, breakpoint layar sempit, drawer/nav stacking, dan default detail desktop.
-- `resources/views/master/bahan/index.blade.php` — disclosure spesifikasi dan badge status khusus mobile; semua sembilan sel dan kontrol yang ada dipertahankan.
-- `docs/reviews/MOBILE_VISUAL_FIDELITY_FINAL.md` — laporan ini.
+Panel kiri adalah referensi owner; panel kanan adalah preview statis 390×844. File PNG mandiri ini tidak memakai iframe/localhost.
 
-## Hasil visual
+![Referensi owner dan preview statis berdampingan pada viewport CSS 390x844](assets/MOBILE_VISUAL_390_SIDE_BY_SIDE.png)
 
-Baris material ditata horizontal dalam kartu ringkas: checkbox/nomor dan monogram di kiri, nama/SKU, status/stok/harga, serta menu aksi 44×44 di kanan. Tinggi baris normal terukur **82px**; spesifikasi, harga beli terakhir, dan selisih tetap tersedia pada “Rincian”. Search dan Filter berdampingan; filter tertutup secara default. Floating navigation tetap kapsul solid dan route aktif Master tetap tampak.
+Keadaan menu aksi dan disclosure rincian terbuka (statis):
 
-Screenshot owner dan hasil 390px ditampilkan berdampingan pada canvas browser Copilot. Screenshot statis tambahan tersedia untuk 320, 360, dan 430px pada canvas yang sama. Referensi dapat dilihat dan digunakan sebagai pembanding. Render hasil berasal dari fragmen Blade aktual dengan CSS hasil build Vite, memakai enam fixture sintetis yang diberi label; bukan data ERP.
+![Menu aksi dan rincian terbuka pada preview statis](assets/MOBILE_VISUAL_MENU_DETAILS_OPEN_390_STATIC.png)
 
-Perbedaan yang disengaja/tidak dapat disamakan dari source: gambar referensi berisi foto bahan, chip status berhitungan, serta header/topbar berbeda. Source tidak menyediakan foto atau angka hitungan sah untuk preview ini, maka dipakai monogram dan tidak dibuat angka/foto palsu. Checkbox/nomor dan tautan “Rincian” tetap ditampilkan demi mempertahankan fungsi.
+Preview statis pada lebar 320 px:
 
-## Tes
+![Preview statis pada viewport CSS 320x844](assets/MOBILE_VISUAL_RESULT_320_STATIC.png)
 
-| Pemeriksaan | Status | Catatan |
+PNG diverifikasi sebagai file yang dapat dibaca: komposit 844×900 (dua panel 390×844), keadaan terbuka 390×844, dan screenshot 320×844.
+
+## Hasil pemeriksaan
+
+| Area | Status | Bukti / batasan |
 |---|---|---|
-| `npm run build` (Vite) | PASS | Build menghasilkan CSS bundle; bukan boot Laravel. |
-| `php -l` view Master Bahan dan komponen tabel | PASS | Pemeriksaan sintaks PHP, bukan render Blade runtime. |
-| `git diff --check` | PASS | Tidak ada whitespace error. |
-| Render statis Blade source + CSS bundle pada 320/360/390/430px | PASS (statis) | Tidak ada horizontal overflow; header kolom disembunyikan; empat baris pertama berada di atas nav. Pada 390px lima baris utuh berada di atas nav. |
-| 390×844 — fixture pendek, filter tertutup | PASS (statis) | Baris 82px; 4+ material terlihat di atas floating nav. |
-| Computed CSS mobile | PASS (statis) | Wrapper overflow `visible`, min-width `0`; tbody `flex`; record `grid`; header data kolom `display:none`. |
-| Disclosure rincian | PASS (statis) | Rincian terbuka menampilkan spesifikasi dan kolom harga beli/selisih yang dipertahankan. |
-| Desktop 768/1024px | PASS (computed CSS) | Header tabel dan `table-row` tetap aktif; disclosure content tampil dan summary/status mobile tersembunyi. Tidak dilakukan screenshot ERP desktop live. |
-| Drawer/sidebar, overlay, modal, Select2, auth/RBAC HTTP, pagination, perangkat iOS | NOT TESTED | Tidak tersedia pada fragmen render statis; overlay/sidebar bukan bagian dari fragmen. Body class drawer menyembunyikan bottom nav, tetapi interaksi drawer nyata tidak dijalankan. |
-| Runtime Laravel, DB, screenshot ERP asli | NOT TESTED / NOT AVAILABLE | Tidak ada database, `.env`, atau produksi yang diakses. |
-| Audit IDOR dan pengujian dua pengguna/objek | NOT TESTED | Tidak ada endpoint atau authorization yang diubah; audit HTTP tidak dijalankan. |
+| Gambar pembanding 390×844 | PASS | PNG komposit berdiri sendiri; kedua panel 390×844 CSS px, tanpa iframe. |
+| Nama material dan SKU | **FAIL** | Di 390 px sel identitas hanya 118 px; di 320 px 70 px, dengan `overflow:hidden`. Nama terpotong (mis. “Flexi Ko…” di 390 dan lebih pendek di 320); SKU/metadata juga terlihat tidak lengkap. |
+| Status, stok, harga | PASS (fixture statis) | Nilai fixture tampak di daftar. Ini bukan data ERP dan tidak membuktikan nilai runtime. |
+| Menu aksi terbuka | PASS (visual statis) | Tiga tombol aksi tampak pada screenshot terbuka. Klik/handler backend tidak diuji. |
+| Rincian terbuka | PASS (visual statis) | Disclosure kedua tampak terbuka dan menampilkan konten rinci. Tidak menguji interaksi aplikasi/handler. |
+| Search dan Filter | PASS (layout statis) | Keduanya satu baris pada 390 dan 320 px; Filter tertutup pada screenshot utama. Submit/query/filter runtime tidak diuji. |
+| Checkbox | PASS (kehadiran statis) | Select-all dan tujuh checkbox baris ada di fixture. Toggle, seleksi massal, dan submit tidak diuji. |
+| Pagination | PASS (kehadiran statis) | Input halaman dan enam tautan pagination tampil (tujuh kontrol total). Navigasi/query backend tidak diuji. |
+| Floating navigation | **FAIL** | Kapsul putih solid, tanpa blur, dan Master aktif. Batas atas di y=760; screenshot 390 menunjukkan kartu kelima berlanjut di belakang nav. |
+| Horizontal overflow mobile | PASS (fixture statis) | `document`/`body` scroll width sama dengan viewport: 390 px dan 320 px. |
+| Computed CSS mobile | PASS (fixture statis) | Di 390 px: wrapper `block`, `overflow:visible`; table `block`; `tbody:flex`; row `grid`, 318×82 px; sel identitas `overflow:hidden`. Di 320 px row 248×82 px dan sel identitas 70 px. |
+| Desktop >=768 px | NOT TESTED (visual penuh) | Pada fixture 1024 px, tabel tetap `table`, row `table-row`, wrapper `overflow:auto`, dan bottom nav tidak tampil. Namun fixture tidak memuat shell/sidebar lengkap dan `documentScrollWidth` menjadi 1304 px; karena itu tidak menyatakan desktop identik/bersih dari overflow. |
+| Drawer, modal, overlay, safe-area perangkat, aksi nyata, auth/RBAC, HTTP/IDOR | NOT TESTED | Tidak tercakup oleh fixture. Audit source terpisah sebelumnya tidak menemukan kerentanan pada perubahan yang ditinjau, tetapi tes negatif HTTP/ownership/role tidak dilakukan. |
+| Laravel/runtime dan screenshot ERP asli | NOT TESTED | `vendor/autoload.php` tidak tersedia; localhost preview yang dirujuk sebelumnya juga tidak tersedia. Laravel tidak dijalankan. |
 
-## Risiko tersisa dan dampak
+## File yang ditambahkan/diperbarui untuk bukti ini
 
-Nama, unit, atau harga operasional yang lebih panjang daripada fixture perlu smoke-test dalam runtime aman. Safe-area iPhone, drawer/modal nyata, akses sesuai role, dan interaksi aksi/pagination belum dibuktikan oleh preview ini. Screenshot di canvas adalah **STATIC SOURCE-DERIVED PREVIEW**, bukan screenshot ERP asli; file screenshot tidak disimpan di repository.
+- `docs/reviews/MOBILE_VISUAL_FIDELITY_FINAL.md` — hasil final dan batasan bukti.
+- `docs/reviews/assets/MOBILE_VISUAL_390_SIDE_BY_SIDE.png` — referensi vs hasil 390 px.
+- `docs/reviews/assets/MOBILE_VISUAL_MENU_DETAILS_OPEN_390_STATIC.png` — menu/rincian terbuka.
+- `docs/reviews/assets/MOBILE_VISUAL_RESULT_320_STATIC.png` — hasil 320 px.
 
-**Dampak produksi: ZERO.** Perubahan hanya pada presentasi Blade/CSS. Tidak ada perubahan route, controller, model, transaksi, stok, kalkulasi, RBAC, database, service worker, atau manifest. Tidak ada akses ke produksi, `.env`, database, migrasi, server, merge, maupun deployment.
+Tidak ada file produk yang diubah dalam tugas bukti ini.
+
+## Validasi, risiko, dan batasan
+
+- PASS: PNG dapat dibaca dan dimensinya diverifikasi; CSS viewport diperiksa lewat DevTools emulation.
+- PASS: hasil mobile tidak memiliki horizontal document overflow pada fixture 390/320 px.
+- PASS: `git diff --check` untuk perubahan bukti (setelah penambahan).
+- NOT RUN: Laravel, PHPUnit/feature test, PHP render Blade, build Vite, akses DB, atau tes route/aksi—tidak diperlukan dan tidak aman/relevan untuk artefak statis ini.
+- Risiko yang terbukti untuk tindak lanjut review: keterbacaan nama/SKU di 320/390 px dan konten kartu di bawah floating nav. Screenshot ini sengaja melaporkan FAIL; tidak mengklaim UI lulus atau pixel-perfect.
+
+**Dampak produksi: ZERO.** Tidak ada akses atau perubahan pada produksi, `.env`, database, migration, server, maupun layanan Windows. Tidak ada perubahan business logic, route/RBAC, service worker/manifest, merge, atau deployment.
