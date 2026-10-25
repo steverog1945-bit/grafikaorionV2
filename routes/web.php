@@ -34,6 +34,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\HargaPromoController;
 use App\Http\Controllers\SettingAplikasiController;
+use App\Http\Controllers\BrandThemeController;
 
 
 
@@ -840,6 +841,11 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/pengaturan-aplikasi/preview-nota',
         [SettingAplikasiController::class, 'previewNota'])
         ->name('pengaturan-aplikasi.preview-nota');
+
+    Route::middleware('hanya.admin')->prefix('pengaturan-aplikasi/tema')->name('pengaturan-aplikasi.tema.')->group(function () {
+        Route::get('/', [BrandThemeController::class, 'index'])->name('index');
+        Route::post('/', [BrandThemeController::class, 'update'])->name('update');
+    });
 
     /*
     |--------------------------------------------------------------------------

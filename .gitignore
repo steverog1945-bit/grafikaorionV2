@@ -17,6 +17,8 @@
 /public/hot
 /public/storage
 /storage/app/backups
+/storage/app/system/brand-theme.json
+/storage/app/system/.brand-theme-*
 /storage/*.key
 oriondb.sql.tmp
 /storage/pail

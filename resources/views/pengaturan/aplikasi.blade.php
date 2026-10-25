@@ -24,6 +24,11 @@
         <button type="button" onclick="pindahTabPengaturan('kas')" id="tab-btn-kas" class="tab-btn-pengaturan px-5 py-3 text-xs font-medium uppercase tracking-widest border-b-2 border-transparent text-slate-400 hover:text-slate-600 whitespace-nowrap">
             <i class="fas fa-cash-register mr-1.5"></i> Kas
         </button>
+        @if(str_starts_with((string) (optional(auth()->user()?->role)->nama_role ?? ''), 'Administrator'))
+            <a href="{{ route('pengaturan-aplikasi.tema.index') }}" class="px-5 py-3 text-xs font-medium uppercase tracking-widest text-slate-500 hover:text-indigo-600 whitespace-nowrap">
+                <i class="fas fa-palette mr-1.5"></i> Tema &amp; Tampilan
+            </a>
+        @endif
     </div>
 
     <form action="{{ route('pengaturan-aplikasi.update') }}" method="POST" enctype="multipart/form-data" id="form-pengaturan-aplikasi">

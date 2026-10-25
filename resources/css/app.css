@@ -648,8 +648,8 @@ html.dark .qp-tombol:hover {
 }
 
 .pil-pilih:has(:checked) {
-    background: #006C7B;
-    border-color: #006C7B;
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
     color: #FFFFFF;
 }
 
@@ -683,9 +683,9 @@ html.dark {
        #4A5B53 hanya 3.75:1 di atas #1A231F sehingga gagal untuk teks
        kecil; #9DB8AD memberi rasio jauh di atas ambang AA. */
     --text-tertiary: #9DB8AD;
-    --accent-primary: #5FC4D4;
-    --accent-hover: #7FD0DE;
-    --accent-light: #02363E;
+    --accent-primary: var(--brand-accent-dark, #5FC4D4);
+    --accent-hover: var(--brand-accent-hover-dark, #7FD0DE);
+    --accent-light: var(--brand-accent-surface-dark, #02363E);
 
     /* Permukaan peringatan di mode gelap.
        Nilai sebelumnya #7A4F00 dipasangkan dengan teks #F5C46A dan hanya
@@ -1205,7 +1205,6 @@ html.dark .hero-postingan { box-shadow: none; }
 
     .cetak-kaki { display: flex !important; justify-content: space-between; margin-top: 8mm; padding-top: 3pt; border-top: .6pt solid #1A231F; font-family: 'Lora', Georgia, serif; font-size: 8pt; letter-spacing: .06em; color: #3F4F47; }
 }
-
 
 
 

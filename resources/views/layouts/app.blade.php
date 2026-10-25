@@ -3,9 +3,13 @@
     // sidebar, dan topbar mobile semuanya konsisten dari satu sumber -
     // sebelumnya ketiganya hardcode terpisah dengan nilai yang berbeda-beda.
     $appSetting = \App\Models\AppSetting::current();
+    $brandTheme = app(\App\Services\BrandThemeService::class)->current();
+    $brandThemeStyle = collect($brandTheme['variables'])
+        ->map(fn ($value, $name) => $name . ':' . $value)
+        ->implode(';');
 @endphp
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-brand-theme="{{ $brandTheme['id'] }}" style="{{ $brandThemeStyle }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -121,7 +125,7 @@
         --or-aksen:       #E8891D;  /* Zest - 4.73:1, khusus sidebar */
         --or-peringatan:  #F0A882;  /* Desert dinaikkan - 6.27:1   */
     }
-    body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; background-color: #FAFBF9; overflow-x: hidden; }
+    body { font-family: var(--brand-font-family, 'Inter'), sans-serif; scroll-behavior: smooth; background-color: #FAFBF9; overflow-x: hidden; }
 
     /* Sidebar memakai latar gelap dengan teks terang karena kasir berdiri
        di depan layar ini sepanjang shift: latar gelap menekan silau, teks
@@ -1343,6 +1347,13 @@
     </svg>
     <span class="text-sm font-medium">Pengaturan Aplikasi</span>
 </a>
+@if(str_starts_with((string) (optional(auth()->user()?->role)->nama_role ?? ''), 'Administrator'))
+<a href="{{ route('pengaturan-aplikasi.tema.index') }}"
+   class="{{ $menuClass }} pl-8 {{ Request::is('pengaturan-aplikasi/tema', 'pengaturan-aplikasi/tema/*') ? $activeClass : $nonActiveClass }}">
+    <i class="fas fa-palette w-5 text-center {{ Request::is('pengaturan-aplikasi/tema', 'pengaturan-aplikasi/tema/*') ? $iconActive : $iconNonActive }}" aria-hidden="true"></i>
+    <span class="text-sm font-medium">Tema &amp; Tampilan</span>
+</a>
+@endif
 
 @if($cekAkses(66))
 <a href="{{ route('desainer.pengaturan') }}" title="Kelas desainer dan persen bagi hasil komisi desain" class="{{ $menuClass }} {{ Request::is('pengaturan-desainer', 'pengaturan-desainer/*') ? $activeClass : $nonActiveClass }}">
