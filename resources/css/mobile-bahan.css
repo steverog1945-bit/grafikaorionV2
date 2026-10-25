@@ -22,11 +22,15 @@
     .max-w-\[1600px\] > .bg-white.rounded-2xl form .flex-1.min-w-\[300px\] {
         min-width: 0;        /* 320px viewport aman dari overflow */
     }
+    .mobile-bahan-filter-form > .flex-1.min-w-\[300px\] {
+        flex: 1 0 100%;
+    }
     .max-w-\[1600px\] > .bg-white.rounded-2xl form > a[href$="/bahan-baku"] {
         min-height: 44px;    /* tombol reset mudah disentuh ibu jari */
     }
 
     .mobile-bahan-filter {
+        flex: 1 0 100%;
         display: block;
         width: 100%;
     }
