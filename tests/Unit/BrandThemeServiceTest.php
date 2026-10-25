@@ -62,6 +62,10 @@ class BrandThemeServiceTest extends TestCase
         self::assertSame(['orion-classic', 'copilot-light', 'coastal-slate', 'deep-ocean'], array_column($themes->presets(), 'id'));
         self::assertArrayHasKey('--brand-font-family', $themes->preset('copilot-light')['variables']);
         self::assertArrayNotHasKey('--brand-font-family', $themes->preset('orion-classic')['variables']);
+        self::assertSame('#475569', $themes->preset('copilot-light')['accent']['light']);
+        self::assertSame('#F8FAFC', $themes->preset('copilot-light')['surfaces']['page']);
+        self::assertSame('#1F2937', $themes->preset('copilot-light')['sidebar']['base']);
+        self::assertSame('#006C7B', $themes->preset('orion-classic')['accent']['light']);
 
         $this->expectException(InvalidArgumentException::class);
         $themes->save('--accent-primary: url(javascript:alert(1))');
@@ -77,9 +81,23 @@ class BrandThemeServiceTest extends TestCase
             );
             self::assertGreaterThanOrEqual(
                 4.5,
-                $this->contrastRatio($preset['accent']['dark'], '#1A231F'),
+                $this->contrastRatio($preset['accent']['dark'], $preset['surfaces']['dark_primary']),
                 $preset['name'] . ' dark-mode accent contrast',
             );
+            self::assertGreaterThanOrEqual(
+                4.5,
+                $this->contrastRatio($preset['surfaces']['text_tertiary'], $preset['surfaces']['page']),
+                $preset['name'] . ' light-mode tertiary text contrast',
+            );
+            self::assertGreaterThanOrEqual(
+                4.5,
+                $this->contrastRatio($preset['surfaces']['dark_text_tertiary'], $preset['surfaces']['dark_primary']),
+                $preset['name'] . ' dark-mode tertiary text contrast',
+            );
+
+            self::assertArrayNotHasKey('--color-emerald-600', $preset['variables']);
+            self::assertArrayNotHasKey('--color-amber-600', $preset['variables']);
+            self::assertArrayNotHasKey('--color-rose-600', $preset['variables']);
         }
     }
 
