@@ -1,381 +1,81 @@
-/* ==========================================================================
-   FORM TYPOGRAPHY - Orion Grafika ERP
-   ==========================================================================
-
-   Aturan tipografi konsisten untuk seluruh form, filter, input, select,
-   textarea, label, dan elemen terkait di seluruh aplikasi ERP.
-
-   - Font family: Inter (aktif Theme Manager)
-   - Input desktop: 14px, Input mobile: 16px (via @media max-width)
-   - Label: 13px, bobot 500
-   - Teks input: bobot 400
-   - Line height: konsisten
-   - Touch target minimum 44×44px
-   - Semua aturan mobile di dalam @media screen and (max-width: 767.98px)
-   - Desktop >=768px TIDAK BOLEH mengalami perubahan visual
-   - Field nominal pembayaran tetap berukuran besar
-   - Jangan mengubah nama field, action form, validasi, route, atau logika transaksi
-   - Light/dark mode konsisten
-   - Native date/month picker menggunakan mekanisme browser/sistem operasi
-   ========================================================================== */
-
-/* --- FONT DASAR DAN LINE HEIGHT --- */
-
-/* Font family utama dari Theme Manager */
-html {
-    font-family: 'Inter', sans-serif;
-    line-height: 1.5;
+/* ORION GRAFIKA — one typography system for ERP forms and filters.
+ * Avoid per-module font overrides. Preserve input names, handlers, values,
+ * calendar behavior, icons, and intentional larger money/display fields.
+ * The opened native date/month calendar itself is OS/browser UI.
+ *
+ * Cakupan: seluruh input/select/textarea/label di halaman (main, modal,
+ * filter), kecuali header/topbar/sidebar/nav/footer dan field yang sengaja
+ * besar (text-lg ke atas) atau bertanda data-typography-preserve.
+ */
+:root {
+    --erp-form-font: var(--brand-font-family, "Inter"), sans-serif;
+    --erp-form-control-size: 14px;
+    --erp-form-label-size: 13px;
+    --erp-form-line-height: 1.45;
 }
 
-/* Bobot teks default */
-* {
-    font-weight: 400;
-}
-
-/* Bobot label */
-label {
-    font-weight: 500;
-    font-size: 13px;
-}
-
-/* --- INPUT ELEMENTS --- */
-
-/* Input types: text, number, date, password, search, tel, email, url */
-input[type="text"],
-input[type="number"],
-input[type="password"],
-input[type="search"],
-input[type="tel"],
-input[type="email"],
-input[type="url"],
-textarea {
-    font-family: 'Inter', sans-serif;
-    font-size: 14px; /* desktop default */
-    font-weight: 400;
-    font-size: 16px; /* mobile override below */
-}
-
-/* Mobile input size - 16px */
-@media screen and (max-width: 767.98px) {
-    input[type="text"],
-    input[type="number"],
-    input[type="password"],
-    input[type="search"],
-    input[type="tel"],
-    input[type="email"],
-    input[type="url"],
-    textarea {
-        font-size: 16px;
+@media screen {
+    body :is(input, select, textarea):not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([data-typography-preserve]):not(header *):not(nav *):not(aside *):not(footer *):not(.topbar *):not(.sidebar *):not(.text-lg):not(.text-xl):not(.text-2xl):not(.text-3xl):not(.text-4xl) {
+        font-family: var(--erp-form-font) !important;
+        font-size: var(--erp-form-control-size) !important;
+        font-weight: 400;
+        line-height: var(--erp-form-line-height);
+        letter-spacing: normal;
     }
-}
 
-/* Label di dalam form */
-label {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-    display: block;
-}
+    /* Select2 hidden-accessible tetap dikeluarkan (dropdown-nya sendiri). */
+    body select.select2-hidden-accessible {
+        font-size: inherit !important;
+    }
 
-/--- SELECT ELEMENTS ---*/
+    body :is(input[type="date"], input[type="month"], input[type="datetime-local"], input[type="time"]) {
+        font-family: var(--erp-form-font) !important;
+        font-variant-numeric: tabular-nums;
+    }
 
-/* Select native */
-select:not([multiple]):not([size]):not(.select2-hidden-accessible):not([class*="text-white"]) {
-    font-family: 'Inter', sans-serif;
-    font-size: 13px !important;
-    font-weight: 400 !important;
-    color: #1A231F;
-    -webkit-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%235F7167' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 0.7rem center;
-    background-size: 1rem 1rem;
-    padding-right: 2.1rem !important;
-    transition: box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
-    cursor: pointer;
-}
+    body :is(input[type="date"], input[type="month"], input[type="datetime-local"], input[type="time"])::-webkit-datetime-edit {
+        font-family: var(--erp-form-font);
+        font-size: inherit;
+        font-weight: inherit;
+        line-height: inherit;
+        letter-spacing: normal;
+    }
 
-select:not([multiple]):not([size]):not(.select2-hidden-accessible):not([class*="text-white"]):focus {
-    outline: none;
-    border-color: #006C7B;
-    box-shadow: 0 0 0 3px rgb(234 246 247);
-}
-
-/* Select option */
-select option {
-    font-weight: 400;
-    font-size: 13px;
-    color: #1A231F;
-    background-color: #fff;
-}
-
-select option:disabled {
-    color: #C9D6CE;
-}
-
-/* --- BADGE & CHIP --- */
-
-/* Chip */
-.chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-/* --- TABLE HEADERS --- */
-
-/* Tabel header - sudah ada di app.css, hanya memastikan konsistensi */
-.modern-table th {
-    font-size: 13px;
-    letter-spacing: 0;
-    color: var(--text-secondary);
-    font-weight: 500;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border-primary);
-}
-
-/* Mobile table header */
-@media screen and (max-width: 767.98px) {
-    .modern-table thead th {
-        font-size: 13px;
+    /* Label: 13px, seragam; kecuali label khusus (.ld-label) dan preserve. */
+    body label:not(.ld-label):not([data-typography-preserve]):not(header *):not(nav *):not(aside *):not(footer *):not(.topbar *):not(.sidebar *) {
+        font-family: var(--erp-form-font);
+        font-size: var(--erp-form-label-size) !important;
         font-weight: 500;
+        line-height: 1.4;
+        letter-spacing: normal !important;
+        text-transform: none;
+    }
+
+    /* Select2 dropdown (sering di-append ke body) */
+    body .select2-container--default .select2-selection--single .select2-selection__rendered,
+    body .select2-container--default .select2-selection--multiple .select2-search__field,
+    body .select2-container--default .select2-search--dropdown .select2-search__field,
+    body .select2-container--default .select2-results__option,
+    body .select2-dropdown {
+        font-family: var(--erp-form-font) !important;
+        font-size: var(--erp-form-control-size) !important;
+        font-weight: 400;
+        line-height: var(--erp-form-line-height);
+        letter-spacing: normal;
+    }
+
+    /* Filter toggle compact */
+    body .pwa-ops-page .pwa-ops-filter-toggle,
+    body .content-wrapper :is(.spk-filter-btn, .collecting-mobile-filter-toggle) {
+        font-family: var(--erp-form-font);
+        font-size: var(--erp-form-label-size);
+        font-weight: 600;
+        line-height: 1.4;
+        letter-spacing: normal;
     }
 }
 
-/--- BUTTON ---*/
-
-/* Tombol utama */
-.x-button,
-button,
-.x-form-button {
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 8px 16px;
-    min-width: 44px;
-    min-height: 44px;
-    touch-action: manipulation;
-}
-
-/* --- FORM FILTER SPECIFIC ---*/
-
-/* Filter form - kasir monitoring
-   Input teks/tanggal mengikuti standar tipografi isian: 14px desktop,
-   16px mobile. Select/dropdown tetap 13px (lihat aturan select di atas)
-   supaya tidak mengubah tampilan dropdown secara global. */
-.pwa-ops-filter-form {
-    font-size: 13px;
-}
-
-.pwa-ops-page .pwa-ops-filter-form input[type="date"],
-.pwa-ops-page .pwa-ops-filter-form input[type="text"],
-.pwa-ops-page .pwa-ops-filter-form input[type="number"],
-.pwa-ops-page .pwa-ops-filter-form input[type="search"] {
-    font-size: 14px;
-    font-weight: 400;
-    height: 38px;
-    padding: 6px 12px;
-    border: 1px solid #E2EAE4;
-    border-radius: 6px;
-    background-color: #ffffff;
-}
-
+/* Mobile: 16px untuk cegah zoom iOS dan seragam dengan input lain. */
 @media screen and (max-width: 767.98px) {
-    .pwa-ops-page .pwa-ops-filter-form input[type="date"],
-    .pwa-ops-page .pwa-ops-filter-form input[type="text"],
-    .pwa-ops-page .pwa-ops-filter-form input[type="number"],
-    .pwa-ops-page .pwa-ops-filter-form input[type="search"] {
-        font-size: 16px;
-    }
+    :root { --erp-form-control-size: 16px; }
 }
-
-.pwa-ops-filter-form select,
-.pwa-ops-filter-form select.select2-filter {
-    font-size: 13px;
-    font-weight: 400;
-    height: 38px;
-    padding: 6px 12px;
-    border: 1px solid #E2EAE4;
-    border-radius: 6px;
-    background-color: #ffffff;
-}
-
-/* Filter labels */
-.pwa-ops-filter summary {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-.pwa-ops-filter .block {
-    font-size: 10px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-secondary);
-    margin-bottom: 2px;
-}
-
-/* --- PAYMENT FIELD NOMINAL ---*/
-
-/* Field nominal pembayaran - SENGAJA lebih besar dari isian biasa
-   (16px desktop / 18px mobile), supaya angka uang tetap menonjol. */
-.input-uang,
-input[name*="uang"],
-input[name*="nominal"] {
-    font-size: 16px;
-    font-weight: 400;
-    padding: 8px 12px;
-    border: 1px solid var(--border-primary);
-}
-
-/* Mobile nominal field */
-@media screen and (max-width: 767.98px) {
-    .input-uang,
-    input[name*="uang"],
-    input[name*="nominal"] {
-        font-size: 18px;
-        padding: 10px 14px;
-    }
-}
-
-/--- SELECT2 ---*/
-
-/* Select2 selection */
-.select2-container--default .select2-selection--single {
-    border: 1px solid #E2EAE4 !important;
-    border-radius: 6px !important;
-    height: 38px !important;
-    display: flex !important;
-    align-items: center !important;
-    background-color: #ffffff !important;
-    box-shadow: none !important;
-    font-size: 13px !important;
-    font-weight: 400 !important;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-    font-size: 13px !important;
-    font-weight: 400 !important;
-    color: #1A231F !important;
-    padding-left: 12px !important;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__placeholder {
-    color: #5F7167 !important;
-    font-size: 13px !important;
-    font-weight: 400 !important;
-}
-
-/* Select2 dropdown */
-.select2-container--default .select2-results__option {
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: 400;
-}
-
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: #EAF6F7 !important;
-    color: #005663 !important;
-}
-
-/* --- MODAL ---*/
-
-/* Modal labels and inputs */
-.x-modal label {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-}
-
-.x-modal input,
-.x-modal select,
-.x-modal textarea {
-    font-size: 14px; /* desktop */
-    font-weight: 400;
-}
-
-@media screen and (max-width: 767.98px) {
-    .x-modal input,
-    .x-modal select,
-    .x-modal textarea {
-        font-size: 16px;
-    }
-}
-
-/--- INPUT GROUP WITH BUTTON (quick picker) ---*/
-
-/* Field + button wrapper */
-.qp-grup {
-    display: flex;
-    align-items: stretch;
-    gap: 0;
-    width: 100%;
-}
-
-.qp-grup > * {
-    min-width: 0;
-}
-
-.qp-tombol {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    align-self: stretch;
-    border: 1px solid #E2EAE4;
-    border-left: 0;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    background: #ffffff;
-    color: #76869f;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
-                border-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
-                color 140ms cubic-bezier(0.23, 1, 0.32, 1),
-                transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.qp-tombol:hover {
-    background: #EAF6F7;
-    border-color: #9AD4DE;
-    color: #006C7B;
-}
-
-/* Field ikut kehilangan sisi kanannya berdekatan dengan tombol */
-.qp-grup > .select2-container,
-.qp-grup > select {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-
-.qp-grup > .select2-container .select2-selection,
-.qp-grup > .select2-container .select2-selection__rendered {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-
-/* Dark mode */
-html.dark .qp-tombol {
-    background: #2A3731;
-    border-color: #3F4F47;
-    color: #7f8db0;
-}
-
-html.dark .qp-tombol:hover {
-    background: rgba(5, 129, 143, 0.18);
-    border-color: #006C7B;
-    color: #5FC4D4;
-}
-
-/* ==========================================================================
-   AKHIR FORM TYPOGRAPHY
-   ========================================================================== */
