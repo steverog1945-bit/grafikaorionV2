@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="pwa-ops-page w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Kartu Stok">
         <x-slot:subtitle>
@@ -110,7 +110,7 @@
         <a href="{{ route('kartu-stok.index', array_merge(request()->except('status_stok'), ['status_stok' => 'menipis'])) }}" title="Saring bahan yang stoknya menipis" class="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 hover:shadow-md transition-all"><p class="text-[10px] font-medium text-amber-500 uppercase tracking-widest">Menipis</p><p class="text-2xl font-medium text-amber-600 mt-1">{{ $ringkas['menipis'] }}</p></a>
     </div>
 
-    <x-table>
+    <x-table wrapperClass="pwa-ops-shell overflow-hidden" class="pwa-ops-table pwa-ops-table--stock">
         <thead>
             <tr>
                 <th class="px-4 py-5 text-center w-10">#</th>
@@ -126,28 +126,28 @@
         </thead>
         <tbody class="divide-y divide-slate-50">
             @forelse($bahan as $i => $b)
-            <tr class="group hover:bg-slate-50/50 transition-all">
-                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
-                <td class="px-6 py-5">
+            <tr class="pwa-ops-row group hover:bg-slate-50/50 transition-all">
+                <td class="pwa-ops-cell pwa-ops-sequence px-4 py-5 text-center text-[11px] text-slate-400" data-label="Urutan">{{ $i + 1 }}</td>
+                <td class="pwa-ops-cell pwa-ops-code px-6 py-5" data-label="Kode Bahan">
                     <span class="text-[12px] font-medium text-slate-700">{{ $b->kode_bahan }}</span>
                 </td>
-                <td class="px-4 py-5">
+                <td class="pwa-ops-cell pwa-ops-name px-4 py-5" data-label="Nama Bahan">
                     <span class="text-[13px] font-medium text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $b->nama_bahan }}</span>
                 </td>
-                <td class="px-4 py-5">
+                <td class="pwa-ops-cell pwa-ops-category px-4 py-5" data-label="Kategori dan Mesin">
                     <span class="block text-[12px] font-medium text-slate-600">{{ $b->nama_kategori ?? '-' }}</span>
                     <span class="block text-[10px] font-medium text-slate-400 uppercase">{{ $b->nama_mesin ?? '-' }}</span>
                 </td>
-                <td class="px-4 py-5 text-right">
+                <td class="pwa-ops-cell pwa-ops-stock px-4 py-5 text-right" data-label="Stok">
                     <span class="text-[13px] font-medium text-slate-800">{{ angka($b->stok, 2) }}</span>
                 </td>
-                <td class="px-4 py-5">
+                <td class="pwa-ops-cell pwa-ops-unit px-4 py-5" data-label="Satuan">
                     <span class="inline-flex px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[11px] font-medium uppercase tracking-wide">{{ $b->nama_satuan_stok ?? $b->satuan_stok ?? '-' }}</span>
                 </td>
-                <td class="px-4 py-5 text-center">
+                <td class="pwa-ops-cell pwa-ops-status px-4 py-5 text-center" data-label="Status Stok">
                     <x-badge :variant="['Habis' => 'danger', 'Menipis' => 'warning', 'Aman' => 'success'][$b->status_stok] ?? 'info'">{{ $b->status_stok }}</x-badge>
                 </td>
-                <td class="px-4 py-5">
+                <td class="pwa-ops-cell pwa-ops-movement px-4 py-5" data-label="Mutasi Terakhir">
                     @if($b->mutasi_terakhir)
                         <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($b->mutasi_terakhir)->translatedFormat('d M Y') }}</span>
                         <span class="block text-[10px] text-slate-400">{{ $b->jumlah_mutasi }} mutasi</span>
@@ -155,7 +155,7 @@
                         <span class="text-[11px] text-slate-500 italic">Belum ada</span>
                     @endif
                 </td>
-                <td class="px-8 py-5 text-center">
+                <td class="pwa-ops-cell pwa-ops-actions px-8 py-5 text-center" data-label="Aksi">
                     <div class="flex items-center justify-center gap-2">
                         <x-button href="{{ url('/kartu-stok/'.$b->id_bahan) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat Kartu Stok">
                             <i class="fas fa-book text-xs"></i>

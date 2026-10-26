@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="pwa-ops-page w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Monitoring Kasir" subtitle="Daftar order yang transaksinya sudah dibuka kasir. Order yang masih menunggu ada di Antrean Baru.">
         <x-slot:actions>
@@ -47,9 +47,11 @@
     </div>
     @endif
 
-    {{-- FILTER --}}
+    {{-- FILTER + Filter tetap GET status_filtered:1; panel collapsible
+         lewat <details> bawaan browser (pola sama dengan SPK/Produksi).
+         Bila ada filter GET aktif, panel dibuka langsung dari PHP. --}}
     <x-card class="mb-6">
-        <form method="GET" action="{{ route('kasir.index') }}" class="flex flex-wrap items-end gap-4">
+        <form method="GET" action="{{ route('kasir.index') }}" class="flex flex-wrap items-end gap-4 pwa-ops-filter-form">
             {{-- Penanda "form filter ini memang disubmit" - membedakan nav
                  pertama ke halaman ini (tanpa query string sama sekali,
                  default tampilkan yang belum lunas saja) dari submit
@@ -58,6 +60,13 @@
                  termasuk Lunas). Lihat KasirController::index(). --}}
             <input type="hidden" name="status_filtered" value="1">
 
+            <details class="pwa-ops-filter {{ collect(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar'])->some(fn ($k) => request()->filled($k)) ? 'pwa-ops-filter--active' : '' }}" aria-controls="pwa-ops-filter-fields" @if(collect(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar'])->some(fn ($k) => request()->filled($k))) open @endif>
+                <summary class="pwa-ops-filter-toggle">
+                    <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                    <span>Filter</span>
+                </summary>
+
+                <div class="pwa-ops-filter-fields" id="pwa-ops-filter-fields">
             <div class="w-full md:w-40">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
                 <x-form.input type="date" name="tgl_mulai" value="{{ request('tgl_mulai') }}" />
@@ -94,20 +103,28 @@
                 </x-form.select>
             </div>
 
-            <x-button type="submit">
-                <i class="fas fa-filter"></i>
-                Filter
-            </x-button>
+                </div>
 
-            @if(request()->anyFilled(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar']))
-                <a href="{{ route('kasir.index') }}" class="h-[42px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
-                    <i class="fas fa-undo-alt text-sm"></i>
-                </a>
-            @endif
+                {{-- Aksi submit & reset mematuhi panel filter, seperti
+                     pola SPK/Produksi (di desktop, details ber-modesakan
+                     display:contents <-> tampilan tidak berubah). --}}
+                <div class="pwa-ops-filter-actions">
+                    <x-button type="submit">
+                        <i class="fas fa-filter"></i>
+                        Filter
+                    </x-button>
+
+                    @if(request()->anyFilled(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar']))
+                        <a href="{{ route('kasir.index') }}" class="h-[42px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
+                            <i class="fas fa-undo-alt text-sm"></i>
+                        </a>
+                    @endif
+                </div>
+            </details>
         </form>
     </x-card>
 
-    <x-table>
+    <x-table wrapperClass="pwa-ops-shell overflow-hidden" class="pwa-ops-table pwa-ops-table--cashier">
         <thead>
             <tr>
                 <th class="px-4 py-5 text-center w-12">#</th>
@@ -122,25 +139,25 @@
         </thead>
         <tbody class="divide-y divide-slate-50">
             @forelse($transaksi as $i => $t)
-            <tr class="group hover:bg-slate-50/50 transition-all">
-                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $transaksi->firstItem() + $i }}</td>
-                <td class="px-4 py-5">
+            <tr class="pwa-ops-row group hover:bg-slate-50/50 transition-all">
+                <td class="pwa-ops-cell pwa-ops-sequence px-4 py-5 text-center text-[11px] text-slate-400" data-label="Urutan">{{ $transaksi->firstItem() + $i }}</td>
+                <td class="pwa-ops-cell pwa-ops-time px-4 py-5" data-label="Waktu">
                     <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->translatedFormat('d M Y') }}</span>
                     <div class="text-[10px] text-slate-400">{{ \Carbon\Carbon::parse($t->tgl_order)->format('H:i') }}</div>
                 </td>
-                <td class="px-4 py-5 text-center">
+                <td class="pwa-ops-cell pwa-ops-type px-4 py-5 text-center" data-label="Tipe">
                     <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-medium {{ $t->tipe_order === 'PO' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-100' }}">
                         {{ $t->tipe_order }}
                     </span>
                 </td>
-                <td class="px-4 py-5">
+                <td class="pwa-ops-cell pwa-ops-note px-4 py-5" data-label="Nomor Nota">
                     <span class="text-[13px] font-medium text-indigo-600">#{{ $t->nomor_nota }}</span>
                     <div class="text-[10px] text-slate-400">Kasir: {{ $t->username }}</div>
                 </td>
-                <td class="px-4 py-5">
+                <td class="pwa-ops-cell pwa-ops-customer px-4 py-5" data-label="Konsumen">
                     <span class="text-[13px] font-medium text-slate-700">{{ $t->nama_konsumen }}</span>
                 </td>
-                <td class="px-6 py-5 text-right">
+                <td class="pwa-ops-cell pwa-ops-total px-6 py-5 text-right" data-label="Total Pembayaran">
                     <span class="text-[13px] font-medium text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>
                     {{-- Rincian "sudah terbayar berapa" untuk status DP - data
                          ini sebelumnya SUDAH diambil lewat subquery total_masuk
@@ -162,7 +179,7 @@
                         <div class="text-[10px] text-amber-500 font-medium">Sisa Rp {{ number_format(max(0, $t->total_bayar - ($t->total_masuk ?? 0)), 0, ',', '.') }}</div>
                     @endif
                 </td>
-                <td class="px-4 py-5 text-center">
+                <td class="pwa-ops-cell pwa-ops-status px-4 py-5 text-center" data-label="Status">
                     <x-badge :status="$t->display_status_pembayaran" />
                     {{---status_order hanya bisa 'Diterima Kasir' di halaman ini
                          (KasirController::index() sudah menyaringnya). Kedua
@@ -174,7 +191,7 @@
                         <div class="mt-1"><span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">Sudah Diterima</span></div>
                     @endif
                 </td>
-                <td class="px-8 py-5 text-center">
+                <td class="pwa-ops-cell pwa-ops-actions px-8 py-5 text-center" data-label="Aksi">
                     <div class="flex items-center justify-center gap-2">
                         @if(($t->status_order ?? 'Diterima Kasir') === 'Menunggu Kasir')
                             <form method="POST" action="{{ route('kasir.terimaTransaksi', $t->id_transaksi) }}" class="inline">

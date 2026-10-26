@@ -1,6 +1,35 @@
 # AGENTS.md — Orion Grafika ERP
 
-## Mandat khusus PR #20 — eksekusi semua modul (prioritas tertinggi)
+## EKSEKUSI VISUAL WAJIB — perintah owner terbaru (26 Okt 2026)
+
+**SEGERA IMPLEMENTASIKAN UI DAN KIRIM HASIL VISUAL NYATA** sesuai `docs/reviews/PWA_MOBILE_VISUAL_DELIVERY.md` pada **Draft PR #21 yang SUDAH ADA**. Jangan kembali menulis laporan abstrak/FINAL PARSIAL atau meminta prompt modul berikutnya.
+
+- Buat galeri screenshot browser nyata dari Laravel staging terisolasi dengan data sintetis (`docs/reviews/PWA_MOBILE_VISUAL_GALLERY.md` + `docs/reviews/assets/pwa-mobile-phase2/*.png`); sertakan role, route, viewport, commit SHA sebagai bukti. Bukan fixture HTML lepas atau gambar hasil generasi.
+- Implementasikan layar pending secara berurutan dalam satu run, mulai Kasir waiting/open/kelola-kas → Pembelian/kedatangan forms → Kartu Stok detail → Master/Keuangan/Laporan/Dashboard/Setting. Pertahankan backend bisnis dan desktop.
+- Bila browser Laravel terisolasi tidak tersedia, jelaskan blocker secara spesifik, jangan mengaku screenshot ERP nyata; terus implementasikan bagian UI aman lain. Tidak boleh mengakses/menyalin `.env`, `oriondb`, ERP produksi, sertifikat atau backup.
+- Screenshot yang dibagikan harus berupa **file PNG yang benar-benar ada**, bukan link yang dikarang; tampilkan inline di chat OpenCode atau tautan galeri PR. Build Vite ≠ bukti visual.
+- CI dan evidensi harus berasal dari HEAD saat ini. Hasil merge/deploy **bukan** kewenangan agen ini.
+
+
+## AKTIF — PWA Mobile Phase 2: setelah PR #20 merged (26 Oktober 2026)
+
+### Verified checkpoint PR #21 (26 October 2026)
+
+**Source implemented on this branch:** Monitoring Kasir (`kasir/monitoring_transaksi`), Pembelian Bahan index, Kedatangan Bahan index, Kartu Stok index — commit `875f078`; scoped `mobile-operations.css` added to dispatcher. **Do not reimplement these pages**. Source existed in main for Collecting and Jersey after PR #20, contrary to the initial report.
+
+**Full inventory restored** in `docs/reviews/PWA_MOBILE_COVERAGE_MATRIX.md`: 194 Blade files, **14 SOURCE MOBILE (UNTESTED), 108 GENERIC ONLY / UI TODO, 63 PARTIAL, 9 PRINT**. Classification = file inventory, not verified route coverage. Next safe screens: Kasir `waiting_list`, `open_order`, `kelola_kas`; Pembelian `create/edit/show`, Kedatangan `create/form`, Kartu Stok `detail`, then other active masters and financial/reports. Keep one PR #21, perform real code implementation and source checks before writing reports; do not repeat an obsolete "Final" text.
+
+
+**PR #20 TELAH MERGED KE `main` pada commit `95627cda`.** Semua instruksi di bawah yang menyebut PR #20 sebagai Draft, `integration/pwa-mobile-all-modules` sebagai branch aktif, atau PR #15/#18 perlu di-merge **sudah usang** dan tidak boleh dilaksanakan lagi.
+
+**Single active continuation:** `feat/pwa-mobile-completion-phase2` dari latest `origin/main`. **Draft PR lanjutan sudah dibuat** (gunakan PR yang ada, jangan membuat PR per modul). Kontrak prioritas: `docs/reviews/PWA_MOBILE_COMPLETION_PHASE2.md`. Wajib perbarui `docs/reviews/PWA_MOBILE_COVERAGE_MATRIX.md` dari source `main` terbaru sebab tag lama pre-date Collecting/Jersey.
+
+**Target:** semua route aktif yang belum memiliki penyesuaian mobile khusus, meliputi Kasir, Pembelian, Gudang/Stok, Master, User/Role, Keuangan, Laporan, Pengaturan dan halaman detail/edit/create. Jangan lagi mengimplementasi ulang Master Bahan, POS, SPK, Produksi, Collecting, Jersey yang source-nya sudah merged ke main. Jalankan berkesinambungan, commit per gugus, tanpa prompt per modul dan tanpa laporan "SELESAI PARSIAL" yang menyesatkan.
+
+**Aturan keselamatan tetap:** larangan akses `C:\xampp\htdocs\grafikaorion`, `.env`, `oriondb`, kredensial dan server/backup produksi; tidak boleh merge main/deploy otomatis; hanya data sintetis yang diverifikasi isolasinya untuk tes Laravel. Build frontend bukan bukti siap produksi. Jika konteks agent habis, catat persis checkpoint dan file berikutnya, lalu resume bukan mulai ulang.
+
+
+## ARSIP HISTORIS — mandat PR #20 (sudah merged; tidak aktif)
 
 ## Checkpoint permanen: lanjut langsung dari matriks (26 Oktober 2026)
 

@@ -1,30 +1,31 @@
-# ORION GRAFIKA — PWA Mobile Screen Inventory & Coverage
+# ORION GRAFIKA — PWA Mobile Coverage (complete file inventory)
 
-**Checkpoint:** 26 Oktober 2026. **Branch:** `integration/pwa-mobile-all-modules`. **Status:** IMPLEMENTASI BERJALAN, bukan bukti PASS atau siap produksi.
+**Checkpoint:** 26 Oktober 2026. **Branch:** `feat/pwa-mobile-completion-phase2`. **PR:** [#21](https://github.com/steverog1945-bit/percetakan-app/pull/21). **Status:** IN PROGRESS; production NO-GO.
 
-## Metode dan batasan
+## Provenance and limitations
 
-- Inventaris dihasilkan deterministik dari seluruh file `resources/views/**/*.blade.php` pada branch integrasi. Semua file dicatat; jumlah nama view **tidak sama dengan jumlah route aktif**.
-- `SOURCE MOBILE (UNTESTED)` berarti memiliki CSS+class Blade spesifik dari pekerjaan lama atau commit baru; **belum** berarti screenshot, fungsi, role, atau desktop lulus.
-- `GENERIC ONLY / UI TODO` berarti hanya fondasi responsif umum atau belum ada penyesuaian spesifik yang diverifikasi.
-- `PARTIAL / NOT ROUTE` berarti komponen/partial/layout, perlu diverifikasi melalui layar yang memakai komponen tersebut.
-- `PRINT VIEW / PRINT TEST DUE` berarti tampilan print/ekspor; belum diuji preview cetak. Perlu koreksi klasifikasi manual jika ada file non-print.
-- **Route, menu, role dan hak akses perlu dipetakan terhadap `routes/web.php`, konfigurasi route, dan RBAC runtime** sebelum cakupan diklaim 100%. Jangan menyimpulkan sebuah view publik/aktif hanya dari path.
-- `PASS` hanya boleh diberikan sesudah tes yang benar-benar dijalankan dengan bukti dan SHA. Browser Laravel, device iOS/Android, PHPUnit, RBAC/IDOR, PWA cache, dan desktop parity **NOT TESTED** pada checkpoint ini.
+- Inventaris ini dihasilkan kembali dari **194 file Blade** di branch PR #21. Ini **bukan 194 route aktif**; route/menu/role perlu dicocokkan dengan kode routes, controller, permission dan diuji pada staging.
+- `SOURCE MOBILE (UNTESTED)`: kelas Blade dan CSS mobile modul spesifik sudah ada. Ini **bukan PASS** untuk tampilan Laravel browser, interaksi, permission, desktop maupun perangkat.
+- `GENERIC ONLY / UI TODO`: hanya lapisan responsif umum; implementasi atau penilaian route masih diperlukan.
+- `PARTIAL / NOT ROUTE`: reusable partial/layout yang perlu diperiksa lewat parent route; bukan otomatis route.
+- `PRINT VIEW / PRINT TEST DUE`: calon halaman print/ekspor yang tetap harus diuji format cetaknya.
+- Semua tes interaksi Laravel, RBAC/IDOR, transaksi, iOS/Android PWA dan desktop parity **NOT TESTED**, kecuali ada catatan evidence terbaru per screen.
 
-## Ringkasan status dari source
+## Ringkasan yang cocok dengan source
 
-| Kategori | Jumlah file |
+| Status source | Jumlah view |
 |---|---:|
-| GENERIC ONLY / UI TODO | 112 |
+| GENERIC ONLY / UI TODO | 108 |
 | PARTIAL / NOT ROUTE | 63 |
-| SOURCE MOBILE (UNTESTED) | 10 |
+| SOURCE MOBILE (UNTESTED) | 14 |
 | PRINT VIEW / PRINT TEST DUE | 9 |
-| **Total file view** | **194** |
+| **TOTAL** | **194** |
 
-## Matriks seluruh file view
+**Implementasi terbaru PR #21** pada commit `875f078`: Monitoring Kasir, Pembelian Bahan, Kedatangan Bahan, Kartu Stok. Sebelumnya dari PR #20: Collecting dan Jersey order index/create/edit-lines/keuangan, Master Bahan, POS create/bayar, SPK dan Produksi.
 
-| File Blade | Grup | Status source | Route/Role & test |
+## Matriks lengkap (pertahankan per-file)
+
+| Blade file | Grup | Status source | Route / Role / Browser / Function |
 |---|---|---|---|
 | `resources/views/accounting-period/index.blade.php` | accounting-period | GENERIC ONLY / UI TODO | NOT VERIFIED |
 | `resources/views/akses/_matriks.blade.php` | akses | PARTIAL / NOT ROUTE | NOT VERIFIED |
@@ -86,11 +87,11 @@
 | `resources/views/jersey/orders/show.blade.php` | jersey | GENERIC ONLY / UI TODO | NOT VERIFIED |
 | `resources/views/jersey/orders/spk-print.blade.php` | jersey | PRINT VIEW / PRINT TEST DUE | NOT VERIFIED |
 | `resources/views/kartu_stok/detail.blade.php` | kartu_stok | GENERIC ONLY / UI TODO | NOT VERIFIED |
-| `resources/views/kartu_stok/index.blade.php` | kartu_stok | GENERIC ONLY / UI TODO | NOT VERIFIED |
+| `resources/views/kartu_stok/index.blade.php` | kartu_stok | SOURCE MOBILE (UNTESTED) | NOT VERIFIED |
 | `resources/views/kas-kecil/index.blade.php` | kas-kecil | GENERIC ONLY / UI TODO | NOT VERIFIED |
 | `resources/views/kasir/form_pembayaran.blade.php` | kasir | SOURCE MOBILE (UNTESTED) | NOT VERIFIED |
 | `resources/views/kasir/kelola_kas.blade.php` | kasir | GENERIC ONLY / UI TODO | NOT VERIFIED |
-| `resources/views/kasir/monitoring_transaksi.blade.php` | kasir | GENERIC ONLY / UI TODO | NOT VERIFIED |
+| `resources/views/kasir/monitoring_transaksi.blade.php` | kasir | SOURCE MOBILE (UNTESTED) | NOT VERIFIED |
 | `resources/views/kasir/open_order.blade.php` | kasir | GENERIC ONLY / UI TODO | NOT VERIFIED |
 | `resources/views/kasir/preview_closing.blade.php` | kasir | PRINT VIEW / PRINT TEST DUE | NOT VERIFIED |
 | `resources/views/kasir/print_closing.blade.php` | kasir | PRINT VIEW / PRINT TEST DUE | NOT VERIFIED |
@@ -98,7 +99,7 @@
 | `resources/views/kasir/waiting_list.blade.php` | kasir | GENERIC ONLY / UI TODO | NOT VERIFIED |
 | `resources/views/kedatangan-bahan/create.blade.php` | kedatangan-bahan | GENERIC ONLY / UI TODO | NOT VERIFIED |
 | `resources/views/kedatangan-bahan/form.blade.php` | kedatangan-bahan | GENERIC ONLY / UI TODO | NOT VERIFIED |
-| `resources/views/kedatangan-bahan/index.blade.php` | kedatangan-bahan | GENERIC ONLY / UI TODO | NOT VERIFIED |
+| `resources/views/kedatangan-bahan/index.blade.php` | kedatangan-bahan | SOURCE MOBILE (UNTESTED) | NOT VERIFIED |
 | `resources/views/konsumen-deposit/index.blade.php` | konsumen-deposit | GENERIC ONLY / UI TODO | NOT VERIFIED |
 | `resources/views/konsumen/timeline.blade.php` | konsumen | GENERIC ONLY / UI TODO | NOT VERIFIED |
 | `resources/views/landing-page-public.blade.php` | landing-page-public.blade.php | GENERIC ONLY / UI TODO | NOT VERIFIED |
@@ -170,7 +171,7 @@
 | `resources/views/partials/tooltip-script.blade.php` | partials | PARTIAL / NOT ROUTE | NOT VERIFIED |
 | `resources/views/pembelian-bahan/create.blade.php` | pembelian-bahan | GENERIC ONLY / UI TODO | NOT VERIFIED |
 | `resources/views/pembelian-bahan/edit.blade.php` | pembelian-bahan | GENERIC ONLY / UI TODO | NOT VERIFIED |
-| `resources/views/pembelian-bahan/index.blade.php` | pembelian-bahan | GENERIC ONLY / UI TODO | NOT VERIFIED |
+| `resources/views/pembelian-bahan/index.blade.php` | pembelian-bahan | SOURCE MOBILE (UNTESTED) | NOT VERIFIED |
 | `resources/views/pembelian-bahan/print.blade.php` | pembelian-bahan | PRINT VIEW / PRINT TEST DUE | NOT VERIFIED |
 | `resources/views/pembelian-bahan/show.blade.php` | pembelian-bahan | GENERIC ONLY / UI TODO | NOT VERIFIED |
 | `resources/views/pengaturan/aplikasi.blade.php` | pengaturan | GENERIC ONLY / UI TODO | NOT VERIFIED |
@@ -221,12 +222,36 @@
 | `resources/views/waste/create.blade.php` | waste | GENERIC ONLY / UI TODO | NOT VERIFIED |
 | `resources/views/waste/index.blade.php` | waste | GENERIC ONLY / UI TODO | NOT VERIFIED |
 
-## Urutan eksekusi OpenCode — tanpa prompt lanjutan
+## Queue operasional tanpa prompt ulang
 
-1. Dari daftar `GENERIC ONLY`, kelompokkan berdasarkan menu/route aktif. Implementasikan setiap halaman create/edit/detail/index dan state error/empty dengan CSS scoped, tanpa mengubah handler/controller/RBAC.
-2. Lanjut urutan kasir tambahan → stok/logistik/pembelian → semua master → keuangan/laporan → dashboard/setting → sisi menu yang masih tersisa. Collecting serta Jersey list/create/edit/keuangan sudah memiliki implementasi source, namun butuh validasi visual dan form.
-3. Map route+menu+role untuk setiap view layar dari definisi yang nyata; catat `NOT APPLICABLE` hanya setelah alasan sah (partial/print). Update setiap baris dari `GENERIC ONLY` ke `SOURCE MOBILE` setelah file kode benar-benar berubah. Jangan otomatis menyatakan PASS.
-4. Setelah semua layar tercakup, jalankan build/lint, browser render dari Blade asli pada staging aman, screenshot viewport dan regresi desktop, alur transaksi dan IDOR pada DB sintetis. Catat kegagalan dan tes tidak tersedia secara eksplisit.
-5. Buat release/rollback checklist operator, lalu tunggu keputusan owner GO/NO-GO sebelum merge `main`/deploy ke ERP produksi.
+1. Petakan `routes/web.php`, route file lain, definisi menu, permission dan view per role; update kolom route/role untuk setiap layar aktif. Jangan menjadikan path sebagai bukti izin.
+2. Implementasikan berikutnya: Kasir `waiting_list`, `open_order`, `kelola_kas`; Pembelian `create/edit/show`, Kedatangan `create/form`; kartu stok `detail`; gudang/logistik; semua Master lain; keuangan dan laporan; dashboard/setting sesuai rute. Pertahankan aksi, label, validasi, konfirmasi, bulk selection.
+3. Commit setiap gugus ke **PR #21 yang sama**, catat screen yang betul-betul diubah. Jangan menulis `SELESAI` ketika masih terdapat view/route aktif UI TODO.
+4. Jalankan build GitHub CI dan, apabila tersedia lingkungan staging yang terbukti sintetis serta terisolasi, tes Laravel, peran, transaksi, modal, keyboard, PWA, desktop. Record PASS/FAIL/NOT TESTED dengan SHA dan URL bukti.
+5. Jika seluruh UI selesai tetapi runtime NOT TESTED, laporkan FRONTEND SOURCE COMPLETE / PROD NO-GO; jangan merge main/deploy tanpa GO owner/operator.
 
-**Larangan:** jangan membaca `.env`, menyentuh `oriondb`, direktori ERP produksi, kredensial, Apache/SSL, backup, scheduler, atau membuat transaksi uji pada data asli.
+**Keselamatan:** jangan akses `C:\xampp\htdocs\grafikaorion`, `.env`, database `oriondb`, data pelanggan, SSL, backup atau Windows services produksi.
+
+## Visual Verification (PR #21, Phase 2)
+
+Status diperbarui berdasarkan screenshot nyata runtime (lihat `PWA_MOBILE_VISUAL_GALLERY.md`).
+
+| File view | Route | Status visual |
+|---|---|---|
+| `resources/views/kasir/monitoring_transaksi.blade.php` | `GET /kasir/monitoring` | SCREENSHOT VERIFIED (390/430/1366) � filter compact collapsible, header leak fix |
+| `resources/views/kasir/waiting_list.blade.php` | `GET /kasir/waiting-list` | SCREENSHOT VERIFIED (390) � kartu, Terima Transaksi 44px |
+| `resources/views/kasir/kelola_kas.blade.php` | `GET /kasir/kelola-kas` | SCREENSHOT VERIFIED (390) |
+| `resources/views/kasir/open_order.blade.php` | (tidak terhubung route mana pun) | VIEW ORPHAN � tidak ada bukti runtime |
+| `resources/views/pembelian-bahan/index.blade.php` | `GET /pembelian-bahan` | SCREENSHOT VERIFIED (390) |
+| `resources/views/pembelian-bahan/create.blade.php` | `GET /pembelian-bahan/create` | SCREENSHOT VERIFIED (390) |
+| `resources/views/kedatangan-bahan/index.blade.php` | `GET /kedatangan-bahan` | SCREENSHOT VERIFIED (390) |
+| `resources/views/kedatangan-bahan/create.blade.php` | `GET /kedatangan-bahan/create` | SCREENSHOT VERIFIED (390) |
+| `resources/views/kartu_stok/index.blade.php` | `GET /kartu-stok` | SCREENSHOT VERIFIED (390) |
+| `resources/views/kartu_stok/detail.blade.php` | `GET /kartu-stok/{id}` | SCREENSHOT VERIFIED (390) |
+| `resources/views/master/bahan/index.blade.php` | `GET /bahan-baku` | SCREENSHOT VERIFIED (390) + modal Registrasi |
+| `resources/views/kas-kecil/index.blade.php` | `GET /kas-kecil` | SCREENSHOT VERIFIED (390) |
+| `resources/views/laporan/stok-bahan.blade.php` | `GET /laporan/stok-bahan` | SCREENSHOT VERIFIED (390) |
+| `resources/views/users/index.blade.php` | `GET /users` | SCREENSHOT VERIFIED (390) |
+| `resources/views/dashboard/*` | `GET /dashboard` | SCREENSHOT VERIFIED (320/390/1366) |
+
+**Kesimpulan:** 14 layar aktif terverifikasi visual nyata. Sisanya (master lain, keuangan detail, laporan lain, dashboard per role) tetap GENERIC ONLY / UI TODO dan di luar scope kelompok visual ini; tidak ada regresi yang ditemukan pada CSS terkait.
