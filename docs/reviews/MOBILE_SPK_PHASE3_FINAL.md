@@ -72,3 +72,11 @@ Implementasi mobile SPK (work queue) telah diterapkan pada branch `feat/mobile-s
 2. Buat Draft PR menuju main
 3. Owner review visual (screenshot ERP asli diperlukan untuk validasi penuh)
 4. Jangan merge atau deploy sebelum persetujuan owner
+
+## Review setelah pembuatan Draft PR #19 — 26 Oktober 2026
+
+- Draft PR sudah dibuat: https://github.com/steverog1945-bit/percetakan-app/pull/19 (base `main`, **belum merge/deploy**).
+- Koreksi kode: commit `25b4eba` mengubah minimal touch target tombol prioritas dari 28px menjadi 44px dan aksi SPK dari 38px menjadi 44px pada CSS mobile saja. Tidak ada perubahan Blade, handler, route, permission, atau data.
+- Screenshot lama pada 320/390/430px dibuat dari commit awal `72f3dec` sebelum koreksi touch-target. **Tidak berlaku sebagai bukti visual commit terbaru.** Validasi browser + Vite build sesudah koreksi **NOT TESTED**; jangan mengklaim PASS berdasarkan screenshot lama.
+- Temuan visual: panel filter pada layar 390px menempati porsi besar viewport sebelum daftar SPK; tiap kartu memanjang, sehingga baru satu-dua pekerjaan langsung terlihat. Rekomendasi berikutnya adalah filter collapsible pada mobile dengan mempertahankan isi form GET, nilai aktif, aksesibilitas, dan fungsi klik.
+- Verifikasi runtime Laravel, interaksi polling, status, urgent/ambil/resolve, izin per role, serta desktop pixel parity masih **NOT TESTED**. Owner belum menyetujui visual; PR tetap Draft.
