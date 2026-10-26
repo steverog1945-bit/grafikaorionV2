@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="pwa-ops-page w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Monitoring Kasir" subtitle="Daftar order yang transaksinya sudah dibuka kasir. Order yang masih menunggu ada di Antrean Baru.">
         <x-slot:actions>
@@ -107,7 +107,7 @@
         </form>
     </x-card>
 
-    <x-table>
+    <x-table wrapperClass="pwa-ops-shell overflow-hidden" class="pwa-ops-table pwa-ops-table--cashier">
         <thead>
             <tr>
                 <th class="px-4 py-5 text-center w-12">#</th>
@@ -122,25 +122,25 @@
         </thead>
         <tbody class="divide-y divide-slate-50">
             @forelse($transaksi as $i => $t)
-            <tr class="group hover:bg-slate-50/50 transition-all">
-                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $transaksi->firstItem() + $i }}</td>
-                <td class="px-4 py-5">
+            <tr class="pwa-ops-row group hover:bg-slate-50/50 transition-all">
+                <td class="pwa-ops-cell pwa-ops-sequence px-4 py-5 text-center text-[11px] text-slate-400" data-label="Urutan">{{ $transaksi->firstItem() + $i }}</td>
+                <td class="pwa-ops-cell pwa-ops-time px-4 py-5" data-label="Waktu">
                     <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($t->tgl_order)->translatedFormat('d M Y') }}</span>
                     <div class="text-[10px] text-slate-400">{{ \Carbon\Carbon::parse($t->tgl_order)->format('H:i') }}</div>
                 </td>
-                <td class="px-4 py-5 text-center">
+                <td class="pwa-ops-cell pwa-ops-type px-4 py-5 text-center" data-label="Tipe">
                     <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-medium {{ $t->tipe_order === 'PO' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-100' }}">
                         {{ $t->tipe_order }}
                     </span>
                 </td>
-                <td class="px-4 py-5">
+                <td class="pwa-ops-cell pwa-ops-note px-4 py-5" data-label="Nomor Nota">
                     <span class="text-[13px] font-medium text-indigo-600">#{{ $t->nomor_nota }}</span>
                     <div class="text-[10px] text-slate-400">Kasir: {{ $t->username }}</div>
                 </td>
-                <td class="px-4 py-5">
+                <td class="pwa-ops-cell pwa-ops-customer px-4 py-5" data-label="Konsumen">
                     <span class="text-[13px] font-medium text-slate-700">{{ $t->nama_konsumen }}</span>
                 </td>
-                <td class="px-6 py-5 text-right">
+                <td class="pwa-ops-cell pwa-ops-total px-6 py-5 text-right" data-label="Total Pembayaran">
                     <span class="text-[13px] font-medium text-slate-800">Rp {{ number_format($t->total_bayar, 0, ',', '.') }}</span>
                     {{-- Rincian "sudah terbayar berapa" untuk status DP - data
                          ini sebelumnya SUDAH diambil lewat subquery total_masuk
@@ -162,7 +162,7 @@
                         <div class="text-[10px] text-amber-500 font-medium">Sisa Rp {{ number_format(max(0, $t->total_bayar - ($t->total_masuk ?? 0)), 0, ',', '.') }}</div>
                     @endif
                 </td>
-                <td class="px-4 py-5 text-center">
+                <td class="pwa-ops-cell pwa-ops-status px-4 py-5 text-center" data-label="Status">
                     <x-badge :status="$t->display_status_pembayaran" />
                     {{---status_order hanya bisa 'Diterima Kasir' di halaman ini
                          (KasirController::index() sudah menyaringnya). Kedua
@@ -174,7 +174,7 @@
                         <div class="mt-1"><span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">Sudah Diterima</span></div>
                     @endif
                 </td>
-                <td class="px-8 py-5 text-center">
+                <td class="pwa-ops-cell pwa-ops-actions px-8 py-5 text-center" data-label="Aksi">
                     <div class="flex items-center justify-center gap-2">
                         @if(($t->status_order ?? 'Diterima Kasir') === 'Menunggu Kasir')
                             <form method="POST" action="{{ route('kasir.terimaTransaksi', $t->id_transaksi) }}" class="inline">

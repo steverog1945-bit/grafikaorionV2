@@ -27,3 +27,4 @@
 @import "./mobile-all-modules.css";    /* Fase 5 - all modules responsive */
 @import "./mobile-collecting.css";      /* Fase 6 - pengambilan mobile */
 @import "./mobile-jersey.css";          /* Fase 6 - pesanan jersey mobile */
+@import "./mobile-operations.css"; /* Mobile operational purchase, receiving, stock & cashier screens */

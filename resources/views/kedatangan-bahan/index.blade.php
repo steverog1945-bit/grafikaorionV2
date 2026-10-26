@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="pwa-ops-page w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Kedatangan Bahan">
         <x-slot:subtitle>
@@ -47,11 +47,11 @@
     {{-- TABLE --}}
     <form id="bulk-delete-form" method="POST" action="{{ route('kedatangan-bahan.bulk-delete') }}">
         @csrf
-        <x-table>
+        <x-table wrapperClass="pwa-ops-shell overflow-hidden" class="pwa-ops-table pwa-ops-table--receiving">
             <thead>
                 <tr>
                     <th class="px-6 py-5 w-12 text-center">
-                        <input type="checkbox" id="checkAll" class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
+                        <input type="checkbox" id="checkAll" class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500"><span class="pwa-ops-mobile-only">Pilih semua</span>
                     </th>
                     <th class="px-4 py-5 text-center w-10">#</th>
                     <th class="px-4 py-5 text-left">Dokumen SJ</th>
@@ -63,22 +63,22 @@
             </thead>
             <tbody class="divide-y divide-slate-50">
                 @forelse($kedatangans as $i => $k)
-                <tr class="group hover:bg-slate-50/50 transition-all">
-                    <td class="px-6 py-5 text-center">
+                <tr class="pwa-ops-row group hover:bg-slate-50/50 transition-all">
+                    <td class="pwa-ops-cell pwa-ops-select px-6 py-5 text-center" data-label="Pilih Surat Jalan">
                         @if($k->status == 'Draft')
                             <input type="checkbox" name="ids[]" value="{{ $k->id_kedatangan }}" class="row-checkbox rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
                         @else
                             <i class="fas fa-lock text-slate-500 text-xs"></i>
                         @endif
                     </td>
-                    <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $kedatangans->firstItem() + $i }}</td>
+                    <td class="pwa-ops-cell pwa-ops-sequence px-4 py-5 text-center text-[11px] text-slate-400" data-label="Urutan">{{ $kedatangans->firstItem() + $i }}</td>
 
-                    <td class="px-4 py-5">
+                    <td class="pwa-ops-cell pwa-ops-doc px-4 py-5" data-label="Surat Jalan">
                         <span class="text-[13px] font-medium text-slate-700 uppercase block">{{ $k->no_surat_jalan }}</span>
                         <span class="text-[11px] text-slate-400 font-medium mt-0.5 block">{{ optional($k->tgl_datang)->translatedFormat('d M Y') }}</span>
                     </td>
 
-                    <td class="px-4 py-5">
+                    <td class="pwa-ops-cell pwa-ops-entity px-4 py-5" data-label="Pemasok dan Gudang">
                         <span class="text-[12px] font-medium text-slate-700 uppercase block leading-tight">{{ $k->supplier->nama_supplier ?? 'VENDOR UMUM' }}</span>
                         @if($k->platform)<span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-orange-50 text-orange-600 text-[10px] font-medium uppercase"><i class="fas fa-shopping-bag"></i> {{ $k->platform->nama }}@if($k->no_pesanan_online) &middot; {{ $k->no_pesanan_online }}@endif</span>@endif
                         <span class="text-[10px] font-medium text-indigo-500 uppercase tracking-wider flex items-center gap-1 mt-0.5">
@@ -87,20 +87,20 @@
                     </td>
 
                     {{-- KETERANGAN: tampil utuh (Enter/baris baru dipertahankan); catatan panjang dilipat dengan tombol "Selengkapnya" --}}
-                    <td class="px-4 py-5 min-w-[280px] max-w-md">
+                    <td class="pwa-ops-cell pwa-ops-note px-4 py-5 min-w-[280px] max-w-md" data-label="Keterangan">
                         <div class="rounded-xl bg-slate-50 px-4 py-3">
                             <p class="catatan-isi text-[12px] text-slate-600 leading-relaxed whitespace-pre-line break-words" data-lipat="1">{{ $k->keterangan ?? 'Tidak ada catatan...' }}</p>
                             <button type="button" class="catatan-toggle hidden mt-1.5 text-[10px] font-medium uppercase tracking-widest text-indigo-500 hover:text-indigo-700" title="Tampilkan seluruh catatan">Selengkapnya <i class="fas fa-chevron-down text-[8px]"></i></button>
                         </div>
                     </td>
 
-                    <td class="px-4 py-5 text-center">
+                    <td class="pwa-ops-cell pwa-ops-status px-4 py-5 text-center" data-label="Status">
                         <span class="px-3 py-1.5 rounded-lg border {{ $k->status == 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100' }} text-[10px] font-medium uppercase tracking-widest">
                             {{ $k->status }}
                         </span>
                     </td>
 
-                    <td class="px-8 py-5 text-center">
+                    <td class="pwa-ops-cell pwa-ops-actions px-8 py-5 text-center" data-label="Aksi">
                         <div class="flex items-center justify-center gap-2">
                             @if($k->status == 'Draft')
                                 <x-button type="button" onclick="confirmApprove('{{ $k->id_kedatangan }}', '{{ $k->no_surat_jalan }}')" size="sm" class="!px-4">
