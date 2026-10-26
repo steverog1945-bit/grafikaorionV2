@@ -1,4 +1,23 @@
 # ORION GRAFIKA — SINGLE-RUN MOBILE PWA COMPLETION & RELEASE CANDIDATE
+
+## PERUBAHAN BASIS GIT — PRIORITAS WAJIB 26 Oktober 2026
+
+**GitHub terbaru:**
+- `main` = `1e73415a83c5f54618c763e317c226017a144fa5`.
+- PR #15 (Master Bahan) **SUDAH MERGED** ke `main` sebagai `1b690ff`.
+- PR #18 (POS) **SUDAH MERGED** ke `main` sebagai `1e73415`.
+- PR #19 (SPK) **DRAFT, GitHub mergeable=false**; konflik disebabkan perubahan bersama relatif ke `main` terkini. **JANGAN paksa merge PR #19 ke `main`**, karena source SPK sudah berada di integrasi #20.
+- PR #20 **DRAFT, mergeable=false** karena `main` lebih baru dari basis branch; head sebelum instruksi ini `ce96d2e`. Konflik harus dituntaskan terlebih dahulu di branch integrasi, **bukan** `main`.
+
+**Tindakan tunggal OpenCode paling awal:**
+1. Verifikasi status worktree; `git fetch origin`, lalu checkout branch integrasi #20 tanpa membuang perubahan lokal. Jika konflik checkout/worktree, gunakan worktree aman di workspace development yang sama.
+2. `git merge --no-ff origin/main` **ke `integration/pwa-mobile-all-modules`**, bukan sebaliknya. Jangan rebase riwayat yang sudah dipush, `reset --hard`, force-push, atau rewrite merge commit existing.
+3. Resolusi konflik **semantik** per file: `mobile-ui.css` mempertahankan **SEMUA** import `mobile-dashboard`, `mobile-bahan`, `mobile-modal`, `mobile-nav`, `mobile-erp`, `mobile-pos`, `mobile-spk`, `mobile-produksi`; jaga satu import tiap modul. Source Blade dan CSS Master/Pos yang sudah ada di `main` jangan digandakan; SPK/Produksi dari branch integrasi harus tetap ada. Untuk `AGENTS.md`, pertahankan mandat one-pass + aturan keselamatan. Untuk laporan, pelihara bukti dan sejarah tanpa duplikasi klaim kelulusan.
+4. Jalankan `git diff --check`, `npm ci` hanya bila aman di clone kerja tanpa scripts yang mengakses secrets, `npm run build`, dan validasi sumber/DOM aman; verifikasi GitHub `mergeable` PR #20 setelah push. Bila branch konflik tidak terselesaikan secara aman, tulis nama file + potongan konflik persis dan lanjut ke pekerjaan independen yang aman; jangan menebak atau mengambil `--ours/--theirs` seluruh tree.
+5. **PR #19 boleh tetap Draft** sebagai rekam perubahan, namun dianggap *superseded by PR #20* hanya bila isi CSS dan Blade SPK di PR #20 terbukti sama atau lebih baru, dan semua fitur tetap. Jangan merge #19 ke main atau membuat PR SPK lain.
+6. **Kembali ke pengerjaan SEMUA modul tanpa prompt lain** sesudah #20 bebas konflik; status mergeable bukan bukti uji Laravel atau izin deployment.
+
+
 **Dibuat: 26 Oktober 2026.** Status: **MANDAT PELAKSANAAN**, bukan hasil pengujian dan **bukan izin deploy**.
 
 ## Status integrasi terverifikasi — 26 Oktober 2026
