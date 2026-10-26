@@ -27,6 +27,31 @@
 | 17 | `laporan-stok-bahan-390-real.png` | Laporan Stok Bahan | 390×844 | Laporan |
 | 18 | `users-390-real.png` | Pengaturan User | 390×844 | Daftar user |
 
+## Galeri visual untuk owner — screenshot Laravel staging
+
+**Berikut file PNG runtime yang benar-benar tersimpan di repository**, bukan ilustrasi yang dibuat terpisah. Klik gambar di GitHub untuk memperbesar.
+
+| Monitoring Kasir sebelum perbaikan header | Setelah perbaikan header |
+|---|---|
+| ![Header overlap sebelum perbaikan](assets/pwa-mobile-phase2/kasir-monitoring-390-real-DEFECT-header-overlap.png) | ![Monitoring Kasir sesudah perbaikan](assets/pwa-mobile-phase2/kasir-monitoring-390-real.png) |
+
+| Dashboard Produksi (390px) | Pembelian Bahan (390px) |
+|---|---|
+| ![Dashboard Produksi](assets/pwa-mobile-phase2/dashboard-produksi-390-real.png) | ![Pembelian Bahan](assets/pwa-mobile-phase2/pembelian-index-390-real.png) |
+
+| Kartu Stok (390px) | Pengguna (390px) |
+|---|---|
+| ![Kartu Stok](assets/pwa-mobile-phase2/kartu-stok-index-390-real.png) | ![Pengguna](assets/pwa-mobile-phase2/users-390-real.png) |
+
+### Review visual GitHub independen — 26 Oktober 2026
+
+- **PASS terbatas:** screenshot nyata Laravel staging tersedia; perbandingan *before/after* menunjukkan header Monitoring Kasir tidak lagi tumpang-tindih. Bukti terdiri dari fixture sintetis, bukan transaksi produksi.
+- **P1 visual:** pada screenshot Monitoring Kasir **tema gelap**, beberapa teks di kartu **berlatar putih** (konsumen, nilai pembayaran dan ikon aksi) sangat pucat / kontras kurang. Periksa computed theme tokens terhadap warna kartu yang sesungguhnya dan perbaiki agar WCAG AA; ambil PNG dark yang baru.
+- **P2 usability:** form filter Pembelian Bahan dan Kartu Stok terlalu panjang, sehingga satu layar pertama hampir tidak menampilkan daftar data. Buat disclosure mobile ringkas yang memperlihatkan search dan indikator filter aktif; pertahankan semua GET parameter dan layout desktop.
+- **P2 usability:** tabel Manajemen Pengguna 390px masih berformat tabel padat sehingga kolom Role/Akses berpotensi terpotong; pastikan seluruh aksi dan peran bisa diakses tanpa kehilangan data atau menyembunyikan izin.
+- **NOT VERIFIED:** screenshot 768px dan 1024px, browser keyboard/focus/modal end-to-end, scroll sampai kartu terakhir vs bottom nav, touch target computed, light/dark switch, serta interaksi transaksi. CSS `@media` saja tidak membuktikan zero-regresi desktop.
+- **Jangan memberi label "VISUAL QA PASS ALL" sebelum temuan di atas dibuktikan selesai dengan screenshot terbaru.** Hasil browser yang sudah lulus tetap valid dalam cakupannya; laporan itu bukan persetujuan merge/produksi.
+
 ## Bug yang ditemukan & diperbaiki selama QA visual
 
 1. **Header horizontal leak (mobile-bahan.css)** — aturan `.content-wrapper .max-w-[1600px] > .flex.flex-col[class*="md:flex-row"] { flex-direction: row; }` bocor ke SEMUA halaman (bukan hanya Master Bahan), memaksa subtitle panjang (mis. Kasir Monitoring "Daftar order yang transaksinya sudah dibuka kasir…") menyempit jadi kolom ~43px dan teks judul/aksi tumpang tindih. Diperbaiki dengan scope `:has(#filterForm.mobile-bahan-filter-form)` pada 8 selektor terdampak. Bukti sebelum/sesudah: `kasir-monitoring-390-real-DEFECT-header-overlap.png` vs `kasir-monitoring-390-real.png`.
