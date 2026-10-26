@@ -21,3 +21,4 @@
 @import "./mobile-nav.css";         /* Fase 3 - navigasi bawah HP */
 @import "./mobile-erp.css";         /* Fondasi responsif lintas modul ERP */
 @import "./mobile-spk.css";         /* Fase 3 - work queue SPK */
+@import "./mobile-produksi.css";    /* Fase 4 - work queue Produksi */
