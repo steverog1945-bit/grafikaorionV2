@@ -3,7 +3,7 @@
 @section('content')
 @php $bisaUbah = \App\Support\Izin::boleh(auth()->user(), [22], 'edit'); @endphp
 <x-polling-notifikasi :url="route('spk.cek-antrian-baru')" :jumlah-awal="$jumlahAntreAwal" pesan="Ada SPK baru masuk antrian." />
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="spk-page w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="SPK - Surat Perintah Kerja">
         <x-slot:subtitle>
@@ -21,11 +21,11 @@
     @include('partials.divisi-tabs', ['routeName' => 'spk.index'])
 
     {{-- FILTER & SEARCH --}}
-    <x-card class="mb-6">
-        <form method="GET" action="{{ route('spk.index') }}" class="flex flex-wrap items-end gap-4">
+    <x-card class="spk-filter-card mb-6">
+        <form method="GET" action="{{ route('spk.index') }}" class="spk-filter-form flex flex-wrap items-end gap-4">
             <input type="hidden" name="divisi" value="{{ request('divisi') }}">
 
-            <div class="flex-1 min-w-[260px]">
+            <div class="spk-filter-search flex-1 min-w-[260px]">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari</label>
                 <x-form.input type="text" name="search" value="{{ request('search') }}"
                     placeholder="Nama file, konsumen, atau nomor nota..." />
@@ -39,21 +39,21 @@
                  Kosongkan kembali saat operator memilih mode yang tidak memakai
                  rentang tanggal ("Tunggakan Aktif" atau "Tampilkan semua"), agar
                  tidak menampilkan filter yang diam-diam diabaikan. --}}
-            <div class="w-full md:w-44">
+            <div class="spk-filter-date w-full md:w-44">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Tanggal Order Dari</label>
                 <input type="date" name="tgl_dari"
                        value="{{ $tunggakanAktif ? '' : (request('tgl_dari') ?? $tglDari->toDateString()) }}"
                        class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
 
-            <div class="w-full md:w-44">
+            <div class="spk-filter-date w-full md:w-44">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai</label>
                 <input type="date" name="tgl_sampai"
                        value="{{ $tunggakanAktif ? '' : (request('tgl_sampai') ?? $tglSampai->toDateString()) }}"
                        class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </div>
 
-            <div class="w-full md:w-48">
+            <div class="spk-filter-status w-full md:w-48">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status SPK</label>
                 <x-form.select name="status_spk">
                     <option value="">-- Semua Status --</option>
@@ -63,25 +63,26 @@
                 </x-form.select>
             </div>
 
-            <label class="flex items-center gap-2 pb-3 cursor-pointer">
+            <label class="spk-filter-toggle flex items-center gap-2 pb-3 cursor-pointer">
                 <input type="checkbox" name="urgent_only" value="1" {{ request('urgent_only') ? 'checked' : '' }}
                     class="rounded-md border-slate-200 text-rose-600 focus:ring-rose-500">
                 <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Urgent saja</span>
             </label>
 
-            <div class="flex items-center gap-2 mt-3">
+            <div class="spk-filter-toggle flex items-center gap-2 mt-3">
                 <input type="checkbox" name="tunggakan_aktif" value="1" {{ request('tunggakan_aktif') ? 'checked' : '' }}
                     class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
                 <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Tunggakan Aktif</span>
             </div>
 
-            <x-button type="submit">
-                <i class="fas fa-filter"></i>
+            <x-button type="submit" class="spk-filter-submit">
+                <i class="fas fa-filter spk-desktop-icon"></i>
+                <svg class="spk-mobile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16M7 12h10m-7 7h4" /></svg>
                 Filter
             </x-button>
 
             @if(request()->anyFilled(['search', 'status_spk', 'urgent_only', 'tgl_dari', 'tgl_sampai', 'tunggakan_aktif']))
-                <a href="{{ route('spk.index', ['divisi' => request('divisi')]) }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                <a href="{{ route('spk.index', ['divisi' => request('divisi')]) }}" class="spk-filter-reset text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
                     Reset
                 </a>
             @endif
@@ -117,7 +118,7 @@
 
     <form id="bulk-action-form" method="POST" action="{{ route('spk.bulk-urgent') }}">
         @csrf
-        <x-table>
+        <x-table wrapperClass="spk-workqueue-shell overflow-hidden" class="spk-workqueue-table">
             <thead>
                 <tr>
                     <th class="px-6 py-5 w-12 text-center">
@@ -142,69 +143,83 @@
                         <input type="checkbox" name="ids[]" value="{{ $item->id_detail }}" class="row-checkbox rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
                     </td>
                     <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $spk->firstItem() + $i }}</td>
-                    <td class="px-4 py-5">
-                        <div class="text-[13px] font-medium text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $item->nama_file }}</div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">Nota: {{ $item->nomor_nota }} &middot; SPK #{{ $item->id_detail }}</div>
+                    <td data-label="Pekerjaan" class="px-4 py-5">
+                        <div class="spk-work-name text-[13px] font-medium text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $item->nama_file }}</div>
+                        <div class="spk-work-number text-[10px] text-slate-400 mt-0.5">Nota: {{ $item->nomor_nota }} &middot; SPK #{{ $item->id_detail }}</div>
                     </td>
-                    <td class="px-4 py-5">
+                    <td data-label="Konsumen" class="px-4 py-5">
                         <span class="text-[12px] font-medium text-slate-700 uppercase">{{ $item->nama_konsumen }}</span>
                         @if($item->divisi)
-                            <div class="text-[10px] text-slate-400">{{ $item->divisi }}</div>
+                            <div class="spk-division text-[10px] text-slate-400">{{ $item->divisi }}</div>
                         @endif
                     </td>
-                    <td class="px-4 py-5">
+                    <td data-label="Tanggal order" class="px-4 py-5">
                         <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->translatedFormat('d M Y') }}</span>
                     </td>
-                    <td class="px-4 py-5 text-center">
+                    <td data-label="Qty" class="px-4 py-5 text-center">
                         <span class="text-[13px] font-medium text-slate-700">{{ angka($item->qty, 4) }}</span>
                     </td>
-                    <td class="px-4 py-5 text-center">
+                    <td data-label="Prioritas" class="px-4 py-5 text-center">
                         <button type="button" onclick="toggleUrgent({{ $item->id_detail }})"
-                            class="text-lg {{ $item->status_urgent ? 'text-rose-500' : 'text-slate-400 hover:text-rose-500' }}" title="Tandai urgent">
-                            <i class="fas fa-fire"></i>
+                            class="spk-priority-button text-lg {{ $item->status_urgent ? 'text-rose-500' : 'text-slate-400 hover:text-rose-500' }}" title="Tandai urgent">
+                            <i class="fas fa-fire spk-desktop-icon"></i>
+                            <svg class="spk-mobile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12.8 3.2c.5 3.3-1.2 4.6-2.7 6.1-1.2 1.2-2.1 2.6-2.1 4.5a6 6 0 0 0 12 0c0-3.4-2-6.7-7.2-10.6Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M10.4 14.2c-.3 2 1 3.8 2.9 3.8s3-1.5 2.5-3.3c-.3-1.1-1.1-1.9-2-2.8-.1 1.3-.8 2-1.6 2.5-.6-.4-1-.9-1.2-1.6-.3.4-.5.9-.6 1.4Z" /></svg>
+                            <span class="spk-mobile-action-label">{{ $item->status_urgent ? 'Urgent' : 'Normal' }}</span>
                         </button>
                     </td>
-                    <td class="px-4 py-5">
+                    <td data-label="Pembuat nota" class="px-4 py-5">
                         <span class="text-[12px] font-medium text-slate-600">{{ $item->pembuat_nota }}</span>
                     </td>
-                    <td class="px-4 py-5 text-center">
+                    <td data-label="Status bayar" class="px-4 py-5 text-center">
                         <x-badge :status="$item->status_pembayaran" />
                     </td>
-                    <td class="px-4 py-5 text-center">
+                    <td data-label="Tahap saat ini" class="px-4 py-5 text-center">
                         <x-badge :status="$item->status_spk" />
                     </td>
                     <td class="px-8 py-5 text-center">
-                        <div class="flex items-center justify-center gap-2">
+                        <div class="spk-row-actions flex items-center justify-center gap-2">
                             @if(!$bisaUbah)
                                 <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Hanya lihat</span>
                             @elseif($item->status_spk === 'Antre')
                                 <x-button type="button" size="icon" variant="ghost" onclick="ambilPekerjaan({{ $item->id_detail }})" class="border border-slate-100 hover:text-emerald-600" title="Ambil Pekerjaan (pindah ke Produksi)">
-                                    <i class="fas fa-hand-paper text-xs"></i>
+                                    <i class="fas fa-hand-paper text-xs spk-desktop-icon"></i>
+                                    <svg class="spk-mobile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12V6a2 2 0 0 1 4 0v5-6a2 2 0 0 1 4 0v7-5a2 2 0 0 1 4 0v8a6 6 0 0 1-6 6h-2a6 6 0 0 1-5-2.7l-3-4.1a2 2 0 0 1 3-2.6L8 14" /></svg>
+                                    <span class="spk-mobile-action-label">Ambil</span>
                                 </x-button>
                             @elseif($item->status_spk === 'Pending')
                                 <x-button type="button" size="icon" variant="ghost" onclick="resolvePending({{ $item->id_detail }}, 'antre')" class="border border-slate-100 hover:text-indigo-600" title="Kembalikan ke Antrian">
-                                    <i class="fas fa-undo text-xs"></i>
+                                    <i class="fas fa-undo text-xs spk-desktop-icon"></i>
+                                    <svg class="spk-mobile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 10h10a6 6 0 1 1-5.7 8M4 10l4-4m-4 4 4 4" /></svg>
+                                    <span class="spk-mobile-action-label">Kembali</span>
                                 </x-button>
                                 <x-button type="button" size="icon" variant="ghost" onclick="resolvePending({{ $item->id_detail }}, 'batal')" class="border border-slate-100 hover:text-rose-600" title="Batalkan Permanen">
-                                    <i class="fas fa-ban text-xs"></i>
+                                    <i class="fas fa-ban text-xs spk-desktop-icon"></i>
+                                    <svg class="spk-mobile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="m5.6 5.6 12.8 12.8" /></svg>
+                                    <span class="spk-mobile-action-label">Batalkan</span>
                                 </x-button>
                             @endif
                             <x-button href="{{ route('spk.print', ['id' => $item->id_detail, 'format' => 'thermal']) }}" target="_blank" size="icon" variant="ghost" class="border border-slate-100 hover:text-slate-800" title="Cetak SPK (Thermal)">
-                                <i class="fas fa-print text-xs"></i>
+                                <i class="fas fa-print text-xs spk-desktop-icon"></i>
+                                <svg class="spk-mobile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8V4h10v4M7 17H5a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-2" /><path stroke-linecap="round" stroke-linejoin="round" d="M7 14h10v6H7z" /><path stroke-linecap="round" d="M17 11h.01" /></svg>
+                                <span class="spk-mobile-action-label">Cetak</span>
                             </x-button>
                             @if($item->spk_lengkap && in_array(optional(auth()->user()->role)->nama_role, ['Operator Desain', 'Administrator'], true))
                             <x-button href="{{ route('spk.desain', $item->id_detail) }}" target="_blank" size="icon" variant="ghost" class="border border-indigo-100 text-indigo-500 hover:text-indigo-700" title="Cetak SPK Desain (gambar, konsumen, bahan, finishing)">
-                                <i class="fas fa-file-image text-xs"></i>
+                                <i class="fas fa-file-image text-xs spk-desktop-icon"></i>
+                                <svg class="spk-mobile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h8l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M14 3v5h5M8 16l2.5-2.5L13 16l2-2 2 2M9 10h.01" /></svg>
+                                <span class="spk-mobile-action-label">Desain</span>
                             </x-button>
                             @endif
                             <x-button href="{{ route('produksi.index', ['id_spk' => $item->id_detail, 'status_produksi' => 'semua']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat di Produksi">
-                                <i class="fas fa-industry text-xs"></i>
+                                <i class="fas fa-industry text-xs spk-desktop-icon"></i>
+                                <svg class="spk-mobile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 20V9l6 4V9l6 4V6h5v14H3Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M7 17h2m3 0h2m3 0h2" /></svg>
+                                <span class="spk-mobile-action-label">Produksi</span>
                             </x-button>
                         </div>
                     </td>
                 </tr>
                 @empty
-                <tr>
+                <tr class="spk-empty-row">
                     <td colspan="11">
                         <x-empty-state title="Belum ada SPK" description="Sesuaikan filter atau tunggu order baru dari Kasir." />
                     </td>
