@@ -1,5 +1,16 @@
 # AGENTS.md — Orion Grafika ERP
 
+## EKSEKUSI VISUAL WAJIB — perintah owner terbaru (26 Okt 2026)
+
+**SEGERA IMPLEMENTASIKAN UI DAN KIRIM HASIL VISUAL NYATA** sesuai `docs/reviews/PWA_MOBILE_VISUAL_DELIVERY.md` pada **Draft PR #21 yang SUDAH ADA**. Jangan kembali menulis laporan abstrak/FINAL PARSIAL atau meminta prompt modul berikutnya.
+
+- Buat galeri screenshot browser nyata dari Laravel staging terisolasi dengan data sintetis (`docs/reviews/PWA_MOBILE_VISUAL_GALLERY.md` + `docs/reviews/assets/pwa-mobile-phase2/*.png`); sertakan role, route, viewport, commit SHA sebagai bukti. Bukan fixture HTML lepas atau gambar hasil generasi.
+- Implementasikan layar pending secara berurutan dalam satu run, mulai Kasir waiting/open/kelola-kas → Pembelian/kedatangan forms → Kartu Stok detail → Master/Keuangan/Laporan/Dashboard/Setting. Pertahankan backend bisnis dan desktop.
+- Bila browser Laravel terisolasi tidak tersedia, jelaskan blocker secara spesifik, jangan mengaku screenshot ERP nyata; terus implementasikan bagian UI aman lain. Tidak boleh mengakses/menyalin `.env`, `oriondb`, ERP produksi, sertifikat atau backup.
+- Screenshot yang dibagikan harus berupa **file PNG yang benar-benar ada**, bukan link yang dikarang; tampilkan inline di chat OpenCode atau tautan galeri PR. Build Vite ≠ bukti visual.
+- CI dan evidensi harus berasal dari HEAD saat ini. Hasil merge/deploy **bukan** kewenangan agen ini.
+
+
 ## AKTIF — PWA Mobile Phase 2: setelah PR #20 merged (26 Oktober 2026)
 
 ### Verified checkpoint PR #21 (26 October 2026)
