@@ -23,3 +23,5 @@
 @import "./mobile-pos.css";         /* Fase 2 - POS dan pembayaran */
 @import "./mobile-spk.css";         /* Fase 3 - work queue SPK */
 @import "./mobile-produksi.css";    /* Fase 4 - work queue Produksi */
+
+@import "./mobile-all-modules.css";    /* Fase 5 - all modules responsive */
