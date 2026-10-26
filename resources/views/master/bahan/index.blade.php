@@ -77,7 +77,7 @@
     </div>
 
     {{-- TABLE --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="mobile-bahan-records bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <form id="bulk-delete-form" method="POST" action="{{ route('bahan.bulk-delete') }}">
             @csrf
         <x-table bare>
@@ -112,7 +112,7 @@
                                     <div class="text-[14px] font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">
                                         {{ $b->nama_bahan }}
                                         @if($b->status === 'nonaktif')
-                                            <span class="ml-1 text-[9px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded uppercase align-middle">Nonaktif</span>
+                                            <span class="mobile-bahan-desktop-status ml-1 text-[9px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded uppercase align-middle">Nonaktif</span>
                                         @endif
                                     </div>
                                     <div class="text-[11px] text-slate-400 mt-0.5">{{ $b->kode_bahan }}</div>
@@ -120,19 +120,27 @@
                             </div>
                         </td>
                         <td class="px-6 py-5 text-center" data-label="Spesifikasi">
-                            <div class="flex flex-col gap-1 items-center">
-                                <span class="text-[10px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md uppercase">
-                                    {{ $b->mesin->nama_mesin ?? '-' }}
-                                </span>
-                                <span class="text-[9px] text-slate-400 font-medium uppercase">{{ $b->kategori->nama_kategori ?? 'Umum' }}</span>
-                                @if($b->merk || $b->jenisBahan)
-                                    <span class="text-[9px] text-indigo-600 font-medium uppercase">
-                                        {{ $b->merk->nama_merk ?? '' }}{{ $b->merk && $b->jenisBahan ? ' • ' : '' }}{{ $b->jenisBahan->nama_jenis ?? '' }}
-                                    </span>
-                                @endif
-                            </div>
+                            <details class="mobile-bahan-details">
+                                <summary>Rincian</summary>
+                                <div class="mobile-bahan-details-content">
+                                    <div class="flex flex-col gap-1 items-center">
+                                        <span class="text-[10px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md uppercase">
+                                            {{ $b->mesin->nama_mesin ?? '-' }}
+                                        </span>
+                                        <span class="text-[9px] text-slate-400 font-medium uppercase">{{ $b->kategori->nama_kategori ?? 'Umum' }}</span>
+                                        @if($b->merk || $b->jenisBahan)
+                                            <span class="text-[9px] text-indigo-600 font-medium uppercase">
+                                                {{ $b->merk->nama_merk ?? '' }}{{ $b->merk && $b->jenisBahan ? ' • ' : '' }}{{ $b->jenisBahan->nama_jenis ?? '' }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </details>
                         </td>
                         <td class="px-6 py-5 text-center" data-label="Stok">
+                            <span class="mobile-bahan-status {{ $b->status === 'aktif' ? 'mobile-bahan-status-active' : 'mobile-bahan-status-inactive' }}">
+                                <span aria-hidden="true"></span>{{ $b->status === 'aktif' ? 'Aktif' : 'Nonaktif' }}
+                            </span>
                             @php
                                 $angka = fn ($v, $d = 2) => angka((float) $v, $d);
                                 $stokHabis = (float) $b->stok <= (float) $b->stok_minimal;
@@ -194,7 +202,15 @@
                             @endif
                         </td>
                         <td class="px-8 py-5 text-right" data-label="Aksi">
-                            <div class="flex justify-end gap-2">
+                            <details class="mobile-bahan-actions">
+                                <summary aria-label="Aksi bahan" title="Aksi bahan">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <circle cx="12" cy="5" r="1.8"></circle>
+                                        <circle cx="12" cy="12" r="1.8"></circle>
+                                        <circle cx="12" cy="19" r="1.8"></circle>
+                                    </svg>
+                                </summary>
+                                <div class="mobile-bahan-action-menu flex justify-end gap-2">
                                 <button type="button" onclick='editBahan(@json($b), @json(\App\Support\VersiBaris::token($b)))' class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" aria-label="Ubah" title="Ubah">
                                     <i class="far fa-edit text-sm"></i>
                                 </button>
@@ -203,10 +219,11 @@
                                         title="{{ $b->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan kembali' }}">
                                     <i class="far {{ $b->status === 'aktif' ? 'fa-eye-slash' : 'fa-eye' }} text-sm"></i>
                                 </button>
-                                <button type="button" onclick="singleDelete('{{ $b->id_bahan }}')" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                                <button type="button" onclick="singleDelete('{{ $b->id_bahan }}')" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" aria-label="Hapus" title="Hapus">
                                     <i class="far fa-trash-alt text-sm"></i>
                                 </button>
-                            </div>
+                                </div>
+                            </details>
                         </td>
                     </tr>
                     @empty
