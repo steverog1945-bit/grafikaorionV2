@@ -2,6 +2,13 @@
 
 ## AKTIF — PWA Mobile Phase 2: setelah PR #20 merged (26 Oktober 2026)
 
+### Verified checkpoint PR #21 (26 October 2026)
+
+**Source implemented on this branch:** Monitoring Kasir (`kasir/monitoring_transaksi`), Pembelian Bahan index, Kedatangan Bahan index, Kartu Stok index — commit `875f078`; scoped `mobile-operations.css` added to dispatcher. **Do not reimplement these pages**. Source existed in main for Collecting and Jersey after PR #20, contrary to the initial report.
+
+**Full inventory restored** in `docs/reviews/PWA_MOBILE_COVERAGE_MATRIX.md`: 194 Blade files, **14 SOURCE MOBILE (UNTESTED), 108 GENERIC ONLY / UI TODO, 63 PARTIAL, 9 PRINT**. Classification = file inventory, not verified route coverage. Next safe screens: Kasir `waiting_list`, `open_order`, `kelola_kas`; Pembelian `create/edit/show`, Kedatangan `create/form`, Kartu Stok `detail`, then other active masters and financial/reports. Keep one PR #21, perform real code implementation and source checks before writing reports; do not repeat an obsolete "Final" text.
+
+
 **PR #20 TELAH MERGED KE `main` pada commit `95627cda`.** Semua instruksi di bawah yang menyebut PR #20 sebagai Draft, `integration/pwa-mobile-all-modules` sebagai branch aktif, atau PR #15/#18 perlu di-merge **sudah usang** dan tidak boleh dilaksanakan lagi.
 
 **Single active continuation:** `feat/pwa-mobile-completion-phase2` dari latest `origin/main`. **Draft PR lanjutan sudah dibuat** (gunakan PR yang ada, jangan membuat PR per modul). Kontrak prioritas: `docs/reviews/PWA_MOBILE_COMPLETION_PHASE2.md`. Wajib perbarui `docs/reviews/PWA_MOBILE_COVERAGE_MATRIX.md` dari source `main` terbaru sebab tag lama pre-date Collecting/Jersey.
