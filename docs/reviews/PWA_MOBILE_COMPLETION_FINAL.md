@@ -1,82 +1,51 @@
-# ORION GRAFIKA — PWA Mobile Completion Final
+# ORION GRAFIKA — PWA Mobile Phase 2 checkpoint (NOT FINAL)
 
-## Status
+**Tanggal:** 26 Oktober 2026. **Branch:** `feat/pwa-mobile-completion-phase2`. **Draft PR:** [#21](https://github.com/steverog1945-bit/percetakan-app/pull/21). **Status:** IN PROGRESS / PRODUCTION NO-GO.
 
-**BLOCKED FOR PRODUCTION RELEASE** — modul lanjutan belum diimplementasikan per-modul; bukti visual STATIC SOURCE-DERIVED; Laravel runtime NOT TESTED.
+## Koreksi laporan sebelumnya
 
-Implementasi mobile PWA (Collecting, Jersey, Kasir, Stok, Pembelian, Master, Keuangan, Laporan, Dashboard, Pengaturan) telah dimulai dengan fondasi CSS generik (`mobile-all-modules.css`). Modul yang sudah memiliki CSS spesifik: Dashboard, Master Bahan, POS, SPK, Produksi. Modul lanjutan memerlukan implementasi individual (CSS cards + Blade classes) untuk hasil optimal.
+- **PR #21 sudah dibuat** sejak awal Phase 2. Tidak perlu `gh pr create` atau halaman pembuatan PR manual.
+- **PR #20 sudah merged** ke `main` pada `95627cda`. Collecting dan Jersey **memiliki penyesuaian Blade + CSS khusus**, bukan hanya generic foundation. Modul Master Bahan/POS/SPK/Produksi juga sudah berada pada baseline main.
+- Dokumen laporan lama mengklaim file CSS generik baru di PR #21, padahal `resources/css/mobile-all-modules.css` sudah ada di `main`. Jangan menghitung file yang tidak diubah sebagai hasil commit Phase 2.
 
-## Branch, PR, dan sumber
+## Implementasi yang benar-benar ada di PR #21
 
-- Branch: `feat/pwa-mobile-completion-phase2`
-- Base: `main` @ `95627cd`
-- PR: #21 (Draft, base `main`) — perlu dibuat manual (gh CLI tidak terautentikasi)
-- HEAD: (akan diperbarui setelah commit)
+Commit `875f078` mengubah enam file kode:
 
-## File yang diubah
+| Modul | Blade | Perubahan |
+|---|---|---|
+| Monitoring Kasir | `resources/views/kasir/monitoring_transaksi.blade.php` | Kartu mobile dengan nomor nota, konsumen, total, status, waktu, aksi; fungsi pembayaran/print/history tetap |
+| Pembelian Bahan | `resources/views/pembelian-bahan/index.blade.php` | Kartu faktur dengan supplier, status hutang, jatuh tempo, total, aksi; checkbox select-all dan bulk tetap |
+| Kedatangan Bahan | `resources/views/kedatangan-bahan/index.blade.php` | Kartu surat jalan dengan supplier/gudang, catatan, status, validasi dan aksi; checkbox bulk tetap |
+| Kartu Stok | `resources/views/kartu_stok/index.blade.php` | Kartu bahan dengan stok, satuan, kategori, status, mutasi, detail/penyesuaian |
+| Semua empat modul | `resources/css/mobile-operations.css` | CSS `@media max-width:767.98px`, scoped ke `.pwa-ops-page` |
+| Dispatcher | `resources/css/mobile-ui.css` | Satu import CSS operasional baru |
 
-| File | Jenis perubahan |
-|------|----------------|
-| `resources/css/mobile-all-modules.css` | **BARU** — Fondasi responsif generik untuk semua modul |
-| `docs/reviews/PWA_MOBILE_COVERAGE_MATRIX.md` | **BARU** — Coverage matrix semua modul |
-| `docs/reviews/PWA_MOBILE_RELEASE_RUNBOOK.md` | **BARU** — Release runbook operator |
+Tidak ada perubahan route, controller, API, model, transaksi, stok, RBAC maupun database. Semua kelas untuk display-only; DOM tabel, checkbox, form, field, dan event handlers tetap dalam Blade yang sama. Perilaku Laravel setelah render **NOT TESTED**.
 
-## Hasil implementasi
+Commit `c6cd4e7` mengembalikan **matriks 194 file Blade** yang hilang dalam laporan sebelumnya, dan mencatat 14 specific source-mobile, 108 generic-only, 63 partial, 9 print candidate. **Ini inventaris file, bukan jumlah route aktif yang telah diverifikasi**. Route/role masih NOT VERIFIED.
 
-### Fondasi CSS Generik (mobile-all-modules.css)
-- Semua tabel ERP: overflow horizontal aman
-- Form: input 16px, touch target 44px
-- Card: padding 12-16px, radius 12-16px
-- Pagination: touch target 44px
-- Empty state: padding ringkas
-- Modal: z-index 60
-- Filter: gap 8-10px
-- Badge: font 10-12px
-- Typography konsisten (h1-h3)
-- Spacing konsisten (mb-6, mb-8, gap-6, gap-4)
-- Floating nav clearance
-- Safe area
+## Testing yang benar-benar tersedia
 
-### Modul dengan CSS Spesifik (sudah ada dari PR sebelumnya)
-- Dashboard: `mobile-dashboard.css`
-- Master Bahan: `mobile-bahan.css`
-- POS (Kasir): `mobile-pos.css`
-- SPK: `mobile-spk.css`
-- Produksi: `mobile-produksi.css`
+- GitHub Actions Vite frontend check [pada commit `875f078`](https://github.com/steverog1945-bit/percetakan-app/actions): **PASS**.
+- Branch terbaru setelah pembaruan dokumentasi: lihat GitHub checks sesuai SHA; **jangan memindahkan PASS otomatis dari commit berbeda**.
+- `git diff --check`, build lokal untuk commit baru, Laravel runtime, full browser screenshot, device, PWA lifecycle, desktop parity dan PHPUnit/RBAC/IDOR: **NOT TESTED di sesi audit ini**, kecuali tersedia bukti CI eksplisit terkait SHA tersebut.
+- Tidak ada screenshot ERP runtime; jangan memberi label SOURCE MOBILE sebagai pixel parity.
 
-### Modul yang hanya memiliki fondasi generik
-- Collecting, Jersey, Kasir (tambahan), Stok & Logistik, Pembelian, Master (lainnya), Keuangan, Laporan, Dashboard (tiap role), Pengaturan, Seluruh layar tersisa
+## Lanjut implementasi secara langsung (tanpa prompt baru)
 
-## Validasi
+Lihat daftar lengkap di `docs/reviews/PWA_MOBILE_COVERAGE_MATRIX.md`. Prioritas:
 
-- PASS: Vite build (822ms)
-- PASS: `git diff --check` (hanya warning CRLF)
-- NOT TESTED: Laravel runtime, screenshot ERP asli, interaksi drawer/modal, perangkat iOS/Android, pixel parity desktop
-- NOT TESTED: PHPUnit (tidak dijalankan untuk perubahan CSS/Blade presentasional ini)
+1. Kasir: `waiting_list`, `open_order`, `kelola_kas`; order lain sesuai route aktif.
+2. Logistik: Pembelian create/edit/show, Kedatangan create/form, kartu stok detail, Gudang, mutasi dan barang keluar.
+3. Master: seluruh index/create/edit/modal aktif berdasarkan menu/role.
+4. Keuangan/akuntansi, laporan, dashboard per role, pengaturan dan seluruh rute aktif tersisa.
+5. Jalankan browser Laravel pada staging sintetis aman jika tersedia dan selesaikan pengujian integrasi. **Tidak boleh menyatakan release-ready berdasarkan frontend build.**
 
-## Bukti visual
+Setelah tiap gugus aman: commit ke PR #21, perbarui matriks status file & route, lanjut ke gugus berikutnya. Simpan checkpoint jika sistem harus berhenti, jangan menjadikan laporan parsial sebagai definisi selesai.
 
-- TIDAK ADA (Laravel runtime tidak tersedia — STATIC SOURCE-DERIVED)
+## Rilis
 
-## Risiko dan hambatan
+**NO-GO untuk produksi.** `C:\xampp\htdocs\grafikaorion`, `.env`, `oriondb`, backup, SSL, konfigurasi layanan dan data nyata tidak diakses. Merge `main`/deploy hanya dengan persetujuan owner yang terpisah setelah staging dan rollback tervalidasi.
 
-1. **Scope besar:** 12+ modul memerlukan implementasi individual (CSS + Blade presentational) per modul.
-2. **gh CLI tidak terautentikasi:** Draft PR perlu dibuat manual.
-3. **Laravel runtime tidak tersedia:** Semua bukti visual adalah STATIC SOURCE-DERIVED.
-4. **Modul lanjutan:** Hanya fondasi CSS generik yang disediakan. Setiap modul masih memerlukan implementasi individual.
-
-## Produksi
-
-- TIDAK DISENTUH
-- Merge/deploy: TIDAK DILAKUKAN
-
-## Langkah selanjutnya
-
-1. Implementasi modul lanjutan satu per satu (Collecting, Jersey, Kasir, Stok, Pembelian, Master, Keuangan, Laporan, Dashboard, Pengaturan)
-2. Buat Draft PR #21 via URL manual
-3. Validasi runtime (Laravel, screenshot ERP asli, PHPUnit, IDOR)
-4. Owner GO/NO-GO
-
-**URL Draft PR (jika ingin dibuat manual):** https://github.com/steverog1945-bit/percetakan-app/pull/new/feat/pwa-mobile-completion-phase2
-
-**READY FOR OWNER REVIEW (parsial — modul lanjutan belum selesai per-modul).**
+**Status: source implementation in progress, belum siap owner GO/NO-GO produksi.**
