@@ -2,9 +2,18 @@
 
 ## Mandat khusus PR #20 — eksekusi semua modul (prioritas tertinggi)
 
+## Checkpoint permanen: lanjut langsung dari matriks (26 Oktober 2026)
+
+**READ FIRST:** `docs/reviews/PWA_MOBILE_COVERAGE_MATRIX.md`. Inventory awal: 194 Blade files = 10 source-specific mobile (NOT TESTED), 112 generic only / still UI TODO, 63 partial/components, 9 print views to validate. Ini **file inventory**, bukan hitungan route aktif atau kelulusan uji. Tugas berikutnya adalah **menyelesaikan UI nyata untuk semua route aktif** dari 112 generic, dimulai kasir tambahan, pembelian, gudang/stok, master lainnya, keuangan/laporan, lalu dashboard/setting; tandai tiap screen di matriks, bukan mengulang Master/POS/SPK/Produksi/Collecting/Jersey.
+
+- CI frontend dari `.github/workflows/mobile-pwa-build.yml` telah ditambahkan; GitHub Actions push run `d16011f` sudah PASS untuk Vite build. CI **bukan** tes Laravel, UI visual, transaksi, role, PWA runtime.
+- **JANGAN** mengakhiri sesi dengan "SELESAI (PARSIAL)" bila modul masih bisa diimplementasikan. Simpan checkpoint pada dokumen dan lanjut ke layar berikutnya selama sesi yang sama. Jika alat/runtime membatasi, laporkan hambatan spesifik beserta status NOT TESTED/BLOCKED tanpa menciptakan klaim selesai.
+- PR #20 **sudah ada**, bukan untuk dibuat ulang: https://github.com/steverog1945-bit/percetakan-app/pull/20. Jangan merge ke `main` atau deploy ke produksi tanpa GO operator+owner setelah staging dan rollback diuji.
+
+
 **Hanya ketika bekerja untuk Issue #16 dan PR #20**, gunakan branch `integration/pwa-mobile-all-modules`. Kontrak otoritatif: `docs/reviews/PWA_MOBILE_ONE_PASS_EXECUTION.md`. PR #20 sudah tersedia; **jangan membuat PR baru per modul**. Instruksi umum di bawah yang mengatur branch/module per-task tidak boleh dipakai untuk menghentikan pengerjaan satu-paket ini.
 
-- Status integrasi remote per 26 Oktober 2026: Master Bahan #15, POS #18, SPK #19, dan Produksi Phase 4 sudah digabung pada branch integrasi melalui commit `3f6acc0`, **bukan ke `main`**. Lakukan `git fetch` dan verifikasi HEAD terbaru; jangan ulangi merge yang sudah ada. Tidak perlu membuat PR Produksi tersendiri untuk jalur one-pass.
+- **Status Git terbaru:** PR #15 Master Bahan dan #18 POS telah merged ke `main`; SPK #19 belum merged ke `main`, tetapi kode SPK dan Produksi sudah tergabung di branch #20. Collecting serta Jersey index/create/edit/keuangan sudah memiliki perubahan scoped pada branch #20. Lakukan `git fetch` dan verifikasi HEAD terbaru; **jangan mengulang merge**, membuat PR #20 lagi, atau menganggap generic CSS sebagai implementasi seluruh modul. Tidak perlu PR Produksi terpisah.
 - **Berhenti mengirim "Laporan Final — SELESAI (PARSIAL)" setiap kali satu kelompok modul selesai.** Commit internal per kelompok boleh, tetapi lanjut otomatis ke kelompok berikutnya. Jika kehabisan konteks atau alat, tinggalkan checkpoint resume rinci di dokumen integrasi dengan modul DONE/PENDING/BLOCKED, SHA, langkah eksekusi berikut; jangan mengklaim seluruh PWA selesai.
 - Prioritas implementasi **tanpa audit lama berulang**: Collecting → Jersey → Kasir tambahan/Logistik/Pembelian/Stok → semua Master → Keuangan/Laporan → Dashboard/Setting → layar aktif lain yang belum tercakup. Ikuti menu/routes/view aktif, bukan hanya nama modul dalam daftar.
 - Setelah tiap kelompok, verifikasi build aman, pemeriksaan whitespace, perubahan desktop, status role/action, screenshots dari source yang benar. Simpan ketidakmampuan menjalankan Laravel/DB sintetis sebagai NOT TESTED dan lanjut ke pekerjaan UI lain yang tetap aman.
