@@ -2,7 +2,7 @@
 
 **Sumber bukti (nyata, runtime):** Laravel staging terisolasi `http://127.0.0.1:8217` — database sintetis `orion_pwa_staging_pr21` (bukan `oriondb` produksi), CSS Vite final (`resources/css/app.css` → `public/build/assets/app-*.css`), browser Chromium asli dengan viewport iframe 320/390/430/1366px. Semua gambar disimpan di `docs/reviews/assets/pwa-mobile-phase2/`. Bukan mockup, bukan HTML statis.
 
-**Kredensial staging (sintetis):** `admin / admin123` (role Administrator), `kasir / kasir123` (role Operator Produksi). Data fixture: `StagingFixtureSeeder` (4 karyawan, 4 user, 4 bahan baku, 3 produk, 4 konsumen, 2 supplier, 5 transaksi, 3 pembelian + 3 kedatangan, 4 kartu stok, 1 sesi kas open).
+**Data fixture sintetis:** `StagingFixtureSeeder` (4 karyawan, 4 user, 4 bahan baku, 3 produk, 4 konsumen, 2 supplier, 5 transaksi, 3 pembelian + 3 kedatangan, 4 kartu stok, 1 sesi kas open).
 
 ## Daftar screenshot
 

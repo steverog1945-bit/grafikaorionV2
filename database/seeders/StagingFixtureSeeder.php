@@ -16,6 +16,17 @@ class StagingFixtureSeeder extends Seeder
 {
     public function run(): void
     {
+        // Hard fail closed: this fixture mutates database tables and role permissions.
+        // Running it on any database other than the dedicated disposable PR21
+        // staging database is forbidden, even when --force was used.
+        $database = DB::connection()->getDatabaseName();
+        if (app()->environment('production') || $database !== 'orion_pwa_staging_pr21') {
+            throw new \RuntimeException(
+                'StagingFixtureSeeder may only run on isolated orion_pwa_staging_pr21; current database: '
+                . ($database ?: '[unknown]')
+            );
+        }
+
         // ---------- Karyawan ----------
         if (DB::table('karyawan')->count() === 0) {
             DB::table('karyawan')->insert([
@@ -247,17 +258,3 @@ class StagingFixtureSeeder extends Seeder
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
