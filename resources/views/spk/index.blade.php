@@ -31,6 +31,13 @@
                     placeholder="Nama file, konsumen, atau nomor nota..." />
             </div>
 
+            <button type="button" id="spk-filter-toggle" class="spk-filter-btn inline-flex items-center gap-2 min-h-[44px] px-4 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" onclick="toggleSpkFilter(this)" aria-expanded="false">
+                <i class="fas fa-sliders-h"></i>
+                <span>Filter</span>
+                <i class="fas fa-chevron-down spk-filter-chevron text-[10px] opacity-70"></i>
+            </button>
+
+            <div id="spk-filter-panel" class="spk-filter-panel w-full">
             {{-- Kolom tanggal memakai nilai default dari controller ketika form belum diisi,
                  sama seperti halaman laporan dan akuntansi. Sebelumnya view
                  menulis request('tgl_dari') ?? '' sehingga server menyaring
@@ -74,6 +81,7 @@
                     class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
                 <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Tunggakan Aktif</span>
             </div>
+            </div>{{-- /#spk-filter-panel --}}
 
             <x-button type="submit" class="spk-filter-submit">
                 <i class="fas fa-filter spk-desktop-icon"></i>
@@ -249,6 +257,17 @@
 
 @push('scripts')
 <script>
+    // Presentasi-saja: buka/tutup panel filter di HP (SPK Phase 3 polish).
+    function toggleSpkFilter(tombol) {
+        const panel = document.getElementById('spk-filter-panel');
+        if (!panel) return;
+        const nowVisible = panel.classList.toggle('spk-filter-open');
+        tombol.classList.toggle('spk-filter-open', nowVisible);
+        tombol.setAttribute('aria-expanded', nowVisible ? 'true' : 'false');
+        const chevron = tombol.querySelector('.spk-filter-chevron');
+        if (chevron) chevron.style.transform = nowVisible ? 'rotate(180deg)' : '';
+    }
+
     const checkAll = document.getElementById('checkAll');
     const checkboxes = document.querySelectorAll('.row-checkbox');
     const bulkBtn = document.getElementById('btn-bulk-urgent');
