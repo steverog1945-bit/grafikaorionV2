@@ -7,7 +7,7 @@
         "font-family": "Inter, sans-serif",
         "font-size": "16px",
         "font-weight": "400",
-        "line-height": "22.8571px",
+        "line-height": "23.2px",
         "height": "38px"
       },
       "label": {
@@ -17,19 +17,11 @@
         "color": "rgb(74, 91, 83)"
       },
       "nativeSelect": {
-        "font-family": "Inter, sans-serif",
-        "font-size": "13px",
-        "font-weight": "400",
-        "height": "38px"
-      },
-      "textInput": {
-        "font-family": "Inter, sans-serif",
         "font-size": "16px",
         "font-weight": "400",
         "height": "38px"
       },
       "tableHeader": {
-        "font-family": "Inter, sans-serif",
         "font-size": "13px",
         "font-weight": "500"
       }
@@ -43,7 +35,7 @@
         "font-family": "Inter, sans-serif",
         "font-size": "16px",
         "font-weight": "400",
-        "line-height": "22.8571px",
+        "line-height": "23.2px",
         "height": "38px"
       },
       "label": {
@@ -53,19 +45,11 @@
         "color": "rgb(74, 91, 83)"
       },
       "nativeSelect": {
-        "font-family": "Inter, sans-serif",
-        "font-size": "13px",
-        "font-weight": "400",
-        "height": "38px"
-      },
-      "textInput": {
-        "font-family": "Inter, sans-serif",
         "font-size": "16px",
         "font-weight": "400",
         "height": "38px"
       },
       "tableHeader": {
-        "font-family": "Inter, sans-serif",
         "font-size": "13px",
         "font-weight": "500"
       }
@@ -79,7 +63,7 @@
         "font-family": "Inter, sans-serif",
         "font-size": "16px",
         "font-weight": "400",
-        "line-height": "22.8571px",
+        "line-height": "23.2px",
         "height": "38px"
       },
       "label": {
@@ -89,19 +73,11 @@
         "color": "rgb(74, 91, 83)"
       },
       "nativeSelect": {
-        "font-family": "Inter, sans-serif",
-        "font-size": "13px",
-        "font-weight": "400",
-        "height": "38px"
-      },
-      "textInput": {
-        "font-family": "Inter, sans-serif",
         "font-size": "16px",
         "font-weight": "400",
         "height": "38px"
       },
       "tableHeader": {
-        "font-family": "Inter, sans-serif",
         "font-size": "13px",
         "font-weight": "500"
       }
@@ -115,7 +91,7 @@
         "font-family": "Inter, sans-serif",
         "font-size": "16px",
         "font-weight": "400",
-        "line-height": "22.8571px",
+        "line-height": "23.2px",
         "height": "38px"
       },
       "label": {
@@ -125,19 +101,11 @@
         "color": "rgb(74, 91, 83)"
       },
       "nativeSelect": {
-        "font-family": "Inter, sans-serif",
-        "font-size": "13px",
-        "font-weight": "400",
-        "height": "38px"
-      },
-      "textInput": {
-        "font-family": "Inter, sans-serif",
         "font-size": "16px",
         "font-weight": "400",
         "height": "38px"
       },
       "tableHeader": {
-        "font-family": "Inter, sans-serif",
         "font-size": "13px",
         "font-weight": "500"
       }
@@ -151,7 +119,7 @@
         "font-family": "Inter, sans-serif",
         "font-size": "14px",
         "font-weight": "400",
-        "line-height": "20px",
+        "line-height": "20.3px",
         "height": "38px"
       },
       "label": {
@@ -161,19 +129,11 @@
         "color": "rgb(74, 91, 83)"
       },
       "nativeSelect": {
-        "font-family": "Inter, sans-serif",
-        "font-size": "13px",
-        "font-weight": "400",
-        "height": "38px"
-      },
-      "textInput": {
-        "font-family": "Inter, sans-serif",
         "font-size": "14px",
         "font-weight": "400",
         "height": "38px"
       },
       "tableHeader": {
-        "font-family": "Inter, sans-serif",
         "font-size": "13px",
         "font-weight": "500"
       }
@@ -187,7 +147,7 @@
         "font-family": "Inter, sans-serif",
         "font-size": "14px",
         "font-weight": "400",
-        "line-height": "20px",
+        "line-height": "20.3px",
         "height": "38px"
       },
       "label": {
@@ -197,19 +157,11 @@
         "color": "rgb(74, 91, 83)"
       },
       "nativeSelect": {
-        "font-family": "Inter, sans-serif",
-        "font-size": "13px",
-        "font-weight": "400",
-        "height": "38px"
-      },
-      "textInput": {
-        "font-family": "Inter, sans-serif",
         "font-size": "14px",
         "font-weight": "400",
         "height": "38px"
       },
       "tableHeader": {
-        "font-family": "Inter, sans-serif",
         "font-size": "13px",
         "font-weight": "500"
       }
@@ -223,7 +175,7 @@
         "font-family": "Inter, sans-serif",
         "font-size": "14px",
         "font-weight": "400",
-        "line-height": "20px",
+        "line-height": "20.3px",
         "height": "38px"
       },
       "label": {
@@ -233,19 +185,11 @@
         "color": "rgb(74, 91, 83)"
       },
       "nativeSelect": {
-        "font-family": "Inter, sans-serif",
-        "font-size": "13px",
-        "font-weight": "400",
-        "height": "38px"
-      },
-      "textInput": {
-        "font-family": "Inter, sans-serif",
         "font-size": "14px",
         "font-weight": "400",
         "height": "38px"
       },
       "tableHeader": {
-        "font-family": "Inter, sans-serif",
         "font-size": "13px",
         "font-weight": "500"
       }

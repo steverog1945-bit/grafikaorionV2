@@ -13,7 +13,7 @@
         "weight": "500"
       },
       "select": {
-        "size": "13px"
+        "size": "16px"
       }
     }
   },
@@ -31,7 +31,7 @@
         "weight": "500"
       },
       "select": {
-        "size": "13px"
+        "size": "14px"
       }
     }
   }

@@ -10,6 +10,7 @@ yang tersimpan di `docs/reviews/assets/pwa-mobile-typography/`.
 |---|---|
 | Branch | `fix/form-filter-month-typography` |
 | Base commit (main, sebelum PR) | `b9aaec5` |
+| Implementasi tipografi | Kode existing PR #22 (`02ed233`, `0f9a52f`) — dipakai ulang, bukan dibuat ulang |
 | Route | `GET /kasir/monitoring` → `kasir.index` |
 | Halaman | Monitoring Kasir (filter disubmit: `tgl_mulai=2026-10-01&tgl_selesai=2026-10-31&status_filtered=1`) |
 | Role uji (sintetis) | `kasir` (Operator Produksi) |
@@ -66,23 +67,21 @@ Sumber: `computed-before.json`, `computed-after.json`, `computed-styles.json`.
 | Input font-family | Font Theme Manager | Inter | Inter | Inter | Inter | PASS |
 | Label font-size | 13px | 13px | 13px | 13px | 13px | PASS |
 | Label font-weight | 500 | 500 | 500 | 500 | 500 | PASS |
-| Select font-size | (dropdown) 13px | 13px | 13px | 13px | 13px | PASS |
+| Select font-size | 16 mobile / 14 desktop | 13px (base) | 16px | 13px (base) | 14px | PASS |
 | Table header | 13px / 500 | 13/500 | 13/500 | 13/500 | 13/500 | PASS |
 
 ## Root cause & perbaikan
 
-1. Sebelumnya tidak ada lapisan tipografi form terpusat; ukuran input mengikuti
-   token `.text-sm` Theme Manager (13px) sehingga input desktop menyimpang dari
-   standar 14px.
-2. `form-typography.css` baru menormalkan: input 14px desktop / 16px mobile,
-   label 13px/500, bobot input 400, line-height konsisten, touch target 44px,
-   Select2/modal/chip seragam. Semua override mobile di dalam
-   `@media screen and (max-width: 767.98px)`.
-3. Input filter memakai selector ber-spesifisitas cukup (`.pwa-ops-page
-   .pwa-ops-filter-form input…`) agar menang atas pemetaan `.text-sm` tanpa
-   `!important` masal.
-4. Field nominal pembayaran sengaja lebih besar (16px desktop / 18px mobile).
-5. Native date/month picker tetap mekanisme browser (tidak diganti).
+1. Sebelumnya ukuran kontrol mengikuti token `.text-sm` Theme Manager (13px)
+   sehingga input/select desktop menyimpang dari standar 14px.
+2. `resources/css/form-typography.css` (implementasi existing PR #22) menormalkan
+   seluruh `input/select/textarea` menjadi 14px desktop / 16px mobile lewat
+   variabel `--erp-form-control-size`, label 13px/500, bobot 400, line-height
+   1.45, serta mengatur Select2 dan `::-webkit-datetime-edit`. Field yang
+   sengaja besar dikecualikan (`:not(.text-lg)` / `data-typography-preserve`).
+3. Import dipastikan berada di posisi valid (setelah `mobile-ui.css`), bukan di
+   akhir file, dan `mobile-ui.css` tetap terimpor sehingga CSS mobile PWA utuh.
+4. Native date/month picker tetap mekanisme browser (tidak diganti).
 
 ## Catatan / residual
 
