@@ -37,3 +37,29 @@
  .jersey-mobile-form-page #preview-total-order{font-size:22px;font-variant-numeric:tabular-nums}
  .jersey-mobile-form-page #jersey-order-form button[type="submit"]{min-height:48px}
 }
+
+/* Jersey finance listing: keep amounts visible as aligned, role-controlled values. */
+@media screen and (max-width:767.98px){
+ .jersey-mobile-finance-page{padding:16px 12px calc(130px + env(safe-area-inset-bottom,0px))}
+ .jersey-mobile-finance-page .text-2xl{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+ .jersey-finance-mobile-table-shell,.jersey-finance-mobile-table-shell .modern-table-wrapper{width:100%;min-width:0;overflow:visible;border:0;box-shadow:none;background:transparent}
+ .jersey-finance-mobile-table,.jersey-finance-mobile-table tbody{display:block;min-width:0;width:100%}
+ .jersey-finance-mobile-table thead{display:none}
+ .jersey-finance-mobile-table tbody tr.jersey-finance-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"order order" "customer customer" "remain remain" "total paid" "status deadline" "date date" "action action";gap:10px 12px;margin-bottom:10px;padding:13px 12px;border:1px solid var(--brand-surface-border,var(--border-primary));border-radius:14px;background:var(--brand-surface-primary,var(--surface-primary));box-shadow:0 3px 12px rgb(15 23 42 / 4%)}
+ .jersey-finance-mobile-table .jersey-finance-row>td{display:block;min-width:0;width:auto;padding:0;border:0;text-align:left;overflow-wrap:anywhere;white-space:normal;font-size:13px;line-height:1.35}
+ .jersey-finance-mobile-table .jersey-finance-row>td::before{content:attr(data-label);display:block;margin-bottom:3px;color:var(--brand-surface-text_tertiary,var(--text-tertiary));font-size:11px;font-weight:600}
+ .jersey-finance-mobile-table .jersey-finance-sequence{display:none!important}
+ .jersey-finance-mobile-table .jersey-finance-order{grid-area:order;font-size:14px;font-weight:700}
+ .jersey-finance-mobile-table .jersey-finance-date{grid-area:date}
+ .jersey-finance-mobile-table .jersey-finance-customer{grid-area:customer}
+ .jersey-finance-mobile-table .jersey-finance-total{grid-area:total;font-variant-numeric:tabular-nums}
+ .jersey-finance-mobile-table .jersey-finance-paid{grid-area:paid;font-variant-numeric:tabular-nums}
+ .jersey-finance-mobile-table .jersey-finance-remain{grid-area:remain;font-weight:700;font-variant-numeric:tabular-nums}
+ .jersey-finance-mobile-table .jersey-finance-deadline{grid-area:deadline}
+ .jersey-finance-mobile-table .jersey-finance-status{grid-area:status}
+ .jersey-finance-mobile-table .jersey-finance-action{grid-area:action;padding-top:9px!important;border-top:1px solid var(--brand-surface-border,var(--border-primary))!important}
+ .jersey-finance-mobile-table .jersey-finance-action::before{display:none!important}
+ .jersey-finance-mobile-table .jersey-finance-action>*{display:inline-flex;gap:6px;align-items:center;justify-content:center;min-height:44px;width:auto!important;height:auto!important;padding:0 12px!important}
+ .jersey-finance-mobile-table .jersey-mobile-action-label{display:inline;font-size:12px}
+ .jersey-finance-mobile-table .jersey-finance-empty-row,.jersey-finance-mobile-table .jersey-finance-empty-row td{display:block;width:100%}
+}
