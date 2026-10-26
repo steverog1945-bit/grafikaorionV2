@@ -164,13 +164,36 @@ button,
 
 /* --- FORM FILTER SPECIFIC ---*/
 
-/* Filter form - kasir monitoring */
+/* Filter form - kasir monitoring
+   Input teks/tanggal mengikuti standar tipografi isian: 14px desktop,
+   16px mobile. Select/dropdown tetap 13px (lihat aturan select di atas)
+   supaya tidak mengubah tampilan dropdown secara global. */
 .pwa-ops-filter-form {
     font-size: 13px;
 }
 
-.pwa-ops-filter-form input[type="date"],
-.pwa-ops-filter-form input[type="text"],
+.pwa-ops-page .pwa-ops-filter-form input[type="date"],
+.pwa-ops-page .pwa-ops-filter-form input[type="text"],
+.pwa-ops-page .pwa-ops-filter-form input[type="number"],
+.pwa-ops-page .pwa-ops-filter-form input[type="search"] {
+    font-size: 14px;
+    font-weight: 400;
+    height: 38px;
+    padding: 6px 12px;
+    border: 1px solid #E2EAE4;
+    border-radius: 6px;
+    background-color: #ffffff;
+}
+
+@media screen and (max-width: 767.98px) {
+    .pwa-ops-page .pwa-ops-filter-form input[type="date"],
+    .pwa-ops-page .pwa-ops-filter-form input[type="text"],
+    .pwa-ops-page .pwa-ops-filter-form input[type="number"],
+    .pwa-ops-page .pwa-ops-filter-form input[type="search"] {
+        font-size: 16px;
+    }
+}
+
 .pwa-ops-filter-form select,
 .pwa-ops-filter-form select.select2-filter {
     font-size: 13px;
@@ -200,11 +223,12 @@ button,
 
 /* --- PAYMENT FIELD NOMINAL ---*/
 
-/* Field nominal pembayaran - tetap berukuran besar */
+/* Field nominal pembayaran - SENGAJA lebih besar dari isian biasa
+   (16px desktop / 18px mobile), supaya angka uang tetap menonjol. */
 .input-uang,
 input[name*="uang"],
 input[name*="nominal"] {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 400;
     padding: 8px 12px;
     border: 1px solid var(--border-primary);
@@ -215,7 +239,7 @@ input[name*="nominal"] {
     .input-uang,
     input[name*="uang"],
     input[name*="nominal"] {
-        font-size: 16px;
+        font-size: 18px;
         padding: 10px 14px;
     }
 }
