@@ -1,6 +1,17 @@
 # AGENTS.md — Orion Grafika ERP
 
-## Mandat khusus PR #20 — eksekusi semua modul (prioritas tertinggi)
+## AKTIF — PWA Mobile Phase 2: setelah PR #20 merged (26 Oktober 2026)
+
+**PR #20 TELAH MERGED KE `main` pada commit `95627cda`.** Semua instruksi di bawah yang menyebut PR #20 sebagai Draft, `integration/pwa-mobile-all-modules` sebagai branch aktif, atau PR #15/#18 perlu di-merge **sudah usang** dan tidak boleh dilaksanakan lagi.
+
+**Single active continuation:** `feat/pwa-mobile-completion-phase2` dari latest `origin/main`. **Draft PR lanjutan sudah dibuat** (gunakan PR yang ada, jangan membuat PR per modul). Kontrak prioritas: `docs/reviews/PWA_MOBILE_COMPLETION_PHASE2.md`. Wajib perbarui `docs/reviews/PWA_MOBILE_COVERAGE_MATRIX.md` dari source `main` terbaru sebab tag lama pre-date Collecting/Jersey.
+
+**Target:** semua route aktif yang belum memiliki penyesuaian mobile khusus, meliputi Kasir, Pembelian, Gudang/Stok, Master, User/Role, Keuangan, Laporan, Pengaturan dan halaman detail/edit/create. Jangan lagi mengimplementasi ulang Master Bahan, POS, SPK, Produksi, Collecting, Jersey yang source-nya sudah merged ke main. Jalankan berkesinambungan, commit per gugus, tanpa prompt per modul dan tanpa laporan "SELESAI PARSIAL" yang menyesatkan.
+
+**Aturan keselamatan tetap:** larangan akses `C:\xampp\htdocs\grafikaorion`, `.env`, `oriondb`, kredensial dan server/backup produksi; tidak boleh merge main/deploy otomatis; hanya data sintetis yang diverifikasi isolasinya untuk tes Laravel. Build frontend bukan bukti siap produksi. Jika konteks agent habis, catat persis checkpoint dan file berikutnya, lalu resume bukan mulai ulang.
+
+
+## ARSIP HISTORIS — mandat PR #20 (sudah merged; tidak aktif)
 
 ## Checkpoint permanen: lanjut langsung dari matriks (26 Oktober 2026)
 
