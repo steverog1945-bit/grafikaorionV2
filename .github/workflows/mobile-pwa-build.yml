@@ -1,0 +1,59 @@
+name: Mobile PWA UI — build safety
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/css/**'
+      - 'resources/js/**'
+      - 'resources/views/**'
+      - 'vite.config.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/mobile-pwa-build.yml'
+  push:
+    branches:
+      - 'integration/pwa-mobile-all-modules'
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-build:
+    name: Vite bundle without ERP secrets or database
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Check merge diff whitespace
+        shell: bash
+        run: |
+          git diff --check HEAD^ HEAD
+
+      - name: Install frontend dependencies without install scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Build Vite assets
+        run: npm run build
+
+      - name: Verify hashed Vite manifest exists
+        shell: bash
+        run: |
+          test -s public/build/manifest.json
+          grep -q '"resources/css/app.css"' public/build/manifest.json
+          grep -q '"resources/js/app.js"' public/build/manifest.json
+
+# Frontend-only preflight; DOES NOT prove Laravel runtime, RBAC, transactions,
+# PWA installability, desktop visual parity, or production release readiness.
+# Does not read .env or run migrations, artisan, phpunit or any database action.

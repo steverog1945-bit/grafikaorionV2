@@ -3,7 +3,7 @@
 @section('content')
 @include('partials.rupiah-format-script')
 @include('partials.image-compress-script')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] mx-auto">
+<div class="jersey-mobile-form-page w-full px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] mx-auto">
 
     <x-page-header title="Pesanan Jersey Baru" subtitle="Satu order bisa berisi beberapa jenis barang sekaligus (Jersey, Celana, Sublime lainnya, dst)." />
 

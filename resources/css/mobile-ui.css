@@ -21,3 +21,9 @@
 @import "./mobile-nav.css";         /* Fase 3 - navigasi bawah HP */
 @import "./mobile-erp.css";         /* Fondasi responsif lintas modul ERP */
 @import "./mobile-pos.css";         /* Fase 2 - POS dan pembayaran */
+@import "./mobile-spk.css";         /* Fase 3 - work queue SPK */
+@import "./mobile-produksi.css";    /* Fase 4 - work queue Produksi */
+
+@import "./mobile-all-modules.css";    /* Fase 5 - all modules responsive */
+@import "./mobile-collecting.css";      /* Fase 6 - pengambilan mobile */
+@import "./mobile-jersey.css";          /* Fase 6 - pesanan jersey mobile */

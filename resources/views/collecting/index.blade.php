@@ -1,9 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-@php $bisaUbah = \App\Support\Izin::boleh(auth()->user(), [24], 'edit'); @endphp
+@php
+    $bisaUbah = \App\Support\Izin::boleh(auth()->user(), [24], 'edit');
+    $adaFilterLanjutan = request()->anyFilled(['nomor_nota', 'tgl_dari', 'tgl_sampai', 'status_pengerjaan', 'status_pengambilan']);
+@endphp
 <x-polling-notifikasi :url="route('collecting.cek-antrian-baru')" :jumlah-awal="$jumlahSiapDiambilAwal" pesan="Ada nota baru siap diambil." />
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="collecting-mobile-page w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
     <x-page-header title="Pengambilan">
         <x-slot:subtitle>
@@ -18,13 +21,19 @@
     </x-page-header>
 
     {{-- FILTER --}}
-    <x-card class="mb-6">
-        <form method="GET" action="{{ route('collecting.index') }}" class="flex flex-wrap items-end gap-4">
-            <div class="flex-1 min-w-[220px]">
+    <x-card class="collecting-mobile-filter-card mb-6">
+        <form method="GET" action="{{ route('collecting.index') }}" class="collecting-mobile-filter-form flex flex-wrap items-end gap-4">
+            <div class="collecting-mobile-search flex-1 min-w-[220px]">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Nama Konsumen</label>
                 <x-form.input type="text" name="nama_konsumen" value="{{ request('nama_konsumen') }}" placeholder="Cari konsumen..." />
             </div>
 
+            <button type="button" class="collecting-mobile-filter-toggle" aria-controls="collecting-filter-panel" aria-expanded="{{ $adaFilterLanjutan ? 'true' : 'false' }}" onclick="toggleCollectingFilter(this)">
+                <i class="fas fa-sliders-h" aria-hidden="true"></i> Filter Lanjutan
+                @if($adaFilterLanjutan)<span class="collecting-mobile-filter-active-dot" aria-label="Filter lanjutan aktif"></span>@endif
+                <i class="fas fa-chevron-down collecting-mobile-chevron" aria-hidden="true"></i>
+            </button>
+            <div id="collecting-filter-panel" class="collecting-mobile-filter-panel {{ $adaFilterLanjutan ? 'collecting-filter-open' : '' }}">
             <div class="w-full md:w-52">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Nomor Faktur</label>
                 <x-form.input type="text" name="nomor_nota" value="{{ request('nomor_nota') }}" placeholder="INV-..." />
@@ -60,7 +69,8 @@
                 </x-form.select>
             </div>
 
-            <x-button type="submit">
+            </div>{{-- /#collecting-filter-panel --}}
+            <x-button type="submit" class="collecting-mobile-filter-submit">
                 <i class="fas fa-filter"></i>
                 Filter
             </x-button>
@@ -73,7 +83,7 @@
         </form>
     </x-card>
 
-    <x-table>
+    <x-table wrapperClass="collecting-mobile-table-shell overflow-hidden" class="collecting-mobile-table">
         <thead>
             <tr>
                 <th class="px-4 py-5 text-center w-10">#</th>
@@ -90,18 +100,18 @@
         <tbody class="divide-y divide-slate-50">
             @forelse($collecting as $i => $item)
             @php $lengkap = $item->total_item > 0 && $item->item_kelar == $item->total_item; @endphp
-            <tr class="group hover:bg-slate-50/50 transition-all">
-                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $collecting->firstItem() + $i }}</td>
-                <td class="px-6 py-5">
+            <tr class="collecting-order-row group hover:bg-slate-50/50 transition-all">
+                <td data-label="Urutan" class="collecting-sequence px-4 py-5 text-center text-[11px] text-slate-400">{{ $collecting->firstItem() + $i }}</td>
+                <td data-label="Nomor faktur" class="collecting-invoice px-6 py-5">
                     <span class="text-[13px] font-medium text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $item->nomor_nota }}</span>
                 </td>
-                <td class="px-4 py-5">
+                <td data-label="Konsumen" class="collecting-consumer px-4 py-5">
                     <span class="text-[12px] font-medium text-slate-700 uppercase">{{ $item->nama_konsumen }}</span>
                 </td>
-                <td class="px-4 py-5">
+                <td data-label="Tanggal order" class="collecting-date px-4 py-5">
                     <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->translatedFormat('d M Y') }}</span>
                 </td>
-                <td class="px-4 py-5 text-center">
+                <td data-label="Progres item" class="collecting-progress px-4 py-5 text-center">
                     <div class="inline-flex items-center gap-2">
                         <div class="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div class="h-full {{ $lengkap ? 'bg-emerald-500' : 'bg-amber-400' }}" style="width: {{ $item->total_item > 0 ? round(($item->item_kelar / $item->total_item) * 100) : 0 }}%"></div>
@@ -112,10 +122,10 @@
                         <div class="text-[9px] text-rose-400 mt-1">{{ $item->item_batal }} item dibatalkan</div>
                     @endif
                 </td>
-                <td class="px-4 py-5 text-center">
+                <td data-label="Status bayar" class="collecting-payment px-4 py-5 text-center">
                     <x-badge :status="$item->status_pembayaran" />
                 </td>
-                <td class="px-4 py-5 text-center">
+                <td data-label="Status pekerjaan" class="collecting-work px-4 py-5 text-center">
                     @if($item->status_nota === 'Dibatalkan')
                         <x-badge status="Dibatalkan" variant="danger" />
                     @elseif($lengkap)
@@ -124,7 +134,7 @@
                         <x-badge variant="warning">Belum Lengkap</x-badge>
                     @endif
                 </td>
-                <td class="px-4 py-5 text-center">
+                <td data-label="Pengambilan" class="collecting-pickup px-4 py-5 text-center">
                     @if($item->status_collecting === 'Sudah Diambil')
                         <x-badge variant="success">Sudah Diambil</x-badge>
                         <div class="text-[9px] text-slate-400 mt-1">{{ \Carbon\Carbon::parse($item->tgl_collecting)->translatedFormat('d M Y H:i') }} &middot; {{ $item->diambil_oleh ?? '-' }}</div>
@@ -132,24 +142,24 @@
                         <x-badge variant="info">Belum Diambil</x-badge>
                     @endif
                 </td>
-                <td class="px-8 py-5 text-center">
+                <td data-label="Aksi" class="collecting-actions px-8 py-5 text-center">
                     <div class="flex items-center justify-center gap-2">
                         <x-button href="{{ route('produksi.index', ['konsumen' => $item->nama_konsumen, 'status_produksi' => 'semua']) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Lihat progres di Produksi">
-                            <i class="fas fa-eye text-xs"></i>
+                            <i class="fas fa-eye text-xs"></i><span class="collecting-mobile-action-label">Produksi</span>
                         </x-button>
                         @if($bisaUbah && $item->status_collecting !== 'Sudah Diambil' && $item->status_nota !== 'Dibatalkan')
                             <x-button type="button" size="icon" variant="ghost"
                                 onclick="prosesCollecting('{{ $item->id_transaksi }}', {{ json_encode($item->nomor_nota) }}, {{ $lengkap ? 'true' : 'false' }}, {{ json_encode($item->status_pembayaran) }})"
                                 class="border border-slate-100 {{ $lengkap ? 'hover:text-emerald-600' : 'text-slate-200 cursor-not-allowed' }}"
                                 title="{{ $lengkap ? 'Tandai Sudah Diambil' : 'Belum bisa diproses - masih ada item yang belum selesai' }}">
-                                <i class="fas fa-hand-holding text-xs"></i>
+                                <i class="fas fa-hand-holding text-xs"></i><span class="collecting-mobile-action-label">Serahkan</span>
                             </x-button>
                         @endif
                     </div>
                 </td>
             </tr>
             @empty
-            <tr>
+            <tr class="collecting-empty-row">
                 <td colspan="9">
                     <x-empty-state title="Tidak ada data" description="Sesuaikan filter atau tunggu order baru." />
                 </td>
@@ -164,6 +174,13 @@
 
 @push('scripts')
 <script>
+    function toggleCollectingFilter(button) {
+        const panel = document.getElementById("collecting-filter-panel");
+        if (!panel) return;
+        const opened = panel.classList.toggle("collecting-filter-open");
+        button.setAttribute("aria-expanded", opened ? "true" : "false");
+    }
+
     function prosesCollecting(idTransaksi, nomorNota, sudahLengkap, statusBayar) {
         const belumLunas = statusBayar !== 'Lunas';
         if (!sudahLengkap) {
