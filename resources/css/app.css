@@ -155,9 +155,11 @@
    Diimpor SETELAH ui-refresh.css agar kelas-kelasnya bisa menimpa nilai
    ui-refresh pada viewport sempit tanpa !important masal.
    ========================================================================== */
-@import "./mobile-ui.css";
+@import "./form-typography.css";
 
 /* ==========================================================================
+   FORM TYPOGRAPHY - Orion Grafika ERP
+   ==========================================================================
    DESIGN SYSTEM - ERP PERCETAKAN
    ==========================================================================
    Sebelumnya rule-rule di bawah ini tersebar di 2 blok <style> inline di
