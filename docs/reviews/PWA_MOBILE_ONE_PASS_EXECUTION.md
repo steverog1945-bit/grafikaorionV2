@@ -1,6 +1,17 @@
 # ORION GRAFIKA — SINGLE-RUN MOBILE PWA COMPLETION & RELEASE CANDIDATE
 **Dibuat: 26 Oktober 2026.** Status: **MANDAT PELAKSANAAN**, bukan hasil pengujian dan **bukan izin deploy**.
 
+## Status integrasi terverifikasi — 26 Oktober 2026
+
+**Ini checkpoint implementasi, bukan status selesai.**
+
+- Draft PR integrasi **#20 sudah dibuat**: https://github.com/steverog1945-bit/percetakan-app/pull/20. Tidak perlu `gh pr create` ulang.
+- Master Bahan (#15), SPK (#19), dan Produksi Phase 4 telah ditambahkan oleh OpenCode sebelumnya ke branch integrasi. POS (#18) yang tertinggal telah **diintegrasikan ke branch integrasi** pada commit merge `3f6acc0`; `resources/css/mobile-ui.css` kini mengimpor **POS + SPK + Produksi**, tanpa menghapus lapisan Master dan theme.
+- `AGENTS.md` diperbarui pada commit `c79ea17` agar mode #20 berjalan sekali sampai seluruh modul tercakup, tidak berhenti untuk mengirim laporan "final parsial" tiap modul.
+- **Tidak dibutuhkan PR Produksi yang terpisah** untuk jalur one-pass karena source sudah berada dalam #20. Jangan membuat PR baru untuk Collecting/Jersey/dll.
+- Modul berikutnya: **Collecting → Jersey → Kasir tambahan/Logistik/Pembelian/Stok → seluruh Master → Keuangan/Laporan → Dashboard/Setting dan seluruh layar aktif tersisa**. Penyelesaian visual source masing-masing tidak boleh disebut runtime PASS sampai benar-benar diuji.
+- Kode integrasi terbaru belum menjalani build/tes runtime setelah commit penggabungan POS. **VALIDASI AKHIR: NOT TESTED**, rilis produksi tetap NO-GO. OpenCode harus `git fetch origin` lalu sync tanpa membuang pekerjaan lokal sebelum melanjutkan.
+
 ## Instruksi final: sekali jalan, tidak meminta prompt modul demi modul
 
 OpenCode harus bekerja secara mandiri dalam **satu rangkaian pengerjaan yang berkesinambungan**, menyelesaikan modul sampai cakupan selesai, lalu memberi **satu laporan akhir**. Jangan berulang kali mengaudit modul yang sudah selesai, menulis proposal, meminta owner mengulang prompt, membangun clone lain yang tidak perlu, atau menghentikan proses hanya untuk mengatakan satu modul selesai. Progres internal boleh menggunakan commit per gugus modul, bukan percakapan baru. Jika ada blocker substantif, kerjakan modul independen yang masih aman sambil mendokumentasikan blocker; **jangan menciptakan bukti PASS**.
