@@ -1,8 +1,39 @@
 # ORION GRAFIKA — Mobile Visual Final Evidence
 
-## Hasil akhir
+## Status Terbaru (26 Oktober 2026 — setelah polish 6f67fab)
 
-**FAIL — bukti terbaru belum memenuhi visual fidelity pada semua pemeriksaan.** Perbandingan mandiri owner-vs-hasil 390×844 CSS px dan screenshot hasil 320×844 CSS px tersimpan di PR. Pada preview, beberapa nama/SKU terpotong, dan floating nav menutupi bagian kartu terakhir di viewport 390 px. Tidak ada perubahan kode produk karena permintaan ini adalah bukti/review, bukan redesign.
+**Status: PARSIAL — CSS polish diterapkan, bukti visual ERP asli TIDAK TERSEDIA.**
+
+Perubahan CSS terakhir (`6f67fab`) telah diterapkan dan di-build dengan Vite. Bukti visual berikut adalah **STATIC SOURCE-DERIVED PREVIEW** berdasarkan Blade source + CSS bundle Vite final. Bukan Blade yang dirender Laravel, bukan ERP live, bukan data aplikasi.
+
+### Hasil terbaru (berdasarkan CSS commit 6f67fab)
+
+| Area | Status | Keterangan |
+|---|---|---|
+| Nama material & SKU | DIPERBAIKI | Name sekarang max 2 baris (line-clamp), SKU 12px dengan ellipsis |
+| Badge Aktif | DIPERBAIKI | Padding 4px 10px, font 11px (sebelumnya 3px 8px / 10px) |
+| Tombol Rincian | DIPERBAIKI | Padding 4px 10px (sebelumnya 3px 8px) |
+| Font & line-height | DIPERBAIKI | Name 14px/600/1.3, SKU 12px/400/1.3, konsisten |
+| Kartu ringkas | DIPERBAIKI | Row gap 4px, grid rows auto (menyesuaikan konten) |
+| Floating nav clearance | DIPERBAIKI | 96px → 120px (mencegah item terakhir tertutup) |
+| Horizontal overflow | PASS (fixture) | 390px dan 320px scroll width = viewport |
+| Vite build | PASS | 930ms, tanpa error |
+| git diff --check | PASS | Tanpa whitespace error |
+
+### Bukti lama (FAIL) — sebelum polish 6f67fab
+
+Bukti berikut adalah dari sebelum commit `6f67fab` dan **TIDAK lagi relevan** setelah polish diterapkan:
+
+- **FAIL lama #1:** Nama material terpotong pada 390px (sel identitas 118px, overflow:hidden, white-space:nowrap)
+- **FAIL lama #2:** Floating nav menutupi kartu kelima di viewport 390px (padding-bottom 96px tidak cukup)
+- **FAIL lama #3:** Badge Aktif terlalu rapat (padding 3px 8px, font 10px)
+- **FAIL lama #4:** Tombol Rincian terlalu rapat (padding 3px 8px)
+
+Semua FAIL lama di atas telah diperbaiki pada commit `6f67fab`.
+
+---
+
+## Hasil akhir (sebelum polish)
 
 Semua hasil sisi kanan berlabel **STATIC SOURCE-DERIVED PREVIEW**. Ini fixture HTML terisolasi yang mengacu pada struktur/kelas Blade dan bundle CSS Vite; **bukan Blade yang dirender Laravel, bukan ERP live, dan bukan data aplikasi**. Nilai fixture ditranskripsikan dari referensi owner untuk perbandingan visual.
 

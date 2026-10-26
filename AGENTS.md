@@ -3,7 +3,7 @@
 ## Workspace & Branch
 - Repo: `steverog1945-bit/percetakan-app`
 - Clone kerja: `C:\repos\grafikaorion-copilot-mobile\percetakan-app`
-- Branch aktif: `fix/mobile-visual-final-polish` (PR #15, Draft)
+- Branch aktif: **ditentukan per sesi** — gunakan branch yang diminta owner; jangan mengunci branch secara permanen.
 - **JANGAN** akses `C:\xampp\htdocs\grafikaorion` (produksi).
 
 ## Keselamatan (BATAS MUTLAK)
