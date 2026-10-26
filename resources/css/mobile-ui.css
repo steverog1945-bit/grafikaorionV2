@@ -25,3 +25,5 @@
 @import "./mobile-produksi.css";    /* Fase 4 - work queue Produksi */
 
 @import "./mobile-all-modules.css";    /* Fase 5 - all modules responsive */
+@import "./mobile-collecting.css";      /* Fase 6 - pengambilan mobile */
+@import "./mobile-jersey.css";          /* Fase 6 - pesanan jersey mobile */
