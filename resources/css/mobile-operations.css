@@ -1,6 +1,23 @@
 /* ORION GRAFIKA — operational table cards: scoped and mobile-only. */
 .pwa-ops-mobile-only{display:none}
+/* Filter collapsible ala SPK/Produksi. Di desktop semua elemen
+   memasuki alur normal (display:contents) sehingga tampilan >=768px
+   tidak berubah sama sekali. */
+.pwa-ops-filter{display:contents}
+.pwa-ops-filter .pwa-ops-filter-toggle{display:none}
+.pwa-ops-filter .pwa-ops-filter-fields{display:contents}
+.pwa-ops-filter .pwa-ops-filter-actions{display:inline-flex;flex-wrap:wrap;align-items:center;gap:10px}
 @media screen and (max-width:767.98px){
+ .pwa-ops-page form[method='GET'] .pwa-ops-filter{display:block;width:100%}
+ .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:0 14px;margin:0 0 10px;border:1px solid var(--brand-surface-border,var(--border-primary,#e2e8f0));border-radius:12px;background:var(--brand-surface-secondary,transparent);color:var(--brand-surface-text_secondary,var(--text-secondary,#334155));font-size:13px;font-weight:600;cursor:pointer;list-style:none}
+ .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-toggle::-webkit-details-marker{display:none}
+ .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-toggle::after{content:'\f078';font-family:'Font Awesome 6 Free';font-weight:900;transition:transform .2s ease;font-size:11px;color:var(--brand-surface-text_tertiary,var(--text-tertiary,#64748b))}
+ .pwa-ops-page .pwa-ops-filter[open] .pwa-ops-filter-toggle::after{transform:rotate(180deg)}
+ .pwa-ops-page .pwa-ops-filter:not([open]) .pwa-ops-filter-fields{display:none}
+ .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle{color:var(--brand-aksen,#E8891D)}
+ .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle > span{position:relative}
+ .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle > span::after{content:'';position:absolute;top:-4px;right:-12px;width:6px;height:6px;border-radius:999px;background:var(--brand-aksen,#E8891D)}
+ .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-actions{padding-top:10px;border-top:1px solid var(--brand-surface-border,var(--border-primary,#e2e8f0))}
  .pwa-ops-page{padding:16px 12px calc(130px + env(safe-area-inset-bottom,0px));min-width:0}
  .pwa-ops-page .pwa-ops-shell,.pwa-ops-page .pwa-ops-shell .modern-table-wrapper{width:100%;max-width:100%;min-width:0;overflow:visible;background:transparent;border:0;box-shadow:none}
  .pwa-ops-page .pwa-ops-table,.pwa-ops-page .pwa-ops-table tbody{display:block;width:100%;min-width:0;background:transparent}
@@ -52,7 +69,10 @@
  .pwa-ops-page .pwa-ops-row >td.pwa-ops-movement{grid-area:movement}
  .pwa-ops-page .pwa-ops-row .pwa-ops-note .catatan-isi{overflow-wrap:anywhere}
  .pwa-ops-page .pwa-ops-row >td.pwa-ops-actions [title]{touch-action:manipulation}
- .pwa-ops-page .pwa-ops-row >td.pwa-ops-total,.pwa-ops-page .pwa-ops-row >td.pwa-ops-stock{text-align:left!important}
+ /* Kontras kartu gelap: teks abu-abu (slate) di dalam kartu operasional
+    dipetakan ke token terang agar nilai transaksi/pesanan tetap terbaca. */
+ .pwa-ops-row :is(.text-slate-200,.text-slate-300,.text-slate-400,.text-slate-500,.text-slate-600,.text-slate-700){color:var(--brand-surface-text_secondary,var(--text-secondary,#cbd5e1))}
+ .pwa-ops-row :is(.text-slate-800,.text-slate-900){color:var(--brand-surface-text,var(--text-primary,#f8fafc))} .pwa-ops-page .pwa-ops-row >td.pwa-ops-total,.pwa-ops-page .pwa-ops-row >td.pwa-ops-stock{text-align:left!important}
  .pwa-ops-page form[method='GET']{max-width:100%}
  .pwa-ops-page form[method='GET'] input:not([type='checkbox']),.pwa-ops-page form[method='GET'] select{font-size:16px;min-height:44px}
 }

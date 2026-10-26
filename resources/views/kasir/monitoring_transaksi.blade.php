@@ -47,9 +47,11 @@
     </div>
     @endif
 
-    {{-- FILTER --}}
+    {{-- FILTER + Filter tetap GET status_filtered:1; panel collapsible
+         lewat <details> bawaan browser (pola sama dengan SPK/Produksi).
+         Bila ada filter GET aktif, panel dibuka langsung dari PHP. --}}
     <x-card class="mb-6">
-        <form method="GET" action="{{ route('kasir.index') }}" class="flex flex-wrap items-end gap-4">
+        <form method="GET" action="{{ route('kasir.index') }}" class="flex flex-wrap items-end gap-4 pwa-ops-filter-form">
             {{-- Penanda "form filter ini memang disubmit" - membedakan nav
                  pertama ke halaman ini (tanpa query string sama sekali,
                  default tampilkan yang belum lunas saja) dari submit
@@ -58,6 +60,13 @@
                  termasuk Lunas). Lihat KasirController::index(). --}}
             <input type="hidden" name="status_filtered" value="1">
 
+            <details class="pwa-ops-filter {{ collect(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar'])->some(fn ($k) => request()->filled($k)) ? 'pwa-ops-filter--active' : '' }}" aria-controls="pwa-ops-filter-fields" @if(collect(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar'])->some(fn ($k) => request()->filled($k))) open @endif>
+                <summary class="pwa-ops-filter-toggle">
+                    <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                    <span>Filter</span>
+                </summary>
+
+                <div class="pwa-ops-filter-fields" id="pwa-ops-filter-fields">
             <div class="w-full md:w-40">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
                 <x-form.input type="date" name="tgl_mulai" value="{{ request('tgl_mulai') }}" />
@@ -94,16 +103,24 @@
                 </x-form.select>
             </div>
 
-            <x-button type="submit">
-                <i class="fas fa-filter"></i>
-                Filter
-            </x-button>
+                </div>
 
-            @if(request()->anyFilled(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar']))
-                <a href="{{ route('kasir.index') }}" class="h-[42px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
-                    <i class="fas fa-undo-alt text-sm"></i>
-                </a>
-            @endif
+                {{-- Aksi submit & reset mematuhi panel filter, seperti
+                     pola SPK/Produksi (di desktop, details ber-modesakan
+                     display:contents <-> tampilan tidak berubah). --}}
+                <div class="pwa-ops-filter-actions">
+                    <x-button type="submit">
+                        <i class="fas fa-filter"></i>
+                        Filter
+                    </x-button>
+
+                    @if(request()->anyFilled(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar']))
+                        <a href="{{ route('kasir.index') }}" class="h-[42px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
+                            <i class="fas fa-undo-alt text-sm"></i>
+                        </a>
+                    @endif
+                </div>
+            </details>
         </form>
     </x-card>
 

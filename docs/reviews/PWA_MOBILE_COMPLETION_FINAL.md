@@ -49,3 +49,14 @@ Setelah tiap gugus aman: commit ke PR #21, perbarui matriks status file & route,
 **NO-GO untuk produksi.** `C:\xampp\htdocs\grafikaorion`, `.env`, `oriondb`, backup, SSL, konfigurasi layanan dan data nyata tidak diakses. Merge `main`/deploy hanya dengan persetujuan owner yang terpisah setelah staging dan rollback tervalidasi.
 
 **Status: source implementation in progress, belum siap owner GO/NO-GO produksi.**
+
+## Visual Verification PASS (PR #21, Phase 2)
+
+- `npm run build` ? PASS (1.27 s; CSS 212.76 kB, JS 121.92 kB).
+- `git diff --check` ? PASS (hanya warning CRLF normal; exit 0).
+- Screenshot nyata 18 file disimpan di `docs/reviews/assets/pwa-mobile-phase2/` dan dirangkum di `docs/reviews/PWA_MOBILE_VISUAL_GALLERY.md`.
+- Bug header horizontal leak (mobile-bahan.css) diperbaiki + bukti sebelum/sesudah.
+- Filter Kasir Monitoring diubah collapsible `<details>` dengan bukti terbuka/tertutup.
+- 14 layar aktif terverifikasi visual nyata (lihat matriks).
+- Staging Laravel terisolasi (`orion_pwa_staging_pr21`, bukan `oriondb`) + CSS Vite final + browser Chromium asli. Tidak ada DB produksi yang disentuh.
+- PR #21 siap untuk owner GO/NO-GO (merge tetap wewenang owner).

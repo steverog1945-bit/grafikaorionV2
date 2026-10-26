@@ -231,3 +231,27 @@
 5. Jika seluruh UI selesai tetapi runtime NOT TESTED, laporkan FRONTEND SOURCE COMPLETE / PROD NO-GO; jangan merge main/deploy tanpa GO owner/operator.
 
 **Keselamatan:** jangan akses `C:\xampp\htdocs\grafikaorion`, `.env`, database `oriondb`, data pelanggan, SSL, backup atau Windows services produksi.
+
+## Visual Verification (PR #21, Phase 2)
+
+Status diperbarui berdasarkan screenshot nyata runtime (lihat `PWA_MOBILE_VISUAL_GALLERY.md`).
+
+| File view | Route | Status visual |
+|---|---|---|
+| `resources/views/kasir/monitoring_transaksi.blade.php` | `GET /kasir/monitoring` | SCREENSHOT VERIFIED (390/430/1366) — filter compact collapsible, header leak fix |
+| `resources/views/kasir/waiting_list.blade.php` | `GET /kasir/waiting-list` | SCREENSHOT VERIFIED (390) — kartu, Terima Transaksi 44px |
+| `resources/views/kasir/kelola_kas.blade.php` | `GET /kasir/kelola-kas` | SCREENSHOT VERIFIED (390) |
+| `resources/views/kasir/open_order.blade.php` | (tidak terhubung route mana pun) | VIEW ORPHAN — tidak ada bukti runtime |
+| `resources/views/pembelian-bahan/index.blade.php` | `GET /pembelian-bahan` | SCREENSHOT VERIFIED (390) |
+| `resources/views/pembelian-bahan/create.blade.php` | `GET /pembelian-bahan/create` | SCREENSHOT VERIFIED (390) |
+| `resources/views/kedatangan-bahan/index.blade.php` | `GET /kedatangan-bahan` | SCREENSHOT VERIFIED (390) |
+| `resources/views/kedatangan-bahan/create.blade.php` | `GET /kedatangan-bahan/create` | SCREENSHOT VERIFIED (390) |
+| `resources/views/kartu_stok/index.blade.php` | `GET /kartu-stok` | SCREENSHOT VERIFIED (390) |
+| `resources/views/kartu_stok/detail.blade.php` | `GET /kartu-stok/{id}` | SCREENSHOT VERIFIED (390) |
+| `resources/views/master/bahan/index.blade.php` | `GET /bahan-baku` | SCREENSHOT VERIFIED (390) + modal Registrasi |
+| `resources/views/kas-kecil/index.blade.php` | `GET /kas-kecil` | SCREENSHOT VERIFIED (390) |
+| `resources/views/laporan/stok-bahan.blade.php` | `GET /laporan/stok-bahan` | SCREENSHOT VERIFIED (390) |
+| `resources/views/users/index.blade.php` | `GET /users` | SCREENSHOT VERIFIED (390) |
+| `resources/views/dashboard/*` | `GET /dashboard` | SCREENSHOT VERIFIED (320/390/1366) |
+
+**Kesimpulan:** 14 layar aktif terverifikasi visual nyata. Sisanya (master lain, keuangan detail, laporan lain, dashboard per role) tetap GENERIC ONLY / UI TODO dan di luar scope kelompok visual ini; tidak ada regresi yang ditemukan pada CSS terkait.
