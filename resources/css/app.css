@@ -1,4 +1,4 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 /* ==========================================================================
    PALET WARNA - dopelycolors 01
@@ -156,7 +156,6 @@
    ui-refresh pada viewport sempit tanpa !important masal.
    ========================================================================== */
 @import "./mobile-ui.css";
-@import "./form-typography.css"; /* Form/filter/date/month typography across ERP */
 
 /* ==========================================================================
    DESIGN SYSTEM - ERP PERCETAKAN
@@ -1270,3 +1269,6 @@ html.dark .hero-postingan { box-shadow: none; }
 
     .cetak-kaki { display: flex !important; justify-content: space-between; margin-top: 8mm; padding-top: 3pt; border-top: .6pt solid #1A231F; font-family: 'Lora', Georgia, serif; font-size: 8pt; letter-spacing: .06em; color: #3F4F47; }
 }
+
+
+@import "./form-typography.css"; /* Form/filter/date/month typography across ERP */
