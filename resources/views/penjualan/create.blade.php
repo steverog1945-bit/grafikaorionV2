@@ -14,7 +14,7 @@
      Rombakan sebelumnya menjagli kolom kiri 64% sehingga Data Pelanggan ikut
      sempit - padahal di situ field paling lebar (select2 pelanggan). Full
      width membuat baris Pelanggan bisa 8 kolom tanpa berdesakan. --}}
-<div class="w-full px-3 sm:px-5 lg:px-6 py-5">
+<div class="pos-mobile-shell w-full px-3 sm:px-5 lg:px-6 py-5">
 
     @if(!empty($quotationRef))
     <div class="mb-6 p-5 rounded-2xl bg-amber-50 border border-amber-200">
@@ -282,7 +282,7 @@
          Dua container terpisah; keranjang sticky agar Total & tombol Simpan
          selalu terlihat sambil kasir mengisi item.
          =================================================================== --}}
-    <div class="flex flex-col xl:flex-row gap-4 items-start">
+    <div class="pos-order-layout flex flex-col xl:flex-row gap-4 items-start">
 
         {{-- min-w-0 itu wajib, bukan kosmetik.
 
@@ -295,7 +295,7 @@
          dicegah. Dengan min-w-0, pembagian 62:38 dipatuhi dan isi yang
          kepanjangan dipotong di dalam kotaknya, bukan dengan mendorong
          kolom lain. --}}
-        <div class="w-full xl:flex-[62] min-w-0 space-y-4">
+        <div class="pos-order-form w-full xl:flex-[62] min-w-0 space-y-4">
 
 {{-- ============ DETAIL PESANAN ============
      Dua langkah berurutan, bukan satu deretan field: pilih produk dulu (01),
@@ -807,7 +807,7 @@
         {{-- min-w-0:-coupled dengan min-w-0 di kolom Detail Pesanan. Tanpa itu,
              flex item keranjang menolak menyusut di bawah min-content dan
              merebut lebar dari kolom kirinya. --}}
-        <div class="w-full xl:flex-[38] min-w-0 flex flex-col xl:sticky xl:top-20 xl:self-start">
+        <div class="pos-cart-panel w-full xl:flex-[38] min-w-0 flex flex-col xl:sticky xl:top-20 xl:self-start">
             {{-- max-h SEHARUSNYA 100vh dikurangi tinggi top (top-24 = 6rem)
                  dikurangi jarak aman di bawah. Sebelumnya 8rem: itu 128px,
                  padahal ruang di bawah top hanya 100vh - 96px, jadi bagian
