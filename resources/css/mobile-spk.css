@@ -44,6 +44,15 @@
         transition: transform 150ms ease;
     }
 
+    .spk-filter-active-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--brand-accent-light, #006C7B);
+        flex-shrink: 0;
+    }
+
     .spk-page {
         padding: 16px 12px 24px;
     }

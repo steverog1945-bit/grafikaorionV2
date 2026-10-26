@@ -2,6 +2,12 @@
 
 @section('content')
 @php $bisaUbah = \App\Support\Izin::boleh(auth()->user(), [22], 'edit'); @endphp
+@php
+    // Panel filter terbuka otomatis bila ada filter non-bawaan aktif
+    // (supaya tidak terasa hilang setelah reload).
+    $adaFilterAktif = request('status_spk') || request('urgent_only') || request('tunggakan_aktif')
+        || request('tgl_dari') || request('tgl_sampai');
+@endphp
 <x-polling-notifikasi :url="route('spk.cek-antrian-baru')" :jumlah-awal="$jumlahAntreAwal" pesan="Ada SPK baru masuk antrian." />
 <div class="spk-page w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
 
@@ -31,13 +37,16 @@
                     placeholder="Nama file, konsumen, atau nomor nota..." />
             </div>
 
-            <button type="button" id="spk-filter-toggle" class="spk-filter-btn inline-flex items-center gap-2 min-h-[44px] px-4 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" onclick="toggleSpkFilter(this)" aria-expanded="false">
+            <button type="button" id="spk-filter-toggle" class="spk-filter-btn inline-flex items-center gap-2 min-h-[44px] px-4 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" onclick="toggleSpkFilter(this)" aria-expanded="{{ $adaFilterAktif ? 'true' : 'false' }}" aria-controls="spk-filter-panel">
                 <i class="fas fa-sliders-h"></i>
                 <span>Filter</span>
-                <i class="fas fa-chevron-down spk-filter-chevron text-[10px] opacity-70"></i>
+                @if($adaFilterAktif)
+                    <span class="spk-filter-active-dot inline-block w-2 h-2 rounded-full bg-indigo-500"></span>
+                @endif
+                <i class="fas fa-chevron-down spk-filter-chevron text-[10px] opacity-70" style="{{ $adaFilterAktif ? 'transform: rotate(180deg);' : '' }}"></i>
             </button>
 
-            <div id="spk-filter-panel" class="spk-filter-panel w-full">
+            <div id="spk-filter-panel" class="spk-filter-panel w-full {{ $adaFilterAktif ? 'spk-filter-open' : '' }}">
             {{-- Kolom tanggal memakai nilai default dari controller ketika form belum diisi,
                  sama seperti halaman laporan dan akuntansi. Sebelumnya view
                  menulis request('tgl_dari') ?? '' sehingga server menyaring
