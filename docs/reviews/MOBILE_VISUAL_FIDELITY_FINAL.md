@@ -70,9 +70,23 @@ Tidak ada file produk yang diubah dalam tugas bukti ini.
 
 **Dampak produksi: ZERO.** Tidak ada akses atau perubahan pada produksi, `.env`, database, migration, server, maupun layanan Windows. Tidak ada perubahan business logic, route/RBAC, service worker/manifest, merge, atau deployment.
 
-## Koreksi tipografi dan densitas — review owner 26 Oktober 2026
+## Koreksi tipografi dan densitas — review owner 26 Oktober 2026 (lanjutan)
 
-**Commit CSS:** `3031b02548bb643e6c5f772bfc72371aa5379be2`. Hanya `resources/css/mobile-bahan.css` yang berubah; PR tetap Draft. Koreksi yang dibuat langsung pada source:
+**Commit CSS:** `6f67fab`. Hanya `resources/css/mobile-bahan.css` yang berubah; PR tetap Draft. Koreksi yang dibuat langsung pada source:
+
+- Nama material: `white-space: nowrap` → `-webkit-line-clamp: 2` (max 2 baris, tidak terpotong agresif).
+- SKU: 11px → 12px, tambah `overflow: hidden; text-overflow: ellipsis`.
+- Badge Aktif: padding 3px 8px → 4px 10px, font 10px → 11px.
+- Tombol Rincian: padding 3px 8px → 4px 10px.
+- Row gap: 0 → 4px (spacing antar baris).
+- Grid rows: fixed 24px 40px 20px → `auto auto auto` (menyesuaikan konten panjang).
+- Floating nav clearance: 96px → 120px (mencegah item terakhir tertutup).
+- Open-state grid rows: `auto auto auto auto`.
+
+**Validasi:** Vite build PASS (930ms), `git diff --check` PASS (tanpa whitespace error).  
+**NOT TESTED:** Screenshot ERP asli (Laravel runtime tidak tersedia), interaksi drawer/modal, perangkat iOS/Android, pixel parity desktop.  
+**Produksi:** TIDAK DISENTUH.  
+**Merge/deploy:** TIDAK DILAKUKAN.
 
 - Menghapus border, padding, radius dan surface pembungkus `.mobile-bahan-records` untuk mencegah *double box*; setiap item material tetap memiliki batas ringan.
 - Merapatkan jarak antaritem dari 6px menjadi 5px; radius item dari 14px menjadi 12px.
