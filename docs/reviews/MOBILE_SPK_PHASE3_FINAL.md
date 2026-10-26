@@ -10,8 +10,9 @@ Implementasi mobile SPK (work queue) telah diterapkan pada branch `feat/mobile-s
 
 - Branch: `feat/mobile-spk-phase3`
 - Base: `main` @ `aee1d5d`
-- PR: (belum dibuat — perlu dibuat Draft PR menuju main)
+- PR: https://github.com/steverog1945-bit/percetakan-app/pull/19 (Draft, base `main`)
 - HEAD sumber: `aee1d5d` (sebelum commit implementasi ini)
+- HEAD terbaru: `b9d4c46` (setelah polish filter compact)
 
 ## File yang diubah
 
