@@ -1,5 +1,35 @@
 # ORION GRAFIKA — SINGLE-RUN MOBILE PWA COMPLETION & RELEASE CANDIDATE
+
+## PERUBAHAN BASIS GIT — PRIORITAS WAJIB 26 Oktober 2026
+
+**GitHub terbaru:**
+- `main` = `1e73415a83c5f54618c763e317c226017a144fa5`.
+- PR #15 (Master Bahan) **SUDAH MERGED** ke `main` sebagai `1b690ff`.
+- PR #18 (POS) **SUDAH MERGED** ke `main` sebagai `1e73415`.
+- PR #19 (SPK) **DRAFT, GitHub mergeable=false**; konflik disebabkan perubahan bersama relatif ke `main` terkini. **JANGAN paksa merge PR #19 ke `main`**, karena source SPK sudah berada di integrasi #20.
+- PR #20 **DRAFT, mergeable=false** karena `main` lebih baru dari basis branch; head sebelum instruksi ini `ce96d2e`. Konflik harus dituntaskan terlebih dahulu di branch integrasi, **bukan** `main`.
+
+**Tindakan tunggal OpenCode paling awal:**
+1. Verifikasi status worktree; `git fetch origin`, lalu checkout branch integrasi #20 tanpa membuang perubahan lokal. Jika konflik checkout/worktree, gunakan worktree aman di workspace development yang sama.
+2. `git merge --no-ff origin/main` **ke `integration/pwa-mobile-all-modules`**, bukan sebaliknya. Jangan rebase riwayat yang sudah dipush, `reset --hard`, force-push, atau rewrite merge commit existing.
+3. Resolusi konflik **semantik** per file: `mobile-ui.css` mempertahankan **SEMUA** import `mobile-dashboard`, `mobile-bahan`, `mobile-modal`, `mobile-nav`, `mobile-erp`, `mobile-pos`, `mobile-spk`, `mobile-produksi`; jaga satu import tiap modul. Source Blade dan CSS Master/Pos yang sudah ada di `main` jangan digandakan; SPK/Produksi dari branch integrasi harus tetap ada. Untuk `AGENTS.md`, pertahankan mandat one-pass + aturan keselamatan. Untuk laporan, pelihara bukti dan sejarah tanpa duplikasi klaim kelulusan.
+4. Jalankan `git diff --check`, `npm ci` hanya bila aman di clone kerja tanpa scripts yang mengakses secrets, `npm run build`, dan validasi sumber/DOM aman; verifikasi GitHub `mergeable` PR #20 setelah push. Bila branch konflik tidak terselesaikan secara aman, tulis nama file + potongan konflik persis dan lanjut ke pekerjaan independen yang aman; jangan menebak atau mengambil `--ours/--theirs` seluruh tree.
+5. **PR #19 boleh tetap Draft** sebagai rekam perubahan, namun dianggap *superseded by PR #20* hanya bila isi CSS dan Blade SPK di PR #20 terbukti sama atau lebih baru, dan semua fitur tetap. Jangan merge #19 ke main atau membuat PR SPK lain.
+6. **Kembali ke pengerjaan SEMUA modul tanpa prompt lain** sesudah #20 bebas konflik; status mergeable bukan bukti uji Laravel atau izin deployment.
+
+
 **Dibuat: 26 Oktober 2026.** Status: **MANDAT PELAKSANAAN**, bukan hasil pengujian dan **bukan izin deploy**.
+
+## Status integrasi terverifikasi — 26 Oktober 2026
+
+**Ini checkpoint implementasi, bukan status selesai.**
+
+- Draft PR integrasi **#20 sudah dibuat**: https://github.com/steverog1945-bit/percetakan-app/pull/20. Tidak perlu `gh pr create` ulang.
+- Master Bahan (#15), SPK (#19), dan Produksi Phase 4 telah ditambahkan oleh OpenCode sebelumnya ke branch integrasi. POS (#18) yang tertinggal telah **diintegrasikan ke branch integrasi** pada commit merge `3f6acc0`; `resources/css/mobile-ui.css` kini mengimpor **POS + SPK + Produksi**, tanpa menghapus lapisan Master dan theme.
+- `AGENTS.md` diperbarui pada commit `c79ea17` agar mode #20 berjalan sekali sampai seluruh modul tercakup, tidak berhenti untuk mengirim laporan "final parsial" tiap modul.
+- **Tidak dibutuhkan PR Produksi yang terpisah** untuk jalur one-pass karena source sudah berada dalam #20. Jangan membuat PR baru untuk Collecting/Jersey/dll.
+- Modul berikutnya: **Collecting → Jersey → Kasir tambahan/Logistik/Pembelian/Stok → seluruh Master → Keuangan/Laporan → Dashboard/Setting dan seluruh layar aktif tersisa**. Penyelesaian visual source masing-masing tidak boleh disebut runtime PASS sampai benar-benar diuji.
+- Kode integrasi terbaru belum menjalani build/tes runtime setelah commit penggabungan POS. **VALIDASI AKHIR: NOT TESTED**, rilis produksi tetap NO-GO. OpenCode harus `git fetch origin` lalu sync tanpa membuang pekerjaan lokal sebelum melanjutkan.
 
 ## Instruksi final: sekali jalan, tidak meminta prompt modul demi modul
 

@@ -1,5 +1,17 @@
 # AGENTS.md — Orion Grafika ERP
 
+## Mandat khusus PR #20 — eksekusi semua modul (prioritas tertinggi)
+
+**Hanya ketika bekerja untuk Issue #16 dan PR #20**, gunakan branch `integration/pwa-mobile-all-modules`. Kontrak otoritatif: `docs/reviews/PWA_MOBILE_ONE_PASS_EXECUTION.md`. PR #20 sudah tersedia; **jangan membuat PR baru per modul**. Instruksi umum di bawah yang mengatur branch/module per-task tidak boleh dipakai untuk menghentikan pengerjaan satu-paket ini.
+
+- Status integrasi remote per 26 Oktober 2026: Master Bahan #15, POS #18, SPK #19, dan Produksi Phase 4 sudah digabung pada branch integrasi melalui commit `3f6acc0`, **bukan ke `main`**. Lakukan `git fetch` dan verifikasi HEAD terbaru; jangan ulangi merge yang sudah ada. Tidak perlu membuat PR Produksi tersendiri untuk jalur one-pass.
+- **Berhenti mengirim "Laporan Final — SELESAI (PARSIAL)" setiap kali satu kelompok modul selesai.** Commit internal per kelompok boleh, tetapi lanjut otomatis ke kelompok berikutnya. Jika kehabisan konteks atau alat, tinggalkan checkpoint resume rinci di dokumen integrasi dengan modul DONE/PENDING/BLOCKED, SHA, langkah eksekusi berikut; jangan mengklaim seluruh PWA selesai.
+- Prioritas implementasi **tanpa audit lama berulang**: Collecting → Jersey → Kasir tambahan/Logistik/Pembelian/Stok → semua Master → Keuangan/Laporan → Dashboard/Setting → layar aktif lain yang belum tercakup. Ikuti menu/routes/view aktif, bukan hanya nama modul dalam daftar.
+- Setelah tiap kelompok, verifikasi build aman, pemeriksaan whitespace, perubahan desktop, status role/action, screenshots dari source yang benar. Simpan ketidakmampuan menjalankan Laravel/DB sintetis sebagai NOT TESTED dan lanjut ke pekerjaan UI lain yang tetap aman.
+- Jadikan coverage matrix per screen dan tes akhir sebagai dasar status. **Satu laporan penyelesaian lintas modul**, satu Draft PR #20, dan hanya sesudah cakupan selesai ajukan GO/NO-GO rilis. Tidak boleh merge ke `main`, deploy, atau akses `C:\xampp\htdocs\grafikaorion`, `.env`, `oriondb`, sertifikat, backup atau server tanpa instruksi operator/owner tersendiri.
+- Perintah lama "jangan merge" berlaku untuk `main`/rilis; integrasi perubahan antar-branch ke branch PR #20 yang secara eksplisit ditetapkan owner diperbolehkan, dengan konflik diperiksa dan tanpa force-push. Tetap jangan otomatis melakukan deployment.
+
+
 ## Workspace & Branch
 - Repo: `steverog1945-bit/percetakan-app`
 - Clone kerja: `C:\repos\grafikaorion-copilot-mobile\percetakan-app`
