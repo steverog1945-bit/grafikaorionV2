@@ -156,6 +156,7 @@
    ui-refresh pada viewport sempit tanpa !important masal.
    ========================================================================== */
 @import "./mobile-ui.css";
+@import "./form-typography.css"; /* Form/filter/date/month typography across ERP */
 
 /* ==========================================================================
    DESIGN SYSTEM - ERP PERCETAKAN

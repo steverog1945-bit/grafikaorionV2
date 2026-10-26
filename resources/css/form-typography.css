@@ -1,0 +1,85 @@
+/* ORION GRAFIKA — one typography system for ERP forms and filters.
+ * Avoid per-module font overrides. Preserve input names, handlers, values,
+ * calendar behavior, icons, and intentional larger money/display fields.
+ * The opened native date/month calendar itself is OS/browser UI.
+ */
+:root {
+    --erp-form-font: var(--brand-font-family, "Inter"), sans-serif;
+    --erp-form-control-size: 14px;
+    --erp-form-label-size: 13px;
+    --erp-form-line-height: 1.45;
+}
+
+/* Limit typography normalization to interactive ERP forms and dialogs.
+   Do not touch printed reports, rich-text editors, icons, or branded headings. */
+@media screen {
+    body :is(.content-wrapper, [data-modal-root])
+    :is(
+        input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not(.text-xl):not(.text-2xl):not([data-typography-preserve]),
+        select:not(.select2-hidden-accessible):not([data-typography-preserve]),
+        textarea:not([data-typography-preserve])
+    ) {
+        font-family: var(--erp-form-font) !important;
+        font-size: var(--erp-form-control-size) !important;
+        font-weight: 400;
+        line-height: var(--erp-form-line-height);
+        letter-spacing: normal;
+    }
+
+    body :is(.content-wrapper, [data-modal-root]) form label:not(.ld-label):not([data-typography-preserve]) {
+        font-family: var(--erp-form-font);
+        font-size: var(--erp-form-label-size) !important;
+        font-weight: 500;
+        line-height: 1.4;
+        letter-spacing: normal !important;
+        text-transform: none;
+    }
+
+    /* Month/date/time fields may otherwise render digit fragments in the
+       platform font while their adjacent text/select fields use the ERP font. */
+    body :is(.content-wrapper, [data-modal-root])
+    :is(input[type="date"], input[type="month"], input[type="datetime-local"], input[type="time"]) {
+        font-family: var(--erp-form-font) !important;
+        font-variant-numeric: tabular-nums;
+    }
+
+    body :is(.content-wrapper, [data-modal-root])
+    :is(input[type="date"], input[type="month"], input[type="datetime-local"], input[type="time"])::-webkit-datetime-edit {
+        font-family: var(--erp-form-font);
+        font-size: inherit;
+        font-weight: inherit;
+        line-height: inherit;
+        letter-spacing: normal;
+    }
+
+    /* Select2's dropdown is often appended to <body> outside .content-wrapper.
+       Normalize its selected text, search and options together with native select. */
+    body .select2-container--default .select2-selection--single .select2-selection__rendered,
+    body .select2-container--default .select2-selection--multiple .select2-search__field,
+    body .select2-container--default .select2-search--dropdown .select2-search__field,
+    body .select2-container--default .select2-results__option,
+    body .select2-dropdown {
+        font-family: var(--erp-form-font) !important;
+        font-size: var(--erp-form-control-size) !important;
+        font-weight: 400;
+        line-height: var(--erp-form-line-height);
+        letter-spacing: normal;
+    }
+
+    /* Use exactly the same face/size for the opt-in compact filter button;
+       Font Awesome icons remain controlled by their icon classes. */
+    body .pwa-ops-page .pwa-ops-filter-toggle,
+    body .content-wrapper :is(.spk-filter-btn, .collecting-mobile-filter-toggle) {
+        font-family: var(--erp-form-font);
+        font-size: var(--erp-form-label-size);
+        font-weight: 600;
+        line-height: 1.4;
+        letter-spacing: normal;
+    }
+}
+
+/* Keep iOS input focus from zooming and match month/native/select/Select2
+   with the 16px inputs already used elsewhere on mobile. */
+@media screen and (max-width: 767.98px) {
+    :root { --erp-form-control-size: 16px; }
+}
