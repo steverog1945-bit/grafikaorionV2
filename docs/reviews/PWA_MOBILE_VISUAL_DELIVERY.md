@@ -30,7 +30,7 @@ Owner reference: `docs/reviews/assets/MOBILE_VISUAL_390_SIDE_BY_SIDE.png` **LEFT
 
 - Check screenshots for clipping, overlapping text, sidebar/nav blocking last card, active filter persistence, forms keyboard, stacked cards height, modal z-index, Select2 search, long material/customer names, warning/confirmation, bulk checkboxes, safe area. Diff desktop against base for representative routes.
 - Treat `npm run build`/Vite CI and `git diff --check` as **source CI**, and Laravel browser/functional and RBAC/IDOR as separate stages. Only PASS with actual evidence and current SHA.
-- Commit/push source+gallery+provenance on #21; update `PWA_MOBILE_COVERAGE_MATRIX.md`, `PWA_MOBILE_COMPLETION_FINAL.md`. Keep #21 Draft, no merge/deploy. 
+- Commit/push source+gallery+provenance on #21; update `PWA_MOBILE_COVERAGE_MATRIX.md`, `PWA_MOBILE_COMPLETION_FINAL.md`. Keep #21 Draft, no merge/deploy.
 - Continue remaining active screens **without more prompts**. If interrupted, save a short exact resume checkpoint with last SHA, next files/screens and test blockers, not "Final — partial" and not speculative future completion.
 - **Do not read/modify production**, `.env`, `oriondb`, backups, Apache/SSL/scheduler or Windows services. Release gate stays NO-GO until owner approves after isolated staging validation.
 
