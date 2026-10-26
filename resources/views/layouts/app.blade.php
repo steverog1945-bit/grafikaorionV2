@@ -134,30 +134,49 @@
         background: rgba(13, 19, 16, .56);
     }
 
-    /* Sidebar memakai latar gelap dengan teks terang karena kasir berdiri
-       di depan layar ini sepanjang shift: latar gelap menekan silau, teks
-       Sea Mist tetap terbaca tanpa perlu menaikkan kontras monitor.
-       Catatan penting: Sea Mist di atas Mosque mentah (006373) hanya 4.48:1
-       dan GAGAL ambang AA, jadi latar memakai turunan #063A44 yang diukur 8.00:1. */
+    /* Sidebar mengikuti referensi (screenshot 2026-10-25): latar gelap
+       Mosque #063A44, teks Sea Mist #BFD5C9, judul putih, aksen Zest
+       #E8891D. Berlaku SAMA di light maupun dark mode (sidebar selalu
+       gelap, sesuai referensi) - tidak boleh berubah warna saat tema
+       berganti. Brand theme DB tidak boleh menimpa palet sidebar. */
     aside {
         width: var(--sidebar-width);
-        background: var(--or-8);
-        color: var(--or-teks);
+        background: #063A44 !important;
+        color: #BFD5C9 !important;
         position: fixed;
         top: 0; bottom: 0; left: 0;
         z-index: 50;
         transition: width 220ms cubic-bezier(0.23, 1, 0.32, 1), transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
         display: flex;
         flex-direction: column;
-        border-right: 1px solid var(--or-9);
+        border-right: 1px solid #04262C !important;
         box-shadow: none;
     }
 
-    html.dark aside {
-        background: var(--brand-sidebar-deep, var(--or-9));
-        border-right-color: var(--brand-sidebar-border, var(--or-6));
-        color: var(--or-teks);
+    html.dark aside,
+    html:not(.dark) aside {
+        background: #063A44 !important;
+        border-right-color: #04262C !important;
+        color: #BFD5C9 !important;
     }
+
+    /* Judul brand & teks menu tetap putih/sea-mist di kedua tema */
+    aside .sidebar-brand-title,
+    aside .sidebar-title,
+    aside h1, aside h2, aside h3 { color: #FFFFFF !important; }
+
+    aside a, aside button, aside nav span, aside nav div { color: #BFD5C9; }
+
+    aside a.sb-active, aside a.active, aside .menu-active,
+    aside nav a[aria-current="page"] {
+        color: #FFFFFF !important;
+        background: rgba(232, 137, 29, 0.14) !important;
+        border-left: 3px solid #E8891D !important;
+    }
+
+    aside a:hover, aside button:hover { color: #FFFFFF !important; background: rgba(191, 213, 201, 0.08); }
+
+    aside .menu-group-toggle { color: #9DB8AD !important; }
 
     @media (max-width: 1023px) {
         aside { transform: translateX(-100%); }
