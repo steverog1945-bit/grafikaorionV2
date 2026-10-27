@@ -47,6 +47,8 @@
  .pwa-ops-page .pwa-ops-row >td.pwa-ops-actions::before{display:none}
  .pwa-ops-page .pwa-ops-row .pwa-ops-actions>div{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px}
  .pwa-ops-page .pwa-ops-row .pwa-ops-actions>div>*{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;height:auto!important;padding:8px!important}
+ .pwa-ops-page .produksi-row-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px}
+ .pwa-ops-page .produksi-row-actions>*{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;height:auto!important;padding:8px!important}
  .pwa-ops-page .pwa-ops-table tbody>tr:not(.pwa-ops-row){display:block;width:100%}
  .pwa-ops-page .pwa-ops-table tbody>tr:not(.pwa-ops-row)>td{display:block;width:100%}
  .pwa-ops-page .pwa-ops-mobile-only{display:inline;font-size:12px;font-weight:600;margin-left:8px}
