@@ -120,22 +120,17 @@
                             </div>
                         </td>
                         <td class="px-6 py-5 text-center" data-label="Spesifikasi">
-                            <details class="mobile-bahan-details">
-                                <summary>Rincian</summary>
-                                <div class="mobile-bahan-details-content">
-                                    <div class="flex flex-col gap-1 items-center">
-                                        <span class="text-[10px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md uppercase">
-                                            {{ $b->mesin->nama_mesin ?? '-' }}
-                                        </span>
-                                        <span class="text-[9px] text-slate-400 font-medium uppercase">{{ $b->kategori->nama_kategori ?? 'Umum' }}</span>
-                                        @if($b->merk || $b->jenisBahan)
-                                            <span class="text-[9px] text-indigo-600 font-medium uppercase">
-                                                {{ $b->merk->nama_merk ?? '' }}{{ $b->merk && $b->jenisBahan ? ' • ' : '' }}{{ $b->jenisBahan->nama_jenis ?? '' }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </details>
+                            <div class="flex flex-col gap-1 items-center">
+                                <span class="text-[10px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md uppercase">
+                                    {{ $b->mesin->nama_mesin ?? '-' }}
+                                </span>
+                                <span class="text-[9px] text-slate-400 font-medium uppercase">{{ $b->kategori->nama_kategori ?? 'Umum' }}</span>
+                                @if($b->merk || $b->jenisBahan)
+                                    <span class="text-[9px] text-indigo-600 font-medium uppercase">
+                                        {{ $b->merk->nama_merk ?? '' }}{{ $b->merk && $b->jenisBahan ? ' • ' : '' }}{{ $b->jenisBahan->nama_jenis ?? '' }}
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-6 py-5 text-center" data-label="Stok">
                             <span class="mobile-bahan-status {{ $b->status === 'aktif' ? 'mobile-bahan-status-active' : 'mobile-bahan-status-inactive' }}">
