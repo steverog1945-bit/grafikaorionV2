@@ -77,5 +77,5 @@
 
 /* Mobile: 16px untuk cegah zoom iOS dan seragam dengan input lain. */
 @media screen and (max-width: 767.98px) {
-    :root { --erp-form-control-size: 16px; }
+    :root { --erp-form-control-size: 13px; }
 }
