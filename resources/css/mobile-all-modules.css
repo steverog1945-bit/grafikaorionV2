@@ -31,25 +31,23 @@
     .pwa-ops-page textarea {
         font-size: 16px;
         max-width: 100%;
-        min-height: 38px;
+        min-height: 34px;
         padding: 4px 8px;
-    }
-
-    /* Select2 container lebih compact di mobile */
-    @media screen and (max-width: 767.98px) {
-        .select2-container--default .select2-selection--single {
-            height: 38px !important;
-            min-height: 38px !important;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 30px !important;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-        }
     }
 
     .content-wrapper button {
         min-height: 44px;
+    }
+
+    /* Select2 lebih compact di mobile (override app.css select2 height) */
+    html body .select2-container--default .select2-selection--single {
+        height: 34px !important;
+        min-height: 34px !important;
+    }
+    html body .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 26px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
     }
 
     /* ---------- Card: padding 12-16px, radius 12-16px ---------- */
@@ -129,3 +127,14 @@
         padding-bottom: calc(7px + env(safe-area-inset-bottom, 0px));
     }
 }
+
+
+    /* Select2 lebih compact di mobile */
+    @media screen and (max-width: 767.98px) {
+        .select2-container--default .select2-selection--single {
+            height: 34px !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 26px !important;
+        }
+    }
