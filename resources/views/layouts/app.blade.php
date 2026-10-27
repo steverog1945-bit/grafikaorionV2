@@ -160,12 +160,12 @@
         color: var(--brand-sidebar-text, #BFD5C9) !important;
     }
 
-    /* Judul brand & teks menu tetap putih/sea-mist di kedua tema */
+    /* Judul brand & teks menu mengikuti token sidebar (bisa terang/gelap via tema) */
     aside .sidebar-brand-title,
     aside .sidebar-title,
     aside h1, aside h2, aside h3 { color: var(--brand-sidebar-title, #FFFFFF) !important; }
 
-    aside a, aside button, aside nav span, aside nav div { color: var(--brand-sidebar-text, #BFD5C9); }
+    aside a, aside button, aside nav span, aside nav div { color: var(--brand-sidebar-text, #BFD5C9) !important; }
 
     aside a.sb-active, aside a.active, aside .menu-active,
     aside nav a[aria-current="page"] {

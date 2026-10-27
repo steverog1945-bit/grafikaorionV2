@@ -106,3 +106,9 @@ html.dark .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-toggle::after{color:var(
 html.dark .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle{color:var(--accent-primary,#5FC4D4)}
 html.dark .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle > span::after{background:var(--accent-primary,#5FC4D4)}
 html.dark .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-actions{border-top-color:var(--border-primary,#3F4F47)}
+
+/* Dark mode: pastikan label form tidak pucat berlebihan */
+html.dark .pwa-ops-page label,
+html.dark .produksi-page label{color:var(--text-secondary,#C9D6CE)}
+html.dark .pwa-ops-page .text-slate-400{color:var(--text-tertiary,#9DB8AD)}
+html.dark .pwa-ops-page .text-slate-500{color:var(--text-secondary,#C9D6CE)}
