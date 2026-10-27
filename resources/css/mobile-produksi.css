@@ -128,8 +128,10 @@
         font-size: 12px;
     }
 
+    /* Kolom pertama tabel Produksi sekarang nomor urut (#), bukan checkbox
+       "Pilih semua" seperti SPK - label usang itu jangan ditampilkan lagi. */
     .produksi-workqueue-table thead th:first-child::after {
-        content: "Pilih semua";
+        content: none;
     }
 
     .produksi-workqueue-table thead th:first-child input,
@@ -189,21 +191,22 @@
     }
 
     .produksi-workqueue-table tbody td:nth-child(1) {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        z-index: 1;
-        padding: 0;
+        display: none;
     }
 
-    .produksi-workqueue-table tbody td:nth-child(3) { grid-area: identity; padding-right: 30px; }
-    .produksi-workqueue-table tbody td:nth-child(4) { grid-area: consumer; }
-    .produksi-workqueue-table tbody td:nth-child(5) { grid-area: date; }
-    .produksi-workqueue-table tbody td:nth-child(6) { grid-area: urgent; }
-    .produksi-workqueue-table tbody td:nth-child(7) { grid-area: qtyorder; }
-    .produksi-workqueue-table tbody td:nth-child(8) { grid-area: qtycetak; }
-    .produksi-workqueue-table tbody td:nth-child(9) { grid-area: status; }
-    .produksi-workqueue-table tbody td:nth-child(10) { grid-area: actions; }
+    /* Pemetaan 9 kolom Produksi (tanpa kolom checkbox): 1=# (disembunyikan),
+       2=Nama File(identity), 3=Konsumen, 4=Tanggal, 5=Urgent, 6=Qty Order,
+       7=Qty Cetak, 8=Status, 9=Aksi. Versi sebelumnya digeser satu kolom
+       (ditulis saat baris masih punya checkbox) sehingga sel Aksi jatuh ke
+       area Status dan ikon aksi menumpuk tak karuan. */
+    .produksi-workqueue-table tbody td:nth-child(2) { grid-area: identity; padding-right: 34px; }
+    .produksi-workqueue-table tbody td:nth-child(3) { grid-area: consumer; }
+    .produksi-workqueue-table tbody td:nth-child(4) { grid-area: date; }
+    .produksi-workqueue-table tbody td:nth-child(5) { grid-area: urgent; }
+    .produksi-workqueue-table tbody td:nth-child(6) { grid-area: qtyorder; }
+    .produksi-workqueue-table tbody td:nth-child(7) { grid-area: qtycetak; }
+    .produksi-workqueue-table tbody td:nth-child(8) { grid-area: status; }
+    .produksi-workqueue-table tbody td:nth-child(9) { grid-area: actions; }
 
     .produksi-workqueue-table .produksi-work-name {
         padding-right: 2px;
@@ -233,6 +236,7 @@
     .produksi-row-actions > * {
         display: inline-flex;
         min-height: 44px;
+        min-width: 44px;
         align-items: center;
         justify-content: center;
         gap: 5px;

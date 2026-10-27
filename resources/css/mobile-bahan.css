@@ -530,10 +530,22 @@
 }
 
 @media screen and (min-width: 768px) {
+    /* <details> TIDAK bisa display:contents di Chromium - ia tetap membangun
+       kotak ::details-content sendiri sehingga menu aksi/isi rincian tidak
+       muncul (kolom Manajemen tampak kosong). Pola sama dengan
+       mobile-operations.css: <details> jadi kotak nyata dan
+       ::details-content dinetralkan supaya isinya tampil normal. */
     .mobile-bahan-filter,
     .mobile-bahan-filter-fields,
+    .mobile-bahan-details,
     .mobile-bahan-actions {
+        display: block;
+    }
+    .mobile-bahan-filter::details-content,
+    .mobile-bahan-details::details-content,
+    .mobile-bahan-actions::details-content {
         display: contents;
+        content-visibility: visible;
     }
     .mobile-bahan-filter > summary,
     .mobile-bahan-actions > summary {
@@ -543,7 +555,7 @@
         display: flex;
     }
     .mobile-bahan-details {
-        display: contents;
+        text-align: center;
     }
     .mobile-bahan-details > summary {
         display: none;

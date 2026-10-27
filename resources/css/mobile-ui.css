@@ -28,3 +28,4 @@
 @import "./mobile-collecting.css";      /* Fase 6 - pengambilan mobile */
 @import "./mobile-jersey.css";          /* Fase 6 - pesanan jersey mobile */
 @import "./mobile-operations.css"; /* Mobile operational purchase, receiving, stock & cashier screens */
+@import "./mobile-dark-mode.css";   /* Peta kontras slate→token saat dark mode (lintas modul kartu) */
