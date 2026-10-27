@@ -31,7 +31,7 @@
  .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle{color:var(--brand-aksen,#E8891D)}
  .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle > span{position:relative}
  .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle > span::after{content:'';position:absolute;top:-4px;right:-12px;width:6px;height:6px;border-radius:999px;background:var(--brand-aksen,#E8891D)}
- .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-actions{padding-top:10px;border-top:1px solid var(--brand-surface-border,var(--border-primary,#e2e8f0))}
+ .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-actions{display:flex !important;flex-wrap:wrap;align-items:center;gap:10px;padding-top:10px;margin-top:10px;border-top:1px solid var(--brand-surface-border,var(--border-primary,#e2e8f0));width:100%;flex-basis:100%;order:99}
  .pwa-ops-page{padding:16px 12px calc(130px + env(safe-area-inset-bottom,0px));min-width:0}
  .pwa-ops-page .pwa-ops-shell,.pwa-ops-page .pwa-ops-shell .modern-table-wrapper{width:100%;max-width:100%;min-width:0;overflow:visible;background:transparent;border:0;box-shadow:none}
  .pwa-ops-page .pwa-ops-table,.pwa-ops-page .pwa-ops-table tbody{display:block;width:100%;min-width:0;background:transparent}

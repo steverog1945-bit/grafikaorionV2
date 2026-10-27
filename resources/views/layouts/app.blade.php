@@ -141,42 +141,42 @@
        berganti. Brand theme DB tidak boleh menimpa palet sidebar. */
     aside {
         width: var(--sidebar-width);
-        background: #063A44 !important;
-        color: #BFD5C9 !important;
+        background: var(--brand-sidebar-base, #063A44) !important;
+        color: var(--brand-sidebar-text, #BFD5C9) !important;
         position: fixed;
         top: 0; bottom: 0; left: 0;
         z-index: 50;
         transition: width 220ms cubic-bezier(0.23, 1, 0.32, 1), transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
         display: flex;
         flex-direction: column;
-        border-right: 1px solid #04262C !important;
+        border-right: 1px solid var(--brand-sidebar-deep, #04262C) !important;
         box-shadow: none;
     }
 
     html.dark aside,
     html:not(.dark) aside {
-        background: #063A44 !important;
-        border-right-color: #04262C !important;
-        color: #BFD5C9 !important;
+        background: var(--brand-sidebar-base, #063A44) !important;
+        border-right-color: var(--brand-sidebar-deep, #04262C) !important;
+        color: var(--brand-sidebar-text, #BFD5C9) !important;
     }
 
     /* Judul brand & teks menu tetap putih/sea-mist di kedua tema */
     aside .sidebar-brand-title,
     aside .sidebar-title,
-    aside h1, aside h2, aside h3 { color: #FFFFFF !important; }
+    aside h1, aside h2, aside h3 { color: var(--brand-sidebar-title, #FFFFFF) !important; }
 
-    aside a, aside button, aside nav span, aside nav div { color: #BFD5C9; }
+    aside a, aside button, aside nav span, aside nav div { color: var(--brand-sidebar-text, #BFD5C9); }
 
     aside a.sb-active, aside a.active, aside .menu-active,
     aside nav a[aria-current="page"] {
-        color: #FFFFFF !important;
+        color: var(--brand-sidebar-title, #FFFFFF) !important;
         background: rgba(232, 137, 29, 0.14) !important;
-        border-left: 3px solid #E8891D !important;
+        border-left: 3px solid var(--brand-sidebar-accent, #E8891D) !important;
     }
 
-    aside a:hover, aside button:hover { color: #FFFFFF !important; background: rgba(191, 213, 201, 0.08); }
+    aside a:hover, aside button:hover { color: var(--brand-sidebar-title, #FFFFFF) !important; background: rgba(191, 213, 201, 0.08); }
 
-    aside .menu-group-toggle { color: #9DB8AD !important; }
+    aside .menu-group-toggle { color: var(--brand-sidebar-muted, #9DB8AD) !important; }
 
     @media (max-width: 1023px) {
         aside { transform: translateX(-100%); }
