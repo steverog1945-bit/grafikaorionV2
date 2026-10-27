@@ -461,9 +461,7 @@
 
 .select2-dropdown {
     font-family: 'Inter', sans-serif !important;
-    font-size: 14px !important;
-    font-weight: 400 !important;
-    color: #3F4F47;
+    font-size: 13px !important;
     border: 1px solid #E2EAE4 !important;
     border-radius: 6px !important;
     box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.08) !important;
