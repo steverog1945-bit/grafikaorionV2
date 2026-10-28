@@ -34,3 +34,9 @@ Produksi `C:\xampp\htdocs\grafikaorion`, `.env`, database, backend bisnis, RBAC,
 ## Pemeriksaan lanjutan pada staging
 
 Pada desktop 1366×768 dan sidebar terbuka/tertutup, pastikan pencarian, kategori, status, harga, urutan, reset tampil serta mengirim query yang sama. Pada 390×844 pastikan panel Filter tetap dapat dibuka/tutup. Bandingkan desktop 1920×1080 dan print dengan baseline. Gunakan staging sintetis terisolasi.
+
+## Koreksi berdasarkan screenshot owner setelah penerapan
+
+Screenshot owner menunjukkan filter masih menumpuk vertikal di kanan dan panel terlalu tinggi; patch pertama belum menyelesaikan geometri Chromium. Filter desktop kini memakai kotak `display:flex` nyata pada `<details>`, bukan bergantung pada perataan wrapper tersebut. Search memiliki basis 220px; kelompok filter basis 640px dengan wrapping; setiap dropdown fleksibel berbasis 128px, reset 38px. Aturan scoped pada `#filterForm` dan desktop >=768px. CSS mobile dan Blade master tidak diubah.
+
+Validasi: build frontend dan whitespace diperiksa kembali; hasil visual perbaikan kedua belum diverifikasi melalui browser. Screenshot owner adalah bukti kegagalan patch pertama, bukan bukti kelulusan patch kedua. PR: https://github.com/steverog1945-bit/percetakan-app/pull/25. Workspace XAMPP owner juga memiliki modifikasi lokal pada Blade master; jangan menimpanya.

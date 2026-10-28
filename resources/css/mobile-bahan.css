@@ -547,11 +547,31 @@
         display: contents;
         content-visibility: visible;
     }
-    /* Closed <details> still creates a hidden content box in Chromium.
-       Flatten that box too so every filter remains a desktop flex item. */
+    /* Gunakan kotak flex nyata: Chromium tidak meratakan <details>
+       secara konsisten meskipun display: contents sudah diterapkan. */
+    #filterForm.mobile-bahan-filter-form > div:first-child {
+        flex: 1 1 220px;
+        min-width: 200px;
+    }
+    #filterForm.mobile-bahan-filter-form > .mobile-bahan-filter {
+        display: flex;
+        flex: 3 1 640px;
+        min-width: 0;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 16px;
+    }
     #filterForm.mobile-bahan-filter-form > .mobile-bahan-filter::details-content {
         display: contents;
         content-visibility: visible;
+    }
+    #filterForm.mobile-bahan-filter-form .mobile-bahan-filter-fields > div {
+        flex: 1 1 128px;
+        min-width: 0;
+        width: auto;
+    }
+    #filterForm.mobile-bahan-filter-form .mobile-bahan-filter-fields > a {
+        flex: 0 0 38px;
     }
     .mobile-bahan-filter > summary,
     .mobile-bahan-actions > summary {
