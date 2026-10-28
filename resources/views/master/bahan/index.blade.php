@@ -24,12 +24,6 @@
                 </div>
             </div>
 
-            <details class="mobile-bahan-filter">
-                <summary>
-                    <i class="fas fa-sliders-h" aria-hidden="true"></i>
-                    <span>Filter</span>
-                </summary>
-                <div class="mobile-bahan-filter-fields">
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Kategori</label>
                 <select name="kategori" class="select2-filter w-full">
@@ -71,8 +65,6 @@
             <a href="{{ route('bahan.index') }}" class="h-[38px] px-4 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all" title="Reset Filter">
                 <i class="fas fa-undo-alt text-sm"></i>
             </a>
-                </div>
-            </details>
         </form>
     </div>
 

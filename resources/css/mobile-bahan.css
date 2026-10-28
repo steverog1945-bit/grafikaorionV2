@@ -67,72 +67,6 @@
         overflow: visible;
     }
 
-    .mobile-bahan-filter {
-        position: relative;
-        flex: 0 0 auto;
-        display: block;
-        width: auto;
-    }
-    .mobile-bahan-filter > summary {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        min-height: 52px;
-        padding: 0 14px;
-        border: 1px solid var(--brand-surface-border, #E2EAE4);
-        border-radius: 999px;
-        color: var(--brand-surface-text_secondary, #3F4F47);
-        background: var(--brand-surface-primary, #ffffff);
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        list-style: none;
-        white-space: nowrap;
-        box-shadow: 0 3px 12px rgb(15 23 42 / 5%);
-    }
-    .mobile-bahan-filter > summary::-webkit-details-marker {
-        display: none;
-    }
-    .mobile-bahan-filter > summary::after {
-        content: "";
-        width: 7px;
-        height: 7px;
-        margin-left: auto;
-        border-right: 2px solid currentColor;
-        border-bottom: 2px solid currentColor;
-        transform: translateY(-2px) rotate(45deg);
-        transition: transform 150ms ease;
-    }
-    .mobile-bahan-filter[open] > summary::after {
-        transform: translateY(2px) rotate(225deg);
-    }
-    .mobile-bahan-filter[open] {
-        flex: 1 0 100%;
-    }
-    .mobile-bahan-filter > summary:focus-visible {
-        outline: 2px solid var(--brand-accent-light);
-        outline-offset: 2px;
-    }
-    .mobile-bahan-filter-fields {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: 10px;
-        padding-top: 12px;
-    }
-    .mobile-bahan-filter[open] > summary {
-        border-radius: 12px;
-        background: var(--brand-surface-secondary, #FAFBF9);
-    }
-    .mobile-bahan-filter:not([open]) .mobile-bahan-filter-fields {
-        display: none;
-    }
-    .mobile-bahan-filter-fields > * {
-        min-width: 0;
-    }
-    .mobile-bahan-filter-fields .select2-container {
-        max-width: 100%;
-    }
-
     /* Judul halaman: lebih proporsional, tidak mengambang terlalu tinggi */
     .max-w-\[1600px\]:has(\#filterForm.mobile-bahan-filter-form) > .flex.flex-col[class*="md:flex-row"] {
         margin-bottom: 16px;
@@ -530,53 +464,32 @@
 }
 
 @media screen and (min-width: 768px) {
-    /* <details> TIDAK bisa display:contents di Chromium - ia tetap membangun
-       kotak ::details-content sendiri sehingga menu aksi/isi rincian tidak
-       muncul (kolom Manajemen tampak kosong). Pola sama dengan
-       mobile-operations.css: <details> jadi kotak nyata dan
-       ::details-content dinetralkan supaya isinya tampil normal. */
-    .mobile-bahan-filter,
-    .mobile-bahan-filter-fields,
     .mobile-bahan-details,
     .mobile-bahan-actions {
         display: block;
     }
-    .mobile-bahan-filter::details-content,
     .mobile-bahan-details::details-content,
     .mobile-bahan-actions::details-content {
         display: contents;
         content-visibility: visible;
     }
-    /* Gunakan kotak flex nyata: Chromium tidak meratakan <details>
-       secara konsisten meskipun display: contents sudah diterapkan. */
-    #filterForm.mobile-bahan-filter-form > div:first-child {
-        flex: 1 1 220px;
-        min-width: 200px;
-    }
-    #filterForm.mobile-bahan-filter-form > .mobile-bahan-filter {
+    .mobile-bahan-actions > summary { display: none; }
+    #filterForm.mobile-bahan-filter-form {
         display: flex;
-        flex: 3 1 640px;
-        min-width: 0;
         flex-wrap: wrap;
         align-items: flex-end;
         gap: 16px;
     }
-    #filterForm.mobile-bahan-filter-form > .mobile-bahan-filter::details-content {
-        display: contents;
-        content-visibility: visible;
+    #filterForm.mobile-bahan-filter-form > div:first-child {
+        flex: 1 1 220px;
+        min-width: 200px;
     }
-    #filterForm.mobile-bahan-filter-form .mobile-bahan-filter-fields > div {
-        flex: 1 1 128px;
-        min-width: 0;
-        width: auto;
+    #filterForm.mobile-bahan-filter-form > div:not(:first-child) {
+        flex: 0 1 160px;
+        min-width: 128px;
+        width: 160px;
     }
-    #filterForm.mobile-bahan-filter-form .mobile-bahan-filter-fields > a {
-        flex: 0 0 38px;
-    }
-    .mobile-bahan-filter > summary,
-    .mobile-bahan-actions > summary {
-        display: none;
-    }
+    #filterForm.mobile-bahan-filter-form > a { flex: 0 0 38px; }
     .mobile-bahan-action-menu {
         display: flex;
     }
@@ -641,15 +554,17 @@
         box-shadow: none;
     }
     #filterForm.mobile-bahan-filter-form {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 8px;
-        align-items: center;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        align-items: end;
     }
     #filterForm.mobile-bahan-filter-form > div:first-child {
-        flex: 1 1 auto;
+        grid-column: 1 / -1;
         min-width: 0;
     }
+    #filterForm.mobile-bahan-filter-form > div { min-width: 0; width: 100%; }
+    #filterForm.mobile-bahan-filter-form > a { min-height: 44px; }
     #filterForm.mobile-bahan-filter-form .relative input {
         height: 46px;
         padding-left: 38px;
@@ -659,28 +574,6 @@
     #filterForm.mobile-bahan-filter-form .relative > i {
         left: 14px;
     }
-    #filterForm.mobile-bahan-filter-form .mobile-bahan-filter > summary {
-        min-height: 46px;
-        padding: 0 12px;
-        gap: 6px;
-        box-shadow: none;
-    }
-    #filterForm.mobile-bahan-filter[open] {
-        flex-basis: auto;
-    }
-    #filterForm.mobile-bahan-filter[open] .mobile-bahan-filter-fields {
-        position: absolute;
-        z-index: 20;
-        top: calc(100% + 6px);
-        right: 0;
-        width: min(290px, calc(100vw - 32px));
-        padding: 12px;
-        border: 1px solid var(--brand-surface-border, #E2EAE4);
-        border-radius: 14px;
-        background: var(--brand-surface-primary, #fff);
-        box-shadow: 0 8px 24px rgb(15 23 42 / 12%);
-    }
-
     /* Lepas kotak luar agar daftar tidak terlihat sebagai card di dalam card. */
     .content-wrapper .mobile-bahan-records {
         padding: 0;
