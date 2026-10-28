@@ -547,6 +547,12 @@
         display: contents;
         content-visibility: visible;
     }
+    /* Closed <details> still creates a hidden content box in Chromium.
+       Flatten that box too so every filter remains a desktop flex item. */
+    #filterForm.mobile-bahan-filter-form > .mobile-bahan-filter::details-content {
+        display: contents;
+        content-visibility: visible;
+    }
     .mobile-bahan-filter > summary,
     .mobile-bahan-actions > summary {
         display: none;

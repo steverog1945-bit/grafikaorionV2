@@ -421,6 +421,17 @@
         margin: 0 auto;
     }
 
+    /* Kurangi ruang luar pada laptop tanpa mengecilkan kontrol atau teks. */
+    @media screen and (min-width: 768px) and (max-width: 1440px),
+           screen and (min-width: 768px) and (max-height: 800px) {
+        #mainContent { padding: 20px 16px; }
+        #mainContent > .topbar { padding: 10px 16px; margin: 8px; }
+        #mainContent > .content-wrapper > .max-w-\[1600px\].py-10 {
+            padding-top: 24px;
+            padding-bottom: 24px;
+        }
+    }
+
     /* Sisa design tokens (.modern-table, .card, .chip-*, .modern-nav, dst)
        dipindahkan ke resources/css/app.css supaya diproses satu jalur oleh
        Tailwind (beberapa rule di sana memakai @apply yang HANYA berfungsi
