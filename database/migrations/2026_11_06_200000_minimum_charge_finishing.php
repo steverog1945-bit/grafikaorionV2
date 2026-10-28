@@ -46,12 +46,10 @@ return new class extends Migration
             }
         });
 
-        // Backfill: finishing Potong Manual yang sudah ada ikutkan angka 5.000
-        // yang sebelumnya hardcode di kode (nilainya tidak berubah).
-        DB::table('finishing')
-            ->where('metode_hitung', 'LINEAR_GRID')
-            ->where('minimum_charge', 0)
-            ->update(['minimum_charge' => 5000]);
+        // NOTE: Backfill UPDATE dihapus. minimum_charge default 0 (tidak ada minimum).
+        // Nilai minimum charge diisi oleh owner lewat UI Master Finishing.
+        // Finishing yang sudah ada tidak perlu diubah - minimum_charge=0
+        // berarti "tidak ada minimum charge" (biaya = hasil rumus apa adanya).
     }
 
     public function down(): void

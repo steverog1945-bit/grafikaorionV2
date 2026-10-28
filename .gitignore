@@ -20,6 +20,7 @@
 /storage/app/system/brand-theme.json
 /storage/app/system/.brand-theme-*
 /storage/*.key
+/storage/rehearsal/
 oriondb.sql.tmp
 /storage/pail
 /vendor

@@ -305,6 +305,15 @@ class ApiCheckoutTest extends TestCase
         ]));
         $r7->assertStatus(422);
 
+        // Potong Manual A3 (dengan/sans tier) tidak pernah bisa masuk lewat
+        // API: finishing ada di luar whitelist -> 422, jadi validasi tier A3
+        // di service tidak dapat di-bypass dari kanal API.
+        $idA3 = (int) DB::table('finishing')->where('nama_finishing', 'Potong Manual A3')->value('id_finishing');
+        $r8 = $this->postJson('/api/transaksi', $this->payloadCheckout([
+            ['id_produk' => $this->produk, 'qty_input' => 5, 'id_finishing' => $idA3, 'biaya_finishing' => 5000],
+        ]), $this->hPost('wl-a3'));
+        $r8->assertStatus(422);
+
         $this->assertSame(0, DB::table('transaksi')->count());
         $this->assertSame($stokSebelum, $this->nilaiStok());
         $this->assertSame(0, DB::table('api_checkout_idempotensi')->count());
