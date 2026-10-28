@@ -540,10 +540,11 @@ class PenjualanController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
+            $status = $e instanceof \App\Exceptions\ValidasiNotaException ? 422 : 500;
             return response()->json([
                 'status' => 'error',
                 'msg' => \App\Support\PesanError::untuk($e),
-            ], 500);
+            ], $status);
         }
 
         session()->flash('success', "Nota {$noNota} berhasil dikoreksi.");

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Finishing;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -54,7 +55,10 @@ class FinishingController extends Controller
             'keterangan'     => 'nullable|string',
         ]);
 
-        Finishing::create($validated);
+        $finishing = Finishing::create($validated);
+
+        AuditLogger::log('created', 'finishing', (int) $finishing->id_finishing, null, $validated,
+            'Finishing baru: ' . $validated['nama_finishing']);
 
         return redirect()->back()->with('success', 'Finishing berhasil ditambahkan');
     }
@@ -72,7 +76,12 @@ class FinishingController extends Controller
             'keterangan'     => 'nullable|string',
         ]);
 
+        $lama = Finishing::findOrFail($id)->toArray();
         Finishing::findOrFail($id)->update($validated);
+        $baru = Finishing::findOrFail($id)->toArray();
+
+        AuditLogger::log('updated', 'finishing', (int) $id, $lama, $baru,
+            'Finishing diperbarui: ' . ($validated['nama_finishing'] ?? $lama['nama_finishing']));
 
         return redirect()->back()->with('success', 'Finishing berhasil diperbarui');
     }
@@ -102,7 +111,11 @@ class FinishingController extends Controller
             );
         }
 
+        $lama = Finishing::findOrFail($id)->toArray();
         Finishing::findOrFail($id)->delete();
+
+        AuditLogger::log('deleted', 'finishing', (int) $id, $lama, null,
+            'Finishing dihapus: ' . ($lama['nama_finishing'] ?? ''));
 
         return redirect()->back()->with('success', 'Finishing dihapus');
     }

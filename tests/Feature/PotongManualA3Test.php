@@ -72,6 +72,19 @@ class PotongManualA3Test extends TestCase
 
         // Baris master dibuat migration 2026_11_06_090000_potong_manual_a3.php.
         $this->idFinishing = (int) DB::table('finishing')->where('nama_finishing', 'Potong Manual A3')->value('id_finishing');
+
+        // Tier harga wajib untuk Potong Manual A3 (validasi server-side).
+        // Tambahkan tier default agar finishing bisa dipakai di test.
+        if (!DB::table('finishing_harga')->where('id_finishing', $this->idFinishing)->exists()) {
+            DB::table('finishing_harga')->insert([
+                'id_finishing' => $this->idFinishing,
+                'range_min' => 1,
+                'range_max' => null,
+                'harga' => 450,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 
     private function payload(array $finishing): array
@@ -176,7 +189,7 @@ class PotongManualA3Test extends TestCase
         ]))->assertOk();
 
         $detail = DB::table('transaksi_detail')->first();
-        $this->assertEquals(5000.0, (float) $detail->biaya_finishing, 'minimum charge dari master harus dipakai');
+        $this->assertEquals(2000.0, (float) $detail->biaya_finishing, 'minimum charge dari master harus dipakai');
     }
 
     public function test_spek_custom_mengizinkan_harga_potong_manual(): void    {

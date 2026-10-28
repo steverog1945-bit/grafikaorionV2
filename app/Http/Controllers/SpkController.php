@@ -480,6 +480,13 @@ class SpkController extends Controller
 
         // Simpan finishing baru
         foreach ($request->finishing as $fin) {
+            $finishing = DB::table('finishing')->where('id_finishing', $fin['id_finishing'])->first();
+            if ($finishing && $finishing->nama_finishing === 'Potong Manual A3') {
+                $hasTier = DB::table('finishing_harga')->where('id_finishing', $fin['id_finishing'])->exists();
+                if (!$hasTier) {
+                    return back()->with('error', 'Tier harga Potong Manual A3 belum diisi, hubungi admin.');
+                }
+            }
             DB::table('transaksi_detail_finishing')->insert([
                 'id_detail' => $id,
                 'id_finishing' => $fin['id_finishing'],
@@ -608,6 +615,13 @@ class SpkController extends Controller
 
         // Simpan finishing baru
         foreach ($request->finishing as $fin) {
+            $finishing = DB::table('finishing')->where('id_finishing', $fin['id_finishing'])->first();
+            if ($finishing && $finishing->nama_finishing === 'Potong Manual A3') {
+                $hasTier = DB::table('finishing_harga')->where('id_finishing', $fin['id_finishing'])->exists();
+                if (!$hasTier) {
+                    return back()->with('error', 'Tier harga Potong Manual A3 belum diisi, hubungi admin.');
+                }
+            }
             DB::table('transaksi_detail_finishing')->insert([
                 'id_detail' => $id,
                 'id_finishing' => $fin['id_finishing'],

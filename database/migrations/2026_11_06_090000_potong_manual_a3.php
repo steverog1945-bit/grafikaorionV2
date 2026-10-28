@@ -52,6 +52,15 @@ return new class extends Migration
             return;
         }
 
+        // Pastikan kolom minimum_charge sudah ada (ditambah oleh migration
+        // 2026_11_06_200000_minimum_charge_finishing yang berjalan setelah ini).
+        // Jika belum ada, tambahkan dulu agar insert tidak gagal.
+        if (!Schema::hasColumn('finishing', 'minimum_charge')) {
+            Schema::table('finishing', function (Blueprint $t) {
+                $t->decimal('minimum_charge', 15, 2)->default(0)->after('harga_default');
+            });
+        }
+
         // Kategori A3 + mesin KONICA MINOLTA. Di database kosong (mis. test
         // yang migrate:fresh) master kategori/mesin belum ada, jadi id-nya
         // NULL - artinya finishing ini berlaku untuk semua kategori, sama
@@ -62,10 +71,11 @@ return new class extends Migration
         DB::table('finishing')->insert([
             'nama_finishing' => 'Potong Manual A3',
             'harga_default' => 450.00,
+            'minimum_charge' => 2000.00,
             'id_kategori' => $idKategoriA3,
             'id_mesin' => $idMesinKonica,
             'metode_hitung' => 'LINEAR_GRID',
-            'keterangan' => 'Potong manual untuk mesin KONICA MINOLTA (A3). Biaya = meter garis potong x tarif per meter, minimum charge Rp 5.000.',
+            'keterangan' => 'Potong manual untuk mesin KONICA MINOLTA (A3). Biaya = meter garis potong x tarif per meter, minimum charge Rp 2.000. Wajib memiliki tier harga sebelum bisa digunakan.',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
