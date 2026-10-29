@@ -49,6 +49,11 @@ class JerseyOrderController extends Controller
 
     private function formData(): array
     {
+        $desainerList = \App\Services\DesainKomisiService::daftarDesainer();
+        $desainerTerkunci = \App\Services\DesainKomisiService::desainerTerkunci();
+        $desainerTerkunciNama = $desainerTerkunci
+            ? optional($desainerList->firstWhere('id_user', $desainerTerkunci))->nama
+            : null;
         return [
             'konsumenList' => Konsumen::orderBy('nama_konsumen')->get(),
             'designers' => JerseyDesigner::where('is_active', true)->orderBy('name')->get(),
@@ -58,6 +63,10 @@ class JerseyOrderController extends Controller
             'sizes' => JerseySize::where('is_active', true)->orderBy('sort_order')->get(),
             'sleeveTypes' => JerseySleeveType::where('is_active', true)->orderBy('sort_order')->get(),
             'collarTypes' => JerseyCollarType::where('is_active', true)->orderBy('sort_order')->get(),
+            'desainerList' => $desainerList,
+            'desainerTerkunci' => $desainerTerkunci,
+            'desainerTerkunciNama' => $desainerTerkunciNama,
+            'desainerDefault' => \App\Services\DesainKomisiService::tentukanDesainer(null),
         ];
     }
 
@@ -345,6 +354,8 @@ class JerseyOrderController extends Controller
             'team_name' => 'nullable|string|max:255',
             'deadline' => 'nullable|date',
             'jersey_designer_id' => 'nullable|exists:jersey_designers,id',
+            'id_desainer' => 'nullable|exists:users,id_user',
+            'file_siap_cetak' => 'nullable|boolean',
             'notes' => 'nullable|string|max:2000',
             'discount' => 'nullable|numeric|min:0',
             'additional_charge' => 'nullable|numeric|min:0',
@@ -432,6 +443,12 @@ class JerseyOrderController extends Controller
                 'designer_name' => !empty($data['jersey_designer_id'])
                     ? JerseyDesigner::find($data['jersey_designer_id'])?->name
                     : null,
+                'id_desainer' => !empty($data['file_siap_cetak'])
+                    ? null
+                    : \App\Services\DesainKomisiService::kunciDesainer(
+                        isset($data['id_desainer']) ? (int) $data['id_desainer'] : null
+                    ),
+                'file_siap_cetak' => !empty($data['file_siap_cetak']),
                 'notes' => $data['notes'] ?? null,
                 'total' => 0,
                 // Diskon dan biaya tambahan adalah keputusan harga: role tanpa hak harga tidak bisa mengisinya.
@@ -848,6 +865,8 @@ class JerseyOrderController extends Controller
             'notes' => 'nullable|string|max:2000',
             'team_name' => 'nullable|string|max:255',
             'jersey_designer_id' => 'nullable|exists:jersey_designers,id',
+            'id_desainer' => 'nullable|exists:users,id_user',
+            'file_siap_cetak' => 'nullable|boolean',
             'discount' => 'nullable|numeric|min:0',
             'additional_charge' => 'nullable|numeric|min:0',
         ]);
@@ -855,6 +874,17 @@ class JerseyOrderController extends Controller
         $data['designer_name'] = !empty($data['jersey_designer_id'])
             ? JerseyDesigner::find($data['jersey_designer_id'])?->name
             : null;
+
+        // Desainer (Operator Desain) - terkunci untuk role Operator Desain,
+        // bebas untuk role lain. Bila file siap cetak, desainer tidak diperlukan.
+        if (!empty($data['file_siap_cetak'])) {
+            $data['id_desainer'] = null;
+        } else {
+            $data['id_desainer'] = \App\Services\DesainKomisiService::kunciDesainer(
+                isset($data['id_desainer']) ? (int) $data['id_desainer'] : null
+            );
+        }
+        $data['file_siap_cetak'] = !empty($data['file_siap_cetak']);
 
         // Role tanpa hak harga tidak melihat kolom diskon/biaya tambahan; nilai lama dipertahankan, bukan dikosongkan.
         if (! \App\Support\AksesHarga::bolehLihat()) {

@@ -58,12 +58,42 @@
                             <x-form.input type="date" name="deadline" value="{{ old('deadline') }}" />
                         </x-form.group>
 
-                        <x-form.group label="Desainer">
-                            <x-form.select name="jersey_designer_id">
-                                <option value="">-- Pilih --</option>
-                                @foreach($designers as $d)<option value="{{ $d->id }}">{{ $d->name }}</option>@endforeach
-                            </x-form.select>
+                        <x-form.group label="File Siap Cetak">
+                            <label class="inline-flex items-center gap-2 text-sm text-slate-600">
+                                <input type="checkbox" name="file_siap_cetak" value="1" id="file_siap_cetak" @checked(old('file_siap_cetak')) onchange="toggleDesainerSiapCetak()" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                <span>Desain sudah siap cetak (tanpa biaya desain/desainer)</span>
+                            </label>
                         </x-form.group>
+
+                        <div id="wrapper_desainer_jersey">
+                            <x-form.group label="Desainer (Operator Desain)">
+                                @if($desainerTerkunci)
+                                    <input type="hidden" id="input_desainer_jersey" name="id_desainer" value="{{ $desainerTerkunci }}">
+                                    <div class="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-700 flex items-center gap-2.5">
+                                        <i class="fas fa-user-check text-slate-400 text-xs shrink-0"></i>
+                                        <span class="truncate">{{ $desainerTerkunciNama }}</span>
+                                        <span class="ml-auto text-[11px] font-normal text-slate-400 shrink-0">otomatis (Anda)</span>
+                                    </div>
+                                @else
+                                    <select id="input_desainer_jersey" name="id_desainer" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                                        <option value="">-- Tanpa Desainer --</option>
+                                        @foreach($desainerList as $ds)
+                                            <option value="{{ $ds->id_user }}" {{ (int) $desainerDefault === (int) $ds->id_user ? 'selected' : '' }}>{{ $ds->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+                            </x-form.group>
+                        </div>
+
+                        <script>
+                            function toggleDesainerSiapCetak() {
+                                const cb = document.getElementById('file_siap_cetak');
+                                const wrap = document.getElementById('wrapper_desainer_jersey');
+                                if (!cb || !wrap) return;
+                                wrap.style.display = cb.checked ? 'none' : '';
+                            }
+                            document.addEventListener('DOMContentLoaded', toggleDesainerSiapCetak);
+                        </script>
                     </div>
                 </x-card>
 
