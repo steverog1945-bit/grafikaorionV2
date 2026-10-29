@@ -128,7 +128,8 @@
             <tr><td class="l">Pembulatan</td><td class="t">:</td><td class="v">{{ ($pembulatan > 0 ? '+' : '-') . number_format(abs($pembulatan), 0, ',', '.') }}</td></tr>
             <tr class="tebal"><td class="l">Total Tagihan</td><td class="t">:</td><td class="v">{{ number_format($totalTagihanBulat, 0, ',', '.') }}</td></tr>
             @endif
-            <tr><td class="l">Total Bayar</td><td class="t">:</td><td class="v">{{ number_format($totalTerbayar, 0, ',', '.') }}</td></tr>
+            <tr><td class="l">Total Dibayar</td><td class="t">:</td><td class="v">{{ number_format($totalTerbayar, 0, ',', '.') }}</td></tr>
+            <tr><td class="l">Uang Diterima</td><td class="t">:</td><td class="v">{{ number_format($totalUangDiterima ?? $totalTerbayar, 0, ',', '.') }}</td></tr>
             <tr><td class="l">Krg. Bayar</td><td class="t">:</td><td class="v">{{ number_format($kurangBayar, 0, ',', '.') }}</td></tr>
             <tr><td class="l">Kembali</td><td class="t">:</td><td class="v">{{ number_format($kembali, 0, ',', '.') }}</td></tr>
         </table>

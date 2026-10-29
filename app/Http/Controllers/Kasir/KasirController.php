@@ -1331,6 +1331,8 @@ public function printOpsi(Request $request, $id)
         ->get();
 
     $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
+    $totalUangDiterima = (float) (DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('uang_diterima') ?? 0);
+    if ($totalUangDiterima <= 0) $totalUangDiterima = $totalTerbayar;
     $totalCetak = (float) $items->sum('biaya_cetak');
     $totalDesain = (float) $items->sum('biaya_desain');
     $totalFinishing = (float) $items->sum('biaya_finishing');
@@ -1407,7 +1409,7 @@ public function printOpsi(Request $request, $id)
 
     // no-store: nota selalu dicetak dari data dan tata letak terbaru, bukan salinan lama di cache peramban.
     return response()->view('kasir.print_nota', compact(
-        'transaksi', 'items', 'totalTerbayar', 'format',
+        'transaksi', 'items', 'totalTerbayar', 'totalUangDiterima', 'format',
         'totalCetak', 'totalDesain', 'totalFinishing', 'kembali', 'kurangBayar',
         'totalTagihanAsli', 'totalTagihanBulat', 'pembulatan',
         'depositTerpakaiTransaksiIni', 'saldoDepositSaatIni', 'konsumenPernahPakaiDeposit',
