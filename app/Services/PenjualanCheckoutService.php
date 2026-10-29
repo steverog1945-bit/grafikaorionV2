@@ -727,6 +727,26 @@ class PenjualanCheckoutService
     $produkRows = $idProdukReq ? DB::table('produk')->whereIn('id_produk', $idProdukReq)->get()->keyBy('id_produk') : collect();
     $finishingRows = $idFinishingReq ? DB::table('finishing')->whereIn('id_finishing', $idFinishingReq)->get()->keyBy('id_finishing') : collect();
 
+    // Aturan minimum 1 m² untuk produk outdoor (min_order >= 1): dua lintasan
+    // agar keputusan per item konsisten.
+    $minAreaActual = [];
+    $minAreaQualifying = false;
+    $minAreaTotal = 0.0;
+    foreach ($request->items as $idx => $it) {
+        if (!empty($it['id_jasa'])) { $minAreaActual[$idx] = null; continue; }
+        $prodTmp = $produkRows->get((int) ($it['id_produk'] ?? 0));
+        if (!$prodTmp || $prodTmp->metode_hitung !== 'ukuran' || (float) ($prodTmp->min_order ?? 0) < 1) {
+            $minAreaActual[$idx] = null; continue;
+        }
+        $pp = (float) ($it['p'] ?? 0);
+        $ll = (float) ($it['l'] ?? 0);
+        $qi = (float) ($it['qty_input'] ?? 0);
+        $area = ($pp * $ll / 10000) * $qi;
+        $minAreaActual[$idx] = $area;
+        if ($area >= 1) $minAreaQualifying = true;
+        $minAreaTotal += $area;
+    }
+
     foreach ($request->items as $index => $item) {
 
         // Baris Jasa (bukan produk fisik) - tidak punya BOM/stok, harga
@@ -786,6 +806,16 @@ class PenjualanCheckoutService
         $qtyHitung = $produk->metode_hitung === 'ukuran'
             ? ($p * $l / 10000) * $qtyInput
             : $qtyInput;
+
+        // Aturan minimum 1 m² (produk outdoor, min_order >= 1): jika luas item
+        // < 1 m² dan tidak ada item lain yang >= 1 m² serta total luas < 1 m²,
+        // ditagih minimum 1 m².
+        if ($produk->metode_hitung === 'ukuran' && (float) ($produk->min_order ?? 0) >= 1) {
+            $areaIni = ($p * $l / 10000) * $qtyInput;
+            if ($areaIni < 1 && !$minAreaQualifying && $minAreaTotal < 1) {
+                $qtyHitung = 1;
+            }
+        }
 
         if ($qtyHitung <= 0) {
             throw new \App\Exceptions\ValidasiNotaException('Ukuran/qty pada baris ' . ($index + 1) . ' tidak valid.');

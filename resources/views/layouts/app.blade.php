@@ -186,6 +186,58 @@
 
     aside .menu-group-toggle { color: var(--brand-sidebar-muted, #9DB8AD) !important; }
 
+    /* Mode terang (tombol "Mode Sidebar"): sidebar terang bergaya Copilot.
+       Blok ini ditempatkan SETELAH palet gelap sehingga menang seri kaskade;
+       <style> ini adalah CSS terakhir di <head>, sehingga tak ada rule
+       !important lain yang menimpa latar palet terang. */
+    html[data-sidebar-mode="light"] aside {
+        background: #F3F4F6 !important;
+        border-right-color: #D1D5DB !important;
+        color: #1F2937 !important;
+    }
+    html[data-sidebar-mode="light"] aside .sidebar-brand-title,
+    html[data-sidebar-mode="light"] aside .sidebar-title,
+    html[data-sidebar-mode="light"] aside h1, html[data-sidebar-mode="light"] aside h2,
+    html[data-sidebar-mode="light"] aside h3 { color: #111827 !important; }
+    html[data-sidebar-mode="light"] aside a, html[data-sidebar-mode="light"] aside button,
+    html[data-sidebar-mode="light"] aside nav span, html[data-sidebar-mode="light"] aside nav div { color: #374151 !important; }
+    html[data-sidebar-mode="light"] aside .menu-group-toggle { color: #6B7280 !important; }
+    html[data-sidebar-mode="light"] aside a:hover, html[data-sidebar-mode="light"] aside button:hover {
+        color: #111827 !important;
+        background: rgba(71, 85, 105, 0.08);
+    }
+    html[data-sidebar-mode="light"] aside .rail-icon {
+        color: #4B5563 !important;
+        background: rgba(0, 0, 0, 0.04) !important;
+    }
+    html[data-sidebar-mode="light"] aside a.sb-active, html[data-sidebar-mode="light"] aside a.active,
+    html[data-sidebar-mode="light"] aside .menu-active,
+    html[data-sidebar-mode="light"] aside nav a[aria-current="page"] { color: #111827 !important; }
+    /* Tab aktif (bentuk menempel ke tepi kanan) pakai --tab; mode terang
+       memakai abu-abu muda agar teks gelap di atasnya tetap terbaca. */
+    html[data-sidebar-mode="light"]:not(.dark) body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: #EBEDF0; }
+    html[data-sidebar-mode="light"]:not(.dark) body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: #DDE0E8; }
+    html.dark[data-sidebar-mode="light"] body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: #EBEDF0; }
+    html.dark[data-sidebar-mode="light"] body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: #DDE0E8; }
+    html[data-sidebar-mode="light"] #mainSidebar nav a.group.sb-active { border-left: none !important; }
+    html[data-sidebar-mode="light"] aside nav > a.sb-active svg,
+    html[data-sidebar-mode="light"] aside nav > a.sb-active i { color: #9A5410 !important; }
+    html[data-sidebar-mode="light"] aside .rail-icon {
+        color: #4B5563 !important;
+        background: rgba(0, 0, 0, 0.04) !important;
+    }
+
+    /* Kotak status kasir: di latar terang latar putih + teks gelap agar tetap
+       terbaca (versi terbuka peringatan diberi aksen amber tua). */
+    html[data-sidebar-mode="light"] aside .sidebar-kas-status {
+        background: #FFFFFF !important;
+        border-color: #D1D5DB !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+    html[data-sidebar-mode="light"] aside .sidebar-kas-status * { color: #374151 !important; }
+    html[data-sidebar-mode="light"] aside .sidebar-kas-status [class*="text-amber"] { color: #B45309 !important; }
+    html[data-sidebar-mode="light"] aside .sidebar-kas-status [class*="text-emerald"] { color: #047857 !important; }
+
     @media (max-width: 1023px) {
         aside { transform: translateX(-100%); }
         aside.mobile-open { transform: translateX(0); }

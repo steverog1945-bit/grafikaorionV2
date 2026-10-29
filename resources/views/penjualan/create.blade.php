@@ -2286,6 +2286,30 @@ let hitungUlangMenunggu = false;
         }
 
         let qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
+
+        // Aturan minimum 1 m² (produk outdoor, min_order >= 1): jika luas item
+        // < 1 m² dan tidak ada item lain dalam keranjang yang >= 1 m² serta
+        // total luas < 1 m², ditagih minimum 1 m².
+        const minOrderCur = parseFloat(currentProduk.min_order) || 0;
+        if (currentProduk.metode_hitung === 'ukuran' && minOrderCur >= 1) {
+            const actualArea = (p * l / 10000) * qU;
+            if (actualArea > 0 && actualArea < 1) {
+                let hasQualifying = false;
+                let totalArea = actualArea;
+                cart.forEach((it, idx) => {
+                    if (editIndex !== null && idx === editIndex) return;
+                    if (!it.min_order || parseFloat(it.min_order) < 1) return;
+                    if (it.metode_hitung !== 'ukuran') return;
+                    const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
+                    if (a >= 1) hasQualifying = true;
+                    totalArea += a;
+                });
+                if (!hasQualifying && totalArea < 1) {
+                    qtyCari = 1;
+                }
+            }
+        }
+
         if (qtyCari <= 0) { updateDisplay(0, 0); return null; }
 
         // Refresh dulu SEBELUM baca nilainya - supaya subtotal di bawah ini
@@ -2372,6 +2396,27 @@ let hitungUlangMenunggu = false;
                 return;
             }
         }
+
+        // Aturan minimum 1 m² (produk outdoor, min_order >= 1): jika luas < 1 m²
+        // dan tidak ada item lain dalam keranjang yang >= 1 m², ditagih 1 m².
+        if (currentProduk.metode_hitung === 'ukuran' && (parseFloat(currentProduk.min_order) || 0) >= 1) {
+            const area = (p * l / 10000) * qU;
+            if (area > 0 && area < 1) {
+                let hasQualifying = false;
+                cart.forEach((it, idx) => {
+                    if (editIndex !== null && idx === editIndex) return;
+                    if (!it.min_order || parseFloat(it.min_order) < 1) return;
+                    const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
+                    if (a >= 1) hasQualifying = true;
+                });
+                if (!hasQualifying) {
+                    detail.innerText = `Minimum 1 m² untuk produk ini (luas sekarang ${area.toFixed(2)} m²) - ditagih 1 m².`;
+                    box.hidden = false;
+                    return;
+                }
+            }
+        }
+
         box.hidden = true;
     }
 
@@ -2607,7 +2652,9 @@ let hitungUlangMenunggu = false;
             status_finishing: finishingList.some(f => f.status === 'Custom') ? 'Custom' : 'Standar',
             catatan_produksi: document.getElementById('input_catatan_produksi').value.trim(),
             subtotal: res.subtotal,
-            id_kategori: $('#filter_kategori').val()
+            id_kategori: $('#filter_kategori').val(),
+            min_order: currentProduk.min_order,
+            metode_hitung: currentProduk.metode_hitung
         };
 
         if (editIndex !== null) {
