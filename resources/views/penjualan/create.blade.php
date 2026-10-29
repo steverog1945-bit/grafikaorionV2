@@ -2383,7 +2383,7 @@ let hitungUlangMenunggu = false;
             const subtotal = biayaCetak + biayaDesain + biayaFinishing;
             updateDisplay(hargaJual, subtotal, isPromo, qtyCari);
             cekStokBom(currentProduk.id_produk, p, l, (currentProduk.metode_hitung === 'ukuran') ? qU : qB);
-            cekMinOrder(p, l, qU, qB);
+            await cekMinOrder(p, l, qU, qB);
             return { harga_satuan: hargaJual, subtotal: subtotal, qty_hitung: qtyCari, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB };
         } catch (error) { return null; }
     }
@@ -2417,7 +2417,7 @@ let hitungUlangMenunggu = false;
     // tidak pernah dibaca di mana pun - operator bisa input ukuran/qty di
     // bawah batas tanpa tahu itu di bawah minimum. PERINGATAN saja (pola
     // sama seperti stok BOM), tidak memblokir - kasir yang putuskan.
-    function cekMinOrder(p, l, qU, qB) {
+    async function cekMinOrder(p, l, qU, qB) {
         const box = document.getElementById('min_order_warning');
         const detail = document.getElementById('min_order_warning_detail');
         if (!currentProduk) { box.hidden = true; return; }
@@ -2447,22 +2447,31 @@ let hitungUlangMenunggu = false;
             }
         }
 
-        // Aturan minimum 1 m²: jika luas < 1 m² dan tidak ada item lain >= 1 m²,
-        // ditagih 1 m².
+        // Aturan minimum 1 m²: hanya jika tier harga punya hard-minimum (range_min >= 1).
         if (currentProduk.metode_hitung === 'ukuran') {
             const area = (p * l / 10000) * qU;
             if (area > 0 && area < 1) {
-                let hasQualifying = false;
-                cart.forEach((it, idx) => {
-                    if (editIndex !== null && idx === editIndex) return;
-                    if (it.metode_hitung !== 'ukuran') return;
-                    const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
-                    if (a >= 1) hasQualifying = true;
-                });
-                if (!hasQualifying) {
-                    detail.innerText = `Minimum 1 m² untuk produk ini (luas sekarang ${area.toFixed(2)} m²) - ditagih 1 m².`;
-                    box.hidden = false;
-                    return;
+                // Deteksi hard-minimum via fetch
+                let isHardMin = false;
+                try {
+                    const testUrl = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${document.getElementById('id_golongan_hidden').value || document.getElementById('id_golongan').value}/${area}${siapCetak ? '?siap_cetak=1' : ''}`;
+                    const testResp = await fetch(testUrl);
+                    const testData = await testResp.json();
+                    isHardMin = (parseFloat(testData.harga_jual) || 0) <= 0;
+                } catch (e) { isHardMin = false; }
+                if (isHardMin) {
+                    let hasQualifying = false;
+                    cart.forEach((it, idx) => {
+                        if (editIndex !== null && idx === editIndex) return;
+                        if (it.metode_hitung !== 'ukuran') return;
+                        const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
+                        if (a >= 1) hasQualifying = true;
+                    });
+                    if (!hasQualifying) {
+                        detail.innerText = `Minimum 1 m² untuk produk ini (luas sekarang ${area.toFixed(2)} m²) - ditagih 1 m².`;
+                        box.hidden = false;
+                        return;
+                    }
                 }
             }
         }
