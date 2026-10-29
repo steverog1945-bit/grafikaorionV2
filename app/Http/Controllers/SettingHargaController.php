@@ -268,4 +268,311 @@ class SettingHargaController extends Controller
             'id_harga'
         );
     }
+
+    /* =====================================================================
+     |  CETAK DAFTAR HARGA + TIER PER GOLONGAN
+     |======================================================================
+     |  Lembar harga jual siap cetak: per kategori (produk / jasa /
+     |  finishing), matriks baris = rentang qty, kolom = golongan konsumen.
+     |
+     |  HANYA harga jual. Dilarang dan dijaga mengangkat HPP, modal, margin,
+     |  harga beli, atau identitas konsumen: sumbernya murni setting_harga /
+     |  harga_siap_cetak / jasa_harga+harga_default / finishing_harga+
+     |  harga_default+minimum_charge — baris baris yang SAMA yang dibaca
+     |  HargaService di POS, tanpa rumus ganda (dibandingkan otomatis ke
+     |  HargaService di test).
+     |
+     |  Izin SAMA dengan halaman daftar harga (/setting-harga):
+     |   - path "setting-harga/cetak" jatuh di prefix 'setting-harga'
+     |     (config/menu_access.php) → pemeriksaan menu yang sama buat
+     |     CheckMenuAccess/Izin::bolehPath;
+     |   - tambahan di action ini: AksesHarga::bolehLihat() yang menutup
+     |     role tanpa roles.boleh_lihat_harga sama seperti halaman berharga
+     |     lain. Row tanpa login diblokir middleware 'auth' (redirect).
+     */
+    public function cetak(Request $request)
+    {
+        abort_unless(
+            \App\Support\AksesHarga::bolehLihat(),
+            403,
+            'Role Anda tidak diizinkan melihat atau mengubah harga. Halaman ini khusus role yang berhak.'
+        );
+
+        return view('master.setting_harga.cetak', $this->susunDataDaftarHarga($request));
+    }
+
+    /**
+     * Menyusun seluruh data lembar harga. PUBLIK-testable: test bandingkan
+     * setiap angka di $bloks dengan HargaService::getHargaEfektif/… 
+     * (memanggil method ini langsung, tanpa HTTP, berdasarkan DB yang aktif).
+     */
+    public function susunDataDaftarHarga(Request $request): array
+    {
+        $filterGolongan = $request->filled('golongan') && ctype_digit((string) $request->query('golongan'))
+            ? (int) $request->query('golongan')
+            : null;
+        $kategori = in_array($request->query('kategori'), ['produk', 'jasa', 'finishing'], true)
+            ? $request->query('kategori')
+            : 'semua';
+
+        $golongan = DB::table('golongan_konsumen')->orderBy('nama_golongan')->get();
+        if ($filterGolongan !== null) {
+            $golongan = $golongan->where('id_golongan', $filterGolongan)->values();
+        }
+
+        $bloks = collect();
+        if (in_array($kategori, ['produk', 'semua'], true)) {
+            $bloks = $bloks->merge($this->blokProduk($golongan));
+        }
+        if (in_array($kategori, ['jasa', 'semua'], true)) {
+            $bloks = $bloks->merge($this->blokJasaDanFinishing($golongan, 'jasa'));
+        }
+        if (in_array($kategori, ['finishing', 'semua'], true)) {
+            $bloks = $bloks->merge($this->blokJasaDanFinishing($golongan, 'finishing'));
+        }
+
+        return [
+            'usaha' => \App\Models\AppSetting::current(),
+            'tanggalCetak' => now()->translatedFormat('d F Y, H:i'),
+            'golongan' => $golongan,
+            'bloks' => $bloks,
+            'filterGolongan' => $filterGolongan,
+            'kategori' => $kategori,
+        ];
+    }
+
+    /**
+     * Blok produk: satu baris matriks per RENTANG qty unik, kolom per
+     * golongan konsumen (> 4 golongan tampil landscape otomatis, diatur
+     * di view). Produk status != 'aktif' tidak dicetak; produk tanpa
+     * satu pun harga (setting_harga & harga_siap_cetak kosong dan tidak
+     * ada promo) tidak dicetak.
+     */
+    private function blokProduk(\Illuminate\Support\Collection $golongan): \Illuminate\Support\Collection
+    {
+        $produk = DB::table('produk')
+            ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
+            ->where('produk.status', 'aktif')
+            ->orderBy('produk.nama_produk')
+            ->get(['produk.id_produk', 'produk.nama_produk', 'produk.metode_hitung', 'mesin.nama_mesin']);
+
+        if ($produk->isEmpty()) {
+            return collect();
+        }
+        $ids = $produk->pluck('id_produk')->all();
+        $idGolonganAktif = $golongan->pluck('id_golongan')->all();
+
+        // EAGER: empat query untuk SELURUH produk — tanpa N+1. Predikat
+        // promo disalin verbatim dari HargaService::promoAktif (status
+        // aktif, tgl_mulai <= hari ini <= tgl_selesai) dan pemilih
+        // pemenangnya (id_promo terbesar) juga sama.
+        $setting = DB::table('setting_harga')
+            ->whereIn('id_produk', $ids)
+            ->whereIn('id_golongan', $idGolonganAktif)
+            ->get()
+            ->groupBy(fn ($t) => (int) $t->id_produk);
+        $promo = DB::table('harga_promo')
+            ->whereIn('id_produk', $ids)
+            ->where('status_promo', 'aktif')
+            ->where('tgl_mulai', '<=', now()->format('Y-m-d'))
+            ->where('tgl_selesai', '>=', now()->format('Y-m-d'))
+            ->orderByDesc('id_promo')
+            ->get()
+            ->groupBy(fn ($t) => (int) $t->id_produk)
+            ->map->first();
+        $siap = DB::table('harga_siap_cetak')
+            ->whereIn('id_produk', $ids)
+            ->whereIn('id_golongan', $idGolonganAktif)
+            ->get()
+            ->groupBy(fn ($t) => (int) $t->id_produk);
+
+        $bloks = collect();
+        foreach ($produk as $p) {
+            $tiers = ($setting[(int) $p->id_produk] ?? collect())->values();
+            $siapItem = ($siap[(int) $p->id_produk] ?? collect())->values();
+            $promoItem = $promo[(int) $p->id_produk] ?? null;
+
+            if ($tiers->isEmpty() && $siapItem->isEmpty() && $promoItem === null) {
+                continue; // item tanpa harga: tidak dicetak
+            }
+
+            $unit = $p->metode_hitung === 'ukuran' ? 'm²' : 'Pcs';
+            $baris = $this->barisMatriksProduk($tiers, $golongan, $promoItem, $unit);
+            $barisSiap = $siapItem->isEmpty()
+                ? null
+                : $this->barisMatriksProduk($siapItem, $golongan, null, $unit);
+
+            if ($baris === [] && $barisSiap === null) {
+                continue;
+            }
+
+            $bloks->push([
+                'tipe' => 'produk',
+                'id' => (int) $p->id_produk,
+                'nama' => $p->nama_produk,
+                'info' => $p->nama_mesin ?? 'Tanpa Mesin',
+                'unit' => $unit,
+                'promo' => $promoItem ? ['tglSelesai' => (string) $promoItem->tgl_selesai] : null,
+                'baris' => $baris,
+                'barisSiapCetak' => $barisSiap,
+                'catatan' => null,
+                'kolomGolongan' => true,
+            ]);
+        }
+
+        return $bloks;
+    }
+
+    /**
+     * Blok jasa / finishing: tanpa dimensi GOLONGAN — HargaService
+     * memperlakukan jasa_harga/finishing_harga + harga_default sebagai
+     * harga untuk semua pelanggan. Baris = rentang tier; tanpa tier =
+     * satu baris harga flat dari harga_default. Item tanpa harga sama
+     * sekali (tanpa tier dan harga_default <= 0) tidak dicetak.
+     */
+    private function blokJasaDanFinishing(\Illuminate\Support\Collection $golongan, string $tipe): \Illuminate\Support\Collection
+    {
+        $isJasa = $tipe === 'jasa';
+        $tabel = $isJasa ? 'jasa' : 'finishing';
+        $tabelHarga = $isJasa ? 'jasa_harga' : 'finishing_harga';
+        $pk = $isJasa ? 'id_jasa' : 'id_finishing';
+        $namaKol = $isJasa ? 'nama_jasa' : 'nama_finishing';
+
+        $items = DB::table($tabel)->orderBy($namaKol)->get();
+        if ($items->isEmpty()) {
+            return collect();
+        }
+
+        $tiers = DB::table($tabelHarga)
+            ->whereIn($pk, $items->pluck($pk)->all())
+            ->orderBy('range_min')
+            ->get()
+            ->groupBy(fn ($t) => (int) $t->{$pk});
+
+        $bloks = collect();
+        foreach ($items as $item) {
+            $tierRows = ($tiers[(int) $item->{$pk}] ?? collect())->values();
+            $default = (float) ($item->harga_default ?? 0);
+
+            if ($tierRows->isEmpty() && $default <= 0) {
+                continue; // item tanpa harga: tidak dicetak
+            }
+
+            $baris = [];
+            if ($tierRows->isEmpty()) {
+                $baris[] = ['label' => 'Semua Qty', 'rep' => 1.0, 'hargaFlat' => $default];
+            } else {
+                foreach ($tierRows as $t) {
+                    $minT = (float) $t->range_min;
+                    $maxT = $t->range_max === null ? null : (float) $t->range_max;
+                    $baris[] = [
+                        'label' => angka_polos($minT, 2) . ' - '
+                            . ($maxT === null ? '∞' : angka_polos($maxT, 2)),
+                        'rep' => max($minT, $maxT ?? $minT),
+                        'hargaFlat' => (float) $t->harga,
+                    ];
+                }
+            }
+
+            // Catatan minimum charge HANYA untuk finishing (kolom minimum_charge).
+            $catatan = !$isJasa && (float) ($item->minimum_charge ?? 0) > 0
+                ? 'Biaya = tarif/meter × meter garis potong, minimum charge Rp '
+                    . number_format((float) $item->minimum_charge, 0, ',', '.')
+                : null;
+
+            $bloks->push([
+                'tipe' => $tipe,
+                'id' => (int) $item->{$pk},
+                'nama' => $item->{$namaKol},
+                'info' => $isJasa ? null : ($item->metode_hitung ?? null),
+                'baris' => $baris,
+                'barisProduk' => null,
+                'barisSiapCetak' => null,
+                'promo' => null,
+                'catatan' => $catatan,
+                'kolomGolongan' => false,
+            ]);
+        }
+
+        return $bloks;
+    }
+
+    /**
+     * Baris matriks produk: gabungan rentang dari seluruh golongan.
+     * Nilai sel memakai aturan pemilihan yang SAMA dengan
+     * HargaService::getHargaEfektif (range_min <= qty, range_max null atau
+     * >= qty, ambil range_min terbesar) — bukan rumus ganda; test
+     * membandingkan setiap sel ke HargaService langsung.
+     */
+    private function barisMatriksProduk(\Illuminate\Support\Collection $tiers, \Illuminate\Support\Collection $golongan, ?object $promo, string $unit): array
+    {
+        // Promo aktif menang di atas tier untuk SEMUA golongan & SEMUA qty
+        // (persis HargaService::getHargaEfektif: if ($promo) return promo).
+        if ($promo !== null) {
+            $harga = [];
+            foreach ($golongan as $g) {
+                $harga[(int) $g->id_golongan] = ['harga' => (float) $promo->harga_promo, 'promo' => true];
+            }
+
+            return [['label' => 'Semua Qty', 'rep' => 1.0, 'harga' => $harga]];
+        }
+
+        // Kunci baris = pasangan (range_min, range_max) unik lintas golongan.
+        $perKunci = [];
+        foreach ($tiers as $t) {
+            $min = (float) $t->range_min;
+            $max = $t->range_max === null ? null : (float) $t->range_max;
+            $perKunci[$min . '|' . ($max === null ? 'n' : (string) $max)] = ['min' => $min, 'max' => $max];
+        }
+        uasort($perKunci, fn ($a, $b) => [$a['min'], $a['max'] ?? INF] <=> [$b['min'], $b['max'] ?? INF]);
+
+        $baris = [];
+        foreach ($perKunci as $rentang) {
+            // Qty uji di dalam rentang ini untuk evaluasi sel: batas ATAS
+            // (inclusive di HargaService), atau batas bawah bila tak berbatas
+            // atas/tak valid. Angka harga CONTOH sel = harga efektif kasir
+            // untuk qty di rentang itu.
+            $rep = max($rentang['min'], $rentang['max'] ?? $rentang['min']);
+            $label = angka_polos($rentang['min'], 2) . ' - '
+                . ($rentang['max'] === null ? '∞' : angka_polos($rentang['max'], 2)) . ' ' . $unit;
+
+            $harga = [];
+            foreach ($golongan as $g) {
+                $tier = $this->pilihTier($tiers, (int) $g->id_golongan, $rep);
+                $harga[(int) $g->id_golongan] = $tier !== null
+                    ? ['harga' => (float) $tier->harga_jual, 'promo' => false]
+                    : null;
+            }
+
+            $baris[] = ['label' => $label, 'rep' => $rep, 'harga' => $harga];
+        }
+
+        return $baris;
+    }
+
+    /**
+     * Pemilih tier yang PERSIS meniru HargaService::getHargaEfektif:
+     * where range_min <= qty, (range_max null atau >= qty),
+     * orderBy('range_min','desc') → first.
+     */
+    private function pilihTier(\Illuminate\Support\Collection $tiers, int $idGolongan, float $qty): ?object
+    {
+        $pilih = null;
+        foreach ($tiers as $t) {
+            if ((int) $t->id_golongan !== $idGolongan) {
+                continue;
+            }
+            if ((float) $t->range_min > $qty + 1e-9) {
+                continue;
+            }
+            if ($t->range_max !== null && (float) $t->range_max < $qty - 1e-9) {
+                continue;
+            }
+            if ($pilih === null || (float) $t->range_min > (float) $pilih->range_min) {
+                $pilih = $t;
+            }
+        }
+
+        return $pilih;
+    }
 }

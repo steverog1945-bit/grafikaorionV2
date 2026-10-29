@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Concerns\Auditable;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -23,6 +24,8 @@ class JerseyOrder extends Model
         'status',
         'jersey_designer_id',
         'designer_name',
+        'id_desainer',
+        'file_siap_cetak',
         'notes',
         'total',
         'discount',
@@ -40,6 +43,7 @@ class JerseyOrder extends Model
         'discount' => 'decimal:2',
         'additional_charge' => 'decimal:2',
         'deposit' => 'decimal:2',
+        'file_siap_cetak' => 'boolean',
     ];
 
     public function konsumen()
@@ -50,6 +54,11 @@ class JerseyOrder extends Model
     public function designer()
     {
         return $this->belongsTo(JerseyDesigner::class, 'jersey_designer_id');
+    }
+
+    public function desainer()
+    {
+        return $this->belongsTo(User::class, 'id_desainer', 'id_user');
     }
 
     public function lines()

@@ -418,7 +418,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 18px 24px;
+        padding: 10px 20px;
         border-bottom: 1px solid var(--brand-surface-border, #E2EAE4);
         background: var(--brand-surface-primary, #ffffff);
     }
@@ -429,7 +429,7 @@
        Dirapatkan + judul dibatasi lebar & dipotong elipsis supaya topbar
        tetap satu baris rapi di HP sekecil apa pun. */
     @media (max-width: 639px) {
-        .topbar { padding: 12px 16px; gap: 8px; }
+        .topbar { padding: 10px 14px; gap: 8px; }
         .topbar-app-name { font-size: 13px; max-width: 38vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .topbar-burger { width: 36px; height: 36px; }
 

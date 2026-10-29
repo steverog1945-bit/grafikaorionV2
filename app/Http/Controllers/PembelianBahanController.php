@@ -488,7 +488,44 @@ public function update(Request $request, $id)
     if (\App\Support\VersiBaris::bentrok($request, $pembelian)) {
         return back()->withInput()->with('error', \App\Support\VersiBaris::pesan($pembelian));
     }
-    $pembelian->update($request->only('tgl_transaksi'));
+
+    $tglLama = $pembelian->tgl_transaksi;
+    $tglBaru = $request->tgl_transaksi;
+
+    // Cek periode akuntansi tertutup untuk tanggal LAMA dan BARU.
+    if (\App\Services\AccountingPeriodService::isClosed($tglLama)) {
+        throw new \App\Exceptions\PeriodeAkuntansiTertutupException('Periode ' . \Carbon\Carbon::parse($tglLama)->locale('id')->translatedFormat('F Y') . ' sudah ditutup. Tanggal lama tidak bisa diubah.');
+    }
+    if (\App\Services\AccountingPeriodService::isClosed($tglBaru)) {
+        throw new \App\Exceptions\PeriodeAkuntansiTertutupException('Periode ' . \Carbon\Carbon::parse($tglBaru)->locale('id')->translatedFormat('F Y') . ' sudah ditutup. Pakai tanggal di periode yang masih terbuka.');
+    }
+
+    // Tanggal sama = tidak ada perubahan, tidak ada audit.
+    if ($tglLama === $tglBaru) {
+        return redirect()->route('pembelian-bahan.index')->with('success', 'Faktur berhasil diperbarui');
+    }
+
+    $jtLama = $pembelian->jatuh_tempo_tgl;
+
+    // Hitung ulang jatuh_tempo_tgl hanya jika jatuh_tempo_hari terisi (Tempo).
+    $dataUpdate = ['tgl_transaksi' => $tglBaru];
+    if ($pembelian->jatuh_tempo_hari) {
+        $dataUpdate['jatuh_tempo_tgl'] = \Carbon\Carbon::parse($tglBaru)->addDays((int) $pembelian->jatuh_tempo_hari)->toDateString();
+    }
+
+    $pembelian->update($dataUpdate);
+
+    $jtBaru = $pembelian->fresh()->jatuh_tempo_tgl;
+
+    // Audit trail: tanggal lama -> baru, jatuh tempo lama -> baru, user.
+    \App\Services\AuditLogger::log(
+        'updated',
+        'pembelian_bahan',
+        (int) $id,
+        ['tgl_transaksi' => $tglLama, 'jatuh_tempo_tgl' => $jtLama],
+        ['tgl_transaksi' => $tglBaru, 'jatuh_tempo_tgl' => $jtBaru],
+        'Tanggal transaksi pembelian #' . $id . ' diubah: ' . $tglLama . ' -> ' . $tglBaru
+    );
 
     return redirect()->route('pembelian-bahan.index')->with('success', 'Faktur berhasil diperbarui');
 }

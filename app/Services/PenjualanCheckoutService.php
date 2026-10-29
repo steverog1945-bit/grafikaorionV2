@@ -488,10 +488,11 @@ class PenjualanCheckoutService
 
         DB::rollBack();
 
+        $status = $e instanceof \App\Exceptions\ValidasiNotaException ? 422 : 500;
         return response()->json([
             'status' => 'error',
             'msg' => \App\Support\PesanError::untuk($e)
-        ], 500);
+        ], $status);
     }
 }
 
@@ -585,6 +586,13 @@ class PenjualanCheckoutService
     public function tulisFinishingItem(int $idDetail, array $daftarFinishing): void
     {
         foreach ($daftarFinishing as $fin) {
+            $finishing = DB::table('finishing')->where('id_finishing', $fin['id_finishing'])->first();
+            if ($finishing && $finishing->nama_finishing === 'Potong Manual A3') {
+                $hasTier = DB::table('finishing_harga')->where('id_finishing', $fin['id_finishing'])->exists();
+                if (!$hasTier) {
+                    throw new \App\Exceptions\ValidasiNotaException('Tier harga Potong Manual A3 belum diisi, hubungi admin.');
+                }
+            }
             DB::table('transaksi_detail_finishing')->insert([
                 'id_detail' => $idDetail, 'id_finishing' => $fin['id_finishing'], 'status_finishing' => $fin['status_finishing'],
                 'qty_pakai' => $fin['qty_pakai'], 'biaya' => $fin['biaya'], 'catatan' => $fin['catatan'],

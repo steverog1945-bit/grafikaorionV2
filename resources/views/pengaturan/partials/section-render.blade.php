@@ -466,15 +466,12 @@
                                 </div>
                             @endforeach
 
-@if(count($sections) > 0)
-
-@endif
                         </div>
                     @else
                         {{-- Empty state elegan --}}
                         <div class="lp-testimonials-empty">
-                            <p>Belum ada testimoni klien.</p>
-                            <small>Testimoni yang ditambahkan melalui builder akan muncul di sini.</small>
+                            <p>Belum ada layanan.</p>
+                            <small>Layanan ditambahkan melalui builder akan muncul di sini.</small>
                         </div>
                     @endif
                     @break
@@ -526,9 +523,6 @@
                                         </div>
                                     @endforeach
 
-@if(count($sections) > 0)
-
-@endif
                                 </div>
                             @endif
                         </div>
@@ -580,87 +574,13 @@
                                 </article>
                             @endforeach
 
-@if(count($sections) > 0)
-<script>
-(function () {
-    'use strict';
 
-    // ---- Filter kategori portfolio ------------------------------------
-    document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {
-        var grid = wrap.parentElement.querySelector('[data-lpb-portfolio-grid]');
-        if (!grid) return;
-        var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-portfolio-card'));
-        var pills = Array.prototype.slice.call(wrap.querySelectorAll('.lp-filter-pill'));
-
-        wrap.addEventListener('click', function (e) {
-            var btn = e.target.closest('.lp-filter-pill');
-            if (!btn) return;
-            pills.forEach(function (p) { p.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            var aktif = btn.getAttribute('data-lpb-filter');
-            cards.forEach(function (c) {
-                // Strip quotes dari attribute (htmlspecialchars bisa menambah ")
-                var kat = (c.getAttribute('data-lpb-kategori') || '').replace(/^"|"$/g, '').replace(/^"|"$/g, '');
-                var tampil = aktif === '*' || kat === aktif;
-                c.style.display = tampil ? '' : 'none';
-            });
-        });
-    });
-
-    // ---- Lightbox -----------------------------------------------------
-    // Overlay dibuat sekali, dipakai bersama oleh semua gambar.
-    var overlay = document.createElement('div');
-    overlay.className = 'lp-lightbox';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Perbesar gambar');
-    overlay.innerHTML =
-        '<button type="button" class="lp-lightbox-close" aria-label="Tutup">&times;</button>' +
-        '<img alt="" loading="lazy">';
-    document.body.appendChild(overlay);
-
-    var lbImg = overlay.querySelector('img');
-
-    function tutupLightbox() {
-        overlay.classList.remove('is-open');
-        lbImg.removeAttribute('src');
-        lbImg.alt = '';
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function bukaLightbox(src, alt) {
-        lbImg.src = src;
-        lbImg.alt = alt || '';
-        overlay.classList.add('is-open');
-        document.body.classList.add('overflow-hidden');
-        overlay.querySelector('.lp-lightbox-close').focus();
-    }
-
-    document.addEventListener('click', function (e) {
-        var pic = e.target.closest('img[data-lpb-lightbox]');
-        if (pic) { bukaLightbox(pic.src, pic.alt); return; }
-        if (e.target === overlay) tutupLightbox();
-    });
-    overlay.querySelector('.lp-lightbox-close').addEventListener('click', tutupLightbox);
-
-    // Keyboard: Esc menutup, tab tidak keluar dari overlay.
-    document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('is-open')) return;
-        if (e.key === 'Escape') { e.preventDefault(); tutupLightbox(); return; }
-        if (e.key === 'Tab') {
-            var fokus = overlay.querySelector('.lp-lightbox-close');
-            if (fokus) { e.preventDefault(); fokus.focus(); }
-        }
-    });
-})();
-</script>
-@endif
                         </div>
                     @else
                         {{-- Empty state elegan --}}
                         <div class="lp-testimonials-empty">
-                            <p>Belum ada testimoni klien.</p>
-                            <small>Testimoni yang ditambahkan melalui builder akan muncul di sini.</small>
+                            <p>Belum ada produk.</p>
+                            <small>Produk ditambahkan melalui builder akan muncul di sini.</small>
                         </div>
                     @endif
                     @break
@@ -697,81 +617,7 @@
                                 <button type="button" class="lp-filter-pill" data-lpb-filter="{{ $lpCat }}">{{ $lpCat }}</button>
                             @endforeach
 
-@if(count($sections) > 0)
-<script>
-(function () {
-    'use strict';
 
-    // ---- Filter kategori portfolio ------------------------------------
-    document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {
-        var grid = wrap.parentElement.querySelector('[data-lpb-portfolio-grid]');
-        if (!grid) return;
-        var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-portfolio-card'));
-        var pills = Array.prototype.slice.call(wrap.querySelectorAll('.lp-filter-pill'));
-
-        wrap.addEventListener('click', function (e) {
-            var btn = e.target.closest('.lp-filter-pill');
-            if (!btn) return;
-            pills.forEach(function (p) { p.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            var aktif = btn.getAttribute('data-lpb-filter');
-            cards.forEach(function (c) {
-                // Strip quotes dari attribute (htmlspecialchars bisa menambah ")
-                var kat = (c.getAttribute('data-lpb-kategori') || '').replace(/^"|"$/g, '').replace(/^"|"$/g, '');
-                var tampil = aktif === '*' || kat === aktif;
-                c.style.display = tampil ? '' : 'none';
-            });
-        });
-    });
-
-    // ---- Lightbox -----------------------------------------------------
-    // Overlay dibuat sekali, dipakai bersama oleh semua gambar.
-    var overlay = document.createElement('div');
-    overlay.className = 'lp-lightbox';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Perbesar gambar');
-    overlay.innerHTML =
-        '<button type="button" class="lp-lightbox-close" aria-label="Tutup">&times;</button>' +
-        '<img alt="" loading="lazy">';
-    document.body.appendChild(overlay);
-
-    var lbImg = overlay.querySelector('img');
-
-    function tutupLightbox() {
-        overlay.classList.remove('is-open');
-        lbImg.removeAttribute('src');
-        lbImg.alt = '';
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function bukaLightbox(src, alt) {
-        lbImg.src = src;
-        lbImg.alt = alt || '';
-        overlay.classList.add('is-open');
-        document.body.classList.add('overflow-hidden');
-        overlay.querySelector('.lp-lightbox-close').focus();
-    }
-
-    document.addEventListener('click', function (e) {
-        var pic = e.target.closest('img[data-lpb-lightbox]');
-        if (pic) { bukaLightbox(pic.src, pic.alt); return; }
-        if (e.target === overlay) tutupLightbox();
-    });
-    overlay.querySelector('.lp-lightbox-close').addEventListener('click', tutupLightbox);
-
-    // Keyboard: Esc menutup, tab tidak keluar dari overlay.
-    document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('is-open')) return;
-        if (e.key === 'Escape') { e.preventDefault(); tutupLightbox(); return; }
-        if (e.key === 'Tab') {
-            var fokus = overlay.querySelector('.lp-lightbox-close');
-            if (fokus) { e.preventDefault(); fokus.focus(); }
-        }
-    });
-})();
-</script>
-@endif
                         </div>
                         <div class="grid grid-{{ $lpColumns }}" data-lpb-portfolio-grid>
                             @foreach($lpPortItems as $lpItem)
@@ -813,87 +659,13 @@
                                 </article>
                             @endforeach
 
-@if(count($sections) > 0)
-<script>
-(function () {
-    'use strict';
 
-    // ---- Filter kategori portfolio ------------------------------------
-    document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {
-        var grid = wrap.parentElement.querySelector('[data-lpb-portfolio-grid]');
-        if (!grid) return;
-        var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-portfolio-card'));
-        var pills = Array.prototype.slice.call(wrap.querySelectorAll('.lp-filter-pill'));
-
-        wrap.addEventListener('click', function (e) {
-            var btn = e.target.closest('.lp-filter-pill');
-            if (!btn) return;
-            pills.forEach(function (p) { p.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            var aktif = btn.getAttribute('data-lpb-filter');
-            cards.forEach(function (c) {
-                // Strip quotes dari attribute (htmlspecialchars bisa menambah ")
-                var kat = (c.getAttribute('data-lpb-kategori') || '').replace(/^"|"$/g, '').replace(/^"|"$/g, '');
-                var tampil = aktif === '*' || kat === aktif;
-                c.style.display = tampil ? '' : 'none';
-            });
-        });
-    });
-
-    // ---- Lightbox -----------------------------------------------------
-    // Overlay dibuat sekali, dipakai bersama oleh semua gambar.
-    var overlay = document.createElement('div');
-    overlay.className = 'lp-lightbox';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Perbesar gambar');
-    overlay.innerHTML =
-        '<button type="button" class="lp-lightbox-close" aria-label="Tutup">&times;</button>' +
-        '<img alt="" loading="lazy">';
-    document.body.appendChild(overlay);
-
-    var lbImg = overlay.querySelector('img');
-
-    function tutupLightbox() {
-        overlay.classList.remove('is-open');
-        lbImg.removeAttribute('src');
-        lbImg.alt = '';
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function bukaLightbox(src, alt) {
-        lbImg.src = src;
-        lbImg.alt = alt || '';
-        overlay.classList.add('is-open');
-        document.body.classList.add('overflow-hidden');
-        overlay.querySelector('.lp-lightbox-close').focus();
-    }
-
-    document.addEventListener('click', function (e) {
-        var pic = e.target.closest('img[data-lpb-lightbox]');
-        if (pic) { bukaLightbox(pic.src, pic.alt); return; }
-        if (e.target === overlay) tutupLightbox();
-    });
-    overlay.querySelector('.lp-lightbox-close').addEventListener('click', tutupLightbox);
-
-    // Keyboard: Esc menutup, tab tidak keluar dari overlay.
-    document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('is-open')) return;
-        if (e.key === 'Escape') { e.preventDefault(); tutupLightbox(); return; }
-        if (e.key === 'Tab') {
-            var fokus = overlay.querySelector('.lp-lightbox-close');
-            if (fokus) { e.preventDefault(); fokus.focus(); }
-        }
-    });
-})();
-</script>
-@endif
                         </div>
                     @else
                         {{-- Empty state elegan --}}
                         <div class="lp-testimonials-empty">
-                            <p>Belum ada testimoni klien.</p>
-                            <small>Testimoni yang ditambahkan melalui builder akan muncul di sini.</small>
+                            <p>Belum ada karya portfolio.</p>
+                            <small>Karya ditambahkan melalui builder akan muncul di sini.</small>
                         </div>
                     @endif
                     @break
@@ -966,81 +738,7 @@
                                 </article>
                             @endforeach
 
-@if(count($sections) > 0)
-<script>
-(function () {
-    'use strict';
 
-    // ---- Filter kategori portfolio ------------------------------------
-    document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {
-        var grid = wrap.parentElement.querySelector('[data-lpb-portfolio-grid]');
-        if (!grid) return;
-        var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-portfolio-card'));
-        var pills = Array.prototype.slice.call(wrap.querySelectorAll('.lp-filter-pill'));
-
-        wrap.addEventListener('click', function (e) {
-            var btn = e.target.closest('.lp-filter-pill');
-            if (!btn) return;
-            pills.forEach(function (p) { p.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            var aktif = btn.getAttribute('data-lpb-filter');
-            cards.forEach(function (c) {
-                // Strip quotes dari attribute (htmlspecialchars bisa menambah ")
-                var kat = (c.getAttribute('data-lpb-kategori') || '').replace(/^"|"$/g, '').replace(/^"|"$/g, '');
-                var tampil = aktif === '*' || kat === aktif;
-                c.style.display = tampil ? '' : 'none';
-            });
-        });
-    });
-
-    // ---- Lightbox -----------------------------------------------------
-    // Overlay dibuat sekali, dipakai bersama oleh semua gambar.
-    var overlay = document.createElement('div');
-    overlay.className = 'lp-lightbox';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Perbesar gambar');
-    overlay.innerHTML =
-        '<button type="button" class="lp-lightbox-close" aria-label="Tutup">&times;</button>' +
-        '<img alt="" loading="lazy">';
-    document.body.appendChild(overlay);
-
-    var lbImg = overlay.querySelector('img');
-
-    function tutupLightbox() {
-        overlay.classList.remove('is-open');
-        lbImg.removeAttribute('src');
-        lbImg.alt = '';
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function bukaLightbox(src, alt) {
-        lbImg.src = src;
-        lbImg.alt = alt || '';
-        overlay.classList.add('is-open');
-        document.body.classList.add('overflow-hidden');
-        overlay.querySelector('.lp-lightbox-close').focus();
-    }
-
-    document.addEventListener('click', function (e) {
-        var pic = e.target.closest('img[data-lpb-lightbox]');
-        if (pic) { bukaLightbox(pic.src, pic.alt); return; }
-        if (e.target === overlay) tutupLightbox();
-    });
-    overlay.querySelector('.lp-lightbox-close').addEventListener('click', tutupLightbox);
-
-    // Keyboard: Esc menutup, tab tidak keluar dari overlay.
-    document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('is-open')) return;
-        if (e.key === 'Escape') { e.preventDefault(); tutupLightbox(); return; }
-        if (e.key === 'Tab') {
-            var fokus = overlay.querySelector('.lp-lightbox-close');
-            if (fokus) { e.preventDefault(); fokus.focus(); }
-        }
-    });
-})();
-</script>
-@endif
                         </div>
                     @endif
                     @break
@@ -1083,81 +781,7 @@
                                 </div>
                             @endforeach
 
-@if(count($sections) > 0)
-<script>
-(function () {
-    'use strict';
 
-    // ---- Filter kategori portfolio ------------------------------------
-    document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {
-        var grid = wrap.parentElement.querySelector('[data-lpb-portfolio-grid]');
-        if (!grid) return;
-        var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-portfolio-card'));
-        var pills = Array.prototype.slice.call(wrap.querySelectorAll('.lp-filter-pill'));
-
-        wrap.addEventListener('click', function (e) {
-            var btn = e.target.closest('.lp-filter-pill');
-            if (!btn) return;
-            pills.forEach(function (p) { p.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            var aktif = btn.getAttribute('data-lpb-filter');
-            cards.forEach(function (c) {
-                // Strip quotes dari attribute (htmlspecialchars bisa menambah ")
-                var kat = (c.getAttribute('data-lpb-kategori') || '').replace(/^"|"$/g, '').replace(/^"|"$/g, '');
-                var tampil = aktif === '*' || kat === aktif;
-                c.style.display = tampil ? '' : 'none';
-            });
-        });
-    });
-
-    // ---- Lightbox -----------------------------------------------------
-    // Overlay dibuat sekali, dipakai bersama oleh semua gambar.
-    var overlay = document.createElement('div');
-    overlay.className = 'lp-lightbox';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Perbesar gambar');
-    overlay.innerHTML =
-        '<button type="button" class="lp-lightbox-close" aria-label="Tutup">&times;</button>' +
-        '<img alt="" loading="lazy">';
-    document.body.appendChild(overlay);
-
-    var lbImg = overlay.querySelector('img');
-
-    function tutupLightbox() {
-        overlay.classList.remove('is-open');
-        lbImg.removeAttribute('src');
-        lbImg.alt = '';
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function bukaLightbox(src, alt) {
-        lbImg.src = src;
-        lbImg.alt = alt || '';
-        overlay.classList.add('is-open');
-        document.body.classList.add('overflow-hidden');
-        overlay.querySelector('.lp-lightbox-close').focus();
-    }
-
-    document.addEventListener('click', function (e) {
-        var pic = e.target.closest('img[data-lpb-lightbox]');
-        if (pic) { bukaLightbox(pic.src, pic.alt); return; }
-        if (e.target === overlay) tutupLightbox();
-    });
-    overlay.querySelector('.lp-lightbox-close').addEventListener('click', tutupLightbox);
-
-    // Keyboard: Esc menutup, tab tidak keluar dari overlay.
-    document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('is-open')) return;
-        if (e.key === 'Escape') { e.preventDefault(); tutupLightbox(); return; }
-        if (e.key === 'Tab') {
-            var fokus = overlay.querySelector('.lp-lightbox-close');
-            if (fokus) { e.preventDefault(); fokus.focus(); }
-        }
-    });
-})();
-</script>
-@endif
                         </div>
                     @else
                         {{-- Empty state elegan --}}
@@ -1191,87 +815,13 @@
                                 </div>
                             @endforeach
 
-@if(count($sections) > 0)
-<script>
-(function () {
-    'use strict';
 
-    // ---- Filter kategori portfolio ------------------------------------
-    document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {
-        var grid = wrap.parentElement.querySelector('[data-lpb-portfolio-grid]');
-        if (!grid) return;
-        var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-portfolio-card'));
-        var pills = Array.prototype.slice.call(wrap.querySelectorAll('.lp-filter-pill'));
-
-        wrap.addEventListener('click', function (e) {
-            var btn = e.target.closest('.lp-filter-pill');
-            if (!btn) return;
-            pills.forEach(function (p) { p.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            var aktif = btn.getAttribute('data-lpb-filter');
-            cards.forEach(function (c) {
-                // Strip quotes dari attribute (htmlspecialchars bisa menambah ")
-                var kat = (c.getAttribute('data-lpb-kategori') || '').replace(/^"|"$/g, '').replace(/^"|"$/g, '');
-                var tampil = aktif === '*' || kat === aktif;
-                c.style.display = tampil ? '' : 'none';
-            });
-        });
-    });
-
-    // ---- Lightbox -----------------------------------------------------
-    // Overlay dibuat sekali, dipakai bersama oleh semua gambar.
-    var overlay = document.createElement('div');
-    overlay.className = 'lp-lightbox';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Perbesar gambar');
-    overlay.innerHTML =
-        '<button type="button" class="lp-lightbox-close" aria-label="Tutup">&times;</button>' +
-        '<img alt="" loading="lazy">';
-    document.body.appendChild(overlay);
-
-    var lbImg = overlay.querySelector('img');
-
-    function tutupLightbox() {
-        overlay.classList.remove('is-open');
-        lbImg.removeAttribute('src');
-        lbImg.alt = '';
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function bukaLightbox(src, alt) {
-        lbImg.src = src;
-        lbImg.alt = alt || '';
-        overlay.classList.add('is-open');
-        document.body.classList.add('overflow-hidden');
-        overlay.querySelector('.lp-lightbox-close').focus();
-    }
-
-    document.addEventListener('click', function (e) {
-        var pic = e.target.closest('img[data-lpb-lightbox]');
-        if (pic) { bukaLightbox(pic.src, pic.alt); return; }
-        if (e.target === overlay) tutupLightbox();
-    });
-    overlay.querySelector('.lp-lightbox-close').addEventListener('click', tutupLightbox);
-
-    // Keyboard: Esc menutup, tab tidak keluar dari overlay.
-    document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('is-open')) return;
-        if (e.key === 'Escape') { e.preventDefault(); tutupLightbox(); return; }
-        if (e.key === 'Tab') {
-            var fokus = overlay.querySelector('.lp-lightbox-close');
-            if (fokus) { e.preventDefault(); fokus.focus(); }
-        }
-    });
-})();
-</script>
-@endif
                         </div>
                     @else
                         {{-- Empty state elegan --}}
                         <div class="lp-testimonials-empty">
-                            <p>Belum ada testimoni klien.</p>
-                            <small>Testimoni yang ditambahkan melalui builder akan muncul di sini.</small>
+                            <p>Belum ada data statistik.</p>
+                            <small>Angka &amp; pencapaian ditambahkan melalui builder akan muncul di sini.</small>
                         </div>
                     @endif
                     @break
@@ -1335,8 +885,8 @@
                     @else
                         {{-- Empty state elegan --}}
                         <div class="lp-testimonials-empty">
-                            <p>Belum ada testimoni klien.</p>
-                            <small>Testimoni yang ditambahkan melalui builder akan muncul di sini.</small>
+                            <p>Belum ada pertanyaan umum.</p>
+                            <small>FAQ ditambahkan melalui builder akan muncul di sini.</small>
                         </div>
                     @endif
                     @break
@@ -1414,81 +964,7 @@
                                         </div>
                                     @endforeach
 
-@if(count($sections) > 0)
-<script>
-(function () {
-    'use strict';
 
-    // ---- Filter kategori portfolio ------------------------------------
-    document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {
-        var grid = wrap.parentElement.querySelector('[data-lpb-portfolio-grid]');
-        if (!grid) return;
-        var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-portfolio-card'));
-        var pills = Array.prototype.slice.call(wrap.querySelectorAll('.lp-filter-pill'));
-
-        wrap.addEventListener('click', function (e) {
-            var btn = e.target.closest('.lp-filter-pill');
-            if (!btn) return;
-            pills.forEach(function (p) { p.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            var aktif = btn.getAttribute('data-lpb-filter');
-            cards.forEach(function (c) {
-                // Strip quotes dari attribute (htmlspecialchars bisa menambah ")
-                var kat = (c.getAttribute('data-lpb-kategori') || '').replace(/^"|"$/g, '').replace(/^"|"$/g, '');
-                var tampil = aktif === '*' || kat === aktif;
-                c.style.display = tampil ? '' : 'none';
-            });
-        });
-    });
-
-    // ---- Lightbox -----------------------------------------------------
-    // Overlay dibuat sekali, dipakai bersama oleh semua gambar.
-    var overlay = document.createElement('div');
-    overlay.className = 'lp-lightbox';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Perbesar gambar');
-    overlay.innerHTML =
-        '<button type="button" class="lp-lightbox-close" aria-label="Tutup">&times;</button>' +
-        '<img alt="" loading="lazy">';
-    document.body.appendChild(overlay);
-
-    var lbImg = overlay.querySelector('img');
-
-    function tutupLightbox() {
-        overlay.classList.remove('is-open');
-        lbImg.removeAttribute('src');
-        lbImg.alt = '';
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function bukaLightbox(src, alt) {
-        lbImg.src = src;
-        lbImg.alt = alt || '';
-        overlay.classList.add('is-open');
-        document.body.classList.add('overflow-hidden');
-        overlay.querySelector('.lp-lightbox-close').focus();
-    }
-
-    document.addEventListener('click', function (e) {
-        var pic = e.target.closest('img[data-lpb-lightbox]');
-        if (pic) { bukaLightbox(pic.src, pic.alt); return; }
-        if (e.target === overlay) tutupLightbox();
-    });
-    overlay.querySelector('.lp-lightbox-close').addEventListener('click', tutupLightbox);
-
-    // Keyboard: Esc menutup, tab tidak keluar dari overlay.
-    document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('is-open')) return;
-        if (e.key === 'Escape') { e.preventDefault(); tutupLightbox(); return; }
-        if (e.key === 'Tab') {
-            var fokus = overlay.querySelector('.lp-lightbox-close');
-            if (fokus) { e.preventDefault(); fokus.focus(); }
-        }
-    });
-})();
-</script>
-@endif
                                 </div>
                             @endif
                         </div>
@@ -1528,81 +1004,7 @@
                         ])
                     @endif
 
-@if(count($sections) > 0)
-<script>
-(function () {
-    'use strict';
 
-    // ---- Filter kategori portfolio ------------------------------------
-    document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {
-        var grid = wrap.parentElement.querySelector('[data-lpb-portfolio-grid]');
-        if (!grid) return;
-        var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-portfolio-card'));
-        var pills = Array.prototype.slice.call(wrap.querySelectorAll('.lp-filter-pill'));
-
-        wrap.addEventListener('click', function (e) {
-            var btn = e.target.closest('.lp-filter-pill');
-            if (!btn) return;
-            pills.forEach(function (p) { p.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            var aktif = btn.getAttribute('data-lpb-filter');
-            cards.forEach(function (c) {
-                // Strip quotes dari attribute (htmlspecialchars bisa menambah ")
-                var kat = (c.getAttribute('data-lpb-kategori') || '').replace(/^"|"$/g, '').replace(/^"|"$/g, '');
-                var tampil = aktif === '*' || kat === aktif;
-                c.style.display = tampil ? '' : 'none';
-            });
-        });
-    });
-
-    // ---- Lightbox -----------------------------------------------------
-    // Overlay dibuat sekali, dipakai bersama oleh semua gambar.
-    var overlay = document.createElement('div');
-    overlay.className = 'lp-lightbox';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Perbesar gambar');
-    overlay.innerHTML =
-        '<button type="button" class="lp-lightbox-close" aria-label="Tutup">&times;</button>' +
-        '<img alt="" loading="lazy">';
-    document.body.appendChild(overlay);
-
-    var lbImg = overlay.querySelector('img');
-
-    function tutupLightbox() {
-        overlay.classList.remove('is-open');
-        lbImg.removeAttribute('src');
-        lbImg.alt = '';
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function bukaLightbox(src, alt) {
-        lbImg.src = src;
-        lbImg.alt = alt || '';
-        overlay.classList.add('is-open');
-        document.body.classList.add('overflow-hidden');
-        overlay.querySelector('.lp-lightbox-close').focus();
-    }
-
-    document.addEventListener('click', function (e) {
-        var pic = e.target.closest('img[data-lpb-lightbox]');
-        if (pic) { bukaLightbox(pic.src, pic.alt); return; }
-        if (e.target === overlay) tutupLightbox();
-    });
-    overlay.querySelector('.lp-lightbox-close').addEventListener('click', tutupLightbox);
-
-    // Keyboard: Esc menutup, tab tidak keluar dari overlay.
-    document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('is-open')) return;
-        if (e.key === 'Escape') { e.preventDefault(); tutupLightbox(); return; }
-        if (e.key === 'Tab') {
-            var fokus = overlay.querySelector('.lp-lightbox-close');
-            if (fokus) { e.preventDefault(); fokus.focus(); }
-        }
-    });
-})();
-</script>
-@endif
                     @break
 
                 @default
@@ -1616,232 +1018,21 @@
     </section>
 @endforeach
 
-<script>
-(function () {
-    'use strict';
 
-    // ---- Filter kategori portfolio ------------------------------------
-    document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {
-        var grid = wrap.parentElement.querySelector('[data-lpb-portfolio-grid]');
-        if (!grid) return;
-        var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-portfolio-card'));
-        var pills = Array.prototype.slice.call(wrap.querySelectorAll('.lp-filter-pill'));
 
-        wrap.addEventListener('click', function (e) {
-            var btn = e.target.closest('.lp-filter-pill');
-            if (!btn) return;
-            pills.forEach(function (p) { p.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            var aktif = btn.getAttribute('data-lpb-filter');
-            cards.forEach(function (c) {
-                // Strip quotes dari attribute (htmlspecialchars bisa menambah ")
-                var kat = (c.getAttribute('data-lpb-kategori') || '').replace(/^"|"$/g, '').replace(/^"|"$/g, '');
-                var tampil = aktif === '*' || kat === aktif;
-                c.style.display = tampil ? '' : 'none';
-            });
-        });
-    });
 
-    // ---- Lightbox -----------------------------------------------------
-    // Overlay dibuat sekali, dipakai bersama oleh semua gambar.
-    var overlay = document.createElement('div');
-    overlay.className = 'lp-lightbox';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Perbesar gambar');
-    overlay.innerHTML =
-        '<button type="button" class="lp-lightbox-close" aria-label="Tutup">&times;</button>' +
-        '<img alt="" loading="lazy">';
-    document.body.appendChild(overlay);
 
-    var lbImg = overlay.querySelector('img');
 
-    function tutupLightbox() {
-        overlay.classList.remove('is-open');
-        lbImg.removeAttribute('src');
-        lbImg.alt = '';
-        document.body.classList.remove('overflow-hidden');
-    }
 
-    function bukaLightbox(src, alt) {
-        lbImg.src = src;
-        lbImg.alt = alt || '';
-        overlay.classList.add('is-open');
-        document.body.classList.add('overflow-hidden');
-        overlay.querySelector('.lp-lightbox-close').focus();
-    }
-
-    document.addEventListener('click', function (e) {
-        var pic = e.target.closest('img[data-lpb-lightbox]');
-        if (pic) { bukaLightbox(pic.src, pic.alt); return; }
-        if (e.target === overlay) tutupLightbox();
-    });
-    overlay.querySelector('.lp-lightbox-close').addEventListener('click', tutupLightbox);
-
-    // Keyboard: Esc menutup, tab tidak keluar dari overlay.
-    document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('is-open')) return;
-        if (e.key === 'Escape') { e.preventDefault(); tutupLightbox(); return; }
-        if (e.key === 'Tab') {
-            var fokus = overlay.querySelector('.lp-lightbox-close');
-            if (fokus) { e.preventDefault(); fokus.focus(); }
-        }
-    });
-})();
-</script>
-
-<script>
-(function () {
-    'use strict';
-
-    // ---- Filter kategori portfolio ------------------------------------
-    document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {
-        var grid = wrap.parentElement.querySelector('[data-lpb-portfolio-grid]');
-        if (!grid) return;
-        var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-portfolio-card'));
-        var pills = Array.prototype.slice.call(wrap.querySelectorAll('.lp-filter-pill'));
-
-        wrap.addEventListener('click', function (e) {
-            var btn = e.target.closest('.lp-filter-pill');
-            if (!btn) return;
-            pills.forEach(function (p) { p.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            var aktif = btn.getAttribute('data-lpb-filter');
-            cards.forEach(function (c) {
-                // Strip quotes dari attribute (htmlspecialchars bisa menambah ")
-                var kat = (c.getAttribute('data-lpb-kategori') || '').replace(/^"|"$/g, '').replace(/^"|"$/g, '');
-                var tampil = aktif === '*' || kat === aktif;
-                c.style.display = tampil ? '' : 'none';
-            });
-        });
-    });
-
-    // ---- Lightbox -----------------------------------------------------
-    // Overlay dibuat sekali, dipakai bersama oleh semua gambar.
-    var overlay = document.createElement('div');
-    overlay.className = 'lp-lightbox';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Perbesar gambar');
-    overlay.innerHTML =
-        '<button type="button" class="lp-lightbox-close" aria-label="Tutup">&times;</button>' +
-        '<img alt="" loading="lazy">';
-    document.body.appendChild(overlay);
-
-    var lbImg = overlay.querySelector('img');
-
-    function tutupLightbox() {
-        overlay.classList.remove('is-open');
-        lbImg.removeAttribute('src');
-        lbImg.alt = '';
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function bukaLightbox(src, alt) {
-        lbImg.src = src;
-        lbImg.alt = alt || '';
-        overlay.classList.add('is-open');
-        document.body.classList.add('overflow-hidden');
-        overlay.querySelector('.lp-lightbox-close').focus();
-    }
-
-    document.addEventListener('click', function (e) {
-        var pic = e.target.closest('img[data-lpb-lightbox]');
-        if (pic) { bukaLightbox(pic.src, pic.alt); return; }
-        if (e.target === overlay) tutupLightbox();
-    });
-    overlay.querySelector('.lp-lightbox-close').addEventListener('click', tutupLightbox);
-
-    // Keyboard: Esc menutup, tab tidak keluar dari overlay.
-    document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('is-open')) return;
-        if (e.key === 'Escape') { e.preventDefault(); tutupLightbox(); return; }
-        if (e.key === 'Tab') {
-            var fokus = overlay.querySelector('.lp-lightbox-close');
-            if (fokus) { e.preventDefault(); fokus.focus(); }
-        }
-    });
-})();
-</script>
-
-<script>
-(function () {
-    'use strict';
-
-    // ---- Filter kategori portfolio ------------------------------------
-    document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {
-        var grid = wrap.parentElement.querySelector('[data-lpb-portfolio-grid]');
-        if (!grid) return;
-        var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-portfolio-card'));
-        var pills = Array.prototype.slice.call(wrap.querySelectorAll('.lp-filter-pill'));
-
-        wrap.addEventListener('click', function (e) {
-            var btn = e.target.closest('.lp-filter-pill');
-            if (!btn) return;
-            pills.forEach(function (p) { p.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            var aktif = btn.getAttribute('data-lpb-filter');
-            cards.forEach(function (c) {
-                // Strip quotes dari attribute (htmlspecialchars bisa menambah ")
-                var kat = (c.getAttribute('data-lpb-kategori') || '').replace(/^"|"$/g, '').replace(/^"|"$/g, '');
-                var tampil = aktif === '*' || kat === aktif;
-                c.style.display = tampil ? '' : 'none';
-            });
-        });
-    });
-
-    // ---- Lightbox -----------------------------------------------------
-    // Overlay dibuat sekali, dipakai bersama oleh semua gambar.
-    var overlay = document.createElement('div');
-    overlay.className = 'lp-lightbox';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Perbesar gambar');
-    overlay.innerHTML =
-        '<button type="button" class="lp-lightbox-close" aria-label="Tutup">&times;</button>' +
-        '<img alt="" loading="lazy">';
-    document.body.appendChild(overlay);
-
-    var lbImg = overlay.querySelector('img');
-
-    function tutupLightbox() {
-        overlay.classList.remove('is-open');
-        lbImg.removeAttribute('src');
-        lbImg.alt = '';
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function bukaLightbox(src, alt) {
-        lbImg.src = src;
-        lbImg.alt = alt || '';
-        overlay.classList.add('is-open');
-        document.body.classList.add('overflow-hidden');
-        overlay.querySelector('.lp-lightbox-close').focus();
-    }
-
-    document.addEventListener('click', function (e) {
-        var pic = e.target.closest('img[data-lpb-lightbox]');
-        if (pic) { bukaLightbox(pic.src, pic.alt); return; }
-        if (e.target === overlay) tutupLightbox();
-    });
-    overlay.querySelector('.lp-lightbox-close').addEventListener('click', tutupLightbox);
-
-    // Keyboard: Esc menutup, tab tidak keluar dari overlay.
-    document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('is-open')) return;
-        if (e.key === 'Escape') { e.preventDefault(); tutupLightbox(); return; }
-        if (e.key === 'Tab') {
-            var fokus = overlay.querySelector('.lp-lightbox-close');
-            if (fokus) { e.preventDefault(); fokus.focus(); }
-        }
-    });
-})();
-</script>
 
 @if(count($sections) > 0)
 <script>
 (function () {
     'use strict';
+
+    // Guard: boleh terikat sekali per halaman walau partial dirender ulang.
+    if (window.__lpLightboxBound) { return; }
+    window.__lpLightboxBound = true;
 
     // ---- Filter kategori portfolio ------------------------------------
     document.querySelectorAll('[data-lpb-portfolio-filter]').forEach(function (wrap) {

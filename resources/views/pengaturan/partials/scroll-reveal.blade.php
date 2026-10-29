@@ -43,8 +43,8 @@
 
     document.documentElement.classList.add('lp-motion-on');
 
-    var KARTU = {!! json_encode($lpKartu) !!};
-    var GBR_KANAN = {!! json_encode($lpGbrKanan) !!};
+    var KARTU = @js($lpKartu);
+    var GBR_KANAN = @js($lpGbrKanan);
     var sudah = new WeakSet();
 
     function siapkan(el) {

@@ -3,7 +3,7 @@
 @section('content')
 @php $bisaUbah = \App\Support\Izin::boleh(auth()->user(), [23], 'edit'); @endphp
 <x-polling-notifikasi :url="route('produksi.cek-antrian-baru')" :jumlah-awal="$jumlahAntreAwal" pesan="Ada item baru masuk Produksi." />
-<div class="produksi-page w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="produksi-page w-full px-4 sm:px-6 lg:px-8 py-6 max-w-[1600px] mx-auto">
 
     <x-page-header title="Produksi">
         <x-slot:subtitle>
@@ -21,31 +21,31 @@
     @include('partials.divisi-tabs', ['routeName' => 'produksi.index'])
 
     {{-- FILTER --}}
-    <x-card class="produksi-filter-card mb-6">
-        <form method="GET" action="{{ route('produksi.index') }}" class="produksi-filter-form flex flex-wrap items-end gap-4">
+    <x-card class="produksi-filter-card p-4 mb-4">
+        <form method="GET" action="{{ route('produksi.index') }}" class="produksi-filter-form flex flex-wrap items-end gap-3">
             <input type="hidden" name="divisi" value="{{ request('divisi') }}">
-            <div class="produksi-filter-search flex-1 min-w-[220px]">
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
+            <div class="produksi-filter-search flex-1 min-w-[200px]">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Konsumen</label>
                 <x-form.input type="text" name="konsumen" value="{{ request('konsumen') }}" placeholder="Nama konsumen..." />
             </div>
 
-            <div class="produksi-filter-id w-full md:w-40">
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">ID SPK</label>
+            <div class="produksi-filter-id w-full md:w-36">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5 ml-1">ID SPK</label>
                 <x-form.input type="text" name="id_spk" value="{{ request('id_spk') }}" placeholder="#" />
             </div>
 
-            <div class="produksi-filter-date w-full md:w-44">
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Dari</label>
+            <div class="produksi-filter-date w-full md:w-40">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Order Dari</label>
                 <x-form.input type="date" name="tgl_dari" value="{{ request('tgl_dari') }}" />
             </div>
 
-            <div class="produksi-filter-date w-full md:w-44">
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Order Sampai</label>
+            <div class="produksi-filter-date w-full md:w-40">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Order Sampai</label>
                 <x-form.input type="date" name="tgl_sampai" value="{{ request('tgl_sampai') }}" />
             </div>
 
-            <div class="produksi-filter-status w-full md:w-48">
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Produksi</label>
+            <div class="produksi-filter-status w-full md:w-44">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Status Produksi</label>
                 <x-form.select name="status_produksi">
                     {{-- Opsi "semua" harus ada supaya nilai yang dikirim lewat
                          link "Lihat di Produksi" / "Lihat progres di Produksi"
@@ -78,45 +78,45 @@
     <x-table wrapperClass="produksi-workqueue-shell overflow-hidden" class="produksi-workqueue-table">
         <thead>
             <tr>
-                <th class="px-4 py-5 text-center w-10">#</th>
-                <th class="px-4 py-5 text-left">Nama File</th>
-                <th class="px-4 py-5 text-left">Konsumen</th>
-                <th class="px-4 py-5 text-left">Tanggal</th>
-                <th class="px-4 py-5 text-center">Urgent</th>
-                <th class="px-4 py-5 text-center">Qty Order</th>
-                <th class="px-4 py-5 text-center">Qty Cetak</th>
-                <th class="px-4 py-5 text-center">Status</th>
-                <th class="px-8 py-5 text-center">Aksi</th>
+                <th class="px-4 py-3 text-center w-10">#</th>
+                <th class="px-4 py-3 text-left">Nama File</th>
+                <th class="px-4 py-3 text-left">Konsumen</th>
+                <th class="px-4 py-3 text-left">Tanggal</th>
+                <th class="px-4 py-3 text-center">Urgent</th>
+                <th class="px-4 py-3 text-center">Qty Order</th>
+                <th class="px-4 py-3 text-center">Qty Cetak</th>
+                <th class="px-4 py-3 text-center">Status</th>
+                <th class="px-4 py-3 text-center whitespace-nowrap">Aksi</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
             @forelse($produksi as $i => $item)
             <tr class="group hover:bg-slate-50/50 transition-all {{ $item->status_urgent ? 'bg-rose-50/40' : '' }}">
-                <td data-label="#" class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $produksi->firstItem() + $i }}</td>
-                <td data-label="Pekerjaan" class="px-4 py-5">
+                <td data-label="#" class="px-4 py-3 text-center text-[11px] text-slate-400">{{ $produksi->firstItem() + $i }}</td>
+                <td data-label="Pekerjaan" class="px-4 py-3">
                     <div class="produksi-work-name text-[13px] font-medium text-slate-700 uppercase">{{ $item->nama_file }}</div>
                     <div class="produksi-work-number text-[10px] text-slate-400 mt-0.5">{{ $item->nama_produk }} &middot; SPK #{{ $item->id_detail }}</div>
                 </td>
-                <td data-label="Konsumen" class="px-4 py-5">
+                <td data-label="Konsumen" class="px-4 py-3">
                     <span class="text-[12px] font-medium text-slate-700 uppercase">{{ $item->nama_konsumen }}</span>
                     @if($item->divisi)
                         <div class="produksi-division text-[10px] text-slate-400">{{ $item->divisi }}</div>
                     @endif
                 </td>
-                <td data-label="Tanggal" class="px-4 py-5">
+                <td data-label="Tanggal" class="px-4 py-3">
                     <span class="text-[12px] font-medium text-slate-600">{{ \Carbon\Carbon::parse($item->tgl_order)->translatedFormat('d M Y') }}</span>
                 </td>
-                <td data-label="Urgent" class="px-4 py-5 text-center">
+                <td data-label="Urgent" class="px-4 py-3 text-center">
                     @if($item->status_urgent)
                         <i class="fas fa-fire text-rose-500" title="Urgent"></i>
                     @else
                         <span class="text-slate-200">-</span>
                     @endif
                 </td>
-                <td data-label="Qty Order" class="px-4 py-5 text-center">
+                <td data-label="Qty Order" class="px-4 py-3 text-center">
                     <span class="text-[13px] font-medium text-slate-700">{{ angka($item->qty, 4) }}</span>
                 </td>
-                <td data-label="Qty Cetak" class="px-4 py-5 text-center">
+                <td data-label="Qty Cetak" class="px-4 py-3 text-center">
                     @if(in_array($item->status_spk, ['Selesai', 'Batal', 'Pending']) || !$bisaUbah)
                         <span class="text-[13px] font-medium text-slate-700">{{ $item->qty_cetak ?? $item->qty }}</span>
                     @else
@@ -130,7 +130,7 @@
                         </form>
                     @endif
                 </td>
-                <td data-label="Status" class="px-4 py-5 text-center">
+                <td data-label="Status" class="px-4 py-3 text-center">
                     <x-badge :status="$item->status_spk" />
                 </td>
                 <td data-label="Aksi" class="px-8 py-5 text-center">

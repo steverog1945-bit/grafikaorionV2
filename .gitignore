@@ -20,6 +20,7 @@
 /storage/app/system/brand-theme.json
 /storage/app/system/.brand-theme-*
 /storage/*.key
+/storage/rehearsal/
 oriondb.sql.tmp
 /storage/pail
 /vendor
@@ -67,3 +68,11 @@ ib_logfile*
 /storage/app/audit/
 /public/upload-test/
 storage/framework/views/*.php
+
+/_scan_*
+/_test_output.txt
+/_laporan_*
+/REPORT_*.txt
+/npm_build_result.txt
+/backups/
+/oriondb*.sql

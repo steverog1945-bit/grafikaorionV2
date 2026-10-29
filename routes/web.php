@@ -469,6 +469,13 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
         [SettingHargaController::class, 'index'])
         ->name('setting-harga.index');
 
+    // Cetak Daftar Harga + Tier per Golongan. Path mengikuti prefix
+    // 'setting-harga' supaya izinnya SAMA dengan halaman daftar harga
+    // (config/menu_access.php: 'setting-harga' => [14]) tanpa ubah config.
+    Route::get('/setting-harga/cetak',
+        [SettingHargaController::class, 'cetak'])
+        ->name('setting-harga.cetak');
+
     Route::post('/setting-harga/{id_produk}/tier',
         [SettingHargaController::class, 'storeRow'])
         ->name('setting-harga.tier.store');

@@ -2387,7 +2387,13 @@ let hitungUlangMenunggu = false;
             const kurangP = minP > 0 && p > 0 && p < minP;
             const kurangL = minL > 0 && l > 0 && l < minL;
             if (kurangP || kurangL) {
-                detail.innerText = `Input di bawah minimum order (${minP} x ${minL} cm). Disarankan input >= minimum. Sekarang: ${p} x ${l} cm.`;
+                // Sebutkan dimensi yang benar-benar di bawah minimum, supaya
+                // operator tidak bingung bila salah satu dimensi sudah memenuhi
+                // (mis. lebar cukup tapi panjang kurang).
+                const bagian = [];
+                if (kurangP) bagian.push(`panjang min ${minP} cm (input ${p} cm)`);
+                if (kurangL) bagian.push(`lebar min ${minL} cm (input ${l} cm)`);
+                detail.innerText = `Input di bawah minimum order produk ini: ${bagian.join('; ')}. Disarankan input >= minimum.`;
                 box.hidden = false;
                 return;
             }
