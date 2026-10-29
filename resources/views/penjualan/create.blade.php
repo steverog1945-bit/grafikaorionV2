@@ -2291,7 +2291,7 @@ let hitungUlangMenunggu = false;
         // < 1 m² dan tidak ada item lain dalam keranjang yang >= 1 m² serta
         // total luas < 1 m², ditagih minimum 1 m².
         const minOrderCur = parseFloat(currentProduk.min_order) || 0;
-        if (currentProduk.metode_hitung === 'ukuran' && minOrderCur >= 1) {
+        if (currentProduk.metode_hitung === 'ukuran') {
             const actualArea = (p * l / 10000) * qU;
             if (actualArea > 0 && actualArea < 1) {
                 let hasQualifying = false;
