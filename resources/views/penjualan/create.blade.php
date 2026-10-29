@@ -189,7 +189,7 @@
                     readonly placeholder="-">
             </x-form.group>
 
-            <x-form.group label="Tipe Harga">
+            <x-form.group label="Tipe Harga" readonly>
                 @if($notaKunci)
                     {{-- Golongan harga juga terkunci: harga item dihitung
                          dengan golongan konsumen nota asal. --}}
@@ -200,11 +200,13 @@
                         <span class="ml-auto text-[11px] font-normal text-slate-400 shrink-0">terkunci</span>
                     </div>
                 @else
-                <x-form.select id="id_golongan" autocomplete="off">
+                <x-form.select id="id_golongan" autocomplete="off" disabled>
                     @foreach($golongan as $g)
                         <option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>
                     @endforeach
                 </x-form.select>
+                <input type="hidden" id="id_golongan_hidden" name="id_golongan" value="{{ $golongan->first()->id_golongan ?? '' }}">
+                <p class="text-[10px] text-slate-400 mt-1"><i class="fas fa-lock text-[9px] mr-1"></i>Terkunci sesuai golongan pelanggan terpilih</p>
                 @endif
             </x-form.group>
 
@@ -1279,6 +1281,7 @@
             let idGol = (e.params.data && e.params.data.golongan) || $(this).find(':selected').data('golongan');
             if (idGol) {
                 $('#id_golongan').val(idGol);
+                $('#id_golongan_hidden').val(idGol);
                 hitungSubtotal();
             }
         });
@@ -1291,6 +1294,7 @@
             let idGol = $(this).find(':selected').data('golongan');
             if (idGol) {
                 $('#id_golongan').val(idGol);
+                $('#id_golongan_hidden').val(idGol);
             }
             resetSemuaField();
         });
@@ -1309,6 +1313,7 @@
 
             $('#display_telp').val(data.telp || data.telepon || '-');
             $('#id_golongan').val(data.golongan).trigger('change');
+            $('#id_golongan_hidden').val(data.golongan);
 
             // Harga keranjang TIDAK dikosongkan di sini. Golongan yang baru
             // sudah di-set di baris sebelumnya dan .trigger('change')-nya
@@ -1339,6 +1344,7 @@
         @else
         $('#display_telp').val('-');
         $('#id_golongan').val('').trigger('change');
+        $('#id_golongan_hidden').val('');
         $('#filter_kategori').val('all').trigger('change');
         resetInputProduk();
         // Reset tipe order ke Reguler
@@ -1443,6 +1449,7 @@
 
                 $('#display_telp').val(res.data.telepon || '-');
                 $('#id_golongan').val(res.data.id_golongan);
+                $('#id_golongan_hidden').val(res.data.id_golongan);
 
                 closeModal('konsumen-baru');
 
@@ -3220,7 +3227,7 @@ let hitungUlangMenunggu = false;
         // menentukan seluruh harga transaksi - wajib dipilih eksplisit.
         // Server (PenjualanController::store) sudah menolak tanpa ini;
         // di sini diberi notif + tandai field sebelum kirim.
-        const idGolonganEl = document.getElementById('id_golongan');
+        const idGolonganEl = document.getElementById('id_golongan_hidden');
         if (!idGolonganEl.value) {
             idGolonganEl.classList.add('ring-2', 'ring-rose-400', 'bg-rose-50/40');
             idGolonganEl.addEventListener('change', () => idGolonganEl.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40'), { once: true });
@@ -3237,7 +3244,7 @@ let hitungUlangMenunggu = false;
 
         const payload = {
             id_konsumen: idKonsumen,
-            id_golongan: document.getElementById('id_golongan').value,
+            id_golongan: document.getElementById('id_golongan_hidden').value,
             no_nota: document.getElementById('no_nota_display').innerText,
             tipe_order: tipeOrder,
             no_po: noPo,
