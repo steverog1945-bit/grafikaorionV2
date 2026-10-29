@@ -746,7 +746,7 @@ class KasirController extends Controller
             DB::commit();
             \App\Support\JalurLanjut::set('Pekerjaan masuk antrian produksi', 'spk.index', 'Lihat Antrian SPK');
             if ($request->has('cetak_nota') && $request->cetak_nota) {
-                return redirect()->route('kasir.print_nota', $id_transaksi)->with('success', 'Transaksi berhasil diproses.'
+                return redirect()->route('kasir.print-opsi', $id_transaksi)->with('success', 'Transaksi berhasil diproses.'
                     . ($kembalian > 0 ? ' Kembalian untuk pelanggan: Rp ' . number_format($kembalian, 0, ',', '.') . '.' : ''));
             }
             return redirect()->route('kasir.index')->with('success', 'Transaksi berhasil diproses ke Monitoring.'
