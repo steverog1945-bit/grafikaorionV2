@@ -2678,6 +2678,35 @@ let hitungUlangMenunggu = false;
             cart.push(itemData);
         }
 
+        // Jika item yang baru ditambahkan >= 1 m², item-item kecil sebelumnya
+        // yang ditagih minimum 1 m² harus dihitung ulang ke luas aslinya.
+        const newArea = (res.p * res.l / 10000) * res.qty_input;
+        const isNewQualifying = currentProduk.metode_hitung === 'ukuran' && newArea >= 1;
+        if (isNewQualifying && cart.length > 1) {
+            const idGol = document.getElementById('id_golongan').value;
+            await Promise.all(cart.map(async (it, idx) => {
+                if (idx === cart.length - 1) return;
+                if (!it.metode_hitung || it.metode_hitung !== 'ukuran') return;
+                const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
+                if (a >= 1 || a <= 0) return;
+                if (it.qty_hitung === a) return;
+                try {
+                    const url = `{{ url('/api/penjualan/get-harga') }}/${it.id_produk}/${idGol}/${a}${it.siap_cetak ? '?siap_cetak=1' : ''}`;
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    const hargaJual = parseFloat(data.harga_jual) || 0;
+                    if (hargaJual > 0) {
+                        it.qty_hitung = a;
+                        it.harga_satuan = hargaJual;
+                        if (!it.cetak_manual) {
+                            it.biaya_cetak = Math.round(hargaJual * a);
+                        }
+                        it.subtotal = (it.biaya_cetak || 0) + (it.biaya_desain || 0) + (it.biaya_finishing || 0);
+                    }
+                } catch (e) { /* biarkan nilai lama */ }
+            }));
+        }
+
         renderCart();
         resetInputProduk();
 
