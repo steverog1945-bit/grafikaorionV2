@@ -44,6 +44,14 @@
                 var t = localStorage.getItem('tema');
                 if (!t) t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
                 if (t === 'dark') document.documentElement.classList.add('dark');
+                // Mode sidebar: "dark" (selalu gelap, default) atau "light" (seperti referensi Copilot).
+                // Default light hanya untuk tema Copilot Light; tema lain default dark.
+                var sm = localStorage.getItem('sidebarMode');
+                if (!sm) {
+                    var bt = document.documentElement.getAttribute('data-brand-theme');
+                    sm = (bt === 'copilot-light') ? 'light' : 'dark';
+                }
+                if (sm === 'light') document.documentElement.setAttribute('data-sidebar-mode', 'light');
             } catch (e) {}
         })();
     </script>
@@ -1479,6 +1487,12 @@
 </div>
 @endif
 </nav>
+        <div class="px-4 py-3 border-t border-white/10">
+            <button type="button" id="sidebarModeToggle" onclick="toggleSidebarMode()" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-medium uppercase tracking-wider text-or-teks/80 hover:bg-white/10 hover:text-or-judul transition-all" title="Ubah tampilan sidebar (gelap/terang)">
+                <i class="fas fa-circle-half-stroke text-xs"></i>
+                <span class="sidebar-text-label">Mode Sidebar</span>
+            </button>
+        </div>
         </aside>
 
         <main id="mainContent" class="transition-all duration-300">
@@ -2198,6 +2212,19 @@
                 try { localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0'); } catch (e) {}
             } else {
                 toggleMobileMenu();
+            }
+        }
+
+        function toggleSidebarMode() {
+            var html = document.documentElement;
+            var light = !html.hasAttribute('data-sidebar-mode') || html.getAttribute('data-sidebar-mode') !== 'light';
+            // toggle: jika sedang light -> dark, sebaliknya
+            if (html.getAttribute('data-sidebar-mode') === 'light') {
+                html.removeAttribute('data-sidebar-mode');
+                try { localStorage.setItem('sidebarMode', 'dark'); } catch (e) {}
+            } else {
+                html.setAttribute('data-sidebar-mode', 'light');
+                try { localStorage.setItem('sidebarMode', 'light'); } catch (e) {}
             }
         }
 

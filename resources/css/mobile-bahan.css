@@ -44,13 +44,14 @@
         display: none;
     }
     #filterForm.mobile-bahan-filter-form .relative input {
-        height: 52px;
+        height: 38px;
         padding-top: 0;
         padding-bottom: 0;
         border: 1px solid var(--brand-surface-border, #E2EAE4);
         border-radius: 999px;
         background: var(--brand-surface-primary, #ffffff);
         box-shadow: 0 3px 12px rgb(15 23 42 / 5%);
+        font-size: 13px;
     }
     .max-w-\[1600px\] > .bg-white.rounded-2xl form > a[href$="/bahan-baku"] {
         min-height: 44px;    /* tombol reset mudah disentuh ibu jari */
