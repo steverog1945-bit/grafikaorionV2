@@ -36,10 +36,18 @@ class JerseyOrderController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+        if ($request->get('bayar') === 'belum') {
+            $query->whereIn('status_pembayaran', ['Belum Bayar', 'DP']);
+        }
 
         $orders = $query->paginate(20)->withQueryString();
 
-        return view('jersey.orders.index', compact('orders'));
+        // Ringkasan cepat untuk chip filter (tidak terpengaruh filter aktif)
+        // supaya operator bisa lihat jumlah per status sekilas.
+        $statusCounts = JerseyOrder::selectRaw('status, COUNT(*) as n')->groupBy('status')->pluck('n', 'status');
+        $unpaidCount = JerseyOrder::whereIn('status_pembayaran', ['Belum Bayar', 'DP'])->count();
+
+        return view('jersey.orders.index', compact('orders', 'statusCounts', 'unpaidCount'));
     }
 
     public function create()
