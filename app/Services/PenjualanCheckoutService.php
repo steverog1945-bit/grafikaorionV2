@@ -838,7 +838,7 @@ class PenjualanCheckoutService
         // client dari hitungSubtotal() di penjualan/create.blade.php.
         $siapCetak = filter_var($item['siap_cetak'] ?? false, FILTER_VALIDATE_BOOLEAN);
         if ($qtyHitung > 0) {
-            $hargaSatuan = HargaService::getHargaEfektif($produk->id_produk, (int) $idGolongan, $qtyHitung > 0 ? $qtyHitung : 1, $siapCetak)['harga_jual'];
+            $hargaSatuan = HargaService::getHargaEfektif($produk->id_produk, (int) $idGolongan, max($qtyHitung, 1), $siapCetak)['harga_jual'];
         } else {
             $hargaSatuan = 0;
         }
