@@ -2295,21 +2295,34 @@ let hitungUlangMenunggu = false;
         let qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
 
         // Aturan minimum 1 m²: jika luas < 1 m² dan tidak ada item lain >= 1 m²,
-        // ditagih 1 m².
+        // ditagih 1 m² — TAPI hanya jika tier harga memang punya minimum 1 m²
+        // (range_min >= 1). Jika tier mengizinkan qty < 1 (harga > 0 untuk
+        // luas aktual), aturan ini gugur dan ditagih luas aktual.
         if (currentProduk.metode_hitung === 'ukuran') {
             const actualArea = (p * l / 10000) * qU;
             if (actualArea > 0 && actualArea < 1) {
-                let hasQualifying = false;
-                cart.forEach((it, idx) => {
-                    if (editIndex !== null && idx === editIndex) return;
-                    if (it.metode_hitung !== 'ukuran') return;
-                    const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
-                    if (a >= 1) hasQualifying = true;
-                });
-                if (!hasQualifying) {
-                    // total luas < 1 m² (atau belum ada item >= 1 m²): ditagih 1 m²
-                    qtyCari = 1;
+                // Deteksi hard-minimum: coba fetch harga di luas aktual
+                let isHardMin = false;
+                try {
+                    const testUrl = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${actualArea}${siapCetak ? '?siap_cetak=1' : ''}`;
+                    const testResp = await fetch(testUrl);
+                    const testData = await testResp.json();
+                    isHardMin = (parseFloat(testData.harga_jual) || 0) <= 0;
+                } catch (e) { isHardMin = false; }
+                if (isHardMin) {
+                    let hasQualifying = false;
+                    cart.forEach((it, idx) => {
+                        if (editIndex !== null && idx === editIndex) return;
+                        if (it.metode_hitung !== 'ukuran') return;
+                        const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
+                        if (a >= 1) hasQualifying = true;
+                    });
+                    if (!hasQualifying) {
+                        qtyCari = 1; // minimum 1 m²
+                    }
+                    // else: revert ke luas aktual
                 }
+                // else: tidak ada hard-minimum, ditagih luas aktual
             }
         }
 
@@ -2324,10 +2337,38 @@ let hitungUlangMenunggu = false;
         const biayaFinishing = totalFinishingList();
 
         try {
-            const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${Math.max(qtyCari, 1)}${siapCetak ? '?siap_cetak=1' : ''}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            const hargaJual = parseFloat(data.harga_jual) || 0;
+            // Deteksi hard-minimum (tier range_min >= 1): fetch di luas aktual.
+            // Jika harga 0 → hard-minimum; jika > 0 → tidak, ditagih aktual.
+            let hargaJual = 0;
+            let isPromo = false;
+            let promoSelesai = null;
+            let fetchQty = qtyCari;
+
+            if (currentProduk.metode_hitung === 'ukuran' && qtyCari > 0 && qtyCari < 1) {
+                const testUrl = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${qtyCari}${siapCetak ? '?siap_cetak=1' : ''}`;
+                const testResp = await fetch(testUrl);
+                const testData = await testResp.json();
+                const testPrice = parseFloat(testData.harga_jual) || 0;
+                if (testPrice > 0) {
+                    // Tidak ada hard-minimum: ditagih luas aktual, harga sudah didapat
+                    hargaJual = testPrice;
+                    isPromo = testData.is_promo;
+                    promoSelesai = testData.promo_selesai;
+                    fetchQty = qtyCari; // tidak perlu fetch ulang
+                } else {
+                    // Hard-minimum: fetch di max(qtyCari, 1) untuk unit price
+                    fetchQty = Math.max(qtyCari, 1);
+                }
+            }
+
+            if (hargaJual <= 0) {
+                const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${fetchQty}${siapCetak ? '?siap_cetak=1' : ''}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                hargaJual = parseFloat(data.harga_jual) || 0;
+                isPromo = data.is_promo;
+                promoSelesai = data.promo_selesai;
+            }
 
             // Biaya Cetak = komponen UTAMA subtotal, defaultnya mengikuti
             // Harga Daftar Harga x Qty - TAPI cuma kalau operator belum
@@ -2340,7 +2381,7 @@ let hitungUlangMenunggu = false;
             const biayaCetak = cleanRupiah(inputCetak.value);
 
             const subtotal = biayaCetak + biayaDesain + biayaFinishing;
-            updateDisplay(hargaJual, subtotal, data.is_promo, qtyCari);
+            updateDisplay(hargaJual, subtotal, isPromo, qtyCari);
             cekStokBom(currentProduk.id_produk, p, l, (currentProduk.metode_hitung === 'ukuran') ? qU : qB);
             cekMinOrder(p, l, qU, qB);
             return { harga_satuan: hargaJual, subtotal: subtotal, qty_hitung: qtyCari, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB };
@@ -2704,10 +2745,21 @@ let hitungUlangMenunggu = false;
                 if (a >= 1 || a <= 0) return;
                 if (it.qty_hitung === a) return;
                 try {
-                    const url = `{{ url('/api/penjualan/get-harga') }}/${it.id_produk}/${idGol}/${Math.max(a, 1)}${it.siap_cetak ? '?siap_cetak=1' : ''}`;
-                    const resp = await fetch(url);
-                    const data = await resp.json();
-                    const hargaJual = parseFloat(data.harga_jual) || 0;
+                    // Deteksi hard-minimum: fetch di luas aktual
+                    let hargaJual = 0;
+                    const testUrl = `{{ url('/api/penjualan/get-harga') }}/${it.id_produk}/${idGol}/${a}${it.siap_cetak ? '?siap_cetak=1' : ''}`;
+                    const testResp = await fetch(testUrl);
+                    const testData = await testResp.json();
+                    const testPrice = parseFloat(testData.harga_jual) || 0;
+                    if (testPrice > 0) {
+                        hargaJual = testPrice;
+                    } else {
+                        // hard-minimum: fetch di 1 untuk unit price
+                        const url2 = `{{ url('/api/penjualan/get-harga') }}/${it.id_produk}/${idGol}/1${it.siap_cetak ? '?siap_cetak=1' : ''}`;
+                        const resp2 = await fetch(url2);
+                        const data2 = await resp2.json();
+                        hargaJual = parseFloat(data2.harga_jual) || 0;
+                    }
                     if (hargaJual > 0) {
                         it.qty_hitung = a;
                         it.harga_satuan = hargaJual;
