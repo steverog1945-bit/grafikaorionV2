@@ -200,7 +200,7 @@
     html[data-sidebar-mode="light"] aside h1, html[data-sidebar-mode="light"] aside h2,
     html[data-sidebar-mode="light"] aside h3 { color: #111827 !important; }
     html[data-sidebar-mode="light"] aside a, html[data-sidebar-mode="light"] aside button,
-    html[data-sidebar-mode="light"] aside nav span, html[data-sidebar-mode="light"] aside nav div { color: #374151 !important; }
+    html[data-sidebar-mode="light"] aside nav span:not(.chip):not(.notif-badge), html[data-sidebar-mode="light"] aside nav div:not(.chip):not(.notif-badge) { color: #374151 !important; }
     html[data-sidebar-mode="light"] aside .menu-group-toggle { color: #6B7280 !important; }
     html[data-sidebar-mode="light"] aside a:hover, html[data-sidebar-mode="light"] aside button:hover {
         color: #111827 !important;
@@ -411,6 +411,15 @@
     aside .menu-group-toggle { justify-content: flex-start; padding-right: .875rem; }
     aside .menu-group-toggle > i.fa-chevron-down { margin-left: auto; width: 1.5rem; text-align: center; }
     aside .menu-group-toggle > .notif-badge { margin-left: auto; margin-right: .25rem; }
+
+    /* Mode terang: badge angka lebih soft agar tidak mengganggu sidebar terang */
+    html[data-sidebar-mode="light"] aside .notif-badge {
+        opacity: 0.85;
+        font-size: 10px;
+    }
+    html[data-sidebar-mode="light"] aside .notif-badge.rose { background: #B45309; }
+    html[data-sidebar-mode="light"] aside .notif-badge.indigo { background: #0E7490; }
+    html[data-sidebar-mode="light"] aside .notif-badge.amber { background: #D97706; color: #fff; }
     aside .menu-group-toggle > .notif-badge + i.fa-chevron-down { margin-left: 0; }
     #badge-notif { min-width: 1.5rem; text-align: center; padding: 0 .375rem !important; height: 1.25rem; line-height: 1.25rem; animation: none !important; }
     body.sidebar-collapsed .notif-badge { position: absolute; top: 2px; right: 4px; margin: 0; min-width: 1rem; height: 1rem; font-size: 9px; }

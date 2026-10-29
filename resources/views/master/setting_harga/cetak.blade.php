@@ -2,7 +2,7 @@
 
 @section('content')
 @php
-    $landscape = $golongan->count() > 4;
+    $landscape = request('orientasi', $golongan->count() > 4 ? 'landscape' : 'portrait') === 'landscape';
     $rpc = fn ($v) => 'Rp ' . number_format((float) $v, 0, ',', '.');
 @endphp
 {{-- Gaya dipakai di sini saja (prefix .dh-): tidak menimpa halaman lain.
@@ -13,25 +13,25 @@
 
     .dh-kop { display: none; }
     .dh-tabel { width: 100%; border-collapse: collapse; }
-    .dh-tabel th { background: #F1F5F1; color: #3F4F47; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 6px 8px; border-bottom: 1px solid #C9D6CE; text-align: right; }
+    .dh-tabel th { background: #F1F5F1; color: #3F4F47; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 4px 6px; border-bottom: 1px solid #C9D6CE; text-align: right; }
     .dh-tabel th:first-child { text-align: left; }
-    .dh-tabel td { padding: 6px 8px; border-bottom: 1px solid #E2EAE4; font-size: 12px; color: #3F4F47; }
+    .dh-tabel td { padding: 4px 6px; border-bottom: 1px solid #E2EAE4; font-size: 11px; color: #3F4F47; }
     .dh-tabel td.num, .dh-tabel th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .dh-tabel td.kosong { color: #C7D3CB; }
-    .dh-blok { break-inside: avoid; page-break-inside: avoid; margin-bottom: 22px; }
-    .dh-blok-nama { font-weight: 700; font-size: 13px; color: #171717; }
-    .dh-blok-info { font-size: 10px; color: #6f6f6f; text-transform: uppercase; letter-spacing: .04em; }
-    .dh-catatan { font-size: 10.5px; color: #6f6f6f; margin-top: 3px; }
-    .dh-sup { font-size: 11px; color: #6f6f6f; font-style: italic; }
-    .dh-kategori-judul { font-size: 12px; font-weight: 700; color: #2A3731; text-transform: uppercase; letter-spacing: .06em; border-bottom: 2px solid #2A3731; padding-bottom: 4px; margin: 26px 0 12px; }
+    .dh-blok { break-inside: avoid; page-break-inside: avoid; margin-bottom: 12px; }
+    .dh-blok-nama { font-weight: 700; font-size: 12px; color: #171717; }
+    .dh-blok-info { font-size: 9.5px; color: #6f6f6f; text-transform: uppercase; letter-spacing: .04em; }
+    .dh-catatan { font-size: 9.5px; color: #6f6f6f; margin-top: 2px; }
+    .dh-sup { font-size: 10px; color: #6f6f6f; font-style: italic; }
+    .dh-kategori-judul { font-size: 11px; font-weight: 700; color: #2A3731; text-transform: uppercase; letter-spacing: .06em; border-bottom: 2px solid #2A3731; padding-bottom: 3px; margin: 16px 0 8px; }
 
     @media print {
-        @page { size: A4 {{ $landscape ? 'landscape' : 'portrait' }}; margin: 10mm; }
+        @page { size: A4 {{ $landscape ? 'landscape' : 'portrait' }}; margin: 8mm; }
         aside, .no-print, .topbar, nav { display: none !important; }
         main { margin-left: 0 !important; padding: 0 !important; }
         body { background: #fff !important; }
         .dh-kop { display: block; }
-        .dh-tabel { font-size: 10.5px; }
+        .dh-tabel { font-size: 10px; }
         .dh-tabel th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         {{-- header tabel berulang antar halaman --}}
         .dh-tabel thead { display: table-header-group; }
@@ -43,34 +43,34 @@
 
 {{-- Kop usaha DARI AppSetting: field kosong tidak ditampilkan. --}}
 @php($s = $usaha)
-<div class="dh-kop dh-sheet mb-6 print:mb-6">
+<div class="dh-kop dh-sheet mb-3 print:mb-3">
     <div class="flex items-start justify-between gap-6">
         <div class="flex items-start gap-3">
             @if($s->logo_path)
-                <img src="{{ asset('storage/' . $s->logo_path) }}" alt="Logo" class="h-14 w-14 object-contain shrink-0">
+                <img src="{{ asset('storage/' . $s->logo_path) }}" alt="Logo" class="h-10 w-10 object-contain shrink-0">
             @endif
             <div>
                 @if($s->nama_aplikasi)
-                    <h1 class="text-[15px] font-medium text-[#171717] leading-tight">{{ $s->nama_aplikasi }}</h1>
+                    <h1 class="text-[13px] font-medium text-[#171717] leading-tight">{{ $s->nama_aplikasi }}</h1>
                 @endif
                 @if($s->alamat)
-                    <p class="text-[10.5px] text-[#6f6f6f] leading-snug mt-0.5">{{ $s->alamat }}</p>
+                    <p class="text-[9.5px] text-[#6f6f6f] leading-snug mt-0.5">{{ $s->alamat }}</p>
                 @endif
                 @if($s->telepon || $s->fax)
-                    <p class="text-[10.5px] text-[#6f6f6f] leading-snug">Telp : {{ $s->telepon ?: '-' }}, Fax : {{ $s->fax ?: '-' }}</p>
+                    <p class="text-[9.5px] text-[#6f6f6f] leading-snug">Telp : {{ $s->telepon ?: '-' }}, Fax : {{ $s->fax ?: '-' }}</p>
                 @endif
                 @if($s->email || $s->website)
-                    <p class="text-[10.5px] text-[#6f6f6f] leading-snug">Email : {{ $s->email ?: '-' }}, Website : {{ $s->website ?: '-' }}</p>
+                    <p class="text-[9.5px] text-[#6f6f6f] leading-snug">Email : {{ $s->email ?: '-' }}, Website : {{ $s->website ?: '-' }}</p>
                 @endif
             </div>
         </div>
         <div class="text-right shrink-0">
-            <h2 class="text-[17px] font-medium text-[#171717] leading-tight">Daftar Harga</h2>
+            <h2 class="text-[14px] font-medium text-[#171717] leading-tight">Daftar Harga</h2>
             {{-- filter text & tanggal cetak --}}
-            <p class="text-[11px] text-[#6f6f6f] mt-1">
+            <p class="text-[10px] text-[#6f6f6f] mt-1">
                 Cetak: {{ $tanggalCetak }}
             </p>
-            <p class="text-[10.5px] text-[#6f6f6f]">
+            <p class="text-[9.5px] text-[#6f6f6f]">
                 {{ $golongan->count() }} golongan · {{ $bloks->groupBy('tipe')->keys()->map(fn ($t) => ['produk' => 'Produk', 'jasa' => 'Jasa', 'finishing' => 'Finishing'][$t] ?? $t)->implode(', ') ?: 'Tidak ada item dengan harga' }}
             </p>
         </div>
@@ -78,13 +78,17 @@
     <div class="mt-3 border-t border-[#8f8f8f]"></div>
 </div>
 
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 print:!py-0 print:!px-0 dh-sheet">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-4 print:!py-0 print:!px-0 dh-sheet">
 
     {{-- Layar (tidak dicetak): header + filter + tombol cetak --}}
     <div class="no-print">
         <x-page-header title="Cetak Daftar Harga" subtitle="Harga jual per golongan konsumen — angka yang sama dibaca mesin kasir.">
             <x-slot:actions>
                 <a href="{{ route('setting-harga.index') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-medium uppercase tracking-wider">Kembali</a>
+                <div class="inline-flex rounded-xl overflow-hidden border border-slate-200">
+                    <a href="{{ route('setting-harga.cetak', array_merge(request()->query(), ['orientasi' => 'portrait'])) }}" class="px-3 py-3 text-xs font-medium {{ !$landscape ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50' }}">Portrait</a>
+                    <a href="{{ route('setting-harga.cetak', array_merge(request()->query(), ['orientasi' => 'landscape'])) }}" class="px-3 py-3 text-xs font-medium {{ $landscape ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50' }}">Landscape</a>
+                </div>
                 <x-button type="button" onclick="window.print()"><i class="fas fa-print"></i> Cetak</x-button>
             </x-slot:actions>
         </x-page-header>
