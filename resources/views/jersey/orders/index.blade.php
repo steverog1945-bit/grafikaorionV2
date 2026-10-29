@@ -33,6 +33,29 @@
         </form>
     </x-card>
 
+    {{-- Chip filter cepat: akses & baca data tanpa membuka dropdown status. --}}
+    @php
+        $totalChip = (int) $statusCounts->sum();
+        $chipBase = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors';
+        $chipAktif = 'bg-indigo-600 text-white border-indigo-600';
+        $chipNon = 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600';
+        $statusAktif = request('status');
+        $unpaidAktif = request('bayar') === 'belum';
+    @endphp
+    <div class="flex flex-wrap gap-2 mb-4">
+        <a href="{{ route('jersey.orders.index', array_filter(['search' => request('search')])) }}" class="{{ $chipBase }} {{ !$statusAktif && !$unpaidAktif ? $chipAktif : $chipNon }}">
+            Semua <span class="opacity-70">{{ $totalChip }}</span>
+        </a>
+        @foreach(['baru' => 'Baru', 'proses' => 'Proses', 'selesai' => 'Selesai', 'diambil' => 'Diambil'] as $val => $label)
+            <a href="{{ route('jersey.orders.index', array_filter(['search' => request('search'), 'status' => $val])) }}" class="{{ $chipBase }} {{ $statusAktif === $val ? $chipAktif : $chipNon }}">
+                {{ $label }} <span class="opacity-70">{{ (int) ($statusCounts[$val] ?? 0) }}</span>
+            </a>
+        @endforeach
+        <a href="{{ route('jersey.orders.index', array_filter(['search' => request('search'), 'bayar' => 'belum'])) }}" class="{{ $chipBase }} {{ $unpaidAktif ? $chipAktif : $chipNon }}">
+            Belum Lunas <span class="opacity-70">{{ $unpaidCount }}</span>
+        </a>
+    </div>
+
     <x-table wrapperClass="jersey-orders-mobile-table-shell overflow-hidden" class="jersey-orders-mobile-table">
         <thead>
             <tr>

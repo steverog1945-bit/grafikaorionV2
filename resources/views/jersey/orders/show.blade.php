@@ -49,7 +49,7 @@
                 <div><p class="text-[10px] text-slate-400 uppercase font-medium">Tim</p><p class="font-medium">{{ $order->team_name ?? '-' }}</p></div>
                 <div><p class="text-[10px] text-slate-400 uppercase font-medium">Tanggal Order</p><p class="font-medium">{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</p></div>
                 <div><p class="text-[10px] text-slate-400 uppercase font-medium">Deadline</p><p class="font-medium">{{ $order->deadline ? \Carbon\Carbon::parse($order->deadline)->format('d/m/Y') : '-' }}</p></div>
-                <div><p class="text-[10px] text-slate-400 uppercase font-medium">Desainer</p><p class="font-medium">{{ $order->designer_name ?? '-' }}</p></div>
+                <div><p class="text-[10px] text-slate-400 uppercase font-medium">Desainer</p><p class="font-medium">{{ $order->desainer?->nama ?? $order->designer_name ?? '-' }}@if($order->file_siap_cetak) <span class="text-[10px] text-emerald-600">(file siap cetak)</span>@endif</p></div>
             </div>
             @if($order->notes)
                 <div class="mt-4 p-3 bg-slate-50 rounded-xl text-xs text-slate-500">{{ $order->notes }}</div>
@@ -234,11 +234,28 @@
             <x-form.group label="Nama Tim (opsional)">
                 <x-form.input type="text" name="team_name" value="{{ $order->team_name }}" />
             </x-form.group>
-            <x-form.group label="Desainer">
-                <x-form.select name="jersey_designer_id">
-                    <option value="">-- Pilih --</option>
-                    @foreach($designers as $d)<option value="{{ $d->id }}" @selected($order->jersey_designer_id === $d->id)>{{ $d->name }}</option>@endforeach
-                </x-form.select>
+            <x-form.group label="Desainer (Operator Desain)">
+                @if($desainerTerkunci)
+                    <input type="hidden" name="id_desainer" value="{{ $desainerTerkunci }}">
+                    <div class="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-700 flex items-center gap-2.5">
+                        <i class="fas fa-user-check text-slate-400 text-xs shrink-0"></i>
+                        <span class="truncate">{{ $desainerTerkunciNama }}</span>
+                        <span class="ml-auto text-[11px] font-normal text-slate-400 shrink-0">otomatis (Anda)</span>
+                    </div>
+                @else
+                    <select name="id_desainer" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                        <option value="">-- Tanpa Desainer --</option>
+                        @foreach($desainerList as $ds)
+                            <option value="{{ $ds->id_user }}" @selected((int) $order->id_desainer === (int) $ds->id_user)>{{ $ds->nama }}</option>
+                        @endforeach
+                    </select>
+                @endif
+            </x-form.group>
+            <x-form.group label="File Siap Cetak">
+                <label class="inline-flex items-center gap-2 text-sm text-slate-600">
+                    <input type="checkbox" name="file_siap_cetak" value="1" @checked($order->file_siap_cetak) class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                    <span>Desain sudah siap cetak</span>
+                </label>
             </x-form.group>
             @bolehHarga
             <x-form.group label="Diskon (Rp)">
