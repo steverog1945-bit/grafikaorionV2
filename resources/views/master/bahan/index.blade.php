@@ -189,19 +189,28 @@
                             @endif
                         </td>
                         <td class="px-6 py-3 text-right" data-label="Aksi">
-                            <div class="flex items-center justify-end gap-1">
-                                <button type="button" onclick='editBahan(@json($b), @json(\App\Support\VersiBaris::token($b)))' class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" aria-label="Ubah" title="Ubah">
-                                    <i class="far fa-edit text-xs"></i>
-                                </button>
-                                <button type="button" onclick="toggleStatus('{{ $b->id_bahan }}', '{{ $b->status }}', {{ json_encode($b->nama_bahan) }})"
-                                        class="w-8 h-8 flex items-center justify-center text-slate-400 {{ $b->status === 'aktif' ? 'hover:text-slate-600 hover:bg-slate-100' : 'hover:text-emerald-500 hover:bg-emerald-50' }} rounded-lg transition-all"
-                                        title="{{ $b->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan kembali' }}">
-                                    <i class="far {{ $b->status === 'aktif' ? 'fa-eye-slash' : 'fa-eye' }} text-xs"></i>
-                                </button>
-                                <button type="button" onclick="singleDelete('{{ $b->id_bahan }}')" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" aria-label="Hapus" title="Hapus">
-                                    <i class="far fa-trash-alt text-xs"></i>
-                                </button>
-                            </div>
+                            <details class="mobile-bahan-actions">
+                                <summary aria-label="Aksi bahan" title="Aksi bahan">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <circle cx="12" cy="5" r="1.8"></circle>
+                                        <circle cx="12" cy="12" r="1.8"></circle>
+                                        <circle cx="12" cy="19" r="1.8"></circle>
+                                    </svg>
+                                </summary>
+                                <div class="mobile-bahan-action-menu flex justify-end gap-1">
+                                    <button type="button" onclick='editBahan(@json($b), @json(\App\Support\VersiBaris::token($b)))' class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" aria-label="Ubah" title="Ubah">
+                                        <i class="far fa-edit text-xs"></i>
+                                    </button>
+                                    <button type="button" onclick="toggleStatus('{{ $b->id_bahan }}', '{{ $b->status }}', {{ json_encode($b->nama_bahan) }})"
+                                            class="w-8 h-8 flex items-center justify-center text-slate-400 {{ $b->status === 'aktif' ? 'hover:text-slate-600 hover:bg-slate-100' : 'hover:text-emerald-500 hover:bg-emerald-50' }} rounded-lg transition-all"
+                                            title="{{ $b->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan kembali' }}">
+                                        <i class="far {{ $b->status === 'aktif' ? 'fa-eye-slash' : 'fa-eye' }} text-xs"></i>
+                                    </button>
+                                    <button type="button" onclick="singleDelete('{{ $b->id_bahan }}')" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" aria-label="Hapus" title="Hapus">
+                                        <i class="far fa-trash-alt text-xs"></i>
+                                    </button>
+                                </div>
+                            </details>
                         </td>
                     </tr>
                     @empty
