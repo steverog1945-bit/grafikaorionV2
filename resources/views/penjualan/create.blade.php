@@ -2297,7 +2297,6 @@ let hitungUlangMenunggu = false;
                 let hasQualifying = false;
                 cart.forEach((it, idx) => {
                     if (editIndex !== null && idx === editIndex) return;
-                    if (!it.min_order || parseFloat(it.min_order) < 1) return;
                     if (it.metode_hitung !== 'ukuran') return;
                     const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
                     if (a >= 1) hasQualifying = true;
@@ -2396,19 +2395,19 @@ let hitungUlangMenunggu = false;
             }
         }
 
-        // Aturan minimum 1 m² (produk outdoor, min_order >= 1): jika luas < 1 m²
-        // dan tidak ada item lain dalam keranjang yang >= 1 m², ditagih 1 m².
-        if (currentProduk.metode_hitung === 'ukuran' && (parseFloat(currentProduk.min_order) || 0) >= 1) {
+        // Aturan minimum 1 m²: jika luas < 1 m² dan tidak ada item lain >= 1 m²,
+        // ditagih 1 m².
+        if (currentProduk.metode_hitung === 'ukuran') {
             const area = (p * l / 10000) * qU;
             if (area > 0 && area < 1) {
-                let hasMinInCart = false;
+                let hasQualifying = false;
                 cart.forEach((it, idx) => {
                     if (editIndex !== null && idx === editIndex) return;
-                    if (!it.min_order || parseFloat(it.min_order) < 1) return;
+                    if (it.metode_hitung !== 'ukuran') return;
                     const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
-                    if (a >= 1) hasMinInCart = true;
+                    if (a >= 1) hasQualifying = true;
                 });
-                if (!hasMinInCart) {
+                if (!hasQualifying) {
                     detail.innerText = `Minimum 1 m² untuk produk ini (luas sekarang ${area.toFixed(2)} m²) - ditagih 1 m².`;
                     box.hidden = false;
                     return;

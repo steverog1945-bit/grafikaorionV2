@@ -735,7 +735,7 @@ class PenjualanCheckoutService
     foreach ($request->items as $idx => $it) {
         if (!empty($it['id_jasa'])) { $minAreaActual[$idx] = null; continue; }
         $prodTmp = $produkRows->get((int) ($it['id_produk'] ?? 0));
-        if (!$prodTmp || $prodTmp->metode_hitung !== 'ukuran' || (float) ($prodTmp->min_order ?? 0) < 1) {
+        if (!$prodTmp || $prodTmp->metode_hitung !== 'ukuran') {
             $minAreaActual[$idx] = null; continue;
         }
         $pp = (float) ($it['p'] ?? 0);
@@ -807,13 +807,20 @@ class PenjualanCheckoutService
             ? ($p * $l / 10000) * $qtyInput
             : $qtyInput;
 
-        // Aturan minimum 1 m² (produk outdoor, min_order >= 1): jika total luas
-        // semua item min-area < 1 m², SETIAP item kecil ditagih 1 m² (minimum),
-        // bukan 0. Jika total >= 1 m², semua ditagih luas aktual.
-        if ($produk->metode_hitung === 'ukuran' && (float) ($produk->min_order ?? 0) >= 1) {
+        // Aturan minimum 1 m² untuk produk cetak luas (metode 'ukuran'): jika
+        // luas item < 1 m² dan tidak ada item lain dalam nota yang >= 1 m²,
+        // ditagih 1 m². Jika ada item >= 1 m², semua ditagih luas aktual.
+        if ($produk->metode_hitung === 'ukuran') {
             $areaIni = ($p * $l / 10000) * $qtyInput;
-            if ($areaIni < 1 && $minAreaTotal < 1) {
-                $qtyHitung = 1;
+            if ($areaIni > 0 && $areaIni < 1) {
+                $hasQualifying = false;
+                foreach ($minAreaActual as $ii => $aa) {
+                    if ($ii === $index) continue;
+                    if ($aa !== null && $aa >= 1) { $hasQualifying = true; break; }
+                }
+                if (!$hasQualifying) {
+                    $qtyHitung = 1;
+                }
             }
         }
 
