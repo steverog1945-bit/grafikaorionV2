@@ -2317,7 +2317,7 @@ let hitungUlangMenunggu = false;
         const biayaFinishing = totalFinishingList();
 
         try {
-            const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${qtyCari}${siapCetak ? '?siap_cetak=1' : ''}`;
+            const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${Math.max(qtyCari, 1)}${siapCetak ? '?siap_cetak=1' : ''}`;
             const response = await fetch(url);
             const data = await response.json();
             const hargaJual = parseFloat(data.harga_jual) || 0;
@@ -2487,7 +2487,7 @@ let hitungUlangMenunggu = false;
             if (!item.id_produk || !(item.qty_hitung > 0)) { gagal++; continue; }
 
             try {
-                const url = `{{ url('/api/penjualan/get-harga') }}/${item.id_produk}/${idGol}/${item.qty_hitung}${item.siap_cetak ? '?siap_cetak=1' : ''}`;
+                const url = `{{ url('/api/penjualan/get-harga') }}/${item.id_produk}/${idGol}/${Math.max(item.qty_hitung, 1)}${item.siap_cetak ? '?siap_cetak=1' : ''}`;
                 const res = await fetch(url);
                 if (!res.ok) { gagal++; continue; }
 
@@ -2691,7 +2691,7 @@ let hitungUlangMenunggu = false;
                 if (a >= 1 || a <= 0) return;
                 if (it.qty_hitung === a) return;
                 try {
-                    const url = `{{ url('/api/penjualan/get-harga') }}/${it.id_produk}/${idGol}/${a}${it.siap_cetak ? '?siap_cetak=1' : ''}`;
+                    const url = `{{ url('/api/penjualan/get-harga') }}/${it.id_produk}/${idGol}/${Math.max(a, 1)}${it.siap_cetak ? '?siap_cetak=1' : ''}`;
                     const resp = await fetch(url);
                     const data = await resp.json();
                     const hargaJual = parseFloat(data.harga_jual) || 0;
