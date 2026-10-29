@@ -2293,24 +2293,35 @@ let hitungUlangMenunggu = false;
         const minOrderCur = parseFloat(currentProduk.min_order) || 0;
         if (currentProduk.metode_hitung === 'ukuran' && minOrderCur >= 1) {
             const actualArea = (p * l / 10000) * qU;
-            if (actualArea > 0 && actualArea < 1) {
-                let hasQualifying = false;
-                let totalArea = actualArea;
+            if (actualArea > 0) {
+                let hasMinInCart = false;
+                let cartMinActualSum = 0;
                 cart.forEach((it, idx) => {
                     if (editIndex !== null && idx === editIndex) return;
                     if (!it.min_order || parseFloat(it.min_order) < 1) return;
                     if (it.metode_hitung !== 'ukuran') return;
                     const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
-                    if (a >= 1) hasQualifying = true;
-                    totalArea += a;
+                    if (a >= 0) { hasMinInCart = true; cartMinActualSum += a; }
                 });
-                if (!hasQualifying && totalArea < 1) {
+                const newTotal = cartMinActualSum + actualArea;
+                if (newTotal >= 1) {
+                    qtyCari = actualArea;
+                } else if (!hasMinInCart) {
+                    // item pertama yang kecil -> minimum 1 m²
                     qtyCari = 1;
+                } else {
+                    // item berikutnya yang kecil -> terserap ke minimum (0)
+                    qtyCari = 0;
                 }
             }
         }
 
-        if (qtyCari <= 0) { updateDisplay(0, 0); return null; }
+        if (qtyCari < 0) { updateDisplay(0, 0); return null; }
+        if (qtyCari === 0) {
+            // item terserap ke minimum nota lain -> subtotal 0
+            updateDisplay(0, 0);
+            return { harga_satuan: 0, subtotal: 0, qty_hitung: 0, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB };
+        }
 
         // Refresh dulu SEBELUM baca nilainya - supaya subtotal di bawah ini
         // memakai saran harga finishing yang sudah sesuai qty terbaru, bukan
@@ -2402,15 +2413,19 @@ let hitungUlangMenunggu = false;
         if (currentProduk.metode_hitung === 'ukuran' && (parseFloat(currentProduk.min_order) || 0) >= 1) {
             const area = (p * l / 10000) * qU;
             if (area > 0 && area < 1) {
-                let hasQualifying = false;
+                let hasMinInCart = false;
                 cart.forEach((it, idx) => {
                     if (editIndex !== null && idx === editIndex) return;
                     if (!it.min_order || parseFloat(it.min_order) < 1) return;
                     const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
-                    if (a >= 1) hasQualifying = true;
+                    if (a >= 0) hasMinInCart = true;
                 });
-                if (!hasQualifying) {
+                if (!hasMinInCart) {
                     detail.innerText = `Minimum 1 m² untuk produk ini (luas sekarang ${area.toFixed(2)} m²) - ditagih 1 m².`;
+                    box.hidden = false;
+                    return;
+                } else {
+                    detail.innerText = `Terserap ke minimum 1 m² nota (luas sekarang ${area.toFixed(2)} m²).`;
                     box.hidden = false;
                     return;
                 }
@@ -2599,7 +2614,8 @@ let hitungUlangMenunggu = false;
         if (document.getElementById('select_finishing').value) await tambahFinishingKeDaftar(true);
 
         const res = await hitungSubtotal();
-        if (!res || res.harga_satuan <= 0) return Swal.fire('Data belum lengkap', 'Detail belum lengkap.', 'error');
+        const minAbsorbed = (res && res.qty_hitung === 0 && currentProduk && (parseFloat(currentProduk.min_order) || 0) >= 1);
+        if (!res || (res.harga_satuan <= 0 && !minAbsorbed)) return Swal.fire('Data belum lengkap', 'Detail belum lengkap.', 'error');
 
         // BUG PENTING yang pernah kejadian nyata: validasi di atas cuma
         // mengecek res.harga_satuan (tarif Daftar Harga), BUKAN Biaya Cetak
@@ -2612,7 +2628,7 @@ let hitungUlangMenunggu = false;
         // peringatan apa pun, subtotal-nya 0 walau harga_satuan Daftar Harga-
         // nya benar. Dicegat eksplisit di sini.
         const biayaCetakSaatIni = cleanRupiah(document.getElementById('input_cetak').value);
-        if (biayaCetakSaatIni <= 0) {
+        if (biayaCetakSaatIni <= 0 && !minAbsorbed) {
             Swal.fire('Biaya Cetak Kosong', 'Biaya Cetak tidak boleh 0 - isi dulu sebelum menambahkan ke keranjang.', 'error');
             document.getElementById('input_cetak').focus();
             return;

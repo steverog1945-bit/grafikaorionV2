@@ -807,19 +807,29 @@ class PenjualanCheckoutService
             ? ($p * $l / 10000) * $qtyInput
             : $qtyInput;
 
-        // Aturan minimum 1 m² (produk outdoor, min_order >= 1): jika luas item
-        // < 1 m² dan tidak ada item lain yang >= 1 m² serta total luas < 1 m²,
-        // ditagih minimum 1 m².
+        // Aturan minimum 1 m² (produk outdoor, min_order >= 1): jika total luas
+        // semua item min-area < 1 m², item PERTAMA ditagih 1 m² (minimum),
+        // item berikutnya ditagih 0 (terserap ke minimum). Jika total >= 1 m²,
+        // semua ditagih luas aktual.
         if ($produk->metode_hitung === 'ukuran' && (float) ($produk->min_order ?? 0) >= 1) {
             $areaIni = ($p * $l / 10000) * $qtyInput;
-            if ($areaIni < 1 && !$minAreaQualifying && $minAreaTotal < 1) {
+            $isFirstMin = ($minAreaActual[$index] !== null) && ($index === array_key_first(array_filter($minAreaActual, fn ($v) => $v !== null)));
+            // tentukan apakah item ini adalah yang pertama di antara min-area
+            $firstMinIndex = null;
+            foreach ($minAreaActual as $ii => $aa) {
+                if ($aa !== null) { $firstMinIndex = $ii; break; }
+            }
+            if ($minAreaTotal < 1 && $firstMinIndex === $index) {
                 $qtyHitung = 1;
+            } elseif ($minAreaTotal < 1) {
+                $qtyHitung = 0;
             }
         }
 
-        if ($qtyHitung <= 0) {
+        if ($qtyHitung < 0) {
             throw new \App\Exceptions\ValidasiNotaException('Ukuran/qty pada baris ' . ($index + 1) . ' tidak valid.');
         }
+        $isMinAreaAbsorbed = ($produk->metode_hitung === 'ukuran' && (float) ($produk->min_order ?? 0) >= 1 && $qtyHitung === 0.0);
 
         // Harga promo (kalau sedang aktif) atau price list biasa - HargaService
         // adalah sumber yang sama persis dipakai layar POS untuk menampilkan
@@ -830,9 +840,13 @@ class PenjualanCheckoutService
         // murni jadi SARAN nilai default untuk Biaya Cetak yang dikirim
         // client dari hitungSubtotal() di penjualan/create.blade.php.
         $siapCetak = filter_var($item['siap_cetak'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $hargaSatuan = HargaService::getHargaEfektif($produk->id_produk, (int) $idGolongan, $qtyHitung, $siapCetak)['harga_jual'];
+        if ($qtyHitung > 0) {
+            $hargaSatuan = HargaService::getHargaEfektif($produk->id_produk, (int) $idGolongan, $qtyHitung, $siapCetak)['harga_jual'];
+        } else {
+            $hargaSatuan = 0;
+        }
 
-        if ($hargaSatuan <= 0) {
+        if ($hargaSatuan <= 0 && $qtyHitung > 0) {
             throw new \App\Exceptions\ValidasiNotaException($siapCetak
                     ? 'Harga File Siap Cetak untuk "' . $produk->nama_produk . '" belum diatur (menu Harga File Siap Cetak) untuk golongan konsumen ini.'
                     : 'Harga untuk "' . $produk->nama_produk . '" belum diatur di Price List untuk golongan konsumen ini.');
