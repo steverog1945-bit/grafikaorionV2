@@ -2287,10 +2287,8 @@ let hitungUlangMenunggu = false;
 
         let qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
 
-        // Aturan minimum 1 m² (produk outdoor, min_order >= 1): jika luas item
-        // < 1 m² dan tidak ada item lain dalam keranjang yang >= 1 m² serta
-        // total luas < 1 m², ditagih minimum 1 m².
-        const minOrderCur = parseFloat(currentProduk.min_order) || 0;
+        // Aturan minimum 1 m²: jika luas < 1 m² dan tidak ada item lain >= 1 m²,
+        // ditagih 1 m².
         if (currentProduk.metode_hitung === 'ukuran') {
             const actualArea = (p * l / 10000) * qU;
             if (actualArea > 0 && actualArea < 1) {
