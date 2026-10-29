@@ -25,6 +25,7 @@
 
     <form action="{{ url('/kasir/proses-bayar') }}" method="POST" id="form-pembayaran">
         @csrf
+        <fieldset @if($notaSudahLunas) disabled @endif style="border:0;padding:0;margin:0;min-width:0;">
         <input type="hidden" name="id_transaksi" value="{{ $transaksi->id_transaksi }}">
         {{-- P0-4: anti klik-ganda. Diisi waktu pertama submit; kalau sudah terisi, submit kedua diabaikan (server tetap punya guard sendiri via session). --}}
         <input type="hidden" name="submit_id" value="">
@@ -317,6 +318,7 @@
                 </div>
             </div>
         </div>
+        </fieldset>
     </form>
 
     {{-- MODAL CUSTOM HARGA - satu modal dipakai bergantian untuk semua item
