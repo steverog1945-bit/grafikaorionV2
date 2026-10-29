@@ -366,7 +366,8 @@
         font-size: 16px;
         font-weight: 700;
     }
-    #bulk-delete-form td:nth-child(5) .w-20.h-1 {
+    #bulk-delete-form td:nth-child(5) .w-20.h-1,
+    #bulk-delete-form td:nth-child(5) .w-16.h-1 {
         width: 100%;
         height: 5px;
         border-radius: 6px;
@@ -539,8 +540,22 @@
     .mobile-bahan-actions > summary {
         display: none;
     }
+    /* Desktop: menu aksi = baris ikon selalu-tampak persis seperti markup
+       sebelumnya (td > div.flex > 3 tombol); slot popup (padding, border,
+       background, width) tidak berlaku di desktop. */
     .mobile-bahan-action-menu {
         display: flex;
+        position: static;
+        width: auto;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+    .mobile-bahan-action-menu > button {
+        flex: 0 0 auto;
+        min-width: 0;
     }
     .mobile-bahan-details {
         display: contents;
@@ -881,7 +896,8 @@
         font-size: 11px;
         line-height: 1.3;
     }
-    #bulk-delete-form td:nth-child(5) .w-20.h-1 {
+    #bulk-delete-form td:nth-child(5) .w-20.h-1,
+    #bulk-delete-form td:nth-child(5) .w-16.h-1 {
         display: none;
     }
     #bulk-delete-form td:nth-child(6) {
