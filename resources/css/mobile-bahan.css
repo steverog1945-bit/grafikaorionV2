@@ -215,10 +215,10 @@
         min-width: 0;
         background: var(--brand-surface-primary, #ffffff);
         border: 1px solid var(--brand-surface-border, #E2EAE4);
-        border-radius: 18px;
+        border-radius: 14px;
         margin: 0 0 10px 0;
-        padding: 8px 10px;
-        box-shadow: 0 4px 14px rgb(15 23 42 / 5%);
+        padding: 13px 12px;
+        box-shadow: 0 3px 12px rgb(15 23 42 / 4%);
         transition: border-color 0.18s ease;
     }
     #bulk-delete-form tbody tr.group:hover {
