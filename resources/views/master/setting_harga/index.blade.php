@@ -6,6 +6,10 @@
 
     <x-page-header title="Daftar Harga & Tingkat" subtitle="Harga jual produk per golongan konsumen, bisa bertingkat berdasarkan qty.">
         <x-slot:actions>
+            <x-button href="{{ route('setting-harga.cetak', request()->only(['golongan', 'kategori'])) }}" variant="secondary">
+                <i class="fas fa-print"></i>
+                Cetak Daftar Harga
+            </x-button>
             <x-button href="{{ route('harga-promo.index') }}" variant="secondary">
                 <i class="fas fa-fire"></i>
                 Harga Promo
