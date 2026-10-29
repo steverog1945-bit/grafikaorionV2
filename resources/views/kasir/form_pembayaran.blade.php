@@ -301,6 +301,11 @@
                         </div>
                     </div>
 
+                    <div class="mt-4 flex items-center gap-2">
+                        <input type="checkbox" name="cetak_nota" id="cetak-nota" value="1" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                        <label for="cetak-nota" class="text-[11px] font-medium text-slate-500">Cetak nota setelah bayar</label>
+                    </div>
+
                     <div class="mt-5 grid grid-cols-2 gap-3">
                         <button type="button" onclick="simpanSaja()" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white border border-slate-100 hover:border-indigo-200 text-slate-500 hover:text-indigo-600 font-medium text-xs transition-all">
                             <i class="fas fa-inbox"></i> Simpan

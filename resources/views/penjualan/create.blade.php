@@ -536,11 +536,11 @@
                 </div>
 
                 {{-- Indikator di bawah ukuran/qty minimum produk - PERINGATAN saja --}}
-                <div id="min_order_warning" hidden class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
-                    <i class="fas fa-ruler-combined text-amber-500 mt-0.5"></i>
+                <div id="min_order_warning" hidden class="mb-4 p-3 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+                    <i class="fas fa-exclamation-triangle text-red-500 mt-0.5"></i>
                     <div>
-                        <p class="text-xs font-medium text-amber-700 uppercase tracking-wide">Di bawah minimum order produk ini</p>
-                        <p id="min_order_warning_detail" class="text-xs text-amber-600 mt-1"></p>
+                        <p class="text-xs font-medium text-red-700 uppercase tracking-wide">Input di bawah minimum order produk ini</p>
+                        <p id="min_order_warning_detail" class="text-xs text-red-600 mt-1"></p>
                     </div>
                 </div>
 
@@ -2395,14 +2395,14 @@ let hitungUlangMenunggu = false;
             const kurangP = minP > 0 && p > 0 && p < minP;
             const kurangL = minL > 0 && l > 0 && l < minL;
             if (kurangP || kurangL) {
-                detail.innerText = `Minimum ${minP} x ${minL} cm untuk produk ini (input sekarang: ${p} x ${l} cm). Order tetap bisa disimpan.`;
+                detail.innerText = `Input di bawah minimum order (${minP} x ${minL} cm). Disarankan input >= minimum. Sekarang: ${p} x ${l} cm.`;
                 box.hidden = false;
                 return;
             }
         } else {
             const minQty = parseFloat(currentProduk.min_order) || 0;
             if (minQty > 0 && qB > 0 && qB < minQty) {
-                detail.innerText = `Minimum order ${minQty} pcs untuk produk ini (input sekarang: ${qB} pcs). Order tetap bisa disimpan.`;
+                detail.innerText = `Input di bawah minimum order (${minQty} pcs). Disarankan input >= minimum. Sekarang: ${qB} pcs.`;
                 box.hidden = false;
                 return;
             }

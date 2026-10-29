@@ -156,9 +156,9 @@
             <tr class="tebal"><td class="l">Uang Diterima</td><td class="t">:</td><td class="v"></td></tr>
             @foreach($penerimaanNota as $p)
             <tr>
-                <td class="l">{{ \Carbon\Carbon::parse($p->tgl_bayar)->format('d/m H:i') }} - {{ $p->metode }}</td>
+                <td class="l">{{ \Carbon\Carbon::parse($p->tgl_bayar)->format('d/m/Y H:i') }} - {{ $p->metode }}</td>
                 <td class="t">:</td>
-                <td class="v">{{ number_format($p->nominal, 0, ',', '.') }}</td>
+                <td class="v">{{ number_format($p->uang_diterima ?? $p->nominal, 0, ',', '.') }}@if(($p->kembalian ?? 0) > 0) <span class="text-[9px]">(kembali {{ number_format($p->kembalian, 0, ',', '.') }})</span>@endif</td>
             </tr>
             @endforeach
         </table>
