@@ -562,4 +562,34 @@
         });
     });
 </script>
+<script>
+    // Kartu mobile: satu menu aksi (titik-tiga) yang terbuka pada satu waktu.
+    // Tanpa ini, membuka menu di baris lain menumpuk menu-menu yang sudah
+    // terbuka sebelumnya (semua terlihat sekaligus). Klik di luar menutup.
+    // Sengaja di script tag TERPISAH supaya tetap berjalan walau script
+    // utama di atas gagal (mis. jQuery belum termuat).
+    (function () {
+        function closeAll(except) {
+            document.querySelectorAll('details.mobile-bahan-actions[open]').forEach(function (d) {
+                if (d !== except) d.open = false;
+            });
+        }
+        document.addEventListener('click', function (e) {
+            var summary = e.target.closest('details.mobile-bahan-actions > summary');
+            if (summary) {
+                closeAll(summary.parentElement);
+                return;
+            }
+            var btn = e.target.closest('details.mobile-bahan-actions button');
+            if (btn) {
+                var d = btn.closest('details.mobile-bahan-actions');
+                if (d) d.open = false;
+                return;
+            }
+            if (!e.target.closest('details.mobile-bahan-actions')) {
+                closeAll(null);
+            }
+        }, true);
+    })();
+</script>
 @endpush
