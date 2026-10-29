@@ -2293,35 +2293,23 @@ let hitungUlangMenunggu = false;
         const minOrderCur = parseFloat(currentProduk.min_order) || 0;
         if (currentProduk.metode_hitung === 'ukuran' && minOrderCur >= 1) {
             const actualArea = (p * l / 10000) * qU;
-            if (actualArea > 0) {
-                let hasMinInCart = false;
-                let cartMinActualSum = 0;
+            if (actualArea > 0 && actualArea < 1) {
+                let hasQualifying = false;
                 cart.forEach((it, idx) => {
                     if (editIndex !== null && idx === editIndex) return;
                     if (!it.min_order || parseFloat(it.min_order) < 1) return;
                     if (it.metode_hitung !== 'ukuran') return;
                     const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
-                    if (a >= 0) { hasMinInCart = true; cartMinActualSum += a; }
+                    if (a >= 1) hasQualifying = true;
                 });
-                const newTotal = cartMinActualSum + actualArea;
-                if (newTotal >= 1) {
-                    qtyCari = actualArea;
-                } else if (!hasMinInCart) {
-                    // item pertama yang kecil -> minimum 1 m²
+                if (!hasQualifying) {
+                    // total luas < 1 m² (atau belum ada item >= 1 m²): ditagih 1 m²
                     qtyCari = 1;
-                } else {
-                    // item berikutnya yang kecil -> terserap ke minimum (0)
-                    qtyCari = 0;
                 }
             }
         }
 
-        if (qtyCari < 0) { updateDisplay(0, 0); return null; }
-        if (qtyCari === 0) {
-            // item terserap ke minimum nota lain -> subtotal 0
-            updateDisplay(0, 0);
-            return { harga_satuan: 0, subtotal: 0, qty_hitung: 0, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB };
-        }
+        if (qtyCari <= 0) { updateDisplay(0, 0); return null; }
 
         // Refresh dulu SEBELUM baca nilainya - supaya subtotal di bawah ini
         // memakai saran harga finishing yang sudah sesuai qty terbaru, bukan
@@ -2418,14 +2406,10 @@ let hitungUlangMenunggu = false;
                     if (editIndex !== null && idx === editIndex) return;
                     if (!it.min_order || parseFloat(it.min_order) < 1) return;
                     const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
-                    if (a >= 0) hasMinInCart = true;
+                    if (a >= 1) hasMinInCart = true;
                 });
                 if (!hasMinInCart) {
                     detail.innerText = `Minimum 1 m² untuk produk ini (luas sekarang ${area.toFixed(2)} m²) - ditagih 1 m².`;
-                    box.hidden = false;
-                    return;
-                } else {
-                    detail.innerText = `Terserap ke minimum 1 m² nota (luas sekarang ${area.toFixed(2)} m²).`;
                     box.hidden = false;
                     return;
                 }

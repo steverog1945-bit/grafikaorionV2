@@ -808,28 +808,18 @@ class PenjualanCheckoutService
             : $qtyInput;
 
         // Aturan minimum 1 m² (produk outdoor, min_order >= 1): jika total luas
-        // semua item min-area < 1 m², item PERTAMA ditagih 1 m² (minimum),
-        // item berikutnya ditagih 0 (terserap ke minimum). Jika total >= 1 m²,
-        // semua ditagih luas aktual.
+        // semua item min-area < 1 m², SETIAP item kecil ditagih 1 m² (minimum),
+        // bukan 0. Jika total >= 1 m², semua ditagih luas aktual.
         if ($produk->metode_hitung === 'ukuran' && (float) ($produk->min_order ?? 0) >= 1) {
             $areaIni = ($p * $l / 10000) * $qtyInput;
-            $isFirstMin = ($minAreaActual[$index] !== null) && ($index === array_key_first(array_filter($minAreaActual, fn ($v) => $v !== null)));
-            // tentukan apakah item ini adalah yang pertama di antara min-area
-            $firstMinIndex = null;
-            foreach ($minAreaActual as $ii => $aa) {
-                if ($aa !== null) { $firstMinIndex = $ii; break; }
-            }
-            if ($minAreaTotal < 1 && $firstMinIndex === $index) {
+            if ($areaIni < 1 && $minAreaTotal < 1) {
                 $qtyHitung = 1;
-            } elseif ($minAreaTotal < 1) {
-                $qtyHitung = 0;
             }
         }
 
-        if ($qtyHitung < 0) {
+        if ($qtyHitung <= 0) {
             throw new \App\Exceptions\ValidasiNotaException('Ukuran/qty pada baris ' . ($index + 1) . ' tidak valid.');
         }
-        $isMinAreaAbsorbed = ($produk->metode_hitung === 'ukuran' && (float) ($produk->min_order ?? 0) >= 1 && $qtyHitung === 0.0);
 
         // Harga promo (kalau sedang aktif) atau price list biasa - HargaService
         // adalah sumber yang sama persis dipakai layar POS untuk menampilkan
