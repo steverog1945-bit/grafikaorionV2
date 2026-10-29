@@ -1203,7 +1203,7 @@
             return ['tipe' => $p->jersey_product_type_id, 'bahan' => $p->jersey_material_id, 'kelompok' => $p->kelompok ?? 'dewasa', 'qty_min' => $p->qty_min, 'qty_max' => $p->qty_max, 'price' => (float) $p->price];
         })->values();
     @endphp
-    const tierHargaAda = {!! json_encode($tierHargaUmum) !!};
+    const tierHargaAda = @js($tierHargaUmum);
 
     function barisCepatHtml(t) {
         const v = (x) => (x === null || x === undefined) ? '' : x;
