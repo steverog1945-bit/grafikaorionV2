@@ -244,6 +244,9 @@
                 </td>
                 <td class="p-4">
                     <span class="text-sm text-slate-600">{{ $m->nomor_nota }}</span>
+                    <a href="{{ route('kasir.print-opsi', $m->id_transaksi) }}" target="_blank" title="Cetak ulang nota" class="ml-2 inline-flex items-center text-indigo-500 hover:text-indigo-700 text-xs">
+                        <i class="fas fa-print"></i>
+                    </a>
                 </td>
                 {{-- Sebelumnya cuma dibedakan Tunai vs "selain Tunai" (dianggap
                      selalu Transfer) - Debit & Deposit ikut kepencet label

@@ -184,8 +184,9 @@
         <p class="penutup">===== Terima Kasih =====</p>
     </div>
 
-    <div class="no-print">
+    <div class="no-print" style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
         <button onclick="window.print()">🖨️ Cetak</button>
+        <a href="{{ route('kasir.kelola') }}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:#64748b;color:#fff;font-size:13px;text-decoration:none;">← Kembali ke Monitoring Kasir</a>
     </div>
 </body>
 </html>
