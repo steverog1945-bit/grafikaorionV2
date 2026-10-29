@@ -272,35 +272,46 @@
 .chip {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1.4;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .chip-success {
     background: #e7f6ec;
     color: #1e7e34;
+    border-color: #c3e6cb;
 }
 
 .chip-warning {
     background: #fff4e5;
     color: #b26a00;
+    border-color: #ffe0a3;
 }
 
 .chip-danger {
     background: #fdecec;
     color: #c0392b;
+    border-color: #f5c6c0;
 }
 
 .chip-info {
     background: #EAF6F7;
     color: #006C7B;
+    border-color: #b8e0e4;
 }
 
 .chip-secondary {
     background: #F1F5F1;
     color: #4A5B53;
+    border-color: #DCE5E0;
 }
 
 /* --- RESPONSIVE TABLE (stack jadi kartu label:value di layar sempit) ---
@@ -978,11 +989,11 @@ html.dark .text-red-700 { color: #E0A583 !important; }
 html.dark .select2-selection__placeholder { color: #9DB8AD !important; }
 html.dark #prefix-uang-diterima { color: #F5C46A !important; }
 
-html.dark .chip-success { background: #064E3B !important; color: #8FD9C0 !important; }
-html.dark .chip-warning { background: var(--surface-warning) !important; color: #F5C46A !important; }
-html.dark .chip-danger { background: #7F1D1D !important; color: #E0A583 !important; }
-html.dark .chip-info { background: #0C4A6E !important; color: #7FD0DE !important; }
-html.dark .chip-secondary { background: #1A231F !important; color: #C9D6CE !important; }
+html.dark .chip-success { background: #064E3B !important; color: #8FD9C0 !important; border-color: #0F6B50 !important; }
+html.dark .chip-warning { background: var(--surface-warning) !important; color: #F5C46A !important; border-color: #7A5A1A !important; }
+html.dark .chip-danger { background: #7F1D1D !important; color: #E0A583 !important; border-color: #9F2A2A !important; }
+html.dark .chip-info { background: #0C4A6E !important; color: #7FD0DE !important; border-color: #1A6B9E !important; }
+html.dark .chip-secondary { background: #1A231F !important; color: #C9D6CE !important; border-color: #3F4F47 !important; }
 
 html.dark .notif-badge.indigo { background: #5FC4D4 !important; color: #fff !important; }
 html.dark .notif-badge.amber { background: #F5C46A !important; color: #1A231F !important; }
@@ -1042,9 +1053,7 @@ html.dark .text-slate-800 { color: var(--dark-text-primary) !important; }
 html.dark input::placeholder { color: #9DB8AD !important; }
 html.dark textarea::placeholder { color: #9DB8AD !important; }
 
-html.dark .chip-success, html.dark .chip-warning,
-html.dark .chip-danger, html.dark .chip-info,
-html.dark .chip-secondary { border-color: transparent !important; }
+/* (border per-chip sudah diatur di atas, jangan ditimpa transparent) */
 
 /* Biru dan cyan: kelas text-blue-* dan text-sky-* tidak ikut tertimpa ramp
    manapun di mode gelap, sementara latar untuk kelas itu sudah ditimpa.
