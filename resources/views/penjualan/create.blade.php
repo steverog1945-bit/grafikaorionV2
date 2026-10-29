@@ -2586,6 +2586,23 @@ let hitungUlangMenunggu = false;
 
         if (!idKonsumen) return Swal.fire('Data belum lengkap', 'Pilih pelanggan dulu', 'error');
         if (!currentProduk) return Swal.fire('Data belum lengkap', 'Pilih produk dulu.', 'warning');
+        // Peringatan keras: input di bawah minimum order produk -> jangan lanjut
+        // tambah ke keranjang / simpan nota.
+        if (currentProduk.metode_hitung === 'ukuran') {
+            const minP = parseFloat(currentProduk.min_panjang) || 0;
+            const minL = parseFloat(currentProduk.min_lebar) || 0;
+            const p = parseFloat(document.getElementById('input_p').value) || 0;
+            const l = parseFloat(document.getElementById('input_l').value) || 0;
+            if ((minP > 0 && p > 0 && p < minP) || (minL > 0 && l > 0 && l < minL)) {
+                return Swal.fire('Di bawah minimum order', `Input di bawah minimum order produk ini (${minP} x ${minL} cm). Perbesar ukuran dulu sebelum menambahkan.`, 'error');
+            }
+        } else {
+            const minQty = parseFloat(currentProduk.min_order) || 0;
+            const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
+            if (minQty > 0 && qB > 0 && qB < minQty) {
+                return Swal.fire('Di bawah minimum order', `Input di bawah minimum order produk ini (${minQty} pcs). Tambah qty dulu sebelum menambahkan.`, 'error');
+            }
+        }
         {
             const katAktif = document.getElementById('filter_kategori').value;
             const katProduk = $('#select_produk').find(':selected').data('kategori');
@@ -3181,6 +3198,11 @@ let hitungUlangMenunggu = false;
     async function simpanTransaksi(btn) {
         if (sedangMenyimpan) return; // satu submit dalam penerbangan - abaikan klik berikutnya sampai selesai.
         if (cart.length === 0) return Swal.fire('Keranjang Kosong', 'Pilih produk dulu.', 'error');
+        // Cegah simpan nota jika ada item pcs di bawah minimum order.
+        const itemMinPcs = cart.find(it => it.metode_hitung !== 'ukuran' && (parseFloat(it.min_order) || 0) > 0 && (parseFloat(it.qty_input) || 0) < (parseFloat(it.min_order) || 0));
+        if (itemMinPcs) {
+            return Swal.fire('Di bawah minimum order', `Item "${itemMinPcs.nama_produk}" di bawah minimum order (${itemMinPcs.min_order} pcs). Perbaiki dulu sebelum menyimpan.`, 'error');
+        }
         const idKonsumen = $('#id_konsumen').val();
         if (!idKonsumen) return Swal.fire('Konsumen', 'Pilih konsumen dulu.', 'warning');
 
