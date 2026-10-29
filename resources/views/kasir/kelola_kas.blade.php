@@ -231,7 +231,13 @@
             @forelse($mutasi as $i => $m)
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="p-4 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
-                <td class="p-4 text-xs text-slate-500">{{ date('H:i', strtotime($m->tgl_bayar)) }}</td>
+                <td class="p-4 text-xs text-slate-500">
+                    {{-- Sesi bisa melewati pergantian tanggal, jadi jam saja
+                         menyesatkan: tanggal pembayaran ditampilkan juga. --}}
+                    @php $bayar = \Carbon\Carbon::parse($m->tgl_bayar) @endphp
+                    <span class="text-slate-400" title="Tanggal {{ $bayar->format('d F Y') }}">{{ $bayar->format('d/m') }}</span>
+                    {{ $bayar->format('H:i') }}
+                </td>
                 <td class="p-4">
                     <span class="block font-medium text-slate-700 text-sm">{{ $m->nama_konsumen }}</span>
                     <span class="text-[11px] text-slate-400">{{ $m->keterangan }}</span>
@@ -298,7 +304,10 @@
             @forelse($mutasiManual as $i => $m)
             <tr class="hover:bg-slate-50/50 transition-all">
                 <td class="p-4 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
-                <td class="p-4 text-xs text-slate-500">{{ \Carbon\Carbon::parse($m->waktu)->format('H:i') }}</td>
+                <td class="p-4 text-xs text-slate-500" title="Tanggal {{ \Carbon\Carbon::parse($m->waktu)->format('d F Y') }}">
+                    <span class="text-slate-400">{{ \Carbon\Carbon::parse($m->waktu)->format('d/m') }}</span>
+                    {{ \Carbon\Carbon::parse($m->waktu)->format('H:i') }}
+                </td>
                 <td class="p-4 text-sm text-slate-600">{{ $m->keterangan }}</td>
                 <td class="p-4 text-center">
                     <x-badge :variant="$m->status === 'Masuk' ? 'success' : 'danger'">{{ $m->status === 'Masuk' ? 'Masuk' : 'Keluar' }}</x-badge>
