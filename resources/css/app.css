@@ -396,7 +396,7 @@
        total emerald, kepala tabel) sengaja dipertahankan karena bermakna,
        bukan sisa background layar. */
     html, body, main, #mainContent { background: #fff !important; }
-    .card, .modern-table-wrapper { background: #fff !important; border: 1px solid #E2EAE4 !important; }
+    .card, .modern-table-wrapper { background: #fff !important; border: 0px solid #E2EAE4 !important; }
     .rounded-3xl, .rounded-2xl, .rounded-\[2rem\], .rounded-2rem { border-radius: 3px !important; }
     .shadow-sm, .shadow, .shadow-md { box-shadow: none !important; }
     .chip {

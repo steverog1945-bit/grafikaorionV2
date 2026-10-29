@@ -196,14 +196,14 @@
         padding: 0;
     }
 
-    .produksi-workqueue-table tbody td:nth-child(3) { grid-area: identity; padding-right: 30px; }
-    .produksi-workqueue-table tbody td:nth-child(4) { grid-area: consumer; }
-    .produksi-workqueue-table tbody td:nth-child(5) { grid-area: date; }
-    .produksi-workqueue-table tbody td:nth-child(6) { grid-area: urgent; }
-    .produksi-workqueue-table tbody td:nth-child(7) { grid-area: qtyorder; }
-    .produksi-workqueue-table tbody td:nth-child(8) { grid-area: qtycetak; }
-    .produksi-workqueue-table tbody td:nth-child(9) { grid-area: status; }
-    .produksi-workqueue-table tbody td:nth-child(10) { grid-area: actions; }
+    .produksi-workqueue-table tbody td:nth-child(2) { grid-area: identity; padding-right: 30px; }
+    .produksi-workqueue-table tbody td:nth-child(3) { grid-area: consumer; }
+    .produksi-workqueue-table tbody td:nth-child(4) { grid-area: date; }
+    .produksi-workqueue-table tbody td:nth-child(5) { grid-area: urgent; }
+    .produksi-workqueue-table tbody td:nth-child(6) { grid-area: qtyorder; }
+    .produksi-workqueue-table tbody td:nth-child(7) { grid-area: qtycetak; }
+    .produksi-workqueue-table tbody td:nth-child(8) { grid-area: status; }
+    .produksi-workqueue-table tbody td:nth-child(9) { grid-area: actions; }
 
     .produksi-workqueue-table .produksi-work-name {
         padding-right: 2px;
