@@ -256,3 +256,126 @@ document.addEventListener('click', function (e) {
         }
     }
 }, true);
+
+// ==========================================================================
+// GridFocus - navigasi fokus 2D (baris x kolom) untuk form dengan banyak input.
+// Aktif hanya pada container yang ditandai [data-grid-focus]. Pemakaian:
+//   <div data-grid-focus> ... input/select/textarea ... </div>
+// Tombol: ArrowRight/Enter -> kanan (di kolom terakhir baris -> baris berikutnya kolom 1),
+//         ArrowLeft -> kiri, ArrowDown -> bawah, ArrowUp -> atas (kolom sama).
+// ==========================================================================
+(function () {
+    function collectGrid(container) {
+        const sel = 'input:not([type=hidden]):not([disabled]):not([readonly]), select:not([disabled]), textarea:not([disabled]):not([readonly])';
+        const els = Array.from(container.querySelectorAll(sel)).filter((e) => {
+            const r = e.getBoundingClientRect();
+            return r.width > 0 && r.height > 0;
+        });
+        const hasCoords = els.some((e) => e.dataset.row !== undefined || e.dataset.col !== undefined);
+        if (hasCoords) {
+            const rowMap = new Map();
+            els.forEach((e) => {
+                const r = parseInt(e.dataset.row || '0', 10);
+                const c = parseInt(e.dataset.col || '0', 10);
+                if (!rowMap.has(r)) rowMap.set(r, []);
+                rowMap.get(r).push({ el: e, col: c });
+            });
+            return [...rowMap.entries()].sort((a, b) => a[0] - b[0]).map(([, items]) => items.sort((a, b) => a.col - b.col).map((x) => x.el));
+        }
+        const sorted = els.slice().sort((a, b) => {
+            const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+            if (Math.abs(ra.top - rb.top) > 8) return ra.top - rb.top;
+            return ra.left - rb.left;
+        });
+        const rows = [];
+        let currentRow = null;
+        let currentTop = null;
+        sorted.forEach((e) => {
+            const top = e.getBoundingClientRect().top;
+            if (currentTop === null || Math.abs(top - currentTop) > 8) {
+                currentRow = [];
+                rows.push(currentRow);
+                currentTop = top;
+            }
+            currentRow.push(e);
+        });
+        rows.forEach((r) => r.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left));
+        return rows.filter((r) => r.length);
+    }
+
+    function findPos(rows, el) {
+        for (let r = 0; r < rows.length; r++) {
+            const c = rows[r].indexOf(el);
+            if (c !== -1) return { r, c };
+        }
+        return null;
+    }
+
+    function focusEl(el) {
+        if (!el) return;
+        try { el.focus({ preventScroll: false }); } catch (e) { el.focus(); }
+        if (el.select && el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'number' || el.type === 'search')) {
+            try { el.select(); } catch (e) {}
+        }
+    }
+
+    function handler(e) {
+        const el = document.activeElement;
+        if (!el) return;
+        const container = el.closest('[data-grid-focus]');
+        if (!container) return;
+        const keys = ['Enter', 'ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'];
+        if (!keys.includes(e.key)) return;
+        if (e.key === 'Enter' && el.tagName === 'TEXTAREA' && !e.ctrlKey) return;
+        if (el.tagName === 'SELECT' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) return;
+
+        const rows = collectGrid(container);
+        const pos = findPos(rows, el);
+        if (!pos) return;
+
+        let nr = pos.r, nc = pos.c;
+        const lastCol = rows[pos.r].length - 1;
+        const lastRow = rows.length - 1;
+
+        if (e.key === 'ArrowRight') {
+            if (pos.c + 1 < rows[pos.r].length) nc = pos.c + 1;
+            else if (pos.r + 1 <= lastRow) { nr = pos.r + 1; nc = 0; }
+            else nc = lastCol;
+        } else if (e.key === 'Enter') {
+            if (pos.c + 1 < rows[pos.r].length) nc = pos.c + 1;
+            else if (pos.r + 1 <= lastRow) { nr = pos.r + 1; nc = 0; }
+            else nc = pos.c;
+        } else if (e.key === 'ArrowLeft') {
+            if (pos.c - 1 >= 0) nc = pos.c - 1;
+            else if (pos.r - 1 >= 0) { nr = pos.r - 1; nc = rows[nr].length - 1; }
+            else nc = 0;
+        } else if (e.key === 'ArrowDown') {
+            if (pos.c === lastCol) {
+                if (pos.r + 1 <= lastRow) { nr = pos.r + 1; nc = 0; }
+            } else if (pos.r + 1 <= lastRow) {
+                nr = pos.r + 1;
+                nc = Math.min(pos.c, rows[nr].length - 1);
+            }
+        } else if (e.key === 'ArrowUp') {
+            if (pos.r - 1 >= 0) {
+                nr = pos.r - 1;
+                nc = Math.min(pos.c, rows[nr].length - 1);
+            }
+        }
+
+        nr = Math.max(0, Math.min(lastRow, nr));
+        if (!rows[nr]) return;
+        nc = Math.max(0, Math.min(rows[nr].length - 1, nc));
+        const target = rows[nr][nc];
+        if (target && target !== el) {
+            e.preventDefault();
+            focusEl(target);
+        }
+    }
+
+    document.addEventListener('keydown', handler, true);
+
+    window.enableGridFocus = function (container) {
+        if (container) container.setAttribute('data-grid-focus', '');
+    };
+})();

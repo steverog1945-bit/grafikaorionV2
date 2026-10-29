@@ -33,7 +33,7 @@
              thumbnail, subtotal - live update dari jalankanPreviewHarga())
              tampil dulu di atas, baru penyesuaian & total di bawahnya. --}}
         <div class="flex flex-col lg:flex-row gap-5 items-start">
-            <div class="w-full lg:w-[64%] space-y-4">
+            <div class="w-full lg:w-[64%] space-y-4" data-grid-focus>
                 <x-card>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <x-form.group label="Tanggal Order" required>
