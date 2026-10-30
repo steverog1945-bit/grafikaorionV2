@@ -173,7 +173,10 @@
     aside .sidebar-title,
     aside h1, aside h2, aside h3 { color: var(--brand-sidebar-title, #FFFFFF) !important; }
 
-    aside a, aside button, aside nav span, aside nav div { color: var(--brand-sidebar-text, #BFD5C9) !important; }
+    aside a, aside button, aside nav span:not(.notif-badge):not(.chip), aside nav div:not(.notif-badge):not(.chip) { color: var(--brand-sidebar-text, #BFD5C9) !important; }
+    /* Badge angka & chip kosongkan pengecualian nama: warnanya harus ikut
+       token badge sendiri (TOKEN BADGE, app.css) supaya selalu terbaca di
+       kedua mode sidebar tanpa larik color !important induknya. */
 
     aside a.sb-active, aside a.active, aside .menu-active,
     aside nav a[aria-current="page"] {

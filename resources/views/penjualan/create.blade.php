@@ -1014,7 +1014,7 @@
 
     function onTipeOrderChange() {
         const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
-        document.getElementById('wrapper_no_po').classList.toggle('hidden', tipe !== 'PO');
+        document.getElementById('wrapper_no_po')?.classList.toggle('hidden', tipe !== 'PO');
     }
 
     // Urgensi sekarang tampil sebagai segmented radio, sementara select
@@ -2454,7 +2454,8 @@ let hitungUlangMenunggu = false;
                 // Deteksi hard-minimum via fetch
                 let isHardMin = false;
                 try {
-                    const testUrl = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${document.getElementById('id_golongan_hidden').value || document.getElementById('id_golongan').value}/${area}${siapCetak ? '?siap_cetak=1' : ''}`;
+                    const idGolUntukUji = (document.getElementById('id_golongan_hidden') || document.getElementById('id_golongan'));
+                    const testUrl = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGolUntukUji ? idGolUntukUji.value : ''}/${area}${siapCetak ? '?siap_cetak=1' : ''}`;
                     const testResp = await fetch(testUrl);
                     const testData = await testResp.json();
                     isHardMin = (parseFloat(testData.harga_jual) || 0) <= 0;
@@ -3306,13 +3307,22 @@ let hitungUlangMenunggu = false;
         // menentukan seluruh harga transaksi - wajib dipilih eksplisit.
         // Server (PenjualanController::store) sudah menolak tanpa ini;
         // di sini diberi notif + tandai field sebelum kirim.
-        const idGolonganEl = document.getElementById('id_golongan_hidden');
+        // Fallback id_golongan: di MODE EDIT elemen terkunci memakai
+        // id="id_golongan" saja (tanpa id_golongan_hidden) - sebelumnya
+        // baris ini melempar TypeError "idGolonganEl is null" yang mati
+        // diam, jadi tombol Simpan terasa tidak berfungsi sama sekali.
+        const idGolonganEl = document.getElementById('id_golongan_hidden') || document.getElementById('id_golongan');
+        const namaGolonganEl = document.getElementById('id_golongan_hidden');
+        if (!idGolonganEl) {
+            return Swal.fire('Kesalahan Tampilan', 'Field Tipe Harga (golongan) tidak ditemukan. Muat ulang halaman lalu coba lagi.', 'error');
+        }
         if (!idGolonganEl.value) {
-            idGolonganEl.classList.add('ring-2', 'ring-rose-400', 'bg-rose-50/40');
-            idGolonganEl.addEventListener('change', () => idGolonganEl.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40'), { once: true });
+            const targetTandai = namaGolonganEl || idGolonganEl;
+            targetTandai.classList.add('ring-2', 'ring-rose-400', 'bg-rose-50/40');
+            targetTandai.addEventListener('change', () => targetTandai.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40'), { once: true });
             return Swal.fire('Lengkapi Data Pesanan Lebih Dulu', 'Tipe Harga (golongan konsumen) belum dipilih - pilih dulu, harga order mengikutinya.', 'warning');
         }
-        idGolonganEl.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40');
+        namaGolonganEl && namaGolonganEl.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40');
 
         const tipeOrder = document.querySelector('input[name="tipe_order"]:checked')?.value || 'Reguler';
         const noPo = document.getElementById('no_po') ? document.getElementById('no_po').value.trim() : '';
@@ -3323,8 +3333,8 @@ let hitungUlangMenunggu = false;
 
         const payload = {
             id_konsumen: idKonsumen,
-            id_golongan: document.getElementById('id_golongan_hidden').value,
-            no_nota: document.getElementById('no_nota_display').innerText,
+            id_golongan: idGolonganEl.value,
+            no_nota: document.getElementById('no_nota_display') ? document.getElementById('no_nota_display').innerText : '',
             tipe_order: tipeOrder,
             no_po: noPo,
             tgl_order: document.getElementById('tgl_order') ? document.getElementById('tgl_order').value : '',

@@ -708,6 +708,37 @@ html.dark {
     --notif-warning-fg: #1A231F;
 }
 
+/* KONTEKS SIDEBAR - badge angka tidak boleh mengikuti warna surface
+   halaman bila itu membuatnya membaur dengan latar sidebar:
+   - sidebar gelap (default): badge latar terang + teks gelap, 
+   - sidebar terang (data-sidebar-mode="light"): badge gelap + teks terang.
+   Nilai token di dalam aside dibuat !important supaya menang atas
+   deklarasi html.dark tingkat halaman - badge berdiri sendiri mengikuti
+   mode sidebar, bukan mode halaman. */
+aside {
+    --notif-neutral: #9DB8AD !important;
+    --notif-danger: #F5A882 !important;   --notif-danger-fg: #08262C !important;
+    --notif-info: #7FD0DE !important;     --notif-info-fg: #08262C !important;
+    --notif-warning: #F5C46A !important;  --notif-warning-fg: #4A3508 !important;
+    --notif-fg: #08262C !important;
+}
+html[data-sidebar-mode="light"] aside {
+    --notif-neutral: #4A5B53 !important;
+    --notif-danger: #93481A !important;   --notif-danger-fg: #FFFFFF !important;
+    --notif-info: #006C7B !important;     --notif-info-fg: #FFFFFF !important;
+    --notif-warning: #E8891D !important;  --notif-warning-fg: #1F2937 !important;
+    --notif-fg: #FFFFFF !important;
+}
+
+/* Warna TEKS badge di dalam aside: perangkat/var sentral tidak cukup
+   karena aturan menu (!important) yang semestinya menarget teks menu
+   bisa ikut mewarisi ke badge - langsung pin teks badge ke token fg
+   berpasangan dengan latar tokennya agar selalu terbaca. */
+aside .notif-badge { color: var(--notif-fg) !important; }
+aside .notif-badge.rose { color: var(--notif-danger-fg) !important; }
+aside .notif-badge.indigo { color: var(--notif-info-fg) !important; }
+aside .notif-badge.amber { color: var(--notif-warning-fg) !important; }
+
 /* Opsi garis tipis card bisa dimatikan (data-card-lines="off", di-set
    dari tombol toggle di topbar; pilihan disimpan di localStorage).
    Mencakup, selain .card/.x-card/.modern-table-wrapper, container Tailwind
