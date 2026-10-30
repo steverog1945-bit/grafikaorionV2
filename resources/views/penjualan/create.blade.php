@@ -3259,6 +3259,9 @@ let hitungUlangMenunggu = false;
     // kirim ulang setelah jaringan putus tidak melahirkan nota kedua.
     let submitIdNota = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
     let sedangMenyimpan = false; // Guard duplicate submit: double-click / enter ganda / klik tombol di tab lain tidak boleh membuat DUA nota.
+    let simpanMulai = 0; // Sejak kapan submit mengambang - dipakai supaya guard tidak macet: klik pada submit hang diungkap sesuai waktu dan kasus baru membuat hubungan yang lebih panjang.
+
+    const BATAS_SIMPAN_MS = 90000; // 90 detik: lewat batas dianggap hang, tombol dibuka lagi.
 
     // Mode susulan: endpoint & tujuan kembali berbeda. Item dikirim ke
     // endpoint tambah-item milik nota asal (bukan endpoint nota baru), lalu
@@ -3280,7 +3283,16 @@ let hitungUlangMenunggu = false;
     } @else null @endif;
 
     async function simpanTransaksi(btn) {
-        if (sedangMenyimpan) return; // satu submit dalam penerbangan - abaikan klik berikutnya sampai selesai.
+        if (sedangMenyimpan) {
+            const selisih = Math.round((Date.now() - simpanMulai) / 1000);
+            // Guard supaya tak dobel-submit, TAPI tidak boleh macet: kalau submit
+            // sebelumnya sudah mengambang lebih dari batas, dianggap hang dan
+            // klik kali ini diproses lagi. Di bawah batas diberi umpan balik
+            // agar operator tidak mengira tombolnya "tidak berfungsi".
+            if (Date.now() - simpanMulai < BATAS_SIMPAN_MS) {
+                return Swal.fire({ icon: 'info', title: 'Masih menyimpan...', text: 'Permintaan simpan sebelumnya sedang diproses (' + selisih + ' detik). Mohon tunggu sebentar.' });
+            }
+        }
         if (cart.length === 0) return Swal.fire('Keranjang Kosong', 'Pilih produk dulu.', 'error');
         // Cegah simpan nota jika ada item pcs di bawah minimum order.
         const itemMinPcs = cart.find(it => it.metode_hitung !== 'ukuran' && (parseFloat(it.min_order) || 0) > 0 && (parseFloat(it.qty_input) || 0) < (parseFloat(it.min_order) || 0));
@@ -3322,19 +3334,28 @@ let hitungUlangMenunggu = false;
             _token: '{{ csrf_token() }}'
         };
 
+        const pengendaliSimpan = new AbortController();
+        let pembatasSimpan = null;
         try {
             // Kunci tombol selama request berjalan (flag JS + visual disabled).
             // Success & failure SAMA-SAMA membuka kunci: kalau gagal validasi,
             // operator harus bisa memperbaiki data lalu submit ulang; reload
             // hanya terjadi di jalur sukses.
             sedangMenyimpan = true;
+            simpanMulai = Date.now();
             if (btn) { btn.disabled = true; btn.classList.add('opacity-50', 'pointer-events-none'); }
             Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            // AbortController: server yang tidak pernah menjawab tidak boleh
+            // membuat tombol simpan macet selamanya.
+            pembatasSimpan = setTimeout(() => pengendaliSimpan.abort(), BATAS_SIMPAN_MS);
             const response = await fetch(MODE_EDIT ? MODE_EDIT.url : (MODE_SUSULAN ? MODE_SUSULAN.url : '{{ route('penjualan.store') }}'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                signal: pengendaliSimpan.signal
             });
+            clearTimeout(pembatasSimpan);
+            pembatasSimpan = null;
             const result = await response.json();
             if (result.status === 'success') {
                 if (MODE_EDIT) {
@@ -3376,8 +3397,15 @@ let hitungUlangMenunggu = false;
             } else {
                 Swal.fire('Gagal!', result.msg || result.message || 'Terjadi kesalahan.', 'error');
             }
-        } catch (e) { Swal.fire('Gagal', 'Permintaan tidak bisa diproses. Muat ulang halaman lalu coba lagi.', 'error'); }
+        } catch (e) {
+            console.error('simpanTransaksi gagal:', e);
+            const pesan = (e && e.name === 'AbortError')
+                ? 'Server tidak merespons dalam ' + Math.round(BATAS_SIMPAN_MS / 1000) + ' detik. Periksa koneksi, lalu tab halaman ini dulu sebelum menyimpan ulang.'
+                : 'Permintaan tidak bisa diproses. Muat ulang halaman lalu coba lagi.';
+            Swal.fire('Gagal', pesan, 'error');
+        }
         finally {
+            if (pembatasSimpan) clearTimeout(pembatasSimpan);
             sedangMenyimpan = false;
             if (btn) { btn.disabled = false; btn.classList.remove('opacity-50', 'pointer-events-none'); }
         }

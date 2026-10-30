@@ -399,27 +399,17 @@
        "topbar" tidak dipakai di manapun selain di sini) - burger icon &
        judul cuma numpang di elemen tanpa padding/tinggi/alignment eksplisit,
        jadinya terlihat "nempel asal" alih-alih menyatu dengan header. */
-    .notif-badge { margin-left: auto; min-width: 1.5rem; height: 1.25rem; padding: 0 .375rem; line-height: 1; border-radius: 9999px; color: #fff; font-size: 11px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    /* Badge angka: warna status tetap rose/amber/indigo, hanya digeser satu
-       tingkat lebih gelap karena warna aslinya tidak lolos AA untuk teks putih
-       (rose-500 3.67, amber-500 2.15, indigo-500 4.47). Amber sengaja TIDAK
-       digelapkan karena itu peringatan yang harus menarik perhatian; teksnya
-       yang diubah jadi gelap agar kontrasnya cukup. */
-    .notif-badge.rose { background: #93481A; } .notif-badge.indigo { background: #006C7B; }
-    .notif-badge.amber { background: #E8891D; color: #1f2937; }
+    .notif-badge { margin-left: auto; min-width: 1.15rem; height: 1.15rem; padding: 0 .3rem; line-height: 1; border-radius: 9999px; color: var(--notif-fg, #fff); background: var(--notif-neutral, #4A5B53); font-size: 10px; font-weight: 600; letter-spacing: .02em; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    /* Badge angka mengikuti token tema global (TOKEN BADGE di app.css):
+       light pakai latar gelap + teks putih, dark otomatis dibalik. Bentuk
+       lebih kecil/ramping dari sebelumnya supaya tidak terlihat mengganggu. */
+    .notif-badge.rose { background: var(--notif-danger, #93481A); color: var(--notif-danger-fg, #fff); }
+    .notif-badge.indigo { background: var(--notif-info, #006C7B); color: var(--notif-info-fg, #fff); }
+    .notif-badge.amber { background: var(--notif-warning, #E8891D); color: var(--notif-warning-fg, #1F2937); }
     /* Badge selalu rata di kolom kanan yang sama: link menu (badge) & judul grup (badge + panah). */
     aside .menu-group-toggle { justify-content: flex-start; padding-right: .875rem; }
     aside .menu-group-toggle > i.fa-chevron-down { margin-left: auto; width: 1.5rem; text-align: center; }
     aside .menu-group-toggle > .notif-badge { margin-left: auto; margin-right: .25rem; }
-
-    /* Mode terang: badge angka lebih soft agar tidak mengganggu sidebar terang */
-    html[data-sidebar-mode="light"] aside .notif-badge {
-        opacity: 0.85;
-        font-size: 10px;
-    }
-    html[data-sidebar-mode="light"] aside .notif-badge.rose { background: #B45309; }
-    html[data-sidebar-mode="light"] aside .notif-badge.indigo { background: #0E7490; }
-    html[data-sidebar-mode="light"] aside .notif-badge.amber { background: #D97706; color: #fff; }
     aside .menu-group-toggle > .notif-badge + i.fa-chevron-down { margin-left: 0; }
     #badge-notif { min-width: 1.5rem; text-align: center; padding: 0 .375rem !important; height: 1.25rem; line-height: 1.25rem; animation: none !important; }
     body.sidebar-collapsed .notif-badge { position: absolute; top: 2px; right: 4px; margin: 0; min-width: 1rem; height: 1rem; font-size: 9px; }
@@ -1618,11 +1608,15 @@
             <button type="button" id="tema-toggle" onclick="ubahTema()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Ganti ke mode gelap" aria-label="Ganti mode gelap atau terang">
                 <i class="fas fa-moon" id="tema-ikon"></i>
             </button>
+            {{-- Tombol garis card: menyembunyikan garis tipis pada card/wrapper supaya tampilan lebih bersih. --}}
+            <button type="button" id="gariscard-toggle" onclick="ubahGarisCard()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Garis card: tampil/sembunyikan" aria-label="Ganti garis tepi card">
+                <i class="fas fa-border-all" id="gariscard-ikon"></i>
+            </button>
             @php $notifAwal = \App\Services\NotifikasiService::untuk(Auth::user()); @endphp
             <div class="relative">
                 <button type="button" id="notif-btn" onclick="toggleNotif(event)" class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Notifikasi & pekerjaan masuk">
                     <i class="fas fa-bell"></i>
-                    <span id="notif-total" class="hidden absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-rose-500 text-white text-[10px] font-medium items-center justify-center ring-2 ring-white"></span>
+                    <span id="notif-total" class="hidden absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full text-[10px] font-medium items-center justify-center ring-2 ring-white" style="background: var(--notif-danger, #93481A); color: var(--notif-danger-fg, #fff);"></span>
                 </button>
                 <div id="notif-panel" class="hidden absolute right-0 mt-2 w-80 max-w-[90vw] bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
                     <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
@@ -2127,7 +2121,8 @@
         if (tot) { tot.textContent = d.total > 99 ? '99+' : d.total; tot.classList.toggle('hidden', !(d.total > 0)); tot.classList.toggle('inline-flex', d.total > 0); }
         const tt = document.getElementById('notif-total-teks');
         if (tt) tt.textContent = d.total > 0 ? d.total + ' tugas' : '';
-        const warna = { rose: 'bg-rose-500', amber: 'bg-amber-500', indigo: 'bg-indigo-500' };
+        const warna = { rose: 'bg-rose-500', amber: 'bg-amber-500', indigo: 'bg-indigo-500' }; // sisa pemetaan lama; war­na badge kini dari token CSS
+        void warna;
         const list = document.getElementById('notif-list');
         if (list) {
             list.innerHTML = items.length ? items.map(i => `<a href="${i.url}" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-all">
@@ -2183,6 +2178,24 @@
         terapkanIkonTema();
     }
 
+    // Garis tipis card: pilihan user (localStorage 'garisCard', default tampil).
+    // data-card-lines="off" menjadi tanda anchor untuk aturan CSS di app.css.
+    function terapkanGarisCard() {
+        let off = false;
+        try { off = localStorage.getItem('garisCard') === 'off'; } catch (e) {}
+        document.documentElement.setAttribute('data-card-lines', off ? 'off' : 'on');
+        const ikon = document.getElementById('gariscard-ikon');
+        if (ikon) ikon.className = 'fas ' + (off ? 'fa-border-none' : 'fa-border-all');
+        const btn = document.getElementById('gariscard-toggle');
+        if (btn) btn.title = off ? 'Tampilkan garis card' : 'Sembunyikan garis card (tampilan lebih bersih)';
+    }
+    function ubahGarisCard() {
+        let off = false;
+        try { off = localStorage.getItem('garisCard') === 'off'; } catch (e) {}
+        try { localStorage.setItem('garisCard', off ? 'on' : 'off'); } catch (e) {}
+        terapkanGarisCard();
+    }
+
     // Topbar mobile: buka/tutup panel "lainnya". Panel ditutup otomatis
     // kalau pengguna mengklik di luar panel, supaya tidak tertinggal
     // terbuka saat layar diputar atau digulir.
@@ -2202,6 +2215,7 @@
         panel.classList.remove('terbuka');
     });
     terapkanIkonTema();
+    terapkanGarisCard();
     // Cetak selalu terang.
     (function () {
         let tadiGelap = false;

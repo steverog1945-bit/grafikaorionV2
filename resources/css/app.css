@@ -682,6 +682,51 @@ html.dark .pil-pilih:has(:checked) { color: #FFFFFF !important; }
 
 
 /* ===================================================================
+   TOKEN BADGE NOTIFIKASI - satu titik warna untuk semua badge angka.
+   Light: latar gelap + teks putih (#93481A vs putih ~5.0:1, #006C7B ~5.4:1).
+   Dark : latar terang + teks gelap (membalik supaya kontras tetap AA),
+          jadi badge otomatis ikut tema tanpa override terpisah lagi.
+   =================================================================== */
+:root {
+    --notif-fg: #FFFFFF;
+    --notif-neutral: #4A5B53;
+    --notif-danger: #93481A;
+    --notif-danger-fg: #FFFFFF;
+    --notif-info: #006C7B;
+    --notif-info-fg: #FFFFFF;
+    --notif-warning: #E8891D;
+    --notif-warning-fg: #1F2937;
+}
+
+html.dark {
+    --notif-neutral: #9DB8AD;
+    --notif-danger: #E0A583;
+    --notif-danger-fg: #1A231F;
+    --notif-info: #5FC4D4;
+    --notif-info-fg: #1A231F;
+    --notif-warning: #F5C46A;
+    --notif-warning-fg: #1A231F;
+}
+
+/* Opsi garis tipis card bisa dimatikan (data-card-lines="off", di-set
+   dari tombol toggle di topbar; pilihan disimpan di localStorage).
+   Mencakup, selain .card/.x-card/.modern-table-wrapper, container Tailwind
+   umum (panel rounded-xl/2xl+border). Tombol, link, input, select, dan
+   elemen interaktif dikecualikan supaya kontras komponen tetap terjaga. */
+html[data-card-lines="off"] .card,
+html[data-card-lines="off"] .modern-table-wrapper,
+html[data-card-lines="off"] .x-card { border-color: transparent !important; box-shadow: none !important; }
+html[data-card-lines="off"] .x-card > div:first-child { border-bottom-color: transparent !important; }
+html[data-card-lines="off"] [class~="rounded-2xl"][class~="border"]:not(button):not(a):not(input):not(select):not(textarea):not(label):not([type="button"]):not(.select2-dropdown):not(.swal2-popup),
+html[data-card-lines="off"] [class~="rounded-xl"][class~="border"]:not(button):not(a):not(input):not(select):not(textarea):not(label):not([type="button"]):not(.select2-dropdown):not(.swal2-popup),
+html[data-card-lines="off"] [class~="rounded-2xl"][class~="shadow-sm"]:not(button):not(a):not(input):not(select):not(textarea):not(label),
+html[data-card-lines="off"] [class~="rounded-xl"][class~="shadow-sm"]:not(button):not(a):not(input):not(select):not(textarea):not(label) { border-color: transparent !important; box-shadow: none !important; }
+html[data-card-lines="off"] [class~="rounded-2xl"][class~="border-b"][class~="border-slate-100"],
+html[data-card-lines="off"] .x-card > div.border-b,
+html[data-card-lines="off"] [class~="rounded-2xl"][class~="border"]:not(button):not(a) > div:first-child[class~="border-b"],
+html[data-card-lines="off"] [class~="rounded-xl"][class~="border"]:not(button):not(a) > div:first-child[class~="border-b"] { border-bottom-color: transparent !important; }
+
+/* ===================================================================
    MODE GELAP - Refactor: CSS Custom Properties
    Palet: latar #1A231F, kartu #2A3731, terangkat #3F4F47, garis #3F4F47
    Nilai diambil dari ramp yang sama dengan mode terang, hanya dibalik:
@@ -995,9 +1040,9 @@ html.dark .chip-danger { background: #7F1D1D !important; color: #E0A583 !importa
 html.dark .chip-info { background: #0C4A6E !important; color: #7FD0DE !important; border-color: #1A6B9E !important; }
 html.dark .chip-secondary { background: #1A231F !important; color: #C9D6CE !important; border-color: #3F4F47 !important; }
 
-html.dark .notif-badge.indigo { background: #5FC4D4 !important; color: #fff !important; }
-html.dark .notif-badge.amber { background: #F5C46A !important; color: #1A231F !important; }
-html.dark .notif-badge.rose { background: #E0A583 !important; color: #fff !important; }
+/* Badge notifikasi kini ikut token --notif-* di :root / html.dark (lihat
+   blok TOKEN BADGE). Override warna hardcoded dihapus supaya badge tidak
+   lagi "melawan" tema global. */
 
 html.dark .text-slate-800 { color: #F1F5F1 !important; }
 

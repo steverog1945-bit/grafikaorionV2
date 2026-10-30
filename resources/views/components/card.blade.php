@@ -4,7 +4,7 @@
     'padding'  => true,
 ])
 
-<div {{ $attributes->merge(['class' => 'bg-white rounded-xl border border-slate-200']) }}>
+<div {{ $attributes->merge(['class' => 'x-card bg-white rounded-xl border border-slate-200']) }}>
     @if($title)
         <div class="px-5 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
             <div class="min-w-0">
