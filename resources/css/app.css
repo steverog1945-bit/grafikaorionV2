@@ -285,27 +285,27 @@
 }
 
 .chip-success {
-    background: #e7f6ec;
+    background: color-mix(in srgb, #e7f6ec 60%, var(--surface-secondary, #F1F5F9));
     color: #1e7e34;
-    border-color: #c3e6cb;
+    border-color: color-mix(in srgb, #c3e6cb 50%, var(--border-primary, #E2EAE4));
 }
 
 .chip-warning {
-    background: #fff4e5;
+    background: color-mix(in srgb, #fff4e5 60%, var(--surface-secondary, #F1F5F9));
     color: #b26a00;
-    border-color: #ffe0a3;
+    border-color: color-mix(in srgb, #ffe0a3 50%, var(--border-primary, #E2EAE4));
 }
 
 .chip-danger {
-    background: #fdecec;
+    background: color-mix(in srgb, #fdecec 60%, var(--surface-secondary, #F1F5F9));
     color: #c0392b;
-    border-color: #f5c6c0;
+    border-color: color-mix(in srgb, #f5c6c0 50%, var(--border-primary, #E2EAE4));
 }
 
 .chip-info {
-    background: #EAF6F7;
+    background: color-mix(in srgb, #EAF6F7 60%, var(--surface-secondary, #F1F5F9));
     color: #006C7B;
-    border-color: #b8e0e4;
+    border-color: color-mix(in srgb, #b8e0e4 50%, var(--border-primary, #E2EAE4));
 }
 
 .chip-secondary {
