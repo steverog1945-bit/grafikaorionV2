@@ -327,11 +327,12 @@ class PenjualanSusulanModeTest extends TestCase
 
         $this->actingAs($this->admin)
             ->postJson("/penjualan/{$id}/tambah-item", $this->payloadItem())
-            ->assertOk();
+            ->assertStatus(422)
+            ->assertJsonFragment(['msg' => 'Nota sudah Lunas — tidak bisa ditambah item susulan. Buat nota baru untuk tambahan.']);
 
         $t = DB::table('transaksi')->where('id_transaksi', $id)->first();
-        $this->assertEquals(150000.0, (float) $t->total_bayar);
-        $this->assertNotSame('Lunas', $t->status_pembayaran, 'tambahan yang belum dibayar membuat status turun ke DP');
+        $this->assertEquals(100000.0, (float) $t->total_bayar);
+        $this->assertSame('Lunas', $t->status_pembayaran, 'nota Lunas tetap Lunas karena tambahan ditolak');
         $this->assertEquals(
             100000.0,
             (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal'),

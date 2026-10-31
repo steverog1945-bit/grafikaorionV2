@@ -2293,39 +2293,6 @@ let hitungUlangMenunggu = false;
         }
 
         let qtyCari = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : qB;
-
-        // Aturan minimum 1 m²: jika luas < 1 m² dan tidak ada item lain >= 1 m²,
-        // ditagih 1 m² — TAPI hanya jika tier harga memang punya minimum 1 m²
-        // (range_min >= 1). Jika tier mengizinkan qty < 1 (harga > 0 untuk
-        // luas aktual), aturan ini gugur dan ditagih luas aktual.
-        if (currentProduk.metode_hitung === 'ukuran') {
-            const actualArea = (p * l / 10000) * qU;
-            if (actualArea > 0 && actualArea < 1) {
-                // Deteksi hard-minimum: coba fetch harga di luas aktual
-                let isHardMin = false;
-                try {
-                    const testUrl = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${actualArea}${siapCetak ? '?siap_cetak=1' : ''}`;
-                    const testResp = await fetch(testUrl);
-                    const testData = await testResp.json();
-                    isHardMin = (parseFloat(testData.harga_jual) || 0) <= 0;
-                } catch (e) { isHardMin = false; }
-                if (isHardMin) {
-                    let hasQualifying = false;
-                    cart.forEach((it, idx) => {
-                        if (editIndex !== null && idx === editIndex) return;
-                        if (it.metode_hitung !== 'ukuran') return;
-                        const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
-                        if (a >= 1) hasQualifying = true;
-                    });
-                    if (!hasQualifying) {
-                        qtyCari = 1; // minimum 1 m²
-                    }
-                    // else: revert ke luas aktual
-                }
-                // else: tidak ada hard-minimum, ditagih luas aktual
-            }
-        }
-
         if (qtyCari <= 0) { updateDisplay(0, 0); return null; }
 
         // Refresh dulu SEBELUM baca nilainya - supaya subtotal di bawah ini
@@ -2337,38 +2304,19 @@ let hitungUlangMenunggu = false;
         const biayaFinishing = totalFinishingList();
 
         try {
-            // Deteksi hard-minimum (tier range_min >= 1): fetch di luas aktual.
-            // Jika harga 0 → hard-minimum; jika > 0 → tidak, ditagih aktual.
-            let hargaJual = 0;
-            let isPromo = false;
-            let promoSelesai = null;
-            let fetchQty = qtyCari;
-
-            if (currentProduk.metode_hitung === 'ukuran' && qtyCari > 0 && qtyCari < 1) {
-                const testUrl = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${qtyCari}${siapCetak ? '?siap_cetak=1' : ''}`;
-                const testResp = await fetch(testUrl);
-                const testData = await testResp.json();
-                const testPrice = parseFloat(testData.harga_jual) || 0;
-                if (testPrice > 0) {
-                    // Tidak ada hard-minimum: ditagih luas aktual, harga sudah didapat
-                    hargaJual = testPrice;
-                    isPromo = testData.is_promo;
-                    promoSelesai = testData.promo_selesai;
-                    fetchQty = qtyCari; // tidak perlu fetch ulang
-                } else {
-                    // Hard-minimum: fetch di max(qtyCari, 1) untuk unit price
-                    fetchQty = Math.max(qtyCari, 1);
-                }
-            }
-
-            if (hargaJual <= 0) {
-                const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${fetchQty}${siapCetak ? '?siap_cetak=1' : ''}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                hargaJual = parseFloat(data.harga_jual) || 0;
-                isPromo = data.is_promo;
-                promoSelesai = data.promo_selesai;
-            }
+            // Mode HYBRID minimum luas (T4-A): deteksi hard-minimum LAMA berbasis
+            // tier (harga 0 di bawah 1 m², ditagih 1 m²) sudah dihapus — harga
+            // selalu fetch di luas aktual. Minimum luas tidak lagi disimpulkan
+            // dari celah tier: kelompok minimum harus eksplisit di master
+            // produk (min_luas_total + kelompok_minimum), dan selisihnya
+            // digulung ke subtotal item terbesar kelompok saat checkout
+            // (validasiItems/PenjualanCheckoutService).
+            const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${qtyCari}${siapCetak ? '?siap_cetak=1' : ''}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            let hargaJual = parseFloat(data.harga_jual) || 0;
+            const isPromo = data.is_promo;
+            const promoSelesai = data.promo_selesai;
 
             // Biaya Cetak = komponen UTAMA subtotal, defaultnya mengikuti
             // Harga Daftar Harga x Qty - TAPI cuma kalau operator belum
@@ -2385,7 +2333,7 @@ let hitungUlangMenunggu = false;
             cekStokBom(currentProduk.id_produk, p, l, (currentProduk.metode_hitung === 'ukuran') ? qU : qB);
             await cekMinOrder(p, l, qU, qB);
             return { harga_satuan: hargaJual, subtotal: subtotal, qty_hitung: qtyCari, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB };
-        } catch (error) { return null; }
+        } catch (error) { console.error('hitungSubtotalInti gagal:', error); return { fetchError: true }; }
     }
 
     // Indikator stok - PERINGATAN saja, tidak pernah memblokir Tambah/Simpan.
@@ -2447,35 +2395,6 @@ let hitungUlangMenunggu = false;
             }
         }
 
-        // Aturan minimum 1 m²: hanya jika tier harga punya hard-minimum (range_min >= 1).
-        if (currentProduk.metode_hitung === 'ukuran') {
-            const area = (p * l / 10000) * qU;
-            if (area > 0 && area < 1) {
-                // Deteksi hard-minimum via fetch
-                let isHardMin = false;
-                try {
-                    const idGolUntukUji = (document.getElementById('id_golongan_hidden') || document.getElementById('id_golongan'));
-                    const testUrl = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGolUntukUji ? idGolUntukUji.value : ''}/${area}${siapCetak ? '?siap_cetak=1' : ''}`;
-                    const testResp = await fetch(testUrl);
-                    const testData = await testResp.json();
-                    isHardMin = (parseFloat(testData.harga_jual) || 0) <= 0;
-                } catch (e) { isHardMin = false; }
-                if (isHardMin) {
-                    let hasQualifying = false;
-                    cart.forEach((it, idx) => {
-                        if (editIndex !== null && idx === editIndex) return;
-                        if (it.metode_hitung !== 'ukuran') return;
-                        const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
-                        if (a >= 1) hasQualifying = true;
-                    });
-                    if (!hasQualifying) {
-                        detail.innerText = `Minimum 1 m² untuk produk ini (luas sekarang ${area.toFixed(2)} m²) - ditagih 1 m².`;
-                        box.hidden = false;
-                        return;
-                    }
-                }
-            }
-        }
 
         box.hidden = true;
     }
@@ -2551,7 +2470,10 @@ let hitungUlangMenunggu = false;
             if (!item.id_produk || !(item.qty_hitung > 0)) { gagal++; continue; }
 
             try {
-                const url = `{{ url('/api/penjualan/get-harga') }}/${item.id_produk}/${idGol}/${Math.max(item.qty_hitung, 1)}${item.siap_cetak ? '?siap_cetak=1' : ''}`;
+                // Mode HYBRID (T4-A): harga dihitung di luas/qty aktual - tidak
+                // ada lagi lantai min qty 1 di sini. Minimum kelompok ditagih
+                // terpisah saat checkout oleh server (validasiItems).
+                const url = `{{ url('/api/penjualan/get-harga') }}/${item.id_produk}/${idGol}/${item.qty_hitung}${item.siap_cetak ? '?siap_cetak=1' : ''}`;
                 const res = await fetch(url);
                 if (!res.ok) { gagal++; continue; }
 
@@ -2599,12 +2521,12 @@ let hitungUlangMenunggu = false;
         if (!hasil) return null;
 
         if (hasil.dihitung === 0 && hasil.gagal === 0) {
-            if (hasil.pertahankan > 0) {
+            if (hasil.dipertahankan > 0) {
                 Swal.fire({
                     toast: true, position: 'top-end', timer: 4000, showConfirmButton: false,
                     icon: 'info',
                     title: 'Harga keranjang tidak berubah',
-                    text: `${hasil.pertahankan} item memakai harga yang diketik manual - tidak disentuh.`
+                    text: `${hasil.dipertahankan} item memakai harga yang diketik manual - tidak disentuh.`
                 });
             }
             return hasil;
@@ -2612,7 +2534,7 @@ let hitungUlangMenunggu = false;
 
         const potongan = [];
         if (hasil.dihitung > 0) potongan.push(`${hasil.dihitung} item dihitung ulang`);
-        if (hasil.pertahankan > 0) potongan.push(`${hasil.pertahankan} tetap manual`);
+        if (hasil.dipertahankan > 0) potongan.push(`${hasil.dipertahankan} tetap manual`);
         if (hasil.gagal > 0) potongan.push(`${hasil.gagal} gagal dihitung`);
 
         Swal.fire({
@@ -2676,8 +2598,8 @@ let hitungUlangMenunggu = false;
         if (document.getElementById('select_finishing').value) await tambahFinishingKeDaftar(true);
 
         const res = await hitungSubtotal();
-        const minAbsorbed = (res && res.qty_hitung === 0 && currentProduk && (parseFloat(currentProduk.min_order) || 0) >= 1);
-        if (!res || (res.harga_satuan <= 0 && !minAbsorbed)) return Swal.fire('Data belum lengkap', 'Detail belum lengkap.', 'error');
+        if (res && res.fetchError) return Swal.fire('Gagal menghitung harga', 'Jaringan atau server bermasalah. Periksa koneksi lalu coba lagi.', 'error');
+        if (!res || res.harga_satuan <= 0) return Swal.fire('Data belum lengkap', 'Detail belum lengkap.', 'error');
 
         // BUG PENTING yang pernah kejadian nyata: validasi di atas cuma
         // mengecek res.harga_satuan (tarif Daftar Harga), BUKAN Biaya Cetak
@@ -2690,7 +2612,7 @@ let hitungUlangMenunggu = false;
         // peringatan apa pun, subtotal-nya 0 walau harga_satuan Daftar Harga-
         // nya benar. Dicegat eksplisit di sini.
         const biayaCetakSaatIni = cleanRupiah(document.getElementById('input_cetak').value);
-        if (biayaCetakSaatIni <= 0 && !minAbsorbed) {
+        if (biayaCetakSaatIni <= 0) {
             Swal.fire('Biaya Cetak Kosong', 'Biaya Cetak tidak boleh 0 - isi dulu sebelum menambahkan ke keranjang.', 'error');
             document.getElementById('input_cetak').focus();
             return;
@@ -2732,7 +2654,9 @@ let hitungUlangMenunggu = false;
             subtotal: res.subtotal,
             id_kategori: $('#filter_kategori').val(),
             min_order: currentProduk.min_order,
-            metode_hitung: currentProduk.metode_hitung
+            metode_hitung: currentProduk.metode_hitung,
+            min_luas_total: parseFloat(currentProduk.min_luas_total) || 0,
+            kelompok_minimum: currentProduk.kelompok_minimum || null
         };
 
         if (editIndex !== null) {
@@ -2742,45 +2666,12 @@ let hitungUlangMenunggu = false;
             cart.push(itemData);
         }
 
-        // Jika item yang baru ditambahkan >= 1 m², item-item kecil sebelumnya
-        // yang ditagih minimum 1 m² harus dihitung ulang ke luas aslinya.
-        const newArea = (res.p * res.l / 10000) * res.qty_input;
-        const isNewQualifying = currentProduk.metode_hitung === 'ukuran' && newArea >= 1;
-        if (isNewQualifying && cart.length > 1) {
-            const idGol = document.getElementById('id_golongan').value;
-            await Promise.all(cart.map(async (it, idx) => {
-                if (idx === cart.length - 1) return;
-                if (!it.metode_hitung || it.metode_hitung !== 'ukuran') return;
-                const a = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
-                if (a >= 1 || a <= 0) return;
-                if (it.qty_hitung === a) return;
-                try {
-                    // Deteksi hard-minimum: fetch di luas aktual
-                    let hargaJual = 0;
-                    const testUrl = `{{ url('/api/penjualan/get-harga') }}/${it.id_produk}/${idGol}/${a}${it.siap_cetak ? '?siap_cetak=1' : ''}`;
-                    const testResp = await fetch(testUrl);
-                    const testData = await testResp.json();
-                    const testPrice = parseFloat(testData.harga_jual) || 0;
-                    if (testPrice > 0) {
-                        hargaJual = testPrice;
-                    } else {
-                        // hard-minimum: fetch di 1 untuk unit price
-                        const url2 = `{{ url('/api/penjualan/get-harga') }}/${it.id_produk}/${idGol}/1${it.siap_cetak ? '?siap_cetak=1' : ''}`;
-                        const resp2 = await fetch(url2);
-                        const data2 = await resp2.json();
-                        hargaJual = parseFloat(data2.harga_jual) || 0;
-                    }
-                    if (hargaJual > 0) {
-                        it.qty_hitung = a;
-                        it.harga_satuan = hargaJual;
-                        if (!it.cetak_manual) {
-                            it.biaya_cetak = Math.round(hargaJual * a);
-                        }
-                        it.subtotal = (it.biaya_cetak || 0) + (it.biaya_desain || 0) + (it.biaya_finishing || 0);
-                    }
-                } catch (e) { /* biarkan nilai lama */ }
-            }));
-        }
+        // Mode HYBRID minimum luas (T4-A): tidak ada lagi absorben "item
+        // sebelumnya ditagih 1 m², lalu dikembalikan ke luas asli bila ada
+        // item >= 1 m²". Minimum berlaku per kelompok (min_luas_total +
+        // kelompok_minimum) dan selisihnya digulung ke item terbesar saat
+        // render keranjang + saat checkout di server - pertama-tama di sini
+        // item masuk dengan luas aktualnya sendiri.
 
         renderCart();
         resetInputProduk();
@@ -2914,8 +2805,45 @@ let hitungUlangMenunggu = false;
             'Urgent': 'bg-amber-50 text-amber-700',
         };
 
+        // Minimum luas outdoor, mode HYBRID (preview konsisten dengan backend
+        // PenjualanCheckoutService): selisih per kelompok TIDAK lagi jadi baris
+        // terpisah - digulung ke subtotal baris item TERBESAR kelompok itu.
+        // Frontend hanya preview; angka final selalu dihitung ulang server.
+        const minimumSurcharge = {};
+        {
+            const minGroups = {};
+            cart.forEach((it, idx) => {
+                if (!it.min_luas_total || it.min_luas_total <= 0) return;
+                if (it.metode_hitung !== 'ukuran') return;
+                const kelompok = it.kelompok_minimum || String(it.id_produk);
+                const area = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
+                if (!minGroups[kelompok]) minGroups[kelompok] = { min: it.min_luas_total, items: [], terbesar: null, idxTerbesar: null, areaTerbesar: 0 };
+                minGroups[kelompok].items.push({ it, area });
+                if (area > minGroups[kelompok].areaTerbesar) {
+                    minGroups[kelompok].areaTerbesar = area;
+                    minGroups[kelompok].terbesar = it;
+                    minGroups[kelompok].idxTerbesar = idx;
+                }
+            });
+            Object.keys(minGroups).forEach((kelompok) => {
+                const g = minGroups[kelompok];
+                const totalAktual = g.items.reduce((s, x) => s + x.area, 0);
+                const selisih = Math.max(0, Math.round((g.min - totalAktual) * 10000) / 10000);
+                if (selisih <= 0) return;
+                const hargaSatuan = (g.terbesar && g.terbesar.harga_satuan) ? g.terbesar.harga_satuan : 0;
+                if (!(hargaSatuan > 0) || g.idxTerbesar === null) return;
+                minimumSurcharge[g.idxTerbesar] = {
+                    kelompok: kelompok,
+                    selisih: selisih,
+                    selisihHarga: Math.round(hargaSatuan * selisih),
+                };
+            });
+        }
+
         cart.forEach((item, index) => {
-            total += item.subtotal;
+            const surcharge = minimumSurcharge[index] || null;
+            const subtotalTampil = item.subtotal + (surcharge ? surcharge.selisihHarga : 0);
+            total += subtotalTampil;
             const urgensi = item.status_urgensi && item.status_urgensi !== 'Normal' ? item.status_urgensi : null;
             const biayaTambahan = [
                 item.biaya_cetak ? `Cetak ${Math.round(item.biaya_cetak).toLocaleString('id-ID')}` : null,
@@ -2988,6 +2916,7 @@ let hitungUlangMenunggu = false;
                     </div>` : ''}
 
                     ${biayaTambahan ? `<p class="mt-2 pl-7 text-xs text-slate-500 leading-snug">${biayaTambahan}</p>` : ''}
+                    ${surcharge ? `<p class="mt-1.5 pl-7 text-xs font-medium text-amber-700 leading-snug"><i class="fas fa-tag mr-1"></i>Termasuk Minimum Order ${escapeHtml(surcharge.kelompok)}: selisih ${surcharge.selisih.toFixed(2)} m&sup2; (${new Intl.NumberFormat('id-ID').format(surcharge.selisihHarga)})</p>` : ''}
 
                     <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-end justify-between gap-3 pl-7">
                         <span class="inline-flex items-center gap-1.5 shrink-0 text-xs font-medium text-slate-600 bg-slate-100 rounded-md px-2 py-1">
@@ -2996,12 +2925,14 @@ let hitungUlangMenunggu = false;
                         </span>
                         <div class="text-right min-w-0">
                             <p class="text-xs text-slate-500 leading-none">Subtotal</p>
-                            <p class="mt-1 text-base font-semibold text-slate-900 tabular-nums leading-none">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(item.subtotal))}</p>
+                            <p class="mt-1 text-base font-semibold text-slate-900 tabular-nums leading-none">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(subtotalTampil))}</p>
                         </div>
                     </div>
                 </article>`;
         });
 
+        // Grand total sudah menghitung surcharge minimum yang digulung ke
+        // baris item di atas - tidak ada lagi baris "Minimum Order" terpisah.
         document.getElementById('grand_total').innerText = `Rp ${new Intl.NumberFormat('id-ID').format(Math.round(total))}`;
         $('[id="item_count_badge"]').text(IS_SUSULAN ? (cart.length + " Item Baru") : (cart.length + " Items"));
     }

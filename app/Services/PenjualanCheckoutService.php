@@ -80,6 +80,21 @@ class PenjualanCheckoutService
                 'message' => 'Nota belum dibuka kasir.',
             ], 422);
         }
+        // Kunci nota Lunas (keputusan bisnis final C): tambah susulan ke nota
+        // yang sudah Lunas DITOLAK. Status pembayaran dihitung dari
+        // StatusPembayaran::dari() (pembayaran_riwayat), bukan kolom status.
+        $totalTerbayarSusulan = (float) DB::table('pembayaran_riwayat')
+            ->where('id_transaksi', (int) $notaSusulan->id_transaksi)
+            ->sum('nominal');
+        if ((float) $notaSusulan->total_bayar > 0
+            && \App\Services\StatusPembayaran::dari((float) $notaSusulan->total_bayar, $totalTerbayarSusulan) === \App\Services\StatusPembayaran::LUNAS) {
+            return response()->json([
+                'status'  => 'error',
+                'msg'     => 'Nota sudah Lunas — tidak bisa ditambah item susulan. Buat nota baru untuk tambahan.',
+                'message' => 'Nota sudah Lunas — tidak bisa ditambah item susulan. Buat nota baru untuk tambahan.',
+            ], 422);
+        }
+
         if (Carbon::parse($notaSusulan->tgl_order)->toDateString() !== now()->toDateString()) {
             return response()->json([
                 'status'  => 'error',
@@ -266,6 +281,12 @@ class PenjualanCheckoutService
             }
 
             $totalProdukSemua += $item['subtotal'];
+
+            // Catatan mode HYBRID minimum luas: TIDAK ADA baris selisih
+            // terpisah lagi. Selisih minimum sudah di-roll ke subtotal baris
+            // item terbesar kelompoknya di validasiItems() dan tercatat di
+            // kolom is_minimum_order baris itu (ditulis di tulisItemProduk),
+            // jadi baris minimum khusus tidak ada di sini lagi.
 
             // Penulisan item produk dipindah ke method tulisItemProduk()
             // supaya mode EDIT SELISIH memakai kode yang sama persis.
@@ -534,6 +555,10 @@ class PenjualanCheckoutService
                 // Penanda baris susulan supaya bisa dibedakan dari item asli
                 // nota (dipakai di detail nota & SPK).
                 'is_susulan'       => $isSusulan ? 1 : 0,
+                // Mode HYBRID minimum luas: penanda selisih minimum yang
+                // digulung ke baris item ini (tidak ada lagi baris minimum
+                // terpisah), dipakai nota print/monitoring kasir.
+                'is_minimum_order' => !empty($item['is_minimum_order']) ? 1 : 0,
                 // harga_jual_snapshot dulu diisi = subtotal (harga jual final
                 // baris ini). hpp_snapshot diisi setelah loop BOM di bawah,
                 // karena baru diketahui setelah menjumlah biaya tiap bahan.
@@ -573,6 +598,10 @@ class PenjualanCheckoutService
             'status_finishing' => $item['status_finishing'],
             'subtotal'         => $item['subtotal'],
             'harga_jual_snapshot' => $item['subtotal'],
+            // Penanda baris minimum ikut diperbarui saat EDIT SELISIH, supaya
+            // baris yang dulu ditandai minimum tidak tetap berflag 1 setelah
+            // ukurannya diubah jadi cukup (dan sebaliknya).
+            'is_minimum_order' => !empty($item['is_minimum_order']) ? 1 : 0,
             'updated_at'       => now(),
         ]);
 
@@ -712,7 +741,7 @@ class PenjualanCheckoutService
         return $hppItemIni;
     }
 
-    public function validasiItems(Request $request, int $idGolongan, bool $hargaTerkunci, bool $bolehInputBiayaDesain): array
+    public function validasiItems(Request $request, int $idGolongan, bool $hargaTerkunci, bool $bolehInputBiayaDesain, ?\Illuminate\Support\Collection $itemsLama = null, ?callable $itemBerubah = null): array
     {
         $itemsTervalidasi = [];
 
@@ -735,25 +764,11 @@ class PenjualanCheckoutService
     $produkRows = $idProdukReq ? DB::table('produk')->whereIn('id_produk', $idProdukReq)->get()->keyBy('id_produk') : collect();
     $finishingRows = $idFinishingReq ? DB::table('finishing')->whereIn('id_finishing', $idFinishingReq)->get()->keyBy('id_finishing') : collect();
 
-    // Aturan minimum 1 m² untuk produk outdoor (min_order >= 1): dua lintasan
-    // agar keputusan per item konsisten.
-    $minAreaActual = [];
-    $minAreaQualifying = false;
-    $minAreaTotal = 0.0;
-    foreach ($request->items as $idx => $it) {
-        if (!empty($it['id_jasa'])) { $minAreaActual[$idx] = null; continue; }
-        $prodTmp = $produkRows->get((int) ($it['id_produk'] ?? 0));
-        if (!$prodTmp || $prodTmp->metode_hitung !== 'ukuran') {
-            $minAreaActual[$idx] = null; continue;
-        }
-        $pp = (float) ($it['p'] ?? 0);
-        $ll = (float) ($it['l'] ?? 0);
-        $qi = (float) ($it['qty_input'] ?? 0);
-        $area = ($pp * $ll / 10000) * $qi;
-        $minAreaActual[$idx] = $area;
-        if ($area >= 1) $minAreaQualifying = true;
-        $minAreaTotal += $area;
-    }
+    // Pengelompokan minimum luas outdoor (per kelompok_minimum) dikumpulkan
+    // di sini selama loop, lalu diproses setelah semua item tervalidasi
+    // agar total aktual per kelompok diketahui. Struktur:
+    //   kelompokLabel => [ 'min' => float, 'items' => [ ['id_produk'=>.., 'area'=>.., 'p'=>.., 'l'=>.., 'qty'=>..] ] ]
+    $minLuasGroups = [];
 
     foreach ($request->items as $index => $item) {
 
@@ -804,6 +819,31 @@ class PenjualanCheckoutService
         $l = (float) ($item['l'] ?? 0);
         $qtyInput = (float) ($item['qty_input'] ?? 0);
 
+        // T4: validasi minimum (min_panjang/min_lebar untuk ukuran, min_order
+        // untuk quantity). Hanya baris baru/berubah (id_detail dikenali +
+        // itemBerubah); baris lama tak berubah dibebaskan. Berlaku juga jalur
+        // API (validasiItems dipanggil dengan konteks yang sama).
+        $idDetailLamaT4 = isset($item['id_detail']) ? (int) $item['id_detail'] : 0;
+        $lamaT4 = ($itemsLama && $idDetailLamaT4) ? $itemsLama->get($idDetailLamaT4) : null;
+        $tidakBerubahT4 = $lamaT4 && $itemBerubah ? !$itemBerubah($lamaT4, $item) : false;
+        if (!$tidakBerubahT4) {
+            if ($produk->metode_hitung === 'ukuran') {
+                $minP = (float) ($produk->min_panjang ?? 0);
+                $minL = (float) ($produk->min_lebar ?? 0);
+                if ($minP > 0 && $p > 0 && $p < $minP) {
+                    throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': panjang ' . $p . ' cm di bawah minimum (' . $minP . ' cm).');
+                }
+                if ($minL > 0 && $l > 0 && $l < $minL) {
+                    throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': lebar ' . $l . ' cm di bawah minimum (' . $minL . ' cm).');
+                }
+            } else {
+                $minQty = (float) ($produk->min_order ?? 0);
+                if ($minQty > 0 && $qtyInput > 0 && $qtyInput < $minQty) {
+                    throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': qty ' . $qtyInput . ' di bawah minimum (' . $minQty . ').');
+                }
+            }
+        }
+
         if ($qtyInput <= 0) {
             throw new \App\Exceptions\ValidasiNotaException('Qty pada baris ' . ($index + 1) . ' tidak valid.');
         }
@@ -818,17 +858,23 @@ class PenjualanCheckoutService
         // Aturan minimum 1 m² untuk produk cetak luas (metode 'ukuran'): jika
         // luas item < 1 m² dan tidak ada item lain dalam nota yang >= 1 m²,
         // ditagih 1 m². Jika ada item >= 1 m², semua ditagih luas aktual.
-        if ($produk->metode_hitung === 'ukuran') {
+        // Minimum luas outdoor (min_luas_total > 0): kumpulkan per kelompok
+        // untuk diproses setelah loop (total per kelompok + baris selisih).
+        if ($produk->metode_hitung === 'ukuran' && (float) ($produk->min_luas_total ?? 0) > 0) {
+            $kelompok = \App\Support\MinimumLuas::kelompokLabel($produk->kelompok_minimum ?? null, (int) $produk->id_produk);
             $areaIni = ($p * $l / 10000) * $qtyInput;
-            if ($areaIni > 0 && $areaIni < 1) {
-                $hasQualifying = false;
-                foreach ($minAreaActual as $ii => $aa) {
-                    if ($ii === $index) continue;
-                    if ($aa !== null && $aa >= 1) { $hasQualifying = true; break; }
-                }
-                if (!$hasQualifying) {
-                    $qtyHitung = 1;
-                }
+            if (!isset($minLuasGroups[$kelompok])) {
+                $minLuasGroups[$kelompok] = ['min' => (float) $produk->min_luas_total, 'items' => [], 'produkTerbesar' => null, 'areaTerbesar' => 0.0, 'idxTerbesar' => null];
+            }
+            $minLuasGroups[$kelompok]['items'][] = ['id_produk' => (int) $produk->id_produk, 'area' => $areaIni, 'p' => $p, 'l' => $l, 'qty' => $qtyInput];
+            if ($areaIni > $minLuasGroups[$kelompok]['areaTerbesar']) {
+                $minLuasGroups[$kelompok]['areaTerbesar'] = $areaIni;
+                $minLuasGroups[$kelompok]['produkTerbesar'] = (int) $produk->id_produk;
+                // Mode hybrid: selisih diGULUNG ke baris item terbesar, jadi
+                // catat indexnya di $itemsTervalidasi. Baris produk selalu
+                // di-push tepat satu kali per request di akhir iterasi, jadi
+                // jumlah elemen SAAT INI = index push row ini nanti.
+                $minLuasGroups[$kelompok]['idxTerbesar'] = count($itemsTervalidasi);
             }
         }
 
@@ -1071,6 +1117,57 @@ class PenjualanCheckoutService
         ];
     }
 
-        return $itemsTervalidasi;
+        // Minimum luas outdoor, mode HYBRID (keputusan owner, notasi SETUJU T4-A):
+    // selisih tidak lagi jadi baris terpisah (bersih dari nota, SPK, dan
+    // produksi), tetapi DIGULUNG ke subtotal baris item TERBESAR di kelompok
+    // itu. Grup total = tarif + selisihHarga sehingga, dengan tarif seragam
+    // satu kelompok, hasilnya tarif x min_luas_total kelompok - sama dengan
+    // aturan final A tapi tanpa baris minimum yang dulu memenuhi nota.
+    // Server tetap satu-satunya sumber hitungan.
+    foreach ($minLuasGroups as $kelompok => $g) {
+        $totalAktual = 0.0;
+        foreach ($g['items'] as $it) {
+            $totalAktual += (float) $it['area'];
+        }
+        $totalAktual = round($totalAktual, 4);
+        $minLuas = round((float) $g['min'], 4);
+        $selisih = \App\Support\MinimumLuas::selisih($totalAktual, $minLuas);
+        if ($selisih <= 0) {
+            continue;
+        }
+        // Tarif diambil dari produk dengan luas aktual terbesar di kelompok, di tier qty = selisih.
+        $idProdukHarga = $g['produkTerbesar'];
+        $hargaSatuan = 0.0;
+        if ($idProdukHarga) {
+            $resHarga = \App\Services\HargaService::getHargaEfektif($idProdukHarga, (int) $idGolongan, $selisih, false);
+            $hargaSatuan = (float) ($resHarga['harga_jual'] ?? 0);
+        }
+        if ($hargaSatuan <= 0) {
+            throw new \App\Exceptions\ValidasiNotaException('Harga Minimum Order untuk kelompok "' . $kelompok . '" belum diatur di Price List untuk golongan konsumen ini.');
+        }
+        $selisihHarga = round($hargaSatuan * $selisih, 2);
+        $idxTerbesar = $g['idxTerbesar'] ?? null;
+        if ($idxTerbesar === null || !isset($itemsTervalidasi[$idxTerbesar]) || !empty($itemsTervalidasi[$idxTerbesar]['is_jasa'])) {
+            // Tidak pernah seharusnya terjadi (idx dicatat saat item produk
+            // terbesar terdaftar); gagal jelas daripada menagih tanpa baris.
+            throw new \App\Exceptions\ValidasiNotaException('Baris Minimum Order untuk kelompok "' . $kelompok . '" tidak ditemukan di keranjang.');
+        }
+        $baris = $itemsTervalidasi[$idxTerbesar];
+        $baris['biaya_cetak'] += $selisihHarga;
+        $baris['subtotal'] += $selisihHarga;
+        // Penanda baris minimum pindah ke baris ITEM (bukan baris terpisah).
+        $baris['is_minimum_order'] = 1;
+        // Catatan ikut tersimpan supaya nota/SPK bisa menjelaskan dari mana
+        // tambahan subtotal itu (baris keranjang/frontend print menampilkan catatan ini).
+        $catatanMin = 'Termasuk Minimum Order ' . $kelompok . ': selisih ' . rtrim(rtrim(number_format($selisih, 2, '.', ''), '0'), '.') . ' m²';
+        $baris['catatan_produksi'] = trim(($baris['catatan_produksi'] ?? '') . ' ' . $catatanMin);
+        // Selisih ditambahkan ke harga_standar agar log selisih harga_manual
+        // tidak salah memperlakukan biaya minimum sebagai penimpaan manual
+        // kasir (harga_standar tetap referensi price list + biaya minimum).
+        $baris['harga_standar'] = round((float) $baris['harga_standar'] + $selisihHarga, 2);
+        $itemsTervalidasi[$idxTerbesar] = $baris;
+    }
+
+    return $itemsTervalidasi;
     }
 }

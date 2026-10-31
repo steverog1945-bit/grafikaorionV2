@@ -97,7 +97,12 @@
                             : '';
                     @endphp
                     <tr>
-                        <td class="qty">{{ angka($item->qty, 2) }}x</td>
+                        {{-- Mode HYBRID minimum luas: penanda is_minimum_order
+                             kini berada di baris ITEM (selisih digulung ke
+                             subtotal baris terbesar kelompok), jadi qty tetap
+                             qty aktual item - tidak ada lagi baris minimum
+                             dengan qty 0/“—” di nota. --}}
+                        <td class="qty">{{ angka($item->qty, 2) . 'x' }}</td>
                         <td class="nama" colspan="2" title="{{ $item->nama_file }}">{{ $item->nama_file }}</td>
                     </tr>
                     <tr>

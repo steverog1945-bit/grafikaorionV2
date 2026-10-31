@@ -403,8 +403,17 @@ class PenjualanController extends Controller
         $hargaTerkunci = !\App\Support\AksesHarga::bolehLihat(Auth::user());
         $bolehInputBiayaDesain = \App\Support\AksesHarga::bolehInputBiayaDesain(Auth::user());
 
+        $itemsLama = DB::table('transaksi_detail')->where('id_transaksi', $id)->get()->keyBy('id_detail');
+
         try {
-            $itemsTervalidasi = $this->validasiItems($request, $idGolongan, $hargaTerkunci, $bolehInputBiayaDesain);
+            $itemsTervalidasi = $this->validasiItems(
+                $request,
+                $idGolongan,
+                $hargaTerkunci,
+                $bolehInputBiayaDesain,
+                $itemsLama,
+                fn ($lama, $item) => $this->itemBerubah($lama, $item)
+            );
         } catch (\App\Exceptions\ValidasiNotaException $e) {
             return response()->json(['status' => 'error', 'msg' => $e->getMessage()], 422);
         }
@@ -497,6 +506,11 @@ class PenjualanController extends Controller
 
             if ($totalBaru <= 0) {
                 throw new \RuntimeException('Total nota tidak boleh Rp 0 - tidak ada data yang tersimpan; coba lagi atau hubungi Administrator.');
+            }
+
+            $totalTerbayar = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal');
+            if ($totalTerbayar > 0 && $totalBaru + 0.004 < $totalTerbayar) {
+                throw new \App\Exceptions\ValidasiNotaException('Total baru (' . number_format($totalBaru, 0, ',', '.') . ') lebih kecil dari pembayaran yang sudah masuk (' . number_format($totalTerbayar, 0, ',', '.') . '). Gunakan retur/refund.');
             }
 
             // Jurnal pendapatan direkonsiliasi sebesar total yang baru.
@@ -953,6 +967,22 @@ public function tambahItemSusulan($id, Request $request)
     // rincian "Terbayar/Sisa" di Monitoring Kasir sudah diperbaiki agar
     // memakai status turunan, jadi kasir melihat sisa = hanya tambahan.
     $request->merge(['susulan_id' => (int) $id]);
+
+    // Kunci nota Lunas (keputusan bisnis final C): tambah susulan ke nota
+    // yang sudah Lunas DITOLAK - pesan mengarahkan buat nota baru. Cek di
+    // sini (sebelum store()) agar tidak masuk jalur penulisan sama sekali.
+    $transaksiSusulan = DB::table('transaksi')->where('id_transaksi', (int) $id)->first();
+    if ($transaksiSusulan) {
+        $totalTerbayarSusulan = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', (int) $id)->sum('nominal');
+        if ((float) $transaksiSusulan->total_bayar > 0
+            && \App\Services\StatusPembayaran::dari((float) $transaksiSusulan->total_bayar, $totalTerbayarSusulan) === \App\Services\StatusPembayaran::LUNAS) {
+            return response()->json([
+                'status'  => 'error',
+                'msg'     => 'Nota sudah Lunas — tidak bisa ditambah item susulan. Buat nota baru untuk tambahan.',
+                'message' => 'Nota sudah Lunas — tidak bisa ditambah item susulan. Buat nota baru untuk tambahan.',
+            ], 422);
+        }
+    }
 
     return $this->store($request);
 }
@@ -1417,14 +1447,9 @@ public function rejectEditNota(Request $request, $id)
             abort(404);
         }
 
-        if ((int) $transaksi->id_user_kasir !== (int) Auth::id()) {
-            return back()->with('error', 'Hanya operator yang membuat nota ini yang boleh mengedit.');
-        }
-        if ($transaksi->status_nota !== 'Aktif' || $transaksi->status_order !== 'Diterima Kasir') {
-            return back()->with('error', 'Nota ini tidak bisa diedit (status tidak memenuhi syarat).');
-        }
-        if (Carbon::parse($transaksi->tgl_order)->toDateString() !== now()->toDateString()) {
-            return back()->with('error', 'Edit hanya boleh dilakukan di hari yang sama dengan nota.');
+        $boleh = \App\Services\NotaEditService::bolehEdit($transaksi);
+        if (!$boleh['boleh']) {
+            return back()->with('error', $boleh['alasan']);
         }
 
         $idRequest = DB::table('nota_edit_request')->insertGetId([
@@ -1480,6 +1505,13 @@ public function applyApprovedEdit($id)
         if ($transaksi->status_nota === 'Dibatalkan') {
             DB::table('nota_edit_request')->where('id_request', $id)->update(['status' => 'Selesai', 'tgl_selesai' => now()]);
             $sudahDibatalkanSebelumnya = true;
+
+            return;
+        }
+
+        $bolehApply = \App\Services\NotaEditService::bolehEdit($transaksi);
+        if (!$bolehApply['boleh']) {
+            $pesanError = $bolehApply['alasan'];
 
             return;
         }

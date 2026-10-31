@@ -41,6 +41,19 @@ class NotaEditService
             return ['boleh' => false, 'alasan' => 'Nota ini sudah dibatalkan.'];
         }
 
+        // Kunci nota Lunas (keputusan bisnis final C): status pembayaran
+        // dihitung dari StatusPembayaran::dari() (pembayaran_riwayat), BUKAN
+        // dari kolom status_pembayaran yang bisa basi. Nota total <= 0
+        // (tidak ada tagihan) tidak dianggap Lunas untuk tujuan kunci.
+        $totalBayarLunas = (float) ($transaksi->total_bayar ?? 0);
+        $totalTerbayarLunas = (float) DB::table('pembayaran_riwayat')
+            ->where('id_transaksi', $transaksi->id_transaksi)
+            ->sum('nominal');
+        if ($totalBayarLunas > 0
+            && \App\Services\StatusPembayaran::dari($totalBayarLunas, $totalTerbayarLunas) === \App\Services\StatusPembayaran::LUNAS) {
+            return ['boleh' => false, 'alasan' => 'Nota sudah Lunas — tidak bisa diedit. Gunakan Batalkan Nota (persetujuan Administrator) atau buat nota baru untuk tambahan.'];
+        }
+
         // Operator yang membuat nota boleh mengeditnya sendiri. Administrator
         // boleh mengedit nota siapa pun (b efetivo untuk memperbaiki salah
         // input kasir). Role lain tidak.

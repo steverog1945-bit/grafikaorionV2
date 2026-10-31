@@ -232,11 +232,12 @@ class TambahItemSusulanTest extends TestCase
 
         $this->actingAs($this->admin)
             ->postJson("/penjualan/{$id}/tambah-item", $this->payloadItem())
-            ->assertOk();
+            ->assertStatus(422)
+            ->assertJsonFragment(['msg' => 'Nota sudah Lunas — tidak bisa ditambah item susulan. Buat nota baru untuk tambahan.']);
 
         $t = DB::table('transaksi')->where('id_transaksi', $id)->first();
-        $this->assertEquals(150000.0, (float) $t->total_bayar);
-        $this->assertNotSame('Lunas', $t->status_pembayaran, 'status harus turun dari Lunas karena ada tambahan yang belum dibayar');
+        $this->assertEquals(100000.0, (float) $t->total_bayar);
+        $this->assertSame('Lunas', $t->status_pembayaran, 'nota Lunas tetap Lunas karena tambahan ditolak');
     }
 
     public function test_detail_nota_lama_tidak_berubah_saat_tambah_item(): void

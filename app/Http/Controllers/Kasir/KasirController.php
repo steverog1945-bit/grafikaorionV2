@@ -1326,6 +1326,7 @@ public function printOpsi(Request $request, $id)
             'transaksi_detail.id_bahan',
             'transaksi_detail.id_produk',
             'transaksi_detail.id_jasa',
+            'transaksi_detail.is_minimum_order',
             DB::raw('produk.metode_hitung as metode_hitung_produk')
         )
         ->get();
