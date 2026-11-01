@@ -14,7 +14,7 @@
         </select>
     </td>
     <td class="p-1">
-        <select name="{{ $prefix }}[items][{{ $itemIdx }}][gender]" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-medium">
+        <select name="{{ $prefix }}[items][{{ $itemIdx }}][gender]" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-medium text-slate-700">
             <option value="L" @selected(($item->gender ?? 'L') === 'L')>L</option>
             <option value="P" @selected(($item->gender ?? null) === 'P')>P</option>
         </select>
