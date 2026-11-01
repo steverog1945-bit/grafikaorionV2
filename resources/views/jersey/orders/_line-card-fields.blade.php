@@ -21,26 +21,26 @@
 <div class="p-5 space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
         <div class="md:col-span-2">
-            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Nama Barang</label>
-            <input type="text" name="lines[{{ $idx }}][nama_barang]" value="{{ $line->nama_barang ?? '' }}" required placeholder="Deskripsikan barang pesanan" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <label for="jersey-{{ $idx }}-nama-barang" class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Nama Barang <span class="text-rose-500">*</span></label>
+            <input id="jersey-{{ $idx }}-nama-barang" type="text" name="lines[{{ $idx }}][nama_barang]" value="{{ $line->nama_barang ?? '' }}" required placeholder="Deskripsikan barang pesanan" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
         </div>
         <div>
-            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk</label>
-            <select name="lines[{{ $idx }}][jersey_product_type_id]" required onchange="perbaruiVisibilitasLenganKerah(this)" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <label for="jersey-{{ $idx }}-tipe-produk" class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Tipe Produk <span class="text-rose-500">*</span></label>
+            <select id="jersey-{{ $idx }}-tipe-produk" name="lines[{{ $idx }}][jersey_product_type_id]" required onchange="perbaruiVisibilitasLenganKerah(this)" class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 <option value="">-- Pilih --</option>
                 @foreach($productTypes as $pt)<option value="{{ $pt->id }}" data-has-sleeve-collar="{{ $pt->has_sleeve_collar ? 1 : 0 }}" @selected(($line->jersey_product_type_id ?? null) == $pt->id)>{{ $pt->name }}</option>@endforeach
             </select>
         </div>
         <div>
-            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Kategori</label>
-            <select name="lines[{{ $idx }}][jersey_category_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <label for="jersey-{{ $idx }}-kategori" class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Kategori <span class="text-rose-500">*</span></label>
+            <select id="jersey-{{ $idx }}-kategori" name="lines[{{ $idx }}][jersey_category_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 <option value="">-- Pilih --</option>
                 @foreach($categories as $cat)<option value="{{ $cat->id }}" @selected(($line->jersey_category_id ?? null) == $cat->id)>{{ $cat->name }}</option>@endforeach
             </select>
         </div>
         <div>
-            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Bahan</label>
-            <select name="lines[{{ $idx }}][jersey_material_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+            <label for="jersey-{{ $idx }}-bahan" class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Bahan <span class="text-rose-500">*</span></label>
+            <select id="jersey-{{ $idx }}-bahan" name="lines[{{ $idx }}][jersey_material_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                 <option value="">-- Pilih Bahan --</option>
                 @foreach($materials as $m)<option value="{{ $m->id }}" @selected(($line->jersey_material_id ?? null) == $m->id)>{{ $m->name }}</option>@endforeach
             </select>
@@ -50,26 +50,27 @@
         </div>
         <div class="wrapper-lengan-kerah-default md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Lengan (default) <span class="text-rose-500">*</span></label>
-                <select name="lines[{{ $idx }}][jersey_sleeve_type_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label for="jersey-{{ $idx }}-lengan" class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Lengan (default) <span class="text-rose-500">*</span></label>
+                <select id="jersey-{{ $idx }}-lengan" name="lines[{{ $idx }}][jersey_sleeve_type_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Pilih --</option>
                     @foreach($sleeveTypes as $st)<option value="{{ $st->id }}" @selected(($line->jersey_sleeve_type_id ?? null) == $st->id)>{{ $st->name }}</option>@endforeach
                 </select>
             </div>
             <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Kerah (default) <span class="text-rose-500">*</span></label>
-                <select name="lines[{{ $idx }}][jersey_collar_type_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                <label for="jersey-{{ $idx }}-kerah" class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Kerah (default) <span class="text-rose-500">*</span></label>
+                <select id="jersey-{{ $idx }}-kerah" name="lines[{{ $idx }}][jersey_collar_type_id]" required class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Pilih --</option>
                     @foreach($collarTypes as $ct)<option value="{{ $ct->id }}" @selected(($line->jersey_collar_type_id ?? null) == $ct->id)>{{ $ct->name }}</option>@endforeach
                 </select>
             </div>
         </div>
+        <p class="text-[10px] text-slate-400 leading-snug md:col-span-2">Untuk tipe tanpa lengan/kerah (mis. Celana), pilih entri "Tanpa Lengan"/"Tanpa Kerah" di Master Data; jika belum ada, tambahkan dulu di Pengaturan &gt; Master Lengan/Kerah.</p>
         <div class="md:col-span-2">
-            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Keterangan Desain</label>
-            <textarea name="lines[{{ $idx }}][keterangan]" rows="2" placeholder="mis. Lengan kanan bendera, dada kiri logo klub..." class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $line->keterangan ?? '' }}</textarea>
+            <label for="jersey-{{ $idx }}-keterangan" class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Keterangan Desain</label>
+            <textarea id="jersey-{{ $idx }}-keterangan" name="lines[{{ $idx }}][keterangan]" rows="2" placeholder="mis. Lengan kanan bendera, dada kiri logo klub..." class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $line->keterangan ?? '' }}</textarea>
         </div>
         <div class="md:col-span-2">
-            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Thumbnail Desain <span class="text-rose-500">*</span></label>
+            <label for="jersey-{{ $idx }}-thumbnail" class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Thumbnail Desain <span class="text-rose-500">*</span></label>
             <div class="flex items-center gap-3">
                 <div class="thumbnail-dropzone w-14 h-14 rounded-lg bg-slate-50 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer transition-all hover:border-indigo-400 hover:bg-indigo-50/30" tabindex="0" onclick="this.querySelector('.thumbnail-file-input').click()" title="Klik, tempel (Ctrl+V), atau pilih file">
                     @php
@@ -82,7 +83,7 @@
                     <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/svg+xml,image/tiff,application/pdf,.pdf,.cdr,.ai,.eps,.psd,.tif,.tiff,.heic" onchange="uploadThumbnailLine(this)" class="hidden thumbnail-file-input">
                 </div>
                 <div class="flex-1 min-w-0">
-                    <input type="hidden" name="lines[{{ $idx }}][thumbnail]" value="{{ $line->thumbnail ?? '' }}" class="thumbnail-path" required>
+                    <input id="jersey-{{ $idx }}-thumbnail" type="hidden" name="lines[{{ $idx }}][thumbnail]" value="{{ $line->thumbnail ?? '' }}" class="thumbnail-path" required>
                     <p class="text-[11px] text-slate-400 thumbnail-status leading-snug">{{ $punyaBerkas ? ($thumbTampil ? 'Thumbnail siap. Klik kotak untuk mengganti.' : 'Berkas desain siap (' . $extThumb . '). File ada di server, dibuka tim produksi.') : 'Klik atau tempel (Ctrl+V) gambar desain di sini.' }}</p>
                 </div>
             </div>
@@ -105,7 +106,7 @@
         <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Mode Order</label>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
             @foreach(['quantity_only' => 'Qty per Ukuran', 'player_list' => 'Daftar Pemain', 'mixed' => 'Campuran'] as $val => $label)
-            <label class="line-type-option relative flex items-center justify-center py-2 px-3 rounded-xl border-2 font-medium text-[11px] cursor-pointer {{ $otIsi === $val ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-100 text-slate-400' }}">
+            <label class="line-type-option relative flex items-center justify-center py-2 px-3 rounded-xl border-2 font-medium text-[11px] cursor-pointer {{ $otIsi === $val ? 'border-indigo-500 bg-indigo-50 text-indigo-800' : 'border-slate-200 text-slate-600' }}">
                 <input type="radio" name="lines[{{ $idx }}][order_type]" value="{{ $val }}" @checked($otIsi === $val) onchange="toggleLineType(this)" class="absolute top-1.5 right-1.5">
                 {{ $label }}
             </label>
@@ -181,8 +182,8 @@
         <div class="overflow-x-auto">
         <table class="w-full text-xs">
             <thead><tr class="text-[10px] text-slate-400 uppercase">
-                <th class="p-1 text-left w-32 md:w-40">Nama</th><th class="p-1 text-left w-12">No.</th><th class="p-1 text-left w-40">Ukuran</th>
-                <th class="p-1 text-left w-14">Gender</th><th class="p-1 text-left w-24 col-lengan-kerah">Lengan</th><th class="p-1 text-left w-28 col-lengan-kerah">Kerah</th><th class="p-1 w-8"></th>
+                <th class="p-1 text-left w-32 md:w-40">Nama</th><th class="p-1 text-left w-12">No.</th><th class="p-1 text-left w-40">Ukuran <span class="text-rose-500">*</span></th>
+                <th class="p-1 text-left w-14">Gender</th><th class="p-1 text-left w-24 col-lengan-kerah">Lengan <span class="text-rose-500">*</span></th><th class="p-1 text-left w-28 col-lengan-kerah">Kerah <span class="text-rose-500">*</span></th><th class="p-1 w-8"></th>
             </tr></thead>
             <tbody class="tbody-pemain divide-y divide-slate-50">
                 @if($line)
