@@ -39,7 +39,8 @@
         {{-- TAB UMUM --}}
         <div id="tab-panel-umum" class="tab-panel-pengaturan">
             <x-card class="space-y-6">
-                {{-- MODE TAMPILAN (DARK MODE) --}}
+                {{-- MODE TAMPILAN (DARK MODE): hanya Administrator --}}
+                @if(str_starts_with((string) (optional(auth()->user()?->role)->nama_role ?? ''), 'Administrator'))
                 <div class="rounded-2xl border border-slate-100 bg-slate-50 p-5 flex items-center justify-between gap-4">
                     <div class="min-w-0">
                         <span class="block text-sm font-medium text-slate-700">Mode Tampilan</span>
@@ -49,6 +50,7 @@
                         <i class="fas fa-moon"></i> Ganti Tema
                     </button>
                 </div>
+                @endif
                 <div class="flex items-center gap-5">
                     <div class="w-20 h-20 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
                         @if($setting->logo_path)

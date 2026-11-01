@@ -1607,14 +1607,15 @@
                 <kbd class="text-[10px] font-medium text-slate-400 bg-white border border-slate-200 rounded px-1 py-0.5 hidden sm:inline">Ctrl K</kbd>
             </button>
 
-            {{-- Tombol mode gelap / terang --}}
+            {{-- Dark mode & garis card: hanya Administrator --}}
+            @if(str_starts_with((string) (optional(Auth::user()->role)->nama_role ?? ''), 'Administrator'))
             <button type="button" id="tema-toggle" onclick="ubahTema()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Ganti ke mode gelap" aria-label="Ganti mode gelap atau terang">
                 <i class="fas fa-moon" id="tema-ikon"></i>
             </button>
-            {{-- Tombol garis card: menyembunyikan garis tipis pada card/wrapper supaya tampilan lebih bersih. --}}
             <button type="button" id="gariscard-toggle" onclick="ubahGarisCard()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Garis card: tampil/sembunyikan" aria-label="Ganti garis tepi card">
                 <i class="fas fa-border-all" id="gariscard-ikon"></i>
             </button>
+            @endif
             @php $notifAwal = \App\Services\NotifikasiService::untuk(Auth::user()); @endphp
             <div class="relative">
                 <button type="button" id="notif-btn" onclick="toggleNotif(event)" class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Notifikasi & pekerjaan masuk">
@@ -1630,21 +1631,41 @@
                 </div>
             </div>
             @php $namaTampil = optional(Auth::user()->karyawan)->nama_karyawan ?? Auth::user()->username; @endphp
-            <div class="hidden sm:flex items-center gap-2 pl-3 border-l border-slate-200">
-                <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-xs shrink-0">
-                    {{ strtoupper(substr($namaTampil, 0, 1)) }}
+            <div class="relative hidden sm:block" id="profil-menu-wrap">
+                <button type="button" onclick="toggleProfilMenu()" class="flex items-center gap-2 pl-3 border-l border-slate-200 h-9" aria-haspopup="true" aria-expanded="false" id="profil-menu-btn">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-xs shrink-0">
+                        {{ strtoupper(substr($namaTampil, 0, 1)) }}
+                    </div>
+                    <div class="flex flex-col leading-tight min-w-0 max-w-[9rem]">
+                        <span class="text-[12px] font-medium text-slate-700 truncate">{{ $namaTampil }}</span>
+                        <span class="text-[9px] font-medium text-slate-400 uppercase tracking-wide truncate">{{ optional(Auth::user()->role)->nama_role }}</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-[9px] text-slate-400"></i>
+                </button>
+                <div id="profil-menu-panel" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-slate-200 shadow-xl z-50 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-slate-100">
+                        <div class="text-[12px] font-medium text-slate-700 truncate">{{ $namaTampil }}</div>
+                        <div class="text-[10px] font-medium text-slate-400 uppercase tracking-wide truncate">{{ optional(Auth::user()->role)->nama_role }}</div>
+                    </div>
+                    <form action="{{ url('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-[13px] text-rose-600 hover:bg-rose-50 transition-colors">
+                            <i class="fas fa-sign-out-alt w-4"></i> Keluar Sistem
+                        </button>
+                    </form>
                 </div>
-                <div class="flex flex-col leading-tight min-w-0 max-w-[9rem]">
-                    <span class="text-[12px] font-medium text-slate-700 truncate">{{ $namaTampil }}</span>
-                    <span class="text-[9px] font-medium text-slate-400 uppercase tracking-wide truncate">{{ optional(Auth::user()->role)->nama_role }}</span>
-                </div>
-                <form action="{{ url('logout') }}" method="POST" class="ml-1">
-                    @csrf
-                    <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all" title="Keluar Sistem">
-                        <i class="fas fa-sign-out-alt text-sm"></i>
-                    </button>
-                </form>
             </div>
+            <script>
+            function toggleProfilMenu() {
+                var p = document.getElementById('profil-menu-panel');
+                if (p) p.classList.toggle('hidden');
+            }
+            document.addEventListener('click', function (e) {
+                var w = document.getElementById('profil-menu-wrap');
+                var p = document.getElementById('profil-menu-panel');
+                if (w && p && !w.contains(e.target)) p.classList.add('hidden');
+            });
+            </script>
             </div>{{-- /baris desktop --}}
             </div>{{-- /#topbar-mobile-panel.
                  Penutup ini wajib ada SEBELUM #topbar-mobile-isi dibuka. Tanpa
@@ -1662,9 +1683,11 @@
                 <button type="button" onclick="bukaPalette()" class="w-full flex items-center gap-3 px-4 py-3 text-[13px] text-slate-600 hover:bg-slate-50 transition-colors">
                     <i class="fas fa-search w-4 text-slate-400"></i> Cari menu
                 </button>
+                @if(str_starts_with((string) (optional(Auth::user()->role)->nama_role ?? ''), 'Administrator'))
                 <button type="button" onclick="ubahTema()" class="w-full flex items-center gap-3 px-4 py-3 text-[13px] text-slate-600 hover:bg-slate-50 transition-colors">
                     <i class="fas fa-moon w-4 text-slate-400"></i> Ganti tema
                 </button>
+                @endif
                 <button type="button" onclick="toggleNotif(event)" class="w-full flex items-center gap-3 px-4 py-3 text-[13px] text-slate-600 hover:bg-slate-50 transition-colors">
                     <i class="fas fa-bell w-4 text-slate-400"></i> Notifikasi
                 </button>
