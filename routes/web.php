@@ -113,6 +113,12 @@ Route::middleware(['auth'])->get('/storage/{folder}/{path}', [\App\Http\Controll
 
 Route::middleware(['auth'])->get('/sinyal', [\App\Http\Controllers\SinyalController::class, 'index'])->name('sinyal');
 
+// Profil: upload/hapus foto profil sendiri (real-time, per pengguna).
+Route::middleware(['auth'])->group(function () {
+    Route::post('/profil/foto', [\App\Http\Controllers\UserController::class, 'uploadFoto'])->name('profil.foto.upload');
+    Route::delete('/profil/foto', [\App\Http\Controllers\UserController::class, 'hapusFoto'])->name('profil.foto.hapus');
+});
+
 // throttle.write hanya menghitung POST/PUT/PATCH/DELETE (lihat
 // App\Http\Middleware\ThrottleWriteRequests), jadi aman dipasang di
 // sini tanpa menyentuh halaman yang memanggil endpoint baca berulang,

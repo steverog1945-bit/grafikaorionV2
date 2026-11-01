@@ -3,6 +3,39 @@
 @section('content')
 @include('partials.rupiah-format-script')
 @include('partials.image-compress-script')
+<style>
+/* Perombakan visual minimalis & modern - input order jersey */
+.jersey-mobile-form-page input[type="text"],
+.jersey-mobile-form-page input[type="date"],
+.jersey-mobile-form-page input[type="number"],
+.jersey-mobile-form-page input[type="file"],
+.jersey-mobile-form-page select,
+.jersey-mobile-form-page textarea {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #334155;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.jersey-mobile-form-page input:focus,
+.jersey-mobile-form-page select:focus,
+.jersey-mobile-form-page textarea:focus {
+    outline: none;
+    border-color: #006C7B;
+    box-shadow: 0 0 0 3px rgba(0,108,123,.12);
+}
+.jersey-mobile-form-page .baris-pemain select,
+.jersey-mobile-form-page .baris-pemain input {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+}
+</style>
 <div class="jersey-mobile-form-page w-full px-3 sm:px-5 lg:px-6 py-5">
 
     <x-page-header title="Pesanan Jersey Baru" subtitle="Satu order bisa berisi beberapa jenis barang sekaligus (Jersey, Celana, Sublime lainnya, dst)." />
