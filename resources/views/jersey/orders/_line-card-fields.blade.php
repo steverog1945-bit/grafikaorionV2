@@ -64,33 +64,31 @@
                 </select>
             </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Keterangan Desain</label>
-                <textarea name="lines[{{ $idx }}][keterangan]" rows="2" placeholder="mis. Lengan kanan bendera, dada kiri logo klub..." class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $line->keterangan ?? '' }}</textarea>
-            </div>
-
-            <div>
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Thumbnail Desain <span class="text-rose-500">*</span></label>
-                <div class="flex items-center gap-3">
-                    <div class="thumbnail-dropzone w-16 h-16 rounded-lg bg-slate-50 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer transition-all hover:border-indigo-400 hover:bg-indigo-50/30" tabindex="0" onclick="this.querySelector('.thumbnail-file-input').click()" title="Klik, tempel (Ctrl+V), atau pilih file">
-                        @php
-                            $punyaBerkas = ($line->thumbnail ?? null) !== null;
-                            $thumbTampil = $punyaBerkas && \App\Support\BerkasDesain::bisaDitampilkan($line->thumbnail);
-                            $extThumb = $punyaBerkas ? strtoupper(\App\Support\BerkasDesain::ekstensi($line->thumbnail)) : '';
-                        @endphp
-                        <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-preview {{ $thumbTampil ? '' : 'hidden' }}" src="{{ $thumbTampil ? asset('storage/' . $line->thumbnail) : '' }}" alt="">
-                        <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-placeholder {{ ($punyaBerkas && !$thumbTampil) ? '' : 'hidden' }}" src="{{ asset('storage/default-thumbnail.png') }}" alt="Berkas desain" style="opacity: 0.5;">
-                        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/svg+xml,image/tiff,application/pdf,.pdf,.cdr,.ai,.eps,.psd,.tif,.tiff,.heic" onchange="uploadThumbnailLine(this)" class="hidden thumbnail-file-input">
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <input type="hidden" name="lines[{{ $idx }}][thumbnail]" value="{{ $line->thumbnail ?? '' }}" class="thumbnail-path" required>
-                        <p class="text-[11px] text-slate-400 thumbnail-status leading-snug">{{ $punyaBerkas ? ($thumbTampil ? 'Thumbnail siap. Klik kotak untuk mengganti.' : 'Berkas desain siap (' . $extThumb . '). File ada di server, dibuka tim produksi.') : 'Klik atau tempel (Ctrl+V) gambar desain di sini.' }}</p>
-                    </div>
+        <div class="md:col-span-2">
+            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Keterangan Desain</label>
+            <textarea name="lines[{{ $idx }}][keterangan]" rows="2" placeholder="mis. Lengan kanan bendera, dada kiri logo klub..." class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $line->keterangan ?? '' }}</textarea>
+        </div>
+        <div class="md:col-span-2">
+            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Thumbnail Desain <span class="text-rose-500">*</span></label>
+            <div class="flex items-center gap-3">
+                <div class="thumbnail-dropzone w-14 h-14 rounded-lg bg-slate-50 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer transition-all hover:border-indigo-400 hover:bg-indigo-50/30" tabindex="0" onclick="this.querySelector('.thumbnail-file-input').click()" title="Klik, tempel (Ctrl+V), atau pilih file">
+                    @php
+                        $punyaBerkas = ($line->thumbnail ?? null) !== null;
+                        $thumbTampil = $punyaBerkas && \App\Support\BerkasDesain::bisaDitampilkan($line->thumbnail);
+                        $extThumb = $punyaBerkas ? strtoupper(\App\Support\BerkasDesain::ekstensi($line->thumbnail)) : '';
+                    @endphp
+                    <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-preview {{ $thumbTampil ? '' : 'hidden' }}" src="{{ $thumbTampil ? asset('storage/' . $line->thumbnail) : '' }}" alt="">
+                    <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-placeholder {{ ($punyaBerkas && !$thumbTampil) ? '' : 'hidden' }}" src="{{ asset('storage/default-thumbnail.png') }}" alt="Berkas desain" style="opacity: 0.5;">
+                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/svg+xml,image/tiff,application/pdf,.pdf,.cdr,.ai,.eps,.psd,.tif,.tiff,.heic" onchange="uploadThumbnailLine(this)" class="hidden thumbnail-file-input">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <input type="hidden" name="lines[{{ $idx }}][thumbnail]" value="{{ $line->thumbnail ?? '' }}" class="thumbnail-path" required>
+                    <p class="text-[11px] text-slate-400 thumbnail-status leading-snug">{{ $punyaBerkas ? ($thumbTampil ? 'Thumbnail siap. Klik kotak untuk mengganti.' : 'Berkas desain siap (' . $extThumb . '). File ada di server, dibuka tim produksi.') : 'Klik atau tempel (Ctrl+V) gambar desain di sini.' }}</p>
                 </div>
             </div>
         </div>
-        <p class="text-[10px] text-slate-400 -mt-3 wrapper-lengan-kerah-default leading-snug">Lengan/Kerah default dipakai untuk mode <b>Qty per Ukuran</b> &amp; <b>Campuran</b> - Daftar Pemain pakai pilihan masing-masing pemain sendiri.</p>
+    </div>{{-- /grid utama kartu barang --}}
+    <p class="text-[10px] text-slate-400 leading-snug">Lengan/Kerah default dipakai untuk mode <b>Qty per Ukuran</b> &amp; <b>Campuran</b> - Daftar Pemain pakai pilihan masing-masing pemain sendiri.</p>
 
     {{--
         pb-5 saja, TANPA px-5. Kartu ini tidak punya padding sendiri
@@ -183,7 +181,7 @@
         <div class="overflow-x-auto">
         <table class="w-full text-xs">
             <thead><tr class="text-[10px] text-slate-400 uppercase">
-                <th class="p-1 text-left">Nama</th><th class="p-1 text-left w-12">No.</th><th class="p-1 text-left w-40">Ukuran</th>
+                <th class="p-1 text-left w-32 md:w-40">Nama</th><th class="p-1 text-left w-12">No.</th><th class="p-1 text-left w-40">Ukuran</th>
                 <th class="p-1 text-left w-14">Gender</th><th class="p-1 text-left w-24 col-lengan-kerah">Lengan</th><th class="p-1 text-left col-lengan-kerah">Kerah</th><th class="p-1 w-8"></th>
             </tr></thead>
             <tbody class="tbody-pemain divide-y divide-slate-50">
@@ -197,12 +195,15 @@
         </div>
     </div>
 
-    <div class="line-price-preview rounded-xl bg-emerald-50 border border-emerald-100 p-3 flex items-center justify-between gap-4 flex-wrap">
-        <div>
-            <span class="text-[10px] font-medium text-emerald-700 uppercase tracking-widest">Perkiraan Harga Barang Ini</span>
-            <p class="text-[10px] text-emerald-600/80 mt-0.5 line-price-preview-detail">Isi qty &amp; pilihan barang untuk lihat perkiraan harga.</p>
+    <div class="line-price-preview rounded-xl bg-emerald-50 border border-emerald-100 p-3 space-y-2">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+                <span class="text-[10px] font-medium text-emerald-700 uppercase tracking-widest">Perkiraan Harga Barang Ini</span>
+                <p class="text-[10px] text-emerald-600/80 mt-0.5 line-price-preview-detail">Isi qty &amp; pilihan barang untuk lihat perkiraan harga.</p>
+            </div>
+            <span class="text-xl font-medium text-emerald-700 line-price-preview-value">Rp 0</span>
         </div>
-        <span class="text-xl font-medium text-emerald-700 line-price-preview-value">Rp 0</span>
+        <ul class="line-price-preview-list hidden text-[11px] text-emerald-800 divide-y divide-emerald-100/80"></ul>
     </div>
 
     <p class="text-[10px] text-slate-400 flex items-center gap-1.5">

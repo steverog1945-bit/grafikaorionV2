@@ -506,13 +506,41 @@
                     if (detailEl) detailEl.textContent = 'Isi qty & pilihan barang untuk lihat perkiraan harga.';
                 } else {
                     nilaiEl.textContent = 'Rp ' + Math.round(info.subtotal).toLocaleString('id-ID');
-                    const bagian = [`${info.qty} pcs × Rp ${Math.round(info.harga_satuan).toLocaleString('id-ID')}`];
-                    if (info.size_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.size_surcharge_total).toLocaleString('id-ID')} ukuran`);
-                    if (info.sleeve_collar_surcharge_total > 0) bagian.push(`+Rp ${Math.round(info.sleeve_collar_surcharge_total).toLocaleString('id-ID')} lengan/kerah`);
-                    if (!info.ada_tier) bagian.push('belum ada tier harga yang cocok');
-                    if (info.pemain_tanpa_ukuran > 0) bagian.push(`${info.pemain_tanpa_ukuran} pemain belum pilih ukuran (dihitung harga dewasa)`);
-                    if (detailEl) detailEl.textContent = bagian.join(', ');
+                    // Teks detail sekarang hanya menyimpan CATATAN (tier belum
+                    // cocok, pemain belum pilih ukuran) - rincian angkanya
+                    // pindah ke daftar line-price-preview-list di bawah, satu
+                    // baris per komponen harga.
+                    const catatan = [];
+                    if (!info.ada_tier) catatan.push('belum ada tier harga yang cocok');
+                    if (info.pemain_tanpa_ukuran > 0) catatan.push(`${info.pemain_tanpa_ukuran} pemain belum pilih ukuran (dihitung harga dewasa)`);
+                    if (detailEl) detailEl.textContent = catatan.join(', ') || (info.tier_label ? `Tier ${info.tier_label}` : '');
                 }
+            }
+
+            // Daftar rincian harga - satu baris per komponen (harga dasar per
+            // ukuran, selisih ukuran, lengan/kerah). Dibangun via createElement/
+            // textContent (bukan innerHTML string) dengan pola yang sama seperti
+            // baris ringkasan sidebar, supaya label dari master data tidak pernah
+            // dianggap markup.
+            const listEl = card.querySelector('.line-price-preview-list');
+            if (listEl) {
+                listEl.innerHTML = '';
+                const barisRincian = Array.isArray(info?.rincian) ? info.rincian : [];
+                for (const r of barisRincian) {
+                    if (r?.amount == null) continue;
+                    const li = document.createElement('li');
+                    li.className = 'flex items-center justify-between gap-3 py-1';
+                    const kiri = document.createElement('span');
+                    kiri.className = 'min-w-0';
+                    kiri.textContent = r.label;
+                    const kanan = document.createElement('span');
+                    kanan.className = 'font-medium tabular-nums shrink-0';
+                    const nominal = Math.round(r.amount);
+                    kanan.textContent = (nominal < 0 ? '−Rp ' : 'Rp ') + Math.abs(nominal).toLocaleString('id-ID');
+                    li.append(kiri, kanan);
+                    listEl.appendChild(li);
+                }
+                listEl.classList.toggle('hidden', barisRincian.length === 0);
             }
 
             // Baris ringkasan di sidebar - dibangun via createElement/textContent

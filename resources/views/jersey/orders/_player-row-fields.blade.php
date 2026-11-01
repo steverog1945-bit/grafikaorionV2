@@ -1,7 +1,7 @@
 {{-- Satu baris "Daftar Pemain" - dipakai di template JS (item=null, __ITEM__
      placeholder) dan edit-lines.blade.php (item diisi data pemain lama). --}}
 <tr class="baris-pemain">
-    <td class="p-1"><input type="text" name="{{ $prefix }}[items][{{ $itemIdx }}][player_name]" value="{{ $item->player_name ?? '' }}" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-medium"></td>
+    <td class="p-1 w-32 md:w-40"><input type="text" name="{{ $prefix }}[items][{{ $itemIdx }}][player_name]" value="{{ $item->player_name ?? '' }}" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-medium"></td>
     <td class="p-1"><input type="text" name="{{ $prefix }}[items][{{ $itemIdx }}][player_number]" value="{{ $item->player_number ?? '' }}" class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-medium"></td>
     <td class="p-1">
         <select name="{{ $prefix }}[items][{{ $itemIdx }}][size]" required class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-medium">

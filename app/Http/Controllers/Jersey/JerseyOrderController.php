@@ -677,9 +677,11 @@ class JerseyOrderController extends Controller
         // di baris ini, bukan flat per qty, karena tidak semua ukuran dalam
         // satu baris barang tentu punya surcharge yang sama.
         $surchargeTotal = 0.0;
+        $surchargePerSize = []; // rincian per ukuran - hanya untuk tampilan, tidak memengaruhi total
         foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
             // Selisih per ukuran = nominal tetap + persen dari harga tier (persen negatif = diskon, mis. ukuran anak).
             $selisihPerPcs = (float) ($surchargeBySizeId[$sizeId] ?? 0) + ($hargaSatuanPerSize[$sizeId] ?? $hargaSatuan) * (float) ($percentBySizeId[$sizeId] ?? 0) / 100;
+            $surchargePerSize[$sizeId] = $selisihPerPcs * $qtyUkuran;
             $surchargeTotal += $selisihPerPcs * $qtyUkuran;
         }
 
@@ -689,15 +691,68 @@ class JerseyOrderController extends Controller
         // bawah, supaya konsisten dengan pilihan lengan/kerah riil per
         // pemain (bukan disamaratakan pakai default level barang saja).
         $sleeveCollarSurchargeTotal = 0.0;
+        // Rincian lengan/kerah DIREKAP per tipe (bukan per ukuran) - hanya
+        // untuk tampilan; jumlahnya tetap sama persis dengan total surcharge.
+        $rekapQtyLengan = [];
+        $rekapQtyKerah = [];
         foreach ($qtyPerSizeSleeveType as $perType) {
             foreach ($perType as $typeId => $qtyTipe) {
                 $sleeveCollarSurchargeTotal += (float) ($sleeveSurchargeById[$typeId] ?? 0) * $qtyTipe;
+                $rekapQtyLengan[$typeId] = ($rekapQtyLengan[$typeId] ?? 0) + $qtyTipe;
             }
         }
         foreach ($qtyPerSizeCollarType as $perType) {
             foreach ($perType as $typeId => $qtyTipe) {
                 $sleeveCollarSurchargeTotal += (float) ($collarSurchargeById[$typeId] ?? 0) * $qtyTipe;
+                $rekapQtyKerah[$typeId] = ($rekapQtyKerah[$typeId] ?? 0) + $qtyTipe;
             }
+        }
+
+        // DAFTAR RINCIAN untuk tampilan di form (field "Perkiraan Harga
+        // Barang Ini"). Murni diturunkan dari angka yang SUDAH dihitung di
+        // atas - tidak menambah/mengurangi apa pun, tidak dipakai saat
+        // menyimpan, hanya oleh previewHarga(). Setiap baris = satu
+        // komponen harga: dasar per ukuran, selisih ukuran, lengan/kerah.
+        $sizeNameById = $this->cacheMaster['sizeNameById'] ??= JerseySize::pluck('name', 'id');
+        $rincian = [];
+        foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
+            $rincian[] = [
+                'label' => 'Harga dasar ' . ($sizeNameById[$sizeId] ?? ('#' . $sizeId)) . ' × ' . $qtyUkuran,
+                'amount' => $hargaSatuanPerSize[$sizeId] * $qtyUkuran,
+            ];
+        }
+        if ($qty > $qtyTerpetakan) {
+            $rincian[] = [
+                'label' => 'Harga dasar dewasa (ukuran belum dipilih) × ' . ($qty - $qtyTerpetakan),
+                'amount' => $hargaDewasa * ($qty - $qtyTerpetakan),
+            ];
+        }
+        foreach ($qtyPerSizeId as $sizeId => $qtyUkuran) {
+            if (abs($surchargePerSize[$sizeId] ?? 0.0) < 0.005) {
+                continue; // ukuran tanpa selisih harga tidak direkan
+            }
+            $rincian[] = [
+                'label' => 'Selisih ukuran ' . ($sizeNameById[$sizeId] ?? ('#' . $sizeId)) . ' × ' . $qtyUkuran,
+                'amount' => $surchargePerSize[$sizeId],
+            ];
+        }
+        foreach ($rekapQtyLengan as $typeId => $qtyTipe) {
+            if (abs((float) ($sleeveSurchargeById[$typeId] ?? 0)) < 0.005) {
+                continue; // tipe lengan tanpa surcharge tidak direkan (sudah termasuk harga dasar)
+            }
+            $rincian[] = [
+                'label' => 'Lengan ' . ($sleeveNameById[$typeId] ?? ('#' . $typeId)) . ' × ' . $qtyTipe,
+                'amount' => (float) ($sleeveSurchargeById[$typeId] ?? 0) * $qtyTipe,
+            ];
+        }
+        foreach ($rekapQtyKerah as $typeId => $qtyTipe) {
+            if (abs((float) ($collarSurchargeById[$typeId] ?? 0)) < 0.005) {
+                continue;
+            }
+            $rincian[] = [
+                'label' => 'Kerah ' . ($collarNameById[$typeId] ?? ('#' . $typeId)) . ' × ' . $qtyTipe,
+                'amount' => (float) ($collarSurchargeById[$typeId] ?? 0) * $qtyTipe,
+            ];
         }
 
         $subtotal = $totalDasar + $surchargeTotal + $sleeveCollarSurchargeTotal;
@@ -718,6 +773,7 @@ class JerseyOrderController extends Controller
             'hargaSatuan' => $hargaSatuan,
             'surchargeTotal' => $surchargeTotal,
             'sleeveCollarSurchargeTotal' => $sleeveCollarSurchargeTotal,
+            'rincian' => $rincian, // tampilan saja - tidak dipakai saat menyimpan
             'subtotal' => $subtotal,
         ];
     }
@@ -830,6 +886,10 @@ class JerseyOrderController extends Controller
                 'sleeve_collar_surcharge_total' => $h['sleeveCollarSurchargeTotal'],
                 'subtotal' => $h['subtotal'],
                 'ada_tier' => $h['tier'] !== null && (float) $h['tier']->price > 0,
+                'tier_label' => $h['tier'] !== null
+                    ? 'min ' . $h['tier']->qty_min . ($h['tier']->qty_max ? '–' . $h['tier']->qty_max : '') . ' pcs @ Rp ' . number_format((float) $h['tier']->price, 0, ',', '.')
+                    : null,
+                'rincian' => $h['rincian'],
                 'pemain_tanpa_ukuran' => $h['pemain_tanpa_ukuran'],
             ];
         }
