@@ -156,7 +156,7 @@
                         Disable = tidak terkirim sama sekali, jadi tidak ada
                         data basi yang bisa ikut terhitung.
                     --}}
-                    <label class="block text-[10px] font-medium text-slate-400 uppercase text-center mb-1 leading-tight">
+                    <label class="block text-[10px] font-medium text-slate-400 uppercase text-center mb-1 leading-tight break-words min-h-[24px]">
                         {{ $namaUkuran }}
                         @if($usiaUkuran)<span class="block text-[9px] text-amber-600 normal-case font-medium">{{ $usiaUkuran }}</span>@endif
                     </label>
@@ -182,7 +182,7 @@
         <table class="w-full text-xs">
             <thead><tr class="text-[10px] text-slate-400 uppercase">
                 <th class="p-1 text-left w-32 md:w-40">Nama</th><th class="p-1 text-left w-12">No.</th><th class="p-1 text-left w-40">Ukuran</th>
-                <th class="p-1 text-left w-14">Gender</th><th class="p-1 text-left w-24 col-lengan-kerah">Lengan</th><th class="p-1 text-left col-lengan-kerah">Kerah</th><th class="p-1 w-8"></th>
+                <th class="p-1 text-left w-14">Gender</th><th class="p-1 text-left w-24 col-lengan-kerah">Lengan</th><th class="p-1 text-left w-28 col-lengan-kerah">Kerah</th><th class="p-1 w-8"></th>
             </tr></thead>
             <tbody class="tbody-pemain divide-y divide-slate-50">
                 @if($line)

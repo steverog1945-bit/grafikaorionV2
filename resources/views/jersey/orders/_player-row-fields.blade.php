@@ -19,13 +19,13 @@
             <option value="P" @selected(($item->gender ?? null) === 'P')>P</option>
         </select>
     </td>
-    <td class="p-1 col-lengan-kerah">
+    <td class="p-1 w-24 col-lengan-kerah">
         <select name="{{ $prefix }}[items][{{ $itemIdx }}][jersey_sleeve_type_id]" required class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-medium">
             <option value="">-- Lengan --</option>
             @foreach($sleeveTypes as $st)<option value="{{ $st->id }}" @selected(($item->jersey_sleeve_type_id ?? null) == $st->id)>{{ $st->name }}</option>@endforeach
         </select>
     </td>
-    <td class="p-1 col-lengan-kerah">
+    <td class="p-1 w-28 col-lengan-kerah">
         <select name="{{ $prefix }}[items][{{ $itemIdx }}][jersey_collar_type_id]" required class="w-full bg-slate-50 border-none rounded-lg p-2 text-xs font-medium">
             <option value="">-- Kerah --</option>
             @foreach($collarTypes as $ct)<option value="{{ $ct->id }}" @selected(($item->jersey_collar_type_id ?? null) == $ct->id)>{{ $ct->name }}</option>@endforeach
