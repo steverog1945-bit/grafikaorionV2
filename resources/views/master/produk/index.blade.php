@@ -226,6 +226,22 @@
                     </x-form.group>
                 </div>
 
+                {{-- Minimum luas PER KELOMPOK (hybrid T4-A): total luas semua baris
+                     order dalam satu kelompok_minimum paling sedikit sebesar nilai
+                     ini; selisihnya digulung ke subtotal baris item TERBESAR
+                     kelompok (tanpa baris minimum terpisah di nota/SPK). 0 = produk
+                     ini tanpa minimum kelompok. Bebas dari toggle "Minimal Order"
+                     di atas - itu aturan per-baris (min_panjang/min_lebar), ini
+                     aturan akumulasi order. --}}
+                <div id="field_min_luas" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 hidden">
+                    <x-form.group label="Min. Luas Total Kelompok (m²)" dalam>
+                        <x-form.input type="number" name="min_luas_total" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-2.5" />
+                    </x-form.group>
+                    <x-form.group label="Nama Kelompok Minimum" dalam>
+                        <x-form.input type="text" name="kelompok_minimum" placeholder="mis. FLS280 Outdoor" class="!bg-white !shadow-sm !py-2.5" />
+                    </x-form.group>
+                </div>
+
                 <label class="flex items-start gap-3 cursor-pointer rounded-xl bg-white shadow-sm px-4 py-3 mb-4">
                     <input type="checkbox" name="spk_lengkap" value="1" id="input_spk_lengkap" class="mt-0.5 w-4 h-4 rounded accent-indigo-600">
                     <span><span class="block text-[11px] font-medium text-slate-600 uppercase tracking-wide">Cetak SPK lengkap</span><span class="block text-[11px] text-slate-400">SPK memuat gambar, konsumen, desainer, kebutuhan bahan, dan finishing (seperti SPK order jersey) - untuk cetakan tertentu mis. Century + bahan TC yang ada finishing jahit.</span></span>
@@ -411,6 +427,11 @@
         document.getElementById('field_min_ukuran').classList.toggle('hidden', !pakaiMinOrder || method !== 'ukuran');
         document.getElementById('field_min_qty').classList.toggle('hidden', !pakaiMinOrder || method === 'ukuran');
 
+        // Minimum luas per kelompok hanya bermakna untuk produk 'ukuran'. Tidak
+        // digotong ke pembersihan toggle di bawah - toggle itu milik aturan
+        // per-baris, bukan aturan akumulasi order.
+        document.getElementById('field_min_luas').classList.toggle('hidden', method !== 'ukuran');
+
         // "Tanpa Minimal Order" mengosongkan field yang disembunyikan (tersimpan
         // 0 di server, sama artinya tanpa batas minimum) - supaya angka lama
         // tidak diam-diam ikut tersubmit padahal sudah dipilih "Tidak".
@@ -449,6 +470,8 @@
             form.querySelector('input[name="min_p"]').value = data.produk.min_panjang || '';
             form.querySelector('input[name="min_l"]').value = data.produk.min_lebar || '';
             form.querySelector('input[name="min_order_qty"]').value = data.produk.metode_hitung === 'quantity' ? (data.produk.min_order || '') : '';
+            form.querySelector('input[name="min_luas_total"]').value = (parseFloat(data.produk.min_luas_total) > 0) ? data.produk.min_luas_total : '';
+            form.querySelector('input[name="kelompok_minimum"]').value = data.produk.kelompok_minimum || '';
             form.querySelector('textarea[name="keterangan"]').value = (data.produk.keterangan && data.produk.keterangan !== '-') ? data.produk.keterangan : '';
 
             // Tidak ada kolom tersendiri utk toggle "pakai minimal order?" -

@@ -76,6 +76,8 @@ public function index(Request $request)
             'id_bahan' => 'required|array'
         ]);
 
+        $this->validasiMinimumKelompok($request);
+
         return DB::transaction(function () use ($request) {
             // Hitung Min Order
             $minPanjang = (float) ($request->min_p ?? 0);
@@ -83,6 +85,12 @@ public function index(Request $request)
             $minOrderValue = ($request->metode_hitung == 'ukuran')
                 ? ($minPanjang * $minLebar) / 10000
                 : ($request->min_order_qty ?? 0);
+
+            // Minimum luas per kelompok (hybrid T4-A) - hanya bermakna utk metode
+            // 'ukuran'; produk quantity selalu 0 (akumulasi m² tiap berarti di sana).
+            $minLuasTotal = ($request->metode_hitung == 'ukuran') ? (float) ($request->min_luas_total ?? 0) : 0;
+            $kelompokMinimum = ($request->metode_hitung == 'ukuran' && trim((string) $request->kelompok_minimum) !== '')
+                ? trim($request->kelompok_minimum) : null;
 
             // 1. Insert Produk
             $id_produk = DB::table('produk')->insertGetId([
@@ -94,6 +102,8 @@ public function index(Request $request)
                 'min_order'     => $minOrderValue,
                 'min_panjang'   => $minPanjang,
                 'min_lebar'     => $minLebar,
+                'min_luas_total' => $minLuasTotal,
+                'kelompok_minimum' => $kelompokMinimum,
                 'keterangan'    => $request->keterangan ?? '-',
                 'status'        => 'aktif',
                 'created_at'    => now(),
@@ -128,11 +138,31 @@ public function index(Request $request)
             // karena controller ini menulis lewat DB::table() (Eloquent tidak
             // pernah terlibat).
             AuditLogger::log('created', 'produk', (int) $id_produk, null, [
-                'nama_produk' => $request->nama_produk, 'metode_hitung' => $request->metode_hitung, 'bom' => $bomData,
+                'nama_produk' => $request->nama_produk, 'metode_hitung' => $request->metode_hitung,
+                'min_luas_total' => $minLuasTotal, 'kelompok_minimum' => $kelompokMinimum, 'bom' => $bomData,
             ], 'Produk baru dibuat beserta BOM-nya');
 
             return redirect()->back()->with('success', 'Master Produk & Engineering BOM berhasil disimpan!');
         });
+    }
+
+    /**
+     * Minimum luas per kelompok (hybrid T4-A) hanya bermakna berpasangan:
+     * min_luas_total diisi tanpa nama kelompok tidak bisa digrup-kan di
+     * checkout (selisih tidak tahu diroll-kan ke kelompok mana), jadi
+     * ditolak di master - bukan diam-diam jadi minimum tanpa kelompok.
+     */
+    private function validasiMinimumKelompok(Request $request): void
+    {
+        if ($request->metode_hitung != 'ukuran') {
+            return;
+        }
+
+        $minLuas = (float) ($request->min_luas_total ?? 0);
+        if ($minLuas > 0 && trim((string) $request->kelompok_minimum) === '') {
+            abort(redirect()->back()->withInput()
+                ->with('error', 'Nama Kelompok Minimum wajib diisi kalau Min. Luas Total Kelompok diisi.'));
+        }
     }
 
     /**
@@ -207,6 +237,12 @@ public function show($id)
                 ? ($minPanjang * $minLebar) / 10000
                 : ($request->min_order_qty ?? $request->min_order ?? 0);
 
+            // Sama seperti store(): minimum luas kelompok hanya utk metode 'ukuran'.
+            $this->validasiMinimumKelompok($request);
+            $minLuasTotal = ($request->metode_hitung == 'ukuran') ? (float) ($request->min_luas_total ?? 0) : 0;
+            $kelompokMinimum = ($request->metode_hitung == 'ukuran' && trim((string) $request->kelompok_minimum) !== '')
+                ? trim($request->kelompok_minimum) : null;
+
             // BOM lama diambil SEBELUM delete&re-insert supaya bisa dicatat
             // ke audit_logs (lihat catatan di bawah, dekat AuditLogger::log).
             $bomLama = DB::table('bom_detail')->where('id_produk', $id)->get(['id_bahan', 'cara_hitung_pemakaian'])->toArray();
@@ -221,6 +257,8 @@ public function show($id)
                 'min_order'     => $minOrderValue,
                 'min_panjang'   => $minPanjang,
                 'min_lebar'     => $minLebar,
+                'min_luas_total' => $minLuasTotal,
+                'kelompok_minimum' => $kelompokMinimum,
                 'keterangan'    => $request->keterangan ?? '-',
                 'updated_at'    => now(),
             ]);
@@ -258,7 +296,16 @@ public function show($id)
             $bomBaruUntukLog = collect($request->id_bahan ?? [])->filter()
                 ->map(fn ($v, $k) => ['id_bahan' => $v, 'cara_hitung_pemakaian' => $request->cara_hitung_pemakaian[$k] ?? 'Q'])
                 ->values()->all();
-            AuditLogger::log('updated', 'produk', (int) $id, ['bom' => $bomLama], ['bom' => $bomBaruUntukLog], 'BOM produk diperbarui (atau disimpan ulang tanpa perubahan)');
+            AuditLogger::log('updated', 'produk', (int) $id, [
+                'bom' => $bomLama, 'minimum_kelompok' => [
+                    'min_luas_total' => $terkini->min_luas_total ?? null,
+                    'kelompok_minimum' => $terkini->kelompok_minimum ?? null,
+                ],
+            ], [
+                'bom' => $bomBaruUntukLog, 'minimum_kelompok' => [
+                    'min_luas_total' => $minLuasTotal, 'kelompok_minimum' => $kelompokMinimum,
+                ],
+            ], 'BOM & minimum kelompok produk diperbarui (atau disimpan ulang tanpa perubahan)');
 
             return redirect()->back()->with('success', 'Update Produk & Engineering Berhasil.');
         });
