@@ -1607,15 +1607,16 @@
                 <kbd class="text-[10px] font-medium text-slate-400 bg-white border border-slate-200 rounded px-1 py-0.5 hidden sm:inline">Ctrl K</kbd>
             </button>
 
-            {{-- Dark mode & garis card: hanya Administrator --}}
+            {{-- Dark mode: hanya Administrator --}}
             @if(str_starts_with((string) (optional(Auth::user()->role)->nama_role ?? ''), 'Administrator'))
             <button type="button" id="tema-toggle" onclick="ubahTema()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Ganti ke mode gelap" aria-label="Ganti mode gelap atau terang">
                 <i class="fas fa-moon" id="tema-ikon"></i>
             </button>
+            @endif
+            {{-- Garis card: tampil untuk semua role (preferensi tampilan personal) --}}
             <button type="button" id="gariscard-toggle" onclick="ubahGarisCard()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Garis card: tampil/sembunyikan" aria-label="Ganti garis tepi card">
                 <i class="fas fa-border-all" id="gariscard-ikon"></i>
             </button>
-            @endif
             @php $notifAwal = \App\Services\NotifikasiService::untuk(Auth::user()); @endphp
             <div class="relative">
                 <button type="button" id="notif-btn" onclick="toggleNotif(event)" class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Notifikasi & pekerjaan masuk">
@@ -1632,14 +1633,11 @@
             </div>
             @php $namaTampil = optional(Auth::user()->karyawan)->nama_karyawan ?? Auth::user()->username; @endphp
             <div class="relative hidden sm:block" id="profil-menu-wrap">
-                <button type="button" onclick="toggleProfilMenu()" class="flex items-center gap-2 pl-3 border-l border-slate-200 h-9" aria-haspopup="true" aria-expanded="false" id="profil-menu-btn">
-                    <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-xs shrink-0">
+                <button type="button" onclick="toggleProfilMenu()" class="flex items-center gap-2 pl-2 pr-3 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" aria-haspopup="true" aria-expanded="false" id="profil-menu-btn" title="Profil &amp; Keluar">
+                    <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-xs shrink-0">
                         {{ strtoupper(substr($namaTampil, 0, 1)) }}
                     </div>
-                    <div class="flex flex-col leading-tight min-w-0 max-w-[9rem]">
-                        <span class="text-[12px] font-medium text-slate-700 truncate">{{ $namaTampil }}</span>
-                        <span class="text-[9px] font-medium text-slate-400 uppercase tracking-wide truncate">{{ optional(Auth::user()->role)->nama_role }}</span>
-                    </div>
+                    <span class="text-[12px] font-medium text-slate-700 max-w-[8rem] truncate">{{ $namaTampil }}</span>
                     <i class="fas fa-chevron-down text-[9px] text-slate-400"></i>
                 </button>
                 <div id="profil-menu-panel" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-slate-200 shadow-xl z-50 overflow-hidden">
