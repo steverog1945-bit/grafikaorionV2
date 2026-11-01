@@ -168,7 +168,7 @@
                      dataset konsumen puluhan ribu TIDAK lagi diseret ke
                      browser tiap buka POS. Konsumen awal (redirect
                      ?id_konsumen=) dirender server supaya langsung tampil. --}}
-                <select id="id_konsumen" name="id_konsumen" class="select2-konsumen">
+                <select id="id_konsumen" name="id_konsumen" class="select2-konsumen" tabindex="1">
                     <option value="">Cari Nama / No. HP...</option>
                     @foreach($konsumenAwal as $k)
                         <option value="{{ $k->id_konsumen }}"
@@ -349,7 +349,7 @@
 
             <div class="space-y-2.5">
                 <x-form.group label="Kategori">
-                    <x-form.select id="filter_kategori" onchange="filterProduk(this.value)" autocomplete="off">
+                    <x-form.select id="filter_kategori" onchange="filterProduk(this.value)" autocomplete="off" tabindex="2">
                         <option value="all">Semua Kategori</option>
                         @foreach($kategori as $kat)
                             <option value="{{ $kat->id_kategori }}">{{ $kat->nama_kategori }}</option>
@@ -358,7 +358,7 @@
                 </x-form.group>
 
                 <x-form.group label="Pilih Produk">
-                    <select id="select_produk" onchange="getDetailProduk()" class="select2-produk w-full" disabled data-qp-saring="#filter_kategori" data-qp-kunci="Pilih kategori dulu, baru produk.">
+                    <select id="select_produk" onchange="getDetailProduk()" class="select2-produk w-full" disabled data-qp-saring="#filter_kategori" data-qp-kunci="Pilih kategori dulu, baru produk." tabindex="3">
                         <option value="">-- Ketik Nama Produk --</option>
                         @foreach($produk as $p)
                             <option value="{{ $p->id_produk }}" data-kategori="{{ $p->id_kategori }}" data-metode="{{ $p->metode_hitung }}" data-siap-cetak="{{ in_array((int) $p->id_produk, $produkSiapCetak, true) ? 1 : 0 }}">{{ $p->nama_produk }}</option>
@@ -410,7 +410,7 @@
                     <div class="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="Status urgensi">
                         <label class="flex min-w-0 h-[38px] items-center justify-center gap-1.5 rounded-lg pil-pilih px-2 text-[11px] font-medium text-slate-700 cursor-pointer"
                                title="Pengerjaan sesuai antrean normal">
-                            <input type="radio" name="status_urgensi_radio" value="Normal" checked onchange="setUrgensiRadio(this.value)" class="sr-only">
+                            <input type="radio" name="status_urgensi_radio" value="Normal" checked onchange="setUrgensiRadio(this.value)" class="sr-only" tabindex="4">
                             <span class="truncate">Normal</span>
                         </label>
                         <label class="flex min-w-0 h-[38px] items-center justify-center gap-1.5 rounded-lg pil-pilih px-2 text-[11px] font-medium text-slate-700 cursor-pointer"
@@ -430,7 +430,7 @@
 
                 <div>
                     <label for="input_catatan_produksi" class="block text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Catatan Produksi</label>
-                    <textarea id="input_catatan_produksi" rows="1"
+                    <textarea id="input_catatan_produksi" rows="1" tabindex="5"
                               placeholder="Tulis catatan ... (opsional)"
                               class="w-full h-[38px] min-h-[38px] resize-none bg-white border border-slate-200 rounded-lg px-3 py-2 text-[13px] leading-none text-slate-700 focus:border-[#006C7B] focus:ring-2 focus:ring-[#006C7B]/15 transition-colors"></textarea>
                 </div>
@@ -469,7 +469,7 @@
                             <span class="text-[11px] font-medium text-slate-700">Pilih File</span>
                             <span id="thumbnail_nama" class="text-[10px] text-slate-400 truncate max-w-full block w-full">Gambar (JPG, PNG, WEBP, GIF, BMP) atau PDF (otomatis jadi gambar) atau CDR/AI/EPS - maks 10 MB, dokumen maks 39 MB</span>
                         </label>
-                        <input type="file" id="input_thumbnail"
+                        <input type="file" id="input_thumbnail" tabindex="6"
                                accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/svg+xml,image/tiff,application/pdf,.pdf,.cdr,.ai,.eps,.psd,.tif,.tiff,.heic"
                                onchange="uploadThumbnail(this)"
                                class="sr-only">
@@ -502,15 +502,15 @@
                     <div class="grid grid-cols-3 gap-2.5">
                         <div>
                             <label class="block text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Panjang (cm)</label>
-                            <input type="number" id="input_p" onchange="hitungSubtotal()" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-2 text-[13px] font-medium text-slate-700 text-center focus:border-[#006C7B] focus:ring-2 focus:ring-[#006C7B]/15">
+                            <input type="number" id="input_p" onchange="hitungSubtotal()" tabindex="7" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-2 text-[13px] font-medium text-slate-700 text-center focus:border-[#006C7B] focus:ring-2 focus:ring-[#006C7B]/15">
                         </div>
                         <div>
                             <label class="block text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Lebar (cm)</label>
-                            <input type="number" id="input_l" onchange="hitungSubtotal()" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-2 text-[13px] font-medium text-slate-700 text-center focus:border-[#006C7B] focus:ring-2 focus:ring-[#006C7B]/15">
+                            <input type="number" id="input_l" onchange="hitungSubtotal()" tabindex="7" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-2 text-[13px] font-medium text-slate-700 text-center focus:border-[#006C7B] focus:ring-2 focus:ring-[#006C7B]/15">
                         </div>
                         <div>
                             <label class="block text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Qty</label>
-                            <input type="number" id="input_qty_ukuran" onchange="hitungSubtotal()" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-2 text-[13px] font-medium text-slate-700 text-center focus:border-[#006C7B] focus:ring-2 focus:ring-[#006C7B]/15" value="1">
+                            <input type="number" id="input_qty_ukuran" onchange="hitungSubtotal()" tabindex="7" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-2 text-[13px] font-medium text-slate-700 text-center focus:border-[#006C7B] focus:ring-2 focus:ring-[#006C7B]/15" value="1">
                         </div>
                     </div>
                     <p id="note_ukuran" class="hidden mt-2 text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-snug">
@@ -1270,9 +1270,17 @@
             $('.select2-konsumen').val('{{ request('id_konsumen') }}').trigger('change');
         @endif
 
-        // Bantu handler .data('golongan') lama: option AJAX select2 tidak punya
-        // atribut data-*, jadi simpan metadata konsumen terpilih di cache element.
-        // simpanMetaKonsumen sudah didefinisikan di scope global di atas
+        // Fokus awal: pelanggan (select2) — alur input pesanan berurutan
+        // pelanggan -> kategori -> produk -> urgensi -> catatan -> upload file
+        // -> ukuran & qty. tabindex sudah diset di markup; di sini cukup
+        // fokuskan select2 pelanggan saat form pertama dibuka (kalau tidak
+        // terkunci oleh nota).
+        @if(!$notaKunci)
+        setTimeout(function () {
+            var $sel = $('.select2-konsumen');
+            if ($sel.length) { $sel.next('.select2-container').find('.select2-selection').focus(); }
+        }, 150);
+        @endif
 
         $('.select2-konsumen').on('select2:select', function (e) {
             // AJAX mode: metadata lewat e.params.data (dibawa prosesResults),

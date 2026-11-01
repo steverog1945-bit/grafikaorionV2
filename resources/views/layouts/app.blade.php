@@ -1630,19 +1630,21 @@
                 </div>
             </div>
             @php $namaTampil = optional(Auth::user()->karyawan)->nama_karyawan ?? Auth::user()->username; @endphp
-            <div class="hidden sm:flex flex-col items-end leading-tight">
-                <span class="text-[13px] font-medium text-slate-700">{{ $namaTampil }}</span>
-                <span class="text-[10px] font-medium text-slate-400 uppercase tracking-wide">{{ optional(Auth::user()->role)->nama_role }}</span>
+            <div class="hidden sm:flex items-center gap-2 pl-3 border-l border-slate-200">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-xs shrink-0">
+                    {{ strtoupper(substr($namaTampil, 0, 1)) }}
+                </div>
+                <div class="flex flex-col leading-tight min-w-0 max-w-[9rem]">
+                    <span class="text-[12px] font-medium text-slate-700 truncate">{{ $namaTampil }}</span>
+                    <span class="text-[9px] font-medium text-slate-400 uppercase tracking-wide truncate">{{ optional(Auth::user()->role)->nama_role }}</span>
+                </div>
+                <form action="{{ url('logout') }}" method="POST" class="ml-1">
+                    @csrf
+                    <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all" title="Keluar Sistem">
+                        <i class="fas fa-sign-out-alt text-sm"></i>
+                    </button>
+                </form>
             </div>
-            <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-sm shrink-0 ring-2 ring-indigo-50">
-                {{ strtoupper(substr($namaTampil, 0, 1)) }}
-            </div>
-            <form action="{{ url('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all" title="Keluar Sistem">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </form>
             </div>{{-- /baris desktop --}}
             </div>{{-- /#topbar-mobile-panel.
                  Penutup ini wajib ada SEBELUM #topbar-mobile-isi dibuka. Tanpa

@@ -21,9 +21,11 @@
         <button type="button" onclick="pindahTabPengaturan('nota')" id="tab-btn-nota" class="tab-btn-pengaturan px-5 py-3 text-xs font-medium uppercase tracking-widest border-b-2 border-transparent text-slate-400 hover:text-slate-600 whitespace-nowrap">
             <i class="fas fa-receipt mr-1.5"></i> Nota
         </button>
+        @if(str_starts_with((string) (optional(auth()->user()?->role)->nama_role ?? ''), 'Administrator'))
         <button type="button" onclick="pindahTabPengaturan('kas')" id="tab-btn-kas" class="tab-btn-pengaturan px-5 py-3 text-xs font-medium uppercase tracking-widest border-b-2 border-transparent text-slate-400 hover:text-slate-600 whitespace-nowrap">
             <i class="fas fa-cash-register mr-1.5"></i> Kas
         </button>
+        @endif
         @if(str_starts_with((string) (optional(auth()->user()?->role)->nama_role ?? ''), 'Administrator'))
             <a href="{{ route('pengaturan-aplikasi.tema.index') }}" class="px-5 py-3 text-xs font-medium uppercase tracking-widest text-slate-500 hover:text-indigo-600 whitespace-nowrap">
                 <i class="fas fa-palette mr-1.5"></i> Tema &amp; Tampilan
@@ -37,6 +39,16 @@
         {{-- TAB UMUM --}}
         <div id="tab-panel-umum" class="tab-panel-pengaturan">
             <x-card class="space-y-6">
+                {{-- MODE TAMPILAN (DARK MODE) --}}
+                <div class="rounded-2xl border border-slate-100 bg-slate-50 p-5 flex items-center justify-between gap-4">
+                    <div class="min-w-0">
+                        <span class="block text-sm font-medium text-slate-700">Mode Tampilan</span>
+                        <span class="block text-xs text-slate-400 mt-0.5">Gelap / terang. Preferensi disimpan di perangkat ini.</span>
+                    </div>
+                    <button type="button" onclick="ubahTema()" class="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700">
+                        <i class="fas fa-moon"></i> Ganti Tema
+                    </button>
+                </div>
                 <div class="flex items-center gap-5">
                     <div class="w-20 h-20 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
                         @if($setting->logo_path)
@@ -260,6 +272,7 @@
         </div>
 
         {{-- TAB KAS --}}
+        @if(str_starts_with((string) (optional(auth()->user()?->role)->nama_role ?? ''), 'Administrator'))
         <div id="tab-panel-kas" class="tab-panel-pengaturan hidden">
             <x-card class="space-y-6">
                 <div class="rounded-2xl border border-slate-100 bg-slate-50 p-5">
@@ -273,6 +286,7 @@
                 </div>
             </x-card>
         </div>
+        @endif
     </form>
 </div>
 
