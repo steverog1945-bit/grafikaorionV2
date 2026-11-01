@@ -8,7 +8,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -143,4 +143,51 @@ public function destroy($id)
 
     return back()->with('success', 'Akun user berhasil dihapus!');
 }
+
+    /**
+     * Upload foto profil sendiri (real-time). Menyimpan file di
+     * storage/app/public/profil/ dan mencatat nama file di users.foto_profil.
+     * Mengembalikan URL yang bisa langsung dipakai untuk preview.
+     */
+    public function uploadFoto(Request $request)
+    {
+        $request->validate([
+            'foto' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ]);
+
+        $user = Auth::user();
+        $disk = Storage::disk('public');
+
+        if ($user->foto_profil) {
+            $disk->delete('profil/' . $user->foto_profil);
+        }
+
+        $ext = $request->file('foto')->getClientOriginalExtension() ?: 'jpg';
+        $nama = 'u' . $user->id_user . '_' . time() . '.' . strtolower($ext);
+        $request->file('foto')->storeAs('profil', $nama, 'public');
+
+        $user->foto_profil = $nama;
+        $user->save();
+
+        return response()->json([
+            'ok' => true,
+            'url' => url('/storage/profil/' . $nama),
+            'nama' => $nama,
+        ]);
+    }
+
+    /**
+     * Hapus foto profil sendiri (kembali ke inisial).
+     */
+    public function hapusFoto()
+    {
+        $user = Auth::user();
+        $disk = Storage::disk('public');
+        if ($user->foto_profil) {
+            $disk->delete('profil/' . $user->foto_profil);
+            $user->foto_profil = null;
+            $user->save();
+        }
+        return response()->json(['ok' => true]);
+    }
 }

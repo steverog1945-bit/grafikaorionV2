@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class BerkasPrivatController extends Controller
 {
-    public const FOLDER = ['order_thumbnails', 'jersey_thumbnails', 'jersey_bukti_bayar', 'kas_kecil_bukti', 'bukti_serah_terima', 'berkas_order'];
+    public const FOLDER = ['order_thumbnails', 'jersey_thumbnails', 'jersey_bukti_bayar', 'kas_kecil_bukti', 'bukti_serah_terima', 'berkas_order', 'profil'];
 
     /**
      * Folder -> prefix rute di config/menu_access.php yang berhak melihat isinya. Id menunya dibaca dari konfigurasi
@@ -49,7 +49,13 @@ class BerkasPrivatController extends Controller
         abort_unless(in_array($folder, self::FOLDER, true), 404);
         abort_if(str_contains($path, '..') || str_contains($path, "\0") || str_contains($path, '\\'), 404);
 
-        abort_unless(\App\Support\Izin::boleh(auth()->user(), self::menuUntuk($folder), 'view'), 403);
+        // Foto profil: boleh diakses oleh pengguna yang login (miliknya sendiri).
+        // Folder lain tetap ikut aturan menu_access.
+        if ($folder !== 'profil') {
+            abort_unless(\App\Support\Izin::boleh(auth()->user(), self::menuUntuk($folder), 'view'), 403);
+        } else {
+            abort_unless(auth()->check(), 403);
+        }
 
         $relatif = $folder . '/' . $path;
         $disk = Storage::disk('public');

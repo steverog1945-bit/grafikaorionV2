@@ -29,7 +29,7 @@ class User extends Authenticatable
     // api_token juga dikeluarkan dari $fillable - token hanya ditulis
     // lewat App\Services\ApiTokenService (hash + kedaluwarsa).
     protected $fillable = [
-        'id_karyawan', 'username',
+        'id_karyawan', 'username', 'foto_profil',
     ];
 
     // Kredensial (web & API) tidak boleh tumpah dari serialisasi JSON

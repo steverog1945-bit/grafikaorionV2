@@ -1634,16 +1634,35 @@
             @php $namaTampil = optional(Auth::user()->karyawan)->nama_karyawan ?? Auth::user()->username; @endphp
             <div class="relative hidden sm:block" id="profil-menu-wrap">
                 <button type="button" onclick="toggleProfilMenu()" class="flex items-center gap-2 pl-2 pr-3 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" aria-haspopup="true" aria-expanded="false" id="profil-menu-btn" title="Profil &amp; Keluar">
-                    <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-xs shrink-0">
-                        {{ strtoupper(substr($namaTampil, 0, 1)) }}
-                    </div>
+                    @if(Auth::user()->foto_profil)
+                        <img id="profil-pill-avatar" src="{{ url('/storage/profil/' . Auth::user()->foto_profil) }}" class="w-7 h-7 rounded-full object-cover shrink-0" alt="Foto profil">
+                    @else
+                        <div id="profil-pill-avatar" class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-xs shrink-0">
+                            {{ strtoupper(substr($namaTampil, 0, 1)) }}
+                        </div>
+                    @endif
                     <span class="text-[12px] font-medium text-slate-700 max-w-[8rem] truncate">{{ $namaTampil }}</span>
                     <i class="fas fa-chevron-down text-[9px] text-slate-400"></i>
                 </button>
-                <div id="profil-menu-panel" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-slate-200 shadow-xl z-50 overflow-hidden">
-                    <div class="px-4 py-3 border-b border-slate-100">
-                        <div class="text-[12px] font-medium text-slate-700 truncate">{{ $namaTampil }}</div>
-                        <div class="text-[10px] font-medium text-slate-400 uppercase tracking-wide truncate">{{ optional(Auth::user()->role)->nama_role }}</div>
+                <div id="profil-menu-panel" class="hidden absolute right-0 mt-2 w-64 rounded-2xl bg-white border border-slate-200 shadow-xl z-50 overflow-hidden">
+                    <div class="px-4 py-4 border-b border-slate-100 flex items-center gap-3">
+                        <div class="relative shrink-0">
+                            @if(Auth::user()->foto_profil)
+                                <img id="profil-avatar-img" src="{{ url('/storage/profil/' . Auth::user()->foto_profil) }}" alt="Foto profil" class="w-12 h-12 rounded-full object-cover ring-2 ring-indigo-100">
+                            @else
+                                <div id="profil-avatar-inisial" class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-base">{{ strtoupper(substr($namaTampil, 0, 1)) }}</div>
+                                <img id="profil-avatar-img" src="" alt="Foto profil" class="w-12 h-12 rounded-full object-cover ring-2 ring-indigo-100 hidden">
+                            @endif
+                            <label for="profil-foto-input" class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] cursor-pointer hover:bg-indigo-700 shadow" title="Ganti foto">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                            <input type="file" id="profil-foto-input" accept="image/jpeg,image/png,image/webp" class="hidden">
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-[12px] font-medium text-slate-700 truncate">{{ $namaTampil }}</div>
+                            <div class="text-[10px] font-medium text-slate-400 uppercase tracking-wide truncate">{{ optional(Auth::user()->role)->nama_role }}</div>
+                            <div id="profil-foto-status" class="text-[10px] text-slate-400 mt-1">Klik ikon kamera untuk ganti foto.</div>
+                        </div>
                     </div>
                     <form action="{{ url('logout') }}" method="POST">
                         @csrf
@@ -1652,6 +1671,53 @@
                         </button>
                     </form>
                 </div>
+                <script>
+                (function () {
+                    var input = document.getElementById('profil-foto-input');
+                    var status = document.getElementById('profil-foto-status');
+                    if (!input) return;
+                    input.addEventListener('change', function () {
+                        var file = input.files && input.files[0];
+                        if (!file) return;
+                        if (file.size > 2 * 1024 * 1024) { status.textContent = 'Maks 2 MB.'; return; }
+                        var fd = new FormData();
+                        fd.append('foto', file);
+                        fd.append('_token', (document.querySelector('meta[name="csrf-token"]') || {}).content || '');
+                        status.textContent = 'Mengunggah...';
+                        // ambil csrf dari form logout kalau meta tidak ada
+                        if (!fd.get('_token')) {
+                            var t = document.querySelector('input[name="_token"]');
+                            if (t) fd.set('_token', t.value);
+                        }
+                        fetch('{{ route("profil.foto.upload") }}', { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                            .then(function (r) { return r.json(); })
+                            .then(function (d) {
+                                if (!d || !d.ok) { status.textContent = 'Gagal upload.'; return; }
+                                var img = document.getElementById('profil-avatar-img');
+                                var ini = document.getElementById('profil-avatar-inisial');
+                                if (img) { img.src = d.url + '?t=' + Date.now(); img.classList.remove('hidden'); }
+                                if (ini) ini.classList.add('hidden');
+                                // update avatar di topbar pill juga
+                                var pillAvatar = document.getElementById('profil-pill-avatar');
+                                if (pillAvatar) {
+                                    if (pillAvatar.tagName === 'DIV') {
+                                        var img = document.createElement('img');
+                                        img.id = 'profil-pill-avatar';
+                                        img.className = 'w-7 h-7 rounded-full object-cover shrink-0';
+                                        img.alt = 'Foto profil';
+                                        img.src = d.url + '?t=' + Date.now();
+                                        pillAvatar.parentNode.replaceChild(img, pillAvatar);
+                                    } else {
+                                        pillAvatar.src = d.url + '?t=' + Date.now();
+                                    }
+                                }
+                                status.textContent = 'Foto diperbarui.';
+                                input.value = '';
+                            })
+                            .catch(function () { status.textContent = 'Gagal upload.'; });
+                    });
+                })();
+                </script>
             </div>
             <script>
             function toggleProfilMenu() {
