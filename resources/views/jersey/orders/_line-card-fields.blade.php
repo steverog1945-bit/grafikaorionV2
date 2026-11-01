@@ -64,7 +64,7 @@
                 </select>
             </div>
         </div>
-        <p class="text-[10px] text-slate-400 leading-snug md:col-span-2">Untuk tipe tanpa lengan/kerah (mis. Celana), pilih entri "Tanpa Lengan"/"Tanpa Kerah" di Master Data; jika belum ada, tambahkan dulu di Pengaturan &gt; Master Lengan/Kerah.</p>
+        <p class="text-[10px] text-slate-400 leading-snug md:col-span-2">Lengan &amp; Kerah hanya muncul untuk tipe produk yang memilikinya (Jersey). Untuk Celana/tipe tanpa lengan-kerah, field ini disembunyikan otomatis dan tidak dikirim ke server.</p>
         <div class="md:col-span-2">
             <label for="jersey-{{ $idx }}-keterangan" class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Keterangan Desain</label>
             <textarea id="jersey-{{ $idx }}-keterangan" name="lines[{{ $idx }}][keterangan]" rows="2" placeholder="mis. Lengan kanan bendera, dada kiri logo klub..." class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $line->keterangan ?? '' }}</textarea>

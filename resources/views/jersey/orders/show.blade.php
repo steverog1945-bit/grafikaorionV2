@@ -672,16 +672,31 @@
         const card = source.closest ? source.closest('.jersey-line-card') : source;
         if (!card) return;
         const orderType = card.querySelector('input[name$="[order_type]"]:checked')?.value || 'quantity_only';
-        const tampilkanDefault = orderType !== 'player_list';
+
+        const selectProduk = card.querySelector('select[name$="[jersey_product_type_id]"]');
+        const opsiProduk = selectProduk?.selectedOptions?.[0];
+        const hasSleeveCollar = opsiProduk?.dataset?.hasSleeveCollar !== '0';
+
+        card.classList.toggle('tanpa-lengan-kerah', !hasSleeveCollar);
+
+        const tampilkanDefault = orderType !== 'player_list' && hasSleeveCollar;
         card.querySelectorAll('.wrapper-lengan-kerah-default').forEach(el => {
             el.classList.toggle('hidden', !tampilkanDefault);
-            // Sama seperti create & edit-lines: `required` harus dilepas saat
-            // wrapper disembunyikan. Tanpa ini, modal "Tambah Baris Susulan"
-            // di mode Daftar Pemain diam-diam tidak tersimpan: Chrome
-            // membatalkan submit karena <select required> tersembunyi tidak
-            // bisa difokus ("... is not focusable"), tanpa pesan apa pun.
             el.querySelectorAll('select, input').forEach(f => {
                 f.required = tampilkanDefault;
+                if (!hasSleeveCollar) {
+                    f.disabled = true;
+                    f.value = '';
+                } else {
+                    f.disabled = false;
+                }
+            });
+        });
+        card.querySelectorAll('.baris-pemain').forEach(row => {
+            row.querySelectorAll('select[name*="[jersey_sleeve_type_id]"], select[name*="[jersey_collar_type_id]"]').forEach(f => {
+                f.required = hasSleeveCollar;
+                f.disabled = !hasSleeveCollar;
+                if (!hasSleeveCollar) f.value = '';
             });
         });
     }

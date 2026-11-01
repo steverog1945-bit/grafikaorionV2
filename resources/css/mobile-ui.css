@@ -15,6 +15,11 @@
      menjalankan max-width:767px ini).
    ========================================================================== */
 
+/* Tipe jersey tanpa lengan/kerah (Celana): sembunyikan kolom & field-nya
+   seluruhnya, desktop maupun mobile. */
+.jersey-line-card.tanpa-lengan-kerah .col-lengan-kerah { display: none !important; }
+.jersey-line-card.tanpa-lengan-kerah .wrapper-lengan-kerah-default { display: none !important; }
+
 @import "./mobile-dashboard.css";   /* Fase 1 - dashboard */
 @import "./mobile-bahan.css";       /* Fase 2/3 - master bahan + tabel */
 @import "./mobile-modal.css";       /* Fase 4 - modal & form */

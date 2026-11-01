@@ -35,6 +35,10 @@
     padding: 0.5rem;
     font-size: 0.75rem;
 }
+/* Tipe tanpa lengan/kerah (Celana): sembunyikan kolom & field-nya
+   seluruhnya, desktop maupun mobile. */
+.jersey-line-card.tanpa-lengan-kerah .col-lengan-kerah { display: none; }
+.jersey-line-card.tanpa-lengan-kerah .wrapper-lengan-kerah-default { display: none; }
 </style>
 <div class="jersey-mobile-form-page w-full px-3 sm:px-5 lg:px-6 py-5">
 
@@ -314,45 +318,52 @@
     // punya lengan/kerah (mis. Celana) - dikelola lewat checkbox "Punya
     // Lengan & Kerah" di Master Data Tipe Produk, bukan hardcode nama.
     function perbaruiVisibilitasLenganKerah(source) {
-        // Audit kelengkapan: dropdown Lengan/Kerah TIDAK lagi disembunyikan
-        // untuk tipe produk tanpa lengan/kerah (mis. Celana) - master
-        // "Tanpa Lengan"/"Tanpa Kerah" WAJIB dipilih eksplisit supaya
-        // selalu tercatat di database. Wrapper default tetap disembunyikan
-        // di mode Daftar Pemain (pemakaiannya per pemain), bukan karena
-        // tidak ada pilihan.
+        // Tipe produk menentukan apakah Lengan/Kerah dipakai:
+        //   - has_sleeve_collar = 1 (Jersey): Lengan & Kerah WAJIB dipilih.
+        //   - has_sleeve_collar = 0 (Celana, dst.): TIDAK ada lengan/kerah,
+        //     field disembunyikan seluruhnya (default + kolom daftar pemain)
+        //     dan tidak dikirim ke server (disabled) supaya null.
+        // Sebelumnya Celana tetap menampilkan field dan memaksa pilih
+        // entri "Tanpa Lengan/Kerah" di master - itu UX buruk dan
+        // membingungkan (mana mungkin celana punya kerah).
         const card = source.closest ? source.closest('.jersey-line-card') : source;
         if (!card) return;
         const orderType = card.querySelector('input[name$="[order_type]"]:checked')?.value || 'quantity_only';
-        const tampilkanDefault = orderType !== 'player_list';
+
+        const selectProduk = card.querySelector('select[name$="[jersey_product_type_id]"]');
+        const opsiProduk = selectProduk?.selectedOptions?.[0];
+        const hasSleeveCollar = opsiProduk?.dataset?.hasSleeveCollar !== '0';
+
+        // Kartu tanpa lengan/kerah: sembunyikan kolom & wrapper lewat CSS
+        // (class toggle) - berlaku desktop & mobile.
+        card.classList.toggle('tanpa-lengan-kerah', !hasSleeveCollar);
+
+        const tampilkanDefault = orderType !== 'player_list' && hasSleeveCollar;
         card.querySelectorAll('.wrapper-lengan-kerah-default').forEach(el => {
             el.classList.toggle('hidden', !tampilkanDefault);
-            // Atribut `required` WAJIB ikut dilepas saat wrapper disembunyikan.
-            //
-            // Bug yang diperbaiki di sini: dropdown Lengan/Kerah punya
-            // `required` di HTML, tapi wrapper-nya disembunyikan (display:none)
-            // di mode Daftar Pemain. Browser menjalankan constraint validation
-            // SEBELUM event submit menyala; saat menemukan <select required>
-            // yang kosong DAN tersembunyi, Chrome tidak bisa memfokuskannya
-            // lalu membatalkan submit tanpa pesan apa pun:
-            //
-            //   An invalid form control with name='lines[0][jersey_sleeve_type_id]'
-            //   is not focusable.
-            //
-            // Akibatnya klik "Simpan Order" diam-diam tidak terjadi apa-apa:
-            // tidak ada request ke server, tidak ada pesan error, tombol
-            // tetap aktif. Terverifikasi di browser - submit event tidak
-            // pernah terpicu sama sekali.
-            //
-            // Field-nya tetap ENABLED (tidak `disabled`) supaya nilainya
-            // tetap terkirim ke server, dan validasi server tetap menolak
-            // order tanpa lengan/kerah pada mode yang memintanya.
             el.querySelectorAll('select, input').forEach(f => {
                 f.required = tampilkanDefault;
+                // Disable supaya nilai kosong tidak terkirim untuk tipe
+                // tanpa lengan/kerah (server menerima null). Untuk mode
+                // Daftar Pemain field default juga disabled (per pemain).
+                if (!hasSleeveCollar) {
+                    f.disabled = true;
+                    f.value = '';
+                } else {
+                    f.disabled = false;
+                }
+            });
+        // Player rows: toggle Lengan/Kerah columns/selects untuk tipe
+        // tanpa lengan/kerah (Celana) - kolom disembunyikan lewat CSS class
+        // di atas, di sini kita pastikan required & disabled ikut.
+        card.querySelectorAll('.baris-pemain').forEach(row => {
+            row.querySelectorAll('select[name*="[jersey_sleeve_type_id]"], select[name*="[jersey_collar_type_id]"]').forEach(f => {
+                f.required = hasSleeveCollar;
+                f.disabled = !hasSleeveCollar;
+                if (!hasSleeveCollar) f.value = '';
             });
         });
     }
-
-    // ---- Thumbnail: upload via klik-pilih-file ATAU tempel (Ctrl+V) ----
     // CATATAN PENTING: paste TIDAK dipasang langsung ke elemen dropzone
     // (dulu begitu, dan gagal). Kotak dropzone punya onclick yang memicu
     // .click() pada <input type=file> tersembunyi di dalamnya untuk buka

@@ -385,8 +385,8 @@ class JerseyOrderController extends Controller
             // disimpan karena user tidak punya UI untuk mengisinya.
             // Kolom di database sudah nullable dan diisi di baris penyimpan
             // memakai `!empty(...) ? (int) : null`, jadi null aman.
-            'lines.*.jersey_sleeve_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_sleeve_types,id'],
-            'lines.*.jersey_collar_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_collar_types,id'],
+            'lines.*.jersey_sleeve_type_id' => ['nullable', 'exists:jersey_sleeve_types,id'],
+            'lines.*.jersey_collar_type_id' => ['nullable', 'exists:jersey_collar_types,id'],
             'lines.*.keterangan' => 'nullable|string|max:2000',
             'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
@@ -414,8 +414,8 @@ class JerseyOrderController extends Controller
             // Audit kelengkapan: lengan/kerah pemain WAJIB dipilih (pilihan
             // "Tanpa Lengan"/"Tanpa Kerah" tersedia di master untuk barang
             // yang memang tidak memakainya - bukan dropdown dibiarkan kosong).
-            'lines.*.items.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
-            'lines.*.items.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
+            'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
+            'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
 
             'lines.*.size_quantities' => 'nullable|array',
             // Audit: KEY size_quantities adalah ID ukuran master (dari form
@@ -425,6 +425,8 @@ class JerseyOrderController extends Controller
         ], [
             'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi untuk setiap barang (acuan warna & bentuk produksi).',
         ]);
+
+        $this->validasiSleeveCollar($request);
 
         // Audit: size_quantities dikunci ke master SEBELUM transaksi dibuka -
         // key yang bukan ID ukuran master aktif ditolak dengan pesan validasi
@@ -1037,8 +1039,8 @@ class JerseyOrderController extends Controller
             // disimpan karena user tidak punya UI untuk mengisinya.
             // Kolom di database sudah nullable dan diisi di baris penyimpan
             // memakai `!empty(...) ? (int) : null`, jadi null aman.
-            'lines.*.jersey_sleeve_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_sleeve_types,id'],
-            'lines.*.jersey_collar_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_collar_types,id'],
+            'lines.*.jersey_sleeve_type_id' => ['nullable', 'exists:jersey_sleeve_types,id'],
+            'lines.*.jersey_collar_type_id' => ['nullable', 'exists:jersey_collar_types,id'],
             'lines.*.keterangan' => 'nullable|string|max:2000',
             'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
@@ -1066,8 +1068,8 @@ class JerseyOrderController extends Controller
             // Audit kelengkapan: lengan/kerah pemain WAJIB dipilih (pilihan
             // "Tanpa Lengan"/"Tanpa Kerah" tersedia di master untuk barang
             // yang memang tidak memakainya - bukan dropdown dibiarkan kosong).
-            'lines.*.items.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
-            'lines.*.items.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
+            'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
+            'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
 
             'lines.*.size_quantities' => 'nullable|array',
             // Audit: KEY size_quantities adalah ID ukuran master (dari form
@@ -1077,6 +1079,8 @@ class JerseyOrderController extends Controller
         ], [
             'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi untuk setiap barang (acuan warna & bentuk produksi).',
         ]);
+
+        $this->validasiSleeveCollar($request);
 
         // Audit: size_quantities dikunci ke master (lihat store()).
         foreach ($data['lines'] as $i => $lineData) {
@@ -1148,8 +1152,8 @@ class JerseyOrderController extends Controller
             // disimpan karena user tidak punya UI untuk mengisinya.
             // Kolom di database sudah nullable dan diisi di baris penyimpan
             // memakai `!empty(...) ? (int) : null`, jadi null aman.
-            'lines.*.jersey_sleeve_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_sleeve_types,id'],
-            'lines.*.jersey_collar_type_id' => ['nullable', 'required_unless:lines.*.order_type,player_list', 'exists:jersey_collar_types,id'],
+            'lines.*.jersey_sleeve_type_id' => ['nullable', 'exists:jersey_sleeve_types,id'],
+            'lines.*.jersey_collar_type_id' => ['nullable', 'exists:jersey_collar_types,id'],
             'lines.*.keterangan' => 'nullable|string|max:2000',
             'lines.*.thumbnail' => 'required|string|max:255',
             'lines.*.order_type' => 'required|in:quantity_only,player_list,mixed',
@@ -1177,8 +1181,8 @@ class JerseyOrderController extends Controller
             // Audit kelengkapan: lengan/kerah pemain WAJIB dipilih (pilihan
             // "Tanpa Lengan"/"Tanpa Kerah" tersedia di master untuk barang
             // yang memang tidak memakainya - bukan dropdown dibiarkan kosong).
-            'lines.*.items.*.jersey_sleeve_type_id' => 'required|exists:jersey_sleeve_types,id',
-            'lines.*.items.*.jersey_collar_type_id' => 'required|exists:jersey_collar_types,id',
+            'lines.*.items.*.jersey_sleeve_type_id' => 'nullable|exists:jersey_sleeve_types,id',
+            'lines.*.items.*.jersey_collar_type_id' => 'nullable|exists:jersey_collar_types,id',
 
             'lines.*.size_quantities' => 'nullable|array',
             // Audit: KEY size_quantities adalah ID ukuran master (dari form
@@ -1188,6 +1192,8 @@ class JerseyOrderController extends Controller
         ], [
             'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi.',
         ]);
+
+        $this->validasiSleeveCollar($request);
 
         // Audit: size_quantities dikunci ke master (lihat store()).
         foreach ($data['lines'] as $i => $lineData) {
