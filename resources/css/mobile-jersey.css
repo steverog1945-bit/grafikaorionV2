@@ -38,7 +38,16 @@
  .jersey-mobile-form-page #jersey-order-form button[type="submit"]{min-height:48px}
 }
 
-/* Jersey finance listing: keep amounts visible as aligned, role-controlled values. */
+/* Polish tambahan visual form jersey (mobile) - tanpa mengubah fungsi/field. */
+@media screen and (max-width:767.98px){
+ .jersey-mobile-form-page .line-type-option{min-height:44px;padding:10px 8px;font-size:13px;line-height:1.2}
+ .jersey-mobile-form-page .line-type-option input[type="radio"]{top:8px;right:8px}
+ .jersey-mobile-form-page .line-price-preview{padding:12px}
+ .jersey-mobile-form-page .line-price-preview-list li{padding:6px 0;gap:8px}
+ .jersey-mobile-form-page .jersey-line-card textarea{min-height:60px}
+ .jersey-mobile-form-page .jersey-line-card .thumbnail-dropzone{width:56px;height:56px}
+ .jersey-mobile-form-page .jersey-line-card .overflow-x-auto>table{min-width:640px}
+}
 @media screen and (max-width:767.98px){
  .jersey-mobile-finance-page{padding:16px 12px calc(130px + env(safe-area-inset-bottom,0px))}
  .jersey-mobile-finance-page .text-2xl{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
