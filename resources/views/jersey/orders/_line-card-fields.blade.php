@@ -64,44 +64,33 @@
                 </select>
             </div>
         </div>
-        <div class="md:col-span-2">
-            <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Keterangan Desain</label>
-            <textarea name="lines[{{ $idx }}][keterangan]" rows="2" placeholder="mis. Lengan kanan bendera, dada kiri logo klub..." class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $line->keterangan ?? '' }}</textarea>
-        </div>
-    </div>
-    <p class="text-[10px] text-slate-400 -mt-3 wrapper-lengan-kerah-default leading-snug">Lengan/Kerah default dipakai untuk mode <b>Qty per Ukuran</b> &amp; <b>Campuran</b> - Daftar Pemain pakai pilihan masing-masing pemain sendiri.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Keterangan Desain</label>
+                <textarea name="lines[{{ $idx }}][keterangan]" rows="2" placeholder="mis. Lengan kanan bendera, dada kiri logo klub..." class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">{{ $line->keterangan ?? '' }}</textarea>
+            </div>
 
-    {{-- Dropzone dimampatkan (dulu 128x128px + 2 baris teks instruksi di
-         dalam kotak) - sekarang 64x64px, instruksi cuma jadi title
-         (tooltip hover) supaya tidak makan tempat vertikal, status teks di
-         sampingnya juga dipersingkat. --}}
-    <div>
-        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Thumbnail Desain <span class="text-rose-500">*</span></label>
-        <div class="flex items-center gap-3">
-            <div class="thumbnail-dropzone w-16 h-16 rounded-lg bg-slate-50 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer transition-all hover:border-indigo-400 hover:bg-indigo-50/30" tabindex="0" onclick="this.querySelector('.thumbnail-file-input').click()" title="Klik, tempel (Ctrl+V), atau pilih file">
-                @php
-                    // Berkas desain non-gambar (PDF, CDR, AI, EPS) tidak bisa
-                    // ditampilkan peramban - kotak pratinjau menampilkan ikon
-                    // berkas, bukan gambar rusak. Elemen <img> tetap ada di
-                    // DOM (hidden) karena JS mencari .thumbnail-preview saat
-                    // berkas baru diunggah.
-                    $punyaBerkas = ($line->thumbnail ?? null) !== null;
-                    $thumbTampil = $punyaBerkas && \App\Support\BerkasDesain::bisaDitampilkan($line->thumbnail);
-                    $extThumb = $punyaBerkas ? strtoupper(\App\Support\BerkasDesain::ekstensi($line->thumbnail)) : '';
-                @endphp
-                <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-preview {{ $thumbTampil ? '' : 'hidden' }}" src="{{ $thumbTampil ? asset('storage/' . $line->thumbnail) : '' }}" alt="">
-                {{-- Thumbnail default untuk berkas desain non-gambar (CDR, AI, EPS,
-                     PSD) - supaya kotaknya tidak kosong. Nama file tetap dari
-                     berkas asli (status & path). --}}
-                <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-placeholder {{ ($punyaBerkas && !$thumbTampil) ? '' : 'hidden' }}" src="{{ asset('storage/default-thumbnail.png') }}" alt="Berkas desain" style="opacity: 0.5;">
-                <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/svg+xml,image/tiff,application/pdf,.pdf,.cdr,.ai,.eps,.psd,.tif,.tiff,.heic" onchange="uploadThumbnailLine(this)" class="hidden thumbnail-file-input">
-            </div>
-            <div class="flex-1 min-w-0">
-                <input type="hidden" name="lines[{{ $idx }}][thumbnail]" value="{{ $line->thumbnail ?? '' }}" class="thumbnail-path" required>
-                <p class="text-[11px] text-slate-400 thumbnail-status leading-snug">{{ $punyaBerkas ? ($thumbTampil ? 'Thumbnail siap. Klik kotak untuk mengganti.' : 'Berkas desain siap (' . $extThumb . '). File ada di server, dibuka tim produksi.') : 'Klik atau tempel (Ctrl+V) gambar desain di sini.' }}</p>
+            <div>
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Thumbnail Desain <span class="text-rose-500">*</span></label>
+                <div class="flex items-center gap-3">
+                    <div class="thumbnail-dropzone w-16 h-16 rounded-lg bg-slate-50 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer transition-all hover:border-indigo-400 hover:bg-indigo-50/30" tabindex="0" onclick="this.querySelector('.thumbnail-file-input').click()" title="Klik, tempel (Ctrl+V), atau pilih file">
+                        @php
+                            $punyaBerkas = ($line->thumbnail ?? null) !== null;
+                            $thumbTampil = $punyaBerkas && \App\Support\BerkasDesain::bisaDitampilkan($line->thumbnail);
+                            $extThumb = $punyaBerkas ? strtoupper(\App\Support\BerkasDesain::ekstensi($line->thumbnail)) : '';
+                        @endphp
+                        <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-preview {{ $thumbTampil ? '' : 'hidden' }}" src="{{ $thumbTampil ? asset('storage/' . $line->thumbnail) : '' }}" alt="">
+                        <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-placeholder {{ ($punyaBerkas && !$thumbTampil) ? '' : 'hidden' }}" src="{{ asset('storage/default-thumbnail.png') }}" alt="Berkas desain" style="opacity: 0.5;">
+                        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/svg+xml,image/tiff,application/pdf,.pdf,.cdr,.ai,.eps,.psd,.tif,.tiff,.heic" onchange="uploadThumbnailLine(this)" class="hidden thumbnail-file-input">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <input type="hidden" name="lines[{{ $idx }}][thumbnail]" value="{{ $line->thumbnail ?? '' }}" class="thumbnail-path" required>
+                        <p class="text-[11px] text-slate-400 thumbnail-status leading-snug">{{ $punyaBerkas ? ($thumbTampil ? 'Thumbnail siap. Klik kotak untuk mengganti.' : 'Berkas desain siap (' . $extThumb . '). File ada di server, dibuka tim produksi.') : 'Klik atau tempel (Ctrl+V) gambar desain di sini.' }}</p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+        <p class="text-[10px] text-slate-400 -mt-3 wrapper-lengan-kerah-default leading-snug">Lengan/Kerah default dipakai untuk mode <b>Qty per Ukuran</b> &amp; <b>Campuran</b> - Daftar Pemain pakai pilihan masing-masing pemain sendiri.</p>
 
     {{--
         pb-5 saja, TANPA px-5. Kartu ini tidak punya padding sendiri

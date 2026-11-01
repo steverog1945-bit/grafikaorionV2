@@ -1632,7 +1632,7 @@
                 </div>
             </div>
             @php $namaTampil = optional(Auth::user()->karyawan)->nama_karyawan ?? Auth::user()->username; @endphp
-            <div class="relative hidden sm:block" id="profil-menu-wrap">
+            <div class="relative sm:block" id="profil-menu-wrap">
                 <button type="button" onclick="toggleProfilMenu()" class="flex items-center gap-2 pl-2 pr-3 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" aria-haspopup="true" aria-expanded="false" id="profil-menu-btn" title="Profil &amp; Keluar">
                     @if(Auth::user()->foto_profil)
                         <img id="profil-pill-avatar" src="{{ url('/storage/profil/' . Auth::user()->foto_profil) }}" class="w-7 h-7 rounded-full object-cover shrink-0" alt="Foto profil">
