@@ -24,6 +24,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Tandai awal render untuk footer "Page rendered in X s" (lihat
+        // layouts/_app-footer). Bila index.php sudah mendefinisikan konstanta
+        // ini, biarkan nilai aslinya agar tidak menggeser waktu.
+        if (!defined('LARAVEL_START')) {
+            define('LARAVEL_START', microtime(true));
+        }
+
         // CATATAN instalasi subdirektori (XAMPP -> http://localhost/grafikaorion/public)
         //
         // SENGAJA TIDAK memakai URL::forceRootUrl() di sini.

@@ -195,7 +195,12 @@
     <div id="tab-panel-estimasi" class="jersey-tab-panel hidden">
         <x-card>
             {{-- Header deskripsi --}}
-            <p class="text-sm text-slate-500 leading-relaxed mb-6">Estimasi kebutuhan bahan per ukuran dan per komponen (Body/Lengan/Rib/Celana, dst) — dalam meter DAN berat. Data ini digunakan untuk menghitung otomatis "Spesifikasi Order" saat order dibuat. <strong class="text-slate-600">Catatan:</strong> Estimasi murni, bukan pemotongan stok riil. Isi sel yang tidak dikenal; kolom <strong class="text-indigo-600">Total</strong> menjumlahkan seluruh komponen aktif per ukuran — perkiraan total bahan untuk SATU baju ukuran itu.</p>
+            {{-- Header: satu kalimat + tombol bantuan "?" untuk semua catatan
+                 panjang, supaya halaman tidak dipenuhi blok teks hint. --}}
+            <div class="flex items-start justify-between gap-4 mb-6">
+                <p class="text-sm text-slate-500 leading-relaxed">Estimasi kebutuhan bahan per ukuran & komponen, dalam <b class="text-slate-600">meter</b> dan <b class="text-slate-600">gram</b> — dipakai otomatis untuk "Spesifikasi Order".</p>
+                <button type="button" onclick="bantuanEstimasi('utama')" class="shrink-0 h-7 w-7 inline-flex items-center justify-center rounded-full border border-indigo-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition" title="Penjelasan estimasi bahan" aria-label="Penjelasan estimasi bahan"><i class="fas fa-question text-[10px]"></i></button>
+            </div>
 
             {{-- Form tambah komponen baru --}}
             <div class="mb-6">
@@ -210,8 +215,8 @@
                         @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                     </select>
                     <button type="submit" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-500 transition">Tambah Komponen</button>
+                    <button type="button" onclick="bantuanEstimasi('komponen')" class="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-xl border border-indigo-200 bg-white text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition" title="Kapan perlu cakupan Tipe/Kategori?" aria-label="Penjelasan cakupan komponen"><i class="fas fa-question text-[11px]"></i></button>
                 </form>
-                <p class="text-[10px] text-slate-500 mt-2">Kosongkan Tipe Produk/Kategori kalau komponen berlaku untuk SEMUA barang (mis. Body). Isi salah satu/keduanya kalau komponen cuma relevan untuk barang tertentu (mis. komponen "Celana" cuma untuk Tipe Produk Celana) — supaya SPK cuma menampilkan estimasi yang benar-benar dipakai barangnya.</p>
             </div>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-estimasi', 'placeholder' => 'Cari nama ukuran...'])
 
@@ -283,9 +288,10 @@
                         </tbody>
                     </table>
                 </div>
-                <p class="text-xs text-slate-400 mb-4">Estimasi bahan untuk Tipe Lengan & Tipe Kerah - kelola daftar tipenya di tab <b class="text-slate-500">Tipe Lengan</b>/<b class="text-slate-500">Tipe Kerah</b>, isi angka pemakaiannya di sini per ukuran. Order mode Daftar Pemain/Campuran memakai pilihan lengan/kerah masing-masing pemain; mode Qty per Ukuran memakai pilihan default di level barang.</p>
-
-                <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest mb-2">Estimasi Lengan (meter &amp; gram)</p>
+                <div class="flex items-center justify-between gap-3 mb-2">
+                    <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest">Estimasi Lengan (meter &amp; gram)</p>
+                    <button type="button" onclick="bantuanEstimasi('lenganKerah')" class="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-full border border-indigo-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition" title="Penjelasan estimasi lengan & kerah" aria-label="Penjelasan estimasi lengan dan kerah"><i class="fas fa-question text-[9px]"></i></button>
+                </div>
                 <div class="overflow-x-auto mb-6">
                     <table class="w-full text-xs border-collapse" id="tabel-estimasi-lengan">
                         <thead>
@@ -322,7 +328,10 @@
                     </table>
                 </div>
 
-                <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest mb-2">Estimasi Kerah (meter &amp; gram)</p>
+                <div class="flex items-center justify-between gap-3 mb-2">
+                    <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest">Estimasi Kerah (meter &amp; gram)</p>
+                    <button type="button" onclick="bantuanEstimasi('lenganKerah')" class="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-full border border-indigo-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition" title="Penjelasan estimasi lengan & kerah" aria-label="Penjelasan estimasi lengan dan kerah"><i class="fas fa-question text-[9px]"></i></button>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs border-collapse" id="tabel-estimasi-kerah">
                         <thead>
@@ -365,7 +374,10 @@
     {{-- TIER HARGA --}}
     <div id="tab-panel-harga" class="jersey-tab-panel hidden">
         <x-card>
-            <p class="text-xs text-slate-400 mb-4">Harga sekarang berpusat pada <b class="text-slate-500">Bahan</b> - tiap bahan bisa punya tier qty & harga sendiri karena selisih harga belanja antar bahan bisa sangat jauh. Kosongkan Bahan/Tipe Produk/Kategori untuk membuat tier "berlaku umum" (fallback kalau tidak ada tier spesifik yang cocok). Pencarian harga otomatis memilih tier paling spesifik yang cocok dengan bahan & qty tiap baris barang.</p>
+            <div class="flex items-start justify-between gap-4 mb-4">
+                <p class="text-xs text-slate-500 leading-relaxed">Harga berpusat pada <b class="text-slate-600">Bahan</b> — tiap bahan bisa punya tier qty & harga sendiri. Tier pencarian dipilih otomatis sesuai bahan & qty tiap baris order.</p>
+                <button type="button" onclick="bantuanHarga()" class="shrink-0 h-7 w-7 inline-flex items-center justify-center rounded-full border border-indigo-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition" title="Penjelasan tier harga" aria-label="Penjelasan tier harga"><i class="fas fa-question text-[10px]"></i></button>
+            </div>
             <div id="input-cepat-harga" class="mb-6 bg-emerald-50/40 p-4 rounded-2xl border border-emerald-100">
                 <div class="flex items-center justify-between gap-2 mb-3">
                     <h3 class="text-xs font-medium text-emerald-700 uppercase tracking-widest"><i class="fas fa-table-cells mr-1"></i> Input Cepat per Tipe Produk</h3>
@@ -464,10 +476,14 @@
                     </x-button>
                 </div>
             </form>
-            <div class="flex items-center gap-3 mb-3">
+            <div class="flex flex-wrap items-center gap-3 mb-4">
                 <button type="button" id="btn-bulk-hapus-harga" onclick="bulkHapusHarga()" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-medium uppercase tracking-widest hover:bg-rose-100 disabled:opacity-40" disabled><i class="far fa-trash-alt mr-1"></i> Hapus Terpilih</button>
                 <span id="bulk-info-harga" class="text-[10px] text-slate-400"></span>
             </div>
+            {{-- Filter tier: grid seragam, tiap kontrol tepat satu kolom
+                 (termasuk tombol Reset) supaya barisannya sejajar dan tidak
+                 tampil acak saat kontrol membungkus. --}}
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
                 <select id="filter-harga-bahan" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">Semua Bahan</option>
                     @foreach($materials->where('is_active', true) as $m)<option class="opsi-bahan" value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
@@ -480,7 +496,17 @@
                     <option value="">Semua Kategori</option>
                     @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
                 </select>
-                <button type="button" onclick="resetFilterHarga()" class="flex items-center justify-center gap-2 bg-slate-100 text-slate-500 rounded-xl py-2.5 px-3 text-xs font-medium uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-all">
+                <select id="filter-harga-golongan" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <option value="">Semua Golongan</option>
+                    {{-- PK tabel golongan_konsumen = id_golongan (bukan id) --}}
+                    @foreach($golongans as $g)<option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>@endforeach
+                </select>
+                <select id="filter-harga-kelompok" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <option value="">Dewasa & Anak</option>
+                    <option value="dewasa">Dewasa</option>
+                    <option value="anak">Anak</option>
+                </select>
+                <button type="button" onclick="resetFilterHarga()" class="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-500 rounded-xl py-2.5 px-3 text-xs font-medium uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200 transition-all">
                     <i class="fas fa-undo-alt text-[10px]"></i> Reset Filter
                 </button>
             </div>
@@ -655,6 +681,57 @@
     const ToastJersey = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2200, timerProgressBar: true });
     function tampilkanToastJersey(message, sukses = true) {
         ToastJersey.fire({ icon: sukses ? 'success' : 'error', title: message });
+    }
+
+    // Tombol "?" menggantikan blok-blok teks hint: penjelasan lengkap tampil
+    // sekali dibuka, halaman tetap bersih. Konten dikelompokkan per bagian.
+    function bantuanEstimasi(bagian) {
+        const isi = {
+            utama: {
+                judul: 'Cara kerja estimasi bahan',
+                html: `
+                    <div class="text-left text-sm text-slate-600 space-y-2">
+                        <p><b class="text-slate-700">Estimasi murni</b>, bukan pemotongan stok. Isi sel meter <i>dan</i> gram per komponen & ukuran; angka dipakai untuk menghitung "Spesifikasi Order" saat order dibuat.</p>
+                        <p>Kolom <b class="text-indigo-600">Total</b> menjumlahkan semua komponen aktif per ukuran = perkiraan total bahan untuk <b>satu baju</b> ukuran itu.</p>
+                        <p class="text-slate-400 text-xs">Belum tahu angkanya? Mulai dari angka acuan default, lalu koreksi dari hasil potong lapangan.</p>
+                    </div>`,
+            },
+            komponen: {
+                judul: 'Cakupan komponen',
+                html: `
+                    <div class="text-left text-sm text-slate-600 space-y-2">
+                        <p>Kosongkan Tipe Produk/Kategori kalau komponen berlaku untuk <b>semua</b> barang (mis. Body).</p>
+                        <p>Isi salah satu atau keduanya kalau komponen hanya relevan untuk barang tertentu (mis. "Celana" hanya untuk Tipe Produk Celana) — supaya SPK hanya menampilkan estimasi yang benar-benar dipakai.</p>
+                    </div>`,
+            },
+            lenganKerah: {
+                judul: 'Estimasi tipe lengan & kerah',
+                html: `
+                    <div class="text-left text-sm text-slate-600 space-y-2">
+                        <p>Kelola daftar tipenya di tab <b class="text-slate-700">Tipe Lengan</b>/<b class="text-slate-700">Tipe Kerah</b>; angka pemakaiannya diisi di sini per ukuran.</p>
+                        <p>Order mode <b>Daftar Pemain</b>/<b>Campuran</b> memakai pilihan lengan/kerah masing-masing pemain; mode <b>Qty per Ukuran</b> memakai pilihan default di level barang.</p>
+                    </div>`,
+            },
+        };
+        const c = isi[bagian];
+        if (!c) return;
+        Swal.fire({ title: c.judul, html: c.html, icon: 'info', confirmButtonColor: '#4f46e5', confirmButtonText: 'Mengerti' });
+    }
+
+    function bantuanHarga() {
+        Swal.fire({
+            title: 'Cara kerja tier harga',
+            html: `
+                <div class="text-left text-sm text-slate-600 space-y-2">
+                    <p>Setiap tier punya <b class="text-slate-700">cakupan</b>: Bahan + Tipe + Kategori + Golongan + Kelompok. Kosongkan sebagian cakupan untuk membuat tier "berlaku umum" sebagai fallback.</p>
+                    <p>Saat order dibuat, sistem memilih tier <b>paling spesifik</b> yang cocok dengan bahan & qty baris barang tersebut.</p>
+                    <p>Perhatikan ikon <span class="px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 text-[11px] font-medium uppercase">Golongan</span> dan <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[11px] font-medium uppercase">Anak</span> pada kolom Bahan — itu pembeda antar tier yang sama bahan-nya. Gunakan filter di atas tabel untuk melihat satu golongan saja.</p>
+                    <p>Sistem menolak rentang qty yang tumpang tindih pada cakupan yang sama supaya tidak ada dua harga aktif untuk rentang yang sama.</p>
+                </div>`,
+            icon: 'info',
+            confirmButtonColor: '#4f46e5',
+            confirmButtonText: 'Mengerti',
+        });
     }
 
     async function kirimJson(url, method, payload) {
@@ -1299,7 +1376,14 @@
         const r1 = await kirimKelompok('cepat-baris-dewasa', 'dewasa');
         const r2 = await kirimKelompok('cepat-baris-anak', 'anak');
         if (!r1 && !r2) { tampilkanToastJersey('Isi minimal satu tier (qty min & harga).', false); return; }
-        tampilkanToastJersey((r1?.message || '') + (r2 ? ' ' + r2.message : ''));
+        // Umpan balik selalu ada pesan: sebelumnya toast bisa kosong karena
+        // hanya satu kelompok yang terisi (kelompok kosong tidak ikut sukses).
+        const bagian = [];
+        if (r1?.message) bagian.push(r1.message);
+        if (r2?.message) bagian.push(r2.message);
+        if (r1 && !r2) bagian.push('Bagian anak kosong - dilewati.');
+        if (r2 && !r1) bagian.push('Bagian dewasa kosong - dilewati.');
+        tampilkanToastJersey(bagian.join(' '));
         setTimeout(() => { sessionStorage.setItem('jerseyTabAktif', 'harga'); location.reload(); }, 600);
     }
 
@@ -1333,11 +1417,17 @@
         const bahan = document.getElementById('filter-harga-bahan').value;
         const tipe = document.getElementById('filter-harga-tipe').value;
         const kategori = document.getElementById('filter-harga-kategori').value;
+        const golongan = document.getElementById('filter-harga-golongan').value;
+        const kelompok = document.getElementById('filter-harga-kelompok').value;
         terapkanFilterTabel('tbody-harga', (row) => {
             const cocokBahan = !bahan || row.dataset.materialId === bahan;
             const cocokTipe = !tipe || row.dataset.typeId === tipe;
             const cocokKategori = !kategori || row.dataset.categoryId === kategori;
-            return cocokBahan && cocokTipe && cocokKategori;
+            // Tier tanpa golongan disimpan dengan data-golongan-id kosong,
+            // jadi perbandingan string biasa cukup (bukan null vs "3").
+            const cocokGolongan = !golongan || row.dataset.golonganId === golongan;
+            const cocokKelompok = !kelompok || row.dataset.kelompok === kelompok;
+            return cocokBahan && cocokTipe && cocokKategori && cocokGolongan && cocokKelompok;
         }, 6);
     }
 
@@ -1345,16 +1435,18 @@
         document.getElementById('filter-harga-bahan').value = '';
         document.getElementById('filter-harga-tipe').value = '';
         document.getElementById('filter-harga-kategori').value = '';
+        document.getElementById('filter-harga-golongan').value = '';
+        document.getElementById('filter-harga-kelompok').value = '';
         terapkanFilterHarga();
     }
 
-    ['filter-harga-bahan', 'filter-harga-tipe', 'filter-harga-kategori'].forEach(id => {
+    ['filter-harga-bahan', 'filter-harga-tipe', 'filter-harga-kategori', 'filter-harga-golongan', 'filter-harga-kelompok'].forEach(id => {
         document.getElementById(id).addEventListener('change', terapkanFilterHarga);
     });
 
     function rowHargaHtml(row) {
         return `
-        <tr data-id="${row.id}" data-material-id="${row.jersey_material_id ?? ''}" data-type-id="${row.jersey_product_type_id ?? ''}" data-category-id="${row.jersey_category_id ?? ''}">
+        <tr data-id="${row.id}" data-material-id="${row.jersey_material_id ?? ''}" data-type-id="${row.jersey_product_type_id ?? ''}" data-category-id="${row.jersey_category_id ?? ''}" data-golongan-id="${row.id_golongan ?? ''}" data-kelompok="${row.kelompok ?? 'dewasa'}">
             <td class="p-2.5 text-center"><input type="checkbox" class="bulk-cb-harga" value="${row.id}" onchange="sinkronBulkHarga()"></td>
             <td class="p-2.5 font-medium text-indigo-600">${row.material ? escapeHtmlJersey(row.material.name) : 'Semua Bahan'}${row.kelompok === 'anak' ? '<span class="ml-2 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-medium uppercase">Anak</span>' : ''}${row.golongan ? '<span class="ml-2 px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 text-[9px] font-medium uppercase">' + escapeHtmlJersey(row.golongan.nama_golongan) + '</span>' : ''}</td>
             <td class="p-2.5">${row.product_type ? escapeHtmlJersey(row.product_type.name) : 'Semua'}</td>

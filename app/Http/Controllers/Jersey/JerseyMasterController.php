@@ -45,6 +45,10 @@ class JerseyMasterController extends Controller
             ->orderByRaw('jersey_material_id IS NULL')
             ->orderBy('jersey_material_id')
             ->orderBy('jersey_category_id')
+            // Kelompokkan per golongan (null = berlaku umum, taruh di bawah)
+            // lalu dewasa sebelum anak, supaya barisan tidak terlihat acak.
+            ->orderByRaw('id_golongan IS NULL, id_golongan')
+            ->orderByRaw("kelompok = 'anak'")
             ->orderBy('qty_min')
             ->get();
 
@@ -424,8 +428,50 @@ class JerseyMasterController extends Controller
             'kelompok' => 'nullable|in:dewasa,anak',
         ]);
         $data['kelompok'] = $data['kelompok'] ?? 'dewasa';
+        if ($bentrok = $this->tierTumpangTindih(
+            $data['jersey_product_type_id'] ?? null,
+            $data['jersey_category_id'] ?? null,
+            $data['jersey_material_id'] ?? null,
+            $data['kelompok'],
+            $data['id_golongan'] ?? null,
+            (int) $data['qty_min'],
+            isset($data['qty_max']) ? (int) $data['qty_max'] : null,
+        )) {
+            return response()->json(['success' => false, 'message' => $this->pesanTumpangTindih($bentrok, $data)], 422);
+        }
         $row = JerseyPriceSetting::create($data)->load(['productType', 'category', 'material', 'golongan']);
         return response()->json(['success' => true, 'message' => 'Tier harga berhasil ditambahkan.', 'row' => $row]);
+    }
+
+    /**
+     * Pengaman tier tumpang tindih: tolak bila rentang qty baru bertabrakan
+     * dengan tier lain pada cakupan yang sama persis (tipe + kategori +
+     * bahan + kelompok + golongan). qty_max null berarti rentang terbuka.
+     */
+    private function tierTumpangTindih(?int $typeId, ?int $categoryId, ?int $materialId, string $kelompok, ?int $golonganId, int $qtyMin, ?int $qtyMax, ?int $kecualiId = null): ?JerseyPriceSetting
+    {
+        $q = JerseyPriceSetting::query()
+            ->where('kelompok', $kelompok)
+            ->where(fn ($w) => $typeId === null ? $w->whereNull('jersey_product_type_id') : $w->where('jersey_product_type_id', $typeId))
+            ->where(fn ($w) => $categoryId === null ? $w->whereNull('jersey_category_id') : $w->where('jersey_category_id', $categoryId))
+            ->where(fn ($w) => $materialId === null ? $w->whereNull('jersey_material_id') : $w->where('jersey_material_id', $materialId))
+            ->where(fn ($w) => $golonganId === null ? $w->whereNull('id_golongan') : $w->where('id_golongan', $golonganId))
+            // Bentrok jika rentang yang sudah ada memotong rentang baru:
+            // mulainya paling akhir <= akhir baru, dan akhiriannya >= awal baru.
+            ->where('qty_min', '<=', $qtyMax ?? PHP_INT_MAX)
+            ->where(fn ($w) => $w->whereNull('qty_max')->orWhere('qty_max', '>=', $qtyMin));
+        if ($kecualiId !== null) {
+            $q->where('id', '!=', $kecualiId);
+        }
+        return $q->first();
+    }
+
+    private function pesanTumpangTindih(JerseyPriceSetting $tier, array $data): string
+    {
+        $baru = $data['qty_min'] . '-' . ($data['qty_max'] ?? '∞');
+        $lama = $tier->qty_min . '-' . ($tier->qty_max ?? '∞');
+        $skala = ['dewasa' => 'dewasa', 'anak' => 'anak'][($data['kelompok'] ?? $tier->kelompok) ?? 'dewasa'];
+        return "Rentang qty {$baru} tumpang tindih dengan tier {$lama} ({$skala}) yang sudah ada pada cakupan yang sama. Perpanjang/ubah tier lama itu, atau geser rentangnya.";
     }
 
     /**
@@ -499,6 +545,24 @@ class JerseyMasterController extends Controller
             'qty_max' => 'nullable|integer|gte:qty_min',
             'price' => 'required|numeric|min:0',
         ]);
+        // Scope edit = nilai yang dikirim; bila field tidak ada di payload,
+        // pakai nilai lama baris supaya cek lintas cakupan tidak salah kelas.
+        $scope = fn (string $field) => array_key_exists($field, $data)
+            ? $data[$field]
+            : $priceSetting->{$field};
+        if ($bentrok = $this->tierTumpangTindih(
+            $scope('jersey_product_type_id'),
+            $scope('jersey_category_id'),
+            $scope('jersey_material_id'),
+            $priceSetting->kelompok ?? 'dewasa',
+            $scope('id_golongan'),
+            (int) $data['qty_min'],
+            isset($data['qty_max']) ? (int) $data['qty_max'] : null,
+            $priceSetting->id,
+        )) {
+            $data['kelompok'] = $priceSetting->kelompok ?? 'dewasa';
+            return response()->json(['success' => false, 'message' => $this->pesanTumpangTindih($bentrok, $data)], 422);
+        }
         $priceSetting->update($data);
         $row = $priceSetting->fresh()->load(['productType', 'category', 'material', 'golongan']);
         return response()->json(['success' => true, 'message' => 'Tier harga berhasil diperbarui.', 'row' => $row]);

@@ -1783,6 +1783,7 @@
 
     <div class="content-wrapper">
          @yield('content')
+         @include('layouts._app-footer')
     </div>
 
     @php
