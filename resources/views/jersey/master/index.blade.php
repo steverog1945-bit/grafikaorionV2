@@ -439,6 +439,13 @@
                         @foreach($golongans as $g)<option value="{{ $g->id_golongan }}">{{ $g->nama_golongan }}</option>@endforeach
                     </select>
                 </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Kategori</label>
+                    <select name="jersey_category_id" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
+                        <option value="">-- Semua Kategori --</option>
+                        @foreach($categories->where('is_active', true) as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                    </select>
+                </div>
                 <div>
                     <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">Qty Min</label>
                     <input type="number" name="qty_min" placeholder="1" required min="1" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
@@ -1474,8 +1481,14 @@
         if (!konfirmasi.isConfirmed) return;
         const data = await kirimJson(`{{ url("/jersey/master/entity") }}/${entity}/${id}`, 'DELETE', {});
         if (!data) return;
-        var _tr = document.querySelector(`tr[data-id="${id}"]`);
-        if (_tr) _tr.remove();
+        // Penghapusan baris di-scope ke tbody milik entity - selector global
+        // `tr[data-id=".."]` tidak aman karena id bisa sama antar tab
+        // (mis. kategori id 9 vs tipe produk id 9; yang terhapus baris tipe,
+        // baris kategori tetap tampil sampai reload).
+        const cfg = entityConfig[entity];
+        const ruang = cfg ? '#' + cfg.tbody : '';
+        const tr = document.querySelector(`${ruang} tr[data-id="${id}"]`);
+        if (tr) tr.remove();
         tampilkanToastJersey(data.message);
     }
 
@@ -1502,7 +1515,15 @@
         let ok = 0;
         for (const id of finalIds) {
             const data = await kirimJson(`{{ url("/jersey/master/entity") }}/${entity}/${id}`, 'DELETE', {});
-            if (data) { ok++; var _tr = document.querySelector(`tr[data-id="${id}"]`); if (_tr) _tr.remove(); }
+            if (data) {
+                ok++;
+                // Scope ke tbody entity (lihat catatan hapusEntitas - id bisa
+                // bentrok antar tab, selector global menghapus baris salah).
+                const cfg = entityConfig[entity];
+                const ruang = cfg ? '#' + cfg.tbody : '';
+                const tr = document.querySelector(`${ruang} tr[data-id="${id}"]`);
+                if (tr) tr.remove();
+            }
         }
         tampilkanToastJersey(ok + ' data dihapus.');
     }
