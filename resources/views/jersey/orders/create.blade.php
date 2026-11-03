@@ -105,11 +105,6 @@
                             </div>
                         </x-form.group>
                         <div id="wrapper_desainer_jersey">
-                            @if(auth()->user() && optional(auth()->user()->role)->nama_role === 'Administrator' && !$desainerTerkunci)
-                                <div class="mb-2">
-                                    <button type="button" onclick="daftarDesainerSendiri()" class="text-[11px] text-indigo-600 hover:underline"><i class="fas fa-user-plus mr-1"></i> Jadikan saya desainer (ubah role ke Operator Desain)</button>
-                                </div>
-                            @endif
                             <x-form.group label="Desainer">
                                 @if($desainerTerkunci)
                                     <input type="hidden" id="input_desainer_jersey" name="id_desainer" value="{{ $desainerTerkunci }}">
@@ -137,12 +132,6 @@
                             }
                             function toggleDesainerSiapCetak() { setSiapCetak(document.getElementById('file_siap_cetak')?.value === '1'); }
                             document.addEventListener('DOMContentLoaded', toggleDesainerSiapCetak);
-                            async function daftarDesainerSendiri() {
-                                if (!confirm('Ubah role Anda menjadi Operator Desain? Anda akan kehilangan akses Administrator.')) return;
-                                const res = await fetch('{{ url("/jersey/become-desainer") }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' } });
-                                const data = await res.json().catch(() => null);
-                                if (data && data.success) { alert(data.message); location.reload(); } else { alert((data && data.message) || 'Gagal.'); }
-                            }
                         </script>
                     </div>
                 </x-card>

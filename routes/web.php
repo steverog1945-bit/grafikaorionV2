@@ -887,7 +887,6 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
         Route::post('/cek-kelengkapan', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'cekKelengkapan'])->name('orders.cek-kelengkapan');
         Route::post('/preview-harga', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'previewHarga'])->name('orders.preview-harga');
         Route::get('/master', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'index'])->name('master.index');
-Route::post('/become-desainer', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'becomeDesainer'])->name('become-desainer');
 
         Route::get('/keuangan', [\App\Http\Controllers\Jersey\JerseyFinanceController::class, 'index'])->name('keuangan.index');
         Route::post('/keuangan/{order}/bayar', [\App\Http\Controllers\Jersey\JerseyFinanceController::class, 'storePayment'])->name('keuangan.bayar.store');

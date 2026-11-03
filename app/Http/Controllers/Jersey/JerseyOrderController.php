@@ -162,15 +162,6 @@ class JerseyOrderController extends Controller
      * bukan block - order tetap bisa disimpan kalau operator yakin) alih-
      * alih diam-diam tersimpan dengan harga Rp 0 tanpa disadari.
      */
-    public function becomeDesainer(Request $request)
-    {
-        $user = Auth::user();
-        if (!$user || optional($user->role)->nama_role !== 'Administrator') {
-            return response()->json(['success' => false, 'message' => 'Hanya Administrator yang bisa mendaftar sebagai desainer.'], 403);
-        }
-        \App\Models\User::where('id_user', $user->id_user)->update(['id_role' => 2]);
-        return response()->json(['success' => true, 'message' => 'Anda sekarang terdaftar sebagai Operator Desain. Muat ulang halaman.']);
-    }
     public function cekKelengkapan(Request $request)
     {
         $sizeIdByName = JerseySize::pluck('id', 'name');
