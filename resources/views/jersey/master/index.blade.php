@@ -22,7 +22,7 @@
     </div>
 
     {{-- TIPE PRODUK --}}
-    <div id="tab-panel-tipe" class="jersey-tab-panel hidden">
+    <div id="tab-panel-tipe" class="jersey-tab-panel">
         <x-card>
             <form id="form-add-tipe" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe produk (mis. Jersey, Celana, Sublime Lainnya)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
