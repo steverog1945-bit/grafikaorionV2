@@ -194,92 +194,95 @@
     {{-- ESTIMASI BAHAN (matriks ukuran x komponen) --}}
     <div id="tab-panel-estimasi" class="jersey-tab-panel hidden">
         <x-card>
-            <p class="text-xs text-slate-400 mb-4">Estimasi kebutuhan bahan per ukuran, per komponen (Body/Lengan/Rib/Celana, dst) - dalam meter DAN berat (gram/kg) - dipakai untuk menghitung otomatis "Spesifikasi Order" saat order dibuat. Murni estimasi, bukan pemotongan stok riil. Kosongkan sel yang belum diketahui angkanya. Kolom <b class="text-slate-500">Total</b> menjumlahkan seluruh komponen aktif per ukuran - perkiraan total bahan untuk SATU baju ukuran itu.</p>
-            <form id="form-add-komponen" class="flex flex-col sm:flex-row gap-3 mb-3 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
-                <div class="flex-1"><input type="text" name="name" required placeholder="Nama komponen baru (mis. Kerah)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
-                <select name="jersey_product_type_id" class="sm:w-44 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
-                    <option value="">-- Semua Tipe Produk --</option>
-                    @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
-                </select>
-                <select name="jersey_category_id" class="sm:w-44 bg-white border border-slate-200 rounded-xl py-3 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
-                    <option value="">-- Semua Kategori --</option>
-                    @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
-                </select>
-                <x-button type="submit" variant="success">Tambah Komponen</x-button>
-            </form>
-            <p class="text-[11px] text-slate-400 -mt-1 mb-4">Kosongkan Tipe Produk/Kategori kalau komponen berlaku untuk SEMUA barang (mis. Body). Isi salah satu/keduanya kalau komponen cuma relevan untuk barang tertentu (mis. komponen "Celana" cuma untuk Tipe Produk Celana) - supaya SPK cuma menampilkan estimasi yang benar-benar dipakai barangnya.</p>
+            {{-- Header deskripsi --}}
+            <p class="text-sm text-slate-500 leading-relaxed mb-6">Estimasi kebutuhan bahan per ukuran dan per komponen (Body/Lengan/Rib/Celana, dst) — dalam meter DAN berat. Data ini digunakan untuk menghitung otomatis "Spesifikasi Order" saat order dibuat. <strong class="text-slate-600">Catatan:</strong> Estimasi murni, bukan pemotongan stok riil. Isi sel yang tidak dikenal; kolom <strong class="text-indigo-600">Total</strong> menjumlahkan seluruh komponen aktif per ukuran — perkiraan total bahan untuk SATU baju ukuran itu.</p>
+
+            {{-- Form tambah komponen baru --}}
+            <div class="mb-6">
+                <form id="form-add-komponen" class="flex flex-col sm:flex-row gap-3 mb-3 rounded-xl border-indigo-20 p-4 bg-indigo-50">
+                    <div class="flex-1 min-w-0"><input type="text" name="name" required placeholder="Nama komponen baru (mis. Kerah)" class="flex-1 bg-white border border-slate-300 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/25"></div>
+                    <select name="jersey_product_type_id" class="sm:w-48 bg-white border border-slate-300 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/25">
+                        <option value="">-- Semua Tipe Produk --</option>
+                        @foreach($productTypes->where('is_active', true) as $pt)<option class="opsi-tipe" value="{{ $pt->id }}">{{ $pt->name }}</option>@endforeach
+                    </select>
+                    <select name="jersey_category_id" class="sm:w-48 bg-white border border-slate-300 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/25">
+                        <option value="">-- Semua Kategori --</option>
+                        @foreach($categories->where('is_active', true) as $cat)<option class="opsi-kategori" value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach
+                    </select>
+                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-500 transition">Tambah Komponen</button>
+                </form>
+                <p class="text-[10px] text-slate-500 mt-2">Kosongkan Tipe Produk/Kategori kalau komponen berlaku untuk SEMUA barang (mis. Body). Isi salah satu/keduanya kalau komponen cuma relevan untuk barang tertentu (mis. komponen "Celana" cuma untuk Tipe Produk Celana) — supaya SPK cuma menampilkan estimasi yang benar-benar dipakai barangnya.</p>
+            </div>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-estimasi', 'placeholder' => 'Cari nama ukuran...'])
 
-            <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest mb-2 mt-2">Estimasi Meter</p>
-            <div class="overflow-x-auto mb-6">
-                <table class="w-full text-xs border-collapse" id="tabel-estimasi">
-                    <thead>
-                        <tr>
-                            <th class="p-2.5 text-left sticky left-0 bg-white z-10">Ukuran</th>
-                            @foreach($components->where('is_active', true) as $comp)
-                            <th class="p-2.5 text-center whitespace-nowrap" data-component-th="{{ $comp->id }}">
-                                {{ $comp->name }} <span class="text-slate-500 font-normal">(m)</span>
-                                <button type="button" onclick="bukaEditScopeKomponen({{ $comp->id }}, {{ $comp->jersey_product_type_id ?? 'null' }}, {{ $comp->jersey_category_id ?? 'null' }})" class="ml-1 text-slate-500 hover:text-indigo-500" title="Atur cakupan Tipe Produk/Kategori"><i class="fas fa-sliders-h"></i></button>
-                                <button type="button" onclick="nonaktifkanKomponen({{ $comp->id }})" class="ml-1 text-slate-500 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
-                                <div class="text-[9px] font-normal normal-case text-slate-400 mt-0.5" data-component-scope="{{ $comp->id }}">{{ $comp->productType->name ?? 'Semua Tipe' }} @if($comp->category)&middot; {{ $comp->category->name }}@endif</div>
-                            </th>
+            <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-3">Estimasi Meter</p>
+                <div class="rounded-xl border border-slate-200 overflow-x-auto">
+                    <table class="w-full text-xs border-collapse">
+                        <thead class="bg-indigo-50">
+                            <tr>
+                                <th class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
+                                @foreach($components->where('is_active', true) as $comp)
+                                <th class="p-2 text-center whitespace-nowrap text-xs font-medium text-slate-500" data-component-th="{{ $comp->id }}">
+                                    {{ $comp->name }} <span class="text-indigo-400 text-xs">(m)</span>
+                                    <button type="button" onclick="bukaEditScopeKomponen({{ $comp->id }}, {{ $comp->jersey_product_type_id ?? 'null' }}, {{ $comp->jersey_category_id ?? 'null' }})" class="ml-1 text-indigo-500 hover:text-indigo-400 text-[8px] opacity-70" title="Atur cakupan"><i class="fas fa-sliders-h"></i></button>
+                                    <button type="button" onclick="nonaktifkanKomponen({{ $comp->id }})" class="ml-1 text-rose-500 hover:text-rose-400 text-[8px] opacity-70" title="Nonaktifkan"><i class="fas fa-times-circle"></i></button>
+                                    <div class="mt-0.5 text-[8px] text-slate-400 normal-case" data-component-scope="{{ $comp->id }}">{{ $comp->productType->name ?? 'Semua Tipe' }} @if($comp->category)·{{ $comp->category->name }}@endif</div>
+                                </th>
+                                @endforeach
+                                <th class="p-2.5 text-center whitespace-nowrap bg-indigo-100 text-indigo-600 font-medium">Total (m)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-estimasi-meter" class="divide-y divide-slate-100">
+                            @foreach($sizes as $s)
+                            <tr data-size-id="{{ $s->id }}" class="border-b last:border-0">
+                                <td class="p-2.5 font-medium sticky left-0 bg-white text-slate-700">{{ $s->name }}</td>
+                                @foreach($components->where('is_active', true) as $comp)
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="0.01" min="0" value="{{ optional(optional($usageMatrix[$s->id] ?? null)[$comp->id] ?? null)->usage_meter }}"
+                                        onchange="simpanEstimasi({{ $s->id }}, {{ $comp->id }}, 'meter', this.value)"
+                                        class="w-full bg-slate-50 rounded-lg p-1.5 text-xs text-center focus:ring-2 focus:ring-indigo-500/25">
+                                </td>
+                                @endforeach
+                                <td class="p-2.5 text-center font-medium text-indigo-600 bg-indigo-50/40 total-meter-cell">{{ $totalPerSize[$s->id]['meter_text'] }}</td>
+                            </tr>
                             @endforeach
-                            <th class="p-2.5 text-center whitespace-nowrap bg-indigo-50 text-indigo-600">Total (m)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-estimasi-meter">
-                        @foreach($sizes as $s)
-                        <tr data-size-id="{{ $s->id }}">
-                            <td class="p-2.5 font-medium sticky left-0 bg-white">{{ $s->name }}</td>
-                            @foreach($components->where('is_active', true) as $comp)
-                            @php $nilaiUsage = optional(optional($usageMatrix[$s->id] ?? null)[$comp->id] ?? null)->usage_meter; @endphp
-                            <td class="p-1" data-component-td="{{ $comp->id }}">
-                                <input type="number" step="0.01" min="0" value="{{ $nilaiUsage }}"
-                                    onchange="simpanEstimasi({{ $s->id }}, {{ $comp->id }}, 'meter', this.value)"
-                                    class="input-meter-cell w-20 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
-                            </td>
-                            @endforeach
-                            <td class="p-2.5 text-center font-medium text-indigo-600 bg-indigo-50/40 total-meter-cell">{{ $totalPerSize[$s->id]['meter_text'] }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                        </tbody>
+                    </table>
+                </div>
 
-            <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest mb-2">Estimasi Berat (gram)</p>
-            <div class="overflow-x-auto">
-                <table class="w-full text-xs border-collapse" id="tabel-estimasi-berat-tbl">
-                    <thead>
-                        <tr>
-                            <th class="p-2.5 text-left sticky left-0 bg-white z-10">Ukuran</th>
-                            @foreach($components->where('is_active', true) as $comp)
-                            <th class="p-2.5 text-center whitespace-nowrap" data-component-th-berat="{{ $comp->id }}">
-                                {{ $comp->name }} <span class="text-slate-500 font-normal">(g)</span>
-                            </th>
+            {{-- Tabel Estimasi Berat --}}
+            <div class="mb-6">
+                <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-3">Estimasi Berat</p>
+                <div class="rounded-xl border border-slate-200 overflow-x-auto">
+                    <table class="w-full text-xs border-collapse">
+                        <thead class="bg-indigo-50">
+                            <tr>
+                                <th class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
+                                @foreach($components->where('is_active', true) as $comp)
+                                <th class="p-2 text-center whitespace-nowrap text-xs font-medium text-slate-500" data-component-th-berat="{{ $comp->id }}">
+                                    {{ $comp->name }} <span class="text-indigo-400 text-xs">(g)</span>
+                                </th>
+                                @endforeach
+                                <th class="p-2.5 text-center whitespace-nowrap bg-indigo-100 text-indigo-600 font-medium">Total (Berat)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-estimasi-berat" class="divide-y divide-slate-100">
+                            @foreach($sizes as $s)
+                            <tr data-size-id="{{ $s->id }}" class="border-b last:border-0">
+                                <td class="p-2.5 font-medium sticky left-0 bg-white text-slate-700">{{ $s->name }}</td>
+                                @foreach($components->where('is_active', true) as $comp)
+                                <td class="p-1.5 text-center">
+                                    <input type="number" step="1" min="0" value="{{ optional(optional($usageMatrix[$s->id] ?? null)[$comp->id] ?? null)->usage_weight_gram }}"
+                                        onchange="simpanEstimasi({{ $s->id }}, {{ $comp->id }}, 'weight', this.value)"
+                                        class="w-full bg-slate-50 rounded-lg p-1.5 text-xs text-center focus:ring-2 focus:ring-indigo-500/25">
+                                </td>
+                                @endforeach
+                                <td class="p-2.5 text-center font-medium text-indigo-600 bg-indigo-50/40 total-berat-cell">{{ $totalPerSize[$s->id]['berat_text'] }}</td>
+                            </tr>
                             @endforeach
-                            <th class="p-2.5 text-center whitespace-nowrap bg-indigo-50 text-indigo-600">Total (Berat)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-estimasi-berat">
-                        @foreach($sizes as $s)
-                        <tr data-size-id="{{ $s->id }}">
-                            <td class="p-2.5 font-medium sticky left-0 bg-white">{{ $s->name }}</td>
-                            @foreach($components->where('is_active', true) as $comp)
-                            @php $nilaiBerat = optional(optional($usageMatrix[$s->id] ?? null)[$comp->id] ?? null)->usage_weight_gram; @endphp
-                            <td class="p-1" data-component-td-berat="{{ $comp->id }}">
-                                <input type="number" step="1" min="0" value="{{ $nilaiBerat }}"
-                                    onchange="simpanEstimasi({{ $s->id }}, {{ $comp->id }}, 'weight', this.value)"
-                                    class="input-berat-cell w-20 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
-                            </td>
-                            @endforeach
-                            <td class="p-2.5 text-center font-medium text-indigo-600 bg-indigo-50/40 total-berat-cell">{{ $totalPerSize[$s->id]['berat_text'] }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="border-t border-slate-100 mt-6 pt-6">
+                        </tbody>
+                    </table>
+                </div>
                 <p class="text-xs text-slate-400 mb-4">Estimasi bahan untuk Tipe Lengan & Tipe Kerah - kelola daftar tipenya di tab <b class="text-slate-500">Tipe Lengan</b>/<b class="text-slate-500">Tipe Kerah</b>, isi angka pemakaiannya di sini per ukuran. Order mode Daftar Pemain/Campuran memakai pilihan lengan/kerah masing-masing pemain; mode Qty per Ukuran memakai pilihan default di level barang.</p>
 
                 <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest mb-2">Estimasi Lengan (meter &amp; gram)</p>
