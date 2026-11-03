@@ -193,7 +193,9 @@ class JerseyOrderController extends Controller
                 !empty($lineData['jersey_product_type_id']) ? (int) $lineData['jersey_product_type_id'] : null,
                 !empty($lineData['jersey_category_id']) ? (int) $lineData['jersey_category_id'] : null,
                 !empty($lineData['jersey_material_id']) ? (int) $lineData['jersey_material_id'] : null,
-                $qty
+                $qty,
+                'dewasa',
+                null
             );
             if (!$tier || (float) $tier->price <= 0) {
                 $peringatan[] = "\"{$nama}\": belum ada tier harga yang cocok untuk qty {$qty} - harga akan tersimpan Rp 0.";
@@ -666,7 +668,9 @@ class JerseyOrderController extends Controller
             $lineData['jersey_product_type_id'] ?? null,
             $lineData['jersey_category_id'] ?? null,
             $material?->id,
-            $qty
+            $qty,
+            'dewasa',
+            $konsumen->id_golongan ?? null
         );
         $hargaDewasa = (float) ($tier->price ?? 0);
 
@@ -677,7 +681,8 @@ class JerseyOrderController extends Controller
             $lineData['jersey_category_id'] ?? null,
             $material?->id,
             $qty,
-            'anak'
+            'anak',
+            $konsumen->id_golongan ?? null
         );
         $hargaAnak = $tierAnak ? (float) $tierAnak->price : $hargaDewasa;
         $kelompokBySizeId = $this->cacheMaster['kelompokBySizeId'] ??= JerseySize::pluck('kelompok', 'id');

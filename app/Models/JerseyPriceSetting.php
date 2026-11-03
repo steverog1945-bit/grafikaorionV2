@@ -14,6 +14,7 @@ class JerseyPriceSetting extends Model
         'jersey_product_type_id',
         'jersey_category_id',
         'jersey_material_id',
+        'id_golongan',
         'qty_min',
         'qty_max',
         'price',
@@ -39,5 +40,10 @@ class JerseyPriceSetting extends Model
     public function material()
     {
         return $this->belongsTo(JerseyMaterial::class, 'jersey_material_id');
+    }
+
+    public function golongan()
+    {
+        return $this->belongsTo(GolonganKonsumen::class, 'id_golongan', 'id_golongan');
     }
 }

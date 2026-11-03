@@ -36,11 +36,12 @@ class JerseyMasterController extends Controller
         $categories = JerseyCategory::orderBy('name')->get();
         $sizes = JerseySize::orderBy('sort_order')->get();
         $materials = JerseyMaterial::with('bahan')->orderBy('name')->get();
+        $golongans = GolonganKonsumen::orderBy('nama_golongan')->get();
         $bahanGudang = \Illuminate\Support\Facades\DB::table('bahan_baku')->where('status', 'aktif')->orderBy('nama_bahan')->get(['id_bahan', 'kode_bahan', 'nama_bahan', 'satuan_stok', 'stok', 'harga_rata_rata']);
         $components = JerseyComponent::with(['productType', 'category'])->orderBy('sort_order')->get();
         $sleeveTypes = JerseySleeveType::orderBy('sort_order')->get();
         $collarTypes = JerseyCollarType::orderBy('sort_order')->get();
-        $priceSettings = JerseyPriceSetting::with(['productType', 'category', 'material'])
+        $priceSettings = JerseyPriceSetting::with(['productType', 'category', 'material', 'golongan'])
             ->orderByRaw('jersey_material_id IS NULL')
             ->orderBy('jersey_material_id')
             ->orderBy('jersey_category_id')
@@ -84,7 +85,7 @@ class JerseyMasterController extends Controller
 
         return view('jersey.master.index', compact(
             'designers', 'productTypes', 'categories', 'sizes', 'materials', 'bahanGudang', 'components', 'sleeveTypes', 'collarTypes',
-            'priceSettings', 'usageMatrix', 'sleeveUsageMatrix', 'collarUsageMatrix', 'totalPerSize'
+            'priceSettings', 'usageMatrix', 'sleeveUsageMatrix', 'collarUsageMatrix', 'totalPerSize', 'golongans'
         ));
     }
 
@@ -416,13 +417,14 @@ class JerseyMasterController extends Controller
             'jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
             'jersey_category_id' => 'nullable|exists:jersey_categories,id',
             'jersey_material_id' => 'nullable|exists:jersey_materials,id',
+            'id_golongan' => 'nullable|exists:golongan_konsumen,id_golongan',
             'qty_min' => 'required|integer|min:1',
             'qty_max' => 'nullable|integer|gte:qty_min',
             'price' => 'required|numeric|min:0',
             'kelompok' => 'nullable|in:dewasa,anak',
         ]);
         $data['kelompok'] = $data['kelompok'] ?? 'dewasa';
-        $row = JerseyPriceSetting::create($data)->load(['productType', 'category', 'material']);
+        $row = JerseyPriceSetting::create($data)->load(['productType', 'category', 'material', 'golongan']);
         return response()->json(['success' => true, 'message' => 'Tier harga berhasil ditambahkan.', 'row' => $row]);
     }
 
@@ -437,6 +439,7 @@ class JerseyMasterController extends Controller
         $data = $request->validate([
             'jersey_product_type_id' => 'required|exists:jersey_product_types,id',
             'jersey_material_id' => 'nullable|exists:jersey_materials,id',
+            'id_golongan' => 'nullable|exists:golongan_konsumen,id_golongan',
             'kelompok' => 'nullable|in:dewasa,anak',
             'tiers' => 'required|array|min:1|max:20',
             'tiers.*.qty_min' => 'required|integer|min:1',
@@ -457,11 +460,13 @@ class JerseyMasterController extends Controller
 
         $materialId = $data['jersey_material_id'] ?? null;
         $kelompok = $data['kelompok'] ?? 'dewasa';
+        $golonganId = $data['id_golongan'] ?? null;
 
-        DB::transaction(function () use ($data, $tiers, $materialId, $kelompok) {
+        DB::transaction(function () use ($data, $tiers, $materialId, $kelompok, $golonganId) {
             JerseyPriceSetting::where('jersey_product_type_id', $data['jersey_product_type_id'])
                 ->where('kelompok', $kelompok)
                 ->whereNull('jersey_category_id')
+                ->where('id_golongan', $golonganId)
                 ->where(fn ($q) => $materialId === null ? $q->whereNull('jersey_material_id') : $q->where('jersey_material_id', $materialId))
                 ->delete();
 
@@ -470,6 +475,7 @@ class JerseyMasterController extends Controller
                     'jersey_product_type_id' => $data['jersey_product_type_id'],
                     'jersey_category_id' => null,
                     'jersey_material_id' => $materialId,
+                    'id_golongan' => $golonganId,
                     'qty_min' => (int) $tier['qty_min'],
                     'qty_max' => isset($tier['qty_max']) && $tier['qty_max'] !== '' ? (int) $tier['qty_max'] : null,
                     'price' => $tier['price'],
@@ -488,12 +494,13 @@ class JerseyMasterController extends Controller
             'jersey_product_type_id' => 'nullable|exists:jersey_product_types,id',
             'jersey_category_id' => 'nullable|exists:jersey_categories,id',
             'jersey_material_id' => 'nullable|exists:jersey_materials,id',
+            'id_golongan' => 'nullable|exists:golongan_konsumen,id_golongan',
             'qty_min' => 'required|integer|min:1',
             'qty_max' => 'nullable|integer|gte:qty_min',
             'price' => 'required|numeric|min:0',
         ]);
         $priceSetting->update($data);
-        $row = $priceSetting->fresh()->load(['productType', 'category', 'material']);
+        $row = $priceSetting->fresh()->load(['productType', 'category', 'material', 'golongan']);
         return response()->json(['success' => true, 'message' => 'Tier harga berhasil diperbarui.', 'row' => $row]);
     }
 

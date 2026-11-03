@@ -19,7 +19,7 @@ use App\Models\JerseyPriceSetting;
  */
 class JerseyOrderPricingService
 {
-    public static function cariTierHarga(?int $productTypeId, ?int $categoryId, ?int $materialId, int $qty, string $kelompok = 'dewasa'): ?JerseyPriceSetting
+    public static function cariTierHarga(?int $productTypeId, ?int $categoryId, ?int $materialId, int $qty, string $kelompok = 'dewasa', ?int $golonganId = null): ?JerseyPriceSetting
     {
         $kombinasiTipeKategori = [
             [$productTypeId, $categoryId],
@@ -30,23 +30,29 @@ class JerseyOrderPricingService
 
         $kombinasiBahan = $materialId ? [$materialId, null] : [null];
 
-        foreach ($kombinasiBahan as $mat) {
-            foreach ($kombinasiTipeKategori as [$pt, $cat]) {
-                $tier = JerseyPriceSetting::query()
-                    ->where('is_active', true)
-                    ->where('kelompok', $kelompok)
-                    ->where('jersey_product_type_id', $pt)
-                    ->where('jersey_category_id', $cat)
-                    ->where('jersey_material_id', $mat)
-                    ->where('qty_min', '<=', $qty)
-                    ->where(function ($q) use ($qty) {
-                        $q->whereNull('qty_max')->orWhere('qty_max', '>=', $qty);
-                    })
-                    ->orderByDesc('qty_min')
-                    ->first();
+        // Golongan khusus (member) dicoba lebih dulu, lalu jatuh ke tier umum (id_golongan NULL).
+        $kombinasiGolongan = $golonganId ? [$golonganId, null] : [null];
 
-                if ($tier) {
-                    return $tier;
+        foreach ($kombinasiGolongan as $gol) {
+            foreach ($kombinasiBahan as $mat) {
+                foreach ($kombinasiTipeKategori as [$pt, $cat]) {
+                    $tier = JerseyPriceSetting::query()
+                        ->where('is_active', true)
+                        ->where('kelompok', $kelompok)
+                        ->where('jersey_product_type_id', $pt)
+                        ->where('jersey_category_id', $cat)
+                        ->where('jersey_material_id', $mat)
+                        ->where('id_golongan', $gol)
+                        ->where('qty_min', '<=', $qty)
+                        ->where(function ($q) use ($qty) {
+                            $q->whereNull('qty_max')->orWhere('qty_max', '>=', $qty);
+                        })
+                        ->orderByDesc('qty_min')
+                        ->first();
+
+                    if ($tier) {
+                        return $tier;
+                    }
                 }
             }
         }
