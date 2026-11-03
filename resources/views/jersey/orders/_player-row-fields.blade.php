@@ -31,5 +31,5 @@
             @foreach($collarTypes as $ct)<option value="{{ $ct->id }}" @selected(($item->jersey_collar_type_id ?? null) == $ct->id)>{{ $ct->name }}</option>@endforeach
         </select>
     </td>
-    <td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove(); if (typeof jadwalkanPreviewHarga === 'function') jadwalkanPreviewHarga(); if (typeof jadwalkanPreviewHargaSusulan === 'function') jadwalkanPreviewHargaSusulan();" class="w-6 h-6 text-rose-400" aria-label="Hapus" title="Hapus"><i class="far fa-trash-alt text-[10px]"></i></button></td>
+    <td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove(); if (typeof jadwalkanPreviewHarga === 'function') jadwalkanPreviewHarga(); if (typeof jadwalkanPreviewHargaSusulan === 'function') jadwalkanPreviewHargaSusulan();" class="w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-300" aria-label="Hapus" title="Hapus"><i class="far fa-trash-alt text-[10px]"></i></button></td>
 </tr>

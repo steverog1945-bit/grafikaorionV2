@@ -100,10 +100,14 @@ class BahanBakuController extends Controller
             return back()->with('error', 'Harga tidak berubah.');
         }
 
-        DB::transaction(function () use ($bahan, $lama, $baru, $data) {
-            DB::table('bahan_baku')->where('id_bahan', $bahan->id_bahan)->update(['harga_rata_rata' => $baru, 'updated_at' => now()]);
-            AuditLogger::log('updated', 'bahan_baku', (int) $bahan->id_bahan, ['harga_rata_rata' => $lama], ['harga_rata_rata' => $baru], 'Koreksi harga rata-rata: ' . $data['alasan']);
-        });
+        try {
+            DB::transaction(function () use ($bahan, $lama, $baru, $data) {
+                DB::table('bahan_baku')->where('id_bahan', $bahan->id_bahan)->update(['harga_rata_rata' => $baru, 'updated_at' => now()]);
+                AuditLogger::log('updated', 'bahan_baku', (int) $bahan->id_bahan, ['harga_rata_rata' => $lama], ['harga_rata_rata' => $baru], 'Koreksi harga rata-rata: ' . $data['alasan']);
+            });
+        } catch (\Throwable $e) {
+            return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal memperbarui harga rata-rata'));
+        }
 
         return back()->with('success', "Harga rata-rata {$bahan->nama_bahan} diperbarui menjadi Rp " . number_format($baru, 0, ',', '.') . '.');
     }

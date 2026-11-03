@@ -469,7 +469,8 @@
         // untuk nota yang sama, dan kasir tidak tahu mana yang benar.
         const notaSudahLunas = sisaTagihan <= 0 && totalTerbayarSebelumnya > 0;
 
-        const tipeBayar = document.querySelector('input[name="tipe_bayar"]:checked')?.value;
+        var _tb = document.querySelector('input[name="tipe_bayar"]:checked');
+        const tipeBayar = _tb ? _tb.value : undefined;
         if (notaSudahLunas) {
             // Nominal yang sama persis dengan yang sudah tercatat, supaya field ini
             // jadi bukti pendataan dan pengingat kasir, bukan entri pembayaran
@@ -665,7 +666,8 @@
     const saldoDepositTersedia = {{ (float) $saldoDeposit }};
 
     function getMetodePembayaran() {
-        return document.querySelector('input[name="metode_pembayaran"]:checked')?.value || 'Tunai';
+        var _mp = document.querySelector('input[name="metode_pembayaran"]:checked');
+        return (_mp ? _mp.value : null) || 'Tunai';
     }
 
     // Sinkron gaya pill button "Metode Pembayaran" dengan pill "Jenis

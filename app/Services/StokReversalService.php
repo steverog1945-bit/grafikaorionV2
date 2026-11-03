@@ -91,6 +91,7 @@ class StokReversalService
             $snapshot = DB::table('transaksi_detail_bahan_pakai')
                 ->where('id_detail', $idDetail)
                 ->lockForUpdate()
+                ->orderBy('id_bahan')
                 ->get();
 
             if ($snapshot->isNotEmpty()) {

@@ -345,7 +345,7 @@
 
     function escapeHtml(str) {
         const div = document.createElement('div');
-        div.textContent = str ?? '';
+        div.textContent = (str == null ? '' : str);
         return div.innerHTML;
     }
 
@@ -363,7 +363,7 @@
                     <input type="hidden" name="_token" value="${csrfToken}">
                     <input type="number" name="range_min" value="${t.range_min}" min="${stepRentang}" step="${stepRentang}" required class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[10px] text-slate-500 font-medium">s/d</span>
-                    <input type="number" name="range_max" value="${t.range_max ?? ''}" min="${stepRentang}" step="${stepRentang}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
+                    <input type="number" name="range_max" value="${t.range_max == null ? '' : t.range_max}" min="${stepRentang}" step="${stepRentang}" placeholder="~" class="w-20 text-xs text-center bg-slate-50 border-none rounded-lg py-2">
                     <span class="text-[9px] text-slate-400 uppercase shrink-0">${satuanRentang}</span>
                     <span class="text-[10px] text-slate-400">=</span>
                     <span class="text-[10px] text-slate-400">Rp</span>

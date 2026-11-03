@@ -241,7 +241,7 @@
                 const $ = window.jQuery;
                 // Dropdown dengan sumber AJAX sudah punya kolom cari
                 // sendiri di dalam dropdown, jadi tidak perlu tambahan.
-                if ($ && $(el).data('select2')?.options?.options?.ajax) return;
+                if ($ && (function(){var d=$(el).data('select2');return d&&d.options&&d.options.options&&d.options.options.ajax;})()) return;
 
                 // Kalau sudah jadi Select2, cari kotak yang menempel.
                 let anchor = el;

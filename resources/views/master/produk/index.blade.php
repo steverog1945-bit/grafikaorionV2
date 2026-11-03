@@ -571,7 +571,7 @@
         selectBahan.value = "";
     }
 
-    document.getElementById('temp_rumus')?.addEventListener('change', function () {
+    var _tr = document.getElementById('temp_rumus'); if (_tr) _tr.addEventListener('change', function () {
         document.getElementById('temp_faktor').classList.toggle('hidden', !(this.value === 'Q/N' || this.value === 'Q*K'));
     });
 

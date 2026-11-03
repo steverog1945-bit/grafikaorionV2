@@ -117,6 +117,12 @@ class CollectingController extends Controller
 
         $buktiPath = null;
 
+        // Upload bukti dilakukan SEBELUM transaksi (I/O disk/AV bisa lambat).
+        // Jika transaksi gagal, file dihapus di catch di bawah.
+        if ($request->hasFile('bukti')) {
+            $buktiPath = $request->file('bukti')->store("bukti_serah_terima/{$id}", 'public');
+        }
+
         try {
             return DB::transaction(function () use ($id, $request, &$buktiPath) {
             $transaksi = DB::table('transaksi')->where('id_transaksi', $id)->lockForUpdate()->first();
@@ -165,9 +171,7 @@ class CollectingController extends Controller
                 'updated_at'          => now(),
             ]);
 
-            if ($request->hasFile('bukti')) {
-                $buktiPath = $request->file('bukti')->store("bukti_serah_terima/{$id}", 'public');
-            }
+            // upload sudah dilakukan sebelum transaksi (lihat atas)
 
             DB::table('pengambilan')->insert([
                 'id_transaksi' => $id,

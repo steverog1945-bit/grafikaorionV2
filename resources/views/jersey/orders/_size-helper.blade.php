@@ -12,15 +12,16 @@
         const t = kartu.querySelector('.qty-total-line'); if (t && t.textContent !== String(total)) t.textContent = total;
     }
     document.addEventListener('input', e => {
-        if (!e.target.classList?.contains('input-qty-ukuran')) return;
+        if (!(e.target.classList && e.target.classList.contains('input-qty-ukuran'))) return;
         const kartu = e.target.closest('.jersey-line-card') || e.target.closest('form') || document;
         hitungKartu(kartu);
     });
     // Enter: pindah ke isian ukuran berikutnya (bukan kirim form).
     document.addEventListener('keydown', e => {
-        if (e.key !== 'Enter' || !e.target.classList?.contains('input-qty-ukuran')) return;
+        if (e.key !== 'Enter' || !(e.target.classList && e.target.classList.contains('input-qty-ukuran'))) return;
         e.preventDefault();
-        const semua = [...(e.target.closest('.wrapper-qty-ukuran')?.querySelectorAll('.input-qty-ukuran') || [])];
+        var _wq = e.target.closest('.wrapper-qty-ukuran');
+        const semua = [...((_wq && _wq.querySelectorAll) ? _wq.querySelectorAll('.input-qty-ukuran') : [])];
         const nx = semua[semua.indexOf(e.target) + 1];
         if (nx) { nx.focus(); nx.select(); }
     });

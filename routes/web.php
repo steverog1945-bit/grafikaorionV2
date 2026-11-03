@@ -659,7 +659,7 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
 
     // Backup & Recovery (roadmap LEVEL 1) - khusus Administrator.
     Route::get('/backup', [\App\Http\Controllers\BackupController::class, 'index'])->name('backup.index');
-    Route::post('/backup/jalankan', [\App\Http\Controllers\BackupController::class, 'jalankan'])->name('backup.jalankan');
+    Route::post('/backup/jalankan', [\App\Http\Controllers\BackupController::class, 'jalankan'])->middleware('hanya.admin')->name('backup.jalankan');
 
     // Stock Opname (roadmap LEVEL 1) - eksekusi adjustment sungguhan lewat
     // Approval Workflow (lihat ApprovalController), bukan lewat route di sini.

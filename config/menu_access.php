@@ -196,6 +196,9 @@ return [
         'quotation',
         'harga-siap-cetak',
         'konsumen/*/timeline',
+        'jasa/*/harga',
+        'jasa-harga',
+        'harga-promo',
     ],
 
     // Role yang HANYA boleh membaca: semua request selain GET/HEAD ditolak (403) di CheckMenuAccess.
@@ -211,6 +214,18 @@ return [
     'post_baca' => [
         'jersey/cek-kelengkapan',
         'jersey/preview-harga',
+    ],
+
+    // POST yang sebenarnya menghapus (bulk delete via POST) - diperlakukan sebagai "hapus".
+    'post_hapus' => [
+        'bahan-baku/bulk-delete',
+        'kedatangan-bahan/bulk/delete',
+        'pembelian-bahan/bulk-delete',
+    ],
+
+    // POST yang sebenarnya mengubah/mengelola (bulk take/assign via POST) - diperlakukan sebagai "kelola".
+    'post_kelola' => [
+        'spk/bulk-ambil',
     ],
 
     'always_allow' => [

@@ -116,6 +116,13 @@ class PenjualanBarangController extends Controller
             'items.*.jumlah' => 'nullable|numeric|min:0.01',
         ]);
 
+        // Konsistensi hak harga: penetapan harga manual di penjualan barang
+        // memerlukan hak lihat harga (AksesHarga). Role tanpa hak ini tidak
+        // boleh menetapkan harga sembarang - selaras dengan modul lain.
+        if (! \App\Support\AksesHarga::bolehLihat(auth()->user())) {
+            return redirect()->back()->withInput()->with('error', 'Anda tidak memiliki hak untuk menetapkan harga manual. Hubungi Administrator.');
+        }
+
         // Order (belum tentu pembayaran) HANYA boleh dibuat selama toko
         // "buka" (ada kas aktif hari ini, siapa pun pemiliknya) - guard yang
         // SAMA PERSIS dengan PenjualanController::store(), supaya penjualan
@@ -151,7 +158,7 @@ class PenjualanBarangController extends Controller
                 'nomor_nota' => $no_nota,
                 'tipe_order' => 'Reguler',
                 'id_konsumen' => $request->id_konsumen,
-                'id_user_kasir' => Auth::id(),
+                'id_user_kasir' => auth()->id() ?? abort(401, 'Sesi habis. Silakan login ulang.'),
                 'tgl_order' => now(),
                 'total_bayar' => 0,
                 'status_pembayaran' => 'Belum Bayar',

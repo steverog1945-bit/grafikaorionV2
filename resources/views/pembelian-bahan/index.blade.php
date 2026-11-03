@@ -213,7 +213,7 @@
     const bulkBtn = document.getElementById('btn-bulk-delete');
     const countSpan = document.getElementById('count-checked');
 
-    checkAll?.addEventListener('change', function() {
+    if (checkAll) checkAll.addEventListener('change', function() {
         checkboxes.forEach(cb => cb.checked = this.checked);
         updateBulkButton();
     });
@@ -301,7 +301,7 @@
         });
     }
 
-    bulkBtn?.addEventListener('click', function() {
+    if (bulkBtn) bulkBtn.addEventListener('click', function() {
         Swal.fire({
             title: 'Ajukan pembatalan semua faktur terpilih?',
             text: 'Tiap faktur diajukan ke Alur Persetujuan; tidak ada yang langsung dihapus.',

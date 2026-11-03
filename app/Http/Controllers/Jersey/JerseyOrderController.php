@@ -426,7 +426,11 @@ class JerseyOrderController extends Controller
             'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi untuk setiap barang (acuan warna & bentuk produksi).',
         ]);
 
-        $this->validasiSleeveCollar($request);
+        // Validasi kondisional lengan/kerah ditangani di hitungHargaBaris()
+        // (paksaTanpaLenganKerah): bila tipe produk tidak memiliki lengan/kerah,
+        // sleeve/collar dipaksa ke master "Tanpa ..." di server, bukan fatal.
+        // Panggilan validasiSleeveCollar() lama (method tak terdefinisi) sengaja
+        // dihapus - sebelumnya memicu PHP FatalError pada semua form simpan.
 
         // Audit: size_quantities dikunci ke master SEBELUM transaksi dibuka -
         // key yang bukan ID ukuran master aktif ditolak dengan pesan validasi
@@ -482,6 +486,11 @@ class JerseyOrderController extends Controller
             }
 
             $order->recalculateTotal();
+
+            if ((float) $order->fresh()->total <= 0) {
+                DB::rollBack();
+                return back()->withInput()->with('error', 'Order harus punya minimal 1 barang dengan harga > 0. Cek tier harga / master bahan.');
+            }
 
             // DP awal saat order dibuat dicatat sebagai baris pertama di
             // ledger Keuangan Jersey (bukan cuma angka manual di kolom
@@ -607,6 +616,24 @@ class JerseyOrderController extends Controller
         // - keduanya digabung per ukuran, sama seperti penggabungan qty.
         $lineSleeveTypeId = !empty($lineData['jersey_sleeve_type_id']) ? (int) $lineData['jersey_sleeve_type_id'] : null;
         $lineCollarTypeId = !empty($lineData['jersey_collar_type_id']) ? (int) $lineData['jersey_collar_type_id'] : null;
+
+        // PAKSA TANPA LENGEN/KERAH untuk tipe produk yang tidak memilikinya
+        // (Celana Pendek/Panjang): server-side enforcement supaya data tetap
+        // benar walau request dikirim manual dengan nilai lain. Frontend sudah
+        // menyembunyikan field & mengisinya "Tanpa", ini pagar kedua.
+        $memilikiLenganKerah = JerseyMaterialEstimationService::tipeMemilikiLenganKerah(
+            !empty($lineData['jersey_product_type_id']) ? (int) $lineData['jersey_product_type_id'] : null
+        );
+        if (!$memilikiLenganKerah) {
+            $tanpaSleeveId = JerseySleeveType::where('name', 'like', '%Tanpa Lengan%')->value('id');
+            $tanpaCollarId = JerseyCollarType::where('name', 'like', '%Tanpa Kerah%')->value('id');
+            $lineSleeveTypeId = $tanpaSleeveId ? (int) $tanpaSleeveId : null;
+            $lineCollarTypeId = $tanpaCollarId ? (int) $tanpaCollarId : null;
+            foreach ($items as $k => $it) {
+                $items[$k]['jersey_sleeve_type_id'] = $lineSleeveTypeId;
+                $items[$k]['jersey_collar_type_id'] = $lineCollarTypeId;
+            }
+        }
 
         $qtyPerSizeSleeveType = [];
         $qtyPerSizeCollarType = [];
@@ -800,10 +827,10 @@ class JerseyOrderController extends Controller
             'order_type' => $lineData['order_type'],
             'is_susulan' => $susulan,
             'qty' => $h['qty'],
-            'harga_satuan' => $h['hargaSatuan'],
-            'size_surcharge_total' => $h['surchargeTotal'],
-            'sleeve_collar_surcharge_total' => $h['sleeveCollarSurchargeTotal'],
-            'subtotal' => $h['subtotal'],
+            'harga_satuan' => round((float) $h['hargaSatuan'], 2),
+            'size_surcharge_total' => round((float) $h['surchargeTotal'], 2),
+            'sleeve_collar_surcharge_total' => round((float) $h['sleeveCollarSurchargeTotal'], 2),
+            'subtotal' => round((float) $h['subtotal'], 2),
             'jersey_price_setting_id' => $h['tier']->id ?? null,
         ]);
 
@@ -984,7 +1011,7 @@ class JerseyOrderController extends Controller
                 $peringatan = \App\Services\JerseyStokService::selaraskan($order);
             }
         });
-        } catch (\RuntimeException $e) {
+        } catch (\Throwable $e) {
             return back()->withInput()->with('error', $e->getMessage());
         }
 
@@ -1080,7 +1107,11 @@ class JerseyOrderController extends Controller
             'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi untuk setiap barang (acuan warna & bentuk produksi).',
         ]);
 
-        $this->validasiSleeveCollar($request);
+        // Validasi kondisional lengan/kerah ditangani di hitungHargaBaris()
+        // (paksaTanpaLenganKerah): bila tipe produk tidak memiliki lengan/kerah,
+        // sleeve/collar dipaksa ke master "Tanpa ..." di server, bukan fatal.
+        // Panggilan validasiSleeveCollar() lama (method tak terdefinisi) sengaja
+        // dihapus - sebelumnya memicu PHP FatalError pada semua form simpan.
 
         // Audit: size_quantities dikunci ke master (lihat store()).
         foreach ($data['lines'] as $i => $lineData) {
@@ -1094,6 +1125,10 @@ class JerseyOrderController extends Controller
             $terkunci = JerseyOrder::whereKey($order->id)->lockForUpdate()->firstOrFail();
             if (\App\Support\VersiBaris::bentrok($request, $terkunci)) {
                 throw new \RuntimeException(\App\Support\VersiBaris::pesan($terkunci));
+            }
+            if (in_array((string) $terkunci->status, ['selesai', 'diambil'], true)) {
+                DB::rollBack();
+                return back()->with('error', 'Order sudah selesai/diambil - barang tidak bisa diubah.');
             }
             $order->lines()->delete();
 
@@ -1111,6 +1146,11 @@ class JerseyOrderController extends Controller
 
             $order->recalculateTotal();
             \App\Services\JerseyStokService::segarkan($order); // estimasi kain berubah -> potongan stok disesuaikan
+
+            if ((float) $order->fresh()->total <= 0) {
+                DB::rollBack();
+                return back()->withInput()->with('error', 'Order harus punya minimal 1 barang dengan harga > 0. Cek tier harga / master bahan.');
+            }
 
             DB::commit();
 
@@ -1193,7 +1233,11 @@ class JerseyOrderController extends Controller
             'lines.*.thumbnail.required' => 'Thumbnail desain wajib diisi.',
         ]);
 
-        $this->validasiSleeveCollar($request);
+        // Validasi kondisional lengan/kerah ditangani di hitungHargaBaris()
+        // (paksaTanpaLenganKerah): bila tipe produk tidak memiliki lengan/kerah,
+        // sleeve/collar dipaksa ke master "Tanpa ..." di server, bukan fatal.
+        // Panggilan validasiSleeveCollar() lama (method tak terdefinisi) sengaja
+        // dihapus - sebelumnya memicu PHP FatalError pada semua form simpan.
 
         // Audit: size_quantities dikunci ke master (lihat store()).
         foreach ($data['lines'] as $i => $lineData) {
@@ -1203,7 +1247,11 @@ class JerseyOrderController extends Controller
 
         DB::beginTransaction();
         try {
-            JerseyOrder::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            $terkunci = JerseyOrder::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            if (in_array((string) $terkunci->status, ['selesai', 'diambil'], true)) {
+                DB::rollBack();
+                return back()->with('error', 'Order sudah selesai/diambil - barang susulan tidak bisa ditambahkan.');
+            }
             $adaLineValid = false;
             foreach ($data['lines'] as $lineData) {
                 if ($this->simpanBarisOrder($order, $lineData, susulan: true)) {
@@ -1218,6 +1266,11 @@ class JerseyOrderController extends Controller
 
             $order->recalculateTotal();
             \App\Services\JerseyStokService::segarkan($order); // barang susulan menambah kebutuhan kain
+
+            if ((float) $order->fresh()->total <= 0) {
+                DB::rollBack();
+                return back()->withInput()->with('error', 'Order harus punya minimal 1 barang dengan harga > 0. Cek tier harga / master bahan.');
+            }
 
             DB::commit();
 
@@ -1249,7 +1302,7 @@ class JerseyOrderController extends Controller
 
                 return false;
             });
-        } catch (\RuntimeException $e) {
+        } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
 

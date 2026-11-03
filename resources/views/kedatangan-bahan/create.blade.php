@@ -347,7 +347,7 @@ function removeRow(btn) {
 
 function validateForm() {
     let isValid = true;
-    const noSJ = $('#no_surat_jalan').val()?.trim();
+    var _nsj = $('#no_surat_jalan').val(); const noSJ = (_nsj != null) ? String(_nsj).trim() : undefined;
     const supplier = $('#id_supplier').val();
     const rows = $('#bahan-rows tr');
 

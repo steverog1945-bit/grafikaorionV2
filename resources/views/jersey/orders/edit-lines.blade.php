@@ -121,7 +121,7 @@
         const card = radio.closest('.jersey-line-card');
         const tipe = radio.value;
         const modeLama = card.dataset.modeAktif
-            || [...card.querySelectorAll('input[name$="[order_type]"]')].find(r => r.closest('label')?.classList.contains('border-indigo-500'))?.value
+            || (function () { var _r = [...card.querySelectorAll('input[name$="[order_type]"]')].find(function (r) { var _l = r.closest('label'); return _l && _l.classList && _l.classList.contains('border-indigo-500'); }); return _r ? _r.value : undefined; })()
             || 'quantity_only';
 
         const adaQty = [...card.querySelectorAll('.input-qty-ukuran')].some(i => parseInt(i.value) > 0);
@@ -167,7 +167,7 @@
                 el.disabled = bukanModePemain;
             });
         }
-        card.querySelector('.wrapper-daftar-pemain')?.classList.toggle('hidden', tipe === 'quantity_only');
+        var _w = card.querySelector('.wrapper-daftar-pemain'); if (_w && _w.classList) _w.classList.toggle('hidden', tipe === 'quantity_only');
         if (tipe !== 'quantity_only' && card.querySelectorAll('.tbody-pemain .baris-pemain').length === 0) {
             tambahBarisPemain(card.querySelector('.wrapper-daftar-pemain button'));
         }
@@ -208,35 +208,47 @@
     // Celana) - master "Tanpa Lengan"/"Tanpa Kerah" WAJIB dipilih eksplisit
     // supaya selalu tercatat di database, sama seperti di create.blade.php.
     function perbaruiVisibilitasLenganKerah(source) {
+        // Sumber kebenaran: flag master has_sleeve_collar via data attribute.
         const card = source.closest ? source.closest('.jersey-line-card') : source;
         if (!card) return;
-        const orderType = card.querySelector('input[name$="[order_type]"]:checked')?.value || 'quantity_only';
-
-        const selectProduk = card.querySelector('select[name$="[jersey_product_type_id]"]');
-        const opsiProduk = selectProduk?.selectedOptions?.[0];
-        const hasSleeveCollar = opsiProduk?.dataset?.hasSleeveCollar !== '0';
-
-        card.classList.toggle('tanpa-lengan-kerah', !hasSleeveCollar);
-
+        var _ot = card.querySelector('input[name$="[order_type]"]:checked');
+        const orderType = (_ot ? _ot.value : null) || 'quantity_only';
+        var _ops = card.querySelector('select[name$="[jersey_product_type_id]"]');
+        const opsiProduk = (_ops && _ops.selectedOptions) ? _ops.selectedOptions[0] : undefined;
+        const hasSleeveCollar = (opsiProduk && opsiProduk.value === '')
+            || (opsiProduk && opsiProduk.dataset && opsiProduk.dataset.hasSleeveCollar !== '0');
         const tampilkanDefault = orderType !== 'player_list' && hasSleeveCollar;
+
         card.querySelectorAll('.wrapper-lengan-kerah-default').forEach(el => {
             el.classList.toggle('hidden', !tampilkanDefault);
             el.querySelectorAll('select, input').forEach(f => {
                 f.required = tampilkanDefault;
-                if (!hasSleeveCollar) {
-                    f.disabled = true;
+                if (tampilkanDefault && f.dataset.autoTanpa === '1') {
                     f.value = '';
-                } else {
-                    f.disabled = false;
+                    delete f.dataset.autoTanpa;
                 }
             });
+            if (!hasSleeveCollar) {
+                el.querySelectorAll('select').forEach(f => {
+                    if (f.value === '') {
+                        const tanpa = [...f.options].find(o => o.textContent.indexOf('Tanpa') === 0);
+                        if (tanpa) { f.value = tanpa.value; f.dataset.autoTanpa = '1'; }
+                    }
+                });
+            }
         });
-        card.querySelectorAll('.baris-pemain').forEach(row => {
-            row.querySelectorAll('select[name*="[jersey_sleeve_type_id]"], select[name*="[jersey_collar_type_id]"]').forEach(f => {
-                f.required = hasSleeveCollar;
-                f.disabled = !hasSleeveCollar;
-                if (!hasSleeveCollar) f.value = '';
-            });
+        card.querySelectorAll('.col-lengan-kerah').forEach(el => el.classList.toggle('hidden', !hasSleeveCollar));
+        card.querySelectorAll('.baris-pemain select[name$="[jersey_sleeve_type_id]"], .baris-pemain select[name$="[jersey_collar_type_id]"]').forEach(f => {
+            f.required = hasSleeveCollar;
+            if (!hasSleeveCollar) {
+                if (f.value === '') {
+                    const tanpa = [...f.options].find(o => o.textContent.indexOf('Tanpa') === 0);
+                    if (tanpa) { f.value = tanpa.value; f.dataset.autoTanpa = '1'; }
+                }
+            } else if (f.dataset.autoTanpa === '1') {
+                f.value = '';
+                delete f.dataset.autoTanpa;
+            }
         });
     }
 
@@ -260,7 +272,8 @@
     }
     document.addEventListener('paste', (e) => {
         if (!kartuAktifUntukPasteThumbnail || !document.body.contains(kartuAktifUntukPasteThumbnail)) return;
-        const items = (e.clipboardData || window.clipboardData)?.items;
+        var _cd = (e.clipboardData || window.clipboardData);
+        const items = _cd ? _cd.items : undefined;
         if (!items) return;
         for (const item of items) {
             if (item.type.startsWith('image/')) {
@@ -383,7 +396,7 @@
 
         document.querySelectorAll('.jersey-line-card').forEach((card, idx) => {
             const m = (card.dataset.prefix || '').match(/\[(.+)\]/);
-            const info = m ? data.lines?.[m[1]] : null;
+            const info = m ? (data.lines ? data.lines[m[1]] : null) : null;
             const nilaiEl = card.querySelector('.line-price-preview-value');
             const detailEl = card.querySelector('.line-price-preview-detail');
             if (nilaiEl) {
@@ -407,9 +420,9 @@
             const listEl = card.querySelector('.line-price-preview-list');
             if (listEl) {
                 listEl.innerHTML = '';
-                const barisRincian = Array.isArray(info?.rincian) ? info.rincian : [];
+                const barisRincian = (info && Array.isArray(info.rincian)) ? info.rincian : [];
                 for (const r of barisRincian) {
-                    if (r?.amount == null) continue;
+                    if (r == null || r.amount == null) continue;
                     const li = document.createElement('li');
                     li.className = 'flex items-center justify-between gap-3 py-1';
                     const kiri = document.createElement('span');
@@ -428,8 +441,10 @@
             // Baris ringkasan di sidebar - via createElement/textContent (bukan
             // innerHTML string) supaya nama barang yang diketik operator tidak
             // pernah dianggap markup.
-            const namaBarang = card.querySelector('input[name$="[nama_barang]"]')?.value.trim() || `Barang #${idx + 1}`;
-            const thumbSrc = card.querySelector('.thumbnail-preview:not(.hidden)')?.src || '';
+            var _nb = card.querySelector('input[name$="[nama_barang]"]');
+            const namaBarang = (_nb ? _nb.value.trim() : '') || `Barang #${idx + 1}`;
+            var _ts = card.querySelector('.thumbnail-preview:not(.hidden)');
+            const thumbSrc = (_ts ? _ts.src : '') || '';
             const qty = info ? info.qty : 0;
             const subtotal = info ? Math.round(info.subtotal) : 0;
 
@@ -523,7 +538,8 @@
                 }
             }
 
-            const tipe = card.querySelector('input.line-type-option:checked')?.value || 'quantity_only';
+            var _lt = card.querySelector('input.line-type-option:checked');
+            const tipe = (_lt ? _lt.value : null) || 'quantity_only';
             const adaQtyUkuran = [...card.querySelectorAll('.input-qty-ukuran')].some(i => parseInt(i.value) > 0);
             const pemain = [...card.querySelectorAll('.baris-pemain')].filter(r => r.querySelector('[name*="player_name"]').value.trim() !== '');
             const pemainTanpaUkuran = pemain.filter(r => !r.querySelector('[name*="[size]"]').value);

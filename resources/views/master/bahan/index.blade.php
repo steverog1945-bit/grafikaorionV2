@@ -533,14 +533,14 @@
         }
     }
 
-    checkAll?.addEventListener('change', function() {
+    if (checkAll) checkAll.addEventListener('change', function() {
         rowCheckboxes.forEach(cb => cb.checked = this.checked);
         updateBulkUI();
     });
 
     rowCheckboxes.forEach(cb => cb.addEventListener('change', updateBulkUI));
 
-    bulkDeleteBtn?.addEventListener('click', function() {
+    if (bulkDeleteBtn) bulkDeleteBtn.addEventListener('click', function() {
         const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
         Swal.fire({
             title: 'Hapus Massal?',

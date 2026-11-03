@@ -159,7 +159,7 @@
     // Tetap bisa diubah manual sesudahnya kalau memang ada kasus khusus -
     // ini cuma saran awal, bukan penguncian.
     function autoPilihRole(karyawanSelect, roleSelectId) {
-        const bagian = karyawanSelect.selectedOptions[0]?.dataset.bagian;
+        const bagian = (karyawanSelect.selectedOptions && karyawanSelect.selectedOptions[0] && karyawanSelect.selectedOptions[0].dataset) ? karyawanSelect.selectedOptions[0].dataset.bagian : undefined;
         const namaRoleDisaran = BAGIAN_ROLE_MAP[bagian];
         if (!namaRoleDisaran) return;
 

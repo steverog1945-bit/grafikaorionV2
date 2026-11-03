@@ -45,7 +45,9 @@ class JerseyStokService
         if ($tanpaBahan->isNotEmpty()) {
             $peringatan[] = 'Kain ' . $tanpaBahan->implode(', ') . ' belum dihubungkan ke bahan baku (Master Jersey), jadi stoknya tidak terpotong dan HPP-nya tidak tercatat.';
         }
-        foreach (self::kebutuhan($order->id) as $idBahan => $kg) {
+        $kebutuhan = self::kebutuhan($order->id);
+        ksort($kebutuhan);
+        foreach ($kebutuhan as $idBahan => $kg) {
             $bahan = DB::table('bahan_baku')->where('id_bahan', $idBahan)->lockForUpdate()->first();
             if (!$bahan) {
                 continue;

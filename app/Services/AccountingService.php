@@ -63,7 +63,7 @@ class AccountingService
 
         // Toleransi pembulatan sangat kecil (rounding decimal(15,2)), bukan
         // celah untuk entri yang benar-benar timpang.
-        if (abs($totalDebet - $totalKredit) > 0.01) {
+        if (abs($totalDebet - $totalKredit) > 0.005) {
             throw new \RuntimeException(
                 "Jurnal tidak balance untuk referensi {$noReferensi}: debet {$totalDebet} != kredit {$totalKredit}"
             );

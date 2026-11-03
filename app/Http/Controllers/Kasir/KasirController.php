@@ -642,6 +642,13 @@ class KasirController extends Controller
                     ]);
                 }
 
+                // Kunci baris kas_harian LEBIH AWAL (sebelum insert pembayaran_riwayat)
+                // supaya urutan lock konsisten dengan pastikanLaciCukup (kas_harian dulu)
+                // dan tidak terjadi deadlock ABBA.
+                if ($metode !== 'Deposit') {
+                    DB::table('kas_harian')->where('id_kas', $kas->id_kas)->lockForUpdate()->first();
+                }
+
                 $idBayarRiwayat = DB::table('pembayaran_riwayat')->insertGetId([
                     'id_transaksi' => $id_transaksi,
                     'nominal'      => $uangDiterimaSekarang,
@@ -958,7 +965,8 @@ class KasirController extends Controller
     // padahal baris di atas justru menegaskan itu harus eksklusif. Karena
     // belum ada baris kas_harian yang bisa di-lock (sesi barunya belum
     // ada), app_settings dipakai sebagai baris pengganti untuk lock.
-    return DB::transaction(function () use ($nominal, $keteranganPembukaan) {
+    try {
+        return DB::transaction(function () use ($nominal, $keteranganPembukaan) {
         DB::table('app_settings')->lockForUpdate()->first();
 
         $kasAktifSiapaPun = KasSesiService::aktif();
@@ -1036,7 +1044,10 @@ class KasirController extends Controller
 
         // Setelah simpan, lempar ke halaman monitoring
         return redirect()->route('kasir.index')->with('success', 'Kas Berhasil Dibuka!' . $pesan);
-    });
+        });
+    } catch (\Throwable $e) {
+        return redirect()->route('kasir.kelola')->with('error', \App\Support\PesanError::untuk($e, 'Gagal membuka kas'));
+    }
 }
 /**
  * Rombak total mengikuti referensi "Closing Alur Kas Kasir" milik pemilik

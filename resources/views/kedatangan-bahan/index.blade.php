@@ -185,7 +185,7 @@
         }
     }
 
-    checkAll?.addEventListener('change', function() {
+    if (checkAll) checkAll.addEventListener('change', function() {
         checkboxes.forEach(cb => cb.checked = this.checked);
         updateBulkUI();
     });

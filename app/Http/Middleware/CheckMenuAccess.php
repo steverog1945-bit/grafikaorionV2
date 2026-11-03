@@ -69,6 +69,12 @@ class CheckMenuAccess
         if ($aksi === 'add' && in_array($path, config('menu_access.post_baca', []), true)) {
             $aksi = 'view';
         }
+        if ($aksi === 'add' && in_array($path, config('menu_access.post_hapus', []), true)) {
+            $aksi = 'delete';
+        }
+        if ($aksi === 'add' && in_array($path, config('menu_access.post_kelola', []), true)) {
+            $aksi = 'edit';
+        }
 
         $rules = config('menu_access.rules', []);
         $matchedPrefix = null;

@@ -111,7 +111,7 @@ class JerseyFinanceController extends Controller
             \App\Services\JerseyAccountingService::catatPembayaran($order, $payment);
             $order->recalculatePembayaran();
         });
-        } catch (\RuntimeException $e) {
+        } catch (\Throwable $e) {
             // Mis. periode akuntansi sudah ditutup - seluruh transaksi
             // (termasuk baris pembayaran) sudah di-rollback.
             return back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Pembayaran gagal dicatat'));

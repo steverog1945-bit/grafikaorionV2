@@ -147,7 +147,7 @@
     // Satuan di bawah kolom qty mengikuti bahan yang dipilih pada baris itu.
     function segarkanSatuanPR(sel) {
         const u = sel.closest('tr').querySelector('.pr-unit');
-        if (u) u.textContent = sel.selectedOptions[0]?.dataset.satuan || '';
+        if (u) { var _po = (sel && sel.selectedOptions) ? sel.selectedOptions[0] : null; u.textContent = (_po && _po.dataset) ? (_po.dataset.satuan || '') : ''; }
     }
     document.addEventListener('change', e => { if (e.target.matches('select[name$="[id_bahan]"]')) segarkanSatuanPR(e.target); });
     document.querySelectorAll('select[name$="[id_bahan]"]').forEach(segarkanSatuanPR);

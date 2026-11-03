@@ -10,6 +10,7 @@
 - Screenshot yang dibagikan harus berupa **file PNG yang benar-benar ada**, bukan link yang dikarang; tampilkan inline di chat OpenCode atau tautan galeri PR. Build Vite ≠ bukti visual.
 - CI dan evidensi harus berasal dari HEAD saat ini. Hasil merge/deploy **bukan** kewenangan agen ini.
 
+## Selalu gunakan skill dan agent yang terinstall di projek ini.
 
 ## AKTIF — PWA Mobile Phase 2: setelah PR #20 merged (26 Oktober 2026)
 

@@ -92,14 +92,14 @@
     const wP = document.getElementById('waste-p'), wL = document.getElementById('waste-l'), wJ = document.getElementById('waste-j');
     const fmt = v => v.toLocaleString('id-ID', { maximumFractionDigits: 6 });
     function modeBahan() {
-        const d = wSel.selectedOptions[0]?.dataset || {};
+        const d = (wSel.selectedOptions && wSel.selectedOptions[0] && wSel.selectedOptions[0].dataset) ? wSel.selectedOptions[0].dataset : {};
         const hitung = (d.hitung || '').toLowerCase().trim();
         const ada = parseFloat(d.konversi) > 0 && d.hitung && d.idHitung && d.idHitung !== d.idStok;
         if (!ada) return 'stok';
         return ['m2', 'm²', 'cm2', 'cm²'].includes(hitung) ? 'luas' : 'hitung';
     }
     function segarkanSatuanWaste() {
-        const d = wSel.selectedOptions[0]?.dataset || {}; const mode = modeBahan();
+        const d = (wSel.selectedOptions && wSel.selectedOptions[0] && wSel.selectedOptions[0].dataset) ? wSel.selectedOptions[0].dataset : {}; const mode = modeBahan();
         document.getElementById('waste-blok-luas').classList.toggle('hidden', mode !== 'luas');
         document.getElementById('waste-blok-qty').classList.toggle('hidden', mode === 'luas');
         document.getElementById('waste-unit').textContent = mode === 'hitung' ? d.hitung : (d.satuan || '-');
@@ -107,7 +107,7 @@
     }
     // Tampilkan hasil konversi ke satuan stok, supaya jelas berapa yang benar-benar dikurangkan.
     function hitungKonversi() {
-        const d = wSel.selectedOptions[0]?.dataset || {}; const mode = modeBahan();
+        const d = (wSel.selectedOptions && wSel.selectedOptions[0] && wSel.selectedOptions[0].dataset) ? wSel.selectedOptions[0].dataset : {}; const mode = modeBahan();
         const k = parseFloat(d.konversi) || 0, stok = parseFloat(d.stok) || 0;
         let hasil = 0, dasar = '';
         if (mode === 'luas') {

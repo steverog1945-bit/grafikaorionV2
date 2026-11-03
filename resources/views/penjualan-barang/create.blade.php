@@ -419,7 +419,8 @@
         const sel = document.getElementById('select_jasa_barang');
         const kotak = document.getElementById('info_biaya_jasa');
         if (!sel || !kotak) return;
-        const biaya = parseFloat(sel.options[sel.selectedIndex]?.dataset.biaya || 0) || 0;
+        var _opt = sel.options[sel.selectedIndex];
+        const biaya = parseFloat((_opt && _opt.dataset) ? (_opt.dataset.biaya || 0) : 0) || 0;
         kotak.textContent = biaya > 0 ? 'Rp ' + formatRupiah(Math.round(biaya)) : '-';
     }
 

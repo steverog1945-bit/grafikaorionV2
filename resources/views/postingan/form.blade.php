@@ -149,7 +149,7 @@
     const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
     // Toolbar sticky menempel tepat di bawah topbar (tingginya berbeda di desktop/mobile)
-    const ukurTopbar = () => document.documentElement.style.setProperty('--tinggi-topbar', (document.querySelector('.topbar')?.offsetHeight || 78) + 'px');
+    const ukurTopbar = () => { var _tb = document.querySelector('.topbar'); document.documentElement.style.setProperty('--tinggi-topbar', ((_tb ? _tb.offsetHeight : null) || 78) + 'px'); };
     ukurTopbar(); window.addEventListener('resize', ukurTopbar);
 
     // ---- Format kustom: jarak baris/paragraf (kelas ql-spasi-*, lolos daftar putih server)

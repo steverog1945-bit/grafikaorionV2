@@ -174,6 +174,22 @@ class PembayaranHutangService
     public static function voidPembayaran(int $idPembayaran, string $alasan): void
     {
         DB::transaction(function () use ($idPembayaran, $alasan) {
+            // Baca awal tanpa lock untuk mendapatkan id_pembelian (dipakai untuk
+            // mengunci faktur dengan urutan yang konsisten).
+            $bayarAwal = DB::table('pembayaran_hutang')->where('id', $idPembayaran)->first();
+
+            if (!$bayarAwal) {
+                throw new \RuntimeException('Pembayaran tidak ditemukan.');
+            }
+
+            if ($bayarAwal->bagian_faktur || !$bayarAwal->no_referensi_jurnal) {
+                throw new \RuntimeException('Pembayaran awal faktur tidak bisa di-void sendiri - batalkan fakturnya.');
+            }
+
+            // Kunci dengan urutan konsisten: pembelian_bahan dulu, lalu
+            // pembayaran_hutang (sama dengan batalkanFaktur) - mencegah
+            // deadlock ABBA.
+            DB::table('pembelian_bahan')->where('id_pembelian', $bayarAwal->id_pembelian)->lockForUpdate()->first();
             $bayar = DB::table('pembayaran_hutang')->where('id', $idPembayaran)->lockForUpdate()->first();
 
             if (!$bayar) {
@@ -183,13 +199,6 @@ class PembayaranHutangService
             if ($bayar->voided_at) {
                 throw new \RuntimeException('Pembayaran ini sudah di-void sebelumnya.');
             }
-
-            if ($bayar->bagian_faktur || !$bayar->no_referensi_jurnal) {
-                throw new \RuntimeException('Pembayaran awal faktur tidak bisa di-void sendiri - batalkan fakturnya.');
-            }
-
-            // Kunci faktur dulu supaya urutan lock selalu faktur -> pembayaran lain.
-            DB::table('pembelian_bahan')->where('id_pembelian', $bayar->id_pembelian)->lockForUpdate()->first();
 
             AccountingService::reverseByReferensi($bayar->no_referensi_jurnal);
             DB::table('kas_kecil')->where('sumber', 'hutang')->where('id_referensi', $idPembayaran)->delete();

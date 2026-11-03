@@ -110,9 +110,10 @@ class PenjualanCheckoutService
     $idKonsumen = $notaSusulan
         ? (int) $notaSusulan->id_konsumen
         : $request->id_konsumen;
+    $idGolonganNotaBaru = (int) DB::table('konsumen')->where('id_konsumen', $request->id_konsumen)->value('id_golongan');
     $idGolongan = $notaSusulan
         ? (int) DB::table('konsumen')->where('id_konsumen', $notaSusulan->id_konsumen)->value('id_golongan')
-        : $request->id_golongan;
+        : ($idGolonganNotaBaru ?: (int) $request->id_golongan);
 
     if (!$idKonsumen) {
         return response()->json([

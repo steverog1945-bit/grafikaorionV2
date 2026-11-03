@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><title>VIEWPORT HARNESS — STAGING ONLY</title>
+<style>html,body{margin:0;padding:0;background:#0f172a;}.wrap{display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:8px;}.lbl{color:#e2e8f0;font:600 12px system-ui,sans-serif;}iframe{border:none;background:#fff;display:block;}</style>
+</head>
+<body><div class="wrap"><div class="lbl" id="lbl">viewport harness</div><iframe id="appFrame" allow="clipboard-write"></iframe></div>
+<script>
+const params=new URLSearchParams(location.search);const w=parseInt(params.get('w')||'390',10);const h=parseInt(params.get('h')||'844',10);const target=params.get('url')||'/dashboard';const nonce=params.get('t')||'';const base='/grafikaorion';const sep=target.includes('?')?'&':'?';document.getElementById('lbl').textContent='VIEWPORT '+w+'x'+h+' | '+target+(nonce?' | t='+nonce:'')+' | STAGING ONLY';const f=document.getElementById('appFrame');f.style.width=w+'px';f.style.height=h+'px';f.style.minHeight=h+'px';f.src=base+target+sep+(nonce?'_h='+encodeURIComponent(nonce)+'&':'')+'argv_load='+Date.now();
+</script></body></html>

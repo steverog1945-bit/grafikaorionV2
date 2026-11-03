@@ -7,6 +7,7 @@ use App\Services\AuditLogger;
 use App\Services\LandingPageHomepageResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
@@ -68,6 +69,26 @@ class AuthController extends Controller
         // penanganan AJAX, session, dan seluruh logika autentikasi.
         if ($paksaDialog) {
             $data = PublikController::dataBeranda($request);
+
+            // CAPTCHA keamanan: tampil setelah 3 percobaan gagal dari IP ini.
+            // Jawaban disimpan di session agar cocok dengan pertanyaan yang
+            // dirender, dan counter gagal disimpan di cache (database) agar
+            // tetap berlaku walau sesi direset.
+            $ip = (string) $request->ip();
+            $failCount = (int) Cache::get('login_fail_ip:' . $ip, 0);
+            $showCaptcha = $failCount >= 3;
+            $captchaQuestion = null;
+            if ($showCaptcha) {
+                $a = random_int(1, 9);
+                $b = random_int(1, 9);
+                $request->session()->put('login_captcha_answer', $a + $b);
+                $captchaQuestion = "Berapa hasil {$a} + {$b}?";
+            } else {
+                $request->session()->forget('login_captcha_answer');
+            }
+            $data['showCaptcha'] = $showCaptcha;
+            $data['captchaQuestion'] = $captchaQuestion;
+
             if ($request->ajax()) {
                 return PublikController::jawabanDaftar($data);
             }
@@ -114,7 +135,30 @@ class AuthController extends Controller
             'password' => 'required|max:255',
         ]);
 
+        $ip = (string) $request->ip();
+        $failKey = 'login_fail_ip:' . $ip;
+        $fails = (int) Cache::get($failKey, 0);
+
+        // CAPTCHA keamanan: setelah 3 percobaan gagal dari IP ini, jawaban
+        // wajib benar sebelum percobaan login diproses.
+        if ($fails >= 3) {
+            $expected = $request->session()->get('login_captcha_answer');
+            $given = trim((string) $request->input('captcha', ''));
+            if ($expected === null || (int) $given !== (int) $expected) {
+                Cache::put($failKey, $fails + 1, now()->addMinutes(15));
+                // Siapkan pertanyaan baru untuk render berikutnya.
+                $a = random_int(1, 9);
+                $b = random_int(1, 9);
+                $request->session()->put('login_captcha_answer', $a + $b);
+                return redirect()->route('login')->withErrors([
+                    'captcha' => 'Jawaban keamanan salah. Coba lagi.',
+                ])->withInput($request->only('username'));
+            }
+        }
+
         if (Auth::attempt($credentials)) {
+            Cache::forget($failKey);
+            $request->session()->forget('login_captcha_answer');
             $request->session()->regenerate();
 
             // Selalu mendarat di Dashboard. URL "intended" (jejak halaman
@@ -141,6 +185,16 @@ class AuthController extends Controller
             $dikenal ? 'Percobaan masuk gagal untuk akun ' . $credentials['username'] : 'Percobaan masuk gagal (username tidak dikenal)'
         );
 
+        // Naikkan counter gagal (TTL 15 menit) agar CAPTCHA aktif setelah 3x.
+        Cache::put($failKey, $fails + 1, now()->addMinutes(15));
+        if ($fails + 1 >= 3) {
+            $a = random_int(1, 9);
+            $b = random_int(1, 9);
+            $request->session()->put('login_captcha_answer', $a + $b);
+        } else {
+            $request->session()->forget('login_captcha_answer');
+        }
+
         // Login gagal harus kembali ke endpoint yang PASTI punya form login.
         // Sebelumnya `back()`: kalau form dibuka dari homepage '/' dan Landing
         // Page Builder aktif, '/' menyajikan halaman builder tanpa dialog -
@@ -148,7 +202,7 @@ class AuthController extends Controller
         // route('login') kini '/masuk', yang form-nya selalu ada.
         return redirect()->route('login')->withErrors([
             'username' => 'User tidak ditemukan atau password salah.',
-        ]);
+        ])->withInput($request->only('username'));
     }
 
     public function logout(Request $request)

@@ -35,10 +35,6 @@
     padding: 0.5rem;
     font-size: 0.75rem;
 }
-/* Tipe tanpa lengan/kerah (Celana): sembunyikan kolom & field-nya
-   seluruhnya, desktop maupun mobile. */
-.jersey-line-card.tanpa-lengan-kerah .col-lengan-kerah { display: none; }
-.jersey-line-card.tanpa-lengan-kerah .wrapper-lengan-kerah-default { display: none; }
 </style>
 <div class="jersey-mobile-form-page w-full px-3 sm:px-5 lg:px-6 py-5">
 
@@ -77,17 +73,23 @@
                             <x-form.input type="date" name="order_date" value="{{ old('order_date', date('Y-m-d')) }}" max="{{ date('Y-m-d') }}" required />
                         </x-form.group>
 
-                        <x-form.group label="Pelanggan" required>
+                        <x-form.group>
+                            {{-- Baris label satu garis: label kiri, link kanan.
+                                 Setinggi label normal (mb-2) - kotak Pelanggan
+                                 tetap lurus dengan kotak Tanggal Order. --}}
+                            <div class="flex items-center justify-between h-[18px] mb-2 ml-2">
+                                <span class="text-[10px] font-medium text-slate-500 uppercase tracking-widest">Pelanggan <span class="text-rose-500">*</span></span>
+                                <a href="{{ route('konsumen.index') }}" target="_blank" title="Tambah Konsumen (buka Master Konsumen)" class="text-[10px] font-semibold whitespace-nowrap text-indigo-600 hover:text-indigo-500">+ Baru</a>
+                            </div>
                             <select id="select_id_konsumen" name="id_konsumen" class="select2-konsumen-jersey" required>
-                                <option value="">-- Cari Nama / No. HP --</option>
+                                <option value="">Cari Nama / No. HP</option>
                                 @foreach($konsumenList as $k)
                                     <option value="{{ $k->id_konsumen }}" data-telp="{{ $k->telepon }}">{{ $k->nama_konsumen }}</option>
                                 @endforeach
                             </select>
-                            <p class="text-[11px] text-slate-400 mt-1.5 ml-2">Belum ada namanya? <a href="{{ route('konsumen.index') }}" target="_blank" class="text-indigo-600 underline">Tambah di Master Konsumen</a></p>
                         </x-form.group>
 
-                        <x-form.group label="Nama Tim (opsional)">
+                        <x-form.group label="Nama Tim (Opsional)">
                             <x-form.input type="text" name="team_name" value="{{ old('team_name') }}" />
                         </x-form.group>
 
@@ -98,12 +100,12 @@
                         <x-form.group label="File Siap Cetak">
                             <label class="inline-flex items-center gap-2 text-sm text-slate-600">
                                 <input type="checkbox" name="file_siap_cetak" value="1" id="file_siap_cetak" @checked(old('file_siap_cetak')) onchange="toggleDesainerSiapCetak()" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                                <span>Desain sudah siap cetak (tanpa biaya desain/desainer)</span>
+                                <span>Desain sudah siap cetak</span>
                             </label>
                         </x-form.group>
 
                         <div id="wrapper_desainer_jersey">
-                            <x-form.group label="Desainer (Operator Desain)">
+                            <x-form.group label="Desainer">
                                 @if($desainerTerkunci)
                                     <input type="hidden" id="input_desainer_jersey" name="id_desainer" value="{{ $desainerTerkunci }}">
                                     <div class="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-700 flex items-center gap-2.5">
@@ -228,7 +230,7 @@
         const card = radio.closest('.jersey-line-card');
         const tipe = radio.value;
         const modeLama = card.dataset.modeAktif
-            || [...card.querySelectorAll('input[name$="[order_type]"]')].find(r => r.closest('label')?.classList.contains('border-indigo-500'))?.value
+            || (function () { var _r = [...card.querySelectorAll('input[name$="[order_type]"]')].find(function (r) { var _l = r.closest('label'); return _l && _l.classList && _l.classList.contains('border-indigo-500'); }); return _r ? _r.value : undefined; })()
             || 'quantity_only';
 
         const adaQty = [...card.querySelectorAll('.input-qty-ukuran')].some(i => parseInt(i.value) > 0);
@@ -275,7 +277,7 @@
                 el.disabled = bukanModePemain;
             });
         }
-        card.querySelector('.wrapper-daftar-pemain')?.classList.toggle('hidden', tipe === 'quantity_only');
+        var _w = card.querySelector('.wrapper-daftar-pemain'); if (_w && _w.classList) _w.classList.toggle('hidden', tipe === 'quantity_only');
         if (tipe !== 'quantity_only' && card.querySelectorAll('.tbody-pemain .baris-pemain').length === 0) {
             tambahBarisPemain(card.querySelector('.wrapper-daftar-pemain button'));
         }
@@ -318,52 +320,63 @@
     // punya lengan/kerah (mis. Celana) - dikelola lewat checkbox "Punya
     // Lengan & Kerah" di Master Data Tipe Produk, bukan hardcode nama.
     function perbaruiVisibilitasLenganKerah(source) {
-        // Tipe produk menentukan apakah Lengan/Kerah dipakai:
-        //   - has_sleeve_collar = 1 (Jersey): Lengan & Kerah WAJIB dipilih.
-        //   - has_sleeve_collar = 0 (Celana, dst.): TIDAK ada lengan/kerah,
-        //     field disembunyikan seluruhnya (default + kolom daftar pemain)
-        //     dan tidak dikirim ke server (disabled) supaya null.
-        // Sebelumnya Celana tetap menampilkan field dan memaksa pilih
-        // entri "Tanpa Lengan/Kerah" di master - itu UX buruk dan
-        // membingungkan (mana mungkin celana punya kerah).
+        // Sumber kebenaran: flag master has_sleeve_collar yang terkirim via
+        // data-has-sleeve-collar pada option tipe produk (dashboard Master
+        // Tipe Produk -> "Punya Lengan & Kerah"). Tidak ada hardcode nama.
         const card = source.closest ? source.closest('.jersey-line-card') : source;
         if (!card) return;
-        const orderType = card.querySelector('input[name$="[order_type]"]:checked')?.value || 'quantity_only';
-
-        const selectProduk = card.querySelector('select[name$="[jersey_product_type_id]"]');
-        const opsiProduk = selectProduk?.selectedOptions?.[0];
-        const hasSleeveCollar = opsiProduk?.dataset?.hasSleeveCollar !== '0';
-
-        // Kartu tanpa lengan/kerah: sembunyikan kolom & wrapper lewat CSS
-        // (class toggle) - berlaku desktop & mobile.
-        card.classList.toggle('tanpa-lengan-kerah', !hasSleeveCollar);
-
+        var _ot = card.querySelector('input[name$="[order_type]"]:checked');
+        const orderType = (_ot ? _ot.value : null) || 'quantity_only';
+        var _ops = card.querySelector('select[name$="[jersey_product_type_id]"]');
+        const opsiProduk = (_ops && _ops.selectedOptions) ? _ops.selectedOptions[0] : undefined;
+        const hasSleeveCollar = (opsiProduk && opsiProduk.value === '')
+            || (opsiProduk && opsiProduk.dataset && opsiProduk.dataset.hasSleeveCollar !== '0');
         const tampilkanDefault = orderType !== 'player_list' && hasSleeveCollar;
+
+        // Hanya kelas `hidden` yang sudah ada - TANPA opacity/pointer-events
+        // agar kartu tetap bisa diklik normal.
         card.querySelectorAll('.wrapper-lengan-kerah-default').forEach(el => {
             el.classList.toggle('hidden', !tampilkanDefault);
             el.querySelectorAll('select, input').forEach(f => {
+                // `required` WAJIB ikut dilepas saat tersembunyikan, kalau
+                // tidak Chrome membatalkan submit tanpa pesan apa pun
+                // ("... is not focusable" - bug "submit diam-diam batal").
+                // Field TIDAK pernah disabled supaya nilai tetap terkirim,
+                // khususnya tipe tanpa lengan/kerah yang otomatis diisi
+                // nilai "Tanpa" dari master.
                 f.required = tampilkanDefault;
-                // Disable supaya nilai kosong tidak terkirim untuk tipe
-                // tanpa lengan/kerah (server menerima null). Untuk mode
-                // Daftar Pemain field default juga disabled (per pemain).
-                if (!hasSleeveCollar) {
-                    f.disabled = true;
+                if (tampilkanDefault && f.dataset.autoTanpa === '1') {
+                    // Kembali ke tipe berlengan: kosongkan pilihan yang
+                    // sebelumnya diisi otomatis agar kasir memilih sadar.
                     f.value = '';
-                } else {
-                    f.disabled = false;
+                    delete f.dataset.autoTanpa;
                 }
             });
-        // Player rows: toggle Lengan/Kerah columns/selects untuk tipe
-        // tanpa lengan/kerah (Celana) - kolom disembunyikan lewat CSS class
-        // di atas, di sini kita pastikan required & disabled ikut.
-        card.querySelectorAll('.baris-pemain').forEach(row => {
-            row.querySelectorAll('select[name*="[jersey_sleeve_type_id]"], select[name*="[jersey_collar_type_id]"]').forEach(f => {
-                f.required = hasSleeveCollar;
-                f.disabled = !hasSleeveCollar;
-                if (!hasSleeveCollar) f.value = '';
-            });
+            if (!hasSleeveCollar) {
+                el.querySelectorAll('select').forEach(f => {
+                    if (f.value === '') {
+                        const tanpa = [...f.options].find(o => o.textContent.indexOf('Tanpa') === 0);
+                        if (tanpa) { f.value = tanpa.value; f.dataset.autoTanpa = '1'; }
+                    }
+                });
+            }
+        });
+        card.querySelectorAll('.col-lengan-kerah').forEach(el => el.classList.toggle('hidden', !hasSleeveCollar));
+        card.querySelectorAll('.baris-pemain select[name$="[jersey_sleeve_type_id]"], .baris-pemain select[name$="[jersey_collar_type_id]"]').forEach(f => {
+            f.required = hasSleeveCollar;
+            if (!hasSleeveCollar) {
+                if (f.value === '') {
+                    const tanpa = [...f.options].find(o => o.textContent.indexOf('Tanpa') === 0);
+                    if (tanpa) { f.value = tanpa.value; f.dataset.autoTanpa = '1'; }
+                }
+            } else if (f.dataset.autoTanpa === '1') {
+                f.value = '';
+                delete f.dataset.autoTanpa;
+            }
         });
     }
+
+    // ---- Thumbnail: upload via klik-pilih-file ATAU tempel (Ctrl+V) ----
     // CATATAN PENTING: paste TIDAK dipasang langsung ke elemen dropzone
     // (dulu begitu, dan gagal). Kotak dropzone punya onclick yang memicu
     // .click() pada <input type=file> tersembunyi di dalamnya untuk buka
@@ -383,7 +396,8 @@
     }
     document.addEventListener('paste', (e) => {
         if (!kartuAktifUntukPasteThumbnail || !document.body.contains(kartuAktifUntukPasteThumbnail)) return;
-        const items = (e.clipboardData || window.clipboardData)?.items;
+        var _cd = (e.clipboardData || window.clipboardData);
+        const items = _cd ? _cd.items : undefined;
         if (!items) return;
         for (const item of items) {
             if (item.type.startsWith('image/')) {
@@ -468,6 +482,20 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         $('.select2-konsumen-jersey').select2({ placeholder: '-- Cari Nama / No. HP --', width: '100%' });
+        // Kursor langsung siap di select2 Pelanggan saat form dibuka (fokus DOM
+        // murni - API select2('focus') terbukti ikut membuka dropdown). Delay
+        // singkat agar pemulihan fokus Chrome setelah reload tidak menimpanya.
+        // Urutan Tab tetap mengalir alami (Tanggal -> Pelanggan -> Nama Tim ->
+        // Deadline -> File Siap Cetak -> Desainer -> kartu).
+        setTimeout(function () {
+            var selK = document.getElementById('select_id_konsumen');
+            var selSel = selK ? selK.querySelector('.select2-selection') : null;
+            if (!selSel && selK && selK.nextElementSibling && selK.nextElementSibling.classList.contains('select2')) {
+                selSel = selK.nextElementSibling.querySelector('.select2-selection');
+            }
+            if (selSel) { selSel.focus(); return; }
+            try { window.jQuery(selK).select2('focus'); } catch (e) {}
+        }, 400);
         tambahBarisBarang();
     });
 
@@ -508,7 +536,7 @@
 
         document.querySelectorAll('.jersey-line-card').forEach((card, idx) => {
             const m = (card.dataset.prefix || '').match(/\[(.+)\]/);
-            const info = m ? data.lines?.[m[1]] : null;
+            const info = m ? (data.lines ? data.lines[m[1]] : null) : null;
             const nilaiEl = card.querySelector('.line-price-preview-value');
             const detailEl = card.querySelector('.line-price-preview-detail');
             if (nilaiEl) {
@@ -536,9 +564,9 @@
             const listEl = card.querySelector('.line-price-preview-list');
             if (listEl) {
                 listEl.innerHTML = '';
-                const barisRincian = Array.isArray(info?.rincian) ? info.rincian : [];
+                const barisRincian = (info && Array.isArray(info.rincian)) ? info.rincian : [];
                 for (const r of barisRincian) {
-                    if (r?.amount == null) continue;
+                    if (r == null || r.amount == null) continue;
                     const li = document.createElement('li');
                     li.className = 'flex items-center justify-between gap-3 py-1';
                     const kiri = document.createElement('span');
@@ -557,8 +585,10 @@
             // Baris ringkasan di sidebar - dibangun via createElement/textContent
             // (bukan innerHTML string) supaya nama barang yang diketik operator
             // tidak pernah dianggap markup, walau isinya aneh-aneh.
-            const namaBarang = card.querySelector('input[name$="[nama_barang]"]')?.value.trim() || `Barang #${idx + 1}`;
-            const thumbSrc = card.querySelector('.thumbnail-preview:not(.hidden)')?.src || '';
+            var _nb = card.querySelector('input[name$="[nama_barang]"]');
+            const namaBarang = (_nb ? _nb.value.trim() : '') || `Barang #${idx + 1}`;
+            var _ts = card.querySelector('.thumbnail-preview:not(.hidden)');
+            const thumbSrc = (_ts ? _ts.src : '') || '';
             const qty = info ? info.qty : 0;
             const subtotal = info ? Math.round(info.subtotal) : 0;
 
@@ -661,7 +691,8 @@
                 }
             }
 
-            const tipe = card.querySelector('input.line-type-option:checked')?.value || 'quantity_only';
+            var _lt = card.querySelector('input.line-type-option:checked');
+            const tipe = (_lt ? _lt.value : null) || 'quantity_only';
             const adaQtyUkuran = [...card.querySelectorAll('.input-qty-ukuran')].some(i => parseInt(i.value) > 0);
             const pemain = [...card.querySelectorAll('.baris-pemain')].filter(r => r.querySelector('[name*="player_name"]').value.trim() !== '');
             const pemainTanpaUkuran = pemain.filter(r => !r.querySelector('[name*="[size]"]').value);

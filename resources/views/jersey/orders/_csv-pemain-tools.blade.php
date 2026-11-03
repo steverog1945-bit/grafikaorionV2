@@ -60,7 +60,7 @@ function csvPemainParseLine(line) {
 
 // Pencocokan nama master: tidak peduli huruf besar/kecil & spasi berlebih.
 function csvPemainKey(s) {
-    return String(s ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+    return String(s == null ? '' : s).trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
 function csvPemainBacaMaster(selectEl) {

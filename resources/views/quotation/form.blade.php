@@ -250,7 +250,7 @@
 
     document.querySelectorAll('[data-tipe]').forEach(ubahTipe);
 
-    document.getElementById('id_konsumen')?.addEventListener('change', function () {
+    var _ik = document.getElementById('id_konsumen'); if (_ik) _ik.addEventListener('change', function () {
         const o = this.selectedOptions[0];
         if (!o || !o.value) return;
         document.getElementById('nama_pelanggan').value = o.dataset.nama || '';

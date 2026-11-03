@@ -211,13 +211,21 @@ class LandingPageBuilderController extends Controller
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
             ], 422);
-        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
-            if ($e->getStatusCode() === 409) {
+        } catch (\Throwable $e) {
+            $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+            if ($status === 409) {
                 return response()->json([
                     'success' => false,
                     'message' => $e->getMessage(),
                     'error' => 'conflict',
                 ], 409);
+            }
+            if ($status >= 500) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan server. Silakan coba lagi.',
+                    'error' => 'server',
+                ], 500);
             }
             throw $e;
         }
@@ -387,14 +395,21 @@ class LandingPageBuilderController extends Controller
 
             return response()->json($result);
 
-        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
-            $status = $e->getStatusCode();
+        } catch (\Throwable $e) {
+            $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
             if (in_array($status, [409, 422])) {
                 return response()->json([
                     'success' => false,
                     'message' => $e->getMessage(),
                     'error' => $status === 409 ? 'conflict' : 'validation',
                 ], $status);
+            }
+            if ($status >= 500) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan server. Silakan coba lagi.',
+                    'error' => 'server',
+                ], 500);
             }
             throw $e;
         }
@@ -476,14 +491,21 @@ class LandingPageBuilderController extends Controller
 
             return response()->json($result);
 
-        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
-            $status = $e->getStatusCode();
+        } catch (\Throwable $e) {
+            $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
             if (in_array($status, [404, 409, 422])) {
                 return response()->json([
                     'success' => false,
                     'message' => $e->getMessage(),
                     'error' => $status === 409 ? 'conflict' : ($status === 404 ? 'not_found' : 'validation'),
                 ], $status);
+            }
+            if ($status >= 500) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan server. Silakan coba lagi.',
+                    'error' => 'server',
+                ], 500);
             }
             throw $e;
         }

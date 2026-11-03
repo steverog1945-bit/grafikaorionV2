@@ -389,7 +389,8 @@
         if (!cell || !tbody) return;
 
         const rows = Array.from(tbody.querySelectorAll('.tier-row-produk'));
-        const satuanRentang = document.querySelector(`.tier-add-form-produk[data-id-produk="${idProduk}"][data-id-golongan="${idGolongan}"]`)?.dataset.satuanRentang || '';
+        var _sr = document.querySelector(`.tier-add-form-produk[data-id-produk="${idProduk}"][data-id-golongan="${idGolongan}"]`);
+const satuanRentang = (_sr && _sr.dataset) ? (_sr.dataset.satuanRentang || '') : '';
 
         // Badge jumlah tier di tab juga ikut diperbarui di sini - satu-
         // satunya tempat "jumlah tier golongan ini berubah" terjadi.

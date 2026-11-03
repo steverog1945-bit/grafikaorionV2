@@ -1014,7 +1014,7 @@
 
     function onTipeOrderChange() {
         const tipe = document.querySelector('input[name="tipe_order"]:checked').value;
-        document.getElementById('wrapper_no_po')?.classList.toggle('hidden', tipe !== 'PO');
+        var _wnp = document.getElementById('wrapper_no_po'); if (_wnp && _wnp.classList) _wnp.classList.toggle('hidden', tipe !== 'PO');
     }
 
     // Urgensi sekarang tampil sebagai segmented radio, sementara select
@@ -1613,7 +1613,7 @@
         const statusFinishing = document.getElementById('input_status_finishing');
         const wrapperBiayaFinishing = document.getElementById('wrapper_biaya_finishing');
         const wrapperQtyFinishing = document.getElementById('wrapper_qty_finishing');
-        const metodeFinishing = sel.selectedOptions[0]?.dataset.metode;
+        const metodeFinishing = (sel.selectedOptions && sel.selectedOptions[0] && sel.selectedOptions[0].dataset) ? sel.selectedOptions[0].dataset.metode : undefined;
         if (sel.value) {
             statusFinishing.disabled = false;
             wrapperBiayaFinishing.classList.remove('hidden');
@@ -1624,7 +1624,7 @@
             if (metodeFinishing === 'quantity') {
                 const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 1;
                 const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 1;
-                document.getElementById('input_qty_finishing').value = (currentProduk?.metode_hitung === 'ukuran') ? qU : qB;
+                document.getElementById('input_qty_finishing').value = (currentProduk && currentProduk.metode_hitung === 'ukuran') ? qU : qB;
                 qtyFinishingManualEdit = false;
             }
         } else {
@@ -1677,8 +1677,8 @@
         const el = document.getElementById('potong_manual_minimum');
         if (!el) return;
         const sel = document.getElementById('select_finishing');
-        const opsi = sel?.selectedOptions?.[0];
-        const minimum = parseFloat(opsi?.dataset?.minimum);
+        const opsi = (sel && sel.selectedOptions) ? sel.selectedOptions[0] : undefined;
+        const minimum = parseFloat((opsi && opsi.dataset) ? opsi.dataset.minimum : undefined);
         if (!opsi || !opsi.value || !Number.isFinite(minimum)) {
             el.textContent = 'minimum charge dari master finishing';
             return;
@@ -1755,8 +1755,8 @@
         }
 
         return {
-            lebar: parseFloat(document.getElementById('input_lebar_media_potong')?.value) || 0,
-            tinggi: parseFloat(document.getElementById('input_tinggi_media_potong')?.value) || 0,
+            lebar: parseFloat((document.getElementById('input_lebar_media_potong') || {}).value) || 0,
+            tinggi: parseFloat((document.getElementById('input_tinggi_media_potong') || {}).value) || 0,
         };
     }
 
@@ -1826,8 +1826,8 @@
     //
     // Minimum charge 0 = tidak ada lantai biaya, biaya persis hasil rumus.
     function bacaTarifLinearGrid(opsi) {
-        const tarif = parseFloat(opsi?.dataset?.harga);
-        const minimum = parseFloat(opsi?.dataset?.minimum);
+        const tarif = parseFloat((opsi && opsi.dataset) ? opsi.dataset.harga : undefined);
+        const minimum = parseFloat((opsi && opsi.dataset) ? opsi.dataset.minimum : undefined);
         return {
             tarifPerMeter: Number.isFinite(tarif) ? tarif : 0,
             minimumCharge: Number.isFinite(minimum) ? minimum : 0
@@ -1858,7 +1858,7 @@
         const tinggiMedia = media.tinggi;
 
         const { tarifPerMeter, minimumCharge } = bacaTarifLinearGrid(
-            document.getElementById('select_finishing')?.selectedOptions[0]
+            (function(){var s=document.getElementById('select_finishing');return s?s.selectedOptions[0]:undefined;})()
         );
 
         const hasil = kalkulasiGridLinearGrid(
@@ -2010,7 +2010,7 @@
         const l = parseFloat(document.getElementById('input_l').value) || 0;
         const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
         const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
-        const metodeFinishing = sel.selectedOptions[0]?.dataset.metode;
+        const metodeFinishing = (sel.selectedOptions && sel.selectedOptions[0] && sel.selectedOptions[0].dataset) ? sel.selectedOptions[0].dataset.metode : undefined;
         const pcsProduk = (currentProduk.metode_hitung === 'ukuran') ? qU : qB;
 
         let qtyFinishing;
@@ -2030,7 +2030,7 @@
         // tidak relevan - anyways fetch async-nya akan arrive belakangan dan
         // MENIMPA hitungan grid yang benar di field Biaya Finishing.
         // Biaya mode ini solely dihitung oleh hitungBiayaLinearGrid().
-        const metodeFinishingTerpilih = sel.selectedOptions[0]?.dataset.metode;
+        const metodeFinishingTerpilih = (sel.selectedOptions && sel.selectedOptions[0] && sel.selectedOptions[0].dataset) ? sel.selectedOptions[0].dataset.metode : undefined;
         if (metodeFinishingTerpilih === 'LINEAR_GRID') {
             hitungBiayaLinearGrid();
             return;
@@ -2176,7 +2176,7 @@
         if (finishingList.length >= 5) { if (!silent) Swal.fire('Finishing', 'Maksimal 5 finishing per item.', 'warning'); return false; }
         if (finishingList.some(f => String(f.id_finishing) === String(sel.value))) { if (!silent) Swal.fire('Finishing', 'Finishing ini sudah ada di daftar. Hapus dulu bila ingin mengubahnya.', 'info'); return false; }
 
-        const metode = sel.selectedOptions[0]?.dataset.metode;
+        const metode = (sel.selectedOptions && sel.selectedOptions[0] && sel.selectedOptions[0].dataset) ? sel.selectedOptions[0].dataset.metode : undefined;
         const status = document.getElementById('input_status_finishing').value === 'Custom' ? 'Custom' : 'Standar';
         const qtyPakai = metode === 'quantity' ? (parseFloat(document.getElementById('input_qty_finishing').value) || 0) : null;
         let biaya;
@@ -3038,7 +3038,7 @@ let hitungUlangMenunggu = false;
             document.getElementById('input_cetak').value = formatRupiahDariAngka(item.biaya_cetak);
             // Finishing item lama: pulihkan ke DAFTAR (baris isian dikosongkan). Bentuk lama (tunggal) dijadikan satu elemen.
             finishingList = (item.finishing && item.finishing.length ? item.finishing : (item.id_finishing ? [{
-                id_finishing: item.id_finishing, nama: item.nama_finishing, metode: document.querySelector(`#select_finishing option[value="${item.id_finishing}"]`)?.dataset.metode || 'luas',
+                id_finishing: item.id_finishing, nama: item.nama_finishing, metode: (function(){var o=document.querySelector(`#select_finishing option[value="${item.id_finishing}"]`);return (o&&o.dataset)?o.dataset.metode:'luas';})() || 'luas',
                 status: item.status_finishing || 'Standar', qty_pakai: null, biaya: item.biaya_finishing || 0, catatan: '',
             }] : [])).map(f => ({ ...f }));
             renderFinishingList();
@@ -3064,7 +3064,7 @@ let hitungUlangMenunggu = false;
             // tebakan qty item ini & dikunci manual (qtyFinishingManualEdit)
             // supaya TIDAK diam-diam menghitung ulang & menimpa biaya_finishing
             // historis yang sudah final di atas.
-            const metodeFinishingItem = document.querySelector(`#select_finishing option[value="${item.id_finishing}"]`)?.dataset.metode;
+            const metodeFinishingItem = (function(){var o=document.querySelector(`#select_finishing option[value="${item.id_finishing}"]`);return (o&&o.dataset)?o.dataset.metode:undefined;})();
             document.getElementById('wrapper_qty_finishing').classList.add('hidden');
             document.getElementById('input_qty_finishing').value = item.qty_input || 1;
             qtyFinishingManualEdit = true;
@@ -3263,7 +3263,8 @@ let hitungUlangMenunggu = false;
         }
         namaGolonganEl && namaGolonganEl.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40');
 
-        const tipeOrder = document.querySelector('input[name="tipe_order"]:checked')?.value || 'Reguler';
+        var _to = document.querySelector('input[name="tipe_order"]:checked');
+const tipeOrder = (_to ? _to.value : null) || 'Reguler';
         const noPo = document.getElementById('no_po') ? document.getElementById('no_po').value.trim() : '';
         if (tipeOrder === 'PO' && !noPo && !MODE_SUSULAN) {
             document.getElementById('no_po').focus();
@@ -3305,6 +3306,11 @@ let hitungUlangMenunggu = false;
             });
             clearTimeout(pembatasSimpan);
             pembatasSimpan = null;
+            if (!response.ok) {
+                let pesan = 'Gagal menyimpan (HTTP ' + response.status + ').';
+                try { const err = await response.json(); pesan = err.message || err.msg || pesan; } catch (e) {}
+                throw new Error(pesan);
+            }
             const result = await response.json();
             if (result.status === 'success') {
                 if (MODE_EDIT) {
@@ -3350,7 +3356,7 @@ let hitungUlangMenunggu = false;
             console.error('simpanTransaksi gagal:', e);
             const pesan = (e && e.name === 'AbortError')
                 ? 'Server tidak merespons dalam ' + Math.round(BATAS_SIMPAN_MS / 1000) + ' detik. Periksa koneksi, lalu tab halaman ini dulu sebelum menyimpan ulang.'
-                : 'Permintaan tidak bisa diproses. Muat ulang halaman lalu coba lagi.';
+                : (e && e.message) ? e.message : 'Permintaan tidak bisa diproses. Muat ulang halaman lalu coba lagi.';
             Swal.fire('Gagal', pesan, 'error');
         }
         finally {

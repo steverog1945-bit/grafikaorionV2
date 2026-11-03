@@ -81,7 +81,7 @@
 <script>
     // Exact: pecahan dipertahankan ("999,6", bukan "1.000"). Nilai bulat tampil sama seperti sebelumnya.
     const plRp = n => 'Rp ' + angkaId(n, 2);
-    const plEsc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const plEsc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     let plData = null;
 
     async function bukaPelunasan(mode, id) {

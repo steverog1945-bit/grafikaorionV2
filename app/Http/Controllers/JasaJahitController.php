@@ -315,19 +315,23 @@ class JasaJahitController extends Controller
         $harga = $request->filled('harga') ? (float) $request->harga : (float) $jenis->harga_borongan;
         $qty = (float) $request->qty;
 
-        DB::table('jasa_jahit_catat')->insert([
-            'id_jasa_jahit'       => $jenis->id_jasa_jahit,
-            'id_penjahit'         => $request->id_penjahit,
-            'id_transaksi_detail' => $request->id_transaksi_detail ?: null,
-            'qty'                 => $qty,
-            'harga_snapshot'      => $harga,
-            'total'               => round($qty * $harga, 2),
-            'tgl_catat'           => $request->tgl_catat,
-            'catatan'             => $request->catatan,
-            'id_user'             => Auth::id(),
-            'created_at'          => now(),
-            'updated_at'          => now(),
-        ]);
+        try {
+            DB::table('jasa_jahit_catat')->insert([
+                'id_jasa_jahit'       => $jenis->id_jasa_jahit,
+                'id_penjahit'         => $request->id_penjahit,
+                'id_transaksi_detail' => $request->id_transaksi_detail ?: null,
+                'qty'                 => $qty,
+                'harga_snapshot'      => $harga,
+                'total'               => round($qty * $harga, 2),
+                'tgl_catat'           => $request->tgl_catat,
+                'catatan'             => $request->catatan,
+                'id_user'             => Auth::id(),
+                'created_at'          => now(),
+                'updated_at'          => now(),
+            ]);
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Gagal mencatat jahit'));
+        }
 
         return redirect()->back()->with('success', 'Pengeluaran jahit dicatat.');
     }
@@ -356,7 +360,8 @@ class JasaJahitController extends Controller
 
         // Pemeriksaan sisa dan penyimpanan dalam satu transaksi, dengan order dikunci, supaya dua pencatatan
         // bersamaan untuk order yang sama tidak sama-sama lolos.
-        $hasil = DB::transaction(function () use ($request, $nomor) {
+        try {
+            $hasil = DB::transaction(function () use ($request, $nomor) {
             DB::table('jersey_orders')->where('id', $request->id_jersey_order)->lockForUpdate()->first();
             $rincian = collect(TarifJahitJerseyService::rincian((int) $request->id_jersey_order)['baris'])->keyBy('id_jasa_jahit');
 
@@ -396,6 +401,9 @@ class JasaJahitController extends Controller
 
             return $baris;
         });
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Gagal mencatat jahit jersey'));
+        }
 
         if (is_string($hasil)) {
             return redirect()->back()->withInput()->with('error', $hasil);

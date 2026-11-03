@@ -284,7 +284,7 @@
     const countSpan = document.getElementById('count-checked');
     const countSpanAmbil = document.getElementById('count-checked-ambil');
 
-    checkAll?.addEventListener('change', function() {
+    if (checkAll) checkAll.addEventListener('change', function() {
         checkboxes.forEach(cb => cb.checked = this.checked);
         updateBulkButton();
     });
@@ -302,7 +302,7 @@
         });
     }
 
-    bulkBtn?.addEventListener('click', function() {
+    if (bulkBtn) bulkBtn.addEventListener('click', function() {
         Swal.fire({
             title: 'Tandai Urgent Semua Terpilih?',
             icon: 'warning',
@@ -320,7 +320,7 @@
         });
     });
 
-    bulkAmbilBtn?.addEventListener('click', function() {
+    if (bulkAmbilBtn) bulkAmbilBtn.addEventListener('click', function() {
         const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
         Swal.fire({
             title: 'Ambil Semua Pekerjaan Terpilih?',

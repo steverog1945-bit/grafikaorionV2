@@ -709,7 +709,7 @@
         const q = (document.getElementById(cfg.search).value || '').toLowerCase().trim();
         const status = cfg.status ? document.getElementById(cfg.status).value : 'semua';
         terapkanFilterTabel(cfg.tbody, (row) => {
-            const nama = row.querySelector('td')?.textContent.toLowerCase() ?? '';
+            var _td = row.querySelector('td'); const nama = (_td && _td.textContent) ? _td.textContent.toLowerCase() : '';
             const cocokNama = !q || nama.includes(q);
             const isActive = !row.classList.contains('opacity-50');
             const cocokStatus = status === 'semua' || (status === 'aktif' && isActive) || (status === 'nonaktif' && !isActive);
@@ -812,7 +812,7 @@
     function hapusKolomEstimasiTipe(jenis, id) {
         const table = document.getElementById(`tabel-estimasi-${jenis}`);
         if (!table) return;
-        table.querySelector(`[data-type-th="${id}"]`)?.remove();
+        var _tt = table.querySelector(`[data-type-th="${id}"]`); if (_tt) _tt.remove();
         table.querySelectorAll(`[data-type-td="${id}"]`).forEach(td => td.remove());
     }
 
@@ -932,7 +932,7 @@
         const q = (document.getElementById('search-ukuran').value || '').toLowerCase().trim();
         const status = document.getElementById('filter-status-ukuran').value;
         terapkanFilterTabel('tbody-ukuran', (row) => {
-            const nama = row.querySelector('td')?.textContent.toLowerCase() ?? '';
+            var _td = row.querySelector('td'); const nama = (_td && _td.textContent) ? _td.textContent.toLowerCase() : '';
             const cocokNama = !q || nama.includes(q);
             const isActive = !row.classList.contains('opacity-50');
             const cocokStatus = status === 'semua' || (status === 'aktif' && isActive) || (status === 'nonaktif' && !isActive);
@@ -1002,10 +1002,10 @@
     // - "Semua Tipe" kalau keduanya kosong, sama seperti teks server-render.
     function labelCakupanKomponen(row) {
         const namaTipe = row.jersey_product_type_id
-            ? (document.querySelector(`#form-add-komponen [name="jersey_product_type_id"] option[value="${row.jersey_product_type_id}"]`)?.textContent ?? 'Tipe tertentu')
+            ? (function(){var o=document.querySelector(`#form-add-komponen [name="jersey_product_type_id"] option[value="${row.jersey_product_type_id}"]`);return o?o.textContent:'Tipe tertentu';})()
             : 'Semua Tipe';
         const namaKategori = row.jersey_category_id
-            ? (document.querySelector(`#form-add-komponen [name="jersey_category_id"] option[value="${row.jersey_category_id}"]`)?.textContent ?? null)
+            ? (function(){var o=document.querySelector(`#form-add-komponen [name="jersey_category_id"] option[value="${row.jersey_category_id}"]`);return o?o.textContent:null;})()
             : null;
         return namaKategori ? `${escHtml(namaTipe)} &middot; ${escHtml(namaKategori)}` : escHtml(namaTipe);
     }
@@ -1038,7 +1038,7 @@
             </th>`);
         document.querySelectorAll('#tbody-estimasi-meter tr[data-size-id]').forEach(row => {
             const sizeId = row.dataset.sizeId;
-            row.querySelector('.total-meter-cell')?.insertAdjacentHTML('beforebegin', `
+            var _tm = row.querySelector('.total-meter-cell'); if (_tm) _tm.insertAdjacentHTML('beforebegin', `
                 <td class="p-1" data-component-td="${data.row.id}">
                     <input type="number" step="0.01" min="0" value=""
                         onchange="simpanEstimasi(${sizeId}, ${data.row.id}, 'meter', this.value)"
@@ -1053,7 +1053,7 @@
             </th>`);
         document.querySelectorAll('#tbody-estimasi-berat tr[data-size-id]').forEach(row => {
             const sizeId = row.dataset.sizeId;
-            row.querySelector('.total-berat-cell')?.insertAdjacentHTML('beforebegin', `
+            var _tb = row.querySelector('.total-berat-cell'); if (_tb) _tb.insertAdjacentHTML('beforebegin', `
                 <td class="p-1" data-component-td-berat="${data.row.id}">
                     <input type="number" step="1" min="0" value=""
                         onchange="simpanEstimasi(${sizeId}, ${data.row.id}, 'weight', this.value)"
@@ -1076,9 +1076,9 @@
         if (!konfirmasi.isConfirmed) return;
         const data = await kirimJson(`{{ url("/jersey/master/components") }}/${id}/toggle`, 'PATCH', {});
         if (!data) return;
-        document.querySelector(`[data-component-th="${id}"]`)?.remove();
+        var _ct = document.querySelector(`[data-component-th="${id}"]`); if (_ct) _ct.remove();
         document.querySelectorAll(`[data-component-td="${id}"]`).forEach(td => td.remove());
-        document.querySelector(`[data-component-th-berat="${id}"]`)?.remove();
+        var _cb = document.querySelector(`[data-component-th-berat="${id}"]`); if (_cb) _cb.remove();
         document.querySelectorAll(`[data-component-td-berat="${id}"]`).forEach(td => td.remove());
         document.querySelectorAll('#tbody-estimasi-meter tr[data-size-id]').forEach(row => recalcTotalEstimasi(row.dataset.sizeId));
         tampilkanToastJersey(data.message);
@@ -1112,7 +1112,7 @@
         const kolomMeter = document.getElementById('tabel-estimasi').querySelector('thead tr').children.length;
         const kolomBerat = document.getElementById('tabel-estimasi-berat-tbl').querySelector('thead tr').children.length;
         const cocok = (row) => {
-            const nama = row.querySelector('td')?.textContent.toLowerCase() ?? '';
+            var _td = row.querySelector('td'); const nama = (_td && _td.textContent) ? _td.textContent.toLowerCase() : '';
             return !q || nama.includes(q);
         };
         terapkanFilterTabel('tbody-estimasi-meter', cocok, kolomMeter);
@@ -1240,7 +1240,8 @@
     function isiPitaStandar() {
         if (!document.getElementById('cepat-tipe').value) { tampilkanToastJersey('Pilih Tipe Produk dulu.', false); return; }
         const wadah = document.getElementById('cepat-baris');
-        const hargaAwal = wadah.querySelector('.cepat-harga')?.value || '';
+        var _ch = wadah.querySelector('.cepat-harga');
+        const hargaAwal = (_ch ? _ch.value : null) || '';
         wadah.innerHTML = '';
         [[1, 11], [12, 23], [24, 49], [50, null]].forEach(([min, max]) => {
             wadah.insertAdjacentHTML('beforeend', barisCepatHtml({ qty_min: min, qty_max: max }));
@@ -1386,7 +1387,7 @@
         if (!konfirmasi.isConfirmed) return;
         const data = await kirimJson(`{{ url("/jersey/master/price-settings") }}/${id}`, 'DELETE', {});
         if (!data) return;
-        document.querySelector(`#tbody-harga tr[data-id="${id}"]`)?.remove();
+        var _tr = document.querySelector(`#tbody-harga tr[data-id="${id}"]`); if (_tr) _tr.remove();
         tampilkanToastJersey(data.message);
         terapkanFilterHarga();
     }

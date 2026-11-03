@@ -10,6 +10,11 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    build: {
+        // Target browser lama (IE11-era) agar sintaks modern (?. ??, dsb.)
+        // ditranspile ke ES5/ES2015 - konsisten dengan aturan R1.
+        target: 'es2015',
+    },
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],

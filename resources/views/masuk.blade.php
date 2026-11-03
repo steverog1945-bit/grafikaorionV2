@@ -75,6 +75,23 @@
             </div>
         </div>
 
+        @if(!empty($showCaptcha))
+            <div class="mk-grup">
+                <label class="mk-label" for="login-captcha">Keamanan: {{ $captchaQuestion }}</label>
+                <input type="text"
+                       id="login-captcha"
+                       name="captcha"
+                       class="mk-input"
+                       placeholder="Jawaban"
+                       required
+                       autocomplete="off"
+                       inputmode="numeric">
+                @error('captcha')
+                    <div style="color:#b91c1c;font-size:13px;margin-top:4px">{{ $message }}</div>
+                @enderror
+            </div>
+        @endif
+
         <button type="submit" class="mk-tombol">Masuk</button>
     </form>
 

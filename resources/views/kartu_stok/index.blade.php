@@ -250,7 +250,7 @@
     function openPenyesuaian(idBahan, namaBahan, stok) {
         document.getElementById('adj_id_bahan').value = idBahan;
         document.getElementById('adj_stok_display').textContent = parseFloat(stok).toLocaleString('id-ID', {minimumFractionDigits: 2});
-        tampilSatuanAdj(document.getElementById('adj_id_bahan').selectedOptions[0]?.getAttribute('data-satuan') || '');
+        var _ad = document.getElementById('adj_id_bahan'); var _ado = (_ad && _ad.selectedOptions) ? _ad.selectedOptions[0] : null; tampilSatuanAdj((_ado && _ado.getAttribute) ? (_ado.getAttribute('data-satuan') || '') : '');
         document.getElementById('adj_tipe').value = 'OUT';
         toggleAdjTipe();
         catatStokDibuka();

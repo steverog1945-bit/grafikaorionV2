@@ -636,7 +636,7 @@
     }
 
     // ---- Catat jahit jersey: rincian dimuat dari server, qty per tarif bisa dikurangi (mis. baru sebagian selesai).
-    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 
     async function muatRincianJersey() {
         const id = document.getElementById('jj-order').value;

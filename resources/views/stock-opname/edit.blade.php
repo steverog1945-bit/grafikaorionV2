@@ -122,7 +122,7 @@
             fetch(document.getElementById('form-opname').action, {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                    'X-CSRF-TOKEN': (function(){var m=document.querySelector('meta[name="csrf-token"]');return m?m.content:'{{ csrf_token() }}';})() || '{{ csrf_token() }}',
                     'Accept': 'application/json',
                 },
                 body: new FormData(document.getElementById('form-opname'))

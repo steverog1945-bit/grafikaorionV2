@@ -1865,7 +1865,7 @@
             }
 
             $(document).on('select2:opening', 'select', function () {
-                if (refreshing || this.hasAttribute('data-no-refresh') || $(this).data('select2')?.options?.options?.ajax) return;
+                if (refreshing || this.hasAttribute('data-no-refresh') || (((($(this).data('select2') || {}).options || {}).options || {}).ajax)) return;
                 const el = this, $el = $(this);
                 if (!el.id && !el.name) return;
 
@@ -2158,7 +2158,7 @@
             else if (first) fokus(first);
         }
         window.addEventListener('load', () => {
-            if (document.querySelector('[autofocus]') || document.activeElement?.matches?.(isian)) return;
+            if (document.querySelector('[autofocus]') || (document.activeElement && document.activeElement.matches && document.activeElement.matches(isian))) return;
             setTimeout(() => fokusAwal(document.querySelector('.content-wrapper') || document, true), 150);
         });
 
@@ -2167,7 +2167,7 @@
             const el = m.target;
             if (m.attributeName !== 'class' || !(el instanceof HTMLElement)) return;
             const sebelum = (m.oldValue || '').split(/\s+/).includes('hidden');
-            if (sebelum && !el.classList.contains('hidden') && (el.id?.startsWith('modal-') || /\bfixed\b/.test(el.className) && /inset-0/.test(el.className))) {
+            if (sebelum && !el.classList.contains('hidden') && ((el.id && el.id.indexOf('modal-') === 0) || /\bfixed\b/.test(el.className) && /inset-0/.test(el.className))) {
                 setTimeout(() => { const f = daftar(el)[0]; if (f) fokus(f); }, 80);
             }
         })).observe(document.body, { attributes: true, attributeOldValue: true, subtree: true, attributeFilter: ['class'] });
@@ -2175,7 +2175,7 @@
         // (2) Pindah ke isian berikutnya setelah memilih dropdown.
         function berikutnya(sel) {
             const form = sel.closest('form') || sel.closest('.content-wrapper') || document;
-            if ((form.getAttribute?.('method') || 'post').toLowerCase() === 'get') return null; // filter GET: langsung memuat ulang
+            if (((form.getAttribute ? form.getAttribute('method') : null) || 'post').toLowerCase() === 'get') return null; // filter GET: langsung memuat ulang
             const semua = daftar(form.tagName ? form : document);
             const i = semua.indexOf(sel);
             for (let k = i + 1; k < semua.length; k++) {
@@ -2398,7 +2398,7 @@
         // Toggle Sidebar Mobile
         // Esc menutup menu samping di layar kecil (sama seperti modal).
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && document.getElementById('mainSidebar')?.classList.contains('mobile-open')) toggleMobileMenu();
+            if (e.key === 'Escape') { var _sb = document.getElementById('mainSidebar'); if (_sb && _sb.classList && _sb.classList.contains('mobile-open')) toggleMobileMenu(); }
         });
         function toggleMobileMenu() {
             const sidebar = document.getElementById('mainSidebar');
@@ -2434,7 +2434,7 @@
         window.addEventListener('resize', function() {
             if (window.innerWidth < 1024) {
                 document.body.classList.remove('sidebar-collapsed');
-            } else if (document.getElementById('mainSidebar')?.classList.contains('mobile-open')) {
+            } else if ((function(){var s=document.getElementById('mainSidebar');return s&&s.classList&&s.classList.contains('mobile-open');})()) {
                 toggleMobileMenu();
             }
         });
@@ -2775,7 +2775,7 @@
     // Teks dari data (nama master, nomor nota, ringkasan pengajuan) yang disisipkan ke dialog ber-html WAJIB lewat
     // fungsi ini: tanpa itu nama berisi <img onerror=...> dijalankan sebagai skrip di sesi orang yang membuka dialog.
     window.escHtml = function (v) {
-        return String(v ?? '').replace(/[&<>"']/g, function (c) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
         });
     };
@@ -2881,7 +2881,8 @@
             return bit[0] === '1' && bit[AKSI[aksi]] === '1';
         }
         function aksiForm(f) {
-            const m = (f.querySelector('input[name="_method"]')?.value || f.getAttribute('method') || 'GET').toUpperCase();
+            const _m = f.querySelector('input[name="_method"]');
+            const m = ((_m ? _m.value : null) || f.getAttribute('method') || 'GET').toUpperCase();
             return m === 'GET' ? 'view' : m === 'POST' ? 'add' : m === 'DELETE' ? 'delete' : 'edit';
         }
         // Form baris = form tanpa isian yang terlihat (hanya tombol + input tersembunyi).

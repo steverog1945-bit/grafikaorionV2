@@ -95,7 +95,7 @@ class JerseyOrder extends Model
             $this->refresh();
 
             $subtotalLines = (float) $this->lines()->sum('subtotal');
-            $total = max(0, $subtotalLines - (float) $this->discount + (float) $this->additional_charge);
+            $total = round(max(0, $subtotalLines - (float) $this->discount + (float) $this->additional_charge), 2);
 
             // Diskon, kurangi barang, atau hapus barang tidak boleh membuat total di bawah uang yang sudah diterima:
             // piutang jadi minus, kelebihan bayar tidak terlihat (status tetap Lunas), dan tidak ada jalur pengembalian.

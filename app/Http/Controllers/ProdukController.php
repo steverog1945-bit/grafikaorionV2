@@ -78,8 +78,9 @@ public function index(Request $request)
 
         $this->validasiMinimumKelompok($request);
 
-        return DB::transaction(function () use ($request) {
-            // Hitung Min Order
+        try {
+            return DB::transaction(function () use ($request) {
+                // Hitung Min Order
             $minPanjang = (float) ($request->min_p ?? 0);
             $minLebar = (float) ($request->min_l ?? 0);
             $minOrderValue = ($request->metode_hitung == 'ukuran')
@@ -144,6 +145,9 @@ public function index(Request $request)
 
             return redirect()->back()->with('success', 'Master Produk & Engineering BOM berhasil disimpan!');
         });
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Gagal menyimpan produk'));
+        }
     }
 
     /**
@@ -225,8 +229,9 @@ public function show($id)
 
     public function update(Request $request, $id)
     {
-        return DB::transaction(function () use ($request, $id) {
-            $terkini = DB::table('produk')->where('id_produk', $id)->lockForUpdate()->first();
+        try {
+            return DB::transaction(function () use ($request, $id) {
+                $terkini = DB::table('produk')->where('id_produk', $id)->lockForUpdate()->first();
             if ($terkini && \App\Support\VersiBaris::bentrok($request, $terkini)) {
                 return redirect()->back()->withInput()->with('error', \App\Support\VersiBaris::pesan($terkini));
             }
@@ -309,6 +314,9 @@ public function show($id)
 
             return redirect()->back()->with('success', 'Update Produk & Engineering Berhasil.');
         });
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', \App\Support\PesanError::untuk($e, 'Gagal memperbarui produk'));
+        }
     }
     /**
      * Hapus permanen HANYA untuk produk yang belum pernah dipakai di
@@ -356,7 +364,11 @@ public function show($id)
         }
 
         $statusBaru = $produk->status === 'aktif' ? 'nonaktif' : 'aktif';
-        DB::table('produk')->where('id_produk', $id)->update(['status' => $statusBaru, 'updated_at' => now()]);
+        try {
+            DB::table('produk')->where('id_produk', $id)->update(['status' => $statusBaru, 'updated_at' => now()]);
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal mengubah status produk'));
+        }
 
         return redirect()->back()->with('success', $statusBaru === 'aktif'
             ? 'Produk diaktifkan kembali.'

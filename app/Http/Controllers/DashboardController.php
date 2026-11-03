@@ -52,6 +52,15 @@ class DashboardController extends Controller
      */
     public function kpiApi()
     {
+        // KPI memuat angka keuangan (piutang, kas masuk, nilai order). Hanya
+        // role yang memang memakai dashboard penuh yang boleh membacanya;
+        // role dengan dashboard khusus (Desain/Produksi/Gudang) tidak boleh
+        // mengakses agregat ini lewat endpoint langsung.
+        $namaRole = auth()->user()?->role?->nama_role;
+        if (in_array($namaRole, ['Operator Desain', 'Operator Produksi', 'Gudang'], true)) {
+            abort(403);
+        }
+
         $today = now()->format('Y-m-d');
         [$mulaiHariIni, $akhirHariIni] = self::rentangHari($today);
         [$mulaiKemarin, $akhirKemarin] = self::rentangHari(now()->subDay()->format('Y-m-d'));

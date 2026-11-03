@@ -370,7 +370,7 @@ function aksiKas(tipe) {
         showCancelButton: true,
         confirmButtonText: 'Buka Kas',
         cancelButtonText: 'Batal',
-        didOpen: (el) => { el.querySelector('#swal-input')?.focus(); el.querySelector('#swal-input')?.select(); },
+        didOpen: (el) => { var _si = el.querySelector('#swal-input'); if (_si) { _si.focus(); _si.select(); } },
     }).then((result) => {
         if (!result.isConfirmed) return;
 

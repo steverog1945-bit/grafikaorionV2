@@ -167,8 +167,8 @@
 <script>
     function bukaPengaturanTinta(p) {
         p = p || {};
-        document.getElementById('pt_id_mesin').value = p.id_mesin || document.getElementById('pt_id_mesin').options[0]?.value;
-        document.getElementById('pt_id_bahan').value = p.id_bahan || document.getElementById('pt_id_bahan').options[0]?.value;
+        var _m = document.getElementById('pt_id_mesin'); document.getElementById('pt_id_mesin').value = p.id_mesin || ((_m && _m.options && _m.options[0]) ? _m.options[0].value : '');
+        var _b = document.getElementById('pt_id_bahan'); document.getElementById('pt_id_bahan').value = p.id_bahan || ((_b && _b.options && _b.options[0]) ? _b.options[0].value : '');
         document.getElementById('pt_dasar').value = p.dasar || 'm2';
         document.getElementById('pt_pemakaian').value = p.pemakaian !== undefined ? parseFloat(p.pemakaian) : '';
         document.getElementById('pt_keterangan').value = p.keterangan || '';

@@ -382,10 +382,14 @@
     }
 
     function jalankanPreviewNota() {
-        const prefix = document.querySelector('input[name="nomor_nota_prefix"]')?.value || 'INV';
-        const format = document.querySelector('input[name="format_nota"]:checked')?.value || 'a4';
-        const pembulatan = document.querySelector('input[name="pembulatan_nota"]:checked')?.value || 'tidak';
-        const footerHtml = document.getElementById('editor-footer-nota')?.innerHTML.trim() || '';
+        var _p = document.querySelector('input[name="nomor_nota_prefix"]');
+        const prefix = (_p ? _p.value : null) || 'INV';
+        var _f = document.querySelector('input[name="format_nota"]:checked');
+        const format = (_f ? _f.value : null) || 'a4';
+        var _pb = document.querySelector('input[name="pembulatan_nota"]:checked');
+        const pembulatan = (_pb ? _pb.value : null) || 'tidak';
+        var _ef = document.getElementById('editor-footer-nota');
+        const footerHtml = (_ef && _ef.innerHTML ? _ef.innerHTML.trim() : '') || '';
 
         const lebarAsli = LEBAR_MM_KE_PX[format] || LEBAR_MM_KE_PX.a4;
         const skala = Math.min(1, LEBAR_PANEL_MAKS / lebarAsli);

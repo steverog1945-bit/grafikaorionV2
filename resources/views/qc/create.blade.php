@@ -61,7 +61,8 @@
     const sel = document.getElementById('id_detail'), dik = document.getElementById('qty_diperiksa'), rej = document.getElementById('qty_reject');
     function hitung() { document.getElementById('qty-lolos').textContent = Math.max(0, (parseInt(dik.value) || 0) - (parseInt(rej.value) || 0)); }
     sel.addEventListener('change', function () {
-        const q = this.selectedOptions[0]?.dataset.qty;
+        var _qo = this.selectedOptions[0];
+        const q = (_qo && _qo.dataset) ? _qo.dataset.qty : undefined;
         // Selalu ikuti qty item yang baru dipilih (sebelumnya hanya terisi untuk pilihan pertama).
         dik.value = q ? parseFloat(q) : '';
         rej.value = 0;

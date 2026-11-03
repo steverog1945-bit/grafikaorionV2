@@ -1256,13 +1256,14 @@ public function requestEditNota(Request $request, $id)
     // valid, jadi mengunci baris itu (bukan baris nota_edit_request yang belum
     // tentu ada) cukup untuk membuat cek+insert ini serial per-nota.
     $pesanError = null;
-    DB::transaction(function () use ($id, $request, &$pesanError) {
-        $transaksi = DB::table('transaksi')->where('id_transaksi', $id)->lockForUpdate()->first();
-        if (!$transaksi) {
-            $pesanError = 'Nota tidak ditemukan.';
+    try {
+        DB::transaction(function () use ($id, $request, &$pesanError) {
+            $transaksi = DB::table('transaksi')->where('id_transaksi', $id)->lockForUpdate()->first();
+            if (!$transaksi) {
+                $pesanError = 'Nota tidak ditemukan.';
 
-            return;
-        }
+                return;
+            }
         if ($transaksi->status_nota === 'Dibatalkan') {
             $pesanError = 'Nota ini sudah dibatalkan, tidak perlu diedit.';
 
@@ -1287,7 +1288,10 @@ public function requestEditNota(Request $request, $id)
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-    });
+        });
+    } catch (\Throwable $e) {
+        $pesanError = \App\Support\PesanError::untuk($e, 'Gagal mengirim permintaan edit nota');
+    }
 
     if ($pesanError) {
         return back()->with('error', $pesanError);
@@ -1359,27 +1363,31 @@ public function approveEditNota(Request $request, $id)
     // klik ganda tidak bisa menimpa keputusan (approve/reject) yang sudah
     // tercatat lebih dulu tanpa terdeteksi.
     $pesanError = null;
-    DB::transaction(function () use ($id, $request, &$pesanError) {
-        $req = DB::table('nota_edit_request')->where('id_request', $id)->lockForUpdate()->first();
-        if (!$req) {
-            $pesanError = 'Permintaan tidak ditemukan.';
+    try {
+        DB::transaction(function () use ($id, $request, &$pesanError) {
+            $req = DB::table('nota_edit_request')->where('id_request', $id)->lockForUpdate()->first();
+            if (!$req) {
+                $pesanError = 'Permintaan tidak ditemukan.';
 
-            return;
-        }
-        if ($req->status !== 'Menunggu') {
-            $pesanError = 'Permintaan ini sudah diproses sebelumnya (status: ' . $req->status . ').';
+                return;
+            }
+            if ($req->status !== 'Menunggu') {
+                $pesanError = 'Permintaan ini sudah diproses sebelumnya (status: ' . $req->status . ').';
 
-            return;
-        }
+                return;
+            }
 
-        DB::table('nota_edit_request')->where('id_request', $id)->update([
-            'status' => 'Disetujui',
+            DB::table('nota_edit_request')->where('id_request', $id)->update([
+                'status' => 'Disetujui',
             'id_user_approver' => Auth::id(),
             'catatan_approver' => $request->input('catatan'),
             'tgl_keputusan' => now(),
             'updated_at' => now(),
         ]);
-    });
+        });
+    } catch (\Throwable $e) {
+        $pesanError = \App\Support\PesanError::untuk($e, 'Gagal menyetujui permintaan edit');
+    }
 
     if ($pesanError) {
         return back()->with('error', $pesanError);
@@ -1398,7 +1406,8 @@ public function rejectEditNota(Request $request, $id)
 
     // Hardening P1-2: lihat catatan sama di approveEditNota().
     $pesanError = null;
-    DB::transaction(function () use ($id, $request, &$pesanError) {
+    try {
+        DB::transaction(function () use ($id, $request, &$pesanError) {
         $req = DB::table('nota_edit_request')->where('id_request', $id)->lockForUpdate()->first();
         if (!$req) {
             $pesanError = 'Permintaan tidak ditemukan.';
@@ -1418,7 +1427,10 @@ public function rejectEditNota(Request $request, $id)
             'tgl_keputusan' => now(),
             'updated_at' => now(),
         ]);
-    });
+        });
+    } catch (\Throwable $e) {
+        $pesanError = \App\Support\PesanError::untuk($e, 'Gagal menolak permintaan edit');
+    }
 
     if ($pesanError) {
         return back()->with('error', $pesanError);
@@ -1483,8 +1495,9 @@ public function applyApprovedEdit($id)
     $sudahDibatalkanSebelumnya = false;
     $transaksiHasil = null;
 
-    DB::transaction(function () use ($id, &$pesanError, &$sudahDibatalkanSebelumnya, &$transaksiHasil) {
-        $req = DB::table('nota_edit_request')->where('id_request', $id)->lockForUpdate()->first();
+    try {
+        DB::transaction(function () use ($id, &$pesanError, &$sudahDibatalkanSebelumnya, &$transaksiHasil) {
+            $req = DB::table('nota_edit_request')->where('id_request', $id)->lockForUpdate()->first();
         if (!$req) {
             $pesanError = 'Permintaan edit tidak ditemukan.';
 
@@ -1571,7 +1584,10 @@ public function applyApprovedEdit($id)
 
         $transaksiHasil = $transaksi;
         $transaksiHasil->penjualanLangsung = !self::adaItemProduksi($items);
-    });
+        });
+    } catch (\Throwable $e) {
+        $pesanError = \App\Support\PesanError::untuk($e, 'Gagal menerapkan koreksi nota');
+    }
 
     if ($sudahDibatalkanSebelumnya) {
         return redirect()->route('penjualan.riwayat')->with('error', 'Nota ini sudah dibatalkan/dikoreksi sebelumnya.');

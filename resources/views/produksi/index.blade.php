@@ -234,7 +234,7 @@
             cancelButtonText: 'Kembali',
             customClass: { popup: 'rounded-2xl' },
             preConfirm: () => ({
-                tindakan: document.querySelector('input[name="swal-tindakan"]:checked')?.value || 'batal',
+                tindakan: (function(){var _t=document.querySelector('input[name="swal-tindakan"]:checked');return (_t?_t.value:null)||'batal';})(),
                 alasan: document.getElementById('swal-alasan-batal').value,
                 kembalikanStok: document.getElementById('swal-kembalikan-stok').checked,
             })

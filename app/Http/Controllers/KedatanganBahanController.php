@@ -131,7 +131,8 @@ class KedatanganBahanController extends Controller
 }
 public function validateStatus($id)
 {
-    return DB::transaction(function () use ($id) {
+    try {
+        return DB::transaction(function () use ($id) {
         // Ambil data kedatangan beserta itemnya
         // lockForUpdate() (konsisten dengan update()/bulkDelete()/destroy() di file ini)
         // supaya klik ganda atau dua kedatangan untuk id_bahan yang sama tidak
@@ -172,7 +173,10 @@ public function validateStatus($id)
 
         \App\Support\JalurLanjut::set('Berikutnya: catat faktur/tagihan supplier', 'pembelian-bahan.create', 'Buat Faktur Pembelian');
         return back()->with('success', 'Berhasil! Stok telah diperbarui dan tercatat di Kartu Stok.');
-    });
+        });
+    } catch (\Throwable $e) {
+        return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal memvalidasi kedatangan bahan'));
+    }
 }
     public function edit($id)
     {
