@@ -36,7 +36,7 @@ class JerseyMasterController extends Controller
         $categories = JerseyCategory::orderBy('name')->get();
         $sizes = JerseySize::orderBy('sort_order')->get();
         $materials = JerseyMaterial::with('bahan')->orderBy('name')->get();
-        $golongans = GolonganKonsumen::orderBy('nama_golongan')->get();
+        $golongans = \App\Models\GolonganKonsumen::orderBy('nama_golongan')->get();
         $bahanGudang = \Illuminate\Support\Facades\DB::table('bahan_baku')->where('status', 'aktif')->orderBy('nama_bahan')->get(['id_bahan', 'kode_bahan', 'nama_bahan', 'satuan_stok', 'stok', 'harga_rata_rata']);
         $components = JerseyComponent::with(['productType', 'category'])->orderBy('sort_order')->get();
         $sleeveTypes = JerseySleeveType::orderBy('sort_order')->get();
