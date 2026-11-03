@@ -893,8 +893,28 @@
     // (KasirController::prosesBayar), ini cuma UX, bukan satu-satunya
     // penjaga.
     document.getElementById('form-pembayaran').addEventListener('submit', function (e) {
-        const metode = getMetodePembayaran();
         const bayar = cleanRupiah(document.getElementById('input-bayar-mask').value);
+
+        // GUARD BAYAR: server memperlakukan jumlah_bayar 0 persis seperti
+        // Simpan (tidak mencatat pembayaran apapaun). Tombol Bayar dengan
+        // nominal kosong jadi punya sifat yang sama dengan Simpan - itu yang
+        // membuat kasir bingung. Jadi tombol Bayar WAJIB punya nominal:
+        // kalau masih Rp 0, tolak submit dan arahkan (isi nominal / pakai
+        // Simpan untuk nota tanpa pembayaran / kembali). simpanSaja() aman
+        // dari guard ini karena form.submit() tidak memicu event submit.
+        if (bayar <= 0) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Nominal Bayar Belum Diisi',
+                html: 'Nominal pembayaran masih <b>Rp 0</b> - tombol Bayar butuh nominal yang diisi.<br><br>'
+                    + 'Pilih salah satu: isi nominal pembayaran lalu tekan Bayar, tekan tombol <b>Simpan</b> untuk menyimpan nota tanpa pembayaran (tetap DP/hutang), atau <b>kembali</b> tanpa mencatat pembayaran.',
+                icon: 'warning',
+                confirmButtonColor: '#006C7B',
+            });
+            return;
+        }
+
+        const metode = getMetodePembayaran();
         if (metode === 'Deposit' && bayar > saldoDepositTersedia) {
             e.preventDefault();
             Swal.fire({

@@ -800,16 +800,26 @@ public function riwayat(Request $request)
 {
     // P8I: tolak format tanggal yang rusak sebelum dipakai di
     // Carbon::parse() di bawah - tanpa ini input rusak melempar 500.
-    $request->validate(['from' => 'nullable|date', 'to' => 'nullable|date']);
+    // q = pencarian No. Nota / nama konsumen (dipakai live search di halaman,
+    // tapi tetap difilter server saat form dikirim supaya halaman yang
+    // lebih banyak dari 20 baris ikut terfilter).
+    $request->validate([
+        'from' => 'nullable|date',
+        'to' => 'nullable|date',
+        'q' => 'nullable|string|max:100',
+    ]);
 
     // Default HARI INI hanya masuk akal untuk lihat transaksi umum tanpa
     // filter - begitu ada id_konsumen (dipakai link "Riwayat Transaksi"
     // dari Master Konsumen), default HARI INI justru menyembunyikan
     // hampir seluruh histori pelanggan itu. Default melebar ke semua
     // tanggal kalau id_konsumen diisi TANPA rentang tanggal eksplisit.
+    // Pencarian q sifatnya sama: user mencari nota lama, jadi default
+    // "hari ini" tidak boleh menyembunyikan hasilnya.
     $filterKonsumen = $request->filled('id_konsumen');
-    $from = $request->filled('from') ? $request->from : ($filterKonsumen ? null : date('Y-m-d'));
-    $to   = $request->filled('to') ? $request->to : ($filterKonsumen ? null : date('Y-m-d'));
+    $filterCariMilikSemuaTanggal = $filterKonsumen || $request->filled('q');
+    $from = $request->filled('from') ? $request->from : ($filterCariMilikSemuaTanggal ? null : date('Y-m-d'));
+    $to   = $request->filled('to') ? $request->to : ($filterCariMilikSemuaTanggal ? null : date('Y-m-d'));
 
     $konsumenTerpilih = null;
     if ($filterKonsumen) {
@@ -837,6 +847,16 @@ public function riwayat(Request $request)
         ->when($from, fn ($q) => $q->where('tgl_order', '>=', $from . ' 00:00:00'))
         ->when($to, fn ($q) => $q->where('tgl_order', '<', \Carbon\Carbon::parse($to)->addDay()->format('Y-m-d') . ' 00:00:00'))
         ->when($filterKonsumen, fn ($q) => $q->where('transaksi.id_konsumen', $request->id_konsumen))
+        // Live search server-side: No. Nota ATAU nama konsumen. Filter ini
+        // jalan saat form dikirim; ketik di halaman tanpa submit difilter
+        // murni di client (lihat script riwayat.blade.php) supaya terasa instan.
+        ->when($request->filled('q'), function ($query) use ($request) {
+            $kata = '%' . trim($request->q) . '%';
+            $query->where(function ($w) use ($kata) {
+                $w->where('transaksi.nomor_nota', 'like', $kata)
+                  ->orWhere('konsumen.nama_konsumen', 'like', $kata);
+            });
+        })
         ->select(
             'transaksi.*',
             'konsumen.nama_konsumen',

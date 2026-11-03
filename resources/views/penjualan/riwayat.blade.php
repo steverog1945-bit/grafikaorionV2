@@ -53,6 +53,16 @@
                 <x-form.input type="date" name="to" value="{{ $to }}" />
             </div>
 
+            {{-- Pencarian live: No. Nota / konsumen. Tanpa nama input yang
+                 mengunci hasil (aman ikut terkirim sebagai ?q= saat "Tampilkan"
+                 supaya filter berlaku ke halaman mana pun, bukan cuma halaman
+                 aktif). --}}
+            <div class="w-full md:w-72">
+                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">No. Nota / Konsumen</label>
+                <x-form.input type="text" name="q" id="pencarian-riwayat" value="{{ request('q') }}" placeholder="Contoh: INV-... / nama konsumen" autocomplete="off" />
+                <p class="text-[10px] text-slate-400 mt-1 ml-2">Live filter halaman ini; tekan Tampilkan untuk mencari di semua halaman.</p>
+            </div>
+
             <x-button type="submit">
                 <i class="fas fa-filter"></i> Tampilkan
             </x-button>
@@ -80,7 +90,8 @@
         </thead>
         <tbody class="divide-y divide-slate-50">
             @forelse($transaksis as $i => $t)
-            <tr class="group hover:bg-slate-50/30 transition-all {{ $t->status_nota === 'Dibatalkan' ? 'opacity-50' : '' }}">
+            <tr class="group hover:bg-slate-50/30 transition-all {{ $t->status_nota === 'Dibatalkan' ? 'opacity-50' : '' }}"
+                data-search="{{ strtolower(($t->nomor_nota ?? '') . ' ' . ($t->nama_konsumen ?? '')) }}">
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $transaksis->firstItem() + $i }}</td>
                 <td class="px-8 py-5">
                     <span class="text-[13px] font-medium text-slate-700">{{ $t->nomor_nota }}</span>
@@ -180,5 +191,46 @@
 
     <x-table.pagination :paginator="$transaksis" />
 
+    <script>
+        // Live search riwayat: murni filter di client terhadap baris yang
+        // dimuat di halaman ini (data-search = nomor nota + nama konsumen).
+        // Untuk mencari melewati halaman/paginasi, tekan "Tampilkan" - server
+        // // lalu memfilternya lewat ?q= (lihat PenjualanController::riwayat).
+        (function () {
+            var input = document.getElementById('pencarian-riwayat');
+            var tbody = document.querySelector('tbody');
+            if (!input || !tbody) return;
+
+            var baris = Array.prototype.slice.call(tbody.querySelectorAll('tr[data-search]'));
+            if (!baris.length) return;
+            var barisKosong = null;
+
+            function kolomKosong() {
+                var tr = document.createElement('tr');
+                var td = document.createElement('td');
+                td.colSpan = 10;
+                td.innerHTML = '<div style="text-align:center;padding:2rem 0;" class="text-slate-400 text-sm">Tidak ada nota yang cocok dengan pencarian di halaman ini. Tekan <b>Tampilkan</b> untuk mencari di semua tanggal.</div>';
+                tr.appendChild(td);
+                return tr;
+            }
+
+            function terapkan() {
+                var q = (input.value || '').trim().toLowerCase();
+                if (barisKosong) { barisKosong.remove(); barisKosong = null; }
+                var tampil = 0;
+                baris.forEach(function (tr) {
+                    var cocok = !q || tr.getAttribute('data-search').indexOf(q) !== -1;
+                    tr.style.display = cocok ? '' : 'none';
+                    if (cocok) tampil++;
+                });
+                if (q && tampil === 0) {
+                    barisKosong = kolomKosong();
+                    tbody.appendChild(barisKosong);
+                }
+            }
+
+            input.addEventListener('input', terapkan);
+        })();
+    </script>
 </div>
 @endsection

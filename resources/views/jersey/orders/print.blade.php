@@ -78,26 +78,37 @@
              pemakaian bahan adalah data internal perusahaan. Estimasi hanya ada di SPK (dokumen produksi). --}}
 
         @php
-
-            $totalUkuranOrder = [];
+            // Total ukuran DIPERAH per tipe produk (Jersey, Celana, dll) supaya
+            // operasional produksi tidak mencampur penggerjaan Jersey dengan
+            // penggerjaan Celana yang alur mesin/bahannya berbeda. Tipe diambil
+            // dari relasi productType tiap baris, jadi tipe baru otomatis
+            // punya baris total sendiri tanpa perlu mengubah cetakan ini.
+            $ukuranPerTipe = [];
             foreach ($order->lines as $line) {
+                $tipe = $line->productType->name ?? 'Lainnya';
                 foreach ($line->sizeQuantities as $sq) {
                     $nama = $sq->size->name ?? '-';
                     $sort = $sq->size->sort_order ?? 0;
-                    if (!isset($totalUkuranOrder[$nama])) {
-                        $totalUkuranOrder[$nama] = ['qty' => 0, 'sort' => $sort];
+                    $kunci = $tipe . '||' . $nama;
+                    if (!isset($ukuranPerTipe[$kunci])) {
+                        $ukuranPerTipe[$kunci] = ['tipe' => $tipe, 'nama' => $nama, 'qty' => 0, 'sort' => $sort];
                     }
-                    $totalUkuranOrder[$nama]['qty'] += $sq->quantity;
+                    $ukuranPerTipe[$kunci]['qty'] += $sq->quantity;
                 }
             }
-            uasort($totalUkuranOrder, fn ($a, $b) => $a['sort'] <=> $b['sort']);
+            $grupTipe = collect($ukuranPerTipe)
+                ->groupBy(fn ($v) => $v['tipe'])
+                ->map(fn ($grup) => $grup->sortBy('sort')->values());
         @endphp
-        @if(!empty($totalUkuranOrder))
+        @if($grupTipe->isNotEmpty())
         <div class="divider divider-tight"></div>
         <table class="table-compact">
-            @if(!empty($totalUkuranOrder))
-            <tr><td>Total Ukuran</td><td class="right">{{ collect($totalUkuranOrder)->map(fn ($v, $k) => "{$k}: {$v['qty']}")->implode(', ') }}</td></tr>
-            @endif
+            @foreach($grupTipe as $tipe => $grup)
+            <tr>
+                <td>Total Ukuran {{ $tipe }}</td>
+                <td class="right">{{ $grup->map(fn ($v) => "{$v['nama']}: {$v['qty']}")->implode(', ') }}</td>
+            </tr>
+            @endforeach
         </table>
         @endif
 

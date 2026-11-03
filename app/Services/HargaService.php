@@ -25,11 +25,17 @@ class HargaService
     {
         // File Siap Cetak: harga tersendiri per produk (tier & golongan sendiri), tanpa promo.
         if ($siapCetak) {
-            $tier = DB::table('harga_siap_cetak')
-                ->where('id_produk', $idProduk)->where('id_golongan', $idGolongan)
-                ->where('range_min', '<=', $qty)
-                ->where(fn ($q) => $q->whereNull('range_max')->orWhere('range_max', '>=', $qty))
-                ->orderBy('range_min', 'desc')->first();
+            $tier = self::cariTierTabelHarga('harga_siap_cetak', $idProduk, $idGolongan, $qty);
+
+            if (!$tier) {
+                // Fallback otomatis (aturan sama seperti setting_harga di
+                // bawah): golongan yang belum punya tier tidak boleh
+                // menghasilkan Rp 0 - pakai tier golongan harga dasar.
+                $golonganDasar = self::idGolonganHargaDasar();
+                if ($golonganDasar > 0 && $golonganDasar !== $idGolongan) {
+                    $tier = self::cariTierTabelHarga('harga_siap_cetak', $idProduk, $golonganDasar, $qty);
+                }
+            }
 
             return ['harga_jual' => $tier ? (float) $tier->harga_jual : 0, 'is_promo' => false, 'promo_selesai' => null, 'siap_cetak' => true];
         }
@@ -44,7 +50,46 @@ class HargaService
             ];
         }
 
-        $harga = DB::table('setting_harga')
+        $tier = self::cariTierTabelHarga('setting_harga', $idProduk, $idGolongan, $qty);
+
+        if (!$tier) {
+            // Fallback otomatis tier harga member/khusus: golongan konsumen
+            // yang BELUM punya tier di Price List (semisal golongan "Member"
+            // yang baru dibuat) dulu menyebabkan harga Rp 0 ditolak saat
+            // checkout. Sekarang, kalau golongan konsumen tidak punya tier
+            // yang mencakup qty ini, harga mengikuti GOLONGAN HARGA DASAR
+            // (golongan pertama di Master Golongan - id terkecil, yang
+            // dipakai semua konsumen lama). Perilaku setier seperti daftar
+            // pesanan jersey: tier paling spesifik menang, kalau tidak ada
+            // jatuh ke harga dasar, bukan error.
+            $golonganDasar = self::idGolonganHargaDasar();
+            if ($golonganDasar > 0 && $golonganDasar !== $idGolongan) {
+                $tier = self::cariTierTabelHarga('setting_harga', $idProduk, $golonganDasar, $qty);
+            }
+        }
+
+        return [
+            'harga_jual' => $tier ? (float) $tier->harga_jual : 0,
+            'is_promo' => false,
+            'promo_selesai' => null,
+        ];
+    }
+
+    /**
+     * Id golongan harga dasar: golongan yang dibuat PERTAMA kali (id
+     * terkecil) di Master Golongan Konsumen. Dipakai sebagai arah fallback
+     * tier harga bila golongan konsumen bernilai khusus (semisal "Member")
+     * tidak punya tier untuk suatu produk.
+     */
+    public static function idGolonganHargaDasar(): int
+    {
+        return (int) (DB::table('golongan_konsumen')->orderBy('id_golongan')->value('id_golongan') ?? 0);
+    }
+
+    /** Tier satu baris harga per produk+golongan+qty dari tabel harga (setting_harga / harga_siap_cetak). */
+    private static function cariTierTabelHarga(string $tabel, int $idProduk, int $idGolongan, float $qty): ?object
+    {
+        return DB::table($tabel)
             ->where('id_produk', $idProduk)
             ->where('id_golongan', $idGolongan)
             ->where('range_min', '<=', $qty)
@@ -53,12 +98,6 @@ class HargaService
             })
             ->orderBy('range_min', 'desc')
             ->first();
-
-        return [
-            'harga_jual' => $harga ? (float) $harga->harga_jual : 0,
-            'is_promo' => false,
-            'promo_selesai' => null,
-        ];
     }
 
     /** Id produk yang punya harga File Siap Cetak (opsi ini hanya ditawarkan untuk produk tersebut). */
