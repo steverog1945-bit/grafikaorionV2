@@ -13,33 +13,12 @@
     </x-page-header>
 
     <div class="flex flex-wrap gap-2 mb-6" id="jersey-master-tabs">
-        @foreach(['desainer' => 'Desainer', 'tipe' => 'Tipe Produk', 'kategori' => 'Kategori', 'ukuran' => 'Ukuran', 'bahan' => 'Bahan', 'lengan' => 'Tipe Lengan', 'kerah' => 'Tipe Kerah', 'estimasi' => 'Estimasi Bahan', 'harga' => 'Tier Harga'] as $key => $label)
+        @foreach(['tipe' => 'Tipe Produk', 'kategori' => 'Kategori', 'ukuran' => 'Ukuran', 'bahan' => 'Bahan', 'lengan' => 'Tipe Lengan', 'kerah' => 'Tipe Kerah', 'estimasi' => 'Estimasi Bahan', 'harga' => 'Tier Harga'] as $key => $label)
             <button type="button" onclick="switchJerseyTab('{{ $key }}')" id="tab-btn-{{ $key }}"
                 class="jersey-tab-btn px-5 py-2.5 rounded-xl text-xs font-medium uppercase tracking-widest transition-all {{ $loop->first ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-white text-slate-400 border border-slate-200' }}">
                 {{ $label }}
             </button>
         @endforeach
-    </div>
-
-    {{-- DESAINER --}}
-    <div id="tab-panel-desainer" class="jersey-tab-panel">
-        <x-card>
-            <form id="form-add-desainer" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
-                <div class="flex-1"><input type="text" name="name" required placeholder="Nama desainer" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
-                <x-button type="submit" variant="success">Tambah</x-button>
-            </form>
-            @include('jersey.master._filter-toolbar', ['searchId' => 'search-desainer', 'statusId' => 'filter-status-desainer', 'placeholder' => 'Cari nama desainer...'])
-            <x-table bare>
-                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
-                <tbody class="divide-y divide-slate-50" id="tbody-desainer" data-empty-colspan="2" data-empty-text="Belum ada desainer">
-                    @forelse($designers as $d)
-                        @include('jersey.master._row-simple', ['row' => $d, 'entity' => 'designers'])
-                    @empty
-                    <tr class="row-empty"><td colspan="2"><x-empty-state title="Belum ada desainer" /></td></tr>
-                    @endforelse
-                </tbody>
-            </x-table>
-        </x-card>
     </div>
 
     {{-- TIPE PRODUK --}}
@@ -55,9 +34,10 @@
             </form>
             <p class="text-[11px] text-slate-400 -mt-4 mb-4">Matikan centang "Punya Lengan &amp; Kerah" untuk tipe produk tanpa lengan/kerah (mis. Celana) - pilihan Lengan/Kerah otomatis disembunyikan di form Order untuk tipe ini.</p>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-tipe', 'statusId' => 'filter-status-tipe', 'placeholder' => 'Cari nama tipe produk...'])
+            <div class="flex items-center gap-3 mb-3"><button type="button" onclick="bulkHapusSimple('product-types')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-medium uppercase tracking-widest hover:bg-rose-100"><i class="far fa-trash-alt mr-1"></i> Hapus Terpilih</button></div>
             <x-table bare>
-                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
-                <tbody class="divide-y divide-slate-50" id="tbody-tipe" data-empty-colspan="2" data-empty-text="Belum ada tipe produk">
+                <thead><tr><th class="p-2.5 text-center w-8"><input type="checkbox" onchange="toggleSemuaSimple(this.checked)"></th><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
+                <tbody class="divide-y divide-slate-50" id="tbody-tipe" data-empty-colspan="3" data-empty-text="Belum ada tipe produk">
                     @forelse($productTypes as $pt)
                         @include('jersey.master._row-simple', ['row' => $pt, 'entity' => 'product-types'])
                     @empty
@@ -76,9 +56,10 @@
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-kategori', 'statusId' => 'filter-status-kategori', 'placeholder' => 'Cari nama kategori...'])
+            <div class="flex items-center gap-3 mb-3"><button type="button" onclick="bulkHapusSimple('categories')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-medium uppercase tracking-widest hover:bg-rose-100"><i class="far fa-trash-alt mr-1"></i> Hapus Terpilih</button></div>
             <x-table bare>
-                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
-                <tbody class="divide-y divide-slate-50" id="tbody-kategori" data-empty-colspan="2" data-empty-text="Belum ada kategori">
+                <thead><tr><th class="p-2.5 text-center w-8"><input type="checkbox" onchange="toggleSemuaSimple(this.checked)"></th><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
+                <tbody class="divide-y divide-slate-50" id="tbody-kategori" data-empty-colspan="3" data-empty-text="Belum ada kategori">
                     @forelse($categories as $cat)
                         @include('jersey.master._row-simple', ['row' => $cat, 'entity' => 'categories'])
                     @empty
@@ -101,6 +82,7 @@
                 <x-button type="submit" variant="success">Tambah Ukuran</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-ukuran', 'statusId' => 'filter-status-ukuran', 'placeholder' => 'Cari nama ukuran...'])
+            <div class="flex items-center gap-3 mb-3"><button type="button" onclick="bulkHapusSimple('sizes')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-medium uppercase tracking-widest hover:bg-rose-100"><i class="far fa-trash-alt mr-1"></i> Hapus Terpilih</button></div>
             <x-table bare>
                 <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center">Kelompok</th><th class="p-2.5 text-center">Urutan</th><th class="p-2.5 text-right">Tambahan Harga</th><th class="p-2.5 text-right">Selisih %</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
                 <tbody class="divide-y divide-slate-50" id="tbody-ukuran" data-empty-colspan="6" data-empty-text="Belum ada ukuran">
@@ -123,9 +105,10 @@
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-bahan', 'statusId' => 'filter-status-bahan', 'placeholder' => 'Cari nama bahan...'])
+            <div class="flex items-center gap-3 mb-3"><button type="button" onclick="bulkHapusSimple('materials')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-medium uppercase tracking-widest hover:bg-rose-100"><i class="far fa-trash-alt mr-1"></i> Hapus Terpilih</button></div>
             <x-table bare>
-                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
-                <tbody class="divide-y divide-slate-50" id="tbody-bahan" data-empty-colspan="2" data-empty-text="Belum ada bahan">
+                <thead><tr><th class="p-2.5 text-center w-8"><input type="checkbox" onchange="toggleSemuaSimple(this.checked)"></th><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
+                <tbody class="divide-y divide-slate-50" id="tbody-bahan" data-empty-colspan="3" data-empty-text="Belum ada bahan">
                     @forelse($materials as $m)
                         @include('jersey.master._row-simple', ['row' => $m, 'entity' => 'materials'])
                     @empty
@@ -170,9 +153,10 @@
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-lengan', 'statusId' => 'filter-status-lengan', 'placeholder' => 'Cari tipe lengan...'])
+            <div class="flex items-center gap-3 mb-3"><button type="button" onclick="bulkHapusSimple('sleeve-types')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-medium uppercase tracking-widest hover:bg-rose-100"><i class="far fa-trash-alt mr-1"></i> Hapus Terpilih</button></div>
             <x-table bare>
-                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
-                <tbody class="divide-y divide-slate-50" id="tbody-lengan" data-empty-colspan="2" data-empty-text="Belum ada tipe lengan">
+                <thead><tr><th class="p-2.5 text-center w-8"><input type="checkbox" onchange="toggleSemuaSimple(this.checked)"></th><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
+                <tbody class="divide-y divide-slate-50" id="tbody-lengan" data-empty-colspan="3" data-empty-text="Belum ada tipe lengan">
                     @forelse($sleeveTypes as $st)
                         @include('jersey.master._row-simple', ['row' => $st, 'entity' => 'sleeve-types'])
                     @empty
@@ -193,9 +177,10 @@
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-kerah', 'statusId' => 'filter-status-kerah', 'placeholder' => 'Cari tipe kerah...'])
+            <div class="flex items-center gap-3 mb-3"><button type="button" onclick="bulkHapusSimple('collar-types')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-medium uppercase tracking-widest hover:bg-rose-100"><i class="far fa-trash-alt mr-1"></i> Hapus Terpilih</button></div>
             <x-table bare>
-                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
-                <tbody class="divide-y divide-slate-50" id="tbody-kerah" data-empty-colspan="2" data-empty-text="Belum ada tipe kerah">
+                <thead><tr><th class="p-2.5 text-center w-8"><input type="checkbox" onchange="toggleSemuaSimple(this.checked)"></th><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
+                <tbody class="divide-y divide-slate-50" id="tbody-kerah" data-empty-colspan="3" data-empty-text="Belum ada tipe kerah">
                     @forelse($collarTypes as $ct)
                         @include('jersey.master._row-simple', ['row' => $ct, 'entity' => 'collar-types'])
                     @empty
@@ -469,7 +454,10 @@
                     </x-button>
                 </div>
             </form>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <div class="flex items-center gap-3 mb-3">
+                <button type="button" id="btn-bulk-hapus-harga" onclick="bulkHapusHarga()" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-medium uppercase tracking-widest hover:bg-rose-100 disabled:opacity-40" disabled><i class="far fa-trash-alt mr-1"></i> Hapus Terpilih</button>
+                <span id="bulk-info-harga" class="text-[10px] text-slate-400"></span>
+            </div>
                 <select id="filter-harga-bahan" class="bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20">
                     <option value="">Semua Bahan</option>
                     @foreach($materials->where('is_active', true) as $m)<option class="opsi-bahan" value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
@@ -487,8 +475,8 @@
                 </button>
             </div>
             <x-table bare>
-                <thead><tr><th class="p-2.5 text-left">Bahan</th><th class="p-2.5 text-left">Tipe</th><th class="p-2.5 text-left">Kategori</th><th class="p-2.5 text-center">Qty</th><th class="p-2.5 text-right">Harga/pcs</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
-                <tbody class="divide-y divide-slate-50" id="tbody-harga" data-empty-colspan="6" data-empty-text="Belum ada tier harga">
+                <thead><tr><th class="p-2.5 text-center w-8"><input type="checkbox" id="bulk-all-harga" onchange="toggleSemuaHarga(this.checked)"></th><th class="p-2.5 text-left">Bahan</th><th class="p-2.5 text-left">Tipe</th><th class="p-2.5 text-left">Kategori</th><th class="p-2.5 text-center">Qty</th><th class="p-2.5 text-right">Harga/pcs</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
+                <tbody class="divide-y divide-slate-50" id="tbody-harga" data-empty-colspan="7" data-empty-text="Belum ada tier harga">
                     @forelse($priceSettings as $p)
                         @include('jersey.master._row-harga', ['row' => $p])
                     @empty
@@ -660,9 +648,10 @@
     }
 
     async function kirimJson(url, method, payload) {
+        const token = document.querySelector('meta[name="csrf-token"]')?.content || csrfTokenJerseyMaster;
         const res = await fetch(url, {
             method,
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfTokenJerseyMaster },
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token },
             body: JSON.stringify(payload),
         });
         const data = await res.json().catch(() => null);
@@ -691,7 +680,6 @@
     // konsisten dengan pola Master Bahan Baku yang sudah ada di aplikasi,
     // BUKAN badge status berwarna terpisah (makan tempat & beda gaya). ----
     const entityConfig = {
-        designers: { tbody: 'tbody-desainer', form: 'form-add-desainer', routeBase: '{{ url("/jersey/master/designers") }}', search: 'search-desainer', status: 'filter-status-desainer', colspan: 2 },
         'product-types': { tbody: 'tbody-tipe', form: 'form-add-tipe', routeBase: '{{ url("/jersey/master/product-types") }}', selectTarget: 'harga-select-tipe', search: 'search-tipe', status: 'filter-status-tipe', colspan: 2 },
         categories: { tbody: 'tbody-kategori', form: 'form-add-kategori', routeBase: '{{ url("/jersey/master/categories") }}', selectTarget: 'harga-select-kategori', search: 'search-kategori', status: 'filter-status-kategori', colspan: 2 },
         materials: { tbody: 'tbody-bahan', form: 'form-add-bahan', routeBase: '{{ url("/jersey/master/materials") }}', selectTarget: 'harga-select-bahan', search: 'search-bahan', status: 'filter-status-bahan', colspan: 2 },
@@ -1355,6 +1343,7 @@
     function rowHargaHtml(row) {
         return `
         <tr data-id="${row.id}" data-material-id="${row.jersey_material_id ?? ''}" data-type-id="${row.jersey_product_type_id ?? ''}" data-category-id="${row.jersey_category_id ?? ''}">
+            <td class="p-2.5 text-center"><input type="checkbox" class="bulk-cb-harga" value="${row.id}" onchange="sinkronBulkHarga()"></td>
             <td class="p-2.5 font-medium text-indigo-600">${row.material ? escapeHtmlJersey(row.material.name) : 'Semua Bahan'}${row.kelompok === 'anak' ? '<span class="ml-2 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-medium uppercase">Anak</span>' : ''}${row.golongan ? '<span class="ml-2 px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 text-[9px] font-medium uppercase">' + escapeHtmlJersey(row.golongan.nama_golongan) + '</span>' : ''}</td>
             <td class="p-2.5">${row.product_type ? escapeHtmlJersey(row.product_type.name) : 'Semua'}</td>
             <td class="p-2.5">${row.category ? escapeHtmlJersey(row.category.name) : 'Semua'}</td>
@@ -1429,6 +1418,88 @@
         var _tr = document.querySelector(`#tbody-harga tr[data-id="${id}"]`); if (_tr) _tr.remove();
         tampilkanToastJersey(data.message);
         terapkanFilterHarga();
+    }
+
+    function toggleSemuaHarga(checked) {
+        document.querySelectorAll('.bulk-cb-harga').forEach(cb => { cb.checked = checked; });
+        sinkronBulkHarga();
+    }
+
+    function sinkronBulkHarga() {
+        const n = document.querySelectorAll('.bulk-cb-harga:checked').length;
+        const btn = document.getElementById('btn-bulk-hapus-harga');
+        const info = document.getElementById('bulk-info-harga');
+        if (btn) btn.disabled = n === 0;
+        if (info) info.textContent = n ? (n + ' dipilih') : '';
+    }
+
+    async function bulkHapusHarga() {
+        const ids = [...document.querySelectorAll('.bulk-cb-harga:checked')].map(cb => cb.value);
+        if (!ids.length) return;
+        const konfirmasi = await Swal.fire({
+            title: 'Hapus ' + ids.length + ' Tier Harga?',
+            html: 'Tier yang dipilih akan dihapus permanen.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#93481A',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+        });
+        if (!konfirmasi.isConfirmed) return;
+        let ok = 0;
+        for (const id of ids) {
+            const data = await kirimJson(`{{ url("/jersey/master/price-settings") }}/${id}`, 'DELETE', {});
+            if (data) { ok++; var _tr = document.querySelector(`#tbody-harga tr[data-id="${id}"]`); if (_tr) _tr.remove(); }
+        }
+        tampilkanToastJersey(ok + ' tier dihapus.');
+        sinkronBulkHarga();
+        terapkanFilterHarga();
+    }
+
+    async function hapusEntitas(entity, id) {
+        const konfirmasi = await Swal.fire({
+            title: 'Hapus data ini?',
+            html: 'Data akan dihapus permanen (jika tidak sedang dipakai).',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#93481A',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+        });
+        if (!konfirmasi.isConfirmed) return;
+        const data = await kirimJson(`{{ url("/jersey/master/entity") }}/${entity}/${id}`, 'DELETE', {});
+        if (!data) return;
+        var _tr = document.querySelector(`tr[data-id="${id}"]`);
+        if (_tr) _tr.remove();
+        tampilkanToastJersey(data.message);
+    }
+
+    function toggleSemuaSimple(checked) {
+        document.querySelectorAll('.bulk-cb-simple').forEach(cb => { cb.checked = checked; });
+    }
+
+    async function bulkHapusSimple(entity) {
+        const ids = [...document.querySelectorAll(`.bulk-cb-simple[data-entity="${entity}"]:checked`)].map(cb => cb.value);
+        // fallback: if data-entity not set, select all checked simple checkboxes
+        const fallbackIds = ids.length ? ids : [...document.querySelectorAll('.bulk-cb-simple:checked')].map(cb => cb.value);
+        const finalIds = ids.length ? ids : fallbackIds;
+        if (!finalIds.length) { tampilkanToastJersey('Pilih data dulu.', false); return; }
+        const konfirmasi = await Swal.fire({
+            title: 'Hapus ' + finalIds.length + ' data?',
+            html: 'Data akan dihapus permanen (jika tidak sedang dipakai).',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#93481A',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+        });
+        if (!konfirmasi.isConfirmed) return;
+        let ok = 0;
+        for (const id of finalIds) {
+            const data = await kirimJson(`{{ url("/jersey/master/entity") }}/${entity}/${id}`, 'DELETE', {});
+            if (data) { ok++; var _tr = document.querySelector(`tr[data-id="${id}"]`); if (_tr) _tr.remove(); }
+        }
+        tampilkanToastJersey(ok + ' data dihapus.');
     }
 </script>
 @endpush

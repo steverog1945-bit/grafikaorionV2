@@ -97,22 +97,22 @@
                             <x-form.input type="date" name="deadline" value="{{ old('deadline') }}" />
                         </x-form.group>
 
-                        <x-form.group label="File Siap Cetak">
-                            <label class="inline-flex items-center gap-2 text-sm text-slate-600">
-                                <input type="checkbox" name="file_siap_cetak" value="1" id="file_siap_cetak" @checked(old('file_siap_cetak')) onchange="toggleDesainerSiapCetak()" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                                <span>Desain sudah siap cetak</span>
-                            </label>
+                        <x-form.group label="Status Desain">
+                            <input type="hidden" name="file_siap_cetak" id="file_siap_cetak" value="{{ old('file_siap_cetak') ? '1' : '0' }}">
+                            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                                <button type="button" id="btn_desain_perlu" onclick="setSiapCetak(0)" class="py-2.5 rounded-lg text-xs font-medium uppercase tracking-widest transition-all">Perlu desain</button>
+                                <button type="button" id="btn_desain_siap" onclick="setSiapCetak(1)" class="py-2.5 rounded-lg text-xs font-medium uppercase tracking-widest transition-all">Siap cetak</button>
+                            </div>
                         </x-form.group>
-
                         <div id="wrapper_desainer_jersey">
+                            @if(auth()->user() && optional(auth()->user()->role)->nama_role === 'Administrator' && !$desainerTerkunci)
+                                <div class="mb-2">
+                                    <button type="button" onclick="daftarDesainerSendiri()" class="text-[11px] text-indigo-600 hover:underline"><i class="fas fa-user-plus mr-1"></i> Jadikan saya desainer (ubah role ke Operator Desain)</button>
+                                </div>
+                            @endif
                             <x-form.group label="Desainer">
                                 @if($desainerTerkunci)
                                     <input type="hidden" id="input_desainer_jersey" name="id_desainer" value="{{ $desainerTerkunci }}">
-                                    <div class="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-700 flex items-center gap-2.5">
-                                        <i class="fas fa-user-check text-slate-400 text-xs shrink-0"></i>
-                                        <span class="truncate">{{ $desainerTerkunciNama }}</span>
-                                        <span class="ml-auto text-[11px] font-normal text-slate-400 shrink-0">otomatis (Anda)</span>
-                                    </div>
                                 @else
                                     <select id="input_desainer_jersey" name="id_desainer" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                                         <option value="">-- Tanpa Desainer --</option>
@@ -125,13 +125,24 @@
                         </div>
 
                         <script>
-                            function toggleDesainerSiapCetak() {
-                                const cb = document.getElementById('file_siap_cetak');
+                            function setSiapCetak(val) {
+                                const input = document.getElementById('file_siap_cetak');
+                                if (input) input.value = val ? '1' : '0';
+                                const perlu = document.getElementById('btn_desain_perlu');
+                                const siap = document.getElementById('btn_desain_siap');
+                                if (perlu) perlu.className = 'py-2.5 rounded-lg text-xs font-medium uppercase tracking-widest transition-all ' + (val ? 'text-slate-500' : 'bg-white text-indigo-600 shadow-sm');
+                                if (siap) siap.className = 'py-2.5 rounded-lg text-xs font-medium uppercase tracking-widest transition-all ' + (val ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500');
                                 const wrap = document.getElementById('wrapper_desainer_jersey');
-                                if (!cb || !wrap) return;
-                                wrap.style.display = cb.checked ? 'none' : '';
+                                if (wrap) wrap.style.display = val ? 'none' : '';
                             }
+                            function toggleDesainerSiapCetak() { setSiapCetak(document.getElementById('file_siap_cetak')?.value === '1'); }
                             document.addEventListener('DOMContentLoaded', toggleDesainerSiapCetak);
+                            async function daftarDesainerSendiri() {
+                                if (!confirm('Ubah role Anda menjadi Operator Desain? Anda akan kehilangan akses Administrator.')) return;
+                                const res = await fetch('{{ url("/jersey/become-desainer") }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' } });
+                                const data = await res.json().catch(() => null);
+                                if (data && data.success) { alert(data.message); location.reload(); } else { alert((data && data.message) || 'Gagal.'); }
+                            }
                         </script>
                     </div>
                 </x-card>

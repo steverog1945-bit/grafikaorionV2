@@ -251,12 +251,24 @@
                     </select>
                 @endif
             </x-form.group>
-            <x-form.group label="File Siap Cetak">
-                <label class="inline-flex items-center gap-2 text-sm text-slate-600">
-                    <input type="checkbox" name="file_siap_cetak" value="1" @checked($order->file_siap_cetak) class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                    <span>Desain sudah siap cetak</span>
-                </label>
+            <x-form.group label="Status Desain">
+                <input type="hidden" name="file_siap_cetak" id="file_siap_cetak_edit" value="{{ $order->file_siap_cetak ? '1' : '0' }}">
+                <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                    <button type="button" id="btn_desain_perlu_edit" onclick="setSiapCetakEdit(0)" class="py-2.5 rounded-lg text-xs font-medium uppercase tracking-widest transition-all">Perlu desain</button>
+                    <button type="button" id="btn_desain_siap_edit" onclick="setSiapCetakEdit(1)" class="py-2.5 rounded-lg text-xs font-medium uppercase tracking-widest transition-all">Siap cetak</button>
+                </div>
             </x-form.group>
+            <script>
+                function setSiapCetakEdit(val) {
+                    const input = document.getElementById('file_siap_cetak_edit');
+                    if (input) input.value = val ? '1' : '0';
+                    const perlu = document.getElementById('btn_desain_perlu_edit');
+                    const siap = document.getElementById('btn_desain_siap_edit');
+                    if (perlu) perlu.className = 'py-2.5 rounded-lg text-xs font-medium uppercase tracking-widest transition-all ' + (val ? 'text-slate-500' : 'bg-white text-indigo-600 shadow-sm');
+                    if (siap) siap.className = 'py-2.5 rounded-lg text-xs font-medium uppercase tracking-widest transition-all ' + (val ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500');
+                }
+                document.addEventListener('DOMContentLoaded', function () { setSiapCetakEdit({{ $order->file_siap_cetak ? '1' : '0' }}); });
+            </script>
             @bolehHarga
             <x-form.group label="Diskon (Rp)">
                 <input type="text" inputmode="numeric" name="discount" value="{{ number_format($order->discount, 0, ',', '.') }}" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">

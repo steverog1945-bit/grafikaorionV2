@@ -504,8 +504,68 @@ class JerseyMasterController extends Controller
         return response()->json(['success' => true, 'message' => 'Tier harga berhasil diperbarui.', 'row' => $row]);
     }
 
+    /**
+     * Hapus permanen entitas master sederhana (tipe/kategori/ukuran/bahan/lengan/kerah)
+     * dengan guard: bila masih dirujuk oleh order/harga/usage, tolak.
+     */
+    public function destroyMasterEntity(Request $request, string $entity, int $id)
+    {
+        $map = [
+            'product-types' => ['model' => \App\Models\JerseyProductType::class, 'refs' => [
+                \App\Models\JerseyOrderLine::class => 'jersey_product_type_id',
+                \App\Models\JerseyPriceSetting::class => 'jersey_product_type_id',
+            ]],
+            'categories' => ['model' => \App\Models\JerseyCategory::class, 'refs' => [
+                \App\Models\JerseyOrderLine::class => 'jersey_category_id',
+                \App\Models\JerseyPriceSetting::class => 'jersey_category_id',
+            ]],
+            'materials' => ['model' => \App\Models\JerseyMaterial::class, 'refs' => [
+                \App\Models\JerseyOrderLine::class => 'jersey_material_id',
+                \App\Models\JerseyPriceSetting::class => 'jersey_material_id',
+            ]],
+            'sleeve-types' => ['model' => \App\Models\JerseySleeveType::class, 'refs' => [
+                \App\Models\JerseyOrderLine::class => 'jersey_sleeve_type_id',
+                \App\Models\JerseySizeSleeveUsage::class => 'jersey_sleeve_type_id',
+            ]],
+            'collar-types' => ['model' => \App\Models\JerseyCollarType::class, 'refs' => [
+                \App\Models\JerseyOrderLine::class => 'jersey_collar_type_id',
+                \App\Models\JerseySizeCollarUsage::class => 'jersey_collar_type_id',
+            ]],
+            'sizes' => ['model' => \App\Models\JerseySize::class, 'refs' => [
+                \App\Models\JerseyOrderSizeQuantity::class => 'jersey_size_id',
+                \App\Models\JerseyOrderItem::class => 'jersey_size_id',
+                \App\Models\JerseySizeComponentUsage::class => 'jersey_size_id',
+                \App\Models\JerseySizeSleeveUsage::class => 'jersey_size_id',
+                \App\Models\JerseySizeCollarUsage::class => 'jersey_size_id',
+            ]],
+        ];
+
+        if (!isset($map[$entity])) {
+            return response()->json(['success' => false, 'message' => 'Entitas tidak dikenal.'], 404);
+        }
+
+        $cfg = $map[$entity];
+        $model = $cfg['model'];
+        $row = $model::find($id);
+        if (!$row) {
+            return response()->json(['success' => false, 'message' => 'Data tidak ditemukan.'], 404);
+        }
+
+        foreach ($cfg['refs'] as $refModel => $col) {
+            if ($refModel::where($col, $id)->exists()) {
+                return response()->json(['success' => false, 'message' => 'Data sedang dipakai, tidak bisa dihapus. Nonaktifkan saja.'], 422);
+            }
+        }
+
+        $row->delete();
+        return response()->json(['success' => true, 'message' => 'Data berhasil dihapus.']);
+    }
+
     public function destroyPriceSetting(JerseyPriceSetting $priceSetting)
     {
+        if (\App\Models\JerseyOrderLine::where('jersey_price_setting_id', $priceSetting->id)->exists()) {
+            return response()->json(['success' => false, 'message' => 'Tier harga sedang dipakai oleh order aktif, tidak bisa dihapus. Nonaktifkan saja.'], 422);
+        }
         $priceSetting->delete();
         return response()->json(['success' => true, 'message' => 'Tier harga berhasil dihapus.']);
     }
