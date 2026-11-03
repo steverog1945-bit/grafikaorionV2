@@ -84,8 +84,8 @@
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-ukuran', 'statusId' => 'filter-status-ukuran', 'placeholder' => 'Cari nama ukuran...'])
             <div class="flex items-center gap-3 mb-3"><button type="button" onclick="bulkHapusSimple('sizes')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-medium uppercase tracking-widest hover:bg-rose-100"><i class="far fa-trash-alt mr-1"></i> Hapus Terpilih</button></div>
             <x-table bare>
-                <thead><tr><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center">Kelompok</th><th class="p-2.5 text-center">Urutan</th><th class="p-2.5 text-right">Tambahan Harga</th><th class="p-2.5 text-right">Selisih %</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
-                <tbody class="divide-y divide-slate-50" id="tbody-ukuran" data-empty-colspan="6" data-empty-text="Belum ada ukuran">
+                <thead><tr><th class="p-2.5 text-center w-8"><input type="checkbox" onchange="toggleSemuaSimple(this.checked)"></th><th class="p-2.5 text-left">Nama</th><th class="p-2.5 text-center">Kelompok</th><th class="p-2.5 text-center">Urutan</th><th class="p-2.5 text-right">Tambahan Harga</th><th class="p-2.5 text-right">Selisih %</th><th class="p-2.5 text-center w-20">Aksi</th></tr></thead>
+                <tbody class="divide-y divide-slate-50" id="tbody-ukuran" data-empty-colspan="7" data-empty-text="Belum ada ukuran">
                     @forelse($sizes as $s)
                         @include('jersey.master._row-size', ['row' => $s])
                     @empty
@@ -741,10 +741,12 @@
             ? `<span class="ml-2 text-[9px] font-medium uppercase tracking-wide text-emerald-600 bg-emerald-50 rounded px-1.5 py-0.5">+Rp ${Number(row.price_surcharge).toLocaleString('id-ID')}</span>` : '';
         return `
         <tr data-id="${row.id}" class="${row.is_active ? '' : 'opacity-50'}">
+            <td class="p-2.5"><input type="checkbox" class="bulk-cb-simple" data-entity="${entity}" value="${row.id}"></td>
             <td class="p-2.5 font-medium">${escapeHtmlJersey(row.name)}${badgeLenganKerah}${badgeSurcharge}</td>
             <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
                     <button type="button" onclick="bukaEditSimple('${entity}', ${row.id}, ${JSON.stringify(row.name).replace(/"/g, '&quot;')}, ${row.has_sleeve_collar !== false}, ${Number(row.price_surcharge) || 0})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
+                    <button type="button" onclick="hapusEntitas('${entity}', ${row.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
                     <button type="button" onclick="toggleEntitas('${entity}', ${row.id})" class="w-8 h-8 rounded-lg text-slate-400 ${row.is_active ? 'hover:text-slate-600 hover:bg-slate-100' : 'hover:text-emerald-500 hover:bg-emerald-50'}" title="${row.is_active ? 'Nonaktifkan' : 'Aktifkan'}"><i class="far ${row.is_active ? 'fa-eye-slash' : 'fa-eye'} text-xs"></i></button>
                 </div>
             </td>

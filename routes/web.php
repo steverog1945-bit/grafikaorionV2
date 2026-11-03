@@ -921,7 +921,8 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
         Route::post('/master/price-settings/bulk', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'bulkPriceSettings'])->name('master.price-settings.bulk');
         Route::post('/master/price-settings', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storePriceSetting'])->name('master.price-settings.store');
         Route::put('/master/price-settings/{priceSetting}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'updatePriceSetting'])->name('master.price-settings.update');
-        Route::delete('/master/entity/{entity}/{id}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'destroyMasterEntity'])->name('master.entity.destroy');
+        Route::delete('/master/price-settings/{priceSetting}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'destroyPriceSetting'])->name('master.price-settings.destroy');
+Route::delete('/master/entity/{entity}/{id}', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'destroyMasterEntity'])->name('master.entity.destroy');
 
         Route::post('/master/materials', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeMaterial'])->name('master.materials.store');
         Route::patch('/master/materials/{material}/bahan', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'sinkronMaterial'])->name('master.materials.sinkron');
