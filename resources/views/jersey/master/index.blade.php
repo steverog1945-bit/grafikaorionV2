@@ -292,33 +292,36 @@
                     <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest">Estimasi Lengan (meter &amp; gram)</p>
                     <button type="button" onclick="bantuanEstimasi('lenganKerah')" class="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-full border border-indigo-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition" title="Penjelasan estimasi lengan & kerah" aria-label="Penjelasan estimasi lengan dan kerah"><i class="fas fa-question text-[9px]"></i></button>
                 </div>
-                <div class="overflow-x-auto mb-6">
+                {{-- Visual disamakan dengan tabel Estimasi Meter/Berat
+                     komponen: wrapper border rounded-xl, header indigo-50,
+                     kolom ukuran sticky, input w-full per sel. --}}
+                <div class="rounded-xl border border-slate-200 overflow-x-auto mb-6">
                     <table class="w-full text-xs border-collapse" id="tabel-estimasi-lengan">
-                        <thead>
+                        <thead class="bg-indigo-50">
                             <tr>
-                                <th class="p-2.5 text-left sticky left-0 bg-white z-10">Ukuran</th>
+                                <th class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
                                 @foreach($sleeveTypes->where('is_active', true) as $st)
-                                <th class="p-2.5 text-center whitespace-nowrap" data-type-th="{{ $st->id }}">{{ $st->name }}</th>
+                                <th class="p-2 text-center whitespace-nowrap font-medium text-slate-500" data-type-th="{{ $st->id }}">{{ $st->name }}</th>
                                 @endforeach
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100">
                             @forelse($sleeveTypes->where('is_active', true) as $x)@break @empty
                             <tr><td class="p-3 text-center text-slate-500 italic">Belum ada Tipe Lengan aktif - tambah dulu di tab Tipe Lengan.</td></tr>
                             @endforelse
                             @if($sleeveTypes->where('is_active', true)->isNotEmpty())
                             @foreach($sizes as $s)
-                            <tr data-size-id="{{ $s->id }}">
-                                <td class="p-2.5 font-medium sticky left-0 bg-white">{{ $s->name }}</td>
+                            <tr data-size-id="{{ $s->id }}" class="border-b last:border-0">
+                                <td class="p-2.5 font-medium sticky left-0 bg-white text-slate-700">{{ $s->name }}</td>
                                 @foreach($sleeveTypes->where('is_active', true) as $st)
                                 @php $u = optional($sleeveUsageMatrix[$s->id] ?? null)[$st->id] ?? null; @endphp
-                                <td class="p-1" data-type-td="{{ $st->id }}">
+                                <td class="p-1.5" data-type-td="{{ $st->id }}">
                                     <input type="number" step="0.01" min="0" value="{{ $u->usage_meter ?? '' }}" placeholder="m"
                                         onchange="simpanEstimasiLengan({{ $s->id }}, {{ $st->id }}, 'meter', this.value)"
-                                        class="w-16 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20 mb-1">
+                                        class="w-full bg-slate-50 rounded-lg p-1.5 text-xs text-center focus:ring-2 focus:ring-indigo-500/25 mb-1">
                                     <input type="number" step="1" min="0" value="{{ $u->usage_weight_gram ?? '' }}" placeholder="g"
                                         onchange="simpanEstimasiLengan({{ $s->id }}, {{ $st->id }}, 'weight', this.value)"
-                                        class="w-16 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
+                                        class="w-full bg-slate-50 rounded-lg p-1.5 text-xs text-center focus:ring-2 focus:ring-indigo-500/25">
                                 </td>
                                 @endforeach
                             </tr>
@@ -332,33 +335,33 @@
                     <p class="text-[11px] font-medium text-indigo-600 uppercase tracking-widest">Estimasi Kerah (meter &amp; gram)</p>
                     <button type="button" onclick="bantuanEstimasi('lenganKerah')" class="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-full border border-indigo-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition" title="Penjelasan estimasi lengan & kerah" aria-label="Penjelasan estimasi lengan dan kerah"><i class="fas fa-question text-[9px]"></i></button>
                 </div>
-                <div class="overflow-x-auto">
+                <div class="rounded-xl border border-slate-200 overflow-x-auto">
                     <table class="w-full text-xs border-collapse" id="tabel-estimasi-kerah">
-                        <thead>
+                        <thead class="bg-indigo-50">
                             <tr>
-                                <th class="p-2.5 text-left sticky left-0 bg-white z-10">Ukuran</th>
+                                <th class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
                                 @foreach($collarTypes->where('is_active', true) as $ct)
-                                <th class="p-2.5 text-center whitespace-nowrap" data-type-th="{{ $ct->id }}">{{ $ct->name }}</th>
+                                <th class="p-2 text-center whitespace-nowrap font-medium text-slate-500" data-type-th="{{ $ct->id }}">{{ $ct->name }}</th>
                                 @endforeach
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100">
                             @forelse($collarTypes->where('is_active', true) as $x)@break @empty
                             <tr><td class="p-3 text-center text-slate-500 italic">Belum ada Tipe Kerah aktif - tambah dulu di tab Tipe Kerah.</td></tr>
                             @endforelse
                             @if($collarTypes->where('is_active', true)->isNotEmpty())
                             @foreach($sizes as $s)
-                            <tr data-size-id="{{ $s->id }}">
-                                <td class="p-2.5 font-medium sticky left-0 bg-white">{{ $s->name }}</td>
+                            <tr data-size-id="{{ $s->id }}" class="border-b last:border-0">
+                                <td class="p-2.5 font-medium sticky left-0 bg-white text-slate-700">{{ $s->name }}</td>
                                 @foreach($collarTypes->where('is_active', true) as $ct)
                                 @php $u = optional($collarUsageMatrix[$s->id] ?? null)[$ct->id] ?? null; @endphp
-                                <td class="p-1" data-type-td="{{ $ct->id }}">
+                                <td class="p-1.5" data-type-td="{{ $ct->id }}">
                                     <input type="number" step="0.01" min="0" value="{{ $u->usage_meter ?? '' }}" placeholder="m"
                                         onchange="simpanEstimasiKerah({{ $s->id }}, {{ $ct->id }}, 'meter', this.value)"
-                                        class="w-16 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20 mb-1">
+                                        class="w-full bg-slate-50 rounded-lg p-1.5 text-xs text-center focus:ring-2 focus:ring-indigo-500/25 mb-1">
                                     <input type="number" step="1" min="0" value="{{ $u->usage_weight_gram ?? '' }}" placeholder="g"
                                         onchange="simpanEstimasiKerah({{ $s->id }}, {{ $ct->id }}, 'weight', this.value)"
-                                        class="w-16 bg-slate-50 border-none rounded-lg p-2 text-xs text-center focus:ring-2 focus:ring-indigo-500/20">
+                                        class="w-full bg-slate-50 rounded-lg p-1.5 text-xs text-center focus:ring-2 focus:ring-indigo-500/25">
                                 </td>
                                 @endforeach
                             </tr>

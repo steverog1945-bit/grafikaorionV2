@@ -44,6 +44,12 @@ class JerseyMasterController extends Controller
         $priceSettings = JerseyPriceSetting::with(['productType', 'category', 'material', 'golongan'])
             ->orderByRaw('jersey_material_id IS NULL')
             ->orderBy('jersey_material_id')
+            // Senadakan dengan bahan & golongan: kelompokkan per Tipe dan
+            // Kategori juga (fallback "Semua Tipe/Kategori" turun ke bawah
+            // grupnya, seperti perlakuan "Semua Bahan" dan "Semua Golongan").
+            ->orderByRaw('jersey_product_type_id IS NULL')
+            ->orderBy('jersey_product_type_id')
+            ->orderByRaw('jersey_category_id IS NULL')
             ->orderBy('jersey_category_id')
             // Kelompokkan per golongan (null = berlaku umum, taruh di bawah)
             // lalu dewasa sebelum anak, supaya barisan tidak terlihat acak.
