@@ -906,8 +906,7 @@
             e.preventDefault();
             Swal.fire({
                 title: 'Nominal Bayar Belum Diisi',
-                html: 'Nominal pembayaran masih <b>Rp 0</b> - tombol Bayar butuh nominal yang diisi.<br><br>'
-                    + 'Pilih salah satu: isi nominal pembayaran lalu tekan Bayar, tekan tombol <b>Simpan</b> untuk menyimpan nota tanpa pembayaran (tetap DP/hutang), atau <b>kembali</b> tanpa mencatat pembayaran.',
+                html: 'Tombol <b>Bayar</b> butuh nominal - masih <b>Rp 0</b>. Isi nominal Bayar, atau pakai tombol <b>Simpan</b> untuk nota tanpa pembayaran.',
                 icon: 'warning',
                 confirmButtonColor: '#006C7B',
             });

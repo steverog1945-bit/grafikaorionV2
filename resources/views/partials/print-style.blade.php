@@ -53,6 +53,13 @@
         {{ $format === 'thermal' ? 'width: 80mm; margin: 0 auto;' : '' }}
     }
 
+    @if($format === 'thermal')
+    {{-- Font thermal: Consolas (monospace, kolom angka sejajar), cadangan Verdana. --}}
+    body, .sheet, .sheet table, .sheet td, .sheet th, .sheet p, .sheet div, .sheet span {
+        font-family: Consolas, Verdana, "Courier New", monospace !important;
+    }
+    @endif
+
     {{-- Lebar kertas. 'continuous' (kertas sambung / dot-matrix) memakai
          ukuran font yang SAMA dengan A4 di seluruh style ini - dua-duanya
          "bukan thermal", hanya lebar kertasnya berbeda. --}}

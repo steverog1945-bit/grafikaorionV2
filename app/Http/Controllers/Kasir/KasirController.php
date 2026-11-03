@@ -1191,6 +1191,8 @@ public function simpanClosing(Request $request)
 {
     $request->validate([
         'status_rolling' => 'required|in:Rolling,Tidak Rolling',
+        // Uang laci yang disetor/diambil wajib punya penerima yang jelas.
+        'disetor_kepada' => 'nullable|required_if:status_rolling,Tidak Rolling|max:100',
     ]);
 
     // Closing SELALU boleh (termasuk hari Minggu libur): sesi kas tetap open
@@ -1254,6 +1256,15 @@ public function simpanClosing(Request $request)
         $saldoAkhirSistem = $kas->saldo_awal + $tunaiMasuk + $manualMasuk - $tunaiKeluar;
         $selisih = $saldo_fisik - $saldoAkhirSistem;
 
+        $keterangan = trim((string) $request->keterangan);
+        if (abs($selisih) >= 0.005 && $keterangan === '') {
+            throw new \Exception('Selisih kas tidak nol - wajib diisi keterangan penyebabnya.');
+        }
+        $disetorKepada = trim((string) $request->disetor_kepada);
+        if ($disetorKepada !== '') {
+            $keterangan = trim($keterangan . "\nDisetor kepada: " . $disetorKepada);
+        }
+
         DB::table('kas_harian')->where('id_kas', $id_kas)->update([
             'total_tunai_masuk' => $tunaiMasuk,
             'total_transfer_masuk' => $transferMasuk,
@@ -1264,7 +1275,7 @@ public function simpanClosing(Request $request)
             'selisih' => $selisih,
             'status_lock' => 'closed',
             'waktu_tutup' => now(),
-            'keterangan_closing' => $request->keterangan,
+            'keterangan_closing' => $keterangan,
             'status_rolling' => $request->status_rolling,
             'updated_at' => now()
         ]);

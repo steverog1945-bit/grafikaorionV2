@@ -60,7 +60,6 @@
             <div class="w-full md:w-72">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">No. Nota / Konsumen</label>
                 <x-form.input type="text" name="q" id="pencarian-riwayat" value="{{ request('q') }}" placeholder="Contoh: INV-... / nama konsumen" autocomplete="off" />
-                <p class="text-[10px] text-slate-400 mt-1 ml-2">Live filter halaman ini; tekan Tampilkan untuk mencari di semua halaman.</p>
             </div>
 
             <x-button type="submit">
@@ -209,7 +208,7 @@
                 var tr = document.createElement('tr');
                 var td = document.createElement('td');
                 td.colSpan = 10;
-                td.innerHTML = '<div style="text-align:center;padding:2rem 0;" class="text-slate-400 text-sm">Tidak ada nota yang cocok dengan pencarian di halaman ini. Tekan <b>Tampilkan</b> untuk mencari di semua tanggal.</div>';
+                td.innerHTML = '<div style="text-align:center;padding:2rem 0;" class="text-slate-400 text-sm">Tidak ada nota yang cocok di halaman ini.</div>';
                 tr.appendChild(td);
                 return tr;
             }

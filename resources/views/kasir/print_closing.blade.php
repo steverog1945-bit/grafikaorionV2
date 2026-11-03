@@ -62,8 +62,14 @@
 
             <div class="divider"></div>
             <table>
+                @if(($kas->status_rolling ?? '') === 'Rolling')
                 <tr class="total-row"><td>SALDO AWAL BESOK</td><td class="right">{{ $rp($saldoBesok) }}</td></tr>
-                <tr><td>Status</td><td class="right">{{ $kas->status_rolling ?? '-' }}</td></tr>
+                <tr><td>Status</td><td class="right">Rolling</td></tr>
+                @else
+                <tr class="total-row"><td>UANG DISETOR / DIAMBIL</td><td class="right">{{ $rp($isiLaci) }}</td></tr>
+                <tr><td>Saldo awal besok</td><td class="right">diisi saat buka kas</td></tr>
+                <tr><td>Status</td><td class="right">Tidak Rolling</td></tr>
+                @endif
             </table>
             <p class="sub">Transfer, debit, dan deposit tidak ada di laci.</p>
 
@@ -89,7 +95,7 @@
             <div class="divider"></div>
             <p class="sub" style="font-weight:600;color:#1a231f;margin-bottom:4px">A. Alur Kas Tunai (Laci)</p>
             <table>
-                <tr><td>Saldo awal / modal</td><td class="right">{{ $rp($saldoAwal) }}</td></tr>
+                <tr><td>Modal awal (flot)</td><td class="right">{{ $rp($saldoAwal) }}</td></tr>
                 <tr><td>&nbsp;&nbsp;+ Pemasukan tunai nota</td><td class="right">{{ $rp($tunaiMasuk) }}</td></tr>
                 <tr><td>&nbsp;&nbsp;+ Kas masuk (tidak terduga)</td><td class="right">{{ $rp($manualMasuk) }}</td></tr>
                 <tr><td>&nbsp;&nbsp;&minus; Kas keluar (tidak terduga)</td><td class="right">{{ $rp($kasKeluar) }}</td></tr>
@@ -113,17 +119,24 @@
             </p>
 
             <div class="divider"></div>
-            <p class="sub" style="font-weight:600;color:#1a231f;margin-bottom:4px">C. Saldo Awal Sesi Berikutnya</p>
+            @php $rolling = ($kas->status_rolling ?? '') === 'Rolling'; @endphp
+            @if($rolling)
+            <p class="sub" style="font-weight:600;color:#1a231f;margin-bottom:4px">C. Saldo Awal Sesi Berikutnya (Rolling)</p>
             <table>
                 <tr class="total-row"><td>Saldo awal besok (uang yang tertinggal di laci)</td><td class="right">{{ $rp($saldoBesok) }}</td></tr>
                 <tr><td>Status rolling</td><td class="right">{{ $kas->status_rolling ?? '-' }}</td></tr>
             </table>
-            <p class="sub">
-                Saldo awal besok memakai <b>total isi laci</b>, bukan saldo akhir sistem.
-                Uang yang benar-benar ada di laci adalah yang harus dibawa ke sesi
-                berikutnya, sehingga selisih tidak hilang diam-diam. Nilai ini juga
-                sudah otomatis menjadi saran saldo awal saat kasir membuka sesi baru.
-            </p>
+            <p class="sub">Saldo awal besok memakai total isi laci, bukan saldo akhir sistem.</p>
+            @else
+            <p class="sub" style="font-weight:600;color:#1a231f;margin-bottom:4px">C. Penyerahan Uang Laci (Tidak Rolling)</p>
+            <table>
+                <tr class="total-row"><td>Uang disetor / diambil dari laci</td><td class="right">{{ $rp($isiLaci) }}</td></tr>
+            </table>
+            <div class="signature">
+                <div>Disetor kepada<div class="line"></div></div>
+                <div>Terima, tanda tangan &amp; tanggal<div class="line"></div></div>
+            </div>
+            @endif
 
             {{-- Transfer, debit, dan deposit tidak pernah menyentuh uang fisik
                  di laci - tidak masuk saldo akhir sistem dan tidak memengaruhi
@@ -136,11 +149,7 @@
                 <tr><td>Debit masuk</td><td class="right">{{ $rp($debit) }}</td></tr>
                 <tr><td>Deposit masuk</td><td class="right">{{ $rp($deposit) }}</td></tr>
             </table>
-            <p class="sub">
-                Angka di sini tidak pernah ikut closing kas - bukan bagian dari isi
-                laci dan tidak memengaruhi selisih. Dicatat terpisah agar laporan
-                keuangan harian tetap lengkap.
-            </p>
+            <p class="sub">Angka di bagian ini tidak ikut closing kas.</p>
 
             {{-- Catatan pembuka hanya ada kalau saldo awal sesi ini berbeda dari
                  isi laci sesi sebelumnya. Kalau tidak ada, berarti saldo awal

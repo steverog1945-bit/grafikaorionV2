@@ -96,7 +96,7 @@
         <div class="p-6 bg-emerald-50 rounded-2xl border-2 border-emerald-100">
             <h3 class="font-medium text-emerald-800 mb-4">ALUR KAS TUNAI (LACI)</h3>
             <div class="space-y-2 text-sm">
-                <div class="flex justify-between"><span>Saldo Awal (Modal)</span> <b>Rp {{ rupiah($kas->saldo_awal, false) }}</b></div>
+                <div class="flex justify-between"><span>Modal Awal (Flot)</span> <b>Rp {{ rupiah($kas->saldo_awal, false) }}</b></div>
                 <div class="flex justify-between text-emerald-600"><span>Pemasukan Tunai Nota (+)</span> <b>Rp {{ rupiah($pemasukan->tunai_masuk, false) }}</b></div>
                 <div class="flex justify-between text-emerald-600"><span>Kas Tidak Terduga Masuk (+)</span> <b>Rp {{ rupiah($manualMasuk, false) }}</b></div>
                 <div class="flex justify-between text-red-500"><span>Kas Tidak Terduga Keluar (-)</span> <b>Rp {{ rupiah($pengeluaran_tunai, false) }}</b></div>
@@ -119,7 +119,7 @@
                      murni laporan keuangan, tidak menyentuh keadaan fisik laci
                      sama sekali (tidak ada di SALDO AKHIR LACI, tidak ada di
                      Total Isi Laci, tidak mempengaruhi Selisih). --}}
-                <p class="text-[10px] text-blue-500 mt-4 font-medium">*Transfer/Debit/Deposit HANYA laporan keuangan - tidak ikut ditutup/dicocokkan di closing kas ini, karena tidak berwujud uang fisik di laci. Deposit sendiri sudah masuk kas saat konsumen setor deposit dulu, bukan hari ini.</p>
+                <p class="text-[10px] text-blue-500 mt-4 font-medium">*Transfer/Debit/Deposit hanya laporan keuangan - tidak ikut closing kas (tidak berwujud uang di laci).</p>
             </div>
         </div>
     </div>
@@ -149,15 +149,21 @@
 
         <div class="mb-6">
             <label class="block text-center text-xs font-medium text-slate-400 mb-2 uppercase">Status Rolling Saldo Akhir</label>
-            <select name="status_rolling" required class="w-full bg-white/10 border-none rounded-xl py-3 px-4 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500/40">
+            <select name="status_rolling" id="select-status-rolling" required class="w-full bg-white/10 border-none rounded-xl py-3 px-4 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500/40">
                 <option value="Rolling">Rolling - Saldo Akhir Dipakai Kasir Besok (uang tetap di laci)</option>
                 <option value="Tidak Rolling">Tidak Rolling - Uang Diambil/Disetor (besok mulai saldo baru)</option>
             </select>
         </div>
 
-        <div class="mb-6">
-            <label class="block text-center text-xs font-medium text-slate-400 mb-2 uppercase">Keterangan / Catatan Selisih</label>
-            <textarea name="keterangan" id="input-keterangan" rows="3" required placeholder="Jelaskan penyebab selisih (kalau ada), atau tulis 'Aman' kalau pas."
+        <div class="mb-6 hidden" id="wrap-disetor">
+            <label class="block text-center text-xs font-medium text-slate-400 mb-2 uppercase">Disetor Kepada</label>
+            <input type="text" name="disetor_kepada" id="input-disetor" maxlength="100" autocomplete="off" placeholder="Nama penerima uang laci"
+                class="w-full bg-white/10 border-none rounded-xl py-3 px-4 text-sm font-medium text-white placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/40">
+        </div>
+
+        <div class="mb-6" id="wrap-keterangan">
+            <label class="block text-center text-xs font-medium text-slate-400 mb-2 uppercase" id="label-keterangan">Keterangan / Catatan Selisih</label>
+            <textarea name="keterangan" id="input-keterangan" rows="3" placeholder="Wajib diisi kalau selisih tidak nol."
                 class="w-full bg-white/10 border-none rounded-xl py-3 px-4 text-sm font-medium text-white placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/40"></textarea>
         </div>
 
@@ -172,6 +178,7 @@
 @push('scripts')
 <script>
     const saldoAkhirSistemJs = {{ (float) $saldo_akhir_sistem }};
+    const tutupPaksaJs = @json((bool) $tutupPaksa);
 
     function hitungSelisihLive() {
         const fisik = cleanRupiah(document.getElementById('input-saldo-fisik').value);
@@ -186,9 +193,43 @@
         } else {
             el.innerHTML = `Selisih: <span class="text-amber-400">+ Rp ${fmt.format(selisih)} (Lebih dari sistem)</span>`;
         }
+        return selisih;
     }
 
-    document.addEventListener('DOMContentLoaded', hitungSelisihLive);
+    function sinkronFormClosing() {
+        const tidakRolling = document.getElementById('select-status-rolling').value === 'Tidak Rolling';
+        const wrapDisetor = document.getElementById('wrap-disetor');
+        const inputDisetor = document.getElementById('input-disetor');
+        wrapDisetor.classList.toggle('hidden', !tidakRolling);
+        inputDisetor.required = tidakRolling;
+    }
+
+    document.getElementById('select-status-rolling').addEventListener('change', sinkronFormClosing);
+
+    document.getElementById('form-closing').addEventListener('submit', function (e) {
+        const selisih = hitungSelisihLive();
+        const keterangan = document.getElementById('input-keterangan').value.trim();
+
+        // Selisih tidak nol tanpa penjelasan tidak boleh dikunci.
+        if (Math.abs(selisih) >= 0.005 && keterangan === '') {
+            e.preventDefault();
+            document.getElementById('label-keterangan').classList.add('text-rose-400');
+            document.getElementById('input-keterangan').focus();
+            alert('Selisih tidak nol - isi keterangan penyebabnya dulu.');
+            return;
+        }
+        // Tutup paksa sesi kasir lain selalu butuh alasan.
+        if (tutupPaksaJs && keterangan === '') {
+            e.preventDefault();
+            document.getElementById('input-keterangan').focus();
+            alert('Tutup paksa wajib disertai alasan pada keterangan.');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        hitungSelisihLive();
+        sinkronFormClosing();
+    });
 </script>
 @endpush
 @endsection
