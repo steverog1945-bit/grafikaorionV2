@@ -241,6 +241,28 @@ class AccountingService
     }
 
     /**
+     * Setoran modal laci saat closing kas: uang yang DISENTOR ke akun tujuan
+     * (Bank / Dana Pemilik / dll.) dicatat sebagai MUTASI KAS (transfer),
+     * BUKAN biaya. Jurnal: Debet akun tujuan, Kredit Kas (1000). Akun tujuan
+     * yang dipilih kasir menentukan ke mana uang itu "pindah" di pembukuan.
+     */
+    public static function postSetoranKasLaci(string $noReferensi, float $nominal, string $akunTujuan, string $penerima = ''): void
+    {
+        if ($nominal <= 0) {
+            return;
+        }
+        if ($akunTujuan === '' || $akunTujuan === '1000') {
+            throw new \InvalidArgumentException('Akun tujuan setoran tidak boleh kosong atau Kas sendiri.');
+        }
+
+        $ket = "Setoran closing kas (modal laci) ke akun {$akunTujuan}" . ($penerima !== '' ? " - penerima: {$penerima}" : '');
+        self::postJournal(now()->toDateString(), $noReferensi, $ket, [
+            ['kode_akun' => $akunTujuan, 'debet' => $nominal],
+            ['kode_akun' => self::AKUN_KAS, 'kredit' => $nominal],
+        ]);
+    }
+
+    /**
      * Faktur pembelian bahan baku dicatat (PembelianBahanController::store).
      * Cash -> Cr Dana Pemilik untuk Pembelian (dibayar pemilik di luar kas). Tempo -> Cr Hutang Usaha.
      */

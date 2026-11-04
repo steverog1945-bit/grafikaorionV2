@@ -66,8 +66,9 @@
                 <tr class="total-row"><td>SALDO AWAL BESOK</td><td class="right">{{ $rp($saldoBesok) }}</td></tr>
                 <tr><td>Status</td><td class="right">Rolling</td></tr>
                 @else
-                <tr class="total-row"><td>UANG DISETOR / DIAMBIL</td><td class="right">{{ $rp($isiLaci) }}</td></tr>
-                <tr><td>Saldo awal besok</td><td class="right">diisi saat buka kas</td></tr>
+                <tr><td>Total isi laci</td><td class="right">{{ $rp($isiLaci) }}</td></tr>
+                <tr><td>Uang disetor</td><td class="right">{{ $rp($kas->jumlah_disetor ?? 0) }}</td></tr>
+                <tr class="total-row"><td>Sisa modal laci</td><td class="right">{{ $rp($kas->sisa_modal_laci ?? 0) }}</td></tr>
                 <tr><td>Status</td><td class="right">Tidak Rolling</td></tr>
                 @endif
             </table>
@@ -130,7 +131,13 @@
             @else
             <p class="sub" style="font-weight:600;color:#1a231f;margin-bottom:4px">C. Penyerahan Uang Laci (Tidak Rolling)</p>
             <table>
-                <tr class="total-row"><td>Uang disetor / diambil dari laci</td><td class="right">{{ $rp($isiLaci) }}</td></tr>
+                <tr><td>Total uang fisik sebelum setoran</td><td class="right">{{ $rp($isiLaci) }}</td></tr>
+                <tr><td>&nbsp;&nbsp;Uang disetor ke akun {{ $kas->akun_tujuan ?? '-' }}</td><td class="right">{{ $rp($kas->jumlah_disetor ?? 0) }}</td></tr>
+                @if($kas->disetor_kepada ?? '')
+                <tr><td>&nbsp;&nbsp;Penerima</td><td class="right">{{ $kas->disetor_kepada }}</td></tr>
+                @endif
+                <tr class="total-row"><td>Sisa modal laci untuk sesi berikutnya</td><td class="right">{{ $rp($kas->sisa_modal_laci ?? 0) }}</td></tr>
+                <tr><td>Status rolling</td><td class="right">Tidak Rolling</td></tr>
             </table>
             <div class="signature">
                 <div>Disetor kepada<div class="line"></div></div>

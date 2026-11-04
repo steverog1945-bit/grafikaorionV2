@@ -156,7 +156,23 @@
         </div>
 
         <div class="mb-6 hidden" id="wrap-disetor">
-            <label class="block text-center text-xs font-medium text-slate-400 mb-2 uppercase">Disetor Kepada</label>
+            <label class="block text-center text-xs font-medium text-slate-400 mb-2 uppercase">Akun Tujuan Setoran</label>
+            <select name="akun_tujuan" id="input-akun-tujuan" class="w-full bg-white/10 border-none rounded-xl py-3 px-4 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500/40">
+                <option value="">-- Pilih akun tujuan --</option>
+                @foreach(($akunTujuanList ?? []) as $ak)
+                <option value="{{ $ak->kode_akun }}">{{ $ak->kode_akun }} - {{ $ak->nama_akun }} ({{ $ak->tipe_akun }})</option>
+                @endforeach
+            </select>
+            <p class="text-[10px] text-slate-400 mt-1 text-center">Mutasi kas ke akun ini (bukan biaya).</p>
+
+            <label class="block text-center text-xs font-medium text-slate-400 mb-2 mt-4 uppercase">Jumlah Disetor (Rp)</label>
+            <input type="text" inputmode="numeric" autocomplete="off" name="jumlah_disetor" id="input-jumlah-disetor" oninput="hitungSisaModalLaci()" class="w-full bg-white/10 border-none rounded-xl py-3 px-4 text-sm font-medium text-white placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/40 format-ribuan" placeholder="0">
+
+            <label class="block text-center text-xs font-medium text-slate-400 mb-2 mt-4 uppercase">Sisa Modal Laci untuk Sesi Berikutnya (Rp)</label>
+            <input type="text" inputmode="numeric" autocomplete="off" name="sisa_modal_laci" id="input-sisa-modal" readonly class="w-full bg-white/5 border-none rounded-xl py-3 px-4 text-sm font-medium text-emerald-300 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/40 format-ribuan" placeholder="0">
+            <p class="text-[10px] text-slate-400 mt-1 text-center">Otomatis = total isi laci - jumlah disetor.</p>
+
+            <label class="block text-center text-xs font-medium text-slate-400 mb-2 mt-4 uppercase">Disetor Kepada (penerima)</label>
             <input type="text" name="disetor_kepada" id="input-disetor" maxlength="100" autocomplete="off" placeholder="Nama penerima uang laci"
                 class="w-full bg-white/10 border-none rounded-xl py-3 px-4 text-sm font-medium text-white placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/40">
         </div>
@@ -193,6 +209,8 @@
         } else {
             el.innerHTML = `Selisih: <span class="text-amber-400">+ Rp ${fmt.format(selisih)} (Lebih dari sistem)</span>`;
         }
+        // Jaga agar sisa modal laci tetap sinkron dengan total isi laci.
+        if (typeof hitungSisaModalLaci === 'function') hitungSisaModalLaci();
         return selisih;
     }
 
@@ -200,8 +218,26 @@
         const tidakRolling = document.getElementById('select-status-rolling').value === 'Tidak Rolling';
         const wrapDisetor = document.getElementById('wrap-disetor');
         const inputDisetor = document.getElementById('input-disetor');
+        const inputAkun = document.getElementById('input-akun-tujuan');
+        const inputJumlah = document.getElementById('input-jumlah-disetor');
         wrapDisetor.classList.toggle('hidden', !tidakRolling);
         inputDisetor.required = tidakRolling;
+        if (inputAkun) inputAkun.required = tidakRolling;
+        if (inputJumlah) {
+            if (!tidakRolling) {
+                inputJumlah.value = '';
+                document.getElementById('input-sisa-modal').value = cleanRupiah(document.getElementById('input-saldo-fisik').value);
+            } else {
+                hitungSisaModalLaci();
+            }
+        }
+    }
+
+    function hitungSisaModalLaci() {
+        const fisik = cleanRupiah(document.getElementById('input-saldo-fisik').value);
+        const disetor = cleanRupiah(document.getElementById('input-jumlah-disetor').value);
+        const sisa = Math.max(0, fisik - disetor);
+        document.getElementById('input-sisa-modal').value = formatRupiah(Math.round(sisa));
     }
 
     document.getElementById('select-status-rolling').addEventListener('change', sinkronFormClosing);

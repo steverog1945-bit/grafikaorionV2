@@ -1180,10 +1180,19 @@ public function previewClosing()
     // pernah menyentuh uang fisik di laci).
     $saldo_akhir_sistem = ($kas->saldo_awal + $pemasukan->tunai_masuk + $manualMasuk) - $pengeluaran_tunai;
 
+    // Daftar akun tujuan setoran (semua akun aktif kecuali Kas sendiri) -
+    // dipakai untuk mutasi kas closing (transfer Kas -> akun tujuan).
+    $akunTujuanList = DB::table('bag_akun')
+        ->where('is_active', 1)
+        ->where('kode_akun', '!=', '1000')
+        ->orderBy('kode_akun')
+        ->get(['kode_akun', 'nama_akun', 'tipe_akun']);
+
     return view('kasir.preview_closing', compact(
         'kas', 'pemasukan', 'pengeluaran_tunai', 'saldo_akhir_sistem',
         'rekapKategori', 'totalNotaOrder', 'piutangNotaOrder', 'totalPendapatan',
-        'bayarPelunasan', 'bayarHariIni', 'manualMasuk', 'mulaiSesi', 'tutupPaksa'
+        'bayarPelunasan', 'bayarHariIni', 'manualMasuk', 'mulaiSesi', 'tutupPaksa',
+        'akunTujuanList'
     ));
 }
 
@@ -1193,6 +1202,11 @@ public function simpanClosing(Request $request)
         'status_rolling' => 'required|in:Rolling,Tidak Rolling',
         // Uang laci yang disetor/diambil wajib punya penerima yang jelas.
         'disetor_kepada' => 'nullable|required_if:status_rolling,Tidak Rolling|max:100',
+        // Setoran modal laci: jumlah yang disetor ke akun tujuan (bukan biaya)
+        // dan sisa modal laci yang tertinggal untuk sesi berikutnya.
+        'jumlah_disetor' => 'nullable|numeric|min:0',
+        'sisa_modal_laci' => 'nullable|numeric|min:0',
+        'akun_tujuan' => 'nullable|string|max:10',
     ]);
 
     // Closing SELALU boleh (termasuk hari Minggu libur): sesi kas tetap open
@@ -1265,6 +1279,31 @@ public function simpanClosing(Request $request)
             $keterangan = trim($keterangan . "\nDisetor kepada: " . $disetorKepada);
         }
 
+        // Setoran modal laci (closing). Jumlah yang disetor diambil dari laci
+        // dan dipindahkan ke akun tujuan (Bank/Dana Pemilik/dll.) sebagai
+        // MUTASI KAS, bukan biaya. Sisa modal laci = total fisik - setoran,
+        // yang tertinggal di laci untuk sesi berikutnya.
+        $jumlahDisetor = (float) str_replace('.', '', $request->jumlah_disetor ?? 0);
+        if ($jumlahDisetor < 0) {
+            $jumlahDisetor = 0;
+        }
+        if ($jumlahDisetor > $saldo_fisik) {
+            throw new \Exception('Jumlah yang disetor tidak boleh melebihi total isi laci (Rp ' . number_format($saldo_fisik, 0, ',', '.') . ').');
+        }
+        $sisaModalLaci = $saldo_fisik - $jumlahDisetor;
+        // Rolling = semua uang tetap di laci (tidak ada setoran).
+        if ($request->status_rolling === 'Rolling') {
+            $jumlahDisetor = 0;
+            $sisaModalLaci = $saldo_fisik;
+        }
+        $akunTujuan = trim((string) $request->akun_tujuan);
+        if ($jumlahDisetor > 0 && $akunTujuan === '') {
+            throw new \Exception('Akun tujuan setoran wajib dipilih bila ada uang yang disetor.');
+        }
+        if ($jumlahDisetor > 0 && $akunTujuan !== '') {
+            $keterangan = trim($keterangan . "\nSetoran ke akun: " . $akunTujuan . " (Rp " . number_format($jumlahDisetor, 0, ',', '.') . ")");
+        }
+
         DB::table('kas_harian')->where('id_kas', $id_kas)->update([
             'total_tunai_masuk' => $tunaiMasuk,
             'total_transfer_masuk' => $transferMasuk,
@@ -1277,8 +1316,33 @@ public function simpanClosing(Request $request)
             'waktu_tutup' => now(),
             'keterangan_closing' => $keterangan,
             'status_rolling' => $request->status_rolling,
+            'jumlah_disetor' => $jumlahDisetor,
+            'sisa_modal_laci' => $sisaModalLaci,
+            'akun_tujuan' => $akunTujuan !== '' ? $akunTujuan : null,
             'updated_at' => now()
         ]);
+
+        // Catat setoran modal laci sebagai MUTASI KAS (bukan biaya) ke akun
+        // tujuan yang dipilih, supaya muncul di mutasi kas dan jurnal umum
+        // sebagai transfer Kas -> akun tujuan (bukan biaya lain-lain).
+        if ($jumlahDisetor > 0 && $akunTujuan !== '') {
+            $idKasManual = DB::table('kas_manual')->insertGetId([
+                'id_kas'      => $kas->id_kas,
+                'waktu'       => now(),
+                'keterangan'  => 'Setoran closing (modal laci) ke akun ' . $akunTujuan . ($disetorKepada !== '' ? ' - penerima: ' . $disetorKepada : ''),
+                'status'      => 'Keluar',
+                'nominal'     => $jumlahDisetor,
+                'id_user'     => Auth::id(),
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+            \App\Services\AccountingService::postSetoranKasLaci(
+                'KAS-SETORAN-' . $idKasManual,
+                $jumlahDisetor,
+                $akunTujuan,
+                $disetorKepada
+            );
+        }
 
         if ($tutupPaksa) {
             \App\Services\AuditLogger::log('updated', 'kas_harian', (int) $id_kas, ['status_lock' => 'open'], ['status_lock' => 'closed'], 'Tutup paksa sesi kas milik user #' . $kas->id_user . ': ' . $request->keterangan);
