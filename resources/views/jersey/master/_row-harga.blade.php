@@ -13,6 +13,8 @@
                 'jersey_material_id' => $row->jersey_material_id,
                 'jersey_product_type_id' => $row->jersey_product_type_id,
                 'jersey_category_id' => $row->jersey_category_id,
+                'id_golongan' => $row->id_golongan,
+                'kelompok' => $row->kelompok ?? 'dewasa',
                 'qty_min' => $row->qty_min,
                 'qty_max' => $row->qty_max,
                 'price' => $row->price,

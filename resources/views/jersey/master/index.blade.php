@@ -222,10 +222,12 @@
 
             <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-3">Estimasi Meter</p>
                 <div class="rounded-xl border border-slate-200 overflow-x-auto">
-                    <table class="w-full text-xs border-collapse">
+                {{-- Table-fixed + lebar tetap: kolom Ukuran & Total sama di semua
+                     tabel estimasi supaya garis kolom lurus kiri-kanan antar tabel. --}}
+                    <table class="w-full table-fixed text-xs border-collapse">
                         <thead class="bg-indigo-50">
                             <tr>
-                                <th class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
+                                <th style="width:130px" class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
                                 @foreach($components->where('is_active', true) as $comp)
                                 <th class="p-2 text-center whitespace-nowrap text-xs font-medium text-slate-500" data-component-th="{{ $comp->id }}">
                                     {{ $comp->name }} <span class="text-indigo-400 text-xs">(m)</span>
@@ -234,7 +236,7 @@
                                     <div class="mt-0.5 text-[8px] text-slate-400 normal-case" data-component-scope="{{ $comp->id }}">{{ $comp->productType->name ?? 'Semua Tipe' }} @if($comp->category)·{{ $comp->category->name }}@endif</div>
                                 </th>
                                 @endforeach
-                                <th class="p-2.5 text-center whitespace-nowrap bg-indigo-100 text-indigo-600 font-medium">Total (m)</th>
+                                <th style="width:120px" class="p-2.5 text-center whitespace-nowrap bg-indigo-100 text-indigo-600 font-medium">Total (m)</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-estimasi-meter" class="divide-y divide-slate-100">
@@ -259,16 +261,16 @@
             <div class="mb-6">
                 <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-3">Estimasi Berat</p>
                 <div class="rounded-xl border border-slate-200 overflow-x-auto">
-                    <table class="w-full text-xs border-collapse">
+                    <table class="w-full table-fixed text-xs border-collapse">
                         <thead class="bg-indigo-50">
                             <tr>
-                                <th class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
+                                <th style="width:130px" class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
                                 @foreach($components->where('is_active', true) as $comp)
                                 <th class="p-2 text-center whitespace-nowrap text-xs font-medium text-slate-500" data-component-th-berat="{{ $comp->id }}">
                                     {{ $comp->name }} <span class="text-indigo-400 text-xs">(g)</span>
                                 </th>
                                 @endforeach
-                                <th class="p-2.5 text-center whitespace-nowrap bg-indigo-100 text-indigo-600 font-medium">Total (Berat)</th>
+                                <th style="width:120px" class="p-2.5 text-center whitespace-nowrap bg-indigo-100 text-indigo-600 font-medium">Total (Berat)</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-estimasi-berat" class="divide-y divide-slate-100">
@@ -296,10 +298,10 @@
                      komponen: wrapper border rounded-xl, header indigo-50,
                      kolom ukuran sticky, input w-full per sel. --}}
                 <div class="rounded-xl border border-slate-200 overflow-x-auto mb-6">
-                    <table class="w-full text-xs border-collapse" id="tabel-estimasi-lengan">
+                    <table class="w-full table-fixed text-xs border-collapse" id="tabel-estimasi-lengan">
                         <thead class="bg-indigo-50">
                             <tr>
-                                <th class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
+                                <th style="width:130px" class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
                                 @foreach($sleeveTypes->where('is_active', true) as $st)
                                 <th class="p-2 text-center whitespace-nowrap font-medium text-slate-500" data-type-th="{{ $st->id }}">{{ $st->name }}</th>
                                 @endforeach
@@ -336,10 +338,10 @@
                     <button type="button" onclick="bantuanEstimasi('lenganKerah')" class="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-full border border-indigo-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition" title="Penjelasan estimasi lengan & kerah" aria-label="Penjelasan estimasi lengan dan kerah"><i class="fas fa-question text-[9px]"></i></button>
                 </div>
                 <div class="rounded-xl border border-slate-200 overflow-x-auto">
-                    <table class="w-full text-xs border-collapse" id="tabel-estimasi-kerah">
+                    <table class="w-full table-fixed text-xs border-collapse" id="tabel-estimasi-kerah">
                         <thead class="bg-indigo-50">
                             <tr>
-                                <th class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
+                                <th style="width:130px" class="p-2.5 text-left sticky left-0 bg-white z-10 font-medium text-slate-600">Ukuran</th>
                                 @foreach($collarTypes->where('is_active', true) as $ct)
                                 <th class="p-2 text-center whitespace-nowrap font-medium text-slate-500" data-type-th="{{ $ct->id }}">{{ $ct->name }}</th>
                                 @endforeach

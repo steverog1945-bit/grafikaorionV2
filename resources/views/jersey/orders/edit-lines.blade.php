@@ -32,6 +32,10 @@
     <form action="{{ route('jersey.orders.update-lines', $order->id) }}" method="POST" id="jersey-order-form">
         @csrf @method('PUT')
         @versi($order)
+        {{-- id_konsumen dibawa supaya preview harga (endpoint umum, tanpa
+             binding {order}) tetap bisa mencari tier harga sesuai golongan
+             konsumen order ini, konsisten dengan angka yang tersimpan. --}}
+        <input type="hidden" name="id_konsumen" value="{{ $order->id_konsumen }}">
 
         {{-- Total & tombol Simpan dipindah ke kolom kanan STICKY - selalu
              kelihatan tanpa perlu scroll ke paling bawah, sama seperti

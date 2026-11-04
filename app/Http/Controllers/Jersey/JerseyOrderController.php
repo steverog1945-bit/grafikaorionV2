@@ -189,13 +189,19 @@ class JerseyOrderController extends Controller
                 $peringatan[] = "\"{$nama}\": Bahan belum dipilih.";
             }
 
+            // Sama seperti hitungHargaBaris: golongan konsumen ikut dalam
+            // pencarian tier supaya peringatan "belum ada tier yang cocok"
+            // tidak muncul padahal tier untuk golongan konsumen tersedia.
+            $idKonsumen = (int) ($lineData['id_konsumen'] ?? request()->input('id_konsumen', 0)
+                ?: (request()->route('order')?->id_konsumen ?? 0));
+            $golonganKonsumen = $idKonsumen ? Konsumen::query()->find($idKonsumen)?->id_golongan : null;
             $tier = JerseyOrderPricingService::cariTierHarga(
                 !empty($lineData['jersey_product_type_id']) ? (int) $lineData['jersey_product_type_id'] : null,
                 !empty($lineData['jersey_category_id']) ? (int) $lineData['jersey_category_id'] : null,
                 !empty($lineData['jersey_material_id']) ? (int) $lineData['jersey_material_id'] : null,
                 $qty,
                 'dewasa',
-                null
+                $golonganKonsumen
             );
             if (!$tier || (float) $tier->price <= 0) {
                 $peringatan[] = "\"{$nama}\": belum ada tier harga yang cocok untuk qty {$qty} - harga akan tersimpan Rp 0.";
@@ -559,8 +565,7 @@ class JerseyOrderController extends Controller
 
     private function hitungHargaBaris(array $lineData): ?array
     {
-        $sizeIdByName = $this->cacheMaster['sizeIdByName'] ??= JerseySize::pluck('id', 'name');
-        $surchargeBySizeId = $this->cacheMaster['surchargeBySizeId'] ??= JerseySize::pluck('price_surcharge', 'id');
+        $sizeIdByName = $this->cacheMaster['sizeIdByName'] ??= JerseySize::pluck('id', 'name');        $surchargeBySizeId = $this->cacheMaster['surchargeBySizeId'] ??= JerseySize::pluck('price_surcharge', 'id');
         $percentBySizeId = $this->cacheMaster['percentBySizeId'] ??= JerseySize::pluck('price_percent', 'id');
         $sleeveNameById = $this->cacheMaster['sleeveNameById'] ??= JerseySleeveType::pluck('name', 'id');
         $collarNameById = $this->cacheMaster['collarNameById'] ??= JerseyCollarType::pluck('name', 'id');
@@ -664,13 +669,28 @@ class JerseyOrderController extends Controller
 
         $material = !empty($lineData['jersey_material_id']) ? JerseyMaterial::find($lineData['jersey_material_id']) : null;
 
+        // Golongan konsumen menentukan tier harga yang dicari lebih dulu
+        // (tier spesifik Retail/Member dipakai sebelum jatuh ke tier umum).
+        // Variabel $konsumen SEBELUMNYA tidak pernah dimuat di method ini -
+        // dibiarkan undefined lalu didiamkan oleh operator ??, sehingga
+        // pencarian selalu lewat tier golongan-generik. Ketika MASTER BERISI
+        // TANPA tier umum (hanya tier Retail/Member), tidak ada tier yang
+        // cocok dan harga jatuh Rp 0 - itulah "hitung harga tidak berfungsi".
+        // Sumber id konsumen mengikuti halaman pemanggil: form order baru
+        // membawanya di body, halaman Kelola Barang/Susulan sekarang ikut
+        // membawanya (hidden input), sisanya jatuh aman ke tier umum.
+        $idKonsumen = (int) ($lineData['id_konsumen'] ?? request()->input('id_konsumen', 0)
+            ?: (request()->route('order')?->id_konsumen ?? 0));
+        $konsumen = $idKonsumen ? Konsumen::query()->find($idKonsumen) : null;
+        $golonganKonsumen = $konsumen?->id_golongan;
+
         $tier = JerseyOrderPricingService::cariTierHarga(
             $lineData['jersey_product_type_id'] ?? null,
             $lineData['jersey_category_id'] ?? null,
             $material?->id,
             $qty,
             'dewasa',
-            $konsumen->id_golongan ?? null
+            $golonganKonsumen
         );
         $hargaDewasa = (float) ($tier->price ?? 0);
 
@@ -682,7 +702,7 @@ class JerseyOrderController extends Controller
             $material?->id,
             $qty,
             'anak',
-            $konsumen->id_golongan ?? null
+            $golonganKonsumen
         );
         $hargaAnak = $tierAnak ? (float) $tierAnak->price : $hargaDewasa;
         $kelompokBySizeId = $this->cacheMaster['kelompokBySizeId'] ??= JerseySize::pluck('kelompok', 'id');
