@@ -107,7 +107,7 @@
                     </tr>
                     <tr>
                         <td></td>
-                        <td class="rinci">{{ number_format($hargaSatuan, 0, ',', '.') }} / {{ ($item->metode_hitung_produk ?? null) === 'ukuran' ? 'm2' : 'pcs' }}{{ $ukuran }}</td>
+                        <td class="rinci"></td>
                         <td class="rinci r">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
