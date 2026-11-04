@@ -109,7 +109,7 @@
                         <td></td>
                         <td class="rinci">
                             @if($item->harga_tier)
-                                Harga Satuan: Rp {{ number_format($item->harga_tier, 0, ',', '.') }} / {{ ($item->metode_hitung_produk ?? null) === 'ukuran' ? 'm2' : 'pcs' }}
+                                {{ number_format($item->harga_tier, 0, ',', '.') }} / {{ ($item->metode_hitung_produk ?? null) === 'ukuran' ? 'm2' : 'pcs' }}
                             @endif
                         </td>
                         <td class="rinci r">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
