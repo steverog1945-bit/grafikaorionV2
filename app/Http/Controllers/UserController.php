@@ -8,6 +8,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
@@ -143,6 +144,69 @@ public function destroy($id)
 
     return back()->with('success', 'Akun user berhasil dihapus!');
 }
+
+    /**
+     * Non-aktifkan akun (karyawan resign / akun tidak lagi dipakai). Akun
+     * TIDAK dihapus: riwayat kasir/pembatal nota/dokumen pembelian tetap
+     * bisa dipertanggung-jawabkan, tapi akun tidak bisa masuk lagi - yang
+     * aktif diputus (sessions driver database) dan remember token dibuang
+     * supaya "biarkan saya tetap masuk" tidak menyelamatkan akun yang
+     * sudah dinon-aktifkan.
+     */
+    public function nonaktifkan($id)
+    {
+        $user = User::findOrFail($id);
+
+        // Menon-aktifkan akun sendiri tanpa sengat: admin bisa mengunci
+        // dirinya sendiri keluar dari sistem. Hapus/hak akses tidak
+        // masuk akun sendiri; ini sama aturannya.
+        if ((int) $user->id_user === (int) Auth::id()) {
+            return back()->with('error', 'Anda tidak bisa menon-aktifkan akun sendiri!');
+        }
+        if (!\App\Support\Izin::bolehKelolaUser(Auth::user(), $user)) {
+            abort(403, 'Akun ini hanya bisa dinon-aktifkan oleh Administrator (atau pengelola yang berwenang).');
+        }
+
+        // Jaga-jaga: jangan sampai SEMUA Administrator non-aktif sampai tidak
+        // ada yang bisa mengelola akun lagi (yang satu-satunya admin aktif
+        // selain pelaku tidak boleh dimatikan).
+        $adminAktifSisa = User::where('is_active', 1)
+            ->where('id_user', '!=', $user->id_user)
+            ->whereHas('role', fn ($q) => $q->where('nama_role', 'Administrator'))
+            ->count();
+        if (\App\Support\Izin::adalahAdmin($user) && $adminAktifSisa === 0) {
+            return back()->with('error', 'Akun Administrator terakhir yang aktif tidak bisa dinon-aktifkan.');
+        }
+
+        $user->is_active = false;
+        $user->setRememberToken(null);
+        $user->save();
+        DB::table('sessions')->where('user_id', $user->id_user)->delete();
+
+        \App\Services\AuditLogger::log('updated', 'users', (int) $user->id_user, ['is_active' => 1], ['is_active' => 0], 'Akun dinon-aktifkan (karyawan resign / akun tidak dipakai)');
+
+        return back()->with('success', "Akun @{$user->username} dinon-aktifkan. Sesinya diputus dan tidak bisa login lagi; riwayat transaksinya tetap utuh.");
+    }
+
+    /**
+     * Kembalikan akun yang dinon-aktifkan jadi bisa login (mis. karyawan
+     * berkembali / halaman akun ternyata masih dipakai).
+     */
+    public function aktifkan($id)
+    {
+        $user = User::findOrFail($id);
+
+        if (!\App\Support\Izin::bolehKelolaUser(Auth::user(), $user)) {
+            abort(403, 'Akun ini hanya bisa diaktifkan kembali oleh Administrator (atau pengelola yang berwenang).');
+        }
+
+        $user->is_active = true;
+        $user->save();
+
+        \App\Services\AuditLogger::log('updated', 'users', (int) $user->id_user, ['is_active' => 0], ['is_active' => 1], 'Akun diaktifkan kembali');
+
+        return back()->with('success', "Akun @{$user->username} diaktifkan kembali - sudah bisa login dengan password yang sama.");
+    }
 
     /**
      * Upload foto profil sendiri (real-time). Menyimpan file di

@@ -541,6 +541,14 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::delete('/users/delete/{id}',
         [UserController::class, 'destroy'])->whereNumber('id');
 
+    // Non-aktifkan/aktifkan akun: karyawan resign tidak dihapus - riwayat
+    // transaksinya harus tetap bisa dilacak (lihat docblock controller).
+    Route::post('/users/nonaktifkan/{id}',
+        [UserController::class, 'nonaktifkan'])->whereNumber('id')->name('users.nonaktifkan');
+
+    Route::post('/users/aktifkan/{id}',
+        [UserController::class, 'aktifkan'])->whereNumber('id')->name('users.aktifkan');
+
 
 
     /*

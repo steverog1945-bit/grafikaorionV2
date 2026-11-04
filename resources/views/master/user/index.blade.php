@@ -19,15 +19,16 @@
                 <th class="px-6 py-5 text-left">Username</th>
                 <th class="px-4 py-5 text-left">Nama Karyawan</th>
                 <th class="px-4 py-5 text-left">Role / Akses</th>
+                <th class="px-4 py-5 text-center">Status</th>
                 <th class="px-8 py-5 text-right">Keamanan</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
             @foreach($users as $i => $u)
-            <tr class="hover:bg-slate-50/50 transition-all">
+            <tr class="hover:bg-slate-50/50 transition-all" @if($u->is_active === 0) style="opacity:0.65" @endif>
                 <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
                 <td class="px-6 py-5">
-                    <span class="text-[13px] text-indigo-600 font-medium">{{ '@' . $u->username }}</span>
+                    <span class="text-[13px] @if($u->is_active === 0) text-slate-400 @else text-indigo-600 @endif font-medium">{{ '@' . $u->username }}</span>
                 </td>
                 <td class="px-4 py-5">
                     <div class="text-[13px] font-medium text-slate-700 uppercase">{{ $u->karyawan->nama_karyawan }}</div>
@@ -37,6 +38,19 @@
                     <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
                         <i class="fas fa-shield-alt mr-1.5"></i> {{ $u->role->nama_role }}
                     </span>
+                </td>
+                {{-- Status akun: aktif = bisa login; non-aktif = karyawan resign / akun tidak dipakai.
+                     Bedanya dengan hapus: riwayat transaksi TETAP UTUH di akun yang non-aktif. --}}
+                <td class="px-4 py-5 text-center">
+                    @if($u->is_active === 0)
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-rose-50 text-rose-500 border border-rose-100">
+                        <i class="fas fa-user-slash mr-1.5"></i> Non-aktif
+                    </span>
+                    @else
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
+                        <i class="fas fa-user-check mr-1.5"></i> Aktif
+                    </span>
+                    @endif
                 </td>
                 <td class="px-8 py-5 text-right">
                     <div class="flex justify-end gap-2">
@@ -56,6 +70,27 @@
                         <x-button type="button" size="icon" variant="ghost" onclick="openEditUser({{ json_encode(['id_user' => $u->id_user, 'username' => $u->username, 'id_role' => $u->id_role], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }})" class="border border-slate-100 hover:text-amber-500" title="Edit">
                             <i class="far fa-edit text-sm"></i>
                         </x-button>
+                        {{-- Non-aktif/aktifkan: karyawan resign TIDAK dihapus supaya riwayat
+                             transaksinya tetap utuh. Tombol hanya muncul bila pengguna yang
+                             login benar-benar berwenang mengelola akun target (pinggirannya
+                             sama seperti hapus: cek izin ulang di server). --}}
+                        @if(\App\Support\Izin::bolehKelolaUser(auth()->user(), $u))
+                        @if($u->is_active === 0)
+                        <form action="{{ route('users.aktifkan', $u->id_user) }}" method="POST" class="inline" id="aktifkan-form-user-{{ $u->id_user }}">
+                            @csrf
+                            <x-button type="button" size="icon" variant="ghost" onclick="confirmStatusUser({{ (int) $u->id_user }}, {{ json_encode($u->username, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}, 'aktifkan')" class="border border-slate-100 hover:text-emerald-600" title="Aktifkan kembali">
+                                <i class="fas fa-user-check text-sm"></i>
+                            </x-button>
+                        </form>
+                        @elseif((int) $u->id_user !== (int) auth()->id())
+                        <form action="{{ route('users.nonaktifkan', $u->id_user) }}" method="POST" class="inline" id="nonaktif-form-user-{{ $u->id_user }}">
+                            @csrf
+                            <x-button type="button" size="icon" variant="ghost" onclick="confirmStatusUser({{ (int) $u->id_user }}, {{ json_encode($u->username, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}, 'nonaktifkan')" class="border border-slate-100 hover:text-rose-500" title="Non-aktifkan (karyawan resign)">
+                                <i class="fas fa-user-slash text-sm"></i>
+                            </x-button>
+                        </form>
+                        @endif
+                        @endif
                         <form action="{{ url('/users/delete/'.$u->id_user) }}" method="POST" class="inline" id="delete-form-user-{{ $u->id_user }}">
                             @csrf @method('DELETE')
                             {{-- SEC-USER-002: id selalu int, username di-encode JSON_HEX_* -
@@ -183,6 +218,28 @@
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+    }
+
+    // Non-aktifkan = akun resign/tak dipakai: sesi diputus, login ditolak,
+    // tapi data & riwayat akun tidak dihapus. Aktifkan kembali kebalikannya.
+    function confirmStatusUser(id, username, aksi) {
+        const batal = aksi === 'nonaktifkan';
+        Swal.fire({
+            title: batal ? 'Non-aktifkan Akun?' : 'Aktifkan Kembali Akun?',
+            html: batal
+                ? `Akun <b>@${escapeHtml(username)}</b> tidak akan bisa login lagi (sesi aktif langsung diputus), tapi riwayat transaksinya tetap tersimpan.`
+                : `Akun <b>@${escapeHtml(username)}</b> bisa login lagi dengan password yang sama.`,
+            icon: batal ? 'warning' : 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#93481A',
+            cancelButtonColor: '#F1F5F1',
+            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
+            confirmButtonText: batal ? 'Ya, Non-aktifkan!' : 'Ya, Aktifkan!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById((batal ? 'nonaktif' : 'aktifkan') + '-form-user-' + id)?.submit();
+            }
+        });
     }
 
     function confirmDeleteUser(id, username) {

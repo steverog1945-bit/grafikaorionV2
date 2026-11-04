@@ -8,6 +8,7 @@ use App\Services\LandingPageHomepageResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -156,7 +157,7 @@ class AuthController extends Controller
             }
         }
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt(['username' => $credentials['username'], 'password' => $credentials['password'], 'is_active' => 1])) {
             Cache::forget($failKey);
             $request->session()->forget('login_captcha_answer');
             $request->session()->regenerate();
@@ -170,6 +171,20 @@ class AuthController extends Controller
             AuditLogger::log('login', 'users', (int) $request->user()->id_user, null, null, 'Masuk ke sistem');
 
             return redirect()->route('dashboard');
+        }
+
+        // Akun dikenal & password benar tapi DINON-AKTIFKAN: pesannya harus
+        // jelas (bukan berdiam di "User tidak ditemukan atau password salah"
+        // sehingga karyawan resign mengira credentialnya salah).
+        $akunTidakAktif = User::where('username', $credentials['username'])
+            ->where('is_active', 0)
+            ->first();
+        if ($akunTidakAktif && Hash::check($credentials['password'], $akunTidakAktif->password)) {
+            AuditLogger::log('login_gagal', 'users', (int) $akunTidakAktif->id_user, null, null, 'Percobaan masuk dengan akun yang sudah dinon-aktifkan');
+
+            return redirect()->route('login')->withErrors([
+                'username' => 'Akun ini sudah dinon-aktifkan (karyawan resign / akun tidak lagi dipakai). Hubungi Administrator bila seharusnya aktif.',
+            ])->withInput($request->only('username'));
         }
 
         // Username yang diketik HANYA dicatat bila memang akun yang ada: orang
