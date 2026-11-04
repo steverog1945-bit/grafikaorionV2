@@ -59,7 +59,7 @@
                  aktif). --}}
             <div class="w-full md:w-72">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">No. Nota / Konsumen</label>
-                <x-form.input type="text" name="q" id="pencarian-riwayat" value="{{ request('q') }}" placeholder="Contoh: INV-... / nama konsumen" autocomplete="off" />
+                <x-form.input type="text" name="q" id="pencarian-riwayat" value="{{ request('q') }}" placeholder="Cari Nama Konsumen ..." autocomplete="off" />
             </div>
 
             <x-button type="submit">

@@ -107,7 +107,7 @@
                     </tr>
                     <tr>
                         <td></td>
-                        <td class="rinci">[ {{ number_format($hargaSatuan, 0, ',', '.') }}{{ $ukuran }} ]</td>
+                        <td class="rinci">Harga Satuan/Unit: {{ number_format($hargaSatuan, 0, ',', '.') }}{{ $ukuran }}</td>
                         <td class="rinci r">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach

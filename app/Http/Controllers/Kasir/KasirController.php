@@ -806,6 +806,7 @@ class KasirController extends Controller
         $mutasi = DB::table('pembayaran_riwayat')
             ->join('transaksi', 'pembayaran_riwayat.id_transaksi', '=', 'transaksi.id_transaksi')
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
+            ->leftJoin('bank_perusahaan', 'pembayaran_riwayat.id_bank', '=', 'bank_perusahaan.id_bank')
             ->leftJoin(
                 DB::raw('(SELECT id_transaksi, SUM(nominal) AS jml_terbayar FROM pembayaran_riwayat GROUP BY id_transaksi) pr'),
                 'pr.id_transaksi', '=', 'transaksi.id_transaksi'
@@ -814,7 +815,7 @@ class KasirController extends Controller
             // Status turunan, bukan kolom salinan - supaya badge di daftar
             // mutasi dan badge di Monitoring Kasir tidak pernah berbeda untuk
             // nota yang sama.
-            ->select('pembayaran_riwayat.*', 'transaksi.nomor_nota', 'konsumen.nama_konsumen')
+            ->select('pembayaran_riwayat.*', 'transaksi.nomor_nota', 'konsumen.nama_konsumen', 'bank_perusahaan.nama_bank', 'bank_perusahaan.nomor_rekening')
             ->selectRaw(StatusPembayaran::sqlCase('transaksi.total_bayar', 'COALESCE(pr.jml_terbayar, 0)') . ' as display_status_pembayaran')
             ->orderBy('pembayaran_riwayat.tgl_bayar', 'desc')
             ->get();
