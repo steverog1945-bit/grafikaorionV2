@@ -2396,6 +2396,22 @@
             }
         }
 
+        // Cetak laporan FULL: semua laporan yang dipaginasi wajib mencetak
+        // seluruh isinya, bukan hanya data halaman aktif. Caranya: simpan
+        // print=1 ke URL lalu muat ulang - controller laporan melebar
+        // paginator-nya saat print=1 (Controller::perHalamanLaporan()), dan
+        // sekali halaman full terpemuat, dialog cetak muncul sendiri.
+        function cetakLaporanPenuh() {
+            const url = new URL(location.href);
+            url.searchParams.set('print', '1');
+            location.href = url.toString();
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            if (new URLSearchParams(location.search).get('print') === '1') {
+                setTimeout(() => window.print(), 500);
+            }
+        });
+
         // Toggle Sidebar Mobile
         // Esc menutup menu samping di layar kecil (sama seperti modal).
         document.addEventListener('keydown', function (e) {

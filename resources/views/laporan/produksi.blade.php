@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <style>
@@ -18,7 +18,7 @@
                 Laporan <span class="mx-1 text-slate-500">/</span> Rekap Produksi per Divisi &amp; Produk
             </x-slot:subtitle>
             <x-slot:actions>
-                <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
+                <x-button type="button" onclick="cetakLaporanPenuh()" variant="secondary" class="no-print">
                     <i class="fas fa-print"></i>
                     Cetak
                 </x-button>
@@ -237,7 +237,7 @@
     </div>
 
     <div class="hidden print:block">
-        <x-laporan.print-table title="Detail per SPK" :headers="['#', 'SPK', 'Nama File', 'Konsumen', 'Tanggal', 'Divisi', 'Desainer', 'Ukuran', 'Qty Order', 'Qty Cetak', 'm²', 'Status']" :align="['center', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right', 'right', 'left']">
+        <x-laporan.print-table title="Detail per SPK" :headers="['#', 'SPK', 'Nama File', 'Konsumen', 'Tanggal', 'Divisi', 'Desainer', 'Ukuran', 'Qty Order', 'Qty Cetak', 'mÂ²', 'Status']" :align="['center', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right', 'right', 'left']">
             @forelse($detail as $i => $d)
             @php $m2BarisPrint = $d->metode_hitung === 'ukuran' && $d->p_ukuran > 0 && $d->l_ukuran > 0 ? ($d->p_ukuran * $d->l_ukuran / 10000) * $d->qty : null; @endphp
             <tr>

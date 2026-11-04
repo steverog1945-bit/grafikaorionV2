@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <style>
@@ -19,7 +19,7 @@
                 Sisa hutang per supplier berdasarkan umur keterlambatan dari jatuh tempo
             </x-slot:subtitle>
             <x-slot:actions>
-                <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
+                <x-button type="button" onclick="cetakLaporanPenuh()" variant="secondary" class="no-print">
                     <i class="fas fa-print"></i>
                     Cetak
                 </x-button>

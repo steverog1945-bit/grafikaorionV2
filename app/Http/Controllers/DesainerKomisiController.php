@@ -68,7 +68,7 @@ class DesainerKomisiController extends Controller
         $data = $this->dasar($request, $tglDari, $tglSampai)
             ->select('d.id_detail', 't.id_transaksi', 't.nomor_nota', 't.tgl_order', 'k.nama_konsumen', 'd.nama_file', 'd.biaya_desain', 'd.komisi_desain_persen', 'd.komisi_desain',
                 'd.komisi_status', 'd.komisi_dibayar_at', 'd.id_desainer', DB::raw('COALESCE(kw.nama_karyawan, u.username) as nama_desainer'))
-            ->orderByDesc('t.tgl_order')->orderByDesc('d.id_detail')->paginate(25)->withQueryString();
+            ->orderByDesc('t.tgl_order')->orderByDesc('d.id_detail')->paginate($this->perHalamanLaporan(25))->withQueryString();
 
         $desainerList = DesainKomisiService::daftarDesainer();
         $kelasList = DB::table('kelas_desainer')->orderBy('nama_kelas')->get();

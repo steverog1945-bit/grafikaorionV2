@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\DB;
 class LaporanController extends Controller
 {
     /**
+     * Jumlah baris per halaman saat cetak diatur oleh
+     * Controller::perHalamanLaporan() (print=1 => full data).
+     *
      * Laporan Rekap Transaksi Order - baca langsung dari transaksi, tidak ada
      * tabel rekap terpisah supaya tidak mungkin selisih dengan data aslinya.
      */
@@ -130,7 +133,7 @@ class LaporanController extends Controller
         // Paginasi lebih kecil dari laporan lain (10, bukan 20) - tiap nota
         // sekarang tampil sebagai blok PENUH (header + tabel item + total),
         // bukan satu baris ringkas, supaya satu halaman tidak kepanjangan.
-        $data = $query->orderByDesc('transaksi.tgl_order')->paginate(20)->withQueryString();
+        $data = $query->orderByDesc('transaksi.tgl_order')->paginate($this->perHalamanLaporan())->withQueryString();
 
         // Detail item per nota - HANYA untuk nota di halaman yang sedang
         // tampil (bukan seluruh hasil filter) supaya query tetap ringan.
@@ -269,7 +272,7 @@ class LaporanController extends Controller
                 DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as desainer')
             )
             ->orderByDesc('transaksi_detail.id_detail')
-            ->paginate(20)
+            ->paginate($this->perHalamanLaporan())
             ->withQueryString();
 
         $divisis = DB::table('mesin')->orderBy('nama_mesin')->get();
@@ -320,7 +323,7 @@ class LaporanController extends Controller
         $totalSelisih = (clone $ringkasanQuery)->sum('kas_harian.selisih');
         $jumlahSesi = (clone $ringkasanQuery)->count();
 
-        $data = $query->orderByDesc('kas_harian.tgl_kas')->paginate(20)->withQueryString();
+        $data = $query->orderByDesc('kas_harian.tgl_kas')->paginate($this->perHalamanLaporan())->withQueryString();
 
         // Rincian transaksi manual (pemasukan/pengeluaran non-penjualan) per
         // sesi kas, supaya langsung terlihat semua tanpa perlu klik - pola
@@ -379,7 +382,7 @@ class LaporanController extends Controller
             ->value('sisa');
         $jumlahFaktur = (clone $ringkasanQuery)->count();
 
-        $data = $query->orderByDesc('pembelian_bahan.tgl_transaksi')->paginate(20)->withQueryString();
+        $data = $query->orderByDesc('pembelian_bahan.tgl_transaksi')->paginate($this->perHalamanLaporan())->withQueryString();
 
         // Rincian bahan yang dibeli per faktur, supaya langsung terlihat
         // semua tanpa perlu klik - pola sama dengan itemPerNota di laporan
@@ -460,7 +463,7 @@ class LaporanController extends Controller
             ->orderByDesc(DB::raw('SUM(jersey_order_lines.subtotal)'))
             ->get();
 
-        $data = $query->orderByDesc('order_date')->paginate(20)->withQueryString();
+        $data = $query->orderByDesc('order_date')->paginate($this->perHalamanLaporan())->withQueryString();
 
         // Detail barang per order - hanya untuk order di halaman yang
         // sedang tampil, sama seperti pola detail-per-nota di laporan
@@ -594,7 +597,7 @@ class LaporanController extends Controller
         $jumlahNota = $semua->count();
         $totalPiutang = $semua->sum('piutang');
 
-        $perPage = 15;
+        $perPage = $this->perHalamanLaporan(15);
         $page = (int) $request->get('page', 1);
         $data = new \Illuminate\Pagination\LengthAwarePaginator(
             $semua->forPage($page, $perPage)->values(),
@@ -667,7 +670,7 @@ class LaporanController extends Controller
         $jumlahBelumAdaBatas = $semua->where('status_stok', 'Belum Ada Batas')->count();
         $jumlahBahan = $semua->count();
 
-        $perPage = 20;
+        $perPage = $this->perHalamanLaporan(20);
         $page = (int) $request->get('page', 1);
         $data = new \Illuminate\Pagination\LengthAwarePaginator(
             $semua->forPage($page, $perPage)->values(),
@@ -804,7 +807,7 @@ class LaporanController extends Controller
                 'transaksi_detail.hpp_snapshot'
             )
             ->orderByDesc('transaksi.tgl_order')
-            ->paginate(20)
+            ->paginate($this->perHalamanLaporan())
             ->withQueryString();
 
         $mesinList = DB::table('mesin')->orderBy('nama_mesin')->get();

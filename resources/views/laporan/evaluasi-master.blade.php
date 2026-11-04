@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <style>
@@ -45,7 +45,7 @@
                 <a href="{{ request()->fullUrlWithQuery(['format' => 'csv']) }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-medium uppercase tracking-wider">
                     <i class="fas fa-file-csv"></i> Unduh CSV
                 </a>
-                <x-button type="button" onclick="window.print()"><i class="fas fa-print"></i> Cetak</x-button>
+                <x-button type="button" onclick="cetakLaporanPenuh()"><i class="fas fa-print"></i> Cetak</x-button>
             </x-slot:actions>
         </x-page-header>
 
@@ -152,7 +152,7 @@
     @if(in_array($jenis, ['semua', 'bom'], true))
     <section class="eval-section mb-10 {{ $jenis === 'semua' ? 'page-break' : '' }}">
         <h2 class="text-[13px] font-medium text-slate-500 uppercase tracking-widest mb-1"><i class="fas fa-sitemap mr-1.5 text-slate-500 print:hidden"></i>B. BOM per Produk</h2>
-        <p class="text-[11px] text-slate-400 mb-3">Pemakaian dan biaya bahan untuk 1 satuan jual (1 m² untuk produk ukuran, 1 pcs untuk produk qty), memakai harga rata-rata bahan saat ini.</p>
+        <p class="text-[11px] text-slate-400 mb-3">Pemakaian dan biaya bahan untuk 1 satuan jual (1 mÂ² untuk produk ukuran, 1 pcs untuk produk qty), memakai harga rata-rata bahan saat ini.</p>
         <div class="grid grid-cols-1 xl:grid-cols-2 print:grid-cols-2 gap-4">
             @forelse($bom as $p)
             <div class="eval-block bg-white rounded-2xl border border-slate-100 overflow-hidden print:rounded-none print:border-slate-300">
@@ -217,7 +217,7 @@
                                         @foreach($daftar as $t)
                                             @php $mg = \App\Services\LembarEvaluasiService::margin($t->harga, $p->hpp); @endphp
                                             <span style="display:inline-flex;align-items:baseline;gap:6px;padding:3px 10px;border:1px solid #E2EAE4;border-radius:8px;background:#FAFBF9">
-                                                <span style="font-size:10.5px;color:#4A5B53">{{ $n($t->min) }}&ndash;{{ $t->max === null || $t->max >= 9999999 ? '∞' : $n($t->max) }}</span>
+                                                <span style="font-size:10.5px;color:#4A5B53">{{ $n($t->min) }}&ndash;{{ $t->max === null || $t->max >= 9999999 ? 'âˆž' : $n($t->max) }}</span>
                                                 <b style="font-variant-numeric:tabular-nums">{{ $rp($t->harga) }}</b>
                                                 @if($mg !== null)<span style="font-size:10px;{{ $mg < 20 ? 'color:#93481A;font-weight:700' : 'color:#94a3b8' }}">{{ $n($mg, 1) }}%</span>@endif
                                             </span>

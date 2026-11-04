@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <style>
@@ -18,7 +18,7 @@
                 Laporan <span class="mx-1 text-slate-500">/</span> Evaluasi Pengadaan &amp; Pembelanjaan Bahan - kondisi stok saat ini, bukan rekap transaksi periode
             </x-slot:subtitle>
             <x-slot:actions>
-                <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
+                <x-button type="button" onclick="cetakLaporanPenuh()" variant="secondary" class="no-print">
                     <i class="fas fa-print"></i>
                     Cetak
                 </x-button>

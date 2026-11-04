@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <style>
@@ -18,7 +18,7 @@
                 Laporan <span class="mx-1 text-slate-500">/</span> Nota Belum Lunas (Sisa Tagihan Riil)
             </x-slot:subtitle>
             <x-slot:actions>
-                <x-button type="button" onclick="window.print()" variant="secondary" class="no-print">
+                <x-button type="button" onclick="cetakLaporanPenuh()" variant="secondary" class="no-print">
                     <i class="fas fa-print"></i>
                     Cetak
                 </x-button>
@@ -126,7 +126,7 @@
         @if($data->isNotEmpty())
         <tfoot class="bg-slate-50 border-t border-slate-100">
             <tr>
-                <td colspan="6" class="px-6 py-3 text-[11px] font-medium uppercase text-slate-500">Total Piutang (halaman ini)</td>
+                <td colspan="6" class="px-6 py-3 text-[11px] font-medium uppercase text-slate-500">Total Piutang {{ request()->boolean('print') ? '(seluruh laporan)' : '(halaman ini)' }}</td>
                 <td class="px-8 py-3 text-[13px] font-medium text-rose-600 text-right">Rp {{ number_format($data->sum('piutang'), 0, ',', '.') }}</td>
             </tr>
         </tfoot>
@@ -156,7 +156,7 @@
             @endforelse
             @if($data->isNotEmpty())
             <tr class="bg-slate-50 border-t border-slate-200">
-                <td class="px-3 py-1.5 font-medium text-slate-700 uppercase" colspan="6">Total Piutang (halaman ini)</td>
+                <td class="px-3 py-1.5 font-medium text-slate-700 uppercase" colspan="6">Total Piutang {{ request()->boolean('print') ? '(seluruh laporan)' : '(halaman ini)' }}</td>
                 <td class="px-3 py-1.5 text-right font-medium text-slate-800">{{ number_format($data->sum('piutang'), 0, ',', '.') }}</td>
             </tr>
             @endif
