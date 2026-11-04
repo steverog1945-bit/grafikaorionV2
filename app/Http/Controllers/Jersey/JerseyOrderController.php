@@ -1037,7 +1037,8 @@ class JerseyOrderController extends Controller
             }
         });
         } catch (\Throwable $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            \Log::error('jersey.order: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal memperbarui order jersey. Silakan coba lagi.');
         }
 
         return back()->with('success', 'Order jersey berhasil diperbarui.' . ($peringatan ? ' ' . implode(' ', $peringatan) : ''));
@@ -1328,7 +1329,8 @@ class JerseyOrderController extends Controller
                 return false;
             });
         } catch (\Throwable $e) {
-            return back()->with('error', $e->getMessage());
+            \Log::error('jersey.order: ' . $e->getMessage());
+            return back()->with('error', 'Gagal membatalkan order jersey. Silakan coba lagi.');
         }
 
         if ($perluApproval) {

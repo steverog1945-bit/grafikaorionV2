@@ -55,6 +55,16 @@ class BerkasPrivatController extends Controller
             abort_unless(\App\Support\Izin::boleh(auth()->user(), self::menuUntuk($folder), 'view'), 403);
         } else {
             abort_unless(auth()->check(), 403);
+            // Foto profil tidak boleh di-enumerasi oleh pengguna lain: nama
+            // berkas 'u{id_user}_{timestamp}.ext' mudah ditebak, jadi batasi
+            // akses ke pemiliknya sendiri atau Administrator.
+            if (!\App\Support\Izin::adalahAdmin(auth()->user())) {
+                if (preg_match('/^u(\d+)_/', $path, $m)) {
+                    abort_unless((int) $m[1] === (int) auth()->id(), 403);
+                } else {
+                    abort(403);
+                }
+            }
         }
 
         $relatif = $folder . '/' . $path;

@@ -989,6 +989,7 @@
     let currentProduk = null;
     let editIndex = null;
     let currentThumbnail = null;
+let currentThumbnailPreview = null;
     // Menandai berkas acuan terakhir gagal karena UKURAN (bukan karena kasir
     // lupa mengunggah) - item tetap boleh masuk keranjang tanpa berkas.
     let thumbnailGagalUkuran = false;
@@ -1110,6 +1111,7 @@
             // peramban, jadi dikirim apa adanya.
             const prepared = await siapkanBerkasUntukUnggah(file, originalName);
             const fileUpload = prepared.file;
+            const filePreview = prepared.preview || null;
 
             // Ukuran dicek dari berkas siap unggah, bukan berkas asli: gambar
             // kompresibel bisa menyusut dari puluhan MB ke ~200 KB. Kalau
@@ -1122,6 +1124,8 @@
 
             const formData = new FormData();
             formData.append('thumbnail', fileUpload);
+            if (filePreview) formData.append('thumbnail_preview', filePreview);
+            formData.append('nama_asli', originalName);
 
             const response = await fetch('{{ route("penjualan.upload-thumbnail") }}', {
                 method: 'POST',
@@ -1131,6 +1135,7 @@
             const res = await response.json();
             if (res.status === 'success') {
                 currentThumbnail = res.path;
+                currentThumbnailPreview = res.path_preview || null;
                 thumbnailGagalUkuran = false;
                 const preview = document.getElementById('thumbnail_preview');
                 const kosong = document.getElementById('thumbnail_kosong');
@@ -2640,6 +2645,7 @@ let hitungUlangMenunggu = false;
             nama_produk: currentProduk.nama_produk,
             nama_file: namaFile,
             thumbnail: currentThumbnail,
+            thumbnail_preview: currentThumbnailPreview,
             p: res.p, l: res.l,
             qty_input: res.qty_input,
             qty_hitung: res.qty_hitung,
@@ -2779,7 +2785,7 @@ let hitungUlangMenunggu = false;
 
     function escapeHtml(str) {
         const div = document.createElement('div');
-        div.textContent = str ?? '';
+        div.textContent = (str == null ? '' : str);
         return div.innerHTML;
     }
 
@@ -3069,6 +3075,7 @@ let hitungUlangMenunggu = false;
             document.getElementById('input_qty_finishing').value = item.qty_input || 1;
             qtyFinishingManualEdit = true;
             currentThumbnail = item.thumbnail || null;
+            currentThumbnailPreview = item.thumbnail_preview || null;
             const preview = document.getElementById('thumbnail_preview');
             const previewBerkas = document.getElementById('thumbnail_berkas');
             if (currentThumbnail) {

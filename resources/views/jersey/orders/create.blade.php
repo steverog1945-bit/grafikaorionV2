@@ -130,7 +130,7 @@
                                 const wrap = document.getElementById('wrapper_desainer_jersey');
                                 if (wrap) wrap.style.display = val ? 'none' : '';
                             }
-                            function toggleDesainerSiapCetak() { setSiapCetak(document.getElementById('file_siap_cetak')?.value === '1'); }
+                            function toggleDesainerSiapCetak() { var _f = document.getElementById('file_siap_cetak'); setSiapCetak((_f ? _f.value : null) === '1'); }
                             document.addEventListener('DOMContentLoaded', toggleDesainerSiapCetak);
                         </script>
                     </div>

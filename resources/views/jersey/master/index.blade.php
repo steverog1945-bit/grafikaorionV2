@@ -740,7 +740,7 @@
     }
 
     async function kirimJson(url, method, payload) {
-        const token = document.querySelector('meta[name="csrf-token"]')?.content || csrfTokenJerseyMaster;
+        const _ct = document.querySelector('meta[name="csrf-token"]'); const token = (_ct ? _ct.content : null) || csrfTokenJerseyMaster;
         const res = await fetch(url, {
             method,
             headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token },
@@ -762,7 +762,7 @@
 
     function escapeHtmlJersey(str) {
         const div = document.createElement('div');
-        div.textContent = str ?? '';
+        div.textContent = (str == null ? '' : str);
         return div.innerHTML;
     }
 
@@ -1138,7 +1138,7 @@
         headRowMeter.insertAdjacentHTML('beforeend', `
             <th class="p-2.5 text-center whitespace-nowrap" data-component-th="${data.row.id}">
                 ${escapeHtmlJersey(data.row.name)} <span class="text-slate-500 font-normal">(m)</span>
-                <button type="button" onclick="bukaEditScopeKomponen(${data.row.id}, ${data.row.jersey_product_type_id ?? 'null'}, ${data.row.jersey_category_id ?? 'null'})" class="ml-1 text-slate-500 hover:text-indigo-500" title="Atur cakupan Tipe Produk/Kategori"><i class="fas fa-sliders-h"></i></button>
+                <button type="button" onclick="bukaEditScopeKomponen(${data.row.id}, ${data.row.jersey_product_type_id == null ? 'null' : data.row.jersey_product_type_id}, ${data.row.jersey_category_id == null ? 'null' : data.row.jersey_category_id})" class="ml-1 text-slate-500 hover:text-indigo-500" title="Atur cakupan Tipe Produk/Kategori"><i class="fas fa-sliders-h"></i></button>
                 <button type="button" onclick="nonaktifkanKomponen(${data.row.id})" class="ml-1 text-slate-500 hover:text-rose-500" title="Nonaktifkan komponen ini"><i class="fas fa-times-circle"></i></button>
                 <div class="text-[9px] font-normal normal-case text-slate-400 mt-0.5" data-component-scope="${data.row.id}">${labelCakupanKomponen(data.row)}</div>
             </th>`);
@@ -1192,8 +1192,8 @@
 
     function bukaEditScopeKomponen(id, productTypeId, categoryId) {
         document.getElementById('edit-komponen-scope-id').value = id;
-        document.getElementById('edit-komponen-scope-tipe').value = productTypeId ?? '';
-        document.getElementById('edit-komponen-scope-kategori').value = categoryId ?? '';
+        document.getElementById('edit-komponen-scope-tipe').value = (productTypeId == null ? '' : productTypeId);
+        document.getElementById('edit-komponen-scope-kategori').value = (categoryId == null ? '' : categoryId);
         openModal('edit-komponen-scope');
     }
 
@@ -1332,10 +1332,10 @@
         wadahA.innerHTML = '';
         if (!tipe) return;
         const adaD = tierHargaAda
-            .filter(t => String(t.tipe) === tipe && String(t.bahan ?? '') === bahan && (t.kelompok || 'dewasa') === 'dewasa')
+            .filter(t => String(t.tipe) === tipe && String(t.bahan == null ? '' : t.bahan) === bahan && (t.kelompok || 'dewasa') === 'dewasa')
             .sort((a, b) => a.qty_min - b.qty_min);
         const adaA = tierHargaAda
-            .filter(t => String(t.tipe) === tipe && String(t.bahan ?? '') === bahan && (t.kelompok || 'dewasa') === 'anak')
+            .filter(t => String(t.tipe) === tipe && String(t.bahan == null ? '' : t.bahan) === bahan && (t.kelompok || 'dewasa') === 'anak')
             .sort((a, b) => a.qty_min - b.qty_min);
         (adaD.length ? adaD : [{}]).forEach(t => wadahD.insertAdjacentHTML('beforeend', barisCepatHtml(t)));
         (adaA.length ? adaA : []).forEach(t => wadahA.insertAdjacentHTML('beforeend', barisCepatHtml(t)));
@@ -1354,7 +1354,7 @@
         if (!document.getElementById('cepat-tipe').value) { tampilkanToastJersey('Pilih Tipe Produk dulu.', false); return; }
         const wadahD = document.getElementById('cepat-baris-dewasa');
         const wadahA = document.getElementById('cepat-baris-anak');
-        const hargaAwal = (wadahD.querySelector('.cepat-harga')?.value) || '';
+        const _ch = wadahD.querySelector('.cepat-harga'); const hargaAwal = (_ch ? _ch.value : null) || '';
         wadahD.innerHTML = '';
         wadahA.innerHTML = '';
         [[1, 11], [12, 23], [24, 49], [50, null]].forEach(([min, max]) => {
@@ -1384,8 +1384,8 @@
         // Umpan balik selalu ada pesan: sebelumnya toast bisa kosong karena
         // hanya satu kelompok yang terisi (kelompok kosong tidak ikut sukses).
         const bagian = [];
-        if (r1?.message) bagian.push(r1.message);
-        if (r2?.message) bagian.push(r2.message);
+        if (r1 && r1.message) bagian.push(r1.message);
+        if (r2 && r2.message) bagian.push(r2.message);
         if (r1 && !r2) bagian.push('Bagian anak kosong - dilewati.');
         if (r2 && !r1) bagian.push('Bagian dewasa kosong - dilewati.');
         tampilkanToastJersey(bagian.join(' '));
@@ -1451,12 +1451,12 @@
 
     function rowHargaHtml(row) {
         return `
-        <tr data-id="${row.id}" data-material-id="${row.jersey_material_id ?? ''}" data-type-id="${row.jersey_product_type_id ?? ''}" data-category-id="${row.jersey_category_id ?? ''}" data-golongan-id="${row.id_golongan ?? ''}" data-kelompok="${row.kelompok ?? 'dewasa'}">
+        <tr data-id="${row.id}" data-material-id="${row.jersey_material_id == null ? '' : row.jersey_material_id}" data-type-id="${row.jersey_product_type_id == null ? '' : row.jersey_product_type_id}" data-category-id="${row.jersey_category_id == null ? '' : row.jersey_category_id}" data-golongan-id="${row.id_golongan == null ? '' : row.id_golongan}" data-kelompok="${row.kelompok == null ? 'dewasa' : row.kelompok}">
             <td class="p-2.5 text-center"><input type="checkbox" class="bulk-cb-harga" value="${row.id}" onchange="sinkronBulkHarga()"></td>
             <td class="p-2.5 font-medium text-indigo-600">${row.material ? escapeHtmlJersey(row.material.name) : 'Semua Bahan'}${row.kelompok === 'anak' ? '<span class="ml-2 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-medium uppercase">Anak</span>' : ''}${row.golongan ? '<span class="ml-2 px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 text-[9px] font-medium uppercase">' + escapeHtmlJersey(row.golongan.nama_golongan) + '</span>' : ''}</td>
             <td class="p-2.5">${row.product_type ? escapeHtmlJersey(row.product_type.name) : 'Semua'}</td>
             <td class="p-2.5">${row.category ? escapeHtmlJersey(row.category.name) : 'Semua'}</td>
-            <td class="p-2.5 text-center">${row.qty_min} - ${row.qty_max ?? '∞'}</td>
+            <td class="p-2.5 text-center">${row.qty_min} - ${row.qty_max == null ? "" : row.qty_max}</td>
             <td class="p-2.5 text-right font-medium">Rp ${formatRupiah(Math.round(parseFloat(row.price)))}</td>
             <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
@@ -1477,13 +1477,13 @@
             if (nilai && !sel.querySelector(`option[value="${nilai}"]`)) {
                 sel.insertAdjacentHTML('beforeend', `<option class="opsi-sementara" value="${nilai}">(nonaktif) #${nilai}</option>`);
             }
-            sel.value = nilai ?? '';
+            sel.value = (nilai == null ? '' : nilai);
         };
         pilihDenganNonaktif('edit-harga-bahan', row.jersey_material_id);
         pilihDenganNonaktif('edit-harga-tipe', row.jersey_product_type_id);
         pilihDenganNonaktif('edit-harga-kategori', row.jersey_category_id);
         document.getElementById('edit-harga-qty-min').value = row.qty_min;
-        document.getElementById('edit-harga-qty-max').value = row.qty_max ?? '';
+        document.getElementById('edit-harga-qty-max').value = (row.qty_max == null ? '' : row.qty_max);
         document.getElementById('edit-harga-price').value = formatRupiah(Math.round(parseFloat(row.price)));
         pilihDenganNonaktif('edit-harga-golongan', row.id_golongan);
         openModal('edit-harga');

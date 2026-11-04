@@ -212,25 +212,48 @@
             .trim();
     }
 
+    // Buat thumbnail kecil (placeholder) untuk format yang tidak bisa dirender
+    // peramban (CDR, AI, EPS, PSD, ...). File asli TIDAK lagi disimpan -
+    // hanya thumbnail ini yang diunggah (sesuai keputusan "ganti total").
+    function buatThumbnailPlaceholder(namaAsli, lebarPx = 400) {
+        const ext = (String(namaAsli || '').split('.').pop() || '').toLowerCase();
+        const canvas = document.createElement('canvas');
+        canvas.width = lebarPx;
+        canvas.height = lebarPx;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#f1f5f9';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold ' + Math.floor(lebarPx / 6) + 'px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(ext.toUpperCase(), canvas.width / 2, canvas.height / 2);
+        ctx.font = Math.floor(lebarPx / 12) + 'px sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('berkas desain', canvas.width / 2, canvas.height / 2 + Math.floor(lebarPx / 6));
+        return new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.8));
+    }
+
     /**
      * Siapkan berkas sebelum diunggah.
      *
-     * - Gambar (jpg/png/webp/gif/bmp): dikompres sampai 200 KB dengan
-     *   resolusi tinggi supaya tetap jernih saat dicetak di SPK.
-     * - PDF: dirender jadi gambar (halaman pertama) oleh pdf.js, lalu
-     *   dikirim sebagai JPEG. Jadi berkas yang sampai di server berupa
-     *   GAMBAR - bisa langsung ditampilkan di SPK.
-     * - Format lain (CDR, AI, EPS, PSD, TIFF, HEIC): tidak bisa dirender
-     *   peramban, jadi dikirim apa adanya dan ditampilkan sebagai
-     *   keterangan format di SPK.
+     * - Gambar (jpg/png/webp/gif/bmp): dikompres jadi dua tingkat - cetak
+     *   200 KB (1600 px) + preview 100 KB (800 px).
+     * - PDF: dirender jadi gambar (halaman pertama) oleh pdf.js - cetak
+     *   1600 px + preview 800 px.
+     * - Format lain (CDR, AI, EPS, PSD, TIFF, HEIC): TIDAK lagi disimpan
+     *   apa adanya - diganti thumbnail kecil (placeholder dengan ekstensi),
+     *   jadi yang tiba di server berupa gambar kecil saja.
      *
-     * @returns {Promise<{file: File, gambar: boolean, dariPdf: boolean}>}
+     * @returns {Promise<{file: File, preview: File|null, gambar: boolean, dariPdf: boolean}>}
      */
     async function siapkanBerkasUntukUnggah(file, namaAsli) {
         if (formatBisaDikompres(namaAsli)) {
-            const compressed = await compressImage(file);
+            const cetak = await compressImage(file, 200 * 1024, [1600, 1400, 1200, 1000, 800, 600, 450]);
+            const previewBlob = await compressImage(file, 100 * 1024, [800, 600, 450]);
             return {
-                file: new File([compressed], namaFileDariGambar(namaAsli) + '.jpg', { type: 'image/jpeg' }),
+                file: new File([cetak], namaFileDariGambar(namaAsli) + '.jpg', { type: 'image/jpeg' }),
+                preview: new File([previewBlob], namaFileDariGambar(namaAsli) + '_preview.jpg', { type: 'image/jpeg' }),
                 gambar: true,
                 dariPdf: false
             };
@@ -238,22 +261,26 @@
 
         if (String(namaAsli || '').toLowerCase().endsWith('.pdf')) {
             try {
-                const gambar = await rasterisasiPdf(file);
+                const cetak = await rasterisasiPdf(file, 1600, 0.85);
+                let preview = null;
+                try { preview = await rasterisasiPdf(file, 800, 0.7); } catch (e) { preview = cetak; }
                 return {
-                    file: new File([gambar], namaFileDariGambar(namaAsli) + '.jpg', { type: 'image/jpeg' }),
+                    file: new File([cetak], namaFileDariGambar(namaAsli) + '.jpg', { type: 'image/jpeg' }),
+                    preview: new File([preview], namaFileDariGambar(namaAsli) + '_preview.jpg', { type: 'image/jpeg' }),
                     gambar: true,
                     dariPdf: true
                 };
             } catch (e) {
-                // PDF gagal dirender (pdf.js gagal dimuat, berkas rusak, atau
-                // lewat batas waktu). Berkasnya tetap dikirim apa adanya
-                // supaya desainnya tidak hilang - SPK nanti menampilkan
-                // keterangan formatnya, bukan gambar rusak.
+                // PDF gagal dirender - kirim apa adanya, tanpa preview.
                 console.warn('PDF tidak bisa dirender jadi gambar:', e);
-                return { file: file, gambar: false, dariPdf: false, gagalRender: true };
+                return { file: file, preview: null, gambar: false, dariPdf: false, gagalRender: true };
             }
         }
 
-        return { file: file, gambar: false, dariPdf: false };
+        // Format lain (CDR, AI, EPS, PSD, TIFF, HEIC): ganti total dengan
+        // thumbnail kecil (file asli TIDAK disimpan).
+        const thumb = await buatThumbnailPlaceholder(namaAsli, 400);
+        const thumbFile = new File([thumb], namaFileDariGambar(namaAsli) + '.jpg', { type: 'image/jpeg' });
+        return { file: thumbFile, preview: thumbFile, gambar: true, dariPdf: false, dariDokumen: true };
     }
 </script>

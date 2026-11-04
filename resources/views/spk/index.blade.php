@@ -72,7 +72,7 @@
             <div class="spk-filter-status w-full md:w-48">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status SPK</label>
                 <x-form.select name="status_spk">
-                    <option value="">-- Semua Status --</option>
+                    <option value="">-- Antre + Selesai (default) --</option>
                     @foreach(['Antre', 'Desain', 'Cetak', 'Selesai', 'Pending', 'Batal'] as $s)
                         <option value="{{ $s }}" {{ request('status_spk') === $s ? 'selected' : '' }}>{{ $s }}</option>
                     @endforeach

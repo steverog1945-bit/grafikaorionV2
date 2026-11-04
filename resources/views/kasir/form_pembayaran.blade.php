@@ -73,13 +73,13 @@
                             <span class="w-6 text-xs font-medium text-slate-500">{{ $i + 1 }}</span>
                             @if($item->thumbnail)
                                 @if(\App\Support\BerkasDesain::bisaDitampilkan($item->thumbnail))
-                                    <img loading="lazy" decoding="async" src="{{ asset('storage/'.$item->thumbnail) }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0">
+                                    <img loading="lazy" decoding="async" src="{{ asset('storage/'.$item->thumbnail) }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0 cursor-zoom-in hover:opacity-80 transition" onclick="bukaPreviewBerkasForm('{{ asset('storage/'.$item->thumbnail) }}')" title="Klik untuk preview">
                                 @else
                                     {{-- Berkas desain non-gambar (CDR, AI, EPS, PSD)
                                          tidak bisa ditampilkan peramban - pakai
                                          thumbnail default supaya kotaknya tidak
                                          kosong. Nama file tetap dari berkas asli. --}}
-                                    <img loading="lazy" decoding="async" src="{{ asset('storage/default-thumbnail.png') }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0 opacity-50" title="Berkas desain {{ strtoupper(\App\Support\BerkasDesain::ekstensi($item->thumbnail)) }}">
+                                    <img loading="lazy" decoding="async" src="{{ asset('storage/default-thumbnail.png') }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0 opacity-50 cursor-zoom-in" onclick="bukaPreviewBerkasForm('{{ asset('storage/default-thumbnail.png') }}')" title="Berkas desain {{ strtoupper(\App\Support\BerkasDesain::ekstensi($item->thumbnail)) }}">
                                 @endif
                             @else
                                 <div class="w-12 h-12 rounded-xl bg-white border border-slate-100 shrink-0 flex items-center justify-center text-slate-500"><i class="far fa-image"></i></div>
@@ -91,6 +91,12 @@
                                     <p class="text-xs text-slate-400 truncate">{{ $item->nama_file }}</p>
                                 @endif
                                 <p class="disp-biaya-tambahan text-[11px] text-slate-400 mt-1">{!! \App\Support\HtmlBersih::bersihkan($bagianBiaya) !!}</p>
+                                @if((float) $item->p_ukuran > 0 || (float) $item->l_ukuran > 0)
+                                    <p class="text-[10px] text-slate-500 mt-0.5"><i class="fas fa-ruler-combined mr-1"></i>Ukuran operator: {{ rtrim(rtrim(number_format((float) $item->p_ukuran, 2, ',', '.'), '0'), ',') }} x {{ rtrim(rtrim(number_format((float) $item->l_ukuran, 2, ',', '.'), '0'), ',') }} cm</p>
+                                @endif
+                                @if($item->file_siap_cetak)
+                                    <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100"><i class="fas fa-file-check mr-1"></i>File Siap Cetak</span>
+                                @endif
                             </div>
 
                             <div class="text-right w-28 flex flex-col justify-center h-12">
@@ -993,5 +999,27 @@
             }, 8000);
         });
     });
+
+    function bukaPreviewBerkasForm(url) {
+        const modal = document.getElementById('modal-preview-berkas-form');
+        const img = document.getElementById('modal-preview-berkas-form-img');
+        img.src = url;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+    function tutupPreviewBerkasForm() {
+        const modal = document.getElementById('modal-preview-berkas-form');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 </script>
+
+{{-- Lightbox preview berkas --}}
+<div id="modal-preview-berkas-form" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/70 p-4" onclick="if(event.target===this)tutupPreviewBerkasForm()">
+    <div class="relative bg-white rounded-2xl p-4 max-w-5xl w-full max-h-[90vh] overflow-auto">
+        <button type="button" onclick="tutupPreviewBerkasForm()" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600"><i class="fas fa-times"></i></button>
+        <img id="modal-preview-berkas-form-img" src="" alt="preview" class="max-w-full max-h-[80vh] rounded-xl shadow-lg mx-auto cursor-zoom-in" onclick="this.classList.toggle('scale-150')">
+        <p class="text-[11px] text-slate-400 text-center mt-3">Klik gambar untuk zoom. Klik di luar untuk menutup.</p>
+    </div>
+</div>
 @endsection

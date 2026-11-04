@@ -749,6 +749,28 @@ public function uploadThumbnail(Request $request)
                         return;
                     }
 
+                    // Pemeriksaan isi berkas (finfo), bukan hanya nama dari klien.
+                    // Blokir tipe yang bisa berjalan di peramban/server (HTML, XML/SVG,
+                    // JS, PHP, skrip) meskipun namanya berakhiran ekstensi yang diizinkan.
+                    $tipeMime = strtolower((string) $value->getMimeType());
+                    $terlarang = ['text/html', 'application/xhtml+xml', 'text/xml', 'application/xml',
+                        'image/svg+xml', 'text/javascript', 'application/javascript',
+                        'text/x-php', 'application/x-httpd-php', 'application/x-php',
+                        'text/x-shellscript', 'application/x-shellscript', 'text/x-python'];
+                    if (in_array($tipeMime, $terlarang, true)) {
+                        $fail('Isi berkas terdeteksi sebagai ' . $tipeMime . ' dan tidak boleh diunggah.');
+
+                        return;
+                    }
+                    // Format gambar/PDF harus benar-benar bertipe itu.
+                    $ketat = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png',
+                        'webp' => 'image/webp', 'pdf' => 'application/pdf'];
+                    if (isset($ketat[$ekstensi]) && $tipeMime !== '' && $tipeMime !== $ketat[$ekstensi]) {
+                        $fail('Isi berkas tidak sesuai dengan ekstensinya (.' . $ekstensi . ' tetapi terdeteksi ' . $tipeMime . ').');
+
+                        return;
+                    }
+
                     $maksKb = \App\Support\BerkasDesain::maksKilobyte($ekstensi);
                     if ($value->getSize() > $maksKb * 1024) {
                         $fail('Ukuran file terlalu besar (maksimal ' . number_format($maksKb / 1024, 0, ',', '.') . ' MB).');
@@ -770,24 +792,45 @@ public function uploadThumbnail(Request $request)
     //
     // Catatan format: PDF sudah dirender jadi gambar di peramban (pdf.js),
     // jadi berkas yang tiba di sini untuk PDF hanya kalau peramban gagal
-    // merendernya. Berkas desain lain (CDR, AI, EPS, PSD) tidak bisa
-    // dirender di peramban maupun di server (tidak ada ImageMagick/
-    // Ghostscript/LibreOffice di sini, dan thumbnail Windows hanya
-    // menghasilkan ikon file generik - bukan isi desainnya). Berkas seperti
-    // itu disimpan apa adanya sebagai sumber desain, dan SPK menampilkan
-    // keterangan formatnya, bukan gambar rusak.
+    // merendernya. Berkas desain lain (CDR, AI, EPS, PSD) pada versi ini
+    // TIDAK lagi disimpan apa adanya - diganti thumbnail kecil (lihat
+    // siapkanBerkasUntukUnggah), jadi yang tiba di sini selalu gambar.
     $path = $file->storeAs(
         'order_thumbnails',
         \Illuminate\Support\Str::random(40) . '.' . $ekstensi,
         'public'
     );
 
+    // Preview (100 KB) opsional - disimpan terpisah supaya daftar/monitoring
+    // memakai gambar kecil, sementara SPK cetak memakai gambar 200 KB.
+    $pathPreview = null;
+    $filePreview = $request->file('thumbnail_preview');
+    if ($filePreview instanceof \Illuminate\Http\UploadedFile) {
+        $ekstPreview = \App\Support\BerkasDesain::ekstensi($filePreview->getClientOriginalExtension());
+        if (\App\Support\BerkasDesain::diizinkan($ekstPreview)) {
+            $pathPreview = $filePreview->storeAs(
+                'order_thumbnails',
+                \Illuminate\Support\Str::random(40) . '.' . $ekstPreview,
+                'public'
+            );
+        }
+    }
+
+    // Nama asli dari berkas sumber (bisa dikirim terpisah kalau berkas yang
+    // diunggah sudah berubah jadi thumbnail, mis. CDR -> gambar).
+    $namaAsli = (string) $request->input('nama_asli', '');
+    if ($namaAsli === '') {
+        $namaAsli = $file->getClientOriginalName();
+    }
+
     return response()->json([
         'status' => 'success',
         'path' => $path,
         'url' => asset('storage/' . $path),
+        'path_preview' => $pathPreview,
+        'url_preview' => $pathPreview ? asset('storage/' . $pathPreview) : null,
         'bisa_ditampilkan' => \App\Support\BerkasDesain::bisaDitampilkan($ekstensi),
-        'nama_asli' => $file->getClientOriginalName(),
+        'nama_asli' => $namaAsli,
     ]);
 }
 

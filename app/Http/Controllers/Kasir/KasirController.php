@@ -335,7 +335,8 @@ class KasirController extends Controller
             return $this->responTerima($request, 'error', $pesan);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->responTerima($request, 'error', $e->getMessage());
+            \Log::error('kasir.terimaTransaksi: ' . $e->getMessage());
+            return $this->responTerima($request, 'error', 'Transaksi tidak dapat diterima. Silakan muat ulang halaman.');
         }
     }
 

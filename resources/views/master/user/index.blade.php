@@ -237,7 +237,7 @@
             confirmButtonText: batal ? 'Ya, Non-aktifkan!' : 'Ya, Aktifkan!'
         }).then((result) => {
             if (result.isConfirmed) {
-                document.getElementById((batal ? 'nonaktif' : 'aktifkan') + '-form-user-' + id)?.submit();
+                var _f = document.getElementById((batal ? 'nonaktif' : 'aktifkan') + '-form-user-' + id); if (_f) _f.submit();
             }
         });
     }

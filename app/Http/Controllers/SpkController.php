@@ -134,6 +134,14 @@ class SpkController extends Controller
 
         if ($request->filled('status_spk')) {
             $query->where('transaksi_detail.status_spk', $request->status_spk);
+        } elseif (!$tunggakanAktif) {
+            // Default: tampilkan yang belum diambil (Antre) + yang sudah selesai
+            // cetak (Selesai). Item in-progress (Desain/Cetak/Pending) disembunyikan
+            // dari antrean utama supaya operator tidak bingung saat bulk-ambil
+            // lintas halaman - setelah diambil, item hilang dari daftar dan halaman
+            // berikutnya langsung terlihat, tanpa perlu ganti halaman manual.
+            // In-progress tetap bisa dilihat via filter Status SPK.
+            $query->whereIn('transaksi_detail.status_spk', ['Antre', 'Selesai']);
         }
 
         if ($request->boolean('urgent_only')) {
@@ -588,7 +596,11 @@ class SpkController extends Controller
             $pesan .= " {$dilewati} item dilewati karena sudah diambil/diproses sebelumnya.";
         }
 
-        return back()->with($diambil > 0 ? 'success' : 'error', $pesan);
+        // Setelah ambil, item yang Antre hilang dari daftar (status jadi Desain).
+        // Arahkan ke halaman 1 (dengan filter yang sama) supaya operator tidak
+        // tertinggal di halaman yang mungkin sudah kosong.
+        return redirect()->route('spk.index', array_merge($request->query(), ['page' => 1]))
+            ->with($diambil > 0 ? 'success' : 'error', $pesan);
     }
 
     /**

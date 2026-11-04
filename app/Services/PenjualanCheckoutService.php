@@ -529,7 +529,8 @@ class PenjualanCheckoutService
                 'id_transaksi'     => $idTransaksi,
                 'id_produk'        => $item['id_produk'],
                 'nama_file'        => $item['nama_file'],
-                'thumbnail'        => $item['thumbnail'],
+                'thumbnail'         => $item['thumbnail'],
+                'thumbnail_preview' => $item['thumbnail_preview'] ?? null,
                 'catatan_produksi' => $item['catatan_produksi'],
                 'p_ukuran'         => $item['p'],
                 'l_ukuran'         => $item['l'],
@@ -580,7 +581,8 @@ class PenjualanCheckoutService
         DB::table('transaksi_detail')->where('id_detail', $idDetail)->update([
             'id_produk'        => $item['id_produk'],
             'nama_file'        => $item['nama_file'],
-            'thumbnail'        => $item['thumbnail'],
+            'thumbnail'         => $item['thumbnail'],
+            'thumbnail_preview' => $item['thumbnail_preview'] ?? null,
             'catatan_produksi' => $item['catatan_produksi'],
             'p_ukuran'         => $item['p'],
             'l_ukuran'         => $item['l'],
@@ -1079,6 +1081,10 @@ class PenjualanCheckoutService
         if (!empty($item['thumbnail']) && str_starts_with($item['thumbnail'], 'order_thumbnails/')) {
             $thumbnail = $item['thumbnail'];
         }
+        $thumbnailPreview = null;
+        if (!empty($item['thumbnail_preview']) && str_starts_with($item['thumbnail_preview'], 'order_thumbnails/')) {
+            $thumbnailPreview = $item['thumbnail_preview'];
+        }
 
         $catatanProduksi = trim((string) ($item['catatan_produksi'] ?? ''));
         if ($siapCetak) {
@@ -1094,6 +1100,7 @@ class PenjualanCheckoutService
             'id_detail' => isset($item['id_detail']) ? (int) $item['id_detail'] : null,
             'nama_file' => $item['nama_file'] ?? '-',
             'thumbnail' => $thumbnail,
+            'thumbnail_preview' => $thumbnailPreview,
             'catatan_produksi' => $catatanProduksi !== '' ? $catatanProduksi : null,
             'p' => $p,
             'l' => $l,
