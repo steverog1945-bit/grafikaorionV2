@@ -1386,6 +1386,7 @@ public function printOpsi(Request $request, $id)
             'konsumen.nama_konsumen',
             'konsumen.alamat',
             'konsumen.telepon',
+            'konsumen.id_golongan',
             DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama_kasir')
         )
         ->first();
@@ -1414,10 +1415,31 @@ public function printOpsi(Request $request, $id)
             'transaksi_detail.id_bahan',
             'transaksi_detail.id_produk',
             'transaksi_detail.id_jasa',
+            'transaksi_detail.file_siap_cetak',
             'transaksi_detail.is_minimum_order',
             DB::raw('produk.metode_hitung as metode_hitung_produk')
         )
         ->get();
+
+    // Harga satuan produk (dari tier harga) untuk ditampilkan di nota cetak
+    // (HANYA TAMPILAN - tidak mempengaruhi penghitungan). null bila produk
+    // tidak punya tier atau bukan produk (jasa/bahan custom).
+    $idGolongan = (int) ($transaksi->id_golongan ?? 0);
+    foreach ($items as $it) {
+        $it->harga_tier = null;
+        if ($it->id_produk) {
+            $tier = \App\Services\HargaService::getHargaEfektif(
+                (int) $it->id_produk,
+                $idGolongan,
+                (float) $it->qty,
+                (bool) $it->file_siap_cetak
+            );
+            $it->harga_tier = $tier['harga_jual'] ?? 0;
+            if ($it->harga_tier <= 0) {
+                $it->harga_tier = null;
+            }
+        }
+    }
 
     $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
     $totalUangDiterima = (float) (DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('uang_diterima') ?? 0);
