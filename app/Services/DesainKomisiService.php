@@ -19,7 +19,7 @@ class DesainKomisiService
     public static function daftarDesainer(): \Illuminate\Support\Collection
     {
         return DB::table('users as u')->join('roles as r', 'r.id_role', '=', 'u.id_role')->leftJoin('karyawan as k', 'k.id_karyawan', '=', 'u.id_karyawan')
-            ->where('r.nama_role', self::ROLE_DESAIN)->orderBy('u.username')
+            ->where('r.nama_role', self::ROLE_DESAIN)->where('u.is_active', 1)->orderBy('u.username')
             ->get(['u.id_user', DB::raw('COALESCE(k.nama_karyawan, u.username) as nama')]);
     }
 
