@@ -5,7 +5,7 @@
     <div class="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3 text-[11px] text-slate-400">
         <span>
             Dibuat oleh
-            <a href="https://obiyshinichiart.com" target="_blank" rel="noopener"
+            <a href="https://www.obiyshinichiart.com" target="_blank" rel="noopener"
                class="font-semibold text-indigo-500 hover:text-indigo-600 transition-colors">obiyshinichiart.com</a>
         </span>
         <span class="hidden sm:inline" aria-hidden="true">&middot;</span>

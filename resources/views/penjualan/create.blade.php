@@ -206,7 +206,7 @@
                     @endforeach
                 </x-form.select>
                 <input type="hidden" id="id_golongan_hidden" name="id_golongan" value="{{ $golongan->first()->id_golongan ?? '' }}">
-                <p class="text-[10px] text-slate-400 mt-1"><i class="fas fa-lock text-[9px] mr-1"></i>Terkunci sesuai golongan pelanggan terpilih</p>
+                <!-- <p class="text-[10px] text-slate-400 mt-1"><i class="fas fa-lock text-[9px] mr-1"></i>Terkunci sesuai golongan pelanggan terpilih</p> -->
                 @endif
             </x-form.group>
 
