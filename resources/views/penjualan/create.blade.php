@@ -1524,7 +1524,13 @@ let currentThumbnailPreview = null;
         Array.from(sel.options).forEach(opt => {
             if (!opt.value) return; // "-- Tanpa Finishing --" selalu tampil
             const idKategoriFinishing = opt.dataset.kategori;
-            const relevan = !idKategoriFinishing || !idKategoriProduk || idKategoriFinishing == idKategoriProduk;
+            // Dulu: `!idKategoriProduk || ...` - parameter null (dari
+            // resetInputProduk setelah item masuk keranjang) dianggap
+            // "relevan semuanya" sehingga SEMUA jenis finishing terbuka
+            // tanpa filter kategori. Sekarang: tanpa produk terpilih hanya
+            // finishing umum (tanpa kategori) yang tampil; filter penuh
+            // baru diterapkan begitu produk dipilih (getDetailProduk).
+            const relevan = !idKategoriFinishing || (idKategoriProduk && idKategoriFinishing == idKategoriProduk);
             opt.hidden = !relevan;
             if (!relevan && opt.selected) terpilihJadiTidakRelevan = true;
         });
@@ -2673,6 +2679,7 @@ let hitungUlangMenunggu = false;
             kelompok_minimum: currentProduk.kelompok_minimum || null
         };
 
+        const sedangEdit = editIndex !== null;
         if (editIndex !== null) {
             cart[editIndex] = itemData;
             editIndex = null;
@@ -2688,10 +2695,36 @@ let hitungUlangMenunggu = false;
         // item masuk dengan luas aktualnya sendiri.
 
         renderCart();
-        resetInputProduk();
+        if (sedangEdit) {
+            resetInputProduk();
+        } else {
+            // Item BARU masuk keranjang: pemilihan produk kembali KOSONG.
+            // Dulu resetInputProduk() hanya mengosongkan field item (file,
+            // ukuran, qty, biaya, finishing) tapi produk & currentProduk
+            // tetap tertinggal - akibatnya event `change` tidak pernah
+            // terpicu lagi di select_produk, sehingga harga tidak me-load
+            // ulang, radio "jenis pengerjaan" (File Siap Cetak) tidak
+            // muncul, dan filter kategori finishing tidak diterapkan untuk
+            // item berikutnya. Dikosongkan + null-kan state supaya produk
+            // berikutnya yang dipilih (termasuk produk yang SAMA) selalu
+            // me-load ulang detail lengkap lewat getDetailProduk() -
+            // jalur trigger('change') di bawah dengan val('') memanggil
+            // resetInputProduk() (via jalur id-kosong getDetailProduk).
+            currentProduk = null;
+            $('#select_produk').val('').trigger('change');
+            // Jalur id-kosong getDetailProduk tidak menyentuh wrapper metode
+            // hitung - sembunyikan eksplisit agar panel produk lama tidak
+            // terbawa ke item berikutnya.
+            document.getElementById('wrapper_ukuran').classList.add('hidden');
+            document.getElementById('note_ukuran').classList.add('hidden');
+            document.getElementById('wrapper_qty').classList.add('hidden');
+        }
 
-        Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }).fire({
-            icon: 'success', title: 'Item berhasil diproses'
+        Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 }).fire({
+            icon: 'success',
+            title: sedangEdit
+                ? 'Item berhasil diperbarui'
+                : 'Item masuk keranjang - pilih kembali produk & upload desain untuk item berikutnya'
         });
     }
 

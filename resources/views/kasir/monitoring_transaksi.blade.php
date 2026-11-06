@@ -89,7 +89,7 @@
 
             <div class="w-full md:w-44">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">No. Nota</label>
-                <x-form.input type="text" name="nomor_nota" value="{{ request('nomor_nota') }}" placeholder="INV-..." />
+                <x-form.input type="text" name="nomor_nota" value="{{ request('nomor_nota') }}" placeholder="Nomor Nota" />
             </div>
 
             <div class="w-full md:w-44">
