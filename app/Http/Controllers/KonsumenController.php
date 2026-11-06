@@ -25,15 +25,7 @@ class KonsumenController extends Controller
                 $w->where('konsumen.nama_konsumen', 'like', '%' . $request->q . '%')
                   ->orWhere('konsumen.telepon', 'like', '%' . $request->q . '%');
             }))
-            // Tanpa kata kunci (dropdown langsung dibuka): urutkan dari yang
-            // TERBARU, bukan abjad. Dulu abjad membuat konsumen yang baru
-            // didaftarkan tidak terlihat walau data sudah ada di database
-            // (212+ konsumen, 20 teratas mungkin belum mencakup hurufnya) -
-            // kasir nyaris selalu berharap melihat "yang barusan ditambah".
-            // Dengan kata kunci urutan tetap abjad seperti search list modul.
-            ->when($request->filled('q'),
-                fn ($q) => $q->orderBy('konsumen.nama_konsumen'),
-                fn ($q) => $q->orderByDesc('konsumen.tgl_registrasi'))
+            ->orderBy('konsumen.nama_konsumen')
             ->limit(20)
             ->get(['id_konsumen', 'nama_konsumen', 'telepon', 'id_golongan']);
 
