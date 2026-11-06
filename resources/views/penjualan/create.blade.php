@@ -1218,12 +1218,17 @@ let currentThumbnailPreview = null;
                 dataType: 'json',
                 delay: 250,
                 data: function (params) {
-                    return { q: params.term || '' };
+                    // `_: Date.now()` = cache-buster: tiap kueri berbeda URL,
+                    // supaya tidak ada layer caching (browser/proxy/Apache)
+                    // yang punya peluang menyajikan hasil pencarian lama -
+                    // mis. konsumen yang baru ditambahkan lewat tab lain.
+                    // (`cache: true` lama hanya diwariskan ke $.ajax dan
+                    // sebenarnya tidak berpengaruh untuk dataType json.)
+                    return { q: params.term || '', _: Date.now() };
                 },
                 processResults: function (data) {
                     return { results: data.results || [] };
-                },
-                cache: true
+                }
             }
         });
 
