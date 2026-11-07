@@ -235,7 +235,7 @@ public function destroy($id)
 
         return response()->json([
             'ok' => true,
-            'url' => url('/storage/profil/' . $nama),
+            'url' => asset('storage/profil/' . $nama),
             'nama' => $nama,
         ]);
     }

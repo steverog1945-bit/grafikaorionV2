@@ -1,2 +1,5 @@
 *
 !.gitignore
+# Foto profil ikut repo supaya tidak hilang saat proyek berpindah komputer.
+!profil/
+!profil/**

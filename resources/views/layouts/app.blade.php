@@ -1635,7 +1635,7 @@
             <div class="relative sm:block" id="profil-menu-wrap">
                 <button type="button" onclick="toggleProfilMenu()" class="flex items-center gap-2 pl-2 pr-3 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all" aria-haspopup="true" aria-expanded="false" id="profil-menu-btn" title="Profil &amp; Keluar">
                     @if(Auth::user()->foto_profil)
-                        <img id="profil-pill-avatar" src="{{ url('/storage/profil/' . Auth::user()->foto_profil) }}" class="w-7 h-7 rounded-full object-cover shrink-0" alt="Foto profil">
+                        <img id="profil-pill-avatar" src="{{ asset('storage/profil/' . Auth::user()->foto_profil) }}" class="w-7 h-7 rounded-full object-cover shrink-0" alt="Foto profil">
                     @else
                         <div id="profil-pill-avatar" class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-xs shrink-0">
                             {{ strtoupper(substr($namaTampil, 0, 1)) }}
@@ -1648,7 +1648,7 @@
                     <div class="px-4 py-4 border-b border-slate-100 flex items-center gap-3">
                         <div class="relative shrink-0">
                             @if(Auth::user()->foto_profil)
-                                <img id="profil-avatar-img" src="{{ url('/storage/profil/' . Auth::user()->foto_profil) }}" alt="Foto profil" class="w-12 h-12 rounded-full object-cover ring-2 ring-indigo-100">
+                                <img id="profil-avatar-img" src="{{ asset('storage/profil/' . Auth::user()->foto_profil) }}" alt="Foto profil" class="w-12 h-12 rounded-full object-cover ring-2 ring-indigo-100">
                             @else
                                 <div id="profil-avatar-inisial" class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-base">{{ strtoupper(substr($namaTampil, 0, 1)) }}</div>
                                 <img id="profil-avatar-img" src="" alt="Foto profil" class="w-12 h-12 rounded-full object-cover ring-2 ring-indigo-100 hidden">
