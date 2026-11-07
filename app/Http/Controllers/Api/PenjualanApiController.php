@@ -13,12 +13,19 @@ class PenjualanApiController extends Controller
     {
         try {
             $produk = DB::table('produk')->where('id_produk', $id)->first();
-            
+
             if (!$produk) {
                 return response()->json(['message' => 'Produk tidak ditemukan'], 404);
             }
 
-            return response()->json($produk);
+            $data = (array) $produk;
+            // Lebar roll BAHAN UTAMA BOM produk (bahan roll terawal, mis.
+            // TC 1,2 m). Dipakai form Input Pesanan untuk metode finishing
+            // KEPING_ROLL: keping = floor(lebar_roll / lebar barang) -
+            // sumber data sama persis dengan sisi checkout server.
+            $data['lebar_roll'] = \App\Services\PenjualanCheckoutService::lebarRollBahanUtama((int) $id);
+
+            return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => \App\Support\PesanError::untuk($e)], 500);
         }

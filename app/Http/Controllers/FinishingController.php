@@ -48,7 +48,10 @@ class FinishingController extends Controller
             // di daftar, padahal master Potong Manual memakainya - artinya
             // finishing Potong Manual tidak bisa dibuat maupun diubah tarifnya
             // lewat halaman ini, harus lewat SQL.
-            'metode_hitung'  => 'required|in:luas,keliling,quantity,LINEAR_GRID',
+            // KEPING_ROLL = jahit berbasis keping dari lebar roll bahan utama BOM
+            // (bendera TC roll 1,20 m bisa terbagi 2/3 keping sesuai lebar
+            // barang). Rumus: keping x panjang barang x qty = meter jahit.
+            'metode_hitung'  => 'required|in:luas,keliling,quantity,LINEAR_GRID,KEPING_ROLL',
             // Lantai biaya finishing per item (dipakai mode Potong Manual).
             // 0 = tidak ada minimum charge.
             'minimum_charge' => 'nullable|numeric|min:0',
@@ -71,7 +74,10 @@ class FinishingController extends Controller
             'id_mesin'       => 'nullable|exists:mesin,id_mesin',
             'id_kategori'    => 'nullable|exists:kategori,id_kategori',
             // Sama seperti store() - LINEAR_GRID (Potong Manual) boleh.
-            'metode_hitung'  => 'required|in:luas,keliling,quantity,LINEAR_GRID',
+            // KEPING_ROLL = jahit berbasis keping dari lebar roll bahan utama BOM
+            // (bendera TC roll 1,20 m bisa terbagi 2/3 keping sesuai lebar
+            // barang). Rumus: keping x panjang barang x qty = meter jahit.
+            'metode_hitung'  => 'required|in:luas,keliling,quantity,LINEAR_GRID,KEPING_ROLL',
             'minimum_charge' => 'nullable|numeric|min:0',
             'keterangan'     => 'nullable|string',
         ]);

@@ -951,6 +951,13 @@ class PenjualanCheckoutService
             $qtyF = match ($rowF->metode_hitung) {
                 'luas' => $qtyHitung,
                 'keliling' => $produk->metode_hitung === 'ukuran' ? (2 * ($p + $l) / 100) * $qtyInput : $qtyInput,
+                // Finishing jahit berbasis keping dari lebar roll bahan utama
+                // BOM (mis. bendera TC roll 1,20 m terbagi 2 atau 3 keping
+                // sesuai lebar barang): keping = floor(lebar_roll / lebar
+                // barang), meter jahit = keping x panjang barang x qty.
+                // Bahan utama tidak ber-roll -> fallback rumus keliling lama,
+                // persis pola yang dipakai form.
+                'KEPING_ROLL' => $produk->metode_hitung === 'ukuran' ? self::meterJahitKepingRoll($produk->id_produk, $p, $l) * $qtyInput : $qtyInput,
                 // Potong Manual (LINEAR_GRID): tarif dihitung dari meter potong, BUKAN
                 // dari qty pcs. lihat HargaService::hitungBiayaFinishingLinearGrid().
                 'LINEAR_GRID' => $qtyHitung,
@@ -1020,7 +1027,10 @@ class PenjualanCheckoutService
             }
 
             $daftarFinishing[] = [
-                'id_finishing' => $idF, 'status_finishing' => $statusF, 'qty_pakai' => $rowF->metode_hitung === 'quantity' ? ($qtyPakai ?? $qtyInput) : null,
+                'id_finishing' => $idF, 'status_finishing' => $statusF,
+                // qty_pakai ikut mencatat meter jahit KEPING_ROLL supaya biaya
+                // jahit bisa ditelusuri ulang dari nota.
+                'qty_pakai' => $rowF->metode_hitung === 'quantity' ? ($qtyPakai ?? $qtyInput) : ($rowF->metode_hitung === 'KEPING_ROLL' ? $qtyF : null),
                 'biaya' => $biayaF, 'catatan' => isset($fin['catatan']) && trim((string) $fin['catatan']) !== '' ? mb_substr(trim((string) $fin['catatan']), 0, 255) : null,
                 // Dimensi potong dibawa ke bawah supaya ikut tersimpan bersama
                 // baris finishing-nya. Tanpa ini hanya `biaya` yang bertahan dan
@@ -1177,5 +1187,38 @@ class PenjualanCheckoutService
     }
 
     return $itemsTervalidasi;
+    }
+
+    /** Lebar roll (m) bahan utama BOM produk: baris terawal yang bahan-nya ber-lebar_roll. */
+    public static function lebarRollBahanUtama(int $idProduk): float
+    {
+        if ($idProduk <= 0) return 0.0;
+        $roll = DB::table('bom_detail')
+            ->join('bahan_baku', 'bahan_baku.id_bahan', '=', 'bom_detail.id_bahan')
+            ->where('bom_detail.id_produk', $idProduk)
+            ->where('bahan_baku.lebar_roll', '>', 0)
+            ->orderBy('bom_detail.id_bom')
+            ->value('bahan_baku.lebar_roll');
+
+        return $roll === null ? 0.0 : (float) $roll;
+    }
+
+    /**
+     * Meter jahit per unit barang untuk metode KEPING_ROLL:
+     * keping = max(1, floor(lebar_roll / lebar barang)), meter jahit = keping x panjang barang.
+     * Bahan utama tidak ber-roll -> fallback rumus keliling lama (2 x (P+L)) supaya
+     * kekurangan data master tidak membuat biaya jahit jadi nol.
+     */
+    public static function meterJahitKepingRoll(int $idProduk, float $p, float $l): float
+    {
+        if ($l <= 0) return 0.0;
+        $roll = self::lebarRollBahanUtama($idProduk);
+        if ($roll <= 0) return 2 * ($p + $l) / 100;
+
+        // Rasio dibulatkan dulu (mis. 1,2/0,4 = 2,9999999999999996) supaya
+        // pembagian round-trip angka pancake tidak kehilangan 1 keping.
+        $keping = max(1, (int) floor(round($roll / ($l / 100), 6)));
+
+        return $keping * ($p / 100);
     }
 }

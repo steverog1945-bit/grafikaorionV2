@@ -1545,11 +1545,18 @@ let currentThumbnailPreview = null;
         }
     }
 
+    // Token urutan ganti produk: user bisa menekan-ganti produk beruntun
+    // cepat; tanpa penjaga, respons fetch produk yang TELAT datang tetap
+    // menimpa currentProduk dengan data produk yang sudah tidak terpilih
+    // (produksi tampilan & saran finishing jadi basi - pola sama seperti
+    // urutanHitungFinishing di bawah).
+    let urutanProdukTerpilih = 0;
     async function getDetailProduk() {
         const id = $('#select_produk').val();
         if (!id) { resetInputProduk(); return; }
         const selectedOption = $('#select_produk').find(':selected');
         const metode = selectedOption.data('metode');
+        const tokenProduk = ++urutanProdukTerpilih;
         filterFinishingByKategori(selectedOption.data('kategori'));
         setSiapCetak(false, true);
         document.getElementById('wrapper_siap_cetak').classList.toggle('hidden', String(selectedOption.data('siap-cetak')) !== '1');
@@ -1559,7 +1566,11 @@ let currentThumbnailPreview = null;
 
         try {
             const res = await fetch(`{{ url('/api/penjualan/produk') }}/${id}`);
-            currentProduk = await res.json();
+            const hasilProduk = await res.json();
+            // Respons basi: produk sudah terganti lagi sebelum respons tiba -
+            // buang, urutan terbaru yang dipakai.
+            if (tokenProduk !== urutanProdukTerpilih) return;
+            currentProduk = hasilProduk;
             currentProduk.metode_hitung = metode;
             // Ganti produk = Biaya Cetak manual (kalau ada) tidak relevan lagi
             // untuk produk yang baru dipilih - kembali ke auto-default dari
@@ -2007,6 +2018,12 @@ let currentThumbnailPreview = null;
     //              untuk finishing jahit/border yang dikerjakan sekeliling
     //              tepi produk (rumus sama dengan auto-override BOM bahan
     //              "jahit"). Juga otomatis dari input di atas.
+    // - 'KEPING_ROLL': meter jahit = keping x (P / 100) x qty. Keping =
+    //              floor(lebar_roll / (L / 100)) dari lebar roll BAHAN UTAMA
+    //              BOM produk (currentProduk.lebar_roll, endpoint produk
+    //              detail) - jahit mengikuti banyak keping hasil bagi lebar
+    //              roll (TC 1,2 m terbagi 2 atau 3 sesuai lebar barang).
+    //              Bahan utama tidak ber-roll -> fallback rumus keliling.
     // - 'quantity': jumlah pcs finishing dari field "Jumlah Pcs Finishing"
     //              yang bisa disesuaikan manual (TIDAK selalu sama dengan
     //              qty cetak produknya).
@@ -2034,6 +2051,8 @@ let currentThumbnailPreview = null;
             qtyFinishing = (currentProduk.metode_hitung === 'ukuran') ? (p * l / 10000) * qU : pcsProduk;
         } else if (metodeFinishing === 'keliling') {
             qtyFinishing = (currentProduk.metode_hitung === 'ukuran') ? (2 * (p + l) / 100) * qU : pcsProduk;
+        } else if (metodeFinishing === 'KEPING_ROLL') {
+            qtyFinishing = meterJahitKepingRoll(p, l, qU, pcsProduk);
         } else {
             // 'quantity' - dari field Jumlah Pcs Finishing (default = qty
             // produk selama belum disentuh manual, lihat onFinishingChange()).
@@ -2095,7 +2114,24 @@ let currentThumbnailPreview = null;
         const pcs = currentProduk.metode_hitung === 'ukuran' ? qU : qB;
         if (metode === 'luas') return currentProduk.metode_hitung === 'ukuran' ? (p * l / 10000) * qU : pcs;
         if (metode === 'keliling') return currentProduk.metode_hitung === 'ukuran' ? (2 * (p + l) / 100) * qU : pcs;
+        if (metode === 'KEPING_ROLL') return meterJahitKepingRoll(p, l, qU, pcs);
         return parseFloat(qtyPakai) || pcs;
+    }
+
+    // 'KEPING_ROLL' — jahit per keping hasil bagi lebar roll bahan utama BOM:
+    // keping = floor(lebar_roll_m / lebar barang_m), meter jahit =
+    // keping x panjang barang (m) x qty. Lebar roll bahan utama tidak tahu /
+    // nol -> fallback rumus keliling lama, sama seperti sisi checkout server
+    // (PenjualanCheckoutService::meterJahitKepingRoll).
+    function meterJahitKepingRoll(p, l, qU, fallbackPcs) {
+        if (!currentProduk || currentProduk.metode_hitung !== 'ukuran') return fallbackPcs;
+        const roll = parseFloat(currentProduk.lebar_roll) || 0;
+        if (roll <= 0) return (2 * (p + l) / 100) * qU;
+        if (l <= 0) return 0;
+        // Rasio dibulatkan dulu (1,2/0,4 = 2,9999999999999996) supaya
+        // pembagian tidak kehilangan 1 keping seperti di server.
+        const keping = Math.max(1, Math.floor(Math.round((roll / (l / 100)) * 1e6) / 1e6));
+        return keping * (p / 100) * qU;
     }
 
     // Kembalikan biaya Standar, atau `false` bila permintaan GAGAL.
@@ -2289,6 +2325,9 @@ let hitungBerjalan = 0;
 // harga dan notifikasi yang bertumpuk.
 let hitungUlangBerjalan = false;
 let hitungUlangMenunggu = false;
+// Token urutan hitung subtotal: hanya respons TERBARU yang boleh menulis
+// field (lihat penjaga di hitungSubtotalInti), respons basi dibuang.
+let urutanHitungSubtotal = 0;
     async function hitungSubtotal() {
         hitungBerjalan++;
         document.getElementById('status_hitung').classList.remove('hidden');
@@ -2301,6 +2340,11 @@ let hitungUlangMenunggu = false;
 
     async function hitungSubtotalInti() {
         if (!currentProduk) return null;
+        // Token urutan (pola sama dengan urutanHitungFinishing): saat user
+        // mengetik/berganti tab cepat, beberapa hitung berjalan bersamaan dan
+        // respons get-harga yang lebih TUA bisa datang belakangan lalu
+        // menimpa input_cetak & display subtotal dengan angka basi.
+        const urutanSaatIni = ++urutanHitungSubtotal;
         const idGol = document.getElementById('id_golongan').value;
         const p = parseFloat(document.getElementById('input_p').value) || 0;
         const l = parseFloat(document.getElementById('input_l').value) || 0;
@@ -2338,6 +2382,9 @@ let hitungUlangMenunggu = false;
             const url = `{{ url('/api/penjualan/get-harga') }}/${currentProduk.id_produk}/${idGol}/${qtyCari}${siapCetak ? '?siap_cetak=1' : ''}`;
             const response = await fetch(url);
             const data = await response.json();
+            // Respons basi (user sudah mengetik lagi / pindah tab cepat) -
+            // jangan tulis field, urutan terbaru yang boleh menimpa.
+            if (urutanSaatIni !== urutanHitungSubtotal) return null;
             let hargaJual = parseFloat(data.harga_jual) || 0;
             const isPromo = data.is_promo;
             const promoSelesai = data.promo_selesai;
