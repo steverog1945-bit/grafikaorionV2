@@ -32,14 +32,19 @@ class BackupService
             }
 
             // Dua cadangan di detik yang sama tidak boleh saling menimpa: beri akhiran _2, _3, ...
+            $kunci = self::kunciEnkripsi();
+            $ext = $kunci ? '.sql.enc' : '.sql';
             $dasar = "backup_{$tipe}_" . $startedAt->format('Ymd_His');
-            $filename = $dasar . '.sql';
+            $filename = $dasar . $ext;
             for ($n = 2; file_exists($dir . DIRECTORY_SEPARATOR . $filename); $n++) {
-                $filename = $dasar . '_' . $n . '.sql';
+                $filename = $dasar . '_' . $n . $ext;
             }
             $filePath = $dir . DIRECTORY_SEPARATOR . $filename;
 
             $dump = self::dump();
+            if ($kunci) {
+                $dump = self::enkripsiDump($dump, $kunci);
+            }
             file_put_contents($filePath, $dump);
             $size = filesize($filePath);
 
@@ -65,6 +70,52 @@ class BackupService
         }
 
         return $log->fresh();
+    }
+
+    /**
+     * Mencoba mengaktifkan enkripsi at-rest; mengembalikan kunci 32-byte
+     * (base64-decoded dari BACKUP_ENCRYPTION_KEY) atau null bila tidak diaktifkan.
+     * Gagal keras (die) bila BACKUP_ENCRYPTION_ENABLED=true tetapi kunci absen/invalid —
+     * tidak boleh diam-diam menulis dump plaintext.
+     */
+    private static function kunciEnkripsi(): ?string
+    {
+        if (!(bool) config('backup.encryption')) {
+            return null;
+        }
+        $kunci = base64_decode((string) config('backup.encryption_key'), true);
+        if ($kunci === false || strlen($kunci) !== 32) {
+            throw new \RuntimeException('BACKUP_ENCRYPTION_KEY harus base64 dari 32-byte acak (php: base64_encode(random_bytes(32)))');
+        }
+        return $kunci;
+    }
+
+    /** Magic "JLA1" || IV(12) || TAG(16) || ciphertext (AES-256-GCM). */
+    private static function enkripsiDump(string $plaintext, string $key): string
+    {
+        $iv = random_bytes(12);
+        $tag = '';
+        $ciphertext = openssl_encrypt($plaintext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+        if ($ciphertext === false) {
+            throw new \RuntimeException('Enkripsi dump gagal');
+        }
+        return 'JLA1' . $iv . $tag . $ciphertext;
+    }
+
+    /** Untuk restore manual (lihat docs/RESTORE-BACKUP.md). */
+    public static function dekripsiDump(string $ciphertext, string $key): string
+    {
+        if (substr($ciphertext, 0, 4) !== 'JLA1') {
+            throw new \RuntimeException('Bukan format backup JLA1');
+        }
+        $iv = substr($ciphertext, 4, 12);
+        $tag = substr($ciphertext, 16, 16);
+        $body = substr($ciphertext, 32);
+        $out = openssl_decrypt($body, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, '');
+        if ($out === false) {
+            throw new \RuntimeException('Dekripsi gagal (kunci salah atau berkas rusak)');
+        }
+        return $out;
     }
 
     private static function dump(): string
@@ -118,7 +169,7 @@ class BackupService
             // Retensi yang sama dengan salinan lokal, supaya lokasi kedua tidak tumbuh tanpa batas.
             $maks = (int) config("backup.retention.{$tipe}", 7);
             $berkas = collect(Storage::disk($disk)->files($tipe))
-                ->filter(fn ($f) => str_ends_with($f, '.sql'))
+                ->filter(fn ($f) => preg_match('/\.sql(\.enc)?$/', $f) === 1)
                 ->sortByDesc(fn ($f) => Storage::disk($disk)->lastModified($f))
                 ->values();
             foreach ($berkas->slice($maks) as $lama) {
@@ -135,7 +186,10 @@ class BackupService
     {
         $maxSimpan = config("backup.retention.{$tipe}", 7);
 
-        $files = collect(glob($dir . DIRECTORY_SEPARATOR . '*.sql'))
+        $files = collect(array_merge(
+            glob($dir . DIRECTORY_SEPARATOR . '*.sql'),
+            glob($dir . DIRECTORY_SEPARATOR . '*.sql.enc')
+        ))
             // Urut waktu ubah lalu nama (berisi cap waktu), supaya berkas di detik yang sama tetap urut benar.
             ->sortByDesc(fn (string $f) => sprintf('%012d', filemtime($f)) . basename($f))
             ->values();
