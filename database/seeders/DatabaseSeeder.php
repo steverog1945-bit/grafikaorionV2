@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -34,14 +35,23 @@ class DatabaseSeeder extends Seeder
             'status_aktif' => 1
         ]);
 
-        // 4. Insert User Admin
-        DB::table('users')->insert([
-            'id_user' => 1,
-            'id_karyawan' => 1,
-            'username' => 'admin',
-            'password' => Hash::make('admin123'), // Password terenkripsi
-            'id_role' => 1,
-        ]);
+        // 4. Insert User Admin. JANGAN pernah hardcode password.
+        // Password diambil dari SEED_ADMIN_PASSWORD (min 12 karakter) atau dibuat
+        // acak satu-kali dan dicetak ke console (tidak tersimpan di file mana pun).
+        $seedPassword = (string) env('SEED_ADMIN_PASSWORD', '');
+        if (strlen($seedPassword) < 12) {
+            $seedPassword = Str::random(28);
+            $this->command->warn('SEED_ADMIN_PASSWORD kosong/<12 karakter: password admin acak: ' . $seedPassword);
+        }
+        DB::table('users')->updateOrInsert(
+            ['username' => 'admin'],
+            [
+                'id_karyawan' => 1,
+                'password' => Hash::make($seedPassword),
+                'id_role' => 1,
+                'updated_at' => now(),
+            ]
+        );
         DB::table('kategori')->insert([
     ['id_kategori' => 1, 'nama_kategori' => 'Sticker'],
     ['id_kategori' => 2, 'nama_kategori' => 'Banner/Flexi'],
