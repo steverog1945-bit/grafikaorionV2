@@ -20,3 +20,7 @@ Schedule::command('data:rapikan')->dailyAt('03:00')->withoutOverlapping();
 // Temuan muncul di lonceng notifikasi dan halaman Audit Bulanan.
 Schedule::command('audit:integritas')->dailyAt('04:00')->withoutOverlapping();
 Schedule::command('backup:run monthly')->monthlyOn(1, '02:00')->withoutOverlapping();
+// Pemantauan laravel.log (audit run-1, GO audit-log): pindai error tiap 15 menit,
+// tulis ringkasan kecil ke storage/logs/monitor-log-periksa.log. exit 1 di atas ambang;
+// pantau berkas ini secara manual / terhubung ke WA/Notifikasi nanti.
+Schedule::command('log:periksa --ambang=20 --contoh=3')->everyFifteenMinutes()->withoutOverlapping()->appendOutputTo(storage_path('logs/monitor-log-periksa.log'));

@@ -123,6 +123,9 @@ class ProduksiCekCommand extends Command
             foreach (File::glob($dasar . DIRECTORY_SEPARATOR . $tipe . DIRECTORY_SEPARATOR . '*.sql') as $f) {
                 $terbaru = max($terbaru ?? 0, filemtime($f));
             }
+            foreach (File::glob($dasar . DIRECTORY_SEPARATOR . $tipe . DIRECTORY_SEPARATOR . '*.sql.enc') as $f) {
+                $terbaru = max($terbaru ?? 0, filemtime($f));
+            }
         }
 
         if ($terbaru === null) {
