@@ -41,6 +41,11 @@ class ApiRbac
         if (!$user) {
             return $this->tolak('Autentikasi API diperlukan.');
         }
+        if (!$user->is_active) {
+            // Pertahanan kedua: nonaktif di cocokkan() sudah menolak token
+            // lama; ini menutup jalur bila api.auth pernah diganti/ditunda.
+            return $this->tolak('Autentikasi API diperlukan.');
+        }
 
         // Sama seperti CheckMenuAccess: Owner dan role baca-saja tidak boleh
         // menjalankan aksi tulis walaupun baris izin menandai can_add=true.

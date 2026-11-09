@@ -89,6 +89,7 @@ class ApiTokenService
         }
 
         $user = User::where('api_token_hash', $this->hash($token))
+            ->where('is_active', true)
             ->whereNotNull('api_token_expires_at')
             ->where('api_token_expires_at', '>', now())
             ->first();

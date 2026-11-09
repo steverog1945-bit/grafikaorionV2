@@ -25,11 +25,13 @@ use Illuminate\Support\Facades\Hash;
  * LIMIT: jalur /auth/token di-throttle api-token (5/menit per
  * username+IP, AppServiceProvider) sebagai rem kegagalan kredensial.
  *
- * Tabel users tidak punya kolom email/is_active - autentikasi lewat
+ * Tabel users tidak punya kolom email; autentikasi lewat
  * username + password. Kolom lama users.api_token (plaintext) tidak lagi
  * berfungsi: kode ini tidak pernah mencocokkannya. Pemegang token era
  * sebelum API-5 WAJIB menerima token baru lewat endpoint ini pada
  * cutover yang disetujui owner (lihat docs/API_TOKEN_CUTOVER.md).
+ * Akun nonaktif (users.is_active=0) tidak bisa mint token, dan token
+ * lamanya ikut mati di sisi ApiTokenService::cocokkan().
  */
 class AuthController extends Controller
 {
@@ -50,7 +52,7 @@ class AuthController extends Controller
 
         $user = User::where('username', $credentials['username'])->first();
 
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+        if (!$user || !Hash::check($credentials['password'], $user->password) || !$user->is_active) {
             return response()->json(['error' => 'Username atau password salah.'], 401);
         }
 
