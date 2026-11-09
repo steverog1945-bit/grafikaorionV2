@@ -269,80 +269,86 @@
 
 @push('scripts')
 <script>
+    <!--[if lt IE 12]><script src="{{ asset('vendor/es6-promise/es6-promise.auto.min.js') }}"></script><![endif]-->
     $(document).ready(function() {
         $('.select2-filter').select2({ width: '100%', placeholder: '-- Semua Konsumen --', allowClear: true });
     });
 
     function escapeHtml(str) {
-        const div = document.createElement('div');
+        var div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
     }
 
+    function showHistory(id) {
+        Swal.fire({ title: 'Memuat...', didOpen: function() { Swal.showLoading(); } });
 
-    async function showHistory(id) {
-        Swal.fire({ title: 'Memuat...', didOpen: () => Swal.showLoading() });
-
-        try {
-            const res = await fetch(`{{ url('/kasir/history') }}/${id}`);
-            const data = await res.json();
-
-            if (data.status !== 'success') {
-                return Swal.fire('Gagal', data.msg || 'Data tidak ditemukan.', 'error');
+        $.ajax({
+            url: '{{ url('/kasir/history') }}/' + id,
+            method: 'GET',
+            dataType: 'json'
+        }).done(function(data) {
+            if (!data || data.status !== 'success') {
+                Swal.fire('Gagal', (data && data.msg) || 'Data tidak ditemukan.', 'error');
+                return;
             }
 
-            const itemRows = data.items.map(it =>
-                `<tr>
-                    <td class="py-1 pr-2">${escapeHtml(it.nama_file)}</td>
-                    <td class="py-1 pr-2 text-center">${it.qty}${it.qty_cetak !== null ? ' / ' + it.qty_cetak : ''}</td>
-                    <td class="py-1 text-right font-medium">${it.status_spk}</td>
-                </tr>`
-            ).join('');
+            var itemRows = (data.items || []).map(function(it) {
+                return '<tr>'
+                    + '<td class="py-1 pr-2">' + escapeHtml(it.nama_file) + '</td>'
+                    + '<td class="py-1 pr-2 text-center">' + it.qty + (it.qty_cetak != null ? ' / ' + it.qty_cetak : '') + '</td>'
+                    + '<td class="py-1 text-right font-medium">' + it.status_spk + '</td>'
+                    + '</tr>';
+            }).join('');
 
-            const bayarRows = data.pembayaran.length
-                ? data.pembayaran.map(p =>
-                    `<tr>
-                        <td class="py-1 pr-2">${new Date(p.tgl_bayar).toLocaleString('id-ID')}</td>
-                        <td class="py-1 pr-2">${p.metode}</td>
-                        <td class="py-1 text-right font-medium">Rp ${new Intl.NumberFormat('id-ID').format(p.nominal)}</td>
-                    </tr>`
-                  ).join('')
-                : '<tr><td colspan="3" class="py-2 text-slate-400 italic">Belum ada pembayaran tercatat.</td></tr>';
+            var bayarRows;
+            if (data.pembayaran && data.pembayaran.length) {
+                bayarRows = data.pembayaran.map(function(p) {
+                    var nominal = p.nominal || 0;
+                    return '<tr>'
+                        + '<td class="py-1 pr-2">' + new Date(p.tgl_bayar).toLocaleString('id-ID') + '</td>'
+                        + '<td class="py-1 pr-2">' + p.metode + '</td>'
+                        + '<td class="py-1 text-right font-medium">Rp ' + new Intl.NumberFormat('id-ID').format(nominal) + '</td>'
+                        + '</tr>';
+                }).join('');
+            } else {
+                bayarRows = '<tr><td colspan="3" class="py-2 text-slate-400 italic">Belum ada pembayaran tercatat.</td></tr>';
+            }
 
             Swal.fire({
                 title: 'Nota ' + data.nomor_nota,
                 width: 480,
-                html: `
-                    <div class="text-left text-xs">
-                        <p class="text-slate-500 mb-3">Order: ${new Date(data.tgl_order).toLocaleString('id-ID')} &middot; Status: <b>${data.status_pembayaran}</b></p>
-                        <p class="font-medium uppercase text-[10px] text-slate-400 mb-1">Item &amp; Status SPK (qty order / qty cetak)</p>
-                        <table class="w-full mb-4">${itemRows}</table>
-                        <p class="font-medium uppercase text-[10px] text-slate-400 mb-1">Riwayat Pembayaran</p>
-                        <table class="w-full">${bayarRows}</table>
-                    </div>
-                `,
-                icon: undefined,
+                html:
+                    '<div class="text-left text-xs">'
+                    + '<p class="text-slate-500 mb-3">Order: ' + new Date(data.tgl_order).toLocaleString('id-ID') + ' &middot; Status: <b>' + data.status_pembayaran + '</b></p>'
+                    + '<p class="font-medium uppercase text-[10px] text-slate-400 mb-1">Item &amp; Status SPK (qty order / qty cetak)</p>'
+                    + '<table class="w-full mb-4">' + itemRows + '</table>'
+                    + '<p class="font-medium uppercase text-[10px] text-slate-400 mb-1">Riwayat Pembayaran</p>'
+                    + '<table class="w-full">' + bayarRows + '</table>'
+                    + '</div>',
                 customClass: {}
             });
-        } catch (e) {
+        }).fail(function() {
             Swal.fire('Gagal memuat', 'Riwayat pembayaran tidak bisa dimuat. Coba lagi.', 'error');
-        }
+        });
     }
 
     // Polling jumlah antrean baru (endpoint /kasir/check-pembayaran menghitung
     // nota status_order='Menunggu Kasir', sama persis dengan lencana "Antrean
     // Baru"). Yang dipantau adalah ANTREAN, bukan tabel ini - makanya banner
     // mengarah ke Antrean Baru.
-    let initialWaitingCount = {{ $waitingCount ?? 0 }};
+    var initialWaitingCount = {{ $waitingCount ?? 0 }};
 
     function checkNewTransaction() {
-        fetch("{{ url('/kasir/check-pembayaran') }}")
-            .then(res => res.json())
-            .then(data => {
-                if (data.total > initialWaitingCount) {
-                    document.getElementById('new-data-alert').classList.remove('hidden');
-                }
-            });
+        $.ajax({
+            url: "{{ url('/kasir/check-pembayaran') }}",
+            method: 'GET',
+            dataType: 'json'
+        }).done(function(data) {
+            if (data && data.total > initialWaitingCount) {
+                document.getElementById('new-data-alert').classList.remove('hidden');
+            }
+        });
     }
     setInterval(checkNewTransaction, 10000);
 
@@ -353,7 +359,7 @@
     function bukaScanBarcode() {
         openModal('scan-barcode');
         document.getElementById('input-scan-manual').value = '';
-        setTimeout(() => document.getElementById('input-scan-manual').focus(), 150);
+        setTimeout(function() { document.getElementById('input-scan-manual').focus(); }, 150);
     }
 
     document.getElementById('input-scan-manual').addEventListener('keydown', function (e) {
@@ -364,33 +370,42 @@
 
     function prosesKodeBarcode(kode) {
         // Kode bisa "TRX123" (barcode lama / ketik manual) atau ALAMAT pembayaran dari QR (.../kasir/bayar-form/123).
-        const teks = (kode || '').trim();
-        const cocok = /^TRX(\d+)$/i.exec(teks) || /\/kasir\/bayar-form\/(\d+)\/?(?:[?#].*)?$/i.exec(teks);
+        var teks = (kode || '').trim();
+        var cocok = /^TRX(\d+)$/i.exec(teks) || /\/kasir\/bayar-form\/(\d+)\/?(?:[?#].*)?$/i.exec(teks);
         if (!cocok) {
             Swal.fire('Kode Tidak Dikenali', 'Barcode ini bukan barcode SPK/Nota yang valid dari aplikasi.', 'error');
             document.getElementById('input-scan-manual').value = '';
             document.getElementById('input-scan-manual').focus();
             return;
         }
-        window.location.href = `{{ url('/kasir/bayar-form') }}/${cocok[1]}`;
+        window.location.href = '{{ url('/kasir/bayar-form') }}/' + cocok[1];
     }
 
     // Kamera dimuat MALAS (lazy) - library html5-qrcode (CDN) baru
     // diambil begitu tombol "Scan Pakai Kamera" pertama kali ditekan,
     // bukan di setiap kunjungan halaman Monitoring Kasir yang notabene
     // dibuka berkali-kali sehari.
-    let html5QrcodeScannerAktif = null;
-    let libHtml5QrcodeSudahDimuat = false;
+    var html5QrcodeScannerAktif = null;
+    var libHtml5QrcodeSudahDimuat = false;
 
-    function muatLibHtml5Qrcode() {
-        return new Promise((resolve, reject) => {
-            if (libHtml5QrcodeSudahDimuat) return resolve();
-            const script = document.createElement('script');
-            script.src = '{{ asset('vendor/html5-qrcode/html5-qrcode.min.js') }}';
-            script.onload = () => { libHtml5QrcodeSudahDimuat = true; resolve(); };
-            script.onerror = () => reject(new Error('Gagal memuat library kamera.'));
-            document.head.appendChild(script);
-        });
+    function muatLibHtml5Qrcode(cb) {
+        if (libHtml5QrcodeSudahDimuat) {
+            cb();
+            return;
+        }
+        var script = document.createElement('script');
+        script.src = '{{ asset('vendor/html5-qrcode/html5-qrcode.min.js') }}';
+        script.onload = function() {
+            libHtml5QrcodeSudahDimuat = true;
+            cb();
+        };
+        script.onerror = function() {
+            var statusEl = document.getElementById('status-kamera-scan');
+            if (statusEl) {
+                statusEl.textContent = 'Gagal memuat library kamera - muat ulang halaman.';
+            }
+        };
+        document.head.appendChild(script);
     }
 
     /* Peta error kamera ke bahasa yang bisa ditindaklanjuti.
@@ -404,8 +419,8 @@
        ditulis terpisah, dengan langkah yang benar-benar berguna.
     */
     function jelaskanErrorKamera(e) {
-        const nama = e && e.name ? e.name : '';
-        const pesanAsli = e && e.message ? e.message : String(e || '');
+        var nama = e && e.name ? e.name : '';
+        var pesanAsli = e && e.message ? e.message : String(e || '');
 
         if (nama === 'NotAllowedError' || /permission|denied/i.test(pesanAsli)) {
             return {
@@ -452,15 +467,15 @@
         };
     }
 
-    async function mulaiScanKamera() {
-        const statusEl = document.getElementById('status-kamera-scan');
-        const readerEl = document.getElementById('reader-barcode');
+    function mulaiScanKamera() {
+        var statusEl = document.getElementById('status-kamera-scan');
+        var readerEl = document.getElementById('reader-barcode');
 
         // getUserMedia hanya ada di konteks aman (HTTPS atau localhost).
         // Dicek lebih dulu supaya pengguna diberi tahu penyebab yang
         // sebenarnya, bukan "izin belum diberikan" yang tidak berguna.
         if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            const info = jelaskanErrorKamera({ name: 'SecurityError' });
+            var info = jelaskanErrorKamera({ name: 'SecurityError' });
             Swal.fire({
                 title: info.judul,
                 html: '<div style="text-align:left;font-size:13px;line-height:1.6">' + info.arah + '</div>',
@@ -471,48 +486,39 @@
         }
 
         statusEl.textContent = 'Memuat kamera...';
-        try {
-            await muatLibHtml5Qrcode();
-        } catch (e) {
-            statusEl.textContent = 'Gagal memuat library kamera - muat ulang halaman.';
-            return;
-        }
+        muatLibHtml5Qrcode(function() {
+            readerEl.classList.remove('hidden');
+            if (html5QrcodeScannerAktif) return;
 
-        readerEl.classList.remove('hidden');
-        if (html5QrcodeScannerAktif) return;
+            html5QrcodeScannerAktif = new Html5Qrcode('reader-barcode', {
+                formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128],
+            });
 
-        html5QrcodeScannerAktif = new Html5Qrcode('reader-barcode', {
-            formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128],
+            muatKamera(readerEl, statusEl);
         });
+    }
 
-        /* facingMode ditulis sebagai { ideal: ... } BUKAN { exact: ... }.
-
-           Ini penyebab kedua bug ini di HP. Dengan exact, browser HARUS
-           menemukan kamera yang persis memenuhi permintaan itu; kalau
-           tidak ada, ia menolak tanpa mencoba yang lain. Kamera
-           belakang sering tidak tersedia persis saat dibutuhkan - sedang
-           dipakai aplikasi lain, atau mode kamera aktif berbeda. 'ideal'
-           berarti "pilih yang belakang kalau ada, kalau tidak pakai
-           yang ada". Untuk scan barcode, kamera depan masih bisa
-           dipakai, jadi menolak seluruhnya hanya karena tidak dapat
-           yang ideal adalah keputusan yang salah.
-        */
+    function muatKamera(readerEl, statusEl) {
+        // facingMode ditulis sebagai { ideal: ... } BUKAN { exact: ... }.
+        // Dengan exact, browser HARUS menemukan kamera yang persis memenuhi
+        // permintaan itu; kalau tidak ada, ia menolak tanpa mencoba yang lain.
+        // 'ideal' berarti "pilih yang belakang kalau ada, kalau tidak pakai yang ada".
         try {
-            await html5QrcodeScannerAktif.start(
+            html5QrcodeScannerAktif.start(
                 { facingMode: { ideal: 'environment' } },
                 { fps: 10, qrbox: { width: 260, height: 120 }, aspectRatio: 2.0 },
-                (kodeTerbaca) => {
+                function(kodeTerbaca) {
                     statusEl.textContent = 'Terbaca: ' + kodeTerbaca;
-                    html5QrcodeScannerAktif.stop().then(() => {
+                    html5QrcodeScannerAktif.stop().then(function() {
                         html5QrcodeScannerAktif = null;
                         prosesKodeBarcode(kodeTerbaca);
                     });
                 },
-                () => { /* frame tanpa barcode - abaikan, ini dipanggil terus tiap frame */ }
+                function() { /* frame tanpa barcode - abaikan, ini dipanggil terus tiap frame */ }
             );
             statusEl.textContent = 'Arahkan kamera ke barcode...';
         } catch (e) {
-            const info = jelaskanErrorKamera(e);
+            var info = jelaskanErrorKamera(e);
             statusEl.textContent = info.judul;
             Swal.fire({
                 title: info.judul,
@@ -520,7 +526,7 @@
                 icon: 'warning',
                 confirmButtonText: 'Mengerti',
             });
-            try { await html5QrcodeScannerAktif.stop(); } catch (e2) { /* belum start, tidak apa-apa */ }
+            try { html5QrcodeScannerAktif.stop(); } catch (e2) { /* belum start, tidak apa-apa */ }
             html5QrcodeScannerAktif = null;
             readerEl.classList.add('hidden');
         }
