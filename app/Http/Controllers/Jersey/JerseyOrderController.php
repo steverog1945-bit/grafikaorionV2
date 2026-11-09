@@ -121,6 +121,15 @@ class JerseyOrderController extends Controller
                             return;
                         }
 
+                        // Konten juga diverifikasi (finfo + daftar isi terlarang),
+                        // bukan cuma ekstensi nama klien — audit run-1.
+                        $galatIsi = \App\Support\BerkasAman::periksa($value, \App\Support\BerkasAman::DAFTAR_PUTIH);
+                        if ($galatIsi !== null) {
+                            $fail($galatIsi);
+
+                            return;
+                        }
+
                         $maksKb = \App\Support\BerkasDesain::maksKilobyte($ekstensi);
                         if ($value->getSize() > $maksKb * 1024) {
                             $fail('Ukuran file terlalu besar (maksimal ' . number_format($maksKb / 1024, 0, ',', '.') . ' MB).');
