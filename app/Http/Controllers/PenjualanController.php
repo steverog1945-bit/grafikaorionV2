@@ -807,7 +807,8 @@ public function uploadThumbnail(Request $request)
     $filePreview = $request->file('thumbnail_preview');
     if ($filePreview instanceof \Illuminate\Http\UploadedFile) {
         $ekstPreview = \App\Support\BerkasDesain::ekstensi($filePreview->getClientOriginalExtension());
-        if (\App\Support\BerkasDesain::diizinkan($ekstPreview)) {
+        if (\App\Support\BerkasDesain::diizinkan($ekstPreview)
+            && \App\Support\BerkasAman::periksa($filePreview, \App\Support\BerkasAman::DAFTAR_PUTIH) === null) {
             $pathPreview = $filePreview->storeAs(
                 'order_thumbnails',
                 \Illuminate\Support\Str::random(40) . '.' . $ekstPreview,
@@ -1517,6 +1518,15 @@ public function rejectEditNota(Request $request, $id)
  */
     public function editLangsung($id)
     {
+        // Harus setara mode "direct" di requestEditNota: hanya boleh bila
+        // approval edit nota MEMANG dinonaktifkan ATAU pelaku Administrator.
+        // Saat aktif (default), aksi langsung seperti ini harus lewat
+        // persetujuan Administrator (audit run-1, SA::U1.edit-langsung-bypass-approval-gate).
+        if (\App\Models\AppSetting::current()->approval_edit_nota
+            && !\App\Support\Izin::adalahAdmin(Auth::user())) {
+            return back()->with('error', 'Edit langsung tidak tersedia saat fitur approval edit nota aktif. Ajukan permintaan edit dan tunggu persetujuan Administrator.');
+        }
+
         $transaksi = DB::table('transaksi')->where('id_transaksi', $id)->first();
         if (!$transaksi) {
             abort(404);

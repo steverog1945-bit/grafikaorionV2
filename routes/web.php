@@ -294,6 +294,8 @@ Route::get('/dashboard/api/kpi', [DashboardController::class, 'kpiApi'])->name('
     Route::patch('/penjualan/edit-nota/{id}/reject', [PenjualanController::class, 'rejectEditNota'])
         ->name('penjualan.edit-reject');
 Route::post('/penjualan/{id}/edit-langsung', [PenjualanController::class, 'editLangsung'])
+    ->middleware('restrict.input-only')
+    ->whereNumber('id')
     ->name('penjualan.edit-langsung');
 
     Route::post('/penjualan/edit-nota/{id}/apply', [PenjualanController::class, 'applyApprovedEdit'])
