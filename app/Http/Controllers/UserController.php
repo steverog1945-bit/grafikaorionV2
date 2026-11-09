@@ -27,6 +27,25 @@ class UserController extends Controller
         'Gudang'   => 'Gudang',
     ];
 
+    /**
+     * Putuskan semua sesi & token API akun (dipanggil saat password/role
+     * diganti atau akun dinonaktifkan) — audit run-1, SA::U1.user-update-password-session-rotation.
+     * Menghapus sesi DB saja tidak cukup bila token API tidak di-null-kan;
+     * keduanya harus ikut supaya pencurian kredensial berhenti di satu langkah.
+     */
+    private static function cabutSesiDanToken($user): void
+    {
+        $user->setRememberToken(null);
+        DB::table('users')->where('id_user', $user->id_user)->update([
+            'remember_token' => null,
+            'api_token' => null,
+            'api_token_hash' => null,
+            'api_token_expires_at' => null,
+            'updated_at' => now(),
+        ]);
+        DB::table('sessions')->where('user_id', $user->id_user)->delete();
+    }
+
     public function index()
     {
         $users = User::with(['karyawan', 'role'])->get();
@@ -93,11 +112,19 @@ class UserController extends Controller
     $user->id_role = $request->id_role;
 
     // Hanya update password jika diisi
-    if ($request->filled('password')) {
+    $passwordDiganti = $request->filled('password');
+    if ($passwordDiganti) {
         $user->password = Hash::make($request->password);
     }
 
     $user->save();
+
+    // Sesi & token dicabut bila kredensial/role berubah (lihat helper di atas).
+    // Username-only edit tidak memutus siapa pun.
+    $roleBerubah = $roleLama !== (int) $user->id_role;
+    if ($passwordDiganti || $roleBerubah) {
+        self::cabutSesiDanToken($user);
+    }
 
     // Nilai password tidak pernah dicatat; hanya fakta bahwa password diganti.
     \App\Services\AuditLogger::log('updated', 'users', (int) $id, ['id_role' => $roleLama], ['username' => $user->username, 'id_role' => (int) $user->id_role, 'password_diganti' => $request->filled('password')], $roleLama !== (int) $user->id_role ? 'Akun user diperbarui (role berubah)' : 'Akun user diperbarui');
@@ -179,9 +206,8 @@ public function destroy($id)
         }
 
         $user->is_active = false;
-        $user->setRememberToken(null);
+        self::cabutSesiDanToken($user);
         $user->save();
-        DB::table('sessions')->where('user_id', $user->id_user)->delete();
 
         \App\Services\AuditLogger::log('updated', 'users', (int) $user->id_user, ['is_active' => 1], ['is_active' => 0], 'Akun dinon-aktifkan (karyawan resign / akun tidak dipakai)');
 
@@ -226,8 +252,11 @@ public function destroy($id)
             $disk->delete('profil/' . $user->foto_profil);
         }
 
-        $ext = $request->file('foto')->getClientOriginalExtension() ?: 'jpg';
-        $nama = 'u' . $user->id_user . '_' . time() . '.' . strtolower($ext);
+        // Ekstensi ditentukan dari MIME hasil finfo, bukan nama asli klien —
+        // nama bisa tipu, isi sudah divalidasi 'image|mimes' di atas.
+        $mim = strtolower((string) $request->file('foto')->getMimeType());
+        $ekstensi = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'][$mim] ?? 'jpg';
+        $nama = 'u' . $user->id_user . '_' . time() . '.' . $ekstensi;
         $request->file('foto')->storeAs('profil', $nama, 'public');
 
         $user->foto_profil = $nama;
