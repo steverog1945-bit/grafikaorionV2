@@ -383,6 +383,7 @@ class JerseyOrderController extends Controller
             'file_siap_cetak' => 'nullable|boolean',
             'notes' => 'nullable|string|max:2000',
             'discount' => 'nullable|numeric|min:0',
+            'discount_per_tier' => 'nullable|numeric|min:0',
             'additional_charge' => 'nullable|numeric|min:0',
             'deposit' => 'nullable|numeric|min:0',
 
@@ -484,6 +485,7 @@ class JerseyOrderController extends Controller
                 'total' => 0,
                 // Diskon dan biaya tambahan adalah keputusan harga: role tanpa hak harga tidak bisa mengisinya.
                 'discount' => \App\Support\AksesHarga::bolehLihat() ? ($data['discount'] ?? 0) : 0,
+                'discount_per_tier' => \App\Support\AksesHarga::bolehLihat() ? ($data['discount_per_tier'] ?? 0) : 0,
                 'additional_charge' => \App\Support\AksesHarga::bolehLihat() ? ($data['additional_charge'] ?? 0) : 0,
                 'deposit' => 0,
                 'status_pembayaran' => 'Belum Bayar',
@@ -701,7 +703,36 @@ class JerseyOrderController extends Controller
             'dewasa',
             $golonganKonsumen
         );
-        $hargaDewasa = (float) ($tier->price ?? 0);
+        $hargaDewasaMentah = (float) ($tier->price ?? 0);
+
+        // Diskon per tier (keputusan owner 2026-11-10): potongan Rp PER PCS
+        // pada harga tier yang sedang aktif. Berlaku untuk tier dewasa DAN
+        // tier anak (anak yang mendahului dewasa tetap kena potongan sama).
+        // Harga TIDAK BOLEH jadi nol/negatif setelah diskon - posisi itu
+        // ditolak: previewHarga melaporkan lewat error, simpan gagal pesan.
+        //
+        // Nilai diambil dari: field lines[].discount_per_tier (per baris,
+        // tidak dipakai form saat ini) > input request global
+        // (form create/updateLines) > kolom discount_per_tier order
+        // tersimpan (request()->route('order')) > 0. Fallback ke order
+        // tersimpan wajib ada: Kelola Barang & susulan tidak mengirim
+        // diskon_per_tier sendiri, tetapi barisnya HARUS tetap dihargai
+        // dengan diskon yang berlaku saat order dibuat.
+        $diskonPerTier = $lineData['discount_per_tier'] ?? null;
+        if ($diskonPerTier === null || $diskonPerTier === '') {
+            $diskonPerTier = request()->input('discount_per_tier', null);
+        }
+        if ($diskonPerTier === null || $diskonPerTier === '') {
+            $diskonPerTier = optional((object) request()->route('order'))->discount_per_tier ?? 0;
+        }
+        $diskonPerTier = (float) $diskonPerTier ?: 0.0;
+        if (!\App\Support\AksesHarga::bolehLihat()) {
+            $diskonPerTier = 0.0; // role tanpa hak harga: diskon per tier diabaikan total
+        }
+        if ($diskonPerTier < 0) {
+            throw new \InvalidArgumentException('Diskon per Tier tidak boleh bernilai negatif.');
+        }
+        $hargaDewasa = $hargaDewasaMentah - $diskonPerTier;
 
         // Ukuran ANAK memakai tier harga kelompok 'anak' bila ada (dicari dengan qty total barang yang sama),
         // kalau tidak ada tier anak jatuh ke harga dewasa (selisih persen per ukuran tetap berlaku).
@@ -713,7 +744,25 @@ class JerseyOrderController extends Controller
             'anak',
             $golonganKonsumen
         );
-        $hargaAnak = $tierAnak ? (float) $tierAnak->price : $hargaDewasa;
+        $hargaAnakMentah = $tierAnak ? (float) $tierAnak->price : $hargaDewasaMentah;
+        $hargaAnak = $hargaAnakMentah - $diskonPerTier;
+
+        if ($diskonPerTier > 0) {
+            if ($hargaDewasa <= 0) {
+                throw new \InvalidArgumentException(
+                    'Harga tier dewasa menjadi Rp ' . number_format($hargaDewasa, 0, ',', '.')
+                    . ' setelah Diskon per Tier Rp ' . number_format($diskonPerTier, 0, ',', '.')
+                    . '/pcs. Turunkan Diskon per Tier atau naikkan harga tier di master.'
+                );
+            }
+            if ($hargaAnak <= 0) {
+                throw new \InvalidArgumentException(
+                    'Harga tier anak menjadi Rp ' . number_format($hargaAnak, 0, ',', '.')
+                    . ' setelah Diskon per Tier Rp ' . number_format($diskonPerTier, 0, ',', '.')
+                    . '/pcs. Turunkan Diskon per Tier atau naikkan harga tier anak di master.'
+                );
+            }
+        }
         $kelompokBySizeId = $this->cacheMaster['kelompokBySizeId'] ??= JerseySize::pluck('kelompok', 'id');
         $hargaSatuanPerSize = [];
         $totalDasar = 0.0;
@@ -936,25 +985,31 @@ class JerseyOrderController extends Controller
         $hasilPerBaris = [];
         $totalOrder = 0.0;
 
-        foreach ($request->input('lines', []) as $idx => $lineData) {
-            $h = $this->hitungHargaBaris(is_array($lineData) ? $lineData : []);
-            if ($h === null) {
-                continue;
+        // Diskon per Tier bisa membuat harga jadi nol/negatif - mendeteksi &
+        // melaporkan dengan pesan jelas alih-alih melempar 500.
+        try {
+            foreach ($request->input('lines', []) as $idx => $lineData) {
+                $h = $this->hitungHargaBaris(is_array($lineData) ? $lineData : []);
+                if ($h === null) {
+                    continue;
+                }
+                $totalOrder += $h['subtotal'];
+                $hasilPerBaris[$idx] = [
+                    'qty' => $h['qty'],
+                    'harga_satuan' => $h['hargaSatuan'],
+                    'size_surcharge_total' => $h['surchargeTotal'],
+                    'sleeve_collar_surcharge_total' => $h['sleeveCollarSurchargeTotal'],
+                    'subtotal' => $h['subtotal'],
+                    'ada_tier' => $h['tier'] !== null && (float) $h['tier']->price > 0,
+                    'tier_label' => $h['tier'] !== null
+                        ? 'min ' . $h['tier']->qty_min . ($h['tier']->qty_max ? '–' . $h['tier']->qty_max : '') . ' pcs @ Rp ' . number_format((float) $h['tier']->price, 0, ',', '.')
+                        : null,
+                    'rincian' => $h['rincian'],
+                    'pemain_tanpa_ukuran' => $h['pemain_tanpa_ukuran'],
+                ];
             }
-            $totalOrder += $h['subtotal'];
-            $hasilPerBaris[$idx] = [
-                'qty' => $h['qty'],
-                'harga_satuan' => $h['hargaSatuan'],
-                'size_surcharge_total' => $h['surchargeTotal'],
-                'sleeve_collar_surcharge_total' => $h['sleeveCollarSurchargeTotal'],
-                'subtotal' => $h['subtotal'],
-                'ada_tier' => $h['tier'] !== null && (float) $h['tier']->price > 0,
-                'tier_label' => $h['tier'] !== null
-                    ? 'min ' . $h['tier']->qty_min . ($h['tier']->qty_max ? '–' . $h['tier']->qty_max : '') . ' pcs @ Rp ' . number_format((float) $h['tier']->price, 0, ',', '.')
-                    : null,
-                'rincian' => $h['rincian'],
-                'pemain_tanpa_ukuran' => $h['pemain_tanpa_ukuran'],
-            ];
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()]);
         }
 
         $diskon = (float) str_replace(['.', ','], ['', '.'], (string) $request->input('discount', 0));
@@ -999,6 +1054,7 @@ class JerseyOrderController extends Controller
             'id_desainer' => 'nullable|exists:users,id_user',
             'file_siap_cetak' => 'nullable|boolean',
             'discount' => 'nullable|numeric|min:0',
+            'discount_per_tier' => 'nullable|numeric|min:0',
             'additional_charge' => 'nullable|numeric|min:0',
         ]);
 
@@ -1019,7 +1075,7 @@ class JerseyOrderController extends Controller
 
         // Role tanpa hak harga tidak melihat kolom diskon/biaya tambahan; nilai lama dipertahankan, bukan dikosongkan.
         if (! \App\Support\AksesHarga::bolehLihat()) {
-            unset($data['discount'], $data['additional_charge']);
+            unset($data['discount'], $data['discount_per_tier'], $data['additional_charge']);
         }
 
         // Dibungkus transaction - update() dan recalculateTotal() (yang juga
@@ -1086,6 +1142,7 @@ class JerseyOrderController extends Controller
 
         $data = $request->validate([
             'lines' => 'required|array|min:1',
+            'discount_per_tier' => 'nullable|numeric|min:0',
             'lines.*.nama_barang' => 'required|string|max:255',
             // Audit kelengkapan (dropdown wajib terisi): Tipe Produk, Kategori,
             // dan Bahan menentukan harga tier & estimasi kain - biarkan kosong

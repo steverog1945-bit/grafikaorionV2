@@ -123,6 +123,9 @@
             $sisaJersey = max(0, (float) $order->total - (float) $order->deposit);
         @endphp
         <table class="table-compact ringkas-jersey">
+            @if((float) $order->discount_per_tier > 0)
+            <tr><td class="l">Diskon per Tier</td><td class="t">:</td><td class="v">- Rp {{ number_format($order->discount_per_tier, 0, ',', '.') }} /pcs</td></tr>
+            @endif
             <tr><td class="l">Diskon</td><td class="t">:</td><td class="v">Rp {{ number_format($order->discount, 0, ',', '.') }}</td></tr>
             <tr><td class="l">Biaya Tambahan</td><td class="t">:</td><td class="v">Rp {{ number_format($order->additional_charge, 0, ',', '.') }}</td></tr>
             <tr class="tebal"><td class="l">TOTAL</td><td class="t">:</td><td class="v">Rp {{ number_format($order->total, 0, ',', '.') }}</td></tr>

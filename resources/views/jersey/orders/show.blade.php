@@ -64,6 +64,7 @@
             @bolehHarga
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between"><span class="text-slate-400">Subtotal Barang</span><span>Rp {{ number_format($order->lines->sum('subtotal'), 0, ',', '.') }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Diskon per Tier (Rp/pcs)</span><span>- Rp {{ number_format($order->discount_per_tier, 0, ',', '.') }} /pcs</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Diskon</span><span>Rp {{ number_format($order->discount, 0, ',', '.') }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Biaya Tambahan</span><span>Rp {{ number_format($order->additional_charge, 0, ',', '.') }}</span></div>
                 <div class="flex justify-between border-t border-slate-100 pt-2 font-medium text-base"><span>Total</span><span>Rp {{ number_format($order->total, 0, ',', '.') }}</span></div>
@@ -270,6 +271,13 @@
                 document.addEventListener('DOMContentLoaded', function () { setSiapCetakEdit({{ $order->file_siap_cetak ? '1' : '0' }}); });
             </script>
             @bolehHarga
+            {{-- Tampilan saja. Untuk mengubah diskon per tier, gunakan Kelola Barang -
+                 harga satuan per baris dihitung ulang dari nol di sana
+                 (updateLines), sedangkan total biasa tidak ikut menyentuh baris. --}}
+            <div class="md:col-span-3 flex justify-between rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 text-xs text-slate-500">
+                <span>Diskon per Tier (Rp/pcs)</span>
+                <span class="font-medium text-slate-700">- {{ number_format($order->discount_per_tier, 0, ',', '.') }} /pcs</span>
+            </div>
             <x-form.group label="Diskon (Rp)">
                 <input type="text" inputmode="numeric" name="discount" value="{{ number_format($order->discount, 0, ',', '.') }}" class="format-ribuan w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
             </x-form.group>

@@ -160,6 +160,9 @@
 
                     <div class="space-y-4">
                         @bolehHarga
+                        <x-form.group label="Diskon per Tier (Rp/pcs)">
+                            <x-form.input type="text" inputmode="numeric" name="discount_per_tier" value="{{ old('discount_per_tier', 0) }}" class="format-ribuan" />
+                        </x-form.group>
                         <x-form.group label="Diskon (Rp)">
                             <x-form.input type="text" inputmode="numeric" name="discount" value="{{ old('discount', 0) }}" class="format-ribuan" />
                         </x-form.group>
@@ -531,6 +534,18 @@
             return; // preview murni bantu-lihat, jangan sampai mengganggu alur form
         }
 
+        // Diskon per Tier bisa membuat harga nol/negatif - server memberi
+        // tahu lewat { error: "pesan" }; tampilkan apa adanya ke operator,
+        // jangan diam-diam menampilkan Rp 0 palsu.
+        if (data && data.error) {
+            Swal.fire('Tidak Bisa Dihitung', data.error, 'error');
+            const ringkasanEl2 = document.getElementById('ringkasan-daftar-barang');
+            if (ringkasanEl2) ringkasanEl2.innerHTML = '<p class="text-xs text-rose-500 font-medium text-center py-5">Tidak bisa dihitung - periksa Diskon per Tier / tier harga.</p>';
+            const totalEl2 = document.getElementById('preview-total-order');
+            if (totalEl2) totalEl2.textContent = 'Rp 0';
+            return;
+        }
+
         const ringkasanEl = document.getElementById('ringkasan-daftar-barang');
         ringkasanEl.innerHTML = '';
 
@@ -635,7 +650,7 @@
     }
 
     document.getElementById('jersey-order-form').addEventListener('input', (e) => {
-        if (e.target.closest('.jersey-line-card') || e.target.name === 'discount' || e.target.name === 'additional_charge') {
+        if (e.target.closest('.jersey-line-card') || e.target.name === 'discount' || e.target.name === 'discount_per_tier' || e.target.name === 'additional_charge') {
             jadwalkanPreviewHarga();
         }
     });
