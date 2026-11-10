@@ -93,10 +93,14 @@
                 </div>
 
                 <div id="due_date_group" class="hidden">
-                    <x-form.group label="Tgl Jatuh Tempo" dalam>
-                        <p class="text-[11px] font-medium text-indigo-500 mt-1.5 ml-1 hidden" id="info-jatuh-tempo"></p>
+                    {{-- Bukan dalam: slot .ld di bawahnya memuat <p> SEBELUM <input>, sehingga
+                         .ld-label (position:absolute; top:19px; left:17px) jatuh menabrak teks
+                         info tsb - lihat ui-refresh.css bagian .ld. Info dipindah ke bawah
+                         input dan grup memakai label statis seperti kolom lainnya. --}}
+                    <x-form.group label="Tgl Jatuh Tempo">
                         <input type="date" name="jatuh_tempo_tgl" id="jatuh_tempo_tgl" readonly
                             class="w-full h-[46px] bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm font-medium text-slate-500 cursor-not-allowed">
+                        <p class="text-[11px] font-medium text-indigo-500 mt-1.5 ml-2 hidden" id="info-jatuh-tempo"></p>
                     </x-form.group>
                 </div>
             </div>
