@@ -2,31 +2,25 @@
 
 @section('content')
 @include('partials.rupiah-format-script')
-<div class="max-w-6xl mx-auto px-4 py-10">
+<div class="pwa-ops-page w-full max-w-[1600px] mx-auto px-4 py-10">
     <form action="{{ route('pembelian-bahan.store') }}" method="POST" id="main-form">
         @csrf
 
-        <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
-            <div class="flex items-center gap-5">
-                <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-sm">
-                    <i class="fas fa-file-invoice-dollar text-white text-2xl"></i>
+        <x-page-header title="Entry Faktur" subtitle="Konversi Surat Jalan menjadi Tagihan Pembelian">
+            <x-slot:actions>
+                <div class="bg-white shadow-sm border border-slate-100 rounded-2xl px-6 py-3.5 flex items-center gap-4 max-w-full">
+                    <div class="text-right min-w-0">
+                        <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Tagihan</p>
+                        <h2 class="text-xl sm:text-2xl font-medium text-indigo-600 tracking-tight whitespace-nowrap" id="total-header">Rp 0</h2>
+                    </div>
+                    <span class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hidden sm:flex items-center justify-center shrink-0"><i class="fas fa-file-invoice-dollar"></i></span>
                 </div>
-                <div>
-                    <h1 class="text-3xl font-medium text-slate-800 uppercase tracking-tight">Entry Faktur</h1>
-                    <p class="text-slate-400 font-medium italic">Konversi Surat Jalan menjadi Tagihan Pembelian</p>
-                </div>
-            </div>
-            <x-card :padding="false" class="px-8 py-4">
-                <div class="text-right">
-                    <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Tagihan</p>
-                    <h2 class="text-3xl font-medium text-indigo-600" id="total-header">Rp 0</h2>
-                </div>
-            </x-card>
-        </div>
+            </x-slot:actions>
+        </x-page-header>
 
         <x-card class="mb-8">
             @if ($errors->any())
-                <div class="bg-rose-50 text-rose-600 p-4 rounded-2xl mb-6 font-medium">
+                <div class="bg-rose-50 text-rose-600 p-4 rounded-xl mb-6 font-medium">
                     <ul class="list-disc list-inside space-y-1">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -36,7 +30,7 @@
             @endif
 
             @if (session('error'))
-                <div class="bg-rose-500 text-white p-4 rounded-2xl mb-6 font-medium shadow-lg">
+                <div class="bg-rose-500 text-white p-4 rounded-xl mb-6 font-medium">
                     {{ session('error') }}
                 </div>
             @endif
@@ -44,14 +38,14 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <x-form.group label="No. Surat Jalan" dalam>
                     <div class="relative group cursor-pointer" onclick="openModal('sj-picker')" role="button" tabindex="-1" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openModal('sj-picker'); }">
-                        <input type="text" id="display_no_sj" readonly class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner pr-11 cursor-pointer" placeholder="Pilih SJ...">
+                        <input type="text" id="display_no_sj" readonly class="w-full h-[46px] bg-white border border-slate-200 rounded-xl px-4 pr-11 text-sm font-medium text-slate-600 placeholder:text-slate-400 transition-colors hover:border-indigo-300 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 cursor-pointer" placeholder="Pilih SJ...">
                         <input type="hidden" name="id_kedatangan" id="id_kedatangan">
                         <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-indigo-500"></i>
                     </div>
                 </x-form.group>
 
                 <x-form.group label="Pemasok" dalam>
-                    <input type="text" id="display_supplier" readonly class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-500 shadow-inner" placeholder="-">
+                    <input type="text" id="display_supplier" readonly class="w-full h-[46px] bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm font-medium text-slate-500" placeholder="-">
                 </x-form.group>
 
                 <x-form.group label="Tgl Transaksi" dalam>
@@ -62,13 +56,13 @@
                     <x-form.input type="text" name="no_faktur" required placeholder="Contoh: INV/9910" />
                 </x-form.group>
 
-                <div id="info-online-faktur" class="hidden md:col-span-4 rounded-2xl bg-orange-50 border border-orange-100 px-5 py-3 text-sm font-medium text-orange-700"></div>
+                <div id="info-online-faktur" class="hidden md:col-span-4 rounded-xl bg-orange-50 border border-orange-100 px-5 py-3 text-sm font-medium text-orange-700"></div>
                 <x-form.group label="Ongkir (Rp)" dalam><x-form.input type="text" inputmode="numeric" name="ongkir" id="ongkir" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
                 <x-form.group label="Biaya Layanan (Rp)" dalam><x-form.input type="text" inputmode="numeric" name="biaya_layanan" id="biaya_layanan" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
                 <x-form.group label="Voucher / Diskon Platform (Rp)" dalam><x-form.input type="text" inputmode="numeric" name="voucher" id="voucher" value="0" class="format-ribuan" oninput="calculateGrandTotal()" /></x-form.group>
 
                 <x-form.group label="Opsi Pajak" dalam>
-                    <div class="bg-slate-50 rounded-xl p-3 flex items-center justify-between shadow-inner h-[46px]">
+                    <div class="h-[46px] bg-white border border-slate-200 rounded-xl px-4 flex items-center justify-between">
                         <span class="text-xs font-medium text-slate-500 uppercase">PPN 11%</span>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="tax_toggle" name="include_pajak" class="sr-only peer" onchange="calculateGrandTotal()">
@@ -87,7 +81,7 @@
                 <div id="tempo_group" class="hidden">
                     <x-form.group label="Durasi Tempo (Hari)" dalam>
                         <input type="number" name="tempo_hari" id="tempo_hari" min="1" max="365" value="30" oninput="calculateDueDate(); tandaiPilihanTempo()"
-                            class="w-full bg-rose-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-rose-500/30 shadow-inner" placeholder="30">
+                            class="w-full h-[46px] bg-white border border-slate-200 rounded-xl px-4 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20" placeholder="30">
                         {{-- Pilihan cepat termin pembayaran; angka bebas tetap bisa diketik --}}
                         <div class="flex flex-wrap gap-1.5 mt-2" id="pilihan-tempo">
                             @foreach([7, 14, 30, 45, 60] as $h)
@@ -102,7 +96,7 @@
                     <x-form.group label="Tgl Jatuh Tempo" dalam>
                         <p class="text-[11px] font-medium text-indigo-500 mt-1.5 ml-1 hidden" id="info-jatuh-tempo"></p>
                         <input type="date" name="jatuh_tempo_tgl" id="jatuh_tempo_tgl" readonly
-                            class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-500 shadow-inner cursor-not-allowed">
+                            class="w-full h-[46px] bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm font-medium text-slate-500 cursor-not-allowed">
                     </x-form.group>
                 </div>
             </div>
@@ -111,25 +105,24 @@
         <x-table>
             <thead>
                 <tr>
-                    <th class="px-6 py-6 text-left">Nama Bahan</th>
-                    <th class="px-3 py-6 text-center w-28">Qty (SJ)</th>
-                    <th class="px-4 py-6 text-left w-44">Harga Satuan (Rp)</th>
-                    <th class="px-4 py-6 text-left w-44">Diskon &amp; Potongan (Rp)</th>
-                    <th class="px-6 py-6 text-right">Subtotal</th>
+                    <th class="px-6 py-5 text-left">Nama Bahan</th>
+                    <th class="px-3 py-5 text-center w-28">Qty (SJ)</th>
+                    <th class="px-4 py-5 text-left w-44">Harga Satuan (Rp)</th>
+                    <th class="px-4 py-5 text-left w-44">Diskon &amp; Potongan (Rp)</th>
+                    <th class="px-6 py-5 text-right">Subtotal</th>
                 </tr>
             </thead>
             <tbody id="table-body" class="divide-y divide-slate-50">
                 <tr>
-                    <td colspan="5" class="py-20 text-center opacity-30">
-                        <i class="fas fa-inbox text-5xl mb-4 block"></i>
-                        <span class="text-xs font-medium uppercase tracking-widest">Pilih Nomor Surat Jalan Dahulu</span>
+                    <td colspan="5" class="py-16 text-center">
+                        <x-empty-state title="Pilih Surat Jalan Dahulu" description="Rincian faktur akan tampil di sini setelah Surat Jalan dipilih." />
                     </td>
                 </tr>
             </tbody>
         </x-table>
         <input type="hidden" name="grand_total" id="input_grand_total">
 
-        {{-- RINGKASAN FAKTUR - kartu putih senada modal & kartu lain (sebelumnya baris gelap yang tulisannya tidak terbaca) --}}
+        {{-- RINGKASAN FAKTUR --}}
         <x-card class="mt-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div class="space-y-2.5 text-sm">
@@ -143,7 +136,7 @@
                 <div class="rounded-2xl bg-indigo-50 border border-indigo-100 px-8 py-6 text-right">
                     <p class="text-[10px] font-medium text-indigo-600 uppercase tracking-widest">Net Total Faktur</p>
                     <p class="text-4xl font-medium text-indigo-600 mt-1" id="total-footer">Rp 0</p>
-                    <p class="text-[11px] font-medium text-indigo-300 mt-1">Jumlah yang harus dibayar ke supplier</p>
+                    <p class="text-[11px] font-medium text-indigo-500 mt-1">Jumlah yang harus dibayar ke supplier</p>
                 </div>
             </div>
         </x-card>
@@ -158,7 +151,7 @@
 
 {{-- MODAL PILIH SURAT JALAN (satu-satunya - sebelumnya ada 2 dgn id sama) --}}
 <x-modal id="sj-picker" title="Pilih Surat Jalan" maxWidth="4xl">
-    <p class="text-[11px] text-slate-400 font-medium uppercase tracking-widest -mt-4 mb-6">Hanya menampilkan kedatangan yang sudah berstatus 'Selesai'</p>
+    <p class="text-xs text-slate-400 mb-5">Hanya menampilkan kedatangan yang sudah berstatus 'Selesai'</p>
 
     <div class="overflow-y-auto max-h-[400px] pr-2">
         <table class="w-full text-left">
@@ -234,29 +227,29 @@
                 data.detail.forEach(item => {
                     tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/50 transition-colors">
-                        <td class="px-6 py-6">
+                        <td class="px-6 py-5">
                             <p class="font-medium text-slate-700 text-xs uppercase">${escHtml(item.nama_bahan)}</p>
                             <p class="text-[10px] text-slate-400 font-medium tracking-widest uppercase">${escHtml(item.kode_bahan)}</p>
                             <input type="hidden" name="id_bahan[]" value="${Number(item.id_bahan)}">
                         </td>
-                        <td class="px-4 py-6 text-center">
-                            <input type="number" name="qty[]" step="0.01" value="${item.qty}" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner w-24 text-center">
+                        <td class="px-4 py-5 text-center">
+                            <input type="number" name="qty[]" step="0.01" value="${item.qty}" oninput="calculateGrandTotal()" class="h-11 w-24 border border-slate-200 bg-white rounded-lg px-3 text-sm font-medium text-slate-700 text-center focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20">
                             <p class="text-[10px] font-medium text-slate-400 mt-1.5 uppercase tracking-widest">${escHtml(item.satuan || 'Pcs')}</p>
                         </td>
-                        <td class="px-4 py-6">
-                            <input type="text" inputmode="numeric" name="harga[]" value="" placeholder="0" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan">
+                        <td class="px-4 py-5">
+                            <input type="text" inputmode="numeric" name="harga[]" value="" placeholder="0" oninput="calculateGrandTotal()" class="h-11 w-full border border-slate-200 bg-white rounded-lg px-3 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 format-ribuan">
                         </td>
-                        <td class="px-4 py-6 space-y-2">
+                        <td class="px-4 py-5 space-y-2">
                             <div>
                                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1 ml-1">Diskon</label>
-                                <input type="text" inputmode="numeric" name="diskon[]" placeholder="0" value="" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan">
+                                <input type="text" inputmode="numeric" name="diskon[]" placeholder="0" value="" oninput="calculateGrandTotal()" class="h-11 w-full border border-slate-200 bg-white rounded-lg px-3 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 format-ribuan">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1 ml-1">Potongan</label>
-                                <input type="text" inputmode="numeric" name="potongan[]" placeholder="0" value="" oninput="calculateGrandTotal()" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner format-ribuan">
+                                <input type="text" inputmode="numeric" name="potongan[]" placeholder="0" value="" oninput="calculateGrandTotal()" class="h-11 w-full border border-slate-200 bg-white rounded-lg px-3 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 format-ribuan">
                             </div>
                         </td>
-                        <td class="px-6 py-6 text-right">
+                        <td class="px-6 py-5 text-right">
                             <p class="subtotal-text text-base font-medium text-slate-700">Rp 0</p>
                             <input type="hidden" name="subtotal[]" class="subtotal-input">
                         </td>
