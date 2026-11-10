@@ -678,10 +678,17 @@
      BUKAN lebar roll bahan.
 
      Rumus (identik dengan PenjualanCheckoutService::meterKepingTerjaga):
-       kapasitas = floor(lebar / lebar keping) x floor(panjang / panjang keping)
-       1 <= jumlah keping <= kapasitas
-     Contoh owner (cetak 120 x 500 cm): 50x500 2pcs boleh, 60x245 4pcs
-     boleh, 50x600 2pcs & 50x400 3pcs DITOLAK.
+       kapasitasPerBarang = MAKS(
+           floor(l / lebar keping) x floor(p / panjang keping),   // orientasi A
+           floor(l / panjang keping) x floor(p / lebar keping)    // keping diputar 90 derajat
+       )
+       kapasitasTotal = kapasitasPerBarang x QTY CETAK barang
+       1 <= jumlah keping <= kapasitasTotal
+     File 2-up (owner 2026-11-10: media cetak 102 x 304 cm, 4 pcs, berisi
+     2 layout 50 x 300) memenuhi 8 keping: 2 per barang x 4 = 8, lalu
+     jahit = 8 x 3 m x Rp 3.500 = Rp 84.000.
+     Contoh (cetak 120 x 500 cm): 50x500 2pcs & 60x245 4pcs boleh,
+     50x600 2pcs & 50x400 3pcs DITOLAK.
 
      Panel menampilkan evaluasi kapasitas SEBELUM simpan - kondisi yang
      nanti ditolak server berwarna merah di sini. Tarif dihitung PER METER
@@ -724,7 +731,7 @@
                         <div class="col-span-3 grid grid-cols-2 gap-2 pt-2 border-t border-emerald-100">
                             <div>
                                 <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1 ml-1">Kapasitas Keping (pcs)</label>
-                                <input type="number" id="input_keping_kapasitas" class="w-full bg-white border-none rounded-lg py-2 px-2 text-xs font-medium text-slate-700 text-center shadow-inner" disabled title="floor(lebar cetak / lebar keping) x floor(panjang cetak / panjang keping)">
+                                <input type="number" id="input_keping_kapasitas" class="w-full bg-white border-none rounded-lg py-2 px-2 text-xs font-medium text-slate-700 text-center shadow-inner" disabled title="MAKS orientasi A/B lalu dikali qty cetak barang">
                             </div>
                             <div>
                                 <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1 ml-1">Saran Total Biaya</label>
@@ -2110,9 +2117,9 @@ let currentThumbnailPreview = null;
     //              tarif per meter, TIDAK dikalikan qty cetak barang).
     //              Keping itu sendiri inputan operator (lebar x panjang x
     //              jumlah keping) dan dijaga guard server: jumlah keping
-    //              wajib muat dalam ukuran cetak barang (kapasitas =
-    //              floor(lebar/lebar keping) x floor(panjang/panjang
-    //              keping)) - lebar roll BUKAN patokannya.
+    //              wajib muat dalam ukuran cetak barang (kapasitas = MAKS
+    //              orientasi A/B per barang x qty cetak) - lebar roll
+    //              BUKAN patokannya.
     // - 'quantity': jumlah pcs finishing dari field "Jumlah Pcs Finishing"
     //              yang bisa disesuaikan manual (TIDAK selalu sama dengan
     //              qty cetak produknya).
@@ -2226,23 +2233,29 @@ let currentThumbnailPreview = null;
     }
 
     // Meter jahit total dari keping panel = jumlah keping x panjang keping
-    // (m). IDENTIK dengan server (PenjualanCheckoutService::meterKeping-
-    // Terjaga): jumlah keping dibulatkan ke BAWAH (server memakai (int)).
+    // (m). Jumlah harus bulat; jangan diam-diam menagih lebih sedikit dengan
+    // membulatkan input operator ke bawah.
     function meterJahitKepingPanel() {
         const pak = parseFloat(document.getElementById('input_keping_panjang').value) || 0;
-        const jml = Math.floor(jumlahKepingPanel());
-        return (jml > 0 && pak > 0) ? jml * (pak / 100) : 0;
+        const jml = jumlahKepingPanel();
+        return (jml > 0 && Math.floor(jml) === jml && pak > 0) ? jml * (pak / 100) : 0;
     }
 
     // Panel jahit keping (KEPING_ROLL) versi 2: keping adalah INPUTAN
     // operator (lebar x panjang x jumlah keping, keputusan owner
     // 2026-11-10). Evaluasi live di panel SINKRON dengan server
     // (PenjualanCheckoutService::meterKepingTerjaga):
-    //   kapasitas = floor(lebar cetak / lebar keping) x floor(panjang cetak / panjang keping)
-    //   1 <= jumlah keping <= kapasitas
-    // Rasio dibulatkan 6 digit sebelum floor di kedua sisi supaya angka
-    // desimal tidak kehilangan 1 keping. Lebar roll bahan TIDAK dipakai
-    // sebagai patokan sama sekali (bukan keputusan keping lagi).
+    //   kapasitasPerBarang = MAKS(
+    //       floor(l / lebar keping) x floor(p / panjang keping),   // orientasi A
+    //       floor(l / panjang keping) x floor(p / lebar keping)    // keping diputar 90 derajat
+    //   )
+    //   kapasitasTotal = kapasitasPerBarang x QTY CETAK barang
+    // Rasio dibulatkan 6 digit sebelum floor. Kedua orientasi dihitung
+    // supaya TIDAK ADA AMBIGU antara P dan L (nilai yang tertukar tidak
+    // lagi menolak keping yang fisiknya muat). File produksi 2-up (contoh
+    // owner: media cetak 102 x 304, 4 pcs, file berisi 2 layout 50 x 300)
+    // dihitung penuh: 2 keping per barang x 4 = 8 keping. Lebar roll bahan
+    // TIDAK dipakai sebagai patokan.
     function segarkanPanelKepingRoll() {
         const panel = document.getElementById('panel_keping_roll');
         if (!panel || panel.classList.contains('hidden')) return;
@@ -2281,25 +2294,28 @@ let currentThumbnailPreview = null;
             // Keping adalah inputan operator: tampilkan contoh dari owner.
             pesan = 'Isi keping: Lebar Keping x Panjang Keping x Jumlah Keping (mis. cetak 120 x 500 cm -> 50 x 500 = 2 keping). Sumber angka sama dengan server.';
             kelas = 'text-amber-600';
+        } else if (Math.floor(jml) !== jml) {
+            pesan = 'Jumlah Keping harus bilangan bulat positif; nilai pecahan tidak dapat dipakai.';
+            kelas = 'text-rose-600';
         } else {
-            // Rumus IDENTIK dengan server: rasio dibulatkan 6 digit sebelum
-            // floor (mis. 120/50 tetap 2, bukan 1,9999999...).
-            const sepanjangLebar = Math.floor(Math.round((l / lek) * 1e6) / 1e6);
-            const sepanjangPanjang = Math.floor(Math.round((p / pak) * 1e6) / 1e6);
-            const kapasitas = Math.max(0, sepanjangLebar) * Math.max(0, sepanjangPanjang);
+            // Rumus IDENTIK dengan server (rasio 6 digit sebelum floor,
+            // kedua orientasi, kapasitas x qty cetak).
+            const floor6 = function (x) { return Math.floor(Math.round(x * 1e6) / 1e6); };
+            const orientasiA = Math.max(0, floor6(l / lek)) * Math.max(0, floor6(p / pak));
+            const orientasiB = Math.max(0, floor6(l / pak)) * Math.max(0, floor6(p / lek));
+            const kapasitasPerBarang = Math.max(orientasiA, orientasiB);
+            const qtyCetak = Math.max(0, Math.floor(qU || 0));
+            const kapasitas = Math.floor(kapasitasPerBarang * qtyCetak);
             if (kapasitas < 1) {
-                pesan = (sepanjangLebar < 1
-                    ? 'Lebar keping ' + angkaId(lek, 1) + ' cm lebih besar dari lebar cetak ' + angkaId(l, 1) + ' cm'
-                    : 'Panjang keping ' + angkaId(pak, 1) + ' cm lebih besar dari panjang cetak ' + angkaId(p, 1) + ' cm')
-                    + ' - tidak ada keping utuh yang muat, nota akan DITOLAK server.';
+                pesan = 'Keping ' + angkaId(lek, 1) + ' x ' + angkaId(pak, 1) + ' cm tidak muat dalam ukuran cetak ' + angkaId(l, 1) + ' x ' + angkaId(p, 1) + ' cm (orientasi manapun) - nota akan DITOLAK server.';
                 kelas = 'text-rose-600';
             } else {
                 elKapasitas.value = kapasitas;
                 if (jml > kapasitas) {
-                    pesan = angkaId(jml, 0) + ' keping ' + angkaId(lek, 1) + ' x ' + angkaId(pak, 1) + ' cm melebihi kapasitas: dalam ukuran cetak ' + angkaId(l, 1) + ' x ' + angkaId(p, 1) + ' cm maksimal ' + kapasitas + ' keping. Nota DITOLAK server.';
+                    pesan = angkaId(jml, 0) + ' keping ' + angkaId(lek, 1) + ' x ' + angkaId(pak, 1) + ' cm melebihi kapasitas: dalam ukuran cetak ' + angkaId(l, 1) + ' x ' + angkaId(p, 1) + ' cm qty ' + angkaId(qtyCetak, 0) + ' pcs maksimal ' + kapasitas + ' keping (' + kapasitasPerBarang + ' per barang x ' + angkaId(qtyCetak, 0) + ' pcs). Nota DITOLAK server.';
                     kelas = 'text-rose-600';
                 } else {
-                    pesan = angkaId(jml, 0) + ' keping ' + angkaId(lek, 1) + ' x ' + angkaId(pak, 1) + ' cm muat dalam ukuran cetak ' + angkaId(l, 1) + ' x ' + angkaId(p, 1) + ' cm (kapasitas ' + kapasitas + ' keping). Tarif per METER jahit (jasa jahit): meter total = jumlah keping x panjang keping - saran total di samping dihitung ulang server saat nota disimpan.';
+                    pesan = angkaId(jml, 0) + ' keping ' + angkaId(lek, 1) + ' x ' + angkaId(pak, 1) + ' cm muat dalam ukuran cetak ' + angkaId(l, 1) + ' x ' + angkaId(p, 1) + ' cm qty ' + angkaId(qtyCetak, 0) + ' pcs (kapasitas ' + kapasitas + ' = ' + kapasitasPerBarang + ' per barang x ' + angkaId(qtyCetak, 0) + ' pcs). Tarif per METER jahit (jasa jahit): meter total = jumlah keping x panjang keping - saran total di samping dihitung ulang server saat nota disimpan.';
                     kelas = 'text-indigo-700/90';
                 }
             }
@@ -2437,6 +2453,11 @@ let currentThumbnailPreview = null;
         if (metode === 'KEPING_ROLL') {
             const lek = parseFloat(document.getElementById('input_keping_lebar').value) || 0;
             const pak = parseFloat(document.getElementById('input_keping_panjang').value) || 0;
+            const jml = jumlahKepingPanel();
+            if (jml > 0 && Math.floor(jml) !== jml) {
+                if (!silent) Swal.fire('Jahit Keping', 'Jumlah Keping harus bilangan bulat positif; nilai pecahan tidak dapat dipakai.', 'warning');
+                return false;
+            }
             if (lek <= 0 || pak <= 0 || qtyPakai <= 0) {
                 if (!silent) Swal.fire('Jahit Keping', 'Isi Lebar Keping, Panjang Keping, dan Jumlah Keping di panel ukuran keping dulu.', 'warning');
                 return false;

@@ -958,13 +958,15 @@ class PenjualanCheckoutService
                 // Yang menentukan input itu masuk akal atau tidak adalah
                 // UKURAN CETAK barang saat ini, bukan lebar roll bahan:
                 // keping hanya diterima bila jumlah keping muat dalam ukuran
-                // cetak (kapasitas = floor(lebar / lebar_keping) x
-                // floor(panjang / panjang_keping)); bila tidak, nota DITOLAK
-                // dengan pesan yang menyebut kapasitasnya. Tarif master
-                // ditagih PER METER (jasa jahit): qty acuan = meter jahit
-                // total = jumlah keping x panjang keping. Lihat
+                // cetak (kapasitas per barang = orientasi yang muat:
+                // max( floor(l/lek) x floor(p/pak), floor(l/pak) x floor(p/lek) ),
+                // lalu dikali QTY CETAK - file yang mencetak 2-up seperti
+                // contoh owner: 2 keping/unit x 4 unit = 8 keping); bila
+                // tidak, nota DITOLAK dengan pesan yang menyebut kapasitasnya.
+                // Tarif master ditagih PER METER (jasa jahit): qty acuan =
+                // meter jahit total = jumlah keping x panjang keping. Lihat
                 // meterKepingTerjaga() di bawah.
-                'KEPING_ROLL' => self::meterKepingTerjaga($fin, (float) $p, (float) $l, $produk->metode_hitung, $index),
+                'KEPING_ROLL' => self::meterKepingTerjaga($fin, (float) $p, (float) $l, $produk->metode_hitung, (float) $qtyInput, $index),
                 // Potong Manual (LINEAR_GRID): tarif dihitung dari meter potong, BUKAN
                 // dari qty pcs. lihat HargaService::hitungBiayaFinishingLinearGrid().
                 'LINEAR_GRID' => $qtyHitung,
@@ -1251,16 +1253,31 @@ class PenjualanCheckoutService
      * Keping adalah INPUTAN operator: lebar keping x panjang keping x jumlah
      * keping (keping_lebar, keping_panjang, keping_jumlah dari form, cm/pcs).
      * Yang menentukan input itu masuk akal atau tidak adalah UKURAN CETAK
-     * barang yang sedang diorder - BUKAN lebar roll bahan:
+     * barang yang sedang diorder - BUKAN lebar roll bahan.
      *
-     *   kapasitas = floor(lebar_cetak / lebar_keping) x floor(panjang_cetak / panjang_keping)
+     *   kapasitas per barang = MAKS(
+     *       floor(l / lebar_keping) x floor(p / panjang_keping),   // orientasi A
+     *       floor(l / panjang_keping) x floor(p / lebar_keping)    // keping diputar 90 derajat
+     *   )
+     *   kapasitas total = kapasitas per barang x QTY CETAK barang
      *   (lebar_cetak = Lebar barang l, panjang_cetak = Panjang barang p)
      *
-     * Contoh owner 2026-11-10 (ukuran cetak 120 x 500 cm):
-     *   50 x 500 2pcs  -> boleh,  kapasitas floor(120/50) x floor(500/500) = 2
-     *   60 x 245 4pcs  -> boleh,  kapasitas floor(120/60) x floor(500/245) = 4
-     *   50 x 600 2pcs  -> DITOLAK: panjang keping > panjang cetak (kapasitas 0)
-     *   50 x 400 3pcs  -> DITOLAK: kapasitas floor(120/50) x floor(500/400) = 2 < 3
+     * Kedua orientasi dihitung supaya TIDAK ADA AMBIGU antara Panjang dan
+     * Lebar (keputusan owner: nilai P dan L yang ditukar operator tidak boleh
+     * lagi menolak keping yang fisiknya muat).
+     *
+     * QTY CETAK IKUT diperhitungkan ke kapasitas, karena file produksi bisa
+     * mencetak 2-up (contoh owner 2026-11-10: file media cetak 102 x 304 cm,
+     * 4 pcs, berisi 2 layout 50 x 300 per unit -> 2 keping per barang x 4
+     * barang = 8 keping sah, total jahit = 8 x 3 m x Rp 3.500 = Rp 84.000).
+     *
+     * Contoh:
+     *   120 x 500, 50 x 500 2pcs  -> kapasitas unit 2, qty 1 -> total 2  -> boleh
+     *   120 x 500, 60 x 245 4pcs  -> kapasitas unit 4, qty 1 -> total 4  -> boleh
+     *   120 x 500, 50 x 600 2pcs  -> kapasitas unit 0                        -> DITOLAK
+     *   120 x 500, 50 x 400 3pcs  -> kapasitas unit 2 < 3                    -> DITOLAK
+     *   102 x 304 q=4, 50 x 300 8pcs -> unit 2 x 4 = 8 total              -> boleh (8)
+     *   304 x 102 (P/L tertukar) 50 x 300 8pcs -> unit 2 x 4 = 8          -> boleh (orientasi 2)
      *
      * Tarif master Finishing ditagih PER METER (jasa jahit) - keputusan
      * owner: meter jahit total = jumlah keping x panjang keping; tagihan
@@ -1271,11 +1288,12 @@ class PenjualanCheckoutService
      * @param float  $p              Panjang barang (cm)
      * @param float  $l              Lebar barang (cm)
      * @param string $metodeProduk   metode_hitung produk
+     * @param float  $jumlahCetak    qty cetak barang (kapasitas total = kapasitas per barang x qty)
      * @param int    $baris          index item (untuk pesan, 0-based)
      * @return float                 meter jahit total (jumlah keping x panjang keping = qty acuan tarif per meter)
      * @throws \App\Exceptions\ValidasiNotaException
      */
-    public static function meterKepingTerjaga(array $fin, float $p, float $l, string $metodeProduk, int $baris = 0): float
+    public static function meterKepingTerjaga(array $fin, float $p, float $l, string $metodeProduk, float $jumlahCetak = 1.0, int $baris = 0): float
     {
         $at = $baris > 0 ? ' (baris ' . ($baris + 1) . ')' : '';
         if ($metodeProduk !== 'ukuran') {
@@ -1286,28 +1304,39 @@ class PenjualanCheckoutService
         }
         $lebarKeping = (float) ($fin['keping_lebar'] ?? 0);
         $panjangKeping = (float) ($fin['keping_panjang'] ?? 0);
-        $jumlahKeping = (int) ($fin['keping_jumlah'] ?? 0);
-        if ($lebarKeping <= 0 || $panjangKeping <= 0 || $jumlahKeping <= 0) {
-            throw new \App\Exceptions\ValidasiNotaException('Isi ukuran keping (Lebar Keping x Panjang Keping) dan Jumlah Keping di panel jahit keping - keping adalah inputan operator.' . $at);
+        $jumlahKepingRaw = $fin['keping_jumlah'] ?? null;
+        if ($lebarKeping <= 0 || $panjangKeping <= 0) {
+            throw new \App\Exceptions\ValidasiNotaException('Isi Lebar Keping dan Panjang Keping di panel jahit keping - keping adalah inputan operator.' . $at);
         }
+        $jumlahKepingNumerik = is_numeric($jumlahKepingRaw) ? (float) $jumlahKepingRaw : NAN;
+        if (!is_finite($jumlahKepingNumerik) || $jumlahKepingNumerik <= 0 || floor($jumlahKepingNumerik) !== $jumlahKepingNumerik) {
+            throw new \App\Exceptions\ValidasiNotaException('Jumlah Keping harus bilangan bulat positif.' . $at);
+        }
+        $jumlahKeping = (int) $jumlahKepingNumerik;
 
         // Rasio dibulatkan 6 digit sebelum floor (pola yang sama dengan semua
         // pembagian keping di sistem) supaya pembagian round-trip angka
         // desimal tidak kehilangan 1 keping (mis. 120/50 tetap 2, bukan
-        // 1,9999999...).
-        $sepanjangLebar = (int) floor(round(($l / $lebarKeping) * 1e6) / 1e6);
-        $sepanjangPanjang = (int) floor(round(($p / $panjangKeping) * 1e6) / 1e6);
-        $kapasitas = max(0, $sepanjangLebar) * max(0, $sepanjangPanjang);
+        // 1,9999999...). KEDUA ORIENTASI dihitung: sama kapasitasnya, jadi
+        // tidak ada lagi tantangan ambiguitas P vs L (keputusan owner).
+        $orientasiA = max(0, (int) floor(round(($l / $lebarKeping) * 1e6) / 1e6))
+            * max(0, (int) floor(round(($p / $panjangKeping) * 1e6) / 1e6));
+        $orientasiB = max(0, (int) floor(round(($l / $panjangKeping) * 1e6) / 1e6))
+            * max(0, (int) floor(round(($p / $lebarKeping) * 1e6) / 1e6));
+        $kapasitasPerBarang = max($orientasiA, $orientasiB);
+        // File produksi bisa mencetak 2-up/multi-unit: kapasitas total =
+        // kapasitas per barang x qty cetak (contoh owner: 2/unit x 4 pcs = 8).
+        $kapasitas = (int) floor($kapasitasPerBarang * max(0.0, $jumlahCetak));
 
         if ($kapasitas < 1) {
-            $sisi = $sepanjangLebar < 1
-                ? 'Lebar keping ' . rtrim(rtrim(number_format($lebarKeping, 1, ',', ''), '0'), ',') . ' cm lebih besar dari lebar cetak ' . rtrim(rtrim(number_format($l, 1, ',', ''), '0'), ',') . ' cm'
-                : 'Panjang keping ' . rtrim(rtrim(number_format($panjangKeping, 1, ',', ''), '0'), ',') . ' cm lebih besar dari panjang cetak ' . rtrim(rtrim(number_format($p, 1, ',', ''), '0'), ',') . ' cm';
-            throw new \App\Exceptions\ValidasiNotaException($sisi . ' - tidak ada keping utuh yang muat dalam ukuran cetak ini. Kecilkan keping, periksa ukuran barang, atau pakai metode finishing lain.' . $at);
+            $sisi = $orientasiA < 1 && $orientasiB < 1
+                ? 'Keping ' . rtrim(rtrim(number_format($lebarKeping, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($panjangKeping, 1, ',', ''), '0'), ',') . ' cm tidak muat dalam ukuran cetak ' . rtrim(rtrim(number_format($l, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($p, 1, ',', ''), '0'), ',') . ' cm (dalam orientasi manapun)'
+                : 'tidak ada keping utuh yang muat dalam ukuran cetak ini';
+            throw new \App\Exceptions\ValidasiNotaException($sisi . '. Kecilkan keping, periksa ukuran barang, atau pakai metode finishing lain.' . $at);
         }
 
         if ($jumlahKeping > $kapasitas) {
-            throw new \App\Exceptions\ValidasiNotaException(rtrim(rtrim(number_format($jumlahKeping, 0, ',', ''), '0'), ',') . ' keping ' . rtrim(rtrim(number_format($lebarKeping, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($panjangKeping, 1, ',', ''), '0'), ',') . ' cm melebihi kapasitas: dalam ukuran cetak ' . rtrim(rtrim(number_format($l, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($p, 1, ',', ''), '0'), ',') . ' cm maksimal hanya muat ' . $kapasitas . ' keping. Periksa ukuran/jumlah kepingnya.' . $at);
+            throw new \App\Exceptions\ValidasiNotaException(rtrim(rtrim(number_format($jumlahKeping, 0, ',', ''), '0'), ',') . ' keping ' . rtrim(rtrim(number_format($lebarKeping, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($panjangKeping, 1, ',', ''), '0'), ',') . ' cm melebihi kapasitas: dalam ukuran cetak ' . rtrim(rtrim(number_format($l, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($p, 1, ',', ''), '0'), ',') . ' cm untuk qty ' . rtrim(rtrim(number_format($jumlahCetak, 0, ',', ''), '0'), ',') . ' pcs maksimal muat ' . $kapasitas . ' keping (' . $kapasitasPerBarang . ' per barang x ' . rtrim(rtrim(number_format($jumlahCetak, 0, ',', ''), '0'), ',') . ' pcs). Periksa ukuran/jumlah kepingnya.' . $at);
         }
 
         // Tarif ditagih PER METER (jasa jahit, keputusan owner 2026-11-10):
