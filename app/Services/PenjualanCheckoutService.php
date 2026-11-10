@@ -953,11 +953,13 @@ class PenjualanCheckoutService
                 'keliling' => $produk->metode_hitung === 'ukuran' ? (2 * ($p + $l) / 100) * $qtyInput : $qtyInput,
                 // Finishing jahit berbasis keping dari lebar roll bahan utama
                 // BOM (mis. bendera TC roll 1,20 m terbagi 2 atau 3 keping
-                // sesuai lebar barang): keping = floor(lebar_roll / lebar
-                // barang), meter jahit = keping x panjang barang x qty.
-                // Bahan utama tidak ber-roll -> fallback rumus keliling lama,
-                // persis pola yang dipakai form.
-                'KEPING_ROLL' => $produk->metode_hitung === 'ukuran' ? self::meterJahitKepingRoll($produk->id_produk, $p, $l) * $qtyInput : $qtyInput,
+                // sesuai lebar barang). GUARD CETAK <-> FINISHING: konteks
+                // diperiksa dulu (produk 'ukuran', P/L terisi, bahan utama
+                // ber-roll, lebar barang <= lebar roll). Bila gagal, nota
+                // DITOLAK dengan pesan yang menjelaskan master yang kurang -
+                // BUKAN diam-diam dipindah ke rumus lain atau dipaksa 1
+                // keping seperti perilaku dulu.
+                'KEPING_ROLL' => self::meterJahitKepingRollTerjaga((int) $produk->id_produk, (float) $p, (float) $l, $produk->metode_hitung) * $qtyInput,
                 // Potong Manual (LINEAR_GRID): tarif dihitung dari meter potong, BUKAN
                 // dari qty pcs. lihat HargaService::hitungBiayaFinishingLinearGrid().
                 'LINEAR_GRID' => $qtyHitung,
@@ -1218,6 +1220,45 @@ class PenjualanCheckoutService
         // Rasio dibulatkan dulu (mis. 1,2/0,4 = 2,9999999999999996) supaya
         // pembagian round-trip angka pancake tidak kehilangan 1 keping.
         $keping = max(1, (int) floor(round($roll / ($l / 100), 6)));
+
+        return $keping * ($p / 100);
+    }
+
+    /**
+     * GUARD hitungan CETAK <-> FINISHING untuk jahit keping (KEPING_ROLL).
+     *
+     * Penerapan nyata menunjukkan versi lembut (fallback keliling / max 1
+     * keping) membuat angka jahit tidak bisa dipercaya: kondisi yang fisiknya
+     * mustahil - produk bukan per-ukuran, lebar roll tidak terisi, atau
+     * barang lebih LEBAR dari lebar roll - tetap jadi nota dengan hitungan
+     * yang "kira-kira". Kini semua kejanggalan itu DITOLAK sebelum nota
+     * tersimpan, dengan pesan yang menyebut master mana yang perlu
+     * dilengkapi. Panel ukuran di Form Input Pesanan menampilkan kondisi
+     * yang sama SEBELUM tombol simpan (lihat segarkanPanelKepingRoll di
+     * create.blade.php) - angka rumusnya identik baris per baris.
+     *
+     * @return float meter jahit per unit barang
+     * @throws \App\Exceptions\ValidasiNotaException
+     */
+    public static function meterJahitKepingRollTerjaga(int $idProduk, float $p, float $l, string $metodeProduk): float
+    {
+        if ($metodeProduk !== 'ukuran') {
+            throw new \App\Exceptions\ValidasiNotaException('Finishing jahit keping hanya untuk produk per ukuran (roll/banner). Produk ini dijual per pcs - pakai metode finishing lain atau perbaiki master produknya.');
+        }
+        if ($p <= 0 || $l <= 0) {
+            throw new \App\Exceptions\ValidasiNotaException('Panjang dan Lebar barang wajib diisi untuk jahit keping - biaya jahit tidak bisa dihitung tanpa ukuran barang.');
+        }
+        $roll = self::lebarRollBahanUtama($idProduk);
+        if ($roll <= 0) {
+            throw new \App\Exceptions\ValidasiNotaException('Bahan utama BOM produk ini tidak memiliki Lebar Roll. Lengkapi lebar roll di Master Bahan (mis. TC 1,2 m), atau pakai finishing Jahit Keliling.');
+        }
+        $lebarBarangM = $l / 100;
+        if ($lebarBarangM > $roll) {
+            throw new \App\Exceptions\ValidasiNotaException('Lebar barang ' . rtrim(rtrim(number_format($l, 1, ',', ''), '0'), ',') . ' cm tidak muat dalam lebar roll ' . rtrim(rtrim(number_format($roll * 100, 1, ',', ''), '0'), ',') . ' cm - tidak ada keping utuh yang terbentuk. Periksa ukuran barang atau bahan roll-nya.');
+        }
+        // Sumber angka identik dengan meterJahitKepingRoll & panel form:
+        // rasio dibulatkan 6 digit sebelum floor supaya 1,2/0,4 tetap 3 keping.
+        $keping = max(1, (int) floor(round($roll / $lebarBarangM, 6)));
 
         return $keping * ($p / 100);
     }

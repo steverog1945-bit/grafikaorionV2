@@ -671,6 +671,52 @@
                             <br>Harga potong manual: ubah <b>Spek Finishing</b> menjadi <b>Custom</b>, lalu isi <b>Biaya Finishing</b> (butuh hak ubah harga).
                         </p>
                     </div>
+                    {{-- Panel ukuran JAHIT KEPING (KEPING_ROLL).
+
+     Menjawab penerapan nyata 2026-11-10: operator tidak bisa lagi menebak
+     "angka biaya jahit berasal dari mana". Panel ini menampilkan hitungan
+     YANG SAMA dengan yang dipakai server (PenjualanCheckoutService::
+     meterJahitKepingRollTerjaga): keping = floor(lebar roll / lebar barang),
+     meter jahit = keping x P x qty, plus peringatan merah bila ukurannya
+     fisiknya tidak masuk akal.
+
+     KONDISI SEBELUM: tanpa guard, barang lebih lebar dari
+     roll tetap jalan dengan max(1 keping) diam-diam - nota boleh jalan
+     padahal fisiknya mustahil. Kini server MENOLAK nota untuk kondisi itu
+     (lihat guard di service), dan panel merahnya tampil SEBELUM operator
+     sempat menyimpan. --}}
+                    <div id="panel_keping_roll" class="hidden col-span-full grid grid-cols-3 gap-2 mt-1 px-3 py-2 bg-emerald-50 border border-emerald-100 rounded-xl">
+                        {{-- Ukuran barang yang SEDANG dihitung (cerminan form utama,
+     readonly) supaya operator melihat seluruh dasar hitungan dalam satu
+     panel: panjang/lebar/qty barang + keping hasil bagi lebar roll + meter
+     jahit total. Seluruh angka di panel ini yang dihitung ulang server. --}}
+                        <div>
+                            <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1 ml-1">Panjang Barang (cm)</label>
+                            <input type="number" id="input_panel_p" class="w-full bg-white border-none rounded-lg py-2 px-2 text-xs font-medium text-slate-700 text-center shadow-inner" disabled title="Cerminan field Panjang di form utama">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1 ml-1">Lebar Barang (cm)</label>
+                            <input type="number" id="input_panel_l" class="w-full bg-white border-none rounded-lg py-2 px-2 text-xs font-medium text-slate-700 text-center shadow-inner" disabled title="Cerminan field Lebar di form utama">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1 ml-1">Qty Barang</label>
+                            <input type="number" id="input_panel_qty" class="w-full bg-white border-none rounded-lg py-2 px-2 text-xs font-medium text-slate-700 text-center shadow-inner" disabled title="Cerminan field Qty di form utama">
+                        </div>
+                        {{-- Baris 2: lebar roll (masukan hitungan) + hasil meter jahit. --}}
+                        <div class="col-span-3 grid grid-cols-2 gap-2 pt-2 border-t border-emerald-100">
+                            <div>
+                                <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1 ml-1">Lebar Roll Bahan (cm)</label>
+                                <input type="number" id="input_lebar_roll" class="w-full bg-white border-none rounded-lg py-2 px-2 text-xs font-medium text-slate-700 text-center shadow-inner" disabled title="Dari Master Bahan utama BOM produk - readonly">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1 ml-1">Meter Jahit Total</label>
+                                <input type="text" id="input_meter_jahit" class="w-full bg-white border-none rounded-lg py-2 px-2 text-xs font-medium text-slate-700 text-center shadow-inner" disabled title="total meter jahit untuk barang ini">
+                            </div>
+                        </div>
+                        <p id="pesan_keping_roll" class="col-span-3 text-[10px] leading-snug text-indigo-700/90">
+                            Meter jahit mengikuti ukuran barang (panjang × lebar × qty) dan lebar roll bahan utama. SUMBER ANGKA sama dengan server.
+                        </p>
+                    </div>
                     {{-- Field "Jarak (cm)" di atas sengaja dikunci.
 
                          Hasil audit 2026-11-02: field ini ada di form sejak awal
@@ -1414,6 +1460,8 @@ let currentThumbnailPreview = null;
 
         document.getElementById('wrapper_ukuran').classList.add('hidden');
         document.getElementById('wrapper_qty').classList.add('hidden');
+        // Panel jahit keping ikut ditutup (reset total form).
+        document.getElementById('panel_keping_roll').classList.add('hidden');
 
         const btn = document.querySelector('button[onclick="tambahKeKeranjang()"]');
         btn.innerText = "Tambah";
@@ -1577,6 +1625,9 @@ let currentThumbnailPreview = null;
             // Daftar Harga produk ini.
             cetakManualEdit = false;
             finishingBiayaManualEdit = false;
+            // Panel jahit keping perlu data produk BARU (lebar roll ikut
+            // produk) - segarkan setelah currentProduk terpasang.
+            segarkanPanelKepingRoll();
             setTimeout(() => {
                 if (metode === 'ukuran') { $('#input_p').focus().select(); }
                 else { $('#input_qty_biasa').focus().select(); }
@@ -1686,6 +1737,16 @@ let currentThumbnailPreview = null;
             document.getElementById('input_finishing_biaya').value = "0";
         }
         segarkanLabelMinimumPotongManual();
+
+        // Toggle panel ukuran JAHIT KEPING (KEPING_ROLL) — panel ringkasan
+        // lebar roll / keping / meter jahit, hitungan yang SAMAA dengan
+        // server, supaya kesalahan ukuran terlihat SEBELUM nota disimpan.
+        const panelKeping = document.getElementById('panel_keping_roll');
+        if (panelKeping) {
+            const kepingAktif = metodeFinishing === 'KEPING_ROLL';
+            panelKeping.classList.toggle('hidden', !kepingAktif);
+            if (kepingAktif) segarkanPanelKepingRoll();
+        }
         
         terapkanModeBiayaFinishing();
         // Memilih/mengganti finishing dapat mengubah biaya finishing yang sudah
@@ -2118,7 +2179,7 @@ let currentThumbnailPreview = null;
         return parseFloat(qtyPakai) || pcs;
     }
 
-    // 'KEPING_ROLL' — jahit per keping hasil bagi lebar roll bahan utama BOM:
+    // 'KEPING_ROLL' - jahit per keping hasil bagi lebar roll bahan utama BOM:
     // keping = floor(lebar_roll_m / lebar barang_m), meter jahit =
     // keping x panjang barang (m) x qty. Lebar roll bahan utama tidak tahu /
     // nol -> fallback rumus keliling lama, sama seperti sisi checkout server
@@ -2133,6 +2194,80 @@ let currentThumbnailPreview = null;
         const keping = Math.max(1, Math.floor(Math.round((roll / (l / 100)) * 1e6) / 1e6));
         return keping * (p / 100) * qU;
     }
+
+    // Panel ukuran JAHIT KEPING (KEPING_ROLL): tampilkan keping & meter jahit
+    // yang DIPAKAI SERVER. Bedanya dengan meterJahitKepingRoll() di atas:
+    // fungsi panel ini TIDAK punya fallback - kejanggalan (produk bukan
+    // 'ukuran', lebar roll tidak tahu, lebar barang melebihi roll) ditampilkan
+    // sebagai peringatan merah, karena server (meterJahitKepingRollTerjaga)
+    // akan MENOLAK nota untuk kondisi itu, bukan jalan diam-diam.
+    function segarkanPanelKepingRoll() {
+        const panel = document.getElementById('panel_keping_roll');
+        if (!panel || panel.classList.contains('hidden')) return;
+        const p = parseFloat(document.getElementById('input_p').value) || 0;
+        const l = parseFloat(document.getElementById('input_l').value) || 0;
+        const qU = parseFloat(document.getElementById('input_qty_ukuran').value) || 1;
+        const rollM = (currentProduk && currentProduk.metode_hitung === 'ukuran') ? (parseFloat(currentProduk.lebar_roll) || 0) : 0;
+
+        const elRoll = document.getElementById('input_lebar_roll');
+        const elMeter = document.getElementById('input_meter_jahit');
+        const elPesan = document.getElementById('pesan_keping_roll');
+        const elPanelP = document.getElementById('input_panel_p');
+        const elPanelL = document.getElementById('input_panel_l');
+        const elPanelQty = document.getElementById('input_panel_qty');
+
+        // Cermini ukuran barang di form utama supaya panel memuat DASAR
+        // hitungannya lengkap (P x L x qty + meter jahit) - operator tidak
+        // perlu menengok ke atas untuk tahu angka mana yang dipakai.
+        elPanelP.value = p || '';
+        elPanelL.value = l || '';
+        elPanelQty.value = qU || '';
+
+        elRoll.value = rollM > 0 ? (rollM * 100).toFixed(1) : '';
+        elMeter.value = '';
+
+        let pesan;
+        let kelas;
+        if (!currentProduk) {
+            pesan = 'Pilih produk dulu - hitungan jahit keping mengikuti BOM produk.';
+            kelas = 'text-slate-500';
+        } else if (currentProduk.metode_hitung !== 'ukuran') {
+            pesan = 'Produk ini dijual per pcs, bukan per ukuran - jahit keping DITOLAK server. Pilih metode finishing lain, atau ubah produk.';
+            kelas = 'text-rose-600';
+        } else if (rollM <= 0) {
+            pesan = 'Bahan utama BOM produk tidak punya Lebar Roll - server akan MENOLAK nota. Lengkapi lebar roll di Master Bahan utama, atau pakai Jahit Keliling.';
+            kelas = 'text-rose-600';
+        } else if (l <= 0) {
+            pesan = 'Isi Lebar barang dulu untuk melihat keping & meter jahit.';
+            kelas = 'text-amber-600';
+        } else if (l / 100 > rollM) {
+            pesan = 'Lebar barang ' + angkaId(l, 1) + ' cm melebihi lebar roll ' + angkaId(rollM * 100, 1) + ' cm - tidak ada keping utuh yang terbentuk, nota akan DITOLAK server.';
+            kelas = 'text-rose-600';
+        } else {
+            // Sumber angka IDENTIK dengan server: rasio dibulatkan 6 digit
+            // sebelum floor (1,2/0,4 tidak boleh kehilangan 1 unit jahit).
+            // Nilai kepingnya tidak ditampilkan lagi (permintaan owner) -
+            // panel hanya memuat P, L, qty, lebar roll, dan meter jahit.
+            const keping = Math.max(1, Math.floor(Math.round((rollM / (l / 100)) * 1e6) / 1e6));
+            elMeter.value = angkaId(keping * (p / 100) * (qU || 0), 2);
+            pesan = 'Meter jahit total = alur jahit seluruh unit barang ini, dihitung dari ukuran barang (panjang × lebar × qty) mengikuti lebar roll bahan utamanya. Angka ini yang dihitung ulang server saat nota disimpan.';
+            kelas = 'text-indigo-700/90';
+        }
+        elPesan.textContent = pesan;
+        elPesan.className = 'col-span-3 text-[10px] leading-snug ' + kelas;
+    }
+
+    // Panel jahit keping ikut segar begitu ukuran/qty barang berubah - pola
+    // listener yang sama dengan pasangListenerPotongManual().
+    function pasangListenerKepingRoll() {
+        ['input_p', 'input_l', 'input_qty_ukuran'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', segarkanPanelKepingRoll);
+            el.addEventListener('change', segarkanPanelKepingRoll);
+        });
+    }
+    pasangListenerKepingRoll();
 
     // Kembalikan biaya Standar, atau `false` bila permintaan GAGAL.
     //
@@ -2209,7 +2344,7 @@ let currentThumbnailPreview = null;
                     <p class="text-sm font-medium text-slate-700">${escapeHtml(f.nama)} <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium uppercase ${f.status === 'Custom' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600'}">${f.status}</span></p>
                     ${f.catatan ? `<p class="text-[11px] text-slate-400">${escapeHtml(f.catatan)}</p>` : ''}
                 </div>
-                <span class="text-xs text-slate-500 w-24 text-center">${f.metode === 'quantity' ? angkaId(parseFloat(f.qty_pakai) || 0, 2) + ' pakai' : (f.metode === 'luas' ? 'per m2' : (f.metode === 'LINEAR_GRID' ? 'total potong' : 'per meter'))}</span>
+                <span class="text-xs text-slate-500 w-24 text-center">${f.metode === 'quantity' ? angkaId(parseFloat(f.qty_pakai) || 0, 2) + ' pakai' : (f.metode === 'luas' ? 'per m2' : (f.metode === 'LINEAR_GRID' ? 'total potong' : (f.metode === 'KEPING_ROLL' ? 'meter jahit' : 'per meter')))}</span>
                 <span class="text-sm font-medium text-slate-800 w-28 text-right">Rp ${Math.round(f.biaya).toLocaleString('id-ID')}</span>
                 <button type="button" onclick="hapusFinishingDariDaftar(${i})" class="text-rose-400 hover:text-rose-600" title="Hapus finishing ini"><i class="fas fa-times"></i></button>
             </div>`).join('');
@@ -3216,6 +3351,9 @@ let urutanHitungSubtotal = 0;
         document.getElementById('select_finishing').value = "";
         filterFinishingByKategori(null);
         document.getElementById('input_finishing_biaya').value = "0";
+        // Panel jahit keping ikut ditutup: produk berikutnya belum tentu
+        // memakai KEPING_ROLL.
+        document.getElementById('panel_keping_roll').classList.add('hidden');
         finishingBiayaManualEdit = false;
         cetakManualEdit = false;
         siapCetak = false;
