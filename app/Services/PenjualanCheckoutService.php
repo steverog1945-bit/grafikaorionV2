@@ -954,15 +954,17 @@ class PenjualanCheckoutService
                 'luas' => $qtyHitung,
                 'keliling' => $produk->metode_hitung === 'ukuran' ? (2 * ($p + $l) / 100) * $qtyInput : $qtyInput,
                 // Finishing jahit keping (keputusan owner 2026-11-10): keping
-                // adalah INPUTAN operator - lebar x panjang x jumlah keping -
-                // ditagih PER KEPING. Yang menentukan input itu masuk akal
-                // atau tidak adalah UKURAN CETAK barang saat ini, bukan lebar
-                // roll bahan: keping hanya diterima bila jumlah keping muat
-                // dalam ukuran cetak (kapasitas = floor(lebar / lebar_keping)
-                // x floor(panjang / panjang_keping)); bila tidak, nota DITOLAK
-                // dengan pesan yang menyebut kapasitasnya. Lihat
-                // kepingRollTerjaga() di bawah.
-                'KEPING_ROLL' => (float) self::kepingRollTerjaga($fin, (float) $p, (float) $l, $produk->metode_hitung, $index),
+                // adalah INPUTAN operator - lebar x panjang x jumlah keping.
+                // Yang menentukan input itu masuk akal atau tidak adalah
+                // UKURAN CETAK barang saat ini, bukan lebar roll bahan:
+                // keping hanya diterima bila jumlah keping muat dalam ukuran
+                // cetak (kapasitas = floor(lebar / lebar_keping) x
+                // floor(panjang / panjang_keping)); bila tidak, nota DITOLAK
+                // dengan pesan yang menyebut kapasitasnya. Tarif master
+                // ditagih PER METER (jasa jahit): qty acuan = meter jahit
+                // total = jumlah keping x panjang keping. Lihat
+                // meterKepingTerjaga() di bawah.
+                'KEPING_ROLL' => self::meterKepingTerjaga($fin, (float) $p, (float) $l, $produk->metode_hitung, $index),
                 // Potong Manual (LINEAR_GRID): tarif dihitung dari meter potong, BUKAN
                 // dari qty pcs. lihat HargaService::hitungBiayaFinishingLinearGrid().
                 'LINEAR_GRID' => $qtyHitung,
@@ -1033,8 +1035,10 @@ class PenjualanCheckoutService
 
             $daftarFinishing[] = [
                 'id_finishing' => $idF, 'status_finishing' => $statusF,
-                // qty_pakai mencatat jumlah keping (KEPING_ROLL ditagih per
-                // keping, keputusan owner 2026-11-10) supaya biaya jahit bisa
+                // qty_pakai mencatat meter jahit total (jumlah keping x
+                // panjang keping, tarif master per meter - jasa jahit,
+                // keputusan owner 2026-11-10); dimensi kepingnya ada di
+                // lebar_potong/tinggi_potong baris ini supaya angka bisa
                 // ditelusuri ulang dari nota.
                 'qty_pakai' => $rowF->metode_hitung === 'quantity' ? ($qtyPakai ?? $qtyInput) : ($rowF->metode_hitung === 'KEPING_ROLL' ? $qtyF : null),
                 'biaya' => $biayaF, 'catatan' => isset($fin['catatan']) && trim((string) $fin['catatan']) !== '' ? mb_substr(trim((string) $fin['catatan']), 0, 255) : null,
@@ -1258,21 +1262,20 @@ class PenjualanCheckoutService
      *   50 x 600 2pcs  -> DITOLAK: panjang keping > panjang cetak (kapasitas 0)
      *   50 x 400 3pcs  -> DITOLAK: kapasitas floor(120/50) x floor(500/400) = 2 < 3
      *
-     * Semua pelanggaran DITOLAK sebelum nota tersimpan dengan pesan yang
-     * menyebut kapasitasnya, supaya operator tahu harus isi berapa. Tarif
-     * master Finishing juga kini ditagih PER KEPING (qty acuan = jumlah
-     * keping), bukan per meter jahit. Lebar roll bahan tidak ikut hitungan
-     * sama sekali di garding ini.
+     * Tarif master Finishing ditagih PER METER (jasa jahit) - keputusan
+     * owner: meter jahit total = jumlah keping x panjang keping; tagihan
+     * TIDAK ikut dikalikan qty cetak barang (mengikuti jumlah keping saja).
+     * Lebar roll bahan tidak ikut hitungan sama sekali di guard ini.
      *
      * @param array  $fin            entri finishing mentah dari form
      * @param float  $p              Panjang barang (cm)
      * @param float  $l              Lebar barang (cm)
      * @param string $metodeProduk   metode_hitung produk
      * @param int    $baris          index item (untuk pesan, 0-based)
-     * @return int                   jumlah keping = qty acuan tarif (per keping)
+     * @return float                 meter jahit total (jumlah keping x panjang keping = qty acuan tarif per meter)
      * @throws \App\Exceptions\ValidasiNotaException
      */
-    public static function kepingRollTerjaga(array $fin, float $p, float $l, string $metodeProduk, int $baris = 0): int
+    public static function meterKepingTerjaga(array $fin, float $p, float $l, string $metodeProduk, int $baris = 0): float
     {
         $at = $baris > 0 ? ' (baris ' . ($baris + 1) . ')' : '';
         if ($metodeProduk !== 'ukuran') {
@@ -1307,6 +1310,9 @@ class PenjualanCheckoutService
             throw new \App\Exceptions\ValidasiNotaException(rtrim(rtrim(number_format($jumlahKeping, 0, ',', ''), '0'), ',') . ' keping ' . rtrim(rtrim(number_format($lebarKeping, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($panjangKeping, 1, ',', ''), '0'), ',') . ' cm melebihi kapasitas: dalam ukuran cetak ' . rtrim(rtrim(number_format($l, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($p, 1, ',', ''), '0'), ',') . ' cm maksimal hanya muat ' . $kapasitas . ' keping. Periksa ukuran/jumlah kepingnya.' . $at);
         }
 
-        return $jumlahKeping;
+        // Tarif ditagih PER METER (jasa jahit, keputusan owner 2026-11-10):
+        // setiap keping dijahit menyusuri panjangnya; qty acuan = meter jahit
+        // total, TIDAK dikalikan qty cetak barang.
+        return $jumlahKeping * ($panjangKeping / 100);
     }
 }
