@@ -637,7 +637,9 @@ class PenjualanCheckoutService
                 // transaksi_detail.p_ukuran/l_ukuran/qty_cetak, sisi keping
                 // yang dipotong hilang. Kolomnya dibuat migration
                 // 2026_11_02_090000_simpan_dimensi_potong.php.
-                // NULL (bukan 0) untuk finishing yang bukan LINEAR_GRID.
+                // NULL (bukan 0) untuk finishing yang bukan LINEAR_GRID /
+                // KEPING_ROLL. KEPING_ROLL menyimpan dimensi keping di kolom
+                // yang sama (reuse - lihat validasiItems::validasinya).
                 'lebar_potong' => $fin['lebar_potong'] ?? null,
                 'tinggi_potong' => $fin['tinggi_potong'] ?? null,
                 // Ukuran media yang dipotong. Untuk produk 'ukuran' ini
@@ -951,15 +953,16 @@ class PenjualanCheckoutService
             $qtyF = match ($rowF->metode_hitung) {
                 'luas' => $qtyHitung,
                 'keliling' => $produk->metode_hitung === 'ukuran' ? (2 * ($p + $l) / 100) * $qtyInput : $qtyInput,
-                // Finishing jahit berbasis keping dari lebar roll bahan utama
-                // BOM (mis. bendera TC roll 1,20 m terbagi 2 atau 3 keping
-                // sesuai lebar barang). GUARD CETAK <-> FINISHING: konteks
-                // diperiksa dulu (produk 'ukuran', P/L terisi, bahan utama
-                // ber-roll, lebar barang <= lebar roll). Bila gagal, nota
-                // DITOLAK dengan pesan yang menjelaskan master yang kurang -
-                // BUKAN diam-diam dipindah ke rumus lain atau dipaksa 1
-                // keping seperti perilaku dulu.
-                'KEPING_ROLL' => self::meterJahitKepingRollTerjaga((int) $produk->id_produk, (float) $p, (float) $l, $produk->metode_hitung) * $qtyInput,
+                // Finishing jahit keping (keputusan owner 2026-11-10): keping
+                // adalah INPUTAN operator - lebar x panjang x jumlah keping -
+                // ditagih PER KEPING. Yang menentukan input itu masuk akal
+                // atau tidak adalah UKURAN CETAK barang saat ini, bukan lebar
+                // roll bahan: keping hanya diterima bila jumlah keping muat
+                // dalam ukuran cetak (kapasitas = floor(lebar / lebar_keping)
+                // x floor(panjang / panjang_keping)); bila tidak, nota DITOLAK
+                // dengan pesan yang menyebut kapasitasnya. Lihat
+                // kepingRollTerjaga() di bawah.
+                'KEPING_ROLL' => (float) self::kepingRollTerjaga($fin, (float) $p, (float) $l, $produk->metode_hitung, $index),
                 // Potong Manual (LINEAR_GRID): tarif dihitung dari meter potong, BUKAN
                 // dari qty pcs. lihat HargaService::hitungBiayaFinishingLinearGrid().
                 'LINEAR_GRID' => $qtyHitung,
@@ -1030,17 +1033,29 @@ class PenjualanCheckoutService
 
             $daftarFinishing[] = [
                 'id_finishing' => $idF, 'status_finishing' => $statusF,
-                // qty_pakai ikut mencatat meter jahit KEPING_ROLL supaya biaya
-                // jahit bisa ditelusuri ulang dari nota.
+                // qty_pakai mencatat jumlah keping (KEPING_ROLL ditagih per
+                // keping, keputusan owner 2026-11-10) supaya biaya jahit bisa
+                // ditelusuri ulang dari nota.
                 'qty_pakai' => $rowF->metode_hitung === 'quantity' ? ($qtyPakai ?? $qtyInput) : ($rowF->metode_hitung === 'KEPING_ROLL' ? $qtyF : null),
                 'biaya' => $biayaF, 'catatan' => isset($fin['catatan']) && trim((string) $fin['catatan']) !== '' ? mb_substr(trim((string) $fin['catatan']), 0, 255) : null,
                 // Dimensi potong dibawa ke bawah supaya ikut tersimpan bersama
                 // baris finishing-nya. Tanpa ini hanya `biaya` yang bertahan dan
                 // angka Potong Manual tidak bisa ditelusuri ulang. Dipakai juga
-                // oleh hitungUlangPotongManualDiDaftar() di layar kasir, jadi
-                // jangan dibuang di sini.
-                'lebar_potong' => $rowF->metode_hitung === 'LINEAR_GRID' ? (float) ($fin['lebar_potong'] ?? 0) : null,
-                'tinggi_potong' => $rowF->metode_hitung === 'LINEAR_GRID' ? (float) ($fin['tinggi_potong'] ?? 0) : null,
+                // oleh hitungUlangPotongManualDiDaftar() di layar kasir (yang
+                // memfilter per metode), jadi jangan dibuang di sini.
+                //
+                // JAHIT KEPING (KEPING_ROLL) me-reuse kolom yang sama untuk
+                // menyimpan dimensi keping: lebar_potong = Lebar Keping,
+                // tinggi_potong = Panjang Keping (cm). Ini keputusan reuse
+                // kolom yang sudah ada - BUKAN meta baru - dan disebut di sini
+                // supaya pembaca lain tidak salah paham bahwa kolom ini
+                // eksklusif milik Potong Manual (LINEAR_GRID).
+                'lebar_potong' => $rowF->metode_hitung === 'LINEAR_GRID'
+                    ? (float) ($fin['lebar_potong'] ?? 0)
+                    : ($rowF->metode_hitung === 'KEPING_ROLL' ? (float) ($fin['keping_lebar'] ?? 0) : null),
+                'tinggi_potong' => $rowF->metode_hitung === 'LINEAR_GRID'
+                    ? (float) ($fin['tinggi_potong'] ?? 0)
+                    : ($rowF->metode_hitung === 'KEPING_ROLL' ? (float) ($fin['keping_panjang'] ?? 0) : null),
                 // Ukuran media yang dipotong. Untuk produk 'ukuran' sama
                 // dengan Panjang/Lebar item; untuk produk per lembar (A3) ini
                 // satu-satunya sumber ukuran media, jadi WAJIB ikut disimpan
@@ -1225,41 +1240,73 @@ class PenjualanCheckoutService
     }
 
     /**
-     * GUARD hitungan CETAK <-> FINISHING untuk jahit keping (KEPING_ROLL).
+     * GUARD & penghitung qty acuan tarif untuk jahit keping (KEPING_ROLL) -
+     * versi 2 (keputusan owner 2026-11-10, menggantikan
+     * meterJahitKepingRollTerjaga versi lebar-roll).
      *
-     * Penerapan nyata menunjukkan versi lembut (fallback keliling / max 1
-     * keping) membuat angka jahit tidak bisa dipercaya: kondisi yang fisiknya
-     * mustahil - produk bukan per-ukuran, lebar roll tidak terisi, atau
-     * barang lebih LEBAR dari lebar roll - tetap jadi nota dengan hitungan
-     * yang "kira-kira". Kini semua kejanggalan itu DITOLAK sebelum nota
-     * tersimpan, dengan pesan yang menyebut master mana yang perlu
-     * dilengkapi. Panel ukuran di Form Input Pesanan menampilkan kondisi
-     * yang sama SEBELUM tombol simpan (lihat segarkanPanelKepingRoll di
-     * create.blade.php) - angka rumusnya identik baris per baris.
+     * Keping adalah INPUTAN operator: lebar keping x panjang keping x jumlah
+     * keping (keping_lebar, keping_panjang, keping_jumlah dari form, cm/pcs).
+     * Yang menentukan input itu masuk akal atau tidak adalah UKURAN CETAK
+     * barang yang sedang diorder - BUKAN lebar roll bahan:
      *
-     * @return float meter jahit per unit barang
+     *   kapasitas = floor(lebar_cetak / lebar_keping) x floor(panjang_cetak / panjang_keping)
+     *   (lebar_cetak = Lebar barang l, panjang_cetak = Panjang barang p)
+     *
+     * Contoh owner 2026-11-10 (ukuran cetak 120 x 500 cm):
+     *   50 x 500 2pcs  -> boleh,  kapasitas floor(120/50) x floor(500/500) = 2
+     *   60 x 245 4pcs  -> boleh,  kapasitas floor(120/60) x floor(500/245) = 4
+     *   50 x 600 2pcs  -> DITOLAK: panjang keping > panjang cetak (kapasitas 0)
+     *   50 x 400 3pcs  -> DITOLAK: kapasitas floor(120/50) x floor(500/400) = 2 < 3
+     *
+     * Semua pelanggaran DITOLAK sebelum nota tersimpan dengan pesan yang
+     * menyebut kapasitasnya, supaya operator tahu harus isi berapa. Tarif
+     * master Finishing juga kini ditagih PER KEPING (qty acuan = jumlah
+     * keping), bukan per meter jahit. Lebar roll bahan tidak ikut hitungan
+     * sama sekali di garding ini.
+     *
+     * @param array  $fin            entri finishing mentah dari form
+     * @param float  $p              Panjang barang (cm)
+     * @param float  $l              Lebar barang (cm)
+     * @param string $metodeProduk   metode_hitung produk
+     * @param int    $baris          index item (untuk pesan, 0-based)
+     * @return int                   jumlah keping = qty acuan tarif (per keping)
      * @throws \App\Exceptions\ValidasiNotaException
      */
-    public static function meterJahitKepingRollTerjaga(int $idProduk, float $p, float $l, string $metodeProduk): float
+    public static function kepingRollTerjaga(array $fin, float $p, float $l, string $metodeProduk, int $baris = 0): int
     {
+        $at = $baris > 0 ? ' (baris ' . ($baris + 1) . ')' : '';
         if ($metodeProduk !== 'ukuran') {
-            throw new \App\Exceptions\ValidasiNotaException('Finishing jahit keping hanya untuk produk per ukuran (roll/banner). Produk ini dijual per pcs - pakai metode finishing lain atau perbaiki master produknya.');
+            throw new \App\Exceptions\ValidasiNotaException('Finishing jahit keping hanya untuk produk per ukuran (roll/banner). Produk ini dijual per pcs - pakai metode finishing lain atau perbaiki master produknya.' . $at);
         }
         if ($p <= 0 || $l <= 0) {
-            throw new \App\Exceptions\ValidasiNotaException('Panjang dan Lebar barang wajib diisi untuk jahit keping - biaya jahit tidak bisa dihitung tanpa ukuran barang.');
+            throw new \App\Exceptions\ValidasiNotaException('Panjang dan Lebar barang wajib diisi untuk jahit keping - biaya jahit tidak bisa dihitung tanpa ukuran barang.' . $at);
         }
-        $roll = self::lebarRollBahanUtama($idProduk);
-        if ($roll <= 0) {
-            throw new \App\Exceptions\ValidasiNotaException('Bahan utama BOM produk ini tidak memiliki Lebar Roll. Lengkapi lebar roll di Master Bahan (mis. TC 1,2 m), atau pakai finishing Jahit Keliling.');
+        $lebarKeping = (float) ($fin['keping_lebar'] ?? 0);
+        $panjangKeping = (float) ($fin['keping_panjang'] ?? 0);
+        $jumlahKeping = (int) ($fin['keping_jumlah'] ?? 0);
+        if ($lebarKeping <= 0 || $panjangKeping <= 0 || $jumlahKeping <= 0) {
+            throw new \App\Exceptions\ValidasiNotaException('Isi ukuran keping (Lebar Keping x Panjang Keping) dan Jumlah Keping di panel jahit keping - keping adalah inputan operator.' . $at);
         }
-        $lebarBarangM = $l / 100;
-        if ($lebarBarangM > $roll) {
-            throw new \App\Exceptions\ValidasiNotaException('Lebar barang ' . rtrim(rtrim(number_format($l, 1, ',', ''), '0'), ',') . ' cm tidak muat dalam lebar roll ' . rtrim(rtrim(number_format($roll * 100, 1, ',', ''), '0'), ',') . ' cm - tidak ada keping utuh yang terbentuk. Periksa ukuran barang atau bahan roll-nya.');
-        }
-        // Sumber angka identik dengan meterJahitKepingRoll & panel form:
-        // rasio dibulatkan 6 digit sebelum floor supaya 1,2/0,4 tetap 3 keping.
-        $keping = max(1, (int) floor(round($roll / $lebarBarangM, 6)));
 
-        return $keping * ($p / 100);
+        // Rasio dibulatkan 6 digit sebelum floor (pola yang sama dengan semua
+        // pembagian keping di sistem) supaya pembagian round-trip angka
+        // desimal tidak kehilangan 1 keping (mis. 120/50 tetap 2, bukan
+        // 1,9999999...).
+        $sepanjangLebar = (int) floor(round(($l / $lebarKeping) * 1e6) / 1e6);
+        $sepanjangPanjang = (int) floor(round(($p / $panjangKeping) * 1e6) / 1e6);
+        $kapasitas = max(0, $sepanjangLebar) * max(0, $sepanjangPanjang);
+
+        if ($kapasitas < 1) {
+            $sisi = $sepanjangLebar < 1
+                ? 'Lebar keping ' . rtrim(rtrim(number_format($lebarKeping, 1, ',', ''), '0'), ',') . ' cm lebih besar dari lebar cetak ' . rtrim(rtrim(number_format($l, 1, ',', ''), '0'), ',') . ' cm'
+                : 'Panjang keping ' . rtrim(rtrim(number_format($panjangKeping, 1, ',', ''), '0'), ',') . ' cm lebih besar dari panjang cetak ' . rtrim(rtrim(number_format($p, 1, ',', ''), '0'), ',') . ' cm';
+            throw new \App\Exceptions\ValidasiNotaException($sisi . ' - tidak ada keping utuh yang muat dalam ukuran cetak ini. Kecilkan keping, periksa ukuran barang, atau pakai metode finishing lain.' . $at);
+        }
+
+        if ($jumlahKeping > $kapasitas) {
+            throw new \App\Exceptions\ValidasiNotaException(rtrim(rtrim(number_format($jumlahKeping, 0, ',', ''), '0'), ',') . ' keping ' . rtrim(rtrim(number_format($lebarKeping, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($panjangKeping, 1, ',', ''), '0'), ',') . ' cm melebihi kapasitas: dalam ukuran cetak ' . rtrim(rtrim(number_format($l, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($p, 1, ',', ''), '0'), ',') . ' cm maksimal hanya muat ' . $kapasitas . ' keping. Periksa ukuran/jumlah kepingnya.' . $at);
+        }
+
+        return $jumlahKeping;
     }
 }
