@@ -83,20 +83,21 @@ class SpkController extends Controller
         // menjadi < 23:59:59 dan order pada detik terakhir hilang.
         $batasAtas = $tglSampai->copy()->addDay()->startOfDay()->format('Y-m-d H:i:s');
 
-        $tunggakanAktif = $request->boolean('tunggakan_aktif')
-            && !$request->filled('tgl_dari')
-            && !$request->filled('tgl_sampai');
+        $tunggakanAktif = $request->boolean('tunggakan_aktif');
 
         if ($tunggakanAktif) {
             // "Tunggakan Aktif" menggantikan rentang tanggal, bukan ditumpuk
-            // dengannya. Sebelumnya keduanya selalu dipasang bersamaan, jadi
-            // syarat ">= hari ini" (rentang tanggal) dan "< hari ini" (tunggakan)
-            // saling meniadakan dan checkbox ini tidak pernah bisa mengembalikan
-            // satu baris pun. Sekarang operator menandainya untuk melihat order
-            // LAMA yang belum selesai, bukan order hari ini.
-            $query->where('transaksi.tgl_order', '<', $hariIni->format('Y-m-d H:i:s'));
-            $query->whereIn('transaksi_detail.status_spk', ['Antre', 'Desain', 'Cetak', 'Pending']);
-            $query->whereNotIn('transaksi_detail.status_spk', ['Batal', 'Selesai']);
+            // dengannya. Menampilkan SEMUA antrean yang berada di LUAR
+            // rentang tanggal aktif - baik tgl_order di SEBELUM tgl_dari
+            // maupun yang SESUDAHTAL batas atas (sama persis dengan hitungan
+            // $tertinggal di bawah & janji banner). Owner 2026-11-10:
+            // "ketika dinyalakan harusnya menampilkan seluruh antrean yang
+            // berada di luar rentang tanggal".
+            $query->where(function ($q) use ($tglDari, $batasAtas) {
+                $q->where('transaksi.tgl_order', '<', $tglDari->format('Y-m-d H:i:s'))
+                  ->orWhere('transaksi.tgl_order', '>=', $batasAtas);
+            })
+            ->whereIn('transaksi_detail.status_spk', ['Antre', 'Desain', 'Cetak', 'Pending']);
         } else {
             $query->where('transaksi.tgl_order', '>=', $tglDari->format('Y-m-d H:i:s'));
             $query->where('transaksi.tgl_order', '<', $batasAtas);
@@ -172,7 +173,7 @@ class SpkController extends Controller
             $tertinggal = DB::table('transaksi_detail')
                 ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')
                 ->join('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
-                ->where('transaksi_detail.status_spk', 'Antre')
+                ->whereIn('transaksi_detail.status_spk', ['Antre', 'Desain', 'Cetak', 'Pending'])
                 ->where('transaksi.status_nota', 'Aktif')
                 ->where('transaksi.status_order', 'Diterima Kasir')
                 ->where(function ($q) use ($tglDari, $batasAtas) {

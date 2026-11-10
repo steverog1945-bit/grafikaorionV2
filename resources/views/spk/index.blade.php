@@ -85,11 +85,13 @@
                 <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Urgent saja</span>
             </label>
 
-            <div class="spk-filter-toggle flex items-center gap-2 mt-3">
+            {{-- Sama persis dengan tetangga Urgent: <label> + pb-3 + cursor-pointer
+                 (sebelumnya <div> + mt-3: tidak sejajar & klik teks tidak mencentang). --}}
+            <label class="spk-filter-toggle flex items-center gap-2 pb-3 cursor-pointer">
                 <input type="checkbox" name="tunggakan_aktif" value="1" {{ request('tunggakan_aktif') ? 'checked' : '' }}
                     class="rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500">
                 <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Tunggakan Aktif</span>
-            </div>
+            </label>
             </div>{{-- /#spk-filter-panel --}}
 
             <x-button type="submit" class="spk-filter-submit">
@@ -128,7 +130,7 @@
             <i class="fas fa-triangle-exclamation text-amber-600 shrink-0" aria-hidden="true"></i>
             <p class="text-sm text-amber-900 m-0">
                 {{ $tertinggal }} SPK masih antre di luar rentang tanggal ini.
-                Centang <span class="font-medium">Tunggakan Aktif</span> di form filter di atas untuk melihatnya.
+                Centang <span class="font-medium">Tunggakan Aktif</span> di form filter di atas untuk melihat semuanya (sebelum dan sesudah rentang).
             </p>
         </div>
     @endif
