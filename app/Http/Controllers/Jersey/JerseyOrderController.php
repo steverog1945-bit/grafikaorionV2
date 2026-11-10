@@ -456,6 +456,13 @@ class JerseyOrderController extends Controller
         foreach ($data['lines'] as $i => $lineData) {
             $this->validasiKeySizeQuantities($lineData['size_quantities'] ?? [], $i);
         }
+        // Input uang (id-ID): "20.000" = 20.000, titik = ribuan, koma = desimal.
+        // Normalisasikan sebelum transaksi agar nilai uang integer terbaca benar.
+        foreach (['discount', 'discount_per_tier', 'additional_charge', 'deposit'] as $kolomUang) {
+            if (array_key_exists($kolomUang, $data)) {
+                $data[$kolomUang] = self::angkaRupiah($data[$kolomUang]);
+            }
+        }
         $this->validasiQtyTerisi($data['lines']);
 
         DB::beginTransaction();
@@ -573,6 +580,22 @@ class JerseyOrderController extends Controller
      */
     /** Cache master per instance controller (= per request), bukan static, agar tidak basi antar-request/tes. */
     private array $cacheMaster = [];
+
+    /**
+     * Parser angka id-ID (kolom kasir): titik = ribuan, koma = desimal.
+     * mis. "20.000" -> 20000.0. Nilai non-angka menjadi 0.0.
+     */
+    private static function angkaRupiah($nilai): float
+    {
+        $s = trim((string) $nilai);
+        if ($s === '' || $s === '-') {
+            return 0.0;
+        }
+        // Titik = ribuan -> dibuang; koma = desimal -> titik.
+        $s = str_replace(['.', ','], ['', '.'], $s);
+        $n = (float) $s;
+        return $n < 0 ? 0.0 : $n;
+    }
 
     private function hitungHargaBaris(array $lineData): ?array
     {
@@ -718,6 +741,10 @@ class JerseyOrderController extends Controller
         // tersimpan wajib ada: Kelola Barang & susulan tidak mengirim
         // diskon_per_tier sendiri, tetapi barisnya HARUS tetap dihargai
         // dengan diskon yang berlaku saat order dibuat.
+        // Nilai diambil dari: field lines[].discount_per_tier (per baris)
+        // > input request global (form create/updateLines) > kolom
+        // discount_per_tier order tersimpan (susulan/Kelola Barang tidak
+        // mengirim field). Format id-ID: titik = ribuan, koma = desimal.
         $diskonPerTier = $lineData['discount_per_tier'] ?? null;
         if ($diskonPerTier === null || $diskonPerTier === '') {
             $diskonPerTier = request()->input('discount_per_tier', null);
@@ -725,7 +752,7 @@ class JerseyOrderController extends Controller
         if ($diskonPerTier === null || $diskonPerTier === '') {
             $diskonPerTier = optional((object) request()->route('order'))->discount_per_tier ?? 0;
         }
-        $diskonPerTier = (float) $diskonPerTier ?: 0.0;
+        $diskonPerTier = self::angkaRupiah($diskonPerTier);
         if (!\App\Support\AksesHarga::bolehLihat()) {
             $diskonPerTier = 0.0; // role tanpa hak harga: diskon per tier diabaikan total
         }
@@ -1076,6 +1103,13 @@ class JerseyOrderController extends Controller
         // Role tanpa hak harga tidak melihat kolom diskon/biaya tambahan; nilai lama dipertahankan, bukan dikosongkan.
         if (! \App\Support\AksesHarga::bolehLihat()) {
             unset($data['discount'], $data['discount_per_tier'], $data['additional_charge']);
+        } else {
+            // Input dari modal "edit" juga format id-ID; normalkan sama seperti store.
+            foreach (['discount', 'discount_per_tier', 'additional_charge'] as $kolomUang) {
+                if (array_key_exists($kolomUang, $data)) {
+                    $data[$kolomUang] = self::angkaRupiah($data[$kolomUang]);
+                }
+            }
         }
 
         // Dibungkus transaction - update() dan recalculateTotal() (yang juga
@@ -1209,6 +1243,13 @@ class JerseyOrderController extends Controller
         foreach ($data['lines'] as $i => $lineData) {
             $this->validasiKeySizeQuantities($lineData['size_quantities'] ?? [], $i);
         }
+        // Input uang (id-ID): "20.000" = 20.000, titik = ribuan, koma = desimal.
+        // Normalisasikan sebelum transaksi agar nilai uang integer terbaca benar.
+        foreach (['discount', 'discount_per_tier', 'additional_charge', 'deposit'] as $kolomUang) {
+            if (array_key_exists($kolomUang, $data)) {
+                $data[$kolomUang] = self::angkaRupiah($data[$kolomUang]);
+            }
+        }
         $this->validasiQtyTerisi($data['lines']);
 
         DB::beginTransaction();
@@ -1334,6 +1375,13 @@ class JerseyOrderController extends Controller
         // Audit: size_quantities dikunci ke master (lihat store()).
         foreach ($data['lines'] as $i => $lineData) {
             $this->validasiKeySizeQuantities($lineData['size_quantities'] ?? [], $i);
+        }
+        // Input uang (id-ID): "20.000" = 20.000, titik = ribuan, koma = desimal.
+        // Normalisasikan sebelum transaksi agar nilai uang integer terbaca benar.
+        foreach (['discount', 'discount_per_tier', 'additional_charge', 'deposit'] as $kolomUang) {
+            if (array_key_exists($kolomUang, $data)) {
+                $data[$kolomUang] = self::angkaRupiah($data[$kolomUang]);
+            }
         }
         $this->validasiQtyTerisi($data['lines']);
 
