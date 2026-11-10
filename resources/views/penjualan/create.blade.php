@@ -686,15 +686,16 @@
        1 <= jumlah keping <= kapasitasTotal
      File 2-up (owner 2026-11-10: media cetak 102 x 304 cm, 4 pcs, berisi
      2 layout 50 x 300) memenuhi 8 keping: 2 per barang x 4 = 8, lalu
-     jahit = 8 x 3 m x Rp 3.500 = Rp 84.000.
+     jahit = 8 x (2 x (0,50+3,00) m) = 56,00 m x Rp 1.500 = Rp 84.000
+     (master 'Keping Roll' id 21, tanpa ubah master).
      Contoh (cetak 120 x 500 cm): 50x500 2pcs & 60x245 4pcs boleh,
      50x600 2pcs & 50x400 3pcs DITOLAK.
 
      Panel menampilkan evaluasi kapasitas SEBELUM simpan - kondisi yang
      nanti ditolak server berwarna merah di sini. Tarif dihitung PER METER
      (jasa jahit, keputusan owner): meter jahit total = jumlah keping x
-     panjang keping, dari tier master Finishing (get-harga-finishing);
-     TIDAK dikalikan qty cetak barang. --}}
+     KELILING keping (2 x (lebar+panjang)), dari tier master Finishing
+     (get-harga-finishing); TIDAK dikalikan qty cetak barang. --}}
                     <div id="panel_keping_roll" class="hidden col-span-full grid grid-cols-3 gap-2 mt-1 px-3 py-2 bg-emerald-50 border border-emerald-100 rounded-xl">
                         {{-- Baris 1: ukuran cetak yang SEDANG dihitung (cerminan
      form utama, readonly) - dasar dari hitungan kapasitas keping. --}}
@@ -735,7 +736,7 @@
                             </div>
                             <div>
                                 <label class="block text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1 ml-1">Saran Total Biaya</label>
-                                <input type="text" id="input_keping_total" class="w-full bg-white border-none rounded-lg py-2 px-2 text-xs font-medium text-slate-700 text-center shadow-inner" disabled title="tarif per meter x meter jahit total (jumlah keping x panjang keping), dari master Finishing">
+                                <input type="text" id="input_keping_total" class="w-full bg-white border-none rounded-lg py-2 px-2 text-xs font-medium text-slate-700 text-center shadow-inner" disabled title="tarif per meter x meter jahit total (jumlah keping x keliling keping), dari master Finishing">
                             </div>
                         </div>
                         <p id="pesan_keping_roll" class="col-span-3 text-[10px] leading-snug text-indigo-700/90">
@@ -2113,8 +2114,9 @@ let currentThumbnailPreview = null;
     //              tepi produk (rumus sama dengan auto-override BOM bahan
     //              "jahit"). Juga otomatis dari input di atas.
     // - 'KEPING_ROLL': qty acuan = meter jahit TOTAL = jumlah keping x
-    //              panjang keping (jasa jahit, keputusan owner 2026-11-10:
-    //              tarif per meter, TIDAK dikalikan qty cetak barang).
+    //              keliling keping (2 x (lebar+panjang)) - jasa jahit,
+    //              keputusan owner 2026-11-10: tarif per meter, TIDAK
+    //              dikalikan qty cetak barang.
     //              Keping itu sendiri inputan operator (lebar x panjang x
     //              jumlah keping) dan dijaga guard server: jumlah keping
     //              wajib muat dalam ukuran cetak barang (kapasitas = MAKS
@@ -2150,7 +2152,7 @@ let currentThumbnailPreview = null;
         } else if (metodeFinishing === 'KEPING_ROLL') {
             // Keping = inputan operator (keputusan owner 2026-11-10): tarif
             // master per METER (jasa jahit) - meter jahit total = jumlah
-            // keping x panjang keping yang diisi di panel jahit keping.
+            // keping x keliling keping yang diisi di panel jahit keping.
             qtyFinishing = meterJahitKepingPanel();
         } else {
             // 'quantity' - dari field Jumlah Pcs Finishing (default = qty
@@ -2221,7 +2223,7 @@ let currentThumbnailPreview = null;
         if (metode === 'keliling') return currentProduk.metode_hitung === 'ukuran' ? (2 * (p + l) / 100) * qU : pcs;
         // Keping = inputan operator (keputusan owner 2026-11-10): tarif
         // master ditagih PER METER (jasa jahit) - meter jahit total =
-        // jumlah keping x panjang keping. Entri daftar menyimpan meter
+        // jumlah keping x keliling keping. Entri daftar menyimpan meter
         // di f.qty_pakai; bar isian menghitung dari keping di panel.
         if (metode === 'KEPING_ROLL') return parseFloat(qtyPakai) || meterJahitKepingPanel();
         return parseFloat(qtyPakai) || pcs;
@@ -2232,13 +2234,17 @@ let currentThumbnailPreview = null;
         return parseFloat(document.getElementById('input_keping_jumlah').value) || 0;
     }
 
-    // Meter jahit total dari keping panel = jumlah keping x panjang keping
-    // (m). Jumlah harus bulat; jangan diam-diam menagih lebih sedikit dengan
-    // membulatkan input operator ke bawah.
+    // Meter jahit total dari keping panel = jumlah keping x KELILING KEPING
+    // (2 x (lebar + panjang keping)) dalam meter - keputusan owner
+    // (2026-11-10, contoh: 8 keping 50 x 300 -> 56,00 m x Rp 1.500 = Rp
+    // 84.000, master 'Keping Roll' id 21). Jumlah JUGA wajib bulat; jangan
+    // diam-diam menagih lebih sedikit dengan membulatkan input operator ke
+    // bawah. IDENTIK dengan server (meterKepingTerjaga).
     function meterJahitKepingPanel() {
+        const lek = parseFloat(document.getElementById('input_keping_lebar').value) || 0;
         const pak = parseFloat(document.getElementById('input_keping_panjang').value) || 0;
         const jml = jumlahKepingPanel();
-        return (jml > 0 && Math.floor(jml) === jml && pak > 0) ? jml * (pak / 100) : 0;
+        return (jml > 0 && Math.floor(jml) === jml && lek > 0 && pak > 0) ? jml * (2 * (lek + pak) / 100) : 0;
     }
 
     // Panel jahit keping (KEPING_ROLL) versi 2: keping adalah INPUTAN
@@ -2315,7 +2321,7 @@ let currentThumbnailPreview = null;
                     pesan = angkaId(jml, 0) + ' keping ' + angkaId(lek, 1) + ' x ' + angkaId(pak, 1) + ' cm melebihi kapasitas: dalam ukuran cetak ' + angkaId(l, 1) + ' x ' + angkaId(p, 1) + ' cm qty ' + angkaId(qtyCetak, 0) + ' pcs maksimal ' + kapasitas + ' keping (' + kapasitasPerBarang + ' per barang x ' + angkaId(qtyCetak, 0) + ' pcs). Nota DITOLAK server.';
                     kelas = 'text-rose-600';
                 } else {
-                    pesan = angkaId(jml, 0) + ' keping ' + angkaId(lek, 1) + ' x ' + angkaId(pak, 1) + ' cm muat dalam ukuran cetak ' + angkaId(l, 1) + ' x ' + angkaId(p, 1) + ' cm qty ' + angkaId(qtyCetak, 0) + ' pcs (kapasitas ' + kapasitas + ' = ' + kapasitasPerBarang + ' per barang x ' + angkaId(qtyCetak, 0) + ' pcs). Tarif per METER jahit (jasa jahit): meter total = jumlah keping x panjang keping - saran total di samping dihitung ulang server saat nota disimpan.';
+                    pesan = angkaId(jml, 0) + ' keping ' + angkaId(lek, 1) + ' x ' + angkaId(pak, 1) + ' cm muat dalam ukuran cetak ' + angkaId(l, 1) + ' x ' + angkaId(p, 1) + ' cm qty ' + angkaId(qtyCetak, 0) + ' pcs (kapasitas ' + kapasitas + ' = ' + kapasitasPerBarang + ' per barang x ' + angkaId(qtyCetak, 0) + ' pcs). Tarif per METER jahit (jasa jahit): meter total = jumlah keping x keliling keping - saran total di samping dihitung ulang server saat nota disimpan.';
                     kelas = 'text-indigo-700/90';
                 }
             }
@@ -2531,7 +2537,7 @@ let currentThumbnailPreview = null;
                 ? (parseFloat(document.getElementById('input_keping_lebar').value) || 0) : null,
             keping_panjang: metode === 'KEPING_ROLL'
                 ? (parseFloat(document.getElementById('input_keping_panjang').value) || 0) : null,
-            // qty_pakai entri ini = meter jahit total (jumlah x panjang keping).
+            // qty_pakai entri ini = meter jahit total (jumlah x keliling keping).
             keping_jumlah: metode === 'KEPING_ROLL' ? Math.floor(jumlahKepingPanel()) : null,
             catatan: document.getElementById('input_catatan_finishing').value.trim(),
         });

@@ -964,7 +964,7 @@ class PenjualanCheckoutService
                 // contoh owner: 2 keping/unit x 4 unit = 8 keping); bila
                 // tidak, nota DITOLAK dengan pesan yang menyebut kapasitasnya.
                 // Tarif master ditagih PER METER (jasa jahit): qty acuan =
-                // meter jahit total = jumlah keping x panjang keping. Lihat
+                // meter jahit total = jumlah keping x keliling keping. Lihat
                 // meterKepingTerjaga() di bawah.
                 'KEPING_ROLL' => self::meterKepingTerjaga($fin, (float) $p, (float) $l, $produk->metode_hitung, (float) $qtyInput, $index),
                 // Potong Manual (LINEAR_GRID): tarif dihitung dari meter potong, BUKAN
@@ -1038,7 +1038,7 @@ class PenjualanCheckoutService
             $daftarFinishing[] = [
                 'id_finishing' => $idF, 'status_finishing' => $statusF,
                 // qty_pakai mencatat meter jahit total (jumlah keping x
-                // panjang keping, tarif master per meter - jasa jahit,
+                // keliling keping, tarif master per meter - jasa jahit,
                 // keputusan owner 2026-11-10); dimensi kepingnya ada di
                 // lebar_potong/tinggi_potong baris ini supaya angka bisa
                 // ditelusuri ulang dari nota.
@@ -1280,8 +1280,12 @@ class PenjualanCheckoutService
      *   304 x 102 (P/L tertukar) 50 x 300 8pcs -> unit 2 x 4 = 8          -> boleh (orientasi 2)
      *
      * Tarif master Finishing ditagih PER METER (jasa jahit) - keputusan
-     * owner: meter jahit total = jumlah keping x panjang keping; tagihan
+     * owner: meter jahit total = jumlah keping x KELILING KEPING
+     *        = jumlah x 2 x (lebar keping + panjang keping) / 100; tagihan
      * TIDAK ikut dikalikan qty cetak barang (mengikuti jumlah keping saja).
+     * Contoh owner 2026-11-10 (102 x 304 q4, keping 50 x 300 8pcs):
+     *   meter jahit = 8 x 2 x (0,50 + 3,00) = 56,00 m; tarif master (Keping
+     *   Roll, id 21) = Rp 1.500/m -> total Rp 84.000 (tanpa ubah master).
      * Lebar roll bahan tidak ikut hitungan sama sekali di guard ini.
      *
      * @param array  $fin            entri finishing mentah dari form
@@ -1290,7 +1294,7 @@ class PenjualanCheckoutService
      * @param string $metodeProduk   metode_hitung produk
      * @param float  $jumlahCetak    qty cetak barang (kapasitas total = kapasitas per barang x qty)
      * @param int    $baris          index item (untuk pesan, 0-based)
-     * @return float                 meter jahit total (jumlah keping x panjang keping = qty acuan tarif per meter)
+     * @return float                 meter jahit total (jumlah keping x keliling keping = qty acuan tarif per meter)
      * @throws \App\Exceptions\ValidasiNotaException
      */
     public static function meterKepingTerjaga(array $fin, float $p, float $l, string $metodeProduk, float $jumlahCetak = 1.0, int $baris = 0): float
@@ -1339,9 +1343,9 @@ class PenjualanCheckoutService
             throw new \App\Exceptions\ValidasiNotaException(rtrim(rtrim(number_format($jumlahKeping, 0, ',', ''), '0'), ',') . ' keping ' . rtrim(rtrim(number_format($lebarKeping, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($panjangKeping, 1, ',', ''), '0'), ',') . ' cm melebihi kapasitas: dalam ukuran cetak ' . rtrim(rtrim(number_format($l, 1, ',', ''), '0'), ',') . ' x ' . rtrim(rtrim(number_format($p, 1, ',', ''), '0'), ',') . ' cm untuk qty ' . rtrim(rtrim(number_format($jumlahCetak, 0, ',', ''), '0'), ',') . ' pcs maksimal muat ' . $kapasitas . ' keping (' . $kapasitasPerBarang . ' per barang x ' . rtrim(rtrim(number_format($jumlahCetak, 0, ',', ''), '0'), ',') . ' pcs). Periksa ukuran/jumlah kepingnya.' . $at);
         }
 
-        // Tarif ditagih PER METER (jasa jahit, keputusan owner 2026-11-10):
-        // setiap keping dijahit menyusuri panjangnya; qty acuan = meter jahit
-        // total, TIDAK dikalikan qty cetak barang.
-        return $jumlahKeping * ($panjangKeping / 100);
+        // Tarif ditagih PER METER (jasa jahit, keputusan owner): setiap
+        // keping dijahit MENGELILINGI TEPINYA - meter jahit total =
+        // jumlah keping x keliling keping, TIDAK dikalikan qty cetak barang.
+        return $jumlahKeping * (2 * ($lebarKeping + $panjangKeping) / 100);
     }
 }
