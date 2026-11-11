@@ -37,7 +37,7 @@ class HargaService
                 }
             }
 
-            return ['harga_jual' => $tier ? (float) $tier->harga_jual : 0, 'is_promo' => false, 'promo_selesai' => null, 'siap_cetak' => true];
+            return ['harga_jual' => $tier ? (float) $tier->harga_jual : 0, 'is_promo' => false, 'promo_selesai' => null, 'siap_cetak' => true, 'luas_min_daftar' => 0];
         }
 
         $promo = self::promoAktif($idProduk);
@@ -47,10 +47,12 @@ class HargaService
                 'harga_jual' => (float) $promo->harga_promo,
                 'is_promo' => true,
                 'promo_selesai' => $promo->tgl_selesai,
+                'luas_min_daftar' => 0,
             ];
         }
 
         $tier = self::cariTierTabelHarga('setting_harga', $idProduk, $idGolongan, $qty);
+        $golTier = $idGolongan;
 
         if (!$tier) {
             // Fallback otomatis tier harga member/khusus: golongan konsumen
@@ -65,13 +67,26 @@ class HargaService
             $golonganDasar = self::idGolonganHargaDasar();
             if ($golonganDasar > 0 && $golonganDasar !== $idGolongan) {
                 $tier = self::cariTierTabelHarga('setting_harga', $idProduk, $golonganDasar, $qty);
+                $golTier = $golonganDasar;
             }
         }
+
+        // Batas bawah DAFTAR HARGA: range_min TERKECIL dari semua tier
+        // produk+golongan. Bila qty di bawah angka ini tidak ada tier yang
+        // mencakup -> harga_jual 0. Angka ini dikirim balik supaya POS bisa
+        // menjelaskan KENAPA harga 0 (di bawah minimum daftar, mis. 3 m2
+        // utk TC Century) dengan peringatan yang jelas, bukan pesan
+        // generik "Detail belum lengkap". 0 = tidak ada tier tersimpan.
+        $luasMinDaftar = (float) (DB::table('setting_harga')
+            ->where('id_produk', $idProduk)
+            ->where('id_golongan', $golTier)
+            ->min('range_min') ?? 0);
 
         return [
             'harga_jual' => $tier ? (float) $tier->harga_jual : 0,
             'is_promo' => false,
             'promo_selesai' => null,
+            'luas_min_daftar' => $luasMinDaftar,
         ];
     }
 

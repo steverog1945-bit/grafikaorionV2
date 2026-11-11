@@ -2660,6 +2660,10 @@ let hitungUlangMenunggu = false;
 // Token urutan hitung subtotal: hanya respons TERBARU yang boleh menulis
 // field (lihat penjaga di hitungSubtotalInti), respons basi dibuang.
 let urutanHitungSubtotal = 0;
+// Di bawah minimum daftar harga (harga otomatis 0, lihat HargaService
+// luas_min_daftar): angka minimum terakhir yang diketahui, dipakai
+// tambahKeKeranjang untuk mencegat lebih awal dengan pesan yang jelas.
+let peringatanMinDaftar = 0;
     async function hitungSubtotal() {
         hitungBerjalan++;
         document.getElementById('status_hitung').classList.remove('hidden');
@@ -2734,8 +2738,11 @@ let urutanHitungSubtotal = 0;
             const subtotal = biayaCetak + biayaDesain + biayaFinishing;
             updateDisplay(hargaJual, subtotal, isPromo, qtyCari);
             cekStokBom(currentProduk.id_produk, p, l, (currentProduk.metode_hitung === 'ukuran') ? qU : qB);
-            await cekMinOrder(p, l, qU, qB);
-            return { harga_satuan: hargaJual, subtotal: subtotal, qty_hitung: qtyCari, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB };
+            // Harga 0 + daftar harga punya batas bawah (luas_min_daftar) ->
+            // peringatan khusus "di bawah minimum daftar harga", bukan diam.
+            peringatanMinDaftar = (hargaJual <= 0) ? (parseFloat(data.luas_min_daftar) || 0) : 0;
+            await cekMinOrder(p, l, qU, qB, peringatanMinDaftar);
+            return { harga_satuan: hargaJual, subtotal: subtotal, qty_hitung: qtyCari, p: p, l: l, qty_input: (currentProduk.metode_hitung === 'ukuran') ? qU : qB, luas_min_daftar: (hargaJual <= 0) ? (parseFloat(data.luas_min_daftar) || 0) : 0 };
         } catch (error) { console.error('hitungSubtotalInti gagal:', error); return { fetchError: true }; }
     }
 
@@ -2768,7 +2775,7 @@ let urutanHitungSubtotal = 0;
     // tidak pernah dibaca di mana pun - operator bisa input ukuran/qty di
     // bawah batas tanpa tahu itu di bawah minimum. PERINGATAN saja (pola
     // sama seperti stok BOM), tidak memblokir - kasir yang putuskan.
-    async function cekMinOrder(p, l, qU, qB) {
+    async function cekMinOrder(p, l, qU, qB, luasMinDaftar) {
         const box = document.getElementById('min_order_warning');
         const detail = document.getElementById('min_order_warning_detail');
         if (!currentProduk) { box.hidden = true; return; }
@@ -2789,10 +2796,28 @@ let urutanHitungSubtotal = 0;
                 box.hidden = false;
                 return;
             }
+            // Minimum DAFTAR HARGA (range_min tier terkecil). Master produk bisa
+            // membolehkan 120 x 200 (2,4 m2) padahal daftar harga baru menagih
+            // mulai 3 m2 (mis. TC Century) -> di bawah itu harga otomatis Rp 0.
+            // Dulu: hanya pesan generik "Detail belum lengkap" saat Tambah,
+            // tanpa peringatan apa pun di layar isian. Dipanggil dengan
+            // luasMinDaftar = 0 bila harga tidak 0 (promo aktif dsb.), jadi
+            // tidak muncul peringatan palsu.
+            const luasInput = (p * l / 10000) * qU;
+            if (luasMinDaftar > 0 && luasInput > 0 && luasInput < luasMinDaftar) {
+                detail.innerText = `Input di bawah minimum daftar harga: produk ini ditagih mulai ${luasMinDaftar} m2. Input saat ini ${luasInput} m2 - perbesar ukuran sampai mencapai minimum daftar.`;
+                box.hidden = false;
+                return;
+            }
         } else {
             const minQty = parseFloat(currentProduk.min_order) || 0;
             if (minQty > 0 && qB > 0 && qB < minQty) {
                 detail.innerText = `Input di bawah minimum order (${minQty} pcs). Disarankan input >= minimum. Sekarang: ${qB} pcs.`;
+                box.hidden = false;
+                return;
+            }
+            if (luasMinDaftar > 0 && qB > 0 && qB < luasMinDaftar) {
+                detail.innerText = `Input di bawah minimum daftar harga: produk ini ditagih mulai ${luasMinDaftar} pcs. Input saat ini ${qB} pcs.`;
                 box.hidden = false;
                 return;
             }
@@ -2981,6 +3006,22 @@ let urutanHitungSubtotal = 0;
                 return Swal.fire('Kategori tidak cocok', 'Produk yang dipilih bukan dari kategori yang sedang aktif. Pilih ulang produknya.', 'warning');
             }
         }
+        // Di bawah minimum DAFTAR HARGA (harga otomatis 0): cegat lebih awal,
+        // sebelum operator dipaksa mengunggah gambar untuk order yang pasti
+        // ditolak. Angkanya diset hitungSubtotalInti() dari luas_min_daftar.
+        if (peringatanMinDaftar > 0) {
+            const metodeUkuran = currentProduk.metode_hitung === 'ukuran';
+            const pMin = parseFloat(document.getElementById('input_p').value) || 0;
+            const lMin = parseFloat(document.getElementById('input_l').value) || 0;
+            const qUMin = parseFloat(document.getElementById('input_qty_ukuran').value) || 1;
+            const qBMin = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
+            const nilaiMin = metodeUkuran ? (pMin * lMin / 10000) * qUMin : qBMin;
+            if (nilaiMin > 0 && nilaiMin < peringatanMinDaftar) {
+                return Swal.fire('Di bawah minimum daftar harga',
+                    `Produk ini ditagih mulai ${peringatanMinDaftar}${metodeUkuran ? ' m2' : ' pcs'} sesuai Daftar Harga. Input saat ini ${nilaiMin}${metodeUkuran ? ' m2' : ' pcs'}. Perbesar ukuran/qty dulu sebelum menambahkan.`,
+                    'error');
+            }
+        }
         // Tanpa berkas hanya diperbolehkan kalau berkas acuan terakhir gagal
         // karena ukuran (terimaBerkasTerlaluBesar) atau sedang menyedit item
         // lama yang memang tidak punya berkas - bukan karena kasir lupa
@@ -3002,7 +3043,19 @@ let urutanHitungSubtotal = 0;
 
         const res = await hitungSubtotal();
         if (res && res.fetchError) return Swal.fire('Gagal menghitung harga', 'Jaringan atau server bermasalah. Periksa koneksi lalu coba lagi.', 'error');
-        if (!res || res.harga_satuan <= 0) return Swal.fire('Data belum lengkap', 'Detail belum lengkap.', 'error');
+        if (!res || res.harga_satuan <= 0) {
+            // Harga daftar tidak punya tier untuk qty ini (mis. TC Century baru
+            // menagih mulai 3 m2 = 120 x 250 cm) -> sebutkan minimumnya secara
+            // eksplisit, bukan pesan generik "Detail belum lengkap" yang tidak
+            // menjelaskan apa pun ke operator.
+            if (res && res.luas_min_daftar > 0 && res.qty_hitung > 0 && res.qty_hitung < res.luas_min_daftar) {
+                const satuanMin = (currentProduk.metode_hitung === 'ukuran') ? ' m2' : ' pcs';
+                return Swal.fire('Di bawah minimum daftar harga',
+                    `Produk ini ditagih mulai ${res.luas_min_daftar}${satuanMin} sesuai Daftar Harga. Input saat ini ${res.qty_hitung}${satuanMin}. Perbesar ukuran/qty dulu sebelum menambahkan.`,
+                    'error');
+            }
+            return Swal.fire('Data belum lengkap', 'Detail belum lengkap.', 'error');
+        }
 
         // BUG PENTING yang pernah kejadian nyata: validasi di atas cuma
         // mengecek res.harga_satuan (tarif Daftar Harga), BUKAN Biaya Cetak
