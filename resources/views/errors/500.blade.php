@@ -1,17 +1,9 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>500 - Terjadi Kesalahan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-    <div class="max-w-md w-full text-center">
-        <div class="text-7xl font-bold text-amber-500 mb-4">500</div>
-        <h1 class="text-xl font-semibold text-slate-800 mb-2">Terjadi Kesalahan pada Server</h1>
-        <p class="text-sm text-slate-500 mb-6">Maaf, sistem sedang mengalami gangguan. Tim kami sudah diberitahu. Silakan coba lagi beberapa saat, atau hubungi Administrator jika masalah berlanjut.</p>
-        <a href="{{ url('/') }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition">Kembali ke Beranda</a>
-    </div>
-</body>
-</html>
+@extends('errors.master', [
+    'kode'  => '500',
+    'judul' => 'Terjadi Kesalahan pada Server',
+    'pesan' => 'Sistem sedang mengalami gangguan atau kesalahan internal. Tim teknis akan memeriksa segera. Coba beberapa saat lagi; hubungi Administrator jika masalah berlanjut.',
+    'detail' => 'Kode kesalahan HTTP 500 — Internal Server Error',
+    'iconStyle' => '--icon-bg: rgba(217,119,6,.08); --icon-line: rgba(217,119,6,.18);',
+    'ikon' => '<svg viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Terjadi kesalahan pada server"><path d="M4 14a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4Z"/><path d="M8 12V7a4 4 0 0 1 8 0v5"/><path d="M10 18h.01M14 18h.01"/></svg>',
+    'pintasan' => [],
+])

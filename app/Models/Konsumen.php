@@ -11,6 +11,7 @@ class Konsumen extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'id_unique',
         'nama_konsumen',
         'telepon',
         'alamat',

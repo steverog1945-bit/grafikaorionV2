@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\KasSesiService;
+use Illuminate\Support\Str;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -79,6 +80,18 @@ class KonsumenController extends Controller
     // 2. Update data ke database
     $lama = DB::table('konsumen')->where('id_konsumen', $id)->first();
 
+    // Guard ganda ketat: nama+telepon sama tidak boleh ada di konsumen lain.
+    $adaLain = DB::table('konsumen')
+        ->whereRaw('LOWER(TRIM(nama_konsumen)) = ?', [mb_strtolower(trim($request->nama_konsumen))])
+        ->whereRaw('TRIM(telepon) = ?', [trim((string) $request->telepon)])
+        ->where('id_konsumen', '<>', $id)
+        ->first();
+    if ($adaLain) {
+        return redirect()->back()->withInput()->with('error',
+            'Konsumen "' . $request->nama_konsumen . '" dengan telepon ' . ($request->telepon ?: '-') . ' sudah terdaftar (id #' . $adaLain->id_konsumen . '). Gunakan nama atau telepon lain, atau ubah data konsumen yang ada.'
+        );
+    }
+
     DB::table('konsumen')->where('id_konsumen', $id)->update([
         'nama_konsumen' => $request->nama_konsumen,
         'telepon'       => $request->telepon,
@@ -119,20 +132,23 @@ public function storeAjax(Request $request)
     ]);
 
     try {
+        // Guard ganda ketat: nama+telepon sama, bukan nama saja (owner 2026-11-11).
         $existing = DB::table('konsumen')
-            ->whereRaw('LOWER(nama_konsumen) = ?', [mb_strtolower(trim($request->nama_konsumen))])
+            ->whereRaw('LOWER(TRIM(nama_konsumen)) = ?', [mb_strtolower(trim($request->nama_konsumen))])
+            ->whereRaw('TRIM(telepon) = ?', [trim((string) $request->telepon ?? '-')])
             ->first();
         if ($existing) {
             $gol = DB::table('golongan_konsumen')->where('id_golongan', $existing->id_golongan)->value('nama_golongan');
             return response()->json([
                 'status'  => 'duplicate',
-                'message' => 'Konsumen dengan nama ini sudah terdaftar. Memilih data yang ada.',
+                'message' => 'Konsumen dengan nama & telepon ini sudah terdaftar. Memilih data yang ada.',
                 'data'    => (object) array_merge((array) $existing, ['nama_golongan' => $gol]),
             ], 422);
         }
 
         // 2. Simpan menggunakan DB Table agar tidak masalah dengan Model fillable
         $id = DB::table('konsumen')->insertGetId([
+            'id_unique'   => (string) Str::uuid(),
             'nama_konsumen' => $request->nama_konsumen,
             'telepon'       => $request->telepon ?? '-',
             'id_golongan'   => $request->id_golongan,
@@ -170,25 +186,26 @@ public function storeAjax(Request $request)
             'alamat'        => 'nullable|max:500',
         ]);
 
-        // Deteksi duplikat: nama yang sama (case-insensitive) sudah terdaftar.
-        // Konsumen dengan nama sama boleh ada kalau dibedakan (mis. telepon/alamat),
-        // tapi sebelum menyimpan, kasir harus diberi tahu dan diminta menambah
-        // pembeda supaya tidak tertukar di nota/riwayat.
+        // Guard ganda ketat: nama+telepon sama, bukan nama saja (owner 2026-11-11).
+        // Konsumen dengan nama sama BOLEH ADA, asalkan teleponnya berbeda.
         $duplikat = DB::table('konsumen')
-            ->whereRaw('LOWER(nama_konsumen) = ?', [mb_strtolower(trim($request->nama_konsumen))])
+            ->whereRaw('LOWER(TRIM(nama_konsumen)) = ?', [mb_strtolower(trim($request->nama_konsumen))])
+            ->whereRaw('TRIM(telepon) = ?', [trim((string) $request->telepon)])
             ->first();
         if ($duplikat) {
             return redirect()->back()->withInput()
-                ->with('error', 'Konsumen dengan nama "' . $request->nama_konsumen . '" sudah terdaftar (telepon ' . ($duplikat->telepon ?: '-') . '). Jika ini orang yang berbeda, tambahkan pembeda pada nama (mis. "' . $request->nama_konsumen . ' - Kantor") atau isi telepon yang berbeda, lalu simpan lagi.');
+                ->with('error', 'Konsumen "' . $request->nama_konsumen . '" dengan telepon ' . ($request->telepon ?: '-') . ' sudah terdaftar. Jika ini orang/perusahaan berbeda, isi telepon yang berbeda atau tambahkan pembeda pada nama.');
         }
 
         $idBaru = DB::table('konsumen')->insertGetId([
+            'id_unique'     => (string) Str::uuid(),
             'nama_konsumen' => $request->nama_konsumen,
             'telepon'       => $request->telepon,
             'alamat'        => $request->alamat,
             'id_golongan'   => $request->id_golongan,
             'tipe_konsumen' => $request->tipe_konsumen ?? 'temporary',
-            'tgl_registrasi'=> now()
+            'tgl_registrasi'=> now(),
+            'nama_konsumen_manual' => $request->nama_konsumen,
         ]);
         \App\Services\AuditLogger::master('created', 'konsumen', 'id_konsumen', (int) $idBaru, null, 'Konsumen baru');
 

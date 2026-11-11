@@ -1,0 +1,73 @@
+/* =========================================================
+   Motion — ERP GRAFIKAORION
+   Prinsip:
+   - ringan & terukur (hanya opacity + transform)
+   - seluruh blade ikut (root app layout: .content-wrapper)
+   - tidak mengubah layout, hanya tampak
+   - respek prefers-reduced-motion: semua dibatalkan jika pengguna
+     mengaktifkan pengurangan animasi OS/browser
+   ========================================================= */
+
+@keyframes motion-fade-up   { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes motion-fade-in   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes motion-zoom-in   { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes motion-slide-in  { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: no-preference) {
+    /* Setiap perpindahan halaman/buka blade: konten muncul halus */
+    .content-wrapper > * { animation: motion-fade-up .45s cubic-bezier(.22,1,.36,1) both; }
+
+    /* Kartu/panel */
+    .x-card, .card, .panel, .modal-panel, .trend-panel, .swal2-popup { animation: motion-fade-up .45s both; }
+
+    /* Slide dari kiri untuk panel samping/wizard */
+    .slide-in, .panel-kiri, .rail-panel, .child-panel { animation: motion-slide-in .35s cubic-bezier(.22,1,.36,1) both; }
+
+    /* Empty state & Swal toast */
+    .empty-state { animation: motion-fade-in .3s both .08s; }
+    .swal2-toast { animation: motion-fade-up .35s both; }
+
+    /* Tombol: hover ringan, tanpa mengubah layout grid */
+    .btn, a.btn, button, .kbd-btn {
+        transition: transform .15s ease, box-shadow .15s ease, background-color .2s ease, color .2s ease, border-color .2s ease, opacity .2s ease;
+    }
+    .btn:hover, a.btn:hover, button:hover { transform: translateY(-1px); box-shadow: 0 6px 18px -10px rgba(15,23,42,.35); }
+    .btn:active, a.btn:active, button:active { transform: translateY(0) scale(.985); box-shadow: none; }
+    .btn:disabled, button:disabled { opacity: .55; cursor: not-allowed; }
+
+    /* Baris tabel & item list muncul berurutan */
+    table tbody tr { animation: motion-fade-in .3s both; }
+    table tbody tr:nth-child(1)  { animation-delay: .04s; }
+    table tbody tr:nth-child(2)  { animation-delay: .08s; }
+    table tbody tr:nth-child(3)  { animation-delay: .12s; }
+    table tbody tr:nth-child(4)  { animation-delay: .16s; }
+    table tbody tr:nth-child(5)  { animation-delay: .20s; }
+    table tbody tr:nth-child(6)  { animation-delay: .24s; }
+    table tbody tr:nth-child(7)  { animation-delay: .28s; }
+    table tbody tr:nth-child(8)  { animation-delay: .32s; }
+    table tbody tr:nth-child(n+9){ animation-delay: .36s; }
+
+    /* Daftar item umum */
+    .list-item, .todo-item, .menu-item { animation: motion-fade-in .3s both; }
+
+    /* Modal & backdrop */
+    .modal-backdrop, .swal2-backdrop { animation: motion-fade-in .2s both; }
+    .modal-panel, .swal2-popup { animation: motion-zoom-in .25s cubic-bezier(.22,1,.36,1) both; }
+
+    /* Loading state */
+    @keyframes motion-spin { to { transform: rotate(360deg); } }
+    .spin { animation: motion-spin .8s linear infinite; }
+
+    /* Skeleton shimmer */
+    @keyframes motion-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    .shimmer { background-image: linear-gradient(90deg, rgba(148,163,184,.18) 0%, rgba(148,163,184,.38) 50%, rgba(148,163,184,.18) 100%); background-size: 200% 100%; animation: motion-shimmer 1.6s ease-in-out infinite; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
