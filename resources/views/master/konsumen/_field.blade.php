@@ -1,8 +1,9 @@
 {{-- Isian konsumen yang sama untuk modal Tambah dan Ubah. $awalan membedakan id elemen (kosong atau "edit_"). --}}
 <x-form.group label="Nama lengkap" name="nama_konsumen" required dalam>
-    <x-form.input type="text" name="nama_konsumen" id="{{ $awalan }}nama" required maxlength="100" />
+    <x-form.input type="text" name="nama_konsumen" id="{{ $awalan }}nama" required maxlength="100" autocomplete="off" />
 </x-form.group>
-<p class="hidden text-[11px] font-medium text-amber-700 leading-snug -mt-2 mb-2 ml-2" id="{{ $awalan }}nama-notice" role="status"></p>
+{{-- Notice serupa: muncul begitu nama diketik di database konsumen --}}
+<div class="hidden -mt-1 mb-2 ml-2 pl-2 border-l-2 border-amber-300 text-[11px] leading-snug" id="{{ $awalan }}nama-notice" role="status"></div>
 
 <div class="grid grid-cols-2 gap-4">
     <x-form.group label="Telepon/WA" name="telepon" required dalam>

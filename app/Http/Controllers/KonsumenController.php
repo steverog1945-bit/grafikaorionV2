@@ -43,26 +43,49 @@ class KonsumenController extends Controller
     }
 
     /**
-     * Cek duplikat ganda (nama+telepon, case-insensitive) untuk live-notice
-     * di modal Tambah/Ubah. Hanya menjadi indikator - penyimpanan ditolak
-     * di store()/update().
+     * Live-check untuk modal Tambah/Ubah konsumen & modal "Daftar Konsumen
+     * Baru": kembalikan (1) exact match (nama+telepon) dan (2) daftar nama
+     * serupa (max. 8) supaya operator melihat "nama ini sudah ada" sebelum
+     * menekan simpan.
      */
     public function cekDuplikat(Request $request)
     {
         $request->validate([
             'nama' => 'required|string|max:100',
             'telepon' => 'nullable|string|max:20',
+            'q' => 'nullable|string|max:100',
         ]);
 
-        $duplikat = DB::table('konsumen')
-            ->whereRaw('LOWER(TRIM(nama_konsumen)) = ?', [mb_strtolower(trim((string) $request->nama))])
-            ->whereRaw('TRIM(telepon) = ?', [trim((string) $request->telepon ?? '')])
-            ->select('id_konsumen', 'nama_konsumen', 'telepon')
-            ->first();
+        $nama = trim((string) ($request->input('nama') ?? $request->input('q') ?? ''));
+        $telp = trim((string) $request->telepon ?? '');
+
+        // (2) Daftar nama serupa (LIKE, max 8) — di-get dahulu; murah untuk <=100 char.
+        $similar = $nama !== ''
+            ? DB::table('konsumen')
+                ->whereRaw('LOWER(TRIM(nama_konsumen)) LIKE ?', ['%' . mb_strtolower($nama) . '%'])
+                ->orderBy('nama_konsumen')
+                ->limit(8)
+                ->select('id_konsumen', 'nama_konsumen', 'telepon', 'id_golongan')
+                ->get()
+                ->values()
+            : collect();
+
+        // (1) Exact match nama+telepon (jika telepon diisi).
+        $exact = null;
+        if ($nama !== '' && $telp !== '') {
+            $exact = DB::table('konsumen')
+                ->whereRaw('LOWER(TRIM(nama_konsumen)) = ?', [mb_strtolower($nama)])
+                ->whereRaw('TRIM(telepon) = ?', [$telp])
+                ->select('id_konsumen', 'nama_konsumen', 'telepon', 'id_golongan')
+                ->first();
+        }
 
         return response()->json([
-            'exists' => (bool) $duplikat,
-            'data' => $duplikat ? ['id_konsumen' => $duplikat->id_konsumen, 'nama_konsumen' => $duplikat->nama_konsumen, 'telepon' => $duplikat->telepon] : null,
+            'exact' => $exact,
+            'similar' => $similar,
+            // Backward compat untuk caller lama.
+            'exists' => (bool) $exact,
+            'data' => $exact,
         ]);
     }
 

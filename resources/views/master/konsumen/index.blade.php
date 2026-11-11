@@ -172,36 +172,64 @@
         openModal('edit-konsumen');
     }
 
-    // Live-notice: nama+telepon yang sama sudah terdaftar -> peringatan langsung di field.
+    // Live-notice: nama yang diketik sudah ada di database → tampil daftar serupa
+    // di bawah field; bila nama+telepon identik, tampil peringatan eksplisit.
+    // Tujuannya: konsumen baru tidak dibuat dua kali (pakai data yang ada).
     (function () {
+        var debounceT;
         function pasangLiveNotice(awalan) {
             var nama = document.getElementById(awalan + 'nama');
             var telepon = document.getElementById(awalan + 'telepon');
             var notice = document.getElementById(awalan + 'nama-notice');
             if (!nama || !telepon || !notice) return;
 
-            function periksa() {
-                var n = nama.value.trim();
-                var t = telepon.value.trim();
-                if (n === '' || t === '') { notice.classList.add('hidden'); notice.textContent = ''; return; }
-                var url = '{{ route('konsumen.cek-duplikat') }}?nama=' + encodeURIComponent(n) + '&telepon=' + encodeURIComponent(t);
-                fetch(url, { headers: { 'Accept': 'application/json' } })
-                    .then(function (r) { return r.json(); })
-                    .then(function (d) {
-                        if (d && d.exists) {
-                            notice.textContent = 'Nama & telepon ini sudah terdaftar (#' + d.data.id_konsumen + '). Bila ini orang berbeda, gunakan telepon lain atau tambahkan pembeda pada nama.';
-                            notice.classList.remove('hidden');
-                        } else {
-                            notice.classList.add('hidden');
-                            notice.textContent = '';
-                        }
-                    })
-                    .catch(function () { /* abaikan: bukan blocker */ });
+            function render(exact, similar) {
+                var html = '';
+                if (exact) {
+                    html += '<div class="text-amber-800 font-medium">Nama + telepon ini sudah terdaftar (#' + exact.id_konsumen + ' — ' + escHtml(exact.nama_konsumen) + '). Bila ini orang berbeda, gunakan telepon lain atau tambahkan pembeda pada nama.</div>';
+                } else if (similar && similar.length) {
+                    html += '<div class="text-slate-700">Nama serupa terdaftar:</div><ul class="mt-1 space-y-0.5">';
+                    var max = Math.min(similar.length, 6);
+                    for (var i = 0; i < max; i++) {
+                        var s = similar[i];
+                        html += '<li class="truncate"><button type="button" class="text-left text-amber-800 hover:text-amber-900 hover:underline" data-nama="' + escHtml(s.nama_konsumen) + '" data-telp="' + escHtml(s.telepon || '') + '">'
+                            + '<span class="font-medium">' + escHtml(s.nama_konsumen) + '</span>'
+                            + '<span class="text-slate-400"> · ' + escHtml(s.telepon || '-') + ' · ID #' + s.id_konsumen + '</span></button></li>';
+                    }
+                    html += '</ul>';
+                }
+                if (notice) { notice.innerHTML = html; notice.classList.toggle('hidden', !html); }
             }
-            ['input', 'change', 'blur'].forEach(function (ev) {
-                nama.addEventListener(ev, periksa);
-                telepon.addEventListener(ev, periksa);
-            });
+
+            function escHtml(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
+
+            function periksa() {
+                clearTimeout(debounceT);
+                debounceT = setTimeout(function () {
+                    var n = nama.value.trim();
+                    var t = telepon.value.trim();
+                    if (n === '') { render(null, []); return; }
+                    var url = '{{ route('konsumen.cek-duplikat') }}?nama=' + encodeURIComponent(n) + '&telepon=' + encodeURIComponent(t);
+                    fetch(url, { headers: { 'Accept': 'application/json' } })
+                        .then(function (r) { return r.json(); })
+                        .then(function (d) { render(d.exact, d.similar); })
+                        .catch(function () { notice.classList.add('hidden'); });
+                }, 220);
+            }
+
+            // Delegasi: klik di daftar memilih item → isi nama + telepon; notice tersistem ulang.
+            if (telepon) telepon.addEventListener('input', periksa);
+            nama.addEventListener('input', periksa);
+            nama.addEventListener('change', periksa);
+            if (notice) {
+                notice.addEventListener('click', function (e) {
+                    var btn = e.target.closest('button[data-nama]');
+                    if (!btn) return;
+                    nama.value = btn.getAttribute('data-nama') || '';
+                    telepon.value = btn.getAttribute('data-telp') || '';
+                    periksa();
+                });
+            }
         }
         pasangLiveNotice('');
         pasangLiveNotice('edit_');

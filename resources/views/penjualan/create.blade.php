@@ -1001,7 +1001,8 @@
 <x-modal id="konsumen-baru" title="Daftar Konsumen Baru" maxWidth="md">
     <div class="space-y-5">
         <x-form.group label="Nama Lengkap">
-            <x-form.input type="text" id="new_nama" placeholder="Masukkan nama pelanggan..." />
+            <x-form.input type="text" id="new_nama" placeholder="Masukkan nama pelanggan..." autocomplete="off" />
+            <div id="new_nama_notice" class="hidden mt-1 text-[11px] leading-snug pl-2 border-l-2 border-amber-300" role="status"></div>
         </x-form.group>
         <x-form.group label="Nomor WhatsApp">
             <x-form.input type="number" id="new_hp" placeholder="0812xxxx" />
@@ -1054,6 +1055,64 @@
        jangan duplikasi override di sini lagi. */
 </style>
 <script>
+    // Live notice cek duplikat untuk modal "Daftar Konsumen Baru".
+    (function () {
+        var debounceT2;
+        var namaInput = document.getElementById('new_nama');
+        var telpInput = document.getElementById('new_hp');
+        var notice = document.getElementById('new_nama_notice');
+        if (!namaInput || !notice) return;
+
+        function escHtml(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
+
+        function render(exact, similar) {
+            var html = '';
+            if (exact) {
+                html += '<div class="text-amber-800 font-medium">Nama ini sudah terdaftar (#' + exact.id_konsumen + ' — ' + escHtml(exact.nama_konsumen) + ' · ' + escHtml(exact.telepon || '-') + '). Menggunakan data yang ada.</div>';
+            } else if (similar && similar.length) {
+                html += '<div class="text-slate-700">Nama serupa terdaftar:</div><ul class="mt-1 space-y-0.5">';
+                var max = Math.min(similar.length, 6);
+                for (var i = 0; i < max; i++) {
+                    var s = similar[i];
+                    html += '<li class="truncate"><button type="button" class="font-medium text-amber-800 hover:text-amber-900 hover:underline" data-nama="' + escHtml(s.nama_konsumen) + '" data-telp="' + escHtml(s.telepon || '') + '" data-id-golongan="' + (s.id_golongan || '') + '">'
+                        + escHtml(s.nama_konsumen)
+                        + '<span class="text-slate-400 font-normal"> · ' + escHtml(s.telepon || '-') + ' · ID #' + s.id_konsumen + '</span></button></li>';
+                }
+                html += '</ul>';
+            }
+            notice.innerHTML = html;
+            notice.classList.toggle('hidden', !html);
+        }
+
+        function periksa() {
+            clearTimeout(debounceT2);
+            debounceT2 = setTimeout(function () {
+                var n = namaInput.value.trim();
+                var t = telpInput ? telpInput.value.trim() : '';
+                if (n === '') { render(null, []); return; }
+                var url = '{{ route('konsumen.cek-duplikat') }}?nama=' + encodeURIComponent(n) + '&telepon=' + encodeURIComponent(t);
+                fetch(url, { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) { render(d.exact, d.similar); })
+                    .catch(function () { notice.classList.add('hidden'); });
+            }, 220);
+        }
+
+        namaInput.addEventListener('input', periksa);
+        namaInput.addEventListener('change', periksa);
+        if (telpInput) telpInput.addEventListener('input', periksa);
+
+        notice.addEventListener('click', function (e) {
+            var btn = e.target.closest('button[data-nama]');
+            if (!btn) return;
+            namaInput.value = btn.getAttribute('data-nama') || '';
+            if (telpInput) telpInput.value = btn.getAttribute('data-telp') || '';
+            var golonganSel = document.getElementById('new_id_golongan');
+            if (golonganSel && btn.getAttribute('data-id-golongan')) golonganSel.value = btn.getAttribute('data-id-golongan');
+            periksa();
+        });
+    })();
+
     // 1. GLOBAL STATE
     // Mode edit: keranjang diisi item-item nota yang dikoreksi, jadi
     // operator langsung melihat & mengubahnya di layar yang sama.
