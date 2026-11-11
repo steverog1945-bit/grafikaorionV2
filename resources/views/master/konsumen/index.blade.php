@@ -172,6 +172,41 @@
         openModal('edit-konsumen');
     }
 
+    // Live-notice: nama+telepon yang sama sudah terdaftar -> peringatan langsung di field.
+    (function () {
+        function pasangLiveNotice(awalan) {
+            var nama = document.getElementById(awalan + 'nama');
+            var telepon = document.getElementById(awalan + 'telepon');
+            var notice = document.getElementById(awalan + 'nama-notice');
+            if (!nama || !telepon || !notice) return;
+
+            function periksa() {
+                var n = nama.value.trim();
+                var t = telepon.value.trim();
+                if (n === '' || t === '') { notice.classList.add('hidden'); notice.textContent = ''; return; }
+                var url = '{{ route('konsumen.cek-duplikat') }}?nama=' + encodeURIComponent(n) + '&telepon=' + encodeURIComponent(t);
+                fetch(url, { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (d && d.exists) {
+                            notice.textContent = 'Nama & telepon ini sudah terdaftar (#' + d.data.id_konsumen + '). Bila ini orang berbeda, gunakan telepon lain atau tambahkan pembeda pada nama.';
+                            notice.classList.remove('hidden');
+                        } else {
+                            notice.classList.add('hidden');
+                            notice.textContent = '';
+                        }
+                    })
+                    .catch(function () { /* abaikan: bukan blocker */ });
+            }
+            ['input', 'change', 'blur'].forEach(function (ev) {
+                nama.addEventListener(ev, periksa);
+                telepon.addEventListener(ev, periksa);
+            });
+        }
+        pasangLiveNotice('');
+        pasangLiveNotice('edit_');
+    })();
+
     function escapeHtml(str) {
         const div = document.createElement('div');
         div.textContent = str;

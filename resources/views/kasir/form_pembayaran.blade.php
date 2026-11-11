@@ -1015,7 +1015,7 @@
 </script>
 
 {{-- Lightbox preview berkas --}}
-<div id="modal-preview-berkas-form" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/70 p-4" onclick="if(event.target===this)tutupPreviewBerkasForm()">
+<div id="modal-preview-berkas-form" class="hidden modal-centered fixed inset-0 z-50 items-center justify-center bg-black/70 p-4" onclick="if(event.target===this)tutupPreviewBerkasForm()">
     <div class="relative bg-white rounded-2xl p-4 max-w-5xl w-full max-h-[90vh] overflow-auto">
         <button type="button" onclick="tutupPreviewBerkasForm()" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600"><i class="fas fa-times"></i></button>
         <img id="modal-preview-berkas-form-img" src="" alt="preview" class="max-w-full max-h-[80vh] rounded-xl shadow-lg mx-auto cursor-zoom-in" onclick="this.classList.toggle('scale-150')">

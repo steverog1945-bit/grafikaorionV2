@@ -1291,3 +1291,15 @@ legend.text-\[10px\].uppercase {
    html.dark .ld input:not([type=checkbox]):not([type=radio]), html.dark .ld select, html.dark .ld textarea { background: #232327 !important; color: #f4f4f5 !important; }
    html.dark .ld > .ld-label { color: #a1a1aa; }
    @media (prefers-reduced-motion: reduce) { .ld > .ld-label { transition: none; } }
+
+/* 23. MODAL - semua jendela dialog selalu terpusat vertikal & horizontal.
+   Sebelumnya modal yang tidak punya <x-modal> tidak mendapat display:flex,
+   jadi berada di bawah layar. hidden/atribut selalu menang atas flex. */
+[data-modal-root], .modal-centered {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+[data-modal-root][hidden], .modal-centered.hidden, [data-modal-root].hidden {
+    display: none !important;
+}

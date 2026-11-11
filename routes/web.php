@@ -161,6 +161,8 @@ Route::get('/dashboard/api/kpi', [DashboardController::class, 'kpiApi'])->name('
     // wildcard GET /konsumen/{konsumen}.
     Route::get('/konsumen/search-ajax', [KonsumenController::class, 'searchAjax'])
         ->name('konsumen.search-ajax');
+    Route::get('/konsumen/cek-duplikat', [KonsumenController::class, 'cekDuplikat'])
+        ->name('konsumen.cek-duplikat');
     Route::resource('konsumen', KonsumenController::class)->except(['create', 'edit', 'show']); // tambah/ubah lewat modal; rute tanpa method membalas 500
     Route::resource('golongan', GolonganController::class)->except(['create', 'edit', 'show']); // tambah/ubah lewat modal; rute tanpa method membalas 500
     Route::resource('satuan', SatuanController::class)->except(['create', 'edit', 'show']); // tambah/ubah lewat modal; rute tanpa method membalas 500

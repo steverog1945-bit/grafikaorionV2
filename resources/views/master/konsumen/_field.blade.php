@@ -2,6 +2,7 @@
 <x-form.group label="Nama lengkap" name="nama_konsumen" required dalam>
     <x-form.input type="text" name="nama_konsumen" id="{{ $awalan }}nama" required maxlength="100" />
 </x-form.group>
+<p class="hidden text-[11px] font-medium text-amber-700 leading-snug -mt-2 mb-2 ml-2" id="{{ $awalan }}nama-notice" role="status"></p>
 
 <div class="grid grid-cols-2 gap-4">
     <x-form.group label="Telepon/WA" name="telepon" required dalam>

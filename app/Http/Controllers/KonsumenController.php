@@ -42,6 +42,30 @@ class KonsumenController extends Controller
         ]);
     }
 
+    /**
+     * Cek duplikat ganda (nama+telepon, case-insensitive) untuk live-notice
+     * di modal Tambah/Ubah. Hanya menjadi indikator - penyimpanan ditolak
+     * di store()/update().
+     */
+    public function cekDuplikat(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:100',
+            'telepon' => 'nullable|string|max:20',
+        ]);
+
+        $duplikat = DB::table('konsumen')
+            ->whereRaw('LOWER(TRIM(nama_konsumen)) = ?', [mb_strtolower(trim((string) $request->nama))])
+            ->whereRaw('TRIM(telepon) = ?', [trim((string) $request->telepon ?? '')])
+            ->select('id_konsumen', 'nama_konsumen', 'telepon')
+            ->first();
+
+        return response()->json([
+            'exists' => (bool) $duplikat,
+            'data' => $duplikat ? ['id_konsumen' => $duplikat->id_konsumen, 'nama_konsumen' => $duplikat->nama_konsumen, 'telepon' => $duplikat->telepon] : null,
+        ]);
+    }
+
     public function index(Request $request)
     {
         // Menggabungkan tabel konsumen dengan nama golongannya
