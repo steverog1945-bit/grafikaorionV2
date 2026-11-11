@@ -1592,6 +1592,31 @@ let currentThumbnailPreview = null;
         const terkunci = !idKat || idKat === 'all';
         $('#select_produk').prop('disabled', terkunci);
         document.getElementById('hint_kunci_produk').classList.toggle('hidden', !terkunci);
+
+        if (!terkunci) {
+            // Kategori sudah dipilih: dropdown produk langsung dibuka dan
+            // KOTAK PENCARIANNYA yang menerima fokus - operator bisa langsung
+            // ketik tanpa klik tambahan. Patokan fokus ini sekaligus mencegah
+            // fokus melompat ke field berikutnya sebelum pencarian diisi.
+            $('#select_produk').select2('open');
+            fokusKotakPencarianProduk(6);
+        }
+    }
+
+    // Fokus ke kotak pencarian select2 produk - retry singkat karena input
+    // pencarian baru ada setelah dropdown selesai dirender. Jangan merebut
+    // fokus kalau operator sudah pindah ke field lain.
+    function fokusKotakPencarianProduk(sisa) {
+        const ae = document.activeElement;
+        const diSelect2 = ae && ae !== document.body && ((ae.closest && ae.closest('.select2-container')) || (ae.closest && ae.closest('.select2-dropdown')));
+        if (ae && ae !== document.body && !diSelect2) return;
+        const $f = $('.select2-search__field:visible').filter(function () {
+            return this.offsetParent !== null && !this.disabled;
+        });
+        try {
+            if ($f.length) { $f[0].focus(); return; }
+        } catch (e) {}
+        if (sisa > 0) setTimeout(function () { fokusKotakPencarianProduk(sisa - 1); }, 40);
     }
 
     // Finishing hanya relevan untuk kategori bahan/produk tertentu (mis.
