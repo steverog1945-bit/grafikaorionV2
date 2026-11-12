@@ -27,7 +27,7 @@
             <input type="checkbox" name="boleh_lihat_harga" value="1" id="cek-harga" {{ $role->boleh_lihat_harga ? 'checked' : '' }} class="mt-1 w-6 h-6 rounded-lg border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer">
             <label for="cek-harga" class="cursor-pointer">
                 <div class="font-medium text-slate-800">Boleh melihat &amp; mengubah harga</div>
-                <div class="text-[11px] text-slate-500 font-medium">Kosongkan untuk role yang hanya input nota &amp; produksi: harga hanya tampil (tidak bisa diubah) di Input Nota; halaman/kolom harga lain (Finishing, Quotation, detail nota, jersey, waste &amp; QC) ditutup.</div>
+                <x-hint tip="Kosongkan untuk role yang hanya input nota & produksi: harga hanya tampil (tidak bisa diubah) di Input Nota; halaman/kolom harga lain (Finishing, Quotation, detail nota, jersey, waste & QC) ditutup." icon="coins" tone="indigo" />
             </label>
         </div>
 
@@ -35,7 +35,7 @@
             <input type="checkbox" name="boleh_input_biaya_desain" value="1" id="cek-desain" {{ $role->boleh_input_biaya_desain ? 'checked' : '' }} class="mt-1 w-6 h-6 rounded-lg border-indigo-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
             <label for="cek-desain" class="cursor-pointer">
                 <div class="font-medium text-slate-800">Boleh menambah Biaya Desain</div>
-                <div class="text-[11px] text-slate-500 font-medium">Hanya mengaktifkan field <b>Biaya Desain</b> di Input Order. Tidak membuka harga produk, biaya cetak, biaya finishing, maupun halaman harga mana pun. Beri centang ini ke Operator Desain: pekerjaannya designing, tapi tetap tidak boleh melihat harga. Biarkan kosong kalau role ini tidak pernah mengisi Biaya Desain.</div>
+                <x-hint tip="Hanya mengaktifkan field Biaya Desain di Input Order. Tidak membuka harga produk, biaya cetak, biaya finishing, maupun halaman harga mana pun. Beri centang ini ke Operator Desain - pekerjaannya designing, tapi tetap tidak boleh melihat harga. Kosongkan bila role ini tidak pernah mengisi Biaya Desain." icon="pencil" tone="amber" />
             </label>
         </div>
 

@@ -219,7 +219,7 @@
             </x-form.group>
             <x-button type="submit" variant="success"><i class="fas fa-truck-loading"></i> Catat Kedatangan</x-button>
         </form>
-        <p class="text-[11px] text-slate-400 mt-3">Kedatangan dibuat sebagai Draft berisi sisa qty yang belum diterima. Stok baru bertambah setelah kedatangan divalidasi.</p>
+    <x-hint tip="Kedatangan dibuat sebagai Draft berisi sisa qty yang belum diterima. Stok baru bertambah setelah kedatangan divalidasi." icon="clipboard-list" />
         @endif
     </x-card>
     @endif

@@ -31,28 +31,49 @@
         </form>
     </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
     @forelse($bank as $b)
-    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:shadow-md transition-all">
-        <div class="flex justify-between items-start mb-4">
-            <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-xs font-medium uppercase">{{ $b->nama_bank }}</span>
-            <div class="flex gap-2">
-                <button onclick="openEditBank({{ json_encode($b) }})"
-                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" aria-label="Ubah" title="Ubah">
-                    <i class="far fa-edit text-sm"></i>
+    @php
+        $nana = strtolower($b->nama_bank);
+        $kelasBank = str_contains($nana, 'bca') ? 'bca'
+            : (str_contains($nana, 'mandiri') ? 'mandiri'
+            : (str_contains($nana, 'bri') ? 'bri'
+            : (str_contains($nana, 'bni') ? 'bni'
+            : (str_contains($nana, 'cimb') ? 'cimb'
+            : (str_contains($nana, 'danamon') ? 'danamon'
+            : 'default')))));
+        $nomor = preg_replace('/\D+/', '', (string) $b->nomor_rekening);
+        $tampilNomor = trim(chunk_split($nomor, 4, ' ')) ?: $b->nomor_rekening;
+    @endphp
+    {{-- Kartu ATM/debit - satu rekening = satu kartu; tombol ubah/hapus
+         melayang di kanan bawah kartu. Warna menirukan paruh atas kartu
+         tiap bank (bukan merek resmi). --}}
+    <div class="bank-atm-card bank-atm-static bank-{{ $kelasBank }}" role="group" aria-label="{{ $b->nama_bank }} - {{ $b->nomor_rekening }} ({{ $b->atas_nama }})">
+        <span class="bank-atm-sheen"></span>
+        <span class="bank-atm-head">
+            <span class="bank-atm-bank" title="{{ $b->nama_bank }}">{{ $b->nama_bank }}</span>
+            <span class="bank-atm-debit">DEBIT</span>
+        </span>
+        <span class="bank-atm-chip" style="margin-top:14px"></span>
+        <span class="bank-atm-number bank-atm-number--big">{{ $tampilNomor }}</span>
+        <span class="bank-atm-foot">
+            <span class="min-w-0">
+                <span class="bank-atm-label">Pemegang Kartu</span>
+                <span class="bank-atm-holder">a.n {{ $b->atas_nama }}</span>
+            </span>
+        </span>
+        <span class="bank-atm-actions">
+            <button onclick="openEditBank({{ json_encode($b) }})"
+                    class="act-edit" aria-label="Ubah rekening {{ $b->nama_bank }}" title="Ubah rekening">
+                <i class="far fa-pen-to-square text-[13px]"></i>
+            </button>
+            <form id="delete-form-bank-{{ $b->id_bank }}" action="{{ route('bank.destroy', $b->id_bank) }}" method="POST">
+                @csrf @method('DELETE')
+                <button type="button" class="act-delete" onclick="confirmDeleteBank('{{ $b->id_bank }}', {{ json_encode($b->nama_bank . ' - ' . $b->nomor_rekening) }})" aria-label="Hapus rekening {{ $b->nama_bank }}" title="Hapus rekening">
+                    <i class="far fa-trash-can text-[13px]"></i>
                 </button>
-
-                <form id="delete-form-bank-{{ $b->id_bank }}" action="{{ route('bank.destroy', $b->id_bank) }}" method="POST">
-                    @csrf @method('DELETE')
-                </form>
-                <button type="button" onclick="confirmDeleteBank('{{ $b->id_bank }}', {{ json_encode($b->nama_bank . ' - ' . $b->nomor_rekening) }})"
-                        class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                    <i class="far fa-trash-alt text-sm"></i>
-                </button>
-            </div>
-        </div>
-        <div class="text-xl font-medium text-slate-800 mb-1">{{ $b->nomor_rekening }}</div>
-        <div class="text-xs text-slate-500 uppercase tracking-wider font-medium italic">a/n {{ $b->atas_nama }}</div>
+            </form>
+        </span>
     </div>
     @empty
     <div class="col-span-full py-20 text-center text-slate-400 font-medium italic">Belum ada rekening bank yang terdaftar.</div>

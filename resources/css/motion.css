@@ -54,6 +54,46 @@
     .modal-backdrop, .swal2-backdrop { animation: motion-fade-in .2s both; }
     .modal-panel, .swal2-popup { animation: motion-zoom-in .25s cubic-bezier(.22,1,.36,1) both; }
 
+    /* Konten halaman muncul bertahap (stagger halus, maksimum ±180ms) */
+    .content-wrapper > *:nth-child(2) { animation-delay: .05s !important; }
+    .content-wrapper > *:nth-child(3) { animation-delay: .1s !important; }
+    .content-wrapper > *:nth-child(4) { animation-delay: .15s !important; }
+    .content-wrapper > *:nth-child(n+5) { animation-delay: .18s !important; }
+
+    /* Kartu/panel: angkat tipis saat di-hover (tanpa menggeser layout) */
+    .x-card, .card {
+        transition: transform .22s ease, box-shadow .22s ease;
+    }
+    .x-card:hover, .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 38px -18px rgba(15, 23, 42, .35);
+    }
+
+    /* Input/select/textarea: transisi halus saat fokus */
+    input:not([type="radio"]):not([type="checkbox"]):not([type="submit"]),
+    select, textarea {
+        transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease !important;
+    }
+
+    /* Tautan sidebar: geser halus ke kanan saat hover */
+    aside#mainSidebar a {
+        transition: transform .18s ease, background-color .18s ease, color .18s ease;
+    }
+    aside#mainSidebar a:hover { transform: translateX(3px); }
+
+    /* Badge/chip: muncul pop halus */
+    .chip { animation: motion-zoom-in .25s cubic-bezier(.22,1,.36,1) both; }
+
+    /* Tombol ikon: berputar/memantul kecil saat ditekan (focus/hover) */
+    .icon-btn, .icon-button { transition: transform .18s ease, background-color .18s ease, color .18s ease; }
+    .icon-btn:active, .icon-button:active { transform: scale(.92); }
+
+    /* Baris kartu item: reaksi hover tipis */
+    .item-row, .list-item, .todo-item, .menu-item {
+        transition: transform .2s ease, background-color .2s ease, border-color .2s ease;
+    }
+    .item-row:hover, .list-item:hover { transform: translateX(2px); }
+
     /* Loading state */
     @keyframes motion-spin { to { transform: rotate(360deg); } }
     .spin { animation: motion-spin .8s linear infinite; }

@@ -157,7 +157,7 @@
 
                     <x-form.group label="Alamat Akses Aplikasi (untuk QR di HP)" name="url_akses" dalam>
                         <x-form.input type="text" name="url_akses" value="{{ old('url_akses', $setting->url_akses) }}" placeholder="http://192.168.1.10/percetakan-app/public" />
-                        <p class="text-[11px] text-slate-400 mt-1.5 ml-2">Alamat yang bisa dibuka dari HP (satu Wi-Fi dengan komputer kasir, atau alamat internet bila sudah online). Dipakai pada QR di cetakan SPK. Kosong = alamat halaman saat ini.</p>
+    <x-hint tip="Alamat yang bisa dibuka dari HP (satu Wi-Fi dengan komputer kasir, atau alamat internet bila sudah online). Dipakai pada QR di cetakan SPK. Kosong = alamat halaman saat ini." icon="qrcode" />
                     </x-form.group>
                 </div>
 
@@ -268,7 +268,7 @@
                             <iframe id="preview-nota-iframe" class="w-full border-0 block" style="min-height: 400px;"></iframe>
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-400 text-center mt-2">Lebar sesuai ukuran kertas sungguhan (di-skala biar muat panel ini) - isi contoh, bukan data transaksi asli.</p>
+    <x-hint tip="Lebar sesuai ukuran kertas sungguhan (di-skala biar muat panel ini) - isi contoh, bukan data transaksi asli." icon="ruler" />
                 </div>
             </div>
         </div>
@@ -279,7 +279,7 @@
             <x-card class="space-y-6">
                 <div class="rounded-2xl border border-slate-100 bg-slate-50 p-5">
                     <span class="block text-sm font-medium text-slate-700">Hari libur &amp; jam kerja kas</span>
-                    <span class="block text-xs text-slate-400 mt-0.5 mb-3">Hari tutup dan jam buka kini diatur per hari (Senin-Minggu) di halaman Jam Kerja.</span>
+    <x-hint tip="Hari tutup dan jam buka kini diatur per hari (Senin-Minggu) di halaman Jam Kerja." icon="clock" />
                     <a href="{{ route('jam-kerja.index') }}" class="inline-flex px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700"><i class="fas fa-clock mr-2"></i> Atur Jam Kerja</a>
                 </div>
 

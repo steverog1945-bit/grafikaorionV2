@@ -79,7 +79,7 @@
                         </span>
                     </div>
                     <div id="editor-postingan">{!! \App\Support\HtmlBersih::bersihkan(old('isi', $post->isi_html)) !!}</div>
-                    <div class="px-6 py-3 text-[11px] text-slate-400 border-t border-slate-100">Isi yang ditempel dari Word/web/PDF otomatis dibersihkan ke format standar (font, warna, dan ukuran asal dibuang). Tempel tanpa format sama sekali: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>.</div>
+    <x-hint tip="Isi yang ditempel dari Word/web/PDF otomatis dibersihkan ke format standar (font, warna, dan ukuran asal dibuang). Tempel tanpa format sama sekali: Ctrl+Shift+V." icon="paste" />
                 </x-card>
             </div>
 

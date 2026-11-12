@@ -48,8 +48,9 @@
                 {{-- Rincian barang: kartu lembut per item --}}
                 <div class="rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] p-6">
                     <div class="flex items-center justify-between mb-5">
-                        <h4 class="text-sm font-medium text-slate-700">Rincian Barang</h4>
-                        <span class="text-[11px] text-slate-400">Ubah harga per item lewat ikon pensil</span>
+                        <h4 class="flex items-center gap-1.5 text-sm font-medium text-slate-700">Rincian Barang
+                            <x-hint tip="Klik ikon pensil di ujung baris untuk menyesuaikan harga/biaya item ini (Custom Harga)." icon="pen-to-square" tone="indigo" />
+                        </h4>
                     </div>
 
                     <div class="space-y-3">
@@ -142,17 +143,19 @@
                     @if($saldoDeposit > 0)
                     <div class="mb-5 flex items-center gap-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 px-4 py-3">
                         <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><i class="fas fa-wallet text-sm"></i></div>
-                        <div class="flex-1">
-                            <p class="text-xs font-medium text-emerald-700">Deposit tersedia Rp {{ number_format($saldoDeposit, 0, ',', '.') }}</p>
-                            <p class="text-[11px] text-emerald-600/80 mt-0.5">Otomatis diterapkan. Ganti Metode Pembayaran jika ingin pakai Tunai/Transfer.</p>
+                        <div class="flex-1 min-w-0">
+                            <p class="flex items-center gap-1.5 text-xs font-medium text-emerald-700">Deposit Rp {{ number_format($saldoDeposit, 0, ',', '.') }}
+                                <x-hint tip="Saldo deposit otomatis diterapkan ke pembayaran. Ganti metode ke Tunai, Transfer, atau QRIS BRI untuk tidak memakainya." icon="hand-holding-wallet" tone="emerald" align="start" />
+                            </p>
                         </div>
                     </div>
                     @elseif($depositSudahHabis)
                     <div class="mb-5 flex items-center gap-3 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3">
                         <div class="w-9 h-9 rounded-xl bg-slate-200/70 text-slate-400 flex items-center justify-center shrink-0"><i class="fas fa-ban text-sm"></i></div>
-                        <div class="flex-1">
-                            <p class="text-xs font-medium text-slate-500">Deposit sudah habis terpakai</p>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Konsumen ini pernah setor deposit, tapi saldonya sudah habis - tidak bisa dipakai lagi sampai ada setoran baru.</p>
+                        <div class="flex-1 min-w-0">
+                            <p class="flex items-center gap-1.5 text-xs font-medium text-slate-500">Deposit sudah habis
+                                <x-hint tip="Konsumen ini pernah setor deposit, tapi saldonya sudah habis terpakai - tidak bisa dipakai lagi sampai ada setoran baru." icon="circle-info" align="start" />
+                            </p>
                         </div>
                     </div>
                     @endif
@@ -187,6 +190,10 @@
                                     <input type="radio" name="metode_pembayaran" value="Transfer" class="sr-only" onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-university"></i> Transfer
                                 </label>
+                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-medium text-xs cursor-pointer transition-all hover:border-slate-200">
+                                    <input type="radio" name="metode_pembayaran" value="QRIS BRI" class="sr-only" onchange="onMetodePembayaranChange()">
+                                    <i class="fas fa-qrcode"></i> QRIS BRI
+                                </label>
                                 <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-medium text-xs cursor-pointer transition-all hover:border-slate-200 {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}"
                                     title="{{ $saldoDeposit > 0 ? '' : ($depositSudahHabis ? 'Deposit konsumen ini sudah habis terpakai, tidak bisa dipakai lagi.' : 'Konsumen ini belum pernah setor deposit.') }}">
                                     <input type="radio" name="metode_pembayaran" value="Deposit" class="sr-only" {{ $saldoDeposit <= 0 ? 'disabled' : '' }} onchange="onMetodePembayaranChange()">
@@ -197,17 +204,91 @@
                     </div>
 
                     <div id="wrapper-bank" class="hidden mt-5">
-                        <label class="block text-[11px] font-medium text-slate-400 mb-2">Rekening Tujuan</label>
-                        <select name="id_bank" id="input-bank" class="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-sm font-medium text-slate-600 shadow-inner focus:ring-2 focus:ring-indigo-500/20">
-                            <option value="">-- Pilih Rekening --</option>
+                        <label class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mb-2">Rekening Tujuan
+                            <x-hint tip="Klik kartu rekening untuk memilih; klik lagi untuk batal pilih. Boleh dikosongkan - transfer dicatat tanpa keterangan rekening." icon="credit-card" />
+                        </label>
+                        {{-- Kartu rekening: kasir tidak lagi harus membaca
+                             <select> panjang - satu akun = satu kartu dengan
+                             nama bank, nomor, dan atas nama. name="id_bank"
+                             yang dikirim ke server berupa input hidden supaya
+                             proses-bayar tetap membaca field yang sama
+                             (validasi transfer tidak berubah). --}}
+                        @if($banks->isEmpty())
+                            <div class="rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-xs text-slate-400 leading-relaxed">
+                                Belum ada rekening terdaftar di Master Bank. Transfer tetap bisa dicatat tanpa keterangan rekening - tambahkan dulu lewat menu Master Bank bila diperlukan.
+                            </div>
+                        @else
+                        <input type="hidden" name="id_bank" id="input-bank" value="">
+                        <div class="grid grid-cols-2 gap-2 max-w-[360px]" role="radiogroup" aria-label="Pilih rekening tujuan transfer">
                             @foreach($banks as $b)
-                                <option value="{{ $b->id_bank }}">{{ $b->nama_bank }} - {{ $b->nomor_rekening }} ({{ $b->atas_nama }})</option>
+                            @php
+                                $nana = strtolower($b->nama_bank);
+                                $kelasBank = str_contains($nana, 'bca') ? 'bca'
+                                    : (str_contains($nana, 'mandiri') ? 'mandiri'
+                                    : (str_contains($nana, 'bri') ? 'bri'
+                                    : (str_contains($nana, 'bni') ? 'bni'
+                                    : (str_contains($nana, 'cimb') ? 'cimb'
+                                    : (str_contains($nana, 'danamon') ? 'danamon'
+                                    : 'default')))));
+                                $nomor = preg_replace('/\D+/', '', (string) $b->nomor_rekening);
+                                $tampilNomor = trim(chunk_split($nomor, 4, ' ')) ?: $b->nomor_rekening;
+                            @endphp
+                            {{-- Desain mengikuti kartu ATM/debit asli: gradien
+                                 gelap, chip EMV, nomor dalam empat kelompok,
+                                 nama pemilik, stempel DEBIT. Warna menirukan
+                                 paruh atas kartu masing-masing bank (bukan
+                                 merek resmi). Style di resources/css/bank-card.css. --}}
+                            <button type="button" class="bank-atm-card bank-{{ $kelasBank }}" data-bank-id="{{ $b->id_bank }}" aria-pressed="false" title="{{ $b->nama_bank }} - {{ $b->nomor_rekening }}">
+                                <span class="bank-atm-sheen"></span>
+                                <span class="bank-atm-head">
+                                    <span class="bank-atm-bank">{{ $b->nama_bank }}</span>
+                                    <span class="bank-atm-debit">DEBIT</span>
+                                </span>
+                                <span class="bank-atm-chip" style="margin-top:10px"></span>
+                                <span class="bank-atm-number">{{ $tampilNomor }}</span>
+                                <span class="bank-atm-foot">
+                                    <span class="min-w-0">
+                                        <span class="bank-atm-label">Pemegang Kartu</span>
+                                        <span class="bank-atm-holder">a.n {{ $b->atas_nama }}</span>
+                                    </span>
+                                    <span class="bank-atm-mark">ATM</span>
+                                </span>
+                                <span class="bank-atm-check"><i class="fas fa-check"></i></span>
+                            </button>
                             @endforeach
-                        </select>
+                        </div>
+                        @endif
+                    </div>
+                    <div id="wrapper-qris" class="hidden mt-5">
+                        <label class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mb-2">Pembayaran QRIS BRI
+                            <x-hint tip="Scan kode oleh pelanggan, lalu tunggu notifikasi 'pembayaran diterima' di aplikasi BRI Merchant SEBELUM menekan Bayar." icon="qrcode" tone="indigo" />
+                        </label>
+                        <div class="flex flex-col sm:flex-row gap-4 items-stretch rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                            <div class="shrink-0 w-full sm:w-40 h-40 rounded-2xl bg-white border border-slate-100 flex items-center justify-center overflow-hidden">
+                                @if(file_exists(public_path('storage/qris-bri.png')))
+                                    <img src="{{ asset('storage/qris-bri.png') }}" alt="Kode QRIS BRI Toko" class="h-full w-full object-contain">
+                                @else
+                                    <i class="fas fa-qrcode text-6xl text-slate-300"></i>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0 text-[11px] leading-relaxed text-slate-500 flex flex-col justify-center gap-2">
+                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-slate-500">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-white border border-slate-100 px-2.5 py-1"><i class="fas fa-mobile-screen text-indigo-400"></i>1 Scan</span>
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-white border border-slate-100 px-2.5 py-1"><i class="fas fa-bell text-indigo-400"></i>2 Tunggu notif</span>
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-white border border-slate-100 px-2.5 py-1"><i class="fas fa-check text-emerald-500"></i>3 Bayar</span>
+                                </div>
+                                @unless(file_exists(public_path('storage/qris-bri.png')))
+                                    <p class="flex items-center gap-1.5 text-[10px] text-amber-600"><i class="fas fa-triangle-exclamation"></i>Kode QRIS belum terpasang di sistem
+                                        <x-hint tip="Kode stiker di kasir tetap bisa dipakai seperti biasa. Untuk menampilkan kode di sini, IT cukup menaruh berkas qris-bri.png di storage/app/public/." icon="triangle-exclamation" tone="amber" align="start" />
+                                    </p>
+                                @endunless
+                            </div>
+                        </div>
                     </div>
                     <div id="wrapper-deposit-info" class="hidden mt-5 rounded-2xl bg-indigo-50/60 border border-indigo-100 px-4 py-3">
-                        <p class="text-xs font-medium text-indigo-600">Saldo deposit: Rp {{ number_format($saldoDeposit, 0, ',', '.') }}</p>
-                        <p class="text-[11px] text-indigo-600 mt-0.5">Jumlah bayar tidak boleh melebihi saldo ini.</p>
+                        <p class="flex items-center gap-1.5 text-xs font-medium text-indigo-600">Saldo deposit Rp {{ number_format($saldoDeposit, 0, ',', '.') }}
+                            <x-hint tip="Jumlah bayar tidak boleh melebihi saldo ini." icon="circle-info" tone="indigo" />
+                        </p>
                     </div>
 
                     <div class="mt-6">
@@ -217,8 +298,11 @@
                              entri baru - tanpa kuncian ini nominal tersebut
                              bisa terkirim dua kali dan uang nota terpotong
                              seluruhnya. --}}
-                        <label id="label-uang-diterima" class="block text-[11px] font-medium text-slate-400 mb-2">
+                        <label id="label-uang-diterima" class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mb-2">
                             {{ $notaSudahLunas ? 'Uang Diterima (sudah lunas)' : 'Uang Diterima' }}
+                            @if($notaSudahLunas)
+                                <x-hint :tip="'Nominal ini sudah tercatat' . ($penerimaan->isNotEmpty() ? ' (' . $penerimaan->pluck('metode')->unique()->join(', ') . ', ' . $penerimaan->count() . ' kali bayar)' : '') . ' - hanya pengingat, bukan pembayaran baru.'" icon="circle-check" tone="emerald" />
+                            @endif
                         </label>
                         <div class="relative">
                             <span id="prefix-uang-diterima" class="absolute left-5 top-1/2 -translate-y-1/2 font-medium text-slate-500 text-lg">Rp</span>
@@ -228,17 +312,6 @@
                                    placeholder="0">
                             <input type="hidden" name="jumlah_bayar" id="input-bayar-asli">
                         </div>
-
-                        @if($notaSudahLunas)
-                        <p class="mt-2 flex items-start gap-1.5 text-[11px] text-emerald-600">
-                            <i class="fas fa-circle-check mt-0.5"></i>
-                            <span>Nominal di atas adalah uang yang sudah tercatat untuk nota ini
-                                @if($penerimaan->isNotEmpty())
-                                    ({{ $penerimaan->pluck('metode')->unique()->join(', ') }}, {{ $penerimaan->count() }} kali bayar)
-                                @endif
-                                - jadi pengingat, bukan pembayaran baru.</span>
-                        </p>
-                        @endif
 
                         <div class="mt-2.5 flex justify-end">
                             <button type="button" id="btn-bayar-pas" onclick="setUangPas()" @if($notaSudahLunas) disabled title="Nota ini sudah lunas" @endif class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-500 text-[11px] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed">
@@ -301,7 +374,7 @@
                         {{-- Metode pembayaran ikut ditampilkan di sini. Keterangan
                              "sudah bayar" tanpa metode tidak bisa dipakai saat
                              rekonsiliasi uang laci, jadi kasir harus bisa melihat
-                             uang nota ini masuk lewat Tunai atau Transfer. --}}
+                             uang nota ini masuk lewat Tunai, Transfer atau QRIS BRI. --}}
                         <div class="flex justify-between items-center mt-3 pt-3 border-t border-indigo-100/60">
                             <span class="text-[11px] font-medium text-slate-400">Metode</span>
                             <span id="metode-label" class="text-[11px] font-medium text-slate-600">-</span>
@@ -403,6 +476,21 @@
 
 </div>
 
+<style>
+    /* Animasi "Lunas": saat isi uang menutupi sisa tagihan, status pill
+       memantul kecil satu kali (tidak berputar selamanya). Aman untuk
+       pengguna yang menonaktifkan animasi. */
+    @keyframes lunasPop {
+        0%   { transform: scale(.55); opacity: 0; }
+        55%  { transform: scale(1.3); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .status-lunas-pop { animation: lunasPop .45s cubic-bezier(.22, 1, .36, 1); }
+    @media (prefers-reduced-motion: reduce) {
+        .status-lunas-pop { animation: none !important; }
+    }
+</style>
+
 <script>
     function formatRupiah(angka) {
         let string = angka.toString().replace(/[^0-9]/g, "");
@@ -431,6 +519,27 @@
     // TRUE begitu kasir mengetik nominal sendiri. Lihat penjelasannya di
     // dalam calculateInvoice().
     let nominalSudahDiisiManual = false;
+
+    // Animasi "Lunas": memantul satu kali saat pill status baru saja
+    // BERUBAH menjadi LUNAS (ketikan nominal yang menutup sisa tagihan).
+    // Muat halaman pertama tidak ikut beranimasi (tidak ada perubahan), dan
+    // pengguna dengan prefers-reduced-motion tidak melihat animasi sama
+    // sekali (diatur di CSS).
+    let statusTerakhir = null;
+    let baruPertamaKali = true;
+    function perbaruiAnimasiLunas() {
+        const el = document.getElementById('status-label');
+        if (!el) return;
+        const lunas = el.innerText === 'LUNAS';
+        if (lunas && statusTerakhir !== 'LUNAS' && !baruPertamaKali) {
+            el.classList.remove('status-lunas-pop');
+            void el.offsetWidth; // paksa reflow supaya animasi selalu jalan ulang
+            el.classList.add('status-lunas-pop');
+        }
+        if (!lunas) el.classList.remove('status-lunas-pop');
+        statusTerakhir = el.innerText;
+        baruPertamaKali = false;
+    }
 
     function calculateInvoice() {
         let totalKotor = 0;
@@ -540,6 +649,9 @@
         if (document.getElementById('input-bayar-mask').dataset.terkunci !== '1') {
             terapkanTipeBayarOtomatis(bayar, sisaTagihan);
         }
+
+        // Animasi pop sekali pada pill status yang baru saja jadi LUNAS.
+        perbaruiAnimasiLunas();
     }
 
     document.addEventListener('input', function (e) {
@@ -696,15 +808,35 @@
     function toggleBankField() {
         const metode = getMetodePembayaran();
         document.getElementById('wrapper-bank').classList.toggle('hidden', metode !== 'Transfer');
+        document.getElementById('wrapper-qris').classList.toggle('hidden', metode !== 'QRIS BRI');
         document.getElementById('wrapper-deposit-info').classList.toggle('hidden', metode !== 'Deposit');
     }
+
+    // Kartu rekening ATM: klik = pilih, klik kartu yang sama lagi = batal
+    // pilih. Nilai dikirim lewat hidden #input-bank (name="id_bank"), yang
+    // dibaca proses-bayar; tidak mengubah kontrak server sama sekali.
+    function toggleBankCard(card) {
+        const sedangAktif = card.classList.contains('bank-atm-active');
+        document.querySelectorAll('.bank-atm-card').forEach(c => {
+            c.classList.remove('bank-atm-active');
+            c.setAttribute('aria-pressed', 'false');
+        });
+        if (sedangAktif) {
+            document.getElementById('input-bank').value = '';
+            return;
+        }
+        card.classList.add('bank-atm-active');
+        card.setAttribute('aria-pressed', 'true');
+        document.getElementById('input-bank').value = card.dataset.bankId;
+    }
+    document.querySelectorAll('.bank-atm-card').forEach(c => c.addEventListener('click', () => toggleBankCard(c)));
 
     // Kalau konsumen ini punya saldo deposit, otomatis pilih Metode
     // Pembayaran = Deposit & isi Uang Diterima = saldo (dibatasi maksimal
     // sisa tagihan) saat halaman pertama dibuka, supaya kasir tidak perlu
     // ingat menerapkannya manual. HANYA jalan sekali di awal load (bukan
     // tiap kali angka berubah) supaya tidak menimpa input yang sudah
-    // diketik sendiri - kasir tetap bebas ganti ke Tunai/Transfer kapan
+    // diketik sendiri - kasir tetap bebas ganti metode ke Tunai/Transfer/QRIS BRI kapan
     // saja (banner di atas cuma informasi, bukan kuncian).
     function autoTerapkanDeposit() {
         if (saldoDepositTersedia <= 0) return;
@@ -989,12 +1121,12 @@
             var tombol = f.querySelector('button[type=submit]');
             if (tombol) {
                 tombol.disabled = true;
-                tombol.dataset.labelAsli = tombol.innerText;
-                tombol.innerText = 'Memproses...';
+                tombol.dataset.labelAsli = tombol.innerHTML;
+                tombol.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
             }
             setTimeout(function () {
                 tombol.disabled = false;
-                if (tombol.dataset.labelAsli) tombol.innerText = tombol.dataset.labelAsli;
+                if (tombol.dataset.labelAsli) tombol.innerHTML = tombol.dataset.labelAsli;
                 sudahSubmit = false;
             }, 8000);
         });

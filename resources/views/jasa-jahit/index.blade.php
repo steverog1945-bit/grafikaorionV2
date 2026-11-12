@@ -209,7 +209,7 @@
     <x-card :padding="false">
         <div class="px-5 py-4 border-b border-slate-200">
             <h3 class="text-sm font-medium text-slate-900">Riwayat Pengeluaran Jahit</h3>
-            <p class="text-[11px] text-slate-400 mt-0.5">100 catatan terbaru. Catatan tidak bisa diubah; kalau salah, hapus lalu catat ulang.</p>
+            <x-hint tip="100 catatan terbaru. Catatan tidak bisa diubah; kalau salah, hapus lalu catat ulang." icon="clipboard-list" />
         </div>
         <x-table bare>
             <thead>
@@ -389,7 +389,7 @@
             </x-form.group>
         </div>
         <p class="text-[11px] text-slate-400 -mt-2 ml-2" data-bagian="nota">Nota yang memakai finishing ini muncul di Catat Jahit Nota.</p>
-        <p class="text-[11px] text-slate-400 -mt-2 ml-2" data-bagian="jersey">Kosongkan lengan dan kerah untuk tarif jersey umum. Satu kombinasi lengan dan kerah hanya boleh punya satu tarif.</p>
+        <x-hint tip="Kosongkan lengan dan kerah untuk tarif jersey umum. Satu kombinasi lengan dan kerah hanya boleh punya satu tarif." icon="ruler" />
 
         <x-form.group label="Keterangan" name="keterangan" dalam>
             <textarea name="keterangan" id="{{ $mode }}-keterangan" rows="2" maxlength="1000" class="w-full text-sm font-medium text-slate-700"></textarea>

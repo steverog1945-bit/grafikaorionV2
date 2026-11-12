@@ -31,7 +31,7 @@
                 <input type="text" name="catatan" maxlength="255" class="w-full rounded-xl border-slate-200 text-sm p-2"></div>
             <div class="md:col-span-4 text-right"><x-button type="submit" variant="primary"><i class="fas fa-upload"></i> Unggah</x-button></div>
         </form>
-        <p class="text-[11px] text-slate-400 mt-3">Format: JPG, PNG, WEBP, PDF, ZIP, AI, PSD, CDR, EPS. Foto bukti serah terima lewat tombol serah terima di Collecting.</p>
+        <x-hint tip="Format: JPG, PNG, WEBP, PDF, ZIP, AI, PSD, CDR, EPS. Foto bukti serah terima lewat tombol serah terima di Collecting." icon="file-circle-check" />
     </x-card>
 
     @if($pengambilan)

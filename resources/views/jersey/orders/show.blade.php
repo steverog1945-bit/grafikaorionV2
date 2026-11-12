@@ -297,7 +297,7 @@
     </x-card>
 
     <x-modal id="tambah-susulan" title="Tambah Barang Susulan" maxWidth="4xl">
-        <p class="text-xs text-slate-400 mb-4 -mt-2">Barang lama pada order ini <b class="text-slate-500">tidak akan berubah/terhapus</b> - cocok untuk kasus qty/jenis barang bertambah setelah order awal berjalan (mis. panitia bertambah, butuh jersey tambahan).</p>
+    <x-hint tip="Barang lama pada order ini tidak akan berubah/terhapus - cocok untuk kasus qty/jenis barang bertambah setelah order awal berjalan (mis. panitia bertambah, butuh jersey tambahan)." icon="box-open" />
         <form id="form-tambah-susulan" action="{{ route('jersey.orders.lines.susulan', $order->id) }}" method="POST">
             @csrf
             <div class="jersey-line-card bg-slate-50/60 rounded-2xl border border-slate-200 overflow-hidden mb-5" data-prefix="lines[0]">

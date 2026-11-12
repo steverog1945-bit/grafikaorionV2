@@ -1,0 +1,140 @@
+/* =========================================================
+   Kartu ATM/Debit (rekening bank perusahaan)
+   Dipakai bersama oleh: Master Bank (master/bank/index) dan
+   pemilihan rekening di form Pembayaran Kasir. Satu desain:
+   rasio 1.586, gradien gelap, chip EMV, nomor 4 kelompok,
+   DEBIT mark. Warna menirukan paruh atas kartu tiap bank
+   (bukan merek resmi kartoplas).
+   ========================================================= */
+
+.bank-atm-card {
+    position: relative;
+    aspect-ratio: 1.586 / 1;
+    overflow: hidden;
+    border-radius: 16px;
+    padding: 12px 14px 13px;
+    text-align: left;
+    color: #fff;
+    background: linear-gradient(155deg, #1f2937 0%, #374151 100%);
+    border: 1px solid rgba(255, 255, 255, .14);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, .28);
+    cursor: pointer;
+    user-select: none;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.bank-atm-static { cursor: default; }
+.bank-atm-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 34px rgba(15, 23, 42, .4);
+}
+.bank-atm-card:active { transform: translateY(-1px) scale(.985); }
+.bank-atm-card:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(232, 182, 76, .7), 0 18px 34px rgba(15, 23, 42, .4);
+}
+
+.bank-atm-card.bank-bca     { background: linear-gradient(155deg, #0159a6 0%, #006fbf 45%, #0091ea 100%); }
+.bank-atm-card.bank-mandiri { background: linear-gradient(155deg, #021c3f 0%, #0c3b6c 60%, #155693 100%); }
+.bank-atm-card.bank-mandiri::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+    height: 6px; background: linear-gradient(90deg, #ffc627 0%, #ffb703 100%);
+}
+.bank-atm-card.bank-bri     { background: linear-gradient(155deg, #043e7e 0%, #005fa8 55%, #0f78bd 100%); }
+.bank-atm-card.bank-bri::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+    height: 5px; background: linear-gradient(90deg, #fbbf24 0 28%, transparent 28% 100%);
+}
+.bank-atm-card.bank-bni     { background: linear-gradient(155deg, #c2410c 0%, #ea580c 60%, #fb923c 100%); }
+.bank-atm-card.bank-cimb    { background: linear-gradient(155deg, #7f1d1d 0%, #b91c1c 60%, #ef4444 100%); }
+.bank-atm-card.bank-danamon { background: linear-gradient(155deg, #9f1239 0%, #be123d 60%, #f43f5e 100%); }
+
+/* Kilau diagonal halus */
+.bank-atm-sheen {
+    position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+    background:
+        radial-gradient(900px 340px at 118% -20%, rgba(255, 255, 255, .26), transparent 55%),
+        radial-gradient(700px 420px at -18% 118%, rgba(255, 255, 255, .10), transparent 55%),
+        repeating-linear-gradient(115deg, rgba(255, 255, 255, .045) 0 2px, transparent 2px 14px);
+}
+
+/* Chip EMV: kuningan dengan garis kontak */
+.bank-atm-chip {
+    position: relative;
+    display: block;
+    width: 36px; height: 26px; border-radius: 5px;
+    background: linear-gradient(140deg, #efe08c 0%, #cdb968 30%, #a6903f 55%, #e4d98f 100%);
+    box-shadow:
+        inset 0 0 0 1px rgba(40, 28, 0, .4),
+        inset 0 -4px 5px rgba(40, 28, 0, .35),
+        inset 0 4px 5px rgba(255, 255, 255, .45);
+}
+.bank-atm-chip::after {
+    content: ''; position: absolute; left: 3px; right: 3px; top: 50%; height: 1px;
+    background: rgba(60, 46, 4, .5);
+    box-shadow: 0 -6px 0 rgba(60, 46, 4, .38), 0 6px 0 rgba(60, 46, 4, .38);
+}
+
+/* Baris konten utama (dipakai di kedua halaman) */
+.bank-atm-head  { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
+.bank-atm-bank  { display: block; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgba(255, 255, 255, .92); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bank-atm-debit { display: block; font-size: 8px; font-weight: 600; letter-spacing: .28em; color: rgba(255, 255, 255, .55); flex-shrink: 0; padding-top: 2px; }
+.bank-atm-number {
+    position: relative; display: block; margin-top: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11.5px; letter-spacing: .16em; color: rgba(255, 255, 255, .95);
+    white-space: nowrap;
+}
+.bank-atm-number--big { margin-top: 18px; font-size: 16px; letter-spacing: .22em; }
+.bank-atm-foot {
+    position: relative; display: flex; align-items: flex-end; justify-content: space-between;
+    gap: .6rem; margin-top: 11px;
+}
+.bank-atm-label { display: block; font-size: 6.5px; font-weight: 500; text-transform: uppercase; letter-spacing: .18em; color: rgba(255, 255, 255, .5); }
+.bank-atm-holder { display: block; font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: .09em; color: rgba(255, 255, 255, .92); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bank-atm-mark { font-size: 9px; font-weight: 700; font-style: italic; color: rgba(255, 255, 255, .4); flex-shrink: 0; }
+
+/* Tanda kartu terpilih (form pembayaran) */
+.bank-atm-check {
+    position: absolute; top: 8px; right: 8px; z-index: 2;
+    width: 20px; height: 20px; border-radius: 9999px;
+    background: #34d399; color: #064e3b;
+    align-items: center; justify-content: center;
+    font-size: 10px; display: none;
+}
+.bank-atm-card.bank-atm-active {
+    transform: translateY(-3px);
+    border-color: #e8b64c;
+    box-shadow: 0 0 0 3px rgba(232, 182, 76, .55), 0 18px 34px rgba(15, 23, 42, .4);
+}
+.bank-atm-card.bank-atm-active .bank-atm-check { display: inline-flex; }
+
+/* Kartu master: tombol aksi melayang di atas kartu */
+.bank-atm-actions {
+    position: absolute; right: 8px; bottom: 8px; z-index: 3;
+    display: flex; gap: 6px;
+}
+.bank-atm-actions button,
+.bank-atm-actions form button {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, .32); color: rgba(255, 255, 255, .85);
+    backdrop-filter: blur(2px);
+    border: 1px solid rgba(255, 255, 255, .16);
+    transition: background .2s, color .2s, transform .2s;
+}
+.bank-atm-actions button:hover,
+.bank-atm-actions form button:hover { background: rgba(0, 0, 0, .5); color: #fff; }
+.bank-atm-actions .act-edit:hover { color: #fde68a; }
+.bank-atm-actions .act-delete:hover { color: #fda4af; }
+
+@media (max-width: 400px) {
+    .bank-atm-card { padding: 10px 11px 11px; }
+    .bank-atm-number { margin-top: 9px; font-size: 10px; letter-spacing: .1em; }
+    .bank-atm-number--big { margin-top: 13px; font-size: 13px; }
+    .bank-atm-foot { margin-top: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bank-atm-card { transition: none !important; }
+    .bank-atm-card:hover { transform: none !important; }
+}

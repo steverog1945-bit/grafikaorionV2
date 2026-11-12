@@ -72,7 +72,7 @@
                 <tr><td>Status</td><td class="right">Tidak Rolling</td></tr>
                 @endif
             </table>
-            <p class="sub">Transfer, debit, dan deposit tidak ada di laci.</p>
+            <p class="sub">Transfer, QRIS BRI, debit, dan deposit tidak ada di laci.</p>
 
             <div class="signature">
                 <div>Kasir<div class="line"></div></div>

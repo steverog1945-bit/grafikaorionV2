@@ -29,7 +29,7 @@
                 <input type="checkbox" name="batasi_jam_kerja" value="1" {{ old('batasi_jam_kerja', $batasi) ? 'checked' : '' }} class="mt-1 w-5 h-5 rounded accent-indigo-600">
                 <span>
                     <span class="block text-sm font-medium text-slate-700">Batasi transaksi di luar jam kerja</span>
-                    <span class="block text-xs text-slate-400 mt-0.5">Bila aktif, transaksi kas baru (bayar, open saldo, kas manual) di luar jam di atas ditolak. Bila tidak, hanya hari libur yang memblokir.</span>
+    <x-hint tip="Bila aktif, transaksi kas baru (bayar, open saldo, kas manual) di luar jam di atas ditolak. Bila tidak, hanya hari libur yang memblokir." icon="clock" />
                 </span>
             </label>
 

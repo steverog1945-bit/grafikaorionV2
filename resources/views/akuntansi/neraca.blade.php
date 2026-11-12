@@ -130,7 +130,7 @@
             </div>
             <div>
                 <h3 class="text-sm font-medium text-slate-800">Analisis Otomatis</h3>
-                <p class="text-[11px] text-slate-400">Dibentuk otomatis dari rasio &amp; komposisi neraca ini - bukan nasihat keuangan formal, gunakan sebagai gambaran awal.</p>
+                <x-hint tip="Dibentuk otomatis dari rasio & komposisi neraca ini - bukan nasihat keuangan formal, gunakan sebagai gambaran awal." icon="scale-balanced" />
             </div>
         </div>
         <div class="p-8 space-y-3">

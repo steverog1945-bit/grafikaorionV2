@@ -79,7 +79,7 @@
                 <x-form.input type="text" name="alasan" maxlength="255" value="{{ old('alasan') }}" placeholder="Mis. sisa potongan roll, basah kena air" required />
             </x-form.group>
 
-            <p class="text-xs text-slate-400">Normal langsung mengurangi stok dan dijurnal. Abnormal diajukan ke Approval Workflow; stok baru berkurang setelah disetujui.</p>
+    <x-hint tip="Normal langsung mengurangi stok dan dijurnal. Abnormal diajukan ke Approval Workflow; stok baru berkurang setelah disetujui." icon="trash" />
 
             <x-button type="submit" variant="primary" class="w-full"><i class="fas fa-save"></i> Simpan</x-button>
         </form>

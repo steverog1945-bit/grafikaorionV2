@@ -188,7 +188,7 @@ html.dark .jersey-mobile-form-page .jersey-line-head button:hover { background-c
             </div>
         </div>
         @endforeach
-        <p class="text-[10px] text-slate-400">Tekan <b>Enter</b> untuk pindah ke ukuran berikutnya. Ukuran anak otomatis memakai selisih harga yang diatur di Master Data.</p>
+    <x-hint tip="Tekan Enter untuk pindah ke ukuran berikutnya. Ukuran anak otomatis memakai selisih harga yang diatur di Master Data." icon="keyboard" />
     </div>
 
     <div class="wrapper-daftar-pemain {{ $otIsi === 'quantity_only' ? 'hidden' : '' }}">

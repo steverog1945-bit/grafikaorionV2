@@ -134,7 +134,7 @@
                     <input type="checkbox" name="tampil_divisi" value="1" {{ $m->tampil_divisi ? 'checked' : '' }} class="mt-0.5 w-4 h-4">
                     <span>
                         <span class="block text-xs font-medium text-slate-700">Tampil sebagai divisi produksi</span>
-                        <span class="block text-xs text-slate-500">Hilangkan centang untuk mesin pendukung (mis. cutter) agar tidak jadi tab divisi di SPK dan Produksi.</span>
+    <x-hint tip="Hilangkan centang untuk mesin pendukung (mis. cutter) agar tidak jadi tab divisi di SPK dan Produksi." icon="industry" />
                     </span>
                 </label>
 

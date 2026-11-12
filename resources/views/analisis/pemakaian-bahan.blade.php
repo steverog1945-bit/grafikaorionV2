@@ -47,6 +47,6 @@
             @endforelse
         </tbody>
     </x-table>
-    <p class="text-[11px] text-slate-400 mt-3 px-1">Klasifikasi memakai kode referensi Kartu Stok: RW- = rework, WS- = waste, selain itu dianggap pemakaian order atau penyesuaian lain. Nilai susut memakai harga rata-rata bahan saat ini.</p>
+    <x-hint tip="Klasifikasi memakai kode referensi Kartu Stok: RW- = rework, WS- = waste, selain itu dianggap pemakaian order atau penyesuaian lain. Nilai susut memakai harga rata-rata bahan saat ini." icon="boxes-stacked" />
 </div>
 @endsection

@@ -125,7 +125,7 @@
             @endforelse
         </tbody>
     </x-table>
-    <p class="text-[11px] text-slate-400 mt-3 px-1">Perkiraan, bukan hasil ukur riil: luas cetak = panjang × lebar × qty dari pesanan (nota dibatalkan tidak dihitung), dikalikan pemakaian per m² (atau per lembar), lalu dikali harga rata-rata bahan. Angka awal adalah acuan; ubah sesuai hasil ukur di lapangan.</p>
+    <x-hint tip="Perkiraan, bukan hasil ukur riil: luas cetak = panjang x lebar x qty dari pesanan (nota dibatalkan tidak dihitung), dikali pemakaian per m2 (atau per lembar), lalu dikali harga rata-rata bahan. Angka awal adalah acuan; ubah sesuai hasil ukur di lapangan." icon="droplet" />
 
     <x-modal id="pengaturan-tinta" title="Pengaturan Pemakaian Tinta" maxWidth="md">
         <form method="POST" action="{{ route('laporan.biaya-tinta.simpan') }}" class="space-y-5">

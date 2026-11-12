@@ -32,7 +32,7 @@
                 </label>
                 <x-button type="submit" variant="success">Tambah</x-button>
             </form>
-            <p class="text-[11px] text-slate-400 -mt-4 mb-4">Matikan centang "Punya Lengan &amp; Kerah" untuk tipe produk tanpa lengan/kerah (mis. Celana) - pilihan Lengan/Kerah otomatis disembunyikan di form Order untuk tipe ini.</p>
+    <x-hint tip="Matikan centang Punya Lengan & Kerah untuk tipe produk tanpa lengan/kerah (mis. Celana) - pilihan Lengan/Kerah otomatis disembunyikan di form Order untuk tipe ini." icon="toggle-off" />
             @include('jersey.master._filter-toolbar', ['searchId' => 'search-tipe', 'statusId' => 'filter-status-tipe', 'placeholder' => 'Cari nama tipe produk...'])
             <div class="flex items-center gap-3 mb-3"><button type="button" onclick="bulkHapusSimple('product-types')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-medium uppercase tracking-widest hover:bg-rose-100"><i class="far fa-trash-alt mr-1"></i> Hapus Terpilih</button></div>
             <x-table bare>
@@ -99,7 +99,7 @@
     {{-- BAHAN --}}
     <div id="tab-panel-bahan" class="jersey-tab-panel hidden">
         <x-card>
-            <p class="text-xs text-slate-400 mb-4">Daftar bahan riil (mis. Dryfit, Cotton Combed) yang dipilih saat membuat baris barang di order - bukan lagi diketik bebas.</p>
+    <x-hint tip="Daftar bahan riil (mis. Dryfit, Cotton Combed) yang dipilih saat membuat baris barang di order - bukan lagi diketik bebas." icon="layer-group" />
             <form id="form-add-bahan" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama bahan (mis. Dryfit)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <x-button type="submit" variant="success">Tambah</x-button>
@@ -121,7 +121,7 @@
         {{-- SINKRON dengan Master Bahan Baku: stok & harga per kg satu sumber --}}
         <x-card class="mt-6">
             <h3 class="text-sm font-medium text-slate-700 mb-1">Sinkron dengan Master Bahan Baku</h3>
-            <p class="text-xs text-slate-400 mb-4">Hubungkan tiap bahan jersey ke bahan baku di gudang, sehingga stok dan harga beli per kg mengikuti Master Bahan (satu sumber).</p>
+    <x-hint tip="Hubungkan tiap bahan jersey ke bahan baku di gudang, sehingga stok dan harga beli per kg mengikuti Master Bahan (satu sumber)." icon="link" />
             <div class="divide-y divide-slate-100">
                 @foreach($materials as $m)
                 <div class="py-3 flex flex-wrap items-center gap-3 {{ $m->is_active ? '' : 'opacity-50' }}">
@@ -146,7 +146,7 @@
     {{-- TIPE LENGAN --}}
     <div id="tab-panel-lengan" class="jersey-tab-panel hidden">
         <x-card>
-            <p class="text-xs text-slate-400 mb-4">Tipe lengan riil (mis. Pendek, Panjang, 3/4) yang dipilih saat membuat order - dipakai sebagai acuan estimasi bahan, bukan lagi pilihan tetap.</p>
+    <x-hint tip="Tipe lengan riil (mis. Pendek, Panjang, 3/4) yang dipilih saat membuat order - dipakai sebagai acuan estimasi bahan, bukan lagi pilihan tetap." icon="ruler" />
             <form id="form-add-lengan" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe lengan (mis. 3/4 Lengan)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <div class="sm:w-48"><input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
@@ -170,7 +170,7 @@
     {{-- TIPE KERAH --}}
     <div id="tab-panel-kerah" class="jersey-tab-panel hidden">
         <x-card>
-            <p class="text-xs text-slate-400 mb-4">Tipe kerah riil (mis. O-Neck, V-Neck) yang dipilih saat membuat order - dipakai sebagai acuan estimasi bahan, bukan lagi diketik bebas.</p>
+    <x-hint tip="Tipe kerah riil (mis. O-Neck, V-Neck) yang dipilih saat membuat order - dipakai sebagai acuan estimasi bahan, bukan lagi diketik bebas." icon="circle" />
             <form id="form-add-kerah" class="flex flex-col sm:flex-row gap-3 mb-6 bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100">
                 <div class="flex-1"><input type="text" name="name" required placeholder="Nama tipe kerah (mis. V-Neck)" class="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
                 <div class="sm:w-48"><input type="text" inputmode="numeric" name="price_surcharge" placeholder="Tambahan harga (Rp)" class="format-ribuan w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"></div>
@@ -380,7 +380,7 @@
     <div id="tab-panel-harga" class="jersey-tab-panel hidden">
         <x-card>
             <div class="flex items-start justify-between gap-4 mb-4">
-                <p class="text-xs text-slate-500 leading-relaxed">Harga berpusat pada <b class="text-slate-600">Bahan</b> — tiap bahan bisa punya tier qty & harga sendiri. Tier pencarian dipilih otomatis sesuai bahan & qty tiap baris order.</p>
+    <x-hint tip="Harga berpusat pada Bahan - tiap bahan bisa punya tier qty & harga sendiri. Tier dipilih otomatis sesuai bahan & qty tiap baris order." icon="coins" />
                 <button type="button" onclick="bantuanHarga()" class="shrink-0 h-7 w-7 inline-flex items-center justify-center rounded-full border border-indigo-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition" title="Penjelasan tier harga" aria-label="Penjelasan tier harga"><i class="fas fa-question text-[10px]"></i></button>
             </div>
             <div id="input-cepat-harga" class="mb-6 bg-emerald-50/40 p-4 rounded-2xl border border-emerald-100">
@@ -557,7 +557,7 @@
     <x-modal id="edit-komponen-scope" title="Cakupan Komponen" maxWidth="sm">
         <form id="form-edit-komponen-scope" class="space-y-4">
             <input type="hidden" id="edit-komponen-scope-id">
-            <p class="text-xs text-slate-400">Kosongkan supaya komponen ini berlaku untuk semua barang. Isi salah satu/keduanya supaya komponen ini cuma dihitung &amp; ditampilkan di SPK barang dengan Tipe Produk/Kategori yang cocok.</p>
+    <x-hint tip="Kosongkan supaya komponen ini berlaku untuk semua barang. Isi salah satu/keduanya supaya komponen ini cuma dihitung & ditampilkan di SPK barang dengan Tipe Produk/Kategori yang cocok." icon="sliders" />
             <div class="ld">
                 <select id="edit-komponen-scope-tipe" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">-- Semua Tipe Produk --</option>
@@ -698,7 +698,7 @@
                     <div class="text-left text-sm text-slate-600 space-y-2">
                         <p><b class="text-slate-700">Estimasi murni</b>, bukan pemotongan stok. Isi sel meter <i>dan</i> gram per komponen & ukuran; angka dipakai untuk menghitung "Spesifikasi Order" saat order dibuat.</p>
                         <p>Kolom <b class="text-indigo-600">Total</b> menjumlahkan semua komponen aktif per ukuran = perkiraan total bahan untuk <b>satu baju</b> ukuran itu.</p>
-                        <p class="text-slate-400 text-xs">Belum tahu angkanya? Mulai dari angka acuan default, lalu koreksi dari hasil potong lapangan.</p>
+    <x-hint tip="Belum tahu angkanya? Mulai dari angka acuan default, lalu koreksi dari hasil potong lapangan." icon="lightbulb" tone="amber" />
                     </div>`,
             },
             komponen: {
@@ -730,7 +730,7 @@
                 <div class="text-left text-sm text-slate-600 space-y-2">
                     <p>Setiap tier punya <b class="text-slate-700">cakupan</b>: Bahan + Tipe + Kategori + Golongan + Kelompok. Kosongkan sebagian cakupan untuk membuat tier "berlaku umum" sebagai fallback.</p>
                     <p>Saat order dibuat, sistem memilih tier <b>paling spesifik</b> yang cocok dengan bahan & qty baris barang tersebut.</p>
-                    <p>Perhatikan ikon <span class="px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 text-[11px] font-medium uppercase">Golongan</span> dan <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[11px] font-medium uppercase">Anak</span> pada kolom Bahan — itu pembeda antar tier yang sama bahan-nya. Gunakan filter di atas tabel untuk melihat satu golongan saja.</p>
+    <x-hint tip="Perhatikan ikon Golongan dan Anak pada kolom Bahan - itu pembeda antar tier yang sama bahan-nya. Gunakan filter di atas tabel untuk melihat satu golongan saja." icon="tags" />
                     <p>Sistem menolak rentang qty yang tumpang tindih pada cakupan yang sama supaya tidak ada dua harga aktif untuk rentang yang sama.</p>
                 </div>`,
             icon: 'info',

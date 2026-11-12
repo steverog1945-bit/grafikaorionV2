@@ -12,7 +12,7 @@
             <div class="flex-1 min-w-[260px]"><label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Alamat (halaman internal atau tautan luar)</label><x-form.input type="text" name="url" required placeholder="/laporan/order  atau  https://..." /></div>
             <x-button type="submit" variant="primary"><i class="fas fa-plus"></i> Tambah</x-button>
         </form>
-        <p class="mt-3 text-[11px] text-slate-400">Menu kustom tampil di grup "Menu Tambahan" untuk role/user yang diberi hak Lihat di Setting Akses. Ini hanya pintasan; akses halaman internalnya tetap mengikuti hak akses modul aslinya.</p>
+    <x-hint tip="Menu kustom tampil di grup Menu Tambahan untuk role/user yang diberi hak Lihat di Setting Akses. Ini hanya pintasan; akses halaman internalnya tetap mengikuti hak akses modul aslinya." icon="bars" />
     </x-card>
 
     <form method="POST" action="{{ route('menu-editor.update') }}">
@@ -54,6 +54,6 @@
     <form id="hapus-menu-{{ $m->id_menu }}" method="POST" action="{{ route('menu-editor.destroy', $m->id_menu) }}">@csrf @method('DELETE')</form>
     @endforeach
 
-    <p class="mt-4 text-xs text-slate-400">Catatan: modul yang disembunyikan hilang dari sidebar semua role, tetapi datanya tetap ada. Setting Akses, Data User, dan Pengaturan Aplikasi tidak bisa disembunyikan agar admin tidak terkunci.</p>
+    <x-hint tip="Catatan: modul yang disembunyikan hilang dari sidebar semua role, tetapi datanya tetap ada. Setting Akses, Data User, dan Pengaturan Aplikasi tidak bisa disembunyikan agar admin tidak terkunci." icon="eye-slash" tone="rose" />
 </div>
 @endsection

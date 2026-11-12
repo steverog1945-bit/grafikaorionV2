@@ -69,7 +69,7 @@
                             <x-form.group label="Nama Toko / Seller" dalam><x-form.input type="text" name="nama_toko_online" value="{{ old('nama_toko_online', $kedatangan->nama_toko_online ?? '') }}" placeholder="mis. Toko Kain Jaya" /></x-form.group>
                             <x-form.group label="No. Pesanan" dalam><x-form.input type="text" name="no_pesanan_online" value="{{ old('no_pesanan_online', $kedatangan->no_pesanan_online ?? '') }}" placeholder="mis. 2510XXXXXXXX" /></x-form.group>
                             <x-form.group label="No. Resi Pengiriman" dalam><x-form.input type="text" name="no_resi" value="{{ old('no_resi', $kedatangan->no_resi ?? '') }}" /></x-form.group>
-                            <p class="text-[11px] text-slate-400">Platform lain (Lazada, TikTok Shop, dst) bisa ditambah di menu Platform Belanja Online.</p>
+    <x-hint tip="Platform lain (Lazada, TikTok Shop, dst) bisa ditambah di menu Platform Belanja Online." icon="truck" />
                         </div>
                     </div>
                 </x-card>

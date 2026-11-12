@@ -404,7 +404,7 @@ class KasirController extends Controller
             if ($diskon < 0) {
                 throw new \Exception("Diskon tidak boleh negatif.");
             }
-            if (!in_array($metode, ['Tunai', 'Debit', 'Transfer', 'Deposit'], true)) {
+            if (!in_array($metode, ['Tunai', 'Debit', 'Transfer', 'QRIS BRI', 'Deposit'], true)) {
                 throw new \Exception("Metode pembayaran tidak dikenali.");
             }
 
@@ -675,9 +675,11 @@ class KasirController extends Controller
 
                 // Update Saldo Kas - Deposit TIDAK menambah kas hari ini, karena
                 // uangnya sudah masuk kas saat setoran deposit dulu, bukan hari ini.
+                // QRIS BRI uangnya masuk rekening BRI merchant (bukan laci) - ikut
+                // kolom total_transfer seperti Transfer, bukan saldo laci.
                 if ($metode == 'Tunai') {
                     DB::table('kas_harian')->where('id_kas', $kas->id_kas)->increment('saldo_akhir', $uangDiterimaSekarang);
-                } elseif ($metode == 'Transfer') {
+                } elseif (in_array($metode, ['Transfer', 'QRIS BRI'], true)) {
                     DB::table('kas_harian')->where('id_kas', $kas->id_kas)->increment('total_transfer', $uangDiterimaSekarang);
                 }
 
@@ -834,7 +836,7 @@ class KasirController extends Controller
 
         $data_kas = collect([(object) [
             'nominal_tunai' => $mutasi->where('metode', 'Tunai')->sum('nominal'),
-            'nominal_transfer' => $mutasi->where('metode', 'Transfer')->sum('nominal'),
+            'nominal_transfer' => $mutasi->whereIn('metode', ['Transfer', 'QRIS BRI'])->sum('nominal'),
             'nominal_debit' => $mutasi->where('metode', 'Debit')->sum('nominal'),
             'nominal_manual_masuk' => $mutasiManual->where('status', 'Masuk')->sum('nominal'),
             'nominal_manual_keluar' => $mutasiManual->where('status', 'Keluar')->sum('nominal'),
@@ -1162,7 +1164,7 @@ public function previewClosing()
         ->where('tgl_bayar', '<=', $akhirSesi)
         ->select(
             DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
-            DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk"),
+            DB::raw("SUM(CASE WHEN metode IN ('Transfer', 'QRIS BRI') THEN nominal ELSE 0 END) as transfer_masuk"),
             DB::raw("SUM(CASE WHEN metode = 'Debit' THEN nominal ELSE 0 END) as debit_masuk"),
             DB::raw("SUM(CASE WHEN metode = 'Deposit' THEN nominal ELSE 0 END) as deposit_masuk")
         )->first();
@@ -1251,7 +1253,7 @@ public function simpanClosing(Request $request)
             ->where('tgl_bayar', '<=', now())
             ->select(
                 DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
-                DB::raw("SUM(CASE WHEN metode = 'Transfer' THEN nominal ELSE 0 END) as transfer_masuk"),
+                DB::raw("SUM(CASE WHEN metode IN ('Transfer', 'QRIS BRI') THEN nominal ELSE 0 END) as transfer_masuk"),
                 DB::raw("SUM(CASE WHEN metode = 'Debit' THEN nominal ELSE 0 END) as debit_masuk")
             )->first();
 

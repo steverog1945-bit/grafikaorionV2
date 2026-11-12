@@ -44,7 +44,7 @@
         <x-card><div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">{{ $label }}</div><div class="text-xl font-medium {{ $warna }}">{{ $nilai }}</div></x-card>
         @endforeach
     </div>
-    <p class="text-[11px] text-slate-400 mb-8 px-1">Biaya aktual = HPP material + rework + waste. Tenaga kerja, mesin, overhead, dan beban operasional belum termasuk, jadi laba kotor bukan laba bersih.</p>
+    <x-hint tip="Biaya aktual = HPP material + rework + waste. Tenaga kerja, mesin, overhead, dan beban operasional belum termasuk, jadi laba kotor bukan laba bersih." icon="chart-line" />
 
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         @foreach([['Saldo Kas', $r['saldo_kas'], 'text-slate-800'], ['Saldo Bank', $r['saldo_bank'], 'text-slate-800'], ['Piutang Usaha', $r['piutang'], 'text-rose-600'], ['Hutang Usaha', $r['hutang'], 'text-amber-600']] as [$label, $nilai, $warna])

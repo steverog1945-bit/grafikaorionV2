@@ -119,7 +119,7 @@
                      murni laporan keuangan, tidak menyentuh keadaan fisik laci
                      sama sekali (tidak ada di SALDO AKHIR LACI, tidak ada di
                      Total Isi Laci, tidak mempengaruhi Selisih). --}}
-                <p class="text-[10px] text-blue-500 mt-4 font-medium">*Transfer/Debit/Deposit hanya laporan keuangan - tidak ikut closing kas (tidak berwujud uang di laci).</p>
+                <p class="text-[10px] text-blue-500 mt-4 font-medium">*Transfer/QRIS BRI/Debit/Deposit hanya laporan keuangan - tidak ikut closing kas (tidak berwujud uang di laci).</p>
             </div>
         </div>
     </div>

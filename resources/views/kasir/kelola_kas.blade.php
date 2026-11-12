@@ -250,12 +250,14 @@
                 </td>
                 {{-- Sebelumnya cuma dibedakan Tunai vs "selain Tunai" (dianggap
                      selalu Transfer) - Debit & Deposit ikut kepencet label
-                     TRANSFER yang salah. Sekarang eksplisit 4 metode. --}}
+                     TRANSFER yang salah. Sekarang eksplisit metode yang dikenal,
+                     QRIS BRI ikut masuk uang ke rekening (bukan laci). --}}
                 <td class="p-4 text-center">
                     @php
                         $metodeVariant = match ($m->metode) {
                             'Tunai'    => 'success',
                             'Transfer' => 'info',
+                            'QRIS BRI' => 'info',
                             'Debit'    => 'warning',
                             'Deposit'  => 'secondary',
                             default    => 'info',

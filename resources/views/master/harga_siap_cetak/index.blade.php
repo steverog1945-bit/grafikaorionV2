@@ -91,7 +91,7 @@
             <tbody id="hsc-isi" class="divide-y divide-slate-50"></tbody>
         </table>
     </div>
-    <p class="text-[11px] text-slate-400 mt-3">Kosongkan harga golongan yang tidak dipakai. Kolom "Sampai" kosong = tanpa batas atas (hanya boleh di baris terakhir). Rentang tidak boleh tumpang tindih.</p>
+    <x-hint tip="Kosongkan harga golongan yang tidak dipakai. Kolom Sampai kosong = tanpa batas atas (hanya boleh di baris terakhir). Rentang tidak boleh tumpang tindih." icon="tag" />
     <div class="flex items-center justify-between mt-5">
         <button type="button" onclick="tambahBarisHsc()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-medium uppercase tracking-widest" title="Tambah rentang baru"><i class="fas fa-plus"></i> Tambah Rentang</button>
         <div class="flex gap-3">
