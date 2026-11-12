@@ -163,7 +163,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
                         <div class="md:col-span-2">
                             <label class="block text-[11px] font-medium text-slate-400 mb-2.5">Jenis Pembayaran</label>
-                            <div class="grid grid-cols-2 md:grid-cols-1 gap-2">
+                            <div class="grid grid-cols-2 gap-2">
                                 <label class="tipe-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 text-indigo-700 font-medium text-xs cursor-pointer transition-all">
                                     <input type="radio" name="tipe_bayar" value="lunas" class="sr-only" checked onchange="onTipeBayarChange()">
                                     <i class="fas fa-check-circle"></i> Lunas
@@ -177,7 +177,7 @@
 
                         <div class="md:col-span-3">
                             <label class="block text-[11px] font-medium text-slate-400 mb-2.5">Metode Pembayaran</label>
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 text-indigo-700 font-medium text-xs cursor-pointer transition-all">
                                     <input type="radio" name="metode_pembayaran" id="metode-tunai" value="Tunai" class="sr-only" checked onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-money-bill-wave"></i> Tunai
