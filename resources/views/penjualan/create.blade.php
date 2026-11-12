@@ -467,7 +467,7 @@
                                class="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-slate-300 bg-white hover:border-[#006C7B] hover:bg-[#006C7B]/5 cursor-pointer transition-colors px-3 py-2 text-center">
                             <i class="fas fa-cloud-arrow-up text-[#006C7B] text-base"></i>
                             <span class="text-[11px] font-medium text-slate-700">Pilih File</span>
-                            <span id="thumbnail_nama" class="text-[10px] text-slate-400 truncate max-w-full block w-full">Gambar (JPG, PNG, WEBP, GIF, BMP) atau PDF (otomatis jadi gambar) atau CDR/AI/EPS - maks 10 MB, dokumen maks 39 MB</span>
+        <x-hint tip="Gambar (JPG, PNG, WEBP, GIF, BMP) atau PDF (otomatis jadi gambar) atau CDR/AI/EPS - maks 10 MB, dokumen maks 39 MB" icon="file-arrow-up" />
                         </label>
                         <input type="file" id="input_thumbnail" tabindex="6"
                                accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/svg+xml,image/tiff,application/pdf,.pdf,.cdr,.ai,.eps,.psd,.tif,.tiff,.heic"
@@ -1118,6 +1118,11 @@
     // operator langsung melihat & mengubahnya di layar yang sama.
     let cart = @json($cartAwal);
     let currentProduk = null;
+    // Kategori produk yang terpasang di dropdown (bukan API row - API tidak
+    // mengembalikannya; kategori di POS = COALESCE(bahan_baku.id_kategori, 0)
+    // hasil join BOM di dropdown). Dipakai relax minimum: hanya baris
+    // se-kategori yang boleh saling menolong (keputusan owner 2026-11-12).
+    let currentKategori = '0';
     let editIndex = null;
     let currentThumbnail = null;
 let currentThumbnailPreview = null;
@@ -1737,6 +1742,9 @@ let currentThumbnailPreview = null;
             if (tokenProduk !== urutanProdukTerpilih) return;
             currentProduk = hasilProduk;
             currentProduk.metode_hitung = metode;
+            // Kategori dari opsi yang sedang terpilih di dropdown (sama seperti
+            // data-kategori yang tampil ke kasir).
+            currentKategori = String(selectedOption.data('kategori') ?? '0');
             // Ganti produk = Biaya Cetak manual (kalau ada) tidak relevan lagi
             // untuk produk yang baru dipilih - kembali ke auto-default dari
             // Daftar Harga produk ini.
@@ -2786,15 +2794,40 @@ let peringatanMinDaftar = 0;
             const kurangP = minP > 0 && p > 0 && p < minP;
             const kurangL = minL > 0 && l > 0 && l < minL;
             if (kurangP || kurangL) {
-                // Sebutkan dimensi yang benar-benar di bawah minimum, supaya
-                // operator tidak bingung bila salah satu dimensi sudah memenuhi
-                // (mis. lebar cukup tapi panjang kurang).
-                const bagian = [];
-                if (kurangP) bagian.push(`panjang min ${minP} cm (input ${p} cm)`);
-                if (kurangL) bagian.push(`lebar min ${minL} cm (input ${l} cm)`);
-                detail.innerText = `Input di bawah minimum order produk ini: ${bagian.join('; ')}. Disarankan input >= minimum.`;
-                box.hidden = false;
-                return;
+                // Total kelompok yang menentukan (keputusan owner 2026-11-12):
+                // tidak diperingatkan bila total luas kelompoknya di keranjang
+                // (termasuk input saat ini) sudah memenuhi minimum order
+                // produk - baris di bawah ukuran minimum tetap sah, konsisten
+                // dengan relax di tombol Tambah dan di server. Hanya baris
+                // se-KATEGORI yang dihitung (kelompok + kategori sama).
+                const labelMin = (currentProduk.kelompok_minimum || String(currentProduk.id_produk)) + '|' + String(currentKategori || '0');
+                const minLuasProduk = (parseFloat(currentProduk.min_luas_total) > 0)
+                    ? parseFloat(currentProduk.min_luas_total)
+                    : ((minP > 0 && minL > 0) ? (minP * minL / 10000) : 0);
+                let luasKelompok = (p > 0 && l > 0) ? (p * l / 10000) * qU : 0;
+                cart.forEach((it, idx) => {
+                    if (idx === editIndex) return; // baris yang sedang diedit digantikan input saat ini
+                    if (it.metode_hitung !== 'ukuran') return;
+                    const labelIt = (it.kelompok_minimum || String(it.id_produk)) + '|' + String(it.kategori_produk || '0');
+                    if (labelIt !== labelMin) return;
+                    luasKelompok += (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
+                });
+                if (minLuasProduk > 0
+                    && Math.round(luasKelompok * 10000) / 10000 >= Math.round(minLuasProduk * 10000) / 10000) {
+                    box.hidden = true;
+                    // Jangan return: peringatan minimum daftar harga di bawah
+                    // tetap perlu dievaluasi (isu harga, terpisah dari ukuran).
+                } else {
+                    // Sebutkan dimensi yang benar-benar di bawah minimum, supaya
+                    // operator tidak bingung bila salah satu dimensi sudah memenuhi
+                    // (mis. lebar cukup tapi panjang kurang).
+                    const bagian = [];
+                    if (kurangP) bagian.push(`panjang min ${minP} cm (input ${p} cm)`);
+                    if (kurangL) bagian.push(`lebar min ${minL} cm (input ${l} cm)`);
+                    detail.innerText = `Input di bawah minimum order produk ini: ${bagian.join('; ')}. Disarankan input >= minimum.`;
+                    box.hidden = false;
+                    return;
+                }
             }
             // Minimum DAFTAR HARGA (range_min tier terkecil). Master produk bisa
             // membolehkan 120 x 200 (2,4 m2) padahal daftar harga baru menagih
@@ -2981,15 +3014,42 @@ let peringatanMinDaftar = 0;
 
         if (!idKonsumen) return Swal.fire('Data belum lengkap', 'Pilih pelanggan dulu', 'error');
         if (!currentProduk) return Swal.fire('Data belum lengkap', 'Pilih produk dulu.', 'warning');
-        // Peringatan keras: input di bawah minimum order produk -> jangan lanjut
-        // tambah ke keranjang / simpan nota.
+        // Input di bawah minimum order produk -> ditolak, KECUALI total luas
+        // kelompoknya di keranjang sudah memenuhi minimum order (keputusan
+        // owner 2026-11-12 - cek relax di dalam blok ukuran di bawah).
         if (currentProduk.metode_hitung === 'ukuran') {
             const minP = parseFloat(currentProduk.min_panjang) || 0;
             const minL = parseFloat(currentProduk.min_lebar) || 0;
             const p = parseFloat(document.getElementById('input_p').value) || 0;
             const l = parseFloat(document.getElementById('input_l').value) || 0;
             if ((minP > 0 && p > 0 && p < minP) || (minL > 0 && l > 0 && l < minL)) {
-                return Swal.fire('Di bawah minimum order', `Input di bawah minimum order produk ini (${minP} x ${minL} cm). Perbesar ukuran dulu sebelum menambahkan.`, 'error');
+                // Total kelompok yang menentukan (keputusan owner 2026-11-12):
+                // ukuran di bawah minimum tetap boleh ditambahkan bila total
+                // luas kelompoknya di keranjang (baris ini + baris lain dalam
+                // kelompok_minimum + kategori yang sama) sudah memenuhi
+                // minimum order produk - min_luas_total bila terisi, kalau
+                // tidak luas dari min_panjang x min_lebar. Produk lintas
+                // kategori tidak saling menolong. Konsisten dengan relax yang
+                // sama di validasiItems (PenjualanCheckoutService).
+                const labelMin = (currentProduk.kelompok_minimum || String(currentProduk.id_produk)) + '|' + String(currentKategori || '0');
+                const minLuasProduk = (parseFloat(currentProduk.min_luas_total) > 0)
+                    ? parseFloat(currentProduk.min_luas_total)
+                    : ((minP > 0 && minL > 0) ? (minP * minL / 10000) : 0);
+                let luasKelompok = (p > 0 && l > 0)
+                    ? (p * l / 10000) * (parseFloat(document.getElementById('input_qty_ukuran').value) || 0)
+                    : 0;
+                cart.forEach((it, idx) => {
+                    if (idx === editIndex) return; // baris yang sedang diedit digantikan input saat ini
+                    if (it.metode_hitung !== 'ukuran') return;
+                    const labelIt = (it.kelompok_minimum || String(it.id_produk)) + '|' + String(it.kategori_produk || '0');
+                    if (labelIt !== labelMin) return;
+                    luasKelompok += (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
+                });
+                const cukupMinimum = minLuasProduk > 0
+                    && Math.round(luasKelompok * 10000) / 10000 >= Math.round(minLuasProduk * 10000) / 10000;
+                if (!cukupMinimum) {
+                    return Swal.fire('Di bawah minimum order', `Input di bawah minimum order produk ini (${minP} x ${minL} cm). Perbesar ukuran dulu sebelum menambahkan.`, 'error');
+                }
             }
         } else {
             const minQty = parseFloat(currentProduk.min_order) || 0;
@@ -3113,7 +3173,13 @@ let peringatanMinDaftar = 0;
             min_order: currentProduk.min_order,
             metode_hitung: currentProduk.metode_hitung,
             min_luas_total: parseFloat(currentProduk.min_luas_total) || 0,
-            kelompok_minimum: currentProduk.kelompok_minimum || null
+            kelompok_minimum: currentProduk.kelompok_minimum || null,
+            // Kategori produk saat baris dibuat (BUKAN filter aktif, yang bisa
+            // bernilai 'all'; BUKAN pula dari API row - tidak ada kolomnya).
+            // Dipakai relax minimum: hanya baris se-kategori yang boleh saling
+            // menolong memenuhi minimum (keputusan owner 2026-11-12:
+            // kelompok + kategori sama). Dikirim ke server sebagai-is.
+            kategori_produk: String(currentKategori || '0')
         };
 
         const sedangEdit = editIndex !== null;

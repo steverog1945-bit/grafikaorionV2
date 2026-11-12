@@ -231,8 +231,14 @@
                      ini; selisihnya digulung ke subtotal baris item TERBESAR
                      kelompok (tanpa baris minimum terpisah di nota/SPK). 0 = produk
                      ini tanpa minimum kelompok. Bebas dari toggle "Minimal Order"
-                     di atas - itu aturan per-baris (min_panjang/min_lebar), ini
-                     aturan akumulasi order. --}}
+                     di atas - itu aturan ukuran per-baris (min_panjang/min_lebar),
+                     ini aturan akumulasi order. Sejak 2026-11-12 (keputusan owner):
+                     baris dengan ukuran di bawah min_panjang/min_lebar tetap
+                     DITERIMA bila total luas kelompok/kategori/notanya sudah
+                     memenuhi minimum order (min_luas_total, atau luas dari
+                     min_panjang x min_lebar bila min_luas_total kosong).
+                     Produk lintas kategori tidak saling menolong walaupun
+                     menulis kelompok_minimum yang sama. --}}
                 <div id="field_min_luas" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 hidden">
                     <x-form.group label="Min. Luas Total Kelompok (m²)" dalam>
                         <x-form.input type="number" name="min_luas_total" step="0.01" min="0" placeholder="0" class="!bg-white !shadow-sm !py-2.5" />
@@ -244,7 +250,7 @@
 
                 <label class="flex items-start gap-3 cursor-pointer rounded-xl bg-white shadow-sm px-4 py-3 mb-4">
                     <input type="checkbox" name="spk_lengkap" value="1" id="input_spk_lengkap" class="mt-0.5 w-4 h-4 rounded accent-indigo-600">
-                    <span><span class="block text-[11px] font-medium text-slate-600 uppercase tracking-wide">Cetak SPK lengkap</span><span class="block text-[11px] text-slate-400">SPK memuat gambar, konsumen, desainer, kebutuhan bahan, dan finishing (seperti SPK order jersey) - untuk cetakan tertentu mis. Century + bahan TC yang ada finishing jahit.</span></span>
+        <x-hint tip="SPK memuat gambar, konsumen, desainer, kebutuhan bahan, dan finishing (seperti SPK order jersey) - untuk cetakan tertentu mis. Century + bahan TC yang ada finishing jahit." icon="clipboard-check" />
                 </label>
 
                 <x-form.group label="Keterangan" dalam>

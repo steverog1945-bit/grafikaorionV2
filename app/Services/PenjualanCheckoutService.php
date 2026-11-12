@@ -775,6 +775,41 @@ class PenjualanCheckoutService
     //   kelompokLabel => [ 'min' => float, 'items' => [ ['id_produk'=>.., 'area'=>.., 'p'=>.., 'l'=>.., 'qty'=>..] ] ]
     $minLuasGroups = [];
 
+    // Total luas aktual per kelompok_minimum + KATEGORI (termasuk aturan
+    // relax ukuran: baris di bawah min_panjang/min_lebar boleh bila total
+    // kelompok se-kategori di nota ini sudah memenuhi minimum order produk -
+    // keputusan owner 2026-11-12) dihitung lebih dulu (pre-pass), sebelum
+    // validasi per baris, supaya aturan relax ukuran bisa memakainya.
+    // Produk lintas kategori (mis. CENTURY STAR vs INDOOR) TIDAK saling
+    // menolong walaupun menulis kelompok_minimum yang sama.
+    $luasKelompok = [];
+    foreach ($request->items as $item) {
+        if (!empty($item['id_jasa'])) {
+            continue;
+        }
+        $produkK = $produkRows->get((int) ($item['id_produk'] ?? 0));
+        if (!$produkK || $produkK->metode_hitung !== 'ukuran') {
+            continue;
+        }
+        $pK = (float) ($item['p'] ?? 0);
+        $lK = (float) ($item['l'] ?? 0);
+        $qtyK = (float) ($item['qty_input'] ?? 0);
+        if ($pK <= 0 || $lK <= 0 || $qtyK <= 0) {
+            continue;
+        }
+        // Kategori baris berasal dari kiriman form (0/blank = belum
+        // dikategorikan). POS mengirim kategori yang ditampilkan ke kasir di
+        // dropdown produk, jadi kedua sisi selalu sepakat. Jalur API tanpa
+        // kategori_produk semuanya jatuh ke bucket '0' (satu kelompok).
+        $kategoriItem = trim((string) ($item['kategori_produk'] ?? '0'));
+        if ($kategoriItem === '') {
+            $kategoriItem = '0';
+        }
+        $labelK = \App\Support\MinimumLuas::kelompokLabel($produkK->kelompok_minimum ?? null, (int) $produkK->id_produk)
+            . '|' . $kategoriItem;
+        $luasKelompok[$labelK] = round(($luasKelompok[$labelK] ?? 0) + ($pK * $lK / 10000) * $qtyK, 4);
+    }
+
     foreach ($request->items as $index => $item) {
 
         // Baris Jasa (bukan produk fisik) - tidak punya BOM/stok, harga
@@ -835,11 +870,36 @@ class PenjualanCheckoutService
             if ($produk->metode_hitung === 'ukuran') {
                 $minP = (float) ($produk->min_panjang ?? 0);
                 $minL = (float) ($produk->min_lebar ?? 0);
-                if ($minP > 0 && $p > 0 && $p < $minP) {
-                    throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': panjang ' . $p . ' cm di bawah minimum (' . $minP . ' cm).');
-                }
-                if ($minL > 0 && $l > 0 && $l < $minL) {
-                    throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': lebar ' . $l . ' cm di bawah minimum (' . $minL . ' cm).');
+                $kurangP = $minP > 0 && $p > 0 && $p < $minP;
+                $kurangL = $minL > 0 && $l > 0 && $l < $minL;
+                if ($kurangP || $kurangL) {
+                    // Relax ukuran (keputusan owner 2026-11-12): baris di bawah
+                    // minimum ukuran tetap sah bila total luas kelompoknya di
+                    // nota ini sudah memenuhi minimum order produk. Minimum
+                    // order produk = min_luas_total bila terisi, kalau tidak
+                    // luas minimum ukuran (min_panjang x min_lebar). Produk
+                    // lintas KATEGORI tidak saling menolong walau menulis
+                    // kelompok_minimum yang sama (keputusan owner). Bila
+                    // minimumnya tidak bisa ditentukan (min_luas_total kosong
+                    // dan salah satu dimensi minimum kosong), blokir seperti
+                    // semula.
+                    $kategoriItem = trim((string) ($item['kategori_produk'] ?? '0'));
+                    if ($kategoriItem === '') {
+                        $kategoriItem = '0';
+                    }
+                    $kelompokRelax = \App\Support\MinimumLuas::kelompokLabel($produk->kelompok_minimum ?? null, (int) $produk->id_produk)
+                        . '|' . $kategoriItem;
+                    $minLuasProduk = (float) ($produk->min_luas_total ?? 0) > 0
+                        ? (float) $produk->min_luas_total
+                        : (($minP > 0 && $minL > 0) ? ($minP * $minL / 10000) : 0.0);
+                    $relaxDiterima = $minLuasProduk > 0
+                        && round((float) ($luasKelompok[$kelompokRelax] ?? 0), 4) >= round($minLuasProduk, 4);
+                    if (!$relaxDiterima) {
+                        if ($kurangP) {
+                            throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': panjang ' . $p . ' cm di bawah minimum (' . $minP . ' cm).');
+                        }
+                        throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': lebar ' . $l . ' cm di bawah minimum (' . $minL . ' cm).');
+                    }
                 }
             } else {
                 $minQty = (float) ($produk->min_order ?? 0);
