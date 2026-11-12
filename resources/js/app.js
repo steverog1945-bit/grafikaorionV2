@@ -114,6 +114,30 @@ function sembunyikan(el) {
     el.classList.remove('flex');
 }
 
+/* PORTAL MODAL - pindahkan semua root modal ke akhir <body> sekali di
+   awal muat halaman. Alasannya: `position: fixed` TIDAK selalu di-acu
+   ke layar. Kalau salah satu leluhurnya punya `transform` (termasuk
+   sisa animasi CSS seperti motion-fade-up pada .content-wrapper > *),
+   elemen fixed itu ikut kontainer leluhurnya - modal bisa "di tengah
+   halaman" tapi jauh dari tengah layar, atau lebih rendah dari
+   seharusnya. Dengan menaruh root modal langsung di <body>, acuannya
+   dijamin viewport, apa pun transform di konten halaman.
+   Semua selector CSS modal bersifat relatif ke root modal sendiri
+   ([data-modal-root] > div, [data-modal-panel]), dan tidak ada modal
+   yang input-nya diharapkan ikut <form> di luar modal, jadi perpindahan
+   ini tidak mengubah perilaku apa pun selain posisi. */
+function portalKanModal() {
+    document.querySelectorAll('[data-modal-root], .modal-centered').forEach((el) => {
+        if (el.parentElement === document.body) return;
+        document.body.appendChild(el);
+    });
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', portalKanModal);
+} else {
+    portalKanModal();
+}
+
 /* Semua modal yang sedang terbuka, untuk mendeteksi Escape.
    Selector memakai data-modal-root, BUKAN [id^="modal-"]. Id yang
    diawali "modal-" juga dipakai judul di dalam modal
