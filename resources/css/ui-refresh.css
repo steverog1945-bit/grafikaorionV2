@@ -1053,6 +1053,20 @@ legend.text-\[10px\].uppercase {
    .swal2-container { padding: 16px !important; }
    .swal2-container.swal2-backdrop-show { background: rgba(24, 24, 27, 0.32) !important; }
 
+   /* Toast TIDAK boleh ikut mewarisi lapisan gelap di atas. Saat dua
+      SweetAlert aktif bersamaan (toast beruntun, atau toast + dialog),
+      SweetAlert memakai ulang container dan <body> bisa kehilangan kelas
+      swal2-toast-shown milik aturan transparan bawaan vendor — akibatnya
+      aturan backdrop di atas mewarnai container toast selebar layar dan
+      seluruh halaman tampak tertutup "blok hitam transparan" selama
+      timer toast berjalan. :has membatasi koreksi ini hanya pada
+      container yang berisi popup toast; dialog konfirmasi modal tetap
+      memakai backdrop gelap seperti biasa. */
+   .swal2-container.swal2-backdrop-show:has(> .swal2-popup.swal2-toast) {
+      background: transparent !important;
+      pointer-events: none !important;
+   }
+
    .swal2-popup:not(.swal2-toast) {
       display: flex !important;
       flex-direction: column !important;
