@@ -65,6 +65,15 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Error dari browser (via endpoint /client-log) - dipisah dari
+        // laravel.log supaya bisingnya tidak mengubur log server lainnya.
+        'client' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/client.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

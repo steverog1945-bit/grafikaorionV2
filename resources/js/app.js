@@ -403,3 +403,77 @@ document.addEventListener('click', function (e) {
         if (container) container.setAttribute('data-grid-focus', '');
     };
 })();
+
+// ==========================================================================
+// Client error logging: error JavaScript yang "diam" di browser dilaporkan
+// ke server (POST /client-log, tanpa DB - lihat ClientLogController).
+// Diport dari erpV3 pada 2026-11-12.
+// CATATAN: apiFetch & safeClick milik erpV3 sengaja TIDAK ikut diport -
+// alur fetch/klik kasir V2 tidak diubah.
+// ==========================================================================
+(function () {
+    const REPORTED = new Set();
+    function genCode() { return 'ERR-' + Math.random().toString(36).slice(2, 8).toUpperCase(); }
+
+    function showToast(msg) {
+        if (window.Swal) {
+            Swal.fire({ icon: 'error', title: 'Terjadi kesalahan', text: msg, toast: true, position: 'top-end', timer: 6000, showConfirmButton: false });
+        } else {
+            // fallback minimal tanpa Swal
+            try { alert(msg); } catch (e) {}
+        }
+    }
+
+    function reportToServer(code, message, extra) {
+        try {
+            const payload = {
+                kode: code,
+                pesan: String(message || '').slice(0, 1000),
+                url: (location && location.pathname) || '',
+                baris: extra && extra.line ? extra.line : null,
+                kolom: extra && extra.col ? extra.col : null,
+                stack: extra && extra.stack ? String(extra.stack).slice(0, 2000) : null,
+            };
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                || (document.querySelector('input[name="_token"]')?.value);
+            // Akar aplikasi dibaca dari meta app-base (url('/') milik Blade) -
+            // deploy bisa di sub-direktori (…/grafikaorionV2/public), sehingga
+            // path absolut '/client-log' akan 404. App.blade.php dan halaman
+            // apa pun boleh dipanggil di bawah prefix ini.
+            let base = (document.querySelector('meta[name="app-base"]') || {}).content
+                || (location.origin + '/');
+            if (!base.endsWith('/')) base += '/';
+            fetch(new URL('client-log', base).toString(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token || '', 'Accept': 'application/json' },
+                body: JSON.stringify(payload),
+                keepalive: true,
+            }).catch((e) => { console.warn('Laporan error klien tidak terkirim: ' + ((e && e.message) || e)); });
+        } catch (e) {}
+    }
+
+    function handle(err, source) {
+        const msg = (err && (err.message || err.reason || err)) || 'Unknown error';
+        const code = genCode();
+        const key = code + '|' + String(msg).slice(0, 80);
+        if (REPORTED.has(key)) return;
+        REPORTED.add(key);
+        // Halaman publik/login tidak boleh menampilkan toast error aplikasi
+        // ke pengunjung awam; laporannya juga tidak dikirim (yang relevan
+        // adalah halaman staff). Sengaja toleran terhadap deploy
+        // sub-direktori: cocokkan segmen /masuk , bukan path penuh.
+        const path = (location && location.pathname) || '';
+        if (path === '/' || /\/masuk(\/|$)/.test(path)) return;
+        showToast('Terjadi kesalahan di halaman ini (kode ' + code + '). Data belum tersimpan. Muat ulang halaman atau hubungi admin.');
+        reportToServer(code, msg, { stack: (err && (err.stack || (err.reason && err.reason.stack))) || null });
+    }
+
+    window.addEventListener('error', (e) => {
+        // Kegagalan muat aset (img/script/css 404) juga sampai di listener
+        // 'error' (capture=true) sebagai event dengan target Element dan
+        // TANPA e.error - bukan kegagalan skrip runtime; jangan dibunyikan.
+        if (e && e.target && e.target !== window && (e.target instanceof window.Element) && !e.error) return;
+        handle(e.error || e.message, 'error');
+    }, true);
+    window.addEventListener('unhandledrejection', (e) => handle(e.reason, 'unhandledrejection'));
+})();

@@ -44,6 +44,14 @@ use App\Http\Controllers\BrandThemeController;
 |--------------------------------------------------------------------------
 */
 
+// Client error logging: error JavaScript "diam" di browser dilaporkan ke
+// server lewat endpoint ini (tanpa DB - ditulis ke storage/logs/client.log,
+// lihat config/logging.php & ClientLogController). Pasangan dengan kode JS
+// di akhir resources/js/app.js; tanpa keduanya endpoint tak pernah dipakai.
+Route::post('/client-log', [\App\Http\Controllers\ClientLogController::class, 'store'])
+    ->middleware(['auth', 'throttle:30,1'])
+    ->name('client-log.store');
+
 // Homepage publik. Dulu route ini bernama 'login', tapi itu rapuh:
 // route('login') berarti '/' , dan ketika Landing Page Builder aktif '/' bisa
 // menyajikan halaman builder yang tidak memuat form login -> staf terkunci.

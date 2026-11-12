@@ -14,6 +14,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}"> {{-- Tambahkan Meta CSRF --}}
+    {{-- Akar aplikasi (url('/')), dipakai skrip global untuk menebak prefix
+         deploy (sub-direktori) tanpa menyalin alamat harcode. --}}
+    <meta name="app-base" content="{{ url('/') }}">
     <title>{{ $appSetting->nama_aplikasi }}</title>
 
     {{-- PWA: manifest agar aplikasi bisa dipasang di layar utama, ikon sentuh
