@@ -3,7 +3,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Antrean Pesanan Baru" subtitle="Daftar order menunggu diterima kasir. SPK baru aktif setelah kasir menekan Terima Transaksi.">
+    <x-page-header title="Antrean Pesanan Baru" subtitle="SPK aktif setelah nota diterima kasir — Terima Saja (bayar nanti) atau Terima &amp; Bayar (bayar sekarang).">
         <x-slot:actions>
             <x-button href="{{ route('kasir.index') }}" variant="secondary">
                 <i class="fas fa-arrow-left"></i>
@@ -52,13 +52,30 @@
 
                 <div class="mt-5">
                     @if($kasAktif)
-                        <form method="POST" action="{{ route('kasir.terimaTransaksi', $w->id_transaksi) }}">
-                            @csrf
-                            <input type="hidden" name="submit_id" value="terima-{{ $w->id_transaksi }}-{{ $loop->index }}">
-                            <button type="submit" class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-xs shadow-sm transition-all">
-                                <i class="fas fa-check-circle"></i> Terima Transaksi
-                            </button>
-                        </form>
+                        {{-- Dua aksi berbeda (Terima ≠ bayar sekarang): diberi
+                             label yang jelas + ikon yang berbeda + tooltip supaya
+                             kasir tidak salah tekan. "Terima &amp; Bayar" diberi
+                             konfirmasi satu langkah - kasir salah klik tidak bisa
+                             masuk pembayaran tanpa sadar. --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <form method="POST" action="{{ route('kasir.terimaTransaksi', $w->id_transaksi) }}" class="terima-form">
+                                @csrf
+                                <input type="hidden" name="submit_id" value="terima-{{ $w->id_transaksi }}-{{ $loop->index }}">
+                                <button type="submit" title="Terima nota ke antrean SPK saja - pembayaran dilakukan nanti lewat Monitoring Kasir"
+                                    class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs shadow-sm transition-all">
+                                    <i class="fas fa-inbox"></i> Terima Saja
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('kasir.terimaTransaksi', $w->id_transaksi) }}" class="terima-bayar-form">
+                                @csrf
+                                <input type="hidden" name="submit_id" value="terima-bayar-{{ $w->id_transaksi }}-{{ $loop->index }}">
+                                <input type="hidden" name="lanjut" value="bayar">
+                                <button type="submit" title="Terima nota DAN langsung buka form pembayaran sekarang (lunas / DP)"
+                                    class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-xs shadow-sm transition-all">
+                                    <i class="fas fa-money-bill-wave"></i> Terima &amp; Bayar
+                                </button>
+                            </form>
+                        </div>
                     @else
                         <span class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-slate-100 text-slate-400 font-medium text-xs cursor-not-allowed" title="Kas belum dibuka">
                             <i class="fas fa-lock"></i> Terkunci
@@ -76,4 +93,49 @@
         @endforelse
     </div>
 </div>
+
+<script>
+    // Konfirmasi KHUSUS untuk "Terima & Bayar" (aksi uang + buka form pembayaran).
+    // "Terima Saja" alur lama: langsung jalan tanpa konfirmasi.
+    (function () {
+        // Anti klik-ganda: tombol submit mati begitu form terkirim
+        function kunciTombol(form) {
+            form.querySelectorAll('button[type="submit"]').forEach(function (btn) {
+                btn.disabled = true;
+            });
+        }
+
+        // "Terima Saja" - alur lama (submit biasa, langsung terima)
+        document.querySelectorAll('.terima-form').forEach(function (form) {
+            form.addEventListener('submit', function () {
+                kunciTombol(form);
+            });
+        });
+
+        // "Terima & Bayar" - butuh konfirmasi eksplisit (salah klik = tidak terjadi apa-apa)
+        document.querySelectorAll('.terima-bayar-form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (form.dataset.terkirim === '1') {
+                    return; // sudah terkirim sekali - abaikan klik berikutnya
+                }
+                Swal.fire({
+                    title: 'Terima &amp; Bayar?',
+                    html: 'Nota ini masuk SPK <b>dan langsung membuka form pembayaran</b>.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Terima &amp; Bayar',
+                    cancelButtonText: 'Batal, cek dulu nanti',
+                    confirmButtonColor: '#4f46e5',
+                    reverseButtons: true
+                }).then(function (res) {
+                    if (!res.isConfirmed) return;
+                    form.dataset.terkirim = '1';
+                    kunciTombol(form);
+                    form.submit();
+                });
+            });
+        });
+    })();
+</script>
 @endsection

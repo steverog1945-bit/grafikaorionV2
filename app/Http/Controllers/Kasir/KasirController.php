@@ -276,7 +276,10 @@ class KasirController extends Controller
             abort(405, 'Method Not Allowed. Gunakan POST untuk menerima transaksi.');
         }
 
-        $request->validate(['submit_id' => 'required|string|max:100']);
+        $request->validate([
+            'submit_id' => 'required|string|max:100',
+            'lanjut'    => 'nullable|in:bayar', // hanya aksi yang dikenal; nilai lain ditolak
+        ]);
 
         $submitId = (string) $request->input('submit_id');
         $sudahDiproses = (array) $request->session()->get('terima_submit_id', []);
@@ -327,6 +330,17 @@ class KasirController extends Controller
             $request->session()->put('terima_submit_id', $sudahDiproses);
 
             DB::commit();
+
+            // "Terima dan Bayar" - SPK sudah diaktifkan di atas (status_order =
+            // Diterima Kasir, identik dengan tombol Terima Saja). Konsumen
+            // langsung diarahkan ke form pembayaran yang penuh rincian cetak -
+            // baik bayar lunas maupun DP. Jika konsumen berubah pikiran di
+            // kasir, nota tetap berstatus Diterima dan masuk Monitoring Kasir
+            // untuk ditagih nanti.
+            if ((string) $request->input('lanjut') === 'bayar') {
+                return redirect()->route('kasir.bayarForm', ['id' => $id, 'sumber' => 'langsung'])
+                    ->with('success', 'Nota diterima. Silakan bayar - lunas atau DP.');
+            }
 
             return $this->responTerima($request, 'success', 'Transaksi berhasil diterima. SPK siap diproses.');
         } catch (\Illuminate\Validation\ValidationException $e) {
