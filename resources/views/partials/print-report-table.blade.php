@@ -61,6 +61,19 @@
             --fs-tabel: 9px;
         }
 
+        /* Paksa warna teks gelap saat cetak. Masalah nyata yang pernah
+           terjadi: aplikasi dipakai dalam mode gelap (token teks jadi
+           nyaris putih #c9d6ce/#9db8ad) - saat cetak, Chrome menuruti
+           @page/ background putih tapi TETAP memakai warna teks mode
+           gelap, sehingga seluruh isi tabel menjadi tak terlihat di
+           kertas putih (tabel terlihat "kosong" padahal border-nya
+           tampil). Laporan memang harus hitam di atas putih - paksa
+           seluruh turunan teks jadi gelap. */
+        body,
+        body * {
+            color: #1a231f !important;
+        }
+
         table { width: 100% !important; max-width: 100% !important; }
 
         table th, table td {
