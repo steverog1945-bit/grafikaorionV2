@@ -689,6 +689,10 @@ class LaporanController extends Controller
 
         $request->validate(['wa_pesan_template' => 'nullable|string|max:2000']);
 
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('app_settings', 'wa_pesan_template')) {
+            return back()->with('error', 'Kolom wa_pesan_template belum ada - minta IT menjalankan migrasi database terlebih dahulu.');
+        }
+
         \App\Models\AppSetting::current()->update([
             'wa_pesan_template' => trim((string) $request->input('wa_pesan_template')) ?: null,
         ]);
