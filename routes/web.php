@@ -634,6 +634,10 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/laporan/produksi', [LaporanController::class, 'produksi'])->name('laporan.produksi');
     Route::get('/laporan/kas', [LaporanController::class, 'kas'])->name('laporan.kas');
     Route::get('/laporan/piutang', [LaporanController::class, 'piutang'])->name('laporan.piutang');
+    Route::post('/laporan/piutang/wa-template', [LaporanController::class, 'simpanWaTemplate'])->name('laporan.piutang.wa-template');
+    Route::get('/laporan/restock', [LaporanController::class, 'restock'])->name('laporan.restock');
+    Route::get('/analisis', [\App\Http\Controllers\AnalisisController::class, 'analisis'])->name('laporan.analisis');
+    Route::get('/analisis/csv', [\App\Http\Controllers\AnalisisController::class, 'analisisCsv'])->name('laporan.analisis-csv');
     Route::get('/laporan/stok-bahan', [LaporanController::class, 'stokBahan'])->name('laporan.stok-bahan');
     Route::get('/laporan/hpp', [LaporanController::class, 'hpp'])->name('laporan.hpp');
 // Biaya Desain per operator + komisi/bagi hasil (Operator Desain hanya melihat miliknya).

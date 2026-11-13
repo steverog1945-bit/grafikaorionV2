@@ -10,6 +10,45 @@ use Illuminate\Support\Facades\DB;
 class LaporanController extends Controller
 {
     /**
+     * Template pesan WA bawaan untuk tombol "Kirim WA Tagihan" di Laporan
+     * Piutang. Placeholder: {nama} {nota} {tanggal} {total} {status} {sisa} {wa}.
+     * Operator bisa mengganti lewat editor template di halaman yang sama;
+     * NULL = pakai ini.
+     */
+    private const WA_TEMPLATE_DEFAULT = "Halo {nama}, ini Orion Grafika.\nMengingatkan nota {nota} ({tanggal}) sebesar Rp {total} masih berstatus {status}.\nMohon konfirmasi pembayarannya. Terima kasih.";
+
+    /** Normalisasi nomor WA Indonesia: 08xx / +62 / spasi / tanda baca -> 62xxx */
+    private function nomorWa(?string $telepon): ?string
+    {
+        $s = preg_replace('/\D+/', '', (string) $telepon);
+        if ($s === '') {
+            return null;
+        }
+        if (substr($s, 0, 3) === '620') {
+            $s = '62' . substr($s, 3);
+        } elseif (substr($s, 0, 1) === '0') {
+            $s = '62' . substr($s, 1);
+        } elseif (substr($s, 0, 2) !== '62') {
+            $s = '62' . $s;
+        }
+        return strlen($s) >= 10 && strlen($s) <= 16 ? $s : null;
+    }
+
+    /** Pesan WA dari template + data nota ({nama} {nota} {tanggal} {total} {status} {sisa} {wa}) */
+    private function isiPesanWa(object $t, string $template): string
+    {
+        return strtr($template, [
+            '{nama}' => (string) ($t->nama_konsumen ?? 'Pelanggan'),
+            '{nota}' => (string) $t->nomor_nota,
+            '{tanggal}' => \Carbon\Carbon::parse($t->tgl_order)->translatedFormat('d M Y'),
+            '{total}' => number_format((float) $t->total_bayar, 0, ',', '.'),
+            '{status}' => (string) ($t->status_pembayaran ?? 'Belum Bayar'),
+            '{sisa}' => number_format(max(0, (float) $t->total_bayar - (float) $t->total_dibayar), 0, ',', '.'),
+            '{wa}' => (string) (\App\Models\AppSetting::current()->telepon ?? ''),
+        ]);
+    }
+
+    /**
      * Jumlah baris per halaman saat cetak diatur oleh
      * Controller::perHalamanLaporan() (print=1 => full data).
      *
@@ -556,7 +595,9 @@ class LaporanController extends Controller
                 'transaksi.nomor_nota',
                 'transaksi.tgl_order',
                 'transaksi.total_bayar',
+                'transaksi.status_pembayaran',
                 'konsumen.nama_konsumen',
+                'konsumen.telepon',
                 'konsumen.id_konsumen'
             )
             ->selectSub(function ($q) {
@@ -594,6 +635,25 @@ class LaporanController extends Controller
             default => $semua->sortByDesc('tgl_order')->values(),
         };
 
+        // Kirim WA tagihan (wa.me, tanpa API): siapkan tautan per nota.
+        // Hanya role dengan hak lihat harga yang boleh menagih - role lain
+        // hanya melihat daftar piutang tanpa tombol WA.
+        $waBoleh = \App\Support\AksesHarga::bolehLihat();
+        $waTemplateRow = \App\Models\AppSetting::current();
+        $waTemplate = trim((string) ($waTemplateRow->wa_pesan_template ?? ''));
+        if ($waTemplate === '') {
+            $waTemplate = self::WA_TEMPLATE_DEFAULT;
+        }
+        $semua = $semua->map(function ($t) use ($waBoleh, $waTemplate) {
+            if ($waBoleh) {
+                $tel = $this->nomorWa($t->telepon ?? null);
+                $t->wa_link = $tel ? 'https://wa.me/' . $tel . '?text=' . rawurlencode($this->isiPesanWa($t, $waTemplate)) : null;
+            } else {
+                $t->wa_link = null;
+            }
+            return $t;
+        });
+
         $jumlahNota = $semua->count();
         $totalPiutang = $semua->sum('piutang');
 
@@ -610,8 +670,101 @@ class LaporanController extends Controller
         $konsumenList = DB::table('konsumen')->orderBy('nama_konsumen')->get(['id_konsumen', 'nama_konsumen', 'telepon']);
 
         return view('laporan.piutang', compact(
-            'data', 'konsumenList', 'jumlahNota', 'totalPiutang', 'sortBy', 'tglDari', 'tglSampai'
+            'data', 'konsumenList', 'jumlahNota', 'totalPiutang', 'sortBy', 'tglDari', 'tglSampai', 'waTemplate', 'waBoleh'
         ));
+    }
+
+    /**
+     * Simpan template pesan WA milik operator sendiri. Placeholder:
+     * {nama} {nota} {tanggal} {total} {status} {sisa} {wa}.
+     * Kosong = kembali ke bawaan aplikasi. Hanya role dengan hak harga.
+     */
+    public function simpanWaTemplate(Request $request)
+    {
+        abort_unless(
+            \App\Support\AksesHarga::bolehLihat(),
+            403,
+            'Template piutang memuat nilai uang - hanya untuk role yang berhak melihat harga.'
+        );
+
+        $request->validate(['wa_pesan_template' => 'nullable|string|max:2000']);
+
+        \App\Models\AppSetting::current()->update([
+            'wa_pesan_template' => trim((string) $request->input('wa_pesan_template')) ?: null,
+        ]);
+        \App\Models\AppSetting::clearCache();
+
+        return back()->with('status', 'Template pesan WhatsApp tersimpan.');
+    }
+
+    /**
+     * Prediksi Restock Cerdas — diport dari erpV3 (2026-11-13).
+     * CATATAN PENTING: di V2 nilai kartu_stok.tipe untuk pemakaian bahan
+     * adalah 'OUT' (dipakai di banyak service), BUKAN 'keluar' seperti di
+     * erpV3 - port apa adanya akan selalu 0 dan daftar jadi kosong.
+     */
+    public function restock()
+    {
+        abort_unless(
+            \App\Support\AksesHarga::bolehLihat(),
+            403,
+            'Halaman prediksi restock menampilkan detail stok & harga bahan - hanya untuk role yang berhak melihat harga.'
+        );
+
+        $from = now()->subDays(60);
+
+        $pakai = DB::table('kartu_stok')
+            ->where('tipe', 'OUT')
+            ->where('tanggal', '>=', $from)
+            ->selectRaw('id_bahan, SUM(qty) as s')
+            ->groupBy('id_bahan')
+            ->pluck('s', 'id_bahan');
+
+        $bahan = DB::table('bahan_baku')
+            ->selectRaw('id_bahan, nama_bahan, stok, stok_minimal, satuan_stok')
+            ->orderBy('stok', 'asc')
+            ->limit(200)
+            ->get()
+            ->map(function ($b) use ($pakai) {
+                $p60 = (float) ($pakai[$b->id_bahan] ?? 0);
+                $perHari = $p60 > 0 ? $p60 / 60 : 0.0;
+                $b->pakai_60d = $p60;
+                $b->per_hari = $perHari;
+                $b->sisa_hari = $perHari > 0 ? (int) floor((float) $b->stok / $perHari) : null;
+
+                // False positive: bahan dengan minimum 0 (owner tidak pernah
+                // menyetel) DAN tidak pernah dipakai 60 hari terakhir BUKAN
+                // kandidat beli - keluarkan dari daftar.
+                if ((float) $b->stok_minimal <= 0 && $perHari <= 0) {
+                    return null;
+                }
+
+                if ((float) $b->stok <= (float) $b->stok_minimal) {
+                    $b->level = 'kritis';
+                } elseif ($b->sisa_hari !== null && $b->sisa_hari < 14) {
+                    $b->level = 'perhatian';
+                } else {
+                    $b->level = 'aman';
+                }
+
+                // Saran qty beli: tutup dulu gap ke stok minimal, lalu cadangan
+                // 14 hari pemakaian berjalan - yang lebih besar yang diambil,
+                // dibulatkan ke atas. Bukan ramalan - titik awal negosiasi
+                // dengan supplier.
+                $gapMin = max(0, (float) $b->stok_minimal - (float) $b->stok);
+                $gapBuffer = $perHari > 0 ? max(0, $perHari * 14 - (float) $b->stok) : 0;
+                $b->saran_beli = max($gapMin, $gapBuffer) > 0 ? (int) ceil(max($gapMin, $gapBuffer)) : 0;
+
+                return $b;
+            })
+            ->filter()
+            ->values();
+
+        $bahan = $bahan->sortBy(fn ($b) => $b->sisa_hari === null ? PHP_INT_MAX : $b->sisa_hari)
+            ->values()
+            ->take(30);
+
+        return view('laporan.restock', compact('bahan'));
     }
 
     /**

@@ -89,6 +89,33 @@
         ]" />
     </div>
 
+    @if($waBoleh)
+    {{-- Editor template Pesan WA (hanya role dengan hak harga). Template
+         disimpan ke app_settings.wa_pesan_template dan dipakai tombol
+         "Kirim WA Tagihan" di tiap baris tabel. Placeholder: {nama} {nota}
+         {tanggal} {total} {status} {sisa} {wa}. Kosong = pakai bawaan. --}}
+    <details class="mb-6 no-print rounded-2xl border border-slate-100 bg-white shadow-sm group overflow-hidden">
+        <summary class="cursor-pointer select-none flex items-center gap-2.5 px-6 py-4 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors list-none">
+            <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fab fa-whatsapp"></i></span>
+            Template Pesan WA
+            <span class="text-[11px] font-normal text-slate-400">— klik untuk ubah</span>
+            <i class="fas fa-chevron-down text-[10px] text-slate-400 ml-auto transition-transform group-open:rotate-180"></i>
+        </summary>
+        <form method="POST" action="{{ route('laporan.piutang.wa-template') }}" class="px-6 pb-5 pt-4 border-t border-slate-100">
+            @csrf
+            <textarea name="wa_pesan_template" rows="6" maxlength="2000"
+                class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-[12px] font-medium text-slate-700 leading-relaxed focus:ring-2 focus:ring-emerald-500/20 shadow-inner"
+                placeholder="Halo {nama}, ini Orion Grafika...">{{ $waTemplate }}</textarea>
+            <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <p class="text-[10px] text-slate-400 leading-relaxed">Placeholder: <code class="px-1 bg-slate-100 rounded">{nama}</code> <code class="px-1 bg-slate-100 rounded">{nota}</code> <code class="px-1 bg-slate-100 rounded">{tanggal}</code> <code class="px-1 bg-slate-100 rounded">{total}</code> <code class="px-1 bg-slate-100 rounded">{status}</code> <code class="px-1 bg-slate-100 rounded">{sisa}</code> <code class="px-1 bg-slate-100 rounded">{wa}</code></p>
+                <x-button type="submit" variant="primary">
+                    <i class="fas fa-save"></i> Simpan Template
+                </x-button>
+            </div>
+        </form>
+    </details>
+    @endif
+
     <div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3 px-1 print:hidden">Detail Data Piutang</div>
 
     <div class="print:hidden">
@@ -102,6 +129,7 @@
                 <th class="px-4 py-5 text-right">Total Transaksi</th>
                 <th class="px-4 py-5 text-right">Sudah Dibayar</th>
                 <th class="px-8 py-5 text-right">Piutang</th>
+                @if($waBoleh)<th class="px-4 py-5 text-center w-16 no-print">WA</th>@endif
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
@@ -114,10 +142,24 @@
                 <td data-label="Total Transaksi" class="px-4 py-5 text-right"><span class="text-[12px] text-slate-500">Rp {{ number_format($p->total_bayar, 0, ',', '.') }}</span></td>
                 <td data-label="Sudah Dibayar" class="px-4 py-5 text-right"><span class="text-[12px] text-emerald-600 font-medium">Rp {{ number_format($p->total_dibayar, 0, ',', '.') }}</span></td>
                 <td data-label="Piutang" class="px-8 py-5 text-right"><span class="text-[13px] font-medium text-rose-500">Rp {{ number_format($p->piutang, 0, ',', '.') }}</span></td>
+                @if($waBoleh)
+                <td data-label="WA" class="px-4 py-5 text-center no-print">
+                    @if($p->wa_link)
+                        <a href="{{ $p->wa_link }}" target="_blank" rel="noopener"
+                           class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all"
+                           title="Kirim WA tagihan ke {{ $p->nama_konsumen }}{{ $p->telepon ? ' (' . $p->telepon . ')' : '' }}"
+                           aria-label="Kirim WA tagihan ke {{ $p->nama_konsumen }}">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    @else
+                        <span class="text-slate-300" title="Konsumen tidak punya nomor WA valid">&mdash;</span>
+                    @endif
+                </td>
+                @endif
             </tr>
             @empty
             <tr>
-                <td colspan="7">
+                <td colspan="{{ $waBoleh ? 8 : 7 }}">
                     <x-empty-state title="Tidak ada piutang" description="Sesuaikan filter untuk melihat daftar piutang." />
                 </td>
             </tr>
