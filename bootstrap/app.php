@@ -21,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Tidak melakukan apa pun bila permintaan tidak membawa submit_id. Lihat docblock SubmitSekaliJalan.
         $middleware->appendToGroup('web', \App\Http\Middleware\SubmitSekaliJalan::class);
 
+        // Akun yang dinonaktifkan di tengah sesi langsung dikeluarkan di
+        // request berikutnya (sebelumnya: sesi tetap sah sampai kedaluwarsa).
+        $middleware->appendToGroup('web', \App\Http\Middleware\PastikanUserAktif::class);
+
         $middleware->alias([
             'menu.access' => \App\Http\Middleware\CheckMenuAccess::class,
             'restrict.input-only' => \App\Http\Middleware\RestrictInputOnlyRoles::class,
