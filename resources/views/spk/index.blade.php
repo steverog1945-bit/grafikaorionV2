@@ -135,6 +135,27 @@
         </div>
     @endif
 
+    {{-- Soft-gate advisory rekonsiliasi: pekerjaan disebut di berkas/catatan tetapi
+         tidak tertagih. Tidak memblokir "Ambil Pekerjaan" - tanda supaya perbedaan
+         deskripsi vs tagihan dibaca sebelum kerja dijalankan. --}}
+    @if (count($temuanNota) > 0)
+        <div role="status" class="mb-6 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+            <div class="flex items-start gap-x-3">
+                <i class="fas fa-triangle-exclamation text-amber-600 shrink-0 mt-0.5" aria-hidden="true"></i>
+                <div class="text-sm text-amber-900 min-w-0">
+                    <p class="m-0 font-medium">Rekonsiliasi berkas vs nota: {{ count($temuanNota) }} nota di antrean ini punya pekerjaan yang tidak tertagih.</p>
+                    <p class="m-0 text-[12px] mt-1">
+                        @foreach ($temuanNota as $idT => $dataNota)
+                            {{ $loop->first ? '' : ' &middot; ' }}
+                            <a href="{{ route('berkas-order.show', $idT) }}" class="underline hover:text-amber-700">{{ $dataNota['nomor'] }}</a>
+                            ({{ $dataNota['temuan'][0]['nama_finishing'] }}{{ count($dataNota['temuan']) > 1 ? ' +' . (count($dataNota['temuan']) - 1) : '' }})
+                        @endforeach
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <form id="bulk-action-form" method="POST" action="{{ route('spk.bulk-urgent') }}">
         @csrf
         <x-table wrapperClass="spk-workqueue-shell overflow-hidden" class="spk-workqueue-table">
@@ -163,7 +184,11 @@
                     </td>
                     <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $spk->firstItem() + $i }}</td>
                     <td data-label="Pekerjaan" class="px-4 py-5">
-                        <div class="spk-work-name text-[13px] font-medium text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $item->nama_file }}</div>
+                        <div class="spk-work-name text-[13px] font-medium text-slate-700 uppercase group-hover:text-indigo-600 transition-colors">{{ $item->nama_file }}
+                            @if(isset($temuanNota[$item->id_transaksi]))
+                            <a href="{{ route('berkas-order.show', $item->id_transaksi) }}" title="Rekonsiliasi: ada pekerjaan di berkas/catatan yang tidak tertagih di nota ini" class="text-amber-600 hover:text-amber-800 no-print"><i class="fas fa-triangle-exclamation text-[10px]"></i></a>
+                            @endif
+                        </div>
                         <div class="spk-work-number text-[10px] text-slate-400 mt-0.5">Nota: {{ $item->nomor_nota }} &middot; SPK #{{ $item->id_detail }}</div>
                     </td>
                     <td data-label="Konsumen" class="px-4 py-5">

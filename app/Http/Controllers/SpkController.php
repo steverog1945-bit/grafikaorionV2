@@ -38,6 +38,7 @@ class SpkController extends Controller
                 'transaksi_detail.qty',
                 'transaksi_detail.status_urgent',
                 'transaksi_detail.status_spk',
+                'transaksi.id_transaksi',
                 'transaksi.nomor_nota',
                 'transaksi.tgl_order',
                 'transaksi.status_pembayaran',
@@ -151,6 +152,19 @@ class SpkController extends Controller
 
         $spk = $query->orderByDesc('transaksi_detail.id_detail')->paginate(20)->withQueryString();
 
+        // Soft-gate advisory rekonsiliasi berkas-vs-nota: nota yang muncul di
+        // antrean ini punya sebutan pekerjaan di teks bebas yang TIDAK tertagih.
+        // HANYA diperlihatkan (banner + ikon di baris) - tidak memblokir
+        // "Ambil Pekerjaan". Maks 20 nota per halaman, jadi loop perNota ini
+        // terikat (beberapa query per nota, kamus di-cache per request).
+        $temuanNota = [];
+        foreach ($spk->getCollection()->groupBy('id_transaksi') as $idT => $barisNota) {
+            $t = \App\Services\RekonsiliasiNotaService::perNota((int) $idT);
+            if ($t !== []) {
+                $temuanNota[(int) $idT] = ['nomor' => $barisNota->first()->nomor_nota, 'temuan' => $t];
+            }
+        }
+
         // Divisi diambil dari data master mesin yang benar-benar dipakai produk,
         // bukan hard-code. Submenu akan otomatis bertambah kalau ada mesin/divisi baru.
         $divisis = \App\Services\DivisiService::daftar($mesinDiizinkan, ['Antre']);
@@ -196,7 +210,7 @@ class SpkController extends Controller
             ->where('transaksi.tgl_order', '<', $hariEsok->format('Y-m-d H:i:s'))
             ->count();
 
-        return view('spk.index', compact('spk', 'divisis', 'jumlahAntreAwal', 'tglDari', 'tglSampai', 'tertinggal', 'tunggakanAktif'));
+        return view('spk.index', compact('spk', 'divisis', 'jumlahAntreAwal', 'tglDari', 'tglSampai', 'tertinggal', 'tunggakanAktif', 'temuanNota'));
     }
 
     /**

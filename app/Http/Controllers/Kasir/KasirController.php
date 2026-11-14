@@ -331,6 +331,21 @@ class KasirController extends Controller
 
             DB::commit();
 
+            // Soft-gate advisory rekonsiliasi (bukan blokir): nota yang baru
+            // diterima inilah "umpan" SPK - kasir diberi tahu SEKARANG bila
+            // berkas/catatan menyebut pekerjaan yang tidak tertagih. Alur
+            // terima tidak berubah walau pemeriksaan gagal.
+            $peringatanRek = '';
+            try {
+                $temuanRek = \App\Services\RekonsiliasiNotaService::perNota($id);
+                if ($temuanRek !== []) {
+                    $nama = array_slice(array_values(array_unique(array_map(fn ($t) => $t['nama_finishing'], $temuanRek))), 0, 3);
+                    $peringatanRek = ' PERINGATAN rekonsiliasi: ' . count($temuanRek) . ' pekerjaan disebut di berkas/catatan tetapi tidak tertagih (' . implode(', ', $nama) . ') - periksa panel Rekonsiliasi di Berkas Order sebelum produksi.';
+                }
+            } catch (\Throwable) {
+                // advisory: kegagalan pemeriksaan tidak boleh menggagalkan terima nota
+            }
+
             // "Terima dan Bayar" - SPK sudah diaktifkan di atas (status_order =
             // Diterima Kasir, identik dengan tombol Terima Saja). Konsumen
             // langsung diarahkan ke form pembayaran yang penuh rincian cetak -
@@ -339,10 +354,10 @@ class KasirController extends Controller
             // untuk ditagih nanti.
             if ((string) $request->input('lanjut') === 'bayar') {
                 return redirect()->route('kasir.bayarForm', ['id' => $id, 'sumber' => 'langsung'])
-                    ->with('success', 'Nota diterima. Silakan bayar - lunas atau DP.');
+                    ->with('success', 'Nota diterima. Silakan bayar - lunas atau DP.' . $peringatanRek);
             }
 
-            return $this->responTerima($request, 'success', 'Transaksi berhasil diterima. SPK siap diproses.');
+            return $this->responTerima($request, 'success', 'Transaksi berhasil diterima. SPK siap diproses.' . $peringatanRek);
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
             $pesan = collect($e->errors())->flatten()->first() ?: 'Transaksi tidak dapat diterima karena statusnya sudah berubah.';
