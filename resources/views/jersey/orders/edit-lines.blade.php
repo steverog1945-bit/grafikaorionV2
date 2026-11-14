@@ -90,6 +90,8 @@
 @include('jersey.orders._size-helper')
 {{-- Import CSV Daftar Pemain: parser + validasi master (sekali per halaman). --}}
 @include('jersey.orders._csv-pemain-tools')
+{{-- Nama barang terstruktur: isi otomatis dari pilihan yang sudah dipilih. --}}
+@include('partials.nama-barang-jersey-script')
 <script>
     // jerseyLineIndex dimulai dari angka besar (timestamp) supaya barang
     // BARU yang ditambah lewat "+ Tambah Jenis Barang" di halaman edit ini
@@ -106,6 +108,7 @@
         pasangPasteThumbnail(card);
         perbaruiNomorBarang();
         perbaruiVisibilitasLenganKerah(card);
+        if (window.tandaiNamaBarangJerseyBaru) tandaiNamaBarangJerseyBaru(card);
         jadwalkanPreviewHarga();
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }

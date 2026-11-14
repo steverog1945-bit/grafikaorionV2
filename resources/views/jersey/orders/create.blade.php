@@ -206,6 +206,8 @@
 @include('jersey.orders._size-helper')
 {{-- Import CSV Daftar Pemain: parser + validasi master (sekali per halaman). --}}
 @include('jersey.orders._csv-pemain-tools')
+{{-- Nama barang terstruktur: isi otomatis dari pilihan yang sudah dipilih. --}}
+@include('partials.nama-barang-jersey-script')
 <script>
     let jerseyLineIndex = 0;
 
@@ -218,6 +220,7 @@
         card.dataset.prefix = `lines[${idx}]`;
         pasangPasteThumbnail(card);
         perbaruiVisibilitasLenganKerah(card);
+        if (window.tandaiNamaBarangJerseyBaru) tandaiNamaBarangJerseyBaru(card);
         jadwalkanPreviewHarga();
     }
 
