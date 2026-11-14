@@ -111,3 +111,19 @@
         scroll-behavior: auto !important;
     }
 }
+
+/* CETAK: animasi jangan pernah ikut.
+   Semua animasi di atas ber-fill-mode `both` dan berangkat dari
+   opacity: 0. Renderer cetak Chrome mengambil kondisi animasi yang
+   berjalan - tombol "Cetak" laporan me-reload halaman lalu memanggil
+   window.print() 500ms kemudian, padahal baris tbody baru selesai
+   animasi di ~660ms (delay .36s + durasi .3s) - jadi SELURUH BARIS
+   DATA tertangkap masih opacity 0: hasil cetak hanya kepala tabel
+   dengan isi kosong, di semua laporan. Matikan total di media print
+   supaya elemen langsung berada di keadaan akhir (opacity penuh). */
+@media print {
+    *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}

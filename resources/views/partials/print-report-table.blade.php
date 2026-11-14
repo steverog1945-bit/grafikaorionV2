@@ -61,17 +61,55 @@
             --fs-tabel: 9px;
         }
 
-        /* Paksa warna teks gelap saat cetak. Masalah nyata yang pernah
-           terjadi: aplikasi dipakai dalam mode gelap (token teks jadi
-           nyaris putih #c9d6ce/#9db8ad) - saat cetak, Chrome menuruti
-           @page/ background putih tapi TETAP memakai warna teks mode
-           gelap, sehingga seluruh isi tabel menjadi tak terlihat di
-           kertas putih (tabel terlihat "kosong" padahal border-nya
-           tampil). Laporan memang harus hitam di atas putih - paksa
-           seluruh turunan teks jadi gelap. */
-        body,
-        body * {
-            color: #1a231f !important;
+        /* CETAKAN SELALU HITAM-DI-ATAS-PUTIH, apa pun tema aktif.
+
+           Masalah nyata: aplikasi dipakai dalam mode gelap. Semua teks
+           berkelas slate dipetakan ulang ke token terang (#DCE9ED /
+           #F7FAFB) lewat rule !important spesifisitas kelas-ganda
+           (html.dark .text-slate-600 dst). Kertas cetak dipaksa putih,
+           tapi jika perapihan "copot class dark saat mencetak" (lihat
+           layouts/app.blade.php) tidak jalan - cukup satu error JS
+           sebelum listener terpasang - seluruh teks laporan tercetak
+           NYARIS PUTIH di kertas putih: tabel tampak ada, isinya kosong.
+
+           Dua lapis perbaikan (saling menggantikan):
+           1. Timpa TOKEN warna mode gelap jadi tinta cetak - rule dark
+              yang mengambil warna lewat var() otomatis ikut gelap.
+           2. Catch-all dengan spesifisitas LEBIH TINGGI dari rule dark
+              manapun (html.dark:root body * = 0,2,2 > 0,2,1) untuk rule
+              dark yang memakai warna literal. :root ditulis eksplisit
+              karena html memang :root - ini cara naikkan spesifisitas
+              tanpa mengubah markup. */
+        html.dark,
+        html.dark:root {
+            --text-primary: #1A231F !important;
+            --text-secondary: #1A231F !important;
+            --text-tertiary: #1A231F !important;
+            --dark-text-primary: #1A231F !important;
+            --dark-text-secondary: #1A231F !important;
+            --dark-text-tertiary: #1A231F !important;
+            --dark-icon-muted: #1A231F !important;
+            --accent-light: #FFFFFF !important;
+            --dark-accent-light: #FFFFFF !important;
+            --surface-primary: #FFFFFF !important;
+            --surface-secondary: #FFFFFF !important;
+            --surface-tertiary: #FFFFFF !important;
+            --dark-surface-primary: #FFFFFF !important;
+            --dark-surface-secondary: #FFFFFF !important;
+            --dark-surface-tertiary: #FFFFFF !important;
+            --border-primary: #C9D6CE !important;
+            --border-secondary: #C9D6CE !important;
+            --dark-border-primary: #C9D6CE !important;
+        }
+
+        html.dark:root body,
+        html.dark:root body * {
+            color: #1A231F !important;
+            background-color: transparent !important;
+        }
+
+        html.dark:root body {
+            background-color: #fff !important;
         }
 
         table { width: 100% !important; max-width: 100% !important; }

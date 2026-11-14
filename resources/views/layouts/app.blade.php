@@ -58,6 +58,26 @@
             } catch (e) {}
         })();
     </script>
+    <script>
+        // Cetak SELALU terang: class dark dicopot sebelum dialog cetak dan
+        // dipasang kembali sesudahnya. Harus <script> SENDIRI di <head> -
+        // sebelumnya ada di blok script besar bagian bawah halaman, jadi
+        // cukup satu error JS di atasnya agar listener tidak pernah
+        // terpasang dan mode gelap ikut tercetak (teks nyaris putih di
+        // kertas putih = laporan tercetak "tanpa isi"). Lapis CSS di
+        // partials/print-report-table.blade.php tetap dipertahankan sebagai
+        // jaring pengaman bila handler ini tidak jalan.
+        (function () {
+            var tadiGelap = false;
+            window.addEventListener('beforeprint', function () {
+                tadiGelap = document.documentElement.classList.contains('dark');
+                document.documentElement.classList.remove('dark');
+            });
+            window.addEventListener('afterprint', function () {
+                if (tadiGelap) document.documentElement.classList.add('dark');
+            });
+        })();
+    </script>
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -2312,12 +2332,8 @@
     });
     terapkanIkonTema();
     terapkanGarisCard();
-    // Cetak selalu terang.
-    (function () {
-        let tadiGelap = false;
-        window.addEventListener('beforeprint', () => { tadiGelap = document.documentElement.classList.contains('dark'); document.documentElement.classList.remove('dark'); });
-        window.addEventListener('afterprint', () => { if (tadiGelap) document.documentElement.classList.add('dark'); });
-    })();
+    // "Cetak selalu terang" kini di <script> sendiri di <head> (lihat atas
+    // file) supaya tidak bisa mati kena error JS di blok ini.
     function toggleNotif(e) { e.stopPropagation(); document.getElementById('notif-panel').classList.toggle('hidden'); }
     document.addEventListener('click', e => { const p = document.getElementById('notif-panel'); if (p && !p.contains(e.target)) p.classList.add('hidden'); });
     renderNotif(@json($notifAwal));
