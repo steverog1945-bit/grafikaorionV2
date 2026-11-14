@@ -24,6 +24,9 @@ class PenjualanApiController extends Controller
             // KEPING_ROLL: keping = floor(lebar_roll / lebar barang) -
             // sumber data sama persis dengan sisi checkout server.
             $data['lebar_roll'] = \App\Services\PenjualanCheckoutService::lebarRollBahanUtama((int) $id);
+            // Nama bahan patokan (untuk chip "Lebar dikunci ke bahan: ..." di POS).
+            $patokan = \App\Services\PenjualanCheckoutService::bahanPatokanLebar((int) $id);
+            $data['lebar_roll_nama'] = $patokan['nama_bahan'] ?? null;
 
             return response()->json($data);
         } catch (\Exception $e) {

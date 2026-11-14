@@ -513,6 +513,15 @@
                             <input type="number" id="input_qty_ukuran" onchange="hitungSubtotal()" tabindex="7" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-2 text-[13px] font-medium text-slate-700 text-center focus:border-[#006C7B] focus:ring-2 focus:ring-[#006C7B]/15" value="1">
                         </div>
                     </div>
+                    {{-- Kunci minimum order (produk metode 'ukuran' dengan min order):
+                         lebar diisi otomatis = lebar bahan BOM terawal ber-lebar_roll dan
+                         read-only; tanpa data lebar bahan tampil peringatan amber, tidak mengunci. --}}
+                    <p id="kunci_lebar" hidden class="mt-2 text-[11px] font-medium text-sky-900 bg-sky-50 border border-sky-200 rounded-lg px-3 py-2 leading-snug">
+                        <i class="fas fa-lock mr-1"></i> Lebar dikunci ke lebar bahan <span id="kunci_lebar_nama">-</span>: <span id="kunci_lebar_nilai">-</span>. Panjang di bawah minimum dinaikkan otomatis ke minimumnya.
+                    </p>
+                    <p id="kunci_lebar_kosong" hidden class="mt-2 text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-snug">
+                        <i class="fas fa-triangle-exclamation mr-1"></i> Produk ini pakai Minimum Order tapi lebar bahan BOM belum diisi di Master Bahan - lebar belum bisa dikunci otomatis.
+                    </p>
                     <p id="note_ukuran" class="hidden mt-2 text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-snug">
                         Ukuran untuk menghitung harga. Gunakan ukuran file asli.
                     </p>
@@ -1584,6 +1593,11 @@ let currentThumbnailPreview = null;
         $('#select_produk').val('').trigger('change');
         document.getElementById('nama_file').value = "";
         delete document.getElementById('nama_file').dataset.auto;
+        // Kunci minimum order dibuka kembali untuk produk berikutnya.
+        document.getElementById('input_l').readOnly = false;
+        document.getElementById('input_l').classList.remove('bg-slate-100', 'cursor-not-allowed');
+        document.getElementById('kunci_lebar').hidden = true;
+        document.getElementById('kunci_lebar_kosong').hidden = true;
         document.getElementById('input_p').value = "";
         document.getElementById('input_l').value = "";
         // Panel Potong Manual ikut dikosongkan: ukuran media per lembar yang
@@ -1768,6 +1782,73 @@ let currentThumbnailPreview = null;
         }
     }
 
+    // ===== Kunci Minimum Order (C1, keputusan owner 2026-11-14) =====
+    // Produk 'ukuran' dengan Minimum Order (min_panjang/min_lebar terisi):
+    // lebar diisi otomatis = lebar bahan BOM terawal yang punya lebar_roll
+    // (lebar_roll di master bahan disimpan dalam METER -> *100 = cm) dan
+    // dikunci read-only; panjang di bawah minimum dinaikkan otomatis.
+    // Server adalah otoritas: checkout menolak lebar yang tidak cocok dan
+    // menulis koreksi panjang ke audit_logs ('koreksi_minimum'). Tanpa data
+    // lebar bahan, tidak dikunci - peringatan amber, perbaiki di Master Bahan.
+    function produkTerkunciMinOrder(prod) {
+        return !!prod && prod.metode_hitung === 'ukuran'
+            && (parseFloat(prod.min_panjang) > 0 || parseFloat(prod.min_lebar) > 0);
+    }
+    function patokanLebarCm(prod) {
+        const r = parseFloat(prod && prod.lebar_roll) || 0;
+        return r > 0 ? Math.round(r * 100 * 100) / 100 : 0; // meter -> cm, 2 desimal
+    }
+    function showToastMin(msg) {
+        let t = document.getElementById('toast_min_order');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'toast_min_order';
+            t.className = 'fixed bottom-24 left-1/2 z-50 -translate-x-1/2 bg-slate-900 text-white text-[12px] font-medium rounded-xl shadow-lg px-4 py-2.5 max-w-xs text-center';
+            t.style.transition = 'opacity .25s ease';
+            document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.style.opacity = '1';
+        window.clearTimeout(window.__toastMinTimer || 0);
+        window.__toastMinTimer = setTimeout(function () { t.style.opacity = '0'; }, 3200);
+    }
+    function terapkanKunciMinOrder() {
+        const inpL = document.getElementById('input_l');
+        const inpP = document.getElementById('input_p');
+        const sky = document.getElementById('kunci_lebar');
+        const amber = document.getElementById('kunci_lebar_kosong');
+        // Netral dulu (dipakai saat produk diganti/reset): buka kunci, sembunyikan chip.
+        inpL.readOnly = false;
+        inpL.classList.remove('bg-slate-100', 'cursor-not-allowed');
+        sky.hidden = true;
+        amber.hidden = true;
+        if (!produkTerkunciMinOrder(currentProduk)) return;
+        const minP = parseFloat(currentProduk.min_panjang) || 0;
+        const vP = parseFloat(inpP.value);
+        if (minP > 0 && vP > 0 && vP < minP) inpP.value = String(minP);
+        const patokan = patokanLebarCm(currentProduk);
+        if (patokan > 0) {
+            inpL.value = String(patokan);
+            inpL.readOnly = true;
+            inpL.classList.add('bg-slate-100', 'cursor-not-allowed');
+            document.getElementById('kunci_lebar_nama').textContent = currentProduk.lebar_roll_nama || 'bahan BOM terawal';
+            document.getElementById('kunci_lebar_nilai').textContent = patokan + ' cm';
+            sky.hidden = false;
+        } else {
+            amber.hidden = false;
+        }
+    }
+    document.getElementById('input_p').addEventListener('change', function () {
+        if (!produkTerkunciMinOrder(currentProduk)) return;
+        const minP = parseFloat(currentProduk.min_panjang) || 0;
+        const v = parseFloat(this.value) || 0;
+        if (minP > 0 && v > 0 && v < minP) {
+            this.value = String(minP);
+            showToastMin('Panjang dinaikkan ke minimum order (' + minP + ' cm).');
+            hitungSubtotal();
+        }
+    });
+
     // Token urutan ganti produk: user bisa menekan-ganti produk beruntun
     // cepat; tanpa penjaga, respons fetch produk yang TELAT datang tetap
     // menimpa currentProduk dengan data produk yang sudah tidak terpilih
@@ -1806,6 +1887,7 @@ let currentThumbnailPreview = null;
             // Panel jahit keping perlu data produk BARU (lebar roll ikut
             // produk) - segarkan setelah currentProduk terpasang.
             segarkanPanelKepingRoll();
+            terapkanKunciMinOrder();
             setTimeout(() => {
                 if (metode === 'ukuran') { $('#input_p').focus().select(); }
                 else { $('#input_qty_biasa').focus().select(); }
@@ -3713,6 +3795,11 @@ let peringatanMinDaftar = 0;
         document.getElementById('btn_tambah_finishing').classList.add('hidden');
         document.getElementById('nama_file').value = "";
         delete document.getElementById('nama_file').dataset.auto;
+        // Kunci minimum order dibuka kembali untuk produk berikutnya.
+        document.getElementById('input_l').readOnly = false;
+        document.getElementById('input_l').classList.remove('bg-slate-100', 'cursor-not-allowed');
+        document.getElementById('kunci_lebar').hidden = true;
+        document.getElementById('kunci_lebar_kosong').hidden = true;
         document.getElementById('input_p').value = "";
         document.getElementById('input_l').value = "";
         // Panel Potong Manual ikut dikosongkan: ukuran media per lembar yang

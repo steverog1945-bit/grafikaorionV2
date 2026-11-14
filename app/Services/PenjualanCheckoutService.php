@@ -570,6 +570,27 @@ class PenjualanCheckoutService
         // Rincian finishing per item (boleh lebih dari satu).
         $this->tulisFinishingItem($id_detail, $item['finishing_list'] ?? []);
 
+        // Bukti koreksi otomatis panjang -> minimum order (keputusan owner
+        // 2026-11-14, C1): ditulis sebagai event audit append-only, BUKAN
+        // teks catatan (catatan produksi milik manusia & bisa diedit).
+        // Kegagalan audit tidak boleh menggagalkan nota - jejak kosong lebih
+        // jujur daripada nota hilang.
+        if (!empty($item['koreksi_panjang']) && is_array($item['koreksi_panjang'])) {
+            try {
+                $k = $item['koreksi_panjang'];
+                \App\Services\AuditLogger::log(
+                    'koreksi_minimum',
+                    'transaksi_detail',
+                    (int) $id_detail,
+                    ['panjang_input' => (float) ($k['input'] ?? 0)],
+                    ['panjang_dipakai' => (float) ($k['dipakai'] ?? 0)],
+                    'Nota ' . mb_substr($referensiKartu, 0, 24) . ': panjang dinaikkan otomatis ke minimum order (' . ($k['input'] ?? 0) . '->' . ($k['dipakai'] ?? 0) . ' cm)'
+                );
+            } catch (\Throwable) {
+                // advisory - lihat catatan di atas
+            }
+        }
+
         // BOM + tinta/toner mesin produk (lihat BomCalculationService::komponen).
         $hppItemIni = $this->pakaiBahanItem($item, $id_detail, $referensiKartu, $keteranganKartu, $jumlah_order);
 
@@ -746,6 +767,34 @@ class PenjualanCheckoutService
         return $hppItemIni;
     }
 
+    /**
+     * Lebar & nama bahan utama BOM produk untuk produk TERKUNCI minimum
+     * order (metode 'ukuran' + min order terisi): baris terawal di
+     * bom_detail yang bahannya ber-lebar_roll (> 0) - konvensi sama dengan
+     * lebarRollBahanUtama(). lebar_roll disimpan dalam METER (mis. 3.2 =
+     * 320 cm); mengembalikan lebar dalam CM dengan 2 desimal.
+     *
+     * @return array{lebar_cm: float, nama_bahan: string}|null null = belum
+     *         ada bahan di BOM yang punya lebar_roll (tidak mengunci, data
+     *         master perlu dilengkapi di Master Bahan)
+     */
+    public static function bahanPatokanLebar(int $idProduk): ?array
+    {
+        if ($idProduk <= 0) {
+            return null;
+        }
+        $roll = DB::table('bom_detail')
+            ->join('bahan_baku', 'bahan_baku.id_bahan', '=', 'bom_detail.id_bahan')
+            ->where('bom_detail.id_produk', $idProduk)
+            ->where('bahan_baku.lebar_roll', '>', 0)
+            ->orderBy('bom_detail.id_bom')
+            ->first(['bahan_baku.lebar_roll', 'bahan_baku.nama_bahan']);
+        if (!$roll) {
+            return null;
+        }
+        return ['lebar_cm' => round((float) $roll->lebar_roll * 100, 2), 'nama_bahan' => (string) $roll->nama_bahan];
+    }
+
     public function validasiItems(Request $request, int $idGolongan, bool $hargaTerkunci, bool $bolehInputBiayaDesain, ?\Illuminate\Support\Collection $itemsLama = null, ?callable $itemBerubah = null): array
     {
         $itemsTervalidasi = [];
@@ -783,7 +832,28 @@ class PenjualanCheckoutService
     // Produk lintas kategori (mis. CENTURY STAR vs INDOOR) TIDAK saling
     // menolong walaupun menulis kelompok_minimum yang sama.
     $luasKelompok = [];
-    foreach ($request->items as $item) {
+    // Pass 0 (C1): produk TERKUNCI minimum order (metode 'ukuran' +
+    // min_panjang/min_lebar terisi) tidak boleh punya panjang di bawah
+    // minimum - dinaikkan ke minimum SEKALI di sini, supaya pre-pass luas
+    // kelompok & loop validasi memakai angka yang sama. Koreksi dari pass
+    // ini ditulis sebagai event audit lewat tulisItemProduk (baris/id_detail
+    // baru diketahui di sana), bukan di sini.
+    $koreksiPanjang = [];
+    foreach ($request->items as $indexKoreksi => $itemKoreksi) {
+        if (!empty($itemKoreksi['id_jasa'])) {
+            continue;
+        }
+        $prC = $produkRows->get((int) ($itemKoreksi['id_produk'] ?? 0));
+        if (!$prC || $prC->metode_hitung !== 'ukuran') {
+            continue;
+        }
+        $minPC = (float) ($prC->min_panjang ?? 0);
+        $pC = (float) ($itemKoreksi['p'] ?? 0);
+        if ($minPC > 0 && $pC > 0 && $pC < $minPC) {
+            $koreksiPanjang[$indexKoreksi] = ['input' => $pC, 'dipakai' => $minPC];
+        }
+    }
+    foreach ($request->items as $iK => $item) {
         if (!empty($item['id_jasa'])) {
             continue;
         }
@@ -794,6 +864,9 @@ class PenjualanCheckoutService
         $pK = (float) ($item['p'] ?? 0);
         $lK = (float) ($item['l'] ?? 0);
         $qtyK = (float) ($item['qty_input'] ?? 0);
+        if (isset($koreksiPanjang[$iK])) {
+            $pK = (float) $koreksiPanjang[$iK]['dipakai'];
+        }
         if ($pK <= 0 || $lK <= 0 || $qtyK <= 0) {
             continue;
         }
@@ -858,6 +931,11 @@ class PenjualanCheckoutService
         $p = (float) ($item['p'] ?? 0);
         $l = (float) ($item['l'] ?? 0);
         $qtyInput = (float) ($item['qty_input'] ?? 0);
+        // C1: panjang di bawah minimum dinaikkan oleh Pass 0 - dipakai sebagai
+        // sumber untuk hitungan harga/BOM/stok. Lebar tidak dikoreksi diam-diam.
+        if (isset($koreksiPanjang[$index])) {
+            $p = (float) $koreksiPanjang[$index]['dipakai'];
+        }
 
         // T4: validasi minimum (min_panjang/min_lebar untuk ukuran, min_order
         // untuk quantity). Hanya baris baru/berubah (id_detail dikenali +
@@ -867,9 +945,28 @@ class PenjualanCheckoutService
         $lamaT4 = ($itemsLama && $idDetailLamaT4) ? $itemsLama->get($idDetailLamaT4) : null;
         $tidakBerubahT4 = $lamaT4 && $itemBerubah ? !$itemBerubah($lamaT4, $item) : false;
         if (!$tidakBerubahT4) {
-            if ($produk->metode_hitung === 'ukuran') {
-                $minP = (float) ($produk->min_panjang ?? 0);
-                $minL = (float) ($produk->min_lebar ?? 0);
+            // Cabang UKURAN (metode_hitung === 'ukuran').
+            $isUkuran = ($produk->metode_hitung === 'ukuran');
+            $minP = $isUkuran ? (float) ($produk->min_panjang ?? 0) : 0;
+            $minL = $isUkuran ? (float) ($produk->min_lebar ?? 0) : 0;
+            $produkTerkunci = $isUkuran && ($minP > 0 || $minL > 0);
+
+            if ($produkTerkunci) {
+                $patokan = self::bahanPatokanLebar((int) $produk->id_produk);
+                if ($patokan !== null) {
+                    if ($l <= 0 || abs($l - $patokan['lebar_cm']) > 0.01) {
+                        throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': lebar ' . ($l > 0 ? number_format($l, 2) . ' cm' : '(kosong)') . ' harus sama dengan lebar bahan ' . $patokan['nama_bahan'] . ' (' . $patokan['lebar_cm'] . ' cm). Ubah master bahan bila patokan berubah.');
+                    }
+                } elseif ($minL > 0 && $l > 0 && $l < $minL) {
+                    // Patokan BOM belum tersedia (data lebar bahan kosong) -
+                    // minimum per-baris tetap berlaku, TANPA relax kelompok.
+                    throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': lebar ' . $l . ' cm di bawah minimum (' . $minL . ' cm).');
+                }
+                if ($minP > 0 && $p < $minP) {
+                    // Safety net: Pass 0 harusnya sudah menaikkan ini.
+                    throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': panjang ' . $p . ' cm di bawah minimum (' . $minP . ' cm).');
+                }
+            } elseif ($isUkuran) {
                 $kurangP = $minP > 0 && $p > 0 && $p < $minP;
                 $kurangL = $minL > 0 && $l > 0 && $l < $minL;
                 if ($kurangP || $kurangL) {
@@ -1199,6 +1296,9 @@ class PenjualanCheckoutService
             'l' => $l,
             'qty_input' => $qtyInput,
             'qty_hitung' => $qtyHitung,
+            // Bukti koreksi otomatis panjang (C1): dinaikkan ke minimum order,
+            // ditulis oleh tulisItemProduk sebagai event audit 'koreksi_minimum'.
+            'koreksi_panjang' => $koreksiPanjang[$index] ?? null,
             'id_finishing' => $idFinishing,
             'finishing_list' => $daftarFinishing,
             'biaya_finishing' => $biayaFinishing,
