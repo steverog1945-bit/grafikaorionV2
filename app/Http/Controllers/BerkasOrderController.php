@@ -59,6 +59,9 @@ class BerkasOrderController extends Controller
         return view('berkas-order.show', [
             'nota' => $nota, 'items' => $items, 'grup' => $grup, 'pengambilan' => $pengambilan,
             'kategoriUnggah' => ['Production File', 'QC Photo', 'Lainnya'],
+            // Rekonsiliasi teks-vs-nota: sebutan finishing di nama file/catatan
+            // yang tidak tertagih. Advisory - tidak memblokir apa pun di sini.
+            'temuanRekonsiliasi' => \App\Services\RekonsiliasiNotaService::perNota($idTransaksi),
         ]);
     }
 
@@ -104,6 +107,18 @@ class BerkasOrderController extends Controller
             throw $e;
         }
 
-        return back()->with('success', "Berkas {$data['kategori']} diunggah.");
+        // Rekonsiliasi seketika: nama file asli & catatan yang menyebut
+        // finishing tidak tertagih diberi tahu SEKARANG, bukan saat operator
+        // kebetulan membuka panel temuan. Berkas tetap tersimpan (advisory).
+        $temuan = \App\Services\RekonsiliasiNotaService::cekUnggahan(
+            $idTransaksi,
+            $idDetail,
+            (string) $file->getClientOriginalName(),
+            (string) ($data['catatan'] ?? '')
+        );
+
+        return back()
+            ->with('success', "Berkas {$data['kategori']} diunggah.")
+            ->when($temuan !== [], fn ($r) => $r->with('peringatanRekonsiliasi', $temuan));
     }
 }

@@ -17,6 +17,26 @@
         <div class="mb-6 p-4 rounded-xl bg-rose-50 text-rose-600 text-sm font-medium">@foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach</div>
     @endif
 
+    @if(!empty($temuanRekonsiliasi))
+    {{-- Rekonsiliasi teks-vs-nota: sebutan finishing di nama file/catatan
+         yang tidak tertagih. Advisory untuk dicek sebelum SPK/cetak - bisa
+         berarti finishing lupa dimasukkan ke nota (bocor tagihan) atau
+         catatan yang usang. Tidak otomatis mengubah nota. --}}
+    <div class="mb-6 rounded-xl border-2 border-amber-300 bg-amber-50 px-5 py-4">
+        <h3 class="text-sm font-medium text-amber-800 mb-1">
+            <i class="fas fa-magnifying-glass-exclamation text-amber-500 mr-1"></i>
+            Rekonsiliasi berkas vs nota - {{ count($temuanRekonsiliasi) }} temuan
+        </h3>
+        <p class="text-xs text-amber-700/80 mb-3">Nama berkas/catatan menyebut pekerjaan yang tidak ada di nota. Periksa sebelum SPK: bisa jadi finishing lupa ditagih, atau catatan yang sudah usang.</p>
+        @foreach($temuanRekonsiliasi as $t)
+        <div class="text-sm text-slate-700 py-1.5 {{ !$loop->last ? 'border-b border-amber-100' : '' }}">
+            <b>{{ $t['nama_finishing'] }}</b> disebut di {{ $t['sumber'] }}
+            <span class="text-[11px] text-slate-400">&ldquo;{{ $t['kutipan'] }}&rdquo;</span>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
     <x-card class="mb-8">
         <h3 class="text-xs font-medium text-slate-800 uppercase tracking-widest mb-4">Unggah Berkas</h3>
         <form method="POST" action="{{ route('berkas-order.unggah', $nota->id_transaksi) }}" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -33,6 +53,18 @@
         </form>
         <x-hint tip="Format: JPG, PNG, WEBP, PDF, ZIP, AI, PSD, CDR, EPS. Foto bukti serah terima lewat tombol serah terima di Collecting." icon="file-circle-check" />
     </x-card>
+
+    @if(session('peringatanRekonsiliasi'))
+    <div class="mb-6 rounded-xl border-2 border-amber-300 bg-amber-50 px-5 py-4">
+        <h3 class="text-sm font-medium text-amber-800 mb-1"><i class="fas fa-triangle-exclamation text-amber-500 mr-1"></i> Berkas tersimpan, tapi ada yang janggal</h3>
+        @foreach(session('peringatanRekonsiliasi') as $t)
+        <div class="text-sm text-slate-700 py-1 {{ !$loop->last ? 'border-b border-amber-100' : '' }}">
+            {{ $t['sumber'] }} menyebut <b>{{ $t['nama_finishing'] }}</b> yang tidak tertagih di nota{{ $t['kutipan'] ? ' - teks: "' . $t['kutipan'] . '"' : '' }}.
+        </div>
+        @endforeach
+        <p class="text-xs text-amber-700/80 mt-2">Kalau pekerjaannya nyata, tambahkan finishing di nota dulu. Kalau catatannya usang, abaikan.</p>
+    </div>
+    @endif
 
     @if($pengambilan)
     <x-card class="mb-8">
