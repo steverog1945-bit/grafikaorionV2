@@ -138,6 +138,8 @@ return [
         'eksekutif' => [60],
         // Audit Bulanan Owner (baca-saja) - role Owner (menu 60) & Administrator.
         'audit-owner' => [60],
+        // Laporan Kebocoran Tagihan (rekonsiliasi berkas-vs-nota, baca-saja) - setara Audit Bulanan.
+        'laporan/kebocoran-tagihan' => [60],
         'harga-promo' => [28],
 
         'kas-kecil' => [39],

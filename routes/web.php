@@ -631,6 +631,8 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::get('/collecting/cek-antrian-baru', [CollectingController::class, 'cekAntrianBaru'])->name('collecting.cek-antrian-baru');
 
     Route::get('/laporan/order', [LaporanController::class, 'order'])->name('laporan.order');
+    // Kebocoran Tagihan: temuan rekonsiliasi berkas-vs-nota lintas nota (read-only, owner).
+    Route::get('/laporan/kebocoran-tagihan', [LaporanController::class, 'kebocoranTagihan'])->name('laporan.kebocoran-tagihan');
     Route::get('/laporan/produksi', [LaporanController::class, 'produksi'])->name('laporan.produksi');
     Route::get('/laporan/kas', [LaporanController::class, 'kas'])->name('laporan.kas');
     Route::get('/laporan/piutang', [LaporanController::class, 'piutang'])->name('laporan.piutang');

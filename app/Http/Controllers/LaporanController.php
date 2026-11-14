@@ -10,6 +10,77 @@ use Illuminate\Support\Facades\DB;
 class LaporanController extends Controller
 {
     /**
+     * Laporan Kebocoran Tagihan (rekonsiliasi berkas-vs-nota, read-only):
+     * sebutan pekerjaan/finishing di teks bebas (nama file, catatan) yang
+     * TIDAK tertagih di nota = pekerjaan berjalan tanpa masuk tagihan.
+     *
+     * Sumber: RekonsiliasiNotaService::perNota() per nota dalam rentang
+     * (baca-saja, mirip loop di command `berkas:rekonsiliasi`), ditambah
+     * temuan audit AI yang tersimpan di nota_audit_ai. Tidak menyimpan
+     * apa pun - setiap buka laporan memindai ulang rentang yang dipilih.
+     */
+    public function kebocoranTagihan(Request $request)
+    {
+        $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
+        $dari = $request->filled('tgl_dari') ? \Carbon\Carbon::parse($request->tgl_dari) : now()->subDays(30);
+        $sampai = $request->filled('tgl_sampai') ? \Carbon\Carbon::parse($request->tgl_sampai) : now();
+        if ($dari->gt($sampai)) {
+            [$dari, $sampai] = [$sampai, $dari];
+        }
+        // Pindai per nota = beberapa query per nota; batasi rentang supaya
+        // halaman ini tidak berat bila filter iseng diisi setahun penuh.
+        if ($dari->diffInDays($sampai) > 92) {
+            $dari = $sampai->copy()->subDays(92);
+        }
+
+        $notas = DB::table('transaksi')
+            ->leftJoin('konsumen', 'konsumen.id_konsumen', '=', 'transaksi.id_konsumen')
+            ->where('transaksi.tgl_order', '>=', $dari->format('Y-m-d') . ' 00:00:00')
+            ->where('transaksi.tgl_order', '<', $sampai->copy()->addDay()->format('Y-m-d') . ' 00:00:00')
+            ->orderByDesc('transaksi.tgl_order')
+            ->get([
+                'transaksi.id_transaksi', 'transaksi.nomor_nota', 'transaksi.tgl_order',
+                'transaksi.status_nota', 'konsumen.nama_konsumen',
+            ]);
+
+        $grup = [];
+        $jumlahNotaBermasalah = 0;
+        $jumlahTemuan = 0;
+        foreach ($notas as $nota) {
+            $temuan = \App\Services\RekonsiliasiNotaService::perNota((int) $nota->id_transaksi);
+            if ($temuan === []) {
+                continue;
+            }
+            $grup[] = ['nota' => $nota, 'temuan' => $temuan];
+            $jumlahNotaBermasalah++;
+            $jumlahTemuan += count($temuan);
+        }
+
+        // Temuan audit AI tersimpan (dari command `nota:audit-ai`), rentang
+        // yang sama - advisory, tampil terpisah dari temuan deterministik.
+        $temuanAi = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('nota_audit_ai')) {
+            $temuanAi = DB::table('nota_audit_ai')
+                ->join('transaksi', 'transaksi.id_transaksi', '=', 'nota_audit_ai.id_transaksi')
+                ->leftJoin('konsumen', 'konsumen.id_konsumen', '=', 'transaksi.id_konsumen')
+                ->where('transaksi.tgl_order', '>=', $dari->format('Y-m-d') . ' 00:00:00')
+                ->where('transaksi.tgl_order', '<', $sampai->copy()->addDay()->format('Y-m-d') . ' 00:00:00')
+                ->orderByDesc('nota_audit_ai.id_nota_audit_ai')
+                ->get([
+                    'nota_audit_ai.*', 'transaksi.nomor_nota', 'transaksi.tgl_order', 'konsumen.nama_konsumen',
+                ]);
+        }
+
+        return view('laporan.kebocoran-tagihan', [
+            'dari' => $dari, 'sampai' => $sampai,
+            'grup' => $grup, 'temuanAi' => $temuanAi,
+            'jumlahNotaDiperiksa' => $notas->count(),
+            'jumlahNotaBermasalah' => $jumlahNotaBermasalah,
+            'jumlahTemuan' => $jumlahTemuan,
+        ]);
+    }
+
+    /**
      * Template pesan WA bawaan untuk tombol "Kirim WA Tagihan" di Laporan
      * Piutang. Placeholder: {nama} {nota} {tanggal} {total} {status} {sisa} {wa}.
      * Operator bisa mengganti lewat editor template di halaman yang sama;

@@ -1194,11 +1194,11 @@
         // ini - kalau suatu role cuma dikasih akses id_menu 47 saja, header
         // "Laporan" tidak pernah muncul padahal link HPP-nya sendiri tetap
         // render (yatim tanpa header). Ditambahkan di sini.
-        $grpLaporanVisible = $cekAkses(25) || $cekAkses(26) || $cekAkses(29) || $cekAkses(40) || $cekAkses(43) || $cekAkses(44) || $cekAkses(46) || $cekAkses(47) || $cekAkses(65);
+        $grpLaporanVisible = $cekAkses(25) || $cekAkses(26) || $cekAkses(29) || $cekAkses(40) || $cekAkses(43) || $cekAkses(44) || $cekAkses(46) || $cekAkses(47) || $cekAkses(65) || $cekAkses(60);
         $grpLaporanAktif = request()->routeIs('laporan.order') || request()->routeIs('laporan.produksi')
             || request()->routeIs('laporan.kas') || request()->routeIs('laporan.belanja-bahan') || request()->routeIs('laporan.hutang')
             || request()->routeIs('laporan.order-jersey') || request()->routeIs('laporan.piutang')
-            || request()->routeIs('laporan.stok-bahan') || request()->routeIs('laporan.hpp') || request()->routeIs('laporan.job-costing') || request()->routeIs('laporan.profitabilitas') || request()->routeIs('laporan.pemakaian-bahan') || request()->routeIs('laporan.biaya-tinta') || request()->routeIs('laporan.evaluasi-master') || request()->routeIs('laporan.biaya-desain*');
+            || request()->routeIs('laporan.stok-bahan') || request()->routeIs('laporan.hpp') || request()->routeIs('laporan.job-costing') || request()->routeIs('laporan.profitabilitas') || request()->routeIs('laporan.pemakaian-bahan') || request()->routeIs('laporan.biaya-tinta') || request()->routeIs('laporan.evaluasi-master') || request()->routeIs('laporan.biaya-desain*') || request()->routeIs('laporan.kebocoran-tagihan');
     @endphp
     @if($grpLaporanVisible)
     <button type="button" onclick="toggleMenuGroup(this)" class="menu-group-toggle w-full flex items-center justify-between pt-5 pb-2 px-3 text-[11px] font-medium text-or-teks/70 uppercase tracking-[0.16em] hover:text-or-teks transition-colors">
@@ -1214,6 +1214,15 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
         <span class="text-sm font-medium">Laporan Pesanan</span>
+    </a>
+    @endif
+
+    @if($cekAkses(60))
+    <a href="{{ route('laporan.kebocoran-tagihan') }}" class="{{ $menuClass }} {{ request()->routeIs('laporan.kebocoran-tagihan') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('laporan.kebocoran-tagihan') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.5 0L3.16 16.25A2 2 0 005 19z" />
+        </svg>
+        <span class="text-sm font-medium">Kebocoran Tagihan</span>
     </a>
     @endif
 
