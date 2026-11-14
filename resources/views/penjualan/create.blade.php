@@ -1186,6 +1186,47 @@ let currentThumbnailPreview = null;
     // ini) - dipakai juga oleh Pesanan Jersey, supaya logika kompresi cuma
     // ada di SATU tempat.
 
+    // ---- Nama file terstruktur (lapis 3 rekonsiliasi nota) ----
+    // Deskripsi item dibangun dari data order yang SUDAH dipilih kasir
+    // (produk + ukuran/qty + finishing), bukan cuma nama berkas pelanggan.
+    // Teks bebas tetap dihormati: begitu kasir menyunting sendiri kolom ini,
+    // pengisian otomatis berhenti (dataset.auto dihapus) sampai berkas baru
+    // diunggah - pola sama dengan cetakManualEdit/finishingBiayaManualEdit.
+    function bangunNamaFileTerstruktur(fallback) {
+        const bersih = (s) => (s || '').replace(/\s+/g, ' ').trim();
+        const bagian = [];
+        const produk = bersih($('#select_produk').find(':selected').text());
+        const produkTerpilih = produk && !produk.startsWith('--') ? produk : '';
+        if (produkTerpilih) bagian.push(produkTerpilih);
+        const jasa = bersih($('#select_jasa').find(':selected').text());
+        if (!produkTerpilih && jasa && !jasa.startsWith('--')) bagian.push(jasa);
+        const angka = (n) => (n % 1 === 0 ? String(n) : String(parseFloat(n.toFixed(2))));
+        const p = parseFloat(document.getElementById('input_p').value) || 0;
+        const l = parseFloat(document.getElementById('input_l').value) || 0;
+        if (p > 0 && l > 0) {
+            bagian.push(angka(p) + 'x' + angka(l) + 'cm');
+            const q = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
+            if (q > 0) bagian.push(angka(q) + 'bh');
+        } else {
+            const q = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
+            if (q > 0) bagian.push(angka(q) + 'bh');
+        }
+        const fin = bersih($('#select_finishing').find(':selected').text());
+        if (fin && !fin.startsWith('--')) bagian.push('+ ' + fin);
+        const hasil = bagian.join(' ');
+        return hasil.length >= 3 ? hasil : fallback;
+    }
+
+    function isiNamaFileOtomatis(fallback) {
+        const el = document.getElementById('nama_file');
+        el.value = bangunNamaFileTerstruktur(fallback);
+        el.dataset.auto = '1';
+    }
+
+    document.getElementById('nama_file').addEventListener('input', function () {
+        delete this.dataset.auto;
+    });
+
     // Berkas melebihi batas ukuran TIDAK memblokir order: deskripsi tetap
     // memakai nama berkas yang dipilih, pratinjau jadi gambar default
     // thumbnail, dan item boleh masuk keranjang tanpa berkas - file sumber
@@ -1205,7 +1246,7 @@ let currentThumbnailPreview = null;
 
         // Deskripsi file DIPERTAHANKAN: nama berkas tetap tertulis walau
         // berkasnya tidak ikut terkirim ke server.
-        document.getElementById('nama_file').value = namaFileDariGambar(namaAsli);
+        isiNamaFileOtomatis(namaFileDariGambar(namaAsli));
         document.getElementById('input_thumbnail').value = '';
 
         Swal.fire({
@@ -1298,8 +1339,7 @@ let currentThumbnailPreview = null;
                 // diunggah. Dulu cuma diisi saat kolom masih kosong, jadi
                 // begitu kasir mengganti berkas, deskripsi tetap memegang nama
                 // berkas pertama dan tidak mewakili desain yang sekarang.
-                const namaFileInput = document.getElementById('nama_file');
-                namaFileInput.value = namaFileDariGambar(originalName);
+                isiNamaFileOtomatis(namaFileDariGambar(originalName));
 
                 Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1800 }).fire({
                     icon: 'success',
@@ -1531,6 +1571,7 @@ let currentThumbnailPreview = null;
 
         $('#select_produk').val('').trigger('change');
         document.getElementById('nama_file').value = "";
+        delete document.getElementById('nama_file').dataset.auto;
         document.getElementById('input_p').value = "";
         document.getElementById('input_l').value = "";
         // Panel Potong Manual ikut dikosongkan: ukuran media per lembar yang
@@ -3010,7 +3051,7 @@ let peringatanMinDaftar = 0;
 
     async function tambahKeKeranjang() {
         const idKonsumen = $('#id_konsumen').val();
-        const namaFile = document.getElementById('nama_file').value.trim();
+        let namaFile = document.getElementById('nama_file').value.trim();
 
         if (!idKonsumen) return Swal.fire('Data belum lengkap', 'Pilih pelanggan dulu', 'error');
         if (!currentProduk) return Swal.fire('Data belum lengkap', 'Pilih produk dulu.', 'warning');
@@ -3091,6 +3132,13 @@ let peringatanMinDaftar = 0;
             Swal.fire('Upload Gambar Dulu', 'Unggah gambar/thumbnail acuan order sebelum menambahkannya ke keranjang.', 'warning');
             document.getElementById('input_thumbnail').focus();
             return;
+        }
+        // Segarkan nama otomatis dengan data FINAL (ukuran/qty/finishing bisa
+        // diisi setelah berkas diunggah) - hanya bila kasir tidak menyunting
+        // kolomnya sendiri.
+        if (document.getElementById('nama_file').dataset.auto) {
+            isiNamaFileOtomatis(namaFileDariGambar(''));
+            namaFile = document.getElementById('nama_file').value.trim();
         }
         if (namaFile.length < 3) {
             Swal.fire('Keterangan File', 'Isi deskripsi minimal 3 karakter', 'warning');
@@ -3569,6 +3617,7 @@ let peringatanMinDaftar = 0;
 
         setTimeout(() => {
             document.getElementById('nama_file').value = item.nama_file;
+            delete document.getElementById('nama_file').dataset.auto; // nama historis item = milik kasir, jangan ditimpa auto
             document.getElementById('input_p').value = item.p;
             document.getElementById('input_l').value = item.l;
             document.getElementById('input_qty_ukuran').value = item.qty_input;
@@ -3651,6 +3700,7 @@ let peringatanMinDaftar = 0;
         document.getElementById('input_catatan_finishing').value = '';
         document.getElementById('btn_tambah_finishing').classList.add('hidden');
         document.getElementById('nama_file').value = "";
+        delete document.getElementById('nama_file').dataset.auto;
         document.getElementById('input_p').value = "";
         document.getElementById('input_l').value = "";
         // Panel Potong Manual ikut dikosongkan: ukuran media per lembar yang
