@@ -179,16 +179,28 @@
     </a>
 </div>
 
-{{-- SALDO ROLLING - kas kemarin (atau sesi terakhir sebelum hari ini)
-     ditutup dengan status "Rolling", saldonya jadi saran saldo awal hari
-     ini. Ditampilkan HANYA saat kasir belum dibuka - begitu dibuka, saran
-     ini tidak relevan lagi. --}}
+{{-- ACUAN ISI LACI - sesi terakhir yang ditutup (tanggal berapa pun)
+     jadi titik awal sesi baru. Berlaku untuk DUA status:
+     Rolling = saldo fisik tetap di laci; Tidak Rolling = yang tersisa
+     sisa_modal_laci (0 = laci kosong). Ditampilkan HANYA saat kasir
+     belum dibuka - begitu dibuka, saran ini tidak relevan lagi. --}}
 @if(!$kasAktif && $saldoRolling !== null)
+@php
+    $rollingLagi = ($kasSebelumnya->status_rolling ?? null) === 'Rolling';
+@endphp
 <div class="mb-6 flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-5 py-4">
     <i class="fas fa-arrows-rotate text-indigo-500 text-lg shrink-0"></i>
     <div class="flex-1">
-        <p class="text-sm font-medium text-slate-800">Saldo dilanjutkan dari sesi sebelumnya</p>
-        <p class="text-xs text-slate-500 mt-0.5">Sesi kas terakhir ditutup dengan saldo Rp {{ number_format($saldoRolling, 0, ',', '.') }} dan status "Rolling" - uang ini tetap di laci, dipakai sebagai saran saldo awal hari ini (tetap bisa diubah manual saat membuka kasir).</p>
+        @if($rollingLagi)
+        <p class="text-sm font-medium text-slate-800">Saldo dilanjutkan dari sesi sebelumnya (Rolling)</p>
+        <p class="text-xs text-slate-500 mt-0.5">Sesi kas terakhir ditutup dengan status "Rolling" dan saldo Rp {{ number_format($saldoRolling, 0, ',', '.') }} - uang ini tetap di laci, dipakai sebagai saran saldo awal hari ini (tetap bisa diubah manual saat membuka kasir).</p>
+        @elseif((float) $saldoRolling > 0)
+        <p class="text-sm font-medium text-slate-800">Sisa modal laci dari sesi sebelumnya (Tidak Rolling)</p>
+        <p class="text-xs text-slate-500 mt-0.5">Sesi kas terakhir ditutup "Tidak Rolling" - setoran Rp {{ number_format((float) $kasSebelumnya->jumlah_disetor, 0, ',', '.') }} dikeluarkan, menyisakan Rp {{ number_format($saldoRolling, 0, ',', '.') }} di laci. Itulah saran saldo awal hari ini (tetap bisa diubah manual saat membuka kasir).</p>
+        @else
+        <p class="text-sm font-medium text-slate-800">Laci dikosongkan pada closing terakhir</p>
+        <p class="text-xs text-slate-500 mt-0.5">Sesi kas terakhir ditutup "Tidak Rolling" dengan laci kosong (sisa Rp 0) - sesi baru mulai dari saldo awal yang Anda hitung sendiri.</p>
+        @endif
     </div>
 </div>
 @endif
@@ -367,17 +379,30 @@ function aksiKas(tipe) {
     // sesi sebelumnya dan bukan angka sistem. Sesi kas dihitung terpisah
     // (tidak ada penjumlahan antar sesi), jadi angka yang sama akan muncul
     // lagi di sesi berikutnya - itu bring-forward, bukan addition.
+    // Acuan berlaku untuk DUA status closing, bukan cuma Rolling:
+    // Tidak Rolling menyisakan sisa_modal_laci (0 = laci kosong).
     const acuanRolling   = {{ $saldoRolling !== null ? (float) $saldoRolling : 'null' }};
+    const acuanStatus    = {!! $saldoRolling !== null ? (($kasSebelumnya->status_rolling ?? '') === 'Rolling' ? "'Rolling'" : "'Tidak Rolling'") : 'null' !!};
     const tglAcuan       = {!! $saldoRolling !== null ? "'" . \Carbon\Carbon::parse($kasSebelumnya->tgl_kas)->format('d/m/Y') . "'" : 'null' !!};
     const rp             = (n) => 'Rp ' + Number(n).toLocaleString('id-ID');
 
-    Swal.fire({
-        title: 'Buka Saldo Awal',
-        html: acuanRolling !== null
-            ? 'Sesi sebelumnya (' + tglAcuan + ') ditutup dengan <b>isi laci ' + rp(acuanRolling) + '</b>.<br>'
+    // Penjelasan acuan menyesuaikan status closing sesi sebelumnya.
+    const htmlAcuan = acuanRolling === null
+        ? 'Masukkan jumlah modal awal yang ada di laci kasir sekarang.'
+        : acuanStatus === 'Rolling'
+            ? 'Sesi sebelumnya (' + tglAcuan + ') ditutup <b>Rolling</b> dengan <b>saldo laci ' + rp(acuanRolling) + '</b>.<br>'
               + 'Uang itu tetap di laci, jadi itulah titik awal sesi ini - <b>bukan</b> tambahan di atasnya.<br>'
               + 'Kalau uang di laci sekarang berbeda, ganti angkanya lalu isi alasannya.'
-            : 'Masukkan jumlah modal awal yang ada di laci kasir sekarang.',
+            : acuanRolling > 0
+                ? 'Sesi sebelumnya (' + tglAcuan + ') ditutup <b>Tidak Rolling</b> - setoran dikeluarkan, menyisakan <b>' + rp(acuanRolling) + '</b> di laci.<br>'
+                  + 'Sisa itu titik awal sesi ini - <b>bukan</b> tambahan di atasnya.<br>'
+                  + 'Kalau uang di laci sekarang berbeda, ganti angkanya lalu isi alasannya.'
+                : 'Sesi sebelumnya (' + tglAcuan + ') ditutup <b>Tidak Rolling</b> dengan <b>laci kosong</b>.<br>'
+                  + 'Masukkan modal awal yang Anda taruh di laci sekarang - kalau bukan nol, isi alasannya.';
+
+    Swal.fire({
+        title: 'Buka Saldo Awal',
+        html: htmlAcuan,
         input: 'number',
         inputValue: acuanRolling !== null ? Math.round(acuanRolling) : 0,
         inputAttributes: { min: 0 },
@@ -402,13 +427,14 @@ function aksiKas(tipe) {
         }
 
         // Selisih uang laci saat buka sesi harus bisa dijelaskan. Tanpa ini,
-        // selisih hilang tanpa jejak - dan persis itulah yang terjadi di
-        // oriondb: sesi #3 dibuka Rp100.000 padahal sesi #2 menutup dengan
+        // selisih hilang tanpa jejak - dan persis itulah yang terjadi:
+        // sesi #3 dibuka Rp100.000 padahal sesi #2 menutup dengan
         // isi laci Rp436.193, tanpa catatan apa pun.
         const arah = nominal < acuanRolling ? 'kurang' : 'lebih';
+        const labelAcuan = acuanStatus === 'Rolling' ? 'isi laci' : 'sisa modal laci';
         Swal.fire({
-            title: 'Saldo awal berbeda dari isi laci sebelumnya',
-            html: 'Sesi sebelumnya ditutup dengan isi laci <b>' + rp(acuanRolling) + '</b>.<br>'
+            title: 'Saldo awal berbeda dari uang di laci sebelumnya',
+            html: 'Sesi sebelumnya ditutup dengan ' + labelAcuan + ' <b>' + rp(acuanRolling) + '</b>.<br>'
                 + 'Anda mengetik <b>' + rp(nominal) + '</b> - ' + arah + ' <b>'
                 + rp(Math.abs(nominal - acuanRolling)) + '</b>.<br><br>'
                 + 'Tuliskan kenapa. Catatan ini tersimpan bersama sesi kas dan ikut dicetak di rekap closing.',

@@ -167,6 +167,7 @@
 
             <label class="block text-center text-xs font-medium text-slate-400 mb-2 mt-4 uppercase">Jumlah Disetor (Rp)</label>
             <input type="text" inputmode="numeric" autocomplete="off" name="jumlah_disetor" id="input-jumlah-disetor" oninput="hitungSisaModalLaci()" class="w-full bg-white/10 border-none rounded-xl py-3 px-4 text-sm font-medium text-white placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/40 format-ribuan" placeholder="0">
+            <p class="text-[10px] text-slate-400 mt-1 text-center">Kosong dibiarkan = diisi otomatis <b>total isi laci - modal awal</b> (menyisakan modal standar). Ubah bebas kalau berbeda.</p>
 
             <label class="block text-center text-xs font-medium text-slate-400 mb-2 mt-4 uppercase">Sisa Modal Laci untuk Sesi Berikutnya (Rp)</label>
             <input type="text" inputmode="numeric" autocomplete="off" name="sisa_modal_laci" id="input-sisa-modal" readonly class="w-full bg-white/5 border-none rounded-xl py-3 px-4 text-sm font-medium text-emerald-300 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/40 format-ribuan" placeholder="0">
@@ -195,6 +196,9 @@
 <script>
     const saldoAkhirSistemJs = {{ (float) $saldo_akhir_sistem }};
     const tutupPaksaJs = @json((bool) $tutupPaksa);
+    // Modal awal sesi ini - acuan setoran standar saat Tidak Rolling:
+    // yang disetor biasanya fisik - modal awal, menyisakan modal standar.
+    const saldoAwalJs = {{ (float) $kas->saldo_awal }};
 
     function hitungSelisihLive() {
         const fisik = cleanRupiah(document.getElementById('input-saldo-fisik').value);
@@ -228,6 +232,16 @@
                 inputJumlah.value = '';
                 document.getElementById('input-sisa-modal').value = cleanRupiah(document.getElementById('input-saldo-fisik').value);
             } else {
+                // Prefill setoran standar saat kolom masih kosong: total isi
+                // laci - modal awal, menyisakan modal standar di laci. Kasir
+                // tetap bebas mengubahnya (mis. setoran 0 atau menyisakan
+                // lebih) - cek string kosong, bukan nilai 0, supaya nol yang
+                // diketik sengaja tidak ditimpa saat select diubah-ubah.
+                if (inputJumlah.value.trim() === '') {
+                    const fisik = cleanRupiah(document.getElementById('input-saldo-fisik').value);
+                    const standar = Math.max(0, fisik - saldoAwalJs);
+                    inputJumlah.value = formatRupiah(Math.round(standar));
+                }
                 hitungSisaModalLaci();
             }
         }

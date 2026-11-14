@@ -814,8 +814,22 @@ class KasirController extends Controller
                 ->where('status_lock', 'closed')
                 ->orderByDesc('waktu_tutup')
                 ->first();
-            if ($kasSebelumnya && $kasSebelumnya->status_rolling === 'Rolling') {
-                $saldoRolling = (float) $kasSebelumnya->saldo_fisik;
+            if ($kasSebelumnya) {
+                // Acuan isi laci berlaku untuk DUA status, bukan cuma Rolling.
+                // Sebelumnya hanya 'Rolling' yang jadi acuan, padahal closing
+                // "Tidak Rolling" juga bisa menyisakan uang di laci
+                // (sisa_modal_laci = fisik - setoran) - akibatnya sisa laci itu
+                // tidak pernah muncul lagi saat buka saldo dan kasir mengetik
+                // angkanya dari ingatan tanpa dijaga sistem.
+                //   - Rolling       : seluruh fisik tetap di laci.
+                //   - Tidak Rolling : sisa_modal_laci (0 = laci kosong, mulai
+                //                     saldo baru).
+                // Baris pra-migrasi setoran (2026-11-05) aman: Tidak Rolling
+                // memang berarti laci dikosongkan, dan Rolling fallback ke
+                // saldo_fisik.
+                $saldoRolling = $kasSebelumnya->status_rolling === 'Rolling'
+                    ? (float) $kasSebelumnya->saldo_fisik
+                    : (float) $kasSebelumnya->sisa_modal_laci;
             }
         }
 
@@ -1002,16 +1016,23 @@ class KasirController extends Controller
             return redirect()->route('kasir.kelola')->with('error', "Sesi kas milik {$namaKasirAktif} (dibuka {$tglBuka}) belum di-closing. Hanya satu sesi kas yang boleh aktif dalam satu waktu - closing dulu sebelum membuka sesi baru (Administrator dapat menutup paksa).");
         }
 
-        // Saldo awal yang diketik harus sama dengan UANG YANG BENAR-BENARNA
-        // masih di laci. Kalau sesi sebelumnya ditutup dengan status
-        // "Rolling", isi laci sesi itu adalah titik awal yang benar - bukan
-        // angka sistem, dan bukan tambahan atas sesi sebelumnya.
+        // Saldo awal yang diketik harus sama dengan UANG YANG BENAR-BENAR
+        // masih di laci. Sesi tertutup terakhir adalah acuannya, DUA-DUANYA
+        // status:
+        //   - Rolling       : seluruh saldo fisik tetap di laci.
+        //   - Tidak Rolling : yang tersisa di laci = sisa_modal_laci
+        //                     (fisik - setoran); 0 berarti laci dikosongkan.
+        // Sebelumnya hanya Rolling yang jadi acuan - padahal data nyata
+        // menunjukkan semua closing memilih "Tidak Rolling" dengan sisa laci
+        // Rp 300.000+ tetap di laci, sehingga guard ini TIDAK PERNAH jalan.
+        // Baris pra-migrasi setoran (2026-11-05) aman: Tidak Rolling memang
+        // berarti laci dikosongkan (sisa_modal_laci default 0), dan Rolling
+        // legacy fallback ke saldo_fisik.
         //
         // Tanpa guard ini, selisih saat buka kas hilang tanpa jejak. Bukti
-        // nyata di oriondb: sesi #2 ditutup dengan isi laci Rp436.193
-        // (status_rolling = 'Rolling'), lalu sesi #3 dibuka dengan
-        // saldo_awal Rp100.000 - sistem sudah menawarkan Rp436.193 lewat
-        // saran, tapi diam saja. Rp336.193 tidak tercatat di mana pun.
+        // nyata: sesi #2 ditutup dengan isi laci Rp436.193, lalu sesi #3
+        // dibuka dengan saldo_awal Rp100.000 - sistem diam saja dan
+        // Rp336.193 tidak tercatat di mana pun.
         //
         // ACUAN = sesi tertutup yang paling baru, TANPA filter tanggal.
         // Filter lama tgl_kas < hari_ini hanya benar untuk "bawa saldo dari
@@ -1021,15 +1042,18 @@ class KasirController extends Controller
         // yang lebih lama. Akibatnya saldo yang BENAR justru ditolak minta
         // alasan - persis skenario yang paling sering dipakai kasir.
         // Karena hanya satu sesi boleh aktif sekaligus, sesi tertutup
-        // terakhir menurut waktu_tutup selalu embody uang yang ada di laci.
+        // terakhir menurut waktu_tutup selalu isi uang yang ada di laci.
         $kasSebelumnya = DB::table('kas_harian')
             ->where('status_lock', 'closed')
             ->orderByDesc('waktu_tutup')
             ->first();
 
-        $isiLaciSebelumnya = ($kasSebelumnya && $kasSebelumnya->status_rolling === 'Rolling')
-            ? (float) $kasSebelumnya->saldo_fisik
-            : null;
+        $isiLaciSebelumnya = null;
+        if ($kasSebelumnya) {
+            $isiLaciSebelumnya = $kasSebelumnya->status_rolling === 'Rolling'
+                ? (float) $kasSebelumnya->saldo_fisik
+                : (float) ($kasSebelumnya->sisa_modal_laci ?? 0);
+        }
 
         // 0.005 tolerateansi floating point; selisih 1 rupiah pun tetap
         // dianggap berbeda karena uang tidak pernah berdesimal.
@@ -1037,10 +1061,13 @@ class KasirController extends Controller
 
         if ($beda && trim((string) $keteranganPembukaan) === '') {
             $tgl = \Carbon\Carbon::parse($kasSebelumnya->tgl_kas)->format('d/m/Y');
+            $statusAcuan = $kasSebelumnya->status_rolling === 'Rolling'
+                ? 'status Rolling (saldo akhir dipakai lanjut)'
+                : 'status Tidak Rolling (sisa modal laci)';
             return redirect()->route('kasir.kelola')->with('error', 'Saldo awal Rp '
                 . number_format($nominal, 0, ',', '.')
-                . ' TIDAK sama dengan isi laci sesi sebelumnya ('
-                . $tgl . ') yang Rp ' . number_format($isiLaciSebelumnya, 0, ',', '.')
+                . ' TIDAK sama dengan uang yang tersisa di laci sesi terakhir ('
+                . $tgl . ', ' . $statusAcuan . ') yang Rp ' . number_format($isiLaciSebelumnya, 0, ',', '.')
                 . ' - selisih Rp ' . number_format(abs($nominal - $isiLaciSebelumnya), 0, ',', '.')
                 . '. Hitung ulang uang di laci. Kalau memang berbeda, isi alasan pembukaannya.');
         }
