@@ -93,6 +93,9 @@ class AiNotaAuditService
             'nota' => $nota->nomor_nota . ' (' . $nota->tgl_order . ', ' . $nota->tipe_order . ')',
             'item_nota' => $items,
             'berkas_operator' => $berkas,
+            // katalog jasa finishing yang sah - acuan model 3B kecil yang
+            // tidak tahu sendiri bahwa "porporasi"/"kisscut" itu jasa finishing
+            'daftar_finishing_master' => array_values(array_unique($namaFinishing)),
         ];
     }
 
@@ -107,6 +110,9 @@ manusia dan bisa menyebut pekerjaan yang LUPA dimasukkan ke nota.
 Tugas: cari sebutan pekerjaan/bahan/finishing di TEKS BEBAS yang TIDAK tercakup
 oleh kolom terstruktur nota (finishing_tertagih, item lain, dsb).
 Aturan:
+- BANDINGKAN teks bebas dengan daftar_finishing_master: kata/frasa di teks
+  yang mirip salah satu entri daftar (lapis, potong, dsb boleh berbeda ejaan)
+  tapi TIDAK ada di finishing_tertagih item itu = TEMUAN WAJIB dilaporkan.
 - Abaikan negasi ("tanpa X", "non X", "jangan X").
 - Abaikan sebutan yang benar-benar sudah tercakup (jangan dobel).
 - JANGAN mengarang. Hanya gunakan isi FAKTA_NOTA. Kutipan = potongan teks
@@ -114,12 +120,20 @@ Aturan:
 - kategori salah satu: finishing_tidak_tertagih | deskripsi_tak_cocok | ukuran_lain | lainnya
 - keyakinian angka 0.0-1.0.
 
+Langkah wajib sebelum menutup jawaban (kerjakan dalam hati, jangan dilewati):
+1. Baca SETIAP teks bebas (nama_file, catatan_produksi, catatan berkas operator).
+2. Untuk setiap item, bandingkan isi teks bebas dengan daftar_finishing_master
+   dan dengan finishing_tertagih item itu.
+3. Sebutan yang mirip entri daftar_finishing_master tapi tidak tertagih = temuan.
+
 FAKTA_NOTA (JSON):
 {fakta}
 
-Jawab HANYA JSON tunggal tanpa penjelasan:
-{"temuan":[{"sumber":"nama teks asal","kutipan":"...","temuan":"...","kategori":"...","keyakinian":0.8}]}
-Bila tidak ada masalah: {"temuan":[]}
+Jawab HANYA JSON tunggal tanpa penjelasan. Field "sebutan" WAJIB diisi:
+daftar setiap frasa pekerjaan/finishing yang Anda temukan di teks bebas beserta
+statusnya; bila memang tidak ada sebutan sama sekali baru boleh array kosong.
+{"sebutan":[{"frasa":"porporasi","asal":"nama_file item 1","tertagih":false}],"temuan":[{"sumber":"nama teks asal","kutipan":"...","temuan":"...","kategori":"...","keyakinian":0.8}]}
+Setiap entri "sebutan" dengan tertagih=false HARUS punya pasangan di "temuan".
 PROMPT;
     }
 
@@ -210,6 +224,11 @@ PROMPT;
             return null;
         }
 
+        // Model kecil sering mengisi temuan dengan placeholder ("...", kutipan
+        // kosong). Data "sebutan" hasil ekstraksinya lebih tepercaya - pakai
+        // itu untuk membangun ulang teks temuan yang lemah.
+        $sebutan = is_array($data['sebutan'] ?? null) ? $data['sebutan'] : [];
+
         $bersih = [];
         foreach ($data['temuan'] as $t) {
             if (!is_array($t) || trim((string) ($t['temuan'] ?? '')) === '') {
@@ -220,6 +239,43 @@ PROMPT;
             $t['temuan'] = trim((string) $t['temuan']);
             $t['kategori'] = in_array($t['kategori'] ?? null, self::KATEGORI, true) ? $t['kategori'] : 'lainnya';
             $t['keyakinian'] = min(1, max(0, (float) ($t['keyakinian'] ?? 0)));
+
+            // "lemah" = bukan kalimat temuan utuh: kosong, atau pendek dan
+            // tidak memuat kata kunci penjelasan; placeholder seperti
+            // "...porporasi..." ikut tertangkap setelah titik dibuang.
+            $inti = trim($t['temuan'], " \t\n\r\0\x0B.…");
+            $lemah = $inti === '' || (mb_strlen($inti) < 40 && !preg_match('/tidak|tetapi|lupa|belum|missing/iu', $inti));
+            $kutipanInti = trim($t['kutipan'], " \t\n\r\0\x0B.…");
+            $kutipanLemah = $kutipanInti === '' || mb_strlen($kutipanInti) < 6;
+            if (($lemah || $kutipanLemah) && $sebutan !== []) {
+                foreach ($sebutan as $s) {
+                    $frasa = trim((string) ($s['frasa'] ?? ''));
+                    if ($frasa === '') {
+                        continue;
+                    }
+                    if (mb_stripos($t['temuan'] . $t['kutipan'] . $t['sumber'], $frasa) !== false) {
+                        if ($kutipanLemah) {
+                            $t['kutipan'] = $frasa;
+                        }
+                        if ($lemah) {
+                            $t['temuan'] = sprintf(
+                                'Teks menyebut "%s" (%s) tetapi tidak ada di finishing tertagih nota',
+                                $frasa,
+                                trim((string) ($s['asal'] ?? 'teks bebas')) ?: 'teks bebas'
+                            );
+                            if ($t['kategori'] === 'lainnya' && ($s['tertagih'] ?? false) === false) {
+                                $t['kategori'] = 'finishing_tidak_tertagih';
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            if ($t['kutipan'] === '' && mb_strlen($t['temuan']) >= 12) {
+                $t['kutipan'] = mb_substr($t['temuan'], 0, 60);
+            } elseif ($t['kutipan'] !== '' && $kutipanInti !== '' && $t['kutipan'] !== $kutipanInti) {
+                $t['kutipan'] = $kutipanInti; // buang pembungkus titik/elipsis
+            }
             $bersih[] = $t;
         }
         return $bersih;
