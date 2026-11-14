@@ -20,6 +20,12 @@ Schedule::command('data:rapikan')->dailyAt('03:00')->withoutOverlapping();
 // Temuan muncul di lonceng notifikasi dan halaman Audit Bulanan.
 Schedule::command('audit:integritas')->dailyAt('04:00')->withoutOverlapping();
 Schedule::command('backup:run monthly')->monthlyOn(1, '02:00')->withoutOverlapping();
+// Verifikasi integritas arsip backup harian (jalankan setelah backup:run 01:00).
+Schedule::command('backup:verify daily')->dailyAt('01:45')->withoutOverlapping();
+// Audit AI teks bebas berkas vs fakta nota (advisory, Ollama lokal, ~35-77
+// detik per nota): default memindai nota 7 hari terakhir. Jam 02:30 - di
+// luar jam sibuk dan tidak menabrak backup monthly tanggal 1 jam 02:00.
+Schedule::command('nota:audit-ai')->dailyAt('02:30')->withoutOverlapping();
 // Pemantauan laravel.log (audit run-1, GO audit-log): pindai error tiap 15 menit,
 // tulis ringkasan kecil ke storage/logs/monitor-log-periksa.log. exit 1 di atas ambang;
 // pantau berkas ini secara manual / terhubung ke WA/Notifikasi nanti.
