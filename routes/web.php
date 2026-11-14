@@ -107,6 +107,12 @@ Route::get('/sw.js', [\App\Http\Controllers\PwaController::class, 'serviceWorker
 Route::get('/landing-page', [\App\Http\Controllers\LandingPageBuilderController::class, 'publicLandingPage'])
     ->name('landing-page.public');
 
+// Portal lacak pelanggan (publik, read-only): nomor nota + nomor HP wajib
+// cocok dengan data nota. POST dibatasi throttle ketat - form publik tanpa
+// login harus tahan percobaan menebak kombinasi.
+Route::get('/lacak-nota', [\App\Http\Controllers\LacakNotaController::class, 'form'])->middleware('throttle:20,1')->name('lacak.form');
+Route::post('/lacak-nota', [\App\Http\Controllers\LacakNotaController::class, 'cari'])->middleware('throttle:10,1')->name('lacak.cari');
+
 
 
 /*
