@@ -22,8 +22,9 @@ use Illuminate\Support\Facades\Schema;
  * tabel `finishing_alias`, migrasi 2026-11-14) dinormalisasi lalu dicari
  * di teks bebas (nama_file item, nama asli berkas, catatan berkas) dengan
  * batas kata. Tiga penjaga salah tanda:
- *   1. NEGASI - "tanpa laminasi", "non laminasi", "jangan laminasi" tidak
- *      dianggap menyebut.
+ *   1. NEGASI - "tanpa laminasi", "non laminasi", "jangan laminasi", atau
+ *      konotasi historis/sisa ("sisa laminasi", "bekas laminasi", "lama
+ *      laminasi") tidak dianggap menyebut. "repeat" tidak termasuk negasi.
  *   2. TERGABUNG - alias "laminasi" di teks item yang sudah tertagih
  *      "Laminasi Glossy" tidak jadi temuan (tak mungkin bedakan glossy vs
  *      doff dari satu kata; konservatif: tidak diberi tanda).
@@ -146,9 +147,12 @@ class RekonsiliasiNotaService
             }
 
             // PENJAGA 1 - negasi: kata batal dalam 12 karakter sebelum sebutan.
+            // "repeat" SENGAJA tidak masuk daftar: order repeat biasanya MEMANG
+            // dikerjakan (dan ditagih) lagi - yang membatalkan adalah konotasi
+            // historis/sisa: "sisa laminasi", "bekas laminasi", "lama laminasi".
             $awal = $m[0][1];
             $sebelum = substr($norm, max(0, $awal - 12), min(12, $awal));
-            if (preg_match('/\b(tanpa|non|no|jangan|tak)\s*$/u', $sebelum)) {
+            if (preg_match('/\b(tanpa|non|no|jangan|tak|bekas|sisa|lama)\s*$/u', $sebelum)) {
                 continue;
             }
 

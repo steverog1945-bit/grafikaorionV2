@@ -82,6 +82,21 @@ class RekonsiliasiNotaServiceTest extends TestCase
         $this->assertSame('potong', $hasil[0]['alias']);
     }
 
+    public function test_konotasi_historis_sisa_tidak_dihitung(): void
+    {
+        // Detail file yang HARUS ada untuk repeat order: sebutan dengan
+        // konotasi historis/sisa tidak boleh ditandai.
+        $this->assertSame([], $this->temuan('spanduk sisa laminasi depan', []));
+        $this->assertSame([], $this->temuan('file bekas laminasi client A repeat order', []));
+        $this->assertSame([], $this->temuan('banner lama laminasi stok lama', []));
+        $hasil = $this->temuan('sisa laminasi lalu potong sisa potong', []);
+        $alias = array_column($hasil, 'alias');
+        $this->assertNotContains('laminasi', $alias);
+        $this->assertContains('potong', $alias);
+        // "repeat" BUKAN negasi: order repeat dikerjakan (dan ditagih) lagi
+        $this->assertCount(1, $this->temuan('banner repeat laminasi', []));
+    }
+
     public function test_sebutan_cekat_di_dalam_kata_lain_tidak_cocok(): void
     {
         $this->assertSame([], $this->temuan('nonlaminasi cetak digital', []));
