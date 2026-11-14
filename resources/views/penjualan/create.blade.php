@@ -1212,7 +1212,19 @@ let currentThumbnailPreview = null;
             if (q > 0) bagian.push(angka(q) + 'bh');
         }
         const fin = bersih($('#select_finishing').find(':selected').text());
-        if (fin && !fin.startsWith('--')) bagian.push('+ ' + fin);
+        // Yang tertagih item ini = finishingList (sudah ditekan "Tambah
+        // Finishing") PLUS dropdown yang masih tertunda (otomatis ikut saat
+        // tambah ke keranjang). Baca keduanya supaya deskripsi tidak kehilangan
+        // finishing yang sudah masuk daftar - kasus "Mata Ayam 6 pcs" yang
+        // hilang dari deskripsi padahal tertagih.
+        const daftarFin = [];
+        for (const f of finishingList) {
+            const n = bersih(f && f.nama);
+            if (n) daftarFin.push(n);
+        }
+        if (fin && !fin.startsWith('--')) daftarFin.push(fin);
+        const unikFin = [...new Set(daftarFin)];
+        if (unikFin.length) bagian.push('+ ' + unikFin.join(' + '));
         const hasil = bagian.join(' ');
         return hasil.length >= 3 ? hasil : fallback;
     }
