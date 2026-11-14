@@ -37,6 +37,28 @@
     </div>
     @endif
 
+    @if(!empty($temuanAi))
+    {{-- Hasil audit AI (command `nota:audit-ai`), tersimpan di nota_audit_ai.
+         Advisory juga - keyakinian rendah (mis. < 0.6) tampil redup supaya
+         operator tahu mana yang perlu diperiksa lebih dulu. --}}
+    <div class="mb-6 rounded-xl border-2 border-indigo-200 bg-indigo-50 px-5 py-4">
+        <h3 class="text-sm font-medium text-indigo-800 mb-1">
+            <i class="fas fa-robot text-indigo-400 mr-1"></i>
+            Audit AI - {{ count($temuanAi) }} temuan
+            <span class="text-[11px] text-indigo-400 font-normal">({{ $temuanAi[0]['model'] }})</span>
+        </h3>
+        <p class="text-xs text-indigo-700/80 mb-3">Mesin membaca kalimat bebas berkas/catatan dan membandingkannya dengan fakta nota. Tandanya advisory - konfirmasi manual sebelum bertindak.</p>
+        @foreach($temuanAi as $t)
+        @php $redup = (float) $t['keyakinian'] < 0.6; @endphp
+        <div class="text-sm py-1.5 {{ !$loop->last ? 'border-b border-indigo-100' : '' }} {{ $redup ? 'text-slate-500' : 'text-slate-700' }}">
+            <b>{{ $t['temuan'] }}</b>
+            @if($t['kutipan'])<span class="text-[11px] text-slate-400">&ldquo;{{ $t['kutipan'] }}&rdquo;</span>@endif
+            <span class="text-[11px] text-slate-400"> - {{ $t['sumber' ] }}{{ $redup ? ' (keyakinian rendah ' . number_format((float) $t['keyakinian'] * 100, 0) . '%)' : '' }}</span>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
     <x-card class="mb-8">
         <h3 class="text-xs font-medium text-slate-800 uppercase tracking-widest mb-4">Unggah Berkas</h3>
         <form method="POST" action="{{ route('berkas-order.unggah', $nota->id_transaksi) }}" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">

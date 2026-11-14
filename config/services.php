@@ -35,4 +35,28 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Audit Nota dengan AI (NotaperiksaAi)
+    |--------------------------------------------------------------------------
+    | Lapis AI untuk memeriksa teks bebas berkas vs fakta nota, di atas
+    | rekonsiliasi deterministik (RekonsiliasiNotaService). DRIVER KOSONG =
+    | FITUR MATI total, tanpa efek samping apa pun. Isi di .env (kewenangan
+    | owner):
+    |
+    |   AI_NOTA_DRIVER=ollama
+    |   AI_NOTA_URL=http://127.0.0.1:11434   (bawaan, Ollama lokal)
+    |   AI_NOTA_MODEL=llama3.1               (model yang sudah di-pull)
+    |
+    | Dipakai lewat command `nota:audit-ai` (manual/jadwal), hasilnya
+    | disimpan di tabel `nota_audit_ai` lalu tampil di halaman Berkas
+    | Order - TIDAK pernah dipanggil di request halaman biasa.
+    */
+    'ai_nota' => [
+        'driver' => env('AI_NOTA_DRIVER'),
+        'url' => env('AI_NOTA_URL', 'http://127.0.0.1:11434'),
+        'model' => env('AI_NOTA_MODEL', 'llama3.1'),
+        'timeout' => (int) env('AI_NOTA_TIMEOUT', 120),
+    ],
+
 ];

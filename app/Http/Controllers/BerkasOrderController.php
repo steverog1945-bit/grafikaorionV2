@@ -62,6 +62,9 @@ class BerkasOrderController extends Controller
             // Rekonsiliasi teks-vs-nota: sebutan finishing di nama file/catatan
             // yang tidak tertagih. Advisory - tidak memblokir apa pun di sini.
             'temuanRekonsiliasi' => \App\Services\RekonsiliasiNotaService::perNota($idTransaksi),
+            // Hasil audit AI tersimpan (dari command `nota:audit-ai`) - kosong
+            // bila fitur belum diaktifkan/belum pernah diaudit.
+            'temuanAi' => \App\Services\AiNotaAuditService::tersimpan($idTransaksi),
         ]);
     }
 

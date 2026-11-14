@@ -236,7 +236,7 @@ class RekonsiliasiNotaService
     {
         $detail = DB::table('transaksi_detail')
             ->where('id_transaksi', $idTransaksi)
-            ->get(['id_detail', 'nama_file']);
+            ->get(['id_detail', 'nama_file', 'catatan_produksi']);
 
         if ($detail->isEmpty()) {
             return [];
@@ -248,8 +248,12 @@ class RekonsiliasiNotaService
         $temuan = [];
 
         foreach ($detail as $d) {
-            foreach (self::temuan((string) $d->nama_file, $tertagihPerItem[(int) $d->id_detail] ?? [], $kamus) as $t) {
+            $tertagihItem = $tertagihPerItem[(int) $d->id_detail] ?? [];
+            foreach (self::temuan((string) $d->nama_file, $tertagihItem, $kamus) as $t) {
                 $temuan[] = $t + ['sumber' => 'Nama file item "' . $d->nama_file . '"'];
+            }
+            foreach (self::temuan((string) ($d->catatan_produksi ?? ''), $tertagihItem, $kamus) as $t) {
+                $temuan[] = $t + ['sumber' => 'Catatan produksi item "' . $d->nama_file . '"'];
             }
         }
 
