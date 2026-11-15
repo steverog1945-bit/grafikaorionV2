@@ -195,7 +195,28 @@ class PenjualanCheckoutService
     $bolehInputBiayaDesain = $jalurApi ? false : \App\Support\AksesHarga::bolehInputBiayaDesain(Auth::user());
 
     try {
-        $itemsTervalidasi = $this->validasiItems($request, (int) $idGolongan, $hargaTerkunci, $bolehInputBiayaDesain);
+        // Mode susulan: baris produk yang SUDAH ada di nota ikut dikirim ke
+        // validasiItems supaya kebijakan "produk sama >= 2 baris" dan
+        // rekonsiliasi kelompok minimum melihat nota sebagai SATU kesatuan,
+        // bukan hanya item baru yang dikirim layar.
+        $barisNotaAda = null;
+        if ($notaSusulan) {
+            $barisNotaAda = DB::table('transaksi_detail as td')
+                ->join('produk as pr', 'td.id_produk', '=', 'pr.id_produk')
+                ->leftJoin('bom_detail as bd', 'bd.id_produk', '=', 'pr.id_produk')
+                ->leftJoin('bahan_baku as bb', 'bd.id_bahan', '=', 'bb.id_bahan')
+                ->where('td.id_transaksi', (int) $notaSusulan->id_transaksi)
+                ->whereNotNull('td.id_produk')
+                ->orderBy('td.id_detail')
+                ->get([
+                    'td.id_detail', 'td.id_produk', 'td.p_ukuran', 'td.l_ukuran', 'td.qty',
+                    'td.biaya_cetak', 'td.biaya_minimum', 'td.subtotal',
+                    'td.catatan_produksi', 'td.is_minimum_order', 'td.file_siap_cetak',
+                    'pr.metode_hitung', 'pr.min_luas_total', 'pr.kelompok_minimum',
+                    DB::raw('COALESCE(bb.id_kategori, 0) as kategori'),
+                ])->unique('id_detail')->values();
+        }
+        $itemsTervalidasi = $this->validasiItems($request, (int) $idGolongan, $hargaTerkunci, $bolehInputBiayaDesain, null, null, $barisNotaAda);
     } catch (\App\Exceptions\ValidasiNotaException $e) {
         return response()->json(['status' => 'error', 'msg' => $e->getMessage()], 422);
     }
@@ -203,6 +224,22 @@ class PenjualanCheckoutService
     DB::beginTransaction();
 
     try {
+
+        // Mode susulan: REKONSILIASI KELUPOK MINIMUM atas baris lama + baru
+        // gabungan. Menormalkan surcharge lama di baris nota (dicabut dari
+        // biaya_cetak), lalu mengalokasikan surcharge segar ke baris terbesar
+        // kelompok (baris lama = UPDATE, baris baru = mutasi $itemsTervalidasi
+        // sebelum ditulis). Return = delta nominal baris lama yang menambah/
+        // mengurangi total nota di luar subtotal item baru.
+        $deltaSusulan = 0.0;
+        if ($notaSusulan) {
+            $deltaSusulan = $this->rekonsiliasiKelompokSusulan(
+                (int) $notaSusulan->id_transaksi,
+                (int) $idGolongan,
+                $itemsTervalidasi,
+                $barisNotaAda
+            );
+        }
 
         // Nomor nota di-generate ULANG di sini (atomik lewat
         // DocumentNumberService), bukan dipercaya dari $request->no_nota.
@@ -217,7 +254,11 @@ class PenjualanCheckoutService
         // Mode susulan memakai nomor nota yang sudah ada - bukan nomor baru.
         $noNota = $notaSusulan ? $notaSusulan->nomor_nota : DocumentNumberService::generate($prefixNota);
 
-        $grand_total = collect($itemsTervalidasi)->sum('subtotal');
+        // Total tambahan ke nota: subtotal item baru (sudah final, termasuk
+        // surcharge minimum yang dialokasikan ke baris baru) + delta baris
+        // lama dari rekonsiliasi (bisa NEGATIF bila surcharge lama dicabut
+        // karena kelompok jadi cukup / ditiadakan).
+        $grand_total = collect($itemsTervalidasi)->sum('subtotal') + $deltaSusulan;
 
         $dataTransaksi = [
             'nomor_nota'        => $noNota,
@@ -374,6 +415,15 @@ class PenjualanCheckoutService
                     'status_pembayaran' => $statusBaru,
                     'updated_at'        => now(),
                 ]);
+
+            // Rekonsiliasi minimum mengubah total baris LAMA (surcharge lama
+            // dicabut / dialokasikan ulang) - jurnal susulan yang barusan
+            // diposting hanya mencakup item baru. Sesuaikan pendapatan nota
+            // ke total barunya supaya Piutang Usaha tetap sinkron (mendukung
+            // delta negatif = kredit pendapatan).
+            if (abs($deltaSusulan) >= 0.01) {
+                AccountingService::sesuaikanTotalNota($noNota, $totalNotaBaru);
+            }
         }
 
         // Pakai saldo deposit konsumen (kalau ada) LANGSUNG saat nota ini
@@ -538,6 +588,7 @@ class PenjualanCheckoutService
                 'id_finishing'     => $item['id_finishing'],
                 'biaya_finishing'  => $item['biaya_finishing'],
                 'biaya_cetak'      => $item['biaya_cetak'],
+                'biaya_minimum'    => (float) ($item['biaya_minimum'] ?? 0),
                 'biaya_desain'     => $item['biaya_desain'],
                 'file_siap_cetak'  => $item['file_siap_cetak'] ? 1 : 0,
                 'id_desainer'      => $item['id_desainer'],
@@ -624,6 +675,7 @@ class PenjualanCheckoutService
             'id_finishing'     => $item['id_finishing'],
             'biaya_finishing'  => $item['biaya_finishing'],
             'biaya_cetak'      => $item['biaya_cetak'],
+            'biaya_minimum'    => (float) ($item['biaya_minimum'] ?? 0),
             'biaya_desain'     => $item['biaya_desain'],
             'file_siap_cetak'  => $item['file_siap_cetak'] ? 1 : 0,
             'id_desainer'      => $item['id_desainer'],
@@ -780,7 +832,7 @@ class PenjualanCheckoutService
         return $hppItemIni;
     }
 
-    public function validasiItems(Request $request, int $idGolongan, bool $hargaTerkunci, bool $bolehInputBiayaDesain, ?\Illuminate\Support\Collection $itemsLama = null, ?callable $itemBerubah = null): array
+    public function validasiItems(Request $request, int $idGolongan, bool $hargaTerkunci, bool $bolehInputBiayaDesain, ?\Illuminate\Support\Collection $itemsLama = null, ?callable $itemBerubah = null, ?\Illuminate\Support\Collection $barisNotaAda = null): array
     {
         $itemsTervalidasi = [];
 
@@ -840,8 +892,21 @@ class PenjualanCheckoutService
         $grupProduk[$keyG][] = $iG;
     }
     $minimumDitiadakan = [];
-    foreach ($grupProduk as $idxsG) {
-        if (count($idxsG) >= 2) {
+    foreach ($grupProduk as $keyG2 => $idxsG) {
+        // Mode susulan: baris produk yang SAMA sudah ada di nota dihitung
+        // ikut kebijakan "produk sama >= 2 baris = minimum ditiadakan"
+        // (keputusan owner 2026-11-14) - baris lama + baru dilihat sebagai
+        // satu nota, bukan dua simpan terpisah.
+        $jumlahAda = 0;
+        if ($barisNotaAda) {
+            foreach ($barisNotaAda as $bna) {
+                if ((int) $bna->id_produk === (int) explode('|', $keyG2)[0]
+                    && trim((string) ($bna->kategori ?? '0')) === trim((string) explode('|', $keyG2)[1])) {
+                    $jumlahAda++;
+                }
+            }
+        }
+        if (count($idxsG) + $jumlahAda >= 2) {
             foreach ($idxsG as $iG) {
                 $minimumDitiadakan[$iG] = true;
             }
@@ -1252,7 +1317,32 @@ class PenjualanCheckoutService
             $thumbnailPreview = $item['thumbnail_preview'];
         }
 
+        // REKONSILIASI SURCHARGE LAMA (edit nota): baris yang dulu menjadi
+        // carrier selisih minimum membawa biaya_minimum DI DALAM biaya_cetak
+        // tersimpannya. Bila client mengirim ulang nilai yang sama persis
+        // (baris tak disentuh operator, atau dialog edit memakai prefill
+        // nilai tersimpan - ditandai tidakBerubahT4), surcharge lama itu
+        // harus dicabut dulu supaya rencana kelompok di bawah menghitung
+        // surcharge segar dari nol - kalau tidak, surcharge lama + baru
+        // tertagih dua kali dan menumpuk di tiap re-save. Baris yang BERUBAH
+        // (operator mengedit/harga dihitung ulang layar) dipercaya apa adanya
+        // - biaya_cetak dari client sudah nilai aktual.
+        $biayaMinimumLama = 0.0;
+        if ($lamaT4 && $tidakBerubahT4 && (float) ($lamaT4->biaya_minimum ?? 0) > 0 && !$hargaTerkunci) {
+            $biayaMinimumLama = (float) $lamaT4->biaya_minimum;
+            if (abs($biayaCetak - (float) $lamaT4->biaya_cetak) <= 0.01) {
+                $biayaCetak = max(0, $biayaCetak - $biayaMinimumLama);
+            } else {
+                $biayaMinimumLama = 0.0;
+            }
+        }
+
         $catatanProduksi = trim((string) ($item['catatan_produksi'] ?? ''));
+        // Fragmen minimum lama dibuang - komponen segar ditulis ulang oleh
+        // rencana kelompok di bawah bila baris ini tetap/peturnya carrier.
+        if ($lamaT4 && (float) ($lamaT4->biaya_minimum ?? 0) > 0) {
+            $catatanProduksi = \App\Support\MinimumLuas::hapusFragmen($catatanProduksi);
+        }
         if ($siapCetak) {
             // Penanda ikut tercetak di SPK & tampil di daftar produksi tanpa mengubah layar-layar itu.
             $catatanProduksi = trim('[FILE SIAP CETAK - dari pelanggan, tanpa desain tim] ' . $catatanProduksi);
@@ -1261,6 +1351,9 @@ class PenjualanCheckoutService
         $itemsTervalidasi[] = [
             'is_jasa' => false,
             'id_produk' => $produk->id_produk,
+            // Kategori saat baris dibuat - dipakai rekonsiliasi susulan untuk
+            // kebijakan "produk sama >= 2 baris" lintas baris lama & baru.
+            'kategori_produk' => trim((string) ($item['kategori_produk'] ?? '0')),
             // Penanda baris nota asal (mode EDIT SELISIH) - lihat catatan di
             // cabang jasa di atas.
             'id_detail' => isset($item['id_detail']) ? (int) $item['id_detail'] : null,
@@ -1279,6 +1372,9 @@ class PenjualanCheckoutService
             'finishing_list' => $daftarFinishing,
             'biaya_finishing' => $biayaFinishing,
             'biaya_cetak' => $biayaCetak,
+            // Komponen minimum order DI DALAM biaya_cetak (0 = tidak ada).
+            // Diisi rencana kelompok di bawah bila baris ini carrier selisih.
+            'biaya_minimum' => 0.0,
             // Acuan price list (harga per unit x qty hitung) - dipakai HANYA untuk mencatat selisih bila kasir menimpa biaya cetak.
             'harga_standar' => round($hargaSatuan * $qtyHitung),
             'biaya_desain' => $biayaDesain,
@@ -1300,7 +1396,13 @@ class PenjualanCheckoutService
     // itu. Rencana total/selisih per kelompok dihitung oleh fungsi murni
     // MinimumLuas::rencanaKelompok() (satu-satunya tempat matematikanya,
     // diunit-test). Server tetap satu-satunya sumber hitungan.
-    foreach (\App\Support\MinimumLuas::rencanaKelompok($minLuasGroups) as $kunci => $r) {
+    //
+    // Mode SUSULAN ($barisNotaAda terisi): alokasi ini DILEWATKAN di sini -
+    // kelompok harus dihitung atas baris lama + baru gabungan oleh
+    // rekonsiliasiKelompokSusulan() (di dalam transaksi), karena baris lama
+    // tidak ada di $itemsTervalidasi dan surcharge lamanya harus
+    // dinormalkan dulu sebelum surcharge segar dialokasikan.
+    if ($barisNotaAda === null) foreach (\App\Support\MinimumLuas::rencanaKelompok($minLuasGroups) as $kunci => $r) {
         $kelompok = $minLuasGroups[$kunci]['label'] ?? $kunci;
         $selisih = $r['selisih'];
         if ($selisih <= 0) {
@@ -1326,11 +1428,15 @@ class PenjualanCheckoutService
         $baris = $itemsTervalidasi[$idxTerbesar];
         $baris['biaya_cetak'] += $selisihHarga;
         $baris['subtotal'] += $selisihHarga;
+        // Komponen minimum eksplisit di dalam biaya_cetak - dipakai
+        // rekonsiliasi simpan berikutnya (edit/susulan) untuk mencabut
+        // surcharge lama tanpa menebak dari catatan.
+        $baris['biaya_minimum'] = $selisihHarga;
         // Penanda baris minimum pindah ke baris ITEM (bukan baris terpisah).
         $baris['is_minimum_order'] = 1;
         // Catatan ikut tersimpan supaya nota/SPK bisa menjelaskan dari mana
         // tambahan subtotal itu (baris keranjang/frontend print menampilkan catatan ini).
-        $catatanMin = 'Termasuk Minimum Order ' . $kelompok . ': selisih ' . rtrim(rtrim(number_format($selisih, 2, '.', ''), '0'), '.') . ' m²';
+        $catatanMin = \App\Support\MinimumLuas::fragmen($kelompok, $selisih);
         $baris['catatan_produksi'] = trim(($baris['catatan_produksi'] ?? '') . ' ' . $catatanMin);
         // Selisih ditambahkan ke harga_standar agar log selisih harga_manual
         // tidak salah memperlakukan biaya minimum sebagai penimpaan manual
@@ -1340,6 +1446,247 @@ class PenjualanCheckoutService
     }
 
     return $itemsTervalidasi;
+    }
+
+    /**
+     * REKONSILIASI KELUPOK MINIMUM pada mode susulan (tambah item ke nota lama).
+     *
+     * Masalah yang diselesaikan (rekonsiliasi owner 2026-11-15): kelompok
+     * minimum dinilai atas SATU nota utuh. Bila surcharge minimum sudah
+     * tertagih di nota lama (kelompok belum cukup), lalu item susulan
+     * MELengkapI kelompok, maka:
+     *   - surcharge lama WAJIB dicabut (kelompok sudah cukup - semua baris
+     *     kembali ditagih luas aktual),
+     *   - bila kelompok masih belum cukup, surcharge segar dihitung dari
+     *     selisih gabungan (bukan selisih item baru saja) dan digulung ke
+     *     baris TERBESAR gabungan - yang bisa jadi baris LAMA.
+     *
+     * Tanpa ini, simpan berikutnya menagih surcharge lama + baru sekaligus
+     * (double charge) karena surcharge lama "baked in" di biaya_cetak baris
+     * lama dan tidak ada mekanisme mencabutnya.
+     *
+     * Komponen surcharge tersimpan eksplisit di kolom biaya_minimum baris
+     * (bukan hasil parsing catatan), jadi pencabutannya eksak.
+     *
+     * @param array $itemsTervalidasi Baris baru tervalidasi (DIMUTASI bila
+     *                                surcharge segar jatuh ke baris baru).
+     * @param \Illuminate\Support\Collection $barisNotaAda Baris produk nota lama
+     *        (dengan konfigurasi produk + kategori, dimuat di store()).
+     * @return float Delta nominal baris LAMA: negatif = total nota turun
+     *               (surcharge dicabut), positif = surcharge segar jatuh ke
+     *               baris lama. Dipakai store() untuk total nota & jurnal.
+     */
+    public function rekonsiliasiKelompokSusulan(int $idTransaksi, int $idGolongan, array &$itemsTervalidasi, ?\Illuminate\Support\Collection $barisNotaAda): float
+    {
+        $delta = 0.0;
+        $barisLama = $barisNotaAda ?? collect();
+        if ($barisLama->isEmpty() && !$itemsTervalidasi) {
+            return 0.0;
+        }
+
+        // Konfigurasi produk untuk baris BARU (baris lama sudah membawa
+        // konfigurasinya dari store()).
+        $idProdukBaru = collect($itemsTervalidasi)
+            ->filter(fn ($i) => empty($i['is_jasa']) && !empty($i['id_produk']))
+            ->map(fn ($i) => (int) $i['id_produk'])->unique()->values()->all();
+        $produkBaru = $idProdukBaru
+            ? DB::table('produk')->whereIn('id_produk', $idProdukBaru)->get()->keyBy('id_produk')
+            : collect();
+
+        // Kategori per produk (server): baris lama membawanya dari join store();
+        // untuk baris baru dipakai kategori yang dibawa baris saat dibuat
+        // (kategori_produk), konsisten dengan Pass 0 validasiItems.
+        $kategoriProduk = [];
+        foreach ($barisLama as $b) {
+            $kategoriProduk[(int) $b->id_produk] = trim((string) ($b->kategori ?? '0'));
+        }
+
+        // Kebijakan "produk sama >= 2 baris dalam satu nota": minimum
+        // ditiadakan untuk baris-baris produk itu - hitung atas baris
+        // LAMA + BARU gabungan. Baris lama yang dulu carrier surcharge
+        // langsung dinormalkan (dicabut surchargenya).
+        $hitungBaris = []; // id_produk|kategori => jumlah baris gabungan
+        foreach ($barisLama as $b) {
+            $key = (int) $b->id_produk . '|' . $kategoriProduk[(int) $b->id_produk];
+            $hitungBaris[$key] = ($hitungBaris[$key] ?? 0) + 1;
+        }
+        foreach ($itemsTervalidasi as $i) {
+            if (!empty($i['is_jasa']) || empty($i['id_produk'])) {
+                continue;
+            }
+            $key = (int) $i['id_produk'] . '|' . trim((string) ($i['kategori_produk'] ?? '0'));
+            $hitungBaris[$key] = ($hitungBaris[$key] ?? 0) + 1;
+        }
+        $ditiadakan = [];
+        foreach ($hitungBaris as $key => $n) {
+            if ($n >= 2) {
+                $ditiadakan[$key] = true;
+            }
+        }
+
+        // Kunci kelompok per produk (tarif acuan cache - formula sama dengan
+        // validasiItems supaya baris lama & produk baru jatuh ke kunci yang
+        // sama bila basis harganya memang sama).
+        $tarifAcuan = [];
+        $kunciProduk = function (object $pr) use (&$tarifAcuan, $idGolongan): ?string {
+            if ($pr->metode_hitung !== 'ukuran' || (float) ($pr->min_luas_total ?? 0) <= 0) {
+                return null;
+            }
+            $idProdukInt = (int) $pr->id_produk;
+            if (!isset($tarifAcuan[$idProdukInt])) {
+                $tarifAcuan[$idProdukInt] = (float) \App\Services\HargaService::getHargaEfektif(
+                    $idProdukInt, $idGolongan, max((float) $pr->min_luas_total, 1), false
+                )['harga_jual'];
+            }
+            return \App\Support\MinimumLuas::kunciKelompok(
+                \App\Support\MinimumLuas::kelompokLabel($pr->kelompok_minimum ?? null, $idProdukInt),
+                (float) $pr->min_luas_total,
+                $tarifAcuan[$idProdukInt]
+            );
+        };
+
+        // Struktur gabungan per kunci: baris lama (id_detail + data) & baris
+        // baru (index di $itemsTervalidasi). Label & minimum dari produk.
+        $grupGabungan = [];
+
+        // --- Baris LAMA: normalkan surcharge lama (kembalikan ke luas aktual) ---
+        $barisLamaPerGroup = [];
+        foreach ($barisLama as $b) {
+            if (!isset($kategoriProduk[(int) $b->id_produk])) {
+                $kategoriProduk[(int) $b->id_produk] = trim((string) ($b->kategori ?? '0'));
+            }
+            $pr = $produkBaru->get((int) $b->id_produk) ?? DB::table('produk')->where('id_produk', (int) $b->id_produk)->first();
+            if (!$pr || ($kunci = $kunciProduk($pr)) === null) {
+                continue;
+            }
+            if (isset($ditiadakan[(int) $b->id_produk . '|' . $kategoriProduk[(int) $b->id_produk]])) {
+                continue; // ditiadakan: keluar dari kelompok; surchargenya sudah dicabut di bawah
+            }
+            $area = (($b->p_ukuran * $b->l_ukuran / 10000) * $b->qty);
+            $grupGabungan[$kunci]['items'][] = ['asal' => 'lama', 'id_detail' => (int) $b->id_detail, 'area' => $area, 'id_produk' => (int) $b->id_produk];
+            $barisLamaPerGroup[$kunci][] = $b;
+        }
+
+        // --- Baris BARU: dari $itemsTervalidasi (sudah lewat validasi) ---
+        foreach ($itemsTervalidasi as $idx => $i) {
+            if (!empty($i['is_jasa']) || empty($i['id_produk'])) {
+                continue;
+            }
+            $pr = $produkBaru->get((int) $i['id_produk']);
+            if (!$pr || ($kunci = $kunciProduk($pr)) === null) {
+                continue;
+            }
+            if (isset($ditiadakan[(int) $i['id_produk'] . '|' . trim((string) ($i['kategori_produk'] ?? '0'))])) {
+                continue; // validasiItems sudah menandainya ditiadakan (tidak masuk kelompok)
+            }
+            $grupGabungan[$kunci]['items'][] = ['asal' => 'baru', 'idx' => $idx, 'area' => (float) $i['p'] * (float) $i['l'] / 10000 * (float) $i['qty_input'], 'id_produk' => (int) $i['id_produk']];
+        }
+
+        // --- Alokasi per kelompok ---
+        foreach ($grupGabungan as $kunci => $g) {
+            $contohProduk = DB::table('produk')->where('id_produk', $g['items'][0]['id_produk'])->first();
+            $minLuas = (float) ($contohProduk->min_luas_total ?? 0);
+            $label = \App\Support\MinimumLuas::kelompokLabel($contohProduk->kelompok_minimum ?? null, (int) $g['items'][0]['id_produk']);
+            $totalAktual = 0.0;
+            $terbesar = null;
+            foreach ($g['items'] as $it) {
+                $totalAktual += $it['area'];
+                if ($terbesar === null || $it['area'] > $terbesar['area']) {
+                    $terbesar = $it;
+                }
+            }
+            $totalAktual = round($totalAktual, 4);
+            $selisih = \App\Support\MinimumLuas::selisih($totalAktual, $minLuas);
+
+            // 1) CABUT surcharge lama dari SEMUA baris lama kelompok ini
+            //    (termasuk yang dulu carrier): biaya_minimum kolomnya eksak.
+            foreach ($barisLamaPerGroup[$kunci] ?? [] as $b) {
+                $surchargeLama = (float) ($b->biaya_minimum ?? 0);
+                if ($surchargeLama <= 0 && !(int) $b->is_minimum_order) {
+                    continue;
+                }
+                $delta -= $surchargeLama;
+                DB::table('transaksi_detail')->where('id_detail', (int) $b->id_detail)->update([
+                    'biaya_cetak'         => round((float) $b->biaya_cetak - $surchargeLama, 2),
+                    'subtotal'            => round((float) $b->subtotal - $surchargeLama, 2),
+                    'harga_jual_snapshot' => round((float) $b->subtotal - $surchargeLama, 2),
+                    'biaya_minimum'       => 0,
+                    'is_minimum_order'    => 0,
+                    'catatan_produksi'    => \App\Support\MinimumLuas::hapusFragmen((string) ($b->catatan_produksi ?? '')) ?: null,
+                    'updated_at'          => now(),
+                ]);
+            }
+
+            // 2) Surcharge segar bila kelompok gabungan masih belum cukup.
+            if ($selisih <= 0) {
+                continue;
+            }
+            $idProdukTarif = (int) $terbesar['id_produk'];
+            $tarif = (float) \App\Services\HargaService::getHargaEfektif($idProdukTarif, $idGolongan, $selisih, false)['harga_jual'];
+            if ($tarif <= 0) {
+                throw new \App\Exceptions\ValidasiNotaException('Harga Minimum Order untuk kelompok "' . $label . '" belum diatur di Price List untuk golongan konsumen ini.');
+            }
+            $surchargeBaru = round($tarif * $selisih, 2);
+
+            if ($terbesar['asal'] === 'baru') {
+                $baris = &$itemsTervalidasi[$terbesar['idx']];
+                $baris['biaya_cetak'] += $surchargeBaru;
+                $baris['subtotal'] += $surchargeBaru;
+                $baris['biaya_minimum'] = $surchargeBaru;
+                $baris['is_minimum_order'] = 1;
+                $baris['harga_standar'] = round((float) $baris['harga_standar'] + $surchargeBaru, 2);
+                $baris['catatan_produksi'] = trim(((string) ($baris['catatan_produksi'] ?? '')) . ' '
+                    . \App\Support\MinimumLuas::fragmen($label, $selisih));
+                unset($baris);
+            } else {
+                // Baris lama sudah di-UPDATE di langkah (1) - baca ulang nilai
+                // ternormalisasi supaya surcharge segar tidak menumpuk di atas
+                // surcharge lama yang baru saja dicabut.
+                $b = DB::table('transaksi_detail')
+                    ->where('id_detail', (int) $terbesar['id_detail'])
+                    ->where('id_transaksi', $idTransaksi)
+                    ->first();
+                if (!$b) {
+                    throw new \App\Exceptions\ValidasiNotaException('Baris Minimum Order untuk kelompok "' . $label . '" tidak ditemukan di nota.');
+                }
+                $biayaBaru = round((float) $b->biaya_cetak + $surchargeBaru, 2);
+                $subtotalBaru = round((float) $b->subtotal + $surchargeBaru, 2);
+                $delta += $surchargeBaru;
+                DB::table('transaksi_detail')->where('id_detail', (int) $b->id_detail)->update([
+                    'biaya_cetak'         => $biayaBaru,
+                    'subtotal'            => $subtotalBaru,
+                    'harga_jual_snapshot' => $subtotalBaru,
+                    'biaya_minimum'       => $surchargeBaru,
+                    'is_minimum_order'    => 1,
+                    'catatan_produksi'    => trim(((string) ($b->catatan_produksi ?? '')) . ' ' . \App\Support\MinimumLuas::fragmen($label, $selisih)) ?: null,
+                    'updated_at'          => now(),
+                ]);
+            }
+        }
+
+        // Baris lama yang ditiadakan (produk sama >= 2 baris gabungan) yang
+        // masih membawa surcharge: dicabut juga (minimum tidak berlaku).
+        foreach ($barisLama as $b) {
+            if (!isset($ditiadakan[(int) $b->id_produk . '|' . $kategoriProduk[(int) $b->id_produk]])) {
+                continue;
+            }
+            $surchargeLama = (float) ($b->biaya_minimum ?? 0);
+            if ($surchargeLama <= 0 && !(int) $b->is_minimum_order) {
+                continue;
+            }
+            $delta -= $surchargeLama;
+            DB::table('transaksi_detail')->where('id_detail', (int) $b->id_detail)->update([
+                'biaya_cetak'         => round((float) $b->biaya_cetak - $surchargeLama, 2),
+                'subtotal'            => round((float) $b->subtotal - $surchargeLama, 2),
+                'harga_jual_snapshot' => round((float) $b->subtotal - $surchargeLama, 2),
+                'biaya_minimum'       => 0,
+                'is_minimum_order'    => 0,
+                'catatan_produksi'    => \App\Support\MinimumLuas::hapusFragmen((string) ($b->catatan_produksi ?? '')) ?: null,
+                'updated_at'          => now(),
+            ]);
+        }
+
+        return round($delta, 2);
     }
 
     /** Lebar roll (m) bahan utama BOM produk: baris terawal yang bahan-nya ber-lebar_roll. */

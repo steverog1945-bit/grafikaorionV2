@@ -695,14 +695,18 @@ class PenjualanController extends Controller
      * updateItemNota() (edit selisih) - jadi kedua alur memakai ATURAN HARGA
      * YANG SAMA PERSIS, tidak ada dua implementasi yang bisa berbeda.
      *
+     * @param \Illuminate\Support\Collection|null $itemsLama Baris nota tersimpan (mode edit selisih)
+     * @param callable|null $itemBerubah Perbandingan lama-vs-baru (mode edit selisih)
+     * @param \Illuminate\Support\Collection|null $barisNotaAda Baris nota existing (mode susulan)
+     *
      * @return array<int, array> Baris item yang sudah tervalidasi.
      *
      * @throws \App\Exceptions\ValidasiNotaException Bila ada baris yang tidak valid.
      */
-    private function validasiItems(Request $request, int $idGolongan, bool $hargaTerkunci, bool $bolehInputBiayaDesain): array
+    private function validasiItems(Request $request, int $idGolongan, bool $hargaTerkunci, bool $bolehInputBiayaDesain, ?\Illuminate\Support\Collection $itemsLama = null, ?callable $itemBerubah = null, ?\Illuminate\Support\Collection $barisNotaAda = null): array
     {
         return app(\App\Services\PenjualanCheckoutService::class)->validasiItems(
-            $request, $idGolongan, $hargaTerkunci, $bolehInputBiayaDesain
+            $request, $idGolongan, $hargaTerkunci, $bolehInputBiayaDesain, $itemsLama, $itemBerubah, $barisNotaAda
         );
     }
 

@@ -58,6 +58,45 @@ class MinimumLuas
      *         Selisih > 0 = kelompok belum memenuhi minimum (ditagih minimum);
      *         selisih 0 = pakai luas aktual.
      */
+    /**
+     * Fragmen catatan produksi penanda surcharge minimum (SATU sumber teks -
+     * dipakai PenjualanCheckoutService saat menulis baris carrier, dan
+     * hapusFragmen()/selisihDariCatatan() saat rekonsiliasi baris lama).
+     */
+    public static function fragmen(string $label, float $selisih): string
+    {
+        return 'Termasuk Minimum Order ' . $label . ': selisih '
+            . rtrim(rtrim(number_format($selisih, 2, '.', ''), '0'), '.') . ' m²';
+    }
+
+    /** Pola fragmen minimum di catatan produksi (label boleh memuat ':'). */
+    public static function polaFragmen(): string
+    {
+        return '/Termasuk Minimum Order .*?: selisih [0-9][0-9.,]* m²/u';
+    }
+
+    /** Buang SEMUA fragmen minimum dari catatan produksi (sisanya = catatan manusia). */
+    public static function hapusFragmen(string $catatan): string
+    {
+        $bersih = preg_replace(self::polaFragmen(), '', $catatan) ?? $catatan;
+        return trim(preg_replace('/\s{2,}/u', ' ', $bersih) ?? $bersih);
+    }
+
+    /** Selisih m² dari fragmen minimum TERAKHIR di catatan, atau null bila tak ada. */
+    public static function selisihDariCatatan(string $catatan): ?float
+    {
+        if (!preg_match_all(self::polaFragmen(), $catatan, $m) || empty($m[0])) {
+            return null;
+        }
+        $terakhir = end($m[0]);
+        if (!preg_match('/selisih ([0-9][0-9.,]*) m²/u', $terakhir, $n)) {
+            return null;
+        }
+        $angka = str_replace(',', '', $n[1]);
+        $nilai = (float) $angka;
+        return $nilai > 0 ? $nilai : null;
+    }
+
     public static function rencanaKelompok(array $grup): array
     {
         $hasil = [];
