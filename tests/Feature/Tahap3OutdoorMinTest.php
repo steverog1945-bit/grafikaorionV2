@@ -51,8 +51,13 @@ class Tahap3OutdoorMinTest extends TestCase
             'id_satuan_hitung' => $this->m2, 'id_satuan_stok' => $this->m2, 'status' => 'aktif', 'harga_rata_rata' => 2000,
         ]);
         $this->gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $this->kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Kons Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $this->gol]);
+        $this->kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Kons Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $this->gol,
+            // aplikasi selalu mengisi id_unique saat insert (KonsumenController::Str::uuid()) - skema kolomnya NOT NULL tanpa default
+            'id_unique' => (string) \Illuminate\Support\Str::uuid()]);
         DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'saldo_awal' => 0, 'status_lock' => 'open', 'created_at' => now()->subMinute()]);
+        // Skenario uji = toko BUKA. Migrasi menanam jam_kerja Minggu tutup; tanpa ini, store() ditolak
+        // 400 "toko libur" bila test dijalankan hari Minggu (guard KasSesiService, bukan bagian fitur minimum).
+        DB::table('jam_kerja')->where('hari', now()->dayOfWeekIso)->update(['buka' => true]);
     }
 
     private function makeProduk(string $nama, string $kelompok, float $minLuas, int $bahan, float $harga): int
