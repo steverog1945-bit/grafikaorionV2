@@ -32,4 +32,49 @@ class MinimumLuas
         $k = trim((string) $kelompok);
         return $k !== '' ? $k : (string) $idProduk;
     }
+
+    /**
+     * Kunci kompatibilitas kelompok minimum (spec owner 2026-11-15 PHASE B):
+     * item hanya boleh DIJUMLAHKAN luasnya bila basis harganya sama.
+     * Kunci = label kelompok + konfigurasi minimum + tarif acuan per m².
+     * Item dengan tarif acuan / minimum berbeda jatuh ke kunci berbeda ->
+     * terakumulasi terpisah (masing-masing memenuhi minimumnya sendiri),
+     * sesuai aturan "jangan menjumlahkan item yang basis harga, metode
+     * kalkulasi, satuan, atau konfigurasi minimum order-nya berbeda".
+     * Tarif acuan diambil pada qty acuan = max(min_luas_total, 1) m² agar
+     * tidak ikut naik-turun mengikuti tier luas tiap baris.
+     */
+    public static function kunciKelompok(string $label, float $minLuas, float $tarifAcuan): string
+    {
+        return $label . '|' . number_format($minLuas, 4, '.', '') . '|' . number_format($tarifAcuan, 2, '.', '');
+    }
+
+    /**
+     * Rencana penagihan minimum luas per kelompok (FUNGSI MURNI - dipakai
+     * server checkout dan unit test, supaya matematikanya hanya ada satu).
+     *
+     * @param array $grup [kunci => ['min' => float, 'items' => [['area' => float], ...], 'idxTerbesar' => ?int]]
+     * @return array [kunci => ['total_aktual', 'minimum', 'selisih', 'idx_terbesar']]
+     *         Selisih > 0 = kelompok belum memenuhi minimum (ditagih minimum);
+     *         selisih 0 = pakai luas aktual.
+     */
+    public static function rencanaKelompok(array $grup): array
+    {
+        $hasil = [];
+        foreach ($grup as $kunci => $g) {
+            $total = 0.0;
+            foreach ($g['items'] as $it) {
+                $total += (float) $it['area'];
+            }
+            $total = round($total, 4);
+            $min = round((float) ($g['min'] ?? 0), 4);
+            $hasil[$kunci] = [
+                'total_aktual' => $total,
+                'minimum' => $min,
+                'selisih' => self::selisih($total, $min),
+                'idx_terbesar' => $g['idxTerbesar'] ?? null,
+            ];
+        }
+        return $hasil;
+    }
 }

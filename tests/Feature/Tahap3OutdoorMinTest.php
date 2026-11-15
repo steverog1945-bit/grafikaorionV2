@@ -113,19 +113,23 @@ class Tahap3OutdoorMinTest extends TestCase
         $this->assertEquals(50000.0, (float) DB::table('transaksi')->value('total_bayar'), 0.01);
     }
 
-    public function test_0_6_plus_0_3_bahan_sama_ditagih_1_0(): void
+    public function test_0_6_plus_0_3_produk_sama_minimum_ditiadakan(): void
     {
+        // Eksempsi (keputusan owner 2026-11-14): produk yang sama muncul
+        // >= 2 baris dalam satu nota -> hitungan minimum TIDAK berlaku,
+        // semua baris ditagih luas aktual tanpa selisih.
         $prod = $this->makeProduk('Outdoor A', 'Outdoor A', 1.0, $this->bahanA, 50000);
         $this->store([$this->item($prod, 60, 100, 1, 50000), $this->item($prod, 30, 100, 1, 50000)])->assertOk();
         $nota = DB::table('transaksi')->first();
         $baris = $this->barisNota();
-        $this->assertCount(2, $baris, 'dua baris item, tanpa baris minimum terpisah');
-        // Selisih 0.1 x 50000 = 5000 digulung ke baris TERBESAR (0.6).
-        $this->assertEquals(35000.0, (float) $baris[0]->subtotal, 0.01); // 0.6 x 50000 + 0.1 x 50000
-        $this->assertEquals(1, (int) $baris[0]->is_minimum_order);
-        $this->assertEquals(15000.0, (float) $baris[1]->subtotal, 0.01); // 0.3 x 50000 aktual
-        $this->assertEquals(0, (int) $baris[1]->is_minimum_order);
-        $this->assertEquals(50000.0, (float) DB::table('transaksi')->value('total_bayar'), 0.01);
+        $this->assertCount(2, $baris);
+        foreach ($baris as $b) {
+            $this->assertEquals(0, (int) $b->is_minimum_order, 'produk sama >= 2 baris: minimum ditiadakan');
+            $this->assertStringNotContainsString('Minimum Order', (string) $b->catatan_produksi);
+        }
+        $this->assertEquals(30000.0, (float) $baris[0]->subtotal, 0.01); // 0.6 m2 aktual
+        $this->assertEquals(15000.0, (float) $baris[1]->subtotal, 0.01); // 0.3 m2 aktual
+        $this->assertEquals(45000.0, (float) $nota->total_bayar, 0.01);
     }
 
     public function test_0_6_plus_0_7_tanpa_selisih_total_1_3(): void

@@ -808,6 +808,9 @@ class PenjualanCheckoutService
     // agar total aktual per kelompok diketahui. Struktur:
     //   kelompokLabel => [ 'min' => float, 'items' => [ ['id_produk'=>.., 'area'=>.., 'p'=>.., 'l'=>.., 'qty'=>..] ] ]
     $minLuasGroups = [];
+    // Cache tarif acuan per produk (basis harga kelompok) - satu query
+    // per produk unik, bukan per baris.
+    $tarifAcuanCache = [];
 
     // Keputusan owner 2026-11-14 ("rekonsiliasi minimum"):
     //   Aturan produk minimum order "panjang x lebar" (input pertama =
@@ -972,28 +975,44 @@ class PenjualanCheckoutService
             ? ($p * $l / 10000) * $qtyInput
             : $qtyInput;
 
-        // Aturan minimum 1 m² untuk produk cetak luas (metode 'ukuran'): jika
-        // luas item < 1 m² dan tidak ada item lain dalam nota yang >= 1 m²,
-        // ditagih 1 m². Jika ada item >= 1 m², semua ditagih luas aktual.
-        // Minimum luas outdoor (min_luas_total > 0): kumpulkan per kelompok
-        // untuk diproses setelah loop (total per kelompok + baris selisih).
-        // Produk yang sama muncul >= 2 baris di nota: minimum tidak berlaku,
-        // jadi produk itu tidak ikut kelompok minimum (luasnya murni aktual).
+        // DUA KONSEP TERPISAH (spec owner 2026-11-15):
+        //   1) MINIMUM ORDER (konfigurasi produk): min_luas_total +
+        //      kelompok_minimum - diakumulasi PER KELOMPOK, selisihnya
+        //      digulung ke baris terbesar di bawah. Hanya berlaku bila
+        //      produk memang punya konfigurasi minimum (min_luas_total > 0).
+        //   2) MINIMUM PENAGIHAN (kebijakan daftar harga): range_min
+        //      terkecil tier harga (luas_min_daftar) - dijaga HargaService
+        //      (harga 0 di bawahnya -> ditolak), TIDAK diubah di sini.
+        // Produk tanpa konfigurasi minimum order: seluruh mekanisme lama
+        // (tier daftar harga, luas_min_daftar) tetap berjalan apa adanya.
+        // Produk yang sama muncul >= 2 baris di nota: minimum tidak berlaku
+        // (keputusan owner 2026-11-14), jadi produk itu tidak ikut kelompok
+        // minimum (luasnya murni aktual).
         if (!$minimumItemDitiadakan && $produk->metode_hitung === 'ukuran' && (float) ($produk->min_luas_total ?? 0) > 0) {
-            $kelompok = \App\Support\MinimumLuas::kelompokLabel($produk->kelompok_minimum ?? null, (int) $produk->id_produk);
+            $label = \App\Support\MinimumLuas::kelompokLabel($produk->kelompok_minimum ?? null, (int) $produk->id_produk);
+            $minLuasProduk = (float) $produk->min_luas_total;
             $areaIni = ($p * $l / 10000) * $qtyInput;
-            if (!isset($minLuasGroups[$kelompok])) {
-                $minLuasGroups[$kelompok] = ['min' => (float) $produk->min_luas_total, 'items' => [], 'produkTerbesar' => null, 'areaTerbesar' => 0.0, 'idxTerbesar' => null];
+            // Tarif acuan (basis harga) pada qty acuan = max(min, 1) m²:
+            // sama produk = sama kunci; produk beda tarif/konfigurasi minimum
+            // dalam label yang sama = kunci beda = terakumulasi terpisah.
+            // Di-cache per produk supaya satu nota tidak menagih ulang.
+            $idProdukInt = (int) $produk->id_produk;
+            if (!isset($tarifAcuanCache[$idProdukInt])) {
+                $tarifAcuanCache[$idProdukInt] = (float) HargaService::getHargaEfektif($idProdukInt, (int) $idGolongan, max($minLuasProduk, 1), false)['harga_jual'];
             }
-            $minLuasGroups[$kelompok]['items'][] = ['id_produk' => (int) $produk->id_produk, 'area' => $areaIni, 'p' => $p, 'l' => $l, 'qty' => $qtyInput];
-            if ($areaIni > $minLuasGroups[$kelompok]['areaTerbesar']) {
-                $minLuasGroups[$kelompok]['areaTerbesar'] = $areaIni;
-                $minLuasGroups[$kelompok]['produkTerbesar'] = (int) $produk->id_produk;
+            $kunciKelompok = \App\Support\MinimumLuas::kunciKelompok($label, $minLuasProduk, $tarifAcuanCache[$idProdukInt]);
+            if (!isset($minLuasGroups[$kunciKelompok])) {
+                $minLuasGroups[$kunciKelompok] = ['label' => $label, 'min' => $minLuasProduk, 'items' => [], 'produkTerbesar' => null, 'areaTerbesar' => 0.0, 'idxTerbesar' => null];
+            }
+            $minLuasGroups[$kunciKelompok]['items'][] = ['id_produk' => $idProdukInt, 'area' => $areaIni, 'p' => $p, 'l' => $l, 'qty' => $qtyInput];
+            if ($areaIni > $minLuasGroups[$kunciKelompok]['areaTerbesar']) {
+                $minLuasGroups[$kunciKelompok]['areaTerbesar'] = $areaIni;
+                $minLuasGroups[$kunciKelompok]['produkTerbesar'] = $idProdukInt;
                 // Mode hybrid: selisih diGULUNG ke baris item terbesar, jadi
                 // catat indexnya di $itemsTervalidasi. Baris produk selalu
                 // di-push tepat satu kali per request di akhir iterasi, jadi
                 // jumlah elemen SAAT INI = index push row ini nanti.
-                $minLuasGroups[$kelompok]['idxTerbesar'] = count($itemsTervalidasi);
+                $minLuasGroups[$kunciKelompok]['idxTerbesar'] = count($itemsTervalidasi);
             }
         }
 
@@ -1278,23 +1297,17 @@ class PenjualanCheckoutService
         // Minimum luas outdoor, mode HYBRID (keputusan owner, notasi SETUJU T4-A):
     // selisih tidak lagi jadi baris terpisah (bersih dari nota, SPK, dan
     // produksi), tetapi DIGULUNG ke subtotal baris item TERBESAR di kelompok
-    // itu. Grup total = tarif + selisihHarga sehingga, dengan tarif seragam
-    // satu kelompok, hasilnya tarif x min_luas_total kelompok - sama dengan
-    // aturan final A tapi tanpa baris minimum yang dulu memenuhi nota.
-    // Server tetap satu-satunya sumber hitungan.
-    foreach ($minLuasGroups as $kelompok => $g) {
-        $totalAktual = 0.0;
-        foreach ($g['items'] as $it) {
-            $totalAktual += (float) $it['area'];
-        }
-        $totalAktual = round($totalAktual, 4);
-        $minLuas = round((float) $g['min'], 4);
-        $selisih = \App\Support\MinimumLuas::selisih($totalAktual, $minLuas);
+    // itu. Rencana total/selisih per kelompok dihitung oleh fungsi murni
+    // MinimumLuas::rencanaKelompok() (satu-satunya tempat matematikanya,
+    // diunit-test). Server tetap satu-satunya sumber hitungan.
+    foreach (\App\Support\MinimumLuas::rencanaKelompok($minLuasGroups) as $kunci => $r) {
+        $kelompok = $minLuasGroups[$kunci]['label'] ?? $kunci;
+        $selisih = $r['selisih'];
         if ($selisih <= 0) {
             continue;
         }
         // Tarif diambil dari produk dengan luas aktual terbesar di kelompok, di tier qty = selisih.
-        $idProdukHarga = $g['produkTerbesar'];
+        $idProdukHarga = $minLuasGroups[$kunci]['produkTerbesar'];
         $hargaSatuan = 0.0;
         if ($idProdukHarga) {
             $resHarga = \App\Services\HargaService::getHargaEfektif($idProdukHarga, (int) $idGolongan, $selisih, false);
@@ -1304,7 +1317,7 @@ class PenjualanCheckoutService
             throw new \App\Exceptions\ValidasiNotaException('Harga Minimum Order untuk kelompok "' . $kelompok . '" belum diatur di Price List untuk golongan konsumen ini.');
         }
         $selisihHarga = round($hargaSatuan * $selisih, 2);
-        $idxTerbesar = $g['idxTerbesar'] ?? null;
+        $idxTerbesar = $r['idx_terbesar'];
         if ($idxTerbesar === null || !isset($itemsTervalidasi[$idxTerbesar]) || !empty($itemsTervalidasi[$idxTerbesar]['is_jasa'])) {
             // Tidak pernah seharusnya terjadi (idx dicatat saat item produk
             // terbesar terdaftar); gagal jelas daripada menagih tanpa baris.
