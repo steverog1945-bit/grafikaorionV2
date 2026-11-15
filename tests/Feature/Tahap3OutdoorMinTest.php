@@ -97,25 +97,18 @@ class Tahap3OutdoorMinTest extends TestCase
             ->whereNull('id_jasa')->orderBy('id_detail')->get()->all();
     }
 
-    public function test_satu_item_0_6_ditagih_1_0(): void
+    /**
+     * SATU item di bawah minimum kelompok: simpan DIBLOKIR (422) sampai
+     * ukuran diubah ke minimum atau ditambah item lain sekelompok
+     * (keputusan owner 2026-11-15; menggantikan penagihan minimum non-blocking).
+     */
+    public function test_satu_item_di_bawah_minimum_diblokir(): void
     {
         $prod = $this->makeProduk('Outdoor A', 'Outdoor A', 1.0, $this->bahanA, 50000);
-        $this->store([$this->item($prod, 60, 100, 1, 50000)])->assertOk();
-        $nota = DB::table('transaksi')->first();
-        // Tidak ada baris "Minimum Order - ..." terpisah di nota.
-        $barisTerpisah = DB::table('transaksi_detail')
-            ->where('id_transaksi', $nota->id_transaksi)
-            ->whereNull('id_produk')->whereNull('id_jasa')->count();
-        $this->assertSame(0, $barisTerpisah, 'mode hybrid: tidak ada baris minimum terpisah');
-        // Satu baris item: subtotal digulung ke tarif x min_luas_total (0.6+0.4 = 1.0 x 50000).
-        $baris = $this->barisNota();
-        $this->assertCount(1, $baris);
-        $this->assertEquals(50000.0, (float) $baris[0]->subtotal, 0.01);
-        // qty tetap aktual (bukan 1.0 selisih), penanda minimum di baris item.
-        $this->assertEquals(1, (int) $baris[0]->qty);
-        $this->assertEquals(1, (int) $baris[0]->is_minimum_order);
-        // Total nota = tarif x minimum kelompok.
-        $this->assertEquals(50000.0, (float) DB::table('transaksi')->value('total_bayar'), 0.01);
+        $resp = $this->store([$this->item($prod, 60, 100, 1, 50000)]);
+        $resp->assertStatus(422);
+        $this->assertStringContainsString('Minimum order belum terpenuhi', (string) $resp->json('msg'));
+        $this->assertEquals(0, DB::table('transaksi')->count(), 'nota tidak boleh tersimpan ketika 1 item di bawah minimum');
     }
 
     public function test_0_6_plus_0_3_produk_sama_minimum_ditiadakan(): void
@@ -158,18 +151,23 @@ class Tahap3OutdoorMinTest extends TestCase
         $this->assertEquals(62500.0, (float) $baris[0]->subtotal, 0.01); // 1.25 m2 x 50000
     }
 
+    /** Kelompok tarif beda dengan 2 item masing-masing: selisih per kelompok tetap ditagih masing-masing tarifnya. */
     public function test_0_5_A_plus_0_5_B_selisih_per_kelompok_total_2_0(): void
     {
         $prodA = $this->makeProduk('Outdoor A', 'Kelompok A', 1.0, $this->bahanA, 50000);
+        $prodA2 = $this->makeProduk('Outdoor A2', 'Kelompok A', 1.0, $this->bahanA, 50000);
         $prodB = $this->makeProduk('Outdoor B', 'Kelompok B', 1.0, $this->bahanB, 60000);
-        $this->store([$this->item($prodA, 50, 100, 1, 50000), $this->item($prodB, 50, 100, 1, 60000)])->assertOk();
+        $prodB2 = $this->makeProduk('Outdoor B2', 'Kelompok B', 1.0, $this->bahanB, 60000);
+        // A group: 0,5+0,4 = 0,9 -> selisih 0,1 x 50.000 = 5.000 (baris terbesar = A).
+        // B group: 0,5+0,3 = 0,8 -> selisih 0,2 x 60.000 = 12.000 (baris terbesar = B).
+        $this->store([$this->item($prodA, 50, 100, 1, 50000), $this->item($prodA2, 40, 100, 1, 50000), $this->item($prodB, 50, 100, 1, 60000), $this->item($prodB2, 30, 100, 1, 60000)])->assertOk();
         $baris = $this->barisNota();
-        // Masing-masing kelompok: satu baris item membawa selisihnya sendiri.
-        $this->assertCount(2, $baris);
-        $flagged = array_values(array_filter($baris, fn ($b) => (int) $b->is_minimum_order === 1));
-        $this->assertCount(2, $flagged, 'kedua kelompok selisih 0.5, penanda di baris item masing-masing');
-        $subtotalFlagged = array_sum(array_map(fn ($b) => (float) $b->subtotal, $flagged));
-        $this->assertEquals(50000.0 + 60000.0, $subtotalFlagged, 0.01); // (0.5+0.5) x tarif masing-masing
+        $this->assertCount(4, $baris);
+        $this->assertEquals(25000.0 + 5000.0, (float) $baris[0]->subtotal, 0.01, 'A terbesar membawa selisih kelompok A');
+        $this->assertEquals(20000.0, (float) $baris[1]->subtotal, 0.01);
+        $this->assertEquals(30000.0 + 12000.0, (float) $baris[2]->subtotal, 0.01, 'B terbesar membawa selisih kelompok B');
+        $this->assertEquals(18000.0, (float) $baris[3]->subtotal, 0.01);
+        $this->assertEquals(50000.0 + 60000.0, (float) DB::table('transaksi')->value('total_bayar'), 0.01, 'total = minimum A + minimum B = 1,0x50.000 + 1,0x60.000');
     }
 
     public function test_produk_tanpa_min_luas_total_tidak_kena(): void
@@ -182,10 +180,41 @@ class Tahap3OutdoorMinTest extends TestCase
         $this->assertSame(0, (int) $baris[0]->is_minimum_order);
     }
 
+    /** Lantai min_panjang/min_lebar: ukuran di bawah minimum produk DITOLAK saat simpan (2026-11-15). */
+    public function test_lantai_panjang_lebar_di_bawah_minimum_diblokir(): void
+    {
+        $prod = DB::table('produk')->insertGetId(['nama_produk' => 'Century TC Test', 'metode_hitung' => 'ukuran', 'status' => 'aktif', 'min_panjang' => 120, 'min_lebar' => 200, 'min_luas_total' => 0, 'kelompok_minimum' => null]);
+        DB::table('bom_detail')->insert(['id_produk' => $prod, 'id_bahan' => $this->bahanA, 'cara_hitung_pemakaian' => '(P*L)/10000', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('setting_harga')->insert(['id_produk' => $prod, 'id_golongan' => $this->gol, 'range_min' => 0.01, 'harga_jual' => 50000]);
+        $resp = $this->store([$this->item($prod, 120, 150, 1, 50000)]);
+        $resp->assertStatus(422);
+        $this->assertStringContainsString('lebar 150 cm di bawah minimum', (string) $resp->json('msg'));
+        $this->assertEquals(0, DB::table('transaksi')->count());
+    }
+
+    public function test_lantai_panjang_lebar_produk_sama_minimum_ditiadakan(): void
+    {
+        // Produk sama >= 2 baris (keputusan owner 2026-11-14): lantai dimatikan
+        // untuk baris-baris produk itu - ukuran persis seperti input disimpan.
+        $prod = DB::table('produk')->insertGetId(['nama_produk' => 'Century TC Test', 'metode_hitung' => 'ukuran', 'status' => 'aktif', 'min_panjang' => 120, 'min_lebar' => 200, 'min_luas_total' => 0, 'kelompok_minimum' => null]);
+        DB::table('bom_detail')->insert(['id_produk' => $prod, 'id_bahan' => $this->bahanA, 'cara_hitung_pemakaian' => '(P*L)/10000', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('setting_harga')->insert(['id_produk' => $prod, 'id_golongan' => $this->gol, 'range_min' => 0.01, 'harga_jual' => 50000]);
+        $this->store([$this->item($prod, 120, 150, 1, 50000), $this->item($prod, 120, 500, 1, 50000)])->assertOk();
+        $baris = $this->barisNota();
+        $this->assertEquals(120, (float) $baris[0]->p_ukuran);
+        $this->assertEquals(150, (float) $baris[0]->l_ukuran, 'baris pertama TIDAK diubah saat produk sama muncul 2 baris');
+        $this->assertEquals(120, (float) $baris[1]->p_ukuran);
+        $this->assertEquals(500, (float) $baris[1]->l_ukuran);
+    }
+
     public function test_penanda_minimum_di_baris_item_tetap_beralur_spk(): void
     {
         $prod = $this->makeProduk('Outdoor C', 'Kelompok C', 1.0, $this->bahanA, 50000);
-        $this->store([$this->item($prod, 60, 100, 1, 50000)])->assertOk();
+        // Kelompok 1-item diblokir saat simpan -> perlu >=2 item sekelompok
+        // (atau >= minimum) agar bisa tersimpan. 0,6 + 0,1 = 0,7; selisih 0,3
+        // digulung ke baris terbesar (C 0,6).
+        $kecil = $this->makeProduk('Outdoor C2', 'Kelompok C', 1.0, $this->bahanB, 50000);
+        $this->store([$this->item($prod, 60, 100, 1, 50000), $this->item($kecil, 10, 100, 1, 50000)])->assertOk();
         $baris = $this->barisNota();
         $flagged = array_values(array_filter($baris, fn ($b) => (int) $b->is_minimum_order === 1));
         $this->assertCount(1, $flagged);

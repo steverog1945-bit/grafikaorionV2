@@ -124,20 +124,31 @@ class MinimumLuasAkumulasiTest extends TestCase
         $this->assertEquals(50000.0, (float) DB::table('transaksi')->value('total_bayar'), 0.01);
     }
 
-    /** Tarif beda di label yang sama = TIDAK dijumlahkan: masing-masing kelompok selisihnya sendiri. */
+    /**
+     * Tarif beda di label yang sama = TIDAK dijumlahkan, masing-masing
+     * kelompok dihitung sendiri (kunci kompatibilitas MinimumLuas::kunciKelompok).
+     * Kelompok 1-item diblokir; masing-masing kelompok diberi 2 item di bawah min.
+     */
     public function test_tarif_berbeda_label_sama_terakumulasi_terpisah(): void
     {
         $a = $this->makeProduk('Outdoor A', 'Group X', 1.0, 50000);
+        $a2 = $this->makeProduk('Outdoor A2', 'Group X', 1.0, 50000);
         $b = $this->makeProduk('Outdoor B', 'Group X', 1.0, 60000);
-        $this->store([$this->item($a, 30, 100, 1, 50000), $this->item($b, 20, 100, 1, 60000)])->assertOk();
+        $b2 = $this->makeProduk('Outdoor B2', 'Group X', 1.0, 60000);
+        // Grup A: 0,3+0,4 -> selisih 0,3 x 50.000. Grup B: 0,2+0,3 -> selisih 0,5 x 60.000, tarif B dipakai ke B.
+        $this->store([$this->item($a, 30, 100, 1, 50000), $this->item($a2, 40, 100, 1, 50000), $this->item($b, 20, 100, 1, 60000), $this->item($b2, 30, 100, 1, 60000)])->assertOk();
         $baris = $this->barisNota();
-        // Kunci kompatibilitas memisahkan A dan B (tarif beda): A selisih
-        // 1,0-0,3 = 0,7; B selisih 1,0-0,2 = 0,8 - masing-masing memenuhi
-        // minimumnya sendiri, total = tarif x minimum per produk.
-        $this->assertEquals(15000.0 + 0.7 * 50000, (float) $baris[0]->subtotal, 0.01);
-        $this->assertEquals(1, (int) $baris[0]->is_minimum_order);
-        $this->assertEquals(12000.0 + 0.8 * 60000, (float) $baris[1]->subtotal, 0.01);
+        // Grup A: 0,3+0,4 = 0,7; selisih 0,3 x 50.000 digulung ke baris TERBESAR (A2 = 0,4).
+        $this->assertEquals(15000.0, (float) $baris[0]->subtotal, 0.01);
+        $this->assertEquals(0, (int) $baris[0]->is_minimum_order);
+        $this->assertEquals(20000.0 + 0.3 * 50000, (float) $baris[1]->subtotal, 0.01);
         $this->assertEquals(1, (int) $baris[1]->is_minimum_order);
+        // Grup B: 0,2+0,3 = 0,5; selisih 0,5 x 60.000 digulung ke baris TERBESAR (B2 = 0,3).
+        $this->assertEquals(12000.0, (float) $baris[2]->subtotal, 0.01);
+        $this->assertEquals(0, (int) $baris[2]->is_minimum_order);
+        $this->assertEquals(18000.0 + 0.5 * 60000, (float) $baris[3]->subtotal, 0.01);
+        $this->assertEquals(1, (int) $baris[3]->is_minimum_order);
+        // Total = (1,0 x 50.000) + (1,0 x 60.000).
         $this->assertEquals(50000.0 + 60000.0, (float) DB::table('transaksi')->value('total_bayar'), 0.01);
     }
 
@@ -154,16 +165,24 @@ class MinimumLuasAkumulasiTest extends TestCase
         $this->assertEquals(25000.0 + 25000.0, (float) DB::table('transaksi')->value('total_bayar'), 0.01);
     }
 
-    /** Dua kelompok minimum berbeda dalam satu nota: selisih per kelompok, tidak saling menolong. */
+    /**
+     * Dua kelompok minimum berbeda dalam satu nota: selisih per kelompok,
+     * tidak saling menolong. Kelompok 1-item diblokir, jadi masing-masing
+     * kelompok diberi 2 item di bawah minimum.
+     */
     public function test_dua_kelompok_berbeda_tidak_saling_menolong(): void
     {
         $a = $this->makeProduk('Outdoor A', 'Group X', 1.0, 50000);
+        $a2 = $this->makeProduk('Outdoor A2', 'Group X', 1.0, 50000);
         $b = $this->makeProduk('Outdoor B', 'Group Y', 2.0, 50000);
-        $this->store([$this->item($a, 30, 100, 1, 50000), $this->item($b, 70, 100, 1, 50000)])->assertOk();
+        $b2 = $this->makeProduk('Outdoor B2', 'Group Y', 2.0, 50000);
+        // X: 0,3+0,4 = 0,7 < 1,0 -> selisih 0,3. Y: 0,7+0,6 = 1,3 < 2,0 -> selisih 0,7.
+        $this->store([$this->item($a, 30, 100, 1, 50000), $this->item($a2, 40, 100, 1, 50000), $this->item($b, 70, 100, 1, 50000), $this->item($b2, 60, 100, 1, 50000)])->assertOk();
         $baris = $this->barisNota();
-        // A (0,3, min 1,0): selisih 0,7. B (0,7, min 2,0): selisih 1,3.
-        $this->assertEquals(15000.0 + 0.7 * 50000, (float) $baris[0]->subtotal, 0.01);
-        $this->assertEquals(35000.0 + 1.3 * 50000, (float) $baris[1]->subtotal, 0.01);
+        $this->assertEquals(15000.0, (float) $baris[0]->subtotal, 0.01);
+        $this->assertEquals(20000.0 + 0.3 * 50000, (float) $baris[1]->subtotal, 0.01, 'A2 terbesar X membawa selisih X');
+        $this->assertEquals(35000.0 + 0.7 * 50000, (float) $baris[2]->subtotal, 0.01, 'B terbesar Y membawa selisih Y');
+        $this->assertEquals(30000.0, (float) $baris[3]->subtotal, 0.01);
         $this->assertEquals((1.0 + 2.0) * 50000, (float) DB::table('transaksi')->value('total_bayar'), 0.01);
     }
 

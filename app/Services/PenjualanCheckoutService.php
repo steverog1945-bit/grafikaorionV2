@@ -621,40 +621,6 @@ class PenjualanCheckoutService
         // Rincian finishing per item (boleh lebih dari satu).
         $this->tulisFinishingItem($id_detail, $item['finishing_list'] ?? []);
 
-        // Bukti koreksi otomatis panjang/lebar -> minimum order (keputusan
-        // owner 2026-11-14): ditulis sebagai event audit append-only, BUKAN
-        // teks catatan (catatan produksi milik manusia & bisa diedit).
-        // Kegagalan audit tidak boleh menggagalkan nota - jejak kosong lebih
-        // jujur daripada nota hilang.
-        if (!empty($item['koreksi_minimum']) && is_array($item['koreksi_minimum'])) {
-            try {
-                $k = $item['koreksi_minimum'];
-                $old = [];
-                $new = [];
-                $bagian = [];
-                if (isset($k['panjang'])) {
-                    $old['panjang'] = (float) $k['panjang']['input'];
-                    $new['panjang'] = (float) $k['panjang']['dipakai'];
-                    $bagian[] = 'panjang ' . $k['panjang']['input'] . '->' . $k['panjang']['dipakai'] . ' cm';
-                }
-                if (isset($k['lebar'])) {
-                    $old['lebar'] = (float) $k['lebar']['input'];
-                    $new['lebar'] = (float) $k['lebar']['dipakai'];
-                    $bagian[] = 'lebar ' . $k['lebar']['input'] . '->' . $k['lebar']['dipakai'] . ' cm';
-                }
-                \App\Services\AuditLogger::log(
-                    'koreksi_minimum',
-                    'transaksi_detail',
-                    (int) $id_detail,
-                    $old,
-                    $new,
-                    'Nota ' . mb_substr($referensiKartu, 0, 24) . ': dinaikkan otomatis ke minimum order (' . implode(', ', $bagian) . ')'
-                );
-            } catch (\Throwable) {
-                // advisory - lihat catatan di atas
-            }
-        }
-
         // BOM + tinta/toner mesin produk (lihat BomCalculationService::komponen).
         $hppItemIni = $this->pakaiBahanItem($item, $id_detail, $referensiKartu, $keteranganKartu, $jumlah_order);
 
@@ -864,21 +830,11 @@ class PenjualanCheckoutService
     // per produk unik, bukan per baris.
     $tarifAcuanCache = [];
 
-    // Keputusan owner 2026-11-14 ("rekonsiliasi minimum"):
-    //   Aturan produk minimum order "panjang x lebar" (input pertama =
-    //   panjang, kedua = lebar): KEDUANYA adalah LANTAI - input wajib
-    //   konsisten >= min_panjang dan >= min_lebar. Jika di bawah, angka
-    //   dinaikkan ke minimum (bukan ditolak), lihat Pass 0.
-    //   "Lebar x panjang" hanya dipakai untuk bahan baku (roll: lebar
-    //   gulungan x panjang meter) - tidak terkait dengan minimum produk.
-    //   Produk yang sama (id_produk + kategori_produk) muncul >= 2 baris
-    //   dalam satu nota: HITUNGAN MINIMUM TIDAK BERLAKU untuk baris-baris
-    //   produk itu (minimum eksis untuk mengamankan ekonomi satu kerjaan;
-    //   dua baris = dua pekerjaan atau order besar - minimum tidak lagi
-    //   bermakna).
-    // Pass 0: hitung (1) grup produk yang sama per (id_produk|kategori),
-    // (2) koreksi panjang/lebar yang harus dinaikkan ke minimum, SEBELUM
-    // pre-pass luas kelompok memakai angkanya.
+    // Keputusan owner 2026-11-15 (revisi): lantai dua dimensi (auto-naik
+    // ke minimum, keputusan owner 2026-11-14) DIGANTI dengan aturan:
+    // ukuran TIDAK pernah diubah otomatis; baris di bawah minimum produk
+    // DITOLAK saat simpan (lihat blok T4 di bawah) kecuali produk sama
+    // muncul >= 2 baris (eksempsi 2026-11-14 tetap berlaku).
     $grupProduk = [];
     foreach ($request->items as $iG => $itemG) {
         if (!empty($itemG['id_jasa'])) {
@@ -910,30 +866,6 @@ class PenjualanCheckoutService
             foreach ($idxsG as $iG) {
                 $minimumDitiadakan[$iG] = true;
             }
-        }
-    }
-    $koreksiMinimum = [];
-    foreach ($request->items as $indexKoreksi => $itemKoreksi) {
-        if (!empty($itemKoreksi['id_jasa']) || isset($minimumDitiadakan[$indexKoreksi])) {
-            continue;
-        }
-        $prC = $produkRows->get((int) ($itemKoreksi['id_produk'] ?? 0));
-        if (!$prC || $prC->metode_hitung !== 'ukuran') {
-            continue;
-        }
-        $minPC = (float) ($prC->min_panjang ?? 0);
-        $minLC = (float) ($prC->min_lebar ?? 0);
-        $pC = (float) ($itemKoreksi['p'] ?? 0);
-        $lC = (float) ($itemKoreksi['l'] ?? 0);
-        $koreksi = [];
-        if ($minPC > 0 && $pC > 0 && $pC < $minPC) {
-            $koreksi['panjang'] = ['input' => $pC, 'dipakai' => $minPC];
-        }
-        if ($minLC > 0 && $lC > 0 && $lC < $minLC) {
-            $koreksi['lebar'] = ['input' => $lC, 'dipakai' => $minLC];
-        }
-        if ($koreksi !== []) {
-            $koreksiMinimum[$indexKoreksi] = $koreksi;
         }
     }
     foreach ($request->items as $index => $item) {
@@ -984,15 +916,9 @@ class PenjualanCheckoutService
         $p = (float) ($item['p'] ?? 0);
         $l = (float) ($item['l'] ?? 0);
         $qtyInput = (float) ($item['qty_input'] ?? 0);
-        // Rekonsiliasi minimum 2026-11-14: panjang DAN lebar adalah LANTAI
-        // (>= min_panjang, >= min_lebar); kekurangan dinaikkan Pass 0.
-        $koreksi = $koreksiMinimum[$index] ?? null;
-        if (isset($koreksi['panjang'])) {
-            $p = (float) $koreksi['panjang']['dipakai'];
-        }
-        if (isset($koreksi['lebar'])) {
-            $l = (float) $koreksi['lebar']['dipakai'];
-        }
+        // Ukuran TIDAK pernah diubah otomatis (keputusan owner 2026-11-15,
+        // menggantikan Pass 0 lantai 2026-11-14): baris di bawah minimum
+        // produk DITOLAK di blok validasi T4 di bawah.
 
         // Produk yang sama muncul >= 2 baris di nota ini: hitungan minimum
         // tidak berlaku (keputusan owner 2026-11-14).
@@ -1012,14 +938,15 @@ class PenjualanCheckoutService
             $minL = $isUkuran ? (float) ($produk->min_lebar ?? 0) : 0;
 
             if ($isUkuran) {
-                // Semua baris di bawah lantarin (p/l/qty) sudah dinaikkan Pass 0.
-                // Safety net: bila masih ada yang di bawah (input <= 0 baru bisa
-                // terjadi), tolak - jangan pernah menyimpan di bawah minimum.
+                // Keputusan owner 2026-11-15: ukuran di bawah minimum produk
+                // DITOLAK (bukan dinaikkan otomatis). Baris yang sama muncul
+                // >= 2 baris (eksempsi) atau baris lama tak berubah bebas dari
+                // validasi ini.
                 if ($minP > 0 && $p < $minP) {
-                    throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': panjang ' . $p . ' cm di bawah minimum (' . $minP . ' cm).');
+                    throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': panjang ' . $p . ' cm di bawah minimum (' . $minP . ' cm). Ubah ukuran ke minimum atau tambah item lain sekelompok.');
                 }
                 if ($minL > 0 && $l < $minL) {
-                    throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': lebar ' . $l . ' cm di bawah minimum (' . $minL . ' cm).');
+                    throw new \App\Exceptions\ValidasiNotaException('Baris ' . ($index + 1) . ': lebar ' . $l . ' cm di bawah minimum (' . $minL . ' cm). Ubah ukuran ke minimum atau tambah item lain sekelompok.');
                 }
             } else {
                 $minQty = (float) ($produk->min_order ?? 0);
@@ -1365,9 +1292,6 @@ class PenjualanCheckoutService
             'l' => $l,
             'qty_input' => $qtyInput,
             'qty_hitung' => $qtyHitung,
-            // Bukti koreksi otomatis panjang (C1): dinaikkan ke minimum order,
-            // ditulis oleh tulisItemProduk sebagai event audit 'koreksi_minimum'.
-            'koreksi_minimum' => $koreksiMinimum[$index] ?? null,
             'id_finishing' => $idFinishing,
             'finishing_list' => $daftarFinishing,
             'biaya_finishing' => $biayaFinishing,
@@ -1407,6 +1331,12 @@ class PenjualanCheckoutService
         $selisih = $r['selisih'];
         if ($selisih <= 0) {
             continue;
+        }
+        // Keputusan owner 2026-11-15: kelompok minimum yang hanya berisi SATU
+        // item TETAP di bawah minimum TIDAK BISA DISIMPAN. Kelompok dengan
+        // >=2 item boleh disimpan (selisih tetap ditagih ke baris terbesar).
+        if (count($minLuasGroups[$kunci]['items']) === 1) {
+            throw new \App\Exceptions\ValidasiNotaException('Minimum order belum terpenuhi untuk kelompok "' . $kelompok . '": ' . rtrim(rtrim(number_format($selisih, 2, '.', ''), '0'), '.') . ' m2 lagi. Ubah ukuran item ini ke minimum order atau tambah item lain sekelompok.');
         }
         // Tarif diambil dari produk dengan luas aktual terbesar di kelompok, di tier qty = selisih.
         $idProdukHarga = $minLuasGroups[$kunci]['produkTerbesar'];
@@ -1597,6 +1527,13 @@ class PenjualanCheckoutService
             }
             $totalAktual = round($totalAktual, 4);
             $selisih = \App\Support\MinimumLuas::selisih($totalAktual, $minLuas);
+
+            // Keputusan owner 2026-11-15: kelompok yang hanya berisi SATU item
+            // TETAP di bawah minimum TIDAK BISA DISIMPAN. Kelompok >=2 item
+            // boleh disimpan (selisih tetap ditagih ke baris terbesar).
+            if (count($g['items']) === 1 && $selisih > 0) {
+                throw new \App\Exceptions\ValidasiNotaException('Minimum order belum terpenuhi untuk kelompok "' . $label . '": ' . rtrim(rtrim(number_format($selisih, 2, '.', ''), '0'), '.') . ' m2 lagi. Tambah item lain sekelompok atau ubah ukuran item yang ditambahkan ke minimum order.');
+            }
 
             // 1) CABUT surcharge lama dari SEMUA baris lama kelompok ini
             //    (termasuk yang dulu carrier): biaya_minimum kolomnya eksak.

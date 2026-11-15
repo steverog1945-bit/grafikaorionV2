@@ -184,31 +184,35 @@ class MinimumLuasRekonsiliasiTest extends TestCase
     }
 
     /**
-     * Nota: A 0,3 (surcharge 0,7 -> 35.000). Susulan: C 0,1 -> gabungan 0,4
-     * < 1,0. Selisih dihitung GABUNGAN (0,6, bukan 0,9 dari item baru saja),
-     * surcharge segar 30.000 jatuh ke baris terbesar GABUNGAN (A, baris lama).
-     * Total = 1,0 x 50.000 = 50.000.
+     * Nota: A 0,3 + B 0,4 (B membawa selisih 0,3 -> 15.000). Susulan:
+     * C 0,1 -> gabungan 0,8 masih < 1,0. Selisih dihitung GABUNGAN (0,2,
+     * bukan 0,9 dari item baru saja), dan digulung ke baris terbesar
+     * GABUNGAN (B, baris lama). Total tetap di minimum kelompok = 50.000.
      */
-    public function test_susulan_belum_cukup_surcharge_dialihkan_ke_baris_lama_terbesar(): void
+    public function test_susulan_belum_cukup_selisih_dialihkan_ke_baris_lama_terbesar(): void
     {
         $a = $this->makeProduk('Outdoor A', 'Group X', 1.0);
+        $b = $this->makeProduk('Outdoor B', 'Group X', 1.0);
         $c = $this->makeProduk('Outdoor C', 'Group X', 1.0);
-        $this->buatNota([$this->item($a, 30, 100)]);
+        $this->buatNota([$this->item($a, 30, 100), $this->item($b, 40, 100)]);
         $this->assertEquals(50000.0, $this->totalNota(), 0.01, 'nota awal ditagih minimum 1,0');
 
         $this->susulan([$this->item($c, 10, 100)])->assertOk();
 
         $baris = $this->barisNota();
-        // A: surcharge lama 35.000 dicabut, surcharge segar 0,6 x 50.000 = 30.000.
-        $this->assertEquals(45000.0, (float) $baris[0]->biaya_cetak, 0.01, '15.000 aktual + 30.000 surcharge segar');
-        $this->assertEquals(30000.0, (float) $baris[0]->biaya_minimum, 0.01);
-        $this->assertEquals(1, (int) $baris[0]->is_minimum_order);
-        $this->assertStringContainsString('selisih 0.6 m', (string) $baris[0]->catatan_produksi);
-        $this->assertStringNotContainsString('selisih 0.7 m', (string) $baris[0]->catatan_produksi, 'fragmen surcharge lama tidak menumpuk');
+        // A: aktual, tanpa surcharge.
+        $this->assertEquals(15000.0, (float) $baris[0]->biaya_cetak, 0.01);
+        $this->assertEquals(0.0, (float) $baris[0]->biaya_minimum, 0.01);
+        // B: surcharge lama 15.000 dicabut, surcharge segar 0,2 x 50.000 = 10.000.
+        $this->assertEquals(30000.0, (float) $baris[1]->biaya_cetak, 0.01, '20.000 aktual + 10.000 surcharge segar');
+        $this->assertEquals(10000.0, (float) $baris[1]->biaya_minimum, 0.01);
+        $this->assertEquals(1, (int) $baris[1]->is_minimum_order);
+        $this->assertStringContainsString('selisih 0.2 m', (string) $baris[1]->catatan_produksi);
+        $this->assertStringNotContainsString('selisih 0.3 m', (string) $baris[1]->catatan_produksi, 'fragmen surcharge lama tidak menumpuk');
         // C: aktual murni.
-        $this->assertEquals(5000.0, (float) $baris[1]->biaya_cetak, 0.01);
-        $this->assertEquals(0.0, (float) $baris[1]->biaya_minimum, 0.01);
-        $this->assertEquals(50000.0, $this->totalNota(), 0.01, 'total = minimum kelompok 1,0');
+        $this->assertEquals(5000.0, (float) $baris[2]->biaya_cetak, 0.01);
+        $this->assertEquals(0.0, (float) $baris[2]->biaya_minimum, 0.01);
+        $this->assertEquals(50000.0, $this->totalNota(), 0.01, 'total = minimum kelompok 1,0 (0,8 x 50.000 + 0,2 x 50.000)');
         $this->assertJurnalSinkron();
     }
 
@@ -220,20 +224,33 @@ class MinimumLuasRekonsiliasiTest extends TestCase
     public function test_susulan_produk_sama_jadi_dua_baris_minimum_ditiadakan(): void
     {
         $a = $this->makeProduk('Outdoor A', 'Group X', 1.0);
-        $this->buatNota([$this->item($a, 30, 100)]);
+        $b = $this->makeProduk('Outdoor B', 'Group X', 1.0);
+        $c = $this->makeProduk('Outdoor C', 'Group X', 1.0);
+        $this->buatNota([$this->item($a, 30, 100), $this->item($b, 40, 100)]);
         $this->assertEquals(50000.0, $this->totalNota(), 0.01);
 
-        $this->susulan([$this->item($a, 20, 100)])->assertOk();
+        // Susulan: produk A (produk sama, jadi baris ke-2 -> minimum ditiadakan untuk A)
+        // + satu produk BARU sekelompok (C) supaya kelompok >=2 item: A dan C
+        // B membawa selisih segar gabungan {B,C} (0,5); A bebas minimum.
+        $this->susulan([$this->item($a, 20, 100), $this->item($c, 10, 100)])->assertOk();
 
         $baris = $this->barisNota();
-        $this->assertCount(2, $baris);
-        foreach ($baris as $r) {
-            $this->assertEquals(0, (int) $r->is_minimum_order);
-            $this->assertEquals(0.0, (float) $r->biaya_minimum, 0.01);
-        }
+        $this->assertCount(4, $baris);
+        // A lama dan A susulan: minimum ditiadakan - luas aktual murni.
         $this->assertEquals(15000.0, (float) $baris[0]->biaya_cetak, 0.01);
-        $this->assertEquals(10000.0, (float) $baris[1]->biaya_cetak, 0.01);
-        $this->assertEquals(25000.0, $this->totalNota(), 0.01, 'total = 0,5 m2 aktual (tanpa minimum)');
+        $this->assertEquals(0.0, (float) $baris[0]->biaya_minimum, 0.01);
+        $this->assertEquals(10000.0, (float) $baris[2]->biaya_cetak, 0.01);
+        $this->assertEquals(0.0, (float) $baris[2]->biaya_minimum, 0.01);
+        $this->assertEquals(0, (int) $baris[2]->is_minimum_order);
+        // B: surcharge lama dicabut, surcharge segar 0,5 x 50.000 = 25.000 (grup {B,C} = 0,5).
+        $this->assertEquals(45000.0, (float) $baris[1]->biaya_cetak, 0.01);
+        $this->assertEquals(25000.0, (float) $baris[1]->biaya_minimum, 0.01);
+        $this->assertEquals(1, (int) $baris[1]->is_minimum_order);
+        $this->assertStringContainsString('selisih 0.5 m', (string) $baris[1]->catatan_produksi);
+        // C: aktual murni.
+        $this->assertEquals(5000.0, (float) $baris[3]->biaya_cetak, 0.01);
+        $this->assertEquals(0.0, (float) $baris[3]->biaya_minimum, 0.01);
+        $this->assertEquals(75000.0, $this->totalNota(), 0.01, 'total = 0,3+0,2+0,4+0,1 + selisih 0,5');
         $this->assertJurnalSinkron();
     }
 
@@ -301,27 +318,35 @@ class MinimumLuasRekonsiliasiTest extends TestCase
     }
 
     /**
-     * EDIT: ukuran baris diubah jadi cukup sendiri -> surcharge lama dicabut
-     * dari baris lama, dan TIDAK muncul di baris yang diubah (client kirim
-     * harga segar aktual).
+     * EDIT: ukuran baris diubah 0,3 -> 1,0 m2 (kelompok jadi cukup tanpa selisih);
+     * surcharge lama dicabut dari baris lama, tidak muncul di baris yang diubah.
+     * Awal nota berisi 2 item sekelompok (1-item selain minimal ditolak).
      */
     public function test_edit_ukuran_menaikkan_kelompok_surcharge_dicabut(): void
     {
         $a = $this->makeProduk('Outdoor A', 'Group X', 1.0);
-        $this->buatNota([$this->item($a, 30, 100)]);
+        $b = $this->makeProduk('Outdoor B', 'Group X', 1.0);
+        $this->buatNota([$this->item($a, 30, 100), $this->item($b, 40, 100)]);
         $this->assertEquals(50000.0, $this->totalNota(), 0.01);
 
         $lama = $this->barisNota();
-        // Ukuran diubah 0,3 -> 1,0 m2: biaya cetak aktual 50.000 (client segar),
+        // Ukuran A diubah 0,3 -> 1,0 m2: biaya cetak aktual 50.000 (client segar),
         // catatan di layar masih membawa fragmen lama.
-        $items = [$this->barisEdit($lama[0], 50000.0, [100, 100])];
+        $items = [
+            $this->barisEdit($lama[0], 50000.0, [100, 100]),
+            $this->barisEdit($lama[1], (float) $lama[1]->biaya_cetak),
+        ];
         $this->postJson("/penjualan/{$this->idNota}/update-item", ['items' => $items])->assertOk();
 
         $baris = $this->barisNota();
         $this->assertEquals(50000.0, (float) $baris[0]->biaya_cetak, 0.01);
         $this->assertEquals(0.0, (float) $baris[0]->biaya_minimum, 0.01);
         $this->assertEquals(0, (int) $baris[0]->is_minimum_order);
-        $this->assertEquals(50000.0, $this->totalNota(), 0.01);
+        // B: surcharge lama dicabut - kembali ke luas aktual 0,4 m2.
+        $this->assertEquals(20000.0, (float) $baris[1]->biaya_cetak, 0.01);
+        $this->assertEquals(0.0, (float) $baris[1]->biaya_minimum, 0.01);
+        $this->assertEquals(0, (int) $baris[1]->is_minimum_order);
+        $this->assertEquals(70000.0, $this->totalNota(), 0.01, 'total = 1,4 m2 aktual');
         $this->assertJurnalSinkron();
     }
 

@@ -1806,32 +1806,6 @@ let currentThumbnailPreview = null;
         }
         return (parseFloat(prod.min_order) > 0);
     }
-    function showToastMin(msg) {
-        let t = document.getElementById('toast_min_order');
-        if (!t) {
-            t = document.createElement('div');
-            t.id = 'toast_min_order';
-            t.className = 'fixed bottom-24 left-1/2 z-50 -translate-x-1/2 bg-slate-900 text-white text-[12px] font-medium rounded-xl shadow-lg px-4 py-2.5 max-w-xs text-center';
-            t.style.transition = 'opacity .25s ease';
-            document.body.appendChild(t);
-        }
-        t.textContent = msg;
-        t.style.opacity = '1';
-        window.clearTimeout(window.__toastMinTimer || 0);
-        window.__toastMinTimer = setTimeout(function () { t.style.opacity = '0'; }, 3200);
-    }
-    function naikkanKeMinimum(input, minVal, label) {
-        if (!produkMinimumAktif(currentProduk) || minBarisProdukSama() >= 1) return;
-        const v = parseFloat(input.value);
-        if (minVal > 0 && v > 0 && v < minVal) {
-            input.value = String(minVal);
-            showToastMin(label + ' dinaikkan ke minimum order (' + minVal + ').');
-            hitungSubtotal();
-        }
-    }
-    // Minimum QTY TIDAK auto-naik: menaikkan 3 -> 10 berarti mengubah pesanan
-    // pelanggan tanpa persetujuan. Hanya diperingatkan di box min_order_warning;
-    // server menolak qty di bawah minimum.
     // Perbarui catatan ukuran (minimum order) di bawah field ukuran.
     function terapkanMinimumOrder() {
         const teks = document.getElementById('note_ukuran_teks');
@@ -1847,15 +1821,9 @@ let currentThumbnailPreview = null;
             ? ' Produk sama muncul di keranjang >= 2 baris: minimum tidak berlaku.'
             : '';
         teks.textContent = currentProduk.metode_hitung === 'ukuran'
-            ? 'Ukuran untuk menghitung harga. Gunakan ukuran file asli. Minimum order: ' + p + ' x ' + l + ' cm (panjang x lebar); input di bawah minimum dinaikkan otomatis.' + ganda
-            : 'Minimum order: ' + q + ' pcs; qty di bawah minimum dinaikkan otomatis.' + ganda;
+            ? 'Ukuran untuk menghitung harga. Gunakan ukuran file asli. Minimum order: ' + p + ' x ' + l + ' cm (panjang x lebar); input di bawah minimum diblokir saat simpan.' + ganda
+            : 'Minimum order: ' + q + ' pcs; qty di bawah minimum diblokir saat simpan.' + ganda;
     }
-    document.getElementById('input_p').addEventListener('change', function () {
-        naikkanKeMinimum(this, parseFloat(currentProduk && currentProduk.min_panjang) || 0, 'Panjang');
-    });
-    document.getElementById('input_l').addEventListener('change', function () {
-        naikkanKeMinimum(this, parseFloat(currentProduk && currentProduk.min_lebar) || 0, 'Lebar');
-    });
 
     // ===== Minimum Order kelompok: rincian + peringatan (spec owner 2026-11-15) =====
     // Akumulasi luas per kelompok minimum di keranjang (ukuran + min_luas_total
@@ -1882,24 +1850,30 @@ let currentThumbnailPreview = null;
         });
     }
 
-    // Peringatan SweetAlert NON-BLOCKING: total luas kelompok masih di bawah
-    // minimum order. Dipanggil setelah item ditambah/diubah/dihapus; tidak
-    // pernah menahan penyimpanan, dan tidak diulang selama angkanya tidak
-    // berubah (dedup via signature). Ketika minimum terpenuhi, tidak ada
-    // popup dan signature direset supaya pelanggaran berikutnya tetap tajam.
+    // Peringatan SweetAlert INFORMATIF (pemilian non-blocking): total luas
+    // kelompok masih di bawah minimum order. Dipanggil setelah item ditambah/
+    // diubah/dihapus; tidak diulang selama angkanya tidak berubah (dedup via
+    // signature). Peringatan ini TIDAK menyimpan apa-apa; penolakan terjadi
+    // saat KLIK SIMPAN (hard block) -lihat hard block di simpanTransaksi().
+    // Untuk kelompok dengan >=2 item, simpan TETAP boleh dan selisih ditagih.
     let __sigPeringatanMinOrder = '';
     function peringatanKelompokMinOrder() {
         const kurang = grupMinKeranjang().filter((g) => g.selisih > 0);
         if (!kurang.length) { __sigPeringatanMinOrder = ''; return; }
         const g = kurang[0];
+        const jumlahItem = cart.filter((it) => {
+            if (it.metode_hitung !== 'ukuran') return false;
+            if (!(parseFloat(it.min_luas_total) > 0)) return false;
+            return (it.kelompok_minimum || String(it.id_produk)) === g.label;
+        }).length;
         const sig = g.label + '|' + g.total + '|' + g.min;
         if (sig === __sigPeringatanMinOrder) return;
         __sigPeringatanMinOrder = sig;
         Swal.fire({
             icon: 'warning',
             title: 'Minimum Order Belum Terpenuhi',
-            html: `Total luas pesanan saat ini adalah <b>${angkaId(g.total, 2)} m&sup2;</b>, sedangkan minimum order adalah <b>${angkaId(g.min, 2)} m&sup2;</b>. Kekurangan luas sebesar <b>${angkaId(g.selisih, 2)} m&sup2;</b>. Sistem akan menghitung harga berdasarkan minimum order.`,
-            confirmButtonText: 'Lanjutkan'
+            html: `Total luas pesanan saat ini adalah <b>${angkaId(g.total, 2)} m&sup2;</b>, sedangkan minimum order adalah <b>${angkaId(g.min, 2)} m&sup2;</b>. Kekurangan <b>${angkaId(g.selisih, 2)} m&sup2;</b>.${jumlahItem <= 1 ? ' <b>Simpan diblokir</b> sampai minimum terpenuhi (1 item saja).' : ' Selisih akan ditagih ke baris terbesar kelompok saat simpan (pengali).'} `,
+            confirmButtonText: 'Mengerti'
         });
     }
 
@@ -3210,24 +3184,12 @@ let peringatanMinDaftar = 0;
 
         if (!idKonsumen) return Swal.fire('Data belum lengkap', 'Pilih pelanggan dulu', 'error');
         if (!currentProduk) return Swal.fire('Data belum lengkap', 'Pilih produk dulu.', 'warning');
-        // Rekonsiliasi minimum (owner 2026-11-14/15): ukuran di bawah
-        // minimum produk TIDAK lagi ditolak di sini - dinaikkan otomatis ke
-        // minimum (sama dengan Pass 0 di server), KECUALI produk sama sudah
-        // muncul >= 2 baris di keranjang (eksempsi: hitungan minimum tidak
-        // berlaku). Minimum QTY (pcs) tetap ditolak: menaikkan qty =
-        // mengubah pesanan pelanggan, dan server pun menolaknya.
-        if (currentProduk.metode_hitung === 'ukuran') {
-            if (minBarisProdukSama() === 0) {
-                const minP = parseFloat(currentProduk.min_panjang) || 0;
-                const minL = parseFloat(currentProduk.min_lebar) || 0;
-                const naikMin = (el, min) => {
-                    const v = parseFloat(el.value) || 0;
-                    if (min > 0 && v > 0 && v < min) el.value = String(min);
-                };
-                naikMin(document.getElementById('input_p'), minP);
-                naikMin(document.getElementById('input_l'), minL);
-            }
-        } else {
+        // Rekonsiliasi minimum (owner 2026-11-15, revisi): ukuran di bawah
+        // minimum produk TIDAK dinaikkan otomatis di sini - input disimpan
+        // apa adanya; penolakan terjadi saat SIMPAN (hard block di bawah),
+        // kecuali produk sama sudah muncul >= 2 baris (eksempsi: hitungan
+        // minimum tidak berlaku). Minimum QTY (pcs) tetap ditolak saat tambah.
+        if (currentProduk.metode_hitung !== 'ukuran') {
             const minQty = parseFloat(currentProduk.min_order) || 0;
             const qB = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
             if (minQty > 0 && qB > 0 && qB < minQty) {
@@ -3354,6 +3316,10 @@ let peringatanMinDaftar = 0;
             subtotal: res.subtotal,
             id_kategori: $('#filter_kategori').val(),
             min_order: currentProduk.min_order,
+            // Dimensi minimum produk (untuk hard block saat simpan) - dikirim
+            // sebagai-is; server tetap otoritatif.
+            min_panjang: parseFloat(currentProduk.min_panjang) || 0,
+            min_lebar: parseFloat(currentProduk.min_lebar) || 0,
             metode_hitung: currentProduk.metode_hitung,
             min_luas_total: parseFloat(currentProduk.min_luas_total) || 0,
             kelompok_minimum: currentProduk.kelompok_minimum || null,
@@ -4008,6 +3974,42 @@ let peringatanMinDaftar = 0;
             }
         }
         if (cart.length === 0) return Swal.fire('Keranjang Kosong', 'Pilih produk dulu.', 'error');
+        // HARD BLOCK (keputusan owner 2026-11-15): minimum order bukan
+        // diselesaikan dengan menaikkan angka otomatis - operator yang
+        // memperbaiki sendiri / menambah item lain sekelompok. Baris
+        // BARU (id_detail null) saja yang dihitung; baris lama (mode edit)
+        // dibebaskan - server tetap otoritatif.
+        const minBarisProdukSamaUntuk = (it) => cart.filter((r) =>
+            String(r.id_produk) === String(it.id_produk) &&
+            String(r.kategori_produk ?? '0') === String(it.kategori_produk ?? '0')
+        ).length;
+        const pelanggaran = [];
+        for (let i = 0; i < cart.length; i++) {
+            const it = cart[i];
+            if (it.id_detail) continue; // baris nota lama: server yang menentukan
+            if (it.is_jasa || it.metode_hitung !== 'ukuran') continue;
+            if (minBarisProdukSamaUntuk(it) >= 2) continue; // eksempsi produk sama
+            const p = parseFloat(it.p) || 0, l = parseFloat(it.l) || 0, qty = parseFloat(it.qty_input) || 1;
+            const luas = (p * l / 10000) * qty;
+            const mP = parseFloat(it.min_panjang) || 0, mL = parseFloat(it.min_lebar) || 0;
+            if (mP > 0 && p > 0 && p < mP) pelanggaran.push(`Baris ${i + 1} (${it.nama_produk || it.id_produk}): panjang ${p} cm di bawah minimum (${mP} cm). Ubah ke minimum order atau tambah item lain sekelompok.`);
+            if (mL > 0 && l > 0 && l < mL) pelanggaran.push(`Baris ${i + 1} (${it.nama_produk || it.id_produk}): lebar ${l} cm di bawah minimum (${mL} cm). Ubah ke minimum order atau tambah item lain sekelompok.`);
+            const mLuas = parseFloat(it.min_luas_total) || 0;
+            if (!(mLuas > 0)) continue;
+            const label = it.kelompok_minimum || String(it.id_produk);
+            const sekelompok = cart.filter((r) => {
+                if (r.is_jasa || r.metode_hitung !== 'ukuran') return false;
+                if (!(parseFloat(r.min_luas_total) > 0)) return false;
+                return (r.kelompok_minimum || String(r.id_produk)) === label;
+            });
+            const total = sekelompok.reduce((s, r) => s + ((parseFloat(r.p) || 0) * (parseFloat(r.l) || 0) / 10000) * (parseFloat(r.qty_input) || 1), 0);
+            if (sekelompok.length === 1 && total < mLuas) {
+                pelanggaran.push(`Minimum order kelompok "${label}" belum terpenuhi (${total.toFixed(2)} m&sup2; dari ${mLuas} m&sup2;). Tambah item lain sekelompok atau ubah ukuran item ini ke minimum order.`);
+            }
+        }
+        if (pelanggaran.length) {
+            return Swal.fire({ icon: 'error', title: 'Minimum order belum terpenuhi', html: pelanggaran.map((x) => `<p class="text-left text-sm mb-1">• ${x}</p>`).join('') });
+        }
         // Cegah simpan nota jika ada item pcs di bawah minimum order.
         const itemMinPcs = cart.find(it => it.metode_hitung !== 'ukuran' && (parseFloat(it.min_order) || 0) > 0 && (parseFloat(it.qty_input) || 0) < (parseFloat(it.min_order) || 0));
         if (itemMinPcs) {
