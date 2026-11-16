@@ -32,7 +32,7 @@ class DashboardController extends Controller
             ->where('id_user_kasir', $user->id_user)
             ->where('status_pembayaran', '!=', 'Lunas')
             ->where('status_nota', '!=', 'Dibatalkan')
-            ->selectRaw('COALESCE(SUM(GREATEST(0, total_bayar - COALESCE((SELECT SUM(pr.nominal) FROM pembayaran_riwayat pr WHERE pr.id_transaksi = transaksi.id_transaksi), 0))), 0) as total, COUNT(*) as jumlah')
+            ->selectRaw('COALESCE(SUM(GREATEST(0, total_bayar - COALESCE((SELECT SUM(pr.nominal) FROM pembayaran_riwayat pr WHERE pr.id_transaksi = transaksi.id_transaksi AND pr.voided_at IS NULL), 0))), 0) as total, COUNT(*) as jumlah')
             ->first();
 
         $orderHariIni = DB::table('transaksi')

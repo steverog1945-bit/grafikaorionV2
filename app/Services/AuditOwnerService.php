@@ -46,9 +46,9 @@ class AuditOwnerService
         $batal = (clone $nota)->where('status_nota', 'Dibatalkan');
 
         // Pembayaran dari saldo deposit bukan uang baru (uangnya sudah masuk saat setoran), jadi dipisah dari kas masuk.
-        $kasMasuk = DB::table('pembayaran_riwayat')->whereTanggalAntara('tgl_bayar', $tgl)->where('metode', '!=', 'Deposit')
+        $kasMasuk = DB::table('pembayaran_riwayat')->whereTanggalAntara('tgl_bayar', $tgl)->where('metode', '!=', 'Deposit')->whereNull('voided_at')
             ->selectRaw('metode, COUNT(*) jumlah, SUM(nominal) total')->groupBy('metode')->orderBy('metode')->get();
-        $pemakaianDeposit = (float) DB::table('pembayaran_riwayat')->whereTanggalAntara('tgl_bayar', $tgl)->where('metode', 'Deposit')->sum('nominal');
+        $pemakaianDeposit = (float) DB::table('pembayaran_riwayat')->whereTanggalAntara('tgl_bayar', $tgl)->where('metode', 'Deposit')->whereNull('voided_at')->sum('nominal');
         $setoranDeposit = (float) DB::table('konsumen_deposit')->where('tipe', 'Setoran')->whereIn('metode_bayar', ['Tunai', 'Transfer'])
             ->whereBetween('tgl_deposit', $tgl)->sum('nominal');
 

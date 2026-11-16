@@ -43,7 +43,7 @@ class KasirController extends Controller
             // badge memakai status turunan, kasir bisa memfilter "Belum
             // Lunas" lalu bertemu nota yang badge-nya justru "LUNAS".
             ->leftJoin(
-                DB::raw('(SELECT id_transaksi, SUM(nominal) AS jml_terbayar FROM pembayaran_riwayat GROUP BY id_transaksi) pr'),
+                DB::raw('(SELECT id_transaksi, SUM(nominal) AS jml_terbayar FROM pembayaran_riwayat WHERE voided_at IS NULL GROUP BY id_transaksi) pr'),
                 'pr.id_transaksi', '=', 'transaksi.id_transaksi'
             )
             ->select(
@@ -226,7 +226,7 @@ class KasirController extends Controller
                 : (float) $item->qty;
         }
 
-        $totalTerbayar = (float) (DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0);
+        $totalTerbayar = (float) (DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->whereNull('voided_at')->sum('nominal') ?? 0);
         $sisaTagihan = $transaksi->total_bayar - $totalTerbayar;
 
         // Rincian "uang yang benar-benar sudah diterima" - dipakai untuk
@@ -237,6 +237,7 @@ class KasirController extends Controller
         // metode yang mana tidak bisa ditampilkan.
         $penerimaan = DB::table('pembayaran_riwayat')
             ->where('id_transaksi', $id)
+            ->whereNull('voided_at')
             ->orderBy('tgl_bayar')
             ->orderBy('id_pembayaran')
             ->select('nominal', 'metode', 'tgl_bayar', 'kembalian')
@@ -579,7 +580,7 @@ class KasirController extends Controller
 
             // Diskon/potongan/biaya item tidak boleh menurunkan total di bawah uang yang sudah diterima: piutang nota
             // menjadi minus dan kelebihannya menggantung tanpa kembalian maupun deposit.
-            $sudahDiterima = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id_transaksi)->sum('nominal');
+            $sudahDiterima = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id_transaksi)->whereNull('voided_at')->sum('nominal');
             if ($grandTotalFinal < $sudahDiterima - 0.01) {
                 throw new \Exception('Total nota baru (Rp ' . number_format($grandTotalFinal, 0, ',', '.') . ') lebih kecil dari uang yang sudah diterima (Rp '
                     . number_format($sudahDiterima, 0, ',', '.') . '). Kurangi diskon/potongan, atau batalkan pembayarannya dulu lewat void.');
@@ -606,7 +607,7 @@ class KasirController extends Controller
             // sisa tagihan yang masih ada (potongan/diskon boleh menurunkan
             // sisa tagihan; yang dicek adalah hasil akhirnya).
             if ($uangDiterimaSekarang > 0) {
-                $totalBayarLama = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id_transaksi)->sum('nominal');
+                $totalBayarLama = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id_transaksi)->whereNull('voided_at')->sum('nominal');
                 $sisaTagihan = $grandTotalFinal - $totalBayarLama;
                 if ($uangDiterimaSekarang - $sisaTagihan > 0.01) {
                     // Uang tunai yang diserahkan boleh lebih besar dari tagihan: selisihnya kembalian, bukan
@@ -679,6 +680,16 @@ class KasirController extends Controller
                     DB::table('kas_harian')->where('id_kas', $kas->id_kas)->lockForUpdate()->first();
                 }
 
+                // Referensi jurnal dihitung SEBELUM insert supaya
+                // no_referensi_jurnal tersimpan di baris pembayaran ini -
+                // koreksi metode (KoreksiPembayaranService) butuh penunjuk
+                // PASTI ke kelompok jurnal milik baris yang di-void.
+                // Deposit tidak ikut: koreksinya ditolak otomatis, dan
+                // referensinya dihitung di dalam postPembayaranDeposit.
+                $noReferensiJurnal = $metode !== 'Deposit'
+                    ? AccountingService::referensiPembayaran($nomorNota)
+                    : null;
+
                 $idBayarRiwayat = DB::table('pembayaran_riwayat')->insertGetId([
                     'id_transaksi' => $id_transaksi,
                     'nominal'      => $uangDiterimaSekarang,
@@ -686,6 +697,8 @@ class KasirController extends Controller
                     'id_bank'      => $idBank,
                     'tgl_bayar'    => now(),
                     'keterangan'   => "Pembayaran via Kasir",
+                    'no_referensi_jurnal' => $noReferensiJurnal,
+                    'id_kas'       => $kas->id_kas,
                     // Catatan serah uang untuk nota: yang diserahkan pelanggan dan kembaliannya.
                     'uang_diterima' => round($uangDiterimaSekarang + $kembalian, 2),
                     'kembalian'    => $kembalian,
@@ -715,7 +728,7 @@ class KasirController extends Controller
                 if ($metode === 'Deposit') {
                     AccountingService::postPembayaranDeposit($nomorNota, $uangDiterimaSekarang);
                 } else {
-                    AccountingService::postPembayaran($nomorNota, $uangDiterimaSekarang, $metode);
+                    AccountingService::postPembayaran($nomorNota, $uangDiterimaSekarang, $metode, $noReferensiJurnal);
                 }
             }
 
@@ -731,7 +744,7 @@ class KasirController extends Controller
             // kalau belum ada uang masuk sama sekali, tetap "Belum Bayar"
             // (sekarang aman ditinggal di status ini - Monitoring Kasir
             // sudah menampilkan & bisa memfilter Belum Bayar juga).
-            $totalTerbayarSemua = DB::table('pembayaran_riwayat')->where('id_transaksi', $id_transaksi)->sum('nominal') ?? 0;
+            $totalTerbayarSemua = DB::table('pembayaran_riwayat')->where('id_transaksi', $id_transaksi)->whereNull('voided_at')->sum('nominal') ?? 0;
 
             if ($totalTerbayarSemua >= $grandTotalFinal && $grandTotalFinal > 0) {
                 $status = 'Lunas';
@@ -853,14 +866,18 @@ class KasirController extends Controller
             ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
             ->leftJoin('bank_perusahaan', 'pembayaran_riwayat.id_bank', '=', 'bank_perusahaan.id_bank')
             ->leftJoin(
-                DB::raw('(SELECT id_transaksi, SUM(nominal) AS jml_terbayar FROM pembayaran_riwayat GROUP BY id_transaksi) pr'),
+                DB::raw('(SELECT id_transaksi, SUM(nominal) AS jml_terbayar FROM pembayaran_riwayat WHERE voided_at IS NULL GROUP BY id_transaksi) pr'),
                 'pr.id_transaksi', '=', 'transaksi.id_transaksi'
             )
+            // Baris hasil koreksi metode (void) tidak lagi pembayaran sah -
+            // penggantinya tampil sebagai baris tersendiri dengan keterangan
+            // "Koreksi metode (...)", jadi jangan dobel di rekap ini.
+            ->whereNull('pembayaran_riwayat.voided_at')
             ->where('pembayaran_riwayat.tgl_bayar', '>=', $mulaiSesi)
             // Status turunan, bukan kolom salinan - supaya badge di daftar
             // mutasi dan badge di Monitoring Kasir tidak pernah berbeda untuk
             // nota yang sama.
-            ->select('pembayaran_riwayat.*', 'transaksi.nomor_nota', 'konsumen.nama_konsumen', 'bank_perusahaan.nama_bank', 'bank_perusahaan.nomor_rekening')
+            ->select('pembayaran_riwayat.*', 'transaksi.nomor_nota', 'transaksi.status_nota', 'konsumen.nama_konsumen', 'bank_perusahaan.nama_bank', 'bank_perusahaan.nomor_rekening')
             ->selectRaw(StatusPembayaran::sqlCase('transaksi.total_bayar', 'COALESCE(pr.jml_terbayar, 0)') . ' as display_status_pembayaran')
             ->orderBy('pembayaran_riwayat.tgl_bayar', 'desc')
             ->get();
@@ -900,6 +917,9 @@ class KasirController extends Controller
                 ->first();
         }
 
+        // Master rekening bank untuk pilihan koreksi metode -> Transfer.
+        $daftarBank = DB::table('bank_perusahaan')->orderBy('nama_bank')->get();
+
         return view('kasir.kelola_kas', compact(
             'kasAktif',
             'mutasi',
@@ -907,8 +927,73 @@ class KasirController extends Controller
             'data_kas',
             'saldoRolling',
             'kasSebelumnya',
-            'kasBaruDitutup'
+            'kasBaruDitutup',
+            'daftarBank'
         ));
+    }
+
+    /**
+     * Koreksi metode pembayaran nota (mis. uang tunai salah diinput Transfer).
+     * Sesi kas masih terbuka -> dieksekusi langsung (pemilik sesi membetulkan
+     * kesalahannya sendiri hari itu, tetap teraudit penuh). Sesi kas sudah
+     * ditutup -> diajukan lewat Approval Workflow ('koreksi_pembayaran_nota')
+     * karena yang disentuh catatan sesi yang sudah dibekukan closing.
+     */
+    public function koreksiMetodeBayar(Request $request, $idPembayaran)
+    {
+        $data = $request->validate([
+            'metode_pembayaran' => 'required|in:Tunai,Debit,Transfer,QRIS BRI',
+            'id_bank'           => 'nullable|integer|exists:bank_perusahaan,id_bank',
+            'alasan'            => 'required|string|min:5|max:500',
+        ]);
+
+        $pembayaran = DB::table('pembayaran_riwayat')->where('id_pembayaran', $idPembayaran)->first();
+        if (!$pembayaran) {
+            abort(404);
+        }
+        if ($pembayaran->voided_at) {
+            return back()->with('error', 'Pembayaran ini sudah pernah di-void/dikoreksi - pakai baris penggantinya.');
+        }
+        if ($pembayaran->metode === $data['metode_pembayaran']) {
+            return back()->with('error', 'Metode baru sama dengan metode lama - tidak ada yang perlu dikoreksi.');
+        }
+
+        // Deposit menyentuh saldo nyata pelanggan - jalurnya manual, bukan koreksi otomatis.
+        if ($pembayaran->metode === 'Deposit' || $data['metode_pembayaran'] === 'Deposit') {
+            return back()->with('error', 'Koreksi yang menyentuh Deposit tidak didukung otomatis. Gunakan jalur deposit manual dengan bantuan Administrator.');
+        }
+
+        $kas = \App\Services\KoreksiPembayaranService::sesiPembayaran($pembayaran);
+        if (!$kas) {
+            return back()->with('error', 'Sesi kas dari pembayaran ini tidak bisa dipastikan (data lama). Minta Administrator mengoreksinya manual lewat jurnal umum.');
+        }
+
+        if ($kas->status_lock === 'closed') {
+            \App\Services\ApprovalService::ajukan(
+                'koreksi_pembayaran_nota',
+                'pembayaran_riwayat',
+                (int) $idPembayaran,
+                ['metode_baru' => $data['metode_pembayaran'], 'id_bank_baru' => $data['id_bank'] ?? null, 'alasan' => $data['alasan']],
+                "Koreksi metode pembayaran Rp " . number_format((float) $pembayaran->nominal, 0, ',', '.')
+                    . ": {$pembayaran->metode} -> {$data['metode_pembayaran']} (sesi kas sudah ditutup)"
+            );
+
+            return back()->with('success', 'Koreksi diajukan - menunggu persetujuan Administrator karena sesi kasnya sudah ditutup.');
+        }
+
+        try {
+            \App\Services\KoreksiPembayaranService::koreksiMetode(
+                (int) $idPembayaran,
+                $data['metode_pembayaran'],
+                $data['id_bank'] ?? null,
+                $data['alasan']
+            );
+        } catch (\Throwable $e) {
+            return back()->with('error', \App\Support\PesanError::untuk($e, 'Gagal mengoreksi pembayaran.'));
+        }
+
+        return back()->with('success', 'Metode pembayaran dikoreksi: ' . $pembayaran->metode . ' -> ' . $data['metode_pembayaran']
+            . '. Uang fisik menyesuaikan klasifikasi barunya - bila berpindah dari/ke Tunai, pastikan isi laci benar-benar sesuai.');
     }
 
     /**
@@ -1195,6 +1280,7 @@ public function previewClosing()
         ->get();
     $totalTerbayarNotaHariIni = DB::table('pembayaran_riwayat')
         ->whereIn('id_transaksi', $notaHariIni->pluck('id_transaksi'))
+        ->whereNull('voided_at')
         ->sum('nominal');
     $piutangNotaOrder = max(0, $totalNotaOrder - (float) $totalTerbayarNotaHariIni);
     $totalPendapatan = $totalNotaOrder - $piutangNotaOrder;
@@ -1207,6 +1293,7 @@ public function previewClosing()
         ->join('transaksi', 'pembayaran_riwayat.id_transaksi', '=', 'transaksi.id_transaksi')
         ->where('pembayaran_riwayat.tgl_bayar', '>=', $mulaiSesi)
         ->where('pembayaran_riwayat.tgl_bayar', '<=', $akhirSesi)
+        ->whereNull('pembayaran_riwayat.voided_at')
         ->select('pembayaran_riwayat.nominal', 'pembayaran_riwayat.metode', 'transaksi.tgl_order')
         ->get();
     // Pelunasan = nota yang dibuat SEBELUM sesi ini dimulai; sisanya transaksi sesi ini.
@@ -1218,6 +1305,7 @@ public function previewClosing()
     $pemasukan = DB::table('pembayaran_riwayat')
         ->where('tgl_bayar', '>=', $mulaiSesi)
         ->where('tgl_bayar', '<=', $akhirSesi)
+        ->whereNull('voided_at')
         ->select(
             DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
             DB::raw("SUM(CASE WHEN metode IN ('Transfer', 'QRIS BRI') THEN nominal ELSE 0 END) as transfer_masuk"),
@@ -1307,6 +1395,7 @@ public function simpanClosing(Request $request)
         $pemasukan = DB::table('pembayaran_riwayat')
             ->where('tgl_bayar', '>=', $mulaiSesi)
             ->where('tgl_bayar', '<=', now())
+            ->whereNull('voided_at')
             ->select(
                 DB::raw("SUM(CASE WHEN metode = 'Tunai' THEN nominal ELSE 0 END) as tunai_masuk"),
                 DB::raw("SUM(CASE WHEN metode IN ('Transfer', 'QRIS BRI') THEN nominal ELSE 0 END) as transfer_masuk"),
@@ -1499,8 +1588,8 @@ public function printOpsi(Request $request, $id)
         }
     }
 
-    $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal') ?? 0;
-    $totalUangDiterima = (float) (DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('uang_diterima') ?? 0);
+    $totalTerbayar = DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->whereNull('voided_at')->sum('nominal') ?? 0;
+    $totalUangDiterima = (float) (DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->whereNull('voided_at')->sum('uang_diterima') ?? 0);
     if ($totalUangDiterima <= 0) $totalUangDiterima = $totalTerbayar;
     $totalCetak = (float) $items->sum('biaya_cetak');
     $totalDesain = (float) $items->sum('biaya_desain');
@@ -1526,7 +1615,7 @@ public function printOpsi(Request $request, $id)
     // Kembalian yang sungguh diserahkan disimpan per pembayaran (kolom kembalian); rumus lama dipertahankan
     // untuk nota lama yang tercatat sebelum kolom itu ada.
     $kembali = max(
-        (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('kembalian'),
+        (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->whereNull('voided_at')->sum('kembalian'),
         max(0, $totalTerbayar - $totalTagihanBulat)
     );
     $kurangBayar = max(0, $totalTagihanBulat - $totalTerbayar);
@@ -1541,6 +1630,7 @@ public function printOpsi(Request $request, $id)
     // tentang status nota ini.
     $penerimaanNota = DB::table('pembayaran_riwayat')
         ->where('id_transaksi', $id)
+        ->whereNull('voided_at')
         ->orderBy('tgl_bayar')
         ->orderBy('id_pembayaran')
         ->select('nominal', 'metode', 'tgl_bayar', 'kembalian')
@@ -1635,6 +1725,7 @@ public function printReport($id, $format)
         ->where('tgl_bayar', '>=', KasSesiService::mulai($kas))
         ->where('tgl_bayar', '<=', $kas->waktu_tutup ?: now())
         ->where('metode', 'Deposit')
+        ->whereNull('voided_at')
         ->sum('nominal');
 
     return view('kasir.print_closing', [
@@ -1668,6 +1759,7 @@ public function getHistory($id)
 
     $pembayaran = DB::table('pembayaran_riwayat')
         ->where('id_transaksi', $id)
+        ->whereNull('voided_at')
         ->orderBy('tgl_bayar')
         ->select('nominal', 'metode', 'tgl_bayar', 'keterangan')
         ->get();

@@ -156,6 +156,7 @@ class LaporanController extends Controller
             ->selectSub(function ($q) {
                 $q->from('pembayaran_riwayat')
                     ->selectRaw('COALESCE(SUM(nominal), 0)')
+                    ->whereNull('voided_at')
                     ->whereColumn('pembayaran_riwayat.id_transaksi', 'transaksi.id_transaksi');
             }, 'total_dibayar');
 
@@ -674,6 +675,7 @@ class LaporanController extends Controller
             ->selectSub(function ($q) {
                 $q->from('pembayaran_riwayat')
                     ->selectRaw('COALESCE(SUM(nominal), 0)')
+                    ->whereNull('voided_at')
                     ->whereColumn('pembayaran_riwayat.id_transaksi', 'transaksi.id_transaksi');
             }, 'total_dibayar');
 

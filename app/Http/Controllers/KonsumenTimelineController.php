@@ -30,7 +30,7 @@ class KonsumenTimelineController extends Controller
         $idNotaAktif = $notaAktif->pluck('id_transaksi');
         $nomorNota = $nota->pluck('nomor_nota', 'id_transaksi');
 
-        $pembayaran = DB::table('pembayaran_riwayat')->whereIn('id_transaksi', $nota->pluck('id_transaksi'))->get();
+        $pembayaran = DB::table('pembayaran_riwayat')->whereIn('id_transaksi', $nota->pluck('id_transaksi'))->whereNull('voided_at')->get();
         $deposit = DB::table('konsumen_deposit')->where('id_konsumen', $id)->whereNull('deleted_at')->get();
         $penawaran = DB::table('quotations')->where('id_konsumen', $id)->get();
         $jersey = DB::table('jersey_orders')->where('id_konsumen', $id)->get();

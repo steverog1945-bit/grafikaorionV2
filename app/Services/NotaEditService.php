@@ -48,6 +48,7 @@ class NotaEditService
         $totalBayarLunas = (float) ($transaksi->total_bayar ?? 0);
         $totalTerbayarLunas = (float) DB::table('pembayaran_riwayat')
             ->where('id_transaksi', $transaksi->id_transaksi)
+            ->whereNull('voided_at')
             ->sum('nominal');
         if ($totalBayarLunas > 0
             && \App\Services\StatusPembayaran::dari($totalBayarLunas, $totalTerbayarLunas) === \App\Services\StatusPembayaran::LUNAS) {

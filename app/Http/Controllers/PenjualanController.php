@@ -519,7 +519,7 @@ class PenjualanController extends Controller
                 throw new \RuntimeException('Total nota tidak boleh Rp 0 - tidak ada data yang tersimpan; coba lagi atau hubungi Administrator.');
             }
 
-            $totalTerbayar = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal');
+            $totalTerbayar = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->whereNull('voided_at')->sum('nominal');
             if ($totalTerbayar > 0 && $totalBaru + 0.004 < $totalTerbayar) {
                 throw new \App\Exceptions\ValidasiNotaException('Total baru (' . number_format($totalBaru, 0, ',', '.') . ') lebih kecil dari pembayaran yang sudah masuk (' . number_format($totalTerbayar, 0, ',', '.') . '). Gunakan retur/refund.');
             }
@@ -540,7 +540,7 @@ class PenjualanController extends Controller
             }
 
             // Status pembayaran dihitung ulang dari total yang baru.
-            $totalTerbayar = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal');
+            $totalTerbayar = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->whereNull('voided_at')->sum('nominal');
             $statusBaru = \App\Services\StatusPembayaran::dari($totalBaru, $totalTerbayar);
 
             DB::table('transaksi')->where('id_transaksi', $id)->update([
@@ -1052,7 +1052,7 @@ public function tambahItemSusulan($id, Request $request)
     // sini (sebelum store()) agar tidak masuk jalur penulisan sama sekali.
     $transaksiSusulan = DB::table('transaksi')->where('id_transaksi', (int) $id)->first();
     if ($transaksiSusulan) {
-        $totalTerbayarSusulan = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', (int) $id)->sum('nominal');
+        $totalTerbayarSusulan = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', (int) $id)->whereNull('voided_at')->sum('nominal');
         if ((float) $transaksiSusulan->total_bayar > 0
             && \App\Services\StatusPembayaran::dari((float) $transaksiSusulan->total_bayar, $totalTerbayarSusulan) === \App\Services\StatusPembayaran::LUNAS) {
             return response()->json([
@@ -1273,7 +1273,7 @@ public function eksekusiPembatalanNota(int $id, array $payload): array
  */
 private function kreditkanPembayaranNotaBatal(object $transaksi): void
 {
-    $terbayar = round((float) DB::table('pembayaran_riwayat')->where('id_transaksi', $transaksi->id_transaksi)->sum('nominal'), 2);
+    $terbayar = round((float) DB::table('pembayaran_riwayat')->where('id_transaksi', $transaksi->id_transaksi)->whereNull('voided_at')->sum('nominal'), 2);
     if ($terbayar <= 0) {
         return;
     }

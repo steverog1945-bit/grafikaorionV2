@@ -59,6 +59,9 @@ class KasSesiService
         $tunai = (float) DB::table('pembayaran_riwayat')
             ->where('tgl_bayar', '>=', self::mulai($kas))
             ->where('tgl_bayar', '<=', self::akhir($kas))
+            // Baris hasil koreksi metode (void) bukan uang tunai sah lagi -
+            // penggantinya sudah terhitung dengan metode barunya.
+            ->whereNull('voided_at')
             ->where('metode', 'Tunai')
             ->when($terkunci, fn ($q) => $q->sharedLock())
             ->sum('nominal');

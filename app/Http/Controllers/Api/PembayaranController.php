@@ -23,6 +23,8 @@ class PembayaranController extends Controller
     {
         $q = DB::table('pembayaran_riwayat')
             ->join('transaksi', 'pembayaran_riwayat.id_transaksi', '=', 'transaksi.id_transaksi')
+            // Baris hasil koreksi metode (void) bukan pembayaran sah lagi.
+            ->whereNull('pembayaran_riwayat.voided_at')
             ->select(
                 'pembayaran_riwayat.id_pembayaran',
                 'pembayaran_riwayat.id_transaksi',
@@ -72,6 +74,7 @@ class PembayaranController extends Controller
 
         $bayar = DB::table('pembayaran_riwayat')
             ->where('id_transaksi', $id)
+            ->whereNull('voided_at')
             ->orderBy('tgl_bayar')
             ->orderBy('id_pembayaran')
             ->get();

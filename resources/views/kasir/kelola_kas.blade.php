@@ -279,6 +279,20 @@
                     @if($m->metode === 'Transfer' && !empty($m->nama_bank))
                         <div class="text-[10px] text-slate-400 mt-1">{{ $m->nama_bank }}{{ $m->nomor_rekening ? ' - ' . $m->nomor_rekening : '' }}</div>
                     @endif
+                    {{-- Koreksi metode: sesi terbuka dieksekusi langsung,
+                         sesi sudah ditutup lewat approval. Deposit tidak
+                         dikoreksi otomatis (saldo nyata pelanggan). --}}
+                    @if($m->status_nota === 'Aktif' && $m->metode !== 'Deposit')
+                        <button type="button"
+                            data-koreksi-id="{{ $m->id_pembayaran }}"
+                            data-koreksi-nota="{{ $m->nomor_nota }}"
+                            data-koreksi-metode="{{ $m->metode }}"
+                            data-koreksi-nominal="{{ $m->nominal }}"
+                            onclick="bukaKoreksiMetode(this)"
+                            class="mt-1 inline-flex items-center gap-1 text-[11px] text-indigo-500 hover:text-indigo-700">
+                            <i class="fas fa-arrow-right-arrow-left"></i> Koreksi metode
+                        </button>
+                    @endif
                 </td>
                 <td class="p-4 text-right">
                     <span class="font-medium text-slate-800">
@@ -295,6 +309,97 @@
         </tbody>
     </x-table>
 </div>
+
+{{-- KOREKSI METODE PEMBAYARAN - void + input ulang dengan metode benar
+     dalam satu transaksi server (KoreksiPembayaranService). Deposit tidak
+     ada di pilihan: koreksinya ditolak otomatis karena menyentuh saldo
+     nyata pelanggan. --}}
+<x-modal id="koreksi-metode" title="Koreksi Metode Pembayaran" maxWidth="sm">
+    <form action="{{ route('kasir.bayar.koreksi-metode', ['idPembayaran' => '__ID__']) }}" method="POST" class="space-y-5" id="form-koreksi-metode">
+        @csrf
+        <input type="hidden" name="id_pembayaran" id="koreksi-id-pembayaran" value="">
+
+        <div class="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <p class="font-medium text-slate-800">Nota <span id="koreksi-nota-label">-</span></p>
+            <p class="mt-0.5 text-xs">
+                Nominal <span class="font-medium text-slate-800">Rp <span id="koreksi-nominal-label">-</span></span>
+                - metode saat ini
+                <span class="font-medium text-slate-800" id="koreksi-metode-lama-label">-</span>
+            </p>
+        </div>
+
+        <x-form.group label="Metode Baru" required dalam>
+            <select name="metode_pembayaran" id="koreksi-metode-baru" required
+                class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"
+                onchange="toggleBankKoreksi()">
+                <option value="Tunai">Tunai</option>
+                <option value="Debit">Debit</option>
+                <option value="Transfer">Transfer</option>
+                <option value="QRIS BRI">QRIS BRI</option>
+            </select>
+        </x-form.group>
+
+        <div id="wrapper-bank-koreksi" class="hidden">
+            <x-form.group label="Rekening Bank" required dalam>
+                <select name="id_bank" required
+                    class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
+                    <option value="">- Pilih rekening -</option>
+                    @foreach($daftarBank as $bank)
+                        <option value="{{ $bank->id_bank }}">{{ $bank->nama_bank }}{{ $bank->nomor_rekening ? ' - ' . $bank->nomor_rekening : '' }}</option>
+                    @endforeach
+                </select>
+            </x-form.group>
+        </div>
+
+        <x-form.group label="Alasan Koreksi" required dalam>
+            <textarea name="alasan" rows="3" required minlength="5" maxlength="500"
+                placeholder="Contoh: Uang tunai salah diinput sebagai Transfer"
+                class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
+        </x-form.group>
+
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+            Pembayaran lama di-void dan diganti baris baru dengan metode benar dalam satu proses - nominal, waktu bayar,
+            dan status nota tidak berubah. Bila sesi kas sudah ditutup, koreksi ini diajukan ke Administrator untuk disetujui.
+        </p>
+
+        <div class="pt-2 flex gap-3">
+            <x-button type="button" variant="secondary" onclick="closeModal('koreksi-metode')" class="flex-1">Batal</x-button>
+            <x-button type="submit" class="flex-1">Koreksi</x-button>
+        </div>
+    </form>
+</x-modal>
+
+<script>
+function bukaKoreksiMetode(btn) {
+    // Bersihkan sisa disabled dari pembukaan modal sebelumnya.
+    [...document.getElementById('koreksi-metode-baru').options].forEach(o => o.disabled = false);
+
+    // Action form mengikuti baris pembayaran yang dikoreksi.
+    document.getElementById('form-koreksi-metode').action =
+        document.getElementById('form-koreksi-metode').action.replace('__ID__', btn.dataset.koreksiId);
+
+    document.getElementById('koreksi-id-pembayaran').value = btn.dataset.koreksiId;
+    document.getElementById('koreksi-nota-label').textContent = btn.dataset.koreksiNota;
+    document.getElementById('koreksi-nominal-label').textContent = Number(btn.dataset.koreksiNominal).toLocaleString('id-ID');
+    document.getElementById('koreksi-metode-lama-label').textContent = btn.dataset.koreksiMetode;
+
+    // Metode lama tidak boleh dipilih lagi sebagai metode baru.
+    const pilihanLama = [...document.getElementById('koreksi-metode-baru').options]
+        .find(o => o.value === btn.dataset.koreksiMetode);
+    if (pilihanLama) pilihanLama.disabled = true;
+
+    toggleBankKoreksi();
+    openModal('koreksi-metode');
+}
+
+function toggleBankKoreksi() {
+    const metode = document.getElementById('koreksi-metode-baru').value;
+    const wrapper = document.getElementById('wrapper-bank-koreksi');
+    wrapper.classList.toggle('hidden', metode !== 'Transfer');
+    const bankSelect = wrapper.querySelector('select');
+    if (metode !== 'Transfer') bankSelect.value = '';
+}
+</script>
 
 {{-- KAS TIDAK TERDUGA - mutasi tunai yang tidak terikat nota, terpisah
      dari tabel mutasi nota di atas supaya kolom Nota/Konsumen/Metode yang

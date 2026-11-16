@@ -191,7 +191,7 @@ class AccountingService
      * dibatalkan = uang "hilang" dari buku besar. Dengan referensi
      * terpisah, reverse nota hanya menyentuh jurnal pendapatan/HPP-nya.
      */
-    public static function postPembayaran(string $noNota, float $nominal, string $metode): void
+    public static function postPembayaran(string $noNota, float $nominal, string $metode, ?string $noReferensi = null): void
     {
         if ($nominal <= 0) {
             return;
@@ -199,7 +199,12 @@ class AccountingService
 
         $akunKasMasuk = $metode === 'Tunai' ? self::AKUN_KAS : self::AKUN_BANK;
 
-        self::postJournal(now()->toDateString(), self::referensiPembayaran($noNota), "Pembayaran {$metode} {$noNota}", [
+        // $noReferensi opsional: KoreksiPembayaranService & KasirController
+        // menghitung referensi SEBELUM insert pembayaran_riwayat supaya
+        // no_referensi_jurnal tersimpan di baris pembayaran itu sendiri -
+        // jurnal baliknya (saat koreksi metode) menunjuk persis kelompok
+        // jurnal milik baris itu, bukan menebak dari keterangan/nominal.
+        self::postJournal(now()->toDateString(), $noReferensi ?: self::referensiPembayaran($noNota), "Pembayaran {$metode} {$noNota}", [
             ['kode_akun' => $akunKasMasuk, 'debet' => $nominal],
             ['kode_akun' => self::AKUN_PIUTANG_USAHA, 'kredit' => $nominal],
         ]);

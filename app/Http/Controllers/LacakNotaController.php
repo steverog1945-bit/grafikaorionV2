@@ -78,6 +78,7 @@ class LacakNotaController extends Controller
 
         $dibayar = (float) DB::table('pembayaran_riwayat')
             ->where('id_transaksi', $id)
+            ->whereNull('voided_at')
             ->sum('nominal');
         $total = (float) $nota->total_bayar;
         $sisa = max(0, $total - $dibayar);

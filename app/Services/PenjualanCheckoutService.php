@@ -85,6 +85,7 @@ class PenjualanCheckoutService
         // StatusPembayaran::dari() (pembayaran_riwayat), bukan kolom status.
         $totalTerbayarSusulan = (float) DB::table('pembayaran_riwayat')
             ->where('id_transaksi', (int) $notaSusulan->id_transaksi)
+            ->whereNull('voided_at')
             ->sum('nominal');
         if ((float) $notaSusulan->total_bayar > 0
             && \App\Services\StatusPembayaran::dari((float) $notaSusulan->total_bayar, $totalTerbayarSusulan) === \App\Services\StatusPembayaran::LUNAS) {
@@ -405,6 +406,7 @@ class PenjualanCheckoutService
 
             $totalTerbayar = (float) DB::table('pembayaran_riwayat')
                 ->where('id_transaksi', $id_transaksi)
+                ->whereNull('voided_at')
                 ->sum('nominal');
             $statusBaru = \App\Services\StatusPembayaran::dari($totalNotaBaru, $totalTerbayar);
 

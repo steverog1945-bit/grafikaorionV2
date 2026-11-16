@@ -398,6 +398,12 @@ Route::post('/penjualan/{id}/edit-langsung', [PenjualanController::class, 'editL
         Route::post('/proses-bayar',
             [KasirController::class, 'prosesBayar'])->name('prosesBayar');
 
+        // Koreksi metode pembayaran nota (void + input ulang metode benar dalam
+        // satu transaksi). Sesi kas terbuka = langsung; sesi sudah ditutup =
+        // diajukan ke approval 'koreksi_pembayaran_nota'.
+        Route::post('/bayar/{idPembayaran}/koreksi-metode',
+            [KasirController::class, 'koreksiMetodeBayar'])->name('bayar.koreksi-metode')->whereNumber('idPembayaran');
+
         Route::get('/waiting-list',
             [KasirController::class, 'waitingList'])->name('waiting');
 

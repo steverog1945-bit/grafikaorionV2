@@ -54,7 +54,7 @@ class LaporanController extends Controller
                 'konsumen.nama_konsumen'
             )
             ->leftJoin('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
-            ->selectRaw('(transaksi.total_bayar - COALESCE((SELECT SUM(pr.nominal) FROM pembayaran_riwayat pr WHERE pr.id_transaksi = transaksi.id_transaksi), 0)) as sisa')
+            ->selectRaw('(transaksi.total_bayar - COALESCE((SELECT SUM(pr.nominal) FROM pembayaran_riwayat pr WHERE pr.id_transaksi = transaksi.id_transaksi AND pr.voided_at IS NULL), 0)) as sisa')
             ->orderBy('transaksi.tgl_order')
             ->get();
 

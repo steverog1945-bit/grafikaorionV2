@@ -144,7 +144,7 @@ class CollectingController extends Controller
             $sisaTagihan = 0.0;
             $alasanBelumLunas = null;
             if ($transaksi->status_pembayaran !== 'Lunas') {
-                $terbayar = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->sum('nominal');
+                $terbayar = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->whereNull('voided_at')->sum('nominal');
                 $sisaTagihan = max(0, round((float) $transaksi->total_bayar - $terbayar, 2));
 
                 $alasanBelumLunas = trim((string) $request->input('alasan_belum_lunas'));

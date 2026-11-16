@@ -94,7 +94,7 @@ class AuditIntegritasCommand extends Command
 
         // 5. Uang yang diterima tidak boleh melebihi tagihan (kelebihan seharusnya kembalian, bukan pembayaran).
         $lebihNota = DB::table('transaksi as t')->where('t.status_nota', '!=', 'Dibatalkan')
-            ->joinSub(DB::table('pembayaran_riwayat')->selectRaw('id_transaksi, SUM(nominal) s')->groupBy('id_transaksi'), 'b', 'b.id_transaksi', '=', 't.id_transaksi')
+            ->joinSub(DB::table('pembayaran_riwayat')->whereNull('voided_at')->selectRaw('id_transaksi, SUM(nominal) s')->groupBy('id_transaksi'), 'b', 'b.id_transaksi', '=', 't.id_transaksi')
             ->whereRaw('b.s - t.total_bayar > 0.01')->get(['t.nomor_nota', 't.total_bayar', 'b.s']);
         foreach ($lebihNota as $r) {
             $adaTemuan = true;
@@ -136,7 +136,7 @@ class AuditIntegritasCommand extends Command
         //    Piutang sama sekali, jadi menghitungnya hanya membuat alarm permanen yang menutupi temuan sungguhan.
         $sisaNota = (float) DB::table('transaksi as t')->where('t.status_nota', '!=', 'Dibatalkan')
             ->whereExists(fn ($q) => $q->select(DB::raw(1))->from('jurnal_umum as j')->whereColumn('j.no_referensi', 't.nomor_nota')->where('j.kode_akun', '1100'))
-            ->leftJoinSub(DB::table('pembayaran_riwayat')->selectRaw('id_transaksi, SUM(nominal) s')->groupBy('id_transaksi'), 'b', 'b.id_transaksi', '=', 't.id_transaksi')
+            ->leftJoinSub(DB::table('pembayaran_riwayat')->whereNull('voided_at')->selectRaw('id_transaksi, SUM(nominal) s')->groupBy('id_transaksi'), 'b', 'b.id_transaksi', '=', 't.id_transaksi')
             ->selectRaw('COALESCE(SUM(t.total_bayar - COALESCE(b.s, 0)), 0) s')->value('s');
         $sisaJersey = 0.0;
         if (DB::getSchemaBuilder()->hasTable('jersey_orders')) {

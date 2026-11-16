@@ -134,7 +134,7 @@ class DashboardEksekutifService
         $omzet = (float) DB::table('transaksi')->where('status_nota', '!=', 'Dibatalkan')->where('tgl_order', '>=', $awal)->where('tgl_order', '<', $akhir)->sum('total_bayar');
         $belanja = (float) DB::table('pembelian_bahan')->whereNull('deleted_at')->where('tgl_transaksi', '>=', $awal->toDateString())->where('tgl_transaksi', '<', $akhir->toDateString())->sum('grand_total');
         // Uang masuk ke kas usaha: pembayaran nota (bukan dari saldo deposit) + setoran deposit baru.
-        $kasMasuk = (float) DB::table('pembayaran_riwayat')->where('metode', '!=', 'Deposit')->where('tgl_bayar', '>=', $awal)->where('tgl_bayar', '<', $akhir)->sum('nominal')
+        $kasMasuk = (float) DB::table('pembayaran_riwayat')->where('metode', '!=', 'Deposit')->whereNull('voided_at')->where('tgl_bayar', '>=', $awal)->where('tgl_bayar', '<', $akhir)->sum('nominal')
             + (float) DB::table('konsumen_deposit')->where('tipe', 'Setoran')->whereIn('metode_bayar', ['Tunai', 'Transfer'])
                 ->where('tgl_deposit', '>=', $awal->toDateString())->where('tgl_deposit', '<', $akhir->toDateString())->sum('nominal');
         // Uang keluar dari kas usaha: biaya Kas Kecil. Pembayaran hutang supplier dan biaya "Dibayar Pemilik" memakai

@@ -100,7 +100,7 @@ class StatusPembayaran
     public static function subqueryTotalTerbayar(): string
     {
         return '(SELECT SUM(p.nominal) FROM pembayaran_riwayat p'
-            . ' WHERE p.id_transaksi = transaksi.id_transaksi)';
+            . ' WHERE p.id_transaksi = transaksi.id_transaksi AND p.voided_at IS NULL)';
     }
 
     /**

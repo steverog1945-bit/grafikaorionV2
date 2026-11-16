@@ -191,7 +191,7 @@ class AkuntansiController extends Controller
         // sudah masuk saat setoran deposit, yang ditampilkan terpisah.
         $uangDiterima = round((float) DB::table('pembayaran_riwayat')
             ->where('tgl_bayar', '>=', $awal . ' 00:00:00')->where('tgl_bayar', '<=', $akhir . ' 23:59:59')
-            ->where('metode', '!=', 'Deposit')->sum('nominal'), 2);
+            ->where('metode', '!=', 'Deposit')->whereNull('voided_at')->sum('nominal'), 2);
         // Hanya uang baru (Tunai/Transfer); "Kredit Nota Batal" adalah uang nota lama yang dipindah ke saldo pelanggan.
         $setoranDeposit = round((float) DB::table('konsumen_deposit')->where('tipe', 'Setoran')->whereIn('metode_bayar', ['Tunai', 'Transfer'])
             ->where('tgl_deposit', '>=', $awal)->where('tgl_deposit', '<=', $akhir)->sum('nominal'), 2);

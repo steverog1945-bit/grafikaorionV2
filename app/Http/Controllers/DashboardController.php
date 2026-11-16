@@ -68,7 +68,7 @@ class DashboardController extends Controller
         $piutangRow = DB::table('transaksi')
             ->where('status_pembayaran', '!=', 'Lunas')
             ->where('status_nota', '!=', 'Dibatalkan')
-            ->selectRaw('COALESCE(SUM(GREATEST(0, total_bayar - COALESCE((SELECT SUM(pr.nominal) FROM pembayaran_riwayat pr WHERE pr.id_transaksi = transaksi.id_transaksi), 0))), 0) as total, COUNT(*) as jumlah')
+            ->selectRaw('COALESCE(SUM(GREATEST(0, total_bayar - COALESCE((SELECT SUM(pr.nominal) FROM pembayaran_riwayat pr WHERE pr.id_transaksi = transaksi.id_transaksi AND pr.voided_at IS NULL), 0))), 0) as total, COUNT(*) as jumlah')
             ->first();
 
         $orderHariIni = DB::table('transaksi')->whereBetween('tgl_order', [$mulaiHariIni, $akhirHariIni])->where('status_nota', '!=', 'Dibatalkan')->count();
@@ -130,7 +130,7 @@ class DashboardController extends Controller
             ->where('status_pembayaran', '!=', 'Lunas')
             ->where('status_nota', '!=', 'Dibatalkan')
             // Sisa tagihan (total - yang sudah dibayar), bukan total nota: nota DP sudah sebagian lunas.
-            ->selectRaw('COALESCE(SUM(GREATEST(0, total_bayar - COALESCE((SELECT SUM(pr.nominal) FROM pembayaran_riwayat pr WHERE pr.id_transaksi = transaksi.id_transaksi), 0))), 0) as total, COUNT(*) as jumlah')
+            ->selectRaw('COALESCE(SUM(GREATEST(0, total_bayar - COALESCE((SELECT SUM(pr.nominal) FROM pembayaran_riwayat pr WHERE pr.id_transaksi = transaksi.id_transaksi AND pr.voided_at IS NULL), 0))), 0) as total, COUNT(*) as jumlah')
             ->first();
         $piutang = (float) ($piutangRow->total ?? 0);
 
@@ -185,7 +185,7 @@ class DashboardController extends Controller
         $orderPerHari = DB::table('transaksi')->where('tgl_order', '>=', $awal7)->where('tgl_order', '<', $akhirHariIni)->where('status_nota', '!=', 'Dibatalkan')
             ->selectRaw('DATE(tgl_order) as tgl, COUNT(*) as n')->groupBy('tgl')->pluck('n', 'tgl');
         $kasPerHari = DB::table('pembayaran_riwayat')->where('tgl_bayar', '>=', $awal7)
-            ->where('tgl_bayar', '<', $akhirHariIni)->where('metode', '!=', 'Deposit')
+            ->where('tgl_bayar', '<', $akhirHariIni)->where('metode', '!=', 'Deposit')->whereNull('voided_at')
             ->selectRaw('DATE(tgl_bayar) as tgl, SUM(nominal) as total')->groupBy('tgl')->pluck('total', 'tgl');
         $setoranPerHari = self::setoranDeposit()->where('tgl_deposit', '>=', $awal7->toDateString())->where('tgl_deposit', '<', $akhirHariIni)
             ->selectRaw('tgl_deposit as tgl, SUM(nominal) as total')->groupBy('tgl_deposit')->pluck('total', 'tgl');
@@ -433,7 +433,7 @@ class DashboardController extends Controller
      */
     private static function uangMasuk(string $mulai, string $akhir): float
     {
-        return (float) DB::table('pembayaran_riwayat')->whereBetween('tgl_bayar', [$mulai, $akhir])->where('metode', '!=', 'Deposit')->sum('nominal')
+        return (float) DB::table('pembayaran_riwayat')->whereBetween('tgl_bayar', [$mulai, $akhir])->where('metode', '!=', 'Deposit')->whereNull('voided_at')->sum('nominal')
             + (float) self::setoranDeposit()->where('tgl_deposit', '>=', substr($mulai, 0, 10))->where('tgl_deposit', '<', substr($akhir, 0, 10))->sum('nominal');
     }
 
