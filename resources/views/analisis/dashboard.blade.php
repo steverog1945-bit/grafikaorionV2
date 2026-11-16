@@ -3,7 +3,6 @@
 @section('content')
 @php
     $rp = fn ($n) => 'Rp ' . number_format($n, 0, ',', '.');
-    $maks = max(1, collect($tren)->max('omzet'));
 @endphp
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1500px] mx-auto">
 
@@ -36,12 +35,12 @@
 
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         @foreach([
-            ['Omzet (' . $r['jumlah_nota'] . ' nota)', $rp($r['omzet']), 'text-slate-800'],
-            ['Biaya Aktual', $rp($r['biaya_aktual']), 'text-amber-600'],
-            ['Laba Kotor (' . $r['margin'] . '%)', $rp($r['laba_kotor']), $r['laba_kotor'] < 0 ? 'text-rose-600' : 'text-emerald-600'],
-            ['Omzet Jersey (' . $r['jumlah_jersey'] . ' order)', $rp($r['omzet_jersey']), 'text-violet-600'],
-        ] as [$label, $nilai, $warna])
-        <x-card><div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">{{ $label }}</div><div class="text-xl font-medium {{ $warna }}">{{ $nilai }}</div></x-card>
+            ['Omzet (' . $r['jumlah_nota'] . ' nota)', $rp($r['omzet']), 'text-slate-800', $r['omzet']],
+            ['Biaya Aktual', $rp($r['biaya_aktual']), 'text-amber-600', $r['biaya_aktual']],
+            ['Laba Kotor (' . $r['margin'] . '%)', $rp($r['laba_kotor']), $r['laba_kotor'] < 0 ? 'text-rose-600' : 'text-emerald-600', $r['laba_kotor']],
+            ['Omzet Jersey (' . $r['jumlah_jersey'] . ' order)', $rp($r['omzet_jersey']), 'text-violet-600', $r['omzet_jersey']],
+        ] as [$label, $nilai, $warna, $mentah])
+        <x-card><div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">{{ $label }}</div><div class="text-xl font-medium {{ $warna }}" data-kpi-value="{{ $mentah }}">{{ $nilai }}</div></x-card>
         @endforeach
     </div>
     <x-hint tip="Biaya aktual = HPP material + rework + waste. Tenaga kerja, mesin, overhead, dan beban operasional belum termasuk, jadi laba kotor bukan laba bersih." icon="chart-line" />
@@ -53,17 +52,12 @@
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-        <x-card class="xl:col-span-2">
+        <script type="application/json" id="eksekutif-tren-data">@json($tren)</script>
+        <x-card class="xl:col-span-2" data-chart-card>
             <h3 class="text-xs font-medium text-slate-800 uppercase tracking-widest mb-5">Omzet 6 Bulan Terakhir</h3>
-            <div class="flex items-end gap-3 h-48">
-                @foreach($tren as $t)
-                <div class="flex-1 flex flex-col items-center justify-end h-full">
-                    <div class="text-[10px] font-medium text-slate-500 mb-1">{{ $t['omzet'] > 0 ? number_format($t['omzet'] / 1000000, 1, ',', '.') . ' jt' : '-' }}</div>
-                    <div class="w-full rounded-t-xl bg-indigo-500/80" style="height: {{ max(2, round($t['omzet'] / $maks * 100)) }}%"></div>
-                    <div class="text-[10px] text-slate-400 mt-2">{{ $t['label'] }}</div>
-                </div>
-                @endforeach
-            </div>
+            {{-- Grafik canvas uPlot (virtualized decimation ~4-5jt titik/detik di canvas). Dimuat hanya di halaman ini via app.js; warna & jarak mengikuti token yang sudah dipakai app. --}}
+            <div id="dashboard-eksekutif-chart" class="w-full" style="min-height: 190px"></div>
+            <noscript><p class="text-xs text-slate-400 italic">Butuh JavaScript untuk grafik.</p></noscript>
         </x-card>
 
         <x-card>
@@ -83,13 +77,13 @@
         <x-card>
             <h3 class="text-xs font-medium text-slate-800 uppercase tracking-widest mb-4">Top 5 Pelanggan</h3>
             @forelse($topPelanggan as $p)
-                <div class="flex justify-between py-2 border-b border-slate-50 text-sm"><span class="text-slate-600">{{ $p->nama }} <span class="text-[11px] text-slate-400">({{ $p->jumlah_nota }} nota)</span></span><b>{{ $rp($p->omzet) }}</b></div>
+                <div class="flex justify-between py-2 border-b border-slate-50 text-sm" data-top-row><span class="text-slate-600">{{ $p->nama }} <span class="text-[11px] text-slate-400">({{ $p->jumlah_nota }} nota)</span></span><b>{{ $rp($p->omzet) }}</b></div>
             @empty<p class="text-xs text-slate-400 italic">Belum ada transaksi pada periode ini.</p>@endforelse
         </x-card>
         <x-card>
             <h3 class="text-xs font-medium text-slate-800 uppercase tracking-widest mb-4">Top 5 Produk / Jasa</h3>
             @forelse($topProduk as $p)
-                <div class="flex justify-between py-2 border-b border-slate-50 text-sm"><span class="text-slate-600">{{ $p->nama }} <span class="text-[11px] text-slate-400">({{ angka($p->qty, 2) }})</span></span><b>{{ $rp($p->omzet) }}</b></div>
+                <div class="flex justify-between py-2 border-b border-slate-50 text-sm" data-top-row><span class="text-slate-600">{{ $p->nama }} <span class="text-[11px] text-slate-400">({{ angka($p->qty, 2) }})</span></span><b>{{ $rp($p->omzet) }}</b></div>
             @empty<p class="text-xs text-slate-400 italic">Belum ada transaksi pada periode ini.</p>@endforelse
         </x-card>
     </div>
