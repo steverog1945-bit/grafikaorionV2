@@ -1191,52 +1191,17 @@ let currentThumbnailPreview = null;
     // ini) - dipakai juga oleh Pesanan Jersey, supaya logika kompresi cuma
     // ada di SATU tempat.
 
-    // ---- Nama file terstruktur (lapis 3 rekonsiliasi nota) ----
-    // Deskripsi item dibangun dari data order yang SUDAH dipilih kasir
-    // (produk + ukuran/qty + finishing), bukan cuma nama berkas pelanggan.
-    // Teks bebas tetap dihormati: begitu kasir menyunting sendiri kolom ini,
-    // pengisian otomatis berhenti (dataset.auto dihapus) sampai berkas baru
-    // diunggah - pola sama dengan cetakManualEdit/finishingBiayaManualEdit.
-    function bangunNamaFileTerstruktur(fallback) {
-        const bersih = (s) => (s || '').replace(/\s+/g, ' ').trim();
-        const bagian = [];
-        const produk = bersih($('#select_produk').find(':selected').text());
-        const produkTerpilih = produk && !produk.startsWith('--') ? produk : '';
-        if (produkTerpilih) bagian.push(produkTerpilih);
-        const jasa = bersih($('#select_jasa').find(':selected').text());
-        if (!produkTerpilih && jasa && !jasa.startsWith('--')) bagian.push(jasa);
-        const angka = (n) => (n % 1 === 0 ? String(n) : String(parseFloat(n.toFixed(2))));
-        const p = parseFloat(document.getElementById('input_p').value) || 0;
-        const l = parseFloat(document.getElementById('input_l').value) || 0;
-        if (p > 0 && l > 0) {
-            bagian.push(angka(p) + 'x' + angka(l) + 'cm');
-            const q = parseFloat(document.getElementById('input_qty_ukuran').value) || 0;
-            if (q > 0) bagian.push(angka(q) + 'bh');
-        } else {
-            const q = parseFloat(document.getElementById('input_qty_biasa').value) || 0;
-            if (q > 0) bagian.push(angka(q) + 'bh');
-        }
-        const fin = bersih($('#select_finishing').find(':selected').text());
-        // Yang tertagih item ini = finishingList (sudah ditekan "Tambah
-        // Finishing") PLUS dropdown yang masih tertunda (otomatis ikut saat
-        // tambah ke keranjang). Baca keduanya supaya deskripsi tidak kehilangan
-        // finishing yang sudah masuk daftar - kasus "Mata Ayam 6 pcs" yang
-        // hilang dari deskripsi padahal tertagih.
-        const daftarFin = [];
-        for (const f of finishingList) {
-            const n = bersih(f && f.nama);
-            if (n) daftarFin.push(n);
-        }
-        if (fin && !fin.startsWith('--')) daftarFin.push(fin);
-        const unikFin = [...new Set(daftarFin)];
-        if (unikFin.length) bagian.push('+ ' + unikFin.join(' + '));
-        const hasil = bagian.join(' ');
-        return hasil.length >= 3 ? hasil : fallback;
-    }
-
+    // ---- Nama file / deskripsi item ----
+    // (revisi owner 2026-11-16: KEMBALI ke perilaku awal) Deskripsi item
+    // SELALU diambil dari nama berkas yang diunggah kasir - BUKAN dibangun
+    // dari data order (produk/ukuran/finishing). Penyebabnya: deteksi
+    // rekonsiliasi (laminasi/kisscut di nama berkas) butuh teks berkas yang
+    // ASLI, bukan kalimat rapi dari data order yang menghapus kata kunci
+    // pelanggan. Kasir tetap boleh menyunting kolomnya (dataset.auto
+    // dihapus) sampai berkas baru diunggah.
     function isiNamaFileOtomatis(fallback) {
         const el = document.getElementById('nama_file');
-        el.value = bangunNamaFileTerstruktur(fallback);
+        el.value = (fallback || '').trim();
         el.dataset.auto = '1';
     }
 
@@ -3178,6 +3143,61 @@ let peringatanMinDaftar = 0;
         return hasil;
     }
 
+    // ---- Rekonsiliasi nama berkas vs finishing (POS, HARD BLOCK) ----
+    // Keputusan owner 2026-11-16: nama berkas/deskripsi yang menyebut
+    // pekerjaan finishing (mis. "laminasi", "kisscut") TAPI finishing itu
+    // tidak ada di nota -> TOLAK saat tombol "Tambah ke Keranjang"/simpan
+    // edit, SEBELUM baris masuk keranjang. Bukan lagi advisory - ini block.
+    //
+    // Port JS dari RekonsiliasiNotaService::temuan(); aturannya WAJIB sama:
+    //   1. batas kata (normalisasi a-z0-9 + spasi),
+    //   2. penjaga NEGASI - "tanpa/sisa/bekas/lama laminasi" bukan temuan,
+    //   3. penjaga TERGABUNG - sebutan di dalam nama finishing yang sudah
+    //      tertagih tidak jadi temuan,
+    //   4. penjaga SUBSUMSI - alias spesifik yang match menutup alias generik.
+    // Kamus diisi server (nama master finishing + tabel finishing_alias).
+    const KAMUS_REKONSILIASI = @json(\App\Services\RekonsiliasiNotaService::kamus());
+    // Finishing yang sudah tertagih di nota yang dikerjakan (mode SUSULAN) -
+    // sebutan dianggap tercukupi bila pekerjaannya sudah ada di nota
+    // (aturan nota-wide owner: "pada nota tidak ada item" baru ditolak).
+    const FINISHING_TERTAGIH_NOTA = @json($finishingTertagihNota);
+
+    function normalisasiRekonsiliasi(teks) {
+        return String(teks || '').toLowerCase()
+            .replace(/[^a-z0-9]+/gu, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function temuanRekonsiliasiJs(teks, tertagih) {
+        const norm = normalisasiRekonsiliasi(teks);
+        if (!norm || !KAMUS_REKONSILIASI.length) return [];
+        const charged = (tertagih || []).map(Number);
+        const esc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Nama resmi finishing yang tertagih (penjaga TERGABUNG).
+        const namaTertagih = KAMUS_REKONSILIASI
+            .filter((k) => k.id_kandidat.some((id) => charged.includes(Number(id))))
+            .map((k) => k.alias);
+        const hasil = [];
+        const sudah = {};
+        for (const k of KAMUS_REKONSILIASI) {
+            if (k.id_kandidat.some((id) => charged.includes(Number(id))) || sudah[k.alias]) continue;
+            const m = new RegExp('(?<![a-z0-9])' + esc(k.alias) + '(?![a-z0-9])').exec(norm);
+            if (!m) continue;
+            // PENJAGA 1 - negasi: kata batal dalam 12 karakter sebelum sebutan.
+            const sebelum = norm.slice(Math.max(0, m.index - 12), m.index);
+            if (/(^|\s)(tanpa|non|no|jangan|tak|bekas|sisa|lama)\s*$/.test(sebelum)) continue;
+            // PENJAGA 2 - tergabung: alias bagian kata dari finishing tertagih.
+            if (namaTertagih.some((nt) => new RegExp('(?<![a-z0-9])' + esc(k.alias) + '(?![a-z0-9])').test(nt))) continue;
+            sudah[k.alias] = true;
+            hasil.push(k);
+        }
+        // PENJAGA 3 - subsumsi: alias spesifik yang juga match menutup generik.
+        return hasil.filter((h) => !hasil.some((lain) => lain.alias !== h.alias
+            && lain.alias.length > h.alias.length
+            && new RegExp('(?<![a-z0-9])' + esc(h.alias) + '(?![a-z0-9])').test(lain.alias)));
+    }
+
     async function tambahKeKeranjang() {
         const idKonsumen = $('#id_konsumen').val();
         let namaFile = document.getElementById('nama_file').value.trim();
@@ -3230,13 +3250,10 @@ let peringatanMinDaftar = 0;
             document.getElementById('input_thumbnail').focus();
             return;
         }
-        // Segarkan nama otomatis dengan data FINAL (ukuran/qty/finishing bisa
-        // diisi setelah berkas diunggah) - hanya bila kasir tidak menyunting
-        // kolomnya sendiri.
-        if (document.getElementById('nama_file').dataset.auto) {
-            isiNamaFileOtomatis(namaFileDariGambar(''));
-            namaFile = document.getElementById('nama_file').value.trim();
-        }
+        // Nama file mengikuti berkas unggahan (revisi owner 2026-11-16):
+        // tidak ada penyegaran dari data order lagi. Nilai kolom ini - nama
+        // berkas atau suntingan kasir - yang dipakai apa adanya (namaFile
+        // sudah dibaca dari kolom di awal fungsi).
         if (namaFile.length < 3) {
             Swal.fire('Keterangan File', 'Isi deskripsi minimal 3 karakter', 'warning');
             document.getElementById('nama_file').focus();
@@ -3245,6 +3262,36 @@ let peringatanMinDaftar = 0;
 
         // Finishing yang sudah dipilih di baris isian tapi belum ditekan "Tambah Finishing" ikut dimasukkan otomatis.
         if (document.getElementById('select_finishing').value) await tambahFinishingKeDaftar(true);
+
+        // HARD BLOCK rekonsiliasi nama berkas (keputusan owner 2026-11-16):
+        // sebutan finishing di nama berkas/deskripsi yang tidak tertagih
+        // di nota -> item TIDAK boleh masuk keranjang. Yang dianggap
+        // tertagih = finishing item ini + finishing baris lain di keranjang
+        // (nota-wide) + finishing nota asal (mode susulan). Baris yang
+        // sedang DIEDIT tidak ikut menyumbang dari nilai lamanya - yang
+        // dihitung daftar finishing barunya (finishingList).
+        const tertagihNota = new Set((FINISHING_TERTAGIH_NOTA || []).map(Number));
+        for (let i = 0; i < cart.length; i++) {
+            if (i === editIndex) continue; // baris yang diedit: pakai finishingList baru
+            const r = cart[i];
+            if (r && !r.is_jasa) {
+                (r.finishing || []).forEach((f) => { if (f && f.id_finishing) tertagihNota.add(Number(f.id_finishing)); });
+                if (r.id_finishing) tertagihNota.add(Number(r.id_finishing));
+            }
+        }
+        finishingList.forEach((f) => { if (f && f.id_finishing) tertagihNota.add(Number(f.id_finishing)); });
+        const temuanNamaBerkas = temuanRekonsiliasiJs(namaFile, [...tertagihNota]);
+        if (temuanNamaBerkas.length) {
+            const daftar = temuanNamaBerkas
+                .map((t) => '<b>&ldquo;' + escapeHtml(t.alias) + '&rdquo;</b> &rarr; ' + escapeHtml(t.nama_finishing))
+                .join('<br>');
+            return Swal.fire({
+                icon: 'error',
+                title: 'Berkas menyebut pekerjaan yang belum ditagih',
+                html: 'Nama berkas menyebut pekerjaan yang tidak ada di nota:<br><br>' + daftar +
+                    '<br><br>Tambahkan finishing-nya ke item dulu (bar biru &rarr; pilih finishing &rarr; Tambah Finishing) sebelum item masuk keranjang.',
+            });
+        }
 
         const res = await hitungSubtotal();
         if (res && res.fetchError) return Swal.fire('Gagal menghitung harga', 'Jaringan atau server bermasalah. Periksa koneksi lalu coba lagi.', 'error');

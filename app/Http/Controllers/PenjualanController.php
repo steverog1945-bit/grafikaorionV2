@@ -199,23 +199,34 @@ class PenjualanController extends Controller
 
         // Nama finishing per baris item - supaya daftar item lama di layar
         // susulan menampilkan finishing yang sama seperti di detail nota.
+        // id_finishing ikut: dipakai POS untuk hard block rekonsiliasi nama
+        // berkas (sebutan finishing di nama berkas dianggap tercukupi bila
+        // finishing itu SUDAH tertagih di nota ini - aturan nota-wide owner).
         $notaSusulanFinishing = collect();
         if ($notaSusulanItems->isNotEmpty()) {
             $notaSusulanFinishing = DB::table('transaksi_detail_finishing as f')
                 ->join('finishing as fi', 'f.id_finishing', '=', 'fi.id_finishing')
                 ->whereIn('f.id_detail', $notaSusulanItems->pluck('id_detail'))
                 ->orderBy('f.id')
-                ->get(['f.id_detail', 'fi.nama_finishing'])
+                ->get(['f.id_detail', 'f.id_finishing', 'fi.nama_finishing'])
                 ->groupBy('id_detail');
         }
     }
+
+    // Finishing yang SUDAH tertagih di nota yang dikerjakan (mode susulan):
+    // sebutan di nama berkas dianggap tercukupi bila finishing-nya sudah ada
+    // di nota - kosong di mode nota baru (kosong juga di mode edit, yang
+    // membaca finishing langsung dari baris keranjang edit).
+    $finishingTertagihNota = $notaSusulan
+        ? $notaSusulanFinishing->flatten(1)->pluck('id_finishing')->filter()->map(fn ($i) => (int) $i)->unique()->values()->all()
+        : [];
 
     // Kepala nota (pelanggan, golongan harga, tipe order, tanggal) dikunci di
     // mode susulan maupun mode edit - di kedua mode operator bekerja pada nota
     // yang sudah ada, bukan membuat nota baru.
     $notaKunci = $notaSusulan ?: $notaEdit;
 
-    return view('penjualan.create', compact('produk', 'golongan', 'konsumenAwal', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef', 'desainerList', 'desainerDefault', 'desainerTerkunci', 'desainerTerkunciNama', 'produkSiapCetak', 'notaSusulan', 'notaSusulanItems', 'notaSusulanFinishing', 'notaEdit', 'notaKunci', 'cartAwal'));
+    return view('penjualan.create', compact('produk', 'golongan', 'konsumenAwal', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef', 'desainerList', 'desainerDefault', 'desainerTerkunci', 'desainerTerkunciNama', 'produkSiapCetak', 'notaSusulan', 'notaSusulanItems', 'notaSusulanFinishing', 'notaEdit', 'notaKunci', 'cartAwal', 'finishingTertagihNota'));
 }
 
     public function store(Request $request)
