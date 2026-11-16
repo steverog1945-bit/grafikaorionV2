@@ -126,6 +126,9 @@ class PenjualanController extends Controller
     // ke nota yang sudah jalan (?susulan={id_transaksi}). Data nota asal
     // dikunci di sini - operator menambah item, bukan membuat nota baru.
     $notaSusulan = null;
+    // Ringkasan baris nota asal untuk hard block minimum di layar (lihat
+    // di bawah) - kosong di luar mode susulan.
+    $notaSusulanMinimumJs = [];
     // Item lama di nota asal + finishing-nya. Kosong di luar mode susulan.
     $notaSusulanItems = collect();
     $notaSusulanFinishing = collect();
@@ -197,6 +200,47 @@ class PenjualanController extends Controller
                 'pr.nama_produk', 'js.nama_jasa',
             ]);
 
+        // Ringkas produk baris nota asal untuk hard block minimum di LAYAR
+        // (simpanTransaksi & peringatan kelompok): aturan "produk sama >= 2
+        // baris -> minimum ditiadakan" dan akumulasi kelompok minimum luas
+        // (hybrid T4-A) berlaku atas SATU nota - baris lama + baru - bukan
+        // hanya item baru di keranjang. Server sudah menghitung nota sebagai
+        // satu kesatuan ($barisNotaAda di PenjualanCheckoutService); layar
+        // harus ikut supaya tidak memblokir item susulan yang sudah dicukupi
+        // baris nota asal. Hanya kolom yang dipakai layar yang disuntik ke JS.
+        $notaSusulanMinimumJs = [];
+        if ($notaSusulan && $notaSusulanItems->isNotEmpty()) {
+            $notaSusulanMinimumJs = DB::table('transaksi_detail as td')
+                ->leftJoin('produk as pr', 'td.id_produk', '=', 'pr.id_produk')
+                ->leftJoin('bom_detail as bd', 'bd.id_produk', '=', 'pr.id_produk')
+                ->leftJoin('bahan_baku as bb', 'bd.id_bahan', '=', 'bb.id_bahan')
+                ->where('td.id_transaksi', (int) $notaSusulan->id_transaksi)
+                ->whereNotNull('td.id_produk')
+                ->orderBy('td.id_detail')
+                ->get([
+                    'td.id_detail', 'td.id_produk', 'td.p_ukuran', 'td.l_ukuran', 'td.qty',
+                    'pr.metode_hitung', 'pr.min_panjang', 'pr.min_lebar', 'pr.min_order',
+                    'pr.min_luas_total', 'pr.kelompok_minimum',
+                    DB::raw('COALESCE(bb.id_kategori, 0) as kategori_produk'),
+                ])
+                ->unique('id_detail')
+                ->values()
+                ->map(fn ($r) => [
+                    'id_detail'        => (int) $r->id_detail,
+                    'id_produk'        => (int) $r->id_produk,
+                    'p'                => (float) $r->p_ukuran,
+                    'l'                => (float) $r->l_ukuran,
+                    'qty'              => (float) ((float) $r->qty ?: 1),
+                    'metode_hitung'    => $r->metode_hitung,
+                    'min_panjang'      => (float) $r->min_panjang,
+                    'min_lebar'        => (float) $r->min_lebar,
+                    'min_order'        => (float) $r->min_order,
+                    'min_luas_total'   => (float) $r->min_luas_total,
+                    'kelompok_minimum' => $r->kelompok_minimum,
+                    'kategori_produk'  => (string) $r->kategori_produk,
+                ])->values()->all();
+        }
+
         // Nama finishing per baris item - supaya daftar item lama di layar
         // susulan menampilkan finishing yang sama seperti di detail nota.
         // id_finishing ikut: dipakai POS untuk hard block rekonsiliasi nama
@@ -226,7 +270,7 @@ class PenjualanController extends Controller
     // yang sudah ada, bukan membuat nota baru.
     $notaKunci = $notaSusulan ?: $notaEdit;
 
-    return view('penjualan.create', compact('produk', 'golongan', 'konsumenAwal', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef', 'desainerList', 'desainerDefault', 'desainerTerkunci', 'desainerTerkunciNama', 'produkSiapCetak', 'notaSusulan', 'notaSusulanItems', 'notaSusulanFinishing', 'notaEdit', 'notaKunci', 'cartAwal', 'finishingTertagihNota'));
+    return view('penjualan.create', compact('produk', 'golongan', 'konsumenAwal', 'no_nota', 'kategori', 'finishing', 'jasa', 'quotationRef', 'desainerList', 'desainerDefault', 'desainerTerkunci', 'desainerTerkunciNama', 'produkSiapCetak', 'notaSusulan', 'notaSusulanItems', 'notaSusulanFinishing', 'notaEdit', 'notaKunci', 'cartAwal', 'finishingTertagihNota', 'notaSusulanMinimumJs'));
 }
 
     public function store(Request $request)

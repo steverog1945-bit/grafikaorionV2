@@ -1122,6 +1122,12 @@
     // Mode edit: keranjang diisi item-item nota yang dikoreksi, jadi
     // operator langsung melihat & mengubahnya di layar yang sama.
     let cart = @json($cartAwal);
+    // Mode susulan: ringkas baris nota asal (ukuran/metode/minimum) - aturan
+    // "produk sama >= 2 baris = minimum ditiadakan" dan akumulasi kelompok
+    // minimum luas berlaku atas SATU nota (baris lama + baru), selaras dengan
+    // server ($barisNotaAda di PenjualanCheckoutService). Kosong di luar
+    // mode susulan.
+    const ITEM_NOTA_ASAL = @json($notaSusulanMinimumJs ?? []);
     let currentProduk = null;
     // Kategori produk yang terpasang di dropdown (bukan API row - API tidak
     // mengembalikannya; kategori di POS = COALESCE(bahan_baku.id_kategori, 0)
@@ -1752,12 +1758,18 @@ let currentThumbnailPreview = null;
     function minBarisProdukSama() {
         // Baris OTHER cart dengan produk & kategori yang sama (baris yang
         // sedang diedit tidak dihitung) - eksempsi sisi layar, serupa
-        // dengan hitungan sama di server.
+        // dengan hitungan sama di server. Mode susulan: baris nota asal
+        // ikut dihitung karena satu nota = satu kesatuan.
         let n = 0;
         const idPr = currentProduk ? currentProduk.id_produk : 0;
         const kat = String(currentKategori ?? '0');
         cart.forEach((it, idx) => {
             if (idx === editIndex) return;
+            if (String(it.id_produk) !== String(idPr)) return;
+            if (String(it.kategori_produk ?? '0') !== kat) return;
+            n++;
+        });
+        (ITEM_NOTA_ASAL || []).forEach((it) => {
             if (String(it.id_produk) !== String(idPr)) return;
             if (String(it.kategori_produk ?? '0') !== kat) return;
             n++;
@@ -1798,15 +1810,24 @@ let currentThumbnailPreview = null;
     // selalu dihitung ulang server.
     function grupMinKeranjang() {
         const grup = {};
-        cart.forEach((it) => {
+        const tambahBaris = (it) => {
             if (it.metode_hitung !== 'ukuran') return;
             const min = parseFloat(it.min_luas_total) || 0;
             if (!(min > 0)) return;
             const label = it.kelompok_minimum || String(it.id_produk);
             if (!grup[label]) grup[label] = { label: label, min: min, total: 0, terbesar: null, areaTerbesar: 0 };
-            const area = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 0);
+            const area = (parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000 * (parseFloat(it.qty_input) || 1);
             grup[label].total += area;
             if (area > grup[label].areaTerbesar) { grup[label].areaTerbesar = area; grup[label].terbesar = it; }
+        };
+        cart.forEach(tambahBaris);
+        // Mode susulan: luasan nota asal ikut diakumulasi ke kelompok -
+        // satu nota = satu kesatuan (selaras $barisNotaAda di server).
+        (ITEM_NOTA_ASAL || []).forEach((it) => {
+            tambahBaris({
+                ...it,
+                qty_input: parseFloat(it.qty) || 1,
+            });
         });
         return Object.values(grup).map((g) => {
             g.total = Math.round(g.total * 10000) / 10000;
@@ -1827,6 +1848,10 @@ let currentThumbnailPreview = null;
         if (!kurang.length) { __sigPeringatanMinOrder = ''; return; }
         const g = kurang[0];
         const jumlahItem = cart.filter((it) => {
+            if (it.metode_hitung !== 'ukuran') return false;
+            if (!(parseFloat(it.min_luas_total) > 0)) return false;
+            return (it.kelompok_minimum || String(it.id_produk)) === g.label;
+        }).length + (ITEM_NOTA_ASAL || []).filter((it) => {
             if (it.metode_hitung !== 'ukuran') return false;
             if (!(parseFloat(it.min_luas_total) > 0)) return false;
             return (it.kelompok_minimum || String(it.id_produk)) === g.label;
@@ -1863,6 +1888,25 @@ let currentThumbnailPreview = null;
 
         try {
             const res = await fetch(`{{ url('/api/penjualan/produk') }}/${id}`);
+            // Sesi kedaluwarsa gagal dalam dua bentuk: res.redirected (302
+            // ke /masuk) atau !res.ok (403/500). Keduanya dulu berakhir di
+            // res.json() yang melempar SyntaxError - tertampung catch,
+            // tercatat di console saja, dan layar diam total: produk
+            // terlihat terpilih tapi currentProduk tetap kosong, estimasi
+            // tidak terhitung, dan tombol Tambah bersuara "Pilih produk
+            // dulu" seolah-olah produk memang belum dipilih. Tampilkan
+            // penyebabnya di layar, dengan tindakan lanjutan yang jelas.
+            if (!res || res.redirected || !res.ok) {
+                currentProduk = null;
+                Swal.fire(
+                    res && res.redirected ? 'Sesi Berakhir' : 'Gagal Memuat Produk',
+                    (res && res.redirected
+                        ? 'Sesi Anda sudah berakhir sehingga detail produk tidak bisa diambil. Halaman akan dimuat ulang, silakan masuk kembali.'
+                        : 'Detail produk tidak bisa diambil dari server (HTTP ' + (res ? res.status : 'gagal') + '). Periksa koneksi lalu muat ulang halaman (Ctrl+F5).'),
+                    'error'
+                ).then(function () { if (res && res.redirected) window.location.reload(); });
+                return;
+            }
             const hasilProduk = await res.json();
             // Respons basi: produk sudah terganti lagi sebelum respons tiba -
             // buang, urutan terbaru yang dipakai.
@@ -1886,7 +1930,16 @@ let currentThumbnailPreview = null;
                 else { $('#input_qty_biasa').focus().select(); }
             }, 100);
             hitungSubtotal();
-        } catch (e) { console.error("Gagal ambil produk:", e); }
+        } catch (e) {
+            console.error("Gagal ambil produk:", e);
+            // Jangan diam: produk terlihat terpilih tapi detailnya gagal
+            // dimuat - estimasi tidak terhitung dan tombol Tambah nantinya
+            // menyalahkan operator padahal operator sudah memilih.
+            currentProduk = null;
+            Swal.fire('Gagal Memuat Produk',
+                'Detail produk tidak bisa diambil dari server. Periksa koneksi Anda, lalu muat ulang halaman (Ctrl+F5) dan coba lagi. Jika sesi sudah berakhir, Anda akan diarahkan ke halaman masuk.',
+                'error');
+        }
     }
 
     // Biaya Cetak sekarang komponen UTAMA subtotal, defaultnya otomatis
@@ -3203,7 +3256,19 @@ let peringatanMinDaftar = 0;
         let namaFile = document.getElementById('nama_file').value.trim();
 
         if (!idKonsumen) return Swal.fire('Data belum lengkap', 'Pilih pelanggan dulu', 'error');
-        if (!currentProduk) return Swal.fire('Data belum lengkap', 'Pilih produk dulu.', 'warning');
+        if (!currentProduk) {
+            // Produk terbaca terpilih tapi tidak termuat = gagal di jalur
+            // server/koneksi, BUKAN operator lupa memilih - bedakan
+            // pesannya supaya tidak menyalahkan operator.
+            const pilihan = $('#select_produk').val();
+            if (pilihan) {
+                const nama = ($('#select_produk').find(':selected').text() || '').trim();
+                return Swal.fire('Produk Gagal Dimuat',
+                    'Produk "' + nama + '" terbaca terpilih, tetapi detailnya tidak berhasil diambil (sesi kedaluwarsa atau koneksi bermasalah). Muat ulang halaman (Ctrl+F5), masuk kembali bila diminta, lalu coba tambahkan lagi.',
+                    'warning');
+            }
+            return Swal.fire('Data belum lengkap', 'Pilih produk dulu.', 'warning');
+        }
         // Rekonsiliasi minimum (owner 2026-11-15, revisi): ukuran di bawah
         // minimum produk TIDAK dinaikkan otomatis di sini - input disimpan
         // apa adanya; penolakan terjadi saat SIMPAN (hard block di bawah),
@@ -3574,9 +3639,21 @@ let peringatanMinDaftar = 0;
                     minGroups[kelompok].idxTerbesar = idx;
                 }
             });
+            // Mode susulan: luasan baris nota asal ikut diakumulasi ke
+            // kelompok sebelum selisih dihitung - kalau nota asal sudah
+            // mencukupi minimum, item baru tidak ditagih (server
+            // merekonsiliasi hal yang sama di rekonsiliasiKelompokSusulan).
+            (ITEM_NOTA_ASAL || []).forEach((it) => {
+                if (!(parseFloat(it.min_luas_total) > 0)) return;
+                if (it.metode_hitung !== 'ukuran') return;
+                const kelompok = it.kelompok_minimum || String(it.id_produk);
+                if (!minGroups[kelompok]) return; // kelompok hanya di nota: tidak ada baris baru ditagih
+                const area = ((parseFloat(it.p) || 0) * (parseFloat(it.l) || 0) / 10000) * (parseFloat(it.qty_input ?? it.qty) || 1);
+                minGroups[kelompok].areaNota = (minGroups[kelompok].areaNota || 0) + area;
+            });
             Object.keys(minGroups).forEach((kelompok) => {
                 const g = minGroups[kelompok];
-                const totalAktual = g.items.reduce((s, x) => s + x.area, 0);
+                const totalAktual = g.items.reduce((s, x) => s + x.area, 0) + (g.areaNota || 0);
                 const selisih = Math.max(0, Math.round((g.min - totalAktual) * 10000) / 10000);
                 if (selisih <= 0) return;
                 const hargaSatuan = (g.terbesar && g.terbesar.harga_satuan) ? g.terbesar.harga_satuan : 0;
@@ -4026,10 +4103,15 @@ let peringatanMinDaftar = 0;
         // memperbaiki sendiri / menambah item lain sekelompok. Baris
         // BARU (id_detail null) saja yang dihitung; baris lama (mode edit)
         // dibebaskan - server tetap otoritatif.
-        const minBarisProdukSamaUntuk = (it) => cart.filter((r) =>
-            String(r.id_produk) === String(it.id_produk) &&
-            String(r.kategori_produk ?? '0') === String(it.kategori_produk ?? '0')
-        ).length;
+        const minBarisProdukSamaUntuk = (it) => {
+            const idPr = String(it.id_produk);
+            const kat = String(it.kategori_produk ?? '0');
+            // Mode susulan: baris produk yang sama yang SUDAH ada di nota
+            // ikut dihitung (satu nota = satu kesatuan; selaras server).
+            const diCart = cart.filter((r) => String(r.id_produk) === idPr && String(r.kategori_produk ?? '0') === kat).length;
+            const diNota = (ITEM_NOTA_ASAL || []).filter((r) => String(r.id_produk) === idPr && String(r.kategori_produk ?? '0') === kat).length;
+            return diCart + diNota;
+        };
         const pelanggaran = [];
         for (let i = 0; i < cart.length; i++) {
             const it = cart[i];
@@ -4048,8 +4130,14 @@ let peringatanMinDaftar = 0;
                 if (r.is_jasa || r.metode_hitung !== 'ukuran') return false;
                 if (!(parseFloat(r.min_luas_total) > 0)) return false;
                 return (r.kelompok_minimum || String(r.id_produk)) === label;
-            });
-            const total = sekelompok.reduce((s, r) => s + ((parseFloat(r.p) || 0) * (parseFloat(r.l) || 0) / 10000) * (parseFloat(r.qty_input) || 1), 0);
+            }).concat((ITEM_NOTA_ASAL || []).filter((r) => {
+                // Baris nota asal ikut diakumulasi ke kelompok - satu nota =
+                // satu kesatuan, selaras server ($barisNotaAda).
+                if (r.metode_hitung !== 'ukuran') return false;
+                if (!(parseFloat(r.min_luas_total) > 0)) return false;
+                return (r.kelompok_minimum || String(r.id_produk)) === label;
+            }));
+            const total = sekelompok.reduce((s, r) => s + ((parseFloat(r.p) || 0) * (parseFloat(r.l) || 0) / 10000) * (parseFloat(r.qty_input ?? r.qty) || 1), 0);
             if (sekelompok.length === 1 && total < mLuas) {
                 pelanggaran.push(`Minimum order kelompok "${label}" belum terpenuhi (${total.toFixed(2)} m&sup2; dari ${mLuas} m&sup2;). Tambah item lain sekelompok atau ubah ukuran item ini ke minimum order.`);
             }

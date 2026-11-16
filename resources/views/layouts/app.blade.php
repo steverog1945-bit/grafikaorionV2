@@ -17,6 +17,61 @@
     {{-- Akar aplikasi (url('/')), dipakai skrip global untuk menebak prefix
          deploy (sub-direktori) tanpa menyalin alamat harcode. --}}
     <meta name="app-base" content="{{ url('/') }}">
+    {{-- JARING PENGAMAN: aksi yang gagal TIDAK BOLEH diam tanpa respon.
+         SENGAJA berdiri sendiri tanpa memakai app.js, Swal, atau kelas
+         Tailwind - justru aset-aset itulah yang mungkin gagal dimuat
+         (mis. 404 karena prefix deploy sub-direktori). Menangkap:
+           1) error skrip tak-tertangkap dari handler inline (onclick, dst.);
+           2) aset SCRIPT/LINK yang gagal dimuat (mis. bundle 404);
+           3) promise reject yang tidak tertangani.
+         Semuanya memunculkan peringatan terlihat di layar, maksimal 4
+         sekaligus. Detail teknis tetap tercatat di console & client-log. --}}
+    <script>
+        (function () {
+            var tampil = 0, MAKS = 4;
+            function banner(pesan) {
+                if (tampil >= MAKS) return; tampil += 1;
+                var buat = function () {
+                    var d = document.createElement('div');
+                    d.setAttribute('role', 'alert');
+                    d.style.cssText = 'position:fixed;z-index:99999;top:12px;left:50%;transform:translateX(-50%);width:min(560px,94vw);box-sizing:border-box;background:#fef2f2;border:1px solid #ef4444;border-left:4px solid #dc2626;color:#991b1b;font:13px/1.5 system-ui,-apple-system,sans-serif;padding:10px 12px;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.25);display:flex;gap:10px;align-items:flex-start';
+                    var teks = document.createElement('span');
+                    teks.style.cssText = 'flex:1 1 auto;min-width:0;overflow-wrap:break-word';
+                    teks.textContent = pesan;
+                    var tutup = document.createElement('button');
+                    tutup.type = 'button';
+                    tutup.setAttribute('aria-label', 'Tutup peringatan');
+                    tutup.textContent = '×';
+                    tutup.style.cssText = 'flex:0 0 auto;border:0;background:transparent;color:inherit;font-size:18px;line-height:1;cursor:pointer;padding:0 2px;border-radius:6px';
+                    tutup.addEventListener('click', function () { d.remove(); });
+                    d.appendChild(teks); d.appendChild(tutup);
+                    document.body.appendChild(d);
+                    setTimeout(function () { if (d.parentNode) d.remove(); }, 15000);
+                };
+                if (document.body) { buat(); } else { document.addEventListener('DOMContentLoaded', buat, { once: true }); }
+            }
+            window.__laporAksiGagal = banner;
+            window.addEventListener('error', function (e) {
+                var target = e.target;
+                // Error pemuatan aset (script/css 404, dsb.) mengirim event
+                // `error` pada ELEMEN, bukan exception JS pada window.
+                if (target && target !== window && target.tagName) {
+                    if (target.tagName === 'SCRIPT' || target.tagName === 'LINK') {
+                        banner('Sebagian sumber daya aplikasi gagal dimuat. Muat ulang halaman (Ctrl+F5); bila berulang, hubungi administrator.');
+                    }
+                    return;
+                }
+                var pesan = (e.error && e.error.message) || e.message || '';
+                if (!pesan) return;
+                banner('Terjadi kesalahan: ' + String(pesan).slice(0, 180) + '. Muat ulang halaman (Ctrl+F5); bila berulang, hubungi administrator.');
+            }, true);
+            window.addEventListener('unhandledrejection', function (e) {
+                var r = e.reason;
+                var pesan = (r && r.message) || r || 'sebab tidak diketahui';
+                banner('Aksi tidak dapat diselesaikan: ' + String(pesan).slice(0, 180));
+            });
+        })();
+    </script>
     <title>{{ $appSetting->nama_aplikasi }}</title>
 
     {{-- PWA: manifest agar aplikasi bisa dipasang di layar utama, ikon sentuh

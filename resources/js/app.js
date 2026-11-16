@@ -63,6 +63,19 @@ function modalPanel(el) {
     return el.querySelector('[data-modal-panel]') || el.firstElementChild;
 }
 
+/* Aksi yang gagal TIDAK BOLEH diam (perintah owner): tampilkan
+   peringatan terlihat. window.__laporAksiGagal dipasang inline di <head>
+   layout app (berdiri sendiri, tanpa ketergantungan app.js). Bila tidak
+   ada (halaman tanpa layout app), jatuh ke Swal/alert. */
+function gagalAksi(teks) {
+    if (typeof window.__laporAksiGagal === 'function') { window.__laporAksiGagal(teks); return; }
+    if (window.Swal && typeof window.Swal.fire === 'function') {
+        window.Swal.fire({ icon: 'error', title: 'Aksi gagal', text: teks });
+        return;
+    }
+    window.alert(teks);
+}
+
 function lockScroll() {
     modalOpenCount += 1;
     if (modalOpenCount !== 1) return;
@@ -162,7 +175,12 @@ function focusFirstIn(panel) {
 
 window.openModal = function (id) {
     const el = document.getElementById('modal-' + id) || document.getElementById(id);
-    if (!el || !isTertutup(el)) return;
+    if (!el) {
+        if (window.console) console.error('Modal tidak ditemukan:', id);
+        gagalAksi('Dialog "' + id + '" tidak tersedia di halaman ini. Muat ulang halaman (Ctrl+F5); bila berulang, hubungi administrator.');
+        return;
+    }
+    if (!isTertutup(el)) return;
 
     const panel = modalPanel(el);
     lastFocused = document.activeElement;
@@ -189,7 +207,12 @@ window.openModal = function (id) {
 
 window.closeModal = function (id) {
     const el = id ? (document.getElementById('modal-' + id) || document.getElementById(id)) : openModals().pop();
-    if (!el || isTertutup(el)) return;
+    if (!el) {
+        if (window.console) console.error('Modal tidak ditemukan saat menutup:', id);
+        gagalAksi('Dialog yang ingin ditutup tidak tersedia di halaman ini. Muat ulang halaman (Ctrl+F5); bila berulang, hubungi administrator.');
+        return;
+    }
+    if (isTertutup(el)) return;
 
     el.dataset.state = 'closing';
 
@@ -218,7 +241,11 @@ window.closeModal = function (id) {
 /* Alias untuk halaman lama yang memakai toggleModal(namaTanpaPrefix). */
 window.toggleModal = function (id) {
     const el = document.getElementById('modal-' + id) || document.getElementById(id);
-    if (!el) return;
+    if (!el) {
+        if (window.console) console.error('Modal tidak ditemukan:', id);
+        gagalAksi('Dialog "' + id + '" tidak tersedia di halaman ini. Muat ulang halaman (Ctrl+F5); bila berulang, hubungi administrator.');
+        return;
+    }
     if (isTertutup(el)) window.openModal(id);
     else window.closeModal(id);
 };
@@ -477,3 +504,14 @@ document.addEventListener('click', function (e) {
     }, true);
     window.addEventListener('unhandledrejection', (e) => handle(e.reason, 'unhandledrejection'));
 })();
+
+// ==========================================================================
+// Dashboard Eksekutif (/eksekutif): chart (uPlot) & animasi (Motion,
+// Anime.js) dimuat HANYA di halaman itu - halaman lain tidak membayar
+// ongkos download modul ini sama sekali.
+// ==========================================================================
+if (document.getElementById('dashboard-eksekutif-chart')) {
+    import('./dashboard_eksekutif.js')
+        .then((m) => m.initDashboardEksekutif())
+        .catch((err) => console.error('Modul dashboard eksekutif gagal dimuat:', err));
+}
