@@ -341,7 +341,7 @@
 
         <div id="wrapper-bank-koreksi" class="hidden">
             <x-form.group label="Rekening Bank" required dalam>
-                <select name="id_bank" required
+                <select name="id_bank"
                     class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner">
                     <option value="">- Pilih rekening -</option>
                     @foreach($daftarBank as $bank)
@@ -397,8 +397,15 @@ function toggleBankKoreksi() {
     const wrapper = document.getElementById('wrapper-bank-koreksi');
     wrapper.classList.toggle('hidden', metode !== 'Transfer');
     const bankSelect = wrapper.querySelector('select');
+    // required bersyarat HANYA saat Transfer. Versi awal menandai required
+    // statis: saat metode bukan Transfer, wrappernya selalu tersembunyi
+    // (.hidden), sehingga validasi HTML5 memblokir pengiriman form dengan
+    // "not focusable" dan tombol/ "Koreksi" tampak tidak melakukan apa pun.
+    bankSelect.required = metode === 'Transfer';
     if (metode !== 'Transfer') bankSelect.value = '';
 }
+// Sinkronkan keadaan awal (metode default = Tunai).
+toggleBankKoreksi();
 </script>
 
 {{-- KAS TIDAK TERDUGA - mutasi tunai yang tidak terikat nota, terpisah
