@@ -149,11 +149,11 @@ $respons = $this->actingAs($user)->put('/pengaturan-desainer/kelas/' . $kelas->i
     // P1 - Autentikasi: rate limiter login benar-benar aktif
     // ==========================================================
 
-    public function test_login_dibatasi_lima_percobaan_per_menit(): void
+    public function test_login_dibatasi_oleh_captcha_lalu_rate_limiter(): void
     {
         $user = User::factory()->create(['username' => 'target', 'password' => Hash::make('rahasia-benar')]);
 
-        for ($i = 1; $i <= 5; $i++) {
+        for ($i = 1; $i <= 3; $i++) {
             $respons = $this->post('/login', ['username' => 'target', 'password' => 'salah']);
             $respons->assertRedirect();
             $this->assertSame(
@@ -162,6 +162,21 @@ $respons = $this->actingAs($user)->put('/pengaturan-desainer/kelas/' . $kelas->i
                 "percobaan ke-{$i} seharusnya masih dihitung sebagai kegagalan login biasa"
             );
         }
+
+        // Setelah 3 gagal dari IP yang sama, CAPTCHA aktif: password BENAR pun
+        // ditolak sebelum Auth::attempt berjalan (error key 'captcha').
+        $keempat = $this->post('/login', ['username' => 'target', 'password' => 'rahasia-benar']);
+        $this->assertSame(
+            'Jawaban keamanan salah. Coba lagi.',
+            $keempat->getSession()->get('errors')->first('captcha'),
+            'percobaan ke-4 (password benar) harus ditahan CAPTCHA'
+        );
+        $this->assertFalse($this->isAuthenticated());
+
+        // Percobaan ke-5 masih dalam jangkauan throttle (5/mnt) - tetap captcha.
+        $kelima = $this->post('/login', ['username' => 'target', 'password' => 'rahasia-benar']);
+        $this->assertSame('Jawaban keamanan salah. Coba lagi.', $kelima->getSession()->get('errors')->first('captcha'));
+        $this->assertFalse($this->isAuthenticated());
 
         // Percobaan ke-6 MELEWATI Auth::attempt dan ditahan limiter.
         $keenam = $this->post('/login', ['username' => 'target', 'password' => 'salah']);
@@ -278,6 +293,40 @@ $respons = $this->actingAs($user)->put('/pengaturan-desainer/kelas/' . $kelas->i
         $this->assertStringNotContainsStringIgnoringCase('onclick', $hasil);
         $this->assertStringNotContainsStringIgnoringCase('onerror', $hasil);
         $this->assertStringNotContainsStringIgnoringCase('javascript:', $hasil);
+    }
+
+    public function test_isi_postingan_disanitasi_ketik_render_walau_isi_tersimpan_nakal(): void
+    {
+        // Isi yang NAKAL disimpan langsung ke DB (seolah lolos dari bug di
+        // proses simpan sebelumnya) - render (publik & ERP) tetap harus
+        // membersihkannya. Reduksi jendela "satu titik sanitasi saja".
+        $slug = 'uji-render-' . uniqid();
+        DB::table('posts')->insert([
+            'judul' => 'Uji Render',
+            'slug' => $slug,
+            'isi' => '<p>aman</p><script>alert(1)</script><img src=x onerror=alert(2)>',
+            'status' => 'terbit',
+            'tampil_publik' => 1,
+            'terbit_at' => now()->subMinute(),
+            'menit_baca' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Publik (tanpa login)
+        $this->get('/baca/' . $slug)
+            ->assertOk()
+            ->assertDontSee('alert(1)', false)
+            ->assertDontSee('onerror=alert', false)
+            ->assertSee('<p>aman</p>', false);
+
+        // Internal (login, Administrator)
+        $role = $this->role('Administrator');
+        $admin = User::factory()->create(['id_role' => $role->id_role]);
+        $this->actingAs($admin)->get('/postingan/' . $slug)
+            ->assertOk()
+            ->assertDontSee('alert(1)', false)
+            ->assertSee('<p>aman</p>', false);
     }
 
     public function test_isi_postingan_disanitasi_sebelum_disimpan(): void

@@ -48,7 +48,7 @@
         <div class="lp-cover"><img src="{{ $post->url_sampul }}" alt=""></div>
         @endif
 
-        <div class="lp-body"><div class="prose-post" lang="id">{!! $post->isi_html !!}</div></div>
+        <div class="lp-body"><div class="prose-post" lang="id">{!! \App\Support\HtmlBersih::bersihkan($post->isi_html) !!}</div></div>
 
         <div class="lp-ekor">
             <div class="lp-tags">

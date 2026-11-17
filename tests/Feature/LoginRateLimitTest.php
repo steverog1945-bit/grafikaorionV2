@@ -23,20 +23,33 @@ class LoginRateLimitTest extends TestCase
             'id_role' => Role::factory()->create(['nama_role' => 'Kasir'])->id_role,
         ]);
 
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 3; $i++) {
             $this->post('/login', ['username' => 'usercoba', 'password' => 'salah'])
                 ->assertSessionHasErrors('username');
         }
 
-        // Percobaan ke-6 dalam jendela waktu yang sama harus ditolak oleh limiter,
-        // BUKAN diproses lagi oleh AuthController (baik dengan password salah maupun benar).
-        $ditolak = $this->post('/login', ['username' => 'usercoba', 'password' => 'rahasia-benar']);
-        $ditolak->assertSessionHasErrors('username');
+        // Setelah 3 gagal dari IP yang sama, CAPTCHA aktif: password BENAR
+        // pun ditolak sebelum Auth::attempt (error key 'captcha'), jadi
+        // tidak ada yang bisa login dari IP ini untuk sementara.
+        $captcha = $this->post('/login', ['username' => 'usercoba', 'password' => 'rahasia-benar']);
+        $captcha->assertSessionHasErrors('captcha');
         $this->assertGuest();
 
-        // Username lain dari IP yang sama TIDAK ikut terkunci (limiter per username+IP, bukan per IP).
+        // Percobaan ke-5 masih dalam jangkauan throttle (5/mnt) - tetap captcha.
+        $kelima = $this->post('/login', ['username' => 'usercoba', 'password' => 'rahasia-benar']);
+        $kelima->assertSessionHasErrors('captcha');
+        $this->assertGuest();
+
+        // Percobaan ke-6 dalam jendela waktu yang sama harus ditolak oleh limiter,
+        // BUKAN diproses lagi oleh AuthController.
+        $keenam = $this->post('/login', ['username' => 'usercoba', 'password' => 'rahasia-benar']);
+        $keenam->assertSessionHasErrors('username');
+        $this->assertGuest();
+
+        // IP/username lain dari IP yang sama TIDAK lolos tanpa captcha juga
+        // (CAPTCHA berlaku per IP) - dibuktikan di sini, bukan sekadar diasumsikan.
         $this->post('/login', ['username' => 'lain-tidak-ada', 'password' => 'apa saja'])
-            ->assertSessionHasErrors('username');
+            ->assertSessionHasErrors('captcha');
     }
 
     public function test_login_benar_di_bawah_ambang_batas_tetap_berhasil(): void

@@ -65,7 +65,7 @@
     {{-- ================= ISI ================= --}}
     <article class="cetak-artikel bg-white rounded-2xl border border-slate-100 shadow-sm mt-6 px-6 sm:px-12 py-10">
         @if($post->ringkasan)<p class="ringkasan-post text-lg text-slate-500 leading-relaxed font-medium border-l-4 border-indigo-400 pl-5 mb-8">{{ $post->ringkasan }}</p>@endif
-        <div class="prose-post" lang="id">{!! $post->isi_html !!}</div>
+        <div class="prose-post" lang="id">{!! \App\Support\HtmlBersih::bersihkan($post->isi_html) !!}</div>
 
         @if(count($post->daftar_tag))
         <div class="no-print mt-10 pt-6 border-t border-slate-100 flex flex-wrap items-center gap-2">
