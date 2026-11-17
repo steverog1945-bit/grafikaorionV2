@@ -136,4 +136,5 @@
     </div>
     @endif
 </div>
+@include('partials.print-report-footer')
 @endsection

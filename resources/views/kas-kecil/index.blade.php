@@ -312,4 +312,5 @@
     }
 </script>
 @endpush
+@include('partials.print-report-footer')
 @endsection

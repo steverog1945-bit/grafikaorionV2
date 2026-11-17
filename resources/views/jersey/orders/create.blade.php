@@ -11,26 +11,26 @@
 .jersey-mobile-form-page input[type="file"],
 .jersey-mobile-form-page select,
 .jersey-mobile-form-page textarea {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: var(--surface-primary, #ffffff);
+    border: 1px solid var(--border-primary, #e2e8f0);
     border-radius: 0.75rem;
     padding: 0.625rem 0.75rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #334155;
+    color: var(--text-primary, #334155);
     transition: border-color .15s ease, box-shadow .15s ease;
 }
 .jersey-mobile-form-page input:focus,
 .jersey-mobile-form-page select:focus,
 .jersey-mobile-form-page textarea:focus {
     outline: none;
-    border-color: #006C7B;
-    box-shadow: 0 0 0 3px rgba(0,108,123,.12);
+    border-color: var(--brand-sidebar-accent, #E8891D);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-sidebar-accent, #E8891D) 18%, transparent);
 }
 .jersey-mobile-form-page .baris-pemain select,
 .jersey-mobile-form-page .baris-pemain input {
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background-color: var(--surface-secondary, #f8fafc);
+    border: 1px solid var(--border-secondary, var(--border-primary, #e2e8f0));
     border-radius: 0.5rem;
     padding: 0.5rem;
     font-size: 0.75rem;

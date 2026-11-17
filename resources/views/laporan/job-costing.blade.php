@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <style>
@@ -114,4 +114,5 @@
         </x-laporan.print-table>
     </div>
 </div>
+@include('partials.print-report-footer')
 @endsection

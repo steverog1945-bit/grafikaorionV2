@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * FIXTURE SINTETIS KHUSUS STAGING VISUAL (bukan data produksi).
@@ -127,10 +128,10 @@ class StagingFixtureSeeder extends Seeder
         }
         if (DB::table('konsumen')->count() === 0) {
             DB::table('konsumen')->insert([
-                ['id_konsumen' => 1, 'nama_konsumen' => 'Toko Sinar Jaya', 'telepon' => '081200000001', 'alamat' => 'Jl. Merdeka No. 10', 'id_golongan' => 2, 'tipe_konsumen' => 'permanent', 'tgl_registrasi' => now()],
-                ['id_konsumen' => 2, 'nama_konsumen' => 'Yayasan Cendekia Harapan Solidaritas Panjang', 'telepon' => '081200000002', 'alamat' => 'Jl. Pendidikan Raya No. 88 Blok C2 Kelurahan Cempaka Putih', 'id_golongan' => 1, 'tipe_konsumen' => 'permanent', 'tgl_registrasi' => now()],
-                ['id_konsumen' => 3, 'nama_konsumen' => 'Andi Pratama Wijaya Kusuma Hadiwangsa', 'telepon' => '081200000003', 'alamat' => 'Perum Griya Asri Blok D', 'id_golongan' => 1, 'tipe_konsumen' => 'temporary', 'tgl_registrasi' => now()],
-                ['id_konsumen' => 4, 'nama_konsumen' => 'CV Digital Print Nusantara Perkasa Abadi', 'telepon' => '081200000004', 'alamat' => 'Jl. Industri Raya Kav. 15-17', 'id_golongan' => 2, 'tipe_konsumen' => 'permanent', 'tgl_registrasi' => now()],
+                ['id_konsumen' => 1, 'id_unique' => (string) Str::uuid(), 'nama_konsumen' => 'Toko Sinar Jaya', 'telepon' => '081200000001', 'alamat' => 'Jl. Merdeka No. 10', 'id_golongan' => 2, 'tipe_konsumen' => 'permanent', 'tgl_registrasi' => now()],
+                ['id_konsumen' => 2, 'id_unique' => (string) Str::uuid(), 'nama_konsumen' => 'Yayasan Cendekia Harapan Solidaritas Panjang', 'telepon' => '081200000002', 'alamat' => 'Jl. Pendidikan Raya No. 88 Blok C2 Kelurahan Cempaka Putih', 'id_golongan' => 1, 'tipe_konsumen' => 'permanent', 'tgl_registrasi' => now()],
+                ['id_konsumen' => 3, 'id_unique' => (string) Str::uuid(), 'nama_konsumen' => 'Andi Pratama Wijaya Kusuma Hadiwangsa', 'telepon' => '081200000003', 'alamat' => 'Perum Griya Asri Blok D', 'id_golongan' => 1, 'tipe_konsumen' => 'temporary', 'tgl_registrasi' => now()],
+                ['id_konsumen' => 4, 'id_unique' => (string) Str::uuid(), 'nama_konsumen' => 'CV Digital Print Nusantara Perkasa Abadi', 'telepon' => '081200000004', 'alamat' => 'Jl. Industri Raya Kav. 15-17', 'id_golongan' => 2, 'tipe_konsumen' => 'permanent', 'tgl_registrasi' => now()],
             ]);
         }
 

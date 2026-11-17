@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <style>
@@ -119,4 +119,5 @@
 </div>
 
 @include('partials.modal-pelunasan-hutang')
+@include('partials.print-report-footer')
 @endsection

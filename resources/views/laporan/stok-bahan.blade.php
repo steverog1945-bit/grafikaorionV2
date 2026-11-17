@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <style>
@@ -166,4 +166,5 @@
     </div>
 
 </div>
+@include('partials.print-report-footer')
 @endsection

@@ -134,4 +134,5 @@
         </x-laporan.print-table>
     </div>
 </div>
+@include('partials.print-report-footer')
 @endsection

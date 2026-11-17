@@ -492,15 +492,9 @@
 </style>
 
 <script>
-    function formatRupiah(angka) {
-        let string = angka.toString().replace(/[^0-9]/g, "");
-        return string.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-
-    function cleanRupiah(string) {
-        if (!string) return 0;
-        return parseFloat(string.toString().replace(/\./g, '')) || 0;
-    }
+    // formatRupiah()/cleanRupiah() global dari partials/rupiah-format-script
+    // (dimuat layouts.app) - jangan dideklarasikan ulang di sini supaya tidak
+    // saling menimpa secara senyap.
 
     // Rangkuman Cetak/Desain/Finishing/Potongan jadi satu baris kecil di
     // bawah Deskripsi (bukan kolom sendiri-sendiri) - dipakai ulang setelah

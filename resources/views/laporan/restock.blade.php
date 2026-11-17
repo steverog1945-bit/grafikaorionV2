@@ -1,11 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1600px] mx-auto">
+<style>
+    @media print {
+        aside, .no-print { display: none !important; }
+        main { margin-left: 0 !important; padding: 28px 32px !important; }
+        body { background: #fff !important; }
+    }
+</style>
+@include('partials.print-report-header', ['docTitle' => 'Prediksi Restock Cerdas'])
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1600px] mx-auto print:pt-0">
     <x-page-header title="Prediksi Restock Cerdas" subtitle="Sisa hari pakai per bahan baku, dari pemakaian 60 hari terakhir. Diurutkan dari yang paling kritis.">
         <x-slot:actions>
+            <x-button type="button" onclick="cetakLaporanPenuh()" variant="secondary" class="no-print">
+                <i class="fas fa-print"></i>
+                Cetak
+            </x-button>
             @if(\App\Support\Izin::bolehPath(auth()->user(), '/purchase-request/create'))
-            <a href="{{ route('purchase-request.create') }}" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-slate-900 text-white text-[12px] font-semibold hover:bg-slate-800 transition-colors"><i class="fas fa-cart-plus"></i> Buat Permintaan Pembelian</a>
+            <a href="{{ route('purchase-request.create') }}" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-[var(--brand-sidebar-accent,#4F46E5)] text-white text-[12px] font-semibold hover:brightness-110 transition-all no-print"><i class="fas fa-cart-plus"></i> Buat Permintaan Pembelian</a>
             @endif
         </x-slot:actions>
     </x-page-header>
@@ -63,5 +75,6 @@
         </div>
     </div>
     <p class="mt-4 text-[11px] text-slate-400">Prediksi memakai rata-rata pakai 60 hari (kartu stok, tipe keluar). Saran beli = gap ke stok minimal atau cadangan 14 hari pemakaian, yang lebih besar. Bahan tanpa pemakaian dan tanpa stok minimal tidak diramal. Angka adalah panduan — keputusan beli final ada di Anda.</p>
+    @include('partials.print-report-footer')
 </div>
 @endsection

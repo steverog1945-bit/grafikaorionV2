@@ -256,10 +256,7 @@
         };
         var updatedAt = null;
 
-        function formatRupiah(n) {
-            return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
-
+        // formatRupiah() global dari partials/rupiah-format-script.
         function update(data) {
             if (!data) return;
             if (cards.piutang) cards.piutang.textContent = "Rp " + formatRupiah(Math.round(data.piutang));
@@ -269,7 +266,10 @@
                 updatedAt.textContent = new Date(data.updated_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                 // Kedip halus sekali saat angka benar-benar disegarkan, supaya
                 // pembaruan terasa hidup tanpa mengubah layout.
-                if (updatedAt.animate) updatedAt.animate([{ opacity: 0.3 }, { opacity: 1 }], { duration: 450, easing: 'ease-out' });
+                // Hormati prefers-reduced-motion (kill-switch CSS tidak bisa
+                // menghentikan WAAPI).
+                var kurangiMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                if (updatedAt.animate && !kurangiMotion) updatedAt.animate([{ opacity: 0.3 }, { opacity: 1 }], { duration: 450, easing: 'ease-out' });
             }
         }
 

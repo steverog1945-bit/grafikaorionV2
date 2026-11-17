@@ -44,8 +44,8 @@
         </form>
     </x-card>
 
-    {{-- RESUME --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    {{-- RESUME (layar saja; saat cetak diganti tabel polos di bawah) --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 print:hidden">
         <x-card class="!p-4">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Nota Diperiksa</p>
             <p class="text-2xl font-semibold text-slate-800 mt-1">{{ angka($jumlahNotaDiperiksa) }}</p>
@@ -78,7 +78,7 @@
     @endif
 
     @foreach($grup as $g)
-    <div class="nota-block mb-4 rounded-xl border border-slate-200 bg-white overflow-hidden">
+    <div class="nota-block mb-4 rounded-xl border border-slate-200 bg-white overflow-hidden print:hidden">
         <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-200">
             <div class="flex items-center gap-3 min-w-0">
                 <a href="{{ route('berkas-order.show', $g['nota']->id_transaksi) }}" class="text-sm font-semibold text-slate-800 hover:text-indigo-600">{{ $g['nota']->nomor_nota }}</a>
@@ -99,9 +99,29 @@
     </div>
     @endforeach
 
+    {{-- CETAK: tabel polos yang sama dengan laporan lain (print-table).
+         Kartu layar ber-rounded & badge warna disembunyikan saat cetak. --}}
+    <div class="hidden print:block">
+        <x-laporan.print-table title="Rincian Temuan" :headers="['Nota', 'Tanggal', 'Konsumen', 'Pekerjaan Disebut', 'Sumber']" :align="['left', 'left', 'left', 'left', 'left']">
+            @forelse($grup as $g)
+                @foreach($g['temuan'] as $t)
+                <tr>
+                    <td class="px-3 py-1.5">{{ $g['nota']->nomor_nota }}</td>
+                    <td class="px-3 py-1.5">{{ \Carbon\Carbon::parse($g['nota']->tgl_order)->format('d/m/Y') }}</td>
+                    <td class="px-3 py-1.5">{{ $g['nota']->nama_konsumen ?? '-' }}</td>
+                    <td class="px-3 py-1.5">{{ $t['nama_finishing'] }}</td>
+                    <td class="px-3 py-1.5">{{ $t['sumber'] }}</td>
+                </tr>
+                @endforeach
+            @empty
+                <tr><td class="px-3 py-1.5 text-slate-400" colspan="5">Tidak ada temuan pada rentang ini.</td></tr>
+            @endforelse
+        </x-laporan.print-table>
+    </div>
+
     @if($temuanAi->isNotEmpty())
-    <h3 class="text-sm font-semibold text-indigo-800 uppercase tracking-widest mb-3 mt-8">Hasil Audit AI Tersimpan</h3>
-    <x-card class="mb-6">
+    <h3 class="text-sm font-semibold text-indigo-800 uppercase tracking-widest mb-3 mt-8 print:hidden">Hasil Audit AI Tersimpan</h3>
+    <x-card class="mb-6 print:hidden">
         <div class="divide-y divide-slate-100">
             @foreach($temuanAi as $t)
             <div class="py-2.5 text-sm {{ (float) $t->keyakinian < 0.6 ? 'text-slate-400' : 'text-slate-700' }}">
@@ -119,4 +139,5 @@
     @endif
 
 </div>
+@include('partials.print-report-footer')
 @endsection

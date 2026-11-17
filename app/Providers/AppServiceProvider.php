@@ -64,32 +64,11 @@ class AppServiceProvider extends ServiceProvider
             });
         });
 
-        // Batasi endpoint yang menulis data.
-        //
-        // Sebelumnya HANYA /login yang dibatasi. Semua operasi tulis
-        // lain - 158 route POST/PUT/PATCH/DELETE termasuk simpan nota,
-        // approve, dan Ajax polling kasir - bisa dipanggil tanpa batas.
-        // Untuk sistem keuangan dampaknya bukan hanya penyalahgunaan:
-        // satu script yang salah mengulang POST bisa menulis ratusan
-        // baris jurnal sebelum ada yang menyadari.
-        //
-        // Batasnya longgar dengan sengaja. Ini aplikasi internal dengan
-        // user yang sah; kalau modul ini terlalu sempit, pekerjaan sah
-        // justru ikut terblokir. Yang dicegah adalah pengulangan tak
-        // terbatas, bukan pemakaian wajar.
-        //
-        // Kunci memakai user, bukan IP, supaya beberapa orang yang
-        // berbagi satu IP kantor tidak saling mengunci.
-        RateLimiter::for('tulis', function (Request $request) {
-            $id = $request->user()?->getAuthIdentifier();
-            $kunci = $id ? 'u' . $id : 'ip' . $request->ip();
-
-            return Limit::perMinute(180)->by($kunci)->response(
-                fn (Request $r, array $headers) => $r->expectsJson()
-                    ? response()->json(['message' => 'Terlalu banyak permintaan. Coba lagi sebentar.'], 429)
-                    : back()->withInput($r->except('_token'))->with('error', 'Terlalu banyak permintaan. Coba lagi sebentar.')
-            );
-        });
+        // Limiter 'tulis' yang dulu didefinisikan di sini DIHAPUS: ia tidak
+        // pernah terpasang di route mana pun, jadi dua sumber kebenaran
+        // untuk batas yang sama. Implementasinya ada di
+        // app/Http/Middleware/ThrottleWriteRequests.php (dipasang sekali
+        // di route grup dan melewati request GET dengan sengaja).
 
         // Endpoint AJAX yang dipanggil halaman kasir terus-menerus
         // (sinyal notifikasi, pengecekan transaksi baru). Halaman ini

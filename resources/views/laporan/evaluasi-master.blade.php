@@ -13,12 +13,17 @@
         body { background: #fff !important; }
         .eval-section { break-inside: auto; }
         .eval-block { break-inside: avoid; }
-        .eval-table th, .eval-table td { padding: 3px 6px !important; font-size: 10px !important; }
+        {{-- ukuran huruf saat cetak diserahkan ke partials/print-report-table
+             (semua laporan seragam --fs-tabel), jadi aturan 10px di sini hanya
+             membingungkan dan dihapus. --}}
         .page-break { break-before: page; }
     }
     .eval-table { width: 100%; border-collapse: collapse; }
-    .eval-table th { background: #F1F5F1; color: #3F4F47; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 8px 10px; border-bottom: 1px solid #C9D6CE; }
-    .eval-table td { padding: 7px 10px; border-bottom: 1px solid #E2EAE4; font-size: 12.5px; color: #3F4F47; }
+    .eval-table th { background: #f5f5f5; color: #171717; font-size: 10px; font-weight: 600; padding: 8px 10px; border-bottom: 1px solid #e5e5e5; }
+    .eval-table td { padding: 7px 10px; border-bottom: 1px solid #ececec; font-size: 12.5px; color: #171717; }
+    {{-- Mode gelap: kepala tabel sebelumnya tetap terang (pecah dark mode). --}}
+    html.dark .eval-table th { background: #1f2937; color: #e5e7eb; border-bottom-color: #2e3f4f; }
+    html.dark .eval-table td { border-bottom-color: #223041; color: #dce9ed; }
     .eval-table td.num, .eval-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
     .eval-table td.tengah, .eval-table th.tengah { text-align: center; }
     .isian { min-width: 70px; border-bottom: 1px dotted #94a3b8; }
@@ -92,10 +97,7 @@
         </x-card>
     </div>
 
-    <div class="hidden print:flex justify-between text-[11px] text-slate-600 mb-4">
-        <span>Evaluasi {{ $periode }} &middot; dicetak {{ $dicetak }} oleh {{ optional(Auth::user()->karyawan)->nama_karyawan ?? Auth::user()->username }}</span>
-        <span>Data per saat cetak</span>
-    </div>
+
 
     {{-- ===================== BAHAN BAKU ===================== --}}
     @if(in_array($jenis, ['semua', 'bahan'], true))
@@ -242,8 +244,9 @@
 
     <div class="hidden print:grid grid-cols-3 gap-10 mt-12 text-center text-[11px] text-slate-600">
         <div>Dibuat oleh<div style="height:48px"></div><div style="border-top:1px solid #4A5B53;padding-top:4px">(............................)</div></div>
-        <div>Diperiksa oleh<div style="height:48px"></div><div style="border-top:1px solid #4A5B53;padding-top:4px">(............................)</div></div>
-        <div>Disetujui oleh<div style="height:48px"></div><div style="border-top:1px solid #4A5B53;padding-top:4px">(............................)</div></div>
+        <div>Diperiksa oleh<div style="height:48px"></div><div style="border-top:1px solid #171717;padding-top:4px">(............................)</div></div>
+        <div>Disetujui oleh<div style="height:48px"></div><div style="border-top:1px solid #171717;padding-top:4px">(............................)</div></div>
     </div>
+    @include('partials.print-report-footer', ['printNote' => 'Evaluasi ' . ($periode ?? '') . ' · data per saat cetak'])
 </div>
 @endsection

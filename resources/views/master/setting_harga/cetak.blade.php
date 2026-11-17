@@ -11,27 +11,30 @@
 <style>
     .dh-sheet { max-width: 1600px; margin: 0 auto; }
 
-    .dh-kop { display: none; }
     .dh-tabel { width: 100%; border-collapse: collapse; }
-    .dh-tabel th { background: #F1F5F1; color: #3F4F47; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 4px 6px; border-bottom: 1px solid #C9D6CE; text-align: right; }
+    .dh-tabel th { background: #f5f5f5; color: #171717; font-size: var(--fs-tabel, 10px); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid #e5e5e5; text-align: right; }
     .dh-tabel th:first-child { text-align: left; }
-    .dh-tabel td { padding: 4px 6px; border-bottom: 1px solid #E2EAE4; font-size: 11px; color: #3F4F47; }
+    .dh-tabel td { padding: 4px 6px; border-bottom: 1px solid #ececec; font-size: var(--fs-tabel, 10px); color: #171717; }
+    {{-- Mode gelap: sebelumnya kepala tabel tetap terang --}}
+    html.dark .dh-tabel th { background: #1f2937; color: #e5e7eb; border-bottom-color: #2e3f4f; }
+    html.dark .dh-tabel td { border-bottom-color: #223041; color: #dce9ed; }
     .dh-tabel td.num, .dh-tabel th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .dh-tabel td.kosong { color: #C7D3CB; }
     .dh-blok { break-inside: avoid; page-break-inside: avoid; margin-bottom: 12px; }
-    .dh-blok-nama { font-weight: 700; font-size: 12px; color: #171717; }
+    .dh-blok-nama { font-weight: 600; font-size: 12px; color: #171717; }
     .dh-blok-info { font-size: 9.5px; color: #6f6f6f; text-transform: uppercase; letter-spacing: .04em; }
     .dh-catatan { font-size: 9.5px; color: #6f6f6f; margin-top: 2px; }
     .dh-sup { font-size: 10px; color: #6f6f6f; font-style: italic; }
-    .dh-kategori-judul { font-size: 11px; font-weight: 700; color: #2A3731; text-transform: uppercase; letter-spacing: .06em; border-bottom: 2px solid #2A3731; padding-bottom: 3px; margin: 16px 0 8px; }
+    .dh-kategori-judul { font-size: 11px; font-weight: 600; color: #171717; border-bottom: 1px solid #e5e5e5; padding-bottom: 3px; margin: 16px 0 8px; }
 
     @media print {
         @page { size: A4 {{ $landscape ? 'landscape' : 'portrait' }}; margin: 8mm; }
         aside, .no-print, .topbar, nav { display: none !important; }
-        main { margin-left: 0 !important; padding: 0 !important; }
+        {{-- padding 0 membuat kop laporan menempel ke tepi kertas; semua
+             laporan lain memakai 28px 32px - diseragamkan ke sini juga. --}}
+        main { margin-left: 0 !important; padding: 28px 32px !important; }
         body { background: #fff !important; }
-        .dh-kop { display: block; }
-        .dh-tabel { font-size: 10px; }
+        .dh-tabel { font-size: var(--fs-tabel, 9px); }
         .dh-tabel th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         {{-- header tabel berulang antar halaman --}}
         .dh-tabel thead { display: table-header-group; }
@@ -41,42 +44,10 @@
     .dh-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 </style>
 
-{{-- Kop usaha DARI AppSetting: field kosong tidak ditampilkan. --}}
-@php($s = $usaha)
-<div class="dh-kop dh-sheet mb-3 print:mb-3">
-    <div class="flex items-start justify-between gap-6">
-        <div class="flex items-start gap-3">
-            @if($s->logo_path)
-                <img src="{{ asset('storage/' . $s->logo_path) }}" alt="Logo" class="h-10 w-10 object-contain shrink-0">
-            @endif
-            <div>
-                @if($s->nama_aplikasi)
-                    <h1 class="text-[13px] font-medium text-[#171717] leading-tight">{{ $s->nama_aplikasi }}</h1>
-                @endif
-                @if($s->alamat)
-                    <p class="text-[9.5px] text-[#6f6f6f] leading-snug mt-0.5">{{ $s->alamat }}</p>
-                @endif
-                @if($s->telepon || $s->fax)
-                    <p class="text-[9.5px] text-[#6f6f6f] leading-snug">Telp : {{ $s->telepon ?: '-' }}, Fax : {{ $s->fax ?: '-' }}</p>
-                @endif
-                @if($s->email || $s->website)
-                    <p class="text-[9.5px] text-[#6f6f6f] leading-snug">Email : {{ $s->email ?: '-' }}, Website : {{ $s->website ?: '-' }}</p>
-                @endif
-            </div>
-        </div>
-        <div class="text-right shrink-0">
-            <h2 class="text-[14px] font-medium text-[#171717] leading-tight">Daftar Harga</h2>
-            {{-- filter text & tanggal cetak --}}
-            <p class="text-[10px] text-[#6f6f6f] mt-1">
-                Cetak: {{ $tanggalCetak }}
-            </p>
-            <p class="text-[9.5px] text-[#6f6f6f]">
-                {{ $golongan->count() }} golongan · {{ $bloks->groupBy('tipe')->keys()->map(fn ($t) => ['produk' => 'Produk', 'jasa' => 'Jasa', 'finishing' => 'Finishing'][$t] ?? $t)->implode(', ') ?: 'Tidak ada item dengan harga' }}
-            </p>
-        </div>
-    </div>
-    <div class="mt-3 border-t border-[#8f8f8f]"></div>
-</div>
+{{-- Kop usaha DARI AppSetting - memakai partial yang sama dengan semua
+     laporan lain supaya senada (sebelumnya duplikat manual dengan ukuran
+     huruf beda). $docTitle sesuai nama dokumen. --}}
+@include('partials.print-report-header', ['docTitle' => 'Daftar Harga'])
 
 <div class="w-full px-4 sm:px-6 lg:px-8 py-4 print:!py-0 print:!px-0 dh-sheet">
 
@@ -86,8 +57,8 @@
             <x-slot:actions>
                 <a href="{{ route('setting-harga.index') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-medium uppercase tracking-wider">Kembali</a>
                 <div class="inline-flex rounded-xl overflow-hidden border border-slate-200">
-                    <a href="{{ route('setting-harga.cetak', array_merge(request()->query(), ['orientasi' => 'portrait'])) }}" class="px-3 py-3 text-xs font-medium {{ !$landscape ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50' }}">Portrait</a>
-                    <a href="{{ route('setting-harga.cetak', array_merge(request()->query(), ['orientasi' => 'landscape'])) }}" class="px-3 py-3 text-xs font-medium {{ $landscape ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50' }}">Landscape</a>
+                    <a href="{{ route('setting-harga.cetak', array_merge(request()->query(), ['orientasi' => 'portrait'])) }}" class="px-3 py-3 text-xs font-medium {{ !$landscape ? 'bg-[var(--brand-sidebar-accent,#4F46E5)] text-white' : 'bg-white text-slate-500 hover:bg-slate-50' }}">Portrait</a>
+                    <a href="{{ route('setting-harga.cetak', array_merge(request()->query(), ['orientasi' => 'landscape'])) }}" class="px-3 py-3 text-xs font-medium {{ $landscape ? 'bg-[var(--brand-sidebar-accent,#4F46E5)] text-white' : 'bg-white text-slate-500 hover:bg-slate-50' }}">Landscape</a>
                 </div>
                 <x-button type="button" onclick="window.print()"><i class="fas fa-print"></i> Cetak</x-button>
             </x-slot:actions>
@@ -219,5 +190,6 @@
     @endforeach
 
     <div class="dh-catatan no-print mt-10">Catatan: sel "-" berarti golongan tersebut belum punya harga pada rentang itu. Harga di lembar ini diambil dari penetapan harga yang sama dengan yang dipakai mesin kasir.</div>
+    @include('partials.print-report-footer')
 </div>
 @endsection
