@@ -120,4 +120,17 @@ ORDER BY no_referensi;
 | Localhost 500 (bukan bagian P0, ditemukan saat mengecek bug SPK) | **TERIDENTIFIKASI** — root cause DB access denied sejak 2026-11-07; langkah perbaikan di bagian B |
 | Badge divisi vs SPK (bukan bagian P0) | **TERDOKUMENTASI** — bagian C; menunggu keputusan owner |
 
+## F. ADENDUM — Perbaikan badge divisi (17 Nov 2026, commit berikutnya)
+
+User melaporkan badge tab divisi **FLORA OUTDOOR 3** & **KONICA MINOLTA 1** yang tidak pernah cocok dengan tabel manapun (tabel divisi hanya menampilkan `Selesai`; Tunggakan Aktif pun kosong). Saya buka instance lokal (`localhost/grafikaorionV2/public/spk`) dan memverifikasi langsung:
+
+- Tab badge menghitung **Antre dengan satu syarat saja** (`status_nota != 'Dibatalkan'`) — termasuk pekerjaan yang belum dibuka kasir (`status_order = 'Menunggu Kasir'`). Secara desain pekerjaan itu TIDAK PERNAH tampil di tabel SPK mana pun (tabel SPK/Produksi mensyaratkan `status_nota='Aktif'` + `status_order='Diterima Kasir'`).
+- Bukti di instans live: FLORA OUTDOOR menampilkan 14 job `Selesai` di tabel; badge 3 = 3 job Antre pra-kasir yang tidak bisa tampil di mana pun di SPK.
+
+**Perbaikan (`app/Services/DivisiService.php::daftar`):** badge kini menghitung dengan syarat yang sama persis dengan tabel SPK & Produksi — `status_nota='Aktif'` + `status_order='Diterima Kasir'` (tanpa filter tanggal/divisi). Badge hanya menjanjikan pekerjaan yang memang ada di antrean. Diuji `tests/Feature/DivisiTabBadgeTest` (fixture: 1 job sah vs 3 job prasyarat gagal → merah dulu, hijau sesudah fix); divisi tab lokal Anda tidak lagi menampilkan angka palsu.
+
+Semua 43 test SPK tetap hijau; 1 error = `DashboardRingkasanCollecting` pre-existing (fixture konsumen duplikat, tercatat di audit baseline). Produksi: tidak disentuh. Semantik tanggal badge dipertahankan (lintasan tanggal diabaikan) — operator yang butuh backlog memakai Tunggakan Aktif.
+
+---
 Produksi: TIDAK DISENTUH. Merge/deploy: TIDAK DILAKUKAN.
+

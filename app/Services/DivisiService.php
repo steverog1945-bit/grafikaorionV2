@@ -20,7 +20,15 @@ class DivisiService
         $jumlah = DB::table('transaksi_detail as d')
             ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
             ->join('produk as p', 'p.id_produk', '=', 'd.id_produk')
-            ->whereIn('d.status_spk', $statusAktif)->where('t.status_nota', '!=', 'Dibatalkan')
+            ->whereIn('d.status_spk', $statusAktif)
+            // Badge tab harus berarti "pekerjaan yang BENAR-BENAR ada di
+            // antrean SPK/Produksi" - sama dengan tabel di kedua halaman:
+            // status_nota Aktif + status_order Diterima Kasir. Sebelumnya
+            // Antre dari transaksi yang belum dibuka kasir pun ikut dihitung,
+            // sehingga badge menampilkan angka yang tidak pernah bisa muncul
+            // di tabel manapun.
+            ->where('t.status_nota', 'Aktif')
+            ->where('t.status_order', 'Diterima Kasir')
             ->groupBy('p.id_mesin')->selectRaw('p.id_mesin, COUNT(*) c')->pluck('c', 'id_mesin');
 
         $daftar = DB::table('mesin')->where('tampil_divisi', true)
