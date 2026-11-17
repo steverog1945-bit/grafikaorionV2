@@ -83,7 +83,7 @@ class AlurParalelTest extends TestCase
     public function test_enam_nota_pos_bersamaan_mendapat_enam_nomor_berbeda(): void
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $produk = DB::table('produk')->insertGetId(['nama_produk' => 'Spanduk', 'metode_hitung' => 'quantity', 'status' => 'aktif']);
         DB::table('setting_harga')->insert(['id_produk' => $produk, 'id_golongan' => $gol, 'range_min' => 0, 'harga_jual' => 10000]);
         DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'saldo_awal' => 0, 'status_lock' => 'open', 'created_at' => now()]);
@@ -106,7 +106,7 @@ class AlurParalelTest extends TestCase
     public function test_satu_submit_id_dikirim_enam_kali_bersamaan_hanya_menjadi_satu_nota(): void
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $produk = DB::table('produk')->insertGetId(['nama_produk' => 'Spanduk', 'metode_hitung' => 'quantity', 'status' => 'aktif']);
         DB::table('setting_harga')->insert(['id_produk' => $produk, 'id_golongan' => $gol, 'range_min' => 0, 'harga_jual' => 10000]);
         DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'saldo_awal' => 0, 'status_lock' => 'open', 'created_at' => now()]);
@@ -122,7 +122,7 @@ class AlurParalelTest extends TestCase
     public function test_pengembalian_deposit_bersamaan_tidak_melebihi_saldo(): void
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         DB::table('konsumen_deposit')->insert(['id_konsumen' => $kons, 'tipe' => 'Setoran', 'nominal' => 100000, 'metode_bayar' => 'Tunai', 'tgl_deposit' => now()->toDateString(), 'created_at' => now(), 'updated_at' => now()]);
         \App\Services\AccountingService::postSetoranDeposit('DEP-PAR-X', 100000, 'Tunai');
         DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'saldo_awal' => 500000, 'status_lock' => 'open', 'created_at' => now()->subMinute(), 'updated_at' => now()]);
@@ -158,7 +158,7 @@ class AlurParalelTest extends TestCase
     public function test_enam_penjualan_bahan_bersamaan_stok_tidak_kehilangan_pengurangan(): void
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $mesin = DB::table('mesin')->insertGetId(['nama_mesin' => 'Mesin', 'tipe_mesin' => 'Digital']);
         $kat = DB::table('kategori')->insertGetId(['nama_kategori' => 'Kategori']);
         $bahan = DB::table('bahan_baku')->insertGetId([
@@ -184,7 +184,7 @@ class AlurParalelTest extends TestCase
     public function test_pembatalan_nota_disetujui_enam_kali_bersamaan_hanya_dieksekusi_sekali(): void
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $idTrx = DB::table('transaksi')->insertGetId([
             'nomor_nota' => 'INV-PAR-B', 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => $this->admin->id_user,
             'tgl_order' => now(), 'total_bayar' => 100000, 'status_pembayaran' => 'DP', 'status_nota' => 'Aktif', 'status_collecting' => 'Belum Diambil',
@@ -216,7 +216,7 @@ class AlurParalelTest extends TestCase
     private function siapkanStok(float $stok = 100): array
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $mesin = DB::table('mesin')->insertGetId(['nama_mesin' => 'Mesin', 'tipe_mesin' => 'Digital']);
         $kat = DB::table('kategori')->insertGetId(['nama_kategori' => 'Kategori']);
         $bahan = DB::table('bahan_baku')->insertGetId([
@@ -359,7 +359,7 @@ class AlurParalelTest extends TestCase
         // Kas Kecil Rp100.000, empat desainer masing-masing berhak Rp40.000: hanya dua yang boleh dibayar.
         \App\Services\AccountingService::postKasKecilMasuk('KK-SALDO', '3000', 100000);
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $produk = DB::table('produk')->insertGetId(['nama_produk' => 'Desain', 'metode_hitung' => 'quantity', 'status' => 'aktif']);
         $permintaan = [];
         for ($i = 1; $i <= 4; $i++) {

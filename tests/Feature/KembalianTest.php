@@ -54,7 +54,7 @@ class KembalianTest extends TestCase
     public function test_kasir_uang_lebih_tersimpan_dan_nota_mencetak_kembalian(): void
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $id = DB::table('transaksi')->insertGetId([
             'nomor_nota' => 'INV-KMB-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => $this->admin->id_user,
             'tgl_order' => now(), 'total_bayar' => 80000, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir', 'status_collecting' => 'Belum Diambil',
@@ -78,7 +78,10 @@ class KembalianTest extends TestCase
         $nota = $this->get("/kasir/print-opsi/{$id}")->assertOk()->getContent();
         $this->assertMatchesRegularExpression('/Kembali<\/td><td class="t">:<\/td><td class="v">20\.000/', $nota);
         $this->assertStringContainsString('Saldo deposit anda saat ini', $nota);
-        $this->assertStringContainsString('[ 8.000 ]', $nota);
+        // Nota mencetak rincian item - chip "[ 8.000 ]" dari tata letak lama
+        // sudah tidak ada sejak nota ditata ulang (7cc23813); yang stabil
+        // sekarang adalah subtotal baris item.
+        $this->assertStringContainsString('<td class="rinci r">80.000</td>', $nota);
     }
 
     public function test_perintah_koreksi_membetulkan_kelebihan_bayar_lama(): void

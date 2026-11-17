@@ -72,7 +72,7 @@ class DesainInputDanCetakNotaTest extends TestCase
     private function master(): array
     {
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $idKons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $idKons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
         $idProduk = DB::table('produk')->insertGetId(['nama_produk' => 'Uji Produk', 'metode_hitung' => 'quantity', 'status' => 'Aktif']);
         DB::table('setting_harga')->insert(['id_produk' => $idProduk, 'id_golongan' => $idGol, 'range_min' => 1, 'harga_jual' => 5000]);
 
@@ -337,7 +337,7 @@ class DesainInputDanCetakNotaTest extends TestCase
     private function nota(): object
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Toko Maju', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Toko Maju', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $kasir = User::factory()->create(['id_role' => Role::factory()->create(['nama_role' => 'Kasir'])->id_role]);
         $idTransaksi = DB::table('transaksi')->insertGetId([
             'nomor_nota' => 'ORI-001', 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => $kasir->id_user,

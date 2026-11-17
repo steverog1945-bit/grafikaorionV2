@@ -24,7 +24,7 @@ class DepositPengembalianTest extends TestCase
     {
         parent::setUp();
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $this->idKons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $this->idKons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         DB::table('konsumen_deposit')->insert(['id_konsumen' => $this->idKons, 'tipe' => 'Setoran', 'nominal' => 100000, 'metode_bayar' => 'Tunai', 'tgl_deposit' => now()->toDateString(), 'created_at' => now(), 'updated_at' => now()]);
         AccountingService::postSetoranDeposit('DEP-UJI-1', 100000, 'Tunai');
         // Pengembalian tunai keluar dari laci: perlu sesi kas yang terbuka dan berisi cukup uang.

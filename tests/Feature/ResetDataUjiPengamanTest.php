@@ -14,7 +14,7 @@ class ResetDataUjiPengamanTest extends TestCase
     public function test_reset_data_uji_ditolak_di_production_walau_dengan_force(): void
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'A', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'A', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         DB::table('transaksi')->insert(['nomor_nota' => 'INV-ASLI', 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => \App\Models\User::factory()->create()->id_user, 'tgl_order' => now(), 'total_bayar' => 1000,
             'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif']);
 

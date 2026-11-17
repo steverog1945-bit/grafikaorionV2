@@ -61,7 +61,7 @@ class AksesLengkapDanQrTest extends TestCase
         \App\Models\AppSetting::current()->update(['url_akses' => 'http://192.168.1.10/percetakan-app/public']);
 
         $g = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $k = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $g]);
+        $k = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $g]);
         $p = DB::table('produk')->insertGetId(['nama_produk' => 'P', 'metode_hitung' => 'quantity', 'status' => 'Aktif']);
         $t = DB::table('transaksi')->insertGetId(['nomor_nota' => 'N-QR', 'tipe_order' => 'Reguler', 'id_konsumen' => $k, 'id_user_kasir' => $admin->id_user, 'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif']);
         $d = DB::table('transaksi_detail')->insertGetId(['id_transaksi' => $t, 'id_produk' => $p, 'nama_file' => 'a', 'p_ukuran' => 0, 'l_ukuran' => 0, 'qty' => 1, 'subtotal' => 1, 'status_spk' => 'Antre']);

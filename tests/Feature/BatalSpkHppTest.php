@@ -35,7 +35,7 @@ class BatalSpkHppTest extends TestCase
         AccountingService::postSaldoAwalPersediaan('SA-B', 'Saldo awal Flexi', 100000);
 
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'A', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'A', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $produk = DB::table('produk')->insertGetId(['nama_produk' => 'Banner', 'metode_hitung' => 'quantity', 'status' => 'aktif']);
         $this->idTransaksi = DB::table('transaksi')->insertGetId(['nomor_nota' => 'INV-SPK', 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => $admin->id_user,
             'tgl_order' => now(), 'total_bayar' => 50000, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir', 'status_collecting' => 'Belum Diambil', 'created_at' => now()]);

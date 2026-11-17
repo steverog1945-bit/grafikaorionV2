@@ -25,7 +25,7 @@ class KonsumenTimelineTest extends TestCase
         $this->actingAs($this->admin);
 
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $this->idKonsumen = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Bu Sari', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $this->idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Bu Sari', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
     }
 
     private function nota(string $nomor, float $total, string $status = 'Aktif', ?int $idKonsumen = null, string $tgl = 'now'): int
@@ -57,7 +57,7 @@ class KonsumenTimelineTest extends TestCase
 
     public function test_kejadian_semua_jenis_tampil_urut_terbaru_dan_hanya_milik_pelanggan_ini(): void
     {
-        $lain = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Orang Lain', 'telepon' => '0822', 'alamat' => '-', 'id_golongan' => DB::table('golongan_konsumen')->value('id_golongan')]);
+        $lain = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Orang Lain', 'telepon' => '0822', 'alamat' => '-', 'id_golongan' => DB::table('golongan_konsumen')->value('id_golongan')]);
         $this->nota('INV-LAIN-1', 999000, 'Aktif', $lain);
 
         $n1 = $this->nota('INV-T-1', 500000, 'Aktif', null, now()->subDays(5)->toDateTimeString());

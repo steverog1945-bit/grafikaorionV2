@@ -746,7 +746,12 @@ class KasirController extends Controller
             // sudah menampilkan & bisa memfilter Belum Bayar juga).
             $totalTerbayarSemua = DB::table('pembayaran_riwayat')->where('id_transaksi', $id_transaksi)->whereNull('voided_at')->sum('nominal') ?? 0;
 
-            if ($totalTerbayarSemua >= $grandTotalFinal && $grandTotalFinal > 0) {
+            // Toleransi 0.004 rupiah di sini juga (sama dengan
+            // StatusPembayaran::dari()/sqlCase() yang dipakai Monitoring Kasir
+            // & layar lain): tanpa toleransi, pembayaran yang secara ekonomi
+            // sudah pas bisa tercatat DP hanya karena pecahan sen, sementara
+            // layar lain yang memakai StatusPembayaran menilai nota itu Lunas.
+            if ($grandTotalFinal > 0 && $totalTerbayarSemua + 0.004 >= $grandTotalFinal) {
                 $status = 'Lunas';
             } elseif ($totalTerbayarSemua > 0) {
                 $status = 'DP';
@@ -1550,6 +1555,10 @@ public function printOpsi(Request $request, $id)
     $items = DB::table('transaksi_detail')
         ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
         ->where('transaksi_detail.id_transaksi', $id)
+        // Baris Batal tidak ikut tercetak - sama dengan total nota yang
+        // dihitung prosesBayar()/bayarForm() yang mengecualikan Batal, supaya
+        // rincian yang tercetak tidak berjumlah lebih besar dari Grand Total.
+        ->where('transaksi_detail.status_spk', '!=', 'Batal')
         ->select(
             'transaksi_detail.nama_file',
             'transaksi_detail.qty',
@@ -1575,10 +1584,18 @@ public function printOpsi(Request $request, $id)
     foreach ($items as $it) {
         $it->harga_tier = null;
         if ($it->id_produk) {
+            // Tier dikenai qty dalam SATUAN HITUNG harga (m² untuk produk
+            // metode 'ukuran', pcs untuk sisanya) - PERSIS rumus bayarForm()
+            // & validasiItems(): (p*l/10000)*qty. Sebelumnya qty mentah (pcs)
+            // dipakai untuk produk ukuran, sehingga nota bisa menampilkan
+            // tarif m² dari tier yang salah.
+            $qtyHitung = ($it->metode_hitung_produk === 'ukuran')
+                ? round(((float) $it->p_ukuran * (float) $it->l_ukuran / 10000) * (float) $it->qty, 4)
+                : (float) $it->qty;
             $tier = \App\Services\HargaService::getHargaEfektif(
                 (int) $it->id_produk,
                 $idGolongan,
-                (float) $it->qty,
+                max($qtyHitung, 1),
                 (bool) $it->file_siap_cetak
             );
             $it->harga_tier = $tier['harga_jual'] ?? 0;

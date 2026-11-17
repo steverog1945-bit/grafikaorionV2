@@ -22,7 +22,7 @@ class NotaHargaTerkunciTest extends TestCase
         }
         $user = User::factory()->create(['id_role' => $role->id_role]);
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $idK = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $idK = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
         $idProduk = DB::table('produk')->insertGetId(['nama_produk' => 'Uji Produk', 'metode_hitung' => 'quantity', 'status' => 'Aktif']);
         DB::table('setting_harga')->insert(['id_produk' => $idProduk, 'id_golongan' => $idGol, 'range_min' => 1, 'harga_jual' => 5000]);
         DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $user->id_user ?? $user->getKey(), 'saldo_awal' => 0, 'status_lock' => 'open']);

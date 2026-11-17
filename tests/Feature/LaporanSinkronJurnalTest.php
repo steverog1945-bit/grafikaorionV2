@@ -55,7 +55,7 @@ class LaporanSinkronJurnalTest extends TestCase
     {
         $g = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
 
-        return DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Pelanggan Uji', 'telepon' => '0800', 'alamat' => '-', 'id_golongan' => $g]);
+        return DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Pelanggan Uji', 'telepon' => '0800', 'alamat' => '-', 'id_golongan' => $g]);
     }
 
     private function nota(int $k, string $nomor, float $total, string $status, ?float $bayar = null, string $metode = 'Tunai', $waktu = null): int

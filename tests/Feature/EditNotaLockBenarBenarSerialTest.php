@@ -60,7 +60,7 @@ class EditNotaLockBenarBenarSerialTest extends TestCase
         $idRole = DB::table('roles')->insertGetId(['nama_role' => 'Role Lock Uji', 'boleh_lihat_harga' => 1]);
         $idUser = User::factory()->create(['id_role' => $idRole, 'username' => 'lock_uji'])->id_user;
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Golongan Lock Uji', 'keterangan' => '-']);
-        $idKonsumen = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Konsumen Lock Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Konsumen Lock Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $idGol]);
         $idTransaksi = DB::table('transaksi')->insertGetId([
             'nomor_nota' => 'LOCK-UJI', 'tipe_order' => 'Reguler', 'id_konsumen' => $idKonsumen, 'id_user_kasir' => $idUser,
             'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif',

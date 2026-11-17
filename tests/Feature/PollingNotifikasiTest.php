@@ -69,7 +69,7 @@ class PollingNotifikasiTest extends TestCase
         $golongan = \Illuminate\Support\Facades\DB::table('golongan_konsumen')->insertGetId([
             'nama_golongan' => 'Retail',
         ]);
-        $konsumen = \Illuminate\Support\Facades\DB::table('konsumen')->insertGetId([
+        $konsumen = \Illuminate\Support\Facades\DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Test', 'telepon' => '08123', 'alamat' => '-', 'id_golongan' => $golongan,
         ]);
         $idTransaksi = \Illuminate\Support\Facades\DB::table('transaksi')->insertGetId([

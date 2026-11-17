@@ -110,7 +110,7 @@ class TerjemahanValidasiTest extends TestCase
     public function test_pesan_min_string_berbahasa_indonesia(): void
     {
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Gol Uji']);
-        $idKons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Kons Uji', 'telepon' => '-', 'id_golongan' => $idGol, 'tipe_konsumen' => 'temporary', 'tgl_registrasi' => now(), 'nama_konsumen_manual' => 'Kons Uji']);
+        $idKons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Kons Uji', 'telepon' => '-', 'id_golongan' => $idGol, 'tipe_konsumen' => 'temporary', 'tgl_registrasi' => now(), 'nama_konsumen_manual' => 'Kons Uji']);
 
         $r = $this->actingAs($this->admin)
             ->from('/konsumen-deposit')

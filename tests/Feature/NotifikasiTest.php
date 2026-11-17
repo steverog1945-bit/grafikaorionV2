@@ -45,7 +45,7 @@ class NotifikasiTest extends TestCase
         $adm = $this->user('Administrator');
         $this->actingAs($adm);
         $idT = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $idK = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $idT]);
+        $idK = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $idT]);
         // status_order wajib diisi 'Diterima Kasir'. Tanpa itu MySQL memakai nilai
         // pertama enum yaitu 'Menunggu Kasir', dan notifikasi spk-antre memang
         // tidak menghitung nota yang transaksinya belum dibuka kasir (lihat

@@ -53,7 +53,7 @@ class JerseyOrderSimpanGandaTest extends TestCase
         ]);
 
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'G', 'keterangan' => '-']);
-        $this->idKons = DB::table('konsumen')->insertGetId([
+        $this->idKons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Klub Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol,
         ]);
 

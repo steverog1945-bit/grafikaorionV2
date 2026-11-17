@@ -30,7 +30,7 @@ class QuotationTest extends TestCase
         $this->actingAs($this->admin);
 
         $this->idGolongan = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $this->idKonsumen = DB::table('konsumen')->insertGetId([
+        $this->idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Pak Budi', 'telepon' => '0812-3456-7890', 'alamat' => '-', 'id_golongan' => $this->idGolongan,
         ]);
         $this->idProduk = DB::table('produk')->insertGetId(['nama_produk' => 'Banner Flexi', 'metode_hitung' => 'ukuran']);

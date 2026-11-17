@@ -96,6 +96,13 @@ class BomCalculationService
             return ($panjang * $lebar / 10000) * (float) $m[1] * $qty;
         }
 
+        // Rumus yang tidak dikenali (ketikan manual di DB/SQL, atau kombinasi
+        // yang belum didukung) dihitung 1:1 agar order tidak gagal - tapi
+        // JANGAN diam-diam: satu baris log per kejadian supaya admin tahu
+        // BOM-nya salah konfigurasi dan stok/HPP-nya salah hitung.
+        \Illuminate\Support\Facades\Log::warning('BOM: rumus pemakaian tidak dikenali, dipakai 1:1 (Q).', [
+            'rumus' => $rumus,
+        ]);
         return $qty;
     }
 

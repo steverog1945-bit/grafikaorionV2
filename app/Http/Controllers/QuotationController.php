@@ -271,7 +271,9 @@ class QuotationController extends Controller
                 }
 
                 if ($hppItemIni > 0) {
-                    DB::table('transaksi_detail')->where('id_detail', $idDetail)->update(['hpp_snapshot' => $hppItemIni]);
+                    // round(,2) selaras PenjualanCheckoutService & kolom
+                    // hpp_snapshot decimal(15,2).
+                    DB::table('transaksi_detail')->where('id_detail', $idDetail)->update(['hpp_snapshot' => round($hppItemIni, 2)]);
                 }
                 $totalHppSemua += $hppItemIni;
             }

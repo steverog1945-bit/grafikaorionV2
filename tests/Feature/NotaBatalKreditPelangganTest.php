@@ -28,7 +28,7 @@ class NotaBatalKreditPelangganTest extends TestCase
         parent::setUp();
         $this->admin = User::factory()->create(['id_role' => Role::factory()->create(['nama_role' => 'Administrator'])->id_role]);
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $this->idKons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $this->idKons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $this->idTrx = DB::table('transaksi')->insertGetId([
             'nomor_nota' => 'INV-KRD-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $this->idKons, 'id_user_kasir' => $this->admin->id_user,
             'tgl_order' => now(), 'total_bayar' => 100000, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_collecting' => 'Belum Diambil',

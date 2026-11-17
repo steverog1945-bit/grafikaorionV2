@@ -17,7 +17,7 @@ class DivisiOtomatisTest extends TestCase
         $admin = User::factory()->create(['id_role' => Role::factory()->create(['nama_role' => 'Administrator'])->id_role]);
         DB::table('mesin')->insert(['nama_mesin' => 'MESIN BARU XYZ', 'tipe_mesin' => 'Uji']);
         // Buat transaksi dengan status_order = Diterima Kasir agar SPK/divisi filter bekerja
-        $k = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Pelanggan Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-'])]);
+        $k = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Pelanggan Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-'])]);
         $t = DB::table('transaksi')->insertGetId(['nomor_nota' => 'N-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $k, 'id_user_kasir' => $admin->id_user, 'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir']);
         $p = DB::table('produk')->insertGetId(['nama_produk' => 'P-XYZ', 'metode_hitung' => 'quantity', 'status' => 'Aktif', 'id_mesin' => DB::table('mesin')->where('nama_mesin', 'MESIN BARU XYZ')->value('id_mesin')]);
         DB::table('transaksi_detail')->insert(['id_transaksi' => $t, 'id_produk' => $p, 'nama_file' => 'FILE-XYZ', 'p_ukuran' => 0, 'l_ukuran' => 0, 'qty' => 1, 'subtotal' => 1, 'status_spk' => 'Cetak']);
@@ -32,7 +32,7 @@ class DivisiOtomatisTest extends TestCase
         $m1 = DB::table('mesin')->insertGetId(['nama_mesin' => 'M-SATU', 'tipe_mesin' => 'x']);
         $m2 = DB::table('mesin')->insertGetId(['nama_mesin' => 'M-DUA', 'tipe_mesin' => 'x']);
         $g = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $k = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Pelanggan Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $g]);
+        $k = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Pelanggan Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $g]);
         $t = DB::table('transaksi')->insertGetId(['nomor_nota' => 'N-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $k, 'id_user_kasir' => $admin->id_user, 'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir']);
         foreach ([[$m1, 'FILE-SATU'], [$m2, 'FILE-DUA']] as [$m, $nama]) {
             $p = DB::table('produk')->insertGetId(['nama_produk' => "P{$m}", 'metode_hitung' => 'quantity', 'status' => 'Aktif', 'id_mesin' => $m]);
@@ -48,7 +48,7 @@ class DivisiOtomatisTest extends TestCase
         $mA = DB::table('mesin')->insertGetId(['nama_mesin' => 'DIV-A', 'tipe_mesin' => 'x']);
         $mB = DB::table('mesin')->insertGetId(['nama_mesin' => 'DIV-B', 'tipe_mesin' => 'x']);
         $g = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $k = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'P', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $g]);
+        $k = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'P', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $g]);
         $t = DB::table('transaksi')->insertGetId(['nomor_nota' => 'N-9', 'tipe_order' => 'Reguler', 'id_konsumen' => $k, 'id_user_kasir' => $admin->id_user, 'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir']);
         foreach ([[$mA, 'FILE-A'], [$mB, 'FILE-B']] as [$m, $n]) {
             $p = DB::table('produk')->insertGetId(['nama_produk' => "P{$m}", 'metode_hitung' => 'quantity', 'status' => 'Aktif', 'id_mesin' => $m]);

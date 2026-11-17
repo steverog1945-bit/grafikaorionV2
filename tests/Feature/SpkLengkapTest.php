@@ -31,7 +31,7 @@ class SpkLengkapTest extends TestCase
         DB::table('bom_detail')->insert(['id_produk' => $produk, 'id_bahan' => $bahan, 'cara_hitung_pemakaian' => '(P*L)/10000', 'created_at' => now(), 'updated_at' => now()]);
 
         $g = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $k = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Konsumen Uji SPK', 'telepon' => '0811999', 'alamat' => '-', 'id_golongan' => $g]);
+        $k = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Konsumen Uji SPK', 'telepon' => '0811999', 'alamat' => '-', 'id_golongan' => $g]);
         $t = DB::table('transaksi')->insertGetId(['nomor_nota' => 'N-SPK-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $k, 'id_user_kasir' => $this->admin->id_user, 'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir']);
         $this->idDetail = DB::table('transaksi_detail')->insertGetId([
             'id_transaksi' => $t, 'id_produk' => $produk, 'nama_file' => 'banner-tc.jpg', 'thumbnail' => 'order_thumbnails/uji.jpg', 'p_ukuran' => 120, 'l_ukuran' => 200, 'qty' => 2,

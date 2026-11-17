@@ -34,7 +34,7 @@ class JerseyOrderHttpTest extends TestCase
 
         $this->admin = User::factory()->create(['id_role' => Role::factory()->create(['nama_role' => 'Administrator'])->id_role]);
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'G', 'keterangan' => '-']);
-        $this->idKons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Klub Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $this->idKons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Klub Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
 
         // Master bawaan migrasi (tipe, kategori, bahan, lengan, kerah, ukuran) dipakai apa adanya; hanya yang belum ada dibuat.
         $now = now();

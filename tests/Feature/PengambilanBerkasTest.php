@@ -30,7 +30,7 @@ class PengambilanBerkasTest extends TestCase
         $this->actingAs($this->admin);
 
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $this->idKonsumen = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Bu Rina', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $this->idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Bu Rina', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
         [$this->idNota, $this->idDetail] = $this->buatNota('INV-PB-1', 'Selesai');
     }
 

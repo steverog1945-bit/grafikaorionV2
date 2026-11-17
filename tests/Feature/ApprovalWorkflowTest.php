@@ -23,7 +23,7 @@ class ApprovalWorkflowTest extends TestCase
     private function buatNotaAktif(User $kasir): array
     {
         $golongan = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $konsumen = DB::table('konsumen')->insertGetId([
+        $konsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Test', 'telepon' => '08123', 'alamat' => '-', 'id_golongan' => $golongan,
         ]);
         $idTransaksi = DB::table('transaksi')->insertGetId([

@@ -45,7 +45,7 @@ class KasOpeningRekapTest extends TestCase
         DB::table('role_permissions')->insert(['id_role' => $roleKasir->id_role, 'id_menu' => 16]);
 
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $this->idKonsumen = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $this->idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
     }
 
     protected function tearDown(): void

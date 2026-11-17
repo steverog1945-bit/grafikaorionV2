@@ -60,7 +60,7 @@ class JejakAuditMasterTest extends TestCase
     {
         $idBank = DB::table('bank_perusahaan')->insertGetId(['nama_bank' => 'BRI', 'nomor_rekening' => '222', 'atas_nama' => 'PT Uji']);
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $idKons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $idKons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $idGol]);
         $idTrx = DB::table('transaksi')->insertGetId(['nomor_nota' => 'N-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $idKons, 'id_user_kasir' => $this->admin->id_user, 'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Lunas', 'status_nota' => 'Aktif']);
         DB::table('pembayaran_riwayat')->insert(['id_transaksi' => $idTrx, 'nominal' => 1, 'metode' => 'Transfer', 'id_bank' => $idBank, 'tgl_bayar' => now()]);
 
@@ -124,7 +124,7 @@ class JejakAuditMasterTest extends TestCase
     public function test_pembayaran_kasir_tercatat_dan_klik_ganda_dengan_submit_id_sama_tidak_menggandakan(): void
     {
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $idKons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $idKons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $idGol]);
         $idProduk = DB::table('produk')->insertGetId(['nama_produk' => 'Spanduk', 'metode_hitung' => 'quantity', 'status' => 'aktif']);
         DB::table('setting_harga')->insert(['id_produk' => $idProduk, 'id_golongan' => $idGol, 'range_min' => 0, 'harga_jual' => 10000]);
         DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'saldo_awal' => 0, 'status_lock' => 'open']);

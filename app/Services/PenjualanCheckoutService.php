@@ -792,12 +792,16 @@ class PenjualanCheckoutService
         }
 
         if ($hppItemIni > 0) {
+            // Dibulatkan 2 desimal (rupiah) - selaras StokKeluarService/QcService
+            // dan kolom hpp_snapshot yang bertipe decimal(15,2); jurnal HPP
+            // yang dibaca dari SUM kolom ini jadi tidak menyimpan digit
+            // floating point ekstra.
             DB::table('transaksi_detail')->where('id_detail', $idDetail)->update([
-                'hpp_snapshot' => $hppItemIni,
+                'hpp_snapshot' => round($hppItemIni, 2),
             ]);
         }
 
-        return $hppItemIni;
+        return round($hppItemIni, 2);
     }
 
     public function validasiItems(Request $request, int $idGolongan, bool $hargaTerkunci, bool $bolehInputBiayaDesain, ?\Illuminate\Support\Collection $itemsLama = null, ?callable $itemBerubah = null, ?\Illuminate\Support\Collection $barisNotaAda = null): array

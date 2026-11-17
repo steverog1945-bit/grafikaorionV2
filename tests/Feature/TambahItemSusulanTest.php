@@ -61,7 +61,7 @@ class TambahItemSusulanTest extends TestCase
         // golongan dulu, baru konsumen, baru setting_harga (urutan FK)
         $g = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
         $this->idGolongan = $g;
-        $this->idKonsumen = DB::table('konsumen')->insertGetId([
+        $this->idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Konsumen Uji Susulan', 'telepon' => '0812', 'alamat' => '-', 'id_golongan' => $g,
         ]);
 

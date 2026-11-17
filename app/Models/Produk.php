@@ -16,6 +16,9 @@ class Produk extends Model
         'min_order',
         'min_panjang',
         'min_lebar',
+        'min_luas_total',
+        'kelompok_minimum',
+        'spk_lengkap',
         'keterangan',
         'status',
     ];

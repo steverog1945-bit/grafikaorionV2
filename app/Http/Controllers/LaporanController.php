@@ -206,6 +206,10 @@ class LaporanController extends Controller
             ->leftJoin('produk', 'transaksi_detail.id_produk', '=', 'produk.id_produk')
             ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
             ->whereIn('transaksi_detail.id_transaksi', $idNotaSesuaiFilter)
+            // Baris Batal tidak dihitung - sama dengan rumus total nota di
+            // Kasir (prosesBayar/bayarForm mengecualikan Batal), supaya
+            // breakdown tidak melebihi total tagihan nota yang ada barisnya.
+            ->where('transaksi_detail.status_spk', '!=', 'Batal')
             ->select(
                 DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya') as divisi"),
                 DB::raw('SUM(transaksi_detail.biaya_cetak) as total_biaya_cetak'),
@@ -227,6 +231,9 @@ class LaporanController extends Controller
             ->leftJoin('jasa', 'transaksi_detail.id_jasa', '=', 'jasa.id_jasa')
             ->leftJoin('mesin', 'produk.id_mesin', '=', 'mesin.id_mesin')
             ->whereIn('transaksi_detail.id_transaksi', $idNotaSesuaiFilter)
+            // Baris Batal tidak dihitung - konsisten dengan breakdownDivisi
+            // di atas & rumus total nota Kasir.
+            ->where('transaksi_detail.status_spk', '!=', 'Batal')
             ->select(
                 DB::raw("COALESCE(mesin.nama_mesin, 'Lainnya') as divisi"),
                 DB::raw("COALESCE(produk.nama_produk, jasa.nama_jasa, '-') as produk"),

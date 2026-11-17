@@ -86,7 +86,7 @@ class VoidJurnalPembalikTest extends TestCase
     private function nota(int $nominal = 100000): int
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $idKons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $idKons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $idTrx = DB::table('transaksi')->insertGetId([
             'nomor_nota' => 'INV-VOID-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $idKons, 'id_user_kasir' => $this->admin->id_user,
             'tgl_order' => now(), 'total_bayar' => $nominal, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_collecting' => 'Belum Diambil',

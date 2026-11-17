@@ -83,7 +83,7 @@ class HppLabaRugiNeracaAkurasiTest extends TestCase
         $user = User::factory()->create(['id_role' => $role->id_role]);
 
         $this->idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail Uji E2E', 'keterangan' => '-']);
-        $this->idKonsumen = DB::table('konsumen')->insertGetId([
+        $this->idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Konsumen Uji E2E', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $this->idGol,
         ]);
 

@@ -75,7 +75,7 @@ class ModalDanPenawaranTest extends TestCase
         $admin = User::factory()->create(['id_role' => Role::factory()->create(['nama_role' => 'Administrator'])->id_role]);
         $this->actingAs($admin);
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Pak Budi', 'telepon' => '0812', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Pak Budi', 'telepon' => '0812', 'alamat' => '-', 'id_golongan' => $gol]);
         $kartu = DB::table('produk')->insertGetId(['nama_produk' => 'Kartu Nama', 'metode_hitung' => 'quantity']);
         DB::table('setting_harga')->insert(['id_produk' => $kartu, 'id_golongan' => $gol, 'harga_jual' => 50000]);
 

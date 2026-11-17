@@ -29,7 +29,7 @@ class NotaKoreksiCetakTest extends TestCase
         $this->admin = User::factory()->create(['id_role' => Role::factory()->create(['nama_role' => 'Administrator'])->id_role]);
         $this->actingAs($this->admin);
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $this->kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Toko Maju', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $this->kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Toko Maju', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $mesin = DB::table('mesin')->insertGetId(['nama_mesin' => 'M', 'tipe_mesin' => 'x']);
         $kat = DB::table('kategori')->insertGetId(['nama_kategori' => 'K', 'kode_kategori' => 'K']);
         $this->bahan = DB::table('bahan_baku')->insertGetId(['kode_bahan' => 'B', 'nama_bahan' => 'Flexi Korea', 'id_mesin' => $mesin, 'id_kategori' => $kat,

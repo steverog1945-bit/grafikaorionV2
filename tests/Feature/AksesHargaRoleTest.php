@@ -42,7 +42,7 @@ class AksesHargaRoleTest extends TestCase
     {
         $od = $this->user('Operator Desain', false, [7, 41, 58]);
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $idK = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $idK = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
 
         $this->actingAs($od)->get('/quotation')->assertForbidden();
         $this->actingAs($od)->get("/konsumen/{$idK}/timeline")->assertForbidden();

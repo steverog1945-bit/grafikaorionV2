@@ -41,7 +41,7 @@ class QueryCountTest extends TestCase
         $gol = DB::table('golongan_konsumen')->insertGetId([
             'nama_golongan' => 'Umum', 'keterangan' => '-',
         ]);
-        $this->idKonsumen = (int) DB::table('konsumen')->insertGetId([
+        $this->idKonsumen = (int) DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Pelanggan Uji', 'telepon' => '08123', 'alamat' => '-',
             'id_golongan' => $gol,
         ]);

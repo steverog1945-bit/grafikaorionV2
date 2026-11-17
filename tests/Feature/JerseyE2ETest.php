@@ -69,7 +69,7 @@ class JerseyE2ETest extends TestCase
         $this->admin = User::factory()->create(['id_role' => $role->id_role]);
 
         $this->idGolongan = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail Uji', 'keterangan' => '-']);
-        $this->idKonsumen = DB::table('konsumen')->insertGetId([
+        $this->idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Konsumen Jersey', 'telepon' => '08123456789', 'alamat' => '-', 'id_golongan' => $this->idGolongan,
         ]);
 

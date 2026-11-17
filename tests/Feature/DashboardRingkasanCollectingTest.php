@@ -26,7 +26,7 @@ class DashboardRingkasanCollectingTest extends TestCase
 
     private function buatNota(array $itemStatus): void
     {
-        $idKonsumen = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'X', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => 1]);
+        $idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'X', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => 1]);
         $idTransaksi = DB::table('transaksi')->insertGetId([
             'nomor_nota' => 'UJI-' . uniqid(), 'id_konsumen' => $idKonsumen, 'tgl_order' => now(),
             'total_bayar' => 0, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif',

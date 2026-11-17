@@ -190,7 +190,7 @@ class UploadBerkasDesainTest extends TestCase
         $mesin = DB::table('mesin')->insertGetId(['nama_mesin' => 'MESIN UJI', 'tipe_mesin' => 'Direct Print']);
         $produk = DB::table('produk')->insertGetId(['nama_produk' => 'Produk Uji', 'metode_hitung' => 'ukuran', 'status' => 'Aktif', 'id_mesin' => $mesin, 'spk_lengkap' => 1]);
         $g = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $k = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Konsumen Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $g]);
+        $k = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Konsumen Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $g]);
         $t = DB::table('transaksi')->insertGetId(['nomor_nota' => 'N-UPL-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $k, 'id_user_kasir' => $this->admin->id_user, 'tgl_order' => now(), 'total_bayar' => 1, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir']);
         $idDetail = DB::table('transaksi_detail')->insertGetId([
             'id_transaksi' => $t, 'id_produk' => $produk, 'nama_file' => 'desain akhir',

@@ -167,7 +167,7 @@ class ApiRbacTest extends TestCase
         $idGolongan = DB::table('golongan_konsumen')->insertGetId([
             'nama_golongan' => 'Retail API Audit', 'keterangan' => '-',
         ]);
-        $idKonsumen = DB::table('konsumen')->insertGetId([
+        $idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Konsumen Scope API', 'telepon' => '0800',
             'alamat' => '-', 'id_golongan' => $idGolongan,
             'tipe_konsumen' => 'temporary', 'tgl_registrasi' => now(),

@@ -81,7 +81,7 @@ class HapusKedatanganTest extends TestCase
         $id = $this->kedatanganDivalidasi('SJ-2', 100);
         // 95 terpakai (mis. dijual langsung).
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'saldo_awal' => 0, 'status_lock' => 'open', 'created_at' => now()->subMinute()]);
         $this->post('/penjualan-barang/store', ['id_konsumen' => $kons, 'items' => [['tipe' => 'bahan', 'id_bahan' => $this->bahan, 'qty' => 95, 'harga' => 2000]]]);
         $this->assertEquals(5, $this->stok());

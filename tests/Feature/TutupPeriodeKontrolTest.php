@@ -86,7 +86,7 @@ class TutupPeriodeKontrolTest extends TestCase
     {
         AccountingPeriodService::tutup(2026, 8, $this->admin->id_user);
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
 
         $this->actingAs($this->admin)->post('/konsumen-deposit', ['id_konsumen' => $kons, 'nominal' => 50000, 'metode_bayar' => 'Tunai', 'tgl_deposit' => '2026-08-20'])
             ->assertSessionHasErrors('tgl_deposit');

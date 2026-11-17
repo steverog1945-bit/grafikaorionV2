@@ -58,7 +58,7 @@ class Tahap2ReproTest extends TestCase
         ]), 'cara_hitung_pemakaian' => 'Q', 'created_at' => now(), 'updated_at' => now()]);
 
         $this->gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail', 'keterangan' => '-']);
-        $this->kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Kons Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $this->gol]);
+        $this->kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Kons Uji', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $this->gol]);
         DB::table('setting_harga')->insert(['id_produk' => $this->camel, 'id_golongan' => $this->gol, 'range_min' => 0, 'harga_jual' => 1000]);
         DB::table('setting_harga')->insert(['id_produk' => $this->lanyard, 'id_golongan' => $this->gol, 'range_min' => 0, 'harga_jual' => 500]);
         DB::table('kas_harian')->insert(['tgl_kas' => now()->toDateString(), 'id_user' => $this->admin->id_user, 'saldo_awal' => 0, 'status_lock' => 'open', 'created_at' => now()->subMinute()]);

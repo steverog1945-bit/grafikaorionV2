@@ -44,7 +44,7 @@ class ApiPublikTest extends TestCase
         $idGolongan = DB::table('golongan_konsumen')->insertGetId([
             'nama_golongan' => 'Retail', 'keterangan' => '-',
         ]);
-        $idKonsumen = DB::table('konsumen')->insertGetId([
+        $idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Pelanggan API', 'telepon' => '0812', 'alamat' => '-',
             'id_golongan' => $idGolongan, 'tipe_konsumen' => 'temporary', 'tgl_registrasi' => now(),
         ]);

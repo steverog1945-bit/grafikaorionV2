@@ -44,7 +44,7 @@ class PembayaranParalelTest extends TestCase
     private function nota(string $nomor, float $total): int
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'G' . $nomor]);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'U', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         $id = DB::table('transaksi')->insertGetId([
             'nomor_nota' => $nomor, 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => $this->kasir->id_user,
             'tgl_order' => now(), 'total_bayar' => $total, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif', 'status_order' => 'Diterima Kasir', 'status_collecting' => 'Belum Diambil',

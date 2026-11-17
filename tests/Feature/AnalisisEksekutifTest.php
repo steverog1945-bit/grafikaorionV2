@@ -42,8 +42,8 @@ class AnalisisEksekutifTest extends TestCase
         $this->produkB = DB::table('produk')->insertGetId(['nama_produk' => 'Stiker', 'metode_hitung' => 'quantity']);
 
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $this->konsumenA = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Andi', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $idGol]);
-        $this->konsumenB = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Budi', 'telepon' => '2', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $this->konsumenA = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Andi', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $this->konsumenB = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Budi', 'telepon' => '2', 'alamat' => '-', 'id_golongan' => $idGol]);
 
         // Nota aktif 1: Andi, Banner, omzet 500rb, HPP 150rb. Nota aktif 2: Budi, Stiker, omzet 300rb, HPP 90rb.
         $this->idDetailA = $this->nota('INV-A', $this->konsumenA, $this->produkA, 500000, 150000);

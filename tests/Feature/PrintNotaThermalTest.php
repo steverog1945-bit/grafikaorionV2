@@ -47,7 +47,7 @@ class PrintNotaThermalTest extends TestCase
     private function buatNota(string $metodeProduk, float $p, float $l): int
     {
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId([
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Toko Maju', 'telepon' => '0812', 'alamat' => '-', 'id_golongan' => $gol,
         ]);
         $produk = DB::table('produk')->insertGetId([
@@ -199,7 +199,7 @@ class PrintNotaThermalTest extends TestCase
         // Item tanpa produk (jasa / item custom): kolom produk kosong, jadi
         // metode_hitung_produk ikut kosong dan tidak ada ukuran yang bocor.
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId([
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Toko Lama', 'telepon' => '-', 'alamat' => '-', 'id_golongan' => $gol,
         ]);
 

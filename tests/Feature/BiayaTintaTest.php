@@ -41,7 +41,7 @@ class BiayaTintaTest extends TestCase
 
         $this->idProduk = DB::table('produk')->insertGetId(['nama_produk' => 'Banner Uji', 'id_mesin' => $this->idMesin, 'metode_hitung' => 'ukuran']);
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Umum']);
-        $this->idKonsumen = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
+        $this->idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
 
         DB::table('pemakaian_tinta')->insert([
             'id_mesin' => $this->idMesin, 'id_bahan' => $this->idBahan, 'dasar' => 'm2', 'pemakaian' => 10, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now(),

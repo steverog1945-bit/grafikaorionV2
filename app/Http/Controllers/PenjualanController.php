@@ -398,8 +398,8 @@ class PenjualanController extends Controller
             || (int) $lama->qty !== (int) ($item['qty_input'] ?? 0)
             || (string) $lama->nama_file !== (string) ($item['nama_file'] ?? '')
             || (string) ($lama->catatan_produksi ?? '') !== (string) ($item['catatan_produksi'] ?? '')
-            || (string) $lama->status_urgensi !== (string) ($item['status_urgensi'] ?? '')
-            || (int) $lama->file_siap_cetak !== (int) ($item['file_siap_cetak'] ? 1 : 0);
+            || (string) ($lama->status_urgensi ?? '') !== (string) ($item['status_urgensi'] ?? '')
+            || (int) $lama->file_siap_cetak !== (int) ((($item['file_siap_cetak'] ?? 0) ? 1 : 0));
     }
 
     /**
@@ -563,13 +563,21 @@ class PenjualanController extends Controller
                 throw new \RuntimeException('Total nota tidak boleh Rp 0 - tidak ada data yang tersimpan; coba lagi atau hubungi Administrator.');
             }
 
+            // Diskon nota (diisi lewat prosesBayar) harus tetap berlaku setelah
+            // koreksi item. Sebelumnya total_bayar ditulis dari jumlah subtotal
+            // mentah tanpa mengurangi diskon, sehingga nota yang sudah
+            // didiskon yang dikoreksi selisihnya balik ke harga penuh - beda
+            // rumus dengan prosesBayar() yang selalu mengurangi diskon.
+            $diskonNota = max(0.0, (float) ($transaksi->diskon ?? 0));
+            $totalAkhir = max(0.0, $totalBaru - $diskonNota);
+
             $totalTerbayar = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->whereNull('voided_at')->sum('nominal');
-            if ($totalTerbayar > 0 && $totalBaru + 0.004 < $totalTerbayar) {
-                throw new \App\Exceptions\ValidasiNotaException('Total baru (' . number_format($totalBaru, 0, ',', '.') . ') lebih kecil dari pembayaran yang sudah masuk (' . number_format($totalTerbayar, 0, ',', '.') . '). Gunakan retur/refund.');
+            if ($totalTerbayar > 0 && $totalAkhir + 0.004 < $totalTerbayar) {
+                throw new \App\Exceptions\ValidasiNotaException('Total baru (' . number_format($totalAkhir, 0, ',', '.') . ') lebih kecil dari pembayaran yang sudah masuk (' . number_format($totalTerbayar, 0, ',', '.') . '). Gunakan retur/refund.');
             }
 
-            // Jurnal pendapatan direkonsiliasi sebesar total yang baru.
-            AccountingService::sesuaikanTotalNota($noNota, $totalBaru);
+            // Jurnal pendapatan direkonsiliasi sebesar total yang baru (NET diskon).
+            AccountingService::sesuaikanTotalNota($noNota, $totalAkhir);
 
             // Jurnal HPP disesuaikan sebesar selisih HPP.
             $selisihHpp = round($hppBaru - $hppLama, 2);
@@ -585,10 +593,10 @@ class PenjualanController extends Controller
 
             // Status pembayaran dihitung ulang dari total yang baru.
             $totalTerbayar = (float) DB::table('pembayaran_riwayat')->where('id_transaksi', $id)->whereNull('voided_at')->sum('nominal');
-            $statusBaru = \App\Services\StatusPembayaran::dari($totalBaru, $totalTerbayar);
+            $statusBaru = \App\Services\StatusPembayaran::dari($totalAkhir, $totalTerbayar);
 
             DB::table('transaksi')->where('id_transaksi', $id)->update([
-                'total_bayar' => $totalBaru,
+                'total_bayar' => $totalAkhir,
                 'status_pembayaran' => $statusBaru,
                 'updated_at' => now(),
             ]);
@@ -598,7 +606,7 @@ class PenjualanController extends Controller
                 'transaksi',
                 $id,
                 ['total' => (float) $transaksi->total_bayar, 'item' => $itemLama->count()],
-                ['total' => $totalBaru, 'item' => $jumlahPerubahan],
+                ['total' => $totalAkhir, 'item' => $jumlahPerubahan],
                 'Koreksi nota ' . $noNota . ' (selisih): baru ' . $jumlahPerubahan['baru']
                     . ', diubah ' . $jumlahPerubahan['diubah']
                     . ', dihapus ' . $jumlahPerubahan['dihapus']
@@ -623,7 +631,7 @@ class PenjualanController extends Controller
             'msg' => 'Nota ' . $noNota . ' berhasil dikoreksi.',
             'id_transaksi' => $id,
             'nomor_nota' => $noNota,
-            'total_baru' => $totalBaru,
+            'total_baru' => $totalAkhir,
             'perubahan' => $jumlahPerubahan,
         ]);
     }
@@ -1654,13 +1662,6 @@ public function applyApprovedEdit($id)
             return;
         }
 
-        $bolehApply = \App\Services\NotaEditService::bolehEdit($transaksi);
-        if (!$bolehApply['boleh']) {
-            $pesanError = $bolehApply['alasan'];
-
-            return;
-        }
-
         $items = DB::table('transaksi_detail')->where('id_transaksi', $transaksi->id_transaksi)->get();
         $sudahSelesai = self::itemProduksiSelesai($items);
         if ($sudahSelesai) {
@@ -1668,13 +1669,30 @@ public function applyApprovedEdit($id)
 
             return;
         }
-        if (self::adaItemProduksi($items) && $transaksi->status_collecting === 'Sudah Diambil') {
+        $adaProduksi = self::adaItemProduksi($items);
+        if ($adaProduksi && ($transaksi->status_collecting ?? '') === 'Sudah Diambil') {
             $pesanError = 'Nota ini tidak bisa dikoreksi - barang sudah diambil konsumen.';
 
             return;
         }
 
         $hppTerpakai = self::hppItemBatalTanpaKembali($items);
+
+        // Guard edit-selisih (kunci Lunas, pemilik/hari sama) tetap dipakai,
+        // TAPI TANPA aturan "item Selesai/Cetak" milik alur EDIT SELISIH:
+        // itu benar untuk pengembalian PARSIAL (bahan bisa sudah dipakai order
+        // lain), sedangkan apply = pembatalan PENUH yang sudah disetujui
+        // Administrator dan stok kembali utuh lewat StokReversalService.
+        // Item Penjualan & Jasa memang berstatus 'Selesai' sejak awal tanpa
+        // lewat produksi - sebelumnya guard itu menolak koreksinya SELALU
+        // ("Ada item yang sudah masuk produksi") tepat setelah approval.
+        $bolehApply = \App\Services\NotaEditService::bolehEdit($transaksi, null, false, $adaProduksi);
+        if (!$bolehApply['boleh']) {
+            $pesanError = $bolehApply['alasan'];
+
+            return;
+        }
+
         foreach ($items as $item) {
             if ($item->status_spk === 'Batal') {
                 continue;

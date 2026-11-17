@@ -100,7 +100,7 @@ class ApiCheckoutTest extends TestCase
             'cara_hitung_pemakaian' => 'Q', 'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail API3', 'keterangan' => '-']);
-        $this->kons = DB::table('konsumen')->insertGetId([
+        $this->kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Pelanggan API-3', 'telepon' => '0812', 'alamat' => '-', 'id_golongan' => $this->gol,
         ]);
         DB::table('setting_harga')->insert([

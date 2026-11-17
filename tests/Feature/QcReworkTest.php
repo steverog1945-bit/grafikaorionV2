@@ -36,7 +36,7 @@ class QcReworkTest extends TestCase
         DB::table('bom_detail')->insert(['id_produk' => $idProduk, 'id_bahan' => $this->idBahan, 'cara_hitung_pemakaian' => 'Q']);
 
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $idKonsumen = DB::table('konsumen')->insertGetId([
+        $idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 
             'nama_konsumen' => 'Budi', 'telepon' => '08123', 'alamat' => '-', 'id_golongan' => $idGol,
         ]);
         $idTransaksi = DB::table('transaksi')->insertGetId([

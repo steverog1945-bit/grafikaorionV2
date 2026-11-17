@@ -82,7 +82,7 @@ class AuditIntegritasRekonsiliasiTest extends TestCase
         // Nota dari sebelum integrasi akuntansi: punya tagihan, tetapi tidak pernah dijurnal ke Piutang.
         $kasir = User::factory()->create();
         $gol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
-        $kons = DB::table('konsumen')->insertGetId(['nama_konsumen' => 'Lama', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
+        $kons = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Lama', 'telepon' => '1', 'alamat' => '-', 'id_golongan' => $gol]);
         DB::table('transaksi')->insert(['nomor_nota' => 'INV-LAMA-1', 'tipe_order' => 'Reguler', 'id_konsumen' => $kons, 'id_user_kasir' => $kasir->id_user,
             'tgl_order' => now()->subYear(), 'total_bayar' => 75000, 'status_pembayaran' => 'Belum Bayar', 'status_nota' => 'Aktif']);
 
