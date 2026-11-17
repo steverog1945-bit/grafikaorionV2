@@ -165,13 +165,24 @@ class PenjualanCheckoutService
     if ($notaSusulan) {
         $tglOrder = Carbon::parse($notaSusulan->tgl_order);
     } elseif ($request->filled('tgl_order')) {
+        $tglMentah = (string) $request->tgl_order;
         try {
-            $tglInput = Carbon::parse($request->tgl_order);
-            if (!$tglInput->isFuture()) {
+            $tglInput = Carbon::parse($tglMentah);
+            if ($tglInput->isFuture()) {
+                \report(new \RuntimeException("tgl_order di masa depan diabaikan: {$tglMentah}"));
+                if (request()->hasSession()) {
+                    session()->flash('warning', "Tanggal order {$tglMentah} di masa depan diabaikan — nota dicatat dengan tanggal hari ini.");
+                }
+            } else {
                 $tglOrder = $tglInput->setTimeFrom(now());
             }
         } catch (\Exception $e) {
-            // format tanggal tidak valid - abaikan, pakai now() seperti biasa
+            // Sebelumnya format tanggal yang tidak valid diabaikan DIAM-DIAM:
+            // nota tercatat hari ini padahal operator mengetik tanggal lain.
+            \report(new \RuntimeException("Format tgl_order tidak valid diabaikan: {$tglMentah}"));
+            if (request()->hasSession()) {
+                session()->flash('warning', "Tanggal order \"{$tglMentah}\" tidak valid — nota dicatat dengan tanggal hari ini.");
+            }
         }
     }
 

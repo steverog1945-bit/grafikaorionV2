@@ -198,7 +198,7 @@
             {{-- Header: satu kalimat + tombol bantuan "?" untuk semua catatan
                  panjang, supaya halaman tidak dipenuhi blok teks hint. --}}
             <div class="flex items-start justify-between gap-4 mb-6">
-                <p class="text-sm text-slate-500 leading-relaxed">Estimasi kebutuhan bahan per ukuran & komponen, dalam <b class="text-slate-600">meter</b> dan <b class="text-slate-600">gram</b> — dipakai otomatis untuk "Spesifikasi Order".</p>
+                <p class="text-sm text-slate-500 leading-relaxed">Estimasi kebutuhan bahan per ukuran & komponen, dalam <b class="text-slate-600">meter</b> dan <b class="text-slate-600">gram</b> Ã¢â‚¬â€ dipakai otomatis untuk "Spesifikasi Order".</p>
                 <button type="button" onclick="bantuanEstimasi('utama')" class="shrink-0 h-7 w-7 inline-flex items-center justify-center rounded-full border border-indigo-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition" title="Penjelasan estimasi bahan" aria-label="Penjelasan estimasi bahan"><i class="fas fa-question text-[10px]"></i></button>
             </div>
 
@@ -233,7 +233,7 @@
                                     {{ $comp->name }} <span class="text-indigo-400 text-xs">(m)</span>
                                     <button type="button" onclick="bukaEditScopeKomponen({{ $comp->id }}, {{ $comp->jersey_product_type_id ?? 'null' }}, {{ $comp->jersey_category_id ?? 'null' }})" class="ml-1 text-indigo-500 hover:text-indigo-400 text-[8px] opacity-70" title="Atur cakupan"><i class="fas fa-sliders-h"></i></button>
                                     <button type="button" onclick="nonaktifkanKomponen({{ $comp->id }})" class="ml-1 text-rose-500 hover:text-rose-400 text-[8px] opacity-70" title="Nonaktifkan"><i class="fas fa-times-circle"></i></button>
-                                    <div class="mt-0.5 text-[8px] text-slate-400 normal-case" data-component-scope="{{ $comp->id }}">{{ $comp->productType->name ?? 'Semua Tipe' }} @if($comp->category)·{{ $comp->category->name }}@endif</div>
+                                    <div class="mt-0.5 text-[8px] text-slate-400 normal-case" data-component-scope="{{ $comp->id }}">{{ $comp->productType->name ?? 'Semua Tipe' }} @if($comp->category)Ã‚Â·{{ $comp->category->name }}@endif</div>
                                 </th>
                                 @endforeach
                                 <th style="width:120px" class="p-2.5 text-center whitespace-nowrap bg-indigo-100 text-indigo-600 font-medium">Total (m)</th>
@@ -681,11 +681,9 @@
 
     const csrfTokenJerseyMaster = document.querySelector('meta[name="csrf-token"]').content;
 
-    // Toast mengambang (tidak mendorong tabel naik-turun seperti sebelumnya)
-    // - pola sama dengan Toast yang sudah dipakai di Kasir/Penjualan.
-    const ToastJersey = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2200, timerProgressBar: true });
+    // Toast global (layouts/app) - jangan punya mixin sendiri lagi.
     function tampilkanToastJersey(message, sukses = true) {
-        ToastJersey.fire({ icon: sukses ? 'success' : 'error', title: message });
+        Toast.fire({ icon: sukses ? 'success' : 'error', title: message });
     }
 
     // Tombol "?" menggantikan blok-blok teks hint: penjelasan lengkap tampil
@@ -706,7 +704,7 @@
                 html: `
                     <div class="text-left text-sm text-slate-600 space-y-2">
                         <p>Kosongkan Tipe Produk/Kategori kalau komponen berlaku untuk <b>semua</b> barang (mis. Body).</p>
-                        <p>Isi salah satu atau keduanya kalau komponen hanya relevan untuk barang tertentu (mis. "Celana" hanya untuk Tipe Produk Celana) — supaya SPK hanya menampilkan estimasi yang benar-benar dipakai.</p>
+                        <p>Isi salah satu atau keduanya kalau komponen hanya relevan untuk barang tertentu (mis. "Celana" hanya untuk Tipe Produk Celana) Ã¢â‚¬â€ supaya SPK hanya menampilkan estimasi yang benar-benar dipakai.</p>
                     </div>`,
             },
             lenganKerah: {
@@ -720,7 +718,7 @@
         };
         const c = isi[bagian];
         if (!c) return;
-        Swal.fire({ title: c.judul, html: c.html, icon: 'info', confirmButtonColor: '#4f46e5', confirmButtonText: 'Mengerti' });
+        Swal.fire({ title: c.judul, html: c.html, icon: 'info', confirmButtonColor: 'var(--brand-sidebar-accent, #E8891D)', confirmButtonText: 'Mengerti' });
     }
 
     function bantuanHarga() {
@@ -734,7 +732,7 @@
                     <p>Sistem menolak rentang qty yang tumpang tindih pada cakupan yang sama supaya tidak ada dua harga aktif untuk rentang yang sama.</p>
                 </div>`,
             icon: 'info',
-            confirmButtonColor: '#4f46e5',
+            confirmButtonColor: 'var(--brand-sidebar-accent, #E8891D)',
             confirmButtonText: 'Mengerti',
         });
     }

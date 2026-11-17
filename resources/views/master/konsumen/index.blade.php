@@ -201,7 +201,7 @@
                 if (notice) { notice.innerHTML = html; notice.classList.toggle('hidden', !html); }
             }
 
-            function escHtml(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
+            // escHtml() global dari layouts/app (window.escHtml) - jangan dideklarasikan ulang.
 
             function periksa() {
                 clearTimeout(debounceT);

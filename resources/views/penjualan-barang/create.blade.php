@@ -505,8 +505,7 @@
         document.getElementById('input_harga_jasa').value = '';
         document.getElementById('info_biaya_jasa').textContent = '-';
 
-        Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1800 })
-            .fire({ icon: 'success', title: 'Jasa ditambahkan ke daftar' });
+        Toast.fire({ icon: 'success', title: 'Jasa ditambahkan ke daftar' });
     }
 
     // 2. MODAL KONSUMEN BARU (pola sama dengan penjualan/create.blade.php)

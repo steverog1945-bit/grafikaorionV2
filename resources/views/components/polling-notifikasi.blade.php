@@ -31,16 +31,27 @@
 (function () {
     let jumlahAwal = {{ (int) $jumlahAwal }};
     const el = document.getElementById('polling-notif-{{ md5($url) }}');
+    let gagalBeruntun = 0;
 
     function cekDataBaru() {
         fetch('{{ $url }}')
             .then(res => res.ok ? res.json() : Promise.reject())
             .then(data => {
+                gagalBeruntun = 0;
                 if (data.total > jumlahAwal) {
                     el.classList.remove('hidden');
                 }
             })
-            .catch(() => {}); // diam kalau gagal (mis. sesi habis) - jangan ganggu kerja operator dengan error polling
+            .catch((err) => {
+                gagalBeruntun += 1;
+                // Sebelumnya: gagal sepenuhnya tanpa jejak - operator mengira
+                // "tidak ada pekerjaan baru" padahal pollingnya yang mati
+                // (mis. sesi habis). Sekarang minimal tercatat di console +
+                // tombol lonceng redup setelah 3 kegagalan berturut-turut
+                // diberi tanda lewat title (bukan mengubah layout).
+                if (console && console.warn) console.warn('[polling-notifikasi] gagal (' + gagalBeruntun + 'x) \u2014 cek sesi/masuk ulang');
+                if (gagalBeruntun >= 3) el.setAttribute('title', 'Polling gagal ' + gagalBeruntun + 'x — muat ulang halaman (F5) atau masuk ulang');
+            });
     }
 
     setInterval(cekDataBaru, {{ (int) $interval }});

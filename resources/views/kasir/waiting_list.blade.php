@@ -3,7 +3,7 @@
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1600px] mx-auto">
 
-    <x-page-header title="Antrean Pesanan Baru" subtitle="SPK aktif setelah nota diterima kasir — Terima Saja (bayar nanti) atau Terima &amp; Bayar (bayar sekarang).">
+    <x-page-header title="Antrean Pesanan Baru" subtitle="SPK aktif setelah nota diterima kasir â€” Terima Saja (bayar nanti) atau Terima &amp; Bayar (bayar sekarang).">
         <x-slot:actions>
             <x-button href="{{ route('kasir.index') }}" variant="secondary">
                 <i class="fas fa-arrow-left"></i>
@@ -52,7 +52,7 @@
 
                 <div class="mt-5">
                     @if($kasAktif)
-                        {{-- Dua aksi berbeda (Terima ≠ bayar sekarang): diberi
+                        {{-- Dua aksi berbeda (Terima â‰  bayar sekarang): diberi
                              label yang jelas + ikon yang berbeda + tooltip supaya
                              kasir tidak salah tekan. "Terima &amp; Bayar" diberi
                              konfirmasi satu langkah - kasir salah klik tidak bisa
@@ -126,7 +126,7 @@
                     showCancelButton: true,
                     confirmButtonText: 'Ya, Terima &amp; Bayar',
                     cancelButtonText: 'Batal, cek dulu nanti',
-                    confirmButtonColor: '#4f46e5',
+                    confirmButtonColor: 'var(--brand-sidebar-accent, #E8891D)',
                     reverseButtons: true
                 }).then(function (res) {
                     if (!res.isConfirmed) return;

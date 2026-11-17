@@ -20,21 +20,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-window.deleteConfirm = function (formId) {
-    Swal.fire({
-        title: 'Hapus Bahan?',
-        text: "Data yang dihapus tidak dapat dikembalikan!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#4f46e5',
-        cancelButtonColor: '#f1f5f9',
-        cancelButtonText: '<span style="color:#64748b">Batal</span>',
-        confirmButtonText: 'Ya, Hapus!',
-        customClass: { popup: 'rounded-lg', confirmButton: 'rounded-md px-4 py-2', cancelButton: 'rounded-md px-4 py-2' }
-    }).then((result) => {
-        if (result.isConfirmed) document.getElementById(formId).submit();
-    });
-};
+/* window.deleteConfirm DIHAPUS: tidak ada satu pemanggil pun (semua master pakai
+   pola global data-konfirmasi di layouts/app.blade.php). */
 
 /* ==========================================================================
    API MODAL

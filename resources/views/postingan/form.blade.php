@@ -241,7 +241,7 @@
         quill.setContents(bersih, 'user');
         toast(senyap ? 'Hasil tempel dirapikan otomatis (urungkan dengan Ctrl+Z)' : 'Format dirapikan', 'success');
     }
-    function toast(t, ikon) { Swal.fire({ toast: true, position: 'top-end', icon: ikon, title: t, timer: 2400, showConfirmButton: false }); }
+    function toast(t, ikon) { Toast.fire({ icon: ikon, title: t }); }
 
     // Dokumen kosong lalu ditempel isi panjang -> rapikan otomatis (menghindari lompatan kursor saat menyisipkan di tengah tulisan)
     quill.root.addEventListener('paste', () => {

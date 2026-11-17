@@ -273,13 +273,22 @@
             }
         }
 
+        function gagalTerakhir() { return 'Gagal memuat'; }
+
         function fetchKpi() {
             fetch('{{ route('dashboard.kpi-api') }}', {
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             })
                 .then(function (r) { return r.json(); })
                 .then(update)
-                .catch(function () { /* silent - coba lagi pada interval berikutnya */ });
+                // Sebelumnya: gagal total tanpa jejak (kartu menampilkan angka lama
+                // dan operator mengira itu data terkini). Sekarang minimal tercatat
+                // di console untuk diagnosis, dan label "Gagal memuat" ditampilkan
+                // pada baris status agar operator sadar datanya belum segar.
+                .catch(function () {
+                    if (console && console.warn) console.warn('[dashboard] KPI gagal dimuat - akan coba lagi pada interval berikutnya');
+                    if (typeof updatedAt !== 'undefined' && updatedAt) updatedAt.textContent = gagalTerakhir();
+                });
         }
 
         // Indikator pembaruan kini menetap di baris status di atas kartu KPI

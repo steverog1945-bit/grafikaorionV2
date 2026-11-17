@@ -611,6 +611,13 @@ class AccountingService
         $baris = DB::table('jurnal_umum')->where('no_referensi', $noReferensi)->get();
 
         if ($baris->isEmpty()) {
+            // Sebelumnya: kembali DIAM-DIAM - caller menganggap pembalikan
+            // terjadi (mis. tombol "koreksi berhasil") padahal tidak ada
+            // jurnal yang dibalik sama sekali. Tidak melempar exception
+            // (beberapa alur memanggilnya sebagai jaring pengaman), tapi
+            // wajib tercatat.
+            \report(new \RuntimeException("Tidak ada baris jurnal untuk dibalik (no_referensi: {$noReferensi})"));
+
             return;
         }
 
@@ -669,6 +676,13 @@ class AccountingService
             ->get();
 
         if ($baris->isEmpty()) {
+            // Sebelumnya: kembali DIAM-DIAM - caller menganggap pembalikan
+            // terjadi padahal tidak ada jurnal yang dibalik (mis. panggilan
+            // salah referensi/format). Tetap tidak melempar, tapi wajib
+            // tercatat di log - tanpa jurnal ini, stok/jurnal dan kas akan
+            // menyimpang tanpa tanda.
+            \report(new \RuntimeException("Tidak ada baris jurnal untuk dibalik (nota: {$noNota})"));
+
             return;
         }
 

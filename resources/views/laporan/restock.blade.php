@@ -22,35 +22,33 @@
         </x-slot:actions>
     </x-page-header>
 
-    <div class="rounded-2xl border border-slate-200/70 bg-white overflow-hidden shadow-[0_1px_3px_rgba(15,30,62,.05)]">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-[13px] min-w-[880px]">
-                <thead>
-                    <tr class="text-[10px] uppercase tracking-widest text-slate-400 bg-[#F7F9FE]">
-                        <th class="px-6 py-3">#</th>
-                        <th class="px-6 py-3">Bahan Baku</th>
-                        <th class="px-6 py-3 text-right">Stok</th>
-                        <th class="px-6 py-3 text-right">Minimal</th>
-                        <th class="px-6 py-3 text-right">Pakai 60 Hr</th>
-                        <th class="px-6 py-3 text-right">Per Hari</th>
-                        <th class="px-6 py-3">Sisa Hari</th>
-                        <th class="px-6 py-3 text-right">Saran Beli</th>
-                        <th class="px-6 py-3">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
+    <x-table bare>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Bahan Baku</th>
+                <th class="text-right">Stok</th>
+                <th class="text-right">Minimal</th>
+                <th class="text-right">Pakai 60 Hr</th>
+                <th class="text-right">Per Hari</th>
+                <th>Sisa Hari</th>
+                <th class="text-right">Saran Beli</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
                     @foreach($bahan as $i => $b)
                         @php
                             $badge = ['kritis' => ['Kritis', 'bg-rose-50 text-rose-600 border-rose-200', 'bg-rose-500'], 'perhatian' => ['Perhatian', 'bg-amber-50 text-amber-800 border-amber-200', 'bg-amber-500'], 'aman' => ['Aman', 'bg-emerald-50 text-emerald-700 border-emerald-200', 'bg-emerald-500']][$b->level];
                         @endphp
-                    <tr class="hover:bg-[#FAFCFF] transition-colors {{ $b->level === 'kritis' ? 'bg-rose-50/40' : '' }}">
-                        <td class="px-6 py-3 text-slate-400 tabular-nums">{{ $i + 1 }}</td>
-                        <td class="px-6 py-3 font-medium text-slate-800">{{ $b->nama_bahan }}</td>
-                        <td class="px-6 py-3 text-right tabular-nums text-slate-700">{{ number_format((float) $b->stok, 2, ',', '.') }} <span class="text-[10px] text-slate-400">{{ $b->satuan_stok }}</span></td>
-                        <td class="px-6 py-3 text-right tabular-nums text-slate-500">{{ number_format((float) $b->stok_minimal, 2, ',', '.') }}</td>
-                        <td class="px-6 py-3 text-right tabular-nums text-slate-700">{{ number_format((float) $b->pakai_60d, 2, ',', '.') }}</td>
-                        <td class="px-6 py-3 text-right tabular-nums text-slate-700">{{ number_format((float) $b->per_hari, 2, ',', '.') }}<span class="text-[10px] text-slate-400">/hari</span></td>
-                        <td class="px-6 py-3">
+                    <tr class="hover:bg-slate-50 transition-colors {{ $b->level === 'kritis' ? 'bg-rose-50/40' : '' }}">
+                        <td class="text-slate-400 tabular-nums">{{ $i + 1 }}</td>
+                        <td class="font-medium text-slate-800">{{ $b->nama_bahan }}</td>
+                        <td class="text-right tabular-nums text-slate-700">{{ number_format((float) $b->stok, 2, ',', '.') }} <span class="text-[10px] text-slate-400">{{ $b->satuan_stok }}</span></td>
+                        <td class="text-right tabular-nums text-slate-500">{{ number_format((float) $b->stok_minimal, 2, ',', '.') }}</td>
+                        <td class="text-right tabular-nums text-slate-700">{{ number_format((float) $b->pakai_60d, 2, ',', '.') }}</td>
+                        <td class="text-right tabular-nums text-slate-700">{{ number_format((float) $b->per_hari, 2, ',', '.') }}<span class="text-[10px] text-slate-400">/hari</span></td>
+                        <td>
                             @if($b->sisa_hari === null)
                                 <span class="text-[11px] text-slate-400">tidak ada pemakaian</span>
                             @else
@@ -60,20 +58,18 @@
                                 </div>
                             @endif
                         </td>
-                        <td class="px-6 py-3">
+                        <td>
                             @if($b->saran_beli > 0)
                                 <span class="text-[12px] font-bold tabular-nums text-indigo-700">{{ number_format((float) $b->saran_beli, 0, ',', '.') }} <span class="text-[10px] font-medium text-slate-400">{{ $b->satuan_stok }}</span></span>
                             @else
                                 <span class="text-[11px] text-slate-400">cukup</span>
                             @endif
                         </td>
-                        <td class="px-6 py-3"><span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-wide {{ $badge[1] }}"><span class="w-1.5 h-1.5 rounded-full {{ $badge[2] }}"></span>{{ $badge[0] }}</span></td>
+                        <td><span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-wide {{ $badge[1] }}"><span class="w-1.5 h-1.5 rounded-full {{ $badge[2] }}"></span>{{ $badge[0] }}</span></td>
                     </tr>
                     @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+        </tbody>
+    </x-table>
     <p class="mt-4 text-[11px] text-slate-400">Prediksi memakai rata-rata pakai 60 hari (kartu stok, tipe keluar). Saran beli = gap ke stok minimal atau cadangan 14 hari pemakaian, yang lebih besar. Bahan tanpa pemakaian dan tanpa stok minimal tidak diramal. Angka adalah panduan — keputusan beli final ada di Anda.</p>
     @include('partials.print-report-footer')
 </div>

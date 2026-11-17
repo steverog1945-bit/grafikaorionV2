@@ -1068,12 +1068,12 @@
         var notice = document.getElementById('new_nama_notice');
         if (!namaInput || !notice) return;
 
-        function escHtml(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
+        // escHtml() global dari layouts/app (window.escHtml) - jangan dideklarasikan ulang.
 
         function render(exact, similar) {
             var html = '';
             if (exact) {
-                html += '<div class="text-amber-800 font-medium">Nama ini sudah terdaftar (#' + exact.id_konsumen + ' — ' + escHtml(exact.nama_konsumen) + ' · ' + escHtml(exact.telepon || '-') + '). Menggunakan data yang ada.</div>';
+                html += '<div class="text-amber-800 font-medium">Nama ini sudah terdaftar (#' + exact.id_konsumen + ' Ã¢â‚¬â€ ' + escHtml(exact.nama_konsumen) + ' Ã‚Â· ' + escHtml(exact.telepon || '-') + '). Menggunakan data yang ada.</div>';
             } else if (similar && similar.length) {
                 html += '<div class="text-slate-700">Nama serupa terdaftar:</div><ul class="mt-1 space-y-0.5">';
                 var max = Math.min(similar.length, 6);
@@ -1081,7 +1081,7 @@
                     var s = similar[i];
                     html += '<li class="truncate"><button type="button" class="font-medium text-amber-800 hover:text-amber-900 hover:underline" data-nama="' + escHtml(s.nama_konsumen) + '" data-telp="' + escHtml(s.telepon || '') + '" data-id-golongan="' + (s.id_golongan || '') + '">'
                         + escHtml(s.nama_konsumen)
-                        + '<span class="text-slate-400 font-normal"> · ' + escHtml(s.telepon || '-') + ' · ID #' + s.id_konsumen + '</span></button></li>';
+                        + '<span class="text-slate-400 font-normal"> Ã‚Â· ' + escHtml(s.telepon || '-') + ' Ã‚Â· ID #' + s.id_konsumen + '</span></button></li>';
                 }
                 html += '</ul>';
             }
@@ -1329,7 +1329,7 @@ let currentThumbnailPreview = null;
                 // berkas pertama dan tidak mewakili desain yang sekarang.
                 isiNamaFileOtomatis(namaFileDariGambar(originalName));
 
-                Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1800 }).fire({
+                Toast.fire({
                     icon: 'success',
                     title: res.bisa_ditampilkan
                         ? `Gambar terunggah (${(fileUpload.size / 1024).toFixed(0)} KB)`
@@ -1444,7 +1444,7 @@ let currentThumbnailPreview = null;
             $('.select2-konsumen').val('{{ request('id_konsumen') }}').trigger('change');
         @endif
 
-        // Fokus awal: pelanggan (select2) — alur input pesanan berurutan
+        // Fokus awal: pelanggan (select2) Ã¢â‚¬â€ alur input pesanan berurutan
         // pelanggan -> kategori -> produk -> urgensi -> catatan -> upload file
         // -> ukuran & qty. tabindex sudah diset di markup; di sini cukup
         // fokuskan select2 pelanggan saat form pertama dibuka (kalau tidak
@@ -2044,7 +2044,7 @@ let currentThumbnailPreview = null;
         }
         segarkanLabelMinimumPotongManual();
 
-        // Toggle panel INPUTAN JAHIT KEPING (KEPING_ROLL) — keping adalah
+        // Toggle panel INPUTAN JAHIT KEPING (KEPING_ROLL) Ã¢â‚¬â€ keping adalah
         // inputan operator (lebar x panjang x jumlah keping) yang dijaga
         // kapasitas dari ukuran cetak (identik server), supaya kesalahan
         // keping terlihat SEBELUM nota disimpan.
@@ -2898,7 +2898,7 @@ let peringatanMinDaftar = 0;
 
         try {
             // Mode HYBRID minimum luas (T4-A): deteksi hard-minimum LAMA berbasis
-            // tier (harga 0 di bawah 1 m², ditagih 1 m²) sudah dihapus — harga
+            // tier (harga 0 di bawah 1 mÃ‚Â², ditagih 1 mÃ‚Â²) sudah dihapus Ã¢â‚¬â€ harga
             // selalu fetch di luas aktual. Minimum luas tidak lagi disimpulkan
             // dari celah tier: kelompok minimum harus eksplisit di master
             // produk (min_luas_total + kelompok_minimum), dan selisihnya
@@ -3452,8 +3452,8 @@ let peringatanMinDaftar = 0;
         }
 
         // Mode HYBRID minimum luas (T4-A): tidak ada lagi absorben "item
-        // sebelumnya ditagih 1 m², lalu dikembalikan ke luas asli bila ada
-        // item >= 1 m²". Minimum berlaku per kelompok (min_luas_total +
+        // sebelumnya ditagih 1 mÃ‚Â², lalu dikembalikan ke luas asli bila ada
+        // item >= 1 mÃ‚Â²". Minimum berlaku per kelompok (min_luas_total +
         // kelompok_minimum) dan selisihnya digulung ke item terbesar saat
         // render keranjang + saat checkout di server - pertama-tama di sini
         // item masuk dengan luas aktualnya sendiri.
@@ -3487,7 +3487,7 @@ let peringatanMinDaftar = 0;
             document.getElementById('wrapper_qty').classList.add('hidden');
         }
 
-        Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 }).fire({
+        Toast.fire({
             icon: 'success',
             title: sedangEdit
                 ? 'Item berhasil diperbarui'
@@ -3578,7 +3578,7 @@ let peringatanMinDaftar = 0;
         document.getElementById('jasa_keterangan').value = '';
         jasaHargaManualEdit = false;
 
-        Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }).fire({
+        Toast.fire({
             icon: 'success', title: 'Jasa ditambahkan ke keranjang'
         });
     }
@@ -3666,9 +3666,9 @@ let peringatanMinDaftar = 0;
             });
         }
 
-        // Rincian kalkulasi Minimum Order per kelompok (spec 2026-11-15 §6):
+        // Rincian kalkulasi Minimum Order per kelompok (spec 2026-11-15 Ã‚Â§6):
         // Total luas aktual, minimum order, kekurangan, luas ditagihkan,
-        // tarif per m², total harga + status (aktual vs minimum). Preview
+        // tarif per mÃ‚Â², total harga + status (aktual vs minimum). Preview
         // saja - angka final selalu dihitung ulang server saat disimpan.
         const elRincian = document.getElementById('minimum_rincian');
         if (elRincian) {
@@ -4143,7 +4143,7 @@ let peringatanMinDaftar = 0;
             }
         }
         if (pelanggaran.length) {
-            return Swal.fire({ icon: 'error', title: 'Minimum order belum terpenuhi', html: pelanggaran.map((x) => `<p class="text-left text-sm mb-1">• ${x}</p>`).join('') });
+            return Swal.fire({ icon: 'error', title: 'Minimum order belum terpenuhi', html: pelanggaran.map((x) => `<p class="text-left text-sm mb-1">Ã¢â‚¬Â¢ ${x}</p>`).join('') });
         }
         // Cegah simpan nota jika ada item pcs di bawah minimum order.
         const itemMinPcs = cart.find(it => it.metode_hitung !== 'ukuran' && (parseFloat(it.min_order) || 0) > 0 && (parseFloat(it.qty_input) || 0) < (parseFloat(it.min_order) || 0));
