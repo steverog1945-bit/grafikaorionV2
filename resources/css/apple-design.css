@@ -164,7 +164,7 @@
 :is([data-brand-theme="apple"]) .bg-amber-50, :is([data-brand-theme="apple"]) .bg-orange-50 { background: #FFF3E0 !important; color: #B25000 !important; }
 :is([data-brand-theme="apple"]) .bg-rose-50 { background: #FDE8EA !important; color: #C41E1E !important; }
 
-/* ---------- TOMBOL APPLE (kapsul) ---------- */
+/* TOMBOL APPLE — kapsul hanya untuk aksi utama, bukan seluruh elemen */
 :is([data-brand-theme="apple"]) button,
 :is([data-brand-theme="apple"]) [role="button"],
 :is([data-brand-theme="apple"]) input[type="submit"] {
@@ -175,22 +175,18 @@
 :is([data-brand-theme="apple"]) button:active,
 :is([data-brand-theme="apple"]) a[class*="rounded"]:active { transform: scale(.965); }
 
-/* Tombol aksi utama (CTA): kapsul biru Apple */
-:is([data-brand-theme="apple"]) .btn-primary,
-:is([data-brand-theme="apple"]) a[href*="penjualan/create"],
-:is([data-brand-theme="apple"]) button[type="submit"] {
+/* Tombol aksi utama = kapsul biru Apple — HANYA untuk .btn-utama */
+:is([data-brand-theme="apple"]) .btn-utama {
+    display: inline-flex; align-items: center; gap: .45rem;
     border-radius: 9999px !important;
     background: #0071E3 !important;
     color: #FFFFFF !important;
     border: 0 !important;
     box-shadow: 0 1px 2px rgba(0, 113, 227, 0.35) !important;
-    font-weight: 500;
+    font-weight: 500; letter-spacing: 0.01em;
     padding-inline: 1.25rem;
 }
-:is([data-brand-theme="apple"]) .btn-primary:hover,
-:is([data-brand-theme="apple"]) a[href*="penjualan/create"]:hover {
-    background: #0077ED !important;
-}
+:is([data-brand-theme="apple"]) .btn-utama:hover { background: #0077ED !important; }
 /* Tombol sekunder: kapsul abu krem */
 :is([data-brand-theme="apple"]) a.bg-white.border,
 :is([data-brand-theme="apple"]) button.bg-white.border {

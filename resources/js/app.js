@@ -492,6 +492,13 @@ document.addEventListener('click', function (e) {
     window.addEventListener('unhandledrejection', (e) => handle(e.reason, 'unhandledrejection'));
 })();
 
+// Dashboard 7 Hari Terakhir — chart uPlot dimuat hanya di /dashboard.
+if (document.getElementById('dashboard-tren-data')) {
+    import('./dashboard_tren.js')
+        .then((m) => m.initDashboardTren())
+        .catch((err) => console.error('Modul tren 7 hari gagal dimuat:', err));
+}
+
 // ==========================================================================
 // Dashboard Eksekutif (/eksekutif): chart (uPlot) & animasi (Motion,
 // Anime.js) dimuat HANYA di halaman itu - halaman lain tidak membayar

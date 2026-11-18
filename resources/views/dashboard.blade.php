@@ -54,7 +54,7 @@
             <span class="text-[11px] font-medium uppercase tracking-widest">Kasir {{ $kasAktif ? 'Aktif' : 'Standby' }}</span>
         </div>
         @if($u('penjualan.create') !== '#')
-        <a href="{{ $u('penjualan.create') }}" title="Buat nota / order baru" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-[11px] font-medium uppercase tracking-widest shadow-sm hover:bg-indigo-700 transition-all"><i class="fas fa-plus"></i> Nota Baru</a>
+        <a href="{{ $u('penjualan.create') }}" title="Buat nota / order baru" class="btn-utama inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-[11px] font-medium uppercase tracking-widest shadow-sm hover:bg-indigo-700 transition-all"><i class="fas fa-plus"></i> Nota Baru</a>
         @endif
         @if($u('kasir.index') !== '#')
         <a href="{{ $u('kasir.index') }}" title="Buka Monitoring Kasir untuk pembayaran" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white border border-slate-100 text-slate-600 text-[11px] font-medium uppercase tracking-widest hover:bg-slate-50 transition-all"><i class="fas fa-cash-register text-slate-500"></i> Kasir</a>
@@ -164,68 +164,27 @@
     </div>
 </div>
 
-{{-- ============ TREN 7 HARI - area chart SVG (server-rendered) ============ --}}
-@php
-    $dashSmooth = function (array $pts): string {
-        $d = sprintf('M %.1f %.1f', $pts[0][0], $pts[0][1]);
-        for ($i = 0; $i < count($pts) - 1; $i++) {
-            $p0 = $pts[max(0, $i - 1)]; $p1 = $pts[$i]; $p2 = $pts[$i + 1]; $p3 = $pts[min(count($pts) - 1, $i + 2)];
-            $c1x = $p1[0] + ($p2[0] - $p0[0]) / 6; $c1y = $p1[1] + ($p2[1] - $p0[1]) / 6;
-            $c2x = $p2[0] - ($p3[0] - $p1[0]) / 6; $c2y = $p2[1] - ($p3[1] - $p1[1]) / 6;
-            $d .= sprintf(' C %.1f %.1f, %.1f %.1f, %.1f %.1f', $c1x, $c1y, $c2x, $c2y, $p2[0], $p2[1]);
-        }
-        return $d;
-    };
-    $dashPts = function ($kunci, $maks) use ($tren) {
-        $w = 320; $h = 84; $pad = 12; $maxV = max(1.0, (float) $maks);
-        return $tren->values()->map(function ($t, $i) use ($kunci, $maxV, $w, $h, $pad, $tren) {
-            $x = $pad + $i * (($w - 2 * $pad) / max(1, $tren->count() - 1));
-            $v = (float) $t[$kunci];
-            $y = $h - 6 - ($v / $maxV) * ($h - 20);
-            return [round($x, 2), round($y, 2), $v];
-        })->all();
-    };
-    $charts = [
-        ['jdl' => 'Order 7 Hari Terakhir', 'kunci' => 'order', 'maks' => $maksOrder, 'warna' => 'var(--brand-accent-light, var(--brand-accent-light))', 'fill' => 'brand', 'tip' => 'Jumlah nota per hari', 'uang' => false],
-        ['jdl' => 'Kas Masuk 7 Hari Terakhir', 'kunci' => 'kas', 'maks' => $maksKas, 'warna' => 'var(--color-emerald-600)', 'fill' => 'emerald', 'tip' => 'Pembayaran yang diterima per hari', 'uang' => true],
-    ];
-@endphp
+{{-- ============ TREN 7 HARI — uPlot (canvas), seperti Dashboard Eksekutif ============
+     Data mentah di-embed sebagai JSON agar tetap server-rendered; script
+     di resources/js/dashboard_tren.js yang merender canvas uPlot. --}}
+<script type="application/json" id="dashboard-tren-data">@json($tren)</script>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    @foreach($charts as $c)
-    @php
-        $pts = $dashPts($c['kunci'], $c['maks']);
-        $line = $dashSmooth($pts);
-        $area = $line . sprintf(' L %.1f 84 L %.1f 84 Z', end($pts)[0], $pts[0][0]);
-        $gradId = 'dash-grad-' . $c['fill'];
-        $jumlah = $c['uang'] ? ' Rp ' . number_format($tren->sum($c['kunci']), 0, ',', '.') : $tren->sum($c['kunci']) . ' order';
-    @endphp
-    <div class="bg-white rounded-lg border border-slate-100 shadow-sm p-6" title="{{ $c['tip'] }}">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-slate-800">{{ $c['jdl'] }}</h3>
-            <span class="text-xs font-medium tabular-nums text-slate-500">{{ $jumlah }}</span>
+    <div class="bg-white rounded-lg border border-slate-100 shadow-sm p-6" title="Jumlah nota per hari">
+        <div class="flex items-baseline justify-between gap-3 mb-1">
+            <h3 class="text-sm font-medium text-slate-800">Order 7 Hari Terakhir</h3>
+            <span class="text-xs font-medium tabular-nums text-slate-500">{{ $tren->sum('order') }} order</span>
         </div>
-        <svg viewBox="0 0 320 84" class="w-full h-28 block" role="img" aria-label="{{ $c['tip'] }}">
-            <defs>
-                <linearGradient id="{{ $gradId }}" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="{{ $c['warna'] }}" stop-opacity="0.38"/>
-                    <stop offset="100%" stop-color="{{ $c['warna'] }}" stop-opacity="0.04"/>
-                </linearGradient>
-            </defs>
-            <line x1="12" y1="30" x2="308" y2="30" stroke="currentColor" stroke-opacity="0.07" stroke-dasharray="3 4"/>
-            <line x1="12" y1="55" x2="308" y2="55" stroke="currentColor" stroke-opacity="0.07" stroke-dasharray="3 4"/>
-            <path d="{{ $area }}" fill="url(#{{ $gradId }})"/>
-            <path d="{{ $line }}" fill="none" stroke="{{ $c['warna'] }}" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
-            @foreach($pts as $i => $p)
-                <circle cx="{{ $p[0] }}" cy="{{ $p[1] }}" r="{{ $loop->last ? 3.4 : 2.2 }}" fill="{{ $loop->last ? $c['warna'] : 'var(--color-white)' }}" stroke="{{ $c['warna'] }}" stroke-width="1.6">
-                    <title>{{ $tren[$i]['tgl'] }}: {{ $c['uang'] ? 'Rp ' . number_format($p[2], 0, ',', '.') : $p[2] . ' order' }}</title>
-                </circle>
-            @endforeach
-        </svg>
-        <div class="flex gap-2 mt-2">
-            @foreach($tren as $t)<div class="flex-1 text-center text-[10px] font-medium {{ $loop->last ? 'text-slate-700' : 'text-slate-400' }}">{{ $t['label'] }}</div>@endforeach
-        </div>
+        <p class="text-[11px] text-slate-400 mb-3">Area chart uPlot — sama dengan gaya Dashboard Eksekutif.</p>
+        <div id="tren-order-chart" class="w-full" style="min-height: 140px"></div>
     </div>
-    @endforeach
+    <div class="bg-white rounded-lg border border-slate-100 shadow-sm p-6" title="Pembayaran yang diterima per hari">
+        <div class="flex items-baseline justify-between gap-3 mb-1">
+            <h3 class="text-sm font-medium text-slate-800">Kas Masuk 7 Hari Terakhir</h3>
+            <span class="text-xs font-medium tabular-nums text-slate-500">Rp {{ number_format($tren->sum('kas'), 0, ',', '.') }}</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-3">Area chart uPlot — sama dengan gaya Dashboard Eksekutif.</p>
+        <div id="tren-kas-chart" class="w-full" style="min-height: 140px"></div>
+    </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
