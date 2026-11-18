@@ -22,7 +22,7 @@
     $sizes = [
         'default' => 'px-4 py-2',
         'sm'      => 'px-3 py-1.5 text-xs',
-        'icon'    => '!p-0 w-8 h-8 !rounded-md',
+        'icon'    => '!p-0 w-8 h-8 !rounded-lg',
     ];
 
     $classes = $base . ' ' . ($variants[$variant] ?? $variants['primary']) . ' ' . ($sizes[$size] ?? $sizes['default']);

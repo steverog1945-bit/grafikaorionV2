@@ -5,7 +5,7 @@
 
 <div class="empty-state">
     @isset($icon)
-        <div class="flex justify-center mb-3 text-slate-500">{{ $icon }}</div>
+        <div class="w-16 h-16 rounded-2xl bg-[var(--surface-secondary,var(--color-slate-100))] text-[var(--text-secondary,var(--color-slate-400))] flex items-center justify-center mx-auto mb-4">{{ $icon }}</div>
     @endisset
 
     <p class="font-medium text-slate-500">{{ $title }}</p>

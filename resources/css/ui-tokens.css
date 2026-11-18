@@ -19,6 +19,16 @@
    (termasuk PNG transparan) tetap terbaca jelas di tema gelap/terang. */
 .thumbnail-dropzone { background: var(--color-white) !important; }
 
+/* Skala ikon Font Awesome: lantai global 11px supaya ikon <10px tetap terbaca
+   di semua tema. Hanya glyph <i> ikonik yang terpengaruh; teks biasa TIDAK. */
+i.fas[class*="text-[8px]"], i.fas[class*="text-[9px]"], i.fas[class*="text-[10px]"],
+i.far[class*="text-[8px]"], i.far[class*="text-[9px]"], i.far[class*="text-[10px]"],
+i.fab[class*="text-[8px]"], i.fab[class*="text-[9px]"], i.fab[class*="text-[10px]"],
+i.fal[class*="text-[8px]"], i.fal[class*="text-[9px]"], i.fal[class*="text-[10px]"],
+i.fa[class*="text-[8px]"], i.fa[class*="text-[9px]"], i.fa[class*="text-[10px]"] {
+    font-size: 11px !important;
+}
+
 /* Alpha hitam/putih untuk overlay & bayangan - satu sumber, bukan sebaran
    rgba() mentah di blade. */
 :root {
