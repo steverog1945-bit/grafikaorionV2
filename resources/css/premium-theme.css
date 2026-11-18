@@ -1,7 +1,7 @@
 /* =========================================================================
    TEMA PREMIUM - "Champagne & Ink"
    =========================================================================
-   Diaktifkan saat html[data-brand-theme="premium"],[data-brand-theme="command-center"] (preset disuntik BrandThemeService
+   Diaktifkan saat html[data-brand-theme="premium"] (preset disuntik BrandThemeService
    sebagai inline style + atribut; lihat layouts/app.blade.php).
 
    Konsep: editorial profesional ala majalah cetak berkualitas - kertas hangat,
@@ -14,7 +14,20 @@
    ========================================================================= */
 
 /* Dasar: kertas, huruf sedikit lebih lega, angka rapi. */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] body {
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) body , [data-brand-theme="command-center"] (preset disuntik BrandThemeService
+   sebagai inline style + atribut; lihat layouts/app.blade.php).
+
+   Konsep: editorial profesional ala majalah cetak berkualitas - kertas hangat,
+   tinta, emas antik. Kontras WCAG-aware, fokus ke data, satu aksen (emas).
+
+   Semua aturan di sini:
+   - transform/opacity/box-shadow saja (kompositor-friendly, tanpa reflow)
+   - hormati prefers-reduced-motion
+   - tidak menyentuh ukuran layout/menus/permission (murni tampilan)
+   ========================================================================= */
+
+/* Dasar: kertas, huruf sedikit lebih lega, angka rapi. */
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) body  {
     letter-spacing: 0.01em;
     background: var(--brand-surface-page, #F7F4EC);
     -webkit-font-smoothing: antialiased;
@@ -22,10 +35,13 @@
 
 /* Tipografi tampilan: serif Georgia untuk struktur (judul halaman, judul
    kartu) - kontras khas cetak premium; badan teks & data tetap sans. */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] h1,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] h2,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] h3,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-display {
+[data-brand-theme="premium"] h1,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) h2,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) h3,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .premium-display , [data-brand-theme="command-center"] h1,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) h2,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) h3,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .premium-display  {
     font-family: Georgia, 'Times New Roman', 'Palatino Linotype', serif;
     letter-spacing: -0.015em;
     font-weight: 600;
@@ -33,14 +49,14 @@
 }
 
 /* Fokus yang jelas & konsisten (ganti ring indigo bawaan agar senada emas). */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] :focus-visible {
+[data-brand-theme="premium"] :focus-visible , [data-brand-theme="command-center"] :focus-visible  {
     outline: 2px solid #A67C37;
     outline-offset: 2px;
 }
 
 /* Kartu: radius sedang (bukan pill), bayangan tipis satu arah - elegan,
    tidak melayang seperti template. */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .x-card {
+[data-brand-theme="premium"] .x-card , [data-brand-theme="command-center"] .x-card  {
     border-radius: 12px;
     border-color: var(--brand-surface-border, #E4DFCF);
     box-shadow: 0 1px 2px rgba(34, 31, 27, 0.05), 0 10px 28px rgba(34, 31, 27, 0.05);
@@ -48,67 +64,72 @@
 }
 
 /* Tabel: kepala rapat bergaris rambut, badan lega, hover champagne-wash. */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] table thead th {
+[data-brand-theme="premium"] table thead th , [data-brand-theme="command-center"] table thead th  {
     letter-spacing: 0.09em;
     border-bottom: 1px solid var(--brand-surface-border, #E4DFCF);
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] table tbody tr {
+[data-brand-theme="premium"] table tbody tr , [data-brand-theme="command-center"] table tbody tr  {
     transition: background-color 0.15s ease;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] table tbody tr:hover {
+[data-brand-theme="premium"] table tbody tr:hover , [data-brand-theme="command-center"] table tbody tr:hover  {
     background-color: rgba(166, 124, 55, 0.07);
 }
 
 /* Tombol utama (aksi): emas antik sudah dari ramp/preset; di sini diberi
    bayangan setetes & radius konsisten. Secondary/outline dibuat lebih tenang. */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] a.rounded-lg,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] button.rounded-lg {
+[data-brand-theme="premium"] a.rounded-lg,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) button.rounded-lg , [data-brand-theme="command-center"] a.rounded-lg,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) button.rounded-lg  {
     border-radius: 10px;
 }
 
 /* Badge/pill: menjauh dari "candy" - hairline border, berat sedang. */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .rounded-full {
+[data-brand-theme="premium"] .rounded-full , [data-brand-theme="command-center"] .rounded-full  {
     letter-spacing: 0.06em;
 }
 
 /* Input: latar sedikit di luar putih kertas, fokus emas (bukan indigo). */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] input,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] select,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] textarea {
+[data-brand-theme="premium"] input,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) select,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) textarea , [data-brand-theme="command-center"] input,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) select,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) textarea  {
     transition: box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
 /* Motion: satu easing untuk seluruh transisi warna/bayangan, lebih tenang. */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .transition-colors,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .transition-shadow,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .transition {
+[data-brand-theme="premium"] .transition-colors,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .transition-shadow,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .transition , [data-brand-theme="command-center"] .transition-colors,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .transition-shadow,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .transition  {
     transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 }
 
 /* Sidebar espresso: judul kelompok menu emas pucat, divider rambut halus. */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .menu-group-toggle {
+[data-brand-theme="premium"] .menu-group-toggle , [data-brand-theme="command-center"] .menu-group-toggle  {
     color: rgba(228, 198, 90, 0.75);
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .menu-group-toggle:hover {
+[data-brand-theme="premium"] .menu-group-toggle:hover , [data-brand-theme="command-center"] .menu-group-toggle:hover  {
     color: #E4C65A;
 }
 
 /* WARISAN LAYOUT — premium = shell tanpa sidebar: burger menyembunyikan sidebar
    tidak relevan di sini. */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] #sidebarCollapseToggle { display: none; }
+[data-brand-theme="premium"] #sidebarCollapseToggle , [data-brand-theme="command-center"] #sidebarCollapseToggle  { display: none; }
 
 /* =========================================================================
    SHELL FRAME — premium = aplikasi full-bleed, BUKAN kartu melayang +
    bukan menyisakan offset sidebar. main reset margin & padding (rules
    global menetapkan margin-left: var(--sidebar-width) 288px).
    ========================================================================= */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] main {
+[data-brand-theme="premium"] main , [data-brand-theme="command-center"] main  {
     margin-left: 0 !important;
     padding: 0 !important;
     width: 100%;
     min-width: 0;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .topbar {
+[data-brand-theme="premium"] .topbar , [data-brand-theme="command-center"] .topbar  {
     margin: 0;
     border: 0;
     border-radius: 0;
@@ -126,80 +147,86 @@
     padding-inline-start: max(20px, env(safe-area-inset-left));
     padding-inline-end: max(20px, env(safe-area-inset-right));
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .topbar-app-name {
+[data-brand-theme="premium"] .topbar-app-name , [data-brand-theme="command-center"] .topbar-app-name  {
     font-family: Georgia, 'Times New Roman', serif;
     font-size: 16px;
     font-weight: 600;
     color: #221F1B;
     letter-spacing: 0.015em;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-logo-mark { display: inline-flex; flex-shrink: 0; }
+[data-brand-theme="premium"] .premium-logo-mark , [data-brand-theme="command-center"] .premium-logo-mark  { display: inline-flex; flex-shrink: 0; }
 
 /* Tombol-tombol aksi topbar: ghost tenang, hover champagne, fokus emas. */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .palette-pemicu {
+[data-brand-theme="premium"] .palette-pemicu , [data-brand-theme="command-center"] .palette-pemicu  {
     background: transparent; border-color: var(--brand-surface-border, #E4DFCF); color: #6F6A5D;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .palette-pemicu:hover { border-color: #A67C37; color: #221F1B; background: #FBF8EF; }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] #tema-toggle,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] #gariscard-toggle,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .topbar-burger,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] #notif-btn {
+[data-brand-theme="premium"] .palette-pemicu:hover , [data-brand-theme="command-center"] .palette-pemicu:hover  { border-color: #A67C37; color: #221F1B; background: #FBF8EF; }
+[data-brand-theme="premium"] #tema-toggle,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) #gariscard-toggle,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .topbar-burger,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) #notif-btn , [data-brand-theme="command-center"] #tema-toggle,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) #gariscard-toggle,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .topbar-burger,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) #notif-btn  {
     background: transparent; color: #57534A;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] #tema-toggle:hover,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] #gariscard-toggle:hover,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] #notif-btn:hover {
+[data-brand-theme="premium"] #tema-toggle:hover,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) #gariscard-toggle:hover,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) #notif-btn:hover , [data-brand-theme="command-center"] #tema-toggle:hover,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) #gariscard-toggle:hover,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) #notif-btn:hover  {
     background: #EFECE1; color: #221F1B;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .topbar kbd { background: transparent; }
+[data-brand-theme="premium"] .topbar kbd , [data-brand-theme="command-center"] .topbar kbd  { background: transparent; }
 
 /* =============================================================
    BARIS KEDUA — Premium Top Bar + Mega Menu
    Super minimalis: garis-rambut, satu aksen emas, no pill/no gradient.
    ============================================================= */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-bar2 {
+[data-brand-theme="premium"] .premium-bar2 , [data-brand-theme="command-center"] .premium-bar2  {
     background: var(--brand-surface-primary, #FFFFFF);
     border-bottom: 1px solid var(--brand-surface-border, #E4DFCF);
     padding-inline-start: max(0px, env(safe-area-inset-left));
     padding-inline-end: max(0px, env(safe-area-inset-right));
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-bar2-inner {
+[data-brand-theme="premium"] .premium-bar2-inner , [data-brand-theme="command-center"] .premium-bar2-inner  {
     max-width: none; margin: 0; padding: 6px 20px;
     display: flex; align-items: center; gap: 10px; min-width: 0;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-menu-btn {
+[data-brand-theme="premium"] .premium-menu-btn , [data-brand-theme="command-center"] .premium-menu-btn  {
     display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px;
     border-radius: 8px; border: 1px solid var(--brand-surface-border, #E4DFCF);
     background: transparent; color: var(--text-primary, #221F1B);
     font-size: 12px; font-weight: 600; letter-spacing: .02em; cursor: pointer;
     transition: background-color .18s ease, color .18s ease, border-color .18s ease;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-menu-btn:hover,
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-menu-btn[aria-expanded="true"] {
+[data-brand-theme="premium"] .premium-menu-btn:hover,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .premium-menu-btn[aria-expanded="true"] , [data-brand-theme="command-center"] .premium-menu-btn:hover,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .premium-menu-btn[aria-expanded="true"]  {
     background: #221F1B; border-color: #221F1B; color: #F7F4EC;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-menu-btn:focus-visible { outline: 2px solid #A67C37; outline-offset: 2px; }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-bar2-sep { width: 1px; height: 18px; background: var(--brand-surface-border, #E4DFCF); }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-tabs {
+[data-brand-theme="premium"] .premium-menu-btn:focus-visible , [data-brand-theme="command-center"] .premium-menu-btn:focus-visible  { outline: 2px solid #A67C37; outline-offset: 2px; }
+[data-brand-theme="premium"] .premium-bar2-sep , [data-brand-theme="command-center"] .premium-bar2-sep  { width: 1px; height: 18px; background: var(--brand-surface-border, #E4DFCF); }
+[data-brand-theme="premium"] .premium-tabs , [data-brand-theme="command-center"] .premium-tabs  {
     display: flex; align-items: center; gap: 2px; overflow-x: auto; min-width: 0;
     scrollbar-width: none;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-tabs::-webkit-scrollbar { display: none; }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-tab {
+[data-brand-theme="premium"] .premium-tabs::-webkit-scrollbar , [data-brand-theme="command-center"] .premium-tabs::-webkit-scrollbar  { display: none; }
+[data-brand-theme="premium"] .premium-tab , [data-brand-theme="command-center"] .premium-tab  {
     display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 13px;
     border-radius: 8px; color: var(--text-secondary, #3C3831);
     font-size: 12px; font-weight: 500; white-space: nowrap; text-decoration: none;
     transition: color .18s ease, background-color .18s ease;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-tab:hover { color: #221F1B; background: var(--brand-surface-tertiary, #EFECE1); }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-tab.is-active {
+[data-brand-theme="premium"] .premium-tab:hover , [data-brand-theme="command-center"] .premium-tab:hover  { color: #221F1B; background: var(--brand-surface-tertiary, #EFECE1); }
+[data-brand-theme="premium"] .premium-tab.is-active , [data-brand-theme="command-center"] .premium-tab.is-active  {
     color: #221F1B; background: transparent;
     box-shadow: inset 0 -2px 0 #A67C37; border-radius: 0;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-tab:focus-visible { outline: 2px solid #A67C37; outline-offset: 2px; }
+[data-brand-theme="premium"] .premium-tab:focus-visible , [data-brand-theme="command-center"] .premium-tab:focus-visible  { outline: 2px solid #A67C37; outline-offset: 2px; }
 
 /* MEGA MENU: panel penuh, grid 5–6 kolom, tanpa bayangan dramatic */
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega {
+[data-brand-theme="premium"] .premium-mega , [data-brand-theme="command-center"] .premium-mega  {
     border-top: 1px solid var(--brand-surface-border, #E4DFCF);
     background: var(--brand-surface-primary, #FFFFFF);
     box-shadow: 0 14px 32px rgba(34, 31, 27, 0.10);
@@ -207,33 +234,33 @@
     animation: premiumMegaIn .22s cubic-bezier(.2, 0, 0, 1) both;
 }
 @keyframes premiumMegaIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-grid {
+[data-brand-theme="premium"] .premium-mega-grid , [data-brand-theme="command-center"] .premium-mega-grid  {
     max-width: none; margin: 0; padding: 18px 20px 22px;
     display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px 22px;
     max-height: min(70vh, 640px); overflow-y: auto;
 }
-@media (max-width: 1200px) { [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-@media (max-width: 992px)  { [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 700px)  { [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-judul {
+@media (max-width: 1200px) { [data-brand-theme="premium"] .premium-mega-grid , [data-brand-theme="command-center"] .premium-mega-grid  { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 992px)  { [data-brand-theme="premium"] .premium-mega-grid , [data-brand-theme="command-center"] .premium-mega-grid  { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 700px)  { [data-brand-theme="premium"] .premium-mega-grid , [data-brand-theme="command-center"] .premium-mega-grid  { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+[data-brand-theme="premium"] .premium-mega-judul , [data-brand-theme="command-center"] .premium-mega-judul  {
     display: flex; align-items: center; gap: 7px;
     font-family: Georgia, 'Times New Roman', serif; font-size: 10.5px; font-weight: 600;
     letter-spacing: .12em; text-transform: uppercase; color: #A67C37;
     padding: 8px 10px 6px; border-bottom: 1px solid var(--brand-surface-border, #E4DFCF); margin-bottom: 5px;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-list { list-style: none; margin: 0; padding: 0; }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-link {
+[data-brand-theme="premium"] .premium-mega-list , [data-brand-theme="command-center"] .premium-mega-list  { list-style: none; margin: 0; padding: 0; }
+[data-brand-theme="premium"] .premium-mega-link , [data-brand-theme="command-center"] .premium-mega-link  {
     display: flex; align-items: center; gap: 9px; padding: 6px 10px; border-radius: 7px;
     color: var(--text-secondary, #3C3831); font-size: 12.5px; font-weight: 500;
     text-decoration: none; transition: background-color .15s ease, color .15s ease;
 }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-link i { width: 15px; text-align: center; color: #B9AE93; font-size: 12px; transition: color .15s ease; }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-link:hover { background: var(--brand-surface-tertiary, #EFECE1); color: #221F1B; }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-link:hover i { color: #A67C37; }
-[data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-link:focus-visible { outline: 2px solid #A67C37; outline-offset: 1px; }
+[data-brand-theme="premium"] .premium-mega-link i , [data-brand-theme="command-center"] .premium-mega-link i  { width: 15px; text-align: center; color: #B9AE93; font-size: 12px; transition: color .15s ease; }
+[data-brand-theme="premium"] .premium-mega-link:hover , [data-brand-theme="command-center"] .premium-mega-link:hover  { background: var(--brand-surface-tertiary, #EFECE1); color: #221F1B; }
+[data-brand-theme="premium"] .premium-mega-link:hover i , [data-brand-theme="command-center"] .premium-mega-link:hover i  { color: #A67C37; }
+[data-brand-theme="premium"] .premium-mega-link:focus-visible , [data-brand-theme="command-center"] .premium-mega-link:focus-visible  { outline: 2px solid #A67C37; outline-offset: 1px; }
 
 /* Sembunyikan baris kedua di cetak (nota yang dicetak tidak membawa nav). */
-@media print { [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-bar2 { display: none !important; } }
+@media print { [data-brand-theme="premium"] .premium-bar2 , [data-brand-theme="command-center"] .premium-bar2  { display: none !important; } }
 
 /* =========================================================================
    PWA / RESPONSIVE — baris kedua TETAP TAMPIL di HP (compact, bisa digulir
@@ -242,34 +269,36 @@
    layar sempit & safe-area.
    ========================================================================= */
 @media (max-width: 767.98px) {
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .topbar { padding: 0 12px; min-height: 52px; }
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .topbar-app-name { font-size: 14px; }
+    [data-brand-theme="premium"] .topbar , [data-brand-theme="command-center"] .topbar  { padding: 0 12px; min-height: 52px; }
+    [data-brand-theme="premium"] .topbar-app-name , [data-brand-theme="command-center"] .topbar-app-name  { font-size: 14px; }
 
     /* Baris kedua compact: tinggi 46px, tombol Semua Menu + tab jadi ikon-saja
        (scroll horizontal), dipasak di bawah topbar. */
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-bar2 { position: sticky; top: 52px; z-index: 25; }
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-bar2-inner { padding: 4px 10px; gap: 6px; }
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-menu-btn { height: 32px; padding: 0 10px; }
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-tabs { gap: 0; }
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-tab { height: 32px; padding: 0 9px; font-size: 0; gap: 0; }
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-tab i { font-size: 14px; margin: 0; }
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 12px 18px; max-height: 62vh; }
+    [data-brand-theme="premium"] .premium-bar2 , [data-brand-theme="command-center"] .premium-bar2  { position: sticky; top: 52px; z-index: 25; }
+    [data-brand-theme="premium"] .premium-bar2-inner , [data-brand-theme="command-center"] .premium-bar2-inner  { padding: 4px 10px; gap: 6px; }
+    [data-brand-theme="premium"] .premium-menu-btn , [data-brand-theme="command-center"] .premium-menu-btn  { height: 32px; padding: 0 10px; }
+    [data-brand-theme="premium"] .premium-tabs , [data-brand-theme="command-center"] .premium-tabs  { gap: 0; }
+    [data-brand-theme="premium"] .premium-tab , [data-brand-theme="command-center"] .premium-tab  { height: 32px; padding: 0 9px; font-size: 0; gap: 0; }
+    [data-brand-theme="premium"] .premium-tab i , [data-brand-theme="command-center"] .premium-tab i  { font-size: 14px; margin: 0; }
+    [data-brand-theme="premium"] .premium-mega-grid , [data-brand-theme="command-center"] .premium-mega-grid  { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 12px 18px; max-height: 62vh; }
     /* Jangan biarkan mega menu menutupi bottom nav */
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-mega { padding-bottom: env(safe-area-inset-bottom); }
+    [data-brand-theme="premium"] .premium-mega , [data-brand-theme="command-center"] .premium-mega  { padding-bottom: env(safe-area-inset-bottom); }
 }
 
 /* Di layar sempit, deretan tab digulir horizontal — jangan dipotong. */
 @media (max-width: 640px) {
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-menu-btn span { display: none; }
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-tab span { display: none; }
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] .premium-tab { padding: 0 10px; }
+    [data-brand-theme="premium"] .premium-menu-btn span , [data-brand-theme="command-center"] .premium-menu-btn span  { display: none; }
+    [data-brand-theme="premium"] .premium-tab span , [data-brand-theme="command-center"] .premium-tab span  { display: none; }
+    [data-brand-theme="premium"] .premium-tab , [data-brand-theme="command-center"] .premium-tab  { padding: 0 10px; }
 }
 
 /* Hormati pengguna yang meminta lebih sedikit animasi. */
 @media (prefers-reduced-motion: reduce) {
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] *,
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] *::before,
-    [data-brand-theme="premium"],[data-brand-theme="command-center"] *::after {
+    [data-brand-theme="premium"] *,
+    :is([data-brand-theme="premium"], [data-brand-theme="command-center"]) *::before,
+    :is([data-brand-theme="premium"], [data-brand-theme="command-center"]) *::after , [data-brand-theme="command-center"] *,
+    :is([data-brand-theme="premium"], [data-brand-theme="command-center"]) *::before,
+    :is([data-brand-theme="premium"], [data-brand-theme="command-center"]) *::after  {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;

@@ -145,7 +145,10 @@ self.addEventListener('fetch', (event) => {
 
 JS;
 
-        $sw = str_replace('__CACHE_KEY__', 'orion-pwa-v2', $sw);
+        // v3: setelah serangkaian deploy bundle CSS (tema premium shell baru),
+        // perangkat klien yang memegang cache v2 melayani CSS/JS usang yang
+        // tidak cocok dengan markup terbaru -> tampilan kosong/aneh.
+        $sw = str_replace('__CACHE_KEY__', 'orion-pwa-v3', $sw);
         $sw = str_replace('__OFFLINE_URL__', $offlineUrl, $sw);
 
         return response($sw, 200, [
