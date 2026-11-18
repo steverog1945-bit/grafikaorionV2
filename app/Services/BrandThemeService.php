@@ -500,6 +500,20 @@ class BrandThemeService
             $variables['--brand-mobile-nav-' . str_replace('_', '-', $name)] = $color;
         }
 
+        // Alias SEMUA keluarga hue dingin ke accent ramp untuk tema yang
+        // melarang warna merek pelangi (premium / command-center / apple).
+        // Tanpa ini, kelas seperti text-teal-700 atau bg-sky-50 tetap
+        // menampilkan teal orion walau tema diubah - sumber "warna teal
+        // tertinggal" yang dilaporkan owner.
+        if (in_array($id, ['command-center', 'premium', 'apple'], true)) {
+            $ramp = $preset['ramp'];
+            foreach (['teal', 'sky', 'blue', 'cyan', 'purple', 'violet', 'fuchsia', 'pink'] as $hue) {
+                foreach ([50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as $shade) {
+                    $variables["--color-{$hue}-{$shade}"] = $ramp[$shade] ?? $ramp[600];
+                }
+            }
+        }
+
         return [
             'id' => $id,
             'name' => $preset['name'],
