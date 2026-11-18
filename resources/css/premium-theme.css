@@ -304,3 +304,75 @@
         transition-duration: 0.01ms !important;
     }
 }
+
+/* =========================================================================
+   DASHBOARD - minimalis, elegan, tenang. Scoped .dash-wrap supaya tidak
+   menyapu halaman lain. Berlaku untuk premium & command-center.
+   ========================================================================= */
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap { padding-top: 1.75rem; }
+
+/* Sapaan: overline halus + nama serif besar */
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap > .flex.items-end p.uppercase,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap p.text-\[11px\].font-medium.text-indigo-500 {
+    letter-spacing: .28em; font-weight: 600; color: #A67C37;
+}
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap h1 {
+    font-family: Georgia, 'Times New Roman', serif; font-weight: 600;
+    letter-spacing: -0.015em; font-size: 2rem; line-height: 1.15; color: #221F1B;
+}
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap h3 {
+    font-family: Georgia, 'Times New Roman', serif; letter-spacing: -0.01em; color: #221F1B;
+}
+
+/* CTA primer: tinta solid + finishing emas pada hover */
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap a[href*="penjualan/create"] {
+    border-radius: 9999px; background: #221F1B; color: #F7F4EC; letter-spacing: .08em;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 1px 2px rgba(34,31,27,.25);
+    transition: background-color .2s ease, transform .2s ease;
+}
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap a[href*="penjualan/create"]:hover { background: #A67C37; }
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap a[href*="penjualan/create"]:active { transform: scale(.98); }
+
+/* KPI cards: hairline border, air lega, angka tabular besar, hover angkat halus */
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-kpi {
+    border-radius: 18px; border-color: #E4DFCF; background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(34,31,27,.04); padding: 1.25rem 1.25rem;
+    transition: transform .22s cubic-bezier(.2,0,0,1), box-shadow .22s cubic-bezier(.2,0,0,1), border-color .22s ease;
+}
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-kpi:hover {
+    transform: translateY(-2px); border-color: #C9B689;
+    box-shadow: 0 12px 30px rgba(34,31,27,.10), 0 2px 6px rgba(34,31,27,.06);
+}
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-kpi .text-3xl {
+    font-size: 1.65rem; line-height: 1.1; font-variant-numeric: tabular-nums; font-weight: 600; color: #221F1B;
+}
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-kpi p.text-\[10px\] { color: #8A8375; letter-spacing: .12em; }
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-kpi .w-8 {
+    width: 2rem; height: 2rem; border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(34,31,27,.05);
+}
+
+/* Kartu seksi: radius besar, border hangat, bayangan sangat tipis */
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap .bg-white.rounded-lg,
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap .rounded-2xl.border-slate-100 {
+    border-radius: 18px; border-color: #E7E2D5;
+    box-shadow: 0 1px 2px rgba(34,31,27,.04), 0 10px 24px rgba(34,31,27,.04);
+}
+
+/* Step tiles Alur Pekerjaan: tile ketat dengan angka serif, satu aksen */
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap .xl\:grid-cols-3 .grid.grid-cols-2.md\:grid-cols-4 a {
+    border: 1px solid #ECE7DA; background: #FDFCF9; border-radius: 16px; transition: transform .2s ease, box-shadow .2s ease;
+}
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap .xl\:grid-cols-3 .grid.grid-cols-2.md\:grid-cols-4 a:hover { transform: translateY(-1.5px); box-shadow: 0 8px 18px rgba(34,31,27,.08); }
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap .xl\:grid-cols-3 .grid.grid-cols-2.md\:grid-cols-4 .text-3xl { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* Order Terbaru / Diprioritaskan: daftar tenang, hairline divider, hover krem */
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap .divide-y > * { border-color: #F1EEE3; }
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap .divide-y > *:hover { background: #FBF9F2; }
+
+/* Konten di dalam kartu chart: garis bantu tipis */
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap svg { color: #221F1B; }
+
+@media (prefers-reduced-motion: reduce) {
+    :is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-kpi,
+    :is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-kpi:hover { transform: none; transition: none; }
+}

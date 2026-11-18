@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto dash-wrap">
 @php $tabInfo = request('tab') === 'info' && \App\Support\Izin::boleh(auth()->user(), [67], 'view'); @endphp
 @include('partials.dashboard-tab', ['tabInfo' => $tabInfo])
 @if($tabInfo)
@@ -85,23 +85,23 @@
     </p>
 </div>
 <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-    <a href="{{ $u('penjualan.riwayat') }}" title="Jumlah order hari ini dan nilainya" class="bg-white p-5 rounded-lg border border-slate-100 shadow-sm hover:shadow-md transition-all">
+    <a href="{{ $u('penjualan.riwayat') }}" title="Jumlah order hari ini dan nilainya" class="dash-kpi bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
         <div class="flex items-center justify-between"><p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Order Hari Ini</p><span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center"><i class="fas fa-receipt text-xs"></i></span></div>
         <p class="text-3xl font-medium text-slate-900 mt-3">{{ $orderHariIni }}</p>
         <p class="text-xs font-medium text-slate-500 mt-0.5">Rp {{ number_format($nilaiOrderHariIni, 0, ',', '.') }}</p>
         <p class="text-[11px] font-medium mt-2 {{ $dOrderKls }}"><i class="fas {{ $dOrderIkon }} text-[10px]"></i> {{ $dOrderTeks }}</p>
     </a>
-    <a href="{{ $u('laporan.kas') }}" title="Uang yang diterima dari pembayaran nota hari ini" class="bg-white p-5 rounded-lg border border-slate-100 shadow-sm hover:shadow-md transition-all">
+    <a href="{{ $u('laporan.kas') }}" title="Uang yang diterima dari pembayaran nota hari ini" class="dash-kpi bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
         <div class="flex items-center justify-between"><p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Kas Masuk Hari Ini</p><span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center"><i class="fas fa-wallet text-xs"></i></span></div>
         <p class="text-3xl font-medium text-slate-900 mt-3">Rp {{ number_format($kasMasukHariIni, 0, ',', '.') }}</p>
         <p class="text-[11px] font-medium mt-3 {{ $dKasKls }}"><i class="fas {{ $dKasIkon }} text-[10px]"></i> {{ $dKasTeks }}</p>
     </a>
-    <a href="{{ $u('laporan.piutang') }}" title="Tagihan nota yang belum lunas" class="bg-white p-5 rounded-lg border border-slate-100 shadow-sm hover:shadow-md transition-all">
+    <a href="{{ $u('laporan.piutang') }}" title="Tagihan nota yang belum lunas" class="dash-kpi bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
         <div class="flex items-center justify-between"><p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Piutang</p><span class="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center"><i class="fas fa-file-invoice-dollar text-xs"></i></span></div>
         <p class="text-3xl font-medium text-slate-900 mt-3">Rp {{ number_format($piutang, 0, ',', '.') }}</p>
         <p class="text-[11px] font-medium text-slate-400 mt-3">{{ $piutangCount }} nota belum lunas</p>
     </a>
-    <a href="{{ $u('spk.index', ['urgent_only' => 1]) }}" title="Item urgent yang belum selesai" class="bg-white p-5 rounded-lg border {{ $urgentAktif > 0 ? 'border-orange-200' : 'border-slate-100' }} shadow-sm hover:shadow-md transition-all">
+    <a href="{{ $u('spk.index', ['urgent_only' => 1]) }}" title="Item urgent yang belum selesai" class="dash-kpi bg-white p-5 rounded-2xl {{ $urgentAktif > 0 ? 'border-orange-200' : 'border-slate-100' }} border shadow-sm hover:shadow-md transition-all">
         <div class="flex items-center justify-between"><p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Item Urgent</p><span class="w-8 h-8 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center"><i class="fas fa-fire text-xs"></i></span></div>
         <p class="text-3xl font-medium {{ $urgentAktif > 0 ? 'text-orange-600' : 'text-slate-900' }} mt-3">{{ $urgentAktif }}</p>
         <p class="text-[11px] font-medium text-slate-400 mt-3">{{ $urgentAktif > 0 ? 'perlu diprioritaskan' : 'semua berjalan normal' }}</p>
@@ -161,22 +161,63 @@
     </div>
 </div>
 
-{{-- ============ TREN 7 HARI ============ --}}
+{{-- ============ TREN 7 HARI - area chart SVG (server-rendered) ============ --}}
+@php
+    $dashSmooth = function (array $pts): string {
+        $d = sprintf('M %.1f %.1f', $pts[0][0], $pts[0][1]);
+        for ($i = 0; $i < count($pts) - 1; $i++) {
+            $p0 = $pts[max(0, $i - 1)]; $p1 = $pts[$i]; $p2 = $pts[$i + 1]; $p3 = $pts[min(count($pts) - 1, $i + 2)];
+            $c1x = $p1[0] + ($p2[0] - $p0[0]) / 6; $c1y = $p1[1] + ($p2[1] - $p0[1]) / 6;
+            $c2x = $p2[0] - ($p3[0] - $p1[0]) / 6; $c2y = $p2[1] - ($p3[1] - $p1[1]) / 6;
+            $d .= sprintf(' C %.1f %.1f, %.1f %.1f, %.1f %.1f', $c1x, $c1y, $c2x, $c2y, $p2[0], $p2[1]);
+        }
+        return $d;
+    };
+    $dashPts = function ($kunci, $maks) use ($tren) {
+        $w = 320; $h = 84; $pad = 12; $maxV = max(1.0, (float) $maks);
+        return $tren->values()->map(function ($t, $i) use ($kunci, $maxV, $w, $h, $pad, $tren) {
+            $x = $pad + $i * (($w - 2 * $pad) / max(1, $tren->count() - 1));
+            $v = (float) $t[$kunci];
+            $y = $h - 6 - ($v / $maxV) * ($h - 20);
+            return [round($x, 2), round($y, 2), $v];
+        })->all();
+    };
+    $charts = [
+        ['jdl' => 'Order 7 Hari Terakhir', 'kunci' => 'order', 'maks' => $maksOrder, 'warna' => 'var(--brand-accent-light, #006C7B)', 'fill' => 'brand', 'tip' => 'Jumlah nota per hari', 'uang' => false],
+        ['jdl' => 'Kas Masuk 7 Hari Terakhir', 'kunci' => 'kas', 'maks' => $maksKas, 'warna' => '#059669', 'fill' => 'emerald', 'tip' => 'Pembayaran yang diterima per hari', 'uang' => true],
+    ];
+@endphp
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    @foreach([['Order 7 Hari Terakhir', 'order', $maksOrder, 'bg-indigo-500', false, 'Jumlah nota per hari'], ['Kas Masuk 7 Hari Terakhir', 'kas', $maksKas, 'bg-emerald-500', true, 'Pembayaran yang diterima per hari']] as [$jdl, $kunci, $maks, $warna, $uang, $tip])
-    <div class="bg-white rounded-lg border border-slate-100 shadow-sm p-6" title="{{ $tip }}">
+    @foreach($charts as $c)
+    @php
+        $pts = $dashPts($c['kunci'], $c['maks']);
+        $line = $dashSmooth($pts);
+        $area = $line . sprintf(' L %.1f 84 L %.1f 84 Z', end($pts)[0], $pts[0][0]);
+        $gradId = 'dash-grad-' . $c['fill'];
+        $jumlah = $c['uang'] ? ' Rp ' . number_format($tren->sum($c['kunci']), 0, ',', '.') : $tren->sum($c['kunci']) . ' order';
+    @endphp
+    <div class="bg-white rounded-lg border border-slate-100 shadow-sm p-6" title="{{ $c['tip'] }}">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-slate-800">{{ $jdl }}</h3>
-            <span class="text-xs font-medium text-slate-500">{{ $uang ? 'Rp ' . number_format($tren->sum($kunci), 0, ',', '.') : $tren->sum($kunci) . ' order' }}</span>
+            <h3 class="text-sm font-medium text-slate-800">{{ $c['jdl'] }}</h3>
+            <span class="text-xs font-medium tabular-nums text-slate-500">{{ $jumlah }}</span>
         </div>
-        <div class="flex items-end gap-2 h-28">
-            @foreach($tren as $t)
-                @php $tinggi = $t[$kunci] > 0 ? max(6, round($t[$kunci] / $maks * 100)) : 3; @endphp
-                <div class="flex-1 flex flex-col items-center justify-end h-full group" title="{{ $t['tgl'] }}: {{ $uang ? 'Rp ' . number_format($t[$kunci], 0, ',', '.') : $t[$kunci] . ' order' }}">
-                    <div class="w-full rounded-t-lg {{ $loop->last ? $warna : 'bg-slate-200 group-hover:bg-slate-300' }} transition-all" style="height: {{ $tinggi }}%"></div>
-                </div>
+        <svg viewBox="0 0 320 84" class="w-full h-28 block" role="img" aria-label="{{ $c['tip'] }}">
+            <defs>
+                <linearGradient id="{{ $gradId }}" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="{{ $c['warna'] }}" stop-opacity="0.38"/>
+                    <stop offset="100%" stop-color="{{ $c['warna'] }}" stop-opacity="0.04"/>
+                </linearGradient>
+            </defs>
+            <line x1="12" y1="30" x2="308" y2="30" stroke="currentColor" stroke-opacity="0.07" stroke-dasharray="3 4"/>
+            <line x1="12" y1="55" x2="308" y2="55" stroke="currentColor" stroke-opacity="0.07" stroke-dasharray="3 4"/>
+            <path d="{{ $area }}" fill="url(#{{ $gradId }})"/>
+            <path d="{{ $line }}" fill="none" stroke="{{ $c['warna'] }}" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+            @foreach($pts as $i => $p)
+                <circle cx="{{ $p[0] }}" cy="{{ $p[1] }}" r="{{ $loop->last ? 3.4 : 2.2 }}" fill="{{ $loop->last ? $c['warna'] : '#fff' }}" stroke="{{ $c['warna'] }}" stroke-width="1.6">
+                    <title>{{ $tren[$i]['tgl'] }}: {{ $c['uang'] ? 'Rp ' . number_format($p[2], 0, ',', '.') : $p[2] . ' order' }}</title>
+                </circle>
             @endforeach
-        </div>
+        </svg>
         <div class="flex gap-2 mt-2">
             @foreach($tren as $t)<div class="flex-1 text-center text-[10px] font-medium {{ $loop->last ? 'text-slate-700' : 'text-slate-400' }}">{{ $t['label'] }}</div>@endforeach
         </div>

@@ -47,7 +47,10 @@ class SubmitSekaliJalan
 
         // Sidik isi kiriman ikut menjadi kunci: submit_id yang sama dengan isi BERBEDA (form yang id-nya tidak berganti)
         // adalah kiriman baru dan diproses, bukan dijawab dengan hasil kiriman sebelumnya tanpa menyimpan apa pun.
-        $isi = $request->except(['submit_id', '_token', '_method']);
+        // Objek FILE (UploadedFile) tidak bisa diserialize - semua kiriman multipart SEBELUMNYA berakhir 500
+        // sebelum sempat masuk controller (temuan owner 18 Nov 2026: upload QRIS 500). Berkas diganti
+        // tanda aman (nama+ukuran+mime) supaya sidik tetap stabil dan unik tanpa menyentuh objek.
+        $isi = self::bersihkanBerkas($request->except(['submit_id', '_token', '_method']));
         $sidik = md5(serialize($isi));
         $kunci = 'submit:' . optional($request->route())->getName() . ':' . $request->path() . ':' . Auth::id() . ':' . $id . ':' . $sidik;
 
@@ -70,6 +73,19 @@ class SubmitSekaliJalan
         }
 
         return $respons;
+    }
+
+    /** Ganti setiap UploadedFile (bersarang sekalipun) dengan tanda string yang bisa diserialize. */
+    private static function bersihkanBerkas(mixed $nilai): mixed
+    {
+        if ($nilai instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+            return ['__file' => $nilai->getClientOriginalName() . '|' . $nilai->getSize() . '|' . $nilai->getMimeType()];
+        }
+        if (is_array($nilai)) {
+            return array_map(self::bersihkanBerkas(...), $nilai);
+        }
+
+        return $nilai;
     }
 
     /** Hasil yang disimpan untuk dikembalikan ke pengiriman ulang, atau null bila pengiriman ini tidak sukses. */

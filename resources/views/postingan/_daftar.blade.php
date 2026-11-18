@@ -95,7 +95,12 @@
                 @if($p->url_sampul)
                     <img src="{{ $p->url_sampul }}" alt="{{ $p->judul }}" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                 @else
-                    <span class="absolute inset-0 flex items-center justify-center text-6xl font-medium text-white/30">{{ mb_strtoupper(mb_substr($p->judul, 0, 1)) }}</span>
+                    {{-- Inisial elegan: serif besar tipis dengan pola titik halus
+                         (bukan huruf block kasar). --}}
+                    <span class="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+                        <span class="absolute inset-0 opacity-[.16]" style="background-image:radial-gradient(currentColor 1px, transparent 1px);background-size:14px 14px"></span>
+                        <span class="relative font-serif text-5xl text-white/45 tracking-normal">{{ mb_strtoupper(mb_substr($p->judul, 0, 1)) }}</span>
+                    </span>
                 @endif
                 @if($p->kategori)<span class="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[10px] font-medium uppercase tracking-widest text-indigo-600">{{ $p->kategori->nama }}</span>@endif
                 @if($p->disematkan)<span class="absolute right-4 top-4 w-8 h-8 rounded-full bg-white/90 text-amber-500 flex items-center justify-center" title="Disematkan"><i class="fas fa-thumbtack text-xs"></i></span>@endif

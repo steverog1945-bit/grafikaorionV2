@@ -87,11 +87,44 @@
     let indeks = 0;
 
     /* ----------------------------------------------------------------------
-       Kumpulkan menu dari sidebar
+       Kumpulkan menu dari sidebar (tema klasik) ATAU mega menu (tema premium,
+       yang memang tidak me-render sidebar). Keduanya berisi hanya tautan
+       yang diizinkan role yang login, jadi palette otomatis mengikuti
+       permission yang sama - tidak ada daftar kedua yang bisa berbeda.
        ---------------------------------------------------------------------- */
     function kumpulkan() {
         const nav = document.getElementById('mainSidebar');
-        if (!nav) return [];
+
+        if (!nav) {
+            // Tema premium: sumber = mega menu (.premium-mega). Struktur:
+            // <section class="premium-mega-grup"> + <h3> + <ul> > <li> > <a>.
+            const mega = document.getElementById('premium-mega');
+            if (!mega) return [];
+
+            const hasil = [];
+            mega.querySelectorAll('.premium-mega-grup').forEach((seksi) => {
+                const judul = seksi.querySelector('.premium-mega-judul');
+                const grup = judul ? judul.textContent.trim() : '';
+                seksi.querySelectorAll('a[href]').forEach((a) => {
+                    const href = a.getAttribute('href');
+                    if (!href || href === '#' || href === 'javascript:void(0)') return;
+                    if (a.target === '_blank') return;
+                    const label = a.textContent.trim();
+                    if (!label) return;
+                    const ikon = a.querySelector('i,svg');
+                    hasil.push({
+                        teks: label,
+                        grup: grup,
+                        href: a.href,
+                        path: (a.pathname || '').replace(/^\/+|\/+$/g, ''),
+                        ikon: ikon ? (ikon.outerHTML || '') : '',
+                        aktif: false,
+                    });
+                });
+            });
+
+            return hasil;
+        }
 
         const hasil = [];
         // Grup = toggle di atas daftar. Menu datar (tanpa grup) diletakkan
