@@ -234,10 +234,14 @@
 </form>
 </x-modal>
 @endif
+@push('scripts')
 <script>
     // Dropdown konsumen di kedua modal = select2 AJAX (master tidak dibawa ke
     // browser; pencarian server-side limit 20). Modal "Kembalikan" memakai
     // mode ?saldo=1: hanya konsumen yang saldonya masih positif.
+    // CATATAN: blok ini wajib ditaruh di push scripts (dieksekusi SETELAH
+    // jQuery/Select2 termuat). Script inline di dalam section content
+    // berjalan sebelum jQuery ada, dan itulah penyebab error "$ is not defined".
     $(document).ready(function () {
         $('.select2-konsumen-deposit').select2({
             width: '100%',
@@ -273,4 +277,5 @@
         });
     });
 </script>
+@endpush
 @endsection

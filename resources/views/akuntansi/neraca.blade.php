@@ -160,37 +160,36 @@
     </div>
     @endif
 
-    {{-- Analisis Otomatis - narasi RULE-BASED dari angka yang sudah
-         dihitung controller (AkuntansiController::buildNarasiNeraca()),
-         BUKAN dari AI/LLM - deterministik, instan, tanpa API eksternal.
-         Sengaja ikut tercetak (bukan no-print) - ini bagian dari nilai
-         tambah "penjelasan profesional" yang diminta, bukan cuma alat
-         bantu di layar. --}}
-    <div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden print:hidden">
-        <div class="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                <i class="fas fa-chart-simple text-sm"></i>
-            </div>
-            <div>
-                <h3 class="text-sm font-medium text-slate-800">Analisis Otomatis</h3>
-                <x-hint tip="Dibentuk otomatis dari rasio & komposisi neraca ini - bukan nasihat keuangan formal, gunakan sebagai gambaran awal." icon="scale-balanced" />
-            </div>
-        </div>
-        <div class="p-8 space-y-3">
+    {{-- Analisis Otomatis - narasi RULE-BASED, deterministik, tanpa API
+         eksternal. Di-collapse secara default: halaman neraca yang padat
+         tidak lagi "tembok teks"; klik untuk membuka, cetak tetap memuat
+         semua poin (lihat blok print di bawah). --}}
+    <details class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden print:hidden group">
+        <summary class="px-6 py-4 flex items-center gap-3 cursor-pointer select-none [&::-webkit-details-marker]:hidden hover:bg-slate-50/60 focus-visible:outline-2 focus-visible:outline-indigo-500 transition-colors">
+            <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                <i class="fas fa-chart-simple text-[13px]" aria-hidden="true"></i>
+            </span>
+            <span class="min-w-0">
+                <span class="block text-sm font-semibold text-slate-800">Analisis Otomatis</span>
+                <span class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest">{{ count($narasi) }} poin kesimpulan</span>
+            </span>
+            <i class="fas fa-chevron-down text-slate-300 text-xs ml-auto transition-transform duration-200 group-open:rotate-180" aria-hidden="true"></i>
+        </summary>
+        <div class="px-6 pb-6 pt-1 border-t border-slate-50 grid gap-2">
             @foreach($narasi as $butir)
                 @php
                     $ikon = ['positif' => 'fa-circle-check', 'peringatan' => 'fa-triangle-exclamation', 'info' => 'fa-circle-info'][$butir['tone']];
                     $warna = ['positif' => 'text-emerald-600 bg-emerald-50', 'peringatan' => 'text-amber-600 bg-amber-50', 'info' => 'text-slate-500 bg-slate-50'][$butir['tone']];
                 @endphp
-                <div class="flex items-start gap-3">
-                    <span class="w-6 h-6 rounded-lg {{ $warna }} flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="fas {{ $ikon }} text-[11px]"></i>
+                <div class="flex items-start gap-2.5">
+                    <span class="w-5 h-5 rounded-md {{ $warna }} flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fas {{ $ikon }} text-[9px]" aria-hidden="true"></i>
                     </span>
-                    <p class="text-sm text-slate-600 leading-relaxed">{{ $butir['teks'] }}</p>
+                    <p class="text-[13px] text-slate-600 leading-snug">{{ $butir['teks'] }}</p>
                 </div>
             @endforeach
         </div>
-    </div>
+    </details>
 
     {{-- Versi cetak - pola print-table/resume-table yang sama dengan
          laporan lain, tanpa kartu rounded/shadow/warna berbeda. --}}
