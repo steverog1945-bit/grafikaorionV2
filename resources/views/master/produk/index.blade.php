@@ -706,7 +706,7 @@
                 : `<b>${escapeHtml(namaProduk)}</b> akan muncul lagi di pilihan produk saat membuat nota baru.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: mauNonaktifkan ? '#4A5B53' : '#10b981',
+            confirmButtonColor: mauNonaktifkan ? 'var(--color-slate-500)' : 'var(--color-emerald-500)',
             confirmButtonText: mauNonaktifkan ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan',
             cancelButtonText: 'Batal',
             customClass: {
@@ -724,7 +724,7 @@
             html: `Menghapus <b>${escapeHtml(name)}</b>?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
+            confirmButtonColor: 'var(--color-rose-800)',
             confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) document.getElementById(`delete-form-${id}`).submit();

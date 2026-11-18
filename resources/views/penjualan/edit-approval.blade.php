@@ -125,7 +125,7 @@
             html: `Nota <b>${escHtml(nomorNota)}</b> akan bisa dikoreksi kasir setelah ini disetujui (nota lama dibatalkan otomatis saat kasir memproses koreksinya).`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#10b981',
+            confirmButtonColor: 'var(--color-emerald-500)',
             confirmButtonText: 'Ya, Setujui',
             cancelButtonText: 'Batal'
         }).then((result) => {

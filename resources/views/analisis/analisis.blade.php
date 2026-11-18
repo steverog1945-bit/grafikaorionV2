@@ -21,22 +21,22 @@
             $omzet = (float) ($kpi->omzet ?? 0);
             $rata = (float) ($kpi->rata_nota ?? 0);
         @endphp
-        <div class="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_3px_rgba(15,30,62,.05)]">
+        <div class="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_3px_color-mix(in srgb, var(--ink-900) 5%, transparent)]">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Omzet {{ $periode }} Hari</p>
             <p class="text-2xl font-semibold text-slate-900 mt-2 tracking-tight">Rp {{ number_format($omzet, 0, ',', '.') }}</p>
             <p class="text-[11px] mt-1">{{ (int) ($kpi->nota ?? 0) }} nota aktif @include('analisis.partials.delta-badge', ['nilai' => $delta['omzet']])</p>
         </div>
-        <div class="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_3px_rgba(15,30,62,.05)]">
+        <div class="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_3px_color-mix(in srgb, var(--ink-900) 5%, transparent)]">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Rata-rata / Nota</p>
             <p class="text-2xl font-semibold text-slate-900 mt-2 tracking-tight">Rp {{ number_format($rata, 0, ',', '.') }}</p>
             <p class="text-[11px] text-slate-400 mt-1">nilai transaksi rata-rata @include('analisis.partials.delta-badge', ['nilai' => $delta['rata']])</p>
         </div>
-        <div class="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_3px_rgba(15,30,62,.05)]">
+        <div class="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_3px_color-mix(in srgb, var(--ink-900) 5%, transparent)]">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Belum Lunas</p>
             <p class="text-2xl font-semibold {{ (int)($kpi->belum_lunas ?? 0) > 0 ? 'text-orange-600' : 'text-slate-900' }} mt-2 tracking-tight">{{ (int) ($kpi->belum_lunas ?? 0) }} nota</p>
             <p class="text-[11px] text-slate-400 mt-1">butuh follow-up - lihat <a class="text-indigo-600 font-semibold" href="{{ route('laporan.piutang') }}">Piutang →</a></p>
         </div>
-        <div class="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_3px_rgba(15,30,62,.05)]">
+        <div class="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_3px_color-mix(in srgb, var(--ink-900) 5%, transparent)]">
             <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Margin Realisasi</p>
             <p class="text-2xl font-semibold {{ $marginPersen === null ? 'text-slate-400' : ($marginPersen >= 40 ? 'text-emerald-600' : ($marginPersen >= 20 ? 'text-amber-600' : 'text-rose-600')) }} mt-2 tracking-tight">{{ $marginPersen === null ? '—' : $marginPersen . '%' }}</p>
             <p class="text-[11px] text-slate-400 mt-1">(subtotal − HPP) ÷ subtotal, nota aktif</p>
@@ -45,7 +45,7 @@
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
         {{-- GRAFIK OMZET HARIAN --}}
-        <div class="xl:col-span-2 rounded-2xl border border-slate-200/70 bg-white p-6 shadow-[0_1px_3px_rgba(15,30,62,.05)]">
+        <div class="xl:col-span-2 rounded-2xl border border-slate-200/70 bg-white p-6 shadow-[0_1px_3px_color-mix(in srgb, var(--ink-900) 5%, transparent)]">
             <div class="flex items-center justify-between mb-5">
                 <div>
                     <h3 class="text-sm font-semibold text-slate-800">Omzet per Hari</h3>
@@ -67,7 +67,7 @@
         </div>
 
         {{-- JAM SIBUK --}}
-        <div class="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-[0_1px_3px_rgba(15,30,62,.05)]">
+        <div class="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-[0_1px_3px_color-mix(in srgb, var(--ink-900) 5%, transparent)]">
             <h3 class="text-sm font-semibold text-slate-800">Jam Sibuk</h3>
             <p class="text-[11px] text-slate-400 mb-4">Jumlah nota per jam ({{ $periode }} hari)</p>
             @php $maksJam = max(1, (int) $jam->max()); @endphp
@@ -77,7 +77,7 @@
                         $n = (int) ($jam[$h] ?? 0);
                         $a = $n ? round(0.18 + 0.72 * ($n / $maksJam), 2) : 0;
                     @endphp
-                    <div class="rounded-lg border border-slate-100 px-1.5 py-2 text-center" style="background: rgba(37,99,235,{{ $a }}); {{ $n ? 'border-color: rgba(37,99,235,.35)' : '' }}" title="{{ sprintf('%02d:00', $h) }} · {{ $n }} nota">
+                    <div class="rounded-lg border border-slate-100 px-1.5 py-2 text-center" style="background: color-mix(in srgb, var(--color-indigo-600) calc({{ $a }} * 100%), transparent); {{ $n ? 'border-color: color-mix(in srgb, var(--color-indigo-600) 35%, transparent)' : '' }}" title="{{ sprintf('%02d:00', $h) }} · {{ $n }} nota">
                         <div class="text-[9px] font-semibold {{ $n ? 'text-white' : 'text-slate-400' }}">{{ sprintf('%02d', $h) }}</div>
                         <div class="text-[11px] font-bold {{ $n ? 'text-white' : 'text-slate-500' }}">{{ $n }}</div>
                     </div>
@@ -89,7 +89,7 @@
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {{-- PRODUK TERLARIS --}}
-        <div class="rounded-2xl border border-slate-200/70 bg-white overflow-hidden shadow-[0_1px_3px_rgba(15,30,62,.05)]">
+        <div class="rounded-2xl border border-slate-200/70 bg-white overflow-hidden shadow-[0_1px_3px_color-mix(in srgb, var(--ink-900) 5%, transparent)]">
             <div class="px-6 py-4 border-b border-slate-100"><h3 class="text-sm font-semibold text-slate-800">Produk Terlaris (qty)</h3></div>
             <div class="divide-y divide-slate-50">
                 @forelse($topProduk as $i => $p)
@@ -108,7 +108,7 @@
         </div>
 
         {{-- KONSUMEN TERATAS --}}
-        <div class="rounded-2xl border border-slate-200/70 bg-white overflow-hidden shadow-[0_1px_3px_rgba(15,30,62,.05)]">
+        <div class="rounded-2xl border border-slate-200/70 bg-white overflow-hidden shadow-[0_1px_3px_color-mix(in srgb, var(--ink-900) 5%, transparent)]">
             <div class="px-6 py-4 border-b border-slate-100"><h3 class="text-sm font-semibold text-slate-800">Konsumen Teratas</h3></div>
             <div class="divide-y divide-slate-50">
                 @forelse($topKonsumen as $i => $k)
@@ -127,18 +127,18 @@
         </div>
 
         {{-- RINGKASAN CADANGAN --}}
-        <div class="xl:col-span-1 rounded-2xl border border-slate-200/70 bg-white overflow-hidden shadow-[0_1px_3px_rgba(15,30,62,.05)]">
+        <div class="xl:col-span-1 rounded-2xl border border-slate-200/70 bg-white overflow-hidden shadow-[0_1px_3px_color-mix(in srgb, var(--ink-900) 5%, transparent)]">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between"><h3 class="text-sm font-semibold text-slate-800">Cadangan Terakhir</h3><a href="{{ route('backup.index') }}" class="text-[11px] font-semibold text-indigo-600 hover:text-indigo-700">Lihat semua →</a></div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-[12px]">
                     <thead>
-                        <tr class="text-[9.5px] uppercase tracking-widest text-slate-400 bg-[#F7F9FE]">
+                        <tr class="text-[9.5px] uppercase tracking-widest text-slate-400 bg-[var(--color-slate-50)]">
                             <th class="px-6 py-2.5">Waktu</th><th class="px-6 py-2.5">Tipe</th><th class="px-6 py-2.5">Status</th><th class="px-6 py-2.5 text-right">Ukuran</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
                         @foreach($backup as $b)
-                            <tr class="hover:bg-[#FAFCFF] transition-colors">
+                            <tr class="hover:bg-[var(--color-slate-50)] transition-colors">
                                 <td class="px-6 py-2.5 text-slate-600">{{ $b->finished_at ? \Carbon\Carbon::parse($b->finished_at)->translatedFormat('d M Y H:i') : '—' }}</td>
                                 <td class="px-6 py-2.5 text-slate-600">{{ ucfirst($b->tipe) }}</td>
                                 <td class="px-6 py-2.5"><span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide {{ $b->status === 'Sukses' ? 'bg-emerald-50 text-emerald-700' : ($b->status === 'Gagal' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-700') }}"><span class="w-1.5 h-1.5 rounded-full {{ $b->status === 'Sukses' ? 'bg-emerald-500' : ($b->status === 'Gagal' ? 'bg-rose-500' : 'bg-amber-500') }}"></span>{{ $b->status }}</span></td>

@@ -117,7 +117,7 @@
             const konteks = canvas.getContext('2d');
             // Latar putih dulu: PDF bisa berisi area transparan, dan JPEG
             // tidak punya kanal alpha.
-            konteks.fillStyle = '#ffffff';
+            konteks.fillStyle = 'var(--color-white)';
             konteks.fillRect(0, 0, canvas.width, canvas.height);
 
             // pdf.js menggambar lewat requestAnimationFrame. Di tab yang
@@ -172,7 +172,7 @@
                     }
                     canvas.width = width;
                     canvas.height = height;
-                    ctx.fillStyle = '#ffffff';
+                    ctx.fillStyle = 'var(--color-white)';
                     ctx.fillRect(0, 0, width, height);
                     ctx.drawImage(img, 0, 0, width, height);
                     return new Promise((res) => canvas.toBlob(res, 'image/jpeg', quality));
@@ -221,15 +221,15 @@
         canvas.width = lebarPx;
         canvas.height = lebarPx;
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#f1f5f9';
+        ctx.fillStyle = 'var(--color-slate-100)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#64748b';
+        ctx.fillStyle = 'var(--color-slate-500)';
         ctx.font = 'bold ' + Math.floor(lebarPx / 6) + 'px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(ext.toUpperCase(), canvas.width / 2, canvas.height / 2);
         ctx.font = Math.floor(lebarPx / 12) + 'px sans-serif';
-        ctx.fillStyle = '#94a3b8';
+        ctx.fillStyle = 'var(--color-slate-400)';
         ctx.fillText('berkas desain', canvas.width / 2, canvas.height / 2 + Math.floor(lebarPx / 6));
         return new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.8));
     }

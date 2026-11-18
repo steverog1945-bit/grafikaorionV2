@@ -59,7 +59,7 @@ class BrandThemeServiceTest extends TestCase
         self::assertSame('coastal-slate', $saved['id']);
         self::assertSame($saved['id'], $themes->current()['id']);
         self::assertSame(['preset' => 'coastal-slate'], json_decode((string) file_get_contents($this->themePath), true));
-        self::assertSame(['orion-classic', 'copilot-light', 'coastal-slate', 'deep-ocean', 'command-center', 'premium'], array_column($themes->presets(), 'id'));
+        self::assertSame(['orion-classic', 'copilot-light', 'coastal-slate', 'deep-ocean', 'apple', 'command-center', 'premium'], array_column($themes->presets(), 'id'));
         self::assertArrayHasKey('--brand-font-family', $themes->preset('copilot-light')['variables']);
         self::assertSame('14px', $themes->preset('copilot-light')['variables']['--brand-body-size']);
         self::assertSame('12px', $themes->preset('copilot-light')['variables']['--brand-label-size']);

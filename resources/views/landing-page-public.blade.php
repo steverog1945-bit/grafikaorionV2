@@ -49,11 +49,11 @@
     <style>
         :root {
             /* Palet resmi ORION — ROYAL INDIGO */
-            --kertas: #F7F7FD;   /* permukaan netral (violet tint) */
-            --tinta: #15143F;    /* DEEP NIGHT */
-            --aksen: #4D55F8;    /* ELECTRIC VIOLET */
-            --keluar: #E8E9FE;   /* tint violet muda */
-            --kontras-aksen: #FFFFFF;  /* teks di atas aksen — 5.29:1 AA */
+            --kertas: var(--color-indigo-50);   /* permukaan netral (violet tint) */
+            --tinta: var(--color-indigo-950);    /* DEEP NIGHT */
+            --aksen: var(--color-indigo-600);    /* ELECTRIC VIOLET */
+            --keluar: var(--color-indigo-50);   /* tint violet muda */
+            --kontras-aksen: var(--color-white);  /* teks di atas aksen — 5.29:1 AA */
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -78,7 +78,7 @@
             font-weight: 600;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(77, 85, 248, 0.3); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px color-mix(in srgb, var(--color-indigo-600) 30%, transparent); }
         .btn:focus-visible { outline: 3px solid var(--aksen); outline-offset: 3px; }
 
         /* ---- Pintu masuk staf (Checkpoint 4E.1) ----
@@ -94,8 +94,8 @@
             gap: 6px;
             margin-left: 14px;
             padding-left: 14px;
-            border-left: 1px solid rgba(21, 20, 63, 0.16);
-            color: #5A5E9E;
+            border-left: 1px solid color-mix(in srgb, var(--color-indigo-950) 16%, transparent);
+            color: var(--color-indigo-800);
             text-decoration: none;
             font-size: 0.8125rem;
             font-weight: 500;
@@ -109,7 +109,7 @@
             .lp-header-karyawan { margin-left: 8px; padding-left: 8px; }
         }
         .lp-kaki {
-            border-top: 1px solid rgba(21, 20, 63, 0.12);
+            border-top: 1px solid color-mix(in srgb, var(--color-indigo-950) 12%, transparent);
             padding: 28px 24px;
         }
         .lp-kaki-dalam {
@@ -121,7 +121,7 @@
             justify-content: space-between;
             gap: 1rem;
             font-size: 0.875rem;
-            color: #5A5E9E;
+            color: var(--color-indigo-800);
         }
         @media (max-width: 768px) {
             .lp-kaki-dalam { padding: 0 16px; }

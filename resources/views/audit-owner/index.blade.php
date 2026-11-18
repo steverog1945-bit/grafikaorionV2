@@ -11,31 +11,31 @@
        font-size 13px (body), 10px uppercase (label), font-weight 500/700.
        ============================================================ */
     .lembar {
-        --lembar-bg: #ffffff;
-        --lembar-hover: #f8f9fd;
-        --lembar-border: #dfe4ec;
-        --lembar-line: #edf0f5;
-        --lembar-head: #f4f6fa;
-        --lembar-ink: #1d2433;
-        --lembar-muted: #5b6472;
+        --lembar-bg: var(--color-white);
+        --lembar-hover: var(--color-slate-50);
+        --lembar-border: var(--color-slate-200);
+        --lembar-line: var(--color-slate-100);
+        --lembar-head: var(--color-slate-100);
+        --lembar-ink: var(--ink-900);
+        --lembar-muted: var(--color-slate-500);
         background: var(--lembar-bg);
         border: 1px solid var(--lembar-border);
         border-radius: 8px;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 1px 2px color-mix(in srgb, var(--color-slate-900) 5%, transparent);
         transition:
             background 220ms cubic-bezier(0.32, 0.72, 0, 1),
             border-color 220ms cubic-bezier(0.32, 0.72, 0, 1);
     }
-    .lembar:hover { background: var(--lembar-hover); border-color: #cbd3e0; }
+    .lembar:hover { background: var(--lembar-hover); border-color: var(--color-slate-300); }
     html.dark .lembar {
-        --lembar-bg: #111a2e;
-        --lembar-hover: #16213a;
-        --lembar-border: #26314a;
-        --lembar-line: #1d2942;
+        --lembar-bg: var(--ink-900);
+        --lembar-hover: var(--color-slate-800);
+        --lembar-border: var(--color-slate-800);
+        --lembar-line: var(--color-slate-800);
         --lembar-head: var(--brand-accent-surface-dark);
-        --lembar-ink: #F1F5F1;
-        --lembar-muted: #94a3b8;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.30);
+        --lembar-ink: var(--color-slate-100);
+        --lembar-muted: var(--color-slate-400);
+        box-shadow: 0 1px 2px color-mix(in srgb, var(--color-black) 30%, transparent);
     }
     html.dark .lembar:hover { border-color: var(--brand-sidebar-raised); }
 
@@ -68,43 +68,43 @@
 
     /* Filter & tombol lembar */
     .lembar-input {
-        background: #ffffff;
-        border: 1px solid #cfd6e2;
+        background: var(--color-white);
+        border: 1px solid var(--color-slate-200);
         border-radius: 6px; padding: 8px 12px;
-        font-size: 13px; font-weight: 500; color: #1d2433;
-        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+        font-size: 13px; font-weight: 500; color: var(--ink-900);
+        box-shadow: inset 0 1px 2px color-mix(in srgb, var(--color-slate-900) 4%, transparent);
         transition: border-color 140ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 140ms cubic-bezier(0.23, 1, 0.32, 1), background 140ms cubic-bezier(0.23, 1, 0.32, 1);
     }
-    .lembar-input:focus { outline: none; border-color: var(--brand-accent-light); box-shadow: 0 0 0 3px var(--color-indigo-100); background: #ffffff; }
-    html.dark .lembar-input { background: var(--brand-accent-surface-dark); border-color: var(--brand-sidebar-raised); color: #E2EAE4; }
-    html.dark .lembar-input:focus { background: var(--brand-accent-surface-dark); border-color: var(--brand-accent-dark); box-shadow: 0 0 0 3px #2a3560; }
+    .lembar-input:focus { outline: none; border-color: var(--brand-accent-light); box-shadow: 0 0 0 3px var(--color-indigo-100); background: var(--color-white); }
+    html.dark .lembar-input { background: var(--brand-accent-surface-dark); border-color: var(--brand-sidebar-raised); color: var(--color-slate-200); }
+    html.dark .lembar-input:focus { background: var(--brand-accent-surface-dark); border-color: var(--brand-accent-dark); box-shadow: 0 0 0 3px var(--color-indigo-800); }
 
     .lembar-btn {
         display: inline-flex; align-items: center; gap: 7px;
         padding: 8px 16px; border-radius: 999px;
-        font-size: 13px; font-weight: 500; color: #1d2433;
-        background: #ffffff;
-        border: 1px solid #cfd6e2;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+        font-size: 13px; font-weight: 500; color: var(--ink-900);
+        background: var(--color-white);
+        border: 1px solid var(--color-slate-200);
+        box-shadow: 0 1px 2px color-mix(in srgb, var(--color-slate-900) 5%, transparent);
         transition: all 140ms cubic-bezier(0.23, 1, 0.32, 1);
         cursor: pointer;
     }
-    .lembar-btn:hover { background: #f4f6fa; border-color: #b9c2d3; }
+    .lembar-btn:hover { background: var(--color-slate-100); border-color: var(--color-slate-300); }
     .lembar-btn:active { transform: scale(0.97); }
-    html.dark .lembar-btn { background: var(--brand-accent-surface-dark); border-color: var(--brand-sidebar-raised); color: #E2EAE4; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
-    html.dark .lembar-btn:hover { background: #1f2c49; border-color: #4a5a7d; }
-    .lembar-btn-utama { background: var(--brand-accent-light); border-color: var(--brand-accent-hover-light); color: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.18); }
+    html.dark .lembar-btn { background: var(--brand-accent-surface-dark); border-color: var(--brand-sidebar-raised); color: var(--color-slate-200); box-shadow: 0 1px 2px color-mix(in srgb, var(--color-black) 30%, transparent); }
+    html.dark .lembar-btn:hover { background: var(--color-slate-800); border-color: var(--color-slate-600); }
+    .lembar-btn-utama { background: var(--brand-accent-light); border-color: var(--brand-accent-hover-light); color: var(--color-white); box-shadow: 0 1px 2px color-mix(in srgb, var(--color-slate-900) 18%, transparent); }
     .lembar-btn-utama:hover { background: var(--brand-accent-hover-light); border-color: var(--brand-accent-surface-dark); }
-    html.dark .lembar-btn-utama { background: #04727E; color: #fff; }
+    html.dark .lembar-btn-utama { background: var(--brand-accent-light); color: var(--color-white); }
 
     /* Pil status kecil di judul panel */
     .pil { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 500; color: var(--lembar-muted); background: var(--lembar-head); border: 1px solid var(--lembar-line); text-transform: none; letter-spacing: 0; }
 
     /* Nomor bab */
-    .bab-no { width: 20px; height: 20px; border-radius: 999px; background: #1d2433; color: #fff; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    html.dark .bab-no { background: #E2EAE4; color: #1A231F; }
-    .bab-judul { font-size: 13px; font-weight: 700; color: #3F4F47; letter-spacing: -0.01em; }
-    html.dark .bab-judul { color: #C9D6CE; }
+    .bab-no { width: 20px; height: 20px; border-radius: 999px; background: var(--ink-900); color: var(--color-white); font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    html.dark .bab-no { background: var(--color-slate-200); color: var(--color-slate-900); }
+    .bab-judul { font-size: 13px; font-weight: 700; color: var(--color-slate-700); letter-spacing: -0.01em; }
+    html.dark .bab-judul { color: var(--color-slate-300); }
 
     @media (prefers-reduced-motion: reduce) {
         .lembar, .lembar-btn, .lembar-input, .t tbody tr { transition: none !important; }
@@ -117,25 +117,25 @@
         @page { size: A4 landscape; margin: 10mm; }
         aside, .no-print, .topbar { display: none !important; }
         main { margin-left: 0 !important; padding: 28px 32px !important; }
-        body { background: #fff !important; }
+        body { background: var(--color-white) !important; }
         .lembar, .lembar-e, .lembar:hover {
-            background: #fff !important; border: 1px solid #E2EAE4 !important; border-radius: 3px !important;
+            background: var(--color-white) !important; border: 1px solid var(--color-slate-200) !important; border-radius: 3px !important;
             box-shadow: none !important; padding: 0 !important; margin-bottom: 16px !important; overflow: hidden;
         }
         .k-judul {
-            font-size: 10px !important; font-weight: 500 !important; color: #3F4F47 !important; text-transform: uppercase; letter-spacing: 0.06em;
-            background: #FAFBF9 !important; border-bottom: 1px solid #E2EAE4; padding: 8px 12px; margin: 0 !important;
+            font-size: 10px !important; font-weight: 500 !important; color: var(--color-slate-700) !important; text-transform: uppercase; letter-spacing: 0.06em;
+            background: var(--color-slate-50) !important; border-bottom: 1px solid var(--color-slate-200); padding: 8px 12px; margin: 0 !important;
         }
-        .k-ket { font-size: 12px !important; color: #4A5B53 !important; padding: 6px 12px 0; margin: 0 0 6px !important; }
-        .pil { border: 0 !important; background: transparent !important; padding: 0 6px !important; font-size: 10px !important; color: #4A5B53 !important; }
-        .t th { background: #FAFBF9 !important; color: #4A5B53 !important; font-size: 10px !important; font-weight: 500 !important; padding: 6px 12px !important; border-bottom: 1px solid #E2EAE4 !important; }
-        .t td { color: #2A3731 !important; font-size: 11px !important; padding: 6px 12px !important; border-bottom: 1px solid #F1F5F1 !important; }
+        .k-ket { font-size: 12px !important; color: var(--color-slate-500) !important; padding: 6px 12px 0; margin: 0 0 6px !important; }
+        .pil { border: 0 !important; background: transparent !important; padding: 0 6px !important; font-size: 10px !important; color: var(--color-slate-500) !important; }
+        .t th { background: var(--color-slate-50) !important; color: var(--color-slate-500) !important; font-size: 10px !important; font-weight: 500 !important; padding: 6px 12px !important; border-bottom: 1px solid var(--color-slate-200) !important; }
+        .t td { color: var(--color-slate-800) !important; font-size: 11px !important; padding: 6px 12px !important; border-bottom: 1px solid var(--color-slate-100) !important; }
         .t tbody tr:hover { background: transparent !important; }
         .bab-no { display: none !important; }
-        .bab-judul { font-size: 12px !important; font-weight: 600 !important; color: #1A231F !important; margin-top: 8px; }
+        .bab-judul { font-size: 12px !important; font-weight: 600 !important; color: var(--color-slate-900) !important; margin-top: 8px; }
         .blok { break-inside: avoid; }
-        .text-rose-600 { color: #be123c !important; }
-        .text-emerald-600 { color: #047857 !important; }
+        .text-rose-600 { color: var(--color-rose-700) !important; }
+        .text-emerald-600 { color: var(--color-emerald-700) !important; }
     }
 </style>
 

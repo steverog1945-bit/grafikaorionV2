@@ -897,7 +897,7 @@
                     @endphp
                     <div class="lp-cta">
                         @if($lpBadge !== '')
-                            <span class="lp-eyebrow" style="color:var(--orion-brand-turquoise, #4D55F8)">{{ $lpBadge }}</span>
+                            <span class="lp-eyebrow" style="color:var(--orion-brand-turquoise, var(--color-indigo-600))">{{ $lpBadge }}</span>
                         @endif
                         <h2>{{ $lpSection['title'] ?? '' }}</h2>
                         @if(! empty($lpSection['desc']))

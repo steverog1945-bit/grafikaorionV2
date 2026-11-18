@@ -108,7 +108,7 @@
     }
     function konfirmasiHapusPostingan(e, form) {
         e.preventDefault();
-        Swal.fire({ title: 'Hapus postingan ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#93481A', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal', customClass: { popup: 'rounded-2xl' } })
+        Swal.fire({ title: 'Hapus postingan ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--color-rose-800)', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal', customClass: { popup: 'rounded-2xl' } })
             .then(r => { if (r.isConfirmed) form.submit(); });
         return false;
     }

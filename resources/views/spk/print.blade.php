@@ -35,10 +35,10 @@
             @endif
             @if($detail->status_urgent)
             {{-- Tanda urgent dipindah dari "*** TEBAL ***" ke warna kritis
-                 OpenCode (#ed4831). Pada dokumen yang ditempel di mesin,
+                 OpenCode (var(--color-amber-700)). Pada dokumen yang ditempel di mesin,
                  warna lebih cepat tertangkap daripada huruf tebal, dan
                  tidak perlu tanda bintang yang menambah lebar. --}}
-            <tr><td colspan="2" class="right" style="font-weight:500; color:#ed4831;">URGENT</td></tr>
+            <tr><td colspan="2" class="right" style="font-weight:500; color:var(--color-amber-700);">URGENT</td></tr>
             @endif
         </table>
 
@@ -62,7 +62,7 @@
              pada label sepanjang 10px, 1px sudah cukup untuk
              membuat huruf bersenggolan. --}}
         <div style="font-size:10px; letter-spacing:0.5px; margin-top:2px;">TRX{{ $detail->id_transaksi }}</div>
-            <div style="font-size:9px; color:#4A5B53;">Scan dengan kamera HP untuk membuka pembayaran</div>
+            <div style="font-size:9px; color:var(--color-slate-500);">Scan dengan kamera HP untuk membuka pembayaran</div>
         </div>
 
         @if($detail->catatan_produksi)

@@ -20,8 +20,8 @@
 
     3. Warna diambil dari token OpenCode (lihat theme.css di
        packages/ui/src/styles/theme.css repo sst/opencode):
-         teks utama #171717, teks sekunder #6f6f6f, teks tersier #8f8f8f,
-         garis #e5e5e5, aksen #034cff, sukses #2dba26, kritis #ed4831.
+         teks utama var(--ink-900), teks sekunder var(--ink-600), teks tersier var(--color-slate-400),
+         garis var(--line-200), aksen var(--color-indigo-600), sukses var(--color-emerald-600), kritis var(--color-amber-700).
        Sebelumnya dokumen cetak memakai indigo (var(--brand-accent-light)) dan abu-abu
        kebiruan yang tidak ada di palet itu sama sekali. Untuk dokumen
        yang keluar dari printer, warna yang tidak ada di palet berarti
@@ -40,8 +40,8 @@
         font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         margin: 0;
         padding: {{ $format === 'thermal' ? '8px' : '16px' }};
-        color: #171717;
-        background: #ffffff;
+        color: var(--ink-900);
+        background: var(--color-white);
         font-size: {{ $format === 'thermal' ? '11px' : '12px' }};
         line-height: 1.5;
         {{-- THERMAL: halaman di layar DISAMPAI jadi selebar kertas (80mm),
@@ -101,12 +101,12 @@
         margin: 0;
         font-weight: 500;
         letter-spacing: -0.01em;
-        color: #171717;
+        color: var(--ink-900);
     }
 
     .print-header .company-info {
         font-size: {{ $format === 'thermal' ? '9.5px' : '11px' }};
-        color: #6f6f6f;
+        color: var(--ink-600);
         margin: 3px 0 0;
         line-height: 1.45;
     }
@@ -116,13 +116,13 @@
        hierarki di sini datang dari ukuran dan warna saja. */
     .print-header .doc-title {
         font-size: {{ $format === 'thermal' ? '10px' : '11.5px' }};
-        color: #034cff;
+        color: var(--color-indigo-600);
         font-weight: 500;
         margin: 7px 0 0;
     }
 
     .center { text-align: center; }
-    .sub { font-size: 11px; color: #6f6f6f; margin: 0 0 10px; }
+    .sub { font-size: 11px; color: var(--ink-600); margin: 0 0 10px; }
 
     /* ----------------------------------------------------------------------
        Tabel
@@ -150,10 +150,10 @@
     th, td { padding: {{ $format === 'thermal' ? '2.5px' : '3px' }} 4px; text-align: left; vertical-align: top; }
 
     th {
-        border-bottom: 1px solid #e5e5e5;
+        border-bottom: 1px solid var(--line-200);
         font-size: {{ $format === 'thermal' ? '10.5px' : '10.5px' }};
         font-weight: 500;
-        color: #6f6f6f;
+        color: var(--ink-600);
     }
 
     td.right, th.right { text-align: right; }
@@ -161,7 +161,7 @@
     /* Garis pemisah. Garis putus-putus dihapus: pada printer thermal
        garis putus digambar ulang tiap beberapa piksel sehingga menjadi
        noise, bukan batas yang terbaca. */
-    .divider { border-top: 1px solid #e5e5e5; margin: {{ $format === 'thermal' ? '5px' : '7px' }} 0; }
+    .divider { border-top: 1px solid var(--line-200); margin: {{ $format === 'thermal' ? '5px' : '7px' }} 0; }
 
     /* Varian rapat, tetap dipertahankan karena beberapa halaman
        memakainya untuk bagian tertentu saja. */
@@ -171,7 +171,7 @@
     .total-row td {
         font-weight: 500;
         font-size: {{ $format === 'thermal' ? '12px' : '13.5px' }};
-        color: #171717;
+        color: var(--ink-900);
     }
 
     /* Badge status. Sebelumnya pil berwarna; sekarang teks biasa
@@ -182,46 +182,46 @@
         padding: 0;
         border-radius: 0;
         background: none;
-        color: #171717;
+        color: var(--ink-900);
         font-weight: 500;
         font-size: {{ $format === 'thermal' ? '10px' : '11px' }};
     }
-    .status-badge[data-status="success"] { color: #2dba26; }
-    .status-badge[data-status="critical"] { color: #ed4831; }
-    .status-badge[data-status="info"] { color: #034cff; }
+    .status-badge[data-status="success"] { color: var(--color-emerald-600); }
+    .status-badge[data-status="critical"] { color: var(--color-amber-700); }
+    .status-badge[data-status="info"] { color: var(--color-indigo-600); }
 
     /* Catatan. Bingkai putus-putus + latar diganti satu garis pemisah
        di atas: isi catatan tetap terbaca, tapi tidak menambah kotak
        yang harus dicetak. */
     .catatan {
-        border-top: 1px solid #e5e5e5;
+        border-top: 1px solid var(--line-200);
         padding: {{ $format === 'thermal' ? '6px' : '8px' }} 0 0;
         margin-top: {{ $format === 'thermal' ? '6px' : '8px' }};
         font-size: {{ $format === 'thermal' ? '10px' : '11px' }};
-        color: #6f6f6f;
+        color: var(--ink-600);
     }
 
     .signature { display: flex; justify-content: space-between; margin-top: {{ $format === 'thermal' ? '24px' : '32px' }}; }
     .signature div { text-align: center; width: 45%; }
     .signature .line {
-        border-top: 1px solid #8f8f8f;
+        border-top: 1px solid var(--color-slate-400);
         margin-top: {{ $format === 'thermal' ? '28px' : '36px' }};
         padding-top: 5px;
         font-size: {{ $format === 'thermal' ? '9.5px' : '11px' }};
-        color: #6f6f6f;
+        color: var(--ink-600);
     }
 
-    .selisih-negatif { color: #ed4831; }
-    .selisih-positif { color: #2dba26; }
+    .selisih-negatif { color: var(--color-amber-700); }
+    .selisih-positif { color: var(--color-emerald-600); }
 
-    /* Catatan kaki memakai #6f6f6f, bukan #94a3b8. Yang kedua hanya
+    /* Catatan kaki memakai var(--ink-600), bukan var(--color-slate-400). Yang kedua hanya
        berkontras 2,3:1 terhadap putih - di layar masih terbaca, tapi di
        printer yang sering menghasilkan abu-abu tipis, teks seperti itu
        hilang. */
     .footer-note {
         text-align: center;
         font-size: {{ $format === 'thermal' ? '9.5px' : '10.5px' }};
-        color: #6f6f6f;
+        color: var(--ink-600);
         margin-top: 8px;
     }
 
@@ -236,13 +236,13 @@
         font-size: 13px;
         font-weight: 500;
         cursor: pointer;
-        /* Tombol utama OpenCode: #171717, bukan indigo. */
-        background: #171717;
-        color: #fcfcfc;
+        /* Tombol utama OpenCode: var(--ink-900), bukan indigo. */
+        background: var(--ink-900);
+        color: var(--paper);
         border: none;
         border-radius: 6px;
     }
-    .no-print button:hover { background: #000000; }
+    .no-print button:hover { background: var(--color-black); }
 
     @media print {
         .no-print { display: none !important; }

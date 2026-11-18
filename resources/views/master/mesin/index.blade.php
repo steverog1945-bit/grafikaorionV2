@@ -198,8 +198,8 @@
             html: `Mesin <b>${escHtml(nama)}</b> akan dihapus permanen.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
-            cancelButtonColor: '#FAFBF9',
+            confirmButtonColor: 'var(--color-rose-800)',
+            cancelButtonColor: 'var(--color-slate-50)',
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
             customClass: {

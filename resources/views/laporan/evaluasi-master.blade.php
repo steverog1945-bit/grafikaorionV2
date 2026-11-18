@@ -9,7 +9,7 @@
              user: "mepet kanan kiri"). Diseragamkan ke pola laporan lain:
              28px 32px (@page 10mm + padding 28px 32px = ~18mm dari tepi). --}}
         main { margin-left: 0 !important; padding: 28px 32px !important; }
-        body { background: #fff !important; }
+        body { background: var(--color-white) !important; }
         .eval-section { break-inside: auto; }
         .eval-block { break-inside: avoid; }
         {{-- ukuran huruf saat cetak diserahkan ke partials/print-report-table
@@ -18,14 +18,14 @@
         .page-break { break-before: page; }
     }
     .eval-table { width: 100%; border-collapse: collapse; }
-    .eval-table th { background: #f5f5f5; color: #171717; font-size: 10px; font-weight: 600; padding: 8px 10px; border-bottom: 1px solid #e5e5e5; }
-    .eval-table td { padding: 7px 10px; border-bottom: 1px solid #ececec; font-size: 12.5px; color: #171717; }
+    .eval-table th { background: var(--neutral-100); color: var(--ink-900); font-size: 10px; font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--line-200); }
+    .eval-table td { padding: 7px 10px; border-bottom: 1px solid var(--line-200); font-size: 12.5px; color: var(--ink-900); }
     {{-- Mode gelap: kepala tabel sebelumnya tetap terang (pecah dark mode). --}}
-    html.dark .eval-table th { background: #1f2937; color: #e5e7eb; border-bottom-color: #2e3f4f; }
-    html.dark .eval-table td { border-bottom-color: #223041; color: #dce9ed; }
+    html.dark .eval-table th { background: var(--color-slate-800); color: var(--color-slate-200); border-bottom-color: var(--color-slate-800); }
+    html.dark .eval-table td { border-bottom-color: var(--color-slate-800); color: var(--color-slate-200); }
     .eval-table td.num, .eval-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
     .eval-table td.tengah, .eval-table th.tengah { text-align: center; }
-    .isian { min-width: 70px; border-bottom: 1px dotted #94a3b8; }
+    .isian { min-width: 70px; border-bottom: 1px dotted var(--color-slate-400); }
 </style>
 
 @php
@@ -122,21 +122,21 @@
                     <tr>
                         <td class="tengah">{{ $i + 1 }}</td>
                         <td>{{ $b->kode_bahan }}</td>
-                        <td style="font-weight:600">{{ $b->nama_bahan }}@if($b->status === 'nonaktif') <span style="color:#94a3b8">(nonaktif)</span>@endif</td>
-                        <td>{{ $b->nama_mesin ?? '-' }} <span style="color:#94a3b8">/ {{ $b->nama_kategori ?? '-' }}</span></td>
-                        <td class="num" style="{{ $b->menipis ? 'color:#93481A;font-weight:700' : '' }}">{{ $n($b->stok) }} {{ $b->satuan_stok }}</td>
+                        <td style="font-weight:600">{{ $b->nama_bahan }}@if($b->status === 'nonaktif') <span style="color:var(--color-slate-400)">(nonaktif)</span>@endif</td>
+                        <td>{{ $b->nama_mesin ?? '-' }} <span style="color:var(--color-slate-400)">/ {{ $b->nama_kategori ?? '-' }}</span></td>
+                        <td class="num" style="{{ $b->menipis ? 'color:var(--color-rose-800);font-weight:700' : '' }}">{{ $n($b->stok) }} {{ $b->satuan_stok }}</td>
                         <td class="num">{{ $n($b->stok_minimal) }}</td>
-                        <td class="num">@if((float) $b->harga_rata_rata > 0)Rp {{ $rp($b->harga_rata_rata) }}@else<span style="color:#d97706">belum ada</span>@endif</td>
+                        <td class="num">@if((float) $b->harga_rata_rata > 0)Rp {{ $rp($b->harga_rata_rata) }}@else<span style="color:var(--color-amber-600)">belum ada</span>@endif</td>
                         <td class="num">{{ $b->nilai > 0 ? 'Rp ' . $rp($b->nilai) : '-' }}</td>
                         @if($cekFisik)<td class="tengah"><div class="isian">&nbsp;</div></td><td class="tengah"><div class="isian">&nbsp;</div></td>@endif
                     </tr>
                     @empty
-                    <tr><td colspan="{{ $cekFisik ? 10 : 8 }}" class="tengah" style="padding:24px;color:#94a3b8">Tidak ada bahan baku.</td></tr>
+                    <tr><td colspan="{{ $cekFisik ? 10 : 8 }}" class="tengah" style="padding:24px;color:var(--color-slate-400)">Tidak ada bahan baku.</td></tr>
                     @endforelse
                 </tbody>
                 @if($bahan->isNotEmpty())
                 <tfoot>
-                    <tr style="background:#FAFBF9;font-weight:700">
+                    <tr style="background:var(--color-slate-50);font-weight:700">
                         <td colspan="4" style="padding:8px 10px">Total {{ $bahan->count() }} bahan &middot; {{ $bahan->where('menipis', true)->count() }} menipis &middot; {{ $bahan->filter(fn ($b) => (float) $b->harga_rata_rata <= 0)->count() }} belum ada harga</td>
                         <td colspan="3"></td>
                         <td class="num">Rp {{ $rp($bahan->sum('nilai')) }}</td>
@@ -174,10 +174,10 @@
                         <tr>
                             <td>{{ $r->nama_bahan }}</td>
                             <td class="num">{{ $n($r->pakai, 4) }} {{ $r->satuan_hitung }}</td>
-                            <td class="num">@if($r->tanpa_harga)<span style="color:#d97706">harga kosong</span>@else Rp {{ $rp($r->biaya) }}@endif</td>
+                            <td class="num">@if($r->tanpa_harga)<span style="color:var(--color-amber-600)">harga kosong</span>@else Rp {{ $rp($r->biaya) }}@endif</td>
                         </tr>
                         @empty
-                        <tr><td colspan="3" class="tengah" style="color:#d97706">Belum ada BOM</td></tr>
+                        <tr><td colspan="3" class="tengah" style="color:var(--color-amber-600)">Belum ada BOM</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -203,7 +203,7 @@
                         <span class="text-[11px] text-slate-400 ml-2">{{ $p->nama_mesin ?? '-' }} &middot; per {{ $p->satuan_jual }}</span>
                         @if($p->promo)<span class="ml-2 text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Promo Rp {{ $rp($p->promo) }}</span>@endif
                     </div>
-                    <div class="text-[11px] text-slate-500">HPP bahan <b>Rp {{ $rp($p->hpp) }}</b>@if($p->ada_harga_kosong || $p->tanpa_bom) <span style="color:#d97706">(belum lengkap)</span>@endif</div>
+                    <div class="text-[11px] text-slate-500">HPP bahan <b>Rp {{ $rp($p->hpp) }}</b>@if($p->ada_harga_kosong || $p->tanpa_bom) <span style="color:var(--color-amber-600)">(belum lengkap)</span>@endif</div>
                 </div>
                 <table class="eval-table">
                     <thead><tr><th style="text-align:left;width:170px">Golongan</th><th style="text-align:left">Tier harga (qty &rarr; harga jual &middot; margin)</th></tr></thead>
@@ -217,10 +217,10 @@
                                     <div style="display:flex;flex-wrap:wrap;gap:6px 10px">
                                         @foreach($daftar as $t)
                                             @php $mg = \App\Services\LembarEvaluasiService::margin($t->harga, $p->hpp); @endphp
-                                            <span style="display:inline-flex;align-items:baseline;gap:6px;padding:3px 10px;border:1px solid #E2EAE4;border-radius:8px;background:#FAFBF9">
-                                                <span style="font-size:10.5px;color:#4A5B53">{{ $n($t->min) }}&ndash;{{ $t->max === null || $t->max >= 9999999 ? 'âˆž' : $n($t->max) }}</span>
+                                            <span style="display:inline-flex;align-items:baseline;gap:6px;padding:3px 10px;border:1px solid var(--color-slate-200);border-radius:8px;background:var(--color-slate-50)">
+                                                <span style="font-size:10.5px;color:var(--color-slate-500)">{{ $n($t->min) }}&ndash;{{ $t->max === null || $t->max >= 9999999 ? 'âˆž' : $n($t->max) }}</span>
                                                 <b style="font-variant-numeric:tabular-nums">{{ $rp($t->harga) }}</b>
-                                                @if($mg !== null)<span style="font-size:10px;{{ $mg < 20 ? 'color:#93481A;font-weight:700' : 'color:#94a3b8' }}">{{ $n($mg, 1) }}%</span>@endif
+                                                @if($mg !== null)<span style="font-size:10px;{{ $mg < 20 ? 'color:var(--color-rose-800);font-weight:700' : 'color:var(--color-slate-400)' }}">{{ $n($mg, 1) }}%</span>@endif
                                             </span>
                                         @endforeach
                                     </div>
@@ -229,7 +229,7 @@
                         @empty
                         @endforelse
                         @if($p->tier->isEmpty())
-                            <tr><td colspan="2" class="tengah" style="color:#d97706">Belum ada tier harga</td></tr>
+                            <tr><td colspan="2" class="tengah" style="color:var(--color-amber-600)">Belum ada tier harga</td></tr>
                         @endif
                     </tbody>
                 </table>
@@ -242,9 +242,9 @@
     @endif
 
     <div class="hidden print:grid grid-cols-3 gap-10 mt-12 text-center text-[11px] text-slate-600">
-        <div>Dibuat oleh<div style="height:48px"></div><div style="border-top:1px solid #4A5B53;padding-top:4px">(............................)</div></div>
-        <div>Diperiksa oleh<div style="height:48px"></div><div style="border-top:1px solid #171717;padding-top:4px">(............................)</div></div>
-        <div>Disetujui oleh<div style="height:48px"></div><div style="border-top:1px solid #171717;padding-top:4px">(............................)</div></div>
+        <div>Dibuat oleh<div style="height:48px"></div><div style="border-top:1px solid var(--color-slate-500);padding-top:4px">(............................)</div></div>
+        <div>Diperiksa oleh<div style="height:48px"></div><div style="border-top:1px solid var(--ink-900);padding-top:4px">(............................)</div></div>
+        <div>Disetujui oleh<div style="height:48px"></div><div style="border-top:1px solid var(--ink-900);padding-top:4px">(............................)</div></div>
     </div>
     @include('partials.print-report-footer', ['printNote' => 'Evaluasi ' . ($periode ?? '') . ' · data per saat cetak'])
 </div>

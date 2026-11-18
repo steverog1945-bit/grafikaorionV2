@@ -150,7 +150,7 @@
         .lp-article .lp-tag { display: inline-flex; align-items: center; padding: 6px 12px; background: var(--orion-brand-light); color: var(--orion-deep-night); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; border: 1px solid var(--orion-brand-border); }
         .lp-article .lp-share { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--orion-brand-border); }
         .lp-article .lp-share-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--orion-brand-light); color: var(--orion-deep-night); font-weight: 600; font-size: 13px; border-radius: 999px; border: 1px solid var(--orion-brand-border); text-decoration: none; transition: background-color .18s ease, border-color .18s ease; }
-        .lp-article .lp-share-btn:hover { background: var(--orion-electric-violet); border-color: var(--orion-electric-violet); color: #FFFFFF; }
+        .lp-article .lp-share-btn:hover { background: var(--orion-electric-violet); border-color: var(--orion-electric-violet); color: var(--color-white); }
         .lp-article .lp-related { margin-top: 64px; padding-top: 32px; border-top: 1px solid var(--orion-brand-border); }
         .lp-article .lp-related h2 { font-weight: 800; font-size: 1.75rem; margin: 0 0 24px; color: var(--orion-deep-night); }
         .lp-article .lp-related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }

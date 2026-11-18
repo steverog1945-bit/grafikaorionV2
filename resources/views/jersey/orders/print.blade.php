@@ -26,13 +26,13 @@
 
         /* Sama dengan nota kasir: printer thermal hanya hitam/putih, teks abu-abu tercetak sebagai titik-titik.
            Semua teks hitam pekat, garis pemisah solid hitam, ukuran thermal naik satu tingkat. Huruf tidak diubah. */
-        .ringkasan-jersey, .ringkasan-jersey * { color: #000 !important; }
+        .ringkasan-jersey, .ringkasan-jersey * { color: var(--color-black) !important; }
         .ringkasan-jersey { font-size: {{ $format === 'thermal' ? '12px' : '13px' }}; }
         .ringkasan-jersey table, .ringkasan-jersey th { font-size: inherit; }
         .ringkasan-jersey .print-header .company-info, .ringkasan-jersey .print-header .doc-title { font-size: {{ $format === 'thermal' ? '12px' : '13px' }}; }
-        .ringkasan-jersey .divider { border-top: 1px solid #000; }
-        .ringkasan-jersey th { border-bottom: 1px solid #000; font-weight: 500; }
-        .ringkasan-jersey .signature .line { border-top-color: #000; font-size: inherit; }
+        .ringkasan-jersey .divider { border-top: 1px solid var(--color-black); }
+        .ringkasan-jersey th { border-bottom: 1px solid var(--color-black); font-weight: 500; }
+        .ringkasan-jersey .signature .line { border-top-color: var(--color-black); font-size: inherit; }
         .ringkas-jersey td.l { text-align: right; width: 62%; }
         .ringkas-jersey td.t { width: 12px; text-align: center; }
         .ringkas-jersey td.v { text-align: right; white-space: nowrap; }

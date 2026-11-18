@@ -6,7 +6,7 @@
     @media print {
         aside, .no-print { display: none !important; }
         main { margin-left: 0 !important; padding: 28px 32px !important; }
-        body { background: #fff !important; }
+        body { background: var(--color-white) !important; }
     }
 </style>
 @include('partials.print-report-header', ['docTitle' => 'Kas Kecil'])
@@ -301,7 +301,7 @@
             text: 'Catatan baru dibatalkan setelah disetujui Administrator; jurnalnya akan dibalik.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
+            confirmButtonColor: 'var(--color-rose-800)',
             confirmButtonText: 'Ya, Ajukan',
             cancelButtonText: 'Batal',
             customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },

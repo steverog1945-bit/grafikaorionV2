@@ -231,9 +231,9 @@
                 : `Akun <b>@${escapeHtml(username)}</b> bisa login lagi dengan password yang sama.`,
             icon: batal ? 'warning' : 'question',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
-            cancelButtonColor: '#F1F5F1',
-            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
+            confirmButtonColor: 'var(--color-rose-800)',
+            cancelButtonColor: 'var(--color-slate-100)',
+            cancelButtonText: '<span style="color: var(--color-slate-500)">Batal</span>',
             confirmButtonText: batal ? 'Ya, Non-aktifkan!' : 'Ya, Aktifkan!'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -248,9 +248,9 @@
             html: `Menghapus akun <b>@${escapeHtml(username)}</b>? Karyawan terkait tidak akan bisa login lagi sampai dibuatkan akun baru.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
-            cancelButtonColor: '#F1F5F1',
-            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
+            confirmButtonColor: 'var(--color-rose-800)',
+            cancelButtonColor: 'var(--color-slate-100)',
+            cancelButtonText: '<span style="color: var(--color-slate-500)">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) {

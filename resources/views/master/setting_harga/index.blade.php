@@ -521,8 +521,8 @@ const satuanRentang = (_sr && _sr.dataset) ? (_sr.dataset.satuanRentang || '') :
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: 'var(--brand-accent-light)',
-            cancelButtonColor: '#F1F5F1',
-            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
+            cancelButtonColor: 'var(--color-slate-100)',
+            cancelButtonText: '<span style="color: var(--color-slate-500)">Batal</span>',
             confirmButtonText: 'Ya, Salin ke Semua',
         }).then(async (result) => {
             if (!result.isConfirmed) return;
@@ -571,9 +571,9 @@ const satuanRentang = (_sr && _sr.dataset) ? (_sr.dataset.satuanRentang || '') :
             text: 'Order dengan qty di rentang ini tidak akan punya harga lagi sampai diatur ulang.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
-            cancelButtonColor: '#F1F5F1',
-            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
+            confirmButtonColor: 'var(--color-rose-800)',
+            cancelButtonColor: 'var(--color-slate-100)',
+            cancelButtonText: '<span style="color: var(--color-slate-500)">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
         }).then(async (result) => {
             if (!result.isConfirmed) return;

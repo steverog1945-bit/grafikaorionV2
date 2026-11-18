@@ -12,10 +12,10 @@
            Keterbacaan cetak: printer thermal hanya mengenal hitam atau putih. Teks abu-abu dicetak sebagai
            pola titik (dithering) sehingga terlihat putus-putus. Karena itu SEMUA teks nota hitam pekat,
            garis pemisah hitam solid (bukan putus-putus), dan ukuran huruf thermal dinaikkan satu tingkat. */
-        .nota, .nota * { color: #000 !important; }
+        .nota, .nota * { color: var(--color-black) !important; }
         .nota { font-size: {{ $format === 'thermal' ? '12px' : '13px' }}; line-height: 1.4; }
         .nota .print-header .company-info, .nota .print-header .doc-title { font-size: {{ $format === 'thermal' ? '12px' : '13px' }}; }
-        .nota .garis { border-top: 1px solid #000; margin: {{ $format === 'thermal' ? '5px' : '7px' }} 0; }
+        .nota .garis { border-top: 1px solid var(--color-black); margin: {{ $format === 'thermal' ? '5px' : '7px' }} 0; }
         .nota table { width: 100%; border-collapse: collapse; font-size: inherit; }
         .nota td, .nota th { padding: 1px 0; vertical-align: top; }
 
@@ -24,7 +24,7 @@
         .nota .info td.t { width: 12px; }
 
         /* Item */
-        .nota .item th { font-size: inherit; font-weight: 500; text-align: left; border-bottom: 1px solid #000; padding-bottom: 2px; }
+        .nota .item th { font-size: inherit; font-weight: 500; text-align: left; border-bottom: 1px solid var(--color-black); padding-bottom: 2px; }
         .nota .item th.r, .nota .item td.r { text-align: right; }
         .nota .item td.qty { width: 14%; white-space: nowrap; font-weight: 500; }
         .nota .item td.nama { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 1px; }
@@ -45,7 +45,7 @@
         .nota .diterima { margin-top: 4px; }
         .nota .diterima td.l { font-size: 11px; }
         .nota .penutup { text-align: center; margin-top: 6px; }
-        .nota .footer-note { color: #000 !important; font-size: inherit; }
+        .nota .footer-note { color: var(--color-black) !important; font-size: inherit; }
     </style>
 </head>
 <body>
@@ -195,7 +195,7 @@
 
     <div class="no-print" style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
         <button onclick="window.print()">🖨️ Cetak</button>
-        <a href="{{ route('kasir.kelola') }}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:#64748b;color:#fff;font-size:13px;text-decoration:none;">← Kembali ke Monitoring Kasir</a>
+        <a href="{{ route('kasir.kelola') }}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:var(--color-slate-500);color:var(--color-white);font-size:13px;text-decoration:none;">← Kembali ke Monitoring Kasir</a>
     </div>
 </body>
 </html>

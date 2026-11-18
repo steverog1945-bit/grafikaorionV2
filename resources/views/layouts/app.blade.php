@@ -37,7 +37,7 @@
                 var buat = function () {
                     var d = document.createElement('div');
                     d.setAttribute('role', 'alert');
-                    d.style.cssText = 'position:fixed;z-index:99999;top:12px;left:50%;transform:translateX(-50%);width:min(560px,94vw);box-sizing:border-box;background:#fef2f2;border:1px solid #ef4444;border-left:4px solid #dc2626;color:#991b1b;font:13px/1.5 system-ui,-apple-system,sans-serif;padding:10px 12px;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.25);display:flex;gap:10px;align-items:flex-start';
+                    d.style.cssText = 'position:fixed;z-index:99999;top:12px;left:50%;transform:translateX(-50%);width:min(560px,94vw);box-sizing:border-box;background:var(--color-rose-50);border:1px solid var(--color-rose-500);border-left:4px solid var(--color-rose-600);color:var(--color-rose-800);font:13px/1.5 system-ui,-apple-system,sans-serif;padding:10px 12px;border-radius:12px;box-shadow:0 10px 30px color-mix(in srgb, var(--color-slate-900) 25%, transparent);display:flex;gap:10px;align-items:flex-start';
                     var teks = document.createElement('span');
                     teks.style.cssText = 'flex:1 1 auto;min-width:0;overflow-wrap:break-word';
                     teks.textContent = pesan;
@@ -210,17 +210,17 @@
 
         --or-teks:        var(--brand-sidebar-text, var(--brand-sidebar-text));
         --or-teks-lembut: var(--brand-sidebar-muted, var(--brand-sidebar-muted));
-        --or-judul:       var(--brand-sidebar-title, #FFFFFF);
+        --or-judul:       var(--brand-sidebar-title, var(--color-white));
         --or-aksen:       var(--brand-sidebar-accent, var(--brand-sidebar-accent));
-        --or-peringatan:  var(--brand-sidebar-warning, #F0A882);
+        --or-peringatan:  var(--brand-sidebar-warning, var(--brand-sidebar-warning));
     }
-    body { font-family: var(--brand-font-family, 'Inter'), sans-serif; color: var(--text-primary); scroll-behavior: smooth; background-color: var(--brand-surface-page, #FAFBF9); overflow-x: hidden; }
+    body { font-family: var(--brand-font-family, 'Inter'), sans-serif; color: var(--text-primary); scroll-behavior: smooth; background-color: var(--brand-surface-page, var(--color-slate-50)); overflow-x: hidden; }
     #sidebarOverlay {
         display: none;
         position: fixed;
         inset: 0;
         z-index: 40;
-        background: rgba(13, 19, 16, .56);
+        background: color-mix(in srgb, var(--color-slate-950) 56%, transparent);
     }
 
     /* Sidebar mengikuti referensi (screenshot 2026-10-25): latar gelap
@@ -252,7 +252,7 @@
     /* Judul brand & teks menu mengikuti token sidebar (bisa terang/gelap via tema) */
     aside .sidebar-brand-title,
     aside .sidebar-title,
-    aside h1, aside h2, aside h3 { color: var(--brand-sidebar-title, #FFFFFF) !important; }
+    aside h1, aside h2, aside h3 { color: var(--brand-sidebar-title, var(--color-white)) !important; }
 
     aside a, aside button, aside nav span:not(.notif-badge):not(.chip), aside nav div:not(.notif-badge):not(.chip) { color: var(--brand-sidebar-text, var(--brand-sidebar-text)) !important; }
     /* Badge angka & chip kosongkan pengecualian nama: warnanya harus ikut
@@ -261,12 +261,12 @@
 
     aside a.sb-active, aside a.active, aside .menu-active,
     aside nav a[aria-current="page"] {
-        color: var(--brand-sidebar-title, #FFFFFF) !important;
-        background: rgba(232, 137, 29, 0.14) !important;
+        color: var(--brand-sidebar-title, var(--color-white)) !important;
+        background: color-mix(in srgb, var(--brand-sidebar-accent) 14%, transparent) !important;
         border-left: 3px solid var(--brand-sidebar-accent, var(--brand-sidebar-accent)) !important;
     }
 
-    aside a:hover, aside button:hover { color: var(--brand-sidebar-title, #FFFFFF) !important; background: color-mix(in srgb, var(--brand-sidebar-text) 8%, transparent); }
+    aside a:hover, aside button:hover { color: var(--brand-sidebar-title, var(--color-white)) !important; background: color-mix(in srgb, var(--brand-sidebar-text) 8%, transparent); }
 
     aside .menu-group-toggle { color: var(--brand-sidebar-muted, var(--brand-sidebar-muted)) !important; }
 
@@ -275,52 +275,52 @@
        <style> ini adalah CSS terakhir di <head>, sehingga tak ada rule
        !important lain yang menimpa latar palet terang. */
     html[data-sidebar-mode="light"] aside {
-        background: #F3F4F6 !important;
-        border-right-color: #D1D5DB !important;
-        color: #1F2937 !important;
+        background: var(--color-slate-100) !important;
+        border-right-color: var(--color-slate-300) !important;
+        color: var(--color-slate-800) !important;
     }
     html[data-sidebar-mode="light"] aside .sidebar-brand-title,
     html[data-sidebar-mode="light"] aside .sidebar-title,
     html[data-sidebar-mode="light"] aside h1, html[data-sidebar-mode="light"] aside h2,
-    html[data-sidebar-mode="light"] aside h3 { color: #111827 !important; }
+    html[data-sidebar-mode="light"] aside h3 { color: var(--color-slate-900) !important; }
     html[data-sidebar-mode="light"] aside a, html[data-sidebar-mode="light"] aside button,
-    html[data-sidebar-mode="light"] aside nav span:not(.chip):not(.notif-badge), html[data-sidebar-mode="light"] aside nav div:not(.chip):not(.notif-badge) { color: #374151 !important; }
-    html[data-sidebar-mode="light"] aside .menu-group-toggle { color: #6B7280 !important; }
+    html[data-sidebar-mode="light"] aside nav span:not(.chip):not(.notif-badge), html[data-sidebar-mode="light"] aside nav div:not(.chip):not(.notif-badge) { color: var(--color-slate-600) !important; }
+    html[data-sidebar-mode="light"] aside .menu-group-toggle { color: var(--color-slate-500) !important; }
     html[data-sidebar-mode="light"] aside a:hover, html[data-sidebar-mode="light"] aside button:hover {
-        color: #111827 !important;
-        background: rgba(71, 85, 105, 0.08);
+        color: var(--color-slate-900) !important;
+        background: color-mix(in srgb, var(--color-slate-600) 8%, transparent);
     }
     html[data-sidebar-mode="light"] aside .rail-icon {
-        color: #4B5563 !important;
-        background: rgba(0, 0, 0, 0.04) !important;
+        color: var(--color-slate-600) !important;
+        background: color-mix(in srgb, var(--color-black) 4%, transparent) !important;
     }
     html[data-sidebar-mode="light"] aside a.sb-active, html[data-sidebar-mode="light"] aside a.active,
     html[data-sidebar-mode="light"] aside .menu-active,
-    html[data-sidebar-mode="light"] aside nav a[aria-current="page"] { color: #111827 !important; }
+    html[data-sidebar-mode="light"] aside nav a[aria-current="page"] { color: var(--color-slate-900) !important; }
     /* Tab aktif (bentuk menempel ke tepi kanan) pakai --tab; mode terang
        memakai abu-abu muda agar teks gelap di atasnya tetap terbaca. */
-    html[data-sidebar-mode="light"]:not(.dark) body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: #EBEDF0; }
-    html[data-sidebar-mode="light"]:not(.dark) body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: #DDE0E8; }
-    html.dark[data-sidebar-mode="light"] body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: #EBEDF0; }
-    html.dark[data-sidebar-mode="light"] body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: #DDE0E8; }
+    html[data-sidebar-mode="light"]:not(.dark) body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: var(--color-slate-100); }
+    html[data-sidebar-mode="light"]:not(.dark) body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: var(--color-slate-200); }
+    html.dark[data-sidebar-mode="light"] body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: var(--color-slate-100); }
+    html.dark[data-sidebar-mode="light"] body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: var(--color-slate-200); }
     html[data-sidebar-mode="light"] #mainSidebar nav a.group.sb-active { border-left: none !important; }
     html[data-sidebar-mode="light"] aside nav > a.sb-active svg,
-    html[data-sidebar-mode="light"] aside nav > a.sb-active i { color: #9A5410 !important; }
+    html[data-sidebar-mode="light"] aside nav > a.sb-active i { color: var(--color-amber-700) !important; }
     html[data-sidebar-mode="light"] aside .rail-icon {
-        color: #4B5563 !important;
-        background: rgba(0, 0, 0, 0.04) !important;
+        color: var(--color-slate-600) !important;
+        background: color-mix(in srgb, var(--color-black) 4%, transparent) !important;
     }
 
     /* Kotak status kasir: di latar terang latar putih + teks gelap agar tetap
        terbaca (versi terbuka peringatan diberi aksen amber tua). */
     html[data-sidebar-mode="light"] aside .sidebar-kas-status {
-        background: #FFFFFF !important;
-        border-color: #D1D5DB !important;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+        background: var(--color-white) !important;
+        border-color: var(--color-slate-300) !important;
+        box-shadow: 0 1px 2px color-mix(in srgb, var(--color-slate-900) 6%, transparent);
     }
-    html[data-sidebar-mode="light"] aside .sidebar-kas-status * { color: #374151 !important; }
-    html[data-sidebar-mode="light"] aside .sidebar-kas-status [class*="text-amber"] { color: #B45309 !important; }
-    html[data-sidebar-mode="light"] aside .sidebar-kas-status [class*="text-emerald"] { color: #047857 !important; }
+    html[data-sidebar-mode="light"] aside .sidebar-kas-status * { color: var(--color-slate-600) !important; }
+    html[data-sidebar-mode="light"] aside .sidebar-kas-status [class*="text-amber"] { color: var(--color-amber-700) !important; }
+    html[data-sidebar-mode="light"] aside .sidebar-kas-status [class*="text-emerald"] { color: var(--color-emerald-700) !important; }
 
     @media (max-width: 1023px) {
         aside { transform: translateX(-100%); }
@@ -350,7 +350,7 @@
     body.sidebar-collapsed aside .menu-group-items { display: none !important; }
     body.sidebar-collapsed aside .menu-group-toggle > span,
     body.sidebar-collapsed aside .menu-group-toggle > i.fa-chevron-down { display: none; }
-    body.sidebar-collapsed aside .menu-group-toggle { padding: 14px 0; margin-top: 6px; border-radius: 14px; border-top: 1px solid rgba(255,255,255,0.07); border-radius: 0; }
+    body.sidebar-collapsed aside .menu-group-toggle { padding: 14px 0; margin-top: 6px; border-radius: 14px; border-top: 1px solid color-mix(in srgb, var(--color-white) 7%, transparent); border-radius: 0; }
     body.sidebar-collapsed aside .sidebar-brand-text,
     body.sidebar-collapsed aside .sidebar-text-label { display: none; }
     body.sidebar-collapsed aside .sidebar-kas-status { justify-content: center; }
@@ -362,18 +362,18 @@
     body.sidebar-collapsed aside .menu-group-toggle .rail-icon {
         display: inline-flex; align-items: center; justify-content: center;
         width: 52px; height: 52px; border-radius: 16px; font-size: 21px;
-        color: #C9D6CE; background: rgba(255,255,255,0.05);
+        color: var(--color-slate-300); background: color-mix(in srgb, var(--color-white) 5%, transparent);
         transition: background .2s, color .2s, transform .2s;
     }
     body.sidebar-collapsed aside .menu-group-toggle:hover .rail-icon,
-    body.sidebar-collapsed aside .menu-group-toggle.flyout-open .rail-icon { background: rgba(255,255,255,0.14); color: #fff; transform: translateY(-1px); }
+    body.sidebar-collapsed aside .menu-group-toggle.flyout-open .rail-icon { background: color-mix(in srgb, var(--color-white) 14%, transparent); color: var(--color-white); transform: translateY(-1px); }
     body.sidebar-collapsed aside .menu-group-toggle.has-active .rail-icon {
-        background: var(--brand-sidebar-active, var(--brand-sidebar-active)); color: #fff;
+        background: var(--brand-sidebar-active, var(--brand-sidebar-active)); color: var(--color-white);
     }
 
     /* Tampilan lebar: penanda grup yang berisi halaman aktif.
        Judul grup aktif memakai --or-judul (putih) supaya jelas berbeda dari
-       grup lain yang Sea Mist redup. Warna lama #2A3731 hanya menghasilkan
+       grup lain yang Sea Mist redup. Warna lama var(--color-slate-800) hanya menghasilkan
        rasio 1.18:1 di atas var(--brand-sidebar-base), artinya judul grup praktis tak terlihat.
        Jangan dikembalikan tanpa mengukur ulang. */
     aside .menu-group-toggle.has-active > span { color: var(--or-judul); }
@@ -420,18 +420,18 @@
     #railFlyout, #railTip { position: fixed; z-index: 70; display: none; }
     #railFlyout {
         min-width: 250px; max-width: 300px; max-height: 78vh; overflow-y: auto; padding: 10px;
-        background: var(--brand-surface-dark_primary, #1A231F); border: 1px solid var(--brand-surface-dark_border, #3F4F47); border-radius: 18px;
-        box-shadow: 0 24px 60px rgba(2,6,23,0.45);
+        background: var(--brand-surface-dark_primary, var(--color-slate-900)); border: 1px solid var(--brand-surface-dark_border, var(--color-slate-700)); border-radius: 18px;
+        box-shadow: 0 24px 60px color-mix(in srgb, var(--ink-900) 45%, transparent);
     }
-    #railFlyout .fly-title { padding: 6px 12px 10px; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #94a3b8; }
-    #railFlyout a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: #E2EAE4; font-size: 14px; font-weight: 500; text-decoration: none; }
-    #railFlyout a:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    #railFlyout a.fly-active { background: var(--brand-accent-light, var(--brand-accent-light)); color: #fff; }
-    #railFlyout a svg { width: 20px; height: 20px; flex-shrink: 0; color: #94a3b8; }
-    #railFlyout a:hover svg, #railFlyout a.fly-active svg { color: #fff; }
+    #railFlyout .fly-title { padding: 6px 12px 10px; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--color-slate-400); }
+    #railFlyout a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: var(--color-slate-200); font-size: 14px; font-weight: 500; text-decoration: none; }
+    #railFlyout a:hover { background: color-mix(in srgb, var(--color-white) 10%, transparent); color: var(--color-white); }
+    #railFlyout a.fly-active { background: var(--brand-accent-light, var(--brand-accent-light)); color: var(--color-white); }
+    #railFlyout a svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--color-slate-400); }
+    #railFlyout a:hover svg, #railFlyout a.fly-active svg { color: var(--color-white); }
     #railTip {
-        padding: 8px 14px; border-radius: 10px; background: #1A231F; color: #fff; font-size: 13px; font-weight: 500;
-        box-shadow: 0 10px 30px rgba(2,6,23,0.4); border: 1px solid rgba(255,255,255,0.1); white-space: nowrap; pointer-events: none;
+        padding: 8px 14px; border-radius: 10px; background: var(--color-slate-900); color: var(--color-white); font-size: 13px; font-weight: 500;
+        box-shadow: 0 10px 30px color-mix(in srgb, var(--ink-900) 40%, transparent); border: 1px solid color-mix(in srgb, var(--color-white) 10%, transparent); white-space: nowrap; pointer-events: none;
     }
 
     /* Logo perusahaan - OpenCode Desktop: clean, no effects */
@@ -446,10 +446,10 @@
     .sidebar-logo.logo-gaya-polos { padding: 6px 10px; }
     .sidebar-logo.logo-gaya-polos img { position: relative; z-index: 1; }
     /* Gaya kaca: subtle */
-    .sidebar-logo.logo-gaya-kaca { padding: 8px 12px; border-radius: 8px; background: var(--brand-surface-secondary, #FAFBF9); border: 1px solid var(--brand-surface-border, #E2EAE4); }
-    html.dark .sidebar-logo.logo-gaya-kaca { background: var(--brand-surface-dark_secondary, #2A3731); border-color: var(--brand-surface-dark_border, #3F4F47); }
+    .sidebar-logo.logo-gaya-kaca { padding: 8px 12px; border-radius: 8px; background: var(--brand-surface-secondary, var(--color-slate-50)); border: 1px solid var(--brand-surface-border, var(--color-slate-200)); }
+    html.dark .sidebar-logo.logo-gaya-kaca { background: var(--brand-surface-dark_secondary, var(--color-slate-800)); border-color: var(--brand-surface-dark_border, var(--color-slate-700)); }
     /* Gaya putih */
-    .sidebar-logo.logo-gaya-putih { padding: 10px 16px; border-radius: 16px; background: var(--brand-surface-primary, #fff); border: 1px solid var(--brand-surface-border, #E2EAE4); }
+    .sidebar-logo.logo-gaya-putih { padding: 10px 16px; border-radius: 16px; background: var(--brand-surface-primary, var(--color-white)); border: 1px solid var(--brand-surface-border, var(--color-slate-200)); }
 
     /* Mode ringkas */
     body.sidebar-collapsed aside .sidebar-logo .logo-full { display: none; }
@@ -471,7 +471,7 @@
         margin-left: var(--sidebar-width);
         min-height: 100vh;
         padding: 32px 24px;
-        background: var(--brand-surface-page, #FAFBF9);
+        background: var(--brand-surface-page, var(--color-slate-50));
         transition: margin-left 0.3s ease, all 0.3s ease;
         display: flex;
         flex-direction: column;
@@ -483,13 +483,13 @@
        "topbar" tidak dipakai di manapun selain di sini) - burger icon &
        judul cuma numpang di elemen tanpa padding/tinggi/alignment eksplisit,
        jadinya terlihat "nempel asal" alih-alih menyatu dengan header. */
-    .notif-badge { margin-left: auto; min-width: 1.15rem; height: 1.15rem; padding: 0 .3rem; line-height: 1; border-radius: 9999px; color: var(--notif-fg, #fff); background: var(--notif-neutral, #4A5B53); font-size: 10px; font-weight: 600; letter-spacing: .02em; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-badge { margin-left: auto; min-width: 1.15rem; height: 1.15rem; padding: 0 .3rem; line-height: 1; border-radius: 9999px; color: var(--notif-fg, var(--color-white)); background: var(--notif-neutral, var(--color-slate-500)); font-size: 10px; font-weight: 600; letter-spacing: .02em; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
     /* Badge angka mengikuti token tema global (TOKEN BADGE di app.css):
        light pakai latar gelap + teks putih, dark otomatis dibalik. Bentuk
        lebih kecil/ramping dari sebelumnya supaya tidak terlihat mengganggu. */
-    .notif-badge.rose { background: var(--notif-danger, #93481A); color: var(--notif-danger-fg, #fff); }
-    .notif-badge.indigo { background: var(--notif-info, var(--brand-accent-light)); color: var(--notif-info-fg, #fff); }
-    .notif-badge.amber { background: var(--notif-warning, var(--brand-sidebar-accent)); color: var(--notif-warning-fg, #1F2937); }
+    .notif-badge.rose { background: var(--notif-danger, var(--color-rose-800)); color: var(--notif-danger-fg, var(--color-white)); }
+    .notif-badge.indigo { background: var(--notif-info, var(--brand-accent-light)); color: var(--notif-info-fg, var(--color-white)); }
+    .notif-badge.amber { background: var(--notif-warning, var(--brand-sidebar-accent)); color: var(--notif-warning-fg, var(--color-slate-800)); }
     /* Badge selalu rata di kolom kanan yang sama: link menu (badge) & judul grup (badge + panah). */
     aside .menu-group-toggle { justify-content: flex-start; padding-right: .875rem; }
     aside .menu-group-toggle > i.fa-chevron-down { margin-left: auto; width: 1.5rem; text-align: center; }
@@ -502,8 +502,8 @@
         align-items: center;
         gap: 12px;
         padding: 10px 20px;
-        border-bottom: 1px solid var(--brand-surface-border, #E2EAE4);
-        background: var(--brand-surface-primary, #ffffff);
+        border-bottom: 1px solid var(--brand-surface-border, var(--color-slate-200));
+        background: var(--brand-surface-primary, var(--color-white));
     }
 
     /* Topbar mobile - sebelumnya sama persis dengan desktop (padding 18px
@@ -523,37 +523,37 @@
         #topbar-mobile-panel { display: contents; }
         #topbar-mobile-panel > div { display: none !important; }
         #topbar-mobile-isi { position: absolute; right: 0; top: 100%; margin-top: 8px;
-            width: 240px; border-radius: 16px; background: var(--brand-surface-primary, #fff);
-            border: 1px solid var(--brand-surface-border, #E2EAE4); box-shadow: 0 12px 32px rgb(15 23 42 / .12);
+            width: 240px; border-radius: 16px; background: var(--brand-surface-primary, var(--color-white));
+            border: 1px solid var(--brand-surface-border, var(--color-slate-200)); box-shadow: 0 12px 32px color-mix(in srgb, var(--color-slate-900) 12%, transparent);
             z-index: 60; overflow: hidden; }
         #topbar-mobile-isi.terbuka { display: block; }
         #topbar-mobile-isi button,
         #topbar-mobile-isi form { width: 100%; }
         #topbar-mobile-isi button { display: flex; align-items: center; gap: 12px;
-            padding: 12px 16px; font-size: 13px; color: var(--brand-surface-text_secondary, #2A3731);
+            padding: 12px 16px; font-size: 13px; color: var(--brand-surface-text_secondary, var(--color-slate-800));
             background: transparent; border: 0; text-align: left; }
-        #topbar-mobile-isi button:hover { background: var(--brand-surface-tertiary, #F1F5F1); }
+        #topbar-mobile-isi button:hover { background: var(--brand-surface-tertiary, var(--color-slate-100)); }
         #topbar-mobile-isi .profil { display: flex; align-items: center; gap: 12px;
-            padding: 12px 16px; border-top: 1px solid var(--brand-surface-border, #E2EAE4); }
+            padding: 12px 16px; border-top: 1px solid var(--brand-surface-border, var(--color-slate-200)); }
         #topbar-mobile-isi .profil span { min-width: 0; }
         #topbar-mobile-isi .profil b { display: block; font-size: 13px; font-weight: 500;
-            color: var(--brand-surface-text_secondary, #2A3731); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            color: var(--brand-surface-text_secondary, var(--color-slate-800)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         #topbar-mobile-isi .profil small { display: block; font-size: 10px; font-weight: 500;
-            color: var(--brand-surface-text_tertiary, #4A5B53); text-transform: uppercase; letter-spacing: .04em; }
-        #topbar-mobile-isi form { border-top: 1px solid var(--brand-surface-border, #E2EAE4); }
-        #topbar-mobile-isi form button { color: #93481A; }
-        #topbar-mobile-isi form button:hover { background: #FAF0EA; }
+            color: var(--brand-surface-text_tertiary, var(--color-slate-500)); text-transform: uppercase; letter-spacing: .04em; }
+        #topbar-mobile-isi form { border-top: 1px solid var(--brand-surface-border, var(--color-slate-200)); }
+        #topbar-mobile-isi form button { color: var(--color-rose-800); }
+        #topbar-mobile-isi form button:hover { background: var(--color-amber-50); }
     }
     html.dark #topbar-mobile-isi {
-        background: var(--brand-surface-dark_secondary, #2A3731);
-        border-color: var(--brand-surface-dark_border, #3F4F47);
+        background: var(--brand-surface-dark_secondary, var(--color-slate-800));
+        border-color: var(--brand-surface-dark_border, var(--color-slate-700));
     }
     html.dark #topbar-mobile-isi button:not(form button),
-    html.dark #topbar-mobile-isi .profil b { color: var(--brand-surface-dark_text, #F1F5F1); }
+    html.dark #topbar-mobile-isi .profil b { color: var(--brand-surface-dark_text, var(--color-slate-100)); }
     html.dark #topbar-mobile-isi .profil small { color: var(--brand-surface-dark_text_tertiary, var(--brand-sidebar-muted)); }
     html.dark #topbar-mobile-isi .profil,
-    html.dark #topbar-mobile-isi form { border-color: var(--brand-surface-dark_border, #3F4F47); }
-    html.dark #topbar-mobile-isi button:not(form button):hover { background: var(--brand-surface-dark_tertiary, #3F4F47); }
+    html.dark #topbar-mobile-isi form { border-color: var(--brand-surface-dark_border, var(--color-slate-700)); }
+    html.dark #topbar-mobile-isi button:not(form button):hover { background: var(--brand-surface-dark_tertiary, var(--color-slate-700)); }
 
     /* Wadah konten halaman. Sengaja TIDAK diberi warna/card/shadow di sini -
        setiap halaman sudah membangun container & card putihnya sendiri,
@@ -596,8 +596,8 @@
     }
     #mainSidebar nav::-webkit-scrollbar { width: 6px; }
     #mainSidebar nav::-webkit-scrollbar-track { background: transparent; }
-    #mainSidebar nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 999px; }
-    #mainSidebar nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+    #mainSidebar nav::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-white) 15%, transparent); border-radius: 999px; }
+    #mainSidebar nav::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--color-white) 30%, transparent); }
 </style>
     
 </head>
@@ -1657,9 +1657,9 @@
                 {{-- Tanda premium: belah ketupat tinta + aksen emas — identitas shell baru. --}}
                 <span class="premium-logo-mark" aria-hidden="true">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <rect width="24" height="24" rx="6.5" fill="#221F1B"/>
-                        <path d="M6.5 13.2 12 6l5.5 7.2" stroke="#E4C65A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M8.8 17.3h6.4" stroke="#A67C37" stroke-width="1.5" stroke-linecap="round"/>
+                        <rect width="24" height="24" rx="6.5" fill="var(--ink-900)"/>
+                        <path d="M6.5 13.2 12 6l5.5 7.2" stroke="var(--color-amber-400)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8.8 17.3h6.4" stroke="var(--brand-accent-light)" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                 </span>
             @endif
@@ -1726,7 +1726,7 @@
             <div class="relative">
                 <button type="button" id="notif-btn" onclick="toggleNotif(event)" class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all" title="Notifikasi & pekerjaan masuk">
                     <i class="fas fa-bell"></i>
-                    <span id="notif-total" class="hidden absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full text-[10px] font-medium items-center justify-center ring-2 ring-white" style="background: var(--notif-danger, #93481A); color: var(--notif-danger-fg, #fff);"></span>
+                    <span id="notif-total" class="hidden absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full text-[10px] font-medium items-center justify-center ring-2 ring-white" style="background: var(--notif-danger, var(--color-rose-800)); color: var(--notif-danger-fg, var(--color-white));"></span>
                 </button>
                 <div id="notif-panel" class="hidden absolute right-0 mt-2 w-80 max-w-[90vw] bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
                     <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">

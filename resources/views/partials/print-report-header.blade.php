@@ -51,23 +51,23 @@
                      untuk judul apa pun dan letter-spacing-nya 0; pada
                      letterhead kertas, huruf besar hanya menambah lebar tanpa
                      menambah hierarki. Warna memakai token OpenCode:
-                     teks utama #171717, teks sekunder #6f6f6f. --}}
-                <h1 class="kop-laporan-judul text-[15px] font-medium text-[#171717] leading-tight">{{ $appSettingReportPrint->nama_aplikasi }}</h1>
+                     teks utama var(--ink-900), teks sekunder var(--ink-600). --}}
+                <h1 class="kop-laporan-judul text-[15px] font-medium text-[var(--ink-900)] leading-tight">{{ $appSettingReportPrint->nama_aplikasi }}</h1>
                 @if($appSettingReportPrint->alamat)
-                    <p class="kop-laporan-meta text-[10.5px] text-[#6f6f6f] leading-snug mt-0.5">{{ $appSettingReportPrint->alamat }}</p>
+                    <p class="kop-laporan-meta text-[10.5px] text-[var(--ink-600)] leading-snug mt-0.5">{{ $appSettingReportPrint->alamat }}</p>
                 @endif
                 @if($appSettingReportPrint->telepon || $appSettingReportPrint->fax)
-                    <p class="kop-laporan-meta text-[10.5px] text-[#6f6f6f] leading-snug">Telp : {{ $appSettingReportPrint->telepon ?: '-' }}, Fax : {{ $appSettingReportPrint->fax ?: '-' }}</p>
+                    <p class="kop-laporan-meta text-[10.5px] text-[var(--ink-600)] leading-snug">Telp : {{ $appSettingReportPrint->telepon ?: '-' }}, Fax : {{ $appSettingReportPrint->fax ?: '-' }}</p>
                 @endif
                 @if($appSettingReportPrint->email || $appSettingReportPrint->website)
-                    <p class="kop-laporan-meta text-[10.5px] text-[#6f6f6f] leading-snug">Email : {{ $appSettingReportPrint->email ?: '-' }}, Website : {{ $appSettingReportPrint->website ?: '-' }}</p>
+                    <p class="kop-laporan-meta text-[10.5px] text-[var(--ink-600)] leading-snug">Email : {{ $appSettingReportPrint->email ?: '-' }}, Website : {{ $appSettingReportPrint->website ?: '-' }}</p>
                 @endif
             </div>
         </div>
         <div class="text-right shrink-0">
-            <h2 class="kop-laporan-judul text-[17px] font-medium text-[#171717] leading-tight">{{ $docTitle }}</h2>
+            <h2 class="kop-laporan-judul text-[17px] font-medium text-[var(--ink-900)] leading-tight">{{ $docTitle }}</h2>
             @if(isset($tglDari) && isset($tglSampai))
-                <p class="kop-laporan-meta text-[11px] text-[#6f6f6f] mt-1">
+                <p class="kop-laporan-meta text-[11px] text-[var(--ink-600)] mt-1">
                     Periode {{ \Carbon\Carbon::parse($tglDari)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($tglSampai)->format('d/m/Y') }}
                 </p>
             @endif
@@ -76,5 +76,5 @@
     {{-- Garis penutup satu piksel, bukan 2px. Di palet OpenCode semua
          garis satu piksel; 2px hanya menambah bobot visual tanpa menambah
          informasi. --}}
-    <div class="mt-3 border-t border-[#8f8f8f]"></div>
+    <div class="mt-3 border-t border-[var(--color-slate-400)]"></div>
 </div>

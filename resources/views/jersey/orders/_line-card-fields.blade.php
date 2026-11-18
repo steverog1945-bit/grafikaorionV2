@@ -27,9 +27,9 @@
 .jersey-line-card .input-qty-ukuran { padding: .3rem .2rem; }
 .jersey-line-card .thumbnail-dropzone { width: 3.25rem; height: 3.25rem; }
 .jersey-line-card .line-price-preview { padding: .6rem .75rem; }
-html.dark .jersey-mobile-form-page .jersey-line-head { background-color: rgba(67,56,202,.30); border-color: rgba(99,102,241,.28); }
-html.dark .jersey-mobile-form-page .jersey-line-head .jersey-line-label { color: #a5b4fc; }
-html.dark .jersey-mobile-form-page .jersey-line-head button:hover { background-color: rgba(244,63,94,.12); }
+html.dark .jersey-mobile-form-page .jersey-line-head { background-color: color-mix(in srgb, var(--color-indigo-600) 30%, transparent); border-color: color-mix(in srgb, var(--color-indigo-500) 28%, transparent); }
+html.dark .jersey-mobile-form-page .jersey-line-head .jersey-line-label { color: var(--color-indigo-400); }
+html.dark .jersey-mobile-form-page .jersey-line-head button:hover { background-color: color-mix(in srgb, var(--color-rose-500) 12%, transparent); }
 </style>
 @php
     $otIsi = $line->order_type ?? 'quantity_only';

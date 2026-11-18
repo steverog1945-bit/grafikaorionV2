@@ -55,7 +55,7 @@
                             <td class="px-2 py-2"><input type="number" name="rows[{{ $i }}][urutan]" value="{{ $t->urutan }}" required min="0" max="9999" class="w-20 rounded-lg border-slate-200 bg-slate-50 px-2 py-2 text-xs text-right"></td>
                             <td class="px-2 py-2 text-center">
                                 <input type="hidden" name="rows[{{ $i }}][aktif]" value="0">
-                                <input type="checkbox" name="rows[{{ $i }}][aktif]" value="1" @checked($t->aktif) class="h-4 w-4 accent-[#8C6A2F]" aria-label="Aktif">
+                                <input type="checkbox" name="rows[{{ $i }}][aktif]" value="1" @checked($t->aktif) class="h-4 w-4 accent-[var(--brand-accent-light)]" aria-label="Aktif">
                             </td>
                             <td class="px-2 py-2 text-right">
                                 <input type="hidden" name="rows[{{ $i }}][id]" value="{{ $t->id }}">
@@ -88,7 +88,7 @@
         <td class="px-2 py-2"><input type="number" name="rows[__I__][urutan]" value="100" required min="0" max="9999" class="w-20 rounded-lg border-slate-200 bg-slate-50 px-2 py-2 text-xs text-right"></td>
         <td class="px-2 py-2 text-center">
             <input type="hidden" name="rows[__I__][aktif]" value="0">
-            <input type="checkbox" name="rows[__I__][aktif]" value="1" checked class="h-4 w-4 accent-[#8C6A2F]">
+            <input type="checkbox" name="rows[__I__][aktif]" value="1" checked class="h-4 w-4 accent-[var(--brand-accent-light)]">
         </td>
         <td class="px-2 py-2 text-right">
             <button type="button" class="text-slate-300 hover:text-rose-500 transition-colors" onclick="hapusBarisTopbar(this)" title="Hapus tab"><i class="fas fa-trash-can text-xs"></i></button>

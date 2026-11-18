@@ -160,7 +160,7 @@
                 <div class="flex items-center justify-between mb-1.5 ml-1 mr-1 gap-2">
                     <label for="id_konsumen" class="text-[10px] font-medium text-slate-400 uppercase tracking-widest truncate">Cari Pelanggan</label>
                     <button type="button" onclick="openModal('konsumen-baru')" title="Daftarkan pelanggan baru"
-                        class="text-[var(--brand-accent-light)] hover:text-[#005560] font-medium text-[11px] flex items-center gap-1 shrink-0">
+                        class="text-[var(--brand-accent-light)] hover:text-[var(--brand-sidebar-border)] font-medium text-[11px] flex items-center gap-1 shrink-0">
                         <i class="fas fa-plus text-[9px]"></i> Baru
                     </button>
                 </div>
@@ -987,7 +987,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
-                    <button type="button" onclick="simpanTransaksi(this)" class="w-full inline-flex items-center justify-center gap-2 py-4 bg-[var(--brand-accent-light)] hover:bg-[#005560] text-white rounded-xl font-medium text-xs uppercase tracking-wider shadow-sm transition-colors active:scale-[0.99]">
+                    <button type="button" onclick="simpanTransaksi(this)" class="w-full inline-flex items-center justify-center gap-2 py-4 bg-[var(--brand-accent-light)] hover:bg-[var(--brand-sidebar-border)] text-white rounded-xl font-medium text-xs uppercase tracking-wider shadow-sm transition-colors active:scale-[0.99]">
                         @if($notaEdit)
                             <i class="fas fa-save"></i> Simpan Koreksi Nota {{ $notaEdit->nomor_nota }}
                         @elseif($notaSusulan)
@@ -1048,11 +1048,11 @@
         30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
         40%, 60% { transform: translate3d(4px, 0, 0); }
     }
-    .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #E2EAE4 transparent; }
+    .custom-scrollbar { scrollbar-width: thin; scrollbar-color: var(--color-slate-200) transparent; }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2EAE4; border-radius: 10px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #C9D6CE; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-slate-200); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-slate-300); }
 
     /* Styling Select2 (tinggi, border, font, dropdown, scrollbar hasil
        pencarian) SUDAH dipindahkan ke resources/css/app.css supaya satu

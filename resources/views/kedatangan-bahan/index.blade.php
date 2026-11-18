@@ -228,7 +228,7 @@
             title: 'Hapus data ini?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
+            confirmButtonColor: 'var(--color-rose-800)',
             confirmButtonText: 'Ya, Hapus',
             customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
@@ -250,7 +250,7 @@
             text: "Data draft yang terpilih akan dihapus selamanya.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
+            confirmButtonColor: 'var(--color-rose-800)',
             confirmButtonText: 'Ya, Hapus Semua',
             customClass: { popup: 'rounded-2xl' }
         }).then((result) => {

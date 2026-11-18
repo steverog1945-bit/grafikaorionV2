@@ -1,0 +1,38 @@
+/* =========================================================================
+   UI TOKENS GLOBAL - semua warna literal yang dipakai lintas halaman.
+   Tidak ada nilai hex di file BLADE; semuanya lewat variabel ini atau
+   ramp Tailwind (`--color-slate-*`, `--color-indigo-*`, dst.) yang sudah
+   di-remap per tema oleh BrandThemeService + @theme di app.css.
+   ========================================================================= */
+
+:root {
+    --color-white: #ffffff;
+    --color-black: #000000;
+    --ink-900: #171717;
+    --ink-600: #6f6f6f;
+    --line-200: #e5e5e5;
+    --neutral-100: #f3f3f3;
+    --paper: #fcfcfc;
+}
+
+/* Alpha hitam/putih untuk overlay & bayangan - satu sumber, bukan sebaran
+   rgba() mentah di blade. */
+:root {
+    --overlay-10: color-mix(in srgb, var(--color-black) 10%, transparent);
+    --overlay-15: color-mix(in srgb, var(--color-black) 15%, transparent);
+    --overlay-20: color-mix(in srgb, var(--color-black) 20%, transparent);
+    --overlay-30: color-mix(in srgb, var(--color-black) 30%, transparent);
+    --overlay-40: color-mix(in srgb, var(--color-black) 40%, transparent);
+    --overlay-50: color-mix(in srgb, var(--color-black) 50%, transparent);
+    --overlay-60: color-mix(in srgb, var(--color-black) 60%, transparent);
+    --overlay-75: color-mix(in srgb, var(--color-black) 75%, transparent);
+    --white-05: color-mix(in srgb, var(--color-white) 5%, transparent);
+    --white-10: color-mix(in srgb, var(--color-white) 10%, transparent);
+    --white-20: color-mix(in srgb, var(--color-white) 20%, transparent);
+    --white-30: color-mix(in srgb, var(--color-white) 30%, transparent);
+    --white-40: color-mix(in srgb, var(--color-white) 40%, transparent);
+    --white-50: color-mix(in srgb, var(--color-white) 50%, transparent);
+    --white-70: color-mix(in srgb, var(--color-white) 70%, transparent);
+    --white-80: color-mix(in srgb, var(--color-white) 80%, transparent);
+    --white-90: color-mix(in srgb, var(--color-white) 90%, transparent);
+}

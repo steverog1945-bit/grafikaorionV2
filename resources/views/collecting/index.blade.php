@@ -213,16 +213,16 @@
                     <label style="font-weight:700">Foto bukti (opsional)</label>
                     <input id="sw-bukti" type="file" accept="image/*" style="margin-top:6px;width:100%">
                     ${belumLunas ? `
-                    <div style="margin-top:14px;padding:10px 12px;border:1px solid #F2B565;background:#FEF6EA;border-radius:6px">
-                        <b style="color:#92400e">Nota ini belum lunas (${statusBayar}).</b>
-                        <div style="margin:4px 0 8px;color:#78350f">Barang boleh diserahkan hanya dengan sengaja. Tulis alasannya, misalnya pelanggan tetap dengan jatuh tempo atau ada persetujuan pemilik.</div>
+                    <div style="margin-top:14px;padding:10px 12px;border:1px solid var(--color-amber-600);background:var(--color-amber-50);border-radius:6px">
+                        <b style="color:var(--color-amber-800)">Nota ini belum lunas (${statusBayar}).</b>
+                        <div style="margin:4px 0 8px;color:var(--color-amber-800)">Barang boleh diserahkan hanya dengan sengaja. Tulis alasannya, misalnya pelanggan tetap dengan jatuh tempo atau ada persetujuan pemilik.</div>
                         <input id="sw-alasan-belum-lunas" class="swal2-input" style="margin:0;width:100%" maxlength="500" placeholder="Alasan menyerahkan sebelum lunas">
                     </div>` : ''}
                 </div>`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#10b981',
-            cancelButtonColor: '#FAFBF9',
+            confirmButtonColor: 'var(--color-emerald-500)',
+            cancelButtonColor: 'var(--color-slate-50)',
             confirmButtonText: 'Ya, Sudah Diserahkan',
             cancelButtonText: 'Batal',
             customClass: {

@@ -325,8 +325,8 @@ function removeRow(btn) {
         text: 'Item yang dihapus tidak akan disimpan ke database.',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#93481A',
-        cancelButtonColor: '#4A5B53',
+        confirmButtonColor: 'var(--color-rose-800)',
+        cancelButtonColor: 'var(--color-slate-500)',
         confirmButtonText: 'Ya, Hapus'
     }).then((result) => {
         if (result.isConfirmed) {

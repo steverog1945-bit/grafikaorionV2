@@ -177,8 +177,8 @@
             html: `Satuan <b>${escHtml(nama)}</b> akan dihapus permanen.<br><small class="text-amber-600 font-medium">Perhitungan konversi stok yang menggunakan satuan ini mungkin akan kacau.</small>`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
-            cancelButtonColor: '#FAFBF9',
+            confirmButtonColor: 'var(--color-rose-800)',
+            cancelButtonColor: 'var(--color-slate-50)',
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
             customClass: {

@@ -5,7 +5,7 @@
     @media print {
         aside, .no-print { display: none !important; }
         main { margin-left: 0 !important; padding: 28px 32px !important; }
-        body { background: #fff !important; }
+        body { background: var(--color-white) !important; }
     }
 </style>
 @include('partials.print-report-header', ['docTitle' => 'Prediksi Restock Cerdas'])
@@ -17,7 +17,7 @@
                 Cetak
             </x-button>
             @if(\App\Support\Izin::bolehPath(auth()->user(), '/purchase-request/create'))
-            <a href="{{ route('purchase-request.create') }}" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-[var(--brand-sidebar-accent,#4F46E5)] text-white text-[12px] font-semibold hover:brightness-110 transition-all no-print"><i class="fas fa-cart-plus"></i> Buat Permintaan Pembelian</a>
+            <a href="{{ route('purchase-request.create') }}" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-[var(--brand-sidebar-accent,var(--color-indigo-600))] text-white text-[12px] font-semibold hover:brightness-110 transition-all no-print"><i class="fas fa-cart-plus"></i> Buat Permintaan Pembelian</a>
             @endif
         </x-slot:actions>
     </x-page-header>

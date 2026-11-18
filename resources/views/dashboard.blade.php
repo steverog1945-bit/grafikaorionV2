@@ -186,8 +186,8 @@
         })->all();
     };
     $charts = [
-        ['jdl' => 'Order 7 Hari Terakhir', 'kunci' => 'order', 'maks' => $maksOrder, 'warna' => 'var(--brand-accent-light, #006C7B)', 'fill' => 'brand', 'tip' => 'Jumlah nota per hari', 'uang' => false],
-        ['jdl' => 'Kas Masuk 7 Hari Terakhir', 'kunci' => 'kas', 'maks' => $maksKas, 'warna' => '#059669', 'fill' => 'emerald', 'tip' => 'Pembayaran yang diterima per hari', 'uang' => true],
+        ['jdl' => 'Order 7 Hari Terakhir', 'kunci' => 'order', 'maks' => $maksOrder, 'warna' => 'var(--brand-accent-light, var(--brand-accent-light))', 'fill' => 'brand', 'tip' => 'Jumlah nota per hari', 'uang' => false],
+        ['jdl' => 'Kas Masuk 7 Hari Terakhir', 'kunci' => 'kas', 'maks' => $maksKas, 'warna' => 'var(--color-emerald-600)', 'fill' => 'emerald', 'tip' => 'Pembayaran yang diterima per hari', 'uang' => true],
     ];
 @endphp
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -216,7 +216,7 @@
             <path d="{{ $area }}" fill="url(#{{ $gradId }})"/>
             <path d="{{ $line }}" fill="none" stroke="{{ $c['warna'] }}" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
             @foreach($pts as $i => $p)
-                <circle cx="{{ $p[0] }}" cy="{{ $p[1] }}" r="{{ $loop->last ? 3.4 : 2.2 }}" fill="{{ $loop->last ? $c['warna'] : '#fff' }}" stroke="{{ $c['warna'] }}" stroke-width="1.6">
+                <circle cx="{{ $p[0] }}" cy="{{ $p[1] }}" r="{{ $loop->last ? 3.4 : 2.2 }}" fill="{{ $loop->last ? $c['warna'] : 'var(--color-white)' }}" stroke="{{ $c['warna'] }}" stroke-width="1.6">
                     <title>{{ $tren[$i]['tgl'] }}: {{ $c['uang'] ? 'Rp ' . number_format($p[2], 0, ',', '.') : $p[2] . ' order' }}</title>
                 </circle>
             @endforeach

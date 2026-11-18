@@ -249,7 +249,7 @@
                     <select id="swal-metode" class="swal2-input" style="margin:6px 0 0;width:100%"><option value="Tunai">Tunai (Kas)</option><option value="Transfer">Transfer (Bank)</option></select>
                 </div>`,
             showCancelButton: true,
-            confirmButtonColor: '#10b981',
+            confirmButtonColor: 'var(--color-emerald-500)',
             confirmButtonText: 'Catat Pembayaran',
             customClass: { popup: 'rounded-2xl' },
             preConfirm: () => {
@@ -285,7 +285,7 @@
             inputValidator: (v) => !v ? 'Alasan wajib diisi' : null,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
+            confirmButtonColor: 'var(--color-rose-800)',
             confirmButtonText: 'Ajukan Pembatalan',
             customClass: { popup: 'rounded-2xl' }
         }).then((result) => {
@@ -307,7 +307,7 @@
             text: 'Tiap faktur diajukan ke Alur Persetujuan; tidak ada yang langsung dihapus.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
+            confirmButtonColor: 'var(--color-rose-800)',
             confirmButtonText: 'Ya, Ajukan Semua',
             customClass: { popup: 'rounded-2xl' }
         }).then((result) => {

@@ -60,7 +60,7 @@
         .bl-baca { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1.25rem; font-weight: 500; border-bottom: 1px solid var(--tinta); padding-bottom: 2px; }
         .bl-baca i { font-size: 0.75rem; transition: transform 180ms var(--keluar); }
 
-        .bl-gambar { overflow: hidden; border-radius: 8px; background: #eeeae4; aspect-ratio: 3 / 2; }
+        .bl-gambar { overflow: hidden; border-radius: 8px; background: var(--color-slate-100); aspect-ratio: 3 / 2; }
         .bl-gambar img { width: 100%; height: 100%; object-fit: cover; transition: transform 320ms var(--keluar); }
         .bl-meta { display: flex; flex-wrap: wrap; gap: 0.375rem 0.75rem; margin: 0; font-size: 0.8125rem; color: var(--tinta-3); }
         .bl-meta span { color: var(--tinta); font-weight: 500; }
@@ -75,7 +75,7 @@
         .bl-cari { position: relative; flex: 0 1 260px; }
         .bl-cari i { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--tinta-3); font-size: 0.8125rem; pointer-events: none; }
         .bl-cari input { width: 100%; padding: 0 0.75rem 0 2.25rem; background: var(--putih); border: 1px solid var(--garis-kuat); font: inherit; font-size: 0.9375rem; color: var(--tinta); outline: none; }
-        .bl-cari input:focus { border-color: var(--aksen); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important; }
+        .bl-cari input:focus { border-color: var(--aksen); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-indigo-600) 15%, transparent) !important; }
 
         .bl-daftar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3rem 2rem; padding-top: 2.5rem; transition: opacity 150ms ease; }
         .bl-daftar:empty { padding-top: 0; }

@@ -15,26 +15,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#f8fafc">
+<meta name="theme-color" content="var(--color-slate-50)">
 <title>{{ $kode }} — {{ $judul }} · ORION GRAFIKA</title>
 <style>
     :root {
-        --ink: #0f172a;
-        --muted: #64748b;
-        --line: #e2e8f0;
-        --brand: #006c7b;
-        --brand-soft: rgba(0, 108, 123, .08);
-        --brand-soft-2: rgba(0, 108, 123, .14);
-        --peringatan: #b45309;
-        --peringatan-soft: rgba(180, 83, 9, .08);
-        --rose: #be123d;
-        --rose-soft: rgba(190, 18, 61, .08);
-        --amber: #d97706;
-        --amber-soft: rgba(217, 119, 6, .08);
-        --indigo: #4f46e5;
-        --indigo-soft: rgba(79, 70, 229, .08);
-        --emerald: #059669;
-        --emerald-soft: rgba(5, 150, 105, .08);
+        --ink: var(--color-slate-900);
+        --muted: var(--color-slate-500);
+        --line: var(--color-slate-200);
+        --brand: var(--brand-accent-light);
+        --brand-soft: color-mix(in srgb, var(--brand-accent-light) 8%, transparent);
+        --brand-soft-2: color-mix(in srgb, var(--brand-accent-light) 14%, transparent);
+        --peringatan: var(--color-amber-700);
+        --peringatan-soft: color-mix(in srgb, var(--color-amber-700) 8%, transparent);
+        --rose: var(--color-rose-700);
+        --rose-soft: color-mix(in srgb, var(--color-rose-700) 8%, transparent);
+        --amber: var(--color-amber-600);
+        --amber-soft: color-mix(in srgb, var(--color-amber-600) 8%, transparent);
+        --indigo: var(--color-indigo-600);
+        --indigo-soft: color-mix(in srgb, var(--color-indigo-600) 8%, transparent);
+        --emerald: var(--color-emerald-600);
+        --emerald-soft: color-mix(in srgb, var(--color-emerald-600) 8%, transparent);
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; }
@@ -44,7 +44,7 @@
         padding: 28px 20px;
         font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         color: var(--ink);
-        background: #f8fafc;
+        background: var(--color-slate-50);
         background-image:
             radial-gradient(1100px 620px at 85% -10%, var(--brand-soft-2) 0%, transparent 60%),
             radial-gradient(900px 520px at -15% 110%, var(--indigo-soft) 0%, transparent 55%),
@@ -60,18 +60,18 @@
         position: relative;
         border-radius: 20px;
         border: 1px solid var(--line);
-        background: rgba(255, 255, 255, .88);
+        background: color-mix(in srgb, var(--color-white) 88%, transparent);
         backdrop-filter: blur(10px);
         box-shadow:
-            0 1px 2px rgba(15, 23, 42, .04),
-            0 12px 40px -12px rgba(15, 23, 42, .10);
+            0 1px 2px color-mix(in srgb, var(--color-slate-900) 4%, transparent),
+            0 12px 40px -12px color-mix(in srgb, var(--color-slate-900) 10%, transparent);
         padding: 30px 40px 28px;
         overflow: hidden;
     }
     .panel::before {
         content: "";
         position: absolute; inset: 0 0 auto 0; height: 4px;
-        background: linear-gradient(90deg, var(--brand) 0%, #17a0a1 55%, #054f5d 100%);
+        background: linear-gradient(90deg, var(--brand) 0%, var(--brand-accent-dark) 55%, var(--brand-sidebar-border) 100%);
         border-top-left-radius: 20px; border-top-right-radius: 20px;
     }
 
@@ -81,7 +81,7 @@
         .panel { animation: err-fade-up .45s cubic-bezier(.22,1,.36,1) both; }
         .icon-tile { animation: err-pop .35s .1s both; }
         .btn { transition: transform .15s ease, box-shadow .15s ease, background-color .2s ease; }
-        .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px -10px rgba(15,23,42,.35); }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px -10px color-mix(in srgb, var(--color-slate-900) 35%, transparent); }
         .btn:active { transform: translateY(0) scale(.98); box-shadow: none; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -96,14 +96,14 @@
     .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .brand-mark {
         width: 34px; height: 34px; border-radius: 10px;
-        background: linear-gradient(135deg, #006c7b 0%, #0b7a87 100%);
-        color: #fff; display: grid; place-items: center;
+        background: linear-gradient(135deg, var(--brand-accent-light) 0%, var(--brand-accent-hover-light) 100%);
+        color: var(--color-white); display: grid; place-items: center;
         font-weight: 700; font-size: 15px; letter-spacing: 0.02em;
-        box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 1px 2px rgba(0,0,0,.25);
+        box-shadow: 0 1px 0 color-mix(in srgb, var(--color-white) 60%, transparent) inset, 0 1px 2px color-mix(in srgb, var(--color-black) 25%, transparent);
         flex: 0 0 auto;
     }
     .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
-    .brand-text b { font-size: 12px; font-weight: 700; color: #0f172a; letter-spacing: 0.04em; }
+    .brand-text b { font-size: 12px; font-weight: 700; color: var(--color-slate-900); letter-spacing: 0.04em; }
     .brand-text span { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
 
     .kode-chip {
@@ -132,7 +132,7 @@
     @media (max-width: 640px) { .hero-text { align-items: center; } }
 
     h1 { font-size: 20px; line-height: 1.25; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
-    p.msg { margin: 0; font-size: 13.5px; line-height: 1.55; color: #475569; }
+    p.msg { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--color-slate-600); }
 
     /* Tombol aksi — sesuai bentuk tombol aplikasi lain */
     .btn {
@@ -140,10 +140,10 @@
         display: inline-flex; align-items: center; gap: 9px;
         font: 600 13px/1 'Inter', system-ui, -apple-system, sans-serif;
         padding: 12px 18px; border-radius: 10px; transition: 120ms ease;
-        background: var(--brand); color: #fff;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, .08), 0 0 0 1px rgba(6, 91, 102, .5) inset;
+        background: var(--brand); color: var(--color-white);
+        box-shadow: 0 1px 2px color-mix(in srgb, var(--color-slate-900) 8%, transparent), 0 0 0 1px color-mix(in srgb, var(--brand-accent-hover-light) 50%, transparent) inset;
     }
-    .btn:hover { background: #085862; }
+    .btn:hover { background: var(--brand-accent-hover-light); }
     .btn:active { transform: translateY(1px); }
     .btn:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
     .btn svg { width: 14px; height: 14px; }
@@ -165,7 +165,7 @@
     }
     .foot b { color: var(--ink); font-weight: 600; }
     .dotline { display: inline-flex; align-items: center; gap: 8px; }
-    .dotline i { width: 6px; height: 6px; border-radius: 999px; background: #10b981; }
+    .dotline i { width: 6px; height: 6px; border-radius: 999px; background: var(--color-emerald-500); }
 </style>
 </head>
 <body role="main">
@@ -187,7 +187,7 @@
                     <h1 id="err-title">{{ $judul }}</h1>
                     <p class="msg">{{ $pesan }}</p>
                     @if(!empty($detail))
-                        <p class="msg" style="font-size:12px; color:#64748b;">{{ $detail }}</p>
+                        <p class="msg" style="font-size:12px; color:var(--color-slate-500);">{{ $detail }}</p>
                     @endif
                     <div class="aksi" role="group" aria-label="Tindakan yang bisa dilakukan">
                         @foreach($pintasan as $p)

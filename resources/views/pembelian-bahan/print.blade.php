@@ -11,23 +11,23 @@
         body { padding: 0 {{ $format === 'continuous' ? '0' : '4px' }}; }
         @if($format === 'continuous')
         {{-- Continuous form = printer dot-matrix: hitam pekat, font monospace, tanpa warna/latar --}}
-        body, .sheet, table, th, td { font-family: 'Courier New', Courier, monospace !important; color: #000 !important; background: #fff !important; }
-        th { border-bottom: 1px solid #000 !important; }
-        .print-header h1, .print-header .company-info, .print-header .doc-title { color: #000 !important; }
-        .divider { border-top: 1px dashed #000 !important; }
+        body, .sheet, table, th, td { font-family: 'Courier New', Courier, monospace !important; color: var(--color-black) !important; background: var(--color-white) !important; }
+        th { border-bottom: 1px solid var(--color-black) !important; }
+        .print-header h1, .print-header .company-info, .print-header .doc-title { color: var(--color-black) !important; }
+        .divider { border-top: 1px dashed var(--color-black) !important; }
         @endif
         .info td { padding: 2px 4px; }
-        .info td.label { width: 22%; color: #4A5B53; }
+        .info td.label { width: 22%; color: var(--color-slate-500); }
         .info td.sep { width: 2%; }
-        .item-table th, .item-table td { padding: 5px 6px; border-bottom: 1px solid #E2EAE4; }
+        .item-table th, .item-table td { padding: 5px 6px; border-bottom: 1px solid var(--color-slate-200); }
         .item-table tfoot td { border-bottom: none; }
         .ringkas { width: 46%; margin-left: auto; }
         .ringkas td { padding: 2px 4px; }
-        .toolbar { text-align: center; margin-bottom: 18px; padding: 12px; background: #FAFBF9; border: 1px solid #E2EAE4; border-radius: 12px; }
+        .toolbar { text-align: center; margin-bottom: 18px; padding: 12px; background: var(--color-slate-50); border: 1px solid var(--color-slate-200); border-radius: 12px; }
         .toolbar .pilih { display: inline-flex; gap: 6px; margin-right: 12px; vertical-align: middle; }
-        .toolbar .pilih a { padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; text-decoration: none; color: #3F4F47; background: #fff; border: 1px solid #E2EAE4; }
-        .toolbar .pilih a.aktif { background: var(--brand-accent-surface-light); color: var(--brand-accent-light); border-color: #B6E4EC; }
-        .toolbar .info-kertas { display: block; margin-top: 8px; font-size: 11px; color: #94a3b8; }
+        .toolbar .pilih a { padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; text-decoration: none; color: var(--color-slate-700); background: var(--color-white); border: 1px solid var(--color-slate-200); }
+        .toolbar .pilih a.aktif { background: var(--brand-accent-surface-light); color: var(--brand-accent-light); border-color: var(--brand-accent-surface-light); }
+        .toolbar .info-kertas { display: block; margin-top: 8px; font-size: 11px; color: var(--color-slate-400); }
         @media print { .toolbar { display: none !important; } }
     </style>
 </head>
@@ -73,7 +73,7 @@
                 @foreach($pembelian->detail as $i => $item)
                 <tr>
                     <td>{{ $i + 1 }}</td>
-                    <td>{{ $item->bahan->nama_bahan ?? '-' }} <span style="color:#94a3b8">({{ $item->bahan->kode_bahan ?? '-' }})</span></td>
+                    <td>{{ $item->bahan->nama_bahan ?? '-' }} <span style="color:var(--color-slate-400)">({{ $item->bahan->kode_bahan ?? '-' }})</span></td>
                     <td class="right">{{ angka($item->qty, 2) }} {{ $item->bahan->satuan_stok ?? '' }}</td>
                     <td class="right">{{ number_format($item->harga, 0, ',', '.') }}</td>
                     <td class="right">{{ number_format($item->diskon, 0, ',', '.') }}</td>

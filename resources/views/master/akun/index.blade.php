@@ -189,7 +189,7 @@
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: 'var(--brand-accent-light)',
-            cancelButtonColor: '#FAFBF9',
+            cancelButtonColor: 'var(--color-slate-50)',
             confirmButtonText: 'Ya, Lanjutkan',
             cancelButtonText: 'Batal',
             customClass: {
@@ -209,8 +209,8 @@
             html: `Akun <b>${escHtml(namaAkun)}</b> akan dihapus permanen. Hanya bisa dihapus kalau belum pernah dipakai di jurnal.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
-            cancelButtonColor: '#FAFBF9',
+            confirmButtonColor: 'var(--color-rose-800)',
+            cancelButtonColor: 'var(--color-slate-50)',
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
             customClass: {

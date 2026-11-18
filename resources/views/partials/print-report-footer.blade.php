@@ -8,7 +8,7 @@
     $printNote dipakai untuk catatan tambahan di sebelah kanan.
 --}}
 @php($printUser = auth()->user()?->username ?? auth()->user()?->name ?? 'sistem')
-<div class="hidden print:block mt-6 pt-2 border-t border-[#e5e5e5] text-[9px] text-[#6f6f6f] flex items-center justify-between gap-4">
+<div class="hidden print:block mt-6 pt-2 border-t border-[var(--line-200)] text-[9px] text-[var(--ink-600)] flex items-center justify-between gap-4">
     <span>Dicetak pada {{ now()->format('d/m/Y H:i') }} oleh {{ $printUser }}</span>
     @if(!empty($printNote ?? null))
         <span>{{ $printNote }}</span>

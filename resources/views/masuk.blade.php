@@ -87,7 +87,7 @@
                        autocomplete="off"
                        inputmode="numeric">
                 @error('captcha')
-                    <div style="color:#b91c1c;font-size:13px;margin-top:4px">{{ $message }}</div>
+                    <div style="color:var(--color-rose-700);font-size:13px;margin-top:4px">{{ $message }}</div>
                 @enderror
             </div>
         @endif

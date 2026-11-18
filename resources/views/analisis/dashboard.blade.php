@@ -157,15 +157,15 @@
      Konsisten dengan guideline: transform/opacity only, focus-visible, reduced-motion. --}}
 <style>
 .eksekutif-dash .kpi-tile,.eksekutif-dash .kpi-saldo{transition:transform .18s ease,box-shadow .18s ease}
-.eksekutif-dash .kpi-tile:hover,.eksekutif-dash .kpi-saldo:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(15,23,42,.08)}
-.eksekutif-dash .kpi-tile:focus-visible,.eksekutif-dash .kpi-saldo:focus-visible{outline:2px solid #6366f1;outline-offset:2px}
+.eksekutif-dash .kpi-tile:hover,.eksekutif-dash .kpi-saldo:hover{transform:translateY(-2px);box-shadow:0 10px 28px color-mix(in srgb, var(--color-slate-900) 8%, transparent)}
+.eksekutif-dash .kpi-tile:focus-visible,.eksekutif-dash .kpi-saldo:focus-visible{outline:2px solid var(--color-indigo-500);outline-offset:2px}
 .eksekutif-dash .peringatan-tile:active{transform:scale(.98)}
 .eksekutif-dash .est-row{display:flex;justify-content:space-between;gap:1rem}
-.eksekutif-dash .est-info:focus-visible{outline:2px solid #6366f1;outline-offset:2px;border-radius:9999px}
-.eksekutif-dash .top-row{padding:.45rem .25rem;border-bottom:1px solid #f1f5f9}
+.eksekutif-dash .est-info:focus-visible{outline:2px solid var(--color-indigo-500);outline-offset:2px;border-radius:9999px}
+.eksekutif-dash .top-row{padding:.45rem .25rem;border-bottom:1px solid var(--color-slate-100)}
 .eksekutif-dash .top-row:last-child{border-bottom:0}
-.eksekutif-dash .top-bar{height:4px;border-radius:9999px;background:#f1f5f9;margin-top:.35rem;overflow:hidden}
-.eksekutif-dash .top-bar span{display:block;height:100%;border-radius:9999px;background:linear-gradient(90deg,#c7d2fe,#818cf8);transform-origin:left center;animation:eksekutif-bar-in .7s cubic-bezier(.22,1,.36,1) both}
+.eksekutif-dash .top-bar{height:4px;border-radius:9999px;background:var(--color-slate-100);margin-top:.35rem;overflow:hidden}
+.eksekutif-dash .top-bar span{display:block;height:100%;border-radius:9999px;background:linear-gradient(90deg,var(--color-indigo-300),var(--color-indigo-400));transform-origin:left center;animation:eksekutif-bar-in .7s cubic-bezier(.22,1,.36,1) both}
 @keyframes eksekutif-bar-in{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @media (prefers-reduced-motion: reduce){.eksekutif-dash .kpi-tile,.eksekutif-dash .kpi-saldo,.eksekutif-dash .peringatan-tile{transition:none}.eksekutif-dash .top-bar span{animation:none}}
 </style>

@@ -23,8 +23,8 @@
         }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--orion-brand-lighter, #F5F5FF);
-            color: var(--orion-brand-navy, #15143F);
+            background: var(--orion-brand-lighter, var(--color-indigo-50));
+            color: var(--orion-brand-navy, var(--color-indigo-950));
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }

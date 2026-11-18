@@ -34,8 +34,8 @@
 
     {{-- PWA: manifest + ikon agar app bisa dipasang dari halaman login juga. --}}
     <link rel="manifest" href="{{ route('pwa.manifest') }}">
-    <meta name="theme-color" content="#15143F" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#F7F7FD" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="var(--color-indigo-950)" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="var(--color-indigo-50)" media="(prefers-color-scheme: light)">
     <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -53,13 +53,13 @@
 
     <style>
         :root {
-            --masuk-night: #15143F;   /* DEEP NIGHT */
-            --masuk-indigo: #2E318E; /* ROYAL INDIGO */
-            --masuk-violet: #4D55F8; /* ELECTRIC VIOLET */
-            --masuk-keluar: #E8E9FE;
-            --masuk-kertas: #F7F7FD;
-            --masuk-teks: #DCDCFB;
-            --masup-aman: #FFFFFF;
+            --masuk-night: var(--color-indigo-950);   /* DEEP NIGHT */
+            --masuk-indigo: var(--color-indigo-900); /* ROYAL INDIGO */
+            --masuk-violet: var(--color-indigo-600); /* ELECTRIC VIOLET */
+            --masuk-keluar: var(--color-indigo-50);
+            --masuk-kertas: var(--color-indigo-50);
+            --masuk-teks: var(--color-indigo-100);
+            --masup-aman: var(--color-white);
         }
         * { box-sizing: border-box; }
         html, body { height: 100%; }
@@ -82,8 +82,8 @@
             padding: 28px 20px 24px;
             overflow: hidden;
             background:
-                radial-gradient(1100px 520px at 12% -8%, rgba(77, 85, 248, .38), transparent 62%),
-                radial-gradient(900px 480px at 92% 108%, rgba(46, 49, 142, .55), transparent 60%),
+                radial-gradient(1100px 520px at 12% -8%, color-mix(in srgb, var(--color-indigo-600) 38%, transparent), transparent 62%),
+                radial-gradient(900px 480px at 92% 108%, color-mix(in srgb, var(--color-indigo-900) 55%, transparent), transparent 60%),
                 var(--masuk-night);
         }
         .mk-kepala { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 1120px; width: 100%; margin: 0 auto; }
@@ -92,10 +92,10 @@
         .mk-merek-mark {
             display: inline-flex; align-items: center; justify-content: center;
             width: 34px; height: 34px; border-radius: 10px;
-            background: var(--masuk-violet); color: #FFFFFF; font-size: 13px; font-weight: 800;
+            background: var(--masuk-violet); color: var(--color-white); font-size: 13px; font-weight: 800;
         }
-        .mk-ke-beranda { color: var(--masup-aman); font-size: 14px; text-decoration: none; opacity: .82; padding: 8px 14px; border: 1px solid rgba(255, 255, 255, .22); border-radius: 999px; transition: opacity .18s ease, border-color .18s ease; }
-        .mk-ke-beranda:hover { opacity: 1; border-color: #FFFFFF; }
+        .mk-ke-beranda { color: var(--masup-aman); font-size: 14px; text-decoration: none; opacity: .82; padding: 8px 14px; border: 1px solid color-mix(in srgb, var(--color-white) 22%, transparent); border-radius: 999px; transition: opacity .18s ease, border-color .18s ease; }
+        .mk-ke-beranda:hover { opacity: 1; border-color: var(--color-white); }
 
         /* ---- Panel login ---- */
         .mk-panel {
@@ -103,15 +103,15 @@
             justify-self: center;
             width: 100%;
             max-width: 424px;
-            background: #FFFFFF;
+            background: var(--color-white);
             color: var(--masuk-night);
             border-radius: 18px;
             padding: 30px 28px 28px;
-            box-shadow: 0 26px 70px rgba(0, 0, 0, .38);
+            box-shadow: 0 26px 70px color-mix(in srgb, var(--color-black) 38%, transparent);
         }
         .mk-judul { margin: 0 0 6px; font-size: 22px; line-height: 1.2; font-weight: 750; letter-spacing: -.02em; }
-        .mk-sub { margin: 0 0 22px; font-size: 14px; color: #55516F; }
-        .mk-label { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 600; color: #3A3760; }
+        .mk-sub { margin: 0 0 22px; font-size: 14px; color: var(--color-slate-600); }
+        .mk-label { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--color-slate-700); }
         .mk-grup { margin-bottom: 16px; }
         .mk-input {
             width: 100%;
@@ -120,39 +120,39 @@
             font-size: 15px;
             font-family: inherit;
             color: var(--masuk-night);
-            background: #FFFFFF;
-            border: 1px solid #D6D6E8;
+            background: var(--color-white);
+            border: 1px solid var(--color-indigo-100);
             border-radius: 10px;
             transition: border-color .16s ease, box-shadow .16s ease;
         }
-        .mk-input:focus { outline: none; border-color: var(--masuk-violet); box-shadow: 0 0 0 3px rgba(77, 85, 248, .18); }
+        .mk-input:focus { outline: none; border-color: var(--masuk-violet); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-indigo-600) 18%, transparent); }
         .mk-sandi { position: relative; }
         .mk-sandi .mk-input { padding-right: 46px; }
         .mk-lihat {
             position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
             width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
-            border: 0; border-radius: 8px; background: transparent; color: #6A6790; cursor: pointer;
+            border: 0; border-radius: 8px; background: transparent; color: var(--color-slate-500); cursor: pointer;
         }
         .mk-lihat:hover { background: var(--masuk-keluar); color: var(--masuk-night); }
         .mk-tombol {
             width: 100%; height: 48px; margin-top: 6px;
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
             border: 0; border-radius: 10px; cursor: pointer;
-            background: var(--masuk-violet); color: #FFFFFF;
+            background: var(--masuk-violet); color: var(--color-white);
             font-size: 15px; font-weight: 650; font-family: inherit;
             transition: background-color .16s ease, transform .16s ease;
         }
-        .mk-tombol:hover { background: #3B41D6; }
+        .mk-tombol:hover { background: var(--color-indigo-700); }
         .mk-tombol:active { transform: translateY(1px); }
         .mk-tombol:focus-visible { outline: 3px solid var(--masuk-night); outline-offset: 2px; }
         .mk-galat {
             display: flex; align-items: flex-start; gap: 10px;
             margin: 0 0 18px; padding: 11px 13px;
             font-size: 13.5px; line-height: 1.45;
-            color: #8A1C2B; background: #FDECEF; border: 1px solid #F4C3CB; border-radius: 10px;
+            color: var(--color-rose-800); background: var(--color-rose-50); border: 1px solid var(--color-rose-200); border-radius: 10px;
         }
-        .mk-kaki { text-align: center; font-size: 12.5px; color: rgba(220, 220, 251, .72); }
-        .mk-kaki a { color: #FFFFFF; text-decoration: underline; text-underline-offset: 3px; }
+        .mk-kaki { text-align: center; font-size: 12.5px; color: color-mix(in srgb, var(--color-indigo-100) 72%, transparent); }
+        .mk-kaki a { color: var(--color-white); text-decoration: underline; text-underline-offset: 3px; }
 
         @media (max-width: 560px) {
             .mk-latar { padding: 18px 14px 18px; }

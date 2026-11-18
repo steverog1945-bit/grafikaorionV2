@@ -186,7 +186,7 @@
             text: 'Item ini akan ditandai sudah selesai diproduksi.',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#10b981',
+            confirmButtonColor: 'var(--color-emerald-500)',
             confirmButtonText: 'Ya, Selesai',
             cancelButtonText: 'Batal',
             customClass: { popup: 'rounded-2xl' }
@@ -229,7 +229,7 @@
             `,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
+            confirmButtonColor: 'var(--color-rose-800)',
             confirmButtonText: 'Ya, Lanjutkan',
             cancelButtonText: 'Kembali',
             customClass: { popup: 'rounded-2xl' },

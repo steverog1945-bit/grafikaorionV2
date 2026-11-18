@@ -445,9 +445,9 @@
             title: 'Hapus Tier Harga Ini?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
-            cancelButtonColor: '#F1F5F1',
-            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
+            confirmButtonColor: 'var(--color-rose-800)',
+            cancelButtonColor: 'var(--color-slate-100)',
+            cancelButtonText: '<span style="color: var(--color-slate-500)">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
         }).then(async (result) => {
             if (!result.isConfirmed) return;
@@ -480,9 +480,9 @@
             html: `Menghapus <b>${escapeHtml(name)}</b>? Data yang dihapus tidak dapat dikembalikan.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
-            cancelButtonColor: '#F1F5F1',
-            cancelButtonText: '<span style="color: #4A5B53">Batal</span>',
+            confirmButtonColor: 'var(--color-rose-800)',
+            cancelButtonColor: 'var(--color-slate-100)',
+            cancelButtonText: '<span style="color: var(--color-slate-500)">Batal</span>',
             confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) {

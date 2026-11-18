@@ -61,6 +61,16 @@ function lttb(xs, ys, threshold) {
 function buatChart(el, labels, values) {
     const norm = lttb(labels.map((_, i) => i), values, LTTB_LIMIT);
     const xs = norm.xs, ys = norm.ys;
+    // Warna dari token tema (warna tidak pernah di-hardcode di JS; semua
+    // diambil dari CSS variable yang didefine UI global / per tema).
+    const cssVar = (n, fallback) => {
+        const v = getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+        return v || fallback;
+    };
+    const warnaGaris = cssVar('--brand-accent-light', '#006C7B');
+    const warnaTeks = cssVar('--color-slate-400', '#94a3b8');
+    const warnaGrid = cssVar('--color-slate-200', '#e2e8f0');
+    const warnaArea = 'color-mix(in srgb, ' + warnaGaris + ' 12%, transparent)';
     const opts = {
         width: Math.max(240, el.clientWidth),
         height: 190,
@@ -72,15 +82,15 @@ function buatChart(el, labels, values) {
         },
         axes: [
             {
-                stroke: '#94a3b8',
-                grid: { stroke: 'rgba(148,163,184,0.12)' },
+                stroke: warnaTeks,
+                grid: { stroke: warnaGrid, width: 0.6 },
                 values: (u, splits) => splits.map((i) => labels[Math.round(i)] ?? ''),
                 size: 34,
                 font: '11px system-ui, sans-serif',
             },
             {
-                stroke: '#94a3b8',
-                grid: { stroke: 'rgba(148,163,184,0.12)' },
+                stroke: warnaTeks,
+                grid: { stroke: warnaGrid, width: 0.6 },
                 values: (u, splits) => splits.map((v) => juta(v)),
                 size: 46,
                 font: '11px system-ui, sans-serif',
@@ -91,8 +101,8 @@ function buatChart(el, labels, values) {
             {
                 label: 'Omzet',
                 width: 2,
-                stroke: '#6366f1',
-                fill: 'rgba(99,102,241,0.12)',
+                stroke: warnaGaris,
+                fill: warnaArea,
                 points: { show: false },
             },
         ],
@@ -102,7 +112,7 @@ function buatChart(el, labels, values) {
     // Tooltip mengambang sederhana (tanpa lib tambahan).
     const tip = document.createElement('div');
     tip.className = 'eksekutif-tip';
-    tip.style.cssText = 'position:absolute;pointer-events:none;display:none;z-index:20;background:#0f172a;color:#e2e8f0;font:11px/1.5 system-ui,sans-serif;padding:6px 9px;border-radius:8px;box-shadow:0 6px 18px rgba(15,23,42,.3);white-space:nowrap';
+    tip.style.cssText = 'position:absolute;pointer-events:none;display:none;z-index:20;background:var(--color-slate-900);color:var(--color-slate-100);font:11px/1.5 system-ui,sans-serif;padding:6px 9px;border-radius:8px;box-shadow:0 6px 18px color-mix(in srgb, var(--color-slate-900) 30%, transparent);white-space:nowrap';
     el.style.position = 'relative';
     el.appendChild(tip);
     plot.over.addEventListener('mousemove', () => {

@@ -5,7 +5,7 @@
     @media print {
         aside, .no-print { display: none !important; }
         main { margin-left: 0 !important; padding: 28px 32px !important; }
-        body { background: #fff !important; }
+        body { background: var(--color-white) !important; }
     }
 </style>
 @include('partials.print-report-header', ['docTitle' => 'Laporan HPP & Margin'])

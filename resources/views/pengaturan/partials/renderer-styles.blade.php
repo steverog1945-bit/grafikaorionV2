@@ -3,26 +3,26 @@
     Dipakai oleh Preview (admin) dan Public homepage agar output identik.
 
     ORION GRAFIKA UNIFIED BRAND SYSTEM — ROYAL INDIGO (PALET RESMI TERBARU)
-    Warna resmi: DEEP NIGHT #15143F, ROYAL INDIGO #2E318E, ELECTRIC VIOLET #4D55F8,
-    CTA ORANGE #FF6B17, CYAN LIGHT #B8EEFF
+    Warna resmi: DEEP NIGHT var(--color-indigo-950), ROYAL INDIGO var(--color-indigo-900), ELECTRIC VIOLET var(--color-indigo-600),
+    CTA ORANGE var(--color-amber-600), CYAN LIGHT var(--color-slate-200)
 
     WCAG 2.1 kontras (dihitung dengan skrip, bukan diklaim):
-      #FFFFFF di atas #15143F   = 17.45:1  AAA
-      #FFFFFF di atas #2E318E   = 10.79:1  AAA
-      #FFFFFF di atas #4D55F8   =  5.29:1  AA  (warna teks tombol utama)
-      #15143F di atas #FF6B17   =  6.12:1  AA  (warna teks CTA orange)
-      #FFFFFF di atas #FF6B17   =  2.85:1  GAGAL — jangan teks putih di atas orange
-      #B8EEFF di atas #15143F   = 13.88:1  AAA
-      #5A5E9E  di atas #FFFFFF  =  5.95:1  AA  (teks body/muted)
-      #15143F di atas #C9CBFA   = 11.14:1  AAA (teks tombol disabled)
+      var(--color-white) di atas var(--color-indigo-950)   = 17.45:1  AAA
+      var(--color-white) di atas var(--color-indigo-900)   = 10.79:1  AAA
+      var(--color-white) di atas var(--color-indigo-600)   =  5.29:1  AA  (warna teks tombol utama)
+      var(--color-indigo-950) di atas var(--color-amber-600)   =  6.12:1  AA  (warna teks CTA orange)
+      var(--color-white) di atas var(--color-amber-600)   =  2.85:1  GAGAL — jangan teks putih di atas orange
+      var(--color-slate-200) di atas var(--color-indigo-950)   = 13.88:1  AAA
+      var(--color-indigo-800)  di atas var(--color-white)  =  5.95:1  AA  (teks body/muted)
+      var(--color-indigo-950) di atas var(--color-indigo-200)   = 11.14:1  AAA (teks tombol disabled)
 
-    CATATAN MIGRASI: palet lama TURQUOISE AMBER AUTUMN (#26788E / #304C64 / #A4CCD4 /
+    CATATAN MIGRASI: palet lama TURQUOISE AMBER AUTUMN (var(--brand-accent-light) / var(--color-slate-700) / #A4CCD4 /
     #E2480C / #631B08) sudah TIDAK dipakai. Nama token lama dipertahankan sebagai
     alias semantik ke palet baru agar draft operator lama tetap render (tidak destruktif).
     Semua nilai warna turunan mengikuti palet resmi baru.
 
-    KOREKSI KLAIM LAMA: laporan sebelumnya menyatakan kontras #26788E di atas
-    #304C64 = "7.56:1 AAA" untuk tombol. Hasil hitung ulang WCAG 2.1 yang
+    KOREKSI KLAIM LAMA: laporan sebelumnya menyatakan kontras var(--brand-accent-light) di atas
+    var(--color-slate-700) = "7.56:1 AAA" untuk tombol. Hasil hitung ulang WCAG 2.1 yang
     sebenarnya = 1.77:1 (GAGAL total). Itulah root cause Bug #5
     ("tombol gelap dengan teks gelap").
 --}}
@@ -42,11 +42,11 @@
     /* ============ TOKEN WARNA UTAMA ============ */
     :root {
         /* ===== PALET RESMI TERBARU — ROYAL INDIGO ===== */
-        --orion-deep-night:      #15143F;  /* Hero/footer/CTA bg, teks utama */
-        --orion-royal-indigo:    #2E318E;  /* aksen gelap, border kuat, focus */
-        --orion-electric-violet: #4D55F8;  /* aksi utama, link, highlight */
-        --orion-cta-orange:      #FF6B17;  /* CTA kontras tinggi (teks Deep Night) */
-        --orion-cyan-light:      #B8EEFF;  /* highlight, cahaya, dekorasi */
+        --orion-deep-night:      var(--color-indigo-950);  /* Hero/footer/CTA bg, teks utama */
+        --orion-royal-indigo:    var(--color-indigo-900);  /* aksen gelap, border kuat, focus */
+        --orion-electric-violet: var(--color-indigo-600);  /* aksi utama, link, highlight */
+        --orion-cta-orange:      var(--color-amber-600);  /* CTA kontras tinggi (teks Deep Night) */
+        --orion-cyan-light:      var(--color-slate-200);  /* highlight, cahaya, dekorasi */
         /* Alias nama final (palette lock gambar01) — menunjuk token yang sama */
         --orion-orange-cta:      var(--orion-cta-orange);
         --orion-cyan-highlight:  var(--orion-cyan-light);
@@ -61,53 +61,53 @@
         --orion-brand-auburn:    var(--orion-deep-night);
 
         /* ===== TURUNAN DARI PALET BARU ===== */
-        --orion-brand-hover:   #3D45E0;  /* violet lebih gelap (hover/active) */
-        --orion-brand-focus:   #4D55F8;  /* cincin fokus */
-        --orion-brand-light:   #E8E9FE;  /* tint violet sangat muda (surface) */
-        --orion-brand-lighter: #F5F5FF;  /* tint violet hampir putih */
-        --orion-brand-border:  #C7C9FA;  /* border kartu/komponen */
-        --orion-brand-muted:   #5A5E9E;  /* teks sekunder — 5.95:1 di atas putih */
+        --orion-brand-hover:   var(--color-indigo-700);  /* violet lebih gelap (hover/active) */
+        --orion-brand-focus:   var(--color-indigo-600);  /* cincin fokus */
+        --orion-brand-light:   var(--color-indigo-50);  /* tint violet sangat muda (surface) */
+        --orion-brand-lighter: var(--color-indigo-50);  /* tint violet hampir putih */
+        --orion-brand-border:  var(--color-indigo-200);  /* border kartu/komponen */
+        --orion-brand-muted:   var(--color-indigo-800);  /* teks sekunder — 5.95:1 di atas putih */
 
         /* ===== SEMANTIC ACTIONS ===== */
         --orion-action-primary:      var(--orion-electric-violet);
-        --orion-action-primary-text: #FFFFFF;          /* 5.29:1 AA di atas violet */
+        --orion-action-primary-text: var(--color-white);          /* 5.29:1 AA di atas violet */
         --orion-action-secondary:      var(--orion-deep-night);
         --orion-action-cta:           var(--orion-cta-orange);
         --orion-action-cta-text:      var(--orion-deep-night); /* 6.12:1 AA di atas orange */
         --orion-surface-accent:       var(--orion-cyan-light);
-        --orion-shadow-soft: rgba(21, 20, 63, .10);
-        --orion-shadow-softer: rgba(21, 20, 63, .08);
+        --orion-shadow-soft: color-mix(in srgb, var(--color-indigo-950) 10%, transparent);
+        --orion-shadow-softer: color-mix(in srgb, var(--color-indigo-950) 8%, transparent);
 
         /* ===== NETRAL (di-tint violet agar selaras palet) ===== */
-        --orion-neutral-100: #FFFFFF;
-        --orion-neutral-200: #F7F7FD;
-        --orion-neutral-300: #F1F1FA;
-        --orion-neutral-400: #E6E6F5;
-        --orion-neutral-500: #C9CBFA;
-        --orion-neutral-600: #C7C9FA;
-        --orion-neutral-700: #A8ACF0;  /* teks di atas Deep Night — 11.0:1 AAA */
-        --orion-neutral-800: #989AF0;  /* teks di atas Deep Night — 6.83:1 AA */
-        --orion-neutral-900: #5B5F8F;  /* teks muted gelap — 6.04:1 di atas putih */
+        --orion-neutral-100: var(--color-white);
+        --orion-neutral-200: var(--color-indigo-50);
+        --orion-neutral-300: var(--color-indigo-50);
+        --orion-neutral-400: var(--color-indigo-100);
+        --orion-neutral-500: var(--color-indigo-200);
+        --orion-neutral-600: var(--color-indigo-200);
+        --orion-neutral-700: var(--color-indigo-300);  /* teks di atas Deep Night — 11.0:1 AAA */
+        --orion-neutral-800: var(--color-indigo-300);  /* teks di atas Deep Night — 6.83:1 AA */
+        --orion-neutral-900: var(--color-indigo-800);  /* teks muted gelap — 6.04:1 di atas putih */
     }
 
     /* ============ LATAR SECTION ============ */
     .section-bg-white { background: var(--orion-neutral-100); }
     .section-bg-gray  { background: var(--orion-brand-lighter); }
-    .section-bg-orion { background: var(--orion-electric-violet); color: #FFFFFF; }
+    .section-bg-orion { background: var(--orion-electric-violet); color: var(--color-white); }
     .section-bg-orion h1,
     .section-bg-orion h2,
     .section-bg-orion h3,
     .section-bg-orion .hero-title,
     .section-bg-orion .stat-number,
-    .section-bg-orion .faq-question { color: #FFFFFF; }
+    .section-bg-orion .faq-question { color: var(--color-white); }
     .section-bg-orion p,
     .section-bg-orion .hero-subtitle,
     .section-bg-orion .faq-answer { color: var(--orion-neutral-200); }
-    .section-bg-orion .lp-eyebrow { color: #FFFFFF; }
+    .section-bg-orion .lp-eyebrow { color: var(--color-white); }
     .section-bg-orion .card,
     .section-bg-orion .lp-product,
-    .section-bg-orion .lp-portfolio-card { border-color: rgba(255, 255, 255, .28); }
-    .section-bg-indigo { background: var(--orion-deep-night); color: #DCDCFB; }
+    .section-bg-orion .lp-portfolio-card { border-color: color-mix(in srgb, var(--color-white) 28%, transparent); }
+    .section-bg-indigo { background: var(--orion-deep-night); color: var(--color-indigo-100); }
     .section-bg-indigo .lp-eyebrow { color: var(--orion-cyan-light); }
 
     /* ============ RADIUS & SPACING ============ */
@@ -138,10 +138,10 @@
     .section p { line-height: 1.7; color: var(--orion-brand-muted); }
     /* Hero mode night: teks terang di atas latar gelap */
     .section-bg-night p,
-    .section-bg-night .lp-lead { color: rgba(255, 255, 255, .88); }
+    .section-bg-night .lp-lead { color: color-mix(in srgb, var(--color-white) 88%, transparent); }
     .section-bg-night .hero-title,
     .section-bg-night h2,
-    .section-bg-night h3 { color: #FFFFFF; }
+    .section-bg-night h3 { color: var(--color-white); }
     .section h3 { color: var(--orion-brand-navy); font-weight: 700; line-height: 1.35; }
 
     .lp-eyebrow {
@@ -179,7 +179,7 @@
         border-color: var(--orion-action-primary);
     }
     .btn:hover { background: var(--orion-brand-hover); border-color: var(--orion-brand-hover); color: var(--orion-action-primary-text); }
-    .btn:active { background: #2D35C0; border-color: #2D35C0; color: var(--orion-action-primary-text); }
+    .btn:active { background: var(--color-indigo-700); border-color: var(--color-indigo-700); color: var(--orion-action-primary-text); }
     .btn:focus-visible { outline: 2px solid var(--orion-brand-focus); outline-offset: 3px; }
     .btn[disabled], .btn[aria-disabled="true"] {
         background: var(--orion-neutral-500);
@@ -190,11 +190,11 @@
 
     /* CTA kontras tinggi — orange dengan teks Deep Night (6.12:1 AA) */
     .btn-cta { background: var(--orion-action-cta); color: var(--orion-action-cta-text); border-color: var(--orion-action-cta); }
-    .btn-cta:hover { background: #E85C05; border-color: #E85C05; color: var(--orion-action-cta-text); }
-    .btn-cta:active { background: #A83F03; border-color: #A83F03; color: #FFFFFF; }
+    .btn-cta:hover { background: var(--color-amber-600); border-color: var(--color-amber-600); color: var(--orion-action-cta-text); }
+    .btn-cta:active { background: var(--color-amber-800); border-color: var(--color-amber-800); color: var(--color-white); }
 
-    .btn-dark { background: var(--orion-deep-night); color: #FFFFFF; border-color: var(--orion-deep-night); }
-    .btn-dark:hover { background: var(--orion-brand-hover); border-color: var(--orion-brand-hover); color: #FFFFFF; }
+    .btn-dark { background: var(--orion-deep-night); color: var(--color-white); border-color: var(--orion-deep-night); }
+    .btn-dark:hover { background: var(--orion-brand-hover); border-color: var(--orion-brand-hover); color: var(--color-white); }
 
     .btn-outline { background: transparent; color: var(--orion-brand-navy); border-color: var(--orion-brand-focus); }
     .btn-outline:hover { background: var(--orion-brand-light); border-color: var(--orion-electric-violet); color: var(--orion-brand-navy); }
@@ -265,10 +265,10 @@
     /* Atmosfer berlapis: Deep Night -> Royal Indigo + ambient light */
     .section-bg-night {
         background:
-            radial-gradient(120% 90% at 78% 22%, rgba(77, 85, 248, .30) 0%, rgba(46, 49, 142, .16) 38%, rgba(21, 20, 63, 0) 68%),
-            radial-gradient(80% 70% at 88% 78%, rgba(184, 238, 255, .12) 0%, rgba(21, 20, 63, 0) 60%),
-            linear-gradient(148deg, #15143F 0%, #1B1A55 38%, #2E318E 78%, #383C9E 100%);
-        color: #FFFFFF;
+            radial-gradient(120% 90% at 78% 22%, color-mix(in srgb, var(--color-indigo-600) 30%, transparent) 0%, color-mix(in srgb, var(--color-indigo-900) 16%, transparent) 38%, color-mix(in srgb, var(--color-indigo-950) 0%, transparent) 68%),
+            radial-gradient(80% 70% at 88% 78%, color-mix(in srgb, var(--color-slate-200) 12%, transparent) 0%, color-mix(in srgb, var(--color-indigo-950) 0%, transparent) 60%),
+            linear-gradient(148deg, var(--color-indigo-950) 0%, var(--color-indigo-800) 38%, var(--color-indigo-900) 78%, var(--color-indigo-800) 100%);
+        color: var(--color-white);
         position: relative;
         isolation: isolate;
         overflow: hidden;
@@ -278,7 +278,7 @@
     .lp-hero-header-sibling .lp-header { background: transparent; border-bottom-color: transparent; }
 
     .lp-hero-title {
-        color: #FFFFFF;
+        color: var(--color-white);
         font-weight: 800;
         letter-spacing: -0.025em;
         line-height: 1.05;
@@ -289,7 +289,7 @@
         white-space: pre-line;
     }
     .lp-hero-lead {
-        color: rgba(255, 255, 255, .88);
+        color: color-mix(in srgb, var(--color-white) 88%, transparent);
         line-height: 1.65;
         max-width: 54ch;
     }
@@ -297,8 +297,8 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 107, 23, .14);
-        border: 1px solid rgba(255, 107, 23, .45);
+        background: color-mix(in srgb, var(--color-amber-600) 14%, transparent);
+        border: 1px solid color-mix(in srgb, var(--color-amber-600) 45%, transparent);
         color: var(--orion-cyan-highlight);
         font-size: 11px;
         font-weight: 700;
@@ -318,28 +318,28 @@
         min-height: 54px;
         padding: 15px 32px;
         border-radius: 999px;
-        box-shadow: 0 10px 30px rgba(255, 107, 23, .28);
+        box-shadow: 0 10px 30px color-mix(in srgb, var(--color-amber-600) 28%, transparent);
         transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
     }
     .lp-hero-actions .btn:hover {
-        background: #E85C05;
-        border-color: #E85C05;
+        background: var(--color-amber-600);
+        border-color: var(--color-amber-600);
         transform: translateY(-2px);
-        box-shadow: 0 14px 36px rgba(255, 107, 23, .36);
+        box-shadow: 0 14px 36px color-mix(in srgb, var(--color-amber-600) 36%, transparent);
     }
     .lp-hero-actions .btn:focus-visible { outline: 2px solid var(--orion-cyan-highlight); outline-offset: 3px; }
-    .lp-hero-actions .btn:active { transform: translateY(0); background: #C94E04; border-color: #C94E04; }
+    .lp-hero-actions .btn:active { transform: translateY(0); background: var(--color-amber-600); border-color: var(--color-amber-600); }
     /* CTA kedua: outline terang */
     .lp-hero-actions .btn.btn-outline {
-        background: rgba(255, 255, 255, .06);
-        border: 1px solid rgba(255, 255, 255, .55);
-        color: #FFFFFF;
+        background: color-mix(in srgb, var(--color-white) 6%, transparent);
+        border: 1px solid color-mix(in srgb, var(--color-white) 55%, transparent);
+        color: var(--color-white);
         box-shadow: none;
     }
     .lp-hero-actions .btn.btn-outline:hover {
-        background: rgba(255, 255, 255, .14);
+        background: color-mix(in srgb, var(--color-white) 14%, transparent);
         border-color: var(--orion-cyan-highlight);
-        color: #FFFFFF;
+        color: var(--color-white);
         transform: translateY(-2px);
         box-shadow: none;
     }
@@ -362,7 +362,7 @@
         position: absolute;
         inset: -18% -14% -12% -18%;
         background:
-            radial-gradient(closest-side, rgba(77, 85, 248, .55) 0%, rgba(46, 49, 142, .22) 55%, rgba(21, 20, 63, 0) 78%);
+            radial-gradient(closest-side, color-mix(in srgb, var(--color-indigo-600) 55%, transparent) 0%, color-mix(in srgb, var(--color-indigo-900) 22%, transparent) 55%, color-mix(in srgb, var(--color-indigo-950) 0%, transparent) 78%);
         filter: blur(6px);
         z-index: 0;
         pointer-events: none;
@@ -374,7 +374,7 @@
         width: 78%;
         aspect-ratio: 1;
         border-radius: 50%;
-        border: 1px solid rgba(184, 238, 255, .22);
+        border: 1px solid color-mix(in srgb, var(--color-slate-200) 22%, transparent);
         z-index: 0;
         pointer-events: none;
     }
@@ -392,7 +392,7 @@
            sehingga scale() menerima 0 dan aset terlihat sebesar 7x5 px. */
         transform: scale(var(--lp-hero-scale, 1));
         transform-origin: center;
-        filter: drop-shadow(0 28px 60px rgba(11, 10, 40, .55));
+        filter: drop-shadow(0 28px 60px color-mix(in srgb, var(--color-indigo-950) 55%, transparent));
         /* Foreground merges:blobolete background box */
         background: transparent;
     }
@@ -413,10 +413,10 @@
         gap: 12px;
         text-align: center;
         padding: 28px 26px;
-        border: 1px dashed rgba(184, 238, 255, .45);
+        border: 1px dashed color-mix(in srgb, var(--color-slate-200) 45%, transparent);
         border-radius: 18px;
-        background: rgba(21, 20, 63, .38);
-        color: rgba(255, 255, 255, .82);
+        background: color-mix(in srgb, var(--color-indigo-950) 38%, transparent);
+        color: color-mix(in srgb, var(--color-white) 82%, transparent);
         font-size: 13px;
         font-weight: 600;
         max-width: 320px;
@@ -426,13 +426,13 @@
         display: block;
         font-size: 11px;
         font-weight: 500;
-        color: rgba(255, 255, 255, .62);
+        color: color-mix(in srgb, var(--color-white) 62%, transparent);
         letter-spacing: .04em;
     }
     .lp-hero-badge {
         display: inline-block;
         background: var(--orion-brand-navy);
-        color: #FFFFFF;
+        color: var(--color-white);
         font-size: 11px;
         font-weight: 700;
         letter-spacing: .12em;
@@ -636,14 +636,14 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: radial-gradient(600px 200px at 50% 0%, rgba(184, 238, 255, .18), transparent 70%);
+        background: radial-gradient(600px 200px at 50% 0%, color-mix(in srgb, var(--color-slate-200) 18%, transparent), transparent 70%);
         pointer-events: none;
     }
-    .lp-cta h2 { color: #FFFFFF; position: relative; }
+    .lp-cta h2 { color: var(--color-white); position: relative; }
     .lp-cta p { color: var(--orion-cyan-light); position: relative; }
     .lp-cta .btn { position: relative; background: var(--orion-action-cta); color: var(--orion-action-cta-text); border-color: var(--orion-action-cta); }
-    .lp-cta .btn:hover { background: #E85C05; border-color: #E85C05; color: var(--orion-action-cta-text); }
-    .lp-cta .btn:active { background: #A83F03; border-color: #A83F03; color: #FFFFFF; }
+    .lp-cta .btn:hover { background: var(--color-amber-600); border-color: var(--color-amber-600); color: var(--orion-action-cta-text); }
+    .lp-cta .btn:active { background: var(--color-amber-800); border-color: var(--color-amber-800); color: var(--color-white); }
 
     /* ============ CONTACT ============ */
     .lp-contact { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 44px; align-items: start; }
@@ -747,7 +747,7 @@
         position: absolute;
         left: 12px;
         bottom: 12px;
-        background: rgba(255, 255, 255, .94);
+        background: color-mix(in srgb, var(--color-white) 94%, transparent);
         color: var(--orion-brand-navy);
         font-size: 11px;
         font-weight: 700;
@@ -807,7 +807,7 @@
         position: fixed;
         inset: 0;
         z-index: 1000;
-        background: rgba(21, 20, 63, .94);
+        background: color-mix(in srgb, var(--color-indigo-950) 94%, transparent);
         align-items: center;
         justify-content: center;
         padding: 24px;
@@ -817,7 +817,7 @@
         max-width: 100%;
         max-height: 88vh;
         border-radius: 12px;
-        box-shadow: 0 24px 60px rgba(0, 0, 0, .4);
+        box-shadow: 0 24px 60px color-mix(in srgb, var(--color-black) 40%, transparent);
     }
     .lp-lightbox-close {
         position: absolute;
@@ -828,14 +828,14 @@
         border-radius: 50%;
         border: 0;
         background: var(--orion-brand-hover);
-        color: #FFFFFF;
+        color: var(--color-white);
         font-size: 24px;
         line-height: 1;
         cursor: pointer;
         transition: background-color .18s ease;
     }
     .lp-lightbox-close:hover { background: var(--orion-electric-violet); }
-    .lp-lightbox-close:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; }
+    .lp-lightbox-close:focus-visible { outline: 2px solid var(--color-white); outline-offset: 2px; }
 
     /* ============ HEADER / NAVBAR ============ */
     /* Wrapper section untuk header & footer TIDAK boleh jadi kotak.
@@ -933,9 +933,9 @@
         align-items: center;
     }
     .lp-header-cta { background: var(--orion-action-cta); color: var(--orion-action-cta-text); border: 0; }
-    .lp-header-cta:hover { background: #E85C05; color: var(--orion-action-cta-text); }
-    .lp-header-staff { background: var(--orion-deep-night); color: #FFFFFF; }
-    .lp-header-staff:hover { background: var(--orion-brand-hover); color: #FFFFFF; }
+    .lp-header-cta:hover { background: var(--color-amber-600); color: var(--orion-action-cta-text); }
+    .lp-header-staff { background: var(--orion-deep-night); color: var(--color-white); }
+    .lp-header-staff:hover { background: var(--orion-brand-hover); color: var(--color-white); }
 
     /* ============ FOOTER ============
        Seluruh isi footer sekarang berada di dalam satu elemen .lp-footer
@@ -946,7 +946,7 @@
        supaya blok "baris bawah" ikut gelap dan kontras teks tetap aman. */
     .footer, .lp-footer {
         background: var(--orion-deep-night);
-        color: #DCDCFB;
+        color: var(--color-indigo-100);
         padding: 52px 0 28px;
     }
     .lp-footer-grid {
@@ -960,14 +960,14 @@
         grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
         gap: 36px 40px;
         align-items: start;
-        color: #DCDCFB;
+        color: var(--color-indigo-100);
     }
     .lp-footer h4 {
         font-size: 12px;
         font-weight: 700;
         letter-spacing: .1em;
         text-transform: uppercase;
-        color: #FFFFFF;
+        color: var(--color-white);
         margin: 0 0 14px;
     }
     .lp-footer a, .footer a {
@@ -992,7 +992,7 @@
         font-weight: 800;
         font-size: 14px;
     }
-    .lp-footer-name { color: #FFFFFF; font-weight: 800; font-size: 15px; }
+    .lp-footer-name { color: var(--color-white); font-weight: 800; font-size: 15px; }
     .lp-footer p { color: var(--orion-neutral-700); }
     .lp-footer-desc { font-size: 13.5px; color: var(--orion-neutral-700); line-height: 1.65; margin: 0; }
     .lp-footer-copy {
@@ -1010,7 +1010,7 @@
         max-width: 1200px;
         margin: 0 auto;
         padding: 22px 40px 0;
-        border-top: 1px solid rgba(220, 220, 251, .14);
+        border-top: 1px solid color-mix(in srgb, var(--color-indigo-100) 14%, transparent);
     }
     .lp-footer-kol { min-width: 0; }
     .lp-footer-kol--identitas { max-width: 42ch; }
@@ -1053,11 +1053,11 @@
         padding: 10px 18px;
         border-radius: 10px;
         background: var(--orion-electric-violet);
-        color: #FFFFFF;
+        color: var(--color-white);
         font-weight: 600;
         font-size: 13.5px;
     }
-    .lp-footer a.lp-footer-wa:hover { background: var(--orion-brand-hover); color: #FFFFFF; }
+    .lp-footer a.lp-footer-wa:hover { background: var(--orion-brand-hover); color: var(--color-white); }
 
     /* ============ SCROLL REVEAL ============
        DIAGNOSA MASALAH OPERATOR ("tidak melihat animasi saat scrolling"):

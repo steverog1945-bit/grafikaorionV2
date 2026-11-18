@@ -19,11 +19,11 @@
     <style>
         :root {
             /* Palet resmi ORION — ROYAL INDIGO */
-            --kertas: #F7F7FD;   /* permukaan netral (violet tint) */
-            --tinta: #15143F;    /* DEEP NIGHT */
-            --aksen: #4D55F8;    /* ELECTRIC VIOLET */
-            --keluar: #E8E9FE;   /* tint violet muda */
-            --kontras-aksen: #FFFFFF;  /* teks di atas aksen — 5.29:1 AA */
+            --kertas: var(--color-indigo-50);   /* permukaan netral (violet tint) */
+            --tinta: var(--color-indigo-950);    /* DEEP NIGHT */
+            --aksen: var(--color-indigo-600);    /* ELECTRIC VIOLET */
+            --keluar: var(--color-indigo-50);   /* tint violet muda */
+            --kontras-aksen: var(--color-white);  /* teks di atas aksen — 5.29:1 AA */
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -35,31 +35,31 @@
         }
         .preview-banner {
             background-color: var(--tinta);
-            color: var(--orion-neutral-100, #FFFFFF);
+            color: var(--orion-neutral-100, var(--color-white));
             text-align: center;
             padding: 8px 16px;
             font-size: 13px;
             letter-spacing: 0.5px;
         }
-        .preview-banner strong { color: var(--orion-cyan-light, #B8EEFF); }
+        .preview-banner strong { color: var(--orion-cyan-light, var(--color-slate-200)); }
         /* ---- Responsive switcher (preview only) ---- */
         .preview-switcher {
             display: inline-flex; gap: 4px; margin-left: 16px;
-            background: rgba(255,255,255,.1); border-radius: 8px; padding: 3px;
+            background: color-mix(in srgb, var(--color-white) 10%, transparent); border-radius: 8px; padding: 3px;
         }
         .preview-switcher button {
-            background: transparent; border: 0; color: var(--orion-neutral-700, #64748B);
+            background: transparent; border: 0; color: var(--orion-neutral-700, var(--color-slate-500));
             font-size: 12px; font-weight: 600; padding: 5px 12px;
             border-radius: 6px; cursor: pointer; font-family: inherit;
         }
         .preview-switcher button.is-active { background: var(--aksen); color: var(--kontras-aksen); }
-        .preview-switcher button:hover:not(.is-active) { color: #FFFFFF; }
-        .preview-switcher button:focus-visible { outline: 2px solid var(--orion-cyan-light, #B8EEFF); outline-offset: 2px; }
+        .preview-switcher button:hover:not(.is-active) { color: var(--color-white); }
+        .preview-switcher button:focus-visible { outline: 2px solid var(--orion-cyan-light, var(--color-slate-200)); outline-offset: 2px; }
         /* Iframe container */
         .preview-iframe-wrapper {
             display: block; width: 100%; height: calc(100vh - 52px); min-height: 600px;
-            border: 0; background: #fff; border-radius: 0 0 12px 12px;
-            box-shadow: 0 4px 24px rgba(21,20,63,.08);
+            border: 0; background: var(--color-white); border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 24px color-mix(in srgb, var(--color-indigo-950) 8%, transparent);
             transition: width 200ms ease, height 200ms ease;
             overflow: hidden; /* mencegah konten melebarkan iframe */
         }

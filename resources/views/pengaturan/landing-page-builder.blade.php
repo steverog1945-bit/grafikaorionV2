@@ -55,65 +55,65 @@
     
     <style>
         #lpb-root {
-            --lpb-surface: #ffffff;
-            --lpb-surface-raised: #ffffff;
-            --lpb-workspace: #F1F5F1;
-            --lpb-canvas-bg: #ffffff;
-            --lpb-border: #E2EAE4;
-            --lpb-border-strong: #C9D6CE;
-            --lpb-text: #1A231F;
-            --lpb-text-secondary: #3F4F47;
-            --lpb-text-tertiary: #4A5B53;
-            --lpb-text-muted: #94a3b8;
+            --lpb-surface: var(--color-white);
+            --lpb-surface-raised: var(--color-white);
+            --lpb-workspace: var(--color-slate-100);
+            --lpb-canvas-bg: var(--color-white);
+            --lpb-border: var(--color-slate-200);
+            --lpb-border-strong: var(--color-slate-300);
+            --lpb-text: var(--color-slate-900);
+            --lpb-text-secondary: var(--color-slate-700);
+            --lpb-text-tertiary: var(--color-slate-500);
+            --lpb-text-muted: var(--color-slate-400);
             --lpb-accent: var(--brand-accent-light);
             --lpb-accent-hover: var(--brand-accent-hover-light);
             --lpb-accent-subtle: var(--brand-accent-surface-light);
-            --lpb-accent-border: #B6E4EC;
+            --lpb-accent-border: var(--brand-accent-surface-light);
             /* Palet resmi ORION — ROYAL INDIGO (token lokal builder) */
-            --orion-deep-night: #15143F;
-            --orion-royal-indigo: #2E318E;
-            --orion-electric-violet: #4D55F8;
-            --orion-cta-orange: #FF6B17;
-            --orion-cyan-light: #B8EEFF;
-            --orion-on-violet: #FFFFFF;      /* 5.29:1 AA di atas #4D55F8 */
-            --orion-on-orange: #15143F;      /* 8.53:1 AAA di atas #FF6B17 */
-            --orion-success: #059669;
-            --orion-success-subtle: #ecfdf5;
-            --orion-warning: #d97706;
-            --orion-warning-subtle: #FEF6EA;
-            --orion-danger: #93481A;
-            --orion-danger-subtle: #fff1f2;
+            --orion-deep-night: var(--color-indigo-950);
+            --orion-royal-indigo: var(--color-indigo-900);
+            --orion-electric-violet: var(--color-indigo-600);
+            --orion-cta-orange: var(--color-amber-600);
+            --orion-cyan-light: var(--color-slate-200);
+            --orion-on-violet: var(--color-white);      /* 5.29:1 AA di atas var(--color-indigo-600) */
+            --orion-on-orange: var(--color-indigo-950);      /* 8.53:1 AAA di atas var(--color-amber-600) */
+            --orion-success: var(--color-emerald-600);
+            --orion-success-subtle: var(--color-emerald-50);
+            --orion-warning: var(--color-amber-600);
+            --orion-warning-subtle: var(--color-amber-50);
+            --orion-danger: var(--color-rose-800);
+            --orion-danger-subtle: var(--color-rose-50);
             --lpb-radius-sm: 6px;
             --lpb-radius-md: 8px;
             --lpb-radius-lg: 12px;
             --lpb-radius-xl: 16px;
-            --lpb-shadow-sm: 0 1px 2px rgba(15, 23, 42, .05);
-            --lpb-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, .06), 0 2px 4px -2px rgba(15, 23, 42, .05);
-            --lpb-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, .07);
+            --lpb-shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-slate-900) 5%, transparent);
+            --lpb-shadow-md: 0 4px 6px -1px color-mix(in srgb, var(--color-slate-900) 6%, transparent), 0 2px 4px -2px color-mix(in srgb, var(--color-slate-900) 5%, transparent);
+            --lpb-shadow-lg: 0 10px 15px -3px color-mix(in srgb, var(--color-slate-900) 7%, transparent);
             --lpb-control-h: 36px;
             --lpb-control-h-sm: 30px;
             --lpb-icon-size: 16px;
             --lpb-transition: 160ms cubic-bezier(.23, 1, .32, 1);
         }
         html.dark #lpb-root {
-            --lpb-surface: #1A231F;
-            --lpb-surface-raised: #2A3731;
-            --lpb-workspace: #0b1220;
-            --lpb-canvas-bg: #2A3731;
-            --lpb-border: #3F4F47;
-            --lpb-border-strong: #3F4F47;
-            --lpb-text: #F1F5F1;
-            --lpb-text-secondary: #C9D6CE;
-            --lpb-text-tertiary: #94a3b8;
-            --lpb-text-muted: #4A5B53;
+            --lpb-surface: var(--color-slate-900);
+            --lpb-surface-raised: var(--color-slate-800);
+            --lpb-workspace: var(--ink-900);
+            --lpb-canvas-bg: var(--color-slate-800);
+            --lpb-border: var(--color-slate-700);
+            --lpb-border-strong: var(--color-slate-700);
+            --lpb-text: var(--color-slate-100);
+            --lpb-text-secondary: var(--color-slate-300);
+            --lpb-text-tertiary: var(--color-slate-400);
+            --lpb-text-muted: var(--color-slate-500);
             --lpb-accent-subtle: var(--brand-sidebar-deep);
             --lpb-accent-border: var(--brand-accent-surface-dark);
-            --lpb-success-subtle: rgba(5, 150, 105, .14);
-            --lpb-warning-subtle: rgba(217, 119, 6, .14);
-            --lpb-danger-subtle: rgba(225, 29, 72, .14);
-            --lpb-shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
-            --lpb-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, .35);
-            --lpb-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, .4);
+            --lpb-success-subtle: color-mix(in srgb, var(--color-emerald-600) 14%, transparent);
+            --lpb-warning-subtle: color-mix(in srgb, var(--color-amber-600) 14%, transparent);
+            --lpb-danger-subtle: color-mix(in srgb, var(--color-rose-600) 14%, transparent);
+            --lpb-shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-black) 30%, transparent);
+            --lpb-shadow-md: 0 4px 6px -1px color-mix(in srgb, var(--color-black) 35%, transparent);
+            --lpb-shadow-lg: 0 10px 15px -3px color-mix(in srgb, var(--color-black) 40%, transparent);
         }
         @media (prefers-reduced-motion: reduce) {
             #lpb-root * { transition: none !important; animation: none !important; }
@@ -256,7 +256,7 @@
         #lpb-root .lpb-template-btn:hover:not(:disabled) {
             background: var(--lpb-accent-subtle);
             border-color: var(--lpb-accent);
-            box-shadow: 0 2px 8px rgba(38, 120, 142, .25);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--brand-accent-light) 25%, transparent);
         }
         #lpb-root .lpb-template-btn:focus-visible { outline: 2px solid var(--lpb-accent); outline-offset: 2px; }
         #lpb-root .lpb-template-btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -395,7 +395,7 @@
         .lpb-btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
 
         /* ===== MODAL ===== */
-        .lpb-modal { position: fixed; inset: 0; z-index: 9998; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, .45); }
+        .lpb-modal { position: fixed; inset: 0; z-index: 9998; display: flex; align-items: center; justify-content: center; padding: 16px; background: color-mix(in srgb, var(--color-slate-900) 45%, transparent); }
         .lpb-modal-dialog { display: flex; flex-direction: column; width: 100%; max-width: 720px; max-height: 80vh; background: var(--lpb-surface); border: 1px solid var(--lpb-border); border-radius: var(--lpb-radius-xl); box-shadow: var(--lpb-shadow-lg); overflow: hidden; }
         .lpb-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--lpb-border); flex: 0 0 auto; }
         .lpb-modal-title { font-size: 14px; font-weight: 600; color: var(--lpb-text); margin: 0; }
@@ -407,13 +407,13 @@
         .lpb-media-card:hover { border-color: var(--lpb-accent-border); }
         .lpb-media-thumb { width: 100%; height: 96px; object-fit: contain; border-radius: var(--lpb-radius-sm); background: var(--lpb-workspace); }
         .lpb-media-path { font-size: 10px; color: var(--lpb-text-muted); margin: 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .lpb-media-use { width: 100%; height: 28px; font-size: 11px; font-weight: 500; border: 0; border-radius: var(--lpb-radius-sm); background: var(--lpb-accent); color: #fff; cursor: pointer; transition: background-color var(--lpb-transition); }
+        .lpb-media-use { width: 100%; height: 28px; font-size: 11px; font-weight: 500; border: 0; border-radius: var(--lpb-radius-sm); background: var(--lpb-accent); color: var(--color-white); cursor: pointer; transition: background-color var(--lpb-transition); }
         .lpb-media-use:hover { background: var(--lpb-accent-hover); }
         .lpb-media-empty { text-align: center; padding: 40px 16px; color: var(--lpb-text-muted); font-size: 12.5px; }
         .lpb-revision-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--lpb-border); border-radius: var(--lpb-radius-md); margin-bottom: 8px; background: var(--lpb-surface-raised); }
         .lpb-revision-row.is-published { border-color: transparent; background: var(--lpb-success-subtle); }
         .lpb-revision-num { font-size: 12.5px; font-weight: 600; color: var(--lpb-text); display: inline-flex; align-items: center; gap: 8px; }
-        .lpb-revision-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--lpb-success); color: #fff; text-transform: uppercase; letter-spacing: .04em; }
+        .lpb-revision-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--lpb-success); color: var(--color-white); text-transform: uppercase; letter-spacing: .04em; }
         .lpb-revision-meta { font-size: 11px; color: var(--lpb-text-tertiary); margin-top: 3px; }
 
         /* ===== SWITCHER PREVIEW DI HEADER =====
@@ -541,15 +541,15 @@
         .lpb-hdr-btn:disabled { opacity: .45; cursor: not-allowed; }
         .lpb-hdr-btn:focus-visible { outline: 2px solid var(--lpb-accent); outline-offset: 2px; }
         .lpb-hdr-btn--primary { background: var(--orion-electric-violet); border-color: var(--orion-electric-violet); color: var(--orion-on-violet); }
-        .lpb-hdr-btn--primary:hover:not(:disabled) { background: #3D45E0; border-color: #3D45E0; color: var(--orion-on-violet); }
+        .lpb-hdr-btn--primary:hover:not(:disabled) { background: var(--color-indigo-700); border-color: var(--color-indigo-700); color: var(--orion-on-violet); }
         .lpb-hdr-btn--success { background: var(--orion-cta-orange); border-color: var(--orion-cta-orange); color: var(--orion-on-orange); }
-        .lpb-hdr-btn--success:hover:not(:disabled) { background: #E85C05; border-color: #E85C05; color: var(--orion-on-orange); }
+        .lpb-hdr-btn--success:hover:not(:disabled) { background: var(--color-amber-600); border-color: var(--color-amber-600); color: var(--orion-on-orange); }
         /* Preview Website: Electric Violet dengan teks putih (5.29:1 AA).
-           CATATAN: klaim lama "Kontras 7.56:1 AAA" untuk #26788E di atas #304C64
+           CATATAN: klaim lama "Kontras 7.56:1 AAA" untuk var(--brand-accent-light) di atas var(--color-slate-700)
            adalah SALAH — kontras sebenarnya hanya 1.81:1 (GAGAL WCAG).
            Root cause Bug #5: latar gelap + teks gelap. */
         .lpb-hdr-btn--preview { background: var(--orion-electric-violet); border-color: var(--orion-electric-violet); color: var(--orion-on-violet); }
-        .lpb-hdr-btn--preview:hover:not(:disabled) { background: #3D45E0; border-color: #3D45E0; color: var(--orion-on-violet); }
+        .lpb-hdr-btn--preview:hover:not(:disabled) { background: var(--color-indigo-700); border-color: var(--color-indigo-700); color: var(--orion-on-violet); }
     </style>
 
     
@@ -1436,10 +1436,10 @@
                   html: pesan,
                   icon: o.ikon || 'warning',
                   showCancelButton: true,
-                  confirmButtonColor: o.bahaya === false ? 'var(--brand-accent-light)' : '#93481A',
+                  confirmButtonColor: o.bahaya === false ? 'var(--brand-accent-light)' : 'var(--color-rose-800)',
                   confirmButtonText: o.setuju || 'Ya, Lanjutkan',
-                  cancelButtonColor: '#F1F5F1',
-                  cancelButtonText: '<span style="color:#4A5B53">Batal</span>',
+                  cancelButtonColor: 'var(--color-slate-100)',
+                  cancelButtonText: '<span style="color:var(--color-slate-500)">Batal</span>',
                   reverseButtons: true,
                   focusCancel: true,
                   allowOutsideClick: false,
@@ -1586,10 +1586,10 @@
     //  Indikator status (badge terpadu di header editor)
     // ================================================================
     var SAVE_STATUS_STYLE = {
-        saved:   { color: '#059669', background: '#ecfdf5', border: 'transparent', icon: 'check' },
-        saving:  { color: '#d97706', background: '#FEF6EA', border: 'transparent', icon: 'spinner' },
-        unsaved: { color: '#d97706', background: '#ffffff', border: '#E2EAE4',  icon: 'warn' },
-        error:   { color: '#93481A', background: '#fff1f2', border: 'transparent', icon: 'error' }
+        saved:   { color: 'var(--color-emerald-600)', background: 'var(--color-emerald-50)', border: 'transparent', icon: 'check' },
+        saving:  { color: 'var(--color-amber-600)', background: 'var(--color-amber-50)', border: 'transparent', icon: 'spinner' },
+        unsaved: { color: 'var(--color-amber-600)', background: 'var(--color-white)', border: 'var(--color-slate-200)',  icon: 'warn' },
+        error:   { color: 'var(--color-rose-800)', background: 'var(--color-rose-50)', border: 'transparent', icon: 'error' }
     };
     var SAVE_STATUS_TEXT = {
         saved: 'Tersimpan',

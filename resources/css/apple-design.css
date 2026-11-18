@@ -1,0 +1,96 @@
+/* =========================================================================
+   APPLE DESIGN — bahasa desain Apple untuk seluruh aplikasi.
+   =========================================================================
+   Prinsip: kertas #F5F5F7, teks grafit #1D1D1F, aksen Apple #0071E3,
+   tipografi SF Pro, tombol kapsul, motion spring (cubic-bezier(.32,.72,0,1)),
+   fokus ring biru glow, drop shadow berlapis sangat lembut.
+   Scoped [data-brand-theme="apple"] — tema lain tidak tersentuh sama sekali.
+   ========================================================================= */
+
+:is([data-brand-theme="apple"]) body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', sans-serif;
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    background: var(--brand-surface-page, #F5F5F7);
+}
+
+/* Tipografi tampilan: tracking rapat ala SF Pro Display */
+:is([data-brand-theme="apple"]) h1,
+:is([data-brand-theme="apple"]) h2,
+:is([data-brand-theme="apple"]) h3 {
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+}
+
+/* KARTU — radius 18px, shadow berlapis sangat lembut, hairline border */
+:is([data-brand-theme="apple"]) .x-card,
+:is([data-brand-theme="apple"]) .bg-white.rounded-lg,
+:is([data-brand-theme="apple"]) .bg-white.rounded-2xl {
+    border-radius: 18px;
+    border: 1px solid rgba(29, 29, 31, 0.08) !important;
+    box-shadow: 0 1px 2px rgba(29, 29, 31, 0.05), 0 16px 40px rgba(29, 29, 31, 0.06) !important;
+}
+
+/* TOMBOL — kapsul (pill), spring press, fokus ring biru glow */
+:is([data-brand-theme="apple"]) button,
+:is([data-brand-theme="apple"]) [role="button"],
+:is([data-brand-theme="apple"]) a[class*="rounded"] {
+    transition: transform .18s cubic-bezier(.32, .72, 0, 1), background-color .18s ease, box-shadow .18s ease;
+}
+:is([data-brand-theme="apple"]) button:active,
+:is([data-brand-theme="apple"]) a[class*="rounded"]:active {
+    transform: scale(.965);
+}
+:is([data-brand-theme="apple"]) :focus-visible {
+    outline: 3px solid rgba(0, 113, 227, .35);
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+:is([data-brand-theme="apple"]) a[href*="penjualan/create"],
+:is([data-brand-theme="apple"]) .btn-primary,
+:is([data-brand-theme="apple"]) button[type="submit"] {
+    border-radius: 9999px;
+}
+
+/* INPUT — radius 10px, fokus glow biru tipis */
+:is([data-brand-theme="apple"]) input,
+:is([data-brand-theme="apple"]) select,
+:is([data-brand-theme="apple"]) textarea {
+    border-radius: 10px !important;
+    border-color: rgba(29, 29, 31, 0.12) !important;
+    background: #FFFFFF !important;
+    transition: box-shadow .18s ease, border-color .18s ease;
+}
+:is([data-brand-theme="apple"]) input:focus,
+:is([data-brand-theme="apple"]) select:focus,
+:is([data-brand-theme="apple"]) textarea:focus {
+    outline: none;
+    border-color: #0071E3 !important;
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, .14) !important;
+}
+
+/* TABEL — hairline row, hover biru sangat muda */
+:is([data-brand-theme="apple"]) table tbody tr:hover { background: rgba(0, 113, 227, .045); }
+:is([data-brand-theme="apple"]) table thead th { letter-spacing: .04em; }
+
+/* MOTION GLOBAL — spring ease Apple untuk transisi hover/focus */
+:is([data-brand-theme="apple"]) .transition-colors,
+:is([data-brand-theme="apple"]) .transition,
+:is([data-brand-theme="apple"]) .transition-shadow,
+:is([data-brand-theme="apple"]) .transition-all {
+    transition-timing-function: cubic-bezier(.32, .72, 0, 1);
+}
+
+/* Sidebar — graphite gelap khas app Pro */
+:is([data-brand-theme="apple"]) .menu-group-toggle { color: rgba(209, 209, 214, 0.72); }
+:is([data-brand-theme="apple"]) .menu-group-toggle:hover { color: #FFFFFF; }
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+    :is([data-brand-theme="apple"]) *,
+    :is([data-brand-theme="apple"]) *::before,
+    :is([data-brand-theme="apple"]) *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+    }
+}

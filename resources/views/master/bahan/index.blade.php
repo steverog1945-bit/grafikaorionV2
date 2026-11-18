@@ -427,7 +427,7 @@
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: 'var(--brand-accent-light)',
-            cancelButtonColor: '#FAFBF9',
+            cancelButtonColor: 'var(--color-slate-50)',
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
             customClass: {
@@ -455,8 +455,8 @@
                 : `<b>${escapeHtml(namaBahan)}</b> akan muncul lagi di pilihan transaksi baru.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: mauNonaktifkan ? '#4A5B53' : '#10b981',
-            cancelButtonColor: '#FAFBF9',
+            confirmButtonColor: mauNonaktifkan ? 'var(--color-slate-500)' : 'var(--color-emerald-500)',
+            cancelButtonColor: 'var(--color-slate-50)',
             confirmButtonText: mauNonaktifkan ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan',
             cancelButtonText: 'Batal',
             customClass: {
@@ -547,8 +547,8 @@
             text: `${checkedCount} bahan terpilih akan dihapus. Bahan yang masih terikat riwayat transaksi otomatis dilewati.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
-            cancelButtonColor: '#FAFBF9',
+            confirmButtonColor: 'var(--color-rose-800)',
+            cancelButtonColor: 'var(--color-slate-50)',
             confirmButtonText: 'Ya, Hapus Semua',
             cancelButtonText: 'Batal',
             customClass: {

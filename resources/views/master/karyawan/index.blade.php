@@ -272,7 +272,7 @@
             html: `Anda akan menghapus data <b>${escapeHtml(name)}</b>.<br><small class="text-slate-400 uppercase font-medium tracking-widest">Tindakan ini permanen!</small>`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
+            confirmButtonColor: 'var(--color-rose-800)',
             confirmButtonText: 'Ya, Hapus!',
             cancelButtonText: 'Batal',
             customClass: { popup: 'rounded-2xl' }

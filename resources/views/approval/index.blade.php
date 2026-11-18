@@ -119,7 +119,7 @@
             html: `<b>${escHtml(ringkasan)}</b> akan dieksekusi begitu Anda menyetujui - tindakan ini tidak bisa dibatalkan.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#10b981',
+            confirmButtonColor: 'var(--color-emerald-500)',
             confirmButtonText: 'Ya, Setujui',
             cancelButtonText: 'Batal'
         }).then((result) => {

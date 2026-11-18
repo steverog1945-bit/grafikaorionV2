@@ -64,7 +64,7 @@
         /* CETAKAN SELALU HITAM-DI-ATAS-PUTIH, apa pun tema aktif.
 
            Masalah nyata: aplikasi dipakai dalam mode gelap. Semua teks
-           berkelas slate dipetakan ulang ke token terang (#DCE9ED /
+           berkelas slate dipetakan ulang ke token terang (var(--color-slate-200) /
            #F7FAFB) lewat rule !important spesifisitas kelas-ganda
            (html.dark .text-slate-600 dst). Kertas cetak dipaksa putih,
            tapi jika perapihan "copot class dark saat mencetak" (lihat
@@ -82,34 +82,34 @@
               tanpa mengubah markup. */
         html.dark,
         html.dark:root {
-            --text-primary: #1A231F !important;
-            --text-secondary: #1A231F !important;
-            --text-tertiary: #1A231F !important;
-            --dark-text-primary: #1A231F !important;
-            --dark-text-secondary: #1A231F !important;
-            --dark-text-tertiary: #1A231F !important;
-            --dark-icon-muted: #1A231F !important;
-            --accent-light: #FFFFFF !important;
-            --dark-accent-light: #FFFFFF !important;
-            --surface-primary: #FFFFFF !important;
-            --surface-secondary: #FFFFFF !important;
-            --surface-tertiary: #FFFFFF !important;
-            --dark-surface-primary: #FFFFFF !important;
-            --dark-surface-secondary: #FFFFFF !important;
-            --dark-surface-tertiary: #FFFFFF !important;
-            --border-primary: #C9D6CE !important;
-            --border-secondary: #C9D6CE !important;
-            --dark-border-primary: #C9D6CE !important;
+            --text-primary: var(--color-slate-900) !important;
+            --text-secondary: var(--color-slate-900) !important;
+            --text-tertiary: var(--color-slate-900) !important;
+            --dark-text-primary: var(--color-slate-900) !important;
+            --dark-text-secondary: var(--color-slate-900) !important;
+            --dark-text-tertiary: var(--color-slate-900) !important;
+            --dark-icon-muted: var(--color-slate-900) !important;
+            --accent-light: var(--color-white) !important;
+            --dark-accent-light: var(--color-white) !important;
+            --surface-primary: var(--color-white) !important;
+            --surface-secondary: var(--color-white) !important;
+            --surface-tertiary: var(--color-white) !important;
+            --dark-surface-primary: var(--color-white) !important;
+            --dark-surface-secondary: var(--color-white) !important;
+            --dark-surface-tertiary: var(--color-white) !important;
+            --border-primary: var(--color-slate-300) !important;
+            --border-secondary: var(--color-slate-300) !important;
+            --dark-border-primary: var(--color-slate-300) !important;
         }
 
         html.dark:root body,
         html.dark:root body * {
-            color: #1A231F !important;
+            color: var(--color-slate-900) !important;
             background-color: transparent !important;
         }
 
         html.dark:root body {
-            background-color: #fff !important;
+            background-color: var(--color-white) !important;
         }
 
         table { width: 100% !important; max-width: 100% !important; }

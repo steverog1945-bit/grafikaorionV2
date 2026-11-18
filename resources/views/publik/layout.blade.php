@@ -24,18 +24,18 @@
     {{-- Gaya Brand ORION (Royal Indigo) — konsisten dengan Landing Page Builder --}}
     <style>
         :root {
-            --kertas: #faf9f7;
-            --putih: #ffffff;
-            --garis: #e9e5df;
-            --garis-kuat: #d6d0c8;
-            --tinta: #1b1a18;
-            --tinta-2: #55514b;
-            --tinta-3: #6e6962;
-            --deep-night: #15143F;       /* DEEP NIGHT */
-            --royal-indigo: #2E318E;     /* ROYAL INDIGO */
-            --electric-violet: #4D55F8;  /* ELECTRIC VIOLET */
-            --cta-orange: #FF6B17;       /* CTA ORANGE */
-            --cyan-light: #B8EEFF;       /* CYAN LIGHT */
+            --kertas: var(--paper);
+            --putih: var(--color-white);
+            --garis: var(--line-200);
+            --garis-kuat: var(--color-slate-200);
+            --tinta: var(--ink-900);
+            --tinta-2: var(--color-slate-700);
+            --tinta-3: var(--color-slate-500);
+            --deep-night: var(--color-indigo-950);       /* DEEP NIGHT */
+            --royal-indigo: var(--color-indigo-900);     /* ROYAL INDIGO */
+            --electric-violet: var(--color-indigo-600);  /* ELECTRIC VIOLET */
+            --cta-orange: var(--color-amber-600);       /* CTA ORANGE */
+            --cyan-light: var(--color-slate-200);       /* CYAN LIGHT */
             --sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
             --keluar: cubic-bezier(0.23, 1, 0.32, 1);
         }
@@ -103,7 +103,7 @@
             height: 40px;
             padding: 0 1.125rem;
             background: var(--royal-indigo);
-            color: #fff !important;
+            color: var(--color-white) !important;
             border: 0;
             font: 500 0.9375rem var(--sans);
             cursor: pointer;
@@ -133,7 +133,7 @@
             transition: transform 140ms var(--keluar), background-color 150ms ease;
         }
         .bl-tombol-cta-oranye:active { transform: scale(0.97); }
-        .bl-tombol-cta-oranye:hover { background: #E85C05; }
+        .bl-tombol-cta-oranye:hover { background: var(--color-amber-600); }
 
         /* ============ KAKI ============ */
         .bl-kaki {
@@ -148,7 +148,7 @@
 
         /* ============ DIALOG MASUK (modal form login) ============ */
         .bl-dialog { position: fixed; inset: 0; margin: auto; height: fit-content; width: min(400px, calc(100vw - 2rem)); padding: 0; border: 1px solid var(--garis); border-radius: 10px; background: var(--putih); color: var(--tinta); }
-        .bl-dialog::backdrop { background: rgba(27, 26, 24, 0.45); }
+        .bl-dialog::backdrop { background: color-mix(in srgb, var(--ink-900) 45%, transparent); }
         .bl-dialog[open] { animation: bl-masuk 220ms var(--keluar); }
         .bl-dialog[open]::backdrop { animation: bl-pudar 220ms ease-out; }
         @keyframes bl-masuk { from { opacity: 0; transform: scale(0.96) translateY(6px); } }
@@ -157,9 +157,9 @@
         .bl-dialog h2 { font-size: 1.375rem; font-weight: 650; margin: 0 0 0.25rem; letter-spacing: -0.02em; }
         .bl-dialog p.ket { margin: 0 0 1.25rem; font-size: 0.875rem; color: var(--tinta-3); }
         .login-label { display: block; font-size: 0.8125rem; font-weight: 500; color: var(--tinta-2); margin-bottom: 0.375rem; }
-        .login-input { width: 100%; padding: 0 0.75rem; background: #fff; border: 1px solid var(--garis-kuat); font-size: 0.9375rem; font-family: inherit; color: var(--tinta); outline: none; transition: border-color 140ms ease, box-shadow 140ms ease; }
-        .login-input:focus { border-color: var(--royal-indigo); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important; }
-        .login-galat { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 6px; padding: 0.625rem 0.75rem; font-size: 0.8125rem; display: flex; gap: 0.5rem; align-items: flex-start; }
+        .login-input { width: 100%; padding: 0 0.75rem; background: var(--color-white); border: 1px solid var(--garis-kuat); font-size: 0.9375rem; font-family: inherit; color: var(--tinta); outline: none; transition: border-color 140ms ease, box-shadow 140ms ease; }
+        .login-input:focus { border-color: var(--royal-indigo); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-indigo-600) 15%, transparent) !important; }
+        .login-galat { background: var(--color-rose-50); border: 1px solid var(--color-rose-100); color: var(--color-rose-700); border-radius: 6px; padding: 0.625rem 0.75rem; font-size: 0.8125rem; display: flex; gap: 0.5rem; align-items: flex-start; }
         .bl-tutup { position: absolute; top: 0.75rem; right: 0.75rem; width: 32px; height: 32px; border: 0; background: transparent; color: var(--tinta-3); cursor: pointer; }
 
         /* ============ REDUCED MOTION ============ */
@@ -324,7 +324,7 @@
         }
 
         /* Hover lift minimal pada card */
-        .lp-product:hover, .lp-portfolio-card:hover, .lp-posts-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(77, 85, 248, 0.15); transition: transform 150ms ease, box-shadow 150ms ease; }
+        .lp-product:hover, .lp-portfolio-card:hover, .lp-posts-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px color-mix(in srgb, var(--color-indigo-600) 15%, transparent); transition: transform 150ms ease, box-shadow 150ms ease; }
         @media (prefers-reduced-motion: reduce) {
             .lp-product:hover, .lp-portfolio-card:hover, .lp-posts-card:hover { transform: none; box-shadow: none; transition: none; }
         }

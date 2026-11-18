@@ -11,47 +11,47 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        background: #f1f5f9; color: #0f172a; min-height: 100vh;
+        background: var(--color-slate-100); color: var(--color-slate-900); min-height: 100vh;
         display: flex; flex-direction: column; align-items: center;
         padding: 24px 16px 48px;
     }
     .kartu { width: 100%; max-width: 640px; }
     .brand { text-align: center; margin-bottom: 20px; }
-    .brand h1 { font-size: 20px; font-weight: 700; color: #1e293b; }
-    .brand p { font-size: 13px; color: #64748b; margin-top: 4px; }
-    .panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
-    label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #64748b; margin-bottom: 6px; }
+    .brand h1 { font-size: 20px; font-weight: 700; color: var(--color-slate-800); }
+    .brand p { font-size: 13px; color: var(--color-slate-500); margin-top: 4px; }
+    .panel { background: var(--color-white); border: 1px solid var(--color-slate-200); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--color-slate-500); margin-bottom: 6px; }
     input[type=text], input[type=tel] {
-        width: 100%; border: 1px solid #cbd5e1; border-radius: 10px;
-        padding: 10px 14px; font-size: 15px; color: #0f172a; background: #f8fafc;
+        width: 100%; border: 1px solid var(--color-slate-300); border-radius: 10px;
+        padding: 10px 14px; font-size: 15px; color: var(--color-slate-900); background: var(--color-slate-50);
     }
-    input:focus { outline: none; border-color: #6366f1; background: #fff; }
+    input:focus { outline: none; border-color: var(--color-indigo-500); background: var(--color-white); }
     .grup { margin-bottom: 14px; }
     button {
         width: 100%; border: 0; border-radius: 10px; padding: 12px 16px;
-        font-size: 14px; font-weight: 600; color: #fff; background: #4f46e5; cursor: pointer;
+        font-size: 14px; font-weight: 600; color: var(--color-white); background: var(--color-indigo-600); cursor: pointer;
     }
-    button:hover { background: #4338ca; }
+    button:hover { background: var(--color-indigo-700); }
     .galat {
-        background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c;
+        background: var(--color-rose-50); border: 1px solid var(--color-rose-100); color: var(--color-rose-700);
         border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px;
     }
     .kbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
-    .b-netral { background: #e2e8f0; color: #334155; }
-    .b-indigo { background: #e0e7ff; color: #4338ca; }
-    .b-amber { background: #fef3c7; color: #92400e; }
-    .b-emas { background: #dcfce7; color: #166534; }
-    .b-merah { background: #fee2e2; color: #b91c1c; }
-    h2 { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #475569; margin-bottom: 10px; }
+    .b-netral { background: var(--color-slate-200); color: var(--color-slate-600); }
+    .b-indigo { background: var(--color-indigo-100); color: var(--color-indigo-700); }
+    .b-amber { background: var(--color-amber-50); color: var(--color-amber-800); }
+    .b-emas { background: var(--color-emerald-50); color: var(--color-emerald-800); }
+    .b-merah { background: var(--color-rose-50); color: var(--color-rose-700); }
+    h2 { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-slate-600); margin-bottom: 10px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { text-align: left; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; }
-    td { padding: 8px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    th { text-align: left; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-slate-400); padding: 6px 8px; border-bottom: 1px solid var(--color-slate-200); }
+    td { padding: 8px; border-bottom: 1px solid var(--color-slate-100); vertical-align: top; }
     .dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; font-size: 14px; }
-    .dl dt { color: #64748b; font-size: 12px; padding-top: 2px; }
-    .dl dd { font-weight: 600; color: #1e293b; }
+    .dl dt { color: var(--color-slate-500); font-size: 12px; padding-top: 2px; }
+    .dl dd { font-weight: 600; color: var(--color-slate-800); }
     .uang { text-align: right; white-space: nowrap; }
-    .catatan { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 12px; line-height: 1.5; }
+    .catatan { font-size: 11px; color: var(--color-slate-400); text-align: center; margin-top: 12px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -112,14 +112,14 @@
                     <td>
                         {{ $it->nama_file }}
                         @if (trim((string) $it->p_ukuran) !== '' || trim((string) $it->l_ukuran) !== '')
-                        <span style="color:#94a3b8;font-size:11px"> &middot; {{ $it->p_ukuran }} x {{ $it->l_ukuran }}</span>
+                        <span style="color:var(--color-slate-400);font-size:11px"> &middot; {{ $it->p_ukuran }} x {{ $it->l_ukuran }}</span>
                         @endif
                     </td>
                     <td class="uang">{{ (int) $it->qty }}</td>
                     <td><span class="badge {{ ['Antre' => 'b-amber', 'Desain' => 'b-indigo', 'Cetak' => 'b-indigo', 'Selesai' => 'b-emas'][$it->status_spk] ?? 'b-netral' }}">{{ $it->status_spk }}</span></td>
                 </tr>
                 @empty
-                <tr><td colspan="3" style="color:#94a3b8">Belum ada rincian.</td></tr>
+                <tr><td colspan="3" style="color:var(--color-slate-400)">Belum ada rincian.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -130,7 +130,7 @@
         <dl class="dl">
             <dt>Total Tagihan</dt><dd>Rp {{ number_format($total, 0, ',', '.') }}</dd>
             <dt>Sudah Dibayar</dt><dd>Rp {{ number_format($dibayar, 0, ',', '.') }}</dd>
-            <dt>Sisa</dt><dd style="{{ $sisa > 0.01 ? 'color:#b45309' : 'color:#166534' }}">Rp {{ number_format($sisa, 0, ',', '.') }}</dd>
+            <dt>Sisa</dt><dd style="{{ $sisa > 0.01 ? 'color:var(--color-amber-700)' : 'color:var(--color-emerald-800)' }}">Rp {{ number_format($sisa, 0, ',', '.') }}</dd>
             @if (trim((string) $nota->metode_pembayaran) !== '')
             <dt>Metode Terakhir</dt><dd>{{ $nota->metode_pembayaran }}</dd>
             @endif
@@ -138,7 +138,7 @@
     </div>
     @endisset
 
-    <div class="panel" style="background:#f8fafc">
+    <div class="panel" style="background:var(--color-slate-50)">
         <form method="POST" action="{{ route('lacak.cari') }}">
             @csrf
             <div class="kbar">

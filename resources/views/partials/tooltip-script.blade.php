@@ -5,7 +5,7 @@
     Tulis title="..." di elemen mana pun untuk tooltip khusus; data-no-tip menonaktifkan otomatisasi.
 --}}
 <style>
-    #app-tooltip { position: fixed; z-index: 100000; max-width: 280px; padding: 6px 10px; border-radius: 8px; background: #2A3731; color: #FAFBF9; font-size: 11px; font-weight: 500; line-height: 1.4; pointer-events: none; opacity: 0; transform: translateY(2px); transition: opacity .12s ease, transform .12s ease; box-shadow: 0 6px 18px rgba(15, 23, 42, .25); }
+    #app-tooltip { position: fixed; z-index: 100000; max-width: 280px; padding: 6px 10px; border-radius: 8px; background: var(--color-slate-800); color: var(--color-slate-50); font-size: 11px; font-weight: 500; line-height: 1.4; pointer-events: none; opacity: 0; transform: translateY(2px); transition: opacity .12s ease, transform .12s ease; box-shadow: 0 6px 18px color-mix(in srgb, var(--color-slate-900) 25%, transparent); }
     #app-tooltip.show { opacity: 1; transform: translateY(0); }
     @media print { #app-tooltip { display: none !important; } }
 </style>

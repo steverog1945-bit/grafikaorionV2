@@ -176,6 +176,58 @@ class BrandThemeService
             ],
         ],
 
+        // APPLE DESIGN - "Graphite & California Blue". Bahasa desain Apple:
+        // grafit #1D1D1F, latar #F5F5F7 (bukan putih menyilaukan), aksen
+        // Apple #0071E3, tipografi SF Pro, tombol kapsul, motion spring
+        // (cubic-bezier(.32,.72,0,1)), fokus ring biru glow. Sidebar tetap
+        // dipakai (pola macOS). Semua, tanpa terkecuali, mengikuti token.
+        'apple' => [
+            'name' => 'Apple Design',
+            'description' => 'Graphite & California blue — SF Pro, tombol kapsul, motion spring, tanpa terkecuali.',
+            'swatches' => ['#0071E3', '#1D1D1F', '#F5F5F7', '#FFFFFF'],
+            'neutralRamp' => [
+                '50' => '#F5F5F7', '100' => '#EBEBEF', '200' => '#D8D8DE',
+                '300' => '#C7C7CC', '400' => '#8E8E93', '500' => '#636366',
+                '600' => '#48484A', '700' => '#3A3A3C', '800' => '#2C2C2E',
+                '900' => '#1D1D1F', '950' => '#111113',
+            ],
+            'surfaces' => [
+                'page' => '#F5F5F7', 'primary' => '#FFFFFF', 'secondary' => '#FAFAFC',
+                'tertiary' => '#EBEBEF', 'border' => '#D8D8DE', 'border_strong' => '#C7C7CC',
+                'text' => '#1D1D1F', 'text_secondary' => '#3A3A3C', 'text_tertiary' => '#636366',
+                'dark_primary' => '#1D1D1F', 'dark_secondary' => '#2C2C2E',
+                'dark_tertiary' => '#3A3A3C', 'dark_border' => '#48484A',
+                'dark_text' => '#F5F5F7', 'dark_text_secondary' => '#D1D1D6', 'dark_text_tertiary' => '#8E8E93',
+            ],
+            'sidebar' => [
+                'deep' => '#111113', 'base' => '#1D1D1F', 'raised' => '#2C2C2E',
+                'border' => '#3A3A3C', 'text' => '#D1D1D6', 'muted' => '#8E8E93',
+                'title' => '#FFFFFF', 'accent' => '#2997FF', 'warning' => '#FF9F0A',
+                'active' => '#2C2C2E', 'hover' => '#26262A', 'active_mark' => '#2997FF',
+            ],
+            'ramp' => [
+                '50' => '#E8F1FC', '100' => '#CCE0FA', '200' => '#99C2F4',
+                '300' => '#66A3EE', '400' => '#3D8BFD', '500' => '#2A93F0',
+                '600' => '#0071E3', '700' => '#0066CC', '800' => '#0054A6',
+                '900' => '#003E7C', '950' => '#00264E',
+            ],
+            'accent' => [
+                'light' => '#0071E3', 'hover_light' => '#0066CC', 'surface_light' => '#E8F1FC',
+                'dark' => '#2997FF', 'hover_dark' => '#4DA6FF', 'dark_hover' => '#0071E3', 'surface_dark' => '#0E2A4C',
+            ],
+            'mobileNavigation' => [
+                'inactive_light' => '#8E8E93', 'active_light' => '#0071E3',
+                'inactive_dark' => '#8E8E93', 'active_dark' => '#2997FF',
+            ],
+            'typography' => [
+                'font_family' => "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', sans-serif",
+                'body_size' => '14px', 'secondary_size' => '13px', 'label_size' => '11px',
+                'heading_size' => '21px', 'page_title_size' => '28px',
+                'weight_regular' => '400', 'weight_medium' => '500', 'weight_strong' => '600',
+                'line_height' => '1.47', 'line_height_compact' => '1.32', 'letter_spacing' => '-0.011em',
+            ],
+        ],
+
         // COMMAND CENTER - "Ice" lembut: latar ice blue-gray dingin, kartu
         // nyaris putih tapi TIDAK menyilaukan, aksen biru periwinkle kalem.
         // Ide dari arah desain V3 erpv3 (topbar + grid), di-retune lebih

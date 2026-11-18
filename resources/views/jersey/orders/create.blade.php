@@ -11,13 +11,13 @@
 .jersey-mobile-form-page input[type="file"],
 .jersey-mobile-form-page select,
 .jersey-mobile-form-page textarea {
-    background-color: var(--surface-primary, #ffffff);
-    border: 1px solid var(--border-primary, #e2e8f0);
+    background-color: var(--surface-primary, var(--color-white));
+    border: 1px solid var(--border-primary, var(--color-slate-200));
     border-radius: 0.75rem;
     padding: 0.625rem 0.75rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--text-primary, #334155);
+    color: var(--text-primary, var(--color-slate-600));
     transition: border-color .15s ease, box-shadow .15s ease;
 }
 .jersey-mobile-form-page input:focus,
@@ -29,8 +29,8 @@
 }
 .jersey-mobile-form-page .baris-pemain select,
 .jersey-mobile-form-page .baris-pemain input {
-    background-color: var(--surface-secondary, #f8fafc);
-    border: 1px solid var(--border-secondary, var(--border-primary, #e2e8f0));
+    background-color: var(--surface-secondary, var(--color-slate-50));
+    border: 1px solid var(--border-secondary, var(--border-primary, var(--color-slate-200)));
     border-radius: 0.5rem;
     padding: 0.5rem;
     font-size: 0.75rem;
@@ -258,7 +258,7 @@
                     : 'Qty per ukuran yang sudah diisi akan <b>dikosongkan</b> - mode <b>Daftar Pemain</b> tidak memakai qty per ukuran. Kalau dibiarkan, qty itu tetap terkirim &amp; ikut terhitung ke harga (penumpukan harga).',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#93481A',
+                confirmButtonColor: 'var(--color-rose-800)',
                 confirmButtonText: 'Ya, Kosongkan & Ganti Mode',
                 cancelButtonText: 'Batal',
                 customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },
@@ -792,7 +792,7 @@
                 html: `<ul style="text-align:left; font-size:12.5px; padding-left:1.2em;">${daftar}</ul>`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#93481A',
+                confirmButtonColor: 'var(--color-rose-800)',
                 confirmButtonText: 'Ya, Simpan Sekarang',
                 cancelButtonText: 'Batal, Saya Cek Lagi',
                 customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },

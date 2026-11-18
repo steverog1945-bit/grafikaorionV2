@@ -214,7 +214,7 @@
             `,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#93481A',
+            confirmButtonColor: 'var(--color-rose-800)',
             confirmButtonText: 'Ya, Batalkan Nota',
             cancelButtonText: 'Kembali',
             customClass: { popup: 'rounded-2xl' },

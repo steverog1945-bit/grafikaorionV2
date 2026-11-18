@@ -115,4 +115,13 @@ class TemaPremiumTest extends TestCase
         $this->assertStringContainsString('id="mainSidebar"', $body, 'Tema non-premium harus tetap memakai sidebar.');
         $this->assertStringNotContainsString('premium-bar2', $body, 'Tema non-premium tidak boleh merender baris kedua premium.');
     }
+
+    public function test_tema_apple_render_tanpa_error(): void
+    {
+        $this->teman('apple');
+        $body = (string) $this->actingAs($this->admin())->get('/dashboard')->getContent();
+
+        $this->assertStringContainsString('data-brand-theme="apple"', $body);
+        $this->assertStringContainsString('id="mainSidebar"', $body, 'Tema apple memakai sidebar (pola macOS).');
+    }
 }

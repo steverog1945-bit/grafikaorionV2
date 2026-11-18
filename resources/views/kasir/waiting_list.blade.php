@@ -33,7 +33,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
         @forelse($waiting as $w)
         {{-- tgl_order (bukan created_at) = waktu pesanan masuk yang sebenarnya --}}
-        <div class="group relative rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] hover:shadow-[0_16px_40px_rgba(79,70,229,0.10)] hover:border-indigo-100 transition-all duration-300 overflow-hidden">
+        <div class="group relative rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_color-mix(in srgb, var(--color-slate-900) 4%, transparent)] hover:shadow-[0_16px_40px_color-mix(in srgb, var(--color-indigo-600) 10%, transparent)] hover:border-indigo-100 transition-all duration-300 overflow-hidden">
             <div class="absolute inset-x-0 top-0 h-1 bg-indigo-300 opacity-70"></div>
 
             <div class="p-6">

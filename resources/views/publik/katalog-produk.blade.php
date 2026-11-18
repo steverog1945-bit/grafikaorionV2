@@ -12,18 +12,18 @@
 @section('gaya')
     /* ---- Brand ORION (Royal Indigo) ---- */
     :root {
-        --kertas: #faf9f7;
-        --putih: #ffffff;
-        --garis: #e9e5df;
-        --garis-kuat: #d6d0c8;
-        --tinta: #1b1a18;
-        --tinta-2: #55514b;
-        --tinta-3: #6e6962;
-        --deep-night: #15143F;
-        --royal-indigo: #2E318E;
-        --electric-violet: #4D55F8;
-        --cta-orange: #FF6B17;
-        --cyan-light: #B8EEFF;
+        --kertas: var(--paper);
+        --putih: var(--color-white);
+        --garis: var(--line-200);
+        --garis-kuat: var(--color-slate-200);
+        --tinta: var(--ink-900);
+        --tinta-2: var(--color-slate-700);
+        --tinta-3: var(--color-slate-500);
+        --deep-night: var(--color-indigo-950);
+        --royal-indigo: var(--color-indigo-900);
+        --electric-violet: var(--color-indigo-600);
+        --cta-orange: var(--color-amber-600);
+        --cyan-light: var(--color-slate-200);
         --sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
     }
 
@@ -67,7 +67,7 @@
         height: 40px;
         padding: 0 1.125rem;
         background: var(--royal-indigo);
-        color: #fff !important;
+        color: var(--color-white) !important;
         border: 0;
         font: 500 0.9375rem var(--sans);
         cursor: pointer;
@@ -89,7 +89,7 @@
     .bl-card p { margin: 0; color: var(--tinta-2); font-size: 0.9375rem; }
     .bl-empty { padding: 3rem 1rem; text-align: center; color: var(--tinta-3); }
     .bl-empty i { font-size: 3rem; color: var(--royal-indigo); margin-bottom 1rem; display: block; }
-    .bl-tag { display: inline-flex; align-items: center; gap 0.25rem; background: var(--royal-indigo); color: #fff; padding 0.25rem 0.5rem; border-radius 4px; font-size 0.75rem; font-weight 600; margin-top 0.5rem; }
+    .bl-tag { display: inline-flex; align-items: center; gap 0.25rem; background: var(--royal-indigo); color: var(--color-white); padding 0.25rem 0.5rem; border-radius 4px; font-size 0.75rem; font-weight 600; margin-top 0.5rem; }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
     @yield('gaya')

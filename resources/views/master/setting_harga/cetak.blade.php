@@ -12,20 +12,20 @@
     .dh-sheet { max-width: 1600px; margin: 0 auto; }
 
     .dh-tabel { width: 100%; border-collapse: collapse; }
-    .dh-tabel th { background: #f5f5f5; color: #171717; font-size: var(--fs-tabel, 10px); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid #e5e5e5; text-align: right; }
+    .dh-tabel th { background: var(--neutral-100); color: var(--ink-900); font-size: var(--fs-tabel, 10px); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid var(--line-200); text-align: right; }
     .dh-tabel th:first-child { text-align: left; }
-    .dh-tabel td { padding: 4px 6px; border-bottom: 1px solid #ececec; font-size: var(--fs-tabel, 10px); color: #171717; }
+    .dh-tabel td { padding: 4px 6px; border-bottom: 1px solid var(--line-200); font-size: var(--fs-tabel, 10px); color: var(--ink-900); }
     {{-- Mode gelap: sebelumnya kepala tabel tetap terang --}}
-    html.dark .dh-tabel th { background: #1f2937; color: #e5e7eb; border-bottom-color: #2e3f4f; }
-    html.dark .dh-tabel td { border-bottom-color: #223041; color: #dce9ed; }
+    html.dark .dh-tabel th { background: var(--color-slate-800); color: var(--color-slate-200); border-bottom-color: var(--color-slate-800); }
+    html.dark .dh-tabel td { border-bottom-color: var(--color-slate-800); color: var(--color-slate-200); }
     .dh-tabel td.num, .dh-tabel th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .dh-tabel td.kosong { color: #C7D3CB; }
+    .dh-tabel td.kosong { color: var(--color-slate-300); }
     .dh-blok { break-inside: avoid; page-break-inside: avoid; margin-bottom: 12px; }
-    .dh-blok-nama { font-weight: 600; font-size: 12px; color: #171717; }
-    .dh-blok-info { font-size: 9.5px; color: #6f6f6f; text-transform: uppercase; letter-spacing: .04em; }
-    .dh-catatan { font-size: 9.5px; color: #6f6f6f; margin-top: 2px; }
-    .dh-sup { font-size: 10px; color: #6f6f6f; font-style: italic; }
-    .dh-kategori-judul { font-size: 11px; font-weight: 600; color: #171717; border-bottom: 1px solid #e5e5e5; padding-bottom: 3px; margin: 16px 0 8px; }
+    .dh-blok-nama { font-weight: 600; font-size: 12px; color: var(--ink-900); }
+    .dh-blok-info { font-size: 9.5px; color: var(--ink-600); text-transform: uppercase; letter-spacing: .04em; }
+    .dh-catatan { font-size: 9.5px; color: var(--ink-600); margin-top: 2px; }
+    .dh-sup { font-size: 10px; color: var(--ink-600); font-style: italic; }
+    .dh-kategori-judul { font-size: 11px; font-weight: 600; color: var(--ink-900); border-bottom: 1px solid var(--line-200); padding-bottom: 3px; margin: 16px 0 8px; }
 
     @media print {
         @page { size: A4 {{ $landscape ? 'landscape' : 'portrait' }}; margin: 8mm; }
@@ -33,7 +33,7 @@
         {{-- padding 0 membuat kop laporan menempel ke tepi kertas; semua
              laporan lain memakai 28px 32px - diseragamkan ke sini juga. --}}
         main { margin-left: 0 !important; padding: 28px 32px !important; }
-        body { background: #fff !important; }
+        body { background: var(--color-white) !important; }
         .dh-tabel { font-size: var(--fs-tabel, 9px); }
         .dh-tabel th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         {{-- header tabel berulang antar halaman --}}
@@ -57,8 +57,8 @@
             <x-slot:actions>
                 <a href="{{ route('setting-harga.index') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-medium uppercase tracking-wider">Kembali</a>
                 <div class="inline-flex rounded-xl overflow-hidden border border-slate-200">
-                    <a href="{{ route('setting-harga.cetak', array_merge(request()->query(), ['orientasi' => 'portrait'])) }}" class="px-3 py-3 text-xs font-medium {{ !$landscape ? 'bg-[var(--brand-sidebar-accent,#4F46E5)] text-white' : 'bg-white text-slate-500 hover:bg-slate-50' }}">Portrait</a>
-                    <a href="{{ route('setting-harga.cetak', array_merge(request()->query(), ['orientasi' => 'landscape'])) }}" class="px-3 py-3 text-xs font-medium {{ $landscape ? 'bg-[var(--brand-sidebar-accent,#4F46E5)] text-white' : 'bg-white text-slate-500 hover:bg-slate-50' }}">Landscape</a>
+                    <a href="{{ route('setting-harga.cetak', array_merge(request()->query(), ['orientasi' => 'portrait'])) }}" class="px-3 py-3 text-xs font-medium {{ !$landscape ? 'bg-[var(--brand-sidebar-accent,var(--color-indigo-600))] text-white' : 'bg-white text-slate-500 hover:bg-slate-50' }}">Portrait</a>
+                    <a href="{{ route('setting-harga.cetak', array_merge(request()->query(), ['orientasi' => 'landscape'])) }}" class="px-3 py-3 text-xs font-medium {{ $landscape ? 'bg-[var(--brand-sidebar-accent,var(--color-indigo-600))] text-white' : 'bg-white text-slate-500 hover:bg-slate-50' }}">Landscape</a>
                 </div>
                 <x-button type="button" onclick="window.print()"><i class="fas fa-print"></i> Cetak</x-button>
             </x-slot:actions>
@@ -151,7 +151,7 @@
 
                     {{-- Harga File Siap Cetak (produk dengan harga tersendiri per golongan, dari harga_siap_cetak) --}}
                     @if(!empty($b['barisSiapCetak']))
-                        <div class="dh-catatan mb-1 mt-3 font-medium text-[#3F4F47]">Harga File Siap Cetak</div>
+                        <div class="dh-catatan mb-1 mt-3 font-medium text-[var(--color-slate-700)]">Harga File Siap Cetak</div>
                         <table class="dh-tabel">
                             <thead>
                                 <tr>

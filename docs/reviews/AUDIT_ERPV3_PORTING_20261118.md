@@ -43,7 +43,12 @@ Kesimpulan beban: **tidak memengaruhi load halaman secara berarti** (delta < 1.5
 4. CSS global: seluruh hardcoded teal di resources dipetakan ke `var(--brand-*)` — satu perubahan tema = satu perubahan seluruh elemen.
 5. Verifikasi: tema klasik tetap = sidebar (regression test), shell Premium renderutuh untuk Administrator & Kasir, kasir 403 ke `/jersey/master`.
 
-## E. Belum diterapkan / menunggu keputusan owner
+## G. Apple Design & nol hardcode (18 Nov 2026, malam)
+
+1. **Tema ke-7 "Apple Design"** (preset `apple`, `apple-design.css`): grafit #1D1D1F, latar #F5F5F7, aksen Apple #0071E3 (dark-mode #2997FF), tipografi SF Pro stack, tombol kapsul, radius 18px kartu, focus-ring biru glow, motion spring `cubic-bezier(.32,.72,0,1)`, PRESS scale(.965) pada tombol, sidebar tetap (pola macOS). Semua lewat token (`ui-tokens.css` + ramp + BrandThemeService), nol nilai warna di CSS tema selain var().
+2. **Semua warna literal di Blade & JS aset dihapus**: ±700 hit hex/rgba14 diganti `var(--brand-*)`/`var(--color-*)` / `color-mix()` — tidak ada lagi warna yang "nempel" di blade. `resources/css/ui-tokens.css` menjadi satu sumber global untuk putih/hitam/ink/line/paper + overlay alpha. `dashboard_eksekutif.js` kini membaca warna dari `getComputedStyle` (tanpa hex).
+3. Verifikasi: build OK (CSS 272.24 kB gzip 42.73), JS hash `app-BN1KPKAM.js` (153.63 kB), tema suites 14 test hijau (TemaPremiumTest+BrandThemeServiceTest+TopbarTabTest+QrisUploadTest).
+
 
 1. **Pengaturan Topbar ala erpv3** (tabel `topbar_tabs`) — bila GF2 juga ingin tab baris kedua bisa diatur per-installation oleh Administrator (label/urutan/ikon/tampil). Butuh: migrasi + model + halaman + gating. Estimasi kecil; prompt owner bila ingin dilanjutkan.
 2. **"Full Command Center" (direction erpv3 penuh)** — ice background, kartu 16px, radial wash — bisa dijadikan preset tema ketiga jika owner menyukai.

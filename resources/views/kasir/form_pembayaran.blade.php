@@ -36,7 +36,7 @@
             <div class="xl:col-span-8 space-y-6">
 
                 {{-- Info nota & konsumen --}}
-                <div class="flex flex-wrap items-center gap-4 rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] px-6 py-5">
+                <div class="flex flex-wrap items-center gap-4 rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_color-mix(in srgb, var(--color-slate-900) 4%, transparent)] px-6 py-5">
                     <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0"><i class="fas fa-user text-lg"></i></div>
                     <div class="flex-1 min-w-0">
                         <p class="text-lg font-medium text-slate-800 truncate">{{ $transaksi->nama_konsumen }}</p>
@@ -46,7 +46,7 @@
                 </div>
 
                 {{-- Rincian barang: kartu lembut per item --}}
-                <div class="rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] p-6">
+                <div class="rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_color-mix(in srgb, var(--color-slate-900) 4%, transparent)] p-6">
                     <div class="flex items-center justify-between mb-5">
                         <h4 class="flex items-center gap-1.5 text-sm font-medium text-slate-700">Rincian Barang
                             <x-hint tip="Klik ikon pensil di ujung baris untuk menyesuaikan harga/biaya item ini (Custom Harga)." icon="pen-to-square" tone="indigo" />
@@ -139,7 +139,7 @@
                 </div>
 
                 {{-- Jenis & metode pembayaran --}}
-                <div class="rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.04)] p-6">
+                <div class="rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_color-mix(in srgb, var(--color-slate-900) 4%, transparent)] p-6">
                     @if($saldoDeposit > 0)
                     <div class="mb-5 flex items-center gap-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 px-4 py-3">
                         <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><i class="fas fa-wallet text-sm"></i></div>
@@ -339,7 +339,7 @@
 
             {{-- ===================== KOLOM KANAN: ringkasan & aksi (menempel saat scroll) ===================== --}}
             <div class="xl:col-span-4 xl:sticky xl:top-6 space-y-6">
-                <div class="rounded-2xl bg-indigo-50 border border-indigo-100/70 shadow-[0_8px_30px_rgba(79,70,229,0.08)] p-6 relative overflow-hidden">
+                <div class="rounded-2xl bg-indigo-50 border border-indigo-100/70 shadow-[0_8px_30px_color-mix(in srgb, var(--color-indigo-600) 8%, transparent)] p-6 relative overflow-hidden">
                     @if($totalTerbayar > 0)
                     <span class="absolute top-4 right-4 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-medium">Sudah dibayar Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</span>
                     @endif
@@ -1021,7 +1021,7 @@
                 text: 'Biaya Cetak, Desain, dan Finishing semuanya kosong - subtotal item ini akan tersimpan Rp 0. Lanjutkan?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#93481A',
+                confirmButtonColor: 'var(--color-rose-800)',
                 confirmButtonText: 'Ya, Simpan Rp 0',
                 cancelButtonText: 'Batal, Saya Cek Lagi'
             });
