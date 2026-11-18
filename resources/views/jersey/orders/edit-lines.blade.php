@@ -326,11 +326,16 @@
                     card.querySelectorAll('.thumbnail-placeholder').forEach(el => el.classList.add('hidden'));
                     statusEl.textContent = 'Thumbnail siap. Klik kotak untuk mengganti.';
                 } else {
-                    // Berkas desain non-gambar: kotak pratinjau menampilkan
-                    // ikon, bukan gambar rusak.
+                    // Berkas desain non-gambar: tile berkas default + lencana
+                    // ekstensi (bukan gambar rusak/kosong).
                     img.removeAttribute('src');
                     img.classList.add('hidden');
                     const ext = (data.nama_asli || '').split('.').pop() || '';
+                    card.querySelectorAll('.thumbnail-placeholder').forEach(el => {
+                        const extEl = el.querySelector('.thumb-filetype-ext');
+                        if (extEl && ext) extEl.textContent = ext.toUpperCase();
+                        el.classList.remove('hidden');
+                    });
                     statusEl.textContent = 'Berkas desain siap' + (ext ? ' (' + ext.toUpperCase() + ')' : '') + '. File ada di server, dibuka tim produksi.';
                 }
             } else {

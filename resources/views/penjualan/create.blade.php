@@ -457,11 +457,12 @@
                                  class="hidden w-full h-full object-contain">
                             <span id="thumbnail_kosong" class="absolute inset-0 flex items-center justify-center text-slate-300 text-lg"><i class="fas fa-image"></i></span>
                             {{-- Berkas desain yang tidak bisa dirender peramban
-                                 (CDR, AI, EPS, PSD): tampilkan thumbnail
-                                 default, bukan ikon generik - supaya kotaknya
-                                 tidak kosong. Nama file tetap dari berkas
-                                 asli (lihat toast & kolom Nama File). --}}
-                            <img id="thumbnail_berkas" src="{{ asset('storage/default-thumbnail.png') }}" alt="Berkas desain" class="hidden absolute inset-0 w-full h-full object-contain opacity-50">
+                                 (CDR, AI, EPS, PSD): tampilkan tile berkas
+                                 default + lencana ekstensi, bukan gambar generik -
+                                 supaya kotaknya tidak kosong & informasinya jelas.
+                                 Nama file tetap dari berkas asli (lihat toast &
+                                 kolom Nama File). --}}
+                            <x-thumb-berkas id="thumbnail_berkas" size="absolute inset-0 w-full h-full rounded-lg border-0" iconSize="text-2xl" extSize="text-[11px]" class="hidden" />
                         </div>
                         <label for="input_thumbnail"
                                class="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-slate-300 bg-white hover:border-[var(--brand-accent-light)] hover:bg-[var(--brand-accent-light)]/5 cursor-pointer transition-colors px-3 py-2 text-center">
@@ -1215,9 +1216,18 @@ let currentThumbnailPreview = null;
         delete this.dataset.auto;
     });
 
+    // Tile berkas default + lencana ekstensi (pengganti <img> default-thumbnail.png
+    // yang tampil jadi gambar gelap dan tidak menjelasan format berkasnya).
+    function setBerkasThumbnail(el, namaBerkas) {
+        const ext = ((namaBerkas || '').split('.').pop() || '').toUpperCase();
+        const extEl = el ? el.querySelector('.thumb-filetype-ext') : null;
+        if (extEl) extEl.textContent = ext || 'FILE';
+        if (el) el.classList.remove('hidden');
+    }
+
     // Berkas melebihi batas ukuran TIDAK memblokir order: deskripsi tetap
-    // memakai nama berkas yang dipilih, pratinjau jadi gambar default
-    // thumbnail, dan item boleh masuk keranjang tanpa berkas - file sumber
+    // memakai nama berkas yang dipilih, pratinjau jadi tile berkas default,
+    // dan item boleh masuk keranjang tanpa berkas - file sumber
     // besar dimintanya menyusul lewat jalur lain (flashdisk/pesan).
     function terimaBerkasTerlaluBesar(namaAsli, ukuranByte, maksMb) {
         thumbnailGagalUkuran = true;
@@ -1229,8 +1239,7 @@ let currentThumbnailPreview = null;
         preview.removeAttribute('src');
         preview.classList.add('hidden');
         kosong.classList.add('hidden');
-        berkas.src = '{{ asset('storage/default-thumbnail.png') }}';
-        berkas.classList.remove('hidden');
+        setBerkasThumbnail(berkas, namaAsli);
 
         // Deskripsi file DIPERTAHANKAN: nama berkas tetap tertulis walau
         // berkasnya tidak ikut terkirim ke server.
@@ -1319,8 +1328,7 @@ let currentThumbnailPreview = null;
                     preview.removeAttribute('src');
                     preview.classList.add('hidden');
                     kosong.classList.add('hidden');
-                    berkas.src = '{{ asset('storage/default-thumbnail.png') }}';
-                    berkas.classList.remove('hidden');
+                    setBerkasThumbnail(berkas, originalName);
                 }
 
                 // Nama file / deskripsi SELALU mengikuti berkas yang BARU
@@ -3743,7 +3751,7 @@ let peringatanMinDaftar = 0;
                 <article class="group px-4 py-3.5 hover:bg-slate-50 transition-colors">
                     <div class="flex items-start gap-3">
                         <span class="w-4 shrink-0 pt-0.5 text-xs font-medium text-slate-500 tabular-nums">${index + 1}</span>
-                        ${item.thumbnail ? (bisaDitampilkanBerkas(item.thumbnail) ? `<img loading="lazy" decoding="async" src="{{ asset('storage') }}/${item.thumbnail}" alt="Pratinjau desain" class="w-12 h-12 rounded-lg object-contain bg-white border border-slate-200 shrink-0">` : `<img loading="lazy" decoding="async" src="{{ asset('storage/default-thumbnail.png') }}" alt="Berkas desain" class="w-12 h-12 rounded-lg object-contain bg-white border border-slate-200 shrink-0 opacity-50" title="Berkas desain (${(item.thumbnail.split('.').pop() || '').toUpperCase()})">`) : `<div class="w-12 h-12 rounded-lg bg-slate-50 border border-slate-200 shrink-0 flex items-center justify-center text-slate-400"><i class="far fa-image"></i></div>`}
+                        ${item.thumbnail ? (bisaDitampilkanBerkas(item.thumbnail) ? `<img loading="lazy" decoding="async" src="{{ asset('storage') }}/${item.thumbnail}" alt="Pratinjau desain" class="w-12 h-12 rounded-lg object-contain bg-white border border-slate-200 shrink-0">` : `<span class="w-12 h-12 rounded-lg bg-white border border-slate-200 shrink-0 flex flex-col items-center justify-center gap-0.5 text-slate-600 select-none" title="Berkas desain (${(item.thumbnail.split('.').pop() || '').toUpperCase()}) - dibuka tim produksi"><i class="fas fa-file text-sm leading-none"></i><span class="text-[8px] font-bold tracking-widest leading-none">${(item.thumbnail.split('.').pop() || 'FILE').toUpperCase()}</span></span>`) : `<div class="w-12 h-12 rounded-lg bg-slate-50 border border-slate-200 shrink-0 flex items-center justify-center text-slate-400"><i class="far fa-image"></i></div>`}
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-slate-800 leading-snug line-clamp-2">${escapeHtml(item.nama_produk)}</p>
                             ${item.nama_file ? `<p class="text-xs text-slate-500 mt-0.5 truncate">${escapeHtml(item.nama_file)}</p>` : ''}
@@ -3934,8 +3942,7 @@ let peringatanMinDaftar = 0;
                 } else {
                     preview.removeAttribute('src');
                     preview.classList.add('hidden');
-                    previewBerkas.src = '{{ asset('storage/default-thumbnail.png') }}';
-                    previewBerkas.classList.remove('hidden');
+                    setBerkasThumbnail(previewBerkas, currentThumbnail);
                 }
                 document.getElementById('thumbnail_kosong').classList.add('hidden');
             } else {

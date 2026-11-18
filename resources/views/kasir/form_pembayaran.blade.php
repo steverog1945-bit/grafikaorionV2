@@ -77,10 +77,11 @@
                                     <img loading="lazy" decoding="async" src="{{ asset('storage/'.$item->thumbnail) }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0 cursor-zoom-in hover:opacity-80 transition" onclick="bukaPreviewBerkasForm('{{ asset('storage/'.$item->thumbnail) }}')" title="Klik untuk preview">
                                 @else
                                     {{-- Berkas desain non-gambar (CDR, AI, EPS, PSD)
-                                         tidak bisa ditampilkan peramban - pakai
-                                         thumbnail default supaya kotaknya tidak
-                                         kosong. Nama file tetap dari berkas asli. --}}
-                                    <img loading="lazy" decoding="async" src="{{ asset('storage/default-thumbnail.png') }}" class="w-12 h-12 rounded-xl object-cover border border-white shadow-sm shrink-0 opacity-50 cursor-zoom-in" onclick="bukaPreviewBerkasForm('{{ asset('storage/default-thumbnail.png') }}')" title="Berkas desain {{ strtoupper(\App\Support\BerkasDesain::ekstensi($item->thumbnail)) }}">
+                                         tidak bisa ditampilkan peramban - tile
+                                         berkas default + lencana ekstensi, bukan
+                                         gambar generik. Nama file tetap dari
+                                         berkas asli. --}}
+                                    <x-thumb-berkas :path="$item->thumbnail" size="w-12 h-12" radius="rounded-xl" iconSize="text-base" extSize="text-[8px]" />
                                 @endif
                             @else
                                 <div class="w-12 h-12 rounded-xl bg-white border border-slate-100 shrink-0 flex items-center justify-center text-slate-500"><i class="far fa-image"></i></div>

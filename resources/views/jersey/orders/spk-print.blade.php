@@ -39,9 +39,10 @@
                         {{-- Berkas desain yang bukan gambar (CDR, AI, EPS):
                              peramban tidak bisa menampilkannya dan server
                              tidak punya konverter, jadi yang dicetak ke SPK
-                             adalah format berkasnya. PDF tidak masuk sini -
-                             PDF sudah dirender jadi gambar di peramban. --}}
-                        <img src="{{ asset('storage/default-thumbnail.png') }}" alt="Berkas desain" style="max-width: 200px; max-height: 200px; opacity: 0.55;">
+                             adalah tile berkas default dengan lencana
+                             ekstensi. PDF tidak masuk sini - PDF sudah
+                             dirender jadi gambar di peramban. --}}
+                        <x-thumb-berkas :path="$line->thumbnail" size="w-36 h-36" iconSize="text-5xl" extSize="text-sm" />
                         <span class="placeholder" style="padding: 4px 0 0;">
                             <strong>{{ strtoupper(\App\Support\BerkasDesain::ekstensi($line->thumbnail)) }}</strong><br>
                             <small>Berkas desain - sumber file ada di server, dibuka tim produksi</small>

@@ -91,10 +91,12 @@
                                 <img loading="lazy" decoding="async" src="{{ asset('storage/' . $line->thumbnail) }}" class="w-full h-full object-cover">
                             @else
                                 {{-- Berkas desain non-gambar (CDR, AI, EPS, PSD) tidak
-                                     bisa ditampilkan peramban - pakai thumbnail
-                                     default supaya kotaknya tidak kosong. Nama
-                                     file tetap dari berkas asli. --}}
-                                <img loading="lazy" decoding="async" src="{{ asset('storage/default-thumbnail.png') }}" class="w-full h-full object-cover opacity-50" title="Berkas desain {{ strtoupper(\App\Support\BerkasDesain::ekstensi($line->thumbnail)) }}">
+                                     bisa ditampilkan peramban - pakai tile berkas
+                                     default + lencana ekstensi supaya kotaknya
+                                     tidak kosong & informasinya jelas. Tile-nya
+                                     dirender komponen x-thumb-berkas (ikon dokumen +
+                                     ekstensi), bukan banner gambar. --}}
+                                <x-thumb-berkas :path="$line->thumbnail" size="w-full h-full" iconSize="text-xl" class="rounded-none border-0 bg-white" />
                             @endif
                         @else
                             <i class="fas fa-image text-slate-500"></i>
@@ -804,11 +806,16 @@
                     card.querySelectorAll('.thumbnail-placeholder').forEach(el => el.classList.add('hidden'));
                     statusEl.textContent = 'Thumbnail siap. Klik kotak untuk mengganti.';
                 } else {
-                    // Berkas desain non-gambar: kotak pratinjau menampilkan
-                    // ikon, bukan gambar rusak.
+                    // Berkas desain non-gambar: tile berkas default + lencana
+                    // ekstensi (bukan gambar rusak/kosong).
                     img.removeAttribute('src');
                     img.classList.add('hidden');
                     const ext = (data.nama_asli || '').split('.').pop() || '';
+                    card.querySelectorAll('.thumbnail-placeholder').forEach(el => {
+                        const extEl = el.querySelector('.thumb-filetype-ext');
+                        if (extEl && ext) extEl.textContent = ext.toUpperCase();
+                        el.classList.remove('hidden');
+                    });
                     statusEl.textContent = 'Berkas desain siap' + (ext ? ' (' + ext.toUpperCase() + ')' : '') + '. File ada di server, dibuka tim produksi.';
                 }
             } else {

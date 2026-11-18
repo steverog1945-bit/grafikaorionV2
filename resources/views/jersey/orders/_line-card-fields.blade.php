@@ -100,7 +100,7 @@ html.dark .jersey-mobile-form-page .jersey-line-head button:hover { background-c
                         $extThumb = $punyaBerkas ? strtoupper(\App\Support\BerkasDesain::ekstensi($line->thumbnail)) : '';
                     @endphp
                     <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-preview {{ $thumbTampil ? '' : 'hidden' }}" src="{{ $thumbTampil ? asset('storage/' . $line->thumbnail) : '' }}" alt="">
-                    <img loading="lazy" decoding="async" class="w-full h-full object-cover thumbnail-placeholder {{ ($punyaBerkas && !$thumbTampil) ? '' : 'hidden' }}" src="{{ asset('storage/default-thumbnail.png') }}" alt="Berkas desain" style="opacity: 0.5;">
+                    <x-thumb-berkas :path="$punyaBerkas ? $line->thumbnail : null" size="w-full h-full" iconSize="text-xl" class="rounded-lg {{ ($punyaBerkas && !$thumbTampil) ? '' : 'hidden' }}" />
                     <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/svg+xml,image/tiff,application/pdf,.pdf,.cdr,.ai,.eps,.psd,.tif,.tiff,.heic" onchange="uploadThumbnailLine(this)" class="hidden thumbnail-file-input">
                 </div>
                 <div class="flex-1 min-w-0">

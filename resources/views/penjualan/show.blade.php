@@ -132,10 +132,10 @@
                             <img loading="lazy" decoding="async" src="{{ asset('storage/' . $item->thumbnail) }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100">
                         @else
                             {{-- Berkas desain non-gambar (CDR, AI, EPS, PSD) tidak
-                                 bisa ditampilkan peramban - pakai thumbnail
-                                 default supaya kotaknya tidak kosong. Nama
-                                 file tetap dari berkas asli (kolom Nama File). --}}
-                            <img loading="lazy" decoding="async" src="{{ asset('storage/default-thumbnail.png') }}" class="w-10 h-10 rounded-lg object-cover border border-slate-100 opacity-50" title="Berkas desain {{ strtoupper(\App\Support\BerkasDesain::ekstensi($item->thumbnail)) }}">
+                                 bisa ditampilkan peramban - tile berkas default +
+                                 lencana ekstensi. Nama file tetap dari berkas
+                                 asli (kolom Nama File). --}}
+                            <x-thumb-berkas :path="$item->thumbnail" size="w-10 h-10" iconSize="text-sm" extSize="text-[7px]" class="rounded-lg" />
                         @endif
                     @else
                         <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500"><i class="far fa-image"></i></div>

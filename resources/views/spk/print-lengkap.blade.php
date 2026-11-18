@@ -41,7 +41,7 @@
 
                              PDF tidak masuk sini: PDF sudah dirender jadi
                              gambar di peramban (pdf.js) sebelum diunggah. --}}
-                        <img src="{{ asset('storage/default-thumbnail.png') }}" alt="Berkas desain ({{ strtoupper(\App\Support\BerkasDesain::ekstensi($detail->thumbnail)) }})" style="max-width: 200px; max-height: 200px; opacity: 0.55;">
+                        <x-thumb-berkas :path="$detail->thumbnail" size="w-36 h-36" iconSize="text-5xl" extSize="text-sm" />
                         <span class="placeholder" style="padding: 4px 0 0;">
                             <strong>{{ strtoupper(\App\Support\BerkasDesain::ekstensi($detail->thumbnail)) }}</strong><br>
                             <small>Berkas desain - sumber file ada di server, dibuka tim produksi</small>
