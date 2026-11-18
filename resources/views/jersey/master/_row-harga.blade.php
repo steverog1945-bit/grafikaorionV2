@@ -18,8 +18,8 @@
                 'qty_min' => $row->qty_min,
                 'qty_max' => $row->qty_max,
                 'price' => $row->price,
-            ]) }})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
-            <button type="button" onclick="hapusHarga({{ $row->id }})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
+            ]) }})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
+            <button type="button" onclick="hapusHarga({{ $row->id }})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
         </div>
     </td>
 </tr>

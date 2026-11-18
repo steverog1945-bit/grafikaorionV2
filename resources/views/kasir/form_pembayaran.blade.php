@@ -282,7 +282,7 @@
                                     @if($qrisUrl)
                                         <img src="{{ $qrisUrl }}" alt="Kode QRIS Toko" class="h-full w-full object-contain">
                                     @else
-                                        <i class="fas fa-qrcode text-6xl text-slate-300"></i>
+                                        <span class="w-20 h-20 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center"><i class="fas fa-qrcode text-3xl"></i></span>
                                     @endif
                                 </div>
                                 <div class="flex-1 min-w-0 text-[11px] leading-relaxed text-slate-500 flex flex-col justify-center gap-2">

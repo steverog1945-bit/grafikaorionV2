@@ -75,7 +75,7 @@
             <tr>
                 <td colspan="4" class="py-24 text-center">
                     <div class="flex flex-col items-center">
-                        <i class="fas fa-folder-open text-slate-100 text-6xl mb-4"></i>
+                        <span class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-4"><i class="fas fa-folder-open text-3xl"></i></span>
                         <p class="text-slate-500 font-medium  text-sm">Belum ada kategori yang terdaftar.</p>
                     </div>
                 </td>

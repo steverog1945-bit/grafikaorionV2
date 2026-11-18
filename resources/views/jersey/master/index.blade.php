@@ -835,9 +835,9 @@
             <td class="p-2.5 font-medium">${escapeHtmlJersey(row.name)}${badgeLenganKerah}${badgeSurcharge}</td>
             <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
-                    <button type="button" onclick="bukaEditSimple('${entity}', ${row.id}, ${JSON.stringify(row.name).replace(/"/g, '&quot;')}, ${row.has_sleeve_collar !== false}, ${Number(row.price_surcharge) || 0})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
-                    <button type="button" onclick="hapusEntitas('${entity}', ${row.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
-                    <button type="button" onclick="toggleEntitas('${entity}', ${row.id})" class="w-8 h-8 rounded-lg text-slate-400 ${row.is_active ? 'hover:text-slate-600 hover:bg-slate-100' : 'hover:text-emerald-500 hover:bg-emerald-50'}" title="${row.is_active ? 'Nonaktifkan' : 'Aktifkan'}"><i class="far ${row.is_active ? 'fa-eye-slash' : 'fa-eye'} text-xs"></i></button>
+                    <button type="button" onclick="bukaEditSimple('${entity}', ${row.id}, ${JSON.stringify(row.name).replace(/"/g, '&quot;')}, ${row.has_sleeve_collar !== false}, ${Number(row.price_surcharge) || 0})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
+                    <button type="button" onclick="hapusEntitas('${entity}', ${row.id})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
+                    <button type="button" onclick="toggleEntitas('${entity}', ${row.id})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 ${row.is_active ? 'hover:text-slate-600 hover:bg-slate-100' : 'hover:text-emerald-500 hover:bg-emerald-50'}" title="${row.is_active ? 'Nonaktifkan' : 'Aktifkan'}"><i class="far ${row.is_active ? 'fa-eye-slash' : 'fa-eye'} text-xs"></i></button>
                 </div>
             </td>
         </tr>`;
@@ -1056,8 +1056,8 @@
             <td class="p-2.5 text-right ${parseFloat(row.price_percent) < 0 ? 'text-emerald-600 font-medium' : ''}">${parseFloat(row.price_percent) ? (parseFloat(row.price_percent) > 0 ? '+' : '') + parseFloat(row.price_percent) + '%' : '-'}</td>
             <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
-                    <button type="button" onclick="bukaEditUkuran(${JSON.stringify(row).replace(/"/g, '&quot;')})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
-                    <button type="button" onclick="toggleUkuran(${row.id})" class="w-8 h-8 rounded-lg text-slate-400 ${row.is_active ? 'hover:text-slate-600 hover:bg-slate-100' : 'hover:text-emerald-500 hover:bg-emerald-50'}" title="${row.is_active ? 'Nonaktifkan' : 'Aktifkan'}"><i class="far ${row.is_active ? 'fa-eye-slash' : 'fa-eye'} text-xs"></i></button>
+                    <button type="button" onclick="bukaEditUkuran(${JSON.stringify(row).replace(/"/g, '&quot;')})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
+                    <button type="button" onclick="toggleUkuran(${row.id})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 ${row.is_active ? 'hover:text-slate-600 hover:bg-slate-100' : 'hover:text-emerald-500 hover:bg-emerald-50'}" title="${row.is_active ? 'Nonaktifkan' : 'Aktifkan'}"><i class="far ${row.is_active ? 'fa-eye-slash' : 'fa-eye'} text-xs"></i></button>
                 </div>
             </td>
         </tr>`;
@@ -1458,8 +1458,8 @@
             <td class="p-2.5 text-right font-medium">Rp ${formatRupiah(Math.round(parseFloat(row.price)))}</td>
             <td class="p-2.5 text-center">
                 <div class="flex items-center justify-center gap-1">
-                    <button type="button" onclick="bukaEditHarga(${JSON.stringify(row).replace(/"/g, '&quot;')})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
-                    <button type="button" onclick="hapusHarga(${row.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
+                    <button type="button" onclick="bukaEditHarga(${JSON.stringify(row).replace(/"/g, '&quot;')})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Ubah"><i class="far fa-edit text-xs"></i></button>
+                    <button type="button" onclick="hapusHarga(${row.id})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50" title="Hapus"><i class="far fa-trash-alt text-xs"></i></button>
                 </div>
             </td>
         </tr>`;

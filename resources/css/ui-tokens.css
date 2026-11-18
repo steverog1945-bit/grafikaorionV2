@@ -15,6 +15,10 @@
     --paper: #fcfcfc;
 }
 
+/* Dropzone upload/thumbnail: SELALU putih latarnya supaya gambar thumbnail
+   (termasuk PNG transparan) tetap terbaca jelas di tema gelap/terang. */
+.thumbnail-dropzone { background: var(--color-white) !important; }
+
 /* Alpha hitam/putih untuk overlay & bayangan - satu sumber, bukan sebaran
    rgba() mentah di blade. */
 :root {
