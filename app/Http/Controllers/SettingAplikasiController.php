@@ -11,7 +11,12 @@ class SettingAplikasiController extends Controller
     public function edit()
     {
         $setting = AppSetting::current();
-        return view('pengaturan.aplikasi', compact('setting'));
+
+        // qrisUrl() sudah anti-1054 (fallback ke atribut null bila kolom
+        // belum dimigrasi) - satu-satunya sumber kebenaran yang dibaca view.
+        $qrisUrl = AppSetting::qrisUrl();
+
+        return view('pengaturan.aplikasi', compact('setting', 'qrisUrl'));
     }
 
     public function update(Request $request)
@@ -77,15 +82,34 @@ class SettingAplikasiController extends Controller
             $updateData['logo_ikon_path'] = $request->hasFile('logo_ikon') ? $request->file('logo_ikon')->store('company_logo', 'public') : null;
         }
 
+        // GUARD MIGRASI: DB runtime owner mungkin belum dimigrasi. Upload
+        // QRIS TANPA kolom = 1054 dan halaman Pengaturan 500 untuk semua
+        // admin. Blokir dengan pesan jelas, bukan melempar.
+        $qrisKolomAda = \Illuminate\Support\Facades\Schema::hasColumn('app_settings', 'qris_path');
+
         if ($request->hasFile('qris') || $request->boolean('hapus_qris')) {
-            if ($setting->qris_path && Storage::disk('public')->exists($setting->qris_path)) {
-                Storage::disk('public')->delete($setting->qris_path);
+            if (! $qrisKolomAda) {
+                report(new \RuntimeException('Pengaturan qris upload diabaikan: kolom app_settings.qris_path belum dimigrasi (owner: php artisan migrate --force)'));
+                $qrisGagalMigrasi = true;
+            } elseif ($request->hasFile('qris')) {
+                if ($setting->qris_path && Storage::disk('public')->exists($setting->qris_path)) {
+                    Storage::disk('public')->delete($setting->qris_path);
+                }
+                $updateData['qris_path'] = $request->file('qris')->store('qris', 'public');
+            } else {
+                if ($setting->qris_path && Storage::disk('public')->exists($setting->qris_path)) {
+                    Storage::disk('public')->delete($setting->qris_path);
+                }
+                $updateData['qris_path'] = null;
             }
-            $updateData['qris_path'] = $request->hasFile('qris') ? $request->file('qris')->store('qris', 'public') : null;
         }
 
         $setting->update($updateData);
         AppSetting::clearCache();
+
+        if (! empty($qrisGagalMigrasi)) {
+            return back()->with('error', 'Pengaturan tersimpan, KECUALI upload QRIS: database belum dimigrasi. Minta Administrator menjalankan "php artisan migrate --force" di server aplikasi, lalu unggah ulang.');
+        }
 
         return back()->with('success', 'Pengaturan aplikasi berhasil disimpan.');
     }

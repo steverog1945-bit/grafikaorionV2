@@ -44,11 +44,33 @@ class AppSetting extends Model
      * Selalu tepat 1 baris - dibuat otomatis kalau migrasinya belum sempat
      * jalan/baris sudah terhapus, supaya halaman lain (header, print) tidak
      * pernah pecah gara-gara baris pengaturan hilang.
+     *
+     * TAHAN BENTURAN MIGRASI: bila DB runtime belum dimigrasi
+     * (kolom qris_path belum ada - mis. setelah deploy tapi sebelum owner
+     * menjalankan `php artisan migrate --force`), query gagal 1054 dan
+     * SEMUA halaman yang memakai AppSetting ikut 500. Karena itu retry
+     * dengan daftar kolom eksplisit tanpa qris_path. qris_path terbaca null;
+     * qrisUrl() jatuh ke berkas lama; upload diblokir dengan peringatan.
      */
     public static function current(): self
     {
         return Cache::rememberForever('app_settings_current', function () {
-            return self::first() ?? self::create(['nama_aplikasi' => 'PRINT-ERP']);
+            try {
+                return self::first() ?? self::create(['nama_aplikasi' => 'PRINT-ERP']);
+            } catch (\Illuminate\Database\QueryException $e) {
+                if (str_contains($e->getMessage(), 'qris_path')) {
+                    return self::query()
+                        ->select([
+                            'id', 'nama_aplikasi', 'alamat', 'telepon', 'fax', 'email', 'website', 'url_akses',
+                            'logo_path', 'logo_ukuran', 'logo_gaya', 'logo_ringkas', 'logo_ikon_path',
+                            'libur_kas_minggu', 'batasi_jam_kerja', 'approval_edit_nota',
+                            'format_nota', 'nomor_nota_prefix', 'nota_footer_text', 'pembulatan_nota',
+                            'created_at', 'updated_at',
+                        ])
+                        ->first() ?? self::create(['nama_aplikasi' => 'PRINT-ERP']);
+                }
+                throw $e;
+            }
         });
     }
 

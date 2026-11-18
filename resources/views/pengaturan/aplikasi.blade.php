@@ -72,8 +72,8 @@
                      berkas lama (storage/app/public/qris-bri.png) bila ada. --}}
                 <div class="flex items-center gap-5 rounded-2xl border border-slate-100 p-4">
                     <div class="w-24 h-24 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
-                        @if($setting->qris_path)
-                            <img loading="lazy" decoding="async" id="preview-qris" src="{{ asset('storage/' . $setting->qris_path) }}" alt="Kode QRIS" class="w-full h-full object-contain">
+                        @if($qrisUrl)
+                            <img loading="lazy" decoding="async" id="preview-qris" src="{{ $qrisUrl }}" alt="Kode QRIS" class="w-full h-full object-contain">
                         @else
                             <i id="preview-qris-placeholder" class="fas fa-qrcode text-slate-400 text-3xl"></i>
                             <img loading="lazy" decoding="async" id="preview-qris" src="" alt="Kode QRIS" class="w-full h-full object-contain hidden">
