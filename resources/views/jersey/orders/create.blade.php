@@ -51,7 +51,7 @@
         </div>
     @endif
 
-    <form action="{{ route('jersey.orders.store') }}" method="POST" id="jersey-order-form">
+    <form action="{{ route('jersey.orders.store') }}" method="POST" id="jersey-order-form" novalidate>
         @csrf
 
         {{-- Ringkasan (daftar barang + Diskon/Biaya/Deposit/Catatan + Total +
@@ -712,6 +712,35 @@
         // opsional (produk bisa tanpa lengan/kerah) - dilengkapi peringatan
         // non-blocking dari cek-kelengkapan seperti sebelumnya.
         const kurang = [];
+
+        // Form-level wajib (tanggal & pelanggan). Sebelumnya field ini
+        // mengandalkan validasi native HTML5 yang gelembungnya TIDAK terlihat
+        // - select pelanggan disembunyikan select2 (1x1px ter-clip), sehingga
+        // klik "Simpan Order" terasa mati tanpa pesan apa pun. Sekarang
+        // digabung ke audit kelengkapan di bawah (satu sumber validasi).
+        const tglOrder = document.querySelector('[name="order_date"]');
+        if (tglOrder) tglOrder.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40');
+        const konsumenSel = document.getElementById('select_id_konsumen');
+        if (konsumenSel) {
+            konsumenSel.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40');
+            const s2c = konsumenSel.nextElementSibling;
+            if (s2c && s2c.classList.contains('select2-container')) {
+                s2c.classList.remove('ring-2', 'ring-rose-400', 'rounded-lg');
+            }
+        }
+        if (tglOrder && !tglOrder.value) {
+            kurang.push('Tanggal Order belum diisi');
+            tglOrder.classList.add('ring-2', 'ring-rose-400', 'bg-rose-50/40');
+        }
+        if (konsumenSel && !konsumenSel.value) {
+            kurang.push('Pelanggan belum dipilih (cari di field "Cari Nama / No. HP")');
+            konsumenSel.classList.add('ring-2', 'ring-rose-400', 'bg-rose-50/40');
+            const s2 = konsumenSel.nextElementSibling;
+            if (s2 && s2.classList.contains('select2-container')) {
+                s2.classList.add('ring-2', 'ring-rose-400', 'rounded-lg');
+            }
+        }
+
         document.querySelectorAll('.jersey-line-card').forEach(card => {
             card.querySelectorAll('input, select').forEach(el => el.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/40'));
             const nomor = card.querySelector('.line-number').textContent;
@@ -725,6 +754,21 @@
             for (const [selector, label] of wajibPilih) {
                 const el = card.querySelector(selector);
                 if (el && !el.value) {
+                    kurang.push(`${namaBarang}: ${label} belum dipilih`);
+                    el.classList.add('ring-2', 'ring-rose-400', 'bg-rose-50/40');
+                }
+            }
+
+            // Lengan/Kerah WAJIB hanya saat tipe produknya bukan "tanpa
+            // lengan/kerah" - properti required diset dinamis oleh JS
+            // (updateRequiredFields). Ikut ditangkap di sini supaya popup-nya
+            // tidak lagi berupa gelembung native yang tak terlihat.
+            for (const [selector, label] of [
+                ['[name*="[jersey_sleeve_type_id]"]', 'Lengan'],
+                ['[name*="[jersey_collar_type_id]"]', 'Kerah'],
+            ]) {
+                const el = card.querySelector(selector);
+                if (el && el.required && !el.value) {
                     kurang.push(`${namaBarang}: ${label} belum dipilih`);
                     el.classList.add('ring-2', 'ring-rose-400', 'bg-rose-50/40');
                 }
