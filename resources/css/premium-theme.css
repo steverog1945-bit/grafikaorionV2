@@ -363,7 +363,9 @@
     border: 1px solid #ECE7DA; background: #FDFCF9; border-radius: 16px; transition: transform .2s ease, box-shadow .2s ease;
 }
 :is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap .xl\:grid-cols-3 .grid.grid-cols-2.md\:grid-cols-4 a:hover { transform: translateY(-1.5px); box-shadow: 0 8px 18px rgba(34,31,27,.08); }
-:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap .xl\:grid-cols-3 .grid.grid-cols-2.md\:grid-cols-4 .text-3xl { font-variant-numeric: tabular-nums; font-weight: 600; }
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap .xl\:grid-cols-3 .grid.grid-cols-2.md\:grid-cols-4 .text-3xl {
+    font-family: Georgia, 'Times New Roman', serif; font-variant-numeric: tabular-nums; font-weight: 600; color: #221F1B;
+}
 
 /* Order Terbaru / Diprioritaskan: daftar tenang, hairline divider, hover krem */
 :is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-wrap .divide-y > * { border-color: #F1EEE3; }
@@ -375,4 +377,17 @@
 @media (prefers-reduced-motion: reduce) {
     :is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-kpi,
     :is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-kpi:hover { transform: none; transition: none; }
+}
+
+/* Bar live: rail tipis elegan; tombol refresh ghost, umpan balik emerald */
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-live {
+    border-radius: 18px; border-color: #E9E5D6;
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(34,31,27,.04), 0 8px 20px rgba(34,31,27,.05);
+    padding: .55rem 1rem;
+}
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-live .text-emerald-600 { color: #047857; }
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-refresh-btn { border-radius: 10px; }
+:is([data-brand-theme="premium"], [data-brand-theme="command-center"]) .dash-refresh-btn:hover {
+    background: #ECFDF5; color: #047857; box-shadow: inset 0 0 0 1px rgba(5,150,105,.25);
 }

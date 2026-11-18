@@ -65,24 +65,27 @@
     </div>
 </div>
 
-{{-- ============ KPI ============ --}}
-{{-- Baris status real-time: titik "live" berdenyut + jam pembaruan terakhir,
-     diletakkan tepat DI ATAS kartu yang memang ia perbarui (sebelumnya tersemat
-     sendirian di samping judul sapaan sehingga terasa mengambang). Warna hanya
-     memakai palet yang sudah punya pasangan mode gelap/terang di app.css
-     (emerald/slate), jadi tampilannya benar tanpa menyentuh CSS global. --}}
-<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-    <div class="flex items-center gap-2.5">
-        <span class="relative flex h-2 w-2" title="Angka pada kartu di bawah diperbarui otomatis dari server">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+{{-- ============ PEMBARUAN LANGSUNG - status rail elegan ============ --}}
+{{-- Satu kartu status tipis: kiri = titik live + label "LIVE" ber-tracking lebar,
+     kanan = waktu pembaruan terakhir + tombol refresh sekali (memaksa KPI
+     diperbarui seketika). Premium: aksen emerald & tinta, non-premium: slate. --}}
+<div class="dash-live mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3 shadow-sm">
+    <div class="flex items-center gap-3 min-w-0">
+        <span class="dash-live-dot relative flex h-2.5 w-2.5 shrink-0" title="Angka pada kartu di bawah diperbarui otomatis dari server">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-2 ring-emerald-100"></span>
         </span>
-        <span class="text-[11px] font-medium text-slate-500 uppercase tracking-[0.2em]">Pembaruan Langsung</span>
+        <span class="flex flex-col min-w-0">
+            <span class="text-[10px] font-semibold text-emerald-600 uppercase tracking-[0.22em] leading-none">Live</span>
+            <span class="text-[12px] font-medium text-slate-600 mt-1 leading-none truncate">Pembaruan otomatis tiap 30 detik</span>
+        </span>
     </div>
-    <p class="text-[11px] text-slate-400">
-        Diperbarui otomatis <span id="dashboard-updated-at" class="font-medium text-slate-500">{{ now()->format('H.i') }}</span>
-        &middot; tiap 30 detik
-    </p>
+    <div class="flex items-center gap-2">
+        <p class="text-[11px] text-slate-400 tabular-nums">Diperbarui <span id="dashboard-updated-at" class="font-medium text-slate-600">{{ now()->format('H.i') }}</span></p>
+        <button type="button" onclick="refreshDashboard(this)" class="dash-refresh-btn inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Perbarui sekarang" aria-label="Perbarui sekarang">
+            <i class="fas fa-rotate text-[12px]"></i>
+        </button>
+    </div>
 </div>
 <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
     <a href="{{ $u('penjualan.riwayat') }}" title="Jumlah order hari ini dan nilainya" class="dash-kpi bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -321,16 +324,37 @@
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             })
                 .then(function (r) { return r.json(); })
-                .then(update)
+                .then(function (data) { if (typeof window.__dashSetBusy === 'function') window.__dashSetBusy(false); update(data); })
                 // Sebelumnya: gagal total tanpa jejak (kartu menampilkan angka lama
                 // dan operator mengira itu data terkini). Sekarang minimal tercatat
                 // di console untuk diagnosis, dan label "Gagal memuat" ditampilkan
                 // pada baris status agar operator sadar datanya belum segar.
                 .catch(function () {
+                    if (typeof window.__dashSetBusy === 'function') window.__dashSetBusy(false);
                     if (console && console.warn) console.warn('[dashboard] KPI gagal dimuat - akan coba lagi pada interval berikutnya');
                     if (typeof updatedAt !== 'undefined' && updatedAt) updatedAt.textContent = gagalTerakhir();
                 });
         }
+
+        // Tombol "refresh sekarang" di bar live: ikon berputar selama fetch
+        // berlangsung - umpan balik visual tanpa mengubah layout. Hormati
+        // prefers-reduced-motion (tanpa putaran).
+        window.__dashSetBusy = function (sibuk) {
+            var btn = document.querySelector('.dash-refresh-btn i');
+            if (!btn) return;
+            var kurangGerak = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (sibuk) {
+                btn.classList.add('fa-spin');
+                if (!kurangGerak) btn.style.animationDuration = '0.7s';
+            } else {
+                btn.classList.remove('fa-spin');
+            }
+        };
+        window.refreshDashboard = function (btn) {
+            if (btn) btn.blur();
+            window.__dashSetBusy(true);
+            fetchKpi();
+        };
 
         // Indikator pembaruan kini menetap di baris status di atas kartu KPI
         // (dipasang langsung oleh Blade), bukan ditambal ke judul sapaan.
