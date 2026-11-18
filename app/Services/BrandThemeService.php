@@ -176,6 +176,57 @@ class BrandThemeService
             ],
         ],
 
+        // COMMAND CENTER - "Ice" lembut: latar ice blue-gray dingin, kartu
+        // nyaris putih tapi TIDAK menyilaukan, aksen biru periwinkle kalem.
+        // Ide dari arah desain V3 erpv3 (topbar + grid), di-retune lebih
+        // soft: saturasi rendah, kontras tinggi, tidak silau.
+        'command-center' => [
+            'name' => 'Command Center',
+            'description' => 'Ice lembut dengan biru tenang — fokus operasional, tidak menyilaukan.',
+            'swatches' => ['#4753C9', '#1A2029', '#E9ECF3', '#93A9FF'],
+            'neutralRamp' => [
+                '50' => '#F6F8FC', '100' => '#EDF0F7', '200' => '#E1E6EF',
+                '300' => '#CBD3E2', '400' => '#5E6878', '500' => '#475163',
+                '600' => '#39424F', '700' => '#2D3540', '800' => '#212832',
+                '900' => '#1A2029', '950' => '#11161E',
+            ],
+            'surfaces' => [
+                'page' => '#E9ECF3', 'primary' => '#F8F9FD', 'secondary' => '#EDF0F7',
+                'tertiary' => '#E1E6EF', 'border' => '#D8DEEA', 'border_strong' => '#C2CBDD',
+                'text' => '#1A2029', 'text_secondary' => '#2D3540', 'text_tertiary' => '#475163',
+                'dark_primary' => '#1A2029', 'dark_secondary' => '#212832',
+                'dark_tertiary' => '#2D3540', 'dark_border' => '#39424F',
+                'dark_text' => '#F6F8FC', 'dark_text_secondary' => '#CBD3E2', 'dark_text_tertiary' => '#93A0B5',
+            ],
+            'sidebar' => [
+                'deep' => '#12161E', 'base' => '#1A2029', 'raised' => '#232B37',
+                'border' => '#39424F', 'text' => '#D7DEEB', 'muted' => '#93A0B5',
+                'title' => '#FFFFFF', 'accent' => '#7C93F2', 'warning' => '#E0B36B',
+                'active' => '#232B37', 'hover' => '#212832', 'active_mark' => '#93A9FF',
+            ],
+            'ramp' => [
+                '50' => '#F0F4FF', '100' => '#E0E8FF', '200' => '#C4D0FD',
+                '300' => '#A2B2F7', '400' => '#7E8FEF', '500' => '#5F6FE0',
+                '600' => '#4753C9', '700' => '#3B45A8', '800' => '#2E367F',
+                '900' => '#232B5F', '950' => '#171D38',
+            ],
+            'accent' => [
+                'light' => '#4753C9', 'hover_light' => '#3B45A8', 'surface_light' => '#EBEFFD',
+                'dark' => '#93A9FF', 'hover_dark' => '#B4C0FF', 'dark_hover' => '#4753C9', 'surface_dark' => '#232B5F',
+            ],
+            'mobileNavigation' => [
+                'inactive_light' => '#475163', 'active_light' => '#4753C9',
+                'inactive_dark' => '#93A0B5', 'active_dark' => '#93A9FF',
+            ],
+            'typography' => [
+                'font_family' => "'Segoe UI', ui-sans-serif, system-ui, -apple-system, sans-serif",
+                'body_size' => '14px', 'secondary_size' => '13px', 'label_size' => '11px',
+                'heading_size' => '20px', 'page_title_size' => '26px',
+                'weight_regular' => '400', 'weight_medium' => '500', 'weight_strong' => '600',
+                'line_height' => '1.5', 'line_height_compact' => '1.3', 'letter_spacing' => '0.005em',
+            ],
+        ],
+
         // PREMIUM - "Champagne & Ink". Look editorial: kertas hangat, tinta,
         // emas antik. Menggantikan ramp slate (kembali abu hangat) & indigo
         // (menjadi perunggu/emas antik, kontras teks putih di tombol utama

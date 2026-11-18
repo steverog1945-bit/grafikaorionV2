@@ -69,6 +69,17 @@ class TemaPremiumTest extends TestCase
         $this->assertStringNotContainsString('id="mainSidebar"', $body);
     }
 
+    public function test_shell_command_center_pun_tanpa_sidebar(): void
+    {
+        $this->teman('command-center');
+        $body = (string) $this->actingAs($this->admin())->get('/dashboard')->getContent();
+
+        $this->assertStringContainsString('premium-bar2', $body);
+        $this->assertStringContainsString('premium-mega', $body);
+        $this->assertStringNotContainsString('id="mainSidebar"', $body);
+        $this->assertStringContainsString('data-brand-theme="command-center"', $body);
+    }
+
     public function test_kasir_tidak_melihat_master_jersey_keuangan_tetap_tampil(): void
     {
         $this->teman('premium');

@@ -4,10 +4,9 @@
     // sebelumnya ketiganya hardcode terpisah dengan nilai yang berbeda-beda.
     $appSetting = \App\Models\AppSetting::current();
     $brandTheme = app(\App\Services\BrandThemeService::class)->current();
-    // Tema Premium = shell tanpa sidebar: navigasi pindah ke topbar baris
-    // kedua + mega menu (lihat _premium-bar.blade.php). Tema lain tetap
-    // memakai sidebar seperti semula.
-    $isPremium = (($brandTheme['id'] ?? '') === 'premium');
+    // Tema dengan shell full-bleed (tanpa sidebar): navigasi pindah ke
+    // topbar baris kedua + mega menu (lihat _premium-bar.blade.php).
+    $isPremium = in_array($brandTheme['id'] ?? '', ['premium', 'command-center'], true);
     $brandThemeStyle = collect($brandTheme['variables'])
         ->map(fn ($value, $name) => $name . ':' . $value)
         ->implode(';');
@@ -1925,10 +1924,11 @@
                 </a>
             @endif
         @endforeach
-        {{-- Lainnya: perilakunya benar-benar "menu lainnya" - membuka drawer
-             menu samping yang SUDAH ADA (sidebar dengan izin Blade sendiri).
-             Tanpa rute baru, tanpa permission baru, tanpa salinan menu. --}}
-        <button type="button" class="mobile-nav-item" onclick="toggleMobileMenu()" aria-haspopup="dialog" aria-controls="mainSidebar">
+        {{-- Lainnya: pada tema premium, "Lainnya" membuka MEGA MENU premium
+             (sidebar sama sekali tidak dirender). Tema lain = drawer sidebar lama. --}}
+        <button type="button" class="mobile-nav-item"
+                @if($isPremium) onclick="togglePremiumMegaMobile()" aria-haspopup="dialog" aria-controls="premium-mega"
+                @else onclick="toggleMobileMenu()" aria-haspopup="dialog" aria-controls="mainSidebar" @endif>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle>
             </svg>

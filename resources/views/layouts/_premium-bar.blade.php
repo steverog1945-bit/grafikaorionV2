@@ -16,18 +16,32 @@
     $isProduksiAktif = Request::is('spk*', 'produksi*', 'qc*', 'waste*', 'collecting*');
     $isPenjAktif = Request::is('penjualan*', 'quotation*', 'penjualan-barang*');
     $isPengAktif = Request::is('pengaturan*', 'users*', 'jam-kerja*', 'approval*', 'backup*', 'menu-editor*', 'desainer*', 'accounting-period*', 'setting-akses*');
+    $isDashAktif = Request::is('dashboard', 'dashboard/*');
+    $isJerseyAktif = Request::is('jersey', 'jersey/*');
 
-    $tabUtama = [
-        ['label' => 'Dashboard', 'url' => url('/dashboard'), 'ikon' => 'fa-gauge', 'aktif' => Request::is('dashboard', 'dashboard/*'), 'tampil' => true],
-        ['label' => 'Penjualan', 'url' => route('penjualan.create'), 'ikon' => 'fa-cart-shopping', 'aktif' => $isPenjAktif, 'tampil' => $cekAkses(3) || $cekAkses(41) || $cekAkses(58)],
-        ['label' => 'Produksi', 'url' => route('produksi.index'), 'ikon' => 'fa-industry', 'aktif' => $isProduksiAktif, 'tampil' => $cekAkses(23)],
-        ['label' => 'Master', 'url' => url('/bahan-baku'), 'ikon' => 'fa-cubes', 'aktif' => $isMasterAktif, 'tampil' => $cekAkses(1) || $cekAkses(10) || $cekAkses(13) || $cekAkses(15) || $cekAkses(27) || $cekAkses(30) || $cekAkses(31) || $cekAkses(33) || $cekAkses(68)],
-        ['label' => 'Keuangan', 'url' => url('/kasir/monitoring'), 'ikon' => 'fa-money-bill-wave', 'aktif' => $isKeuAktif, 'tampil' => $cekAkses(16) || $cekAkses(39) || $cekAkses(35) || $cekAkses(36) || $cekAkses(45) || $cekAkses(11)],
-        ['label' => 'Laporan', 'url' => route('laporan.order'), 'ikon' => 'fa-chart-line', 'aktif' => $isLaporanAktif, 'tampil' => $cekAkses(25) || $cekAkses(26) || $cekAkses(29) || $cekAkses(40) || $cekAkses(43) || $cekAkses(44) || $cekAkses(46) || $cekAkses(47) || $cekAkses(65) || $cekAkses(60)],
-        ['label' => 'Jersey', 'url' => url('/jersey'), 'ikon' => 'fa-shirt', 'aktif' => Request::is('jersey', 'jersey/*'), 'tampil' => $cekAkses(38) || $cekAkses(42)],
-        ['label' => 'Pengaturan', 'url' => url('/pengaturan-aplikasi'), 'ikon' => 'fa-sliders', 'aktif' => $isPengAktif, 'tampil' => $cekAkses(37) || $cekAkses(6) || $cekAkses(50) || $cekAkses(52) || $cekAkses(4) || $cekAkses(63)],
-    ];
-    $tabUtama = array_values(array_filter($tabUtama, fn ($t) => $t['tampil']));
+    // Tab utama = TopbarTab (diatur Administrator di Pengaturan -> Topbar
+    // Premium). Tampilan izinnya diturunkan dari Izin::bolehPath per-tab
+    // (sama seperti tab sidebar) - administrator lolos, role tanpa izin
+    // tidak melihat tabnya. Label/ikon/urutan/aktif diatur per DB.
+    $tabAktifFn = fn (string $url) => match (true) {
+        $url === '/dashboard' => $isDashAktif,
+        $url === '/penjualan/create' => $isPenjAktif,
+        $url === '/produksi' => $isProduksiAktif,
+        $url === '/bahan-baku' => $isMasterAktif,
+        $url === '/kasir/monitoring' => $isKeuAktif,
+        $url === '/laporan/order' => $isLaporanAktif,
+        $url === '/jersey' => $isJerseyAktif,
+        $url === '/pengaturan-aplikasi' => $isPengAktif,
+        default => Request::is(ltrim($url, '/'), ltrim($url, '/') . '/*'),
+    };
+
+    $tabUtama = \App\Models\TopbarTab::aktif();
+    $tabUtama = array_values(array_filter($tabUtama,
+        fn ($t) => \App\Support\Izin::bolehPath(Auth::user(), $t['url'])));
+    foreach ($tabUtama as &$__tab) {
+        $__tab['aktif'] = $tabAktifFn($__tab['url']);
+    }
+    unset($__tab);
 
     // (URL, label, ikon, tampil-sebagai-izin). Semua memakai $cekAkses yang
     // sama dengan sidebar - beda tampilan, bukan beda izin.
@@ -134,8 +148,8 @@
         <span class="premium-bar2-sep" aria-hidden="true"></span>
         <div class="premium-tabs" role="navigation" aria-label="Modul utama">
             @foreach($tabUtama as $tab)
-                <a href="{{ $tab['url'] }}" class="premium-tab {{ $tab['aktif'] ? 'is-active' : '' }}">
-                    <i class="fas {{ $tab['ikon'] }}" aria-hidden="true"></i><span>{{ $tab['label'] }}</span>
+                <a href="{{ url($tab['url']) }}" class="premium-tab {{ $tab['aktif'] ? 'is-active' : '' }}">
+                    <i class="fas {{ $tab['icon'] }}" aria-hidden="true"></i><span>{{ $tab['label'] }}</span>
                 </a>
             @endforeach
         </div>
@@ -165,17 +179,23 @@
 (function () {
     var btn = document.getElementById('premium-semua-menu');
     var panel = document.getElementById('premium-mega');
-    if (!btn || !panel) return;
+    if (!panel) return;
     function set(terbuka) {
         panel.hidden = !terbuka;
-        btn.setAttribute('aria-expanded', terbuka ? 'true' : 'false');
+        if (btn) btn.setAttribute('aria-expanded', terbuka ? 'true' : 'false');
         document.body.classList.toggle('premium-mega-open', terbuka);
-        if (terbuka) { var first = panel.querySelector('a'); if (first) first.focus(); } else { btn.focus(); }
+        if (terbuka) {
+            var first = panel.querySelector('a');
+            if (first) first.focus();
+        }
     }
-    btn.addEventListener('click', function () { set(panel.hidden); });
+    if (btn) btn.addEventListener('click', function () { set(panel.hidden); });
+    // Dipakai bottom-nav mobile (tombol "Lainnya") saat tema premium.
+    window.togglePremiumMegaMobile = function () { set(panel.hidden); };
     document.addEventListener('click', function (e) {
         if (panel.hidden) return;
-        if (e.target === btn || btn.contains(e.target) || panel.contains(e.target)) return;
+        if (btn && (e.target === btn || btn.contains(e.target))) return;
+        if (panel.contains(e.target)) return;
         set(false);
     });
     document.addEventListener('keydown', function (e) {

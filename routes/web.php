@@ -35,6 +35,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\HargaPromoController;
 use App\Http\Controllers\SettingAplikasiController;
 use App\Http\Controllers\BrandThemeController;
+use App\Http\Controllers\PengaturanTopbarController;
 
 
 
@@ -896,6 +897,12 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     Route::middleware('hanya.admin')->prefix('pengaturan-aplikasi/tema')->name('pengaturan-aplikasi.tema.')->group(function () {
         Route::get('/', [BrandThemeController::class, 'index'])->name('index');
         Route::post('/', [BrandThemeController::class, 'update'])->name('update');
+    });
+
+    // Pengaturan Topbar Premium (baris kedua) - Administrator saja, sama pola tema.
+    Route::middleware('hanya.admin')->prefix('pengaturan-aplikasi/topbar')->name('pengaturan-aplikasi.topbar.')->group(function () {
+        Route::get('/', [PengaturanTopbarController::class, 'index'])->name('index');
+        Route::post('/', [PengaturanTopbarController::class, 'update'])->name('update');
     });
 
     /*
