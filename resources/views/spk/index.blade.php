@@ -354,7 +354,7 @@
             text: `${checkedCount} item akan pindah dari antrean SPK ke halaman Produksi. Item yang sudah diambil sebelumnya otomatis dilewati.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#006C7B',
+            confirmButtonColor: 'var(--brand-accent-light)',
             confirmButtonText: 'Ya, Ambil Semua',
             cancelButtonText: 'Batal',
             customClass: { popup: 'rounded-2xl' }
@@ -385,7 +385,7 @@
                 : 'Item akan ditandai Batal permanen dan tidak akan diproses lagi.',
             icon: isAntre ? 'question' : 'warning',
             showCancelButton: true,
-            confirmButtonColor: isAntre ? '#006C7B' : '#93481A',
+            confirmButtonColor: isAntre ? 'var(--brand-accent-light)' : '#93481A',
             confirmButtonText: isAntre ? 'Ya, Kembalikan' : 'Ya, Batalkan',
             cancelButtonText: 'Kembali',
             customClass: { popup: 'rounded-2xl' }
@@ -407,7 +407,7 @@
             text: 'Item akan pindah dari antrean SPK ke halaman Produksi.',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#006C7B',
+            confirmButtonColor: 'var(--brand-accent-light)',
             confirmButtonText: 'Ya, Ambil',
             cancelButtonText: 'Batal',
             customClass: { popup: 'rounded-2xl' }

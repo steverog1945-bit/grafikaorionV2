@@ -47,7 +47,7 @@ Catatan route yang SENGAJA tidak punya link sidebar (XHR/AJAX teknis): `api/penj
 |---|---|---|
 | 1 | Kasir memegang menu 38 → sidebar menampilkan "Data Master Jersey" (dan tombol kelola master terbuka) | **DIPERBAIKI** — lihat §4 |
 | 2 | Route `jersey/master` untuk Kasir: 403 sebelum dibuka langsung lewat URL | **DIPERBAIKI** — lihat §4 |
-| 3 | "Keuangan Jersey" berbagi id_menu 38 dengan Master Jersey — Kasir ikut melihat/mengelola-nya bila menu tercentang | **DIBIARKAN + FLAG** — butuh keputusan owner (kasir memang diberi 38 saat ini; pemisahan butuh menu baru e.g. id 69 "Keuangan Jersey" atau mencabut 38 dari Kasir di Hak Akses) |
+| 3 | "Keuangan Jersey" berbagi id_menu 38 dengan Master Jersey — kasir melihat keduanya bila 38 tercentang | **KEPUTUSAN OWNER (18 Nov): keuangan jersey & input pesanan TETAP untuk Kasir; hanya master yang disembunyikan** — kebijakan `'jersey/master' => ['Kasir']` di atas; terlihat di sidebar & mega menu, rutenya 403 |
 | 4 | Role Owner (baca-saja) masih MELIHAT link aksi di sidebar; rute mutasi ditolak 403 dengan pesan jelas | Dibiarkan — pola accepted (baca-saja secara server; menyembunyikan tombol aksi sudah di-script `petaUntukTampilan` untuk form, sidebar link tetap tampil) |
 | 5 | Tombol di dalam form untuk aksi yang pasti 403 sudah disembunyikan via `petaUntukTampilan` (satu peta dengan `Izin::boleh`) | Sudah benar, tidak diubah |
 | 6 | Mode "dipetakan ≠ tampil" tidak ditemukan; tidak ada link sidebar tanpa aturan route | OK |
@@ -55,23 +55,24 @@ Catatan route yang SENGAJA tidak punya link sidebar (XHR/AJAX teknis): `api/penj
 | 8 | "Operasi" (id_role 1 di fixture staging) diberi SEMUA menu | BUKAN aturan ERP profesional — hanya data sintetis staging; JANGAN dipakai di produksi |
 | 9 | `harga/eligibility`: menu berharga [21, 58] disembunyikan dari role tanpa hak harga | Benar |
 
-## 4. Perbaikan Kasir vs Data Master Jersey (yang diminta owner)
+## 4. Kebijakan Kasir vs Jersey — KEPUTUSAN OWNER FINAL (18 Nov 2026, pesan ke-3)
 
-Kebijakan baru sebagai **lapis di atas Hak Akses** (`menu_access.kecualikan_menu` / `kecualikan_path`):
+"input pesanan jersey dan keuangan jersey tetap ada di role kasir. kecuali data master jersey."
+
+Kebijakan FINAL (lapisan di atas Hak Akses, `menu_access.kecualikan_path`):
 
 ```php
-'kecualikan_menu' => [38 => ['Kasir']],
 'kecualikan_path' => ['jersey/master' => ['Kasir']],
 ```
 
-Efek (otomatis di server, bukan cuma tampilan):
+Efek (server-side, bukan sembunyi tampilan saja):
 
-1. Sidebar "Data Master Jersey" (dan ikon gear terkait) **hilang total untuk role Kasir** (via `Izin::peta()` — `menuTerlihat()` kosong untuk 38).
-2. Semua tombol aksi master Jersey (tambah/ubah/hapus/simpan) mati untuk Kasir.
-3. Akses langsung rute `/jersey/master*` oleh Kasir → **403** (bolehPath), rute mutasi → 403 (`Izin::boleh`), walau menu tercentang di Hak Akses.
-4. Administrator tidak terpengaruh (bypass duluan).
+1. Sidebar & mega menu TIDAK menampilkan "Data Master Jersey" untuk role Kasir.
+2. Rute `/jersey/master*` oleh Kasir → **403** (`Izin::bolehPath()`).
+3. Rutenya (`/jersey`, `/jersey/keuangan`, create pesanan) TETAP terbuka untuk Kasir yang memegang menu 38.
+4. Administrator tidak terpengaruh.
 
-**Rekomendasi permanen (opsional, lebih rapi)**: cabut id_menu 38 dari role Kasir di **Pengaturan → Hak Akses** — setelah itu kecualikan di atas boleh dihapus. Keuangan Jersey tetap terlihat untuk Kasir sampai owner memutuskan pemisahannya.
+Helper tampilan: `Izin::terkecualikanPath($user, 'jersey/master')` dipakai sidebar & `_premium-bar` untuk menyembunyikan link master saja.
 
 ## 5. Lingkup biaya
 

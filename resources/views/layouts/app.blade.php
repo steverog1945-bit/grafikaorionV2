@@ -4,6 +4,10 @@
     // sebelumnya ketiganya hardcode terpisah dengan nilai yang berbeda-beda.
     $appSetting = \App\Models\AppSetting::current();
     $brandTheme = app(\App\Services\BrandThemeService::class)->current();
+    // Tema Premium = shell tanpa sidebar: navigasi pindah ke topbar baris
+    // kedua + mega menu (lihat _premium-bar.blade.php). Tema lain tetap
+    // memakai sidebar seperti semula.
+    $isPremium = (($brandTheme['id'] ?? '') === 'premium');
     $brandThemeStyle = collect($brandTheme['variables'])
         ->map(fn ($value, $name) => $name . ':' . $value)
         ->implode(';');
@@ -200,15 +204,15 @@
         /* Palet dopelycolors 01: Desert B35A20, Zest E8891D, Sea Mist BFD5C9,
            Niagara 05A3A4, Mosque 006373. Diturunkan menjadi tangga latar gelap
            plus teks terang. Rasio WCAG tiap pasangan tertera di sebelah nilainya. */
-        --or-9:  var(--brand-sidebar-deep, #04262C);   /* latar terdalam */
-        --or-8:  var(--brand-sidebar-base, #063A44);    /* latar sidebar */
-        --or-7:  var(--brand-sidebar-raised, #0A4C57);  /* latar surface */
-        --or-6:  var(--brand-sidebar-border, #0F6472);  /* garis tegas */
+        --or-9:  var(--brand-sidebar-deep, var(--brand-sidebar-deep));   /* latar terdalam */
+        --or-8:  var(--brand-sidebar-base, var(--brand-sidebar-base));    /* latar sidebar */
+        --or-7:  var(--brand-sidebar-raised, var(--brand-sidebar-raised));  /* latar surface */
+        --or-6:  var(--brand-sidebar-border, var(--brand-sidebar-border));  /* garis tegas */
 
-        --or-teks:        var(--brand-sidebar-text, #BFD5C9);
-        --or-teks-lembut: var(--brand-sidebar-muted, #9DB8AD);
+        --or-teks:        var(--brand-sidebar-text, var(--brand-sidebar-text));
+        --or-teks-lembut: var(--brand-sidebar-muted, var(--brand-sidebar-muted));
         --or-judul:       var(--brand-sidebar-title, #FFFFFF);
-        --or-aksen:       var(--brand-sidebar-accent, #E8891D);
+        --or-aksen:       var(--brand-sidebar-accent, var(--brand-sidebar-accent));
         --or-peringatan:  var(--brand-sidebar-warning, #F0A882);
     }
     body { font-family: var(--brand-font-family, 'Inter'), sans-serif; color: var(--text-primary); scroll-behavior: smooth; background-color: var(--brand-surface-page, #FAFBF9); overflow-x: hidden; }
@@ -221,29 +225,29 @@
     }
 
     /* Sidebar mengikuti referensi (screenshot 2026-10-25): latar gelap
-       Mosque #063A44, teks Sea Mist #BFD5C9, judul putih, aksen Zest
-       #E8891D. Berlaku SAMA di light maupun dark mode (sidebar selalu
+       Mosque var(--brand-sidebar-base), teks Sea Mist var(--brand-sidebar-text), judul putih, aksen Zest
+       var(--brand-sidebar-accent). Berlaku SAMA di light maupun dark mode (sidebar selalu
        gelap, sesuai referensi) - tidak boleh berubah warna saat tema
        berganti. Brand theme DB tidak boleh menimpa palet sidebar. */
     aside {
         width: var(--sidebar-width);
-        background: var(--brand-sidebar-base, #063A44) !important;
-        color: var(--brand-sidebar-text, #BFD5C9) !important;
+        background: var(--brand-sidebar-base, var(--brand-sidebar-base)) !important;
+        color: var(--brand-sidebar-text, var(--brand-sidebar-text)) !important;
         position: fixed;
         top: 0; bottom: 0; left: 0;
         z-index: 50;
         transition: width 220ms cubic-bezier(0.23, 1, 0.32, 1), transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
         display: flex;
         flex-direction: column;
-        border-right: 1px solid var(--brand-sidebar-deep, #04262C) !important;
+        border-right: 1px solid var(--brand-sidebar-deep, var(--brand-sidebar-deep)) !important;
         box-shadow: none;
     }
 
     html.dark aside,
     html:not(.dark) aside {
-        background: var(--brand-sidebar-base, #063A44) !important;
-        border-right-color: var(--brand-sidebar-deep, #04262C) !important;
-        color: var(--brand-sidebar-text, #BFD5C9) !important;
+        background: var(--brand-sidebar-base, var(--brand-sidebar-base)) !important;
+        border-right-color: var(--brand-sidebar-deep, var(--brand-sidebar-deep)) !important;
+        color: var(--brand-sidebar-text, var(--brand-sidebar-text)) !important;
     }
 
     /* Judul brand & teks menu mengikuti token sidebar (bisa terang/gelap via tema) */
@@ -251,7 +255,7 @@
     aside .sidebar-title,
     aside h1, aside h2, aside h3 { color: var(--brand-sidebar-title, #FFFFFF) !important; }
 
-    aside a, aside button, aside nav span:not(.notif-badge):not(.chip), aside nav div:not(.notif-badge):not(.chip) { color: var(--brand-sidebar-text, #BFD5C9) !important; }
+    aside a, aside button, aside nav span:not(.notif-badge):not(.chip), aside nav div:not(.notif-badge):not(.chip) { color: var(--brand-sidebar-text, var(--brand-sidebar-text)) !important; }
     /* Badge angka & chip kosongkan pengecualian nama: warnanya harus ikut
        token badge sendiri (TOKEN BADGE, app.css) supaya selalu terbaca di
        kedua mode sidebar tanpa larik color !important induknya. */
@@ -260,12 +264,12 @@
     aside nav a[aria-current="page"] {
         color: var(--brand-sidebar-title, #FFFFFF) !important;
         background: rgba(232, 137, 29, 0.14) !important;
-        border-left: 3px solid var(--brand-sidebar-accent, #E8891D) !important;
+        border-left: 3px solid var(--brand-sidebar-accent, var(--brand-sidebar-accent)) !important;
     }
 
-    aside a:hover, aside button:hover { color: var(--brand-sidebar-title, #FFFFFF) !important; background: rgba(191, 213, 201, 0.08); }
+    aside a:hover, aside button:hover { color: var(--brand-sidebar-title, #FFFFFF) !important; background: color-mix(in srgb, var(--brand-sidebar-text) 8%, transparent); }
 
-    aside .menu-group-toggle { color: var(--brand-sidebar-muted, #9DB8AD) !important; }
+    aside .menu-group-toggle { color: var(--brand-sidebar-muted, var(--brand-sidebar-muted)) !important; }
 
     /* Mode terang (tombol "Mode Sidebar"): sidebar terang bergaya Copilot.
        Blok ini ditempatkan SETELAH palet gelap sehingga menang seri kaskade;
@@ -365,22 +369,22 @@
     body.sidebar-collapsed aside .menu-group-toggle:hover .rail-icon,
     body.sidebar-collapsed aside .menu-group-toggle.flyout-open .rail-icon { background: rgba(255,255,255,0.14); color: #fff; transform: translateY(-1px); }
     body.sidebar-collapsed aside .menu-group-toggle.has-active .rail-icon {
-        background: var(--brand-sidebar-active, #116E7D); color: #fff;
+        background: var(--brand-sidebar-active, var(--brand-sidebar-active)); color: #fff;
     }
 
     /* Tampilan lebar: penanda grup yang berisi halaman aktif.
        Judul grup aktif memakai --or-judul (putih) supaya jelas berbeda dari
        grup lain yang Sea Mist redup. Warna lama #2A3731 hanya menghasilkan
-       rasio 1.18:1 di atas #063A44, artinya judul grup praktis tak terlihat.
+       rasio 1.18:1 di atas var(--brand-sidebar-base), artinya judul grup praktis tak terlihat.
        Jangan dikembalikan tanpa mengukur ulang. */
     aside .menu-group-toggle.has-active > span { color: var(--or-judul); }
     html.dark aside .menu-group-toggle.has-active > span { color: var(--or-judul); }
     aside .menu-group-toggle.has-active > span::after {
         content: ''; display: inline-block; width: 6px; height: 6px; margin-left: 8px; border-radius: 999px;
-        background: var(--brand-sidebar-active_mark, #7FD0DE); vertical-align: middle;
+        background: var(--brand-sidebar-active_mark, var(--brand-accent-hover-dark)); vertical-align: middle;
     }
     aside nav > a.sb-active::before {
-        content: ''; position: absolute; left: -14px; top: 22%;         bottom: 22%; width: 4px; border-radius: 0 4px 4px 0; background: var(--brand-sidebar-active_mark, #7FD0DE);
+        content: ''; position: absolute; left: -14px; top: 22%;         bottom: 22%; width: 4px; border-radius: 0 4px 4px 0; background: var(--brand-sidebar-active_mark, var(--brand-accent-hover-dark));
     }
     body.sidebar-collapsed aside nav > a.sb-active::before { left: -14px; }
     aside .menu-group-items a.sb-active::before { content: none; }
@@ -395,10 +399,10 @@
         border-radius: 12px 0 0 12px;
         transition: color .14s ease;
     }
-    body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: var(--brand-sidebar-hover, #0C5A66); }
-    body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: var(--brand-sidebar-active, #116E7D); }
-    html.dark body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: var(--brand-sidebar-hover, #0C5A66); }
-    html.dark body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: var(--brand-sidebar-active, #116E7D); }
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: var(--brand-sidebar-hover, var(--brand-sidebar-hover)); }
+    body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: var(--brand-sidebar-active, var(--brand-sidebar-active)); }
+    html.dark body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover { --tab: var(--brand-sidebar-hover, var(--brand-sidebar-hover)); }
+    html.dark body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { --tab: var(--brand-sidebar-active, var(--brand-sidebar-active)); }
     body:not(.sidebar-collapsed) #mainSidebar nav a.group:hover,
     body:not(.sidebar-collapsed) #mainSidebar nav a.group.sb-active { background: var(--tab) !important; }
     /* Lekukan atas (pseudo milik tautan) dan bawah (pseudo milik label teksnya, yang diposisikan terhadap tautan). */
@@ -423,7 +427,7 @@
     #railFlyout .fly-title { padding: 6px 12px 10px; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #94a3b8; }
     #railFlyout a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: #E2EAE4; font-size: 14px; font-weight: 500; text-decoration: none; }
     #railFlyout a:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    #railFlyout a.fly-active { background: var(--brand-accent-light, #006C7B); color: #fff; }
+    #railFlyout a.fly-active { background: var(--brand-accent-light, var(--brand-accent-light)); color: #fff; }
     #railFlyout a svg { width: 20px; height: 20px; flex-shrink: 0; color: #94a3b8; }
     #railFlyout a:hover svg, #railFlyout a.fly-active svg { color: #fff; }
     #railTip {
@@ -485,8 +489,8 @@
        light pakai latar gelap + teks putih, dark otomatis dibalik. Bentuk
        lebih kecil/ramping dari sebelumnya supaya tidak terlihat mengganggu. */
     .notif-badge.rose { background: var(--notif-danger, #93481A); color: var(--notif-danger-fg, #fff); }
-    .notif-badge.indigo { background: var(--notif-info, #006C7B); color: var(--notif-info-fg, #fff); }
-    .notif-badge.amber { background: var(--notif-warning, #E8891D); color: var(--notif-warning-fg, #1F2937); }
+    .notif-badge.indigo { background: var(--notif-info, var(--brand-accent-light)); color: var(--notif-info-fg, #fff); }
+    .notif-badge.amber { background: var(--notif-warning, var(--brand-sidebar-accent)); color: var(--notif-warning-fg, #1F2937); }
     /* Badge selalu rata di kolom kanan yang sama: link menu (badge) & judul grup (badge + panah). */
     aside .menu-group-toggle { justify-content: flex-start; padding-right: .875rem; }
     aside .menu-group-toggle > i.fa-chevron-down { margin-left: auto; width: 1.5rem; text-align: center; }
@@ -547,7 +551,7 @@
     }
     html.dark #topbar-mobile-isi button:not(form button),
     html.dark #topbar-mobile-isi .profil b { color: var(--brand-surface-dark_text, #F1F5F1); }
-    html.dark #topbar-mobile-isi .profil small { color: var(--brand-surface-dark_text_tertiary, #9DB8AD); }
+    html.dark #topbar-mobile-isi .profil small { color: var(--brand-surface-dark_text_tertiary, var(--brand-sidebar-muted)); }
     html.dark #topbar-mobile-isi .profil,
     html.dark #topbar-mobile-isi form { border-color: var(--brand-surface-dark_border, #3F4F47); }
     html.dark #topbar-mobile-isi button:not(form button):hover { background: var(--brand-surface-dark_tertiary, #3F4F47); }
@@ -614,7 +618,50 @@
 
     <div id="sidebarOverlay" onclick="toggleMobileMenu()" aria-hidden="true"></div>
 
+    {{-- Izin menu - SATU sumber untuk sidebar, mobile nav, DAN mega menu tema
+         Premium. Dipindah keluar dari <aside> supaya tetap tersedia saat
+         aside tidak dirender (tema premium = shell tanpa sidebar). --}}
+    @php
+        $userAkses = \App\Support\Izin::menuTerlihat(Auth::user());
+        // Menu yang dinonaktifkan lewat Pengaturan Menu disembunyikan dari sidebar untuk semua role.
+        $menuNonaktif = DB::table('menus')->where('aktif', false)->pluck('id_menu')->map(fn ($i) => (int) $i)->all();
+
+        // Administrator selalu lolos di sini juga, sama seperti bypass di
+        // CheckMenuAccess middleware. Tanpa ini, menu sidebar Administrator
+        // bisa ikut hilang kalau grant-nya di role_permissions tidak sengaja
+        // tercabut/kosong (mis. dari halaman Pengaturan Akses) - padahal
+        // rute-rutenya sendiri tetap bisa diakses karena middleware sudah
+        // bypass duluan, jadi menu yang "hilang" itu cuma ilusi UI.
+        $isAdministrator = optional(Auth::user()->role)->nama_role === 'Administrator';
+
+        // Menu yang isinya harga/nilai uang disembunyikan untuk role tanpa hak lihat harga
+        // (Finishing Produk = 21, Penawaran = 58), walau menunya tercentang di Hak Akses.
+        $menuBerharga = [21, 58];
+        $bolehLihatHargaSidebar = \App\Support\AksesHarga::bolehLihat();
+
+        $cekAkses = function($idMenu) use ($userAkses, $isAdministrator, $menuBerharga, $bolehLihatHargaSidebar, $menuNonaktif) {
+            if (in_array($idMenu, $menuNonaktif, true)) {
+                return false;
+            }
+
+            if (!$bolehLihatHargaSidebar && in_array($idMenu, $menuBerharga, true)) {
+                return false;
+            }
+
+            return $isAdministrator || in_array($idMenu, $userAkses);
+        };
+
+        // Helper untuk styling menu - teks terang di atas latar gelap sidebar.
+        $menuClass = "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors group relative ";
+        $activeClass = "sb-active bg-white/10 text-white";
+        $nonActiveClass = "hover:bg-white/5";
+
+        $iconClass = "h-[18px] w-[18px] shrink-0 transition-colors ";
+        $iconActive = "text-or-aksen";
+        $iconNonActive = "text-or-teks opacity-70 group-hover:opacity-100";
+    @endphp
     <div class="flex min-h-screen">
+        @unless($isPremium)
         <aside id="mainSidebar">
             <div id="sidebarBrandHeader" class="relative px-4 py-4 border-b border-white/10 flex items-center justify-center">
                 @php
@@ -695,45 +742,6 @@
 </div>
 @endif
             <nav class="mt-5 px-4 pb-24 space-y-1.5">
-    @php
-        $userAkses = \App\Support\Izin::menuTerlihat(Auth::user());
-        // Menu yang dinonaktifkan lewat Pengaturan Menu disembunyikan dari sidebar untuk semua role.
-        $menuNonaktif = DB::table('menus')->where('aktif', false)->pluck('id_menu')->map(fn ($i) => (int) $i)->all();
-
-        // Administrator selalu lolos di sini juga, sama seperti bypass di
-        // CheckMenuAccess middleware. Tanpa ini, menu sidebar Administrator
-        // bisa ikut hilang kalau grant-nya di role_permissions tidak sengaja
-        // tercabut/kosong (mis. dari halaman Pengaturan Akses) - padahal
-        // rute-rutenya sendiri tetap bisa diakses karena middleware sudah
-        // bypass duluan, jadi menu yang "hilang" itu cuma ilusi UI.
-        $isAdministrator = optional(Auth::user()->role)->nama_role === 'Administrator';
-
-        // Menu yang isinya harga/nilai uang disembunyikan untuk role tanpa hak lihat harga
-        // (Finishing Produk = 21, Penawaran = 58), walau menunya tercentang di Hak Akses.
-        $menuBerharga = [21, 58];
-        $bolehLihatHargaSidebar = \App\Support\AksesHarga::bolehLihat();
-
-        $cekAkses = function($idMenu) use ($userAkses, $isAdministrator, $menuBerharga, $bolehLihatHargaSidebar, $menuNonaktif) {
-            if (in_array($idMenu, $menuNonaktif, true)) {
-                return false;
-            }
-
-            if (!$bolehLihatHargaSidebar && in_array($idMenu, $menuBerharga, true)) {
-                return false;
-            }
-
-            return $isAdministrator || in_array($idMenu, $userAkses);
-        };
-
-        // Helper untuk styling menu - teks terang di atas latar gelap sidebar.
-        $menuClass = "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors group relative ";
-        $activeClass = "sb-active bg-white/10 text-white";
-        $nonActiveClass = "hover:bg-white/5";
-
-        $iconClass = "h-[18px] w-[18px] shrink-0 transition-colors ";
-        $iconActive = "text-or-aksen";
-        $iconNonActive = "text-or-teks opacity-70 group-hover:opacity-100";
-    @endphp
 
     {{-- DASHBOARD --}}
     <a href="{{ url('/dashboard') }}" 
@@ -1480,7 +1488,7 @@
         <span class="text-sm font-medium">Pesanan Jersey Baru</span>
     </a>
     @endif
-    @if($cekAkses(38))
+    @if($cekAkses(38) && ! \App\Support\Izin::terkecualikanPath(Auth::user(), 'jersey/master'))
     <a href="{{ url('/jersey/master') }}" class="{{ $menuClass }} {{ Request::is('jersey/master') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ Request::is('jersey/master') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -1635,6 +1643,7 @@
             </button>
         </div>
         </aside>
+        @endunless
 
         <main id="mainContent" class="transition-all duration-300">
     <div class="topbar sticky top-0 shadow-sm z-30 justify-between">
@@ -1645,6 +1654,16 @@
                     <path d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
             </button>
+            @if($isPremium)
+                {{-- Tanda premium: belah ketupat tinta + aksen emas — identitas shell baru. --}}
+                <span class="premium-logo-mark" aria-hidden="true">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <rect width="24" height="24" rx="6.5" fill="#221F1B"/>
+                        <path d="M6.5 13.2 12 6l5.5 7.2" stroke="#E4C65A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8.8 17.3h6.4" stroke="#A67C37" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </span>
+            @endif
             <span class="topbar-app-name font-medium text-slate-700 truncate">{{ $appSetting->nama_aplikasi }}</span>
         </div>
 
@@ -1867,6 +1886,11 @@
                  penutup EKSTRA yang menutup <main> lebih awal sehingga
                  .content-wrapper jatuh ke dalam <body>. Dihapus. --}}
     </div>
+
+    @if($isPremium)
+        {{-- Tema Premium: navigasi utama = topbar baris kedua + mega menu. --}}
+        @include('layouts._premium-bar')
+    @endif
 
     <div class="content-wrapper">
          @yield('content')
@@ -2123,7 +2147,7 @@
                     text: @json($lanjut['teks'] ?? ''),
                     showConfirmButton: {{ !empty($lanjut['url']) ? 'true' : 'false' }},
                     confirmButtonText: @json($lanjut['tombol'] ?? 'Lanjut'),
-                    confirmButtonColor: '#006C7B', showCloseButton: true
+                    confirmButtonColor: 'var(--brand-accent-light)', showCloseButton: true
                 }).then(r => { if (r.isConfirmed) window.location.href = @json($lanjut['url'] ?? '#'); });
             @else
                 Toast.fire({ icon: 'success', title: "{{ session('success') }}" });
@@ -2186,7 +2210,7 @@
                         position: 'top-end',
                         showConfirmButton: true,
                         confirmButtonText: 'Lihat List',
-                        confirmButtonColor: '#006C7B',
+                        confirmButtonColor: 'var(--brand-accent-light)',
                         timer: 10000,
                         timerProgressBar: true,
                     }).then((result) => {

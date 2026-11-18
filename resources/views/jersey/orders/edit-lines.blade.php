@@ -614,7 +614,7 @@
             html: 'Semua barang pada order ini akan dihitung ulang (harga, tambahan ukuran, estimasi bahan). Tautan SPK lama untuk barang yang berubah perlu dicetak ulang.',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#006C7B',
+            confirmButtonColor: 'var(--brand-accent-light)',
             confirmButtonText: 'Ya, Simpan',
             cancelButtonText: 'Batal',
             customClass: { confirmButton: 'rounded-lg px-6 py-2.5', cancelButton: 'rounded-lg px-6 py-2.5 text-slate-600' },

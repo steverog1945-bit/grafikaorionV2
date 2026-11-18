@@ -32,12 +32,12 @@
         --lembar-hover: #16213a;
         --lembar-border: #26314a;
         --lembar-line: #1d2942;
-        --lembar-head: #01434D;
+        --lembar-head: var(--brand-accent-surface-dark);
         --lembar-ink: #F1F5F1;
         --lembar-muted: #94a3b8;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.30);
     }
-    html.dark .lembar:hover { border-color: #0A4C57; }
+    html.dark .lembar:hover { border-color: var(--brand-sidebar-raised); }
 
     /* Kartu angka: mungil, satu fakta per kartu */
     .lembar-e {
@@ -75,9 +75,9 @@
         box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
         transition: border-color 140ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 140ms cubic-bezier(0.23, 1, 0.32, 1), background 140ms cubic-bezier(0.23, 1, 0.32, 1);
     }
-    .lembar-input:focus { outline: none; border-color: #006C7B; box-shadow: 0 0 0 3px #D2EBEE; background: #ffffff; }
-    html.dark .lembar-input { background: #01434D; border-color: #0A4C57; color: #E2EAE4; }
-    html.dark .lembar-input:focus { background: #01434D; border-color: #5FC4D4; box-shadow: 0 0 0 3px #2a3560; }
+    .lembar-input:focus { outline: none; border-color: var(--brand-accent-light); box-shadow: 0 0 0 3px var(--color-indigo-100); background: #ffffff; }
+    html.dark .lembar-input { background: var(--brand-accent-surface-dark); border-color: var(--brand-sidebar-raised); color: #E2EAE4; }
+    html.dark .lembar-input:focus { background: var(--brand-accent-surface-dark); border-color: var(--brand-accent-dark); box-shadow: 0 0 0 3px #2a3560; }
 
     .lembar-btn {
         display: inline-flex; align-items: center; gap: 7px;
@@ -91,10 +91,10 @@
     }
     .lembar-btn:hover { background: #f4f6fa; border-color: #b9c2d3; }
     .lembar-btn:active { transform: scale(0.97); }
-    html.dark .lembar-btn { background: #01434D; border-color: #0A4C57; color: #E2EAE4; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
+    html.dark .lembar-btn { background: var(--brand-accent-surface-dark); border-color: var(--brand-sidebar-raised); color: #E2EAE4; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
     html.dark .lembar-btn:hover { background: #1f2c49; border-color: #4a5a7d; }
-    .lembar-btn-utama { background: #006C7B; border-color: #005663; color: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.18); }
-    .lembar-btn-utama:hover { background: #005663; border-color: #01434D; }
+    .lembar-btn-utama { background: var(--brand-accent-light); border-color: var(--brand-accent-hover-light); color: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.18); }
+    .lembar-btn-utama:hover { background: var(--brand-accent-hover-light); border-color: var(--brand-accent-surface-dark); }
     html.dark .lembar-btn-utama { background: #04727E; color: #fff; }
 
     /* Pil status kecil di judul panel */

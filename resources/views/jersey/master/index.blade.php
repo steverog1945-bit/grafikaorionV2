@@ -718,7 +718,7 @@
         };
         const c = isi[bagian];
         if (!c) return;
-        Swal.fire({ title: c.judul, html: c.html, icon: 'info', confirmButtonColor: 'var(--brand-sidebar-accent, #E8891D)', confirmButtonText: 'Mengerti' });
+        Swal.fire({ title: c.judul, html: c.html, icon: 'info', confirmButtonColor: 'var(--brand-sidebar-accent, var(--brand-sidebar-accent))', confirmButtonText: 'Mengerti' });
     }
 
     function bantuanHarga() {
@@ -732,7 +732,7 @@
                     <p>Sistem menolak rentang qty yang tumpang tindih pada cakupan yang sama supaya tidak ada dua harga aktif untuk rentang yang sama.</p>
                 </div>`,
             icon: 'info',
-            confirmButtonColor: 'var(--brand-sidebar-accent, #E8891D)',
+            confirmButtonColor: 'var(--brand-sidebar-accent, var(--brand-sidebar-accent))',
             confirmButtonText: 'Mengerti',
         });
     }

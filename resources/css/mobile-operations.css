@@ -28,9 +28,9 @@
  .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-toggle::after{content:'\f078';font-family:'Font Awesome 6 Free';font-weight:900;transition:transform .2s ease;font-size:11px;color:var(--brand-surface-text_tertiary,var(--text-tertiary,#64748b))}
  .pwa-ops-page .pwa-ops-filter[open] .pwa-ops-filter-toggle::after{transform:rotate(180deg)}
  .pwa-ops-page .pwa-ops-filter:not([open]) .pwa-ops-filter-fields{display:none}
- .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle{color:var(--brand-aksen,#E8891D)}
+ .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle{color:var(--brand-aksen,var(--brand-sidebar-accent))}
  .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle > span{position:relative}
- .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle > span::after{content:'';position:absolute;top:-4px;right:-12px;width:6px;height:6px;border-radius:999px;background:var(--brand-aksen,#E8891D)}
+ .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle > span::after{content:'';position:absolute;top:-4px;right:-12px;width:6px;height:6px;border-radius:999px;background:var(--brand-aksen,var(--brand-sidebar-accent))}
  .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-actions{display:flex !important;flex-wrap:wrap;align-items:center;gap:10px;padding-top:10px;margin-top:10px;border-top:1px solid var(--brand-surface-border,var(--border-primary,#e2e8f0));width:100%;flex-basis:100%;order:99}
  .pwa-ops-page{padding:16px 12px calc(130px + env(safe-area-inset-bottom,0px));min-width:0}
  .pwa-ops-page .pwa-ops-shell,.pwa-ops-page .pwa-ops-shell .modern-table-wrapper{width:100%;max-width:100%;min-width:0;overflow:visible;background:transparent;border:0;box-shadow:none}
@@ -102,13 +102,13 @@ html.dark .pwa-ops-page .pwa-ops-table tbody tr.pwa-ops-row{background:var(--sur
 html.dark .pwa-ops-page .pwa-ops-row :is(.text-slate-200,.text-slate-300,.text-slate-400,.text-slate-500,.text-slate-600,.text-slate-700){color:var(--text-secondary,#C9D6CE)}
 html.dark .pwa-ops-page .pwa-ops-row :is(.text-slate-800,.text-slate-900){color:var(--text-primary,#F1F5F1)}
 html.dark .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-toggle{background:var(--surface-secondary,#2A3731);border-color:var(--border-primary,#3F4F47);color:var(--text-secondary,#C9D6CE)}
-html.dark .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-toggle::after{color:var(--text-tertiary,#9DB8AD)}
-html.dark .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle{color:var(--accent-primary,#5FC4D4)}
-html.dark .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle > span::after{background:var(--accent-primary,#5FC4D4)}
+html.dark .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-toggle::after{color:var(--text-tertiary,var(--brand-sidebar-muted))}
+html.dark .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle{color:var(--accent-primary,var(--brand-accent-dark))}
+html.dark .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle > span::after{background:var(--accent-primary,var(--brand-accent-dark))}
 html.dark .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-actions{border-top-color:var(--border-primary,#3F4F47)}
 
 /* Dark mode: pastikan label form tidak pucat berlebihan */
 html.dark .pwa-ops-page label,
 html.dark .produksi-page label{color:var(--text-secondary,#C9D6CE)}
-html.dark .pwa-ops-page .text-slate-400{color:var(--text-tertiary,#9DB8AD)}
+html.dark .pwa-ops-page .text-slate-400{color:var(--text-tertiary,var(--brand-sidebar-muted))}
 html.dark .pwa-ops-page .text-slate-500{color:var(--text-secondary,#C9D6CE)}

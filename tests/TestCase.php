@@ -45,6 +45,17 @@ abstract class TestCase extends BaseTestCase
 
         $this->guardAgainstProductionDatabase($db);
 
+        // SELURUH test suite berjalan dengan tema orion-classic (default),
+        // TIDAK PERNAH membaca storage/app/system/brand-theme.json (berkas itu
+        // adalah pengaturan tema AKTIF produksi - mengubahnya selama test
+        // membuat seluruh assert yang menulis ekspektasi orion-classic gagal,
+        // dan berisiko menulis ke berkas produksi). Tema lain diuji lewat
+        // injeksi instance secara eksplisit (lihat TemaPremiumTest).
+        $app->instance(
+            \App\Services\BrandThemeService::class,
+            new \App\Services\BrandThemeService(sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'oratron-default-theme-' . bin2hex(random_bytes(4)) . '.json'),
+        );
+
         return $app;
     }
 

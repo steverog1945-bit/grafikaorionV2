@@ -113,7 +113,7 @@
             text: 'Hasil hitung fisik yang belum disimpan akan disimpan otomatis. Stok baru berubah setelah disetujui Administrator.',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#006C7B',
+            confirmButtonColor: 'var(--brand-accent-light)',
             confirmButtonText: 'Ya, Simpan & Ajukan',
             cancelButtonText: 'Batal'
         }).then((result) => {

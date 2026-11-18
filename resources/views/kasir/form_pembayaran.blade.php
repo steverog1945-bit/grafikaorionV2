@@ -1083,7 +1083,7 @@
                 title: 'Nominal Bayar Belum Diisi',
                 html: 'Tombol <b>Bayar</b> butuh nominal - masih <b>Rp 0</b>. Isi nominal Bayar, atau pakai tombol <b>Simpan</b> untuk nota tanpa pembayaran.',
                 icon: 'warning',
-                confirmButtonColor: '#006C7B',
+                confirmButtonColor: 'var(--brand-accent-light)',
             });
             return;
         }
@@ -1095,7 +1095,7 @@
                 title: 'Saldo Deposit Tidak Cukup',
                 text: 'Jumlah bayar melebihi saldo deposit yang tersedia (Rp ' + formatRupiah(saldoDepositTersedia) + ').',
                 icon: 'error',
-                confirmButtonColor: '#006C7B',
+                confirmButtonColor: 'var(--brand-accent-light)',
             });
         }
     });

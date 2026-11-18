@@ -65,9 +65,9 @@
             --lpb-text-secondary: #3F4F47;
             --lpb-text-tertiary: #4A5B53;
             --lpb-text-muted: #94a3b8;
-            --lpb-accent: #006C7B;
-            --lpb-accent-hover: #005663;
-            --lpb-accent-subtle: #EAF6F7;
+            --lpb-accent: var(--brand-accent-light);
+            --lpb-accent-hover: var(--brand-accent-hover-light);
+            --lpb-accent-subtle: var(--brand-accent-surface-light);
             --lpb-accent-border: #B6E4EC;
             /* Palet resmi ORION — ROYAL INDIGO (token lokal builder) */
             --orion-deep-night: #15143F;
@@ -106,8 +106,8 @@
             --lpb-text-secondary: #C9D6CE;
             --lpb-text-tertiary: #94a3b8;
             --lpb-text-muted: #4A5B53;
-            --lpb-accent-subtle: #012228;
-            --lpb-accent-border: #01434D;
+            --lpb-accent-subtle: var(--brand-sidebar-deep);
+            --lpb-accent-border: var(--brand-accent-surface-dark);
             --lpb-success-subtle: rgba(5, 150, 105, .14);
             --lpb-warning-subtle: rgba(217, 119, 6, .14);
             --lpb-danger-subtle: rgba(225, 29, 72, .14);
@@ -1436,7 +1436,7 @@
                   html: pesan,
                   icon: o.ikon || 'warning',
                   showCancelButton: true,
-                  confirmButtonColor: o.bahaya === false ? '#006C7B' : '#93481A',
+                  confirmButtonColor: o.bahaya === false ? 'var(--brand-accent-light)' : '#93481A',
                   confirmButtonText: o.setuju || 'Ya, Lanjutkan',
                   cancelButtonColor: '#F1F5F1',
                   cancelButtonText: '<span style="color:#4A5B53">Batal</span>',
@@ -1461,7 +1461,7 @@
                   title: judul,
                   html: pesan,
                   icon: o.ikon || 'info',
-                  confirmButtonColor: '#006C7B',
+                  confirmButtonColor: 'var(--brand-accent-light)',
                   confirmButtonText: o.setuju || 'Mengerti',
                   allowOutsideClick: true
               }).then(function () {});

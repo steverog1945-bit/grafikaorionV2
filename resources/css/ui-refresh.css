@@ -46,9 +46,9 @@
        text-slate-400 (#5F7167) hanya 2.56:1 di atas putih sehingga GAGAL,
        makanya dipakai warna tersendiri yang sudah dihitung. */
     --icon-muted: #76869f;
-    --accent-primary: var(--brand-accent-light, #006C7B);
-    --accent-hover: var(--brand-accent-hover-light, #005663);
-    --accent-light: var(--brand-accent-surface-light, #EAF6F7);
+    --accent-primary: var(--brand-accent-light, var(--brand-accent-light));
+    --accent-hover: var(--brand-accent-hover-light, var(--brand-accent-hover-light));
+    --accent-light: var(--brand-accent-surface-light, var(--brand-accent-surface-light));
 
     /* Token warna - Dark mode */
     
@@ -64,11 +64,11 @@
        Nilai lama #4A5B53 hanya 3.75:1 di atas #1A231F, gagal untuk teks
        kecil. Dua sistem token harus mengantar angka yang sama; kalau
        tidak, perbaikan di satu tempat akan dibatalkan di tempat lain. */
-    --dark-text-tertiary: var(--brand-surface-dark_text_tertiary, #9DB8AD);
+    --dark-text-tertiary: var(--brand-surface-dark_text_tertiary, var(--brand-sidebar-muted));
     --dark-icon-muted: #71867A;
-    --dark-accent-primary: var(--brand-accent-dark, #5FC4D4);
-    --dark-accent-hover: var(--brand-dark-accent-hover, #05818F);
-    --dark-accent-light: var(--brand-accent-surface-dark, #02363E);
+    --dark-accent-primary: var(--brand-accent-dark, var(--brand-accent-dark));
+    --dark-accent-hover: var(--brand-dark-accent-hover, var(--brand-dark-accent-hover));
+    --dark-accent-light: var(--brand-accent-surface-dark, var(--brand-accent-surface-dark));
 
     /* Token radius - KONSISTEN */
     --radius-sm: 4px;   /* chip, badge */
@@ -599,11 +599,11 @@ input#input-bayar-mask {
 }
 
 input#input-bayar-mask::placeholder {
-    color: #9DB8AD !important;
+    color: var(--brand-sidebar-muted) !important;
 }
 
 input#input-bayar-mask:focus {
-    border-color: #006C7B !important;
+    border-color: var(--brand-accent-light) !important;
     background: #FFFFFF !important;
     box-shadow: 0 0 0 4px rgb(0 108 123 / 0.12) !important;
     outline: none !important;
@@ -618,7 +618,7 @@ input#input-bayar-mask:focus {
 
 input#input-bayar-mask:focus ~ #prefix-uang-diterima,
 #prefix-uang-diterima:focus-within {
-    color: #006C7B !important;
+    color: var(--brand-accent-light) !important;
 }
 
 input[class*="pr-9"],
@@ -812,7 +812,7 @@ select {
 }
 
 .select2-container--open .select2-selection__arrow b {
-    border-color: #05818F transparent transparent transparent;
+    border-color: var(--brand-dark-accent-hover) transparent transparent transparent;
 }
 
 /* --- Accordion sidebar: buka-tutup tanpa lompatan --- */
@@ -1143,7 +1143,7 @@ legend.text-\[10px\].uppercase {
       transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease, border-color 150ms ease;
    }
    .swal2-popup .swal2-actions button:active { transform: scale(0.97); }
-   .swal2-popup .swal2-actions button:focus-visible { outline: 2px solid #006C7B !important; outline-offset: 2px !important; }
+   .swal2-popup .swal2-actions button:focus-visible { outline: 2px solid var(--brand-accent-light) !important; outline-offset: 2px !important; }
 
    /* Batal: putih bergaris, teks gelap. */
    .swal2-popup .swal2-cancel {
@@ -1196,7 +1196,7 @@ legend.text-\[10px\].uppercase {
       transition: background-color 150ms ease;
    }
    .swal2-popup .swal2-close:hover { background: #dedee2 !important; color: #000000 !important; }
-   .swal2-popup .swal2-close:focus-visible { outline: 2px solid #006C7B !important; outline-offset: 2px !important; }
+   .swal2-popup .swal2-close:focus-visible { outline: 2px solid var(--brand-accent-light) !important; outline-offset: 2px !important; }
 
    /* Toast (notifikasi singkat di pojok): kartu yang sama, versi ringkas. */
    .swal2-popup.swal2-toast {

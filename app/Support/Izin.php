@@ -45,18 +45,6 @@ class Izin
         foreach (DB::table('user_permissions')->where('id_user', $user->id_user)->get() as $r) {
             $peta[(int) $r->id_menu] = ['view' => (bool) $r->can_view, 'add' => (bool) $r->can_add, 'edit' => (bool) $r->can_edit, 'delete' => (bool) $r->can_delete];
         }
-
-        // KECUALIKAN-MENU: kebijakan perusahaan di atas Hak Akses. Menyembunyikan
-        // + memblokir menu tertentu untuk role tertentu WALAUPUN tercentang -
-        // dipakai untuk Data Master Jersey (id_menu 38) yang bukan ranah Kasir
-        // (owner, 18 Nov 2026). Sengaja di level peta, bukan cuma tampilan:
-        // sidebar hilang DAN tombol aksi mati DAN rute ditolak (bolehPath).
-        foreach ((array) config('menu_access.kecualikan_menu', []) as $idMenu => $roles) {
-            if (in_array(optional($user->role)->nama_role, (array) $roles, true)) {
-                unset($peta[(int) $idMenu]);
-            }
-        }
-
         $simpan[$user->id_user] = $peta;
         request()->attributes->set('izin_peta_cache', $simpan);
 
@@ -206,6 +194,19 @@ class Izin
             'hargaTertutup' => \App\Support\AksesHarga::bolehLihat($user) ? [] : array_values((array) config('menu_access.khusus_harga', [])),
             'aturan' => $aturan,
         ];
+    }
+
+    /**
+     * Apakah role user dikecualikan dari prefix ini? Dipakai LAPISAN TAMPILAN
+     * untuk menyembunyikan link terkait (mis. Data Master Jersey untuk Kasir -
+     * rute tetap ditolak server lewat bolehPath). Sumber kebenaran =
+     * config menu_access.kecualikan_path.
+     */
+    public static function terkecualikanPath(User $user, string $prefix): bool
+    {
+        $roles = (array) config('menu_access.kecualikan_path.' . $prefix, []);
+
+        return $roles !== [] && in_array(optional($user->role)->nama_role, $roles, true);
     }
 
     /** Id menu yang boleh DILIHAT (untuk sidebar). */

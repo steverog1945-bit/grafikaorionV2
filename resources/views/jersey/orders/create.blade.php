@@ -24,8 +24,8 @@
 .jersey-mobile-form-page select:focus,
 .jersey-mobile-form-page textarea:focus {
     outline: none;
-    border-color: var(--brand-sidebar-accent, #E8891D);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-sidebar-accent, #E8891D) 18%, transparent);
+    border-color: var(--brand-sidebar-accent, var(--brand-sidebar-accent));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-sidebar-accent, var(--brand-sidebar-accent)) 18%, transparent);
 }
 .jersey-mobile-form-page .baris-pemain select,
 .jersey-mobile-form-page .baris-pemain input {

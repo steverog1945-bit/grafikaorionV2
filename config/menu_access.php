@@ -238,18 +238,16 @@ return [
         'up',
     ],
 
-    // KECUALIKAN-MENU / KECUALIKAN-PATH: kebijakan perusahaan DI ATAS Hak Akses
-    // - role yang disebut SELALU DITOLAK untuk menu/prefix ini walau tercentang
-    // di Hak Akses (sidebar hilang, tombol mati, rute 403). Id_menu dan prefix
-    // dijaga konsisten satu sama lain; Administrator tidak terpengaruh.
+    // KECUALIKAN-PATH: kebijakan perusahaan DI ATAS Hak Akses — role yang
+    // disebut SELALU DITOLAK untuk prefix rute ini, walau tercentang di Hak
+    // Akses (sidebar & mega menu ikut menyembunyikan link terkait; rutenya
+    // sendiri 403 di server). Administrator tidak terpengaruh.
     //
-    // 38 / 'jersey/master' = Data Master Jersey (desainer, tipe produk, ukuran,
-    // bahan, tier harga) - bukan ranah Kasir (owner, 18 Nov 2026). Catatan:
-    // tautan "Keuangan Jersey" berbagi izin menu 38 - sengaja dibiarkan
-    // terlihat sampai owner memutuskan (lihat laporan audit).
-    'kecualikan_menu' => [
-        38 => ['Kasir'],
-    ],
+    // 'jersey/master' = Data Master Jersey (desainer, tipe produk, ukuran,
+    // bahan, tier harga) - BUKAN ranah Kasir (owner, 18 Nov 2026).
+    // 'jersey' & 'jersey/keuangan' TETAP terbuka untuk Kasir (keputusan
+    // owner: input pesanan & keuangan jersey tetap terlihat; hanya master
+    // yang disembunyikan).
     'kecualikan_path' => [
         'jersey/master' => ['Kasir'],
     ],

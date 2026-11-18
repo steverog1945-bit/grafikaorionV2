@@ -426,7 +426,7 @@
             text: "Data yang dihapus tidak dapat dikembalikan.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#006C7B',
+            confirmButtonColor: 'var(--brand-accent-light)',
             cancelButtonColor: '#FAFBF9',
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',

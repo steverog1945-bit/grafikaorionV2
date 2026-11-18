@@ -126,7 +126,7 @@
                     showCancelButton: true,
                     confirmButtonText: 'Ya, Terima &amp; Bayar',
                     cancelButtonText: 'Batal, cek dulu nanti',
-                    confirmButtonColor: 'var(--brand-sidebar-accent, #E8891D)',
+                    confirmButtonColor: 'var(--brand-sidebar-accent, var(--brand-sidebar-accent))',
                     reverseButtons: true
                 }).then(function (res) {
                     if (!res.isConfirmed) return;

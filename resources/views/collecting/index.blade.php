@@ -188,7 +188,7 @@
                 title: 'Belum Bisa Diproses',
                 html: `Masih ada item pada nota <b>${escHtml(nomorNota)}</b> yang belum selesai dikerjakan. Semua item harus Selesai/Batal dulu sebelum bisa ditandai diambil.`,
                 icon: 'warning',
-                confirmButtonColor: '#006C7B',
+                confirmButtonColor: 'var(--brand-accent-light)',
                 customClass: { popup: 'rounded-2xl' }
             });
             return;
