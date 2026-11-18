@@ -60,11 +60,22 @@
                  termasuk Lunas). Lihat KasirController::index(). --}}
             <input type="hidden" name="status_filtered" value="1">
 
-            <details class="pwa-ops-filter {{ collect(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar'])->some(fn ($k) => request()->filled($k)) ? 'pwa-ops-filter--active' : '' }}" aria-controls="pwa-ops-filter-fields" @if(collect(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar'])->some(fn ($k) => request()->filled($k))) open @endif>
-                <summary class="pwa-ops-filter-toggle">
+            {{-- Filter tanpa <details>: trik lama ::details-content
+                 membuat SELURUH isi filter menghilang di peramban lama
+                 (Windows 7: Chrome 109/Edge klasik) karena toggle-nya
+                 sengaja disembunyikan di desktop. Checkbox sr-only +
+                 <label> berfungsi di SEMUA engine, tetap tanpa
+                 JavaScript, tetap bisa submit GET murni. --}}
+            @php
+                $filterAktif = collect(['tgl_mulai', 'tgl_selesai', 'id_konsumen', 'nomor_nota', 'status_bayar'])->some(fn ($k) => request()->filled($k));
+            @endphp
+            <div class="pwa-ops-filter {{ $filterAktif ? 'pwa-ops-filter--active' : '' }}" id="pwa-ops-filter-shell">
+                <input type="checkbox" id="pwa-ops-filter-cb" class="pwa-ops-filter-cb" @if($filterAktif) checked @endif>
+                <label for="pwa-ops-filter-cb" class="pwa-ops-filter-toggle" aria-controls="pwa-ops-filter-fields pwa-ops-filter-actions">
                     <i class="fas fa-sliders-h" aria-hidden="true"></i>
                     <span>Filter</span>
-                </summary>
+                    <i class="fas fa-chevron-down pwa-ops-filter-caret" aria-hidden="true"></i>
+                </label>
 
                 <div class="pwa-ops-filter-fields" id="pwa-ops-filter-fields">
             <div class="w-full md:w-40">
@@ -107,10 +118,10 @@
 
                 </div>
 
-                {{-- Aksi submit & reset mematuhi panel filter, seperti
-                     pola SPK/Produksi (di desktop, details ber-modesakan
-                     display:contents <-> tampilan tidak berubah). --}}
-                <div class="pwa-ops-filter-actions">
+                {{-- Aksi submit & reset ikut checkbox yang sama (mobile,
+                     tersembunyi sampai "Filter" diklik; desktop selalu
+                     tampil). --}}
+                <div class="pwa-ops-filter-actions" id="pwa-ops-filter-actions">
                     <x-button type="submit">
                         <i class="fas fa-filter"></i>
                         Filter
@@ -122,7 +133,7 @@
                         </a>
                     @endif
                 </div>
-            </details>
+            </div>
         </form>
     </x-card>
 
