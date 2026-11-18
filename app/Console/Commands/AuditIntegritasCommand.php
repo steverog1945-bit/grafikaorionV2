@@ -100,6 +100,25 @@ class AuditIntegritasCommand extends Command
             $adaTemuan = true;
             $hasil[] = ['bayar_melebihi_tagihan', $r->nomor_nota, "total={$r->total_bayar} dibayar={$r->s}"];
         }
+
+        // 5b. Mirror monitoring `transaksi.total_terbayar` harus sama dengan SUM
+        //     pembayaran sah. Menyimpang = ada titik tulis pembayaran yang lupa
+        //     memanggil TerbayarSinkron::sinkronkan() (atau data diubah di luar
+        //     aplikasi) - badge dashboard/monitoring bisa bohong pelan-pelan.
+        if (DB::getSchemaBuilder()->hasColumn('transaksi', 'total_terbayar')) {
+            $drift = DB::table('transaksi as t')
+                ->joinSub(
+                    DB::table('pembayaran_riwayat')->whereNull('voided_at')->selectRaw('id_transaksi, SUM(nominal) s')->groupBy('id_transaksi'),
+                    'b', 'b.id_transaksi', '=', 't.id_transaksi'
+                )
+                ->whereRaw('ABS(COALESCE(t.total_terbayar, 0) - b.s) > 0.01')
+                ->limit(10)
+                ->get(['t.nomor_nota', DB::raw('COALESCE(t.total_terbayar, 0) mirror'), DB::raw('b.s sumber')]);
+            foreach ($drift as $r) {
+                $adaTemuan = true;
+                $hasil[] = ['total_terbayar_tidak_sinkron', $r->nomor_nota, "mirror={$r->mirror} vs sumber={$r->sumber}"];
+            }
+        }
         if (DB::getSchemaBuilder()->hasTable('jersey_orders')) {
             $lebihJersey = DB::table('jersey_orders as o')
                 ->joinSub(DB::table('jersey_order_payments')->whereNull('deleted_at')->selectRaw('jersey_order_id, SUM(jumlah) s')->groupBy('jersey_order_id'), 'b', 'b.jersey_order_id', '=', 'o.id')

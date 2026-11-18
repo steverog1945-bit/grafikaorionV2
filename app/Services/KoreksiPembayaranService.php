@@ -205,6 +205,10 @@ class KoreksiPembayaranService
                 'updated_at'        => now(),
             ]);
 
+            // Kolom monitoring total_terbayar: void + insert replacement
+            // nominalnya netral, tapi tetap direcompute (idempoten).
+            TerbayarSinkron::sinkronkan((int) $pembayaran->id_transaksi);
+
             return $idBaru;
         });
     }

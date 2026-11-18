@@ -16,8 +16,19 @@ class AkuntansiController extends Controller
 {
     public function jurnal(Request $request)
     {
-        $awal = $request->get('awal', now()->startOfMonth()->toDateString());
-        $akhir = $request->get('akhir', now()->toDateString());
+        // Rentang dibatasi maks 366 hari + pagination 50/baris: dulu ->get()
+        // memuat SELURUH jurnal rentang itu ke memori tiap render, sementara
+        // nilai jurnal lama terus bertambah (kolektif bisa puluhan ribu baris).
+        // Total debet/kredit dihitung lewat agregat SQL TERPISAH - harus tetap
+        // mencakup seluruh rentang, bukan cuma 50 baris yang tampil.
+        [$awal, $akhir] = \App\Support\RentangTanggal::dariRequest($request);
+
+        $totals = DB::table('jurnal_umum')
+            ->whereBetween('tgl_jurnal', [$awal, $akhir])
+            ->selectRaw('COALESCE(SUM(debet),0) as total_debet, COALESCE(SUM(kredit),0) as total_kredit')
+            ->first();
+        $totalDebet = (float) $totals->total_debet;
+        $totalKredit = (float) $totals->total_kredit;
 
         $rows = DB::table('jurnal_umum')
             ->join('bag_akun', 'bag_akun.kode_akun', '=', 'jurnal_umum.kode_akun')
@@ -25,10 +36,8 @@ class AkuntansiController extends Controller
             ->orderBy('tgl_jurnal')
             ->orderBy('id_jurnal')
             ->select('jurnal_umum.*', 'bag_akun.nama_akun')
-            ->get();
-
-        $totalDebet = $rows->sum('debet');
-        $totalKredit = $rows->sum('kredit');
+            ->paginate(50)
+            ->withQueryString();
 
         return view('akuntansi.jurnal', compact('rows', 'awal', 'akhir', 'totalDebet', 'totalKredit'));
     }
@@ -38,8 +47,7 @@ class AkuntansiController extends Controller
         $daftarAkun = DB::table('bag_akun')->orderBy('kode_akun')->get();
 
         $kodeAkun = $request->get('kode_akun', optional($daftarAkun->first())->kode_akun);
-        $awal = $request->get('awal', now()->startOfMonth()->toDateString());
-        $akhir = $request->get('akhir', now()->toDateString());
+        [$awal, $akhir] = \App\Support\RentangTanggal::dariRequest($request);
 
         $akun = $daftarAkun->firstWhere('kode_akun', $kodeAkun);
         $rows = collect();
@@ -47,30 +55,96 @@ class AkuntansiController extends Controller
         $saldoAkhir = 0.0;
 
         if ($akun) {
+            $arahNormal = $akun->saldo_normal === 'Debet' ? 1 : -1;
+
+            // Saldo AWAL periode = akumulasi semua jurnal SEBELUM $awal.
             $saldoSebelum = DB::table('jurnal_umum')
                 ->where('kode_akun', $kodeAkun)
                 ->where('tgl_jurnal', '<', $awal)
                 ->selectRaw('COALESCE(SUM(debet),0) as total_debet, COALESCE(SUM(kredit),0) as total_kredit')
                 ->first();
-
-            $arahNormal = $akun->saldo_normal === 'Debet' ? 1 : -1;
             $saldoAwal = $arahNormal * (($saldoSebelum->total_debet ?? 0) - ($saldoSebelum->total_kredit ?? 0));
 
-            $transaksi = DB::table('jurnal_umum')
+            // Saldo AKHIR periode = agregat seluruh rentang (bukan cuma halaman
+            // yang tampil - pagination tidak boleh mengubah angka saldo akhir).
+            $agregat = DB::table('jurnal_umum')
+                ->where('kode_akun', $kodeAkun)
+                ->whereBetween('tgl_jurnal', [$awal, $akhir])
+                ->selectRaw('COALESCE(SUM(debet),0) as total_debet, COALESCE(SUM(kredit),0) as total_kredit')
+                ->first();
+            $saldoAkhir = $saldoAwal + $arahNormal * (($agregat->total_debet ?? 0) - ($agregat->total_kredit ?? 0));
+
+            // Halaman ini saja, dengan saldo berjalan MULAI DARI saldo
+            // kumulatif baris sebelum halaman: saldo baris pertama halaman
+            // harus = saldo setelah SEMUA jurnal sebelum baris itu, bukan
+            // saldo awal periode (kalau tidak, halaman 2 ke atas menampilkan
+            // angka saldo yang salah).
+            $page = max(1, (int) $request->query('page', 1));
+            $perPage = 50;
+            $batasAtas = ($page - 1) * $perPage;
+            $batasBawah = $batasAtas + $perPage;
+
+            $barisRentang = DB::table('jurnal_umum')
                 ->where('kode_akun', $kodeAkun)
                 ->whereBetween('tgl_jurnal', [$awal, $akhir])
                 ->orderBy('tgl_jurnal')
-                ->orderBy('id_jurnal')
+                ->orderBy('id_jurnal');
+
+            $totalBaris = (clone $barisRentang)->count();
+            $daftarHalaman = $barisRentang
+                ->offset($batasAtas)
+                ->limit($perPage)
                 ->get();
 
-            $berjalan = $saldoAwal;
-            $rows = $transaksi->map(function ($t) use (&$berjalan, $arahNormal) {
+            // Saldo sebelum baris PERTAMA halaman = saldo awal + agregat
+            // (batasAtas) baris teratas rentang (offset 0 .. batasAtas).
+            if ($batasAtas > 0 && $totalBaris > 0) {
+                $pertama = DB::table('jurnal_umum')
+                    ->where('kode_akun', $kodeAkun)
+                    ->whereBetween('tgl_jurnal', [$awal, $akhir])
+                    ->orderBy('tgl_jurnal')
+                    ->orderBy('id_jurnal')
+                    ->skip($batasAtas - 1)
+                    ->limit(1)
+                    ->first(['tgl_jurnal', 'id_jurnal']);
+
+                if ($pertama) {
+                    $sebelumHalaman = DB::table('jurnal_umum')
+                        ->where('kode_akun', $kodeAkun)
+                        ->whereBetween('tgl_jurnal', [$awal, $akhir])
+                        ->where(function ($q) use ($pertama) {
+                            $q->where('tgl_jurnal', '<', $pertama->tgl_jurnal)
+                                ->orWhere(function ($q2) use ($pertama) {
+                                    $q2->where('tgl_jurnal', '=', $pertama->tgl_jurnal)
+                                        ->where('id_jurnal', '<', $pertama->id_jurnal);
+                                });
+                        })
+                        ->selectRaw('COALESCE(SUM(debet),0) as d, COALESCE(SUM(kredit),0) as k')
+                        ->first();
+                    $saldoAwalHalaman = $saldoAwal + $arahNormal * (($sebelumHalaman->d ?? 0) - ($sebelumHalaman->k ?? 0));
+                } else {
+                    $saldoAwalHalaman = $saldoAwal;
+                }
+            } else {
+                $saldoAwalHalaman = $saldoAwal;
+            }
+
+            $berjalan = $saldoAwalHalaman;
+            $rows = $daftarHalaman->map(function ($t) use (&$berjalan, $arahNormal) {
                 $berjalan += $arahNormal * ($t->debet - $t->kredit);
                 $t->saldo_berjalan = $berjalan;
                 return $t;
             });
 
-            $saldoAkhir = $berjalan;
+            // Paginator manual (koleksi sudah dipotong offset/limit) - pola
+            // sama dengan LaporanController::piutang.
+            $rows = new \Illuminate\Pagination\LengthAwarePaginator(
+                $rows,
+                $totalBaris,
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
         }
 
         return view('akuntansi.buku-besar', compact('daftarAkun', 'akun', 'kodeAkun', 'awal', 'akhir', 'rows', 'saldoAwal', 'saldoAkhir'));
@@ -78,7 +152,7 @@ class AkuntansiController extends Controller
 
     public function neracaSaldo(Request $request)
     {
-        $akhir = $request->get('akhir', now()->toDateString());
+        $akhir = \App\Support\RentangTanggal::tanggalValid($request->get('akhir')) ?? now()->toDateString();
 
         $akunList = DB::table('bag_akun')->orderBy('kode_akun')->get();
 
@@ -127,8 +201,7 @@ class AkuntansiController extends Controller
      */
     public function labaRugi(Request $request)
     {
-        $awal = $request->get('awal', now()->startOfMonth()->toDateString());
-        $akhir = $request->get('akhir', now()->toDateString());
+        [$awal, $akhir] = \App\Support\RentangTanggal::dariRequest($request);
 
         $totals = DB::table('jurnal_umum')
             ->join('bag_akun', 'bag_akun.kode_akun', '=', 'jurnal_umum.kode_akun')
@@ -178,8 +251,7 @@ class AkuntansiController extends Controller
      */
     public function perbandingan(Request $request)
     {
-        $awal = $request->get('awal', now()->startOfMonth()->toDateString());
-        $akhir = $request->get('akhir', now()->toDateString());
+        [$awal, $akhir] = \App\Support\RentangTanggal::dariRequest($request);
 
         $pendapatan = DB::table('jurnal_umum')->whereBetween('tgl_jurnal', [$awal, $akhir])->whereIn('kode_akun', ['4000', '4100'])
             ->selectRaw('kode_akun, SUM(kredit - debet) AS nilai')->groupBy('kode_akun')->pluck('nilai', 'kode_akun');
@@ -220,7 +292,7 @@ class AkuntansiController extends Controller
 
     public function neraca(Request $request)
     {
-        $tanggal = $request->get('tanggal', now()->toDateString());
+        $tanggal = \App\Support\RentangTanggal::tanggalValid($request->get('tanggal')) ?? now()->toDateString();
 
         $totals = DB::table('jurnal_umum')
             ->join('bag_akun', 'bag_akun.kode_akun', '=', 'jurnal_umum.kode_akun')
@@ -266,9 +338,43 @@ class AkuntansiController extends Controller
 
         $narasi = $this->buildNarasiNeraca($aset, $totalAset, $totalKewajiban, $totalEkuitas, $labaBerjalan, $balance, $totalPasiva);
 
+        // SALDO BULANAN - posisi neraca per akhir bulan (kumulatif), supaya
+        // owner bisa melihat perkembangan posisi keuangan bulan demi bulan
+        // tanpa membuka ulang halaman per tanggal. Satu query per bulan x
+        // tipe akun, lalu diakumulasi berurutan di PHP - angka bulan terakhir
+        // wajib sama persis dengan posisi "tanggal" di atas (satu sumber
+        // kebenaran: jurnal_umum yang sama).
+        $perBulan = DB::table('jurnal_umum as j')
+            ->join('bag_akun as a', 'a.kode_akun', '=', 'j.kode_akun')
+            ->where('j.tgl_jurnal', '<=', $tanggal)
+            ->selectRaw("DATE_FORMAT(j.tgl_jurnal, '%Y-%m') as bulan, a.tipe_akun, SUM(j.debet) as d, SUM(j.kredit) as k")
+            ->groupBy('bulan', 'a.tipe_akun')
+            ->orderBy('bulan')
+            ->get();
+
+        $saldoBulanan = [];
+        $berjalan = ['Aset' => 0.0, 'Kewajiban' => 0.0, 'Modal' => 0.0, 'Pendapatan' => 0.0, 'Beban' => 0.0];
+        foreach ($perBulan as $b) {
+            $d = (float) $b->d;
+            $k = (float) $b->k;
+            // Arah normal per tipe akun: Aset debet, sisanya kredit.
+            $berjalan[$b->tipe_akun] = ($berjalan[$b->tipe_akun] ?? 0)
+                + ($b->tipe_akun === 'Aset' ? $d - $k : $k - $d);
+            $laba = $berjalan['Pendapatan'] - $berjalan['Beban'];
+            $pasiva = $berjalan['Kewajiban'] + $berjalan['Modal'] + $laba;
+            $saldoBulanan[] = [
+                'bulan' => $b->bulan,
+                'aset' => round($berjalan['Aset'], 2),
+                'kewajiban' => round($berjalan['Kewajiban'], 2),
+                'modal' => round($berjalan['Modal'] + $laba, 2),
+                'balance' => abs($berjalan['Aset'] - $pasiva) < 0.01,
+            ];
+        }
+
         return view('akuntansi.neraca', compact(
             'tanggal', 'aset', 'kewajiban', 'modal', 'labaBerjalan',
-            'totalAset', 'totalKewajiban', 'totalModal', 'totalEkuitas', 'totalPasiva', 'balance', 'narasi'
+            'totalAset', 'totalKewajiban', 'totalModal', 'totalEkuitas', 'totalPasiva', 'balance', 'narasi',
+            'saldoBulanan'
         ));
     }
 

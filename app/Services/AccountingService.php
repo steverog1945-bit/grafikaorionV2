@@ -268,6 +268,40 @@ class AccountingService
     }
 
     /**
+     * Selisih laci vs sistem saat closing kas (kas lebih / kas kurang).
+     *
+     * KEBIJAKAN: selisih tidak boleh "diamankan" manual oleh kasir (dikurangi/
+     * ditambah uang pribadi). Uang dihitung apa adanya, selisihnya DIJURNAL:
+     *   - Kas lebih (fisik > sistem): Dr Kas 1000, Cr Pendapatan Lain-lain 4200
+     *   - Kas kurang (fisik < sistem): Dr Biaya Lain-lain 5100, Cr Kas 1000
+     * Setelah jurnal ini, saldo akun Kas di buku besar = hasil hitungan fisik
+     * laci - bukan lagi angka sistem yang usang. Setoran berikutnya memindahkan
+     * jumlah riil, jadi buku besar dan laci tidak pernah menyimpang di akhir
+     * setiap sesi.
+     * Selisih < 1 sen (artefak pembulatan) tidak dijurnal.
+     */
+    public static function postSelisihKas(string $noReferensi, float $selisih, string $ketSelisih = ''): void
+    {
+        if (abs($selisih) < 0.005) {
+            return;
+        }
+
+        $ket = ($selisih > 0 ? 'Selisih kas lebih (laci > sistem)' : 'Selisih kas kurang (laci < sistem)')
+            . ($ketSelisih !== '' ? ' - ' . $ketSelisih : '');
+        $lines = $selisih > 0
+            ? [
+                ['kode_akun' => self::AKUN_KAS, 'debet' => $selisih],
+                ['kode_akun' => self::AKUN_PENDAPATAN_LAIN_LAIN, 'kredit' => $selisih],
+            ]
+            : [
+                ['kode_akun' => self::AKUN_BIAYA_LAIN_LAIN, 'debet' => abs($selisih)],
+                ['kode_akun' => self::AKUN_KAS, 'kredit' => abs($selisih)],
+            ];
+
+        self::postJournal(now()->toDateString(), $noReferensi, $ket, $lines);
+    }
+
+    /**
      * Faktur pembelian bahan baku dicatat (PembelianBahanController::store).
      * Cash -> Cr Dana Pemilik untuk Pembelian (dibayar pemilik di luar kas). Tempo -> Cr Hutang Usaha.
      */

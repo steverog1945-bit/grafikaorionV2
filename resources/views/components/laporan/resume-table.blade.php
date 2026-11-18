@@ -18,7 +18,7 @@
             @foreach($rows as $label => $value)
             <tr>
                 <td class="px-3 py-1.5 text-slate-500 w-1/2 sm:w-2/5">{{ $label }}</td>
-                <td class="px-3 py-1.5 font-medium text-slate-800 text-right sm:text-left">{!! $value !!}</td>
+                <td class="px-3 py-1.5 font-medium text-slate-800 text-right sm:text-left">{{ $value }}</td>
             </tr>
             @endforeach
         </tbody>

@@ -101,6 +101,12 @@
                 </tr>
             </tbody>
         </x-table>
+        @if($rows instanceof \Illuminate\Pagination\LengthAwarePaginator)
+            <div class="px-6 py-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+                <span>Saldo awal &amp; akhir mencakup SELURUH rentang ({{ $rows->total() }} mutasi); saldo berjalan per baris tetap akurat lintas halaman.</span>
+                <span>{{ $rows->links() }}</span>
+            </div>
+        @endif
     </div>
 
     {{-- Versi cetak - pola print-table yang sama dengan laporan lain. --}}

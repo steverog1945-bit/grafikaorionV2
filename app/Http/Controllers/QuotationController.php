@@ -347,12 +347,20 @@ class QuotationController extends Controller
 
     private function dataForm(?Quotation $quotation): array
     {
+        // Dropdown konsumen = select2 AJAX (dataset puluhan ribu tidak dibawa
+        // ke browser). Yang dirender server cuma konsumen terpilih (old() /
+        // data quotation yang diedit) supaya namanya langsung tampil.
+        $idKonsumenTampil = old('id_konsumen', $quotation->id_konsumen ?? '');
+        $konsumenList = $idKonsumenTampil
+            ? DB::table('konsumen')->where('id_konsumen', (int) $idKonsumenTampil)->get(['id_konsumen', 'nama_konsumen', 'telepon', 'id_golongan'])
+            : collect();
+
         return [
             'quotation' => $quotation,
             'produkList' => DB::table('produk')->where('status', 'aktif')->orderBy('nama_produk')->get(['id_produk', 'nama_produk', 'metode_hitung']),
             'jasaList' => DB::table('jasa')->orderBy('nama_jasa')->get(['id_jasa', 'nama_jasa']),
             'finishingList' => DB::table('finishing')->orderBy('nama_finishing')->get(['id_finishing', 'nama_finishing']),
-            'konsumenList' => DB::table('konsumen')->orderBy('nama_konsumen')->get(['id_konsumen', 'nama_konsumen', 'telepon', 'id_golongan']),
+            'konsumenList' => $konsumenList,
             'golonganList' => DB::table('golongan_konsumen')->orderBy('nama_golongan')->get(),
         ];
     }

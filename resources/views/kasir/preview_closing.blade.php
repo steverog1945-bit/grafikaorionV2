@@ -208,6 +208,10 @@
 
         if (selisih === 0) {
             el.innerHTML = 'Selisih: <span class="text-emerald-400">Rp 0 (Pas)</span>';
+        } else if (Math.abs(selisih) <= 10000) {
+            // Toleransi kecil: pembulatan / pengeluaran kecil yang lupa dicatat.
+            // Tetap wajib keterangan, tapi jangan bikin kasir panik.
+            el.innerHTML = `Selisih: <span class="text-amber-400">${selisih < 0 ? '-' : '+'} Rp ${fmt.format(Math.abs(selisih))} (${selisih < 0 ? 'kurang' : 'lebih'} - kecil, dalam toleransi)</span>`;
         } else if (selisih < 0) {
             el.innerHTML = `Selisih: <span class="text-rose-400">- Rp ${fmt.format(Math.abs(selisih))} (Kurang dari sistem)</span>`;
         } else {

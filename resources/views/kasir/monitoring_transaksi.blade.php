@@ -78,11 +78,13 @@
             </div>
 
             <div class="w-full md:w-56">
+                {{-- Konsumen = select2 AJAX: master tidak dibawa ke browser;
+                     hanya konsumen yang sedang terpilih di URL dirender server. --}}
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
-                <select name="id_konsumen" class="select2-filter w-full">
+                <select name="id_konsumen" class="select2-filter w-full" data-konsumen-ajax="1">
                     <option value="">-- Semua Konsumen --</option>
-                    @foreach($konsumenList as $k)
-                        <option value="{{ $k->id_konsumen }}" {{ (string) request('id_konsumen') === (string) $k->id_konsumen ? 'selected' : '' }}>{{ $k->nama_konsumen }}</option>
+                    @foreach($konsumenAwal as $k)
+                        <option value="{{ $k->id_konsumen }}" selected>{{ $k->nama_konsumen }}</option>
                     @endforeach
                 </select>
             </div>
@@ -271,7 +273,26 @@
 <script>
     <!--[if lt IE 12]><script src="{{ asset('vendor/es6-promise/es6-promise.auto.min.js') }}"></script><![endif]-->
     $(document).ready(function() {
-        $('.select2-filter').select2({ width: '100%', placeholder: '-- Semua Konsumen --', allowClear: true });
+        // Filter konsumen = select2 AJAX (server-side search, limit 20) -
+        // pola sama dengan halaman laporan. Filter lain tetap select2 lokal.
+        $('select.select2-filter[data-konsumen-ajax="1"]').select2({
+            width: '100%',
+            placeholder: '-- Semua Konsumen --',
+            allowClear: true,
+            minimumInputLength: 0,
+            ajax: {
+                url: '{{ route('konsumen.search-ajax') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return { q: params.term || '', _: Date.now() };
+                },
+                processResults: function (data) {
+                    return { results: data.results || [] };
+                }
+            }
+        }).on('change', function () { $(this).closest('form').submit(); });
+        $('.select2-filter:not([data-konsumen-ajax])').select2({ width: '100%', placeholder: '-- Semua Konsumen --', allowClear: true });
     });
 
     function escapeHtml(str) {

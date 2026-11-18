@@ -81,10 +81,14 @@
                                 <span class="text-[10px] font-medium text-slate-500 uppercase tracking-widest">Pelanggan <span class="text-rose-500">*</span></span>
                                 <a href="{{ route('konsumen.index') }}" target="_blank" title="Tambah Konsumen (buka Master Konsumen)" class="text-[10px] font-semibold whitespace-nowrap text-indigo-600 hover:text-indigo-500">+ Baru</a>
                             </div>
+                            {{-- Konsumen = select2 AJAX (konsumen.search-ajax):
+                                 dataset puluhan ribu tidak lagi diseret ke
+                                 browser. Yang dirender server cuma konsumen
+                                 pre-selected (old()/redirect). --}}
                             <select id="select_id_konsumen" name="id_konsumen" class="select2-konsumen-jersey" required>
                                 <option value="">Cari Nama / No. HP</option>
-                                @foreach($konsumenList as $k)
-                                    <option value="{{ $k->id_konsumen }}" data-telp="{{ $k->telepon }}">{{ $k->nama_konsumen }}</option>
+                                @foreach($konsumenAwal as $k)
+                                    <option value="{{ $k->id_konsumen }}" data-telp="{{ $k->telepon }}" selected>{{ $k->nama_konsumen }}</option>
                                 @endforeach
                             </select>
                         </x-form.group>
@@ -487,7 +491,24 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        $('.select2-konsumen-jersey').select2({ placeholder: '-- Cari Nama / No. HP --', width: '100%' });
+        // Konsumen = select2 AJAX (server-side search, limit 20) - pola sama
+        // dengan penjualan/create: master konsumen tidak dibawa ke browser.
+        $('.select2-konsumen-jersey').select2({
+            placeholder: '-- Cari Nama / No. HP --',
+            width: '100%',
+            minimumInputLength: 0,
+            ajax: {
+                url: '{{ route('konsumen.search-ajax') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return { q: params.term || '', _: Date.now() };
+                },
+                processResults: function (data) {
+                    return { results: data.results || [] };
+                }
+            }
+        });
         // Kursor langsung siap di select2 Pelanggan saat form dibuka (fokus DOM
         // murni - API select2('focus') terbukti ikut membuka dropdown). Delay
         // singkat agar pemulihan fokus Chrome setelah reload tidak menimpanya.

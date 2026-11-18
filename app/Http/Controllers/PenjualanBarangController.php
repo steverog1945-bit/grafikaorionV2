@@ -30,7 +30,16 @@ class PenjualanBarangController extends Controller
 {
     public function create()
     {
-        $konsumen = DB::table('konsumen')->orderBy('nama_konsumen')->get();
+        // Konsumen TIDAK lagi diseret utuh ke browser (dataset bisa puluhan
+        // ribu) - dropdownnya select2 AJAX (konsumen.search-ajax). Yang
+        // dirender server cuma konsumen pre-selected (old()/redirect) supaya
+        // namanya langsung tampil.
+        $konsumenAwal = collect();
+        if (old('id_konsumen', request('id_konsumen'))) {
+            $konsumenAwal = DB::table('konsumen')
+                ->where('id_konsumen', (int) old('id_konsumen', request('id_konsumen')))
+                ->get(['id_konsumen', 'nama_konsumen', 'telepon', 'id_golongan']);
+        }
         $golongan = DB::table('golongan_konsumen')->get();
         $kategori = DB::table('kategori')->orderBy('nama_kategori')->get();
 
@@ -88,7 +97,7 @@ class PenjualanBarangController extends Controller
         $no_nota = $prefixNota . '-' . $date . '-' . str_pad($lastNota + 1, 3, '0', STR_PAD_LEFT);
 
         return view('penjualan-barang.create', compact(
-            'konsumen', 'golongan', 'kategori', 'bahan', 'no_nota', 'jasa', 'mesinJasa'
+            'konsumenAwal', 'golongan', 'kategori', 'bahan', 'no_nota', 'jasa', 'mesinJasa'
         ));
     }
 

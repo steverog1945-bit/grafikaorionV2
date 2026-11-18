@@ -81,7 +81,7 @@ class KasSesiTest extends TestCase
 
         $this->assertTrue(KasSesiService::basi(KasSesiService::aktif()));
         $this->actingAs($this->kasir)->get('/dashboard')->assertOk()->assertSee('Belum di-closing');
-        $this->actingAs($this->kasir)->get('/kasir/kelola-kas')->assertOk()->assertSee('belum di-closing');
+        $this->actingAs($this->kasir)->get('/kasir/kelola-kas')->assertOk()->assertSee('wajib closing');
     }
 
     public function test_tidak_bisa_membuka_sesi_baru_selama_sesi_lama_belum_closing(): void
@@ -97,8 +97,7 @@ class KasSesiTest extends TestCase
     }
 
     public function test_closing_menghitung_pembayaran_setelah_tengah_malam_dan_mengabaikan_sebelum_sesi(): void
-    {
-        $id = $this->sesiKemarinMalam($this->kasir, 500000);
+    {        $id = $this->sesiKemarinMalam($this->kasir, 500000);
         $this->bayar('INV-K0', 999999, '2026-09-22 20:00:00');           // sebelum sesi dibuka - tidak ikut
         $this->bayar('INV-K1', 100000, '2026-09-22 23:30:00');           // sebelum tengah malam
         $this->bayar('INV-K2', 250000, '2026-09-23 01:15:00');           // setelah tengah malam
@@ -115,6 +114,35 @@ class KasSesiTest extends TestCase
         $this->assertEquals(850000, (float) $kas->saldo_akhir);            // 500.000 + 350.000
         $this->assertEquals(0, (float) $kas->selisih);
         $this->assertNull(KasSesiService::aktif());
+    }
+
+    public function test_closing_selisih_kas_lebih_dan_kurang_dijurnal_ke_akun_selisih(): void
+    {
+        // KEBIJAKAN selisih laci vs sistem: lebih -> Dr Kas / Cr Pendapatan
+        // Lain-lain (4200); kurang -> Dr Biaya Lain-lain (5100) / Cr Kas.
+        // Buku besar kas harus berakhir = hasil hitungan fisik laci.
+
+        // KAS LEBIH: laci 510.000, sistem 500.000.
+        $idLebih = $this->sesiKemarinMalam($this->kasir, 500000);
+        $this->actingAs($this->kasir)->post('/kasir/closing-simpan', ['id_kas' => $idLebih, 'saldo_fisik' => '510.000', 'status_rolling' => 'Rolling', 'keterangan' => 'kembalian tak tercatat'])
+            ->assertSessionHas('success');
+        $ref = 'KAS-SELISIH-' . $idLebih;
+        $baris = DB::table('jurnal_umum')->where('no_referensi', $ref)->get();
+        $this->assertCount(2, $baris, 'Selisih kas lebih wajib dijurnal 2 baris.');
+        $this->assertSame('1000', $baris->firstWhere('debet', '>', 0)->kode_akun);
+        $this->assertSame('4200', $baris->firstWhere('kredit', '>', 0)->kode_akun);
+        $this->assertEquals(10000, (float) $baris->sum('debet'));
+
+        // KAS KURANG: laci 490.000, sistem 500.000.
+        $idKurang = $this->sesiKemarinMalam($this->kasir, 500000);
+        $this->actingAs($this->kasir)->post('/kasir/closing-simpan', ['id_kas' => $idKurang, 'saldo_fisik' => '490.000', 'status_rolling' => 'Rolling', 'keterangan' => 'kembalian kurang'])
+            ->assertSessionHas('success');
+        $refK = 'KAS-SELISIH-' . $idKurang;
+        $barisK = DB::table('jurnal_umum')->where('no_referensi', $refK)->get();
+        $this->assertCount(2, $barisK, 'Selisih kas kurang wajib dijurnal 2 baris.');
+        $this->assertSame('5100', $barisK->firstWhere('debet', '>', 0)->kode_akun);
+        $this->assertSame('1000', $barisK->firstWhere('kredit', '>', 0)->kode_akun);
+        $this->assertEquals(10000, (float) $barisK->sum('debet'));
     }
 
     public function test_tutup_paksa_administrator_wajib_alasan_dan_tercatat_kasir_lain_ditolak(): void

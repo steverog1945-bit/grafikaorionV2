@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Angka untuk Dashboard Eksekutif, Profitabilitas, dan Analisis Pemakaian
@@ -53,6 +54,15 @@ class DashboardEksekutifService
             'saldo_bank' => self::saldo('1010'),
             'piutang' => self::saldo('1100'),
             'hutang' => -self::saldo('2000'),
+            // Total uang yang sudah benar-benar diterima untuk nota periode ini
+            // - kolom tersinkron (TerbayarSinkron), bukan agregat berulang.
+            // Guarded: runtime yang belum dimigrasi -> 0 (halaman tetap hidup).
+            'terbayar' => Schema::hasColumn('transaksi', 'total_terbayar')
+                ? (float) DB::table('transaksi')
+                    ->where('status_nota', '!=', 'Dibatalkan')
+                    ->whereTanggalAntara('tgl_order', $tgl)
+                    ->sum('total_terbayar')
+                : 0.0,
         ];
     }
 

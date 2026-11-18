@@ -117,6 +117,49 @@
         @endif
     </div>
 
+    {{-- SALDO BULANAN - posisi kumulatif per akhir bulan sampai tanggal yang
+         dipilih. Angka bulan terakhir harus persis sama dengan posisi di
+         atas (sumber jurnal yang sama). Baris balance = true ditandai hijau
+         halus; yang tidak balance langsung terlihat. --}}
+    @if(!empty($saldoBulanan))
+    <div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-8 py-5 border-b border-slate-100">
+            <h3 class="text-sm font-medium text-slate-900">Saldo Bulanan (kumulatif per akhir bulan)</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Posisi neraca tiap akhir bulan sampai {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-[10px] font-medium text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                        <th class="px-8 py-3">Bulan</th>
+                        <th class="px-3 py-3 text-right">Total Aset</th>
+                        <th class="px-3 py-3 text-right">Kewajiban</th>
+                        <th class="px-3 py-3 text-right">Ekuitas (Modal + Laba)</th>
+                        <th class="px-8 py-3 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($saldoBulanan as $s)
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/50">
+                        <td class="px-8 py-2.5 font-medium text-slate-700">{{ \Carbon\Carbon::createFromFormat('Y-m', $s['bulan'])->translatedFormat('F Y') }}</td>
+                        <td class="px-3 py-2.5 text-right text-slate-800 tabular-nums">{{ number_format($s['aset'], 0, ',', '.') }}</td>
+                        <td class="px-3 py-2.5 text-right {{ $s['kewajiban'] > 0 ? 'text-amber-600' : 'text-slate-500' }} tabular-nums">{{ number_format($s['kewajiban'], 0, ',', '.') }}</td>
+                        <td class="px-3 py-2.5 text-right {{ $s['modal'] < 0 ? 'text-rose-600' : 'text-slate-800' }} tabular-nums">{{ number_format($s['modal'], 0, ',', '.') }}</td>
+                        <td class="px-8 py-2.5 text-center">
+                            @if($s['balance'])
+                                <span class="text-[10px] font-medium text-emerald-600 uppercase tracking-widest"><i class="fas fa-check"></i> Balance</span>
+                            @else
+                                <span class="text-[10px] font-medium text-rose-600 uppercase tracking-widest"><i class="fas fa-exclamation"></i> Cek</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
     {{-- Analisis Otomatis - narasi RULE-BASED dari angka yang sudah
          dihitung controller (AkuntansiController::buildNarasiNeraca()),
          BUKAN dari AI/LLM - deterministik, instan, tanpa API eksternal.

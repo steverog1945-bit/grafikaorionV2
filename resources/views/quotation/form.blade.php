@@ -44,10 +44,12 @@
         <x-card class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <x-form.group label="Pelanggan terdaftar (opsional)" dalam>
+                    {{-- Konsumen = select2 AJAX: master tidak dibawa ke browser;
+                         hanya konsumen terpilih dirender server. --}}
                     <x-form.select name="id_konsumen" id="id_konsumen" :disabled="! $editable">
                         <option value="">-- Prospek / belum terdaftar --</option>
                         @foreach($konsumenList as $k)
-                            <option value="{{ $k->id_konsumen }}" data-nama="{{ $k->nama_konsumen }}" data-telp="{{ $k->telepon }}" data-gol="{{ $k->id_golongan }}" {{ old('id_konsumen', $quotation->id_konsumen ?? '') == $k->id_konsumen ? 'selected' : '' }}>{{ $k->nama_konsumen }} - {{ $k->telepon }}</option>
+                            <option value="{{ $k->id_konsumen }}" data-nama="{{ $k->nama_konsumen }}" data-telp="{{ $k->telepon }}" data-gol="{{ $k->id_golongan }}" selected>{{ $k->nama_konsumen }} - {{ $k->telepon }}</option>
                         @endforeach
                     </x-form.select>
                 </x-form.group>
@@ -217,6 +219,28 @@
 
 @push('scripts')
 <script>
+    // Pelanggan = select2 AJAX (master konsumen tidak dibawa ke browser;
+    // pencarian server-side limit 20) - pola sama dengan penjualan/create.
+    $(document).ready(function () {
+        $('#id_konsumen').select2({
+            width: '100%',
+            placeholder: '-- Prospek / belum terdaftar --',
+            allowClear: true,
+            minimumInputLength: 0,
+            ajax: {
+                url: '{{ route('konsumen.search-ajax') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return { q: params.term || '', _: Date.now() };
+                },
+                processResults: function (data) {
+                    return { results: data.results || [] };
+                }
+            }
+        });
+    });
+
     let nextIndex = {{ count($rows) + 100 }};
 
     function ubahTipe(sel) {
@@ -250,13 +274,22 @@
 
     document.querySelectorAll('[data-tipe]').forEach(ubahTipe);
 
-    var _ik = document.getElementById('id_konsumen'); if (_ik) _ik.addEventListener('change', function () {
-        const o = this.selectedOptions[0];
-        if (!o || !o.value) return;
-        document.getElementById('nama_pelanggan').value = o.dataset.nama || '';
-        document.getElementById('telepon').value = o.dataset.telp || '';
-        if (o.dataset.gol) document.getElementById('id_golongan').value = o.dataset.gol;
-    });
+    var _ik = document.getElementById('id_konsumen'); if (_ik) {
+        // Metadata konsumen: opsi AJAX membawa nama/telepon/golongan lewat
+        // e.params.data (select2:select), opsi server-rendered lewat dataset
+        // (change). Dua jalur, satu tujuan.
+        function isiMetaKonsumen(d) {
+            if (!d || !d.id) return;
+            document.getElementById('nama_pelanggan').value = d.nama || '';
+            document.getElementById('telepon').value = d.telepon || '';
+            if (d.golongan) document.getElementById('id_golongan').value = d.golongan;
+        }
+        $('#id_konsumen').on('select2:select', function (e) { isiMetaKonsumen(e.params.data || null); });
+        _ik.addEventListener('change', function () {
+            const o = this.selectedOptions[0];
+            if (o && o.value && o.dataset.nama) isiMetaKonsumen({ id: o.value, nama: o.dataset.nama, telepon: o.dataset.telp, golongan: o.dataset.gol });
+        });
+    }
 </script>
 @endpush
 @endsection

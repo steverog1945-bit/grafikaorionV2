@@ -464,23 +464,11 @@ class SpkController extends Controller
     }
 
     /**
-     * Setujui/Pilih finishing untuk item SPK (modal finishinng di halaman SPK).
-     */
-    public function finishing($id)
-    {
-        $detail = DB::table('transaksi_detail')->where('id_detail', $id)->first();
-
-        if (!$detail) {
-            abort(404, 'Item SPK tidak ditemukan.');
-        }
-
-        $finishing = \App\Models\Finishing::orderBy('nama_finishing')->get();
-
-        return view('spk.finishing', compact('detail', 'finishing'));
-    }
-
-    /**
      * Terima finishing pilihan dan simpan ke transaksi_detail_finishing.
+     *
+     * Catatan: method finishing() (render modal spk.finishing) dan view-nya
+     * sudah dihapus karena tidak pernah direferensikan route/view/test mana
+     * pun - kode mati.
      */
     public function simpanFinishing(Request $request, $id)
     {

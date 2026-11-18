@@ -169,7 +169,11 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // Penguatan konfigurasi produksi: di APP_ENV=production cookie sesi
+    // SECURE otomatis (hanya dikirim lewat HTTPS) kecuali SESSION_SECURE_COOKIE
+    // diset eksplisit. Di lokal/staging (testing/local/staging) tetap null
+    // supaya http biasa tidak pernah kehilangan sesi.
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production' ? true : null),
 
     /*
     |--------------------------------------------------------------------------

@@ -35,10 +35,14 @@
                             <i class="fas fa-plus text-[9px]"></i> Baru
                         </button>
                     </div>
+                    {{-- Konsumen = select2 AJAX (konsumen.search-ajax): dataset
+                         puluhan ribu tidak lagi diseret ke browser. Yang
+                         dirender server cuma konsumen pre-selected (old/
+                         redirect) supaya namanya langsung tampil. --}}
                     <select id="select_konsumen" name="id_konsumen" class="select2-konsumen-barang w-full">
                         <option value="">-- Cari Nama / No. HP --</option>
-                        @foreach($konsumen as $k)
-                            <option value="{{ $k->id_konsumen }}" @selected((string) old('id_konsumen', request('id_konsumen')) === (string) $k->id_konsumen)>{{ $k->nama_konsumen }}{{ $k->telepon ? ' - ' . $k->telepon : '' }}</option>
+                        @foreach($konsumenAwal as $k)
+                            <option value="{{ $k->id_konsumen }}" data-golongan="{{ $k->id_golongan }}" selected>{{ $k->nama_konsumen }}{{ $k->telepon && $k->telepon !== '-' ? ' - ' . $k->telepon : '' }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -268,7 +272,25 @@
 @push('scripts')
 <script>
     $(document).ready(function () {
-        $('.select2-konsumen-barang').select2({ placeholder: '-- Cari Nama / No. HP --', width: '100%' });
+        // Konsumen = select2 AJAX (server-side search, limit 20) - pola yang
+        // sama dengan penjualan/create: master konsumen tidak lagi dibawa ke
+        // browser tiap buka form.
+        $('.select2-konsumen-barang').select2({
+            placeholder: '-- Cari Nama / No. HP --',
+            width: '100%',
+            minimumInputLength: 0,
+            ajax: {
+                url: '{{ route('konsumen.search-ajax') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return { q: params.term || '', _: Date.now() };
+                },
+                processResults: function (data) {
+                    return { results: data.results || [] };
+                }
+            }
+        });
 
         // Select yang disembunyikan select2 tidak bisa menampilkan pesan "wajib diisi" bawaan browser,
         // jadi tombol simpan tampak tidak bereaksi. Periksa sendiri dan beri tahu dengan jelas.

@@ -6,10 +6,9 @@
         @page { size: A4 landscape; margin: 10mm; }
         aside, .no-print, .topbar { display: none !important; }
         {{-- padding 0 membuat kop laporan menempel ke tepi kertas (keluhan
-             user: "mepet kanan kiri"). @page sudah memberi 10mm; 8mm lagi di
-             sini menghasilkan ~18mm dari tepi - senada dengan halaman
-             portrait yang beri ruang lebih longgar. --}}
-        main { margin-left: 0 !important; padding: 0 8mm !important; }
+             user: "mepet kanan kiri"). Diseragamkan ke pola laporan lain:
+             28px 32px (@page 10mm + padding 28px 32px = ~18mm dari tepi). --}}
+        main { margin-left: 0 !important; padding: 28px 32px !important; }
         body { background: #fff !important; }
         .eval-section { break-inside: auto; }
         .eval-block { break-inside: avoid; }

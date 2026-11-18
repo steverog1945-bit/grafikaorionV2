@@ -86,20 +86,56 @@
         $pemilikSesi = DB::table('users')->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')->where('users.id_user', $kasAktif->id_user)->value(DB::raw('COALESCE(karyawan.nama_karyawan, users.username)'));
         $saya = (int) $kasAktif->id_user === (int) auth()->id();
     @endphp
-    <div class="mb-6 flex flex-wrap items-center gap-3 rounded-xl px-5 py-4 border {{ $kasBasi ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200' }}">
-        <i class="fas {{ $kasBasi ? 'fa-triangle-exclamation text-amber-500' : 'fa-clock text-slate-400' }} text-lg"></i>
-        <div class="text-sm font-medium {{ $kasBasi ? 'text-amber-800' : 'text-slate-600' }}">
-            Sesi kas dibuka <b>{{ $mulaiTampil->translatedFormat('d F Y, H:i') }}</b> oleh <b>{{ $pemilikSesi }}</b> ({{ $umurJam }} jam).
-            Saldo awal laci saat kasir membuka sesi ini <b>Rp {{ number_format((float) $kasAktif->saldo_awal, 0, ',', '.') }}</b>.
-            @if($kasBasi)
-                Sesi ini sudah lebih dari 24 jam dan <b>belum di-closing</b> - lakukan closing supaya uang laci direkonsiliasi
-                @if(!$saya) (Administrator dapat menutup paksa dengan alasan)@endif.
-            @else
-                Kas tetap berjalan sampai closing dilakukan, walau melewati pergantian tanggal.
-            @endif
-        </div>
+    {{-- Bar status sesi - SENGAJA ringkas: semua detail teknis tetap ada
+         di Laporan Kas & closing, layar ini cuma perlu "sesi siapa, sejak
+         kapan, laci berapa". Judul lengkap pindah ke title tooltip. --}}
+    <div class="mb-4 flex flex-wrap items-center gap-2 rounded-xl px-4 py-2.5 border {{ $kasBasi ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200' }}">
+        <span class="inline-block w-2 h-2 rounded-full shrink-0 {{ $kasBasi ? 'bg-amber-500' : 'bg-emerald-500' }}"></span>
+        <span class="text-[13px] font-medium {{ $kasBasi ? 'text-amber-800' : 'text-slate-700' }}">
+            Sesi aktif &middot; {{ $pemilikSesi }} &middot; {{ $mulaiTampil->format('d M Y, H:i') }} ({{ $umurJam }} jam)
+        </span>
+        <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 tabular-nums">
+            Laci awal Rp {{ number_format((float) $kasAktif->saldo_awal, 0, ',', '.') }}
+        </span>
+        @if($kasBasi)
+            <span class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800"
+                title="Sesi lebih dari 24 jam dan belum di-closing - lakukan closing supaya uang laci direkonsiliasi{{ $saya ? '' : ' (Administrator dapat menutup paksa dengan alasan)' }}.">
+                <i class="fas fa-triangle-exclamation text-[10px]"></i> Lebih dari 24 jam - wajib closing
+            </span>
+        @endif
     </div>
 @endif
+
+{{-- FILTER RIWAYAT - tanggal & metode pembayaran. GET murni: hasil bisa
+     dibagikan/disimpan sebagai tautan, tanpa JS. --}}
+<div class="mb-4 rounded-xl border border-slate-200 bg-white px-4 py-3">
+    <form method="GET" action="{{ route('kasir.kelola') }}" class="flex flex-wrap items-end gap-3">
+        <div>
+            <label for="filter-tgl" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Tanggal</label>
+            <input type="date" id="filter-tgl" name="tgl" value="{{ $tglValid }}"
+                class="rounded-lg border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+        </div>
+        <div>
+            <label for="filter-metode" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Metode</label>
+            <select id="filter-metode" name="metode"
+                class="rounded-lg border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+                <option value="">Semua metode</option>
+                @foreach(['Tunai', 'Debit', 'Transfer', 'QRIS BRI', 'Deposit'] as $met)
+                    <option value="{{ $met }}" {{ $metodeValid === $met ? 'selected' : '' }}>{{ $met }}</option>
+                @endforeach
+            </select>
+        </div>
+        <x-button type="submit" variant="secondary" class="!py-2">
+            <i class="fas fa-filter text-xs"></i> Terapkan
+        </x-button>
+        @if($tglValid || $metodeValid)
+            <a href="{{ route('kasir.kelola') }}"
+                class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-slate-500 hover:bg-slate-50 transition-colors">
+                <i class="fas fa-rotate-left text-xs"></i> Reset
+            </a>
+        @endif
+    </form>
+</div>
 
 {{-- ==============================================================
      REKAP CLOSING TERSIMPAN - Muncul tepat setelah closing sukses.
@@ -208,8 +244,20 @@
 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
     <div class="px-5 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
         <div>
-            <h3 class="text-sm font-medium text-slate-900">Uang Masuk Sesi Ini</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Pembayaran nota per metode bayar</p>
+            <h3 class="text-sm font-medium text-slate-900">
+                @if($tglValid)
+                    Uang Masuk {{ \Carbon\Carbon::parse($tglValid)->translatedFormat('d F Y') }}
+                @else
+                    Uang Masuk Sesi Ini
+                @endif
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+                @if($tglValid || $metodeValid)
+                    Hasil filter{{ $tglValid ? ' tanggal' : '' }}{{ $metodeValid ? ' metode ' . $metodeValid : '' }} - rekap di atas ikut rentang ini
+                @else
+                    Pembayaran nota per metode bayar
+                @endif
+            </p>
         </div>
         <div class="flex flex-wrap gap-6">
             <div class="text-right">
@@ -237,6 +285,7 @@
                 <th class="p-4 text-center">Metode</th>
                 <th class="p-4 text-right">Nominal Masuk</th>
                 <th class="p-4 text-center">Status Nota</th>
+                <th class="p-4 text-right">Aksi</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
@@ -279,20 +328,7 @@
                     @if($m->metode === 'Transfer' && !empty($m->nama_bank))
                         <div class="text-[10px] text-slate-400 mt-1">{{ $m->nama_bank }}{{ $m->nomor_rekening ? ' - ' . $m->nomor_rekening : '' }}</div>
                     @endif
-                    {{-- Koreksi metode: sesi terbuka dieksekusi langsung,
-                         sesi sudah ditutup lewat approval. Deposit tidak
-                         dikoreksi otomatis (saldo nyata pelanggan). --}}
-                    @if($m->status_nota === 'Aktif' && $m->metode !== 'Deposit')
-                        <button type="button"
-                            data-koreksi-id="{{ $m->id_pembayaran }}"
-                            data-koreksi-nota="{{ $m->nomor_nota }}"
-                            data-koreksi-metode="{{ $m->metode }}"
-                            data-koreksi-nominal="{{ $m->nominal }}"
-                            onclick="bukaKoreksiMetode(this)"
-                            class="mt-1 inline-flex items-center gap-1 text-[11px] text-indigo-500 hover:text-indigo-700">
-                            <i class="fas fa-arrow-right-arrow-left"></i> Koreksi metode
-                        </button>
-                    @endif
+                    {{-- Koreksi metode pindah ke kolom Aksi di ujung kanan. --}}
                 </td>
                 <td class="p-4 text-right">
                     <span class="font-medium text-slate-800">
@@ -302,9 +338,29 @@
                 <td class="p-4 text-center">
                     <x-badge :status="$m->display_status_pembayaran" />
                 </td>
+                {{-- KOLOM AKSI - koreksi metode di ujung kanan tabel (dulu
+                     menempel di bawah badge metode, menambah tinggi baris).
+                     Sesi terbuka dieksekusi langsung, sesi sudah ditutup lewat
+                     approval. Deposit tidak dikoreksi otomatis (saldo nyata
+                     pelanggan); nota batal tidak boleh disentuh. --}}
+                <td class="p-4 text-right">
+                    @if($m->status_nota === 'Aktif' && $m->metode !== 'Deposit')
+                        <button type="button"
+                            data-koreksi-id="{{ $m->id_pembayaran }}"
+                            data-koreksi-nota="{{ $m->nomor_nota }}"
+                            data-koreksi-metode="{{ $m->metode }}"
+                            data-koreksi-nominal="{{ $m->nominal }}"
+                            onclick="bukaKoreksiMetode(this)"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-medium text-slate-600 hover:border-indigo-300 hover:text-indigo-600 transition-colors">
+                            <i class="fas fa-arrow-right-arrow-left text-[10px]"></i> Koreksi
+                        </button>
+                    @else
+                        <span class="text-slate-300" title="{{ $m->metode === 'Deposit' ? 'Deposit tidak dikoreksi otomatis (saldo nyata pelanggan)' : 'Nota tidak aktif - tidak boleh dikoreksi' }}">&ndash;</span>
+                    @endif
+                </td>
             </tr>
             @empty
-            <tr><td colspan="7"><x-empty-state title="Belum ada uang masuk pada sesi kas ini." /></td></tr>
+            <tr><td colspan="8"><x-empty-state title="{{ $tglValid || $metodeValid ? 'Tidak ada pembayaran yang cocok dengan filter ini.' : 'Belum ada uang masuk pada sesi kas ini.' }}" /></td></tr>
             @endforelse
         </tbody>
     </x-table>
@@ -415,7 +471,7 @@ toggleBankKoreksi();
 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden mt-6">
     <div class="px-5 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
         <div>
-            <h3 class="text-sm font-medium text-slate-900">Kas Tidak Terduga Sesi Ini</h3>
+            <h3 class="text-sm font-medium text-slate-900">{{ $tglValid ? 'Kas Tidak Terduga ' . \Carbon\Carbon::parse($tglValid)->translatedFormat('d F Y') : 'Kas Tidak Terduga Sesi Ini' }}</h3>
             <p class="text-xs text-slate-500 mt-0.5">Uang tunai di luar nota: pengeluaran mendadak atau kas masuk lain</p>
         </div>
         <div class="flex flex-wrap gap-6">

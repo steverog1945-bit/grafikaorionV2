@@ -21,17 +21,14 @@ class LaporanController extends Controller
      */
     public function kebocoranTagihan(Request $request)
     {
-        $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
-        $dari = $request->filled('tgl_dari') ? \Carbon\Carbon::parse($request->tgl_dari) : now()->subDays(30);
-        $sampai = $request->filled('tgl_sampai') ? \Carbon\Carbon::parse($request->tgl_sampai) : now();
-        if ($dari->gt($sampai)) {
-            [$dari, $sampai] = [$sampai, $dari];
-        }
-        // Pindai per nota = beberapa query per nota; batasi rentang supaya
-        // halaman ini tidak berat bila filter iseng diisi setahun penuh.
-        if ($dari->diffInDays($sampai) > 92) {
-            $dari = $sampai->copy()->subDays(92);
-        }
+        // Rentang dikawal RentangTanggal (format rusak -> fallback default,
+        // lebar maks 366 hari) - dulu dibatasi manual 92 hari di bawah, kini
+        // seragam dengan laporan lain.
+        [$tglDari, $tglSampai] = \App\Support\RentangTanggal::dariRequest(
+            $request, now()->subDays(30)->format('Y-m-d'), now()->format('Y-m-d'), 'tgl_dari', 'tgl_sampai'
+        );
+        $dari = \Carbon\Carbon::parse($tglDari);
+        $sampai = \Carbon\Carbon::parse($tglSampai);
 
         $notas = DB::table('transaksi')
             ->leftJoin('konsumen', 'konsumen.id_konsumen', '=', 'transaksi.id_konsumen')
@@ -163,10 +160,12 @@ class LaporanController extends Controller
         // Default rekap HARI INI SAJA - berlaku sama di semua laporan,
         // supaya begitu dibuka langsung menampilkan pergerakan hari itu
         // tanpa perlu isi filter dulu.
-                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
-                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
-        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
-        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        // Rentang dikawal RentangTanggal (§8I diperluas): format rusak ->
+        // fallback default (bukan 422/500), akhir < awal -> ditukar, lebar
+        // rentang maks 366 hari, akhir di masa depan -> dipotong hari ini.
+        [$tglDari, $tglSampai] = \App\Support\RentangTanggal::dariRequest(
+            $request, now()->format('Y-m-d'), now()->format('Y-m-d'), 'tgl_dari', 'tgl_sampai'
+        );
         $query->where('transaksi.tgl_order', '>=', $tglDari . ' 00:00:00')
               ->where('transaksi.tgl_order', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
@@ -270,10 +269,14 @@ class LaporanController extends Controller
             ->groupBy('id_transaksi');
 
         $golongan = DB::table('golongan_konsumen')->orderBy('nama_golongan')->get();
-        $konsumenList = DB::table('konsumen')->orderBy('nama_konsumen')->get(['id_konsumen', 'nama_konsumen', 'telepon']);
+        // Filter konsumen = select2 AJAX; server hanya merender konsumen yang
+        // sedang terpilih di URL (supaya namanya tampil), sisanya via search.
+        $konsumenAwal = request()->filled('id_konsumen')
+            ? DB::table('konsumen')->where('id_konsumen', (int) request('id_konsumen'))->get(['id_konsumen', 'nama_konsumen', 'telepon'])
+            : collect();
 
         return view('laporan.order', compact(
-            'data', 'golongan', 'konsumenList', 'jumlahTransaksi', 'totalTransaksi', 'totalPiutang', 'breakdownDivisi', 'breakdownProduk', 'itemPerNota',
+            'data', 'golongan', 'konsumenAwal', 'jumlahTransaksi', 'totalTransaksi', 'totalPiutang', 'breakdownDivisi', 'breakdownProduk', 'itemPerNota',
             'tglDari', 'tglSampai'
         ));
     }
@@ -297,10 +300,12 @@ class LaporanController extends Controller
         // Default rekap HARI INI SAJA (bukan lagi seluruh riwayat) - berlaku
         // sama di semua laporan, supaya begitu dibuka langsung menampilkan
         // pergerakan hari itu tanpa perlu isi filter dulu.
-                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
-                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
-        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
-        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        // Rentang dikawal RentangTanggal (§8I diperluas): format rusak ->
+        // fallback default (bukan 422/500), akhir < awal -> ditukar, lebar
+        // rentang maks 366 hari, akhir di masa depan -> dipotong hari ini.
+        [$tglDari, $tglSampai] = \App\Support\RentangTanggal::dariRequest(
+            $request, now()->format('Y-m-d'), now()->format('Y-m-d'), 'tgl_dari', 'tgl_sampai'
+        );
         $base->where('transaksi.tgl_order', '>=', $tglDari . ' 00:00:00')
              ->where('transaksi.tgl_order', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
@@ -418,10 +423,12 @@ class LaporanController extends Controller
                 DB::raw('COALESCE(karyawan.nama_karyawan, users.username) as nama_kasir')
             );
 
-                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
-                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
-        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
-        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        // Rentang dikawal RentangTanggal (§8I diperluas): format rusak ->
+        // fallback default (bukan 422/500), akhir < awal -> ditukar, lebar
+        // rentang maks 366 hari, akhir di masa depan -> dipotong hari ini.
+        [$tglDari, $tglSampai] = \App\Support\RentangTanggal::dariRequest(
+            $request, now()->format('Y-m-d'), now()->format('Y-m-d'), 'tgl_dari', 'tgl_sampai'
+        );
 
         // Perf dataset besar: rentang sargable (DATE() mematikan index).
         $query->where('kas_harian.tgl_kas', '>=', $tglDari . ' 00:00:00')
@@ -478,10 +485,12 @@ class LaporanController extends Controller
             // Faktur yang dibatalkan (soft delete, jurnalnya sudah dibalik) bukan belanja.
             ->whereNull('pembelian_bahan.deleted_at');
 
-                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
-                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
-        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
-        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        // Rentang dikawal RentangTanggal (§8I diperluas): format rusak ->
+        // fallback default (bukan 422/500), akhir < awal -> ditukar, lebar
+        // rentang maks 366 hari, akhir di masa depan -> dipotong hari ini.
+        [$tglDari, $tglSampai] = \App\Support\RentangTanggal::dariRequest(
+            $request, now()->format('Y-m-d'), now()->format('Y-m-d'), 'tgl_dari', 'tgl_sampai'
+        );
         $query->where('pembelian_bahan.tgl_transaksi', '>=', $tglDari . ' 00:00:00')->where('pembelian_bahan.tgl_transaksi', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
         if ($request->filled('status_pembayaran')) {
@@ -533,10 +542,12 @@ class LaporanController extends Controller
         $query = \App\Models\JerseyOrder::with(['konsumen', 'designer']);
 
         // Default rekap HARI INI SAJA - berlaku sama di semua laporan.
-                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
-                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
-        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
-        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        // Rentang dikawal RentangTanggal (§8I diperluas): format rusak ->
+        // fallback default (bukan 422/500), akhir < awal -> ditukar, lebar
+        // rentang maks 366 hari, akhir di masa depan -> dipotong hari ini.
+        [$tglDari, $tglSampai] = \App\Support\RentangTanggal::dariRequest(
+            $request, now()->format('Y-m-d'), now()->format('Y-m-d'), 'tgl_dari', 'tgl_sampai'
+        );
         $query->where('order_date', '>=', $tglDari . ' 00:00:00')
               ->where('order_date', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
@@ -593,10 +604,13 @@ class LaporanController extends Controller
             ->groupBy('jersey_order_id');
 
         $designers = \App\Models\JerseyDesigner::orderBy('name')->get();
-        $konsumenList = DB::table('konsumen')->orderBy('nama_konsumen')->get(['id_konsumen', 'nama_konsumen', 'telepon']);
+        // Filter konsumen = select2 AJAX (lihat catatan yang sama di order()).
+        $konsumenAwal = request()->filled('id_konsumen')
+            ? DB::table('konsumen')->where('id_konsumen', (int) request('id_konsumen'))->get(['id_konsumen', 'nama_konsumen', 'telepon'])
+            : collect();
 
         return view('laporan.order-jersey', compact(
-            'data', 'designers', 'konsumenList', 'jumlahOrder', 'totalTransaksi', 'totalPiutang',
+            'data', 'designers', 'konsumenAwal', 'jumlahOrder', 'totalTransaksi', 'totalPiutang',
             'breakdownDesainer', 'breakdownKategori', 'linePerOrder', 'tglDari', 'tglSampai'
         ));
     }
@@ -687,10 +701,12 @@ class LaporanController extends Controller
             }, 'total_dibayar');
 
         // Default rekap HARI INI SAJA - sama seperti laporan lain.
-                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
-                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
-        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
-        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        // Rentang dikawal RentangTanggal (§8I diperluas): format rusak ->
+        // fallback default (bukan 422/500), akhir < awal -> ditukar, lebar
+        // rentang maks 366 hari, akhir di masa depan -> dipotong hari ini.
+        [$tglDari, $tglSampai] = \App\Support\RentangTanggal::dariRequest(
+            $request, now()->format('Y-m-d'), now()->format('Y-m-d'), 'tgl_dari', 'tgl_sampai'
+        );
         $query->where('transaksi.tgl_order', '>=', $tglDari . ' 00:00:00')
               ->where('transaksi.tgl_order', '<', \Carbon\Carbon::parse($tglSampai)->addDay()->format('Y-m-d') . ' 00:00:00');
 
@@ -747,10 +763,13 @@ class LaporanController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        $konsumenList = DB::table('konsumen')->orderBy('nama_konsumen')->get(['id_konsumen', 'nama_konsumen', 'telepon']);
+        // Filter konsumen = select2 AJAX (lihat catatan yang sama di order()).
+        $konsumenAwal = request()->filled('id_konsumen')
+            ? DB::table('konsumen')->where('id_konsumen', (int) request('id_konsumen'))->get(['id_konsumen', 'nama_konsumen', 'telepon'])
+            : collect();
 
         return view('laporan.piutang', compact(
-            'data', 'konsumenList', 'jumlahNota', 'totalPiutang', 'sortBy', 'tglDari', 'tglSampai', 'waTemplate', 'waBoleh'
+            'data', 'konsumenAwal', 'jumlahNota', 'totalPiutang', 'sortBy', 'tglDari', 'tglSampai', 'waTemplate', 'waBoleh'
         ));
     }
 
@@ -950,10 +969,10 @@ class LaporanController extends Controller
      */
     public function jobCosting(Request $request)
     {
-                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
-                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
-        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->startOfMonth()->format('Y-m-d');
-        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        // Rentang dikawal RentangTanggal (lihat catatan yang sama di order()).
+        [$tglDari, $tglSampai] = \App\Support\RentangTanggal::dariRequest(
+            $request, now()->startOfMonth()->format('Y-m-d'), now()->format('Y-m-d'), 'tgl_dari', 'tgl_sampai'
+        );
 
         $data = DB::table('transaksi as t')
             ->join('transaksi_detail as d', 'd.id_transaksi', '=', 't.id_transaksi')
@@ -991,10 +1010,12 @@ class LaporanController extends Controller
 
     public function hpp(Request $request)
     {
-                // §8I: tolak format tanggal yang rusak, bukan melempar 500.
-                $request->validate(['tgl_dari' => 'nullable|date', 'tgl_sampai' => 'nullable|date']);
-        $tglDari = $request->filled('tgl_dari') ? $request->tgl_dari : now()->format('Y-m-d');
-        $tglSampai = $request->filled('tgl_sampai') ? $request->tgl_sampai : now()->format('Y-m-d');
+        // Rentang dikawal RentangTanggal (§8I diperluas): format rusak ->
+        // fallback default (bukan 422/500), akhir < awal -> ditukar, lebar
+        // rentang maks 366 hari, akhir di masa depan -> dipotong hari ini.
+        [$tglDari, $tglSampai] = \App\Support\RentangTanggal::dariRequest(
+            $request, now()->format('Y-m-d'), now()->format('Y-m-d'), 'tgl_dari', 'tgl_sampai'
+        );
 
         $query = DB::table('transaksi_detail')
             ->join('transaksi', 'transaksi_detail.id_transaksi', '=', 'transaksi.id_transaksi')

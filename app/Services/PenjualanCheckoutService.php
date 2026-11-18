@@ -506,6 +506,9 @@ class PenjualanCheckoutService
                     "Deposit dipakai otomatis untuk nota {$noNota}: Rp " . number_format((float) $jumlahPakai, 0, ',', '.')
                 );
 
+                // Kolom monitoring total_terbayar ikut diperbarui.
+                \App\Services\TerbayarSinkron::sinkronkan((int) $id_transaksi);
+
                 AccountingService::postPembayaranDeposit($noNota, $jumlahPakai);
 
                 $statusBaru = $jumlahPakai >= $grand_total ? 'Lunas' : 'DP';

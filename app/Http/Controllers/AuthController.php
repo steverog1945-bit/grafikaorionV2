@@ -140,13 +140,38 @@ class AuthController extends Controller
         $failKey = 'login_fail_ip:' . $ip;
         $fails = (int) Cache::get($failKey, 0);
 
+        // HARD LOCKOUT (penguatan login): CAPTCHA saja tidak menghentikan
+        // brute-force - percobaan boleh terus berjalan selamanya selama
+        // captcha terjawab (atau dijawab otomatis). Kini:
+        //   - 10 kegagalan dalam 15 menit dari satu IP  -> IP dikunci 15 menit.
+        //   - 10 kegagalan dalam 15 menit untuk satu username -> username itu
+        //     dikunci 15 menit (menyebarnya serangan ke banyak IP tetap
+        //     berhenti; serangan ke BANYAK username lewat 1 IP ditahan lock IP).
+        // Password BENAR pun ditolak selama terkunci - pesannya tidak membocorkan
+        // apakah password benar. Pelindung terakhir tetap throttle:login (5/mnt).
+        $userKey = 'login_fail_user:' . strtolower($credentials['username']);
+        $lockIp = 'login_lock_ip:' . $ip;
+        $lockUser = 'login_lock_user:' . strtolower($credentials['username']);
+
+        if (Cache::get($lockIp) || Cache::get($lockUser)) {
+            $userDikenal = User::where('username', $credentials['username'])->value('id_user');
+            AuditLogger::log('login_gagal', 'users', $userDikenal ? (int) $userDikenal : null, null, null,
+                'Percobaan masuk saat terkunci (brute-force lockout) - IP ' . $ip);
+
+            return redirect()->route('login')->withErrors([
+                'username' => 'Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.',
+            ])->withInput($request->only('username'));
+        }
+
         // CAPTCHA keamanan: setelah 3 percobaan gagal dari IP ini, jawaban
         // wajib benar sebelum percobaan login diproses.
         if ($fails >= 3) {
             $expected = $request->session()->get('login_captcha_answer');
             $given = trim((string) $request->input('captcha', ''));
             if ($expected === null || (int) $given !== (int) $expected) {
-                Cache::put($failKey, $fails + 1, now()->addMinutes(15));
+                $failsBaru = $fails + 1;
+                Cache::put($failKey, $failsBaru, now()->addMinutes(15));
+                $this->naikkanLockout($userKey, $lockIp, $lockUser, $failsBaru);
                 // Siapkan pertanyaan baru untuk render berikutnya.
                 $a = random_int(1, 9);
                 $b = random_int(1, 9);
@@ -159,6 +184,7 @@ class AuthController extends Controller
 
         if (Auth::attempt(['username' => $credentials['username'], 'password' => $credentials['password'], 'is_active' => 1])) {
             Cache::forget($failKey);
+            Cache::forget($userKey);
             $request->session()->forget('login_captcha_answer');
             $request->session()->regenerate();
 
@@ -200,9 +226,12 @@ class AuthController extends Controller
             $dikenal ? 'Percobaan masuk gagal untuk akun ' . $credentials['username'] : 'Percobaan masuk gagal (username tidak dikenal)'
         );
 
-        // Naikkan counter gagal (TTL 15 menit) agar CAPTCHA aktif setelah 3x.
-        Cache::put($failKey, $fails + 1, now()->addMinutes(15));
-        if ($fails + 1 >= 3) {
+        // Naikkan counter gagal (TTL 15 menit) agar CAPTCHA aktif setelah 3x,
+        // dan lockout hard setelah 10x (lihat catatan di atas method).
+        $failsBaru = $fails + 1;
+        Cache::put($failKey, $failsBaru, now()->addMinutes(15));
+        $this->naikkanLockout($userKey, $lockIp, $lockUser, $failsBaru);
+        if ($failsBaru >= 3) {
             $a = random_int(1, 9);
             $b = random_int(1, 9);
             $request->session()->put('login_captcha_answer', $a + $b);
@@ -218,6 +247,24 @@ class AuthController extends Controller
         return redirect()->route('login')->withErrors([
             'username' => 'User tidak ditemukan atau password salah.',
         ])->withInput($request->only('username'));
+    }
+
+    /**
+     * Counter kegagalan per username + pemasangan lockout hard (penguatan
+     * login). Dipanggil di setiap jalur kegagalan login; sukses login justru
+     * MENGHAPUS counter (lihat login()). Lock TTL 15 menit.
+     */
+    private function naikkanLockout(string $userKey, string $lockIp, string $lockUser, int $failsIpBaru): void
+    {
+        $failsUserBaru = (int) Cache::get($userKey, 0) + 1;
+        Cache::put($userKey, $failsUserBaru, now()->addMinutes(15));
+
+        if ($failsIpBaru >= 10) {
+            Cache::put($lockIp, now()->toIso8601String(), now()->addMinutes(15));
+        }
+        if ($failsUserBaru >= 10) {
+            Cache::put($lockUser, now()->toIso8601String(), now()->addMinutes(15));
+        }
     }
 
     public function logout(Request $request)

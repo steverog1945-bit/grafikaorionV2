@@ -46,7 +46,9 @@ class KonsumenDepositController extends Controller
             ->limit(50)
             ->get();
 
-        $konsumen = DB::table('konsumen')->orderBy('nama_konsumen')->get();
+        // $konsumen TIDAK lagi diseret utuh ke browser - kedua dropdown di
+        // modal (Tambah Setoran & Kembalikan) kini select2 AJAX
+        // (konsumen.search-ajax; mode ?saldo=1 untuk modal Kembalikan).
 
         // Saldo saat ini per konsumen (map id_konsumen -> saldo_deposit) -
         // dipakai di baris Riwayat bertipe Setoran untuk kasih tahu status
@@ -56,7 +58,7 @@ class KonsumenDepositController extends Controller
         // persis setoran mana yang dipakai untuk transaksi mana).
         $saldoMap = $saldoPerKonsumen->keyBy('id_konsumen');
 
-        return view('konsumen-deposit.index', compact('saldoPerKonsumen', 'riwayat', 'konsumen', 'saldoMap'));
+        return view('konsumen-deposit.index', compact('saldoPerKonsumen', 'riwayat', 'saldoMap'));
     }
 
     /**

@@ -96,6 +96,12 @@
             </tfoot>
             @endif
         </x-table>
+        @if($rows instanceof \Illuminate\Pagination\LengthAwarePaginator)
+            <div class="px-6 py-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+                <span>Total debet/kredit di atas mencakup SELURUH rentang ({{ $rows->total() }} baris jurnal), bukan hanya {{ $rows->count() }} baris yang tampil.</span>
+                <span>{{ $rows->links() }}</span>
+            </div>
+        @endif
     </div>
 
     {{-- Versi cetak - tabel polos tanpa rounded/shadow, SAMA PERSIS dengan

@@ -134,23 +134,20 @@ class KasirController extends Controller
         // paling bawah biarpun order-nya baru masuk barusan.
         $transaksi = $query->orderByRaw('COALESCE(transaksi.updated_at, transaksi.tgl_order) DESC')->paginate(20)->withQueryString();
 
-        // Dropdown filter Konsumen - dibatasi ke konsumen yang memang pernah
-        // bertransaksi (bukan seluruh master konsumen), supaya daftar
-        // pilihan relevan dan tidak membengkak tanpa guna.
-        $konsumenList = DB::table('transaksi')
-            ->join('konsumen', 'transaksi.id_konsumen', '=', 'konsumen.id_konsumen')
-            ->where('transaksi.status_nota', '!=', 'Dibatalkan')
-            ->select('konsumen.id_konsumen', 'konsumen.nama_konsumen')
-            ->distinct()
-            ->orderBy('konsumen.nama_konsumen')
-            ->get();
+        // Dropdown filter Konsumen = select2 AJAX. Dulu daftar pilihan dibatasi
+        // "konsumen yang pernah bertransaksi" karena seluruh master terlalu
+        // berat; dengan AJAX, pencarian server-side membatasi hasil 20 baris
+        // per kueri, jadi master penuh pun bisa dicari tanpa payload besar.
+        $konsumenAwal = request()->filled('id_konsumen')
+            ? DB::table('konsumen')->where('id_konsumen', (int) request('id_konsumen'))->get(['id_konsumen', 'nama_konsumen'])
+            : collect();
 
         // tglMulaiDefault / tglSelesaiDefault sengaja TIDAK ikut di compact():
         // rentang tanggal default pernah dipaksakan ke query, lalu dibatalkan
         // lagi - tanpa filter dari operator, semua nota yang transaksinya sudah
         // dibuka tetap ditampilkan. compact() dengan variabel yang tidak ada
         // akan memunculkan warning "Undefined variable" di PHP 8.
-        return view('kasir.monitoring_transaksi', compact('transaksi', 'waitingCount', 'konsumenList'));
+        return view('kasir.monitoring_transaksi', compact('transaksi', 'waitingCount', 'konsumenAwal'));
     }
 
     public function waitingList()
@@ -715,6 +712,10 @@ class KasirController extends Controller
                     "Pembayaran nota {$nomorNota} ({$metode}) Rp " . number_format((float) $uangDiterimaSekarang, 0, ',', '.')
                 );
 
+                // Kolom monitoring total_terbayar ikut diperbarui (recompute
+                // dari sumber kebenaran, bukan increment - lihat TerbayarSinkron).
+                \App\Services\TerbayarSinkron::sinkronkan((int) $id_transaksi);
+
                 // Update Saldo Kas - Deposit TIDAK menambah kas hari ini, karena
                 // uangnya sudah masuk kas saat setoran deposit dulu, bukan hari ini.
                 // QRIS BRI uangnya masuk rekening BRI merchant (bukan laci) - ikut
@@ -822,13 +823,30 @@ class KasirController extends Controller
     }
 
     /**
-     * Manajemen Kas Harian
+     * Manajemen Kas Harian.
+     *
+     * Filter riwayat (?tgl=YYYY-MM-DD & ?metode=Tunai|Debit|Transfer|QRIS BRI|Deposit):
+     * tanpa filter perilaku tetap "sesi berjalan penuh" seperti semula - filter
+     * hanya menajamkan rentang query, bukan mengganti sumber data.
      */
-    public function kelolaKas()
+    public function kelolaKas(Request $request)
     {
         $hari_ini = date('Y-m-d');
         $kasAktif = KasSesiService::aktif();
         $mulaiSesi = $kasAktif ? KasSesiService::mulai($kasAktif) : now()->startOfDay();
+
+        // Filter TANGGAL: kasir mau melihat history pembayaran tanggal-tanggal
+        // sebelumnya (mis. menelusuri sesi yang sudah ditutup). Tanggal tidak
+        // valid -> diabaikan, bukan error 500.
+        $tglFilter = (string) $request->query('tgl', '');
+        $tglValid = preg_match('/^\d{4}-\d{2}-\d{2}$/', $tglFilter) ? $tglFilter : null;
+        // Filter METODE: daftar eksplisit (Deposit ikut), bukan string mentah
+        // dari query string masuk ke WHERE.
+        $metodeFilter = (string) $request->query('metode', '');
+        $metodeValid = in_array($metodeFilter, ['Tunai', 'Debit', 'Transfer', 'QRIS BRI', 'Deposit'], true)
+            ? $metodeFilter
+            : null;
+
 
         // "Status Rolling Saldo Akhir" - kalau sesi kas yang PALING BARU
         // ditutup (tanggal berapa pun sebelum hari ini, bukan cuma kemarin
@@ -878,7 +896,13 @@ class KasirController extends Controller
             // penggantinya tampil sebagai baris tersendiri dengan keterangan
             // "Koreksi metode (...)", jadi jangan dobel di rekap ini.
             ->whereNull('pembayaran_riwayat.voided_at')
-            ->where('pembayaran_riwayat.tgl_bayar', '>=', $mulaiSesi)
+            // Filter tanggal menggantikan batas "sejak sesi dibuka"; bila
+            // tidak ada filter, perilaku lama tetap.
+            ->when($tglValid !== null,
+                fn ($q) => $q->whereBetween('pembayaran_riwayat.tgl_bayar', [$tglValid . ' 00:00:00', $tglValid . ' 23:59:59']),
+                fn ($q) => $q->where('pembayaran_riwayat.tgl_bayar', '>=', $mulaiSesi),
+            )
+            ->when($metodeValid !== null, fn ($q) => $q->where('pembayaran_riwayat.metode', $metodeValid))
             // Status turunan, bukan kolom salinan - supaya badge di daftar
             // mutasi dan badge di Monitoring Kasir tidak pernah berbeda untuk
             // nota yang sama.
@@ -894,7 +918,14 @@ class KasirController extends Controller
         // ada isinya untuk baris ini.
         $mutasiManual = DB::table('kas_manual')
             ->join('users', 'kas_manual.id_user', '=', 'users.id_user')
-            ->when($kasAktif, fn ($q) => $q->where('kas_manual.id_kas', $kasAktif->id_kas), fn ($q) => $q->where('kas_manual.waktu', '>=', $mulaiSesi))
+            // Kas manual mengikuti filter tanggal yang sama; tanpa filter =
+            // sesi berjalan (atau sejak awal hari saat tidak ada sesi).
+            ->when($tglValid !== null,
+                fn ($q) => $q->whereBetween('kas_manual.waktu', [$tglValid . ' 00:00:00', $tglValid . ' 23:59:59']),
+                fn ($q) => $kasAktif
+                    ? $q->where('kas_manual.id_kas', $kasAktif->id_kas)
+                    : $q->where('kas_manual.waktu', '>=', $mulaiSesi),
+            )
             ->select('kas_manual.*', 'users.username as dicatat_oleh')
             ->orderBy('kas_manual.waktu', 'desc')
             ->get();
@@ -930,6 +961,8 @@ class KasirController extends Controller
             'mutasi',
             'mutasiManual',
             'data_kas',
+            'tglValid',
+            'metodeValid',
             'saldoRolling',
             'kasSebelumnya',
             'kasBaruDitutup',
@@ -1475,6 +1508,18 @@ public function simpanClosing(Request $request)
             'akun_tujuan' => $akunTujuan !== '' ? $akunTujuan : null,
             'updated_at' => now()
         ]);
+
+        // JURNAL SELISIH (kas lebih/kurang) - lihat kebijakan di
+        // AccountingService::postSelisihKas. Diposting SEBELUM jurnal setoran
+        // supaya urutannya benar: dulu buku besar disamakan dengan isi laci,
+        // baru uang laci dipindahkan ke akun tujuan. Tanpa ini, selisih cuma
+        // jadi angka informasi di kas_harian dan buku besar kas menyimpang
+        // selamanya dari uang yang benar-benar ada di laci.
+        \App\Services\AccountingService::postSelisihKas(
+            'KAS-SELISIH-' . $kas->id_kas,
+            $selisih,
+            'Closing sesi #' . $kas->id_kas
+        );
 
         // Catat setoran modal laci sebagai MUTASI KAS (bukan biaya) ke akun
         // tujuan yang dipilih, supaya muncul di mutasi kas dan jurnal umum

@@ -58,10 +58,12 @@
             </div>
             <div class="flex-1 min-w-[220px]">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Konsumen</label>
+                {{-- Konsumen = select2 AJAX: master tidak dibawa ke browser;
+                     hanya konsumen yang sedang terpilih di URL dirender server. --}}
                 <select name="id_konsumen" id="select-konsumen-laporan" class="select2-konsumen-laporan w-full">
                     <option value="">-- Cari Nama / No. HP --</option>
-                    @foreach($konsumenList as $k)
-                        <option value="{{ $k->id_konsumen }}" {{ (string) request('id_konsumen') === (string) $k->id_konsumen ? 'selected' : '' }}>{{ $k->nama_konsumen }}{{ $k->telepon ? ' - ' . $k->telepon : '' }}</option>
+                    @foreach($konsumenAwal as $k)
+                        <option value="{{ $k->id_konsumen }}" selected>{{ $k->nama_konsumen }}{{ $k->telepon ? ' - ' . $k->telepon : '' }}</option>
                     @endforeach
                 </select>
             </div>
@@ -352,7 +354,24 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        $('.select2-konsumen-laporan').select2({ placeholder: '-- Cari Nama / No. HP --', allowClear: true, width: '100%' });
+        // Filter konsumen = select2 AJAX (server-side search, limit 20).
+        $('.select2-konsumen-laporan').select2({
+            placeholder: '-- Cari Nama / No. HP --',
+            allowClear: true,
+            width: '100%',
+            minimumInputLength: 0,
+            ajax: {
+                url: '{{ route('konsumen.search-ajax') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return { q: params.term || '', _: Date.now() };
+                },
+                processResults: function (data) {
+                    return { results: data.results || [] };
+                }
+            }
+        }).on('change', function () { $(this).closest('form').submit(); });
     });
 </script>
 @endpush

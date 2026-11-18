@@ -45,8 +45,8 @@
     </div>
     <x-hint tip="Biaya aktual = HPP material + rework + waste. Tenaga kerja, mesin, overhead, dan beban operasional belum termasuk, jadi laba kotor bukan laba bersih." icon="chart-line" />
 
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        @foreach([['Saldo Kas', $r['saldo_kas'], 'text-slate-800'], ['Saldo Bank', $r['saldo_bank'], 'text-slate-800'], ['Piutang Usaha', $r['piutang'], 'text-rose-600'], ['Hutang Usaha', $r['hutang'], 'text-amber-600']] as [$label, $nilai, $warna])
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        @foreach([['Saldo Kas', $r['saldo_kas'], 'text-slate-800'], ['Saldo Bank', $r['saldo_bank'], 'text-slate-800'], ['Piutang Usaha', $r['piutang'], 'text-rose-600'], ['Hutang Usaha', $r['hutang'], 'text-amber-600'], ['Terbayar Nota', $r['terbayar'], 'text-emerald-600']] as [$label, $nilai, $warna])
         <x-card><div class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2">{{ $label }} (buku besar)</div><div class="text-lg font-medium {{ $warna }}">{{ $rp($nilai) }}</div></x-card>
         @endforeach
     </div>

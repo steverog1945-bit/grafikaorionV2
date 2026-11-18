@@ -19,9 +19,22 @@ class KonsumenController extends Controller
      */
     public function searchAjax(Request $request)
     {
-        $request->validate(['q' => 'nullable|string|max:100']);
+        $request->validate(['q' => 'nullable|string|max:100', 'saldo' => 'nullable|in:1']);
+
+        // Mode ?saldo=1: hanya konsumen yang SALDO DEPOSIT-nya positif
+        // (dipakai modal "Kembalikan Uang Deposit") - sama seperti daftar
+        // server-rendered yang dulu dipakai modal itu, kini lewat AJAX.
+        $modeSaldo = $request->saldo === '1';
 
         $rows = DB::table('konsumen')
+            ->when($modeSaldo, function ($q) {
+                // Agregat saldo sama dengan KonsumenDepositController::index:
+                // Setoran menambah, Kembalikan/Pemakaian mengurangi.
+                $q->join('konsumen_deposit', 'konsumen_deposit.id_konsumen', '=', 'konsumen.id_konsumen')
+                    ->groupBy('konsumen.id_konsumen', 'konsumen.nama_konsumen', 'konsumen.telepon', 'konsumen.id_golongan')
+                    ->havingRaw("SUM(CASE WHEN konsumen_deposit.tipe = 'Setoran' THEN konsumen_deposit.nominal ELSE -konsumen_deposit.nominal END) > 0")
+                    ->addSelect(DB::raw("SUM(CASE WHEN konsumen_deposit.tipe = 'Setoran' THEN konsumen_deposit.nominal ELSE -konsumen_deposit.nominal END) as saldo_deposit"));
+            })
             ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request) {
                 $w->where('konsumen.nama_konsumen', 'like', '%' . $request->q . '%')
                   ->orWhere('konsumen.telepon', 'like', '%' . $request->q . '%');
@@ -34,7 +47,8 @@ class KonsumenController extends Controller
         return response()->json([
             'results' => $rows->map(fn ($k) => [
                 'id'       => $k->id_konsumen,
-                'text'     => $k->nama_konsumen . ($k->telepon && $k->telepon !== '-' ? ' (' . $k->telepon . ')' : ''),
+                'text'     => $k->nama_konsumen . ($k->telepon && $k->telepon !== '-' ? ' (' . $k->telepon . ')' : '')
+                    . (isset($k->saldo_deposit) ? ' - saldo Rp ' . number_format((float) $k->saldo_deposit, 0, ',', '.') : ''),
                 'nama'     => $k->nama_konsumen,
                 'telepon'  => $k->telepon ?? '-',
                 'golongan' => $k->id_golongan,

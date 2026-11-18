@@ -62,8 +62,17 @@ class JerseyOrderController extends Controller
         $desainerTerkunciNama = $desainerTerkunci
             ? optional($desainerList->firstWhere('id_user', $desainerTerkunci))->nama
             : null;
+        // Konsumen TIDAK lagi diseret utuh ke browser - dropdownnya select2
+        // AJAX (konsumen.search-ajax). Yang dirender server cuma konsumen
+        // pre-selected (old()/redirect) supaya namanya langsung tampil.
+        $konsumenAwal = collect();
+        if (old('id_konsumen', request('id_konsumen'))) {
+            $konsumenAwal = Konsumen::query()
+                ->where('id_konsumen', (int) old('id_konsumen', request('id_konsumen')))
+                ->get(['id_konsumen', 'nama_konsumen', 'telepon', 'id_golongan']);
+        }
         return [
-            'konsumenList' => Konsumen::orderBy('nama_konsumen')->get(),
+            'konsumenAwal' => $konsumenAwal,
             'designers' => JerseyDesigner::where('is_active', true)->orderBy('name')->get(),
             'productTypes' => JerseyProductType::where('is_active', true)->orderBy('name')->get(),
             'categories' => JerseyCategory::where('is_active', true)->orderBy('name')->get(),

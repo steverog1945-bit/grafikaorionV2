@@ -156,12 +156,10 @@
 <form action="{{ route('konsumen-deposit.store') }}" method="POST" class="space-y-4">
                 @csrf
                 <div class="ld">
+                    {{-- Konsumen = select2 AJAX: master tidak dibawa ke browser. --}}
                     <select id="ld_id_konsumen_0" name="id_konsumen" required
-                            class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
+                            class="select2-konsumen-deposit w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
                         <option value="">-- Pilih Konsumen --</option>
-                        @foreach($konsumen as $k)
-                            <option value="{{ $k->id_konsumen }}">{{ $k->nama_konsumen }}</option>
-                        @endforeach
                     </select>
                     <label class="ld-label" for="ld_id_konsumen_0">Konsumen<span class="ld-wajib" aria-hidden="true">*</span></label>
                 </div>
@@ -204,11 +202,11 @@
 <form action="{{ route('konsumen-deposit.kembalikan') }}" method="POST" class="space-y-4">
     @csrf
     <div class="ld">
-        <select id="ld_id_konsumen_5" name="id_konsumen" required class="w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
+        {{-- Konsumen = select2 AJAX dengan mode ?saldo=1: hanya konsumen
+             yang saldo depositnya positif, sama seperti daftar server-rendered
+             yang lama - kini lewat pencarian server-side. --}}
+        <select id="ld_id_konsumen_5" name="id_konsumen" required class="select2-konsumen-deposit-saldo w-full py-3.5 text-sm font-medium text-slate-700 appearance-none">
             <option value="">-- Pilih Konsumen --</option>
-            @foreach($saldoPerKonsumen->where('saldo_deposit', '>', 0) as $s)
-                <option value="{{ $s->id_konsumen }}">{{ $s->nama_konsumen }} (saldo Rp {{ number_format($s->saldo_deposit, 0, ',', '.') }})</option>
-            @endforeach
         </select>
         <label class="ld-label" for="ld_id_konsumen_5">Konsumen<span class="ld-wajib" aria-hidden="true">*</span></label>
     </div>
@@ -237,5 +235,42 @@
 </x-modal>
 @endif
 <script>
+    // Dropdown konsumen di kedua modal = select2 AJAX (master tidak dibawa ke
+    // browser; pencarian server-side limit 20). Modal "Kembalikan" memakai
+    // mode ?saldo=1: hanya konsumen yang saldonya masih positif.
+    $(document).ready(function () {
+        $('.select2-konsumen-deposit').select2({
+            width: '100%',
+            placeholder: '-- Pilih Konsumen --',
+            minimumInputLength: 0,
+            ajax: {
+                url: '{{ route('konsumen.search-ajax') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return { q: params.term || '', _: Date.now() };
+                },
+                processResults: function (data) {
+                    return { results: data.results || [] };
+                }
+            }
+        });
+        $('.select2-konsumen-deposit-saldo').select2({
+            width: '100%',
+            placeholder: '-- Pilih Konsumen --',
+            minimumInputLength: 0,
+            ajax: {
+                url: '{{ route('konsumen.search-ajax') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return { q: params.term || '', saldo: 1, _: Date.now() };
+                },
+                processResults: function (data) {
+                    return { results: data.results || [] };
+                }
+            }
+        });
+    });
 </script>
 @endsection
