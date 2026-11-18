@@ -62,7 +62,7 @@ class PwaTest extends TestCase
         // blok terakhir sengaja tidak memanggil respondWith untuk non-aset.
         $this->assertStringContainsString('isAsetStatis', $js);
         $this->assertStringContainsString("url.pathname.indexOf('/storage/') !== -1", $js);
-        $this->assertStringContainsString('orion-pwa-v2', $js);
+        $this->assertStringContainsString('orion-pwa-v3', $js);
         $this->assertStringContainsString("k.startsWith('orion-pwa-')", $js);
         $this->assertStringContainsString("res.headers.get('Cache-Control')", $js);
     }

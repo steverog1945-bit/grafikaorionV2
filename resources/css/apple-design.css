@@ -1,91 +1,311 @@
 /* =========================================================================
    APPLE DESIGN — bahasa desain Apple untuk seluruh aplikasi.
    =========================================================================
-   Prinsip: kertas #F5F5F7, teks grafit #1D1D1F, aksen Apple #0071E3,
-   tipografi SF Pro, tombol kapsul, motion spring (cubic-bezier(.32,.72,0,1)),
-   fokus ring biru glow, drop shadow berlapis sangat lembut.
+   Referensi: Human Interface Guidelines.
+   - Kertas #F5F5F7, teks grafit #1D1D1F, aksen Apple #0071E3 (dark: #2997FF).
+   - Tipografi SF Pro Display / SF Pro Text (bawaan perangkat Apple; di
+     Windows dirender Segoe UI dengan metrik yang sepadan).
+   - Tombol kapsul, fokus ring biru glow, kartu radius 18px dengan bayangan
+     berlapis sangat lembut, ikon-incessan grid, motion spring
+     cubic-bezier(.32,.72,0,1) dengan durasi pendek 0.15-0.35s.
    Scoped [data-brand-theme="apple"] — tema lain tidak tersentuh sama sekali.
    ========================================================================= */
 
+:is([data-brand-theme="apple"]) {
+    color-scheme: light;
+}
+
 :is([data-brand-theme="apple"]) body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'Segoe UI', sans-serif;
     letter-spacing: -0.011em;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
     background: var(--brand-surface-page, #F5F5F7);
+    color: var(--text-primary, #1D1D1F);
 }
 
-/* Tipografi tampilan: tracking rapat ala SF Pro Display */
-:is([data-brand-theme="apple"]) h1,
+/* ---------- TIPOGRAFI SF ---------- */
+:is([data-brand-theme="apple"]) h1 {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', 'Segoe UI', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.022em;
+    line-height: 1.2;
+    color: #1D1D1F;
+}
 :is([data-brand-theme="apple"]) h2,
 :is([data-brand-theme="apple"]) h3 {
-    letter-spacing: -0.022em;
-    text-wrap: balance;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', sans-serif;
+    letter-spacing: -0.016em;
+    font-weight: 600;
+    color: #1D1D1F;
+}
+:is([data-brand-theme="apple"]) h3 { font-size: 17px; }
+
+/* ---------- SIDEBAR (graphite ala app Pro) ---------- */
+:is([data-brand-theme="apple"]) #mainSidebar {
+    background: #1D1D1F;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+:is([data-brand-theme="apple"]) #mainSidebar nav a,
+:is([data-brand-theme="apple"]) #mainSidebar nav button {
+    border-radius: 10px !important;
+}
+:is([data-brand-theme="apple"]) #mainSidebar nav a.hover,
+:is([data-brand-theme="apple"]) #mainSidebar nav a:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+:is([data-brand-theme="apple"]) #mainSidebar nav a.sb-active,
+:is([data-brand-theme="apple"]) #mainSidebar nav a.active,
+:is([data-brand-theme="apple"]) #mainSidebar .sb-active {
+    background: rgba(41, 151, 255, 0.22) !important;
+    color: #FFFFFF !important;
+}
+:is([data-brand-theme="apple"]) .menu-group-toggle { color: rgba(209, 209, 214, 0.72); }
+:is([data-brand-theme="apple"]) .menu-group-toggle:hover { color: #FFFFFF; }
+
+/* ---------- TOPBAR (transluscent ala macOS) ---------- */
+:is([data-brand-theme="apple"]) .topbar {
+    background: rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 0 !important;
+    border-bottom: 1px solid rgba(29, 29, 31, 0.08) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 20px !important;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+}
+:is([data-brand-theme="apple"]) .topbar-app-name {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #1D1D1F;
+}
+/* Ikon aksi topbar: ghost glass bulat */
+:is([data-brand-theme="apple"]) #tema-toggle,
+:is([data-brand-theme="apple"]) #gariscard-toggle,
+:is([data-brand-theme="apple"]) #notif-btn {
+    background: transparent !important;
+    color: #3A3A3C !important;
+    border-radius: 9999px !important;
+    width: 34px !important;
+    height: 34px !important;
+}
+:is([data-brand-theme="apple"]) #tema-toggle:hover,
+:is([data-brand-theme="apple"]) #gariscard-toggle:hover,
+:is([data-brand-theme="apple"]) #notif-btn:hover {
+    background: rgba(29, 29, 31, 0.06) !important;
 }
 
-/* KARTU — radius 18px, shadow berlapis sangat lembut, hairline border */
+/* ---------- HALAMAN & LAYOUT ---------- */
+:is([data-brand-theme="apple"]) main { background: #F5F5F7; }
+:is([data-brand-theme="apple"]) .content-wrapper { background: transparent; }
+
+/* ---------- KARTU APPLE ---------- */
 :is([data-brand-theme="apple"]) .x-card,
 :is([data-brand-theme="apple"]) .bg-white.rounded-lg,
 :is([data-brand-theme="apple"]) .bg-white.rounded-2xl {
-    border-radius: 18px;
+    border-radius: 18px !important;
     border: 1px solid rgba(29, 29, 31, 0.08) !important;
+    background: #FFFFFF !important;
     box-shadow: 0 1px 2px rgba(29, 29, 31, 0.05), 0 16px 40px rgba(29, 29, 31, 0.06) !important;
 }
 
-/* TOMBOL — kapsul (pill), spring press, fokus ring biru glow */
+/* ---------- KPI CARDS (ala app-icon Apple) ---------- */
+:is([data-brand-theme="apple"]) .dash-kpi,
+:is([data-brand-theme="apple"]) .kpi-tile,
+:is([data-brand-theme="apple"]) .kpi-saldo {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(29, 29, 31, 0.08) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 1px 2px rgba(29, 29, 31, 0.04), 0 12px 28px rgba(29, 29, 31, 0.05) !important;
+    padding: 1.15rem 1.25rem !important;
+    transition: transform .22s cubic-bezier(.32, .72, 0, 1), box-shadow .22s cubic-bezier(.32, .72, 0, 1);
+}
+:is([data-brand-theme="apple"]) .dash-kpi:hover,
+:is([data-brand-theme="apple"]) .kpi-tile:hover,
+:is([data-brand-theme="apple"]) .kpi-saldo:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(29, 29, 31, 0.04), 0 20px 44px rgba(29, 29, 31, 0.10) !important;
+}
+:is([data-brand-theme="apple"]) .dash-kpi .text-3xl,
+:is([data-brand-theme="apple"]) .kpi-tile .text-xl,
+:is([data-brand-theme="apple"]) .kpi-saldo .text-lg {
+    font-size: 1.55rem !important;
+    font-weight: 600 !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.018em;
+    color: #1D1D1F !important;
+}
+:is([data-brand-theme="apple"]) .dash-kpi p.uppercase,
+:is([data-brand-theme="apple"]) .kpi-tile p.uppercase,
+:is([data-brand-theme="apple"]) .kpi-saldo span.uppercase {
+    color: #8E8E93 !important;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+}
+/* Chip ikon KPI: iOS app-icon gradient */
+:is([data-brand-theme="apple"]) .dash-kpi .w-8,
+:is([data-brand-theme="apple"]) .kpi-tile .h-8 {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 2px 4px rgba(29, 29, 31, 0.12);
+}
+:is([data-brand-theme="apple"]) .bg-indigo-50 { background: #E8F1FC !important; color: #0071E3 !important; }
+:is([data-brand-theme="apple"]) .bg-emerald-50 { background: #E7F9EE !important; color: #1D1D1F !important; }
+:is([data-brand-theme="apple"]) .bg-amber-50, :is([data-brand-theme="apple"]) .bg-orange-50 { background: #FFF3E0 !important; color: #B25000 !important; }
+:is([data-brand-theme="apple"]) .bg-rose-50 { background: #FDE8EA !important; color: #C41E1E !important; }
+
+/* ---------- TOMBOL APPLE (kapsul) ---------- */
 :is([data-brand-theme="apple"]) button,
 :is([data-brand-theme="apple"]) [role="button"],
-:is([data-brand-theme="apple"]) a[class*="rounded"] {
+:is([data-brand-theme="apple"]) input[type="submit"] {
+    font-family: inherit;
+    letter-spacing: -0.006em;
     transition: transform .18s cubic-bezier(.32, .72, 0, 1), background-color .18s ease, box-shadow .18s ease;
 }
 :is([data-brand-theme="apple"]) button:active,
-:is([data-brand-theme="apple"]) a[class*="rounded"]:active {
-    transform: scale(.965);
-}
-:is([data-brand-theme="apple"]) :focus-visible {
-    outline: 3px solid rgba(0, 113, 227, .35);
-    outline-offset: 2px;
-    border-radius: 8px;
-}
-:is([data-brand-theme="apple"]) a[href*="penjualan/create"],
+:is([data-brand-theme="apple"]) a[class*="rounded"]:active { transform: scale(.965); }
+
+/* Tombol aksi utama (CTA): kapsul biru Apple */
 :is([data-brand-theme="apple"]) .btn-primary,
+:is([data-brand-theme="apple"]) a[href*="penjualan/create"],
 :is([data-brand-theme="apple"]) button[type="submit"] {
-    border-radius: 9999px;
+    border-radius: 9999px !important;
+    background: #0071E3 !important;
+    color: #FFFFFF !important;
+    border: 0 !important;
+    box-shadow: 0 1px 2px rgba(0, 113, 227, 0.35) !important;
+    font-weight: 500;
+    padding-inline: 1.25rem;
+}
+:is([data-brand-theme="apple"]) .btn-primary:hover,
+:is([data-brand-theme="apple"]) a[href*="penjualan/create"]:hover {
+    background: #0077ED !important;
+}
+/* Tombol sekunder: kapsul abu krem */
+:is([data-brand-theme="apple"]) a.bg-white.border,
+:is([data-brand-theme="apple"]) button.bg-white.border {
+    border-radius: 9999px !important;
+    background: #F5F5F7 !important;
+    border: 1px solid rgba(29, 29, 31, 0.08) !important;
+    color: #1D1D1F !important;
 }
 
-/* INPUT — radius 10px, fokus glow biru tipis */
+/* ---------- INPUT / SELECT / TEXTAREA ---------- */
 :is([data-brand-theme="apple"]) input,
 :is([data-brand-theme="apple"]) select,
 :is([data-brand-theme="apple"]) textarea {
-    border-radius: 10px !important;
-    border-color: rgba(29, 29, 31, 0.12) !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(29, 29, 31, 0.12) !important;
     background: #FFFFFF !important;
+    font-size: 13px;
     transition: box-shadow .18s ease, border-color .18s ease;
 }
 :is([data-brand-theme="apple"]) input:focus,
 :is([data-brand-theme="apple"]) select:focus,
 :is([data-brand-theme="apple"]) textarea:focus {
-    outline: none;
+    outline: none !important;
     border-color: #0071E3 !important;
-    box-shadow: 0 0 0 4px rgba(0, 113, 227, .14) !important;
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.18) !important;
 }
 
-/* TABEL — hairline row, hover biru sangat muda */
-:is([data-brand-theme="apple"]) table tbody tr:hover { background: rgba(0, 113, 227, .045); }
-:is([data-brand-theme="apple"]) table thead th { letter-spacing: .04em; }
+/* ---------- SELECT2 (filter dropdowns) ---------- */
+:is([data-brand-theme="apple"]) .select2-container .select2-selection {
+    border-radius: 12px !important;
+    border-color: rgba(29, 29, 31, 0.12) !important;
+    background: #FFFFFF !important;
+    min-height: 38px;
+}
+:is([data-brand-theme="apple"]) .select2-container--focus .select2-selection {
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.18) !important;
+    border-color: #0071E3 !important;
+}
 
-/* MOTION GLOBAL — spring ease Apple untuk transisi hover/focus */
-:is([data-brand-theme="apple"]) .transition-colors,
+/* ---------- TABEL ---------- */
+:is([data-brand-theme="apple"]) table thead th {
+    color: #8E8E93;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #E8E8ED !important;
+    padding-block: 0.65rem;
+}
+:is([data-brand-theme="apple"]) table tbody tr { transition: background-color .15s ease; }
+:is([data-brand-theme="apple"]) table tbody tr:hover { background: rgba(0, 113, 227, 0.045); }
+:is([data-brand-theme="apple"]) table tbody td { border-bottom: 1px solid rgba(29, 29, 31, 0.06) !important; }
+
+/* ---------- BADGE (pill) ---------- */
+:is([data-brand-theme="apple"]) .rounded-full[class*="bg-"],
+:is([data-brand-theme="apple"]) .badge {
+    border-radius: 9999px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.01em;
+}
+
+/* ---------- SEGMENTED CONTROL (filter) ---------- */
+:is([data-brand-theme="apple"]) .segmented,
+:is([data-brand-theme="apple"]) [role="tablist"].segmented {
+    background: #EBEBEF;
+    padding: 2px;
+    border-radius: 10px;
+    display: inline-flex;
+    gap: 2px;
+}
+:is([data-brand-theme="apple"]) .segmented button,
+:is([data-brand-theme="apple"]) .segmented a {
+    border-radius: 8px;
+    padding: 5px 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #3A3A3C;
+}
+:is([data-brand-theme="apple"]) .segmented .is-active,
+:is([data-brand-theme="apple"]) .segmented [aria-selected="true"] {
+    background: #FFFFFF;
+    color: #1D1D1F;
+    box-shadow: 0 1px 3px rgba(29, 29, 31, 0.10), 0 0 0 0.5px rgba(29, 29, 31, 0.04);
+}
+
+/* ---------- EMPTY STATE ---------- */
+:is([data-brand-theme="apple"]) .text-center .rounded-full,
+:is([data-brand-theme="apple"]) x-empty-state .rounded-full {
+    background: #F5F5F7 !important;
+    color: #8E8E93 !important;
+}
+
+/* ---------- FOKUS ---------- */
+:is([data-brand-theme="apple"]) :focus-visible {
+    outline: 3px solid rgba(0, 113, 227, 0.35);
+    outline-offset: 2px;
+    border-radius: 10px;
+}
+
+/* ---------- SCROLLBAR tipis ala macOS ---------- */
+:is([data-brand-theme="apple"]) ::-webkit-scrollbar { width: 8px; height: 8px; }
+:is([data-brand-theme="apple"]) ::-webkit-scrollbar-track { background: transparent; }
+:is([data-brand-theme="apple"]) ::-webkit-scrollbar-thumb { background: rgba(29, 29, 31, 0.18); border-radius: 9999px; }
+:is([data-brand-theme="apple"]) ::-webkit-scrollbar-thumb:hover { background: rgba(29, 29, 31, 0.28); }
+
+/* ---------- MOTION GLOBAL — spring ---------- */
 :is([data-brand-theme="apple"]) .transition,
-:is([data-brand-theme="apple"]) .transition-shadow,
-:is([data-brand-theme="apple"]) .transition-all {
+:is([data-brand-theme="apple"]) .transition-colors,
+:is([data-brand-theme="apple"]) .transition-all,
+:is([data-brand-theme="apple"]) .transition-shadow {
     transition-timing-function: cubic-bezier(.32, .72, 0, 1);
+    transition-duration: .28s;
 }
 
-/* Sidebar — graphite gelap khas app Pro */
-:is([data-brand-theme="apple"]) .menu-group-toggle { color: rgba(209, 209, 214, 0.72); }
-:is([data-brand-theme="apple"]) .menu-group-toggle:hover { color: #FFFFFF; }
-
-/* Reduce motion */
+/* ---------- REDUCE MOTION ---------- */
 @media (prefers-reduced-motion: reduce) {
     :is([data-brand-theme="apple"]) *,
     :is([data-brand-theme="apple"]) *::before,
@@ -93,4 +313,5 @@
         animation-duration: .01ms !important;
         transition-duration: .01ms !important;
     }
+    :is([data-brand-theme="apple"]) .topbar { backdrop-filter: none; -webkit-backdrop-filter: none; background: #FFFFFF !important; }
 }
