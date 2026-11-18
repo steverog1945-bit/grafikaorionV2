@@ -186,13 +186,10 @@
                                     <input type="radio" name="metode_pembayaran" value="Debit" class="sr-only" onchange="onMetodePembayaranChange()">
                                     <i class="fas fa-credit-card"></i> Debit
                                 </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-medium text-xs cursor-pointer transition-all hover:border-slate-200">
-                                    <input type="radio" name="metode_pembayaran" value="Transfer" class="sr-only" onchange="onMetodePembayaranChange()">
-                                    <i class="fas fa-university"></i> Transfer
-                                </label>
-                                <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-medium text-xs cursor-pointer transition-all hover:border-slate-200">
-                                    <input type="radio" name="metode_pembayaran" value="QRIS BRI" class="sr-only" onchange="onMetodePembayaranChange()">
-                                    <i class="fas fa-qrcode"></i> QRIS BRI
+                                <label id="metode-transfer-qris" class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-medium text-xs cursor-pointer transition-all hover:border-slate-200">
+                                    {{-- QRIS & Transfer SATU opsi metode (permintaan owner): kasir tidak memilih dua tombol berbeda; sub-pilihannya (transfer bank / QRIS) ditentukan di dalam wrapper-bank lewat toggle Transfer | QRIS. Nilai radio ini DIPINDAHKAN oleh JS ke 'Transfer' atau 'QRIS BRI' supaya kontrak server (validasi, jurnal, rekap) tidak berubah sama sekali. --}}
+                                    <input type="radio" name="metode_pembayaran" id="metode-transfer" value="Transfer" class="sr-only" onchange="onMetodePembayaranChange()">
+                                    <i class="fas fa-building-columns"></i> Transfer / QRIS
                                 </label>
                                 <label class="metode-bayar-option relative flex items-center justify-center gap-2 py-3 rounded-2xl border border-slate-100 text-slate-400 font-medium text-xs cursor-pointer transition-all hover:border-slate-200 {{ $saldoDeposit <= 0 ? 'opacity-40 cursor-not-allowed' : '' }}"
                                     title="{{ $saldoDeposit > 0 ? '' : ($depositSudahHabis ? 'Deposit konsumen ini sudah habis terpakai, tidak bisa dipakai lagi.' : 'Konsumen ini belum pernah setor deposit.') }}">
@@ -204,9 +201,21 @@
                     </div>
 
                     <div id="wrapper-bank" class="hidden mt-5">
-                        <label class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mb-2">Rekening Tujuan
-                            <x-hint tip="Klik kartu rekening untuk memilih; klik lagi untuk batal pilih. Boleh dikosongkan - transfer dicatat tanpa keterangan rekening." icon="credit-card" />
-                        </label>
+                        {{-- Sub-mode SATU opsi Transfer/QRIS: Transfer Bank (kartu rekening 3 kolom) ATAU QRIS (kode toko). --}}
+                        <div class="flex items-center gap-1 p-1 rounded-xl bg-slate-100 w-fit mb-3" role="tablist" aria-label="Jenis transfer">
+                            <button type="button" class="submetode-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[11px] font-semibold bg-indigo-600 text-white transition-colors" data-mode="transfer" aria-pressed="true" onclick="pilihSubMetode('transfer')">
+                                <i class="fas fa-university text-[10px]"></i> Transfer Bank
+                            </button>
+                            <button type="button" class="submetode-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[11px] font-semibold bg-white text-slate-500 transition-colors" data-mode="qris" aria-pressed="false" onclick="pilihSubMetode('qris')">
+                                <i class="fas fa-qrcode text-[10px]"></i> QRIS
+                            </button>
+                        </div>
+
+                        {{-- Panel Transfer Bank --}}
+                        <div id="panel-bank-transfer">
+                            <label class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mb-2">Rekening Tujuan
+                                <x-hint tip="Klik kartu rekening untuk memilih; klik lagi untuk batal pilih. Boleh dikosongkan - transfer dicatat tanpa keterangan rekening." icon="credit-card" />
+                            </label>
                         {{-- Kartu rekening: kasir tidak lagi harus membaca
                              <select> panjang - satu akun = satu kartu dengan
                              nama bank, nomor, dan atas nama. name="id_bank"
@@ -219,7 +228,7 @@
                             </div>
                         @else
                         <input type="hidden" name="id_bank" id="input-bank" value="">
-                        <div class="grid grid-cols-2 gap-2 max-w-[360px]" role="radiogroup" aria-label="Pilih rekening tujuan transfer">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-w-[480px]" role="radiogroup" aria-label="Pilih rekening tujuan transfer">
                             @foreach($banks as $b)
                             @php
                                 $nana = strtolower($b->nama_bank);
@@ -258,33 +267,39 @@
                             @endforeach
                         </div>
                         @endif
-                    </div>
-                    <div id="wrapper-qris" class="hidden mt-5">
-                        <label class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mb-2">Pembayaran QRIS BRI
-                            <x-hint tip="Scan kode oleh pelanggan, lalu tunggu notifikasi 'pembayaran diterima' di aplikasi BRI Merchant SEBELUM menekan Bayar." icon="qrcode" tone="indigo" />
-                        </label>
-                        <div class="flex flex-col sm:flex-row gap-4 items-stretch rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
-                            <div class="shrink-0 w-full sm:w-40 h-40 rounded-2xl bg-white border border-slate-100 flex items-center justify-center overflow-hidden">
-                                @if(file_exists(public_path('storage/qris-bri.png')))
-                                    <img src="{{ asset('storage/qris-bri.png') }}" alt="Kode QRIS BRI Toko" class="h-full w-full object-contain">
-                                @else
-                                    <i class="fas fa-qrcode text-6xl text-slate-300"></i>
-                                @endif
-                            </div>
-                            <div class="flex-1 min-w-0 text-[11px] leading-relaxed text-slate-500 flex flex-col justify-center gap-2">
-                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-slate-500">
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-white border border-slate-100 px-2.5 py-1"><i class="fas fa-mobile-screen text-indigo-400"></i>1 Scan</span>
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-white border border-slate-100 px-2.5 py-1"><i class="fas fa-bell text-indigo-400"></i>2 Tunggu notif</span>
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-white border border-slate-100 px-2.5 py-1"><i class="fas fa-check text-emerald-500"></i>3 Bayar</span>
+                        </div>{{-- /panel-bank-transfer --}}
+
+                        {{-- Panel QRIS - kode toko. Diunggah lewat Pengaturan
+                             Aplikasi (menu Administrator), bisa diganti kapan
+                             pun; bila kosong jatuh ke berkas lama (kompatibel). --}}
+                        @php($qrisUrl = \App\Models\AppSetting::qrisUrl())
+                        <div id="panel-bank-qris" class="hidden">
+                            <label class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mb-2">Pembayaran QRIS
+                                <x-hint tip="Scan kode oleh pelanggan, lalu tunggu notifikasi 'pembayaran diterima' di aplikasi merchant SEBELUM menekan Bayar." icon="qrcode" tone="indigo" />
+                            </label>
+                            <div class="flex flex-col sm:flex-row gap-4 items-stretch rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                                <div class="shrink-0 w-full sm:w-40 h-40 rounded-2xl bg-white border border-slate-100 flex items-center justify-center overflow-hidden">
+                                    @if($qrisUrl)
+                                        <img src="{{ $qrisUrl }}" alt="Kode QRIS Toko" class="h-full w-full object-contain">
+                                    @else
+                                        <i class="fas fa-qrcode text-6xl text-slate-300"></i>
+                                    @endif
                                 </div>
-                                @unless(file_exists(public_path('storage/qris-bri.png')))
-                                    <p class="flex items-center gap-1.5 text-[10px] text-amber-600"><i class="fas fa-triangle-exclamation"></i>Kode QRIS belum terpasang di sistem
-                                        <x-hint tip="Kode stiker di kasir tetap bisa dipakai seperti biasa. Untuk menampilkan kode di sini, IT cukup menaruh berkas qris-bri.png di storage/app/public/." icon="triangle-exclamation" tone="amber" align="start" />
-                                    </p>
-                                @endunless
+                                <div class="flex-1 min-w-0 text-[11px] leading-relaxed text-slate-500 flex flex-col justify-center gap-2">
+                                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-slate-500">
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-white border border-slate-100 px-2.5 py-1"><i class="fas fa-mobile-screen text-indigo-400"></i>1 Scan</span>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-white border border-slate-100 px-2.5 py-1"><i class="fas fa-bell text-indigo-400"></i>2 Tunggu notif</span>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-white border border-slate-100 px-2.5 py-1"><i class="fas fa-check text-emerald-500"></i>3 Bayar</span>
+                                    </div>
+                                    @unless($qrisUrl)
+                                        <p class="flex items-center gap-1.5 text-[10px] text-amber-600"><i class="fas fa-triangle-exclamation"></i>Kode QRIS belum terpasang
+                                            <x-hint tip="Unggah lewat Pengaturan Aplikasi -> Kode QRIS Toko (Administrator). Kode stiker di kasir tetap bisa dipakai seperti biasa." icon="triangle-exclamation" tone="amber" align="start" />
+                                        </p>
+                                    @endunless
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </div>{{-- /panel-bank-qris --}}
+                    </div>{{-- /wrapper-bank --}}
                     <div id="wrapper-deposit-info" class="hidden mt-5 rounded-2xl bg-indigo-50/60 border border-indigo-100 px-4 py-3">
                         <p class="flex items-center gap-1.5 text-xs font-medium text-indigo-600">Saldo deposit Rp {{ number_format($saldoDeposit, 0, ',', '.') }}
                             <x-hint tip="Jumlah bayar tidak boleh melebihi saldo ini." icon="circle-info" tone="indigo" />
@@ -799,10 +814,38 @@
         toggleBankField();
     }
 
+    // SATU opsi "Transfer / QRIS" (permintaan owner): radio metode-transfer
+    // memegang value dinamis ('Transfer' atau 'QRIS BRI') yang DIPINDAHKAN oleh
+    // pilihSubMetode. Kontrak server tidak berubah; kasir cukup satu klik
+    // untuk jenis transfer mana pun.
+    function pilihSubMetode(mode) {
+        const radio = document.getElementById('metode-transfer');
+        radio.value = mode === 'qris' ? 'QRIS BRI' : 'Transfer';
+        document.getElementById('panel-bank-transfer').classList.toggle('hidden', mode !== 'transfer');
+        document.getElementById('panel-bank-qris').classList.toggle('hidden', mode !== 'qris');
+        document.querySelectorAll('.submetode-btn').forEach(function (b) {
+            const aktif = b.dataset.mode === mode;
+            b.classList.toggle('bg-indigo-600', aktif);
+            b.classList.toggle('text-white', aktif);
+            b.classList.toggle('bg-white', !aktif);
+            b.classList.toggle('text-slate-500', !aktif);
+            b.setAttribute('aria-pressed', aktif ? 'true' : 'false');
+        });
+        if (mode === 'qris') {
+            // QRIS tidak punya rekening tujuan - buang pilihan ATM yang mungkin tersisa.
+            document.getElementById('input-bank').value = '';
+            document.querySelectorAll('.bank-atm-card').forEach(function (c) {
+                c.classList.remove('bank-atm-active');
+                c.setAttribute('aria-pressed', 'false');
+            });
+        }
+        setTimeout(calculateInvoice, 0);
+    }
+
     function toggleBankField() {
         const metode = getMetodePembayaran();
-        document.getElementById('wrapper-bank').classList.toggle('hidden', metode !== 'Transfer');
-        document.getElementById('wrapper-qris').classList.toggle('hidden', metode !== 'QRIS BRI');
+        const transferAtauQris = (metode === 'Transfer' || metode === 'QRIS BRI');
+        document.getElementById('wrapper-bank').classList.toggle('hidden', !transferAtauQris);
         document.getElementById('wrapper-deposit-info').classList.toggle('hidden', metode !== 'Deposit');
     }
 

@@ -175,6 +175,59 @@ class BrandThemeService
                 'inactive_dark' => '#A4D2DB', 'active_dark' => '#56B8CD',
             ],
         ],
+
+        // PREMIUM - "Champagne & Ink". Look editorial: kertas hangat, tinta,
+        // emas antik. Menggantikan ramp slate (kembali abu hangat) & indigo
+        // (menjadi perunggu/emas antik, kontras teks putih di tombol utama
+        // 4.6:1). Sidebar: espresso gelap dengan aksen emas. Typography tetap
+        // sans berkepadatan terkendali untuk data; judul/diplay serif Georgia
+        // (lihat premium-theme.css) untuk kontras khas majalah cetak.
+        'premium' => [
+            'name' => 'Premium',
+            'description' => 'Look editorial profesional: kertas hangat, tinta, emas antik. Sederhana, elegan, fokus ke data.',
+            'swatches' => ['#8C6A2F', '#221F1B', '#F7F4EC', '#C9A227'],
+            'neutralRamp' => [
+                '50' => '#FAF8F1', '100' => '#F3EFE3', '200' => '#E4DFCF',
+                '300' => '#CFC8B6', '400' => '#6F6A5D', '500' => '#57534A',
+                '600' => '#4A463E', '700' => '#3C3831', '800' => '#2C2924',
+                '900' => '#221F1B', '950' => '#161411',
+            ],
+            'surfaces' => [
+                'page' => '#F7F4EC', 'primary' => '#FFFFFF', 'secondary' => '#FBF8EF',
+                'tertiary' => '#EFECE1', 'border' => '#E4DFCF', 'border_strong' => '#CFC8B6',
+                'text' => '#221F1B', 'text_secondary' => '#3C3831', 'text_tertiary' => '#57534A',
+                'dark_primary' => '#1E1B17', 'dark_secondary' => '#28241F',
+                'dark_tertiary' => '#332F29', 'dark_border' => '#423D34',
+                'dark_text' => '#F1EDE1', 'dark_text_secondary' => '#C9C4B3', 'dark_text_tertiary' => '#A19D8F',
+            ],
+            'sidebar' => [
+                'deep' => '#14100C', 'base' => '#1F1A14', 'raised' => '#2B251D',
+                'border' => '#3B342A', 'text' => '#D8D2C0', 'muted' => '#A69E8B',
+                'title' => '#FFFFFF', 'accent' => '#8C6A2F', 'warning' => '#DFB46C',
+                'active' => '#2E2820', 'hover' => '#262119', 'active_mark' => '#E4C65A',
+            ],
+            'ramp' => [
+                '50' => '#FBF7EC', '100' => '#F5EDDA', '200' => '#E9D9AE',
+                '300' => '#D9BE79', '400' => '#C9A34E', '500' => '#AF8A47',
+                '600' => '#8C6A2F', '700' => '#71572A', '800' => '#574423',
+                '900' => '#43351F', '950' => '#2C2417',
+            ],
+            'accent' => [
+                'light' => '#8C6A2F', 'hover_light' => '#71572A', 'surface_light' => '#F2EBDA',
+                'dark' => '#E4C65A', 'hover_dark' => '#F3DE8E', 'dark_hover' => '#C9A227', 'surface_dark' => '#3B2F16',
+            ],
+            'mobileNavigation' => [
+                'inactive_light' => '#57534A', 'active_light' => '#8C6A2F',
+                'inactive_dark' => '#A69E8B', 'active_dark' => '#E4C65A',
+            ],
+            'typography' => [
+                'font_family' => "'Segoe UI', ui-sans-serif, system-ui, -apple-system, sans-serif",
+                'body_size' => '14px', 'secondary_size' => '13px', 'label_size' => '11px',
+                'heading_size' => '20px', 'page_title_size' => '26px',
+                'weight_regular' => '400', 'weight_medium' => '500', 'weight_strong' => '600',
+                'line_height' => '1.55', 'line_height_compact' => '1.3', 'letter_spacing' => '0.01em',
+            ],
+        ],
     ];
 
     public function __construct(private readonly ?string $path = null)

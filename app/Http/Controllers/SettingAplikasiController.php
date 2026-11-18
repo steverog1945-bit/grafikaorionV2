@@ -27,6 +27,8 @@ class SettingAplikasiController extends Controller
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
             'logo_ikon' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:1024',
             'hapus_logo_ikon' => 'nullable|boolean',
+            'qris' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
+            'hapus_qris' => 'nullable|boolean',
             'logo_ukuran' => 'nullable|in:kecil,sedang,besar',
             'logo_gaya' => 'nullable|in:polos,kaca,putih',
             'logo_ringkas' => 'nullable|in:potong,penuh',
@@ -73,6 +75,13 @@ class SettingAplikasiController extends Controller
                 Storage::disk('public')->delete($setting->logo_ikon_path);
             }
             $updateData['logo_ikon_path'] = $request->hasFile('logo_ikon') ? $request->file('logo_ikon')->store('company_logo', 'public') : null;
+        }
+
+        if ($request->hasFile('qris') || $request->boolean('hapus_qris')) {
+            if ($setting->qris_path && Storage::disk('public')->exists($setting->qris_path)) {
+                Storage::disk('public')->delete($setting->qris_path);
+            }
+            $updateData['qris_path'] = $request->hasFile('qris') ? $request->file('qris')->store('qris', 'public') : null;
         }
 
         $setting->update($updateData);

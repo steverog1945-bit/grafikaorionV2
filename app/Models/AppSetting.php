@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class AppSetting extends Model
 {
@@ -30,6 +31,7 @@ class AppSetting extends Model
         'format_nota',
         'nomor_nota_prefix',
         'nota_footer_text',
+        'qris_path',
         'pembulatan_nota',
     ];
 
@@ -78,5 +80,23 @@ class AppSetting extends Model
     public static function urlAkses(): string
     {
         return rtrim(static::current()->url_akses ?: url('/'), '/');
+    }
+
+    /**
+     * URL gambar QRIS yang tampil di form pembayaran kasir:
+     *  1. qris_path di pengaturan (upload lewat Pengaturan Aplikasi) - prioritas,
+     *  2. fallback berkas lama storage/app/public/qris-bri.png (kompatibilitas),
+     *  3. null = belum terpasang (form menampilkan placeholder + peringatan).
+     */
+    public static function qrisUrl(): ?string
+    {
+        $setting = static::current();
+        if ($setting->qris_path && Storage::disk('public')->exists($setting->qris_path)) {
+            return asset('storage/' . $setting->qris_path);
+        }
+
+        return file_exists(public_path('storage/qris-bri.png'))
+            ? asset('storage/qris-bri.png')
+            : null;
     }
 }

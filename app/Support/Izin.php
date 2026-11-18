@@ -46,6 +46,17 @@ class Izin
             $peta[(int) $r->id_menu] = ['view' => (bool) $r->can_view, 'add' => (bool) $r->can_add, 'edit' => (bool) $r->can_edit, 'delete' => (bool) $r->can_delete];
         }
 
+        // KECUALIKAN-MENU: kebijakan perusahaan di atas Hak Akses. Menyembunyikan
+        // + memblokir menu tertentu untuk role tertentu WALAUPUN tercentang -
+        // dipakai untuk Data Master Jersey (id_menu 38) yang bukan ranah Kasir
+        // (owner, 18 Nov 2026). Sengaja di level peta, bukan cuma tampilan:
+        // sidebar hilang DAN tombol aksi mati DAN rute ditolak (bolehPath).
+        foreach ((array) config('menu_access.kecualikan_menu', []) as $idMenu => $roles) {
+            if (in_array(optional($user->role)->nama_role, (array) $roles, true)) {
+                unset($peta[(int) $idMenu]);
+            }
+        }
+
         $simpan[$user->id_user] = $peta;
         request()->attributes->set('izin_peta_cache', $simpan);
 
@@ -221,6 +232,15 @@ class Izin
         // Administrator selalu lolos - sama seperti di awal CheckMenuAccess.
         if (self::adalahAdmin($user)) {
             return true;
+        }
+
+        // KECUALIKAN-PATH: penegakan server untuk kebijakan yang sama dengan
+        // kecualikan_menu di atas (id_menu <-> prefix harus dijaga konsisten).
+        foreach ((array) config('menu_access.kecualikan_path', []) as $prefix => $roles) {
+            if (($path === $prefix || str_starts_with($path, $prefix . '/'))
+                && in_array(optional($user->role)->nama_role, (array) $roles, true)) {
+                return false;
+            }
         }
 
         // Prefix yang bebas untuk siapa pun yang sudah login.

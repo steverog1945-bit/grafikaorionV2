@@ -1,0 +1,105 @@
+/* =========================================================================
+   TEMA PREMIUM - "Champagne & Ink"
+   =========================================================================
+   Diaktifkan saat html[data-brand-theme="premium"] (preset disuntik BrandThemeService
+   sebagai inline style + atribut; lihat layouts/app.blade.php).
+
+   Konsep: editorial profesional ala majalah cetak berkualitas - kertas hangat,
+   tinta, emas antik. Kontras WCAG-aware, fokus ke data, satu aksen (emas).
+
+   Semua aturan di sini:
+   - transform/opacity/box-shadow saja (kompositor-friendly, tanpa reflow)
+   - hormati prefers-reduced-motion
+   - tidak menyentuh ukuran layout/menus/permission (murni tampilan)
+   ========================================================================= */
+
+/* Dasar: kertas, huruf sedikit lebih lega, angka rapi. */
+[data-brand-theme="premium"] body {
+    letter-spacing: 0.01em;
+    background: var(--brand-surface-page, #F7F4EC);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Tipografi tampilan: serif Georgia untuk struktur (judul halaman, judul
+   kartu) - kontras khas cetak premium; badan teks & data tetap sans. */
+[data-brand-theme="premium"] h1,
+[data-brand-theme="premium"] h2,
+[data-brand-theme="premium"] h3,
+[data-brand-theme="premium"] .premium-display {
+    font-family: Georgia, 'Times New Roman', 'Palatino Linotype', serif;
+    letter-spacing: -0.015em;
+    font-weight: 600;
+    text-wrap: balance;
+}
+
+/* Fokus yang jelas & konsisten (ganti ring indigo bawaan agar senada emas). */
+[data-brand-theme="premium"] :focus-visible {
+    outline: 2px solid #A67C37;
+    outline-offset: 2px;
+}
+
+/* Kartu: radius sedang (bukan pill), bayangan tipis satu arah - elegan,
+   tidak melayang seperti template. */
+[data-brand-theme="premium"] .x-card {
+    border-radius: 12px;
+    border-color: var(--brand-surface-border, #E4DFCF);
+    box-shadow: 0 1px 2px rgba(34, 31, 27, 0.05), 0 10px 28px rgba(34, 31, 27, 0.05);
+    transition: box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Tabel: kepala rapat bergaris rambut, badan lega, hover champagne-wash. */
+[data-brand-theme="premium"] table thead th {
+    letter-spacing: 0.09em;
+    border-bottom: 1px solid var(--brand-surface-border, #E4DFCF);
+}
+[data-brand-theme="premium"] table tbody tr {
+    transition: background-color 0.15s ease;
+}
+[data-brand-theme="premium"] table tbody tr:hover {
+    background-color: rgba(166, 124, 55, 0.07);
+}
+
+/* Tombol utama (aksi): emas antik sudah dari ramp/preset; di sini diberi
+   bayangan setetes & radius konsisten. Secondary/outline dibuat lebih tenang. */
+[data-brand-theme="premium"] a.rounded-lg,
+[data-brand-theme="premium"] button.rounded-lg {
+    border-radius: 10px;
+}
+
+/* Badge/pill: menjauh dari "candy" - hairline border, berat sedang. */
+[data-brand-theme="premium"] .rounded-full {
+    letter-spacing: 0.06em;
+}
+
+/* Input: latar sedikit di luar putih kertas, fokus emas (bukan indigo). */
+[data-brand-theme="premium"] input,
+[data-brand-theme="premium"] select,
+[data-brand-theme="premium"] textarea {
+    transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+/* Motion: satu easing untuk seluruh transisi warna/bayangan, lebih tenang. */
+[data-brand-theme="premium"] .transition-colors,
+[data-brand-theme="premium"] .transition-shadow,
+[data-brand-theme="premium"] .transition {
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Sidebar espresso: judul kelompok menu emas pucat, divider rambut halus. */
+[data-brand-theme="premium"] .menu-group-toggle {
+    color: rgba(228, 198, 90, 0.75);
+}
+[data-brand-theme="premium"] .menu-group-toggle:hover {
+    color: #E4C65A;
+}
+
+/* Hormati pengguna yang meminta lebih sedikit animasi. */
+@media (prefers-reduced-motion: reduce) {
+    [data-brand-theme="premium"] *,
+    [data-brand-theme="premium"] *::before,
+    [data-brand-theme="premium"] *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

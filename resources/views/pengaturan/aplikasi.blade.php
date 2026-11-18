@@ -67,6 +67,31 @@
                     </x-form.group>
                 </div>
 
+                {{-- KODE QRIS (kasir) - bisa diganti kapan pun dari sini oleh
+                     Administrator. Bila belum diunggah, form pembayaran memakai
+                     berkas lama (storage/app/public/qris-bri.png) bila ada. --}}
+                <div class="flex items-center gap-5 rounded-2xl border border-slate-100 p-4">
+                    <div class="w-24 h-24 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                        @if($setting->qris_path)
+                            <img loading="lazy" decoding="async" id="preview-qris" src="{{ asset('storage/' . $setting->qris_path) }}" alt="Kode QRIS" class="w-full h-full object-contain">
+                        @else
+                            <i id="preview-qris-placeholder" class="fas fa-qrcode text-slate-400 text-3xl"></i>
+                            <img loading="lazy" decoding="async" id="preview-qris" src="" alt="Kode QRIS" class="w-full h-full object-contain hidden">
+                        @endif
+                    </div>
+                    <x-form.group label="Kode QRIS Toko" name="qris" help="PNG/JPG/WEBP, maks 2MB. Ditampilkan di form pembayaran (opsi Transfer QRIS). Kosongkan kalau tidak ingin mengubah." dalam>
+                        <input type="file" name="qris" accept="image/png,image/jpeg,image/webp"
+                            onchange="previewQrisAplikasi(this)"
+                            class="w-full bg-slate-50 border-none rounded-xl py-2.5 px-4 text-xs font-medium text-slate-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-indigo-600 file:text-white">
+                        @if($setting->qris_path)
+                            <label class="mt-2 inline-flex items-center gap-2 text-[11px] text-rose-600 font-medium cursor-pointer">
+                                <input type="checkbox" name="hapus_qris" value="1" class="rounded border-slate-200 text-rose-500 focus:ring-rose-400">
+                                Hapus kode QRIS yang terpasang
+                            </label>
+                        @endif
+                    </x-form.group>
+                </div>
+
 
                 {{-- TAMPILAN LOGO DI SIDEBAR --}}
                 @php
@@ -314,6 +339,16 @@
         img.classList.remove('hidden');
         if (placeholder) placeholder.classList.add('hidden');
         perbaruiPreviewNota();
+    }
+
+    // Preview kode QRIS yang baru dipilih (belum diunggah) - sama pola dengan logo.
+    function previewQrisAplikasi(input) {
+        if (!input.files || !input.files[0]) return;
+        const img = document.getElementById('preview-qris');
+        const placeholder = document.getElementById('preview-qris-placeholder');
+        img.src = URL.createObjectURL(input.files[0]);
+        img.classList.remove('hidden');
+        if (placeholder) placeholder.classList.add('hidden');
     }
 
     function pindahTabPengaturan(nama) {
