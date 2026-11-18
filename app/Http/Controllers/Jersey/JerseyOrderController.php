@@ -1489,7 +1489,7 @@ class JerseyOrderController extends Controller
     public function print(JerseyOrder $order, string $format = 'normal')
     {
         $order->load([
-            'konsumen', 'designer',
+            'konsumen', 'designer', 'desainer',
             'lines.productType', 'lines.category', 'lines.items', 'lines.sizeQuantities.size', 'lines.materials',
         ]);
         $format = in_array($format, ['thermal', 'normal']) ? $format : 'normal';
@@ -1504,7 +1504,7 @@ class JerseyOrderController extends Controller
     public function printLine(JerseyOrder $order, JerseyOrderLine $line)
     {
         abort_if($line->jersey_order_id !== $order->id, 404);
-        $line->load(['productType', 'category', 'material', 'items', 'items.jerseySize', 'sizeQuantities.size', 'materials', 'order.konsumen', 'order.designer']);
+        $line->load(['productType', 'category', 'material', 'items', 'items.jerseySize', 'sizeQuantities.size', 'materials', 'order.konsumen', 'order.designer', 'order.desainer']);
         return view('jersey.orders.spk-print', compact('order', 'line'));
     }
 }

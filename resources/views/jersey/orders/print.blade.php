@@ -54,7 +54,7 @@
             <tr><td class="lbl">No. Order</td><td>:</td><td>{{ $order->order_number }}</td></tr>
             <tr><td class="lbl">Tanggal</td><td>:</td><td>{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</td></tr>
             <tr><td class="lbl">Tim</td><td>:</td><td>{{ $order->team_name ?? '-' }}</td></tr>
-            <tr><td class="lbl">Desainer</td><td>:</td><td>{{ $order->designer_name ?? '-' }}@if($order->file_siap_cetak) <span class="ml-1 text-[10px] font-medium">(file siap cetak)</span>@endif</td></tr>
+            <tr><td class="lbl">Desainer</td><td>:</td><td>{{ $order->desainer?->nama ?? $order->designer_name ?? '-' }}@if($order->file_siap_cetak) <span class="ml-1 text-[10px] font-medium">(file siap cetak)</span>@endif</td></tr>
             <tr><td class="lbl">Status Desain</td><td>:</td><td>{{ $order->file_siap_cetak ? 'Siap cetak' : 'Perlu desain' }}</td></tr>
             <tr><td class="lbl">Deadline</td><td>:</td><td>{{ $order->deadline ? \Carbon\Carbon::parse($order->deadline)->format('d/m/Y') : '-' }}</td></tr>
         </table>

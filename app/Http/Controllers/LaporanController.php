@@ -539,7 +539,7 @@ class LaporanController extends Controller
      */
     public function orderJersey(Request $request)
     {
-        $query = \App\Models\JerseyOrder::with(['konsumen', 'designer']);
+        $query = \App\Models\JerseyOrder::with(['konsumen', 'designer', 'desainer']);
 
         // Default rekap HARI INI SAJA - berlaku sama di semua laporan.
         // Rentang dikawal RentangTanggal (§8I diperluas): format rusak ->
