@@ -160,6 +160,23 @@ diverifikasi lewat Feature test (HTML respons nyata), bukan screenshot.
 - API `/api/laporan/kas` tidak diubah; pagar API tetap RBAC token yang sudah
   ada.
 
+## Status Git
+
+- Commit fitur: `feat/min-luas-hybrid-t4a` (lokal).
+- Push langsung ke `origin/feat/min-luas-hybrid-t4a` **ditolak** karena branch
+  remote sudah berjalan 53 commit lebih maju (termasuk merge PR #48 dan
+  perubahan `PenjualanController`, `JerseyOrderController`,
+  `PenjualanCheckoutService`, `JerseyOrderPricingService`,
+  `config/logging.php`). Menggabungkannya memaksa penyelesaian konflik pada
+  logika bisnis POS/Jersey — di luar scope tugas UI/gembok ini dan berisiko.
+  Branch lokal tidak di-force-push dan tidak di-reset.
+- Karena itu commit di-cherry-pick ke branch tujuan kedua
+  `sync/xampp-hybrid-t4a-20261116` (basis `9cb11894`, snapshot yang dipakai
+  XAMPP) dan **berhasil di-push tanpa force**: `9cb11894..c52c4965`.
+  `git ls-remote` mengonfirmasi remote `sync/xampp-hybrid-t4a-20261116` =
+  `c52c4965` (sama dengan HEAD lokal saat push).
+- Tidak ada merge ke `main`, tidak ada deploy.
+
 ## Status
 
 - Produksi: tidak disentuh.
