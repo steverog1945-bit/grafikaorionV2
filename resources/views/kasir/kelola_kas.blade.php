@@ -177,18 +177,23 @@
 
         {{-- Aksen dipakai di sini saja:(print = momen yang paling butuh
              perhatian di halaman ini. Tombol lain tetap netral,
-             supaya mata langsung tahu ke mana harus pergi. --}}
+             supaya mata langsung tahu ke mana harus pergi.
+             Cetak rekap = laporan closing: dibuka lewat gerbang password
+             Administrator (GerbangLaporanClosing), bukan link langsung. --}}
         <div class="flex shrink-0 flex-col gap-2">
-            <a href="{{ route('kasir.print-closing', ['id' => $kasBaruDitutup->id_kas, 'format' => 'thermal']) }}"
+            <a href="{{ route('laporan.kas.gerbang', ['cetak' => $kasBaruDitutup->id_kas, 'format' => 'thermal']) }}"
                target="_blank" rel="noopener"
                class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-emerald-700 active:scale-[0.97] whitespace-nowrap">
                 <i class="fas fa-receipt text-xs"></i> Cetak Thermal 58mm
             </a>
-            <a href="{{ route('kasir.print-closing', ['id' => $kasBaruDitutup->id_kas, 'format' => 'a4']) }}"
+            <a href="{{ route('laporan.kas.gerbang', ['cetak' => $kasBaruDitutup->id_kas, 'format' => 'a4']) }}"
                target="_blank" rel="noopener"
                class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 px-4 py-2.5 text-[13px] font-medium text-emerald-700 transition-colors hover:bg-emerald-50 active:scale-[0.97] whitespace-nowrap">
                 <i class="fas fa-file-lines text-xs"></i> Cetak A4 Lengkap
             </a>
+            <p class="text-[11px] text-emerald-800/80 text-center leading-snug">
+                Cetakan meminta password Administrator
+            </p>
         </div>
     </div>
 </div>
@@ -200,18 +205,30 @@
      26 hari kerja riwayat closing, halamannya jadi panjang sekali dan
      kedua tabel saling menggeser. Laporan Kas yang punya filter tanggal,
      paginasi 20/halaman, dan tombol print per sesi adalah tempat yang
-     tepat - dan pintasan ke sana tetap satu klik dari sini. --}}
+     tepat - dan pintasan ke sana tetap satu klik dari sini.
+
+     Sejak 19 Nov 2026 laporan closing TIDAK langsung terbuka: tombol ini
+     menuju gerbang password Administrator (laporan/kas/gerbang), dan
+     parameter tanggal/status diteruskan supaya setelah dibuka langsung
+     mendarat di riwayat closing 30 hari terakhir. --}}
+@php
+    $filterRiwayatClosing = [
+        'status_lock' => 'closed',
+        'tgl_dari'    => now()->subDays(30)->format('Y-m-d'),
+        'tgl_sampai'  => now()->format('Y-m-d'),
+    ];
+@endphp
 <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-5 py-4">
     <div class="flex items-center gap-3">
         <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0"><i class="fas fa-book text-xs"></i></span>
         <div>
             <p class="text-sm font-medium text-slate-800">Laporan Riwayat Closing</p>
-            <p class="text-xs text-slate-500 mt-0.5">Rekap harian yang sudah tutup, lengkap dengan pilihan cetak A4 dan thermal</p>
+            <p class="text-xs text-slate-500 mt-0.5">Rekap harian yang sudah tutup, lengkap dengan pilihan cetak A4 dan thermal - dibuka dengan password Administrator</p>
         </div>
     </div>
-    <a href="{{ route('laporan.kas', ['status_lock' => 'closed', 'tgl_dari' => now()->subDays(30)->format('Y-m-d'), 'tgl_sampai' => now()->format('Y-m-d')]) }}"
+    <a href="{{ route('laporan.kas.gerbang', $filterRiwayatClosing) }}"
        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-[13px] font-medium text-slate-700 transition-colors hover:bg-slate-50 active:scale-[0.97] whitespace-nowrap">
-        <i class="fas fa-list text-xs"></i> Buka Laporan
+        <i class="fas fa-lock text-xs"></i> Buka Laporan
     </a>
 </div>
 

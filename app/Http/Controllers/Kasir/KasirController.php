@@ -1744,6 +1744,13 @@ public function printOpsi(Request $request, $id)
  */
 public function printReport($id, $format)
 {
+    // Rekap closing adalah laporan closing juga - sama seperti Laporan Kas,
+    // membukanya butuh password Administrator (kecuali Administrator sendiri).
+    $gerbang = app(\App\Services\GerbangLaporanClosing::class);
+    if (! $gerbang->terbuka()) {
+        return redirect()->route('laporan.kas.gerbang', ['cetak' => $id, 'format' => $format]);
+    }
+
     $kas = DB::table('kas_harian')
         ->leftJoin('users', 'kas_harian.id_user', '=', 'users.id_user')
         ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')

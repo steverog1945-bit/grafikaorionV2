@@ -119,6 +119,10 @@ return [
         'collecting' => [24],
         'laporan/order' => [25],
         'laporan/produksi' => [26],
+        // Gerbang password laporan closing: kasir boleh MEMBUKA halaman
+        // gerbangnya (Kasir 16 / Laporan Kas 29), password Administrator yang
+        // menentukan laporannya terbuka atau tidak.
+        'laporan/kas/gerbang' => [16, 29],
         'laporan/kas' => [29],
         'laporan/belanja-bahan' => [40],
         'laporan/hutang' => [40],
@@ -216,6 +220,9 @@ return [
     'post_baca' => [
         'jersey/cek-kelengkapan',
         'jersey/preview-harga',
+        // Mengetik password Administrator di gerbang laporan closing =
+        // membuka (membaca), bukan menambah data.
+        'laporan/kas/gerbang',
     ],
 
     // POST yang sebenarnya menghapus (bulk delete via POST) - diperlakukan sebagai "hapus".

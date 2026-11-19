@@ -415,6 +415,15 @@ class LaporanController extends Controller
      */
     public function kas(Request $request)
     {
+        // Laporan Kas seluruhnya berisi rekap sesi + tombol cetak closing.
+        // Permintaan owner: membukanya harus dengan password Administrator,
+        // jadi halaman ini dialihkan ke gerbang dulu (Administrator yang
+        // sedang login otomatis lolos).
+        $gerbang = app(\App\Services\GerbangLaporanClosing::class);
+        if (! $gerbang->terbuka()) {
+            return redirect()->route('laporan.kas.gerbang', $gerbang->parameter($request));
+        }
+
         $query = DB::table('kas_harian')
             ->leftJoin('users', 'kas_harian.id_user', '=', 'users.id_user')
             ->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')

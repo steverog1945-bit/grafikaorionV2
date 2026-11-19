@@ -647,6 +647,14 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     // Kebocoran Tagihan: temuan rekonsiliasi berkas-vs-nota lintas nota (read-only, owner).
     Route::get('/laporan/kebocoran-tagihan', [LaporanController::class, 'kebocoranTagihan'])->name('laporan.kebocoran-tagihan');
     Route::get('/laporan/produksi', [LaporanController::class, 'produksi'])->name('laporan.produksi');
+    // Gerbang password Administrator untuk laporan closing (Laporan Kas dan
+    // cetak rekap per sesi). Didaftarkan sebelum /laporan/kas supaya jelas
+    // satu paket; pencocokan tetap exact, bukan urutan.
+    Route::get('/laporan/kas/gerbang',
+        [\App\Http\Controllers\GerbangLaporanClosingController::class, 'create'])->name('laporan.kas.gerbang');
+    Route::post('/laporan/kas/gerbang',
+        [\App\Http\Controllers\GerbangLaporanClosingController::class, 'unlock'])
+        ->middleware('throttle:10,1')->name('laporan.kas.gerbang.buka');
     Route::get('/laporan/kas', [LaporanController::class, 'kas'])->name('laporan.kas');
     Route::get('/laporan/piutang', [LaporanController::class, 'piutang'])->name('laporan.piutang');
     Route::post('/laporan/piutang/wa-template', [LaporanController::class, 'simpanWaTemplate'])->name('laporan.piutang.wa-template');

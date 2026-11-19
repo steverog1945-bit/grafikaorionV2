@@ -36,7 +36,9 @@ class KasCetakRekapTest extends TestCase
     use RefreshDatabase;
 
     private User $kasir;
+    private User $admin;
     private int $idKonsumen;
+    private bool $gerbangClosingTerbuka = false;
 
     protected function setUp(): void
     {
@@ -47,6 +49,15 @@ class KasCetakRekapTest extends TestCase
 
         $roleKasir = Role::factory()->create(['nama_role' => 'Kasir']);
         $this->kasir = User::factory()->create(['id_role' => $roleKasir->id_role]);
+
+        // Password Administrator untuk membuka gembok laporan closing.
+        // Sengaja beda dari password kasir supaya bisa diuji bahwa password
+        // akun kasir sendiri TIDAK membuka laporan.
+        $roleAdmin = Role::factory()->create(['nama_role' => 'Administrator']);
+        $this->admin = User::factory()->create([
+            'id_role'  => $roleAdmin->id_role,
+            'password' => \Illuminate\Support\Facades\Hash::make('admin-rahasia'),
+        ]);
 
         // Menu 16 = Kasir (Buka/Tutup Kas), menu 29 = Laporan Kas. Kasir yang
         // boleh mengelola kas harus boleh membuka laporan rekapnya.
@@ -97,9 +108,30 @@ class KasCetakRekapTest extends TestCase
         ]);
     }
 
+    /**
+     * Buka gembok laporan closing dengan password Administrator untuk sesi
+     * kasir pada test ini. Gembok sekarang wajib sejak permintaan owner
+     * 19 Nov 2026 - tanpa ini Laporan Kas dialihkan ke halaman gerbang.
+     */
+    private function bukaGerbangLaporan(): void
+    {
+        if ($this->gerbangClosingTerbuka) {
+            return;
+        }
+
+        $this->actingAs($this->kasir)
+            ->post(route('laporan.kas.gerbang.buka'), ['password' => 'admin-rahasia'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->gerbangClosingTerbuka = true;
+    }
+
     /** Laporan Kas dengan rentang tanggal yang mencakup semua sesi uji. */
     private function laporanKas()
     {
+        $this->bukaGerbangLaporan();
+
         return $this->actingAs($this->kasir)->get(route('laporan.kas', [
             'status_lock' => 'closed',
             'tgl_dari' => '2026-01-01',
@@ -212,6 +244,8 @@ class KasCetakRekapTest extends TestCase
     public function test_sesi_yang_masih_terbuka_tidak_dapat_ditetak(): void
     {
         $this->sesiTerbuka(100000);
+
+        $this->bukaGerbangLaporan();
 
         $html = $this->actingAs($this->kasir)
             ->get(route('laporan.kas', [

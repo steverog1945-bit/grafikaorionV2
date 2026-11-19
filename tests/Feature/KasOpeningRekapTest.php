@@ -44,6 +44,18 @@ class KasOpeningRekapTest extends TestCase
         DB::table('menus')->insertOrIgnore(['id_menu' => 16, 'nama_menu' => 'Kasir', 'url_link' => 'kasir', 'parent_id' => 0]);
         DB::table('role_permissions')->insert(['id_role' => $roleKasir->id_role, 'id_menu' => 16]);
 
+        // Cetak rekap closing terkunci password Administrator (permintaan
+        // owner 19 Nov 2026). Buka gembok sekali di awal test supaya
+        // pemeriksaan isi rekap di kelas ini tetap fokus ke angkanya.
+        $roleAdmin = Role::factory()->create(['nama_role' => 'Administrator']);
+        User::factory()->create([
+            'id_role'  => $roleAdmin->id_role,
+            'password' => \Illuminate\Support\Facades\Hash::make('admin-rahasia'),
+        ]);
+        $this->actingAs($this->kasir)
+            ->post(route('laporan.kas.gerbang.buka'), ['password' => 'admin-rahasia'])
+            ->assertSessionHasNoErrors();
+
         $idGol = DB::table('golongan_konsumen')->insertGetId(['nama_golongan' => 'Retail']);
         $this->idKonsumen = DB::table('konsumen')->insertGetId(['id_unique' => (string) \Illuminate\Support\Str::uuid(), 'nama_konsumen' => 'Uji', 'telepon' => '0811', 'alamat' => '-', 'id_golongan' => $idGol]);
     }
