@@ -79,61 +79,177 @@
             </x-modal>
 @endif
 
-@if($kasAktif)
-    @php
-        $mulaiTampil = \App\Services\KasSesiService::mulai($kasAktif);
-        $umurJam = \App\Services\KasSesiService::umurJam($kasAktif);
-        $pemilikSesi = DB::table('users')->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')->where('users.id_user', $kasAktif->id_user)->value(DB::raw('COALESCE(karyawan.nama_karyawan, users.username)'));
-        $saya = (int) $kasAktif->id_user === (int) auth()->id();
-    @endphp
-    {{-- Bar status sesi - SENGAJA ringkas: semua detail teknis tetap ada
-         di Laporan Kas & closing, layar ini cuma perlu "sesi siapa, sejak
-         kapan, laci berapa". Judul lengkap pindah ke title tooltip. --}}
-    <div class="mb-4 flex flex-wrap items-center gap-2 rounded-xl px-4 py-2.5 border {{ $kasBasi ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200' }}">
-        <span class="inline-block w-2 h-2 rounded-full shrink-0 {{ $kasBasi ? 'bg-amber-500' : 'bg-emerald-500' }}"></span>
-        <span class="text-[13px] font-medium {{ $kasBasi ? 'text-amber-800' : 'text-slate-700' }}">
-            Sesi aktif &middot; {{ $pemilikSesi }} &middot; {{ $mulaiTampil->format('d M Y, H:i') }} ({{ $umurJam }} jam)
-        </span>
-        <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 tabular-nums">
-            Laci awal Rp {{ number_format((float) $kasAktif->saldo_awal, 0, ',', '.') }}
-        </span>
-        @if($kasBasi)
-            <span class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800"
-                title="Sesi lebih dari 24 jam dan belum di-closing - lakukan closing supaya uang laci direkonsiliasi{{ $saya ? '' : ' (Administrator dapat menutup paksa dengan alasan)' }}.">
-                <i class="fas fa-triangle-exclamation text-[10px]"></i> Lebih dari 24 jam - wajib closing
-            </span>
-        @endif
-    </div>
-@endif
+@php
+    $mulaiTampil = $kasAktif ? \App\Services\KasSesiService::mulai($kasAktif) : null;
+    $umurJam = $kasAktif ? \App\Services\KasSesiService::umurJam($kasAktif) : 0;
+    $pemilikSesi = $kasAktif
+        ? DB::table('users')->leftJoin('karyawan', 'users.id_karyawan', '=', 'karyawan.id_karyawan')->where('users.id_user', $kasAktif->id_user)->value(DB::raw('COALESCE(karyawan.nama_karyawan, users.username)'))
+        : null;
+    $saya = $kasAktif ? (int) $kasAktif->id_user === (int) auth()->id() : false;
 
-{{-- FILTER RIWAYAT - tanggal & metode pembayaran. GET murni: hasil bisa
-     dibagikan/disimpan sebagai tautan, tanpa JS. --}}
-<div class="mb-4 rounded-xl border border-slate-200 bg-white px-4 py-3">
-    <form method="GET" action="{{ route('kasir.kelola') }}" class="flex flex-wrap items-end gap-3">
-        <div>
-            <label for="filter-tgl" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Tanggal</label>
-            <input type="date" id="filter-tgl" name="tgl" value="{{ $tglValid }}"
-                class="rounded-lg border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+    // Parameter pintasan laporan: riwayat closing 30 hari terakhir, sudah
+    // lewat gerbang password Administrator.
+    $filterRiwayatClosing = [
+        'status_lock' => 'closed',
+        'tgl_dari'    => now()->subDays(30)->format('Y-m-d'),
+        'tgl_sampai'  => now()->format('Y-m-d'),
+    ];
+@endphp
+
+{{-- SESI + LAPORAN - satu blok dua kolom.
+     Kiri: status sesi kas yang sedang berjalan (pemilik, mulai, laci awal).
+     Kanan: pintasan Laporan Riwayat Closing. Keduanya adalah "pintu" halaman
+     ini, jadi digabung supaya tidak ada dua kartu penuh yang bersaing di
+     atas layar. Di layar sempit keduanya menumpuk (satu kolom).
+
+     Riwayat TIDAK didaftar di sini. Halaman ini sudah memuat mutasi
+     pembayaran dan mutasi kas tidak terduga untuk sesi berjalan; ditambah
+     riwayat closing, halamannya jadi panjang dan kedua tabel saling
+     menggeser. Laporan Kas yang punya filter tanggal, paginasi, dan tombol
+     print per sesi adalah tempat yang tepat - satu klik dari sini.
+
+     Sejak 19 Nov 2026 laporan closing TIDAK langsung terbuka: tombol ini
+     menuju gerbang password Administrator (laporan/kas/gerbang), dan
+     parameter tanggal/status diteruskan supaya setelah dibuka langsung
+     mendarat di riwayat closing 30 hari terakhir. --}}
+<div class="mb-4 grid grid-cols-1 overflow-hidden rounded-xl border border-slate-200 bg-white divide-y divide-slate-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+    {{-- Kolom 1: sesi kas --}}
+    <div class="px-5 py-4 {{ $kasAktif && $kasBasi ? 'bg-amber-50' : '' }}">
+        <div class="flex items-start gap-3">
+            <span class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 {{ $kasAktif && $kasBasi ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600' }}">
+                <i class="fas fa-wallet text-xs"></i>
+            </span>
+            <div class="min-w-0">
+                <p class="text-[11px] font-medium uppercase tracking-wide text-slate-400">Sesi kas</p>
+                @if($kasAktif)
+                    <p class="mt-1 flex items-center gap-2 text-sm font-medium {{ $kasBasi ? 'text-amber-900' : 'text-slate-800' }}">
+                        <span class="inline-block w-2 h-2 rounded-full shrink-0 {{ $kasBasi ? 'bg-amber-500' : 'bg-emerald-500' }}"></span>
+                        Aktif &middot; {{ $pemilikSesi }}
+                    </p>
+                    <p class="mt-0.5 text-xs text-slate-500">
+                        Sejak {{ $mulaiTampil->format('d M Y, H:i') }} &middot; {{ $umurJam }} jam berjalan
+                    </p>
+                    <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                        <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 tabular-nums">
+                            Laci awal Rp {{ number_format((float) $kasAktif->saldo_awal, 0, ',', '.') }}
+                        </span>
+                        @if($kasBasi)
+                            <span class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800"
+                                title="Sesi lebih dari 24 jam dan belum di-closing - lakukan closing supaya uang laci direkonsiliasi{{ $saya ? '' : ' (Administrator dapat menutup paksa dengan alasan)' }}.">
+                                <i class="fas fa-triangle-exclamation text-[10px]"></i> Lebih dari 24 jam - wajib closing
+                            </span>
+                        @endif
+                    </div>
+                @else
+                    <p class="mt-1 text-sm font-medium text-slate-800">Belum dibuka</p>
+                    <p class="mt-0.5 text-xs text-slate-500 leading-relaxed">
+                        Belum ada sesi kas yang berjalan. Buka saldo kasir lewat tombol di kanan atas
+                        untuk mulai mencatat uang masuk hari ini.
+                    </p>
+                @endif
+            </div>
         </div>
-        <div>
+    </div>
+
+    {{-- Kolom 2: pintasan laporan --}}
+    <div class="px-5 py-4 flex flex-col justify-between gap-3">
+        <div class="flex items-start gap-3">
+            <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                <i class="fas fa-book text-xs"></i>
+            </span>
+            <div class="min-w-0">
+                <p class="text-[11px] font-medium uppercase tracking-wide text-slate-400">Laporan</p>
+                <p class="mt-1 text-sm font-medium text-slate-800">Laporan Riwayat Closing</p>
+                <p class="mt-0.5 text-xs text-slate-500 leading-relaxed">
+                    Rekap harian yang sudah tutup, lengkap dengan pilihan cetak A4 dan thermal -
+                    dibuka dengan password Administrator.
+                </p>
+            </div>
+        </div>
+        <a href="{{ route('laporan.kas.gerbang', $filterRiwayatClosing) }}"
+           class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-[13px] font-medium text-slate-700 transition-colors hover:bg-slate-50 active:scale-[0.97] whitespace-nowrap sm:w-auto sm:self-start">
+            <i class="fas fa-lock text-xs"></i> Buka Laporan
+        </a>
+    </div>
+</div>
+
+{{-- FILTER RIWAYAT - rentang tanggal, nama konsumen, metode pembayaran.
+     GET murni: hasil bisa dibagikan/disimpan sebagai tautan, tanpa JS.
+     Date range dipakai karena rekonsiliasi hampir selalu "minggu ini" atau
+     "bulan lalu", bukan satu hari. Pencarian konsumen membantu saat nota
+     pelanggan harus ditelusuri tanpa tahu tanggalnya. --}}
+@php
+    $adaPeriode = $tglDari !== null || $tglSampai !== null;
+    $adaFilter = $adaPeriode || $konsumenValid !== null || $metodeValid !== null;
+    $tglLabel = fn ($t) => \Carbon\Carbon::parse($t)->translatedFormat('d M Y');
+    if ($tglDari !== null && $tglSampai !== null) {
+        $labelPeriode = $tglDari === $tglSampai
+            ? $tglLabel($tglDari)
+            : $tglLabel($tglDari) . ' – ' . $tglLabel($tglSampai);
+    } elseif ($tglDari !== null) {
+        $labelPeriode = 'sejak ' . $tglLabel($tglDari);
+    } elseif ($tglSampai !== null) {
+        $labelPeriode = 'sampai ' . $tglLabel($tglSampai);
+    } else {
+        $labelPeriode = null;
+    }
+
+    $bagianFilter = [];
+    if ($adaPeriode) {
+        $bagianFilter[] = 'tanggal ' . $labelPeriode;
+    }
+    if ($konsumenValid !== null) {
+        $bagianFilter[] = 'konsumen "' . $konsumenValid . '"';
+    }
+    if ($metodeValid !== null) {
+        $bagianFilter[] = 'metode ' . $metodeValid;
+    }
+@endphp
+<div class="mb-4 rounded-xl border border-slate-200 bg-white px-4 py-3">
+    <form method="GET" action="{{ route('kasir.kelola') }}"
+          class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
+        <div class="lg:col-span-2">
+            <label for="filter-tgl-dari" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Dari tanggal</label>
+            <input type="date" id="filter-tgl-dari" name="tgl_dari" value="{{ $tglDari }}"
+                class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+        </div>
+        <div class="lg:col-span-2">
+            <label for="filter-tgl-sampai" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Sampai tanggal</label>
+            <input type="date" id="filter-tgl-sampai" name="tgl_sampai" value="{{ $tglSampai }}"
+                class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+        </div>
+        <div class="lg:col-span-3">
+            <label for="filter-konsumen" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Nama konsumen</label>
+            <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                    <i class="fas fa-magnifying-glass text-[11px]"></i>
+                </span>
+                <input type="search" id="filter-konsumen" name="konsumen" value="{{ $konsumenValid }}"
+                    maxlength="60" autocomplete="off" placeholder="Cari nama konsumen"
+                    class="w-full rounded-lg border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+            </div>
+        </div>
+        <div class="lg:col-span-2">
             <label for="filter-metode" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Metode</label>
             <select id="filter-metode" name="metode"
-                class="rounded-lg border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+                class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
                 <option value="">Semua metode</option>
                 @foreach(['Tunai', 'Debit', 'Transfer', 'QRIS BRI', 'Deposit'] as $met)
                     <option value="{{ $met }}" {{ $metodeValid === $met ? 'selected' : '' }}>{{ $met }}</option>
                 @endforeach
             </select>
         </div>
-        <x-button type="submit" variant="secondary" class="!py-2">
-            <i class="fas fa-filter text-xs"></i> Terapkan
-        </x-button>
-        @if($tglValid || $metodeValid)
-            <a href="{{ route('kasir.kelola') }}"
-                class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-slate-500 hover:bg-slate-50 transition-colors">
-                <i class="fas fa-rotate-left text-xs"></i> Reset
-            </a>
-        @endif
+        <div class="flex items-center gap-2 sm:col-span-2 lg:col-span-3">
+            <x-button type="submit" variant="secondary" class="!py-2">
+                <i class="fas fa-filter text-xs"></i> Terapkan
+            </x-button>
+            @if($adaFilter)
+                <a href="{{ route('kasir.kelola') }}"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-slate-500 hover:bg-slate-50 transition-colors">
+                    <i class="fas fa-rotate-left text-xs"></i> Reset
+                </a>
+            @endif
+        </div>
     </form>
 </div>
 
@@ -199,39 +315,6 @@
 </div>
 @endif
 
-{{-- SHORTCUT ke laporan riwayat closing.
-     Riwayat TIDAK ditampilkan di sini. Halaman ini sudah memuat mutasi
-     pembayaran dan mutasi kas tidak terduga untuk sesi berjalan; ditambah
-     26 hari kerja riwayat closing, halamannya jadi panjang sekali dan
-     kedua tabel saling menggeser. Laporan Kas yang punya filter tanggal,
-     paginasi 20/halaman, dan tombol print per sesi adalah tempat yang
-     tepat - dan pintasan ke sana tetap satu klik dari sini.
-
-     Sejak 19 Nov 2026 laporan closing TIDAK langsung terbuka: tombol ini
-     menuju gerbang password Administrator (laporan/kas/gerbang), dan
-     parameter tanggal/status diteruskan supaya setelah dibuka langsung
-     mendarat di riwayat closing 30 hari terakhir. --}}
-@php
-    $filterRiwayatClosing = [
-        'status_lock' => 'closed',
-        'tgl_dari'    => now()->subDays(30)->format('Y-m-d'),
-        'tgl_sampai'  => now()->format('Y-m-d'),
-    ];
-@endphp
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-5 py-4">
-    <div class="flex items-center gap-3">
-        <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0"><i class="fas fa-book text-xs"></i></span>
-        <div>
-            <p class="text-sm font-medium text-slate-800">Laporan Riwayat Closing</p>
-            <p class="text-xs text-slate-500 mt-0.5">Rekap harian yang sudah tutup, lengkap dengan pilihan cetak A4 dan thermal - dibuka dengan password Administrator</p>
-        </div>
-    </div>
-    <a href="{{ route('laporan.kas.gerbang', $filterRiwayatClosing) }}"
-       class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-[13px] font-medium text-slate-700 transition-colors hover:bg-slate-50 active:scale-[0.97] whitespace-nowrap">
-        <i class="fas fa-lock text-xs"></i> Buka Laporan
-    </a>
-</div>
-
 {{-- ACUAN ISI LACI - sesi terakhir yang ditutup (tanggal berapa pun)
      jadi titik awal sesi baru. Berlaku untuk DUA status:
      Rolling = saldo fisik tetap di laci; Tidak Rolling = yang tersisa
@@ -262,15 +345,11 @@
     <div class="px-5 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
         <div>
             <h3 class="text-sm font-medium text-slate-900">
-                @if($tglValid)
-                    Uang Masuk {{ \Carbon\Carbon::parse($tglValid)->translatedFormat('d F Y') }}
-                @else
-                    Uang Masuk Sesi Ini
-                @endif
+                Uang Masuk {{ $labelPeriode ? ucfirst($labelPeriode) : 'Sesi Ini' }}
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">
-                @if($tglValid || $metodeValid)
-                    Hasil filter{{ $tglValid ? ' tanggal' : '' }}{{ $metodeValid ? ' metode ' . $metodeValid : '' }} - rekap di atas ikut rentang ini
+                @if($adaFilter)
+                    {{ ucfirst(implode(' · ', $bagianFilter)) }} - rekap di atas ikut filter ini
                 @else
                     Pembayaran nota per metode bayar
                 @endif
@@ -377,7 +456,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="8"><x-empty-state title="{{ $tglValid || $metodeValid ? 'Tidak ada pembayaran yang cocok dengan filter ini.' : 'Belum ada uang masuk pada sesi kas ini.' }}" /></td></tr>
+            <tr><td colspan="8"><x-empty-state title="{{ $adaFilter ? 'Tidak ada pembayaran yang cocok dengan filter ini.' : 'Belum ada uang masuk pada sesi kas ini.' }}" /></td></tr>
             @endforelse
         </tbody>
     </x-table>
@@ -488,7 +567,7 @@ toggleBankKoreksi();
 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden mt-6">
     <div class="px-5 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
         <div>
-            <h3 class="text-sm font-medium text-slate-900">{{ $tglValid ? 'Kas Tidak Terduga ' . \Carbon\Carbon::parse($tglValid)->translatedFormat('d F Y') : 'Kas Tidak Terduga Sesi Ini' }}</h3>
+            <h3 class="text-sm font-medium text-slate-900">{{ 'Kas Tidak Terduga ' . ($labelPeriode ? ucfirst($labelPeriode) : 'Sesi Ini') }}</h3>
             <p class="text-xs text-slate-500 mt-0.5">Uang tunai di luar nota: pengeluaran mendadak atau kas masuk lain</p>
         </div>
         <div class="flex flex-wrap gap-6">
