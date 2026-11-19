@@ -4,6 +4,13 @@ Tanggal: 19 November 2026
 Scope: tools/monitoring-agent/ (repo `percetakan-app`)
 Referensi: `docs/reviews/MONITORING_CETAK_ERP.md`
 
+Dua jenis agent disertakan, pilih sesuai cara mesin menerima pekerjaan:
+
+| File | Untuk | Cara kerja |
+| --- | --- | --- |
+| `OrionMonitorAgent.ps1` | Mesin cetak lewat **Windows spooler** (driver printer dipasang di PC) | `Get-PrintJob`, event started/completed + heartbeat |
+| `OrionHotfolderAgent.ps1` | Mesin cetak lewat **hotfolder RIP** (Onyx/Flexi/dll; file di-drop ke folder, RIP yang mengolah) | memantau file masuk/hilang di `HotPath`, event started/completed + heartbeat |
+
 ## Apa ini
 
 Agent yang dijalankan **di PC yang men-drive printer** (PC produksi / spooler).
@@ -32,7 +39,7 @@ di PC selain Scheduled Task + file di `Program Files\OrionMonitor`.
 
 ## Langkah per PC produksi (administrator)
 
-Di setiap PC yang men-drive printer:
+Di setiap PC yang men-drive printer, langkah umum:
 
 ```powershell
 # 1. Buat token untuk mesin yang DIDRIVE PC ini (di server ERP):
@@ -52,6 +59,63 @@ Verifikasi (PC mana pun di LAN, atau browser): buka
 
 Log agent: `%ProgramData%\OrionMonitor\agent.log`
 Status task: `Get-ScheduledTask -TaskName OrionMonitorAgent`
+
+## Contoh: PC 192.168.1.17 (INDOOR + KONICA)
+
+INDOOR = EPSON SureColor S80670 (print share
+`EPSON_SureColor_S80670-4_Onyx_RIPCenter_18_EPSON-INDOOR-PC` terlihat di LAN);
+KONICA MINOLTA = printer Windows terpasang lokal (tidak perlu dishare). Di PC ini:
+
+```powershell
+# Cek nama PERSIS printer Windows:
+Get-Printer | Format-Table Name, DriverName, PortName
+# lalu tulis agent.config.json:
+#   Server     = http://192.168.1.26
+#   Token      = <token mesin INDOOR-EPSON>
+#   Printers   = ["EPSON SC-S80670"]    <-- NAMA PERSIS dari Get-Printer
+#   AgentPath  = /api/monitoring-cetak/agent
+```
+
+Untuk KONICA MINOLTA (driver Windows): buat token kedua untuk mesin KONICA,
+buat config kedua (mis. `agent.config.mi.json`) dengan
+`Printers=["<NAMA PERSIS KONICA>"]`, daftarkan Scheduled Task terpisah
+`OrionMonitorAgent-KONICA`. Satu agent tidak bisa memakai dua token;
+satu agent boleh `Printers` lebih dari satu bila token sama untuk semua
+mesin di PC itu (tidak disarankan).
+
+## Contoh: PC 192.168.1.149 (FLORA OUTDOOR — hotfolder RIP)
+
+FLORA OUTDOOR menerima pekerjaan lewat **hotfolder**, bukan Windows spooler,
+jadi agent spooler tidak akan melihat apa pun. Gunakan `OrionHotfolderAgent.ps1`:
+
+```powershell
+.\install-agent.ps1   # dan daftarkan OrionHotfolderAgent.ps1 sebagai Scheduled Task
+# ATAU buat Scheduled Task sendiri yang menjalankan OrionHotfolderAgent.ps1
+# isi agent.config.json:
+#   Server     = http://192.168.1.26
+#   Token      = <token mesin FLORA OUTDOOR>
+#   Printers   = ["FLORA OUTDOOR"]
+#   HotPath    = "C:\\RIP\\IN"   <-- GANTI dengan hotfolder RIP yang sebenarnya
+#   AgentPath  = /api/monitoring-cetak/agent
+```
+
+`HotPath` harus PERSIS folder hotfolder RIP di PC itu (tanyakan ke operator
+RIP; bukan folder proofing). File yang ditahan RIP saat diproses dikontrol
+`SettleSeconds` (default 15 detik — file harus stabil dulu sebelum dilaporkan).
+
+## Contoh: PC 192.168.18.4 (CENTURY) — BEDA SUBNET
+
+`192.168.18.4` **tidak merespons** ping/port apa pun dari subnet ini
+(192.168.1.x/.26). Artinya agent yang terpasang di sana tetap harus mengakses
+ERP di `192.168.1.26`; dari sini kita tidak bisa mengetes. Yang bisa dilakukan:
+
+1. Pasang folder ini di PC CENTURY (USB/network) — langkahnya sama seperti PC
+   lain.
+2. Pastikan `Test-NetConnection 192.168.1.26 -Port 80` dari PC CENTURY OK
+   (koneksi jaringan antara subnet 192.168.18.x dan 192.168.1.x).
+3. Jika tidak terjangkau, naikkan ke administrator jaringan — tidak bisa
+   diselesaikan dari sisi aplikasi.
+
 
 ## Konfigurasi (agent.config.json)
 
