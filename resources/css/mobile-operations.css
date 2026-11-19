@@ -81,6 +81,24 @@
  .pwa-ops-page .pwa-ops-row >td.pwa-ops-movement{grid-area:movement}
  .pwa-ops-page .pwa-ops-row .pwa-ops-note .catatan-isi{overflow-wrap:anywhere}
  .pwa-ops-page .pwa-ops-row >td.pwa-ops-actions [title]{touch-action:manipulation}
+ /* Manajemen Pengguna: kartu per akun (bukan tabel padat) - Role/Akses dan
+    tombol Keamanan selalu kelihatan; kolom # disembunyikan. */
+ .pwa-ops-table--users thead{display:none}
+ .pwa-ops-table--users{min-width:0}
+ .pwa-ops-table--users tbody{display:block;width:100%;min-width:0}
+ .pwa-ops-table--users tbody tr.pwa-ops-row{display:grid;grid-template-columns:1fr auto;grid-template-areas:"username username" "karyawan karyawan" "role status" "actions actions";gap:8px 12px;margin-bottom:10px;padding:13px 12px;border:1px solid var(--brand-surface-border,var(--border-primary,#e2e8f0));border-radius:14px;background:var(--brand-surface-primary,var(--surface-primary,#fff));box-shadow:0 3px 12px rgb(15 23 42 / 4%);width:100%;min-width:0}
+ .pwa-ops-table--users .pwa-ops-cell{display:block;width:auto;min-width:0;padding:0;border:0;text-align:left;white-space:normal;overflow-wrap:anywhere;line-height:1.35;font-size:13px;color:var(--brand-surface-text,var(--text-primary,#0f172a))}
+ .pwa-ops-table--users .pwa-ops-cell.pwa-ops-seq{display:none}
+ .pwa-ops-table--users .pwa-ops-username{grid-area:username;font-size:14px;font-weight:700}
+ .pwa-ops-table--users .pwa-ops-karyawan{grid-area:karyawan}
+ .pwa-ops-table--users .pwa-ops-role{grid-area:role;align-self:center;justify-self:start}
+ .pwa-ops-table--users .pwa-ops-role::before{display:none}
+ .pwa-ops-table--users .pwa-ops-ustatus{grid-area:status;align-self:center;justify-self:end}
+ .pwa-ops-table--users .pwa-ops-ustatus::before{display:none}
+ .pwa-ops-table--users .pwa-ops-actions{grid-area:actions;border-top:1px solid var(--brand-surface-border,var(--border-primary,#e2e8f0));padding-top:9px}
+ .pwa-ops-table--users .pwa-ops-actions::before{display:none}
+ .pwa-ops-table--users .pwa-ops-actions > div{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px}
+ .pwa-ops-table--users .pwa-ops-actions > div > *{min-width:44px;min-height:44px}
  /* Kontras kartu gelap: teks abu-abu (slate) di dalam kartu operasional
     dipetakan ke token terang agar nilai transaksi/pesanan tetap terbaca. */
  .pwa-ops-row :is(.text-slate-200,.text-slate-300,.text-slate-400,.text-slate-500,.text-slate-600,.text-slate-700){color:var(--brand-surface-text_secondary,var(--text-secondary,#cbd5e1))}
@@ -102,6 +120,12 @@ html.dark .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-caret{color:var(--text-t
 html.dark .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle{color:var(--accent-primary,var(--brand-accent-dark))}
 html.dark .pwa-ops-page .pwa-ops-filter--active .pwa-ops-filter-toggle > span::after{background:var(--accent-primary,var(--brand-accent-dark))}
 html.dark .pwa-ops-page .pwa-ops-filter .pwa-ops-filter-actions{border-top-color:var(--border-primary,#3F4F47)}
+
+/* Manajemen Pengguna - kartu mengikuti token gelap (bukan tetap putih). */
+html.dark .pwa-ops-table--users tbody tr.pwa-ops-row{background:var(--surface-secondary,#2A3731);border-color:var(--border-primary,#3F4F47);box-shadow:0 3px 12px rgb(0 0 0 / 30%)}
+html.dark .pwa-ops-table--users .pwa-ops-cell{color:var(--text-secondary,#C9D6CE)}
+html.dark .pwa-ops-table--users .pwa-ops-username{color:var(--text-primary,#F1F5F1)!important}
+html.dark .pwa-ops-table--users .pwa-ops-ustatus::before{color:var(--text-tertiary)}
 
 /* Dark mode: pastikan label form tidak pucat berlebihan */
 html.dark .pwa-ops-page label,

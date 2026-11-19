@@ -107,7 +107,14 @@
 - **npm audit:** `npm audit` = **0 vulnerabilities** di HEAD saat ini
   (dependensi sudah di-bump oleh commit `6124d8c5`; axios di lock sudah di atas
   rentang advisory). `composer audit` juga bersih.
-- **P2 #3 (manajemen pengguna 390px padat) belum ditangani** — masih terbuka;
-  sengaja tidak ditumpuk di patch ini.
+- **P2 — Manajemen Pengguna 390px: tabel padat → kartu per akun.** Setiap baris
+  kini satu kartu: username, nama karyawan, Role/Akses dan Status terlihat
+  penuh, aksi Keamanan (hak akses, edit, aktifkan/non-aktifkan, hapus) di baris
+  tombol 44px+ terpisah — tidak ada lagi kolom terpotong. Diekspor lewat pola
+  yang sama dengan kartu kasir (`pwa-ops-row`), scope khusus `--users`, tanpa
+  mengubah tampilan desktop (viewport >=768px, tabel asli) dan tanpa sentuh
+  rute/izin. Bukti gelap & terang:
+  `assets/pwa-mobile-phase2/users-390-card-dark.png`,
+  `assets/pwa-mobile-phase2/users-390-card.png`.
 - **Belum diresolve (prasarana, di luar scope):** screenshot 768/1024, matrix
   lintas-role, CI PR #21, interaksi E2E.

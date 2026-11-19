@@ -12,7 +12,7 @@
         </x-slot:actions>
     </x-page-header>
 
-    <x-table>
+    <x-table class="pwa-ops-table pwa-ops-table--users">
         <thead>
             <tr>
                 <th class="px-4 py-5 text-center w-10">#</th>
@@ -25,23 +25,23 @@
         </thead>
         <tbody class="divide-y divide-slate-50">
             @foreach($users as $i => $u)
-            <tr class="hover:bg-slate-50/50 transition-all" @if($u->is_active === 0) style="opacity:0.65" @endif>
-                <td class="px-4 py-5 text-center text-[11px] text-slate-400">{{ $i + 1 }}</td>
-                <td class="px-6 py-5">
+            <tr class="pwa-ops-row hover:bg-slate-50/50 transition-all" @if($u->is_active === 0) style="opacity:0.65" @endif>
+                <td class="pwa-ops-cell pwa-ops-seq px-4 py-5 text-center text-[11px] text-slate-400" data-label="#">{{ $i + 1 }}</td>
+                <td class="pwa-ops-cell pwa-ops-username px-6 py-5" data-label="Username">
                     <span class="text-[13px] @if($u->is_active === 0) text-slate-400 @else text-indigo-600 @endif font-medium">{{ '@' . $u->username }}</span>
                 </td>
-                <td class="px-4 py-5">
+                <td class="pwa-ops-cell pwa-ops-karyawan px-4 py-5" data-label="Nama Karyawan">
                     <div class="text-[13px] font-medium text-slate-700 uppercase">{{ $u->karyawan->nama_karyawan }}</div>
                     <div class="text-[10px] text-slate-400">{{ $u->karyawan->bagian }}</div>
                 </td>
-                <td class="px-4 py-5">
+                <td class="pwa-ops-cell pwa-ops-role px-4 py-5" data-label="Role / Akses">
                     <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
                         <i class="fas fa-shield-alt mr-1.5"></i> {{ $u->role->nama_role }}
                     </span>
                 </td>
                 {{-- Status akun: aktif = bisa login; non-aktif = karyawan resign / akun tidak dipakai.
                      Bedanya dengan hapus: riwayat transaksi TETAP UTUH di akun yang non-aktif. --}}
-                <td class="px-4 py-5 text-center">
+                <td class="pwa-ops-cell pwa-ops-ustatus px-4 py-5 text-center" data-label="Status">
                     @if($u->is_active === 0)
                     <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-wider bg-rose-50 text-rose-500 border border-rose-100">
                         <i class="fas fa-user-slash mr-1.5"></i> Non-aktif
@@ -52,8 +52,8 @@
                     </span>
                     @endif
                 </td>
-                <td class="px-8 py-5 text-right">
-                    <div class="flex justify-end gap-2">
+                <td class="pwa-ops-cell pwa-ops-actions px-8 py-5 text-right" data-label="Keamanan">
+                    <div class="flex flex-wrap justify-end gap-2">
                         @if(optional(auth()->user()->role)->nama_role === 'Administrator')
                         <x-button href="{{ route('akses.user', $u->id_user) }}" size="icon" variant="ghost" class="border border-slate-100 hover:text-indigo-600" title="Hak Akses per modul (lihat/tambah/kelola/hapus)">
                             <i class="fas fa-user-lock text-sm"></i>
