@@ -20,15 +20,15 @@ param(
     [string]$Token = '',
     [string[]]$Printers = @(),
     [string]$AgentPath = '/api/monitoring-cetak/agent',
-    [string]$InstallDir = (Join-Path $env:ProgramFiles 'OrionMonitor')
+    [string]$InstallDir = (Join-Path $env:SystemDrive 'OrionMonitor')
 )
 
 $ErrorActionPreference = 'Stop'
 Write-Host '=== ORION Monitor Agent (ERP) - Instalasi ===' -ForegroundColor Cyan
 
 if (-not $Server) {
-    $Server = Read-Host 'URL server ERP (mis. http://192.168.1.26)'
-    if (-not $Server) { $Server = 'http://192.168.1.26' }
+    $Server = Read-Host 'URL base ERP lengkap, mis. http://192.168.1.26/grafikaorionV2'
+    if (-not $Server) { $Server = 'http://192.168.1.26/grafikaorionV2' }
 }
 if (-not $Token) {
     $Token = Read-Host 'Token agent (dari php artisan monitoring-cetak:create-agent)'

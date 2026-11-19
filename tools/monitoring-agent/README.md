@@ -4,6 +4,14 @@ Tanggal: 19 November 2026
 Scope: tools/monitoring-agent/ (repo `percetakan-app`)
 Referensi: `docs/reviews/MONITORING_CETAK_ERP.md`
 
+CATATAN PENTING: `Server` = **base URL ERP lengkap**, mis.
+`http://192.168.1.26/grafikaorionV2` — bukan hanya IP. Path agent
+(`AgentPath`) ditempel di belakang Server.
+
+Instalasi default memakai `C:\OrionMonitor` (TANPA spasi di path). Git-bash /
+installer versi lama memakai `Program Files` yang memutus argumen `-File`
+pada Task Scheduler SYSTEM; jangan dipakai.
+
 Dua jenis agent disertakan, pilih sesuai cara mesin menerima pekerjaan:
 
 | File | Untuk | Cara kerja |
@@ -50,7 +58,7 @@ php artisan monitoring-cetak:create-agent <monitoring_mesin_id> --nama="PC-PRODU
 # 3. Di PC itu, PowerShell SEBAGAI ADMINISTRATOR, folder tools\monitoring-agent:
 .\install-agent.ps1                                # mode interaktif (tanya Server/Token/Printers)
 # ATAU non-interaktif:
-.\install-agent.ps1 -Server http://<host-erp> -Token <token> -Printers 'EPSON SC-S80670'
+.\install-agent.ps1 -Server http://<host-erp>/<subpath-erp> -Token <token> -Printers 'EPSON SC-F7200 Series Comm Driver'
 ```
 
 Verifikasi (PC mana pun di LAN, atau browser): buka

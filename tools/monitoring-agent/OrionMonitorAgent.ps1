@@ -23,10 +23,15 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$ConfigPath = (Join-Path $PSScriptRoot 'agent.config.json')
+    [string]$ConfigPath = $null
 )
 
 $ErrorActionPreference = 'Stop'
+# $PSScriptRoot kosong bila dipanggil lewat Task Scheduler SYSTEM pada beberapa
+# kondisi; fallback ke path absolut di drive sistem.
+if (-not $ConfigPath) {
+    $ConfigPath = Join-Path $env:SystemDrive 'OrionMonitor\agent.config.json'
+}
 $LogDir = Join-Path $env:ProgramData 'OrionMonitor'
 $LogFile = Join-Path $LogDir 'agent.log'
 

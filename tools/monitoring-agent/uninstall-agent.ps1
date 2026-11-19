@@ -11,7 +11,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $taskName = 'OrionMonitorAgent'
-$installDir = Join-Path $env:ProgramFiles 'OrionMonitor'
+$installDir = Join-Path $env:SystemDrive 'OrionMonitor'
 
 $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
 if ($existing) {
