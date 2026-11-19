@@ -92,12 +92,35 @@ class KelolaKasFilterTest extends TestCase
             ->assertSee('name="tgl_dari"', false)
             ->assertSee('name="tgl_sampai"', false)
             ->assertSee('name="konsumen"', false)
-            ->assertSee('Dari tanggal')
-            ->assertSee('Sampai tanggal')
+            ->assertSee('for="filter-tgl-dari"', false)
+            ->assertSee('for="filter-tgl-sampai"', false)
             ->assertSee('Cari nama konsumen')
             // Sesi dan pintasan laporan berbagi satu blok.
             ->assertSee('Sesi kas')
             ->assertSee('Laporan Riwayat Closing');
+    }
+
+    public function test_tanggal_default_hari_ini(): void
+    {
+        $idSesi = DB::table('kas_harian')->insertGetId([
+            'tgl_kas' => '2026-11-19', 'id_user' => $this->kasir->id_user,
+            'saldo_awal' => 100000, 'saldo_akhir' => 100000,
+            'status_lock' => 'open',
+            'created_at' => '2026-11-19 09:00:00', 'updated_at' => '2026-11-19 09:00:00',
+        ]);
+        DB::table('kas_manual')->insert([
+            'id_kas' => $idSesi, 'waktu' => '2026-11-19 09:30:00',
+            'keterangan' => 'Beli galon', 'status' => 'Masuk', 'nominal' => 50000,
+            'id_user' => $this->kasir->id_user,
+            'created_at' => '2026-11-19 09:30:00', 'updated_at' => '2026-11-19 09:30:00',
+        ]);
+
+        $this->kelola()
+            ->assertOk()
+            // Kedua input terisi hari ini.
+            ->assertSee('value="2026-11-19"', false)
+            ->assertSee('Uang Masuk Hari Ini')
+            ->assertSee('Kas Tidak Terduga Hari Ini');
     }
 
     public function test_rentang_tanggal_membatasi_baris(): void

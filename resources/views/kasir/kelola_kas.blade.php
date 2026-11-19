@@ -97,21 +97,8 @@
 @endphp
 
 {{-- SESI + LAPORAN - satu blok dua kolom.
-     Kiri: status sesi kas yang sedang berjalan (pemilik, mulai, laci awal).
-     Kanan: pintasan Laporan Riwayat Closing. Keduanya adalah "pintu" halaman
-     ini, jadi digabung supaya tidak ada dua kartu penuh yang bersaing di
-     atas layar. Di layar sempit keduanya menumpuk (satu kolom).
-
-     Riwayat TIDAK didaftar di sini. Halaman ini sudah memuat mutasi
-     pembayaran dan mutasi kas tidak terduga untuk sesi berjalan; ditambah
-     riwayat closing, halamannya jadi panjang dan kedua tabel saling
-     menggeser. Laporan Kas yang punya filter tanggal, paginasi, dan tombol
-     print per sesi adalah tempat yang tepat - satu klik dari sini.
-
-     Sejak 19 Nov 2026 laporan closing TIDAK langsung terbuka: tombol ini
-     menuju gerbang password Administrator (laporan/kas/gerbang), dan
-     parameter tanggal/status diteruskan supaya setelah dibuka langsung
-     mendarat di riwayat closing 30 hari terakhir. --}}
+     Riwayat closing tidak didaftar di sini; hanya pintasannya ke gerbang
+     password Administrator (laporan/kas/gerbang). --}}
 <div class="mb-4 grid grid-cols-1 overflow-hidden rounded-xl border border-slate-200 bg-white divide-y divide-slate-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
     {{-- Kolom 1: sesi kas --}}
     <div class="px-5 py-4 {{ $kasAktif && $kasBasi ? 'bg-amber-50' : '' }}">
@@ -142,10 +129,7 @@
                     </div>
                 @else
                     <p class="mt-1 text-sm font-medium text-slate-800">Belum dibuka</p>
-                    <p class="mt-0.5 text-xs text-slate-500 leading-relaxed">
-                        Belum ada sesi kas yang berjalan. Buka saldo kasir lewat tombol di kanan atas
-                        untuk mulai mencatat uang masuk hari ini.
-                    </p>
+                    <p class="mt-0.5 text-xs text-slate-500 leading-relaxed">Buka saldo kasir di kanan atas.</p>
                 @endif
             </div>
         </div>
@@ -161,8 +145,7 @@
                 <p class="text-[11px] font-medium uppercase tracking-wide text-slate-400">Laporan</p>
                 <p class="mt-1 text-sm font-medium text-slate-800">Laporan Riwayat Closing</p>
                 <p class="mt-0.5 text-xs text-slate-500 leading-relaxed">
-                    Rekap harian yang sudah tutup, lengkap dengan pilihan cetak A4 dan thermal -
-                    dibuka dengan password Administrator.
+                    Rekap yang sudah tutup. Butuh password Administrator.
                 </p>
             </div>
         </div>
@@ -173,29 +156,17 @@
     </div>
 </div>
 
-{{-- FILTER RIWAYAT - rentang tanggal, nama konsumen, metode pembayaran.
-     GET murni: hasil bisa dibagikan/disimpan sebagai tautan, tanpa JS.
-     Date range dipakai karena rekonsiliasi hampir selalu "minggu ini" atau
-     "bulan lalu", bukan satu hari. Pencarian konsumen membantu saat nota
-     pelanggan harus ditelusuri tanpa tahu tanggalnya. --}}
+{{-- FILTER - rentang tanggal, konsumen, metode. GET saja. Default: hari ini. --}}
 @php
-    $adaPeriode = $tglDari !== null || $tglSampai !== null;
-    $adaFilter = $adaPeriode || $konsumenValid !== null || $metodeValid !== null;
+    $adalahHariIni = $tglDari === $hari_ini && $tglSampai === $hari_ini;
+    $adaFilter = ! $adalahHariIni || $konsumenValid !== null || $metodeValid !== null;
     $tglLabel = fn ($t) => \Carbon\Carbon::parse($t)->translatedFormat('d M Y');
-    if ($tglDari !== null && $tglSampai !== null) {
-        $labelPeriode = $tglDari === $tglSampai
-            ? $tglLabel($tglDari)
-            : $tglLabel($tglDari) . ' – ' . $tglLabel($tglSampai);
-    } elseif ($tglDari !== null) {
-        $labelPeriode = 'sejak ' . $tglLabel($tglDari);
-    } elseif ($tglSampai !== null) {
-        $labelPeriode = 'sampai ' . $tglLabel($tglSampai);
-    } else {
-        $labelPeriode = null;
-    }
+    $labelPeriode = $adalahHariIni
+        ? 'Hari Ini'
+        : ($tglDari === $tglSampai ? $tglLabel($tglDari) : $tglLabel($tglDari) . ' – ' . $tglLabel($tglSampai));
 
     $bagianFilter = [];
-    if ($adaPeriode) {
+    if (! $adalahHariIni) {
         $bagianFilter[] = 'tanggal ' . $labelPeriode;
     }
     if ($konsumenValid !== null) {
@@ -209,17 +180,17 @@
     <form method="GET" action="{{ route('kasir.kelola') }}"
           class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
         <div class="lg:col-span-2">
-            <label for="filter-tgl-dari" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Dari tanggal</label>
+            <label for="filter-tgl-dari" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Dari</label>
             <input type="date" id="filter-tgl-dari" name="tgl_dari" value="{{ $tglDari }}"
                 class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
         </div>
         <div class="lg:col-span-2">
-            <label for="filter-tgl-sampai" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Sampai tanggal</label>
+            <label for="filter-tgl-sampai" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Sampai</label>
             <input type="date" id="filter-tgl-sampai" name="tgl_sampai" value="{{ $tglSampai }}"
                 class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
         </div>
         <div class="lg:col-span-3">
-            <label for="filter-konsumen" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Nama konsumen</label>
+            <label for="filter-konsumen" class="block text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-1">Konsumen</label>
             <div class="relative">
                 <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                     <i class="fas fa-magnifying-glass text-[11px]"></i>
@@ -344,12 +315,10 @@
 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
     <div class="px-5 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
         <div>
-            <h3 class="text-sm font-medium text-slate-900">
-                Uang Masuk {{ $labelPeriode ? ucfirst($labelPeriode) : 'Sesi Ini' }}
-            </h3>
+            <h3 class="text-sm font-medium text-slate-900">Uang Masuk {{ $labelPeriode }}</h3>
             <p class="text-xs text-slate-500 mt-0.5">
                 @if($adaFilter)
-                    {{ ucfirst(implode(' · ', $bagianFilter)) }} - rekap di atas ikut filter ini
+                    {{ ucfirst(implode(' · ', $bagianFilter)) }} · total ikut filter
                 @else
                     Pembayaran nota per metode bayar
                 @endif
@@ -456,7 +425,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="8"><x-empty-state title="{{ $adaFilter ? 'Tidak ada pembayaran yang cocok dengan filter ini.' : 'Belum ada uang masuk pada sesi kas ini.' }}" /></td></tr>
+            <tr><td colspan="8"><x-empty-state title="{{ $adaFilter ? 'Tidak ada pembayaran yang cocok.' : 'Belum ada uang masuk hari ini.' }}" /></td></tr>
             @endforelse
         </tbody>
     </x-table>
@@ -567,7 +536,7 @@ toggleBankKoreksi();
 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden mt-6">
     <div class="px-5 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
         <div>
-            <h3 class="text-sm font-medium text-slate-900">{{ 'Kas Tidak Terduga ' . ($labelPeriode ? ucfirst($labelPeriode) : 'Sesi Ini') }}</h3>
+            <h3 class="text-sm font-medium text-slate-900">Kas Tidak Terduga {{ $labelPeriode }}</h3>
             <p class="text-xs text-slate-500 mt-0.5">Uang tunai di luar nota: pengeluaran mendadak atau kas masuk lain</p>
         </div>
         <div class="flex flex-wrap gap-6">

@@ -835,27 +835,21 @@ class KasirController extends Controller
     {
         $hari_ini = date('Y-m-d');
         $kasAktif = KasSesiService::aktif();
-        $mulaiSesi = $kasAktif ? KasSesiService::mulai($kasAktif) : now()->startOfDay();
 
-        // Filter RENTANG TANGGAL: kasir mau melihat history pembayaran
-        // tanggal-tanggal sebelumnya (mis. menelusuri sesi yang sudah
-        // ditutup). ?tgl= lama tetap diterima sebagai rentang satu hari
-        // supaya bookmark/tautan lama tidak rusak. Tanggal tidak valid ->
-        // diabaikan, bukan error 500.
+        // Rentang tanggal default hari ini; ?tgl= lama tetap satu hari.
         $tglDari = $this->tanggalValid($request->query('tgl_dari'))
-            ?? $this->tanggalValid($request->query('tgl'));
+            ?? $this->tanggalValid($request->query('tgl'))
+            ?? $hari_ini;
         $tglSampai = $this->tanggalValid($request->query('tgl_sampai'))
             ?? $tglDari;
 
-        // Rentang terbalik dirapikan, bukan ditolak: operator sering
-        // mengetik tanggal akhir dulu.
-        if ($tglDari !== null && $tglSampai !== null && $tglDari > $tglSampai) {
+        // Rentang terbalik ditukar, bukan ditolak.
+        if ($tglDari > $tglSampai) {
             [$tglDari, $tglSampai] = [$tglSampai, $tglDari];
         }
 
-        // Filter PENCARIAN KONSUMEN: hanya nama (LIKE), bukan string mentah
-        // masuk ke query. Karakter wildcard di-escape supaya ketikan "%"
-        // tidak berubah jadi "tampilkan semua".
+        // Pencarian nama konsumen; wildcard di-escape agar "%" tidak
+        // menampilkan semua baris.
         $konsumenFilter = trim((string) $request->query('konsumen', ''));
         $konsumenValid = $konsumenFilter !== '' && mb_strlen($konsumenFilter) <= 60
             ? $konsumenFilter
@@ -920,18 +914,7 @@ class KasirController extends Controller
             // penggantinya tampil sebagai baris tersendiri dengan keterangan
             // "Koreksi metode (...)", jadi jangan dobel di rekap ini.
             ->whereNull('pembayaran_riwayat.voided_at')
-            // Filter rentang tanggal menggantikan batas "sejak sesi dibuka";
-            // bila tidak ada filter, perilaku lama tetap. Satu batas saja
-            // (mis. hanya "dari") tetap dihormati.
-            ->when($tglDari !== null || $tglSampai !== null, function ($q) use ($tglDari, $tglSampai) {
-                if ($tglDari !== null && $tglSampai !== null) {
-                    return $q->whereBetween('pembayaran_riwayat.tgl_bayar', [$tglDari . ' 00:00:00', $tglSampai . ' 23:59:59']);
-                }
-                if ($tglDari !== null) {
-                    return $q->where('pembayaran_riwayat.tgl_bayar', '>=', $tglDari . ' 00:00:00');
-                }
-                return $q->where('pembayaran_riwayat.tgl_bayar', '<=', $tglSampai . ' 23:59:59');
-            }, fn ($q) => $q->where('pembayaran_riwayat.tgl_bayar', '>=', $mulaiSesi))
+            ->whereBetween('pembayaran_riwayat.tgl_bayar', [$tglDari . ' 00:00:00', $tglSampai . ' 23:59:59'])
             ->when($konsumenLike !== null, fn ($q) => $q->where('konsumen.nama_konsumen', 'like', $konsumenLike))
             ->when($metodeValid !== null, fn ($q) => $q->where('pembayaran_riwayat.metode', $metodeValid))
             // Status turunan, bukan kolom salinan - supaya badge di daftar
@@ -949,20 +932,7 @@ class KasirController extends Controller
         // ada isinya untuk baris ini.
         $mutasiManual = DB::table('kas_manual')
             ->join('users', 'kas_manual.id_user', '=', 'users.id_user')
-            // Kas manual mengikuti filter rentang tanggal yang sama; tanpa
-            // filter = sesi berjalan (atau sejak awal hari saat tidak ada sesi).
-            ->when($tglDari !== null || $tglSampai !== null, function ($q) use ($tglDari, $tglSampai) {
-                if ($tglDari !== null && $tglSampai !== null) {
-                    return $q->whereBetween('kas_manual.waktu', [$tglDari . ' 00:00:00', $tglSampai . ' 23:59:59']);
-                }
-                if ($tglDari !== null) {
-                    return $q->where('kas_manual.waktu', '>=', $tglDari . ' 00:00:00');
-                }
-                return $q->where('kas_manual.waktu', '<=', $tglSampai . ' 23:59:59');
-            }, fn ($q) => $kasAktif
-                ? $q->where('kas_manual.id_kas', $kasAktif->id_kas)
-                : $q->where('kas_manual.waktu', '>=', $mulaiSesi),
-            )
+            ->whereBetween('kas_manual.waktu', [$tglDari . ' 00:00:00', $tglSampai . ' 23:59:59'])
             ->select('kas_manual.*', 'users.username as dicatat_oleh')
             ->orderBy('kas_manual.waktu', 'desc')
             ->get();
@@ -1000,6 +970,7 @@ class KasirController extends Controller
             'data_kas',
             'tglDari',
             'tglSampai',
+            'hari_ini',
             'konsumenValid',
             'metodeValid',
             'saldoRolling',
