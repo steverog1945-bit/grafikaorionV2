@@ -782,7 +782,7 @@
         $grpProduksiAktif = Request::is('bahan-baku', 'bahan-baku/*') || Request::is('kartu-stok', 'kartu-stok/*') || Request::is('stock-opname', 'stock-opname/*')
             || Request::is('pembelian-bahan', 'pembelian-bahan/*') || Request::is('kedatangan-bahan', 'kedatangan-bahan/*')
             || Request::is('purchase-request', 'purchase-request/*') || Request::is('purchase-order', 'purchase-order/*') || Request::is('qc', 'qc/*') || Request::is('waste', 'waste/*')
-            || request()->routeIs('spk.*') || request()->routeIs('produksi.*') || request()->routeIs('collecting.*')
+            || request()->routeIs('spk.*') || request()->routeIs('monitoring-cetak.*') || request()->routeIs('produksi.*') || request()->routeIs('collecting.*')
             || request()->routeIs('kategori.*') || Request::is('jenis-bahan', 'jenis-bahan/*') || Request::is('merk', 'merk/*')
             || Request::is('satuan', 'satuan/*') || Request::is('mesin', 'mesin/*') || Request::is('gudang', 'gudang/*');
     @endphp
@@ -873,6 +873,15 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
         <span class="text-sm font-medium">SPK</span>
+    </a>
+    @endif
+
+    @if($cekAkses(22))
+    <a href="{{ route('monitoring-cetak.index') }}" class="{{ $menuClass }} {{ request()->routeIs('monitoring-cetak.*') ? $activeClass : $nonActiveClass }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('monitoring-cetak.*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V6a2 2 0 012-2h6a2 2 0 012 2v10M5 16h14v1a2 2 0 01-2 2H7a2 2 0 01-2-2v-1zm2 4h10M12 2v2" />
+        </svg>
+        <span class="text-sm font-medium">Monitoring Cetak</span>
     </a>
     @endif
 

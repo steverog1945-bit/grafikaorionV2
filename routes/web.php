@@ -618,6 +618,12 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
     |--------------------------------------------------------------------------
     */
 
+    // Monitoring Cetak - pantau timing cetakan per mesin. Akses ikut menu
+    // SPK (22): tim produksi yang boleh membuka SPK juga boleh memantau mesin.
+    Route::get('/monitoring-cetak', [\App\Http\Controllers\MonitoringCetakController::class, 'index'])->name('monitoring-cetak.index');
+    Route::get('/monitoring-cetak/status', [\App\Http\Controllers\MonitoringCetakController::class, 'status'])
+        ->middleware('throttle:polling')->name('monitoring-cetak.status');
+
     Route::get('/spk', [SpkController::class, 'index'])->name('spk.index');
     Route::patch('/spk/{id}/urgent', [SpkController::class, 'toggleUrgent'])->name('spk.toggle-urgent');
     Route::post('/spk/bulk-urgent', [SpkController::class, 'bulkUrgent'])->name('spk.bulk-urgent');

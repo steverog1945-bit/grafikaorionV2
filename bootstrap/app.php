@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'sekali.jalan' => \App\Http\Middleware\SubmitSekaliJalan::class,
             'api.auth' => \App\Http\Middleware\ApiAuth::class,
             'api.rbac' => \App\Http\Middleware\ApiRbac::class,
+            'monitoring-cetak-agent' => \App\Http\Middleware\MonitoringCetakAgent::class,
         ]);
 
         // API eksternal masih tahap persiapan. Gate fail-closed hanya untuk

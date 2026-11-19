@@ -31,6 +31,15 @@ Route::prefix('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('api.auth.logout')->middleware('api.auth');
 });
 
+Route::prefix('monitoring-cetak/agent')->middleware(['monitoring-cetak-agent'])->group(function () {
+    // Agent spooler di PC produksi; terpisah dari RBAC API eksternal dan
+    // dari gate ApiPreparationGate (fail-closed oleh config monitoring_cetak).
+    Route::post('/hello', [\App\Http\Controllers\Api\MonitoringCetakAgentController::class, 'hello']);
+    Route::post('/event', [\App\Http\Controllers\Api\MonitoringCetakAgentController::class, 'event'])
+        ->middleware('throttle:120,1');
+    Route::post('/ping', [\App\Http\Controllers\Api\MonitoringCetakAgentController::class, 'ping']);
+});
+
 Route::middleware(['throttle:api', 'api.auth', 'api.rbac'])->group(function () {
     // Master data (read-only untuk API publik)
     Route::get('/konsumen', [ApiKonsumenController::class, 'index'])->name('api.konsumen.index');

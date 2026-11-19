@@ -108,6 +108,9 @@ return [
         'purchase-order' => [20, 55],
         'finishing' => [21],
         'spk' => [22],
+        // Monitoring Cetak ikut menu SPK (22): tim produksi yang boleh
+        // membuka SPK boleh memantau mesin + antreannya.
+        'monitoring-cetak' => [22],
         // SPK Desain (lengkap): operator desain / input order, tanpa perlu menu SPK produksi.
         'spk-desain' => [3, 22, 23, 41, 64],
         'produksi' => [23],
