@@ -218,6 +218,33 @@ class MonitoringCetakTest extends TestCase
         ]);
     }
 
+    public function test_halaman_menampilkan_instruksi_bukan_500_bila_migration_belum_dijalankan(): void
+    {
+        DB::statement('DROP TABLE IF EXISTS monitoring_events');
+        DB::statement('DROP TABLE IF EXISTS monitoring_agents');
+        DB::statement('DROP TABLE IF EXISTS monitoring_mesins');
+
+        $this->actingAs($this->produksi)
+            ->get(route('monitoring-cetak.index'))
+            ->assertOk()
+            ->assertSee('Tabel Monitoring Cetak belum dibuat')
+            ->assertSee('php artisan migrate --force', false);
+
+        $this->actingAs($this->produksi)
+            ->getJson(route('monitoring-cetak.status'))
+            ->assertStatus(503)
+            ->assertJsonPath('needs_migration', true);
+    }
+
+    public function test_deteksi_tabel_monitoring_tidak_ada(): void
+    {
+        $pdo = new \PDOException("SQLSTATE[42S02]: Base table or view not found: 1146 Table 'grafikaorionv2.monitoring_mesins' doesn't exist");
+        $e = new \Illuminate\Database\QueryException('mysql', 'select 1', [], $pdo);
+
+        $this->assertTrue(\App\Support\MonitoringCetakSchemaCheck::isMissingMonitoringTable($e));
+        $this->assertFalse(\App\Support\MonitoringCetakSchemaCheck::isMissingMonitoringTable(new \RuntimeException('beda')));
+    }
+
     public function test_status_json_berisi_antrean_dan_mesin(): void
     {
         $this->actingAs($this->produksi)

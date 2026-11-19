@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\MonitoringCetakQuery;
 use App\Services\MonitoringCetakService;
+use App\Support\MonitoringCetakSchemaCheck;
 
 /**
  * Monitoring Cetak - pantau timing cetakan tim produksi per mesin.
@@ -21,7 +22,18 @@ class MonitoringCetakController extends Controller
 
     public function index()
     {
-        $data = $this->payload();
+        try {
+            $data = $this->payload();
+        } catch (\Throwable $e) {
+            if (MonitoringCetakSchemaCheck::isMissingMonitoringTable($e)) {
+                // Migration belum dijalankan di environment ini -
+                // tampilkan instruksi, bukan error 500.
+                report($e);
+                return view('monitoring_cetak.pending_migration');
+            }
+            throw $e;
+        }
+
         $data['now'] = now()->toIso8601String();
 
         return view('monitoring_cetak.index', $data);
@@ -30,7 +42,17 @@ class MonitoringCetakController extends Controller
     /** Polling JSON (4 detik) - data sama seperti render pertama. */
     public function status()
     {
-        return response()->json($this->payload());
+        try {
+            return response()->json($this->payload());
+        } catch (\Throwable $e) {
+            if (MonitoringCetakSchemaCheck::isMissingMonitoringTable($e)) {
+                return response()->json([
+                    'message' => 'Monitoring Cetak belum dimigrasi di environment ini. Jalankan: php artisan migrate --force',
+                    'needs_migration' => true,
+                ], 503)->header('Cache-Control', 'no-store');
+            }
+            throw $e;
+        }
     }
 
     private function payload(): array
