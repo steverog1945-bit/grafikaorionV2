@@ -29,6 +29,8 @@ class MonitoringCetakTest extends TestCase
 
     private User $produksi;
     private User $kasir;
+    private User $operatorDesain;
+    private User $administrator;
     private int $idMesinErp;
     private int $idMonitoringMesin;
 
@@ -48,8 +50,23 @@ class MonitoringCetakTest extends TestCase
         $roleKasir = Role::factory()->create(['nama_role' => 'Kasir']);
         $this->kasir = User::factory()->create(['id_role' => $roleKasir->id_role]);
 
+        // Operator Desain (input-order menus 41/42) diperbolehkan owner
+        // membuka Monitoring Cetak supaya bisa memantau timing cetak item
+        // miliknya di lantai produksi.
+        $roleDesain = Role::factory()->create(['nama_role' => 'Operator Desain']);
+        $this->operatorDesain = User::factory()->create(['id_role' => $roleDesain->id_role]);
+
+        $roleAdmin = Role::factory()->create(['nama_role' => 'Administrator']);
+        $this->administrator = User::factory()->create(['id_role' => $roleAdmin->id_role]);
+
         DB::table('menus')->insertOrIgnore(['id_menu' => 22, 'nama_menu' => 'SPK', 'url_link' => 'spk', 'parent_id' => 0]);
-        DB::table('role_permissions')->insert(['id_role' => $roleProduksi->id_role, 'id_menu' => 22]);
+        DB::table('menus')->insertOrIgnore(['id_menu' => 41, 'nama_menu' => 'Kasir Utama (Input Order)', 'url_link' => 'penjualan-input-order', 'parent_id' => 0]);
+        DB::table('menus')->insertOrIgnore(['id_menu' => 42, 'nama_menu' => 'Order Jersey (Input Order)', 'url_link' => 'jersey-input-order', 'parent_id' => 0]);
+        DB::table('role_permissions')->insert([
+            ['id_role' => $roleProduksi->id_role, 'id_menu' => 22],
+            ['id_role' => $roleDesain->id_role, 'id_menu' => 41],
+            ['id_role' => $roleDesain->id_role, 'id_menu' => 42],
+        ]);
 
         $this->idMesinErp = DB::table('mesin')->insertGetId(['nama_mesin' => 'EPSON S80670', 'tipe_mesin' => 'Digital']);
 
@@ -94,6 +111,26 @@ class MonitoringCetakTest extends TestCase
     public function test_halaman_dibatasi_menu_spk(): void
     {
         $this->actingAs($this->kasir)->get(route('monitoring-cetak.index'))->assertForbidden();
+    }
+
+    public function test_operator_desain_boleh_membuka(): void
+    {
+        $this->actingAs($this->operatorDesain)
+            ->get(route('monitoring-cetak.index'))
+            ->assertOk()
+            ->assertSee('Monitoring Cetak');
+    }
+
+    public function test_administrator_selalu_boleh_tanpa_menu(): void
+    {
+        // Administrator bypass menu.access otomatis (Izin::bolehPath) -
+        // walaupun operator yang mengelola hak akses tidak menyisakan
+        // satu pun grant untuk role-nya.
+        DB::table('role_permissions')->where('id_role', $this->administrator->id_role)->delete();
+
+        $this->actingAs($this->administrator)
+            ->get(route('monitoring-cetak.index'))
+            ->assertOk();
     }
 
     public function test_halaman_muat_untuk_tim_produksi(): void

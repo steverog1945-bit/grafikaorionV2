@@ -28,6 +28,9 @@ Modul `monitoring-cetak` di dalam ERP — halaman `/monitoring-cetak` plus agent
   amber/rose yang sama dengan halaman lain; menu "Monitoring Cetak" di grup
   Produksi & Logistik, aktif bila menu SPK (22) aktif (view + `menu_access`).
 - Polling JSON tiap 4 detik ke `monitoring-cetak.status` (middleware `polling`).
+- **Akses**: menu SPK (22) untuk tim produksi, menu input-order Operator Desain
+  (41 / 42) — dikonfirmasi owner 19 Nov 2026 — dan **Administrator selalu lolos**
+  (bypass otomatis di `Izin::bolehPath`, tidak perlu grant).
 - Tabel `monitoring_mesins/agents/events` (migration aditif, tidak ada tabel ERP
   yang diubah).
 - **Fail-closed**: `/api/monitoring-cetak/agent/*` (hello/event/ping) hanya

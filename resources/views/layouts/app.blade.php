@@ -876,7 +876,8 @@
     </a>
     @endif
 
-    @if($cekAkses(22))
+    @php $pantauCetak = $cekAkses(22) || $cekAkses(41) || $cekAkses(42); @endphp
+    @if($pantauCetak)
     <a href="{{ route('monitoring-cetak.index') }}" class="{{ $menuClass }} {{ request()->routeIs('monitoring-cetak.*') ? $activeClass : $nonActiveClass }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }} {{ request()->routeIs('monitoring-cetak.*') ? $iconActive : $iconNonActive }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V6a2 2 0 012-2h6a2 2 0 012 2v10M5 16h14v1a2 2 0 01-2 2H7a2 2 0 01-2-2v-1zm2 4h10M12 2v2" />
