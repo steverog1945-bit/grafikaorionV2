@@ -63,6 +63,22 @@ class JerseyOrder extends Model
         return $this->belongsTo(User::class, 'id_desainer', 'id_user');
     }
 
+    /**
+     * Nama desainer yang terlihat di UI: COALESCE(karyawan.nama_karyawan, users.username)
+     * - pola yang sama dipakai daftar desainer (DesainKomisiService). Tanpa ini,
+     *   di print nota/SPK "nama" tidak pernah ada -> selalu fallback ke designer_name
+     *   (master desainer lama) atau '-'.
+     */
+    public function getDesainerNamaAttribute(): ?string
+    {
+        $u = $this->relationLoaded('desainer') ? $this->desainer : null;
+        if (! $u) {
+            return $this->designer_name;
+        }
+
+        return optional($u->karyawan)->nama_karyawan ?? $u->username ?? $u->designer_name ?? $this->designer_name;
+    }
+
     public function lines()
     {
         return $this->hasMany(JerseyOrderLine::class, 'jersey_order_id');

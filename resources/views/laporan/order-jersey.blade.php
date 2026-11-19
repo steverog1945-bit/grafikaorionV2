@@ -196,7 +196,7 @@
                 <span class="font-medium text-slate-800">{{ $o->order_number }}</span>
                 @if($o->team_name) &middot; Tim {{ $o->team_name }} @endif
                 &middot; Konsumen: {{ $o->konsumen->nama_konsumen ?? $o->customer_name ?? '-' }}
-                &middot; Desainer: {{ $o->desainer?->nama ?? $o->designer->name ?? $o->designer_name ?? '-' }}
+                &middot; Desainer: {{ $o->desainerNama ?? $o->designer->name ?? $o->designer_name ?? '-' }}
                 &middot; Tanggal: {{ \Carbon\Carbon::parse($o->order_date)->format('d/m/Y') }}
                 @if($o->deadline) &middot; Deadline: {{ \Carbon\Carbon::parse($o->deadline)->format('d/m/Y') }} @endif
                 &middot; Status: {{ $o->status_pembayaran }}
@@ -258,7 +258,7 @@
                 </div>
                 <p class="text-[12px] text-slate-500 mt-1.5">
                     <span class="font-medium text-slate-700">{{ $o->konsumen->nama_konsumen ?? $o->customer_name ?? '-' }}</span>
-                    &middot; Desainer: {{ $o->desainer?->nama ?? $o->designer->name ?? $o->designer_name ?? '-' }}
+                    &middot; Desainer: {{ $o->desainerNama ?? $o->designer->name ?? $o->designer_name ?? '-' }}
                 </p>
                 <p class="text-[11px] text-slate-400 mt-0.5">
                     {{ \Carbon\Carbon::parse($o->order_date)->translatedFormat('d M Y') }}

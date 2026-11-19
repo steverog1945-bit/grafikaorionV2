@@ -49,7 +49,7 @@
                 <div><p class="text-[10px] text-slate-400 uppercase font-medium">Tim</p><p class="font-medium">{{ $order->team_name ?? '-' }}</p></div>
                 <div><p class="text-[10px] text-slate-400 uppercase font-medium">Tanggal Order</p><p class="font-medium">{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</p></div>
                 <div><p class="text-[10px] text-slate-400 uppercase font-medium">Deadline</p><p class="font-medium">{{ $order->deadline ? \Carbon\Carbon::parse($order->deadline)->format('d/m/Y') : '-' }}</p></div>
-                <div><p class="text-[10px] text-slate-400 uppercase font-medium">Desainer</p><p class="font-medium">{{ $order->desainer?->nama ?? $order->designer_name ?? '-' }}@if($order->file_siap_cetak) <span class="text-[10px] text-emerald-600">(file siap cetak)</span>@endif</p></div>
+                <div><p class="text-[10px] text-slate-400 uppercase font-medium">Desainer</p><p class="font-medium">{{ $order->desainerNama ?? '-' }}@if($order->file_siap_cetak) <span class="text-[10px] text-emerald-600">(file siap cetak)</span>@endif</p></div>
             </div>
             @if($order->notes)
                 <div class="mt-4 p-3 bg-slate-50 rounded-xl text-xs text-slate-500">{{ $order->notes }}</div>
@@ -302,6 +302,11 @@
     <x-hint tip="Barang lama pada order ini tidak akan berubah/terhapus - cocok untuk kasus qty/jenis barang bertambah setelah order awal berjalan (mis. panitia bertambah, butuh jersey tambahan)." icon="box-open" />
         <form id="form-tambah-susulan" action="{{ route('jersey.orders.lines.susulan', $order->id) }}" method="POST">
             @csrf
+            {{-- id_konsumen dibawa supaya preview-harga bisa menemukan golongan
+                 konsumen (tier Retail/Member) - tanpa ini, selalu jatuh ke tier
+                 id_golongan NULL yang tidak ada di master, sehingga jersey
+                 dihitung Rp 0 di modal ini. --}}
+            <input type="hidden" name="id_konsumen" value="{{ $order->id_konsumen }}">
             <div class="jersey-line-card bg-slate-50/60 rounded-2xl border border-slate-200 overflow-hidden mb-5" data-prefix="lines[0]">
                 @include('jersey.orders._line-card-fields', ['idx' => 0, 'line' => null, 'productTypes' => $productTypes, 'categories' => $categories, 'materials' => $materials, 'sizes' => $sizes, 'sleeveTypes' => $sleeveTypes, 'collarTypes' => $collarTypes])
             </div>
