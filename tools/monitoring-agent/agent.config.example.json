@@ -1,0 +1,10 @@
+{
+  "Server": "http://192.168.1.26",
+  "Token": "TEMPEL_TOKEN_AGENT_DARI_SERVER_DI_SINI",
+  "Printers": [
+    "EPSON SC-S80670"
+  ],
+  "AgentPath": "/api/monitoring-cetak/agent",
+  "PollSeconds": 2,
+  "HeartbeatSeconds": 30
+}
