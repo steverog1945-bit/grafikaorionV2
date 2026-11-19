@@ -1,0 +1,9 @@
+# Konfigurasi agent (plain key=value) - lihat isto install-agent-win7.ps1.
+# Server adalah base URL ERP lengkap, BUKAN hanya IP/host.
+# Token diciptakan dari server ERP (php artisan monitoring-cetak:create-agent <id_mesin> --nama=PC-XX)
+Server=http://192.168.1.26/grafikaorionV2
+Token=TEMPEL_TOKEN_AGENT_DI_SINI
+Printers=EPSON SC-F7200 Series Comm Driver
+AgentPath=/api/monitoring-cetak/agent
+PollSeconds=2
+HeartbeatSeconds=30

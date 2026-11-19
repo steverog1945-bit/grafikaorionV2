@@ -16,7 +16,7 @@ Dua jenis agent disertakan, pilih sesuai cara mesin menerima pekerjaan:
 
 | File | Untuk | Cara kerja |
 | --- | --- | --- |
-| `OrionMonitorAgent.ps1` | Mesin cetak lewat **Windows spooler** (driver printer dipasang di PC) | `Get-PrintJob`, event started/completed + heartbeat |
+| `OrionMonitorAgent.ps1` | Mesin cetak lewat **Windows spooler** (driver printer dipasang di PC) | `Win32_PrintJob` via WMI, event started/completed + heartbeat |
 | `OrionHotfolderAgent.ps1` | Mesin cetak lewat **hotfolder RIP** (Onyx/Flexi/dll; file di-drop ke folder, RIP yang mengolah) | memantau file masuk/hilang di `HotPath`, event started/completed + heartbeat |
 
 ## Apa ini
@@ -66,7 +66,7 @@ Verifikasi (PC mana pun di LAN, atau browser): buka
 <1 menit setelah task terdaftar; **CETAK** saat job muncul di spooler.
 
 Log agent: `%ProgramData%\OrionMonitor\agent.log`
-Status task: `Get-ScheduledTask -TaskName OrionMonitorAgent`
+Status task: `schtasks /query /tn OrionMonitorAgent /v`
 
 ## Contoh: PC 192.168.1.17 (INDOOR + KONICA)
 
@@ -75,18 +75,18 @@ INDOOR = EPSON SureColor S80670 (print share
 KONICA MINOLTA = printer Windows terpasang lokal (tidak perlu dishare). Di PC ini:
 
 ```powershell
-# Cek nama PERSIS printer Windows:
-Get-Printer | Format-Table Name, DriverName, PortName
-# lalu tulis agent.config.json:
+# Cek nama PERSIS printer Windows (Win7 — via WMI)
+Get-WmiObject Win32_Printer | Format-Table Name, DriverName, PortName -AutoSize
+# lalu tulis agent.config (key=value; lihat contoh di agent.config.example):
 #   Server     = http://192.168.1.26/grafikaorionV2
 #   Token      = <token mesin INDOOR-EPSON>
-#   Printers   = ["EPSON SC-S80670"]    <-- NAMA PERSIS dari Get-Printer
+#   Printers   = EPSON SC-S80670   <-- NAMA PERSIS dari WMI
 #   AgentPath  = /api/monitoring-cetak/agent
 ```
 
 Untuk KONICA MINOLTA (driver Windows): buat token kedua untuk mesin KONICA,
-buat config kedua (mis. `agent.config.mi.json`) dengan
-`Printers=["<NAMA PERSIS KONICA>"]`, daftarkan Scheduled Task terpisah
+buat config kedua (mis. `agent.konica.config`) dengan
+`Printers=<NAMA PERSIS KONICA>`, daftarkan Scheduled Task terpisah
 `OrionMonitorAgent-KONICA`. Satu agent tidak bisa memakai dua token;
 satu agent boleh `Printers` lebih dari satu bila token sama untuk semua
 mesin di PC itu (tidak disarankan).
@@ -97,14 +97,19 @@ FLORA OUTDOOR menerima pekerjaan lewat **hotfolder**, bukan Windows spooler,
 jadi agent spooler tidak akan melihat apa pun. Gunakan `OrionHotfolderAgent.ps1`:
 
 ```powershell
-.\install-agent.ps1   # dan daftarkan OrionHotfolderAgent.ps1 sebagai Scheduled Task
-# ATAU buat Scheduled Task sendiri yang menjalankan OrionHotfolderAgent.ps1
-# isi agent.config.json:
+.\install-agent-win7.ps1 -Token <token mesin FLORA>
+# lalu jalankan hotfolder agent:
+schtasks /create /tn OrionMonitorAgent-FLORA /tr "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PWD\OrionHotfolderAgent.ps1`"" /sc onstart /ru SYSTEM /rl HIGHEST /f
+schtasks /run /tn OrionMonitorAgent-FLORA
+# Isi agent.config (key=value) sebelum menjalankan:
 #   Server     = http://192.168.1.26/grafikaorionV2
 #   Token      = <token mesin FLORA OUTDOOR>
-#   Printers   = ["FLORA OUTDOOR"]
-#   HotPath    = "C:\\RIP\\IN"   <-- GANTI dengan hotfolder RIP yang sebenarnya
+#   Printers   = FLORA OUTDOOR
+#   HotPath    = C:\RIP\IN    <-- GANTI dengan hotfolder RIP yang sebenarnya
 #   AgentPath  = /api/monitoring-cetak/agent
+#   PollSeconds= 3
+#   HeartbeatSeconds=30
+#   SettleSeconds=15
 ```
 
 `HotPath` harus PERSIS folder hotfolder RIP di PC itu (tanyakan ke operator
@@ -145,16 +150,17 @@ ERP di `192.168.1.26`; dari sini kita tidak bisa mengetes. Yang bisa dilakukan:
    diselesaikan dari sisi aplikasi.
 
 
-## Konfigurasi (agent.config.json)
+## Konfigurasi (`C:\OrionMonitor\agent.config` — key=value, tanpa JSON)
 
 | Key | Default | Keterangan |
 | --- | --- | --- |
-| Server | `http://<host-erp>` | Base URL server ERP (tanpa path) |
+| Server | `http://<host-erp>/<subpath>` | Base URL ERP lengkap, contoh `http://192.168.1.26/grafikaorionV2` |
 | Token | — | Token plaintext dari `create-agent` (hanya tampil sekali di terminal) |
-| Printers | — | Nama printer Windows persis `Get-Printer` (boleh lebih dari satu) |
+| Printers | — | Nama printer PERSIS WMI (Win7) — `Get-WmiObject Win32_Printer` (boleh >1 dipisah koma atau pipe) |
 | AgentPath | `/api/monitoring-cetak/agent` | Untuk standalone monitor lama: `/api/agent` |
 | PollSeconds | `2` | Jeda poll spooler |
 | HeartbeatSeconds | `30` | Jeda `ping` (status online) |
+| SettleSeconds | `15` | File harus stabil sebelum dilaporkan (hotfolder RIP) |
 
 File config berisi token; ACL file dibatasi `SYSTEM` + `Administrators`.
 
