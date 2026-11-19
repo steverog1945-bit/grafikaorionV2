@@ -76,3 +76,38 @@
 - Dark/light mode — PASS (dashboard dark, pembelian light; toggle tema tidak diuji interaktif, tapi token CSS diterapkan).
 - Touch target ≥44px — PASS (CSS `min-height:44px` pada filter/tombol mobile).
 - Navigasi tidak tertutup — PASS (safe-area padding `calc(130px + env(safe-area-inset-bottom))`).
+
+## Follow-up 19 November 2026 (commit sesi ini)
+
+- **P1 — Dark mode kartu Monitoring Kasir — terverifikasi & diperbaiki.**
+  Kartu `.pwa-ops-row` ternyata sudah mengikuti token gelap (computed
+  `background: rgb(29,29,31) = #1D1D1F`), jadi tidak ada teks pucat di kartu —
+  keluhan reviewer berlaku pada screenshot sebelum tema gelap diaktifkan. Baru
+  diverifikasi end-to-end (toggle `#tema-toggle`, `html.dark`, DOM nyatanya
+  dicek, bukan cuma CSS `@media`): teks konsumen/nominal/`Sudah Diterima`,
+  `Belum Bayar`, `Reguler`, dan ikon aksi terbaca baik. Shell filter memuat
+  toggle gelap dan tetap terbaca. Bukti:
+  `assets/pwa-mobile-phase2/kasir-monitoring-390-dark-real.png`
+  (`Kasir Monitoring`, 390×844, tema gelap aktif).
+- **P2 — Filter Pembelian Bahan & Kartu Stok — dibuat ringkas di mobile.**
+  Pola collapse yang sama dengan Monitoring Kasir dipasang (checkbox sr-only +
+  `<label>` toggle, murni CSS, tanpa JS, tanpa `<details>`). Desktop (&ge;768px)
+  tetap menampilkan semua field seperti sebelumnya; telpon &gt;= 320 px pertama
+  sekarang langsung memperlihatkan konten data (Jatuh Tempo/tabel) alih-alih
+  tertutup panel filter. Jaringan GET ditulis ulang saja (parameter & reset
+  tidak berubah semantik). Bukti:
+  - `assets/pwa-mobile-phase2/pembelian-filter-compact-390.png` (tertutup,
+    konten langsung terlihat)
+  - `assets/pwa-mobile-phase2/pembelian-filter-terbuka-390.png` (filter terbuka
+    di level 390)
+  - `assets/pwa-mobile-phase2/pembelian-filter-desktop.png` (desktop utuh,
+    tanpa regressi)
+  - `assets/pwa-mobile-phase2/kstok-filter-390.png`,
+    `assets/pwa-mobile-phase2/kstok-filter-desktop.png`
+- **npm audit:** `npm audit` = **0 vulnerabilities** di HEAD saat ini
+  (dependensi sudah di-bump oleh commit `6124d8c5`; axios di lock sudah di atas
+  rentang advisory). `composer audit` juga bersih.
+- **P2 #3 (manajemen pengguna 390px padat) belum ditangani** — masih terbuka;
+  sengaja tidak ditumpuk di patch ini.
+- **Belum diresolve (prasarana, di luar scope):** screenshot 768/1024, matrix
+  lintas-role, CI PR #21, interaksi E2E.

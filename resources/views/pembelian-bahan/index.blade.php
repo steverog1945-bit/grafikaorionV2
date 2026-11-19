@@ -15,45 +15,59 @@
         </x-slot:actions>
     </x-page-header>
 
-    {{-- FILTER & SEARCH BAR --}}
+    {{-- FILTER & SEARCH BAR (mobile: collapse ke tombol Filter; desktop &ge;768px tampil penuh) --}}
+    @php $filterAktif = request()->anyFilled(['search', 'from', 'to', 'jt']); @endphp
     <x-card class="mb-6">
-        <form method="GET" action="{{ route('pembelian-bahan.index') }}" class="flex flex-wrap items-end gap-4">
-            <div class="flex-1 min-w-[300px]">
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Data</label>
-                <x-form.input type="text" name="search" value="{{ request('search') }}"
-                    placeholder="Nomor Surat Jalan atau Nama Pemasok..." />
+        <form method="GET" action="{{ route('pembelian-bahan.index') }}" class="flex flex-wrap items-end gap-4 pwa-ops-filter-form">
+            <div class="pwa-ops-filter {{ $filterAktif ? 'pwa-ops-filter--active' : '' }}" id="pwa-ops-filter-shell">
+                <input type="checkbox" id="pwa-ops-filter-cb" class="pwa-ops-filter-cb" @if($filterAktif) checked @endif>
+                <label for="pwa-ops-filter-cb" class="pwa-ops-filter-toggle" aria-controls="pembelian-fields pembelian-actions">
+                    <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                    <span>Filter</span>
+                    <i class="fas fa-chevron-down pwa-ops-filter-caret" aria-hidden="true"></i>
+                </label>
+
+                <div class="pwa-ops-filter-fields" id="pembelian-fields">
+                    <div class="flex-1 w-full min-w-0 md:min-w-[300px]">
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Cari Data</label>
+                        <x-form.input type="text" name="search" value="{{ request('search') }}"
+                            placeholder="Nomor Surat Jalan atau Nama Pemasok..." />
+                    </div>
+
+                    <div class="w-full md:w-48">
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
+                        <x-form.input type="date" name="from" value="{{ request('from') }}" />
+                    </div>
+
+                    <div class="w-full md:w-48">
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
+                        <x-form.input type="date" name="to" value="{{ request('to') }}" />
+                    </div>
+
+                    <div class="w-full md:w-52">
+                        <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Jatuh Tempo</label>
+                        <x-form.select name="jt">
+                            <option value="">Tampilkan semua</option>
+                            <option value="telat" {{ request('jt') === 'telat' ? 'selected' : '' }}>Telat jatuh tempo</option>
+                            <option value="7hari" {{ request('jt') === '7hari' ? 'selected' : '' }}>Jatuh tempo &le; 7 hari</option>
+                            <option value="aman" {{ request('jt') === 'aman' ? 'selected' : '' }}>Belum jatuh tempo (&gt; 7 hari)</option>
+                        </x-form.select>
+                    </div>
+                </div>
+
+                <div class="pwa-ops-filter-actions" id="pembelian-actions">
+                    <x-button type="submit">
+                        <i class="fas fa-filter"></i>
+                        Filter
+                    </x-button>
+
+                    @if($filterAktif)
+                        <a href="{{ route('pembelian-bahan.index') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
+                            Reset Filter
+                        </a>
+                    @endif
+                </div>
             </div>
-
-            <div class="w-full md:w-48">
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Dari Tanggal</label>
-                <x-form.input type="date" name="from" value="{{ request('from') }}" />
-            </div>
-
-            <div class="w-full md:w-48">
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Sampai Tanggal</label>
-                <x-form.input type="date" name="to" value="{{ request('to') }}" />
-            </div>
-
-            <div class="w-full md:w-52">
-                <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 ml-2">Status Jatuh Tempo</label>
-                <x-form.select name="jt">
-                    <option value="">Tampilkan semua</option>
-                    <option value="telat" {{ request('jt') === 'telat' ? 'selected' : '' }}>Telat jatuh tempo</option>
-                    <option value="7hari" {{ request('jt') === '7hari' ? 'selected' : '' }}>Jatuh tempo &le; 7 hari</option>
-                    <option value="aman" {{ request('jt') === 'aman' ? 'selected' : '' }}>Belum jatuh tempo (&gt; 7 hari)</option>
-                </x-form.select>
-            </div>
-
-            <x-button type="submit">
-                <i class="fas fa-filter"></i>
-                Filter
-            </x-button>
-
-            @if(request()->anyFilled(['search', 'from', 'to', 'jt']))
-                <a href="{{ route('pembelian-bahan.index') }}" class="text-[11px] font-medium text-rose-500 uppercase tracking-widest hover:underline ml-2">
-                    Reset Filter
-                </a>
-            @endif
         </form>
     </x-card>
 

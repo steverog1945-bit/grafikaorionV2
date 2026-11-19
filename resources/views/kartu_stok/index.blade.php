@@ -15,11 +15,19 @@
         </x-slot:actions>
     </x-page-header>
 
-    {{-- FILTER RAMPING --}}
+    {{-- FILTER RAMPING (mobile: collapse ke tombol Filter; desktop >=768px tampil penuh) --}}
     @php $adaFilter = request()->anyFilled(['search', 'kategori', 'status_stok']) || request('urut', 'nama') !== 'nama'; @endphp
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-4">
-        <form method="GET" action="{{ route('kartu-stok.index') }}" class="flex flex-wrap items-end gap-3">
-            <div class="flex-1 min-w-[240px]">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-4 pwa-ops-filter-card">
+        <form method="GET" action="{{ route('kartu-stok.index') }}" class="flex flex-wrap items-end gap-3 pwa-ops-filter-form">
+            <div class="pwa-ops-filter {{ $adaFilter ? 'pwa-ops-filter--active' : '' }}" id="pwa-ops-filter-shell">
+                <input type="checkbox" id="pwa-ops-filter-cb" class="pwa-ops-filter-cb" @if($adaFilter) checked @endif>
+                <label for="pwa-ops-filter-cb" class="pwa-ops-filter-toggle" aria-controls="kstok-fields kstok-actions">
+                    <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                    <span>Filter</span>
+                    <i class="fas fa-chevron-down pwa-ops-filter-caret" aria-hidden="true"></i>
+                </label>
+                <div class="pwa-ops-filter-fields" id="kstok-fields">
+            <div class="flex-1 min-w-0 md:min-w-[240px]">
                 <label class="block text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5 ml-2">Cari Bahan</label>
                 <div class="relative">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -53,14 +61,15 @@
                     <option value="stok_desc" {{ $urut === 'stok_desc' ? 'selected' : '' }}>Stok tertinggi</option>
                     <option value="mutasi" {{ $urut === 'mutasi' ? 'selected' : '' }}>Mutasi terbaru</option>
                 </x-form.select>
-            </div>
-            <div class="flex items-center gap-2">
-                <x-button type="submit" title="Terapkan filter"><i class="fas fa-filter"></i> Filter</x-button>
-                @if($adaFilter)
-                    <a href="{{ route('kartu-stok.index') }}" class="h-[38px] px-3.5 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all shrink-0" title="Reset Filter">
-                        <i class="fas fa-undo-alt text-sm"></i>
-                    </a>
-                @endif
+                </div>
+                <div class="pwa-ops-filter-actions" id="kstok-actions">
+                    <x-button type="submit" title="Terapkan filter"><i class="fas fa-filter"></i> Filter</x-button>
+                    @if($adaFilter)
+                        <a href="{{ route('kartu-stok.index') }}" class="h-[38px] px-3.5 flex items-center justify-center bg-slate-100 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all shrink-0" title="Reset Filter">
+                            <i class="fas fa-undo-alt text-sm"></i>
+                        </a>
+                    @endif
+                </div>
             </div>
         </form>
     </div>
