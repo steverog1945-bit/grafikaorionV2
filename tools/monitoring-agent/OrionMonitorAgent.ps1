@@ -1,25 +1,18 @@
 <#
 .SYNOPSIS
-  ORION Monitor Agent (ERP) - memantau antrean cetak Windows (spooler) dan melapor
-  ke ERP Orion Grafika via HTTP LAN.
+  ORION Monitor Agent (ERP) - Win7/PowerShell 2.0 compatible.
+  Memantau antrean cetak Windows (spooler) via WMI dan melapor ke ERP via HTTP LAN.
 
 .DESCRIPTION
-  Dipasang sebagai Windows Scheduled Task (SYSTEM) di PC yang men-drive printer:
-  EPSON S80670, FLORA OUTDOOR, CENTURY STAR, RHINO DTF, Roland GR-540, dst.
+  Dipasang sebagai Windows Scheduled Task (SYSTEM) di PC produksi (Windows 7
+  SP1 / PowerShell 2.0). Di Windows 7, cmdlet Get-PrintJob tidak tersedia;
+  agent ini membaca Win32_PrintJob via [System.Management.ManagementObjectSearcher].
 
-  Endpoint tujuan: <Server><AgentPath>/hello | /event | /ping
-    - Standalone monitor lama: AgentPath =/api/agent
-    - Modul Monitoring Cetak di ERP: AgentPath = /api/monitoring-cetak/agent
-
+  Agent kompatibel dengan Windows 7, 8, 10, 11 (WMI tersedia di semua).
   Event yang dikirim:
-    - started   : job BARU muncul di spooler (nama dokumen, ukuran total, total halaman bila ada)
-    - completed : job HILANG dari spooler (dianggap terkirim/selesai dialihkan ke RIP/mesin)
-    - heartbeat : sinyal hidup tiap N detik (meng-update "agent online" di dashboard)
-
-  Keterbatasan yang disengaja (v1):
-    - Progress halaman REAL-TIME di tengah cetak tidak selalu tersedia dari spooler.
-      Dashboard menampilkan bar berjalan tanpa persen pada kasus itu.
-    - Job RIP yang dibuffer penuh lalu dicetak berjam-jam tidak lagi terlihat di spooler.
+    - started   : job BARU muncul di spooler
+    - completed : job HILANG dari spooler
+    - heartbeat : sinyal hidup tiap N detik
 #>
 [CmdletBinding()]
 param(
@@ -27,8 +20,6 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-# $PSScriptRoot kosong bila dipanggil lewat Task Scheduler SYSTEM pada beberapa
-# kondisi; fallback ke path absolut di drive sistem.
 if (-not $ConfigPath) {
     $ConfigPath = Join-Path $env:SystemDrive 'OrionMonitor\agent.config.json'
 }
@@ -42,7 +33,7 @@ function Write-Log([string]$msg) {
             Move-Item $LogFile ($LogFile + '.1') -Force
         }
         $line = '{0} | {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg
-        Add-Content -Path $LogFile -Value $line
+        $line | Out-File -FilePath $LogFile -Append -Encoding UTF8
     } catch { }
 }
 
@@ -55,7 +46,7 @@ function Read-Config {
     $cfg.Server = $cfg.Server.TrimEnd('/')
     if (-not $cfg.PollSeconds) { $cfg | Add-Member -NotePropertyName PollSeconds -NotePropertyValue 2 }
     if (-not $cfg.HeartbeatSeconds) { $cfg | Add-Member -NotePropertyName HeartbeatSeconds -NotePropertyValue 30 }
-    if (-not $cfg.AgentPath) { $cfg | Add-Member -NotePropertyName AgentPath -NotePropertyValue '/api/agent' }
+    if (-not $cfg.AgentPath) { $cfg | Add-Member -NotePropertyName AgentPath -NotePropertyValue '/api/monitoring-cetak/agent' }
     $cfg.AgentPath = $cfg.AgentPath.TrimEnd('/')
     return $cfg
 }
@@ -63,7 +54,31 @@ function Read-Config {
 function Post-Json([string]$url, [hashtable]$body) {
     $headers = @{ 'X-Agent-Token' = $script:Cfg.Token; 'Content-Type' = 'application/json' }
     $json = $body | ConvertTo-Json -Compress -Depth 6
-    Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Body $json -TimeoutSec 10 | Out-Null
+    $req = [System.Net.HttpWebRequest]::Create($url)
+    $req.Method = 'POST'
+    $req.ContentType = 'application/json'
+    $req.Timeout = 10000
+    foreach ($k in $headers.Keys) { [void]$req.Headers.Add($k, $headers[$k]) }
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+    $req.ContentLength = $bytes.Length
+    $stream = $req.GetRequestStream()
+    $stream.Write($bytes, 0, $bytes.Length)
+    $stream.Close()
+    $resp = $req.GetResponse()
+    $resp.Close()
+}
+
+function Get-PrintJobs([string]$PrinterName) {
+    $jobs = @()
+    try {
+        $jobs = Get-WmiObject -Query "SELECT * FROM Win32_PrintJob WHERE Name LIKE '$PrinterName%'"
+    } catch {
+        try {
+            $jobs = Get-WmiObject -Class Win32_PrintJob -ErrorAction Stop | Where-Object { $_.Name -like "$PrinterName*" }
+        } catch {
+        }
+    }
+    return $jobs
 }
 
 try {
@@ -73,9 +88,9 @@ try {
     exit 1
 }
 
-Write-Log "Agent mulai. Server=$($script:Cfg.Server) Path=$($script:Cfg.AgentPath) Printers=$($script:Cfg.Printers -join ', ')"
+Write-Log "Agent mulai (Win7-compat). Server=$($script:Cfg.Server) Path=$($script:Cfg.AgentPath) Printers=$($script:Cfg.Printers -join ', ')"
 
-# Verifikasi server & token sekali di awal - gagal cepat dengan log jelas
+# Verifikasi server & token
 try {
     Post-Json "$($script:Cfg.Server)$($script:Cfg.AgentPath)/hello" @{}
     Write-Log 'Hello OK - token tervalidasi server.'
@@ -84,7 +99,7 @@ try {
     exit 1
 }
 
-$jobs = @{}                 # key: "printer|jobId" -> @{ Doc; Pages }
+$jobs = @{}
 $terakhirHeartbeat = [datetime]::MinValue
 $gagalBeruntun = 0
 
@@ -93,39 +108,35 @@ while ($true) {
         $sekarang = Get-Date
 
         foreach ($printer in $script:Cfg.Printers) {
-            try {
-                $current = Get-PrintJob -PrinterName $printer -ErrorAction Stop
-            } catch {
-                Write-Log "PERINGATAN: tidak bisa baca spooler '$printer': $($_.Exception.Message)"
-                continue
-            }
+            $current = @(Get-PrintJobs $printer)
 
             $currentMap = @{}
-            foreach ($j in @($current)) {
-                $key = "$printer|$($j.ID)"
+            foreach ($j in $current) {
+                $jobId = $j.JobId
+                if (-not $jobId) { $jobId = $j.Name }
+                $key = "$printer|$jobId"
                 $currentMap[$key] = $j
 
                 if (-not $jobs.ContainsKey($key)) {
                     $pages = 0
-                    try { $pages = [int]($j.TotalPages) } catch { }
+                    try { $pages = [int]$j.TotalPages } catch { }
                     $sizeBytes = 0
-                    try { $sizeBytes = [long]($j.Size) } catch { }
+                    try { $sizeBytes = [long]$j.Size } catch { }
                     Post-Json "$($script:Cfg.Server)$($script:Cfg.AgentPath)/event" @{
                         event      = 'started'
                         printer    = $printer
-                        doc_name   = "$($j.DocumentName)"
+                        doc_name   = "$($j.Document)"
                         pages_total = $pages
                         pages_done  = 0
                         bytes_total = $sizeBytes
                         bytes_done  = 0
-                        detail     = @{ submitted = "$($j.SubmittedTime)"; job_id = $j.ID; status = "$($j.JobStatus)" }
+                        detail     = @{ submitted = "$($j.TimeSubmitted)"; job_id = $jobId; status = "$($j.StatusMask)" }
                     }
-                    $jobs[$key] = @{ Doc = "$($j.DocumentName)"; Pages = $pages }
-                    Write-Log "started: $printer [$($j.ID)] $($j.DocumentName) ($pages hal)"
+                    $jobs[$key] = @{ Doc = "$($j.Document)"; Pages = $pages }
+                    Write-Log "started: $printer [$jobId] $($j.Document) ($pages hal)"
                 }
             }
 
-            # Job yang hilang dari spooler = selesai/dibatalkan -> laporkan completed
             foreach ($key in @($jobs.Keys)) {
                 if (-not $currentMap.ContainsKey($key) -and $key.StartsWith("$printer|")) {
                     $info = $jobs[$key]
@@ -153,7 +164,6 @@ while ($true) {
     } catch {
         $gagalBeruntun++
         Write-Log "ERROR ($gagalBeruntun): $($_.Exception.Message)"
-        # Backoff saat server ERP tidak terjangkau
         Start-Sleep -Seconds ([Math]::Min(30, 2 * $gagalBeruntun))
     }
 }

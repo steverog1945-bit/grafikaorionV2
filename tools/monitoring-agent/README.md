@@ -78,7 +78,7 @@ KONICA MINOLTA = printer Windows terpasang lokal (tidak perlu dishare). Di PC in
 # Cek nama PERSIS printer Windows:
 Get-Printer | Format-Table Name, DriverName, PortName
 # lalu tulis agent.config.json:
-#   Server     = http://192.168.1.26
+#   Server     = http://192.168.1.26/grafikaorionV2
 #   Token      = <token mesin INDOOR-EPSON>
 #   Printers   = ["EPSON SC-S80670"]    <-- NAMA PERSIS dari Get-Printer
 #   AgentPath  = /api/monitoring-cetak/agent
@@ -100,7 +100,7 @@ jadi agent spooler tidak akan melihat apa pun. Gunakan `OrionHotfolderAgent.ps1`
 .\install-agent.ps1   # dan daftarkan OrionHotfolderAgent.ps1 sebagai Scheduled Task
 # ATAU buat Scheduled Task sendiri yang menjalankan OrionHotfolderAgent.ps1
 # isi agent.config.json:
-#   Server     = http://192.168.1.26
+#   Server     = http://192.168.1.26/grafikaorionV2
 #   Token      = <token mesin FLORA OUTDOOR>
 #   Printers   = ["FLORA OUTDOOR"]
 #   HotPath    = "C:\\RIP\\IN"   <-- GANTI dengan hotfolder RIP yang sebenarnya
@@ -110,6 +110,26 @@ jadi agent spooler tidak akan melihat apa pun. Gunakan `OrionHotfolderAgent.ps1`
 `HotPath` harus PERSIS folder hotfolder RIP di PC itu (tanyakan ke operator
 RIP; bukan folder proofing). File yang ditahan RIP saat diproses dikontrol
 `SettleSeconds` (default 15 detik — file harus stabil dulu sebelum dilaporkan).
+
+## Windows 7 / PowerShell 2.0
+
+PC produksi (mis. .17 INDOOR/KONICA, .149 FLORA) diketahui memakai **Windows 7**.
+Di Win7, cmdlet `Get-Printer`/`Get-PrintJob` tidak ada; agent versi Win7-compatible
+mampu membaca `Win32_PrintJob` via WMI (`OrionMonitorAgent.ps1` kompatibel PS 2.0+),
+serta `install-agent-win7.ps1` untuk registrasi task via `schtasks.exe`.
+
+Remote-automation (WinRM, RDP, PsExec) dari server **ditolak** di tiap PC
+(`5985/5986/3389 closed`), dan workgroup tanpa akun admin berarti tidak ada
+jalur instalasi otomatis dari server ini. Instalasi harus dilakukan manual via
+USB di setiap PC:
+
+```powershell
+# Cek printer via WMI (pengganti Get-Printer di Win7)
+Get-WmiObject Win32_Printer | Select-Object Name, DriverName, PortName
+
+# Scheduled Task sudah di-create untuk SYSTEM; folder bebas dari Program Files:
+.\install-agent-win7.ps1 -Token <token mesin> -Printers '<NAMA PERSIS WMI>'
+```
 
 ## Contoh: PC 192.168.18.4 (CENTURY) — BEDA SUBNET
 
