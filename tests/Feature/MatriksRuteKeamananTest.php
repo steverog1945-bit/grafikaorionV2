@@ -125,6 +125,15 @@ class MatriksRuteKeamananTest extends TestCase
             //                            tidak pernah draft, tidak pernah data ERP.
             'GET /manifest.webmanifest', // PWA: manifest untuk pasang app - wajib publik
             'GET /sw.js', // PWA: service worker - wajib publik (diambil browser saat load)
+            // Telemetry error browser (JavaScript "diam" di laporkan ke server) -
+            // sesi-based, tanpa data; lihat routes/web.php & ClientLogController.
+            'POST /client-log',
+            // Portal publik pelanggan: nomor nota + HP harus cocok (throttle ketat).
+            'GET /lacak-nota',
+            'POST /lacak-nota',
+            // Foto profil sendiri (milik akun pengguna, tidak perlu izin menu).
+            'POST /profil/foto',
+            'DELETE /profil/foto',
         ];
         $ditemukan = array_map(fn ($b) => preg_replace('/ \[.*\]$/', '', $b), $terbuka);
         $asing = array_values(array_filter($ditemukan, fn ($b) => !in_array($b, $harapan, true) && !str_starts_with($b, 'GET /storage') && $b !== 'PUT /storage/{path}' && !str_starts_with($b, 'GET /api/') && !str_starts_with($b, 'POST /api/')));

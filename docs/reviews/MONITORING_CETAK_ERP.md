@@ -109,6 +109,33 @@ Login: `demoproduksi` / `demo12345` (DB sintetis) → `/monitoring-cetak`.
 5. **Estimasi ETA** belum diukur dengan 30+ job nyata per mesin (baseline testing
    baru fixture sintetis).
 
+## Status setelah GO (19 Nov 2026, siang)
+
+Owner memberi GO untuk langkah operasional di environment V2 (bukan `oriondb`
+produksi). Yang sudah dijalankan dan diverifikasi:
+
+1. `php artisan migrate --force` (3 tabel monitoring, additive) — DONE; 500
+   karena tabel hilang berubah jadi halaman anti-500 (commit `2f9e42b`).
+2. `php artisan monitoring-cetak:seed-machines` — DONE; 8 mesin terdaftar dari
+   tabel ERP `mesin` lokal (EPSON S80670, FLORA OUTDOOR, KONICA MINOLTA,
+   CENTURY STAR, RHINO DTF, ESPON F7270, LAINNYA, ROLAND G540). Kolom
+   `software`/`pc_ip`/`printer_name` masih bawaan (`other`, kosong) dan harus
+   diisi sesuai PC produksi.
+3. Halaman terbuka HTTP 200 dengan antrean SPK nyata dan 8 kartu mesin;
+   screenshot:
+   - `docs/reviews/assets/monitoring-cetak/local-v2-seeded.png`
+
+Yang BELUM berjalan (menunggu agent nyata / PC produksi, bukan blokir kode):
+
+- Pengisian `software`/`pc_ip`/`printer_name` per mesin.
+- `monitoring-cetak:create-agent` per PC produksi (plaintext token tampil sekali).
+- `MONITORING_CETAK_AGENT_ENABLED=true` di env server (tanpa itu `/api/monitoring-cetak/agent/*` balas 503).
+- Endpoint agent belum diverifikasi dengan PowerShell `OrionMonitorAgent.ps1` asli.
+- Arsip monitor berdiri sendiri setelah ≥1 minggu stabil di V2/produksi.
+
+Manfaat tetap terjaga tanpa agent: antrean SPK nyata tampil dengan status
+(Antre/Desain/Cetak/Selesai) dan URGENT duluan.
+
 ## Langkah menuju produksi (GO operator + owner; TIDAK dilakukan di sini)
 
 1. Backup DB produksi.
