@@ -32,3 +32,40 @@ if (!function_exists('angka_input')) {
         return Angka::input($nilai, $maks);
     }
 }
+
+if (!function_exists('ket_ringkas')) {
+    /**
+     * Keterangan desain versi cetak. Penanda sistem yang panjang -
+     * "[FILE SIAP CETAK - dari pelanggan, tanpa desain tim]" - dicetak
+     * sebagai "FILE SIAP CETAK" saja, dan penanda yang tersimpan berulang
+     * ditulis sekali. Teks lain dibiarkan apa adanya: catatan produksi
+     * yang diketik orang adalah instruksi, bukan hiasan, jadi tidak
+     * dipotong. Hanya untuk tampilan - isi database tidak diubah.
+     */
+    function ket_ringkas(?string $teks): string
+    {
+        $teks = trim((string) $teks);
+        if ($teks === '') {
+            return '';
+        }
+
+        $penanda = [];
+        if (preg_match_all('/\[([^\]]+)\]/', $teks, $cocok)) {
+            foreach (array_unique($cocok[1]) as $isi) {
+                // Buang keterangan tambahan setelah tanda pisah:
+                // "FILE SIAP CETAK - dari pelanggan, tanpa desain tim".
+                $penanda[] = trim(preg_replace('/\s+-\s+.*$/', '', $isi));
+            }
+            $teks = preg_replace('/\[[^\]]+\]/', ' ', $teks);
+        }
+
+        $penanda = array_filter($penanda);
+        $teks = trim($teks);
+
+        if ($penanda !== []) {
+            $teks = implode(' · ', $penanda) . ($teks !== '' ? ' · ' . $teks : '');
+        }
+
+        return trim(preg_replace('/\s+/', ' ', $teks));
+    }
+}

@@ -63,10 +63,10 @@
             <div style="font-size:9px; color:var(--color-slate-500);">Scan dengan kamera HP untuk membuka pembayaran</div>
         </div>
 
-        @if($detail->catatan_produksi)
+        @if(ket_ringkas($detail->catatan_produksi) !== '')
         <div class="catatan">
             <strong>Catatan Produksi:</strong><br>
-            {{ $detail->catatan_produksi }}
+            {{ ket_ringkas($detail->catatan_produksi) }}
         </div>
         @endif
 

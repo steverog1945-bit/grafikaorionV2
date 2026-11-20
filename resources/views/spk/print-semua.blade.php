@@ -16,7 +16,7 @@
         .item-daftar .meta { font-size: {{ $format === 'thermal' ? '11.5px' : '12px' }}; color: var(--ink-600); }
         /* Qty dan status menempel pada nama file selama masih muat; bila
            tidak muat ia pindah utuh ke baris berikutnya, tidak terpotong
-           di tengah ("qty 1 ·" di ujung baris). */
+           di tengah. */
         .meta-inline {
             font-size: {{ $format === 'thermal' ? '11px' : '11.5px' }};
             font-weight: 400;
@@ -37,19 +37,6 @@
 <body>
     @php
         $nota = $details->first();
-
-        // Keterangan desain kadang tersimpan berulang di database (penanda
-        // seperti "[FILE SIAP CETAK ...]" tertulis dua kali karena pernah
-        // ditambahkan lebih dari sekali). Untuk cetakan, penanda yang sama
-        // cukup tampil sekali; isi database tidak diubah.
-        $ketDesain = function ($teks) {
-            $teks = trim((string) $teks);
-            if ($teks === '' || ! preg_match_all('/\[[^\]]+\]/', $teks, $cocok) || count($cocok[0]) < 2) {
-                return $teks;
-            }
-            $sisa = trim(preg_replace('/\[[^\]]+\]/', ' ', $teks));
-            return trim(implode(' ', array_unique($cocok[0])) . ($sisa !== '' ? ' ' . $sisa : ''));
-        };
     @endphp
     <div class="sheet">
         @include('partials.print-header', ['docTitle' => 'Daftar Kerja SPK'])
@@ -59,7 +46,7 @@
         <div class="center" style="margin: 6px 0 2px;">
             <div id="qr-spk-nota" style="display:inline-block"></div>
             <div style="font-size:10px; letter-spacing:0.5px; margin-top:2px;">TRX{{ $nota->id_transaksi }}</div>
-            <div style="font-size:9px; color:var(--color-slate-500);">Scan: seluruh item nota ini tampil</div>
+            <div style="font-size:9px; color:var(--color-slate-500);">Scan: semua item nota</div>
         </div>
 
         <div class="divider"></div>
@@ -81,8 +68,8 @@
             @foreach($details->values() as $i => $detail)
             <div class="item-daftar">
                 <div class="nama">{{ $i + 1 }}. {{ $detail->nama_file }}<span class="meta-inline"> &middot; qty {{ angka($detail->qty, 4) }} &middot; {{ $detail->status_spk }}@if($detail->status_urgent) (URGENT)@endif</span></div>
-                @if($ketDesain($detail->catatan_produksi) !== '')
-                <div class="meta">Ket: {{ $ketDesain($detail->catatan_produksi) }}</div>
+                @if(ket_ringkas($detail->catatan_produksi) !== '')
+                <div class="meta">Ket: {{ ket_ringkas($detail->catatan_produksi) }}</div>
                 @endif
             </div>
             @endforeach
@@ -100,7 +87,7 @@
                     <tr>
                         <td>{{ $i + 1 }}</td>
                         <td>{{ $detail->nama_file }}<span class="meta-inline"> &middot; qty {{ angka($detail->qty, 4) }} &middot; {{ $detail->status_spk }}@if($detail->status_urgent) (URGENT)@endif</span></td>
-                        <td>{{ $ketDesain($detail->catatan_produksi) ?: '-' }}</td>
+                        <td>{{ ket_ringkas($detail->catatan_produksi) ?: '-' }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -109,7 +96,7 @@
     </div>
 
     <div class="no-print">
-        <button onclick="window.print()">🖨️ Cetak Daftar SPK</button>
+        <button onclick="window.print()">Cetak Daftar SPK</button>
     </div>
 
     <script src="{{ asset('vendor/qrcode-generator/qrcode.min.js') }}"></script>

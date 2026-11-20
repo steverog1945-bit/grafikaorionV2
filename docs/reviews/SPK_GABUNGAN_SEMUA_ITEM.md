@@ -61,7 +61,7 @@ dirapatkan. Tiap item ditulis satu baris:
 
 ```
 1. a. 290x245 lipres · qty 1 · Selesai
-   Ket: [FILE SIAP CETAK - dari pelanggan, tanpa desain tim]
+   Ket: FILE SIAP CETAK
 ```
 
 Qty dan status **menempel pada nama file** selama masih muat; bila tidak
@@ -74,9 +74,21 @@ Blok tanda tangan **Diambil Oleh / Diperiksa Oleh dihapus** dari daftar —
 lembar ini dibagikan ke tim produksi dan tidak diarsipkan sebagai bukti
 serah-terima; SPK per item tetap memilikinya.
 
-Keterangan desain yang tersimpan berulang di database (penanda
-`[FILE SIAP CETAK …]` tertulis dua kali) ditampilkan **sekali** saat cetak.
-Hanya tampilan yang dirapikan — isi database tidak diubah.
+### Teks panjang tidak dicetak
+
+`ket_ringkas()` di `app/helpers.php` merapikan keterangan desain **saat
+dicetak** (isi database tidak diubah):
+
+| Tersimpan | Dicetak |
+|---|---|
+| `[FILE SIAP CETAK - dari pelanggan, tanpa desain tim]` | `FILE SIAP CETAK` |
+| penanda itu dua kali | `FILE SIAP CETAK` (sekali) |
+| `[FILE SIAP CETAK …] lipat jadi 3` | `FILE SIAP CETAK · lipat jadi 3` |
+
+Dipakai di daftar kerja **dan** SPK per item (`spk/_spk-sheet.blade.php`),
+jadi nota/SPK thermal tidak lagi memuat kalimat panjang. Catatan produksi
+yang diketik orang tetap utuh — itu instruksi kerja, bukan hiasan.
+Keterangan barcode juga dipendekkan: `Scan: semua item nota`.
 
 ## Bukti visual (browser nyata, dev lokal)
 
@@ -95,6 +107,7 @@ Hanya tampilan yang dirapikan — isi database tidak diubah.
 | `php -l` SpkController, JerseyOrderController, routes/web.php | PASS |
 | `php artisan view:cache` | PASS |
 | `SpkLengkapTest, SpkFilterTanggalTest, BatalSpkHppTest, AksesLengkapDanQrTest, AlurKeamananTest, MatriksRuteKeamananTest` | 46 test / 183 assertion — PASS |
+| `HargaSiapCetakTest, KetProduksiRingkasTest` | 10 test — PASS (56 test / 226 assertion bila digabung dengan enam di atas) |
 | `--filter "JerseyOrder|Jersey"` | 4 error + 7 gagal, **sama persis dengan baseline HEAD** (pre-existing) |
 | Cetak per item (`/spk/764/print/thermal`, `/jersey/37/lines/151/spk`) | PASS, tidak berubah |
 
