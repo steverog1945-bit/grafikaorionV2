@@ -56,9 +56,27 @@ thermal** dari kedua titik masuk:
 - format A4 tetap tersedia bila dipanggil manual dengan `format=normal`
 
 Di kertas 80mm, tabel banyak kolom tidak dipakai: `format=thermal` merender
-**daftar linear** (1 item = 2–3 baris: nomor + nama file, lalu qty/status,
-lalu keterangan desain). Tabel berkolom (nama file, qty, status, keterangan
-desain) hanya untuk A4.
+**daftar linear** dengan huruf lebih besar (nama file 13px) dan padding
+dirapatkan. Tiap item ditulis satu baris:
+
+```
+1. a. 290x245 lipres · qty 1 · Selesai
+   Ket: [FILE SIAP CETAK - dari pelanggan, tanpa desain tim]
+```
+
+Qty dan status **menempel pada nama file** selama masih muat; bila tidak
+muat ia pindah utuh ke baris berikutnya (`white-space: nowrap`) sehingga
+tidak pernah terpotong di tengah. Tabel berkolom (No | nama file · qty ·
+status | keterangan desain) hanya untuk A4, dengan lebar 780px supaya
+pratinjau sama dengan kertas.
+
+Blok tanda tangan **Diambil Oleh / Diperiksa Oleh dihapus** dari daftar —
+lembar ini dibagikan ke tim produksi dan tidak diarsipkan sebagai bukti
+serah-terima; SPK per item tetap memilikinya.
+
+Keterangan desain yang tersimpan berulang di database (penanda
+`[FILE SIAP CETAK …]` tertulis dua kali) ditampilkan **sekali** saat cetak.
+Hanya tampilan yang dirapikan — isi database tidak diubah.
 
 ## Bukti visual (browser nyata, dev lokal)
 
