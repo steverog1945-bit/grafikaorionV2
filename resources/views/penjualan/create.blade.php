@@ -1318,17 +1318,23 @@ let currentThumbnailPreview = null;
                 // Berkas yang bisa ditampilkan peramban (jpg/png/webp/...)
                 // ditampilkan sebagai gambar; yang lain (PDF, CDR, ...) hanya
                 // jadi keterangan - kalau dipaksa jadi <img>, peramban
-                // menampilkan gambar rusak.
+                // menampilkan gambar rusak. Untuk CDR/AI/EPS/PSD (dan HEIC
+                // family) dipakai default-thumbnail.png sebagai preview:
+                // kotaknya muncul sebagai gambar, bukan tile kosong/hitam,
+                // sementara ekstensi berkas tetap dicatat di kolom Nama File.
+                const defaultThumbnail = "{{ asset('storage/default-thumbnail.png') }}";
+                const ekstensiGagalDitampilkan = ['cdr', 'ai', 'eps', 'psd', 'heic', 'heif', 'avif', 'jfif', 'ico']
+                    .indexOf(ekstensiAwal) !== -1;
                 if (res.bisa_ditampilkan) {
-                    preview.src = res.url;
+                    preview.src = ekstensiGagalDitampilkan ? defaultThumbnail : res.url;
                     preview.classList.remove('hidden');
                     kosong.classList.add('hidden');
                     berkas.classList.add('hidden');
                 } else {
-                    preview.removeAttribute('src');
-                    preview.classList.add('hidden');
+                    preview.src = defaultThumbnail;
+                    preview.classList.remove('hidden');
                     kosong.classList.add('hidden');
-                    setBerkasThumbnail(berkas, originalName);
+                    berkas.classList.add('hidden');
                 }
 
                 // Nama file / deskripsi SELALU mengikuti berkas yang BARU
