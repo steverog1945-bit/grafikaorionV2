@@ -25,7 +25,7 @@
             </x-button>
             @if($order->lines->count() > 1)
                 <x-button href="{{ route('jersey.orders.spk-semua', $order->id) }}" variant="secondary" target="_blank">
-                    <i class="fas fa-print"></i> Cetak SPK Semua ({{ $order->lines->count() }})
+                    <i class="fas fa-list-check"></i> Daftar SPK ({{ $order->lines->count() }})
                 </x-button>
             @endif
             <x-button href="{{ route('jersey.orders.edit-lines', $order->id) }}" variant="secondary">

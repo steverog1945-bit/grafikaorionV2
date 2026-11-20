@@ -165,6 +165,15 @@ class SpkController extends Controller
             }
         }
 
+        // Jumlah item per nota pada halaman ini, dipakai untuk menyembunyikan
+        // tautan "semua item" ketika nota-nya memang cuma berisi 1 item -
+        // supaya tidak ada dua tombol cetak untuk pekerjaan yang sama.
+        $jumlahItemNota = \DB::table('transaksi_detail')
+            ->whereIn('id_transaksi', $spk->getCollection()->pluck('id_transaksi')->unique()->all())
+            ->select('id_transaksi', \DB::raw('COUNT(*) as jumlah'))
+            ->groupBy('id_transaksi')
+            ->pluck('jumlah', 'id_transaksi');
+
         // Divisi diambil dari data master mesin yang benar-benar dipakai produk,
         // bukan hard-code. Submenu akan otomatis bertambah kalau ada mesin/divisi baru.
         $divisis = \App\Services\DivisiService::daftar($mesinDiizinkan, ['Antre']);
@@ -210,7 +219,7 @@ class SpkController extends Controller
             ->where('transaksi.tgl_order', '<', $hariEsok->format('Y-m-d H:i:s'))
             ->count();
 
-        return view('spk.index', compact('spk', 'divisis', 'jumlahAntreAwal', 'tglDari', 'tglSampai', 'tertinggal', 'tunggakanAktif', 'temuanNota'));
+        return view('spk.index', compact('spk', 'divisis', 'jumlahAntreAwal', 'tglDari', 'tglSampai', 'tertinggal', 'tunggakanAktif', 'temuanNota', 'jumlahItemNota'));
     }
 
     /**

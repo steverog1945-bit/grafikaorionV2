@@ -190,10 +190,12 @@
                             @endif
                         </div>
                         <div class="spk-work-number text-[10px] text-slate-400 mt-0.5">Nota: {{ $item->nomor_nota }} &middot; SPK #{{ $item->id_detail }}
-                            <a href="{{ route('spk.print-nota', ['id' => $item->id_transaksi, 'format' => 'thermal']) }}" target="_blank"
-                               class="no-print text-indigo-500 hover:text-indigo-700" title="Cetak SPK semua item dalam nota ini (satu item satu halaman)">
-                                <i class="fas fa-print text-[10px]"></i> semua item
+                            @if(($jumlahItemNota[$item->id_transaksi] ?? 1) > 1)
+                            <a href="{{ route('spk.print-nota', ['id' => $item->id_transaksi, 'format' => 'normal']) }}" target="_blank"
+                               class="no-print text-indigo-500 hover:text-indigo-700" title="Daftar kerja semua item nota ini dalam satu lembar">
+                                <i class="fas fa-list-check text-[10px]"></i> daftar SPK
                             </a>
+                            @endif
                         </div>
                     </td>
                     <td data-label="Konsumen" class="px-4 py-5">

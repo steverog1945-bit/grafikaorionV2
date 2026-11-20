@@ -1,52 +1,53 @@
-# SPK Gabungan — Semua Item dalam Satu Cetak
+# SPK Gabungan — Daftar Kerja Semua Item (Satu Lembar)
 
 Tanggal: 20 November 2026
 Modul: Jersey (order jersey) & SPK Percetakan (nota kasir)
 
 ## Masalah
 
-SPK dicetak **satu per item**. Order/nota dengan banyak item harus dibuka dan
-dicetak berulang kali:
+SPK dicetak **satu per item**, jadi nota dengan banyak item menghabiskan
+kertas: 1 lembar per item. Padahal barcode SPK mana pun membuka **seluruh
+item nota** di Monitoring Kasir, sehingga identitas item tidak perlu
+dibuktikan lewat satu halaman penuh per item.
 
-- Jersey: tombol SPK ada di tiap kartu barang → `/jersey/{order}/lines/{line}/spk`
-- Percetakan: tombol cetak ada di tiap baris antrean → `/spk/{id_detail}/print/thermal`
+## Yang dibuat
 
-## Yang ditambahkan
+Tombol/tautan **Daftar SPK (n)** membuka **satu lembar daftar kerja**:
 
-Satu tombol/tautan yang membuka **satu dokumen berisi semua item**, masing-masing
-tetap satu halaman (page break antar item). Jalur cetak per item tidak diubah.
+- 1 barcode nota (sekali scan → semua item nota tampil)
+- identitas nota/order (nomor, tanggal, konsumen, jumlah item)
+- tabel semua item: No. SPK, nama file/barang, produk, ukuran, qty,
+  finishing, catatan, status
+- daftar nama & nomor punggung (khusus Jersey) tetap dicetak di bawahnya
+  karena informasi itu tidak terbaca dengan scan
 
-| Modul | Route baru | Nama route | Controller |
+SPK per item **tidak diubah**: tombol `SPK` di tiap kartu barang / baris
+antrean tetap mencetak halaman lengkap (gambar desain, estimasi bahan) bila
+memang perlu ditempel di barang.
+
+| Modul | Route | Nama route | Controller |
 |---|---|---|---|
 | Jersey | `GET /jersey/{order}/spk` | `jersey.orders.spk-semua` | `JerseyOrderController::printSpkSemua()` |
 | Percetakan | `GET /spk/nota/{id}/print/{format?}` | `spk.print-nota` | `SpkController::printNota()` |
 
-Titik masuk:
+## Supaya tidak ada dua tombol untuk pekerjaan yang sama
 
-- Detail order jersey: tombol **Cetak SPK Semua (n)** di header (hanya bila barang > 1).
-- Detail transaksi (`/penjualan/{id}`): tombol **SPK Semua Item (n)** — hanya untuk
-  nota `Aktif`, item > 1, dan role yang berhak membuka menu SPK (`Izin::bolehPath(..., 'spk')`).
-- Antrean SPK (`/spk`): tautan kecil **semua item** di bawah nomor nota tiap baris.
+Tombol/tautan "Daftar SPK" **hanya muncul bila item > 1**:
 
-## Struktur view (satu sumber tampilan)
+- Detail order Jersey: `$order->lines->count() > 1`
+- Detail transaksi: `count($items) > 1` dan nota `Aktif` dan role berhak menu SPK
+- Antrean `/spk`: tautan kecil `daftar SPK` di bawah nomor nota, hanya untuk
+  nota yang jumlah itemnya > 1 (dihitung sekali per halaman lewat
+  `$jumlahItemNota`, tanpa query per baris)
 
-| Sebelum | Sesudah |
-|---|---|
-| `jersey/orders/spk-print.blade.php` (dokumen + isi) | `jersey/orders/_spk-sheet.blade.php` (isi) + `spk-print.blade.php` + `spk-print-semua.blade.php` |
-| `spk/print.blade.php` (dokumen + isi + QR) | `spk/_spk-sheet.blade.php` (isi) + `spk/_qr-script.blade.php` (QR) + `print.blade.php` + `print-semua.blade.php` |
-
-Alasan pemisahan: cetak tunggal dan cetak gabungan memakai markup identik, jadi
-tidak ada dua versi SPK yang bisa berbeda sendiri saat diperbaiki nanti.
-
-QR pembayaran tiap item kini memakai id unik `qr-spk-{id_detail}` supaya tidak
-bertabrakan saat beberapa SPK berada di satu halaman dokumen.
+Nota/order 1 item → hanya tombol SPK biasa.
 
 ## Bukti visual (browser nyata, dev lokal)
 
-- `docs/reviews/assets/jersey-spk-semua.png` — `/jersey/37/spk`: 2 halaman SPK
-  (`JO-20261119-001-151`, `JO-20261119-001-152`).
-- `docs/reviews/assets/spk-nota-semua.png` — `/spk/nota/630/print/normal`: 3 SPK
-  (`#764`, `#765`, `#767`) + 3 QR ter-render.
+- `docs/reviews/assets/jersey-daftar-spk.png` — `/jersey/37/spk`: 2 barang,
+  11 pcs, 9 nama pemain → **1 lembar** (sebelumnya 2 lembar penuh).
+- `docs/reviews/assets/spk-daftar-nota.png` — `/spk/nota/630/print/normal`:
+  3 item dalam **1 lembar** (sebelumnya 3 lembar penuh).
 
 ## Validasi
 
@@ -54,17 +55,19 @@ bertabrakan saat beberapa SPK berada di satu halaman dokumen.
 |---|---|
 | `php -l` SpkController, JerseyOrderController, routes/web.php | PASS |
 | `php artisan view:cache` | PASS |
-| `php artisan route:list --name=spk` | route `spk.print-nota` & `jersey.orders.spk-semua` terdaftar |
 | `SpkLengkapTest, SpkFilterTanggalTest, BatalSpkHppTest, AksesLengkapDanQrTest, AlurKeamananTest, MatriksRuteKeamananTest` | 46 test / 183 assertion — PASS |
-| `--filter "JerseyOrder|Jersey"` | 97 test, 4 error + 7 gagal — **sama persis dengan baseline HEAD** (pre-existing) |
-| Cetak per item (`/spk/764/print/normal`, `/jersey/37/lines/151/spk`) | PASS, tampilan tidak berubah |
+| `--filter "JerseyOrder|Jersey"` | 4 error + 7 gagal, **sama persis dengan baseline HEAD** (pre-existing) |
+| Cetak per item (`/spk/764/print/normal`, `/jersey/37/lines/151/spk`) | PASS, tidak berubah |
 
-Tidak diuji: hasil fisik printer thermal (perlu perangkat keras), dan cetak
-gabungan untuk nota `Dibatalkan` (sengaja 404 — tidak boleh ada SPK baru).
+Tidak diuji: hasil fisik printer (perlu perangkat keras) dan cetak thermal untuk
+daftar (kolom otomatis dipersempit, tetapi tidak diuji di kertas 80mm).
 
-## Catatan
+## Struktur view
 
-- Format cetak gabungan mengikuti parameter `format` yang sama (`thermal`
-  default, `normal`, `continuous`).
-- Nota `Dibatalkan` tidak punya SPK aktif → route mengembalikan 404.
-- Produksi tidak disentuh; perubahan hanya di view, dua method controller, dan route.
+| Sebelum | Sesudah |
+|---|---|
+| `jersey/orders/spk-print.blade.php` (dokumen + isi) | `jersey/orders/_spk-sheet.blade.php` + `spk-print.blade.php` (per item) + `spk-print-semua.blade.php` (daftar) |
+| `spk/print.blade.php` (dokumen + isi + QR) | `spk/_spk-sheet.blade.php` + `spk/_qr-script.blade.php` + `print.blade.php` (per item) + `print-semua.blade.php` (daftar) |
+
+QR per item memakai id unik `qr-spk-{id_detail}`; dokumen daftar memakai
+`qr-spk-nota` (satu barcode per dokumen).
