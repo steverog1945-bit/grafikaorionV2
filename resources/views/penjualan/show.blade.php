@@ -17,7 +17,7 @@
                 </x-button>
             @endif
             @if($transaksi->status_nota === 'Aktif' && count($items) > 1 && \App\Support\Izin::bolehPath(auth()->user(), 'spk'))
-                <x-button href="{{ route('spk.print-nota', ['id' => $transaksi->id_transaksi, 'format' => 'normal']) }}" target="_blank" variant="outline">
+                <x-button href="{{ route('spk.print-nota', ['id' => $transaksi->id_transaksi, 'format' => 'thermal']) }}" target="_blank" variant="outline">
                     <i class="fas fa-list-check"></i> Daftar SPK ({{ count($items) }})
                 </x-button>
             @endif

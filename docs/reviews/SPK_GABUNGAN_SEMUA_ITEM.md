@@ -42,12 +42,28 @@ Tombol/tautan "Daftar SPK" **hanya muncul bila item > 1**:
 
 Nota/order 1 item → hanya tombol SPK biasa.
 
+## Printer produksi = thermal 80mm
+
+SPK dari input pesanan dicetak di printer **thermal 80mm** (route
+`spk.print` default `thermal`). Karena itu daftar kerja juga **default
+thermal** dari kedua titik masuk:
+
+- `…/spk/nota/{id}/print/thermal`
+- format A4 tetap tersedia bila dipanggil manual dengan `format=normal`
+
+Di kertas 80mm, tabel banyak kolom tidak dipakai: `format=thermal` merender
+**daftar linear** (1 item = 2–3 baris: nomor + nama file, lalu produk/ukuran/qty/
+finishing/status, lalu catatan). Tabel berkolom hanya untuk A4.
+
 ## Bukti visual (browser nyata, dev lokal)
 
+- `docs/reviews/assets/thermal-single.png` — SPK per item, thermal 80mm:
+  tinggi ±679 px untuk 1 item (kondisi lama).
+- `docs/reviews/assets/thermal-daftar.png` — `…/spk/nota/630/print/thermal`:
+  3 item dalam satu struk ±470 px isi (bukan 3 × 679 px).
+- `docs/reviews/assets/spk-daftar-nota.png` — varian A4 (`format=normal`).
 - `docs/reviews/assets/jersey-daftar-spk.png` — `/jersey/37/spk`: 2 barang,
-  11 pcs, 9 nama pemain → **1 lembar** (sebelumnya 2 lembar penuh).
-- `docs/reviews/assets/spk-daftar-nota.png` — `/spk/nota/630/print/normal`:
-  3 item dalam **1 lembar** (sebelumnya 3 lembar penuh).
+  11 pcs, 9 nama pemain → 1 lembar.
 
 ## Validasi
 
@@ -57,10 +73,10 @@ Nota/order 1 item → hanya tombol SPK biasa.
 | `php artisan view:cache` | PASS |
 | `SpkLengkapTest, SpkFilterTanggalTest, BatalSpkHppTest, AksesLengkapDanQrTest, AlurKeamananTest, MatriksRuteKeamananTest` | 46 test / 183 assertion — PASS |
 | `--filter "JerseyOrder|Jersey"` | 4 error + 7 gagal, **sama persis dengan baseline HEAD** (pre-existing) |
-| Cetak per item (`/spk/764/print/normal`, `/jersey/37/lines/151/spk`) | PASS, tidak berubah |
+| Cetak per item (`/spk/764/print/thermal`, `/jersey/37/lines/151/spk`) | PASS, tidak berubah |
 
-Tidak diuji: hasil fisik printer (perlu perangkat keras) dan cetak thermal untuk
-daftar (kolom otomatis dipersempit, tetapi tidak diuji di kertas 80mm).
+Tidak diuji: hasil fisik printer thermal (perlu perangkat keras); yang diukur
+hanya tinggi render 80mm di browser.
 
 ## Struktur view
 
