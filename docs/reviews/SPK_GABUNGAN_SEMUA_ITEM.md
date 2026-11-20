@@ -96,7 +96,11 @@ Keterangan barcode juga dipendekkan: `Scan: semua item nota`.
   tinggi ±679 px untuk 1 item (kondisi lama).
 - `docs/reviews/assets/thermal-daftar.png` — `…/spk/nota/630/print/thermal`:
   3 item dalam satu struk ±470 px isi (bukan 3 × 679 px).
-- `docs/reviews/assets/spk-daftar-nota.png` — varian A4 (`format=normal`).
+- `docs/reviews/assets/spk-daftar-nota.png` — varian A4, portrait: kiri-kanan
+  sedikit menyempit (740px) dan jarak di atas-bawah disusut, supaya isi
+  tetap muat satu halaman.
+- `docs/reviews/assets/spk-peritem-a4.png` — SPK per item A4 portrait:
+  `.print-header` 8px, `table td` 2px 4px padding, `.divider` 4px.
 - `docs/reviews/assets/jersey-daftar-spk.png` — `/jersey/37/spk`: 2 barang,
   11 pcs, 9 nama pemain → 1 lembar.
 

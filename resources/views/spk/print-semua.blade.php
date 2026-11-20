@@ -28,9 +28,10 @@
         @if($format !== 'thermal')
         /* Daftar kerja A4 selebar kertas (bukan 480px milik struk, dan
            bukan selebar jendela browser - pratinjau harus sama dengan
-           hasil cetak). */
-        .sheet { max-width: 780px; margin-left: auto; margin-right: auto; }
-        table.info-nota { max-width: 380px; margin: 0 auto; }
+           hasil cetak), sekitar 25px celah per sisi supaya margin
+           portrait cukup jatuh di lubang kertas. */
+        .sheet { max-width: 740px; margin-left: auto; margin-right: auto; }
+        table.info-nota { max-width: 360px; margin: 0 auto; }
         @endif
     </style>
 </head>
