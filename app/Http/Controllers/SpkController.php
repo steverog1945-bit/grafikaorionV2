@@ -434,6 +434,55 @@ class SpkController extends Controller
     }
 
     /**
+     * Cetak SPK SEMUA item aktif dalam satu nota pada satu dokumen. Satu
+     * item tetap satu halaman (lihat spk/print-semua.blade.php), jadi tim
+     * produksi cukup sekali klik untuk nota yang itemnya banyak. SPK per
+     * item (print()) tidak diubah dan tetap tersedia.
+     */
+    public function printNota($id, $format = 'thermal')
+    {
+        $format = in_array($format, ['thermal', 'normal', 'continuous'], true) ? $format : 'thermal';
+
+        // Nota Dibatalkan tidak boleh menghasilkan SPK baru - sama seperti
+        // filter di index() (status_nota='Aktif').
+        $details = DB::table('transaksi_detail as d')
+            ->join('transaksi as t', 't.id_transaksi', '=', 'd.id_transaksi')
+            ->join('konsumen as k', 't.id_konsumen', '=', 'k.id_konsumen')
+            ->join('produk as pr', 'd.id_produk', '=', 'pr.id_produk')
+            ->leftJoin('mesin as m', 'pr.id_mesin', '=', 'm.id_mesin')
+            ->join('users as u', 't.id_user_kasir', '=', 'u.id_user')
+            ->leftJoin('karyawan as kr', 'u.id_karyawan', '=', 'kr.id_karyawan')
+            ->leftJoin('roles as r', 'u.id_role', '=', 'r.id_role')
+            ->where('t.id_transaksi', $id)
+            ->where('t.status_nota', 'Aktif')
+            ->orderBy('d.id_detail')
+            ->select([
+                'd.*',
+                't.nomor_nota',
+                't.tgl_order',
+                't.total_bayar',
+                't.diskon',
+                't.status_pembayaran',
+                't.id_konsumen as id_konsumen',
+                'k.nama_konsumen as nama_konsumen',
+                'k.telepon as telepon_konsumen',
+                'k.alamat as alamat_konsumen',
+                'pr.nama_produk as nama_produk',
+                'pr.metode_hitung as metode_hitung',
+                'm.nama_mesin as divisi',
+                'kr.nama_karyawan as pembuat_nota',
+                'r.nama_role as role_pembuat',
+            ])
+            ->get();
+
+        abort_if($details->isEmpty(), 404, 'Tidak ada item SPK aktif pada nota ini.');
+
+        $finishingItems = \App\Services\FinishingItemService::untukDetail($details->pluck('id_detail')->all());
+
+        return view('spk.print-semua', compact('details', 'finishingItems', 'format'));
+    }
+
+    /**
      * SPK LENGKAP untuk tim desain (route 'spk.desain' -> /spk-desain/{id}).
      *
      * Alasan method ini ada: route tersebut sempat menunjuk ke

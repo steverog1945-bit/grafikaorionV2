@@ -635,6 +635,10 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
 // berakhir "Call to undefined method SpkController::printSpk()" (HTTP 500)
 // saat Kasir/Desainer menekan tombol cetak SPK.
     Route::get('/spk/{id}/print/{format?}', [SpkController::class, 'print'])->name('spk.print');
+    // Cetak SEMUA item satu nota dalam sekali buka (satu item satu halaman).
+    // Didaftarkan sebelum pola /spk/{id}/... supaya "nota" tidak pernah
+    // terbaca sebagai id_detail.
+    Route::get('/spk/nota/{id}/print/{format?}', [SpkController::class, 'printNota'])->whereNumber('id')->name('spk.print-nota');
     // SPK lengkap untuk DESAINER (gambar, konsumen, bahan, finishing) - tim produksi tetap memakai SPK thermal di atas.
     Route::get('/spk-desain/{id}', [SpkController::class, 'printDesain'])->whereNumber('id')->name('spk.desain');
     Route::get('/spk/cek-antrian-baru', [SpkController::class, 'cekAntrianBaru'])->middleware('throttle:polling')->name('spk.cek-antrian-baru');
@@ -959,6 +963,7 @@ Route::match(['post', 'patch'], '/pembelian-bahan/pelunasan/{id}', [PembelianBah
         Route::put('/{order}/lines', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'updateLines'])->middleware('restrict.input-only')->name('orders.update-lines');
         Route::post('/{order}/lines/susulan', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'storeLineSusulan'])->middleware('restrict.input-only')->name('orders.lines.susulan');
         Route::get('/{order}/print/{format?}', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'print'])->name('orders.print');
+        Route::get('/{order}/spk', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'printSpkSemua'])->name('orders.spk-semua');
         Route::get('/{order}/lines/{line}/spk', [\App\Http\Controllers\Jersey\JerseyOrderController::class, 'printLine'])->name('orders.lines.spk');
 
         Route::post('/master/designers', [\App\Http\Controllers\Jersey\JerseyMasterController::class, 'storeDesigner'])->name('master.designers.store');

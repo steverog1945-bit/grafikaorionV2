@@ -1507,4 +1507,24 @@ class JerseyOrderController extends Controller
         $line->load(['productType', 'category', 'material', 'items', 'items.jerseySize', 'sizeQuantities.size', 'materials', 'order.konsumen', 'order.designer', 'order.desainer.karyawan']);
         return view('jersey.orders.spk-print', compact('order', 'line'));
     }
+
+    /**
+     * Cetak SPK SEMUA barang dalam satu order pada satu dokumen - satu
+     * barang tetap satu halaman (lihat spk-print-semua.blade.php), jadi
+     * tim produksi tidak perlu membuka & mencetak kartu barang satu per
+     * satu. SPK per barang (printLine) tidak diubah dan tetap tersedia.
+     */
+    public function printSpkSemua(JerseyOrder $order)
+    {
+        $order->load([
+            'konsumen', 'designer', 'desainer.karyawan',
+            'lines.productType', 'lines.category', 'lines.material',
+            'lines.items', 'lines.items.jerseySize', 'lines.sizeQuantities.size', 'lines.materials',
+        ]);
+        $lines = $order->lines->sortBy('id')->values();
+
+        abort_if($lines->isEmpty(), 404, 'Order ini belum punya barang untuk dicetak SPK-nya.');
+
+        return view('jersey.orders.spk-print-semua', compact('order', 'lines'));
+    }
 }

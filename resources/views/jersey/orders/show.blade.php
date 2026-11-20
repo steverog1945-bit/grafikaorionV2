@@ -23,6 +23,11 @@
             <x-button type="button" variant="success" onclick="openModal('tambah-susulan')">
                 <i class="fas fa-plus"></i> Tambah Barang Susulan
             </x-button>
+            @if($order->lines->count() > 1)
+                <x-button href="{{ route('jersey.orders.spk-semua', $order->id) }}" variant="secondary" target="_blank">
+                    <i class="fas fa-print"></i> Cetak SPK Semua ({{ $order->lines->count() }})
+                </x-button>
+            @endif
             <x-button href="{{ route('jersey.orders.edit-lines', $order->id) }}" variant="secondary">
                 <i class="fas fa-boxes-stacked"></i> Kelola Barang
             </x-button>

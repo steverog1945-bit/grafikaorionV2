@@ -16,6 +16,11 @@
                     <i class="fas fa-print"></i> Cetak Nota
                 </x-button>
             @endif
+            @if($transaksi->status_nota === 'Aktif' && count($items) > 1 && \App\Support\Izin::bolehPath(auth()->user(), 'spk'))
+                <x-button href="{{ route('spk.print-nota', ['id' => $transaksi->id_transaksi, 'format' => 'thermal']) }}" target="_blank" variant="outline">
+                    <i class="fas fa-file-lines"></i> SPK Semua Item ({{ count($items) }})
+                </x-button>
+            @endif
             @php
                 $bisaTambahItem = $transaksi->status_nota === 'Aktif'
                     && in_array($transaksi->status_order, ['Menunggu Kasir', 'Diterima Kasir'], true)

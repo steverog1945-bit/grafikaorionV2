@@ -189,7 +189,12 @@
                             <a href="{{ route('berkas-order.show', $item->id_transaksi) }}" title="Rekonsiliasi: ada pekerjaan di berkas/catatan yang tidak tertagih di nota ini" class="text-amber-600 hover:text-amber-800 no-print"><i class="fas fa-triangle-exclamation text-[10px]"></i></a>
                             @endif
                         </div>
-                        <div class="spk-work-number text-[10px] text-slate-400 mt-0.5">Nota: {{ $item->nomor_nota }} &middot; SPK #{{ $item->id_detail }}</div>
+                        <div class="spk-work-number text-[10px] text-slate-400 mt-0.5">Nota: {{ $item->nomor_nota }} &middot; SPK #{{ $item->id_detail }}
+                            <a href="{{ route('spk.print-nota', ['id' => $item->id_transaksi, 'format' => 'thermal']) }}" target="_blank"
+                               class="no-print text-indigo-500 hover:text-indigo-700" title="Cetak SPK semua item dalam nota ini (satu item satu halaman)">
+                                <i class="fas fa-print text-[10px]"></i> semua item
+                            </a>
+                        </div>
                     </td>
                     <td data-label="Konsumen" class="px-4 py-5">
                         <span class="text-[12px] font-medium text-slate-700 uppercase">{{ $item->nama_konsumen }}</span>
