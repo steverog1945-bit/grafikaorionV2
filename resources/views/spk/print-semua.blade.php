@@ -6,12 +6,9 @@
     @include('partials.print-style')
     @if($format !== 'thermal')
     <style>
-        /* Daftar kerja A4 harus memakai lebar kertas penuh - style nota
-           membatasi .sheet ke 480px (pas untuk struk), terlalu sempit
-           untuk tabel banyak kolom. */
+        /* Daftar kerja A4 memakai lebar kertas penuh - style nota
+           membatasi .sheet ke 480px (pas untuk struk). */
         .sheet { max-width: 100%; }
-        /* Blok identitas nota tidak perlu melebar sepanjang kertas -
-           nilai yang rata kanan jadi jauh dari labelnya. */
         table.info-nota { max-width: 380px; margin: 0 auto; }
     </style>
     @endif
@@ -19,26 +16,6 @@
 <body>
     @php
         $nota = $details->first();
-        // Data baris disiapkan sekali supaya cabang thermal (daftar linear,
-        // 80mm) dan cabang A4 (tabel) membaca isi yang sama persis.
-        $barisItem = $details->values()->map(function ($detail, $i) use ($finishingItems) {
-            $fin = $finishingItems[$detail->id_detail] ?? collect();
-            // Hanya NAMA finishing - status/catatan finishing milik tim
-            // finishing dan membuat baris melebar tanpa guna.
-            $finText = $fin->pluck('nama_finishing')->implode(', ');
-            if ($finText === '' && ($detail->nama_finishing ?? null)) {
-                $finText = $detail->nama_finishing;
-            }
-            $ukuran = ($detail->metode_hitung ?? null) === 'ukuran'
-                ? angka($detail->p_ukuran, 2) . ' x ' . angka($detail->l_ukuran, 2)
-                : '-';
-            return [
-                'detail' => $detail,
-                'no' => $i + 1,
-                'fin' => $finText,
-                'ukuran' => $ukuran,
-            ];
-        });
     @endphp
     <div class="sheet">
         @include('partials.print-header', ['docTitle' => 'Daftar Kerja SPK'])
@@ -62,26 +39,19 @@
 
         <div class="divider"></div>
 
+        {{-- Isi daftar sengaja hanya: nama file/deskripsi, qty, status, dan
+             keterangan desain (mis. "FILE SIAP CETAK - dari pelanggan").
+             Produk, ukuran, dan finishing bisa dilihat setelah barcode
+             discan/dibuka, jadi tidak dicetak di kertas. --}}
         @if($format === 'thermal')
-            {{-- THERMAL 80mm: daftar linear, bukan tabel banyak kolom.
-                 Empat kolom pada kertas 80mm memaksa "Catatan" jadi kolom
-                 satu kata per baris sehingga daftar lebih panjang daripada
-                 struk per item - justru menghemat kertasnya hilang. --}}
-            @foreach($barisItem as $b)
-            @php $detail = $b['detail']; @endphp
-            <div style="margin-bottom: 7px;">
-                <div style="font-weight:500;">
-                    {{ $b['no'] }}. #{{ $detail->id_detail }} &middot; {{ $detail->nama_file }}
-                    @if($detail->status_urgent)<span style="color:var(--color-amber-700);"> (URGENT)</span>@endif
-                </div>
+            @foreach($details->values() as $i => $detail)
+            <div style="margin-bottom: 6px;">
+                <div>{{ $i + 1 }}. {{ $detail->nama_file }}</div>
                 <div style="font-size:10px; color:var(--ink-600);">
-                    {{ $detail->nama_produk }}@if(($detail->metode_hitung ?? null) === 'ukuran') &middot; {{ $b['ukuran'] }} cm @endif
-                    &middot; qty {{ angka($detail->qty, 4) }}
-                    @if($b['fin'] !== '') &middot; {{ $b['fin'] }} @endif
-                    &middot; {{ $detail->status_spk }}
+                    qty {{ angka($detail->qty, 4) }} &middot; {{ $detail->status_spk }}@if($detail->status_urgent) (URGENT)@endif
                 </div>
                 @if($detail->catatan_produksi)
-                <div style="font-size:10px; color:var(--ink-600);">Catatan: {{ $detail->catatan_produksi }}</div>
+                <div style="font-size:10px; color:var(--ink-600);">Ket: {{ $detail->catatan_produksi }}</div>
                 @endif
             </div>
             @endforeach
@@ -90,32 +60,20 @@
                 <thead>
                     <tr>
                         <th style="width:26px;">No</th>
-                        <th style="width:56px;">No. SPK</th>
-                        <th style="width:24%;">Nama File / Item</th>
-                        <th style="width:13%;">Produk</th>
-                        <th style="width:78px;">Ukuran</th>
-                        <th class="right" style="width:34px;">Qty</th>
-                        <th style="width:13%;">Finishing</th>
-                        <th style="width:24%;">Catatan</th>
-                        <th style="width:58px;">Status</th>
+                        <th>Nama File / Deskripsi</th>
+                        <th class="right" style="width:44px;">Qty</th>
+                        <th style="width:90px;">Status</th>
+                        <th>Keterangan Desain</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($barisItem as $b)
-                    @php $detail = $b['detail']; @endphp
+                    @foreach($details->values() as $i => $detail)
                     <tr>
-                        <td>{{ $b['no'] }}</td>
-                        <td>#{{ $detail->id_detail }}</td>
-                        <td>
-                            {{ $detail->nama_file }}
-                            @if($detail->status_urgent)<span style="color:var(--color-amber-700);font-weight:500;"> (URGENT)</span>@endif
-                        </td>
-                        <td>{{ $detail->nama_produk }}</td>
-                        <td>{{ $b['ukuran'] }}</td>
+                        <td>{{ $i + 1 }}</td>
+                        <td>{{ $detail->nama_file }}</td>
                         <td class="right">{{ angka($detail->qty, 4) }}</td>
-                        <td>{{ $b['fin'] !== '' ? $b['fin'] : '-' }}</td>
+                        <td>{{ $detail->status_spk }}@if($detail->status_urgent) (URGENT)@endif</td>
                         <td>{{ $detail->catatan_produksi ?: '-' }}</td>
-                        <td>{{ $detail->status_spk }}</td>
                     </tr>
                     @endforeach
                 </tbody>

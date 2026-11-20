@@ -16,10 +16,14 @@ Tombol/tautan **Daftar SPK (n)** membuka **satu lembar daftar kerja**:
 
 - 1 barcode nota (sekali scan → semua item nota tampil)
 - identitas nota/order (nomor, tanggal, konsumen, jumlah item)
-- tabel semua item: No. SPK, nama file/barang, produk, ukuran, qty,
-  finishing, catatan, status
+- tabel semua item: **nama file/deskripsi, qty, status**, dan **keterangan
+  desain** (mis. "FILE SIAP CETAK - dari pelanggan, tanpa desain tim")
 - daftar nama & nomor punggung (khusus Jersey) tetap dicetak di bawahnya
   karena informasi itu tidak terbaca dengan scan
+
+Produk, ukuran, dan finishing sengaja tidak dicetak — semuanya muncul
+setelah barcode discan, sehingga kertas hanya memuat yang dibutuhkan untuk
+pembagian kerja.
 
 SPK per item **tidak diubah**: tombol `SPK` di tiap kartu barang / baris
 antrean tetap mencetak halaman lengkap (gambar desain, estimasi bahan) bila
@@ -52,8 +56,9 @@ thermal** dari kedua titik masuk:
 - format A4 tetap tersedia bila dipanggil manual dengan `format=normal`
 
 Di kertas 80mm, tabel banyak kolom tidak dipakai: `format=thermal` merender
-**daftar linear** (1 item = 2–3 baris: nomor + nama file, lalu produk/ukuran/qty/
-finishing/status, lalu catatan). Tabel berkolom hanya untuk A4.
+**daftar linear** (1 item = 2–3 baris: nomor + nama file, lalu qty/status,
+lalu keterangan desain). Tabel berkolom (nama file, qty, status, keterangan
+desain) hanya untuk A4.
 
 ## Bukti visual (browser nyata, dev lokal)
 
