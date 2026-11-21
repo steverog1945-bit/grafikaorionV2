@@ -88,6 +88,32 @@ class MinimumLuasAkumulasiTest extends TestCase
         ];
     }
 
+    private function makeFinishing(string $nama, float $harga, string $metode = 'luas'): int
+    {
+        return DB::table('finishing')->insertGetId([
+            'nama_finishing' => $nama,
+            'harga_default' => $harga,
+            'metode_hitung' => $metode,
+            'minimum_charge' => 0,
+        ]);
+    }
+
+    private function itemFinishing(int $idProduk, float $p, float $l, float $qty, float $harga, int $idFinishing, float $biayaFinishing): array
+    {
+        $item = $this->item($idProduk, $p, $l, $qty, $harga);
+        $item['id_finishing'] = $idFinishing;
+        $item['biaya_finishing'] = $biayaFinishing;
+        $item['finishing'] = [[
+            'id_finishing' => $idFinishing,
+            'status_finishing' => 'Standar',
+            'biaya' => $biayaFinishing,
+            'qty_pakai' => null,
+            'catatan' => null,
+        ]];
+
+        return $item;
+    }
+
     private function barisNota(): array
     {
         $nota = DB::table('transaksi')->first();
@@ -210,5 +236,56 @@ class MinimumLuasAkumulasiTest extends TestCase
         $this->store([$this->item($prod, 100, 100, 1, 10000)])->assertOk();
         $baris = $this->barisNota();
         $this->assertSame(0, (int) $baris[0]->is_minimum_order);
+    }
+
+    /**
+     * Pengecualian mockup styrofoam (keputusan owner 21 Nov 2026): satu item
+     * FLS280 0,24 m2 (di bawah minimum 1 m2) + finishing Styrofoam tetap
+     * tersimpan. Penagihan tidak berubah - cetak tetap ditagih minimum 1 m2
+     * (selisih 0,76 x 20.000 = 15.200), styrofoam ditagih luas aktual
+     * 0,24 m2 x 35.000 = 8.400, sama seperti nota ORG-20261106-030.
+     */
+    public function test_satu_item_di_bawah_minimum_dengan_finishing_styrofoam_tetap_tersimpan(): void
+    {
+        $produk = $this->makeProduk('FLS280 3.2m', 'FLS280', 1.0, 20000);
+        $styro = $this->makeFinishing('Styrofoam Mockup', 35000);
+
+        $this->store([$this->itemFinishing($produk, 60, 40, 1, 20000, $styro, 0)])->assertOk();
+
+        $baris = $this->barisNota();
+        $this->assertCount(1, $baris);
+        $this->assertEquals(1, (int) $baris[0]->is_minimum_order);
+        $this->assertEquals(15200.0, (float) $baris[0]->biaya_minimum, 0.01);
+        $this->assertEquals(20000.0, (float) $baris[0]->biaya_cetak, 0.01, 'cetak ditagih minimum 1 m2');
+        $this->assertEquals(8400.0, (float) $baris[0]->biaya_finishing, 0.01, 'styrofoam luas aktual 0,24 m2');
+        $this->assertEquals(28400.0, (float) $baris[0]->subtotal, 0.01);
+        $this->assertStringContainsString('Minimum Order FLS280', (string) $baris[0]->catatan_produksi);
+
+        $fin = DB::table('transaksi_detail_finishing')->where('id_detail', $baris[0]->id_detail)->get();
+        $this->assertCount(1, $fin);
+        $this->assertEquals(8400.0, (float) $fin[0]->biaya, 0.01);
+        $this->assertEquals(28400.0, (float) DB::table('transaksi')->value('total_bayar'), 0.01);
+    }
+
+    /** Tanpa finishing Styrofoam, satu item di bawah minimum tetap diblokir. */
+    public function test_satu_item_di_bawah_minimum_tanpa_styrofoam_tetap_ditolak(): void
+    {
+        $produk = $this->makeProduk('FLS280 3.2m', 'FLS280', 1.0, 20000);
+
+        $r = $this->store([$this->item($produk, 60, 40, 1, 20000)]);
+
+        $r->assertStatus(422);
+        $this->assertStringContainsString('Minimum order belum terpenuhi', (string) $r->json('msg'));
+        $this->assertSame(0, DB::table('transaksi')->count());
+    }
+
+    /** Finishing lain tidak membuka pengecualian - hanya Styrofoam. */
+    public function test_satu_item_di_bawah_minimum_dengan_finishing_lain_tetap_ditolak(): void
+    {
+        $produk = $this->makeProduk('FLS280 3.2m', 'FLS280', 1.0, 20000);
+        $kisscut = $this->makeFinishing('Kisscut', 20000);
+
+        $this->store([$this->itemFinishing($produk, 60, 40, 1, 20000, $kisscut, 0)])->assertStatus(422);
+        $this->assertSame(0, DB::table('transaksi')->count());
     }
 }

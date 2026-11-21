@@ -1850,6 +1850,17 @@ let currentThumbnailPreview = null;
         });
     }
 
+    // Pengecualian mockup styrofoam (keputusan owner 21 Nov 2026): satu item
+    // FLS280 di bawah 1 m² tetap boleh disimpan bila memakai finishing
+    // Styrofoam. Penagihan cetak TIDAK dikecualikan - selisih minimum tetap
+    // ditagih ke baris itu oleh server. Deteksi berbasis nama finishing
+    // (sama dengan server), jadi finishing lain tetap diblokir.
+    function barisMockupStyrofoam(it) {
+        const daftar = Array.isArray(it.finishing) ? it.finishing : [];
+        const ada = daftar.some((f) => /styrofoam/i.test(String((f && (f.nama || f.nama_finishing)) || '')));
+        return ada || /styrofoam/i.test(String(it.nama_finishing || ''));
+    }
+
     // Peringatan SweetAlert INFORMATIF (pemilian non-blocking): total luas
     // kelompok masih di bawah minimum order. Dipanggil setelah item ditambah/
     // diubah/dihapus; tidak diulang selama angkanya tidak berubah (dedup via
@@ -1873,10 +1884,16 @@ let currentThumbnailPreview = null;
         const sig = g.label + '|' + g.total + '|' + g.min;
         if (sig === __sigPeringatanMinOrder) return;
         __sigPeringatanMinOrder = sig;
+        const itemTunggal = (jumlahItem <= 1) ? (g.terbesar || null) : null;
+        const keterangan = jumlahItem > 1
+            ? ' Selisih akan ditagih ke baris terbesar kelompok saat simpan (pengali).'
+            : ((itemTunggal && barisMockupStyrofoam(itemTunggal))
+                ? ' Pengecualian mockup styrofoam: simpan tetap boleh, cetak ditagih minimum ' + angkaId(g.min, 2) + ' m&sup2;.'
+                : ' <b>Simpan diblokir</b> sampai minimum terpenuhi (1 item saja).');
         Swal.fire({
             icon: 'warning',
             title: 'Minimum Order Belum Terpenuhi',
-            html: `Total luas pesanan saat ini adalah <b>${angkaId(g.total, 2)} m&sup2;</b>, sedangkan minimum order adalah <b>${angkaId(g.min, 2)} m&sup2;</b>. Kekurangan <b>${angkaId(g.selisih, 2)} m&sup2;</b>.${jumlahItem <= 1 ? ' <b>Simpan diblokir</b> sampai minimum terpenuhi (1 item saja).' : ' Selisih akan ditagih ke baris terbesar kelompok saat simpan (pengali).'} `,
+            html: `Total luas pesanan saat ini adalah <b>${angkaId(g.total, 2)} m&sup2;</b>, sedangkan minimum order adalah <b>${angkaId(g.min, 2)} m&sup2;</b>. Kekurangan <b>${angkaId(g.selisih, 2)} m&sup2;</b>.${keterangan}`,
             confirmButtonText: 'Mengerti'
         });
     }
@@ -4116,6 +4133,9 @@ let peringatanMinDaftar = 0;
         // memperbaiki sendiri / menambah item lain sekelompok. Baris
         // BARU (id_detail null) saja yang dihitung; baris lama (mode edit)
         // dibebaskan - server tetap otoritatif.
+        // Pengecualian mockup styrofoam (keputusan owner 21 Nov 2026): satu
+        // item di bawah minimum yang memakai finishing Styrofoam boleh
+        // disimpan; server tetap menagih cetak minimum 1 m².
         const minBarisProdukSamaUntuk = (it) => {
             const idPr = String(it.id_produk);
             const kat = String(it.kategori_produk ?? '0');
@@ -4151,7 +4171,7 @@ let peringatanMinDaftar = 0;
                 return (r.kelompok_minimum || String(r.id_produk)) === label;
             }));
             const total = sekelompok.reduce((s, r) => s + ((parseFloat(r.p) || 0) * (parseFloat(r.l) || 0) / 10000) * (parseFloat(r.qty_input ?? r.qty) || 1), 0);
-            if (sekelompok.length === 1 && total < mLuas) {
+            if (sekelompok.length === 1 && total < mLuas && !barisMockupStyrofoam(it)) {
                 pelanggaran.push(`Minimum order kelompok "${label}" belum terpenuhi (${total.toFixed(2)} m&sup2; dari ${mLuas} m&sup2;). Tambah item lain sekelompok atau ubah ukuran item ini ke minimum order.`);
             }
         }

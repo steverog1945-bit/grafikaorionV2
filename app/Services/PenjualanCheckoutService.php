@@ -818,6 +818,40 @@ class PenjualanCheckoutService
         return round($hppItemIni, 2);
     }
 
+    /**
+     * Baris ini memakai finishing Styrofoam (mockup)?
+     *
+     * Dipakai untuk pengecualian minimum order (keputusan owner 21 Nov 2026):
+     * satu item di bawah min_luas_total tetap boleh disimpan bila item itu
+     * memakai finishing Styrofoam, karena mockup memang berukuran kecil.
+     * Penagihan TIDAK berubah - cetak tetap ditagih minimum kelompok
+     * (selisih digulung ke baris ini), styrofoam tetap dihitung luas aktual.
+     *
+     * Sengaja berbasis NAMA master finishing (bukan id hardcode) supaya
+     * berlaku juga di database lain; hanya finishing yang namanya memuat
+     * "styrofoam" yang membuka pengecualian, finishing lain tetap diblokir.
+     */
+    private function barisMockupStyrofoam(array $item, $finishingRows): bool
+    {
+        $daftar = is_array($item['finishing'] ?? null) ? $item['finishing'] : [];
+        if (!$daftar && !empty($item['id_finishing'])) {
+            $daftar = [['id_finishing' => $item['id_finishing']]];
+        }
+
+        foreach ($daftar as $fin) {
+            $idF = (int) ($fin['id_finishing'] ?? 0);
+            if ($idF <= 0) {
+                continue;
+            }
+            $row = $finishingRows->get($idF);
+            if ($row && stripos((string) $row->nama_finishing, 'styrofoam') !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function validasiItems(Request $request, int $idGolongan, bool $hargaTerkunci, bool $bolehInputBiayaDesain, ?\Illuminate\Support\Collection $itemsLama = null, ?callable $itemBerubah = null, ?\Illuminate\Support\Collection $barisNotaAda = null): array
     {
         $itemsTervalidasi = [];
@@ -1016,7 +1050,16 @@ class PenjualanCheckoutService
             if (!isset($minLuasGroups[$kunciKelompok])) {
                 $minLuasGroups[$kunciKelompok] = ['label' => $label, 'min' => $minLuasProduk, 'items' => [], 'produkTerbesar' => null, 'areaTerbesar' => 0.0, 'idxTerbesar' => null];
             }
-            $minLuasGroups[$kunciKelompok]['items'][] = ['id_produk' => $idProdukInt, 'area' => $areaIni, 'p' => $p, 'l' => $l, 'qty' => $qtyInput];
+            $minLuasGroups[$kunciKelompok]['items'][] = [
+                'id_produk' => $idProdukInt,
+                'area' => $areaIni,
+                'p' => $p,
+                'l' => $l,
+                'qty' => $qtyInput,
+                // Pengecualian mockup styrofoam: satu baris di bawah minimum
+                // tetap boleh disimpan (lihat blok penagihan di bawah).
+                'mockup_styrofoam' => $this->barisMockupStyrofoam($item, $finishingRows),
+            ];
             if ($areaIni > $minLuasGroups[$kunciKelompok]['areaTerbesar']) {
                 $minLuasGroups[$kunciKelompok]['areaTerbesar'] = $areaIni;
                 $minLuasGroups[$kunciKelompok]['produkTerbesar'] = $idProdukInt;
@@ -1353,9 +1396,17 @@ class PenjualanCheckoutService
             continue;
         }
         // Keputusan owner 2026-11-15: kelompok minimum yang hanya berisi SATU
-        // item TETAP di bawah minimum TIDAK BISA DISIMPAN. Kelompok dengan
+        // item TETAPI di bawah minimum TIDAK BISA DISIMPAN. Kelompok dengan
         // >=2 item boleh disimpan (selisih tetap ditagih ke baris terbesar).
-        if (count($minLuasGroups[$kunci]['items']) === 1) {
+        //
+        // Pengecualian mockup styrofoam (keputusan owner 21 Nov 2026): satu
+        // item FLS280 di bawah 1 m² yang memakai finishing Styrofoam tetap
+        // boleh disimpan. Penagihan tidak dikecualikan - selisih tetap
+        // ditagih ke baris ini di bawah, jadi cetak tetap minimal 1 m².
+        $satuItemKelompok = count($minLuasGroups[$kunci]['items']) === 1;
+        $mockupStyrofoam = $satuItemKelompok
+            && !empty($minLuasGroups[$kunci]['items'][0]['mockup_styrofoam']);
+        if ($satuItemKelompok && !$mockupStyrofoam) {
             throw new \App\Exceptions\ValidasiNotaException('Minimum order belum terpenuhi untuk kelompok "' . $kelompok . '": ' . rtrim(rtrim(number_format($selisih, 2, '.', ''), '0'), '.') . ' m2 lagi. Ubah ukuran item ini ke minimum order atau tambah item lain sekelompok.');
         }
         // Tarif diambil dari produk dengan luas aktual terbesar di kelompok, di tier qty = selisih.
