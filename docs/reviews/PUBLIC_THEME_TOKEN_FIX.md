@@ -38,12 +38,18 @@ File baru: `resources/views/publik/partials/theme-vars.blade.php`
 
 - Mengambil `app(\App\Services\BrandThemeService::class)->current()` — **sumber yang sama** dengan layout ERP — sehingga tema yang dipilih owner tetap berlaku di halaman publik.
 - Menyalin token statis dari `ui-tokens.css` (`--color-white`, `--paper`, `--ink-900`, `--line-200`, dll.) dan ramp amber/rose/emerald dari `@theme` `app.css`, tanpa mengubah nilainya.
-- Disertakan sebelum stylesheet yang memakai token, pada 5 file:
+- Disertakan sebelum stylesheet yang memakai token, pada 7 file:
   - `resources/views/landing-page-public.blade.php` (sebelum `renderer-styles`)
   - `resources/views/publik/layout.blade.php` (setelah `@vite`)
   - `resources/views/publik/layout-masuk.blade.php` (setelah `@vite`, sebelum `<style>` login)
   - `resources/views/publik/layout-artikel.blade.php`
   - `resources/views/publik/lacak-nota.blade.php`
+  - `resources/views/pengaturan/landing-page-preview.blade.php`
+  - `resources/views/pengaturan/landing-page-preview-iframe.blade.php`
+
+Dua file preview ikut diperbaiki: keduanya memakai `renderer-styles` tetapi tidak punya token
+`--color-*`, jadi tampil polos. Dengan partial yang sama, preview memakai preset aktif yang identik
+dengan halaman publik.
 
 Tidak ada `id`, `name`, `action` form, event handler, atau kelas yang diubah. Desktop tidak tersentuh.
 
@@ -52,7 +58,8 @@ Tidak ada `id`, `name`, `action` form, event handler, atau kelas yang diubah. De
 **PASS**
 
 - `php artisan view:clear` + `php artisan view:cache` — semua Blade terkompilasi.
-- HTTP 200 untuk `/`, `/masuk`, `/lacak-nota`; markup memuat token tema.
+- HTTP 200 untuk `/`, `/masuk`, `/lacak-nota`, `/setting/landing-page-builder/preview/draft`, dan `/setting/landing-page-builder/preview/draft/iframe`; markup memuat token tema.
+- Preview draft & iframe: `--color-indigo-950 = #15232A`, `--brand-accent-light = #3F6578` (sama dengan landing publik).
 - Computed style browser (Chrome terhubung, halaman diakses lewat `localhost/grafikaorionV2/public/...`):
 
 | Halaman | Sebelum | Sesudah |

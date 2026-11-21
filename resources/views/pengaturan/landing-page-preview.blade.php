@@ -15,6 +15,10 @@
     @if(!empty($seo['og_description']))
     <meta property="og:description" content="{{ $seo['og_description'] }}">
     @endif
+    {{-- Token tema harus ada sebelum renderer-styles supaya preview memakai
+         warna preset aktif, sama seperti halaman publik. --}}
+    @include('publik.partials.theme-vars')
+
     @include('pengaturan.partials.renderer-styles')
     <style>
         :root {

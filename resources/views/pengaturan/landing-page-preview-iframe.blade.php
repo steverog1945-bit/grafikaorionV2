@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow, noarchive">
     <title>Preview</title>
+    {{-- Token tema harus ada sebelum renderer-styles supaya preview memakai
+         warna preset aktif, sama seperti halaman publik. --}}
+    @include('publik.partials.theme-vars')
+
     @include('pengaturan.partials.renderer-styles')
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
