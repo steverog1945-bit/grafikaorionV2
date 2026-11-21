@@ -20,6 +20,12 @@ class Finishing extends Model
         'id_satuan',
         'id_kategori',
         'id_mesin',
+        // Bahan baku yang dipotong finishing ini (opsional). Dipakai saat
+        // checkout untuk memotong stok + menghitung HPP; finishing jasa boleh
+        // kosong. Lihat migrasi 2026_11_21_100000_finishing_bahan_terpakai.
+        'id_bahan',
+        // Satuan STOK bahan per 1 satuan HITUNG finishing (m2/meter/pcs).
+        'qty_bahan_per_satuan',
         'metode_hitung',
         'keterangan',
     ];

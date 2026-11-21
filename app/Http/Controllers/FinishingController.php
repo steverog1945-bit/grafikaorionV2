@@ -26,6 +26,12 @@ class FinishingController extends Controller
             ->get();
         $mesin = DB::table('mesin')->orderBy('nama_mesin')->get();
         $kategori = DB::table('kategori')->orderBy('nama_kategori')->get();
+        // Pilihan bahan baku untuk kolom "Bahan Baku Terpakai" di form
+        // finishing - dipakai checkout untuk memotong stok & menghitung HPP.
+        $bahanBaku = DB::table('bahan_baku')
+            ->where('status', 'aktif')
+            ->orderBy('nama_bahan')
+            ->get(['id_bahan', 'kode_bahan', 'nama_bahan', 'satuan_stok']);
 
         $hargaTiers = DB::table('finishing_harga')
             ->whereIn('id_finishing', $data->pluck('id_finishing'))
@@ -33,7 +39,7 @@ class FinishingController extends Controller
             ->get()
             ->groupBy('id_finishing');
 
-        return view('finishing.index', compact('data', 'mesin', 'kategori', 'hargaTiers'));
+        return view('finishing.index', compact('data', 'mesin', 'kategori', 'hargaTiers', 'bahanBaku'));
     }
 
     public function store(Request $request)
@@ -55,6 +61,11 @@ class FinishingController extends Controller
             // Lantai biaya finishing per item (dipakai mode Potong Manual).
             // 0 = tidak ada minimum charge.
             'minimum_charge' => 'nullable|numeric|min:0',
+            // Bahan baku yang dipotong finishing ini (opsional). Tanpa angka
+            // qty_bahan_per_satuan, stok TIDAK dipotong - alur lama tetap
+            // berjalan, jadi finishing jasa tidak perlu diisi apa pun.
+            'id_bahan'             => 'nullable|exists:bahan_baku,id_bahan',
+            'qty_bahan_per_satuan' => 'nullable|numeric|min:0',
             'keterangan'     => 'nullable|string',
         ]);
 
@@ -79,6 +90,10 @@ class FinishingController extends Controller
             // barang). Rumus: keping x panjang barang x qty = meter jahit.
             'metode_hitung'  => 'required|in:luas,keliling,quantity,LINEAR_GRID,KEPING_ROLL',
             'minimum_charge' => 'nullable|numeric|min:0',
+            // Sama seperti store(): bahan baku opsional + faktor pemakaian
+            // per satuan hitung. Kosong = tidak memotong stok.
+            'id_bahan'             => 'nullable|exists:bahan_baku,id_bahan',
+            'qty_bahan_per_satuan' => 'nullable|numeric|min:0',
             'keterangan'     => 'nullable|string',
         ]);
 

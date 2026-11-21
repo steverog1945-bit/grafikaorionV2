@@ -64,11 +64,9 @@ styrofoam 35.000/m² →
 
 ## Batasan / belum dikerjakan
 
-- Stok bahan `Styrofoam` (`id_bahan = 150`) masih belum terpotong oleh order:
-  `bom_finishing` kosong dan BOM produk hanya FRONTLITE. HPP order
-  ber-styrofoam juga belum memuat bahan ini. Pekerjaan terpisah.
-- `transaksi_detail_finishing.qty_pakai` untuk finishing `luas` masih `NULL`
-  (hanya `biaya` tersimpan), sehingga luas yang ditagih tidak dapat
-  direkonstruksi dari nota.
 - Aturan lantai `min_panjang`/`min_lebar` tidak berubah; pengecualian ini
   hanya untuk blokir kelompok minimum luas.
+- Dua celah yang disebut di dokumen ini (stok/HPP styrofoam dan `qty_pakai`
+  finishing `luas` yang NULL) **sudah ditutup** pada 21 November 2026.
+  Lihat `FINISHING_BAHAN_TERPAKAI.md` untuk rancangan, uji, dan satu data
+  yang masih perlu diisi operator (ukuran lembar styrofoam).

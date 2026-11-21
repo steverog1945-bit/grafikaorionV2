@@ -634,11 +634,29 @@ class PenjualanCheckoutService
                 'harga_jual_snapshot' => $item['subtotal'],
             ]);
 
-        // Rincian finishing per item (boleh lebih dari satu).
-        $this->tulisFinishingItem($id_detail, $item['finishing_list'] ?? []);
+        // Rincian finishing per item (boleh lebih dari satu) + potong bahan
+        // finishing (Styrofoam dll) bila master finishing-nya sudah menautkan
+        // bahan + faktor pemakaian.
+        $hppFinishing = $this->tulisFinishingItem(
+            $id_detail,
+            $item['finishing_list'] ?? [],
+            true,
+            $referensiKartu,
+            $keteranganKartu
+        );
 
         // BOM + tinta/toner mesin produk (lihat BomCalculationService::komponen).
         $hppItemIni = $this->pakaiBahanItem($item, $id_detail, $referensiKartu, $keteranganKartu, $jumlah_order);
+
+        // HPP bahan finishing ditambahkan ke snapshot baris yang sama. Tanpa
+        // ini HPP order ber-styrofoam hanya berisi FRONTLITE, padahal bahan
+        // styrofoam benar-benar terpakai dan stoknya sudah dipotong di atas.
+        if ($hppFinishing > 0) {
+            $hppItemIni = round($hppItemIni + $hppFinishing, 2);
+            DB::table('transaksi_detail')->where('id_detail', $id_detail)->update([
+                'hpp_snapshot' => $hppItemIni,
+            ]);
+        }
 
         return [$id_detail, $hppItemIni];
     }
@@ -683,8 +701,20 @@ class PenjualanCheckoutService
         return $idDetail;
     }
 
-    public function tulisFinishingItem(int $idDetail, array $daftarFinishing): void
+    /**
+     * Tulis rincian finishing item + potong bahan baku finishing (opsional).
+     *
+     * @param  bool  $potongStok  true HANYA pada jalur yang benar-benar
+     *         menulis pemakaian baru (order baru / item yang diubah setelah
+     *         pemakaian lama dikembalikan). Jalur "nominal saja" (item tidak
+     *         berubah saat koreksi nota) memanggil dengan false supaya stok
+     *         tidak dipotong dua kali.
+     * @return float HPP bahan finishing yang dipotong (0 kalau tidak ada).
+     */
+    public function tulisFinishingItem(int $idDetail, array $daftarFinishing, bool $potongStok = false, ?string $referensiKartu = null, ?string $keteranganKartu = null): float
     {
+        $hppFinishing = 0.0;
+
         foreach ($daftarFinishing as $fin) {
             $finishing = DB::table('finishing')->where('id_finishing', $fin['id_finishing'])->first();
             if ($finishing && $finishing->nama_finishing === 'Potong Manual A3') {
@@ -720,7 +750,69 @@ class PenjualanCheckoutService
                 'tinggi_media' => $fin['tinggi_media'] ?? null,
                 'created_at' => now(), 'updated_at' => now(),
             ]);
+
+            // Bahan baku finishing (mis. Styrofoam). Sebelum 2026-11-21
+            // finishing tidak pernah menyebut bahan, jadi order ber-styrofoam
+            // tidak memotong stok dan HPP-nya tidak memuat bahan itu.
+            // Faktor pemakaian masih opsional: finishing jasa tidak diisi.
+            if (!$potongStok || !$finishing || empty($finishing->id_bahan)) {
+                continue;
+            }
+
+            $faktor = (float) ($finishing->qty_bahan_per_satuan ?? 0);
+            $qtyHitung = (float) ($fin['qty_hitung'] ?? $fin['qty_pakai'] ?? 0);
+            $qtyBahan = $qtyHitung * $faktor;
+
+            if ($faktor <= 0 || $qtyBahan <= 0) {
+                continue;
+            }
+
+            $bahan = DB::table('bahan_baku')
+                ->where('id_bahan', (int) $finishing->id_bahan)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$bahan) {
+                continue;
+            }
+
+            $stokSebelum = (float) ($bahan->stok ?? 0);
+            $stokSesudah = $stokSebelum - $qtyBahan;
+
+            DB::table('bahan_baku')
+                ->where('id_bahan', (int) $finishing->id_bahan)
+                ->update(['stok' => $stokSesudah]);
+
+            DB::table('kartu_stok')->insert([
+                'id_bahan'      => (int) $finishing->id_bahan,
+                'tanggal'       => now(),
+                'tipe'          => 'OUT',
+                'qty'           => $qtyBahan,
+                'stok_sebelum'  => $stokSebelum,
+                'stok_sesudah'  => $stokSesudah,
+                'referensi'     => $referensiKartu ?: ('FINISHING-' . $idDetail),
+                'keterangan'    => trim(($keteranganKartu ?: 'Pemakaian finishing') . ' - ' . $finishing->nama_finishing),
+                'created_by'    => Auth::id(),
+                'created_at'    => now(),
+                'updated_at'    => now(),
+            ]);
+
+            // Snapshot per baris item: reversal (batal SPK / koreksi nota)
+            // mengembalikan qty PERSIS ini, bukan menghitung ulang dari master
+            // yang bisa berubah setelah order dibuat.
+            DB::table('transaksi_detail_bahan_pakai')->insert([
+                'id_detail'  => $idDetail,
+                'id_bahan'   => (int) $finishing->id_bahan,
+                'qty_pakai'  => $qtyBahan,
+                'is_tinta'   => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $hppFinishing += $qtyBahan * (float) ($bahan->harga_rata_rata ?? 0);
         }
+
+        return round($hppFinishing, 2);
     }
 
     public function pakaiBahanItem(array $item, int $idDetail, string $referensiKartu, string $keteranganKartu, $jumlah_order): float
@@ -1230,7 +1322,22 @@ class PenjualanCheckoutService
                 // keputusan owner 2026-11-10); dimensi kepingnya ada di
                 // lebar_potong/tinggi_potong baris ini supaya angka bisa
                 // ditelusuri ulang dari nota.
-                'qty_pakai' => $rowF->metode_hitung === 'quantity' ? ($qtyPakai ?? $qtyInput) : ($rowF->metode_hitung === 'KEPING_ROLL' ? $qtyF : null),
+                //
+                // Sejak 2026-11-21 luas & keliling JUGA disimpan: sebelumnya
+                // selalu NULL untuk metode 'luas', jadi luas finishing yang
+                // ditagih (mis. styrofoam 0,24 m2) tidak bisa direkonstruksi
+                // dari nota. LINEAR_GRID tetap NULL karena yang ditagih meter
+                // potong, bukan luas media.
+                'qty_pakai' => match ($rowF->metode_hitung) {
+                    'quantity' => $qtyPakai ?? $qtyInput,
+                    'KEPING_ROLL' => $qtyF,
+                    'luas', 'keliling' => $qtyF > 0 ? round((float) $qtyF, 4) : null,
+                    default => null,
+                },
+                // Qty acuan tarif (tidak disimpan di transaksi_detail_finishing;
+                // dibawa ke tulisFinishingItem supaya pemakaian bahan finishing
+                // dihitung dari basis yang sama dengan penagihannya).
+                'qty_hitung' => $qtyF,
                 'biaya' => $biayaF, 'catatan' => isset($fin['catatan']) && trim((string) $fin['catatan']) !== '' ? mb_substr(trim((string) $fin['catatan']), 0, 255) : null,
                 // Dimensi potong dibawa ke bawah supaya ikut tersimpan bersama
                 // baris finishing-nya. Tanpa ini hanya `biaya` yang bertahan dan

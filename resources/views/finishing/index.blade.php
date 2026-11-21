@@ -256,6 +256,23 @@
                 <x-form.input type="text" inputmode="numeric" name="minimum_charge" value="0" class="format-ribuan" />
             </x-form.group>
 
+            {{-- Bahan baku yang dipotong finishing ini. Kosong = tidak memotong
+                 bahan (finishing jasa seperti jahit/laminasi). Faktor diisi
+                 dalam satuan STOK bahan per 1 satuan hitung finishing. --}}
+            <div class="grid grid-cols-2 gap-4">
+                <x-form.group label="Bahan Baku Terpakai" name="id_bahan" help="Opsional. Pilih bahan yang dipotong (mis. Styrofoam) supaya stoknya terpotong dan masuk HPP saat order." dalam>
+                    <x-form.select name="id_bahan">
+                        <option value="">-- Tidak memotong bahan --</option>
+                        @foreach($bahanBaku as $b)
+                            <option value="{{ $b->id_bahan }}">{{ $b->nama_bahan }} ({{ $b->satuan_stok }})</option>
+                        @endforeach
+                    </x-form.select>
+                </x-form.group>
+                <x-form.group label="Qty Bahan / Satuan Hitung" name="qty_bahan_per_satuan" help="Satuan stok bahan per 1 m²/meter/pcs finishing. Contoh: 1 lembar styrofoam 1x2 m = 0,5 lembar per m²." dalam>
+                    <x-form.input type="number" step="0.0001" min="0" name="qty_bahan_per_satuan" placeholder="0" />
+                </x-form.group>
+            </div>
+
             <x-form.group label="Keterangan" name="keterangan" dalam>
                 <textarea name="keterangan" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500/20 shadow-inner"></textarea>
             </x-form.group>
@@ -312,6 +329,20 @@
                 <x-form.input type="text" inputmode="numeric" name="minimum_charge" id="edit_minimum_charge" value="0" class="format-ribuan" />
             </x-form.group>
 
+            <div class="grid grid-cols-2 gap-4">
+                <x-form.group label="Bahan Baku Terpakai" help="Opsional. Pilih bahan yang dipotong (mis. Styrofoam) supaya stoknya terpotong dan masuk HPP saat order." dalam>
+                    <x-form.select name="id_bahan" id="edit_id_bahan">
+                        <option value="">-- Tidak memotong bahan --</option>
+                        @foreach($bahanBaku as $b)
+                            <option value="{{ $b->id_bahan }}">{{ $b->nama_bahan }} ({{ $b->satuan_stok }})</option>
+                        @endforeach
+                    </x-form.select>
+                </x-form.group>
+                <x-form.group label="Qty Bahan / Satuan Hitung" help="Satuan stok bahan per 1 m²/meter/pcs finishing. Contoh: 1 lembar styrofoam 1x2 m = 0,5 lembar per m²." dalam>
+                    <x-form.input type="number" step="0.0001" min="0" name="qty_bahan_per_satuan" id="edit_qty_bahan_per_satuan" placeholder="0" />
+                </x-form.group>
+            </div>
+
             <x-form.group label="Keterangan" dalam>
                 <textarea name="keterangan" id="edit_keterangan" rows="2" class="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-amber-500/20 shadow-inner"></textarea>
             </x-form.group>
@@ -341,6 +372,8 @@
         document.getElementById('edit_metode_hitung').value = data.metode_hitung || 'luas';
         document.getElementById('edit_harga_default').value = formatRupiahDariAngka(data.harga_default);
         document.getElementById('edit_minimum_charge').value = formatRupiahDariAngka(data.minimum_charge || 0);
+        document.getElementById('edit_id_bahan').value = data.id_bahan || '';
+        document.getElementById('edit_qty_bahan_per_satuan').value = data.qty_bahan_per_satuan == null ? '' : data.qty_bahan_per_satuan;
         document.getElementById('edit_keterangan').value = data.keterangan || '';
 
         openModal('edit-finishing');
