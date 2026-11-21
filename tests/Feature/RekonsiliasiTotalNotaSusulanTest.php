@@ -129,7 +129,7 @@ class RekonsiliasiTotalNotaSusulanTest extends TestCase
         $this->actingAs($this->admin)
             ->post('/kasir/proses-bayar', [
                 'id_transaksi' => $id, 'jumlah_bayar' => 150000, 'diskon' => 0,
-                'metode_pembayaran' => 'Transfer', 'submit_id' => 'rek-1',
+                'metode_pembayaran' => 'Transfer', 'id_bank' => $this->bankUji(), 'submit_id' => 'rek-1',
             ])
             ->assertSessionHasNoErrors();
 
@@ -161,7 +161,7 @@ class RekonsiliasiTotalNotaSusulanTest extends TestCase
         $this->actingAs($this->admin)
             ->post('/kasir/proses-bayar', [
                 'id_transaksi' => $id, 'jumlah_bayar' => 80000, 'diskon' => 20000,
-                'metode_pembayaran' => 'Transfer', 'submit_id' => 'rek-2',
+                'metode_pembayaran' => 'Transfer', 'id_bank' => $this->bankUji(), 'submit_id' => 'rek-2',
             ])
             ->assertSessionHasNoErrors();
 

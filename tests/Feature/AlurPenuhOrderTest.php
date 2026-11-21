@@ -57,7 +57,12 @@ class AlurPenuhOrderTest extends TestCase
 
     private function bayar(int $idTrx, string $jumlah, string $metode, string $sid)
     {
-        return $this->post('/kasir/proses-bayar', ['id_transaksi' => $idTrx, 'jumlah_bayar' => $jumlah, 'metode_pembayaran' => $metode, 'submit_id' => $sid]);
+        $payload = ['id_transaksi' => $idTrx, 'jumlah_bayar' => $jumlah, 'metode_pembayaran' => $metode, 'submit_id' => $sid];
+        if ($metode === 'Transfer') {
+            $payload['id_bank'] = $this->bankUji();
+        }
+
+        return $this->post('/kasir/proses-bayar', $payload);
     }
 
     public function test_order_sampai_diambil_semua_angka_saling_cocok(): void

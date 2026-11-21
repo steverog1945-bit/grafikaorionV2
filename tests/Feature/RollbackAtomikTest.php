@@ -258,7 +258,7 @@ class RollbackAtomikTest extends TestCase
         $this->assertEquals(47.0, (float) DB::table('bahan_baku')->where('id_bahan', $bahan)->value('stok'));
 
         // Bayar sebagian lewat kasir: piutang berkurang, tidak minus.
-        $this->post('/kasir/proses-bayar', ['id_transaksi' => $t->id_transaksi, 'jumlah_bayar' => '25.000', 'metode_pembayaran' => 'Transfer', 'submit_id' => 'pb-1'])
+        $this->post('/kasir/proses-bayar', ['id_transaksi' => $t->id_transaksi, 'jumlah_bayar' => '25.000', 'metode_pembayaran' => 'Transfer', 'id_bank' => $this->bankUji(), 'submit_id' => 'pb-1'])
             ->assertSessionHas('success');
         $this->assertEquals(40000, $this->saldo('1100'));
 

@@ -215,7 +215,7 @@
                         {{-- Panel Transfer Bank --}}
                         <div id="panel-bank-transfer">
                             <label class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mb-2">Rekening Tujuan
-                                <x-hint tip="Klik kartu rekening untuk memilih; klik lagi untuk batal pilih. Boleh dikosongkan - transfer dicatat tanpa keterangan rekening." icon="credit-card" />
+                                <x-hint tip="Klik kartu rekening untuk memilih. Transfer wajib memilih rekening tujuan; pembayaran tanpa rekening ditolak." icon="credit-card" />
                             </label>
                         {{-- Kartu rekening: kasir tidak lagi harus membaca
                              <select> panjang - satu akun = satu kartu dengan
@@ -225,7 +225,7 @@
                              (validasi transfer tidak berubah). --}}
                         @if($banks->isEmpty())
                             <div class="rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-xs text-slate-400 leading-relaxed">
-                                Belum ada rekening terdaftar di Master Bank. Transfer tetap bisa dicatat tanpa keterangan rekening - tambahkan dulu lewat menu Master Bank bila diperlukan.
+                                Belum ada rekening terdaftar di Master Bank. Transfer belum bisa dicatat - tambahkan rekening dulu lewat menu Master Bank, atau pilih QRIS.
                             </div>
                         @else
                         <input type="hidden" name="id_bank" id="input-bank" value="">
@@ -798,6 +798,18 @@
         return (_mp ? _mp.value : null) || 'Tunai';
     }
 
+    // #input-bank tidak dirender kalau Master Bank masih kosong. Helper ini
+    // mencegah TypeError di jalur QRIS serta dipakai guard submit Transfer.
+    function getBankTujuan() {
+        var input = document.getElementById('input-bank');
+        return input ? input.value : '';
+    }
+
+    function setBankTujuan(nilai) {
+        var input = document.getElementById('input-bank');
+        if (input) input.value = nilai;
+    }
+
     // Sinkron gaya pill button "Metode Pembayaran" dengan pill "Jenis
     // Pembayaran" di atasnya - sama-sama radio yang disamarkan (sr-only),
     // tampilannya digambar ulang lewat class toggle di label pembungkusnya.
@@ -834,7 +846,7 @@
         });
         if (mode === 'qris') {
             // QRIS tidak punya rekening tujuan - buang pilihan ATM yang mungkin tersisa.
-            document.getElementById('input-bank').value = '';
+            setBankTujuan('');
             document.querySelectorAll('.bank-atm-card').forEach(function (c) {
                 c.classList.remove('bank-atm-active');
                 c.setAttribute('aria-pressed', 'false');
@@ -860,12 +872,12 @@
             c.setAttribute('aria-pressed', 'false');
         });
         if (sedangAktif) {
-            document.getElementById('input-bank').value = '';
+            setBankTujuan('');
             return;
         }
         card.classList.add('bank-atm-active');
         card.setAttribute('aria-pressed', 'true');
-        document.getElementById('input-bank').value = card.dataset.bankId;
+        setBankTujuan(card.dataset.bankId);
     }
     document.querySelectorAll('.bank-atm-card').forEach(c => c.addEventListener('click', () => toggleBankCard(c)));
 
@@ -1149,6 +1161,17 @@
         // session-nya sendiri sebagai lapis kedua.
         var sudahSubmit = false;
         document.getElementById('form-pembayaran').addEventListener('submit', function (e) {
+            // Guard sisi klien: Transfer tanpa rekening tidak dikirim.
+            // Server tetap memvalidasi ulang di KasirController::prosesBayar.
+            if (getMetodePembayaran() === 'Transfer' && !getBankTujuan()) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Rekening tujuan belum dipilih',
+                    text: 'Pembayaran Transfer wajib memilih rekening bank tujuan.',
+                });
+                return;
+            }
             if (sudahSubmit) {
                 e.preventDefault();
                 return;

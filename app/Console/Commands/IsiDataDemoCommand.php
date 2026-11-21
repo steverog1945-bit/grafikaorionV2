@@ -262,9 +262,15 @@ class IsiDataDemoCommand extends Command
             $penuh = $i % 4 !== 1;
             $nominal = $penuh ? $nt['total'] : round($nt['total'] * 0.5, 2);
             $metode = $i % 2 === 0 ? 'Tunai' : 'Transfer';
+            // Transfer tanpa rekening dilarang guard kasir. Data demo tidak
+            // boleh melanggar invariant yang sama, jadi turunkan ke Tunai bila
+            // Master Bank kosong.
+            if ($metode === 'Transfer' && !$bank) {
+                $metode = 'Tunai';
+            }
 
             $row = ['id_transaksi' => $nt['id_transaksi'], 'nominal' => $nominal, 'metode' => $metode, 'tgl_bayar' => now()->subDays(max(0, 18 - $i)), 'keterangan' => 'DEMO'];
-            if ($metode === 'Transfer' && $bank) {
+            if ($metode === 'Transfer') {
                 $row['id_bank'] = $bank;
             }
 

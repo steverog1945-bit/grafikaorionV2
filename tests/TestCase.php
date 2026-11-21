@@ -60,6 +60,27 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
+     * Rekening bank tujuan untuk test pembayaran Transfer.
+     *
+     * KasirController sekarang menolak Transfer tanpa id_bank yang terdaftar,
+     * jadi semua test yang menembak /kasir/proses-bayar dengan Transfer wajib
+     * memakai helper ini.
+     */
+    protected function bankUji(): int
+    {
+        $id = \Illuminate\Support\Facades\DB::table('bank_perusahaan')->value('id_bank');
+        if ($id) {
+            return (int) $id;
+        }
+
+        return (int) \Illuminate\Support\Facades\DB::table('bank_perusahaan')->insertGetId([
+            'nama_bank' => 'Bank Uji',
+            'nomor_rekening' => '0001234567',
+            'atas_nama' => 'Orion Uji',
+        ]);
+    }
+
+    /**
      * Berhenti sebelum satu query pun dijalankan bila target database tidak aman.
      *
      * Aturan:

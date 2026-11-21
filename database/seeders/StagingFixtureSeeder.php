@@ -210,10 +210,20 @@ class StagingFixtureSeeder extends Seeder
                     'is_susulan' => 0,
                 ]);
             }
-            // Pembayaran untuk monitoring
+            // Pembayaran untuk monitoring. Transfer wajib membawa rekening
+            // tujuan (sama dengan guard KasirController), jadi fixture dibuatkan
+            // satu rekening sintetis bila Master Bank masih kosong.
+            $idBankFixture = DB::table('bank_perusahaan')->value('id_bank');
+            if (!$idBankFixture) {
+                $idBankFixture = DB::table('bank_perusahaan')->insertGetId([
+                    'nama_bank' => 'Bank Sintetis',
+                    'nomor_rekening' => '000123456789',
+                    'atas_nama' => 'Orion Grafika (Fixture)',
+                ]);
+            }
             DB::table('pembayaran_riwayat')->insert([
                 ['id_transaksi' => 3, 'nominal' => 96200, 'metode' => 'Tunai', 'id_bank' => null, 'tgl_bayar' => now()->subMinutes(20), 'keterangan' => 'Bayar penuh', 'uang_diterima' => 100000, 'kembalian' => 3800],
-                ['id_transaksi' => 4, 'nominal' => 1500000, 'metode' => 'Transfer', 'id_bank' => null, 'tgl_bayar' => now()->subMinutes(15), 'keterangan' => 'DP 50%', 'uang_diterima' => 0, 'kembalian' => 0],
+                ['id_transaksi' => 4, 'nominal' => 1500000, 'metode' => 'Transfer', 'id_bank' => (int) $idBankFixture, 'tgl_bayar' => now()->subMinutes(15), 'keterangan' => 'DP 50%', 'uang_diterima' => 0, 'kembalian' => 0],
                 ['id_transaksi' => 5, 'nominal' => 640000, 'metode' => 'Debit', 'id_bank' => null, 'tgl_bayar' => now()->subMinutes(10), 'keterangan' => null, 'uang_diterima' => 0, 'kembalian' => 0],
             ]);
         }

@@ -49,7 +49,7 @@ class KasirUbahHargaJurnalTest extends TestCase
     private function bayar(string $jumlah, string $diskon, string $sid)
     {
         return $this->post('/kasir/proses-bayar', ['id_transaksi' => $this->nota->id_transaksi, 'jumlah_bayar' => $jumlah, 'diskon' => $diskon,
-            'metode_pembayaran' => 'Transfer', 'submit_id' => $sid]);
+            'metode_pembayaran' => 'Transfer', 'id_bank' => $this->bankUji(), 'submit_id' => $sid]);
     }
 
     public function test_diskon_kasir_menyesuaikan_piutang_dan_pendapatan_lalu_lunas_tanpa_sisa(): void
@@ -103,7 +103,7 @@ class KasirUbahHargaJurnalTest extends TestCase
             ->assertSee('id="input-diskon" name="diskon" value="6.500"', false);
 
         // Pelunasan tanpa isian diskon (klien lama/permintaan tanpa field itu): diskon tersimpan tetap berlaku.
-        $this->post('/kasir/proses-bayar', ['id_transaksi' => $this->nota->id_transaksi, 'jumlah_bayar' => '38.500', 'metode_pembayaran' => 'Transfer', 'submit_id' => 'g-2'])
+        $this->post('/kasir/proses-bayar', ['id_transaksi' => $this->nota->id_transaksi, 'jumlah_bayar' => '38.500', 'metode_pembayaran' => 'Transfer', 'id_bank' => $this->bankUji(), 'submit_id' => 'g-2'])
             ->assertSessionHas('success');
 
         $t = DB::table('transaksi')->where('id_transaksi', $this->nota->id_transaksi)->first();

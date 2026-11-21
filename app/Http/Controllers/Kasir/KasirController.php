@@ -435,11 +435,17 @@ class KasirController extends Controller
                 throw new \Exception("Metode pembayaran tidak dikenali.");
             }
 
-            // id_bank hanya relevan untuk Transfer - divalidasi ke tabel
-            // bank_perusahaan supaya id yang dipalsukan dari client tidak
-            // lolos ke foreign key pembayaran_riwayat.id_bank.
+            // Invariant: Transfer WAJIB membawa rekening tujuan yang terdaftar.
+            // Sebelumnya syaratnya $request->filled('id_bank'), jadi request
+            // tanpa field / dengan string kosong lolos dan tercatat dengan
+            // id_bank NULL - identitas bank tujuan hilang dari riwayat, nota,
+            // API, dan audit. UI hanya kenyamanan; guard ini berlaku juga
+            // untuk POST langsung.
             $idBank = null;
-            if ($metode === 'Transfer' && $request->filled('id_bank')) {
+            if ($metode === 'Transfer') {
+                if (!$request->filled('id_bank') || (int) $request->id_bank <= 0) {
+                    throw new \Exception('Pembayaran Transfer wajib memilih rekening bank tujuan.');
+                }
                 $idBank = (int) $request->id_bank;
                 if (!DB::table('bank_perusahaan')->where('id_bank', $idBank)->exists()) {
                     throw new \Exception("Rekening bank tujuan tidak ditemukan.");

@@ -108,7 +108,7 @@ class PengeluaranPemilikTest extends TestCase
             ['tipe' => 'jasa', 'id_jasa' => $jasa, 'qty' => 1, 'harga' => 20000],
         ]])->assertSessionHasNoErrors();
         $t = DB::table('transaksi')->latest('id_transaksi')->first();
-        $this->post('/kasir/proses-bayar', ['id_transaksi' => $t->id_transaksi, 'jumlah_bayar' => '25.000', 'metode_pembayaran' => 'Transfer', 'submit_id' => 'pb-1']);
+        $this->post('/kasir/proses-bayar', ['id_transaksi' => $t->id_transaksi, 'jumlah_bayar' => '25.000', 'metode_pembayaran' => 'Transfer', 'id_bank' => $this->bankUji(), 'submit_id' => 'pb-1']);
 
         $this->post('/kas-kecil/saldo-awal', ['tanggal' => now()->toDateString(), 'nominal' => 100000]);
         $this->keluar('Beban Perlengkapan Toko', 10000);
