@@ -48,6 +48,8 @@
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Token tema (brand + warna) untuk halaman publik: lihat partial. --}}
+    @include('publik.partials.theme-vars')
     <link rel="stylesheet" href="{{ asset('vendor/fonts/inter.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/all.min.css') }}">
 

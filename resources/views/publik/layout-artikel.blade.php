@@ -114,6 +114,9 @@
     <title>@yield('judul', $appSetting->nama_aplikasi)</title>
     @hasSection('deskripsi')<meta name="description" content="@yield('deskripsi')">@endif
 
+    {{-- Token tema (brand + warna) untuk halaman publik: lihat partial. --}}
+    @include('publik.partials.theme-vars')
+
     {{-- Font & Ikon Builder --}}
     <link rel="stylesheet" href="{{ asset('vendor/fonts/inter.css') }}">
     @stack('font')

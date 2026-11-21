@@ -16,6 +16,8 @@
 
     {{-- Vite: CSS/JS utama. Builder public menggunakan vendor-own fonts & icons. --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Token tema (brand + warna) untuk halaman publik: lihat partial. --}}
+    @include('publik.partials.theme-vars')
     {{-- Font & Ikon: dilayani dari vendor server LAN. --}}
     <link rel="stylesheet" href="{{ asset('vendor/fonts/inter.css') }}">
     @stack('font')

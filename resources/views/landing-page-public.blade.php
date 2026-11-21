@@ -44,6 +44,10 @@
     {{-- Indexing: boleh diindeks karena ini konten publik yang sah. --}}
     <meta name="robots" content="index, follow">
 
+    {{-- Token tema (brand + warna) harus ada sebelum renderer-styles, karena
+         seluruh warna @orion-* di renderer merujuk ke var(--color-*). --}}
+    @include('publik.partials.theme-vars')
+
     @include('pengaturan.partials.renderer-styles')
 
     <style>
