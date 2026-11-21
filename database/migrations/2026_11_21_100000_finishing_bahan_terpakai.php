@@ -24,11 +24,11 @@ use Illuminate\Support\Facades\Schema;
  *                             Contoh: 1 lembar styrofoam 100x200 cm = 0,5
  *                             lembar per m2 -> isi 0,5.
  *
- * Nilai qty_bahan_per_satuan SENGAJA tidak ditebak di migrasi ini. Ukuran
- * lembar styrofoam adalah fakta fisik yang hanya diketahui pemilik/operator;
- * menebaknya akan membuat stok bahan langsung menyimpang dari fisik. Migrasi
- * hanya MENAUTKAN finishing bernama "styrofoam" ke bahan baku STYROFOAM,
- * sehingga admin tinggal mengisi satu angka di master Finishing.
+ * angka ini karena ukuran lembar adalah fakta fisik yang hanya diketahui
+ * pemilik/operator. Setelah owner mengonfirmasi 1 lembar = 100x200 cm,
+ * faktor 0,5 lembar/m2 diisi oleh migrasi lanjutan
+ * 2026_11_21_100100_finishing_styrofoam_faktor.php. Migrasi ini hanya
+ * MENAUTKAN finishing bernama "styrofoam" ke bahan baku STYROFOAM.
  *
  * Aditif murni: tidak ada kolom lama yang diubah/dihapus. Selama faktor masih
  * NULL, alur order berjalan persis seperti sebelumnya (tidak ada pemotongan

@@ -74,13 +74,43 @@ faktor 0,5 lembar/m², harga bahan 65.000/lembar →
 - `qty_pakai` finishing 0,24 m²; `biaya` 8.400
 - reversal mengembalikan stok ke 10 dan snapshot hilang; panggilan kedua tidak mengembalikan lagi
 
+## Konfirmasi owner & kondisi lapangan 21 November 2026
+
+- Ukuran fisik 1 lembar styrofoam: **100 × 200 cm = 2 m²** → faktor
+  `qty_bahan_per_satuan = 0,5 lembar per m²`. Faktor diisi otomatis oleh
+  migrasi `2026_11_21_100100_finishing_styrofoam_faktor.php` (hanya baris yang
+  masih kosong; konfigurasi manual admin tidak ditimpa).
+- Order `ORG-20261121-002` (id_transaksi 668, 80×40 cm = 0,32 m², 11.200
+  finishing, stok saat order belum di-adjust) diputuskan **TIDAK dikoreksi**.
+  Fitur mulai berlaku untuk order baru setelah migrasi dijalankan.
+- Data dev saat pemeriksaan: stok 2 lembar dari `ADJUSTMENT` 09:32
+  "Recheck Stock"; `qty_pakai` finishing masih NULL, belum ada `kartu_stok OUT`
+  maupun snapshot bahan 150; `hpp_snapshot` 4.505,53 baru FRONTLITE + tinta.
+- Contoh order baru 0,32 m² dengan faktor 0,5: pakai **0,16 lembar**, sisa
+  **1,84 lembar**, HPP bertambah **10.400** → **14.905,53**. Tagihan tetap
+  11.200. Order uji 60×40 cm (0,24 m²) memotong 0,12 lembar.
+
 ## Yang masih perlu input operator
 
-`qty_bahan_per_satuan` untuk finishing **Styrofoam Mockup** belum diisi karena
-ukuran fisik satu lembar styrofoam tidak ada di data maupun source. Isi di
-master Finishing, misalnya untuk lembar 100×200 cm → **0,5 lembar per m²**.
-Selama kolom itu kosong, perilaku finansial/stok persis seperti sebelum
-perbaikan (tidak ada potongan stok baru yang menebak-nebak).
+Tidak ada angka yang perlu ditebak lagi. Operator hanya perlu **menjalankan
+dua migrasi** di lingkungan dev/sintetis (agen tidak menjalankan migrasi yang
+mengubah DB):
+
+```
+php artisan migrate --path=database/migrations/2026_11_21_100000_finishing_bahan_terpakai.php
+php artisan migrate --path=database/migrations/2026_11_21_100100_finishing_styrofoam_faktor.php
+```
+
+Verifikasi singkat setelah migrasi:
+
+```
+php artisan tinker
+>>> DB::table('finishing')->where('nama_finishing','like','%tyrofoam%')->get(['id_finishing','id_bahan','qty_bahan_per_satuan'])
+// harus: id_bahan = 150, qty_bahan_per_satuan = 0.5000
+```
+
+Bila ingin mengubah ukuran lembar di kemudian hari, cukup edit field
+**Qty Bahan / Satuan Hitung** di master Finishing — tidak perlu migrasi baru.
 
 ## Batasan lain
 
