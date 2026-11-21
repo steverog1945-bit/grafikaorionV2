@@ -62,7 +62,7 @@ hasilnya, agar ada-eyed independen.
 |-------------|-----------|
 | Verifikasi independen | Tidak ada mata kedua yang mengonfirmasi "106+4 tabel, batch 85, 0 error" |
 | Deteksi kesalahan operator | Satu orang bisa salah baca output dan tetap menyatakan "sukses" |
-| Jejak audit |，若 nama sama, tidak bisa dibuktikan siapa melakukan apa |
+| Jejak audit |, jika nama sama, tidak bisa dibuktikan siapa melakukan apa |
 
 ### Yang TIDAK saya lakukan
 
@@ -75,7 +75,7 @@ hasilnya, agar ada-eyed independen.
 | Opsi | feasibilitas |
 |------|--------------|
 | Ganti verifier jadi orang lain | Paling bersih — **disarankan** |
-| Verifikasi otomatis terprogram (query基) menggantikan mata kedua | Sudah disiapkan (Bagian 9) — mengurangi subjective |
+| Verifikasi otomatis terprogram (berbasis query) menggantikan mata kedua | Sudah disiapkan (Bagian 9) — mengurangi subjective |
 | Setuju dengan verifikasi yang sama orang, dicatat sebagai kelemahan | Jika tak ada pilihan, catat eksplisit di formulir |
 
 **Rekomendasi saya: ganti verifier.** Formulir Bagian 12 menyediakan baris
@@ -126,11 +126,11 @@ PowerShell adalah WIB.
 | **Restore-verify ke DB terisolasi** | **~2–5 menit** |
 | Approval final bertanda tangan | belum ada |
 
-Butuh **minimal 15–30 menit** dari awal untuk窗口 yang aman. Jendela 12:00 sudah
+Butuh **minimal 15–30 menit** dari awal untuk jendela yang aman. Jendela 12:00 sudah
 tidak realistis — **perlu dijadwalkan ulang**.
 
 > **Permintaan eksplisit: jadwalkan ulang ke slot yang memungkinkan.**
-> Contoh:错 reservation window dengan minimal 30 menit dan operator + verifier
+> Contoh: salah reservation window dengan minimal 30 menit dan operator + verifier
 > yang sudah terkonfirmasi ada.
 
 ---
@@ -700,7 +700,7 @@ Dampak pengguna: **≈ 0 detik**.
 
 ---
 
-## LAMPIRAN A — Verifikasi环境
+## LAMPIRAN A — Verifikasi lingkungan
 
 ```
 $ git rev-parse HEAD

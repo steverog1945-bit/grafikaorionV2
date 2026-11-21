@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-[1600px] mx-auto">
-    <x-page-header title="Kategori Kas Kecil" subtitle="Daftar kategori pemasukan &amp; pengeluaran kas kecil - dipakai sebagai pilihan tetap saat mencatat">
+    <x-page-header title="Kategori Kas Kecil" subtitle="Daftar kategori pemasukan & pengeluaran kas kecil - dipakai sebagai pilihan tetap saat mencatat">
         <x-slot:actions>
             <x-button onclick="openTambahModalKategoriKasKecil()">
                 <i class="fas fa-tags"></i>

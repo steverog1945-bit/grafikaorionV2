@@ -1,6 +1,6 @@
 /* BANDINGKAN STRUKTUR MARKUP ANTAR HALAMAN MASTER
 
-  Pengukuran computed style혀리 menunjukkan lima dari enam halaman
+  Pengukuran computed style menunjukkan lima dari enam halaman
   yang disebut user identik. Jadi yang membuatnya terasa "beda"
   bukan gaya terhitung - tapi STRUKTUR: halaman mana yang memakai
   komponen bersama (<x-table>, <x-page-header>) dan mana yang

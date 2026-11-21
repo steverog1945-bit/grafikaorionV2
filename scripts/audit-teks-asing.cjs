@@ -1,12 +1,12 @@
 /* PINDAI SELURUH KODE UNTUK TEKS ASING
 
   Script sebelumnya hanya mencari daftar kata curiga. Yang lebih
- 、全面 dan tidak bisa lolos dari daftar: karakter dari sistem
+ lengkap dan tidak bisa lolos dari daftar: karakter dari sistem
   tulisan lain. Kalau ada CJK, Cyrillic, atau Arab di dalam komentar
   kode PHP/JS/CSS, itu hampir pasti bukan disengaja - bahasa ini
   tidak memakainya.
 
- 出力 yang diabaikan: file vendor (memang来自 luar), dan string
+ Yang diabaikan: file vendor (memang dari luar), dan string
   yang memang data contoh.
 */
 

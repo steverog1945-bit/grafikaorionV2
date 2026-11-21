@@ -1,10 +1,10 @@
 /* Audit TAG HTML YANG TIDAK DITUTUP
 
   Tag yang tidak ditutup bukan sekadar salah ketik. Parser HTML tidak
-  melempar error: dia memperpanjang tag itu sampai字符 '>' berikutnya,
+  melempar error: dia memperpanjang tag itu sampai karakter '>' berikutnya,
   dan '</div>' di baris berikutnya ikut(termasuk. Akibatnya satu
   elemen tidak pernah tertutup, dan seluruh isi setelahnya bergeser
-  satu level - memunculkan全新的 gejala di tempat yang jauh dari
+  satu level - memunculkan gejala baru di tempat yang jauh dari
   penyebabnya.
 
   Kasus nyata sudah terjadi di penjualan/create.blade.php: satu <img>

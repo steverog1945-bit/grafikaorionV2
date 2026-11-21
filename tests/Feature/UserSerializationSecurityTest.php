@@ -64,7 +64,7 @@ class UserSerializationSecurityTest extends TestCase
     /**
      * Insert role via DB murni (TANPA Role::factory): definisi RoleFactory
      * memanggil fake()->unique() dua kali dan tick-nya hidup lintas-test
-     * dalam satu proses - pool元素nya terbatas sehingga OverflowException.
+     * dalam satu proses - pool elemennya terbatas sehingga OverflowException.
      */
     private function idRoleMurni(string $namaRole): int
     {

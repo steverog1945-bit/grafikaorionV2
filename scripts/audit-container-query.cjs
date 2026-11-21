@@ -6,7 +6,7 @@
                         ber-atribut @container
 
   Yang kedua diam-diam tidak berlaku kalau @container-nya tidak ada.
-  Tidak ada error, tidak ada peringatan di console - kartu просто turun
+  Tidak ada error, tidak ada peringatan di console - kartu cukup turun
   ke satu kolom dan halaman terlihat renggang. Sudah terjadi di
   resources/views/jasa-jahit/index.blade.php (tiga kartu ringkasan).
 

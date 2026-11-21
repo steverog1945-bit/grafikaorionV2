@@ -142,7 +142,7 @@ partial itu di `landing-page-public.blade.php` dengan tombol "Masuk".
 Tidak ada risiko lockout sama sekali.
 
 Rekomendasi: **Opsi A sekarang sebagai jaring pengaman, Opsi B sebelum 4D.3.**
-，我没看漏 — Opsi A saja tidak menutup celah "/ dibuka manual".
+, saya tidak melewatkan — Opsi A saja tidak menutup celah "/ dibuka manual".
 
 ---
 
@@ -206,7 +206,7 @@ bila muncul di dalam `DB::statement()`, `DB::unprepared()`, `DB::raw()`,
 word boundary dan file penjaga dikecualikan.
 
 #### Safeguard C — Guard phpunit.xml
-`phpunit.xml` harus berisi `percкетakan_erp_testing` dan tidak boleh berisi
+`phpunit.xml` harus berisi `percetakan_erp_testing` dan tidak boleh berisi
 `value="oriondb"`.
 
 #### Safeguard D — Larangan menyebut `oriondb` di kode test
@@ -328,7 +328,7 @@ Kolom Actual / PASS-FAIL / bukti / penguji / tanggal **wajib** diisi. Kosong = b
 | B34 | Flag ON | Buka homepage saat flag ON | Tidak error | | | | | |
 | B35 | Flag ON | Matikan flag + `config:clear` | Kembali ke homepage existing | | | | | |
 | B36 | Flag OFF | `php scripts/check_public_homepage.php ... existing` | `HASIL: SEHAT` | | | | | |
-| B37 | — | Alur ERP正常: kasir → SPK → produksi → pembayaran | Tidak ada regresi | | | | | |
+| B37 | — | Alur ERP normal: kasir → SPK → produksi → pembayaran | Tidak ada regresi | | | | | |
 
 ---
 
@@ -555,10 +555,10 @@ Published revision **sengaja tidak di-cache**. Alasannya:
 - Homepage adalah halaman publik dengan traffic tinggi, jadi caching memang
  midtahedral. Tapi belum ada **bukti** (tidak ada load test, tidak ada data
   traffic) yang membenarkan aggressive caching.
-- Menempelkan cache層 di `LandingPageRevision` berisiko menyajikan konten basi
+- Menempelkan lapisan cache di `LandingPageRevision` berisiko menyajikan konten basi
   setelah publish — dan belum ada mekanisme invalidasi yang teruji.
 - 60 detik `max-age` pada respons HTTP adalah titik tengah yang wajar:visitor
- Neighboran tidak”时强求 60 detik, dan rollback (perubahan env) tetap langsung
+ Neighboran tidak memaksakan 60 detik, dan rollback (perubahan env) tetap langsung
   berlaku karena `config:clear`.
 
 Kalau nanti perlu aggressive caching, prasyaratnya: load test + mekanisme
@@ -813,7 +813,7 @@ kredensial benar dan pencatatan audit.
 
 ### Aktifkan lebih awal?
 
-Tidak我自己 sarankan. Alasannya bukan 代码质量 — semuanya hijau. Alasan-nya
+Tidak saya sarankan. Alasannya bukan kualitas kode — semuanya hijau. Alasan-nya
 adalah dua hal yang **belum diuji dengan cara yang sama seperti pengguna
 memakai aplikasi**: browser sungguhan, dan database produksi. Menyalakan flag
 sebelum keduanya terbukti berarti_optimasi buta untuk masalah yang belum pernah

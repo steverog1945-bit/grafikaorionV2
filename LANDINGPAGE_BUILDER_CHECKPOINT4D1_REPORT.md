@@ -366,7 +366,7 @@ Tidak ada modul ERP yang gagal. Semua modul tetap hijau dalam full run — terma
 
 ### Insiden selama sesi (dicatat jujur)
 
-Dua kali guekahl的全 regression sempat melaporkan ratusan error (417 lalu 405). Penyebabnya **bukan** regresi kode: sebuah test versi awal saya menggunakan `DROP TABLE landing_pages` untuk menyimulasikan kegagalan database, dan test itu berjalan **bersamaan** dengan full-suite di background pada database testing yang sama. Dua proses PHPUnit saling menabrakkan `migrate:fresh`, jadi tabel hilang di tengah run.
+Dua kali run regression penuh sempat melaporkan ratusan error (417 lalu 405). Penyebabnya **bukan** regresi kode: sebuah test versi awal saya menggunakan `DROP TABLE landing_pages` untuk menyimulasikan kegagalan database, dan test itu berjalan **bersamaan** dengan full-suite di background pada database testing yang sama. Dua proses PHPUnit saling menabrakkan `migrate:fresh`, jadi tabel hilang di tengah run.
 
 Tindakan yang diambil:
 1. Test destruktif tersebut **dihapus** dan diganti pendekatan non-destruktif (`DB::disconnect`/`DB::reconnect`).
@@ -463,7 +463,7 @@ Kalau edit `.env` dianggap berisiko, disengaja tersedia fallback **data**: hapus
 
 ## 12. REMAINING BLOCKERS
 
-###阻断 cutover (harus selesai sebelum 4D.2)
+### Blokir cutover (harus selesai sebelum 4D.2)
 
 | Blocker | Severity | Kenapa penting |
 |---------|----------|----------------|
@@ -473,7 +473,7 @@ Kalau edit `.env` dianggap berisiko, disengaja tersedia fallback **data**: hapus
 | Cache invalidation belum dirancang | **MENENGAH** | Publish → cache perlu di-invalidate, supaya pengunjung tidak melihat konten basi. |
 | Verifikasi backup produksi | **MENENGAH** | Belum dicek apakah backup `oriondb` benar-benar bisa restore. |
 
-### Tidak阻断 (boleh dikerjakan setelah 4D.1)
+### Tidak memblokir (boleh dikerjakan setelah 4D.1)
 
 | Item | Severity |
 |------|----------|
@@ -506,7 +506,7 @@ Checkpoint berikutnya sebaiknya **tidak** langsung menyalakan flag. Isinya:
 4. **Verifikasi backup `oriondb`** benar-benar bisa di-restore (dry-run di mesin terpisah).
 5. **Catat sign-off** stakeholders (Administrator pemilik sistem, siapa yang menyetujui homepage baru).
 
-### 13.2”后 4D.2 — baru 4D.3 (Activation)
+### 13.2 Setelah 4D.2 — baru 4D.3 (Activation)
 
 Hanya setelah B1–B13 hijau, monitoring aktif, dan sign-off tercatat:
 `4D.3 — ACTIVATION WITH FLAG ON, FLAGIH-OFF FIRST` menyalakan flag di produksi **dengan** satu Published Revision yang sudah ditinjau, lalu memantau. Rollbackkeeping adalah satu variabel env.

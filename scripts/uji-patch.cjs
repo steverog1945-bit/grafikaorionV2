@@ -5,7 +5,7 @@
    sekarang, berarti patch-nya benar untuk folder lokal Anda.
 
    Bukan pengganti uji di browser - hanya membuktikan tidak ada pola
-   yang gagal贴 dan tidak ada perubahan lain yang ikut tersentuh. */
+   yang gagal menempel dan tidak ada perubahan lain yang ikut tersentuh. */
 
 const fs = require('fs');
 const path = require('path');

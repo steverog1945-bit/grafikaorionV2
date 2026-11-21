@@ -383,7 +383,7 @@ otomatis.
 
 ## 12. BLOCKER PRODUKSI YANG TERSISA
 
-### Ter解決 — tapi tetap perlu tindakan
+### Teratasi — tapi tetap perlu tindakan
 
 | # | Item | Status |
 |---|------|--------|
@@ -508,7 +508,7 @@ php artisan tinker --execute="echo config('landing_page_builder.enabled');"
 # harus: false — JANGAN nyalakan di tahap ini
 ```
 
-### 13.7 Backup ulang (WAJIB —很容易这一步被忽略)
+### 13.7 Backup ulang (WAJIB — langkah ini mudah terlewat)
 
 Setelah migrasi sukses, ambil backup baru. Tanpa ini, data landing page yang
 dibuat setelah go-live **tidak akan pernah ter-backup**.
@@ -558,7 +558,7 @@ Di 4E.2 statusnya BLOCKED karena tidak ada bukti eksekusi sama sekali. Sekarang:
 
 | Bukti | Status |
 |-------|--------|
-| Restore ke DB производisi-set | ✅ 1.710 detik, 0 error, 106 tabel, 119 FK |
+| Restore ke DB produksi-set | ✅ 1.710 detik, 0 error, 106 tabel, 119 FK |
 | Migrasi dijalankan nyata | ✅ 622.88 ms, 0 error |
 | 4 tabel terbentuk | ✅ |
 | 9 FK dengan `users.id_user` | ✅ **terbukti menegakkan aturan**, bukan hanya tercatat |

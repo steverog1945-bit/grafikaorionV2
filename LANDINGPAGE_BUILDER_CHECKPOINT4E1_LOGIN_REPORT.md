@@ -134,7 +134,7 @@ dipanggil sama sekali**. Konsekuensinya:
 
 Ini jaminan yang jauh lebih kuat daripada sekadar "fallback jika gagal".
 
-### Yang TIDAK的做法 (tidak dilakukan)
+### Yang TIDAK dilakukan (tidak dilakukan)
 
 - Tidak menulis ulang sistem autentikasi.
 - Tidak menambah sistem autentikasi baru.
@@ -147,7 +147,7 @@ Ini jaminan yang jauh lebih kuat daripada sekadar "fallback jika gagal".
 ### Penampilan `/masuk`
 
 Memakai `view('login')` yang sama persis dengan homepage — jadi form, dialog,
-CSRF, dan endpoint-nya **identik**, dijamin oleh构造 ulang, bukan duplikasi.
+CSRF, dan endpoint-nya **identik**, dijamin oleh struktur ulang, bukan duplikasi.
 Yang berbeda hanya `bukaMasuk` dipaksa `true`.
 
 ---
@@ -299,7 +299,7 @@ dan menolak, sehingga kemunculannya tercatat dan disengaja.
 | 13 | Role-based access | ✅ | `skenario_13_...`, `13b` |
 | 14 | Pintu masuk di builder | ✅ | `skenario_14_...` |
 | 15 | Pintu masuk flag OFF utuh | ✅ | `skenario_15_...` |
-| 16 | Pintu masuk通往 endpoint berform | ✅ | `skenario_16_...` |
+| 16 | Pintu masuk menuju endpoint berform | ✅ | `skenario_16_...` |
 | 16b | **Builder tidak bocorkan form** | ✅ | `skenario_16b_...` |
 | 17 | Tidak ada redirect loop | ✅ | `skenario_17_...`, `17b`, `17c` |
 | 18 | Homepage existing utuh | ✅ | `skenario_18_...`, `18b` |
@@ -365,7 +365,7 @@ diganti oleh **dua** test (`memiliki_pintu_masuk` + `tidak_membocorkan_form`).
 ### 3 test existing yang harus diperbarui
 
 Semuanya mengunci kontrak route **lama**. Saya perbarui — dan satu di antaranya
-justru **menangkap安全问题 baru**:
+justru **menangkap masalah keamanan baru**:
 
 1. **`MatriksRuteKeamananTest`** — security allowlist ERP menangkap `GET /masuk`
    sebagai rute publik tak terduga. Saya daftarkan secara eksplisit. Ini bukti
@@ -581,7 +581,7 @@ php scripts/check_public_homepage.php http://localhost/grafikaorion/ existing
 Staff lockout **teratasi**: `route('login')` kini selalu menunjuk `/masuk`,
 endpoint yang form login-nya selalu ada tanpa syarat flag.
 
-**55 test**专门 menunggu perbaikan ini (32 baru + 23 diperbarui).
+**55 test** khusus menunggu perbaikan ini (32 baru + 23 diperbarui).
 **Full ERP regression: 1085 tests / 5006 assertions / 0 failures / 0 errors.**
 
 Flag tetap **OFF**. `oriondb` **tidak dimodifikasi**. Public cutover **tidak

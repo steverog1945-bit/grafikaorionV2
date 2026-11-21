@@ -110,7 +110,7 @@ disarankan.
 
 ---
 
-## 4.、明 Verifikasi pascab-rollback
+## 4. Verifikasi pascarollback
 
 - [ ] `php artisan config:clear` selesai tanpa error
 - [ ] Health check `HASIL: SEHAT`

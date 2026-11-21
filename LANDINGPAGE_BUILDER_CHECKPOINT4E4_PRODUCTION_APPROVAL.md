@@ -176,7 +176,7 @@ Harus **tepat 1**:
 2026_10_08_233154_create_landing_page_builder_tables ....... Pending
 ```
 
-> ⚠️ **HATI-HATI误判.** Nama migration
+> ⚠️ **HATI-HATI salah penilaian.** Nama migration
 > `2026_09_11_190000_add_pending_status_to_transaksi_detail` mengandung kata
 > "pending" tapi statusnya `Ran`.-filter dengan `\s*Pending\s*$`, bukan `Pending`.
 
@@ -391,7 +391,7 @@ mysql -h 127.0.0.1 -u root oriondb_restore_verify -e "
 
 ```bash
 # lewat UI /backup → "Jalankan Backup Manual"
-# atau等价 dengan:
+# atau setara dengan:
 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
 & "C:\xampp\mysql\bin\mysqldump.exe" --host=127.0.0.1 --user=root `
   --single-transaction --routines --triggers oriondb `
@@ -682,7 +682,7 @@ php scripts/check_public_homepage.php https://<domain> existing
 
 ## 10. BACKUP PASCA-MIGRASI
 
- 见 **BC-7** di Bagian 5.
+ Lihat **BC-7** di Bagian 5.
 
 Checklist:
 - [ ] Backup pasca-migrasi dibuat
@@ -704,14 +704,14 @@ tidak mengubah tabel ERP, tidak mengubah homepage.
 **Jika migrasi sukses tapi ada masalah: biarkan tabelnya.** Tabel kosong tidak
 mengganggu. Perbaiki masalahnya secara forward.
 
-### 🥈 Kalau perluurz entfernen
+### 🥈 Kalau perlu dihapus
 
 | Skenario | Tindakan |
 |----------|----------|
 | Migrasi sukses, aplikasi error | `php artisan up`. Investigasi log. **Forward fix.** |
 | Migrasi parsial (F6) | **STOP.** Periksa `information_schema`. Lengkapi manual satu per satu. **JANGAN** `migrate:rollback`. |
 | Data landing page terlanjur salah | Restore dari backup **pasca-migrasi** (bukan pra-migrasi) — atau hapus baris secara selektif. |
-| Total tidak指挥官 | Restore dari backup pra-migrasi (restore verify dulu, tidak langsung ke `oriondb`). |
+| Total gagal | Restore dari backup pra-migrasi (restore verify dulu, tidak langsung ke `oriondb`). |
 | Batalkan seluruh fitur | Set flag `false`. **Migrasi boleh tetap ada.** |
 
 ### 🚫 Yang TIDAK boleh
@@ -730,7 +730,7 @@ mengganggu. Perbaiki masalahnya secara forward.
 ┌─────────────────────────────────────────────────────────────┐
 │  GATE A — Migrasi Database Produksi                          │
 │  Status: ☐ BELUM DISETUJUI                                   │
-│  попучает → database oriondb berubah skema (+4 tabel)       │
+│  mendapatkan → database oriondb berubah skema (+4 tabel)    │
 └─────────────────────────────────────────────────────────────┘
                               ↓
               ⚠️ GATE A TIDAK MENGIZINKAN GATE B ⚠️
